@@ -1,0 +1,356 @@
+/*
+ * Copyright (c) 2006-2009 Sun Microsystems, Inc.
+ * Copyright (c) 2008-2011 Hasso Plattner Institute
+ *
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+ometa LKFileParser <: Parser {
+    isLKParser -> true,
+  
+    /* helper productions */
+    halt -> { dbgOn(true) },
+    log :msg -> { console.log(msg); true },
+    logPos -> { console.log(this.pos()); true },
+	emptyLine =
+		( space:x ?(x != '\n' && x != '\r') )* nl
+		-> { '\n' },
+	emptyLines = emptyLine*,
+    whereAreYou -> {
+	var charsBefore = 120; var charsAfter = 120; var src = this._originalInput.arr;
+	var startIndex = Math.max(0, this.pos() - charsBefore);
+	var stopIndex = Math.min(src.length, this.pos() + charsAfter);
+	console.log(src.substring(startIndex, this.pos()) + '<--I am here-->' + src.substring(this.pos(), stopIndex));
+                             console.log('Rules: ' + this._ruleStack);
+                             console.log('Stack: ' + this.stack);
+                             true
+	},
+    fromTo :x :y =
+	seq(x) (~seq(y) char)*:cs seq(y) -> cs,
+    stackSize -> { this.stack.length },
+	num :x -> { this.stack.select(function(ea) { return ea === x }).length },
+	getStack -> { this.stack.clone() },
+	assignStack :s -> { this.stack = s },
+	startTime -> { /*console.log('start measuring time'); new Date().getTime()*/ },
+	stopTime :t -> { /*console.log('time: ' + (new Date().getTime()-t) + ' ms');*/ true},
+	open :x = add(x) -> { x},
+	close :x :y =
+	add(y) remove(y) remove(x) -> { y},
+	add :x = exactly(x) -> { this.stack.push(x) },
+	remove :x -> {
+	if (this.stack.length == 0) {
+		this.whereAreYou();
+		throw new Error('Stack is empty, cannot remove ' + x);
+	};
+	var rem = this.stack.pop();
+	if (rem !== x) {
+		this.whereAreYou();
+		throw new Error('Unmatched ' + x + 'at: ' + this.pos() + ' instead found ' + rem + '; stack: ' + this.stack);
+	};
+	true
+},
+	everythingBut :x :y =
+	~exactly(x) ~exactly(y) anything:a -> a,
+	nonRecursive :x :y =
+	getStack:s open(x) everythingBut(x,y)*:a close(x, y) -> { x+ a.join('') + y }
+	| assignStack(s) -> { this._manualFail() },
+	recursive :x :y =
+	getStack:s open(x) (  everythingBut(x,y) | recursive(x,y) )*:a close(x, y) -> { x+ a.join('') + y }
+	| assignStack(s) -> { this._manualFail() },
+	chunk :x :y =
+	basicChunk(x,y):a
+	/*~~exactly(x) (nonRecursive(x,y) | recursive(x,y)):a*/
+	-> a,
+	
+/*	chunkWith :x :y :p  = ~~exactly(x) ( open(x) num(x):n ( apply(p, 'a') )*:a close(x,y)              -> { x+ a.join('') + y }
+	                    | remove(x) ),*/
+	somethingRelated =
+	~end (~'\n' ~'\r' ~';' anything)*,
+	somethingBigRelated =
+	~end (
+		chunk('(', ')')
+		| chunk('{', '}')
+		| chunk('[', ']')
+		| chunk('\'', '\'')
+		| chunk('"', '"')
+		| spaces '+' spaces
+		| ~',' ~';' ~'(' ~'{' ~'[' ~'\'' ~'"' ~nl anything )*,
+	defEnd = ';' '\n' | ';' spaces | "",
+	classElemDefEnd = "," | "",
+	
+	/* basic string processing */
+	space =
+	super(#space) | fromTo('//', '\n') | fromTo('/*', '*/'),
+    nl = '\n' | '\r' -> '\n',
+	spacesNoNl = (~nl space)*:spcs -> spcs,
+	nameFirst = letter | '$' | '_',
+  	nameRest = nameFirst | digit,
+  	iName = firstAndRest(#nameFirst, #nameRest):r -> r.join(''),
+  	isKeyword :x = ?BSJSParser._isKeyword(x),
+  	name = iName:n /*~isKeyword(n)*/ -> n,
+  	keyword = iName:k isKeyword(k) -> k,
+	namespaceIdSplitted = name:n '.' namespaceIdSplitted:r              -> { [n].concat(r) }
+	                    | name:n                                        -> { [n] },
+	namespaceId =
+	namespaceIdSplitted:nArr
+	-> nArr.join('.'),
+	nsFollowedBy :x =
+	namespaceIdSplitted:nArr ?(nArr.last() === x)
+	-> nArr.slice(0,nArr.length-1).join('.'),
+	nsWith :x =
+	namespaceIdSplitted:nArr ?nArr.include(x)
+	-> {
+		var i = nArr.indexOf(x);
+		{
+			before: nArr.slice(0,i).join('.'),
+			after: nArr.slice(i+1,nArr.length).join('.')
+		}
+	},
+    
+    /* functions */
+    basicFunction =
+	"function" spaces
+	(name:n | empty)
+	chunk('(', ')') spaces chunk('{', '}')
+	-> n,
+    func =
+	basicFunction:fn
+	| "var" (space)+ name:fn spaces '=' spaces basicFunction
+	-> fn,
+    functionDef =
+	pos:p ( func:fn | '(' func:fn ')' ) somethingRelated defEnd
+	-> { this._fragment(fn, 'functionDef', p, this.pos()-1) },
+    
+    staticProperty =
+	pos:p spacesNoNl
+	namespaceIdSplitted:nsArr ?(nsArr.length > 1) spaces '='
+	somethingBigRelated defEnd
+	-> {
+		this._fragment(
+			nsArr.last(),
+			'staticProperty',
+			p, this.pos()-1,
+			null,
+			{ className: nsArr.slice(0,nsArr.length-1).join('.'), _isStatic: true }
+		)},
+    
+	/* methods */
+    methodModificationDef =
+		pos:p spacesNoNl
+		nsWith('prototype'):spec spaces '='
+		spaces somethingBigRelated defEnd
+		-> {this._fragment(
+			spec.after,
+			'methodModificationDef',
+			p,
+			this.pos()-1,
+			null,
+			{className: spec.before, _isStatic: false})},
+    
+    /* properties */    
+    protoDef =
+		pos:p spacesNoNl (name | nameString):pName spaces ':' spaces
+		(basicFunction (somethingBigRelated | empty )
+		| somethingBigRelated
+		) classElemDefEnd
+		-> {
+			this._fragment(pName, 'protoDef', p, this.pos()-1, null, {_isStatic: false})
+		},
+getterOrSetter =
+		pos:p spacesNoNl ("get" | "set") spaces name:pName chunk('(', ')') spaces chunk('{', '}') classElemDefEnd
+		-> {
+			this._fragment(pName, 'protoDef', p, this.pos()-1, null, {_isStatic: false})
+		},
+
+
+	propertyDef =
+		(protoDef | methodModificationDef | staticProperty | getterOrSetter):spec
+		-> {spec.type = 'propertyDef'; spec},
+
+                                    
+    /* class stuff */
+	classElems =
+	(categoryDef:defs classElemDefEnd ->defs)+:allDefs
+	-> allDefs.invoke('subElements').flatten(),
+categoryDef =
+	spaces pos:p category:catName 
+	(classElemsInCategory:defs classElemDefEnd -> defs)+:allDefs
+	-> {
+		var classElemDefs = allDefs.flatten();
+		var catDef = this._fragment(catName, 'categoryDef', p, this.pos()-1, classElemDefs);
+		classElemDefs.collect(function(def) { def.category = catDef; return def });
+		catDef
+	},
+
+category =
+	(
+	  categoryName:name spaces ',' -> name
+	| empty -> { Function.defaultCategoryName }
+	),
+
+categoryName =
+	( fromTo('\'', '\'') | fromTo('"', '"') ):name -> name.join(''),
+
+classElemsInCategory =
+	spaces ('{' ( emptyLines propertyDef:pD emptyLines -> pD)*:defs spaces '}')
+	-> defs,
+
+	restKlassDef =
+	',' spaces classElems:descriptors								-> { {classElems: descriptors} }
+	| (',' spaces (realTraitReference | klass))+:traits ',' spaces classElems:descriptors	-> { {traits: traits, classElems: descriptors} }
+	| (',' spaces (realTraitReference | klass))+:traits									-> { {traits: traits, classElems: []} }
+	| ',' token('{') spaces token('}')								-> { {classElems: []} }
+	| spaces														-> { {classElems: []} },
+	klass 	            = namespaceId,
+	nameString = spaces ( '\'' | '"') klass:n ( '\'' | '"') spaces	-> n,
+    klassDef =
+	pos:p nsFollowedBy("subclass"):sName '(' nameString:kName restKlassDef:spec ')' defEnd
+	-> {
+		var categories = [];
+		spec.classElems.forEach(function(ea) {
+			ea.className = kName;
+			if (ea.category) categories.push(ea.category);
+		});
+		categories = categories.uniq()
+		this._fragment(
+			kName,
+			'klassDef',
+			p,
+			this.pos()-1,
+			spec.classElems,
+			{traits: spec.traits, superclassName: sName, categories: categories})
+	},
+    basicKlassExt =
+	"Object.extend" '(' klass:n restKlassDef:spec token(')')
+	-> {
+		spec.classElems.forEach(function(ea) { ea.className = n; ea._isStatic = true });
+		{name: n, traits: spec.traits, subElements: spec.classElems } }
+|	(nsFollowedBy("addMethods"):n | nsFollowedBy("addProperties"):n) '(' classElems:clElems spaces ')'
+	-> {
+		clElems.forEach(function(ea) { ea.className = n; ea._isStatic = false });
+		{name: n, subElements: clElems } }
+|	"layerClass" '(' namespaceId:layerName spaces ',' spaces klass:n restKlassDef:spec token(')')
+	-> {
+		spec.classElems.forEach(function(ea) {
+			ea.layerName = layerName;
+			ea.className = n;
+			ea._isStatic = false });
+		{name: n, layerName: layerName, subElements: spec.classElems } }
+|	"layerObject" '(' namespaceId:layerName spaces ',' spaces klass:n restKlassDef:spec token(')')
+	-> {
+		spec.classElems.forEach(function(ea) {
+			ea.layerName = layerName;
+			ea.className = n;
+			ea._isStatic = true });
+		{name: n, layerName: layerName, subElements: spec.classElems } },
+    klassExtensionDef
+	= pos:p basicKlassExt:spec defEnd
+	-> {
+		// FIXME duplication with klassDef!!!
+		var categories = [];
+		spec.subElements.forEach(function(ea) {
+			ea.className = spec.name;
+			if (ea.category) categories.push(ea.category);
+		});
+		categories = categories.uniq()
+		this._fragment(
+			spec.name,
+			'klassExtensionDef',
+			p, this.pos()-1,
+			spec.subElements,
+			{traits: spec.traits, categories: categories})
+	},
+    
+    /* 'object' stuff */
+    restObjDef = classElems:propsAndMethodDescrs spaces
+-> { propsAndMethodDescrs.forEach(function(ea) { ea._isStatic = true }); propsAndMethodDescrs },
+    objectDef = pos:p ( "var" spaces namespaceId:o | namespaceId:o) spaces '=' spaces restObjDef:propsAndMethodDescrs defEnd
+-> { this._fragment(o, 'objectDef', p, this.pos()-1, propsAndMethodDescrs) },
+    
+    /* ometa stuff */
+    ometaParameter = ':' name:n spaces       -> n,
+    ometaParameters =  ometaParameter*,
+    ometaRuleDef =
+	pos:p name:n spaces ometaParameters:a ('=' | "->")
+	(~','
+		(chunk('(', ')')
+	|	chunk('{', '}')
+	| 	chunk('\'', '\'')
+	|	chunk('"', '"')
+	|	chunk('[', ']')
+	| 	~'}' anything
+	))*:body
+	( ',' | empty )
+	-> { this._fragment(n, 'ometaRuleDef', p, this.pos()-1, [], {parameters: a}) },
+    ometaInherit = "<:" spaces name:sn -> sn
+						| empty -> { null },
+    ometaDef =
+	pos:p "ometa" spaces name:n space ometaInherit:sn spaces
+	'{' spaces (ometaRuleDef:d spaces -> d)*:defs spaces '}' defEnd spaces
+	-> { this._fragment(n, 'ometaDef', p, this.pos()-1, defs, {superclassName: sn}) },
+                        
+                    
+    /* otherStuff */
+    // comment     = descriptor:d spacesNoNl /*(fromTo('//', '\n') | fromTo('/*', '*/')) spacesNoNl*/   -> { d.stopIndex = this.pos()-1; d.type = 'comment'; d },
+    comment = pos:p space+ -> { this._fragment(null, 'comment', p, this.pos()-1) },
+    
+    blankLine = pos:p (nl | (char:c ?(c.charCodeAt(0) === 32))* nl) -> { this._fragment(null, 'blankLine', p, this.pos()-1) },
+copDef =
+	pos:p "cop.create(" nameString:n ")" spacesNoNl nl* copSubElement*:subs spaces defEnd
+	-> { this._fragment(n, 'copDef', p, this.pos()-1, subs) },
+copSubElement =
+	pos:p spaces '.'
+	( copRefinement
+	| somethingBigRelated:blob -> {name: blob.flatten().join('').replace('\n', ''), subElementSpec: {}}
+	):spec
+	-> { this._fragment(spec.name, 'copSubElement', p, this.pos()-1, spec.subElementSpec.classElems,
+		{traits: spec.subElementSpec.traits, refineSelector: spec.refineSelector}) },
+copRefinement = 
+	( "refineClass" | "refineObject" ):sel '(' klass:n restKlassDef:spec ')'
+	-> { {name: n, refineSelector: sel, subElementSpec: spec} },
+traitDef =
+	pos:p "Trait(" nameString:n restKlassDef:spec ")" spacesNoNl nl* traitSubElement*:subs spaces defEnd
+	-> { this._fragment(n, 'traitDef', p, this.pos()-1, spec.classElems.concat(subs)) },
+realTraitReference = "Trait(" nameString:n ")" -> n,
+
+traitSubElement =
+	pos:p spaces '.' traitApplication:spec
+	-> { this._fragment(spec.name, 'traitSubElement', p, this.pos()-1, spec.subElementSpec.classElems) },
+
+traitApplication = 
+	"applyTo" '(' klass:n restKlassDef:spec ')'
+	-> { {name: ' -> ' + n, subElementSpec: spec} },
+
+    unknown = pos:p somethingBigRelated defEnd -> { this._fragment(null, 'unknown', p, this.pos()-1) }
+                        
+};
+
+
+
+LKFileParser.stack = [];
+LKFileParser._manualFail = function() { throw Global.fail };
+LKFileParser._fragment = function(name, type, startIndex, stopIndex, subElems, custom) {
+    var klass = lively.ide.FileFragment; // to convince ometa, fix needed here
+    var ff = new klass(name, type, startIndex, stopIndex, null, subElems);
+    if (custom)
+		Object.extend(ff, custom);
+    return ff;
+};
+LKFileParser;

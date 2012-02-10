@@ -1,0 +1,394 @@
+/*
+ * Copyright (c) 2006-2009 Sun Microsystems, Inc.
+ * Copyright (c) 2008-2011 Hasso Plattner Institute
+ *
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+ometa SmalltalkParser <: Parser {
+  
+/*-----------------------------
+----- recognizing tokens ------
+------------------------------*/	
+space =
+  super(#space) | fromTo('"', '"'),
+  
+identifier =
+  letter:x letterOrDigit*:xs
+  -> [x].concat(xs).join(''),
+
+unaryId =
+  spaces identifier:x ~':'
+  -> x,
+
+binaryOp =
+  spaces (char:c ?(SmalltalkParser.isBinaryChar(c)) -> c)+:cs
+  -> cs.join(''),
+  
+keywordPart =
+  spaces identifier:x ':'
+  -> {x + ':'},
+
+variable =
+  spaces identifier:name
+  -> { new StVariableNode(name) },
+
+instanceVariable =
+  token('@') identifier:name
+  -> { new StInstanceVariableNode('@' + name) },
+
+literal =
+  (symbolLiteral | stringLiteral | numberLiteral):v
+  -> { new StLiteralNode(v) },
+
+numberLiteral =
+  ('+' -> 1 | '-' -> {-1} | empty -> 1):sign digit+:num1 ('.' digit+ | empty -> '0'):num2
+  -> {sign * Number(num1.concat(['.']).concat(num2).inject('', function(num, ea) { return num + ea })) },
+
+stringLiteral =
+  '\'' (token('\'\'') -> '\'' | ~'\'' char)*:val '\''
+  -> val.join(''),
+
+symbolLiteral =
+  token('#') (identifier | stringLiteral):name
+  -> name,
+
+constantArray =
+  token('#(')
+  (identifier:i -> { new StLiteralNode(i)} | symbolLiteral | numberLiteral | constantArray)*:elements
+  token(')')
+  -> { new StArrayLiteralNode(new StSequenceNode(elements)) },
+
+arrayLiteral =
+  token('#{') sequence:seq token('}')
+  -> { new StArrayLiteralNode(seq) },
+
+/*-----------------------------
+--------- expressions ---------
+------------------------------*/
+primary =
+  spaces (variable
+        | instanceVariable
+        | constantArray
+        | arrayLiteral
+        | literal
+        | '(' expression:e ')' -> e
+        | block),
+
+expression =
+  exit | cascade | assignment | evaluation,
+
+exit =
+  token('^') expression:e
+  -> { new StReturnNode(e) },
+
+assignment =
+  (variable | instanceVariable):variable token(':=') expression:value
+	-> { new StAssignmentNode(variable, value) },
+
+cascade =
+	evaluation:first (token(';') message)+:msgNodes
+	-> {
+		if (!first.isMessage) throw(new Error('First part of cascade not message'));
+		var receiver = first.receiver;
+		msgNodes = [first].concat(msgNodes);
+		msgNodes.forEach(function(ea) { ea.receiver = receiver });
+		new StCascadeNode(msgNodes, receiver);
+	},
+
+evaluation =
+  keywordSend,
+
+message =
+  (keywordMsg | binaryMsg | unaryMsg),
+
+unarySend =
+  primary:rec unaryMsg*:msgNodes
+	-> {msgNodes.inject(rec, function(receiver, node) {
+	    node.setReceiver(receiver); return node }) },
+
+unaryMsg =
+	unaryId:name
+	-> { new StUnaryMessageNode(name, null, null) },
+
+binarySend =
+	unarySend:rec binaryMsg*:nodes
+	-> { nodes.inject(rec, function(receiver, node) {
+		node.setReceiver(receiver); return node }) },
+
+binaryMsg =
+	binaryOp:name unarySend:arg
+	-> { new StBinaryMessageNode(name, [arg], null) },
+
+keywordSend =
+	binarySend:rec keywordMsg:msgNode
+	-> { msgNode.setReceiver(rec); msgNode }
+	| binarySend,
+
+keywordMsg =
+	(keywordPart:keyword binarySend:arg -> [keyword, arg])+:partsAndArgs
+	-> {
+		var name = '', args = [];
+		partsAndArgs.forEach(function(ea) { name += ea[0]; args.push(ea[1]) });
+		new StKeywordMessageNode(name, args, null);
+	},
+
+block =
+	token('[')
+	opt(#blockArgs):args
+	opt(#declaredVars):declared
+	opt(#sequence):s
+	token(']')
+	-> { new StInvokableNode(s, args, declared) },
+
+blockArgs =
+	(token(':') identifier:arg -> arg)+:args token('|')
+	-> args,
+
+/*-----------------------------
+------- method related  -------
+------------------------------*/
+sequence =
+  (expression:e ( token('.') | empty ) -> e)+:children
+  -> { new StSequenceNode(children) },
+
+declaredVars =
+  token('|') (variable:v)*:vars token('|')
+  -> vars,
+
+propertyOrMethod =
+  pos:start spaces ('-' -> false | '+' -> true):isMeta (property:p token('.') -> p | method):node pos:end spaces
+  -> {  node.setMeta(isMeta);
+		node.type = 'propertyOrMethod';
+		node.startIndex = start;
+		node.stopIndex = end-1;
+		node
+	},
+  
+property =
+  assignment:assgn
+  -> { new StPropertyNode(assgn) },
+
+  
+method =
+	methodNameAndArgs:nameAndArgs (primitiveBody | stMethodBody):methodNode
+	-> {
+		methodNode.setMethodName(nameAndArgs[0]);
+		methodNode.setArgs(nameAndArgs[1]);
+		methodNode
+	},
+
+stMethodBody =
+  opt(#declaredVars):vars opt(#sequence):seq
+	-> { new StInvokableNode(seq, null, vars) },
+
+primitiveBody =
+	token('{') spaces stMethodBody:body spaces token('}') (token('.') | empty)
+	-> { new StPrimitveMethodNode(null, body) },
+
+
+methodNameAndArgs =
+	((keywordPart:keyword spaces identifier:arg -> [keyword, arg])+:partsAndArgs
+		-> {var name = ''; var args = [];
+			partsAndArgs.forEach(function(ea) { name += ea[0]; args.push(ea[1]) });
+			[name, args]}
+	| binaryOp:msgName spaces identifier:arg -> [msgName, [arg]]
+	| unaryId:msgName -> [msgName, null]
+	),
+
+/*-----------------------------
+-------- class related  -------
+------------------------------*/
+smalltalkClass =
+	pos:p token('<') (identifier:n -> {new StLiteralNode(n)}):name ( token(':') variable:superclass | empty) token('>')
+	spaces propertyOrMethod*:methodsAndProperties spaces
+	-> { var klass = new StClassNode(name, methodsAndProperties, superclass);
+		klass.type = 'smalltalkClass'
+		klass.startIndex = p;
+		klass.stopIndex = this.pos()-1;
+		klass
+	},
+
+smalltalkClasses =
+	pos:p (smalltalkClass)*:cls end
+	-> {
+		var all = new StFileNode(cls);
+		all.type = 'smalltalkClasses';
+		all.startIndex = p;
+		all.stopIndex = this.pos()-1;
+		all
+	},
+
+/*-----------------------------
+---- reading squeak fileout ---
+-----------------------------*/
+
+fileOut =
+        fileOutClass:x
+        (char:c ?(c.charCodeAt(0) == 12) spaces fileOutClass)*:xs
+        -> [x].concat(xs),
+
+fileOutClass =
+        pos:p identifier:superclass space token('subclass:') space token('#') identifier:name
+        spaces token('instanceVariableNames:') space stringLiteral
+        spaces token('classVariableNames:') space stringLiteral
+        spaces token('poolDictionaries:') space stringLiteral
+        spaces token('category:') space stringLiteral token('!\n')
+        token('!') identifier space token('commentStamp:') space stringLiteral token('prior:') space numberLiteral token('!\n')
+        (~seq('!\n\n\n') char)* token('!\n\n\n')
+        fileOutMethod*:methods
+        (fileOutClassMethods | empty)
+        -> {
+            var klass = new StClassNode(name, methods, superclass);
+            klass.type = "smalltalkClass";
+            klass.startIndex = p;
+            klass.stopIndex = this.pos()-1;
+            klass
+        },
+
+fileOutClassMethods =
+        '"' token('-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- ') '"' token('!\n\n')
+        identifier space token('class') spaces
+        token('instanceVariableNames:') space stringLiteral token('!\n\n')
+        fileOutClassMethod+:classMethods
+        -> classMethods,
+
+fileOutMethod =
+        token('!') identifier space token('methodsFor:') space stringLiteral space token('stamp:') space stringLiteral token('!\n')
+        method:m token('! !') (token('\n\n') (token('\n') | empty)) | empty
+        -> m,
+
+fileOutClassMethod =
+        token('!') identifier space token('class methodsFor:') space stringLiteral space token('stamp:') space stringLiteral token('!\n')
+        method:m token('! !\n\n') (token('\n') | empty)
+        -> m,
+
+/*-----------------------------
+------------ helper  ----------
+------------------------------*/
+opt:rule =
+	apply(rule) | empty -> null,
+
+fromTo :x :y =
+	seq(x) (~seq(y) char)* seq(y),
+
+log:x
+	-> {console.log(x); true}
+}
+
+/* =============================================
+   ============== additional stuff =============
+   ============================================= */
+
+SmalltalkParser.isBinaryChar = function(c) {
+  	// from Squeak's TypeTable
+  	var x = c.charCodeAt(0);
+  	return (x >= 1 && x <= 8) || x == 11 || (x >= 14 && x <= 29) || x == 31 || x == 33 || x == 37 ||
+  	x == 38 || (x >= 42 && x <= 45) || x == 47 || (x >= 60 && x <= 64) || x == 92 || x == 96 ||
+  	 ( x >= 126 && x <= 191) || x == 215 || x == 247 || x == 256
+}
+
+/* ============== JS2St translation =========== */
+
+ometa JS2StConverter {
+trans      = [:t apply(t):ans]     -> ans,
+/* ----------- copied -------------- */
+begin =
+  trans*:xs end
+  -> { new StSequenceNode(xs) },
+/* ---------- modified ----------- */
+json  =   trans*:props                                 -> props,
+for -> false,
+continue -> false,
+var -> false,
+/* ------------ own -------------- */
+this
+  -> new StVariableNode('self'),
+  
+number :n =
+  -> { new StLiteralNode(n) },
+
+string :s =
+  -> { new StLiteralNode(s) },
+
+get :x  =
+  -> { if (x == 'undefined' || x == 'null') x = 'nil';
+      new StVariableNode(x) },
+
+getp  =
+  getInstVar | getVarOfOtherObject,
+
+getInstVar =
+    trans:what ?what.isLiteral trans:obj ?(obj.name == 'self')
+    -> { new StInstanceVariableNode('@' + what.value)  },
+
+getVarOfOtherObject =
+    trans:what trans:obj
+    -> { new StKeywordMessageNode('getVar:', [what], obj)  },
+
+binop :op =
+  trans:recv trans:arg
+  -> { new StBinaryMessageNode(op, [arg], recv) },
+
+send  =
+  classDef | normalSend,
+
+normalSend :name  =
+  trans:recv trans*:args
+  -> { new StKeywordMessageNode(name + ':', args, recv) },
+
+classDef :msg =
+   ?(msg == 'subclass') trans:superclass trans:name ( trans | empty -> [] ):body
+  -> { new StClassNode(name, body, superclass) },
+
+func :args =
+  trans:body
+  -> {new StInvokableNode(body, args, [])},
+
+binding =
+  methodBinding | propertyBinding | primitiveMethod,
+
+methodBinding :name =
+  trans:invokable ?(invokable.isBlock)
+  -> {invokable.setMethodName(name); invokable},
+
+primitiveMethod :name =
+  [ #func :args foreign(LKJSTranslator, #curlyTrans):body ]
+  -> { new StPrimitveMethodNode(name, body, args) },
+  
+propertyBinding :name =
+  trans:value
+  -> { new StAssignmentNode(new StVariableNode(name), value) },
+
+if =
+  trans:cond trans:t trans:f
+  -> {if (!t.isSequence) new StSequenceNode(t);
+      t = new StInvokableNode(t);
+      if (!f.isSequence) new StSequenceNode(f);
+      f = new StInvokableNode(f);
+      new StKeywordMessageNode('ifTrue:ifFalse:', [t,f], cond); },
+
+return =
+  trans:expr
+  -> { new StReturnNode(expr) },
+
+test -> StClassNode
+}

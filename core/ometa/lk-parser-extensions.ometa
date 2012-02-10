@@ -1,0 +1,93 @@
+ometa LKJSParser <: BSJSParser {
+	regexp =
+		'/' (escapeChar | ~'/' ~'\n' char)*:cs '/' ( ('m' | 'g' | 'i' | 'y')+:fs -> fs.join('') | empty -> ''):flag
+		-> [#regexp, '/' + cs.join('') + '/' + flag],
+	tok =
+		spaces (name | keyword | number | str | regexp | special),
+	relExpr =
+		relExpr:x ( ">"          addExpr:y                                              -> [#binop, ">",          x, y]
+            | ">="         addExpr:y                                              -> [#binop, ">=",         x, y]
+            | "<"          addExpr:y                                              -> [#binop, "<",          x, y]
+            | "<="         addExpr:y                                              -> [#binop, "<=",         x, y]
+            | "instanceof" addExpr:y                                              -> [#binop, "instanceof", x, y]
+            | "in" addExpr:y                                                      -> [#binop, "in", x, y]
+            )
+  					| addExpr,
+	primExprHd = 
+		"(" expr:e ")"                                                                  -> e
+	  | "this"                                                                          -> [#this]
+  	| "name":n                                                                        -> [#get, n]
+  	| "number":n                                                                      -> [#number, n]
+  	| "string":s                                                                      -> [#string, s]
+  	| "regexp":r                                                                      -> [#regexp, r]
+  	| "function" funcRest
+  	| "function" "name":n funcRest:f                                                  -> [#var, n, f]
+  	| "new" ("name":n ('.' | empty) -> n)*:name "(" listOf(#expr, ','):as ")"       -> [#new,
+                                                                                        name.join('.')].concat(as)
+  	| "new" "(" expr:newExpr ")" "(" listOf(#expr, ','):as ")"                        -> [#newExpr, newExpr].concat(as)
+  	| "[" listOf(#expr, ','):es (',' | empty ) "]"                                                   -> [#arr].concat(es)
+  	| json,
+	json         = "{" listOf(#jsonBinding, ','):bs (',' | empty ) "}"                                            -> [#json].concat(bs),
+	varBinding      = "name":n ( "=" expr
+                  | empty -> [#get, 'undefined'] ):v                                     -> [#var, n, v],
+	stmt =
+		block
+	  | "var" listOf(#varBinding, ','):bs sc                                               -> [#begin].concat(bs)
+	  | "if" "(" expr:c ")" stmt:t ( "else" stmt | empty -> [#get, 'undefined'] ):f        -> [#if, c, t, f]
+	  | "while" "(" expr:c ")" stmt:s                                                   -> [#while,   c, s]
+	  | "do" stmt:s "while" "(" expr:c ")" sc                                           -> [#doWhile, s, c]
+	  | "for" "(" ( "var" listOf(#varBinding, ','):vars -> [#multiVar, vars]
+	              | expr
+	              | empty -> [#get, 'undefined'] ):i
+	          ";" ( expr
+	              | empty -> [#get, 'true']      ):c
+	          ";" ( expr
+	              | empty -> [#get, 'undefined'] ):u
+	          ")" stmt:s                                                                -> [#for, i, c, u, s]
+	  | "for" "(" ( "var" "name":n -> [#var, n, [#get, 'undefined']]
+	              | expr                                             ):v
+	         "in" expr:e
+	          ")" stmt:s                                                                -> [#forIn, v, e, s]
+	  | "switch" "(" expr:e ")" "{"
+	      ( "case" expr:c ":" srcElems:cs -> [#case, c, cs]
+	      | "default"     ":" srcElems:cs -> [#default, cs] )*:cs
+	    "}"                                                                             -> [#switch, e].concat(cs)
+	  | "break" sc                                                                      -> [#break]
+	  | "continue" sc                                                                   -> [#continue]
+	  | "throw" spacesNoNl expr:e sc                                                    -> [#throw, e]
+	  | "try" block:t ("catch" "(" "name":e ")" block:c -> [e,c]
+	                  | empty -> ['',[#get, 'undefined']]):ca
+	                  ( "finally" block
+	                  | empty -> [#get, 'undefined'] ):f                                -> [#try, t].concat(ca).concat([f])
+	  | "return" ( expr
+	             | empty -> [#get, 'undefined'] ):e sc                                  -> [#return, e]
+	  | "with" "(" expr:x ")" stmt:s                                                    -> [#with, x, s]
+	  | expr:e sc                                                                       -> e
+	  | ";"                                                                             -> [#get, "undefined"]
+}
+
+ometa LKJSTranslator <: BSJSTranslator {
+	regexp   :re                                          -> re,
+	preopSpace :op trans:x                                -> (op + ' ' + x),
+	newExpr  trans:newExpr trans*:args                    -> ('new ' + '(' + newExpr + ')'+ '(' + args.join(',') + ')'),
+	singleVar [#var :name trans:val]                      -> (name + '=' + val),
+	multiVar [singleVar*:xs]                                -> ('var ' + xs.join(',')),
+	try      curlyTrans:x :name curlyTrans:c curlyTrans:f -> ('try ' + x + (name ? 'catch(' + name + ')' + c : '') + 'finally' + f)
+
+}
+
+ometa LKOMetaParser <: BSOMetaParser {	
+  hostExpr       = LKJSParser.expr:r            BSJSTranslator.trans(r),
+  atomicHostExpr = LKJSParser.semAction:r       BSJSTranslator.trans(r),
+  curlyHostExpr  = LKJSParser.curlySemAction:r  BSJSTranslator.trans(r)
+}
+
+
+ometa LKOMetaJSParser <: LKJSParser {
+  srcElem = spaces LKOMetaParser.grammar:r sc -> r
+          | ^srcElem
+}
+
+ometa LKOMetaJSTranslator <: LKJSTranslator {
+  Grammar = BSOMetaTranslator.Grammar
+}

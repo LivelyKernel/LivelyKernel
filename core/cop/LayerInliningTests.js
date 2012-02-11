@@ -70,11 +70,11 @@ TestCase.subclass('cop.LayerInliningTests.MethodManipulatorTest', {
     test01ExtractFirstParameter: function() {
         var src = 'function() { return 42 },';
         var result = this.sut.firstParameter(src);
-        this.assertEqual(null, result)
+        this.assertEquals(null, result)
 
         src = 'function($super, arg) {\n\t\tcop.proceed(arg);\n\t\treturn arg + 10;\n\t    },';
         result = this.sut.firstParameter(src);
-        this.assertEqual('$super', result)
+        this.assertEquals('$super', result)
     },
 
     test02ExtractMethodBody: function() {

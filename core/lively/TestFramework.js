@@ -22,15 +22,13 @@
  * THE SOFTWARE.
  */
 
-var reqs = Config.isNewMorphic ? ['lively.bindings'] : ['lively.bindings', 'lively.Widgets'];
+module('lively.TestFramework').requires(['lively.bindings']).toRun(function() {
 
-module('lively.TestFramework').requires(reqs).toRun(function() {
-
-Object.subclass('TestCase',  /* Trait('TestableTrait'), */
+Object.subclass('TestCase',
 'settings', {
     isTestCase: true,
     shouldRun: true,
-    verbose: Functions.True,
+    verbose: true,
 },
 'initializing', {
     initialize: function(testResult, optTestSelector) {
@@ -105,17 +103,14 @@ Object.subclass('TestCase',  /* Trait('TestableTrait'), */
 },
 'running (private)', {
     show: function(string) { this.log(string) },
-
     running: function() {
         this.show('Running ' + this.id());
         this.statusUpdateFunc && this.statusUpdateFunc(this, 'running');
     },
-
     success: function() {
         this.show(this.id()+ ' done', 'color: green;');
         this.statusUpdateFunc && this.statusUpdateFunc(this, 'success');
     },
-
     failure: function(error) {
         this._errorOccured = true;
         var message = error.toString();
@@ -126,12 +121,10 @@ Object.subclass('TestCase',  /* Trait('TestableTrait'), */
         this.show(message , 'color: red;');
         this.statusUpdateFunc && this.statusUpdateFunc(this, 'failure', message, error);
     },
-
     addAndSignalSuccess: function() {
         this.result.addSuccess(this.constructor.type, this.currentSelector);
         this.success();
     },
-
     addAndSignalFailure: function(e) {
         this.result.addFailure(this.constructor.type, this.currentSelector, e);
         this.failure(e);
@@ -146,12 +139,6 @@ Object.subclass('TestCase',  /* Trait('TestableTrait'), */
         this.show(this.id() + msg);
         throw {isAssertion: true, message: msg, toString: function() { return msg }}
     },
-
-    assertEqual: function(firstValue, secondValue, msg) {
-        alert('assertEqual is deprecated, use assertEquals')
-        this.assertEquals(firstValue, secondValue, msg)
-    },
-
     assertEquals: function(a, b, msg) {
         var eps = this.epsilon || 0;
 
@@ -230,7 +217,6 @@ Object.subclass('TestCase',  /* Trait('TestableTrait'), */
         cmp(leftObj, rightObj);
         cmp(rightObj, leftObj);
     },
-
     assertMatches: function(expectedSpec, obj, msg) {
         // are all properties in expectedSpec also in and equal in obj?
         for (var name in expectedSpec) {
@@ -252,17 +238,11 @@ Object.subclass('TestCase',  /* Trait('TestableTrait'), */
             };
             this.assertMatches(expected, actual, msg);
         }
-    },
-
-    assertIncludesAll: function(arrayShouldHaveAllItems, fromThisArray, msg) {
-        fromThisArray.each(function(ea, i) {
-            this.assert(arrayShouldHaveAllItems.include(ea), 'difference at: ' + i + ' ' + msg)
-        }, this);
-    },
+    }
 },
 
 'logging', {
-        log: function(aString) {
+    log: function(aString) {
         if (this.verbose())
             console.log(aString);
     },
@@ -311,7 +291,6 @@ Object.subclass('TestCase',  /* Trait('TestableTrait'), */
             button || 0/*left*/, null);
         return simulatedEvent;
     },
-
     doMouseEvent: function(spec) {
         // type one of click, mousedown, mouseup, mouseover, mousemove, mouseout.
         if (!spec.type) spec.type = 'mousedown';
@@ -342,9 +321,6 @@ Object.subclass('TestCase',  /* Trait('TestableTrait'), */
         spec.targetMorph = morph || spec.targetMorph;
         return lively.morphic.EventSimulator.doKeyboardEvent(spec);
     },
-
-
-
 },
 'scripting', {
     addScript: function (funcOrString, optName) {
@@ -359,23 +335,17 @@ Function.addMethods(
 });
 
 TestCase.subclass('AsyncTestCase', {
-
     initialize: function($super, testResult, testSelector) {
         $super(testResult, testSelector);
         this._maxWaitDelay = 1000; // ms
         this._done = false;
     },
-
     setMaxWaitDelay: function(ms) { this._maxWaitDelay = ms },
-
     show: function(string) { console.log(string) },
-
     done: function() {
         this._done = true;
     },
-
     isDone: function() { return this._done },
-
     delay: function(func, ms) {
         var self = this;
         console.log('Scheduled action for ' + self.currentSelector);
@@ -384,7 +354,6 @@ TestCase.subclass('AsyncTestCase', {
             try { func.call(self) } catch(e) { self.done(); self.addAndSignalFailure(e) }
         }).delay(ms / 1000)
     },
-
     runTest: function(aSelector) {
         if (!this.shouldRun) return;
         this.currentSelector = aSelector || this.currentSelector;
@@ -394,7 +363,6 @@ TestCase.subclass('AsyncTestCase', {
             this[this.currentSelector]();
         } catch (e) { this.addAndSignalFailure(e) }
     },
-
     runAll: function(statusUpdateFunc, whenDoneFunc) {
         var self = this, tests = this.createTests();
 
@@ -433,34 +401,27 @@ TestCase.subclass('AsyncTestCase', {
             func();
         })(0);
     },
-
     scheduled: function() { this.show('Scheduled ' + this.id()) },
-
     success: function($super) {
         this.isDone() ? $super() : this.running();
-    },
-
+    }
 });
 
 TestCase.subclass('MorphTestCase', {
-
     setUp: function() {
         this.morphs = [];
         this.world = lively.morphic.World.current();
     },
-
     tearDown: function() {
         if (!this._errorOccured)
             this.morphs.each(function(ea) { ea.remove()})
         // let the morphs stay open otherwise
     },
-
     openMorph: function(m) {
         this.morphs.push(m);
         this.world.addMorph(m)
         return m;
     },
-
     openMorphAt: function(m, loc) {
         this.morphs.push(m);
         this.world.addMorphAt(m, loc)
@@ -480,10 +441,6 @@ Object.subclass('TestSuite', {
     },
     addTestCases: function(testClasses) {
         this.setTestCases(this.testCaseClasses.concat(testClasses));
-    },
-    testCasesFromModule: function(module) {
-        // dreprecated, see:
-        this.addTestCasesFromModule(module)
     },
     addTestCasesFromModule: function (module) {
         if (!module) throw new Error('testCasesFromModule: Module not defined!');
@@ -613,140 +570,6 @@ Object.subclass('TestResult', {
     successList: function() {
         return this.succeeded.collect(function(ea) { return ea.classname + '.' + ea.selector });
     }
-});
-
-Trait('TestableTrait', 'assertion', {
-    assert: function(bool, msg) {
-        if (bool) return;
-        var fullMsg;
-        if (!this.isMorph) {
-            fullMsg = " assert failed " + msg ? '(' + msg + ')' : '';
-        } else {
-            fullMsg = this + '>>' + this.currentSelector + ": assert failed " + (msg ? '(' + msg + ')' : '');
-        }
-        alert('i am ' + this);
-        //this.show(this.id() + msg);
-        throw {isAssertion: true, message: fullMsg, toString: function() { return fullMsg }}
-    },
-
-    assertEqual: function(firstValue, secondValue, msg) {
-        alert('assertEqual is deprecated, use assertEquals')
-        this.assertEquals(firstValue, secondValue, msg)
-    },
-
-    assertEquals: function(a, b, msg) {
-        var eps = this.epsilon || 0;
-
-        if (Object.isNumber(a) && Object.isNumber(b) && Math.abs(a-b) <= eps) return;
-
-        if (a instanceof lively.Point && b instanceof lively.Point &&
-            Math.abs(a.x-b.x) <= eps && Math.abs(a.y-b.y) <= eps) return;
-
-        if (a instanceof Rectangle && b instanceof Rectangle &&
-            Math.abs(a.x-b.x) <= eps && Math.abs(a.y-b.y) <= eps &&
-            Math.abs(a.width-b.width) <= eps && Math.abs(a.height-b.height) <= eps) return;
-
-        if (a instanceof Color && b instanceof Color && a.equals(b)) return;
-
-        if (Global.URL && a instanceof URL && b instanceof URL && a.eq(b)) return;
-
-        if (a == b) return;
-
-        this.assert(false, (msg ? msg : '') + ' (' + a +' != ' + b +')');
-    },
-    assertEqualsEpsilon: function(a, b, msg) {
-        var eps = this.epsilon || 0;
-
-        if (Object.isNumber(a) && Object.isNumber(b) && Math.abs(a-b) <= eps) return;
-
-        if (a instanceof lively.Point && b instanceof lively.Point &&
-            Math.abs(a.x-b.x) <= eps && Math.abs(a.y-b.y) <= eps) return;
-
-        if (a instanceof Rectangle && b instanceof Rectangle &&
-            Math.abs(a.x-b.x) <= eps && Math.abs(a.y-b.y) <= eps &&
-            Math.abs(a.width-b.width) <= eps && Math.abs(a.height-b.height) <= eps) return;
-
-        if (a instanceof Color && b instanceof Color && a.equals(b)) return;
-
-        if (Global.URL && a instanceof URL && b instanceof URL && a.eq(b)) return;
-
-        if (a == b) return;
-
-        this.assert(false, (msg ? msg : '') + ' (' + a +' != ' + b +')');
-    },
-    assertIdentity: function(firstValue, secondValue, msg){
-        if(firstValue === secondValue) return
-        this.assert(false, (msg ? msg : '') + ' (' + firstValue +' !== ' + secondValue +')');
-    },
-    assertEqualState: function(leftObj, rightObj, msg) {
-        // have leftObj and rightObj equal properties?
-        msg = (msg ? msg : ' ') + leftObj + " != " + rightObj + " because ";
-        if (!leftObj && !rightObj) return;
-        if (!leftObj || !rightObj) this.assert(false, msg);
-        switch (leftObj.constructor) {
-            case String:
-            case Boolean:
-            case Boolean:
-            case Number: {
-                this.assertEquals(leftObj, rightObj, msg);
-                return;
-            }
-        };
-        if (leftObj.isEqualNode) {
-            this.assert(leftObj.isEqualNode(rightObj), msg);
-            return;
-        };
-        var cmp = function(left, right) {
-            for (var value in left) {
-                if (!(left[value] instanceof Function)) {
-                    // this.log('comparing: ' + left[value] + ' ' + right[value]);
-                    try {
-                        this.assertEqualState(left[value], right[value], msg);
-                    } catch (e) {
-                        // debugger;
-                        throw e;
-                    }
-                };
-            };
-        }.bind(this);
-        cmp(leftObj, rightObj);
-        cmp(rightObj, leftObj);
-    },
-
-    assertMatches: function(expectedSpec, obj, msg) {
-        // are all properties in expectedSpec also in and equal in obj?
-        for (var name in expectedSpec) {
-            var expected = expectedSpec[name], actual = obj[name];
-            if (expected === undefined || expected === null) {
-              this.assertEquals(expected, actual, name + ' was expected to be ' + expected + (msg ? ' -- ' + msg : ''));
-              continue;
-            }
-
-            if (expected.constructor === Function) continue;
-
-            switch (expected.constructor) {
-              case String:
-              case Boolean:
-              case Number: {
-                this.assertEquals(expected, actual, name + ' was expected to be ' + expected + (msg ? ' -- ' + msg : ''));
-                continue;
-              }
-            };
-            this.assertMatches(expected, actual, msg);
-        }
-    },
-
-    assertIncludesAll: function(arrayShouldHaveAllItems, fromThisArray, msg) {
-        fromThisArray.each(function(ea, i) {
-            this.assert(arrayShouldHaveAllItems.include(ea), 'difference at: ' + i + ' ' + msg)
-        }, this);
-    },
-},
-
-'accessing', {
-
-
-
 });
 
 }); // end of module

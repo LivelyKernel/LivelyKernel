@@ -10,19 +10,20 @@ This repository is a fork of the Lively Kernel Webwerkstatt wiki at HPI (http://
     - reuse modules from Lively for other projects
     - be able to create stable milestones instead of rolling releases
     - run Webwerkstatt against those artifacts
-- modernize Lively Kernels infrastructure and explore new technology
+- modernize Lively Kernel's infrastructure and explore new technology
 
 Changes in this repository are likely to be ported back to Webwerkstatt.
 
 
-
 ## Running Lively Kernel with node.js
 
-Clone the repository and do `node minimal_server/serve.js`. This allows to (http://localhost:9001/blank.xhtml)[blank.xhtml].
+Clone the repository and do `node minimal_server/serve.js`. This allows to run [blank.xhtml](http://localhost:9001/blank.xhtml).
+
 
 ## Running Lively Kernel with apache
 
 In /apache_config you can find sample config files for Apache. Soon there will be more documentation on how to install Lively locally on different systems.
+
 
 ## Running the tests
 

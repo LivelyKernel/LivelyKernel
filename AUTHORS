@@ -1,0 +1,33 @@
+A lot of people have commited code to the Lively Kernel project since it was founded at Sun Microsystem in 2006 by Dan Ingalls and Antero Taivalsaari.
+
+This repository only includes the core parts of the project. In order to find the commiters we did run
+
+find lively Tests cop -iname "*.js" -exec svn blame --force {} \; > authors.txt
+cat authors.txt | sed "s/^[ 0-9]* \([^ ]*\).*/\1/" | sort | uniq
+
+against revision 135634 of the webwerkstatt SVN repository (lively-kernel.org/repository/webwerkstatt/). If you have contributed to the Lively Kernel and are not mentioned below then you are welcom to add your name to the list.
+
+
+Committers as of 11/02/2012:
+
+Astrid Thomschke <Astrid.Thomschke@student.hpi.uni-potsdam.de>
+Benjamin Siegmund <Benjamin.Siegmund@student.hpi.uni-potsdam.de>
+Christopher Schuster <christopher.schuster@student.hpi.uni-potsdam.de>
+Conrad Calmez <conrad.calmez@student.hpi.uni-potsdam.de>
+Dan Ingalls <dan@squeakland.org>
+David Jaeger <David.Jaeger@student.hpi.uni-potsdam.de>
+Fabian Bornhofen <fbornhofen@googlemail.com>
+Georgi Pavlov <georgi.pavlov@sap.com>
+Hubert Hesse <Hubert.Hesse@student.hpi.uni-potsdam.de>
+Jens Lincke <jens.lincke@hpi.uni-potsdam.de>
+Lauritz Thamsen <lauritz.thamsen@googlemail.com>
+Marko Roeder <Marko.Roeder@student.hpi.uni-potsdam.de>
+Martin Czuchra <Martin.Czuchra@student.hpi.uni-potsdam.de>
+Marvin Killing <Marvin.Killing@student.hpi.uni-potsdam.de>
+Milan Zimmermann <milan.zimmermann@gmail.com>
+"morphed"
+Pavel Genevski<pavel.genevski@sap.com>
+Robert Krahn <robert.krahn@gmail.com>
+Sebastian Stamm <Sebastian.Stamm@student.hpi.uni-potsdam.de>
+Tilman Giese <t.giese@sap.com>
+

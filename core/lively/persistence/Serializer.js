@@ -735,7 +735,6 @@ ObjectLinearizerPlugin.subclass('OldModelFilter',
         }
 
         if (persistentCopy.isPlainRecord) {
-            // debugger
             instance = createInstance(Record, 'newPlainInstance');
         }
 

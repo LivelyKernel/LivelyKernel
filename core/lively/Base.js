@@ -1180,7 +1180,6 @@ Namespace.addMethods(
             throw dbgOn(new Error('requiredModule not there'));
         this.pendingRequirements = this.pendingRequirements.without(requiredModule);
         if (!this.hasPendingRequirements()) {
-            // console.log('no more requirements for ' + this.uri());
             this.load();
         }
     },
@@ -2439,7 +2438,6 @@ Function.addMethods(
     asScriptOf: function(obj, optName, optMapping) {
         var name = optName || this.name;
         if (!name) {
-            debugger
             throw Error("Function that wants to be a script needs a name: " + this);
         }
         var constructor = obj.constructor, mapping = {"this": obj};

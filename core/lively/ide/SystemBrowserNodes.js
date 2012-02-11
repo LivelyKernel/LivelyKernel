@@ -180,10 +180,7 @@ lively.ide.BrowserNode.subclass('lively.ide.NamespaceNode',
     },
 
     setLocalName: function() {
-        // var localName = this.nameExtractor.exec(this.target);
-        // this.localName = (localName && localName[1]) ? (localName[1] + '/') : ('?' + this.target);
         this.localName = this.target.filename();
-
     },
 },
 'default', {
@@ -192,7 +189,6 @@ lively.ide.BrowserNode.subclass('lively.ide.NamespaceNode',
     completeURL: function() { return new URL(this.target) },
 
     onSelect: function() {
-        // debugger
         this.browser.setTargetURL(this.completeURL())
     },
 });
@@ -699,7 +695,6 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
         } else {
             def = ownerName + ".addMethods({\n" + methodString +'\n});';
         }
-        // console.log('Eval: ' + def);
         try {
             eval(def);
         } catch (er) {

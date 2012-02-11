@@ -141,23 +141,12 @@ Object.subclass('lively.morphic.Similitude',
         return this.toCSSValue();
     },
     toMatrix: function() {
-// throw new Error('locateCanvas not supported')
-        // var mx = locateCanvas().createSVGMatrix();
-        // mx.a = this.a;
-        // mx.b = this.b;
-        // mx.c = this.c;
-        // mx.d = this.d;
-        // mx.e = this.e;
-        // mx.f = this.f;
-        // return mx;
         return this.copy();
     },
 
 },
 'application', {
     applyTo: function(rawNode) {
-// alert('Application of matrices -- update it!')
-    // debugger
         if (false && Config.useTransformAPI) {
             var list = rawNode.transform.baseVal;
             var canvas = locateCanvas(rawNode);

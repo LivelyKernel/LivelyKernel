@@ -182,7 +182,6 @@ Object.subclass('AttributeConnection',
 			};
 
 		try {
-			// console.log(this.toString(newValue));
 			this.isActive = true;
 			return updater ?
 				updater.call(this, callOrSetTarget, newValue, oldValue) :
@@ -421,16 +420,6 @@ Object.extend(AttributeConnection, {
 	}
 });
 AttributeConnection.addMethods('serialization', {
-	// onstore: function(persistentCopy) {
-// debugger
-		// var value = this.getSourceValue();
-		// if (value && value.isWrapped) {
-			// delete persistentCopy[this.privateAttrName(this.getSourceAttrName())];
-			// persistentCopy[this.getSourceAttrName()]
-			// this.sourceObj[]
-		// }
-// 
-	// },
 	onrestore: function() {
 		try {
 			this.connect();

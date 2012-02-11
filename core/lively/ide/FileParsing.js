@@ -543,7 +543,6 @@ Object.subclass('CodeParser', {
             //throw dbgOn(new Error('Couldn\'t find end of ' + specialDescr.last().type));
         
         console.log('Finished parsing in ' + (new Date().getTime()-msStart)/1000 + ' s');
-        // console.log('Overhead:................................' + this.overheadTime/1000 + 's');
  
         return this.changeList;
     },
@@ -555,7 +554,6 @@ parseNonFile: function(source) {
 
 
     couldNotGoForward: function(descr, specialDescr) {
-        //dbgOn(true);
         console.warn('Could not go forward before line ' + this.findLineNo(this.lines, this.ptr));
         var    errorDescr = new lively.ide.ParseErrorFileFragment(this.src, null, 'errorDef', this.ptr, this.src.length-1, this.fileName),
             lastAdded = this.changeList.last(),

@@ -211,7 +211,6 @@ Global.ViewTrait = {
 			var handler = plugSpec.model[value];
 			
 			if (!handler || !(handler instanceof Function)) {
-				// console.log
 				alert("Supplied method name, " + value + " does not resolve to a function.");
 				result = false;
 			}

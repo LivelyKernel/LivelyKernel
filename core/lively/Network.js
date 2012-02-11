@@ -922,7 +922,6 @@ Resource.subclass('SVNResource', {
                             spec.url = repoUrl; // hmmm???
                         else
                             spec.url = repoUrl.toString() + relPath.slice(1); 
-                        // console.log('Created spec.url:' + spec.url);
                         if (!spec.changes) spec.changes = [];
                         var type = logProp.tagName.split('-').first();
                         var url = logProp.tagName.include('modified-path') ? logProp.textContent : null;

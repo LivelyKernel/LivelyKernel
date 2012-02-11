@@ -162,7 +162,6 @@ Object.subclass('AttributeConnection',
             };
 
         try {
-            // console.log(this.toString(newValue));
             this.isActive = true;
             return updater ?
                 updater.call(this, callOrSetTarget, newValue, oldValue) :

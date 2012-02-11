@@ -1034,7 +1034,6 @@ Tests.ToolsTests.JsParserTest.subclass('Tests.ToolsTests.JsParserTest3', {
     
     testParseWorldMorph: function() {    // Object.subclass
 		// Class definition of Morph
-// debugger
 		var src = this.srcFromLinesOfFile('Core.js', 4463, 5640 + 1);
         var descriptor = this.sut.callOMeta('klassDef', src);
         this.assertEquals(descriptor.type, 'klassDef');
@@ -1927,7 +1926,6 @@ TestCase.subclass('Tests.ToolsTests.ChangesTests',
 			classChange = Change.fromJS(source),
 			methodCatChange = classChange.getCategories()[0],
 			newDef = '"category x", {\n\tmethod: function() { return 2 },\n}';
-debugger
 		methodCatChange.setDefinition(newDef);
 		var newClassChange = methodCatChange.getClassChange();
 		this.assertEquals(1, newClassChange.subElements().length, 'subelements of class change are strange')
@@ -2212,16 +2210,13 @@ TestCase.subclass('Tests.ToolsTests.KeyboardTest', {
         keyWatcher.addMorph(label);
         keyWatcher.takesKeyboardFocus = Functions.True;
         keyWatcher.onKeyDown = function(evt) {
-                console.log('PRESS');
-				if (evt.rawEvent.ctrlKey) console.log('Ctrl key pressed');
-             //debugger;
+            console.log('PRESS');
+            if (evt.rawEvent.ctrlKey) console.log('Ctrl key pressed');
             label.setTextString(evt.getKeyChar() + '---' + evt.getKeyCode());
-            // evt.stop();
         }
         
         keyWatcher.openInWorld();
-        //keyWatcher.requestKeyboardFocus(WorldMorph.current().hands.first());
-		WorldMorph.current().hands.first().setKeyboardFocus(keyWatcher);
+        WorldMorph.current().hands.first().setKeyboardFocus(keyWatcher);
     },
 });
     
@@ -2241,7 +2236,6 @@ TestCase.subclass('Tests.ToolsTests.MouseEventTest', {
 		}
 
 		mouseWatcher.openInWorld();
-		// keyWatcher.requestKeyboardFocus(WorldMorph.current().hands.first());
 		WorldMorph.current().hands.first().setKeyboardFocus(mouseWatcher);
 	},
 });

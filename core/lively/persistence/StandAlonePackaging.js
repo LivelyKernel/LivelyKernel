@@ -52,7 +52,6 @@ Object.subclass('lively.persistence.StandAlonePackaging.Helper',
     },
 
     embedModulesIn: function(doc, relativeModuleURLs, progressBar, thenDo) {
-        debugger;
         var self = this,
             parent = doc.getElementsByTagName('body')[0];
         relativeModuleURLs.forEachShowingProgress(

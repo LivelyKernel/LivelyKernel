@@ -28,7 +28,7 @@ Object.subclass('TestCase',
 'settings', {
     isTestCase: true,
     shouldRun: true,
-    verbose: true,
+    verbose: Functions.True,
 },
 'initializing', {
     initialize: function(testResult, optTestSelector) {

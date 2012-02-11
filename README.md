@@ -17,7 +17,28 @@ Changes in this repository are likely to be ported back to Webwerkstatt.
 
 ## Running Lively Kernel with node.js
 
-Clone the repository and do `node minimal_server/serve.js`. This allows to run [blank.xhtml](http://localhost:9001/blank.xhtml).
+### Requirements
+
+First you need [node.js](http://nodejs.org/). Then you need [npm](http://npmjs.org/), the "Node Package Manager". Install npm with: `curl http://npmjs.org/install.sh | sh`
+
+### Installation
+
+Clone the Lively Kernel repository.
+
+    git clone git@github.com:rksm/LivelyKernel.git ~/LivelyKernel
+
+Then initialize the project dependencies. Currently we are using [express.js](http://expressjs.com/) for file serving.
+
+    cd ~/LivelyKernel
+    npm install
+
+### Running Lively
+
+Now you can start the server with
+
+    node minimal_server/serve.js
+
+and visit [blank.xhtml](http://localhost:9001/blank.xhtml) to start a minimal version of Lively Kernel.
 
 
 ## Running Lively Kernel with apache

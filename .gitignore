@@ -1,3 +1,4 @@
 # Worlds #
 *.xhtml
 !blank.xhtml
+node_modules

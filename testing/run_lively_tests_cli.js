@@ -21,7 +21,7 @@ function post(path, data, callback) {
         res.on('data', function (chunk) {
             log('BODY: ' + chunk);
             var body = JSON.parse(chunk);
-            callback && callback(body && body.result);
+            if (callback) callback(body && body.result);
         });
     });
 
@@ -33,18 +33,11 @@ function post(path, data, callback) {
     req.end();
 }
 
-function startTests() {
-    post('/test-request', {
-        testWorldPath: 'testing/run_tests.xhtml',
-        loadScript: "run_tests.js"
-    }, tryToGetReport);
-}
-
 // poll
 var maxRequests = 20, currentRequests = 0;
 function tryToGetReport(data) {
     if (currentRequests >= maxRequests) {
-        console.log('Time out!')
+        console.log('Time out!');
         return;
     }
     if (data.state !== 'done') {
@@ -56,6 +49,13 @@ function tryToGetReport(data) {
         return;
     }
     console.log('\n===== test result =====\n\n' + data.result);
+}
+
+function startTests() {
+    post('/test-request', {
+        testWorldPath: 'testing/run_tests.xhtml',
+        loadScript: "run_tests.js"
+    }, tryToGetReport);
 }
 
 startTests();

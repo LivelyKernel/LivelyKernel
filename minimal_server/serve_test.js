@@ -14,7 +14,7 @@ QUnit.module('test request handler', {
         browserInterface = {
             urls: [],
             open: function(url) { this.urls.push(url) }
-        }
+        };
         handler = new TestHandler(browserInterface);
         request = {
             body: {testWorldPath: 'foo/bar.xhtml'},
@@ -63,7 +63,7 @@ QUnit.module('test status handling', {
         browserInterface = {
             closeIds: [],
             closeBrowser: function(testRunId) { this.closeIds.push(testRunId) }
-        }
+        };
         handler = new TestHandler(browserInterface);
         request = {
             body: {testRunId: 1, testResults: "all ok"}

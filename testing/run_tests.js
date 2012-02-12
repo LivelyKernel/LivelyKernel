@@ -16,6 +16,18 @@ function getURLParam(name) {
     return match && match[1];
 }
 
+
+// some preparation
+var testRunId = getURLParam("testRunId");
+
+if (!testRunId) {
+    var msg = 'no id for test run, cannot execute tests';
+    alertForever(msg);
+    throw msg;
+}
+
+
+// result processing
 function postResult(message) {
     alertOK("Result: \n" + message);
     $.post('/test-result', {testRunId: testRunId, testResults: message});
@@ -27,15 +39,6 @@ function getResult(id) {
     $.post('/test-report', {testRunId: id}, function(data) { alert(JSON.stringify(data)) });
 }
 
-
-// some preparation
-var testRunId = getURLParam('testRunId');
-
-if (!testRunId) {
-    var msg = 'no id for test run, cannot execute tests';
-    alertForever(msg);
-    throw msg;
-}
 
 // running the actual tests
 var testList = [

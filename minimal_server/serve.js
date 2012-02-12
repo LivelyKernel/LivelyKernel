@@ -57,7 +57,9 @@ var browserInterface = {
         this.process = null;
     }
 
-}
+};
+
+
 function TestHandler(browserInterface) { this.browserInterface = browserInterface; }
 
 var currentTestId, testResults;

@@ -1,4 +1,5 @@
 # Worlds #
 *.xhtml
 !blank.xhtml
+!testing/run_tests.xhtml
 node_modules

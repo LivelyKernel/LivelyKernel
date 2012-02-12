@@ -1,0 +1,362 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <title>core tests</title>
+  <script>Config={isNewMorphic: true}</script>
+  <script src="../core/lively/bootstrap.js"></script>
+  <meta id="LivelyMigrationLevel"><![CDATA[4]]></meta>
+  <meta id="WorldChangeSet">
+    <code xmlns="http://www.w3.org/2000/svg">
+      <doit name="local requirements" automaticEval="true"><![CDATA[[]]]></doit>
+      <doit name="initializer"><![CDATA[]]></doit>
+    </code>
+  </meta>
+  <meta id="LivelyJSONWorld"><![CDATA[{
+  "id": 0,
+  "registry": {
+    "0": {
+      "submorphs": [
+        {
+          "__isSmartRef__": true,
+          "id": 1
+        }
+      ],
+      "scripts": [],
+      "shape": {
+        "__isSmartRef__": true,
+        "id": 11
+      },
+      "id": 1,
+      "eventHandler": {
+        "__isSmartRef__": true,
+        "id": 17
+      },
+      "grabbingEnabled": false,
+      "droppingEnabled": true,
+      "showsMorphMenu": true,
+      "halosEnabled": true,
+      "__layered_draggingEnabled__": true,
+      "_Position": {
+        "__isSmartRef__": true,
+        "id": 18
+      },
+      "priorExtent": {
+        "__isSmartRef__": true,
+        "id": 19
+      },
+      "hands": [
+        {
+          "__isSmartRef__": true,
+          "id": 1
+        }
+      ],
+      "changeSet": {
+        "__isSmartRef__": true,
+        "id": 20
+      },
+      "__SourceModuleName__": "Global.lively.morphic.ObjectMigration",
+      "eventStartPos": {},
+      "worldMenuOpened": true,
+      "draggingEnabled": true,
+      "clickedOnMorphTime": 1329000732535,
+      "statusMessages": [],
+      "prevScroll": [0,0],
+      "showsHalos": false,
+      "attributeConnections": [
+        {
+          "__isSmartRef__": true,
+          "id": 21
+        }
+      ],
+      "doNotSerialize": [
+        "$$finishLoading",
+        "$$savedWorldAsURL"
+      ],
+      "doNotCopyProperties": [
+        "$$finishLoading",
+        "$$savedWorldAsURL"
+      ],
+      "__serializedLivelyClosures__": {
+        "__isSmartRef__": true,
+        "id": 24
+      },
+      "__LivelyClassName__": "lively.morphic.World"
+    },
+    "1": {
+      "submorphs": [],
+      "scripts": [],
+      "shape": {
+        "__isSmartRef__": true,
+        "id": 2
+      },
+      "id": 2,
+      "eventHandler": {
+        "__isSmartRef__": true,
+        "id": 8
+      },
+      "droppingEnabled": false,
+      "halosEnabled": false,
+      "_world": {
+        "__isSmartRef__": true,
+        "id": 0
+      },
+      "eventsAreIgnored": true,
+      "_HandStyle": "default",
+      "_PointerEvents": "none",
+      "_Position": {
+        "__isSmartRef__": true,
+        "id": 9
+      },
+      "priorExtent": {
+        "__isSmartRef__": true,
+        "id": 10
+      },
+      "owner": {
+        "__isSmartRef__": true,
+        "id": 0
+      },
+      "_Rotation": 0,
+      "_Scale": 1,
+      "__SourceModuleName__": "Global.lively.morphic.Events",
+      "scrollFocusMorph": {
+        "__isSmartRef__": true,
+        "id": 0
+      },
+      "internalClickedOnMorph": {
+        "__isSmartRef__": true,
+        "id": 0
+      },
+      "carriesGrabbedMorphs": false,
+      "lastScrollTime": 1322068927121,
+      "__LivelyClassName__": "lively.morphic.HandMorph",
+      "withLayers": [
+        "Global.NoMagnetsLayer"
+      ]
+    },
+    "2": {
+      "_Position": {
+        "__isSmartRef__": true,
+        "id": 3
+      },
+      "_Extent": {
+        "__isSmartRef__": true,
+        "id": 4
+      },
+      "_Fill": {
+        "__isSmartRef__": true,
+        "id": 5
+      },
+      "__SourceModuleName__": "Global.lively.morphic.Shapes",
+      "_ClipMode": "visible",
+      "_Padding": {
+        "__isSmartRef__": true,
+        "id": 6
+      },
+      "renderContextTable": {
+        "__isSmartRef__": true,
+        "id": 7
+      },
+      "__LivelyClassName__": "lively.morphic.Shapes.Rectangle"
+    },
+    "3": {
+      "x": 0,
+      "y": 0,
+      "__SourceModuleName__": "Global",
+      "__LivelyClassName__": "Point"
+    },
+    "4": {
+      "x": 2,
+      "y": 2,
+      "__SourceModuleName__": "Global",
+      "__LivelyClassName__": "Point"
+    },
+    "5": {
+      "r": 0.8,
+      "g": 0,
+      "b": 0,
+      "a": 1,
+      "__LivelyClassName__": "Color",
+      "__SourceModuleName__": "Global"
+    },
+    "6": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "__SourceModuleName__": "Global",
+      "__LivelyClassName__": "Rectangle"
+    },
+    "7": {
+      "init": "initHTML",
+      "appendShape": "renderHTML",
+      "setPosition": "setPositionHTML",
+      "setExtent": "setExtentHTML",
+      "setPadding": "setPaddingHTML",
+      "setFill": "setFillHTML",
+      "setBorderColor": "setBorderColorHTML",
+      "setBorderWidth": "setBorderWidthHTML",
+      "setStrokeOpacity": "setStrokeOpacityHTML",
+      "setBorderRadius": "setBorderRadiusHTML",
+      "setBorderStyle": "setBorderStyleHTML",
+      "setOpacity": "setOpacityHTML",
+      "setClipMode": "setClipModeHTML"
+    },
+    "8": {
+      "morph": {
+        "__isSmartRef__": true,
+        "id": 1
+      },
+      "__SourceModuleName__": "Global.lively.morphic.Events",
+      "__LivelyClassName__": "lively.morphic.EventHandler"
+    },
+    "9": {
+      "x": 411,
+      "y": 433,
+      "__LivelyClassName__": "Point",
+      "__SourceModuleName__": "Global"
+    },
+    "10": {
+      "x": 0,
+      "y": 0,
+      "__SourceModuleName__": "Global",
+      "__LivelyClassName__": "Point"
+    },
+    "11": {
+      "_Position": {
+        "__isSmartRef__": true,
+        "id": 12
+      },
+      "_Extent": {
+        "__isSmartRef__": true,
+        "id": 13
+      },
+      "_Fill": {
+        "__isSmartRef__": true,
+        "id": 14
+      },
+      "__SourceModuleName__": "Global.lively.morphic.Shapes",
+      "_ClipMode": "visible",
+      "_Padding": {
+        "__isSmartRef__": true,
+        "id": 15
+      },
+      "renderContextTable": {
+        "__isSmartRef__": true,
+        "id": 16
+      },
+      "__LivelyClassName__": "lively.morphic.Shapes.Rectangle"
+    },
+    "12": {
+      "x": 0,
+      "y": 0,
+      "__SourceModuleName__": "Global",
+      "__LivelyClassName__": "Point"
+    },
+    "13": {
+      "x": 1024,
+      "y": 768,
+      "__SourceModuleName__": "Global",
+      "__LivelyClassName__": "Point"
+    },
+    "14": {
+      "r": 1,
+      "g": 1,
+      "b": 1,
+      "a": 1,
+      "__LivelyClassName__": "Color",
+      "__SourceModuleName__": "Global"
+    },
+    "15": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "__SourceModuleName__": "Global",
+      "__LivelyClassName__": "Rectangle"
+    },
+    "16": {
+      "init": "initHTML",
+      "appendShape": "renderHTML",
+      "setPosition": "setPositionHTML",
+      "setExtent": "setExtentHTML",
+      "setPadding": "setPaddingHTML",
+      "setFill": "setFillHTML",
+      "setBorderColor": "setBorderColorHTML",
+      "setBorderWidth": "setBorderWidthHTML",
+      "setStrokeOpacity": "setStrokeOpacityHTML",
+      "setBorderRadius": "setBorderRadiusHTML",
+      "setBorderStyle": "setBorderStyleHTML",
+      "setOpacity": "setOpacityHTML",
+      "setClipMode": "setClipModeHTML"
+    },
+    "17": {
+      "morph": {
+        "__isSmartRef__": true,
+        "id": 0
+      },
+      "__SourceModuleName__": "Global.lively.morphic.Events",
+      "__LivelyClassName__": "lively.morphic.EventHandler"
+    },
+    "18": {
+      "x": 0,
+      "y": 0,
+      "__SourceModuleName__": "Global",
+      "__LivelyClassName__": "Point"
+    },
+    "19": {
+      "x": 0,
+      "y": 0,
+      "__SourceModuleName__": "Global",
+      "__LivelyClassName__": "Point"
+    },
+    "20": {
+      "name": "Local code",
+      "__LivelyClassName__": "ChangeSet",
+      "__SourceModuleName__": "Global.lively.ChangeSet"
+    },
+    "21": {
+      "sourceObj": {
+        "__isSmartRef__": true,
+        "id": 0
+      },
+      "sourceAttrName": "finishLoading",
+      "targetObj": {
+        "__isSmartRef__": true,
+        "id": 0
+      },
+      "targetMethodName": "loadScript",
+      "__LivelyClassName__": "AttributeConnection",
+      "__SourceModuleName__": "Global.lively.bindings"
+    },
+    "24": {
+      "loadScript": {
+        "__isSmartRef__": true,
+        "id": 25
+      }
+    },
+    "25": {
+      "varMapping": {
+        "__isSmartRef__": true,
+        "id": 26
+      },
+      "source": "function loadScript() {\n        // if the world was laoded with a query like '?loadScript=foo.js' then\n    // try to load foo.js. The file should be located relative to the world\n    var scriptQuery = document.URL.split('?').last().match(/loadScript=([^\\&]+)/),\n        scriptPath = scriptQuery && scriptQuery[1];\n    if (scriptPath) jQuery.getScript(scriptPath);\n}",
+      "funcProperties": {
+        "__isSmartRef__": true,
+        "id": 27
+      },
+      "__LivelyClassName__": "lively.Closure",
+      "__SourceModuleName__": "Global"
+    },
+    "26": {
+      "this": {
+        "__isSmartRef__": true,
+        "id": 0
+      }
+    },
+    "27": {},
+    "isSimplifiedRegistry": true
+  }
+}]]></meta>
+ </head>
+ <body style="margin:0px"></body>
+</html>

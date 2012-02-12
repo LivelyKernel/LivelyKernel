@@ -48,9 +48,28 @@ In /apache_config you can find sample config files for Apache. Soon there will b
 
 ## Running the tests
 
-**TODO**
+### Command line tests
 
+Note: Make sure you have all required node.js modules installed. Run `npm install` to do so.
+To start the Lively tests from the command line first start the server:
 
+    make start_mini_server
+
+To initiate a test run do
+
+    make run_kernel_tests
+
+#### How it works
+
+The mini server provides a HTTP interface for running and reporting tests. When a new test run is requested, a Chrome instance is started and a URL to a Lively Kernel world opened. Alongside are passed queries that will the world instruct to load a test script that is executed as soon as the world is loaded.
+
+A test run is requested by POSTing to <http://localhost:9001/test-request>.
+
+This will by default open the world <http://localhost:9001/testing/run_tests.xhtml> and run the script `testing/run_tests.js`. The server will also add an id parameter that is later used for reporting. `run_tests.js` determines what tests should be loaded, how to run them, and how the reporting happens.
+
+By default, a POST request to <http://localhost:9001/test-report> will inform the server about results and close the browser session (if the browser was started from inside the server).
+
+To try it out manually visit: <http://localhost:9001/testing/run_tests.xhtml?testRunId=1&loadScript=run_tests.js&stayOpen=true>
 
 ## Working with the git repository
 

@@ -36,7 +36,7 @@ Then initialize the project dependencies. Currently we are using [express.js](ht
 
 Now you can start the server with
 
-    node minimal_server/serve.js
+    make start_mini_server
 
 and visit [blank.xhtml](http://localhost:9001/blank.xhtml) to start a minimal version of Lively Kernel.
 

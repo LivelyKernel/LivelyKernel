@@ -39,13 +39,24 @@ function setupServer(testHandler) {
  */
 
 var browserInterface = {
+
     open: function(url) {
-        console.log('open chrome');
-        spawn("/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome",
+        if (this.process) {
+            this.closeBrowser();
+        }
+        console.log('open chrome on ' + url);
+        this.process = spawn("/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome",
               ["--no-process-singleton-dialog", "--user-data-dir=/tmp/", "--no-first-run",
                "--disable-default-apps", //"--no-startup-window",
                url]);
+    },
+
+    closeBrowser: function(id) {
+        if (!this.process) return;
+        this.process.kill("SIGTERM");
+        this.process = null;
     }
+
 }
 function TestHandler(browserInterface) { this.browserInterface = browserInterface; }
 
@@ -80,6 +91,7 @@ TestHandler.prototype.handleTestRequest = function(req) {
 TestHandler.prototype.handleResultRequest = function(req) {
     var id = req.body.testRunId;
     testResults[id] = {testRunId: id, state: 'done', result: req.body.testResults};
+    this.browserInterface.closeBrowser(id);
     return {result: 'ok', testRunId: id};
 };
 
@@ -92,7 +104,7 @@ TestHandler.prototype.handleReportRequest = function(req) {
  * startup or export
  */
 if (port && !isNaN(port)) {
-    setupServer(new TestHandler()).listen(port);
+    setupServer(new TestHandler(browserInterface)).listen(port);
 } else {
     exports.TestHandler = TestHandler;
 }

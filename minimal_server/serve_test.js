@@ -60,7 +60,11 @@ test('should not open browser on invalid request', function() {
 var reportRequest;
 QUnit.module('test status handling', {
     setup: function() {
-        handler = new TestHandler();
+        browserInterface = {
+            closeIds: [],
+            closeBrowser: function(testRunId) { this.closeIds.push(testRunId) }
+        }
+        handler = new TestHandler(browserInterface);
         request = {
             body: {testRunId: 1, testResults: "all ok"}
         };
@@ -76,6 +80,11 @@ test('handle result and report request', function() {
     same(result, {result: 'ok', testRunId: 1}, 'result');
     var report = handler.handleReportRequest(reportRequest);
     same(report, {testRunId: 1, state: 'done', result: "all ok"}, JSON.stringify(report));
+});
+
+test('should close browser on result request', function() {
+    handler.handleResultRequest(request);
+    same(browserInterface.closeIds, [1], 'browser not closed');
 });
 
 // test('handle report request', function() {

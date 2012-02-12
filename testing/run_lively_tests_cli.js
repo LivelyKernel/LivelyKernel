@@ -41,9 +41,15 @@ function startTests() {
 }
 
 // poll
+var maxRequests = 20, currentRequests = 0;
 function tryToGetReport(data) {
+    if (currentRequests >= maxRequests) {
+        console.log('Time out!')
+        return;
+    }
     if (data.state !== 'done') {
-        console.log('waiting for tests to finish... ' + data.testRunId);
+        console.log('waiting for tests to finish, test run id: ' + data.testRunId);
+        currentRequests++;
         setTimeout(function() {
             post('/test-report', {testRunId: data.testRunId}, tryToGetReport);
         }, 1000);

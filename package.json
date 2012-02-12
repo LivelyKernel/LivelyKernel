@@ -14,6 +14,9 @@
   "dependencies": {
     "express": "2.x"
   },
-  "devDependencies": {},
+  "devDependencies": {
+      "nodemon": "~0.6",
+      "qunit": "~0.2"
+  },
   "optionalDependencies": {}
 }

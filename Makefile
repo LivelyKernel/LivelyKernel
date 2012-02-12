@@ -33,13 +33,22 @@ mini_server_tests_watch:
 	$(NODEMON) --watch $(MINISERVER_DIR) --exec $(RUN_MINISERVER_TESTS)
 
 
+#######################
+# lively kernel tests #
+#######################
+TEST_SCRIPTS = $(shell find ./testing/*.js)
+CLI_TEST_STARTER = ./testing/run_lively_tests_cli.js
+run_kernel_tests:
+	node $(CLI_TEST_STARTER)
+
 ##########
 # jshint #
 ##########
 
 JSHINT = ./node_modules/jshint/bin/hint
 JSHINT_CONFIG = ./jshint.config
-RUN_JSHINT = $(JSHINT) $(MINISERVER_FILES) $(MINISERVER_TEST_FILES) --config $(JSHINT_CONFIG)
+JSHINT_INPUT = $(MINISERVER_FILES) $(MINISERVER_TEST_FILES) $(TEST_SCRIPTS)
+RUN_JSHINT = $(JSHINT) $(JSHINT_INPUT) --config $(JSHINT_CONFIG)
 
 jshint:
 	$(RUN_JSHINT)

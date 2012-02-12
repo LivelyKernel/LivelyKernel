@@ -3,7 +3,7 @@
 // continously run with:
 // nodemon --exec qunit --code ./minimal_server/serve.js --tests ./minimal_server/serve_test.js
 
-var handler, request, spawn;
+var handler, request, spawn, browserInterface;
 
 /*
  * requesting test run
@@ -11,9 +11,11 @@ var handler, request, spawn;
 
 QUnit.module('test request handler', {
     setup: function() {
-        spawn = function(method, args) { spawn.calls.push(method, args); };
-        spawn.calls = [];
-        handler = new TestHandler(spawn);
+        browserInterface = {
+            urls: [],
+            open: function(url) { this.urls.push(url) }
+        }
+        handler = new TestHandler(browserInterface);
         request = {
             body: {testWorldPath: 'foo/bar.xhtml'},
             headers: {host: 'localhost:9001'}
@@ -35,15 +37,19 @@ test("should construct test url for loading script", function () {
 
 test('should open browser', function() {
     var result = handler.handleTestRequest(request),
-        expectedURL = 'http://localhost:9001/foo/bar.xhtml?testRunId=1';
-    same(spawn.calls, ['open', [expectedURL]], spawn.calls);
-    same(result, {result: 'browser started with ' + expectedURL}, result);
+        expectedURL = 'http://localhost:9001/foo/bar.xhtml?testRunId=1',
+        expectedData = {
+            result: 'browser started with ' + expectedURL,
+            testRunId: 1
+        };
+    same(browserInterface.urls, [expectedURL], browserInterface.urls);
+    same(result, expectedData, result);
 });
 
 test('should not open browser on invalid request', function() {
     request.body = {};
-    raises(function() { handler.handleTestRequest(request) }, 'no error raisd');
-    equal(spawn.calls, 0, 'spawn was called ' + spawn.calls, spawn.calls);
+    raises(function() { handler.handleTestRequest(request) }, 'no error raised');
+    equal(browserInterface.urls.length, 0, 'browser open was called');
 });
 
 
@@ -65,16 +71,16 @@ QUnit.module('test status handling', {
     teardown: function() { TestHandler.resetTestData(); }
 });
 
-test('handle result request', function() {
+test('handle result and report request', function() {
     var result = handler.handleResultRequest(request);
-    same(result, {result: 'ok'}, 'result');
+    same(result, {result: 'ok', testRunId: 1}, 'result');
     var report = handler.handleReportRequest(reportRequest);
-    same(report, {id: 1, state: 'done', result: "all ok"}, JSON.stringify(report));
+    same(report, {testRunId: 1, state: 'done', result: "all ok"}, JSON.stringify(report));
 });
 
-test('handle result request', function() {
-    var result = handler.handleResultRequest(request);
-    same(result, {result: 'ok'}, 'result');
-    var report = handler.handleReportRequest(reportRequest);
-    same(report, {id: 1, state: 'done', result: "all ok"}, JSON.stringify(report));
-});
+// test('handle report request', function() {
+//     var result = handler.handleResultRequest(request);
+//     same(result, {result: 'ok'}, 'result');
+//     var report = handler.handleReportRequest(reportRequest);
+//     same(report, {id: 1, state: 'done', result: "all ok"}, JSON.stringify(report));
+// });

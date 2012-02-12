@@ -11,20 +11,26 @@ var args = process.argv.slice(2),
  */
 function setupServer(testHandler) {
     var app = express.createServer();
-    app.use(express.logger());
+    // app.use(express.logger());
     app.use("/", express.static(__dirname + '/../'));
     app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
     app.use(express.bodyParser());
 
-    app.post('/test-request', function(req, res) {
-        var result;
-        try {
-            result = testHandler.handleTestRequest(req);
-        } catch(e) {
-            result = {result: String(e), error: true};
-        }
-        res.send({result: result});
-    });
+    function postHandler(path, handlerName) {
+        app.post(path, function(req, res) {
+            var result;
+            try {
+                result = testHandler[handlerName](req);
+            } catch(e) {
+                result = {result: String(e), error: true, requestedData: req.body};
+            }
+            res.send({result: result});
+        });
+    }
+
+    postHandler('/test-request', 'handleTestRequest');
+    postHandler('/test-result', 'handleResultRequest');
+    postHandler('/test-report', 'handleReportRequest');
     return app;
 }
 
@@ -32,8 +38,16 @@ function setupServer(testHandler) {
  * handling requests
  */
 
-
-function TestHandler(spawnFunc) { this.spawn = spawnFunc || spawn }
+var browserInterface = {
+    open: function(url) {
+        console.log('open chrome');
+        spawn("/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome",
+              ["--no-process-singleton-dialog", "--user-data-dir=/tmp/", "--no-first-run",
+               "--disable-default-apps", //"--no-startup-window",
+               url]);
+    }
+}
+function TestHandler(browserInterface) { this.browserInterface = browserInterface; }
 
 var currentTestId, testResults;
 TestHandler.resetTestData = function() {
@@ -54,28 +68,24 @@ TestHandler.prototype.urlForBrowser = function(req) {
     return url;
 };
 
-TestHandler.prototype.openBrowser = function(url) {
-    if (!url) throw new Error('no url for browsing');
-    this.spawn('open', [url]);
-};
-
 TestHandler.prototype.handleTestRequest = function(req) {
     var url = this.urlForBrowser(req);
-    this.openBrowser(url);
-    return {result: 'browser started with ' + url};
+    if (!url) throw new Error('no url for browsing');
+    this.browserInterface.open(url);
+    return {result: 'browser started with ' + url, testRunId: currentTestId};
 };
 
 // results
 
 TestHandler.prototype.handleResultRequest = function(req) {
     var id = req.body.testRunId;
-    testResults[id] = {id: id, state: 'done', result: req.body.testResults};
-    return {result: 'ok'};
+    testResults[id] = {testRunId: id, state: 'done', result: req.body.testResults};
+    return {result: 'ok', testRunId: id};
 };
 
 TestHandler.prototype.handleReportRequest = function(req) {
     var id = req.body.testRunId;
-    return testResults[id];
+    return testResults[id] || {testRunId: id, state: 'no result'};
 };
 
 /*

@@ -43,6 +43,8 @@ var browserInterface = {
     open: function(url) {
         if (this.process) {
             this.closeBrowser();
+            setTimeout(function() { browserInterface.open(url) }, 800);
+            return;
         }
         console.log('open chrome on ' + url);
         this.process = spawn("/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome",
@@ -53,8 +55,14 @@ var browserInterface = {
 
     closeBrowser: function(id) {
         if (!this.process) return;
-        this.process.kill("SIGTERM");
-        this.process = null;
+        var self = this;
+        // give the browser some time to finish requests
+        setTimeout(function() {
+            if (self.process) { // sometimes process is already gone?!
+                self.process.kill("SIGTERM");
+            }
+            self.process = null;
+        }, 500);
     }
 
 };
@@ -91,8 +99,10 @@ TestHandler.prototype.handleTestRequest = function(req) {
 // results
 
 TestHandler.prototype.handleResultRequest = function(req) {
-    var id = req.body.testRunId;
-    testResults[id] = {testRunId: id, state: 'done', result: req.body.testResults};
+    var id = req.body.testRunId,
+        result = req.body.testResults;
+    console.log('Getting result for test run ' + id);
+    testResults[id] = {testRunId: id, state: 'done', result: result};
     this.browserInterface.closeBrowser(id);
     return {result: 'ok', testRunId: id};
 };

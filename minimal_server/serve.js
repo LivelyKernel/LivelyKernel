@@ -31,6 +31,10 @@ function setupServer(testHandler) {
     postHandler('/test-request', 'handleTestRequest');
     postHandler('/test-result', 'handleResultRequest');
     postHandler('/test-report', 'handleReportRequest');
+
+    postHandler('/debug-openbrowser', 'handleOpenBrowserRequest');
+    postHandler('/debug-results', 'handleListResultRequest');
+
     return app;
 }
 
@@ -43,13 +47,17 @@ var browserInterface = {
     open: function(url) {
         if (this.process) {
             this.closeBrowser();
-            setTimeout(function() { browserInterface.open(url) }, 800);
+            setTimeout(function() { browserInterface.open(url) }, 200);
             return;
         }
         console.log('open chrome on ' + url);
+        // see http://peter.sh/experiments/chromium-command-line-switches/
         this.process = spawn("/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome",
               ["--no-process-singleton-dialog", "--user-data-dir=/tmp/", "--no-first-run",
                "--disable-default-apps", //"--no-startup-window",
+               "--disable-history-quick-provider", "--disable-history-url-provider",
+               "--disable-breakpad", "--disable-background-mode",
+               "--disable-background-networking", "--disable-preconnect", "--disabled",
                url]);
     },
 
@@ -62,7 +70,7 @@ var browserInterface = {
                 self.process.kill("SIGTERM");
             }
             self.process = null;
-        }, 500);
+        }, 100);
     }
 
 };
@@ -110,6 +118,15 @@ TestHandler.prototype.handleResultRequest = function(req) {
 TestHandler.prototype.handleReportRequest = function(req) {
     var id = req.body.testRunId;
     return testResults[id] || {testRunId: id, state: 'no result'};
+};
+
+TestHandler.prototype.handleOpenBrowserRequest = function(req) {
+    this.browserInterface.open('htttp://google.com');
+    return {result: 'ok'}
+};
+
+TestHandler.prototype.handleListResultRequest = function(req) {
+    return {result: JSON.stringify(testResults)}
 };
 
 /*

@@ -249,7 +249,7 @@ Object.subclass('lively.Main.Loader',
 
     systemStart: function(canvas) {
         console.group("World loading");
-        
+
         this.canvas = canvas;
 
         this.prepareForLoading();
@@ -283,6 +283,7 @@ Object.subclass('lively.Main.Loader',
         if (Config.showWikiNavigator) this.showWikiNavigator();
         this.browserSpecificFixes()
         lively.bindings.signal(this, 'finishLoading', world);
+        lively.bindings.signal(world, 'finishLoading', world);
     },
 
 },
@@ -339,13 +340,13 @@ lively.Main.Loader.subclass('lively.Main.HTMLLoader',
         world.setWithLayers([HTML5RenderingLayer]);
         world.firstHand().setWithLayers([HTML5RenderingLayer]);
     },
-        
+
     createNewWorld: function(canvas) {
         // FIXME, add it somewhere
         var world = new lively.morphic.World(canvas);
         world.displayOnCanvas(canvas);
         this.onFinishLoading(world)
-        
+
         if (!Config.skipMostExamples)
             new lively.Main.HTMLExamples().populateWorldWithExamples(world);
     },
@@ -511,7 +512,7 @@ Object.subclass('lively.Main.Examples', {
         var consoleWidget = new ConsoleWidget(50).openIn(world, pt(0,0));
         consoleWidget.setPosition(pt(0, world.viewport().height - consoleWidget.bounds().height + 20 /*magic number*/));
     },
-    
+
     showFabrikComponents: function() {
         if (Config.showFabrikComponentBox)
             require('lively.Fabrik').toRun(function() { Fabrik.openComponentBox() });
@@ -587,7 +588,7 @@ Object.subclass('lively.Main.Examples', {
                     }
                 });
             }
-            
+
             // Add sample curve stuff
             if (Config.showCurveExample) {
                 var g = lively.scene;
@@ -645,7 +646,7 @@ Object.subclass('lively.Main.Examples', {
             if (Config.showVideo())
                 require('lively.Helper').toRun(function() { new VideoMorph().openExample(lm1.myWorld) });
 
-        } // lm1.myWorld.onEnter    
+        } // lm1.myWorld.onEnter
     },
 
     showSlideWorld: function(world) {
@@ -660,7 +661,7 @@ Object.subclass('lively.Main.Examples', {
         } else {
             var link = this.makeSlideWorld(world);
             world.addMorph(link);
-            link.addLabel("Simple example morphs");            
+            link.addLabel("Simple example morphs");
         }
     },
 
@@ -712,7 +713,7 @@ Object.subclass('lively.Main.Examples', {
                 new lively.ide.SystemBrowser().openIn(Config.webStoreInMain ? lively.morphic.World.current() : devWorld.myWorld, pt(100, 350))
             })
         }
-        
+
         if (Config.showGridDemo)
             require('lively.GridLayout').toRun(function() {
                 alert('demo!!');
@@ -831,25 +832,25 @@ lively.Main.Examples.subclass('lively.Main.HTMLExamples', {
             // widget = new Morph(shape);
             widget.setFill(colors[1]);
             world.addMorph(widget);
-            
+
             // // Create a sample line
             loc = loc.addPt(dy);
             widget = Morph.makeLine([pt(0,0), pt(-10,20), pt(70,0)], 2, Color.black);
             widget.setPosition(loc.addXY(0,15));
             world.addMorph(widget);
-            // 
+            //
             // Create a sample polygon
             widget = Morph.makePolygon([pt(0,0),pt(70,0),pt(40,30)], 1, Color.black, colors[2]);
             world.addMorph(widget);
             widget.setPosition(loc.addPt(dx));
             loc = loc.addPt(dy);
-            // 
+            //
             // // Create sample text morphs
             widget = new lively.morphic.Text(loc.extent(pt(100,50)),"Big Text"); // big text
             world.addMorph(widget.applyStyle({fontSize: 20, textColor: Color.blue}));
 
             widget = new lively.morphic.Text(loc.addPt(dx).extent(pt(140,50)),"Unbordered"); // unbordered text
-            world.addMorph(widget.applyStyle({fontSize: 20, borderWidth: 0, fill: null}));            
+            world.addMorph(widget.applyStyle({fontSize: 20, borderWidth: 0, fill: null}));
         }
     },
 
@@ -860,7 +861,7 @@ lively.Main.Examples.subclass('lively.Main.HTMLExamples', {
 
     populateWorldWithExamples: function($super, world) {
         this.populateSlideWorld(world);
-        
+
         // load other examples
         Config.showAsteroids = Functions.False
         Config.showInnerWorld = false
@@ -868,7 +869,7 @@ lively.Main.Examples.subclass('lively.Main.HTMLExamples', {
         Config.showDeveloperWorld = false
         require('lively.Examples').toRun(function() { $super(world) });
     },
-    
+
 });
 Object.extend(lively.Main, {
     getLoader: function(canvas) {

@@ -52,7 +52,7 @@ var browserInterface = {
         }
         console.log('open chrome on ' + url);
         // see http://peter.sh/experiments/chromium-command-line-switches/
-        this.process = spawn("/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome",
+        this.process = spawn("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
               ["--no-process-singleton-dialog", "--user-data-dir=/tmp/", "--no-first-run",
                "--disable-default-apps", //"--no-startup-window",
                "--disable-history-quick-provider", "--disable-history-url-provider",
@@ -122,11 +122,11 @@ TestHandler.prototype.handleReportRequest = function(req) {
 
 TestHandler.prototype.handleOpenBrowserRequest = function(req) {
     this.browserInterface.open('htttp://google.com');
-    return {result: 'ok'}
+    return {result: 'ok'};
 };
 
 TestHandler.prototype.handleListResultRequest = function(req) {
-    return {result: JSON.stringify(testResults)}
+    return {result: JSON.stringify(testResults)};
 };
 
 /*

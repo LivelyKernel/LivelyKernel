@@ -665,7 +665,7 @@ Object.subclass('lively.bindings.Tests.BindingsProfiler', {
 TestCase.subclass('lively.bindings.Tests.BindingsDuplicateTest', {
 
     setUp: function() {
-        this.sut = Morph.makeRectangle(100,100,100,50);
+        this.sut = lively.morphic.Morph.makeRectangle(100,100,100,50);
         this.sut.text = new lively.morphic.Text(new Rectangle(0,0,100,20));
         this.sut.addMorph(this.sut.text);
 
@@ -734,7 +734,7 @@ TestCase.subclass('lively.bindings.Tests.PlugTest',
 'running', {
     setUp: function($super) {
         $super();
-        this.morph = Morph.makeRectangle(new Rectangle(0,0, 100, 100));
+        this.morph = lively.morphic.Morph.makeRectangle(new Rectangle(0,0, 100, 100));
     },
 },
 'testing', {

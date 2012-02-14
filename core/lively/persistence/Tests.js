@@ -225,8 +225,8 @@ TestCase.subclass('lively.persistence.Tests.ObjectGraphLinearizerPluginTest',
     },
 
     test04FindModulesOfClasses: function() {
-        var morph1 = Morph.makeRectangle(0,0, 100, 100),
-            morph2 = Morph.makeRectangle(0,0, 50, 50);
+        var morph1 = lively.morphic.Morph.makeRectangle(0,0, 100, 100),
+            morph2 = lively.morphic.Morph.makeRectangle(0,0, 50, 50);
         morph1.addMorph(morph2);
         this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
         var string = this.serializer.serialize(morph1),
@@ -413,7 +413,7 @@ TestCase.subclass('lively.persistence.Tests.RestoreTest',
         this.assertEquals(12, result.getFoo());
     },
     test03aSerializeMorphScript: function() {
-        var morph = Morph.makeRectangle(0,0,0,0)
+        var morph = lively.morphic.Morph.makeRectangle(0,0,0,0)
         morph.addScript(function someScript(val) { this.val = val });
         morph.someScript(23);
         this.assertEquals(23, morph.val);

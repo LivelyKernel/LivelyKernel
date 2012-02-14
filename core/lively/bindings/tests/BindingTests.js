@@ -1,4 +1,4 @@
-module('lively.bindings.Tests').requires('lively.TestFramework', 'lively.bindings').toRun(function() {
+module('lively.bindings.tests.BindingTests').requires('lively.TestFramework', 'lively.bindings').toRun(function() {
 
 TestCase.subclass('lively.bindings.tests.ConnectionTest', {
 
@@ -569,11 +569,6 @@ TestCase.subclass('lively.bindings.tests.ConnectionSerializationTest', {
         this.assert(this.newTextMorph1.someScript1, 'script of source was not serialized');
         this.assertEquals(2, this.newTextMorph1.someScript1(), 'connect not working after deserialization');
     },
-
-
-
-
-
 });
 Object.subclass('lively.bindings.tests.BindingsProfiler', {
 

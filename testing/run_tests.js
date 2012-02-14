@@ -53,7 +53,7 @@ var testList = [
     "tests.TraitTests",
     "tests.TracingTests",
     "lively.persistence.Tests",
-    "lively.bindings.Tests",
+    "lively.bindings.tests.BindingTests",
     "lively.ast.tests.AstTests",
     "cop.LayersTest",
     // "lively.morphic.Tests",

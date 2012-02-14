@@ -2,4 +2,6 @@
 *.xhtml
 !blank.xhtml
 !testing/run_tests.xhtml
+
+# Node #
 node_modules

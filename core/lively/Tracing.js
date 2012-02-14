@@ -312,7 +312,7 @@ Object.extend(lively.Tracing, {
 
     excludedClasses: ["TracerTreeNode", "TracerStackNode", "Global", "String", "Object"],
 
-    excludedModules: ["lively.Tracing", "lively.AST.Parser", "lively.AST.generated.Nodes", "lively.AST.Interpreter", "lively.AST.Morphic"],
+    excludedModules: ["lively.Tracing", "lively.ast.Parser", "lively.ast.generated.Nodes", "lively.ast.Interpreter", "lively.ast.Morphic"],
 
     instrumentMethod: function(obj, selector, propsToAdd) {
         var method = obj[selector];

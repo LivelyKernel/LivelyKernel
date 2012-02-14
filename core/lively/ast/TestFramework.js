@@ -1,4 +1,4 @@
-module('lively.AST.TestFramework').requires('lively.TestFramework', 'lively.AST.Morphic').toRun(function() {
+module('lively.ast.TestFramework').requires('lively.TestFramework', 'lively.ast.Morphic').toRun(function() {
 cop.create('DebugTestsLayer')
 .refineClass(TestCase, {
     runTest: function(aSelector) {

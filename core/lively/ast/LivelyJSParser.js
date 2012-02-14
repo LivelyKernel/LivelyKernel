@@ -1,4 +1,4 @@
-module('lively.AST.LivelyJSParser').requires('ometa.parser').toRun(function() {
+module('lively.ast.LivelyJSParser').requires('ometa.parser').toRun(function() {
 LivelyJSParser=Object.delegated(Parser,{
 "whereAreYou":function(){var $elf=this;return (function (){{var charsBefore=(120);var charsAfter=(120);var src=this["_originalInput"]["arr"];var startIndex=Math.max((0),(this.pos() - charsBefore));var stopIndex=Math.min(src["length"],(this.pos() + charsAfter));var msg=((src.substring(startIndex,this.pos()) + "<--I am here-->") + src.substring(this.pos(),stopIndex))};(msg+=("\nRules: " + this["_ruleStack"]));(msg+=("\nStack: " + this["stack"]));alert(msg);return true}).call(this)},
 "fromTo":function(){var $elf=this,x,y;return (function(){x=this._apply("anything");y=this._apply("anything");this._applyWithArgs("seq",x);this._many((function(){return (function(){this._not((function(){return this._applyWithArgs("seq",y)}));return this._apply("char")}).call(this)}));return this._applyWithArgs("seq",y)}).call(this)},

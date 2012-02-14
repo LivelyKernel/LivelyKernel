@@ -21,9 +21,9 @@
  * THE SOFTWARE.
  */
 
-module('lively.AST.StackReification').requires('lively.AST.Interpreter', 'lively.AST.Parser').toRun(function() {
+module('lively.ast.StackReification').requires('lively.ast.Interpreter', 'lively.ast.Parser').toRun(function() {
 
-lively.Closure.subclass('lively.AST.RewrittenClosure',
+lively.Closure.subclass('lively.ast.RewrittenClosure',
 'initializing', {
   initialize: function($super, func, varMapping, source) {
     $super(func, varMapping, source);
@@ -43,7 +43,7 @@ lively.Closure.subclass('lively.AST.RewrittenClosure',
   },
 });
 
-Object.subclass('lively.AST.StackReification.Rewriter',
+Object.subclass('lively.ast.StackReification.Rewriter',
 'interface', {
   rewrite: function(ast) {
     return this.rewriteCallsInAST(ast, 'isolateAndCatchCall');
@@ -90,7 +90,7 @@ Object.subclass('lively.AST.StackReification.Rewriter',
   },
 
   unwindTemplate: function(varAndArgNamesToCapture, callIdx) {
-    // new lively.AST.StackReification.Rewriter().unwindTemplate().asJS()
+    // new lively.ast.StackReification.Rewriter().unwindTemplate().asJS()
 
     varAndArgNamesToCapture = varAndArgNamesToCapture || [];
     var src = ' try { REPLACE_WITH_CALL } catch(e) {' +
@@ -99,7 +99,7 @@ Object.subclass('lively.AST.StackReification.Rewriter',
       '   };' +
       '   throw e' +
       ' }',
-      ast = lively.AST.Parser.parse(src, 'stmt'),
+      ast = lively.ast.Parser.parse(src, 'stmt'),
       captureLiteral = this.objectLiteralNodeForCapturingVarAndArgsList(varAndArgNamesToCapture);
     ast.replaceNodesMatching(function(node) {return node.name == 'REPLACE_WITH_LITERAL'}, captureLiteral);
     return ast;
@@ -107,16 +107,16 @@ Object.subclass('lively.AST.StackReification.Rewriter',
 
   objectLiteralNodeForCapturingVarAndArgsList: function(varsAndArgs) {
     var src = '{' + varsAndArgs.collect(function(ea) {return ea + ':' + ea}).join(',') + '}',
-      node = lively.AST.Parser.parse(src, 'expr');
+      node = lively.ast.Parser.parse(src, 'expr');
     return node;
   },
 },
 'ast node creation', {
   tempVarFor: function(callNode, callIdx) {
-    return new lively.AST.Variable([0,0], "result" + callIdx + "_" + callNode.getName());
+    return new lively.ast.Variable([0,0], "result" + callIdx + "_" + callNode.getName());
   },
   tempVarAssignmentFor: function(callNode, callIdx) {
-    return new lively.AST.VarDeclaration([0,0], "result" + callIdx + "_" + callNode.getName(), callNode)
+    return new lively.ast.VarDeclaration([0,0], "result" + callIdx + "_" + callNode.getName(), callNode)
   },
 
 },
@@ -132,10 +132,10 @@ Object.subclass('lively.AST.StackReification.Rewriter',
     return result;
   },
 });
-Object.extend(lively.AST.StackReification, {
+Object.extend(lively.ast.StackReification, {
 
   halt: function() {
-    var frame = lively.AST.Interpreter.Frame.create();
+    var frame = lively.ast.Interpreter.Frame.create();
     throw {isUnwindException: true, lastFrame: frame, topFrame: frame}
   },
 
@@ -144,21 +144,21 @@ Object.extend(lively.AST.StackReification, {
       return func();
     } catch(e) {
       if (e.isUnwindException) {
-        e.lastFrame.setContainingScope(lively.AST.Interpreter.Frame.global());
-        return lively.AST.Continuation.fromUnwindException(e);
+        e.lastFrame.setContainingScope(lively.ast.Interpreter.Frame.global());
+        return lively.ast.Continuation.fromUnwindException(e);
       }
       throw e;
     }
   },
 });
 Object.extend(Global, {
-  catchUnwind: lively.AST.StackReification.run,
-  halt: lively.AST.StackReification.halt,
+  catchUnwind: lively.ast.StackReification.run,
+  halt: lively.ast.StackReification.halt,
 });
 Object.extend(Function.prototype, {
   stackCaptureMode: function(varMapping) {
-    var rewriter = new lively.AST.StackReification.Rewriter(),
-      closure = new lively.AST.RewrittenClosure(this, varMapping);
+    var rewriter = new lively.ast.StackReification.Rewriter(),
+      closure = new lively.ast.RewrittenClosure(this, varMapping);
     closure.rewrite(rewriter);
     var rewrittenFunc = closure.getRewrittenFunc();
     if (!rewrittenFunc) throw new Error('Cannot rewrite ' + this);
@@ -166,13 +166,13 @@ Object.extend(Function.prototype, {
   },
 
   stackCaptureSource: function(varMapping) {
-    var rewriter = new lively.AST.StackReification.Rewriter(),
-      closure = new lively.AST.RewrittenClosure(this, varMapping);
+    var rewriter = new lively.ast.StackReification.Rewriter(),
+      closure = new lively.ast.RewrittenClosure(this, varMapping);
     closure.rewrite(rewriter)
     return closure.getRewrittenSource();
   },
 });
-Object.subclass('lively.AST.Continuation',
+Object.subclass('lively.ast.Continuation',
 'initializing', {
   initialize: function(frame) {
     this.currentFrame = frame; // the frame in which the the unwind was triggered
@@ -210,7 +210,7 @@ Object.subclass('lively.AST.Continuation',
     return result;
   },
 });
-Object.extend(lively.AST.Continuation, {
+Object.extend(lively.ast.Continuation, {
   fromUnwindException: function(e) {
     return new this(e.topFrame.getContainingScope());
   },

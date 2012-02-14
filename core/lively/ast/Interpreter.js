@@ -21,9 +21,9 @@
  * THE SOFTWARE.
  */
 
-module('lively.AST.Interpreter').requires('lively.AST.generated.Nodes').toRun(function() {
+module('lively.ast.Interpreter').requires('lively.ast.generated.Nodes').toRun(function() {
 
-Object.subclass('lively.AST.Interpreter.Frame',
+Object.subclass('lively.ast.Interpreter.Frame',
 'initialization', {
     initialize: function(mapping) {
         this.mapping = mapping || {};
@@ -292,9 +292,9 @@ Object.subclass('lively.AST.Interpreter.Frame',
     },
 });
 
-Object.extend(lively.AST.Interpreter.Frame, {
+Object.extend(lively.ast.Interpreter.Frame, {
     create: function(mapping) {
-        return new lively.AST.Interpreter.Frame(mapping || {});
+        return new lively.ast.Interpreter.Frame(mapping || {});
     },
     global: function() {
         return this.create(Global);
@@ -304,13 +304,13 @@ Object.extend(lively.AST.Interpreter.Frame, {
         if (trace.frame) {
             frame = trace.frame;
         } else {
-            var frame = lively.AST.Interpreter.Frame.create();
+            var frame = lively.ast.Interpreter.Frame.create();
             frame.setFuncAst(trace.method.ast());
             frame.setThis(trace.itsThis);
             frame.setArguments(trace.args);
         }
         if (trace.caller && !trace.caller.isRoot) {
-            frame.setCaller(lively.AST.Interpreter.Frame.fromTraceNode(trace.caller));
+            frame.setCaller(lively.ast.Interpreter.Frame.fromTraceNode(trace.caller));
         }
         return frame;
     }
@@ -319,15 +319,15 @@ Object.extend(lively.AST.Interpreter.Frame, {
 Object.extend(Function.prototype, {
     forInterpretation: function(optMapping) {
         var func = this.ast();
-        func.lexicalScope = lively.AST.Interpreter.Frame.create(optMapping || Global);
+        func.lexicalScope = lively.ast.Interpreter.Frame.create(optMapping || Global);
         func.prototype = this.prototype;
         return func;
     },
 });
 
-lively.AST.Visitor.subclass('lively.AST.InterpreterVisitor', 'interface', {
+lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     run: function(node, optMapping) {
-        return this.runWithFrame(node, lively.AST.Interpreter.Frame.create(optMapping));
+        return this.runWithFrame(node, lively.ast.Interpreter.Frame.create(optMapping));
     },
     runWithFrame: function(node, frame) {
         this.setRootFrame(frame);
@@ -345,7 +345,7 @@ lively.AST.Visitor.subclass('lively.AST.InterpreterVisitor', 'interface', {
         var frame = this.currentFrame,
             newCall = frame.newTriggered;
         if (newCall) frame.stopNew();
-        var caller = lively.AST.FunctionCaller.defaultInstance;
+        var caller = lively.ast.FunctionCaller.defaultInstance;
         frame.setPC(node);
         return caller.activate(frame, newCall, func, node.name, recv, argValues);
     },
@@ -758,7 +758,7 @@ lively.AST.Visitor.subclass('lively.AST.InterpreterVisitor', 'interface', {
 
 });
 
-lively.AST.InterpreterVisitor.subclass('lively.AST.ResumingInterpreterVisitor',
+lively.ast.InterpreterVisitor.subclass('lively.ast.ResumingInterpreterVisitor',
 'visiting', {
     visit: function($super, node) {
         var value = this.currentFrame.getValue(node);
@@ -774,13 +774,13 @@ lively.AST.InterpreterVisitor.subclass('lively.AST.ResumingInterpreterVisitor',
     },
 });
 
-Object.extend(lively.AST, {
+Object.extend(lively.ast, {
     getInterpreter: function() {
-        return new lively.AST.ResumingInterpreterVisitor();
+        return new lively.ast.ResumingInterpreterVisitor();
     },
 });
 
-Object.subclass('lively.AST.FunctionCaller', 'documentation', {
+Object.subclass('lively.ast.FunctionCaller', 'documentation', {
     documentation: 'strategy for invoking functions',
 },
 'initializiation', {
@@ -882,28 +882,28 @@ Object.subclass('lively.AST.FunctionCaller', 'documentation', {
     },
 });
 
-Object.extend(lively.AST.FunctionCaller, {
-    defaultInstance: new lively.AST.FunctionCaller(),
+Object.extend(lively.ast.FunctionCaller, {
+    defaultInstance: new lively.ast.FunctionCaller(),
 });
 
-lively.AST.Node.addMethods('interpretation', {
+lively.ast.Node.addMethods('interpretation', {
     position: function() {
         return[this.pos[0], this.pos[1]];
     },
     startInterpretation: function(optMapping) {
-        return lively.AST.getInterpreter().run(this, optMapping);
+        return lively.ast.getInterpreter().run(this, optMapping);
     },
 });
 
-lively.AST.Variable.addMethods('interpretation', {
+lively.ast.Variable.addMethods('interpretation', {
     set: function(value, frame, interpreter) {
         var search = frame.findFrame(this.name),
-            scope = search ? search.frame : lively.AST.Interpreter.Frame.global();
+            scope = search ? search.frame : lively.ast.Interpreter.Frame.global();
         return scope.addToMapping(this.name, value);
     },
 });
 
-lively.AST.GetSlot.addMethods('interpretation', {
+lively.ast.GetSlot.addMethods('interpretation', {
     set: function(value, frame, interpreter) {
         var obj = interpreter.visit(this.obj),
             name = interpreter.visit(this.slotName);
@@ -911,7 +911,7 @@ lively.AST.GetSlot.addMethods('interpretation', {
     },
 });
 
-lively.AST.Function.addMethods('accessing', {
+lively.ast.Function.addMethods('accessing', {
     getRealFunction: function() {
         if (this.realFunction) return this.realFunction;
         return this.realFunction = this.eval();
@@ -922,7 +922,7 @@ lively.AST.Function.addMethods('accessing', {
         return[this.pos[1] - 1, this.pos[1]];
     },
     basicApply: function(frame) {
-        return lively.AST.getInterpreter().runWithFrame(this.body, frame);
+        return lively.ast.getInterpreter().runWithFrame(this.body, frame);
     },
     apply: function(thisObj, argValues, callerFrame) {
         var mapping = Object.extend({}, this.getRealFunction().getVarMapping());
@@ -994,7 +994,7 @@ lively.AST.Function.addMethods('accessing', {
     }
 });
 
-lively.AST.Visitor.subclass('lively.AST.ContainsDebuggerVisitor', 'visiting', {
+lively.ast.Visitor.subclass('lively.ast.ContainsDebuggerVisitor', 'visiting', {
     visitSequence: function(node) {
         for (var i = 0; i < node.children.length; i++) {
             if (this.visit(node.children[i])) {
@@ -1145,7 +1145,7 @@ lively.AST.Visitor.subclass('lively.AST.ContainsDebuggerVisitor', 'visiting', {
 
 Function.addMethods('debugging', {
     containsDebugger: function() {
-        return new lively.AST.ContainsDebuggerVisitor().visit(this.ast());
+        return new lively.ast.ContainsDebuggerVisitor().visit(this.ast());
     },
     forDebugging: function(onbreakpoint) {
         var self = this,
@@ -1154,7 +1154,7 @@ Function.addMethods('debugging', {
                     var frame = null;
                     if (lively.Tracing && lively.Tracing.getCurrentContext()) {
                         var trace = lively.Tracing.getCurrentContext().caller;
-                        frame = lively.AST.Interpreter.Frame.fromTraceNode(trace);
+                        frame = lively.ast.Interpreter.Frame.fromTraceNode(trace);
                     }
                     return thisFunc.forInterpretation(Global).apply(this, $A(arguments), frame);
                 } catch(e) {

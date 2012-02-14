@@ -21,9 +21,9 @@
  * THE SOFTWARE.
  */
 
-module('lively.AST.Tests').requires('lively.AST.Parser', 'lively.AST.StackReification', 'lively.TestFramework').toRun(function() {
+module('lively.ast.Tests').requires('lively.ast.Parser', 'lively.ast.StackReification', 'lively.TestFramework').toRun(function() {
 
-TestCase.subclass('lively.AST.Tests.ParserTest',
+TestCase.subclass('lively.ast.Tests.ParserTest',
 'running', {
     setUp: function($super) {
         $super()
@@ -31,7 +31,7 @@ TestCase.subclass('lively.AST.Tests.ParserTest',
 },
 'helper', {
     parseJS: function(src, rule) {
-        // return lively.AST.Parser.parse(src, rule)
+        // return lively.ast.Parser.parse(src, rule)
         return OMetaSupport.matchAllWithGrammar(LivelyJSParser, rule || 'topLevel', src)
     },
 },
@@ -125,9 +125,9 @@ TestCase.subclass('lively.AST.Tests.ParserTest',
 });
 
 
-TestCase.subclass('lively.AST.Tests.JSToAstTest',
+TestCase.subclass('lively.ast.Tests.JSToAstTest',
 'helper', {
-    parseJS: function(src, rule) { return lively.AST.Parser.parse(src, rule) },
+    parseJS: function(src, rule) { return lively.ast.Parser.parse(src, rule) },
 },
 'testing', {
     test01SimpleExpression: function() {
@@ -247,9 +247,9 @@ TestCase.subclass('lively.AST.Tests.JSToAstTest',
 })
 
 
-TestCase.subclass('lively.AST.Tests.ReplaceTest',
+TestCase.subclass('lively.ast.Tests.ReplaceTest',
 'helper', {
-    parseJS: function(src, rule) { return lively.AST.Parser.parse(src, rule) },
+    parseJS: function(src, rule) { return lively.ast.Parser.parse(src, rule) },
 },
 'testing', {
     test01ReplaceWith: function() {
@@ -281,9 +281,9 @@ TestCase.subclass('lively.AST.Tests.ReplaceTest',
 });
 
 
-TestCase.subclass('lively.AST.Tests.InterpreterTest',
+TestCase.subclass('lively.ast.Tests.InterpreterTest',
 'helper', {
-    parseJS: function(src, rule) { return lively.AST.Parser.parse(src, rule) },
+    parseJS: function(src, rule) { return lively.ast.Parser.parse(src, rule) },
 },
 'testing', {
     test01Number: function() {
@@ -577,10 +577,10 @@ TestCase.subclass('lively.AST.Tests.InterpreterTest',
     },
 });
 
-TestCase.subclass('lively.AST.Tests.ExecutionStateReifierTest',
+TestCase.subclass('lively.ast.Tests.ExecutionStateReifierTest',
 'running', {
     setUp: function($super) {
-        this.sut = new lively.AST.StackReification.Rewriter();
+        this.sut = new lively.ast.StackReification.Rewriter();
     },
 },
 'helper', {
@@ -660,7 +660,7 @@ TestCase.subclass('lively.AST.Tests.ExecutionStateReifierTest',
     },
     testCaptureSimpleStack: function() {
         var unwindException = null,
-            halt = lively.AST.StackReification.halt,
+            halt = lively.ast.StackReification.halt,
             func = function() { var b = 2; halt() }.stackCaptureMode();
         try { func() } catch(e) { if (e.isUnwindException) { unwindException = e } else { throw e }}
         this.assert(unwindException, 'no unwindException')
@@ -669,11 +669,11 @@ TestCase.subclass('lively.AST.Tests.ExecutionStateReifierTest',
 
 
 });
-TestCase.subclass('lively.AST.Tests.ContinuationTest',
+TestCase.subclass('lively.ast.Tests.ContinuationTest',
 'running', {
     shouldRun: false,
     setUp: function($super) {
-        this.rewriter = new lively.AST.StackReification.Rewriter();
+        this.rewriter = new lively.ast.StackReification.Rewriter();
         Global.currentTest = this;
     },
     tearDown: function($super) {
@@ -687,10 +687,10 @@ TestCase.subclass('lively.AST.Tests.ContinuationTest',
         var state = {before: 0, after: 0},
             func = function() {
                 state.before++;
-                lively.AST.StackReification.halt();
+                lively.ast.StackReification.halt();
                 state.after++;
             }.stackCaptureMode({state: state}),
-            continuation = lively.AST.StackReification.run(func);
+            continuation = lively.ast.StackReification.run(func);
         this.assertEquals(1, state.before, 'before not run');
         this.assertEquals(0, state.after, 'after run');
         continuation.resume();
@@ -714,7 +714,7 @@ TestCase.subclass('lively.AST.Tests.ContinuationTest',
                 Global.currentTest.a_after++
             }.stackCaptureMode(),
         })
-        var continuation = lively.AST.StackReification.run(t.a);
+        var continuation = lively.ast.StackReification.run(t.a);
         this.assertEquals(1, t.a_before, 'a_before not run');
         this.assertEquals(1, t.b_before, 'b_before not run');
         this.assertEquals(0, t.a_after, 'a_after did run');
@@ -727,14 +727,14 @@ TestCase.subclass('lively.AST.Tests.ContinuationTest',
     },
     test03ResumedFunctionHasNoNextStatement: function() {
         var func = function() {
-                lively.AST.StackReification.halt();
+                lively.ast.StackReification.halt();
             }.stackCaptureMode(),
-            continuation = lively.AST.StackReification.run(func);
+            continuation = lively.ast.StackReification.run(func);
         continuation.resume();
     },
 });
 
-TestCase.subclass('lively.AST.Tests.UnboundVariableAnalyzerTest',
+TestCase.subclass('lively.ast.Tests.UnboundVariableAnalyzerTest',
 'assertion', {
     assertVarsFound: function(expected, actualVarNames) {
         this.assertEquals(expected[1].length, actualVarNames.length,
@@ -753,7 +753,7 @@ TestCase.subclass('lively.AST.Tests.UnboundVariableAnalyzerTest',
 'testing', {
     test01FindFreeVariable: function() {
         var f = function() { var x = 3; return x + y },
-            result = new lively.AST.VariableAnalyzer().findUnboundVariableNames(f);
+            result = new lively.ast.VariableAnalyzer().findUnboundVariableNames(f);
         this.assertEqualState(['y'], result);
     },
     testFindSimpleGlobalRead: function() {
@@ -767,7 +767,7 @@ TestCase.subclass('lively.AST.Tests.UnboundVariableAnalyzerTest',
         ];
 
         for (var i = 0; i < codeAndExpected.length; i++) {
-            var result = lively.AST.VariableAnalyzer.findUnboundVariableNamesIn(codeAndExpected[i][0]);
+            var result = lively.ast.VariableAnalyzer.findUnboundVariableNamesIn(codeAndExpected[i][0]);
             this.assertVarsFound(codeAndExpected[i], result);
         }
     },
@@ -775,12 +775,12 @@ TestCase.subclass('lively.AST.Tests.UnboundVariableAnalyzerTest',
         var src = "Foo = 3;\n"
                   + "var Bar = 99;\n"
                   + "function baz() { var x = 3; return x }",
-            result = lively.AST.VariableAnalyzer.findTopLevelVarDeclarationsIn(src);
+            result = lively.ast.VariableAnalyzer.findTopLevelVarDeclarationsIn(src);
         this.assertEqualState(['Bar', 'baz'], result);
     },
 });
 
-TestCase.subclass('lively.AST.Tests.ClosureTest',
+TestCase.subclass('lively.ast.Tests.ClosureTest',
 'testing', {
     test02RecreateClosure: function() {
         var f = function() { var x = 3; return x + y },
@@ -849,7 +849,7 @@ TestCase.subclass('lively.AST.Tests.ClosureTest',
     },
 });
 
-Object.subclass('lively.AST.Tests.Examples',
+Object.subclass('lively.ast.Tests.Examples',
 'subjects', {
     nodebugger: function() {
         var i = 23;
@@ -945,11 +945,11 @@ Object.subclass('lively.AST.Tests.Examples',
     },
 });
 
-TestCase.subclass('lively.AST.Tests.ContainsDebuggerTest',
+TestCase.subclass('lively.ast.Tests.ContainsDebuggerTest',
 'running', {
     setUp: function($super) {
         $super();
-        this.examples = new lively.AST.Tests.Examples();
+        this.examples = new lively.ast.Tests.Examples();
     },
 },
 'testing', {
@@ -979,11 +979,11 @@ TestCase.subclass('lively.AST.Tests.ContainsDebuggerTest',
         this.assert(this.examples.method.containsDebugger());
     },
 });
-TestCase.subclass('lively.AST.Tests.BreakpointTest',
+TestCase.subclass('lively.ast.Tests.BreakpointTest',
 'running', {
     setUp: function($super) {
         $super();
-        this.examples = new lively.AST.Tests.Examples();
+        this.examples = new lively.ast.Tests.Examples();
     },
 },
 'helping', {
@@ -1235,7 +1235,7 @@ TestCase.subclass('lively.AST.Tests.BreakpointTest',
     }
 });
 
-TestCase.subclass('lively.AST.Tests.SteppingAstTest',
+TestCase.subclass('lively.ast.Tests.SteppingAstTest',
 'running', {
     setUp: function() {},
 },

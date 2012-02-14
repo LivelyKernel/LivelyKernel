@@ -1,7 +1,7 @@
-module('lively.AST.generated.Nodes').requires().toRun(function() {
-Object.subclass('lively.AST.Node');
+module('lively.ast.generated.Nodes').requires().toRun(function() {
+Object.subclass('lively.ast.Node');
 
-lively.AST.Node.subclass('lively.AST.Sequence', 
+lively.ast.Node.subclass('lively.ast.Sequence', 
 'testing', {
 	isSequence: true,
 },
@@ -64,7 +64,7 @@ lively.AST.Node.subclass('lively.AST.Sequence',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Number', 
+lively.ast.Node.subclass('lively.ast.Number', 
 'testing', {
 	isNumber: true,
 },
@@ -87,7 +87,7 @@ lively.AST.Node.subclass('lively.AST.Number',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.String', 
+lively.ast.Node.subclass('lively.ast.String', 
 'testing', {
 	isString: true,
 },
@@ -110,7 +110,7 @@ lively.AST.Node.subclass('lively.AST.String',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Cond', 
+lively.ast.Node.subclass('lively.ast.Cond', 
 'testing', {
 	isCond: true,
 },
@@ -141,7 +141,7 @@ lively.AST.Node.subclass('lively.AST.Cond',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.If', 
+lively.ast.Node.subclass('lively.ast.If', 
 'testing', {
 	isIf: true,
 },
@@ -150,8 +150,8 @@ lively.AST.Node.subclass('lively.AST.If',
 				this.pos = pos;
 				this.condExpr = condExpr;
 				// FIXME actually this could be done with OMeta
-				this.trueExpr = trueExpr.isSequence || this.isUndefined(trueExpr) ? trueExpr : new lively.AST.Sequence(trueExpr.pos, [trueExpr]);
-				this.falseExpr = falseExpr.isSequence || this.isUndefined(falseExpr) ? falseExpr : new lively.AST.Sequence(trueExpr.pos, [falseExpr]);
+				this.trueExpr = trueExpr.isSequence || this.isUndefined(trueExpr) ? trueExpr : new lively.ast.Sequence(trueExpr.pos, [trueExpr]);
+				this.falseExpr = falseExpr.isSequence || this.isUndefined(falseExpr) ? falseExpr : new lively.ast.Sequence(trueExpr.pos, [falseExpr]);
 				condExpr.setParent(this);
 				this.trueExpr.setParent(this);
 				this.falseExpr.setParent(this);
@@ -191,7 +191,7 @@ lively.AST.Node.subclass('lively.AST.If',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.While', 
+lively.ast.Node.subclass('lively.ast.While', 
 'testing', {
 	isWhile: true,
 },
@@ -220,7 +220,7 @@ lively.AST.Node.subclass('lively.AST.While',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.DoWhile', 
+lively.ast.Node.subclass('lively.ast.DoWhile', 
 'testing', {
 	isDoWhile: true,
 },
@@ -249,7 +249,7 @@ lively.AST.Node.subclass('lively.AST.DoWhile',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.For', 
+lively.ast.Node.subclass('lively.ast.For', 
 'testing', {
 	isFor: true,
 },
@@ -301,7 +301,7 @@ lively.AST.Node.subclass('lively.AST.For',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.ForIn', 
+lively.ast.Node.subclass('lively.ast.ForIn', 
 'testing', {
 	isForIn: true,
 },
@@ -332,7 +332,7 @@ lively.AST.Node.subclass('lively.AST.ForIn',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Set', 
+lively.ast.Node.subclass('lively.ast.Set', 
 'testing', {
 	isSet: true,
 },
@@ -358,7 +358,7 @@ lively.AST.Node.subclass('lively.AST.Set',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.ModifyingSet', 
+lively.ast.Node.subclass('lively.ast.ModifyingSet', 
 'testing', {
 	isModifyingSet: true,
 },
@@ -385,7 +385,7 @@ lively.AST.Node.subclass('lively.AST.ModifyingSet',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.BinaryOp', 
+lively.ast.Node.subclass('lively.ast.BinaryOp', 
 'testing', {
 	isBinaryOp: true,
 },
@@ -412,7 +412,7 @@ lively.AST.Node.subclass('lively.AST.BinaryOp',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.UnaryOp', 
+lively.ast.Node.subclass('lively.ast.UnaryOp', 
 'testing', {
 	isUnaryOp: true,
 },
@@ -437,7 +437,7 @@ lively.AST.Node.subclass('lively.AST.UnaryOp',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.PreOp', 
+lively.ast.Node.subclass('lively.ast.PreOp', 
 'testing', {
 	isPreOp: true,
 },
@@ -462,7 +462,7 @@ lively.AST.Node.subclass('lively.AST.PreOp',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.PostOp', 
+lively.ast.Node.subclass('lively.ast.PostOp', 
 'testing', {
 	isPostOp: true,
 },
@@ -487,7 +487,7 @@ lively.AST.Node.subclass('lively.AST.PostOp',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.This', 
+lively.ast.Node.subclass('lively.ast.This', 
 'testing', {
 	isThis: true,
 },
@@ -509,7 +509,7 @@ lively.AST.Node.subclass('lively.AST.This',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Variable', 
+lively.ast.Node.subclass('lively.ast.Variable', 
 'testing', {
 	isVariable: true,
 },
@@ -533,7 +533,7 @@ lively.AST.Node.subclass('lively.AST.Variable',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.GetSlot', 
+lively.ast.Node.subclass('lively.ast.GetSlot', 
 'testing', {
 	isGetSlot: true,
 },
@@ -563,7 +563,7 @@ lively.AST.Node.subclass('lively.AST.GetSlot',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Break', 
+lively.ast.Node.subclass('lively.ast.Break', 
 'testing', {
 	isBreak: true,
 },
@@ -584,7 +584,7 @@ lively.AST.Node.subclass('lively.AST.Break',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Debugger', 
+lively.ast.Node.subclass('lively.ast.Debugger', 
 'testing', {
 	isDebugger: true,
 },
@@ -605,7 +605,7 @@ lively.AST.Node.subclass('lively.AST.Debugger',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Continue', 
+lively.ast.Node.subclass('lively.ast.Continue', 
 'testing', {
 	isContinue: true,
 },
@@ -626,7 +626,7 @@ lively.AST.Node.subclass('lively.AST.Continue',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.ArrayLiteral', 
+lively.ast.Node.subclass('lively.ast.ArrayLiteral', 
 'testing', {
 	isArrayLiteral: true,
 },
@@ -650,7 +650,7 @@ lively.AST.Node.subclass('lively.AST.ArrayLiteral',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Return', 
+lively.ast.Node.subclass('lively.ast.Return', 
 'testing', {
 	isReturn: true,
 },
@@ -674,7 +674,7 @@ lively.AST.Node.subclass('lively.AST.Return',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.With', 
+lively.ast.Node.subclass('lively.ast.With', 
 'testing', {
 	isWith: true,
 },
@@ -700,7 +700,7 @@ lively.AST.Node.subclass('lively.AST.With',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Send', 
+lively.ast.Node.subclass('lively.ast.Send', 
 'testing', {
 	isSend: true,
 },
@@ -735,7 +735,7 @@ lively.AST.Node.subclass('lively.AST.Send',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Call', 
+lively.ast.Node.subclass('lively.ast.Call', 
 'testing', {
 	isCall: true,
 },
@@ -767,7 +767,7 @@ lively.AST.Node.subclass('lively.AST.Call',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.New', 
+lively.ast.Node.subclass('lively.ast.New', 
 'testing', {
 	isNew: true,
 },
@@ -793,7 +793,7 @@ lively.AST.Node.subclass('lively.AST.New',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.VarDeclaration', 
+lively.ast.Node.subclass('lively.ast.VarDeclaration', 
 'testing', {
 	isVarDeclaration: true,
 },
@@ -820,7 +820,7 @@ lively.AST.Node.subclass('lively.AST.VarDeclaration',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Throw', 
+lively.ast.Node.subclass('lively.ast.Throw', 
 'testing', {
 	isThrow: true,
 },
@@ -844,7 +844,7 @@ lively.AST.Node.subclass('lively.AST.Throw',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.TryCatchFinally', 
+lively.ast.Node.subclass('lively.ast.TryCatchFinally', 
 'testing', {
 	isTryCatchFinally: true,
 },
@@ -883,7 +883,7 @@ lively.AST.Node.subclass('lively.AST.TryCatchFinally',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Function', 
+lively.ast.Node.subclass('lively.ast.Function', 
 'testing', {
 	isFunction: true,
 },
@@ -918,7 +918,7 @@ lively.AST.Node.subclass('lively.AST.Function',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.ObjectLiteral', 
+lively.ast.Node.subclass('lively.ast.ObjectLiteral', 
 'testing', {
 	isObjectLiteral: true,
 },
@@ -944,7 +944,7 @@ lively.AST.Node.subclass('lively.AST.ObjectLiteral',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.ObjProperty', 
+lively.ast.Node.subclass('lively.ast.ObjProperty', 
 'testing', {
 	isObjProperty: true,
 },
@@ -971,7 +971,7 @@ lively.AST.Node.subclass('lively.AST.ObjProperty',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Switch', 
+lively.ast.Node.subclass('lively.ast.Switch', 
 'testing', {
 	isSwitch: true,
 },
@@ -1000,7 +1000,7 @@ lively.AST.Node.subclass('lively.AST.Switch',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Case', 
+lively.ast.Node.subclass('lively.ast.Case', 
 'testing', {
 	isCase: true,
 },
@@ -1028,7 +1028,7 @@ lively.AST.Node.subclass('lively.AST.Case',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Default', 
+lively.ast.Node.subclass('lively.ast.Default', 
 'testing', {
 	isDefault: true,
 },
@@ -1052,7 +1052,7 @@ lively.AST.Node.subclass('lively.AST.Default',
 	},
 })
 
-lively.AST.Node.subclass('lively.AST.Regex', 
+lively.ast.Node.subclass('lively.ast.Regex', 
 'testing', {
 	isRegex: true,
 },
@@ -1075,7 +1075,7 @@ lively.AST.Node.subclass('lively.AST.Regex',
 		return visitor.visitRegex(this);
 	},
 })
-Object.subclass('lively.AST.Visitor', 
+Object.subclass('lively.ast.Visitor', 
 'visiting', {
 	visit: function(node) { return node.accept(this) },
 	visitSequence: function(node) {},

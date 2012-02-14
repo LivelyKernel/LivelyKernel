@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.AST.Morphic').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.AST.Interpreter','lively.Tracing').toRun(function() {
+module('lively.ast.Morphic').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.ast.Interpreter','lively.Tracing').toRun(function() {
 
 Object.extend(lively.morphic.Morph, {
     openDebugger: function openDebugger(frame, title) {
@@ -85,7 +85,7 @@ cop.create('DebugGlobalErrorHandlerLayer')
 .refineClass(lively.morphic.EventHandler, {
     handleError: function(err, target, eventSpec) {
         if (err.simStack) {
-            var frame = lively.AST.Interpreter.Frame.fromTraceNode(err.simStack);
+            var frame = lively.ast.Interpreter.Frame.fromTraceNode(err.simStack);
             lively.morphic.Morph.openDebugger(frame, err.toString());
             return false;
         } else {

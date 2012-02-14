@@ -136,7 +136,7 @@ Object.extend(lively.ide, {
         // objectName = "lively.morphic.Morph"
         // methodName = "onMouseDown"
         // moduleNameOrSpec = "lively.morphic.Events"
-        //    || {name: "lively.AST.LivelyJSParser", type: 'ometa'};
+        //    || {name: "lively.ast.LivelyJSParser", type: 'ometa'};
 
         var promise = {}, moduleName, moduleType;
         if (Object.isString(moduleNameOrSpec)) {

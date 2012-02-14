@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.AST.Parser').requires('lively.Ometa', 'lively.AST.generated.Translator', 'lively.AST.generated.Nodes', 'lively.AST.Interpreter', 'lively.AST.LivelyJSParser').toRun(function() {
+module('lively.ast.Parser').requires('lively.Ometa', 'lively.ast.generated.Translator', 'lively.ast.generated.Nodes', 'lively.ast.Interpreter', 'lively.ast.LivelyJSParser').toRun(function() {
 
 
 Object.extend(LivelyJSParser, {
@@ -44,7 +44,7 @@ Object.extend(LivelyJSParser, {
 
 });
 
-Object.extend(lively.AST.Parser, {
+Object.extend(lively.ast.Parser, {
     jsParser: LivelyJSParser,
     astTranslator: JSTranslator,
     basicParse: function(source, rule) {
@@ -63,7 +63,7 @@ Object.extend(lively.AST.Parser, {
     parse: function(src, optRule) { return this.basicParse(src, optRule || 'topLevel') },
 });
 
-lively.AST.Node.addMethods(
+lively.ast.Node.addMethods(
 'accessing', {
     setParent: function(parentNode) { return this._parent = parentNode },
     getParent: function(parentNode) { return this._parent },
@@ -273,16 +273,16 @@ lively.AST.Node.addMethods(
     }
 });
 
-Object.subclass('lively.AST.SourceGenerator',
+Object.subclass('lively.ast.SourceGenerator',
 'documentation', {
-    usage: 'gen = new lively.AST.SourceGenerator();\n\
+    usage: 'gen = new lively.ast.SourceGenerator();\n\
 gen.writeAndEvalTranslator();\n\
 gen.evalAndWriteClasses();\n\
-lively.AST.Parser.astTranslator = JSTranslator;\n\
-lively.AST.Parser.jsParser = LivelyJSParser;',
+lively.ast.Parser.astTranslator = JSTranslator;\n\
+lively.ast.Parser.jsParser = LivelyJSParser;',
 
     showUsage: function() {
-        $world.addTextWindow({content: this.usage, title: "lively.AST.SourceGenerator usage"})
+        $world.addTextWindow({content: this.usage, title: "lively.ast.SourceGenerator usage"})
     }
 },
 'settings', {
@@ -296,9 +296,9 @@ lively.AST.Parser.jsParser = LivelyJSParser;',
         return result;
     },
 
-    modulePath: 'lively.AST.',
-    rootNodeClassName: 'lively.AST.Node',
-    visitorClassName: 'lively.AST.Visitor',
+    modulePath: 'lively.ast.',
+    rootNodeClassName: 'lively.ast.Node',
+    visitorClassName: 'lively.ast.Visitor',
 },
 'translator rules', {
 
@@ -403,9 +403,9 @@ lively.AST.Parser.jsParser = LivelyJSParser;',
                 this.condExpr = condExpr;
                 // FIXME actually this could be done with OMeta
                 this.trueExpr = trueExpr.isSequence || this.isUndefined(trueExpr) ?
-                    trueExpr : new lively.AST.Sequence(trueExpr.pos, [trueExpr]);
+                    trueExpr : new lively.ast.Sequence(trueExpr.pos, [trueExpr]);
                 this.falseExpr = falseExpr.isSequence || this.isUndefined(falseExpr) ?
-                    falseExpr : new lively.AST.Sequence(trueExpr.pos, [falseExpr]);
+                    falseExpr : new lively.ast.Sequence(trueExpr.pos, [falseExpr]);
                 condExpr.setParent(this);
                 this.trueExpr.setParent(this);
                 this.falseExpr.setParent(this);
@@ -1015,7 +1015,7 @@ lively.AST.Parser.jsParser = LivelyJSParser;',
             translated = OMetaSupport.translateToJs(source);
         eval(translated);
         var content = Strings.format(
-            'module(\'lively.AST.generated.Translator\').' +
+            'module(\'lively.ast.generated.Translator\').' +
                 'requires().toRun(function() {\n%s\n});', translated)
         this.writeToFile('Translator.ometa', source);
         this.writeToFile('Translator.js', content);
@@ -1031,7 +1031,7 @@ lively.AST.Parser.jsParser = LivelyJSParser;',
     },
 
     parentCallsFromRules: function(ruleSpec) {
-        // new lively.AST.SourceGenerator().parentCallsFromRules({rules: ['trans:foo', 'trans*:bar']})
+        // new lively.ast.SourceGenerator().parentCallsFromRules({rules: ['trans:foo', 'trans*:bar']})
         var parentCalls = [];
         this.forCollectionRulesDo(ruleSpec, function(rule, ruleVarName) {
             var str = Strings.format('\t\t%s.forEach(function(node) { node.setParent(this) }, this);', ruleVarName);
@@ -1129,7 +1129,7 @@ lively.AST.Parser.jsParser = LivelyJSParser;',
     },
 
     doubleDispatchCategoryForVisitor: function() {
-        // new lively.AST.SourceGenerator().doubleDispatchCategoryForVisitor()
+        // new lively.ast.SourceGenerator().doubleDispatchCategoryForVisitor()
         // currently not used
         var createVisitAndAcceptCalls = function(ruleSpec) {
             var calls = [];
@@ -1171,7 +1171,7 @@ lively.AST.Parser.jsParser = LivelyJSParser;',
 Function.addMethods(
 'ast', {
     ast: function() {
-        var parseResult = lively.AST.Parser.parse(this.toString(), 'topLevel');
+        var parseResult = lively.ast.Parser.parse(this.toString(), 'topLevel');
         if (!parseResult || Object.isString(parseResult)) return parseResult;
         parseResult = parseResult.children[0];
         if (parseResult.isVarDeclaration && parseResult.val.isFunction) {
@@ -1185,7 +1185,7 @@ Function.addMethods(
     },
 });
 
-lively.AST.Visitor.subclass('lively.AST.VariableAnalyzer',
+lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
 'analyzing helper', {
     knownGlobals: ["true", "false", "null", "undefined",
                    "Object", "Function", "String", "Date", "Math", "parseFloat", "isNaN",
@@ -1270,9 +1270,9 @@ lively.AST.Visitor.subclass('lively.AST.VariableAnalyzer',
     visitDefault: function(node) { this.visitParts(node, ['defaultExpr']) },
 });
 
-Object.extend(lively.AST.VariableAnalyzer, {
+Object.extend(lively.ast.VariableAnalyzer, {
     parse: function(source) {
-        var ast = lively.AST.Parser.parse(source, 'topLevel');
+        var ast = lively.ast.Parser.parse(source, 'topLevel');
         if (!ast || Object.isString(ast)) {
           throw new Error("cannot parse " + source);
         }

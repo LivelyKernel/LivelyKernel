@@ -23,6 +23,10 @@ module.exports = Config = {
             "Chrome": {
                 path: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
                 args: chromeArgs
+            },
+            "Firefox": {
+                path: "/Applications/Firefox.app/Contents/MacOS/firefox",
+                args: firefoxArgs
             }
         },
         "Linux": {

@@ -41,6 +41,9 @@ CLI_TEST_STARTER = ./testing/run_lively_tests_cli.js
 run_kernel_tests:
 	node $(CLI_TEST_STARTER)
 
+run_tests_continously:
+	$(NODEMON) --watch ./testing/ --watch ./core/ $(CLI_TEST_STARTER)
+
 ##########
 # jshint #
 ##########

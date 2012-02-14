@@ -452,7 +452,7 @@ Object.extend(lively.morphic.Morph, {
     makeCircle: function(location, radius, lineWidth, lineColor, fill) {
         // make a circle of the given radius with its origin at the center
         var bounds = pt(-radius, -radius).extent(pt(radius*2, radius*2));
-        var morph = new Morph(new lively.morphic.Shapes.Ellipse(bounds));
+        var morph = new lively.morphic.Morph(new lively.morphic.Shapes.Ellipse(bounds));
         morph.moveBy(location);
         morph.setBorderWidth(lineWidth);
         morph.setBorderColor(lineColor);

@@ -129,7 +129,7 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
                 source = source.replace(/.*\<body\>/, "").replace(/\<\/body\>.*/, "");
                 var node = XHTMLNS.create('div');
                 node.innerHTML = source;
-                var morph = new Morph(new lively.morphic.Shapes.External(node));
+                var morph = new lively.morphic.Morph(new lively.morphic.Shapes.External(node));
                 morph.ignoreEvents();
 
                 morph.setBounds(new Rectangle(3,3,94,94));

@@ -38,7 +38,7 @@ lively.morphic.EventSimulator = {
         var targetMorphOrNode = spec.target;
 
         var evt = this.createMouseEvent(spec.type, spec.pos, spec.button);
-        if (!Config.isNewMorphic && targetMorphOrNode instanceof Morph) {
+        if (!Config.isNewMorphic && targetMorphOrNode instanceof lively.morphic.Morph) {
             if (spec.shouldFocus) {
                 var hand = targetMorphOrNode.world().firstHand()
                 hand.setMouseFocus(targetMorphOrNode);
@@ -46,7 +46,7 @@ lively.morphic.EventSimulator = {
             targetMorphOrNode.world().rawNode.dispatchEvent(evt);
             return
         }
-        if (Config.isNewMorphic && targetMorphOrNode instanceof Morph) {
+        if (Config.isNewMorphic && targetMorphOrNode instanceof lively.morphic.Morph) {
                     targetMorphOrNode = targetMorphOrNode.renderContext().morphNode;
                 }
         targetMorphOrNode.dispatchEvent(evt)
@@ -1659,7 +1659,7 @@ Object.subclass('lively.FileUploader',
         }
 
         // FIXME implement video morph?
-        var morph = new Morph(new lively.morphic.Shapes.External(videoNode));
+        var morph = new lively.morphic.Morph(new lively.morphic.Shapes.External(videoNode));
         morph.applyStyle({borderWidth: 1, borderColor: Color.black})
         morph.openInWorld(pos);
     },
@@ -1713,7 +1713,7 @@ Object.subclass('lively.FileUploader',
             var pdfNode = objectNode;
         }
         // FIXME implement video morph?
-        var morph = new Morph(new lively.morphic.Shapes.External(pdfNode));
+        var morph = new lively.morphic.Morph(new lively.morphic.Shapes.External(pdfNode));
         morph.addScript(function getURL() { return this.renderContext().shapeNode.childNodes[0].href })
         morph.addScript(function setURL(url) {
             this.renderContext().shapeNode.data = String(url);

@@ -1739,7 +1739,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ExternalShapesTes
         //var div = stringToXML('<div style="width: 100px;">a test</div>');
         var div = document.createElement('div');
         div.innerHTML = "a test";
-        var morph = new Morph(new lively.morphic.Shapes.External(div));
+        var morph = new lively.morphic.Morph(new lively.morphic.Shapes.External(div));
         this.world.addMorph(morph);
         this.assert(morph.getExtent().x > 0, 'width of morph not bigger than 0');
         this.assert(morph.getExtent().y > 0, 'height of morph not bigger than 0');
@@ -1748,7 +1748,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ExternalShapesTes
 lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.LayoutTests',
 'testing', {
     test01DropJournalLayoutOnMorph: function() {
-        var container = new Morph();
+        var container = new lively.morphic.Morph();
         container.setExtent(new lively.Point(200,200));
         container.setFill(Color.red);
         container.setLayouter(new lively.morphic.Layout.JournalLayout());
@@ -1765,13 +1765,13 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.LayoutTests',
         this.assertEquals(container.getExtent().y, 2*container.getLayouter().getBorderSize() + text.getExtent().y, "expected morph's extent to be 200");
     },
     test02ApplyHBoxLayout: function() {
-        var container = new Morph();
+        var container = new lively.morphic.Morph();
         container.setExtent(new lively.Point(200,200));
         container.setFill(Color.red);
         container.setLayouter(new lively.morphic.Layout.HorizontalLayout());
         this.world.addMorph(container);
 
-        var child = new Morph();
+        var child = new lively.morphic.Morph();
         child.setExtent(new lively.Point(200, 200));
         child.layout = {};
         child.layout.resizeWidth = true;
@@ -1782,7 +1782,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.LayoutTests',
         this.assertEquals(child.getExtent().x, container.getExtent().x - 2*container.getLayouter().getBorderSize(), "expected child to fit into container");
     },
     test03GridLayoutDefaultSizes: function() {
-        var container = new Morph();
+        var container = new lively.morphic.Morph();
         container.setExtent(new lively.Point(200,200));
         container.setFill(Color.red);
         var grid = new lively.morphic.Layout.GridLayout();

@@ -600,7 +600,7 @@ Object.subclass('lively.Main.Examples', {
                     new g.CurveTo(true, 0, 50),
                     new g.CurveTo(true, 0, 0)
                     ]);
-                var widget = widget = new Morph(shape);
+                var widget = widget = new lively.morphic.Morph(shape);
                 widget.applyStyle({fill: Color.red, borderWidth: 3, borderColor: Color.black});
                 this.addMorph(widget);
 
@@ -622,7 +622,7 @@ Object.subclass('lively.Main.Examples', {
                 //     // shape2[i].radius = pt(10,10); shape2[i].type = "arc";
                 //     shape2[i].radius = 10; shape2[i].type = "arc";
                 // }
-                widget = new Morph(shape);
+                widget = new lively.morphic.Morph(shape);
                 widget.applyStyle({fill: Color.green, borderWidth: 2, borderColor: Color.red});
                 this.addMorph(widget);
             }

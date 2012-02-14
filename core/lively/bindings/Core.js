@@ -148,7 +148,7 @@ Object.subclass('AttributeConnection',
 	},
 
 	update: function(newValue, oldValue) {
-		// This method is optimized for Safari and Chrome. See Tests.BindingsTest.BindingsProfiler
+		// This method is optimized for Safari and Chrome. See tests.BindingsTest.BindingsProfiler
 		// and http://lively-kernel.org/repository/webwerkstatt/draft/ModelRevised.xhtml
 		// The following requirements exists:
 		// - run converter with oldValue and newValue

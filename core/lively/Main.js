@@ -499,7 +499,7 @@ Object.subclass('lively.Main.Examples', {
     },
 
     showTesterRunnerForDevelopment: function() {
-        var requirements = Config.loadTests.collect(function(ea) { return 'Tests.' + ea});
+        var requirements = Config.loadTests.collect(function(ea) { return 'tests.' + ea});
         if (requirements.length === 0) requirements.push('lively.TestFramework');
         require(requirements).toRun(function(currentModule) {
             TestRunner.openIn();
@@ -719,16 +719,6 @@ Object.subclass('lively.Main.Examples', {
                 alert('demo!!');
                 GridLayoutMorph.demo(devWorld.myWorld, pt(90,450));
             });
-
-        if (Config.showTesterRunner) {
-            // require('lively/TestFramework.js').toRun(function(currentModule) {
-                //     // Just show a few of our various tests
-                //     var tests = ['Tests/FabrikTest.js', 'Tests/TestFrameworkTests.js']
-                //     currentModule.requires(tests).toRun(function() {
-                    //         TestRunner.openIn(devWorld.myWorld, pt(500, 100))
-                    //     });
-                    // });
-        }
     },
 
     showFabrikWorld: function(world) {

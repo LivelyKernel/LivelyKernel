@@ -347,9 +347,9 @@ TestCase.subclass('cop.LayersTest.LayerTest',
         this.assert(Global.DummyLayer2.toString(), "DummyLayer2");
     },
     testCreateLayerInNamespace: function() {
-        cop.create("cop.Tests.DummyLayer3");
-        this.assert(cop.Tests.DummyLayer3);
-        this.assert(cop.Tests.DummyLayer3.toString(), "DummyLayer3");
+        cop.create("cop.tests.DummyLayer3");
+        this.assert(cop.tests.DummyLayer3);
+        this.assert(cop.tests.DummyLayer3.toString(), "DummyLayer3");
     },
 
 

@@ -1,6 +1,6 @@
-module('Tests.TraitTests').requires('lively.TestFramework', 'lively.Traits').toRun(function() {
+module('tests.TraitTests').requires('lively.TestFramework', 'lively.Traits').toRun(function() {
 
-TestCase.subclass('Tests.TraitTests.TraitCreation',
+TestCase.subclass('tests.TraitTests.TraitCreation',
 'running', {
 	setUp: function() {
 		this.traitsToRemove = [];
@@ -20,12 +20,12 @@ TestCase.subclass('Tests.TraitTests.TraitCreation',
 },
 'test classes', {
 	createDummyClasses: function() {
-		this.dummyA = Object.subclass('Tests.TraitTests.DummyA', {
+		this.dummyA = Object.subclass('tests.TraitTests.DummyA', {
 			a: 4,
 			m1: function() { return this.m2() + 3 },
 			m2: function() { return this.a },
 		});
-		this.dummyB = this.dummyA.subclass('Tests.TraitTests.DummyB', {
+		this.dummyB = this.dummyA.subclass('tests.TraitTests.DummyB', {
 			m1: function($super) { return $super() + 2 },
 			m3: function($super) { return 99 },
 		});

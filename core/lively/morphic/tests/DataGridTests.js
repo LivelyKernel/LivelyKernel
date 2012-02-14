@@ -1,6 +1,6 @@
 module('lively.morphic.tests.DataGridTests').requires('lively.morphic.tests.Morphic').toRun(function() {
 
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.DataGridTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests',
 'running', {
     setUp: function($super) {
         $super();

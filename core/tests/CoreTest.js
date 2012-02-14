@@ -1,11 +1,11 @@
-module('Tests.CoreTest').requires('lively.TestFramework').toRun(function() {
+module('tests.CoreTest').requires('lively.TestFramework').toRun(function() {
 
 
 /**
  * @class ConnectModelTest
  * Tests for understanding Record, Relay and View Behavior
  */
-TestCase.subclass('Tests.CoreTest.ConnectModelTest', {
+TestCase.subclass('tests.CoreTest.ConnectModelTest', {
 
     testAddObserver: function() {
         var formalModel = Record.newPlainInstance({MyValue: "Hello World"});
@@ -58,7 +58,7 @@ TestCase.subclass('Tests.CoreTest.ConnectModelTest', {
 
 });
 
-TestCase.subclass('Tests.CoreTest.TestModel', {
+TestCase.subclass('tests.CoreTest.TestModel', {
 
 	testSetterSource: function() {
 		var calls = 0; var test = this;
@@ -172,7 +172,7 @@ lively.data.Wrapper.subclass('DummyCopierObject', {
 	},
 });	
 
-TestCase.subclass('Tests.CoreTest.CopierTest', {
+TestCase.subclass('tests.CoreTest.CopierTest', {
 	
 	createObjectStructure: function() {
 		var objects = {
@@ -383,7 +383,7 @@ debugger
 	},
 	
 });
-TestCase.subclass('Tests.CoreTest.ClipboardCopierTest',
+TestCase.subclass('tests.CoreTest.ClipboardCopierTest',
 'default category', {
 	testCopyMorphsAsXMLString: function() {
 
@@ -400,7 +400,7 @@ TestCase.subclass('Tests.CoreTest.ClipboardCopierTest',
 });
 
 
-TestCase.subclass("Tests.CoreTest.CopyMorphTest", {
+TestCase.subclass("tests.CoreTest.CopyMorphTest", {
 
 	testMorphCustomAttribut: function() {
 		var morph = Morph.makeRectangle(new Rectangle(0, 0, 10, 10));
@@ -418,7 +418,7 @@ TestCase.subclass("Tests.CoreTest.CopyMorphTest", {
 
 
 
-TestCase.subclass("Tests.CoreTest.EncodeWrapperJSONTest", {
+TestCase.subclass("tests.CoreTest.EncodeWrapperJSONTest", {
 
 	setUp: function() {
 		this.ref = WorldMorph.current();
@@ -459,7 +459,7 @@ TestCase.subclass("Tests.CoreTest.EncodeWrapperJSONTest", {
 	
 });
 
-TestCase.subclass('Tests.CoreTest.DocLinkConversionTest', {
+TestCase.subclass('tests.CoreTest.DocLinkConversionTest', {
 
 	exampleDoc: function() {
 		return stringToXML(

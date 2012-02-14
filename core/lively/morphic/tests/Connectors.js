@@ -1,6 +1,6 @@
 module('lively.morphic.tests.Connectors').requires('lively.morphic.tests.Morphic', 'lively.morphic.Connectors').toRun(function() {
 
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ConnectorTest',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
 'assertion', {
     assertMorphIsDisconnectedFromConnector: function(morph, connector, idxOfControlPoint) {
         var ctrlPt = connector.getControlPoints()[idxOfControlPoint],
@@ -150,7 +150,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ConnectorTest',
     },
 });
 
-lively.morphic.Tests.ConnectorTest.subclass('lively.morphic.Tests.VisualBindingsTest',
+lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindingsTest',
 'testing', {
     test01ConnectMorphNameToText: function() {
         var morph = new lively.morphic.Morph.makeRectangle(0,0, 20, 20),
@@ -197,7 +197,7 @@ lively.morphic.Tests.ConnectorTest.subclass('lively.morphic.Tests.VisualBindings
 
 });
 
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.MagnetTest',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MagnetTest',
 'testing', {
     test01getGlobalPosition: function() {
         var morph = lively.morphic.Morph.makeRectangle(5,5, 20, 20);

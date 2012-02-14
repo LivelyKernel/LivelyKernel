@@ -1,6 +1,6 @@
 module('lively.morphic.tests.EventTests').requires('lively.morphic.tests.Morphic').toRun(function() {
 
-lively.morphic.Tests.TestCase.subclass('lively.morphic.Tests.LockingTests',
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LockingTests',
 'helper', {
     dragFromTo: function(morph, startMousePos, endMousePos) {
         var dragTriggerOffset = pt(10,0)

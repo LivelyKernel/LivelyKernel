@@ -1,6 +1,6 @@
 module('lively.bindings.Tests').requires('lively.TestFramework', 'lively.bindings').toRun(function() {
 
-TestCase.subclass('lively.bindings.Tests.ConnectionTest', {
+TestCase.subclass('lively.bindings.tests.ConnectionTest', {
 
     test01SimpleConnection: function() {
         var obj1 = {x: 4};
@@ -454,7 +454,7 @@ TestCase.subclass('lively.bindings.Tests.ConnectionTest', {
     },
 });
 
-TestCase.subclass('lively.bindings.Tests.ConnectionSerializationTest', {
+TestCase.subclass('lively.bindings.tests.ConnectionSerializationTest', {
 
     setUp: function($super) {
         $super();
@@ -575,7 +575,7 @@ TestCase.subclass('lively.bindings.Tests.ConnectionSerializationTest', {
 
 
 });
-Object.subclass('lively.bindings.Tests.BindingsProfiler', {
+Object.subclass('lively.bindings.tests.BindingsProfiler', {
 
     connectCount: 20000,
 
@@ -662,7 +662,7 @@ Object.subclass('lively.bindings.Tests.BindingsProfiler', {
 
 });
 
-TestCase.subclass('lively.bindings.Tests.BindingsDuplicateTest', {
+TestCase.subclass('lively.bindings.tests.BindingsDuplicateTest', {
 
     setUp: function() {
         this.sut = lively.morphic.Morph.makeRectangle(100,100,100,50);
@@ -730,7 +730,7 @@ TestCase.subclass('lively.bindings.Tests.BindingsDuplicateTest', {
     },
 
 });
-TestCase.subclass('lively.bindings.Tests.PlugTest',
+TestCase.subclass('lively.bindings.tests.PlugTest',
 'running', {
     setUp: function($super) {
         $super();
@@ -765,7 +765,7 @@ TestCase.subclass('lively.bindings.Tests.PlugTest',
         this.assertEquals(pt(10,10), morph.getPosition(), 'positionOfMorph')
     },
 });
-TestCase.subclass('lively.bindings.Tests.ConnectionJSONSerializationTest', {
+TestCase.subclass('lively.bindings.tests.ConnectionJSONSerializationTest', {
 
     test01ObjConnectedToMethodDeserialization: function() {
         var obj1 = {m: function m(arg) { this.b = arg }.asScript()},

@@ -1,6 +1,6 @@
-module('Tests.TracingTests').requires('lively.TestFramework', 'lively.Tracing').toRun(function() {
+module('tests.TracingTests').requires('lively.TestFramework', 'lively.Tracing').toRun(function() {
 
-TestCase.subclass('Tests.TracingTests.AbstractTracingTests',
+TestCase.subclass('tests.TracingTests.AbstractTracingTests',
 'helper', {
     dummyObject: function() {
         return {
@@ -39,7 +39,7 @@ TestCase.subclass('Tests.TracingTests.AbstractTracingTests',
     }
 });
 
-Tests.TracingTests.AbstractTracingTests.subclass('Tests.TracingTests.TracingInstallTests',
+tests.TracingTests.AbstractTracingTests.subclass('tests.TracingTests.TracingInstallTests',
 'testing', {
 
     testInstallInSimpleObject: function() {
@@ -99,7 +99,7 @@ Tests.TracingTests.AbstractTracingTests.subclass('Tests.TracingTests.TracingInst
     }
 });
 
-Tests.TracingTests.AbstractTracingTests.subclass('Tests.TracingTests.TracingUninstallTests',
+tests.TracingTests.AbstractTracingTests.subclass('tests.TracingTests.TracingUninstallTests',
 'testing', {
 
     testUninstallMethod: function() {
@@ -145,7 +145,7 @@ Tests.TracingTests.AbstractTracingTests.subclass('Tests.TracingTests.TracingUnin
 
 });
 
-Tests.TracingTests.AbstractTracingTests.subclass('Tests.TracingTests.TracingTests',
+tests.TracingTests.AbstractTracingTests.subclass('tests.TracingTests.TracingTests',
 'testing', {
 
     testTraceSimpleMethod: function() {

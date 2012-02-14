@@ -14,7 +14,7 @@ Config.showFabrikWeatherWidgetExample = false;
 
 Config.askBeforeQuit = true;
 
-// Config.modulesOnWorldLoad = Config.modulesOnWorldLoad.concat(["cop/Layers", "Tests/LayersTest"])
+// Config.modulesOnWorldLoad = Config.modulesOnWorldLoad.concat(["cop/Layers", "tests/LayersTest"])
 // Config.modulesOnWorldLoad = Config.modulesOnWorldLoad.concat(["lively.Fabrik", "lively.Presentation", "cop.Layers", 'lively.LayerableMorphs', "cop.Workspace", "lively.Graffle", "lively.Undo", "lively.TabCompletion", "lively.SyntaxHighlighting"])
 Config.modulesOnWorldLoad = Config.modulesOnWorldLoad.concat(["lively.Graffle", "lively.Undo", "lively.ide.AutoCompletion", "lively.ide.SyntaxHighlighting", 'lively.Scripting'])
 

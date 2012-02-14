@@ -1,6 +1,6 @@
 module('lively.morphic.tests.Morphic2').requires('lively.morphic.tests.Morphic').toRun(function() {
 
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.PivotPointTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PivotPointTests',
 'running', {
     shouldRun: false,
     setUp: function($super) {
@@ -128,7 +128,7 @@ debugger
     },
 });
 
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.OriginTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
 'running', {
     setUp: function($super) {
         $super();
@@ -263,7 +263,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.OriginTests',
 });
 
 
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ScrollTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ScrollTests',
 'running', {
     setUp: function($super) {
         $super();
@@ -309,7 +309,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ScrollTests',
 });
 
 
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ClipMorphTest',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ClipMorphTest',
 'testing', {
     test01ClipModeHTML: function() {
         var m1 = new lively.morphic.Morph.makeRectangle(0,0,50,50);
@@ -415,7 +415,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ClipMorphTest',
 
 
 });
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.TextLayoutTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextLayoutTests',
 'running', {
     setUp: function($super) {
         $super();
@@ -508,7 +508,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.TextLayoutTests',
 
 });
 
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.HtmlParserTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.HtmlParserTests',
 'running', {
     setUp: function($super) {
         $super();

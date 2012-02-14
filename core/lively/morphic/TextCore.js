@@ -135,7 +135,7 @@ Trait('TextChunkOwner',
         // a part of the text that did cross chunk bounds
         // sometimes chunk nodes might be removed (paste operation on MacOS Chrome) but their
         // content is actually still there -- reclaim those chunks
-        // see also lively.morphic.Tests.TextMorphRichTextTests>>test22HandleRemovedSpanNodesOnPaste
+        // see also lively.morphic.tests.TextMorphRichTextTests>>test22HandleRemovedSpanNodesOnPaste
         var textNode = this.getTextNode(),
             chunksInUse = [],
             chunks = this.getTextChunks();

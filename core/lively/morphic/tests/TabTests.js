@@ -1,6 +1,6 @@
 module('lively.morphic.tests.TabTests').requires('lively.morphic.tests.Morphic').toRun(function() {
 
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.TabTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TabTests',
 'running', {
     setUp: function($super) {
         $super();

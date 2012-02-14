@@ -1,4 +1,4 @@
-module('Tests.TestFrameworkTests').requires('lively.TestFramework').toRun(function() {
+module('tests.TestFrameworkTests').requires('lively.TestFramework').toRun(function() {
 
 /* These tests are used for testing the test framework itself
 TestCase, TestResult, TestSuite, and AsyncTestCase are tested */
@@ -7,7 +7,7 @@ TestCase, TestResult, TestSuite, and AsyncTestCase are tested */
  * @class TestTestCase
  * Tests the TestCase class
  */
-TestCase.subclass('Tests.TestFrameworkTests.TestCaseTest', {
+TestCase.subclass('tests.TestFrameworkTests.TestCaseTest', {
 	  setUp: function() {
 		    this.setUpWasRun = true;
 	  },
@@ -127,7 +127,7 @@ TestCase.subclass('Tests.TestFrameworkTests.TestCaseTest', {
 /**
  * @class TestResultTest
  */
-TestCase.subclass('Tests.TestFrameworkTests.TestResultTest', {
+TestCase.subclass('tests.TestFrameworkTests.TestResultTest', {
 	  setUp: function() {
         TestCase.subclass('DummyTestCase', {
             testGreen1: function() {this.assert(true);},
@@ -199,7 +199,7 @@ TestCase.subclass('Tests.TestFrameworkTests.TestResultTest', {
 //  }
 // });
 
-TestCase.subclass('Tests.TestFrameworkTests.RememberStackTest', {
+TestCase.subclass('tests.TestFrameworkTests.RememberStackTest', {
 
 	shouldRun: false,
 
@@ -298,7 +298,7 @@ TestCase.subclass('Tests.TestFrameworkTests.RememberStackTest', {
 });
 
 
-TestCase.subclass('Tests.TestFrameworkTests.ErrorStackViewerTest', {
+TestCase.subclass('tests.TestFrameworkTests.ErrorStackViewerTest', {
 
 	shouldRun: false,
 
@@ -369,7 +369,7 @@ function dummyRecurse(a) {
 } //stackTestFunctions
 
 
-TestCase.subclass('Tests.TestFrameworkTests.NativeStackTest', {
+TestCase.subclass('tests.TestFrameworkTests.NativeStackTest', {
 
     shouldRun: true,
 
@@ -387,7 +387,7 @@ TestCase.subclass('Tests.TestFrameworkTests.NativeStackTest', {
 });
 
 
-AsyncTestCase.subclass('Tests.TestFrameworkTests.AsyncTestCaseTest', {
+AsyncTestCase.subclass('tests.TestFrameworkTests.AsyncTestCaseTest', {
     // Tests if
     //   - synchronous tests are run before asynchronous tests
     //   - asynchronous tests are run only when earlier tests

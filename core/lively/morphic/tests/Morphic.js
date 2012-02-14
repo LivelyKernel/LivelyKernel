@@ -2,7 +2,7 @@ module('lively.morphic.tests.Morphic').requires('lively.TestFramework', 'lively.
 
 namespace('lively.morphic.Tests'); // FIXME to be removed
 
-TestCase.subclass('lively.morphic.Tests.TestCase',
+TestCase.subclass('lively.morphic.tests.TestCase',
 'running', {
     tearDown: function($super) {
         $super();
@@ -92,7 +92,7 @@ TestCase.subclass('lively.morphic.Tests.TestCase',
     },
 });
 
-lively.morphic.Tests.TestCase.subclass('lively.morphic.Tests.WorldTests',
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.WorldTests',
 'testing', {
     testAddWorldToDoc: function() {
         var canvasNode = document.body, bounds = new Rectangle(0, 0, 100, 100),
@@ -110,7 +110,7 @@ lively.morphic.Tests.TestCase.subclass('lively.morphic.Tests.WorldTests',
 });
 
 
-lively.morphic.Tests.TestCase.subclass('lively.morphic.Tests.MorphTests',
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
 'running', {
     setUp: function($super) {
         $super();
@@ -407,7 +407,7 @@ this. openMorphsInRealWorld()
 });
 
 
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.EventTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests',
 'testing', {
     xtest05DropMorph: function() {
         var morph1 = new lively.morphic.Morph(),
@@ -478,7 +478,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.EventTests',
 
 });
     
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.CopyMorphTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CopyMorphTests',
 'testing', {
     test01CopySimpleMorph: function() {
         var m = new lively.morphic.Morph()
@@ -549,7 +549,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.CopyMorphTests',
 
 
 });
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.TextMorphTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
 'testing', {
     test01TextMorphHTML: function() {
         var m = new lively.morphic.Text()
@@ -689,7 +689,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.TextMorphTests',
 
 });
 
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.TextMorphRichTextTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichTextTests',
 'running', {
     setUp: function($super) {
         $super();
@@ -1223,7 +1223,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.TextMorphRichText
 
 
 });
-lively.morphic.Tests.TextMorphRichTextTests.subclass('lively.morphic.Tests.RichTextTests',
+lively.morphic.tests.TextMorphRichTextTests.subclass('lively.morphic.tests.RichTextTests',
 'testing', {
     test01CreateRichText: function() {
         var rt = new lively.morphic.RichText('test');
@@ -1285,7 +1285,7 @@ lively.morphic.Tests.TextMorphRichTextTests.subclass('lively.morphic.Tests.RichT
 
 
 });
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ButtonMorphTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ButtonMorphTests',
 'testing', {
     test01MorphBoundsOnCreation: function() {
         var bounds = new Rectangle(30, 90, 30, 60),
@@ -1293,7 +1293,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ButtonMorphTests'
         this.assertEquals(bounds, morph.getBounds(), 'morph bounds');
     },
 });
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ListMorphTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ListMorphTests',
 'testing', {
     test01SetAndRetrieveStringItems: function() {
         var list = new lively.morphic.List(new Rectangle(0, 0, 100, 100), ['1', '2', '3']);
@@ -1390,7 +1390,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ListMorphTests',
 
 
 });
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.MultipleSelectionListTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MultipleSelectionListTests',
 'testing', {
     test01GetSelections: function() {
         var list = new lively.morphic.List(new Rectangle(0, 0, 100, 100), ['1', '2', '3']);
@@ -1421,7 +1421,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.MultipleSelection
 
 
 });
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.AppTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.AppTests',
 'testing', {
     test01ConfirmDialog: function() {
         var answer = false,
@@ -1441,7 +1441,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.AppTests',
         this.assertEquals('test input', answer, 'ok button does not work')
     },
 });
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.CanvasRenderingTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CanvasRenderingTests',
 'testing', {
     test01UseCanvasRendererForSimpleMorph: function() {
         var m = new lively.morphic.Morph()
@@ -1480,7 +1480,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.CanvasRenderingTe
     },
 });
 
-TestCase.subclass('lively.morphic.Tests.SimilitudeTests',
+TestCase.subclass('lively.morphic.tests.SimilitudeTests',
 'testing', {
     test01PointTransform: function() {
         var globalPoint = pt(20,10),
@@ -1492,7 +1492,7 @@ TestCase.subclass('lively.morphic.Tests.SimilitudeTests',
     },
 });
 
-AsyncTestCase.subclass('lively.morphic.Tests.ScriptTests',
+AsyncTestCase.subclass('lively.morphic.tests.ScriptTests',
 'testing', {
     test01StartAndStopTicking: function() {
         var n = 0, script = new lively.morphic.FunctionScript(function() { script.stop(); n++; });
@@ -1576,7 +1576,7 @@ AsyncTestCase.subclass('lively.morphic.Tests.ScriptTests',
         }, 30);
     }
 });
-lively.morphic.Tests.TestCase.subclass('lively.morphic.Tests.SerializationTests',
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.SerializationTests',
 'testing', {
     test01SerializeSimpleWorld: function() {
         this.createWorld();
@@ -1591,7 +1591,7 @@ lively.morphic.Tests.TestCase.subclass('lively.morphic.Tests.SerializationTests'
         this.assert(m1 !== this.world.submorphs[1], 'morphs are identical!!!');
     },
 });
-lively.morphic.Tests.TestCase.subclass('lively.morphic.Tests.HaloTests',
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HaloTests',
 'testing', {
     test01ShowHalosForMorph: function() {
         this.createWorld();
@@ -1639,7 +1639,7 @@ lively.morphic.Tests.TestCase.subclass('lively.morphic.Tests.HaloTests',
 });
 
 
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ImageTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ImageTests',
 'testing', {
     testImageMorphHTML: function() {
         var url = 'http://lively-kernel.org/repository/webwerkstatt/media/hpi_logo.png',
@@ -1655,7 +1655,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ImageTests',
         this.assertNodeMatches(expected, morph.renderContext().getMorphNode());        
     },
 });
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.MenuTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
 'testing', {
     testWrongSubMenuItems: function() {
         var menu = lively.morphic.Menu.openAt(pt(0,0), 'test', [['foo', ['bar']], ['foo2', ['bar2']]]),
@@ -1733,7 +1733,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.MenuTests',
 
 
 });
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ExternalShapesTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ExternalShapesTests',
 'testing', {
     test01AddADivShape: function() {
         //var div = stringToXML('<div style="width: 100px;">a test</div>');
@@ -1745,7 +1745,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.ExternalShapesTes
         this.assert(morph.getExtent().y > 0, 'height of morph not bigger than 0');
     },
 });
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.LayoutTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.LayoutTests',
 'testing', {
     test01DropJournalLayoutOnMorph: function() {
         var container = new lively.morphic.Morph();
@@ -1814,7 +1814,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.LayoutTests',
 
 
 });
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.SelectionTest',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SelectionTest',
 'testing', {
     testGrabByHand: function() {
         LastWorld = this.world;
@@ -1904,7 +1904,7 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.SelectionTest',
     },
 });
 
-lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.RenderingTest',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.RenderingTest',
 'testing', {
     test01NodeIsInDOM: function() {
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100),

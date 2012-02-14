@@ -1,6 +1,6 @@
-module('Tests.ClassTest').requires('lively.TestFramework').toRun(function() {
+module('tests.ClassTest').requires('lively.TestFramework').toRun(function() {
 
-TestCase.subclass('Tests.ClassTest.ClassTest', {
+TestCase.subclass('tests.ClassTest.ClassTest', {
 	
 	testIsSuperclass: function() {
 		TestCase.subclass('Dummy1', {});
@@ -84,7 +84,7 @@ TestCase.subclass('Tests.ClassTest.ClassTest', {
 	
 });
 
-TestCase.subclass('Tests.ClassTest.NamespaceTest', {
+TestCase.subclass('tests.ClassTest.NamespaceTest', {
     
     setUp: function() {
         // create namespaces
@@ -152,73 +152,73 @@ TestCase.subclass('Tests.ClassTest.NamespaceTest', {
     },
 })
 
-TestCase.subclass('Tests.ClassTest.MethodCategoryTest', 
+TestCase.subclass('tests.ClassTest.MethodCategoryTest', 
 'running', {
 
 	tearDown: function() {
-		if (Tests.ClassTest.Dummy)
-			delete Tests.ClassTest.Dummy;
+		if (tests.ClassTest.Dummy)
+			delete tests.ClassTest.Dummy;
 	},
 },
 'testing', {
 	testAddMethodsWorksWithCategoryString: function() {
-		Object.subclass('Tests.ClassTest.Dummy');
-		Tests.ClassTest.Dummy.addMethods('category1', { foo: function() { return 23 } });
-		Tests.ClassTest.Dummy.addMethods('category1', { baz: 23 });
-		Tests.ClassTest.Dummy.addMethods('category2', { bar: function() { return 42 } });
+		Object.subclass('tests.ClassTest.Dummy');
+		tests.ClassTest.Dummy.addMethods('category1', { foo: function() { return 23 } });
+		tests.ClassTest.Dummy.addMethods('category1', { baz: 23 });
+		tests.ClassTest.Dummy.addMethods('category2', { bar: function() { return 42 } });
 
-		var method1 = Tests.ClassTest.Dummy.prototype.foo
-		var method2 = Tests.ClassTest.Dummy.prototype.bar
-		var property1 = Tests.ClassTest.Dummy.prototype.baz
+		var method1 = tests.ClassTest.Dummy.prototype.foo
+		var method2 = tests.ClassTest.Dummy.prototype.bar
+		var property1 = tests.ClassTest.Dummy.prototype.baz
 
 		this.assert(method1, 'foo not there')
 		this.assert(method2, 'bar not there')
 		this.assert(property1, 'baz not there')
 
-		this.assertEquals('category1', Tests.ClassTest.Dummy.categoryNameFor('foo'));
-		this.assertEquals('category1', Tests.ClassTest.Dummy.categoryNameFor('baz'));
-		this.assertEquals('category2', Tests.ClassTest.Dummy.categoryNameFor('bar'));
+		this.assertEquals('category1', tests.ClassTest.Dummy.categoryNameFor('foo'));
+		this.assertEquals('category1', tests.ClassTest.Dummy.categoryNameFor('baz'));
+		this.assertEquals('category2', tests.ClassTest.Dummy.categoryNameFor('bar'));
 	},
 testAddMethodsWithMultipleCategories: function() {
-		Object.subclass('Tests.ClassTest.Dummy');
-		Tests.ClassTest.Dummy.addMethods(
+		Object.subclass('tests.ClassTest.Dummy');
+		tests.ClassTest.Dummy.addMethods(
 			'catA', { m1: function() { return 23 } },
 			'catB', { m2: function() { return 42 } });
 
-		var m1 = Tests.ClassTest.Dummy.prototype.m1
-		var m2 = Tests.ClassTest.Dummy.prototype.m2
+		var m1 = tests.ClassTest.Dummy.prototype.m1
+		var m2 = tests.ClassTest.Dummy.prototype.m2
 
 		this.assert(m1, 'm1 not there')
 		this.assert(m2, 'm2 not there')
 
-		this.assertEquals('catA', Tests.ClassTest.Dummy.categoryNameFor('m1'));
-		this.assertEquals('catB', Tests.ClassTest.Dummy.categoryNameFor('m2'));
+		this.assertEquals('catA', tests.ClassTest.Dummy.categoryNameFor('m1'));
+		this.assertEquals('catB', tests.ClassTest.Dummy.categoryNameFor('m2'));
 	},
 
 
 	testSubclassWorksWithCategory: function() {
-		Object.subclass('Tests.ClassTest.Dummy',
+		Object.subclass('tests.ClassTest.Dummy',
 			'category1', { foo: function() { return 23 } }, { baz: 23 },
 			'category2', { bar: function() { return 42 } }
 		);
 
-		this.assert(Tests.ClassTest.Dummy, 'class not defined')
+		this.assert(tests.ClassTest.Dummy, 'class not defined')
 
-		var method1 = Tests.ClassTest.Dummy.prototype.foo
-		var method2 = Tests.ClassTest.Dummy.prototype.bar
-		var property1 = Tests.ClassTest.Dummy.prototype.baz
+		var method1 = tests.ClassTest.Dummy.prototype.foo
+		var method2 = tests.ClassTest.Dummy.prototype.bar
+		var property1 = tests.ClassTest.Dummy.prototype.baz
 
 		this.assert(method1, 'foo not there')
 		this.assert(method2, 'bar not there')
 		this.assert(property1, 'baz not there')
 
-		this.assertEquals('category1', Tests.ClassTest.Dummy.categoryNameFor('foo'));
-		this.assertEquals('category1', Tests.ClassTest.Dummy.categoryNameFor('baz'));
-		this.assertEquals('category2', Tests.ClassTest.Dummy.categoryNameFor('bar'));
+		this.assertEquals('category1', tests.ClassTest.Dummy.categoryNameFor('foo'));
+		this.assertEquals('category1', tests.ClassTest.Dummy.categoryNameFor('baz'));
+		this.assertEquals('category2', tests.ClassTest.Dummy.categoryNameFor('bar'));
 	},
 
 });
-TestCase.subclass('Tests.ClassTest.ModuleRelatedClassTests',
+TestCase.subclass('tests.ClassTest.ModuleRelatedClassTests',
 'running', {
 	setUp: function($super) {
 		$super();
@@ -244,30 +244,30 @@ TestCase.subclass('Tests.ClassTest.ModuleRelatedClassTests',
 		});
 	},
 	createDummyClass: function(no) {
-		var klass = Object.subclass('Tests.ClassTest.DummyClass' + no);
+		var klass = Object.subclass('tests.ClassTest.DummyClass' + no);
 		this.createdClasses.push(klass);
 		return klass
 	},
 	getDummyClass: function(no) {
-		return Tests.ClassTest['DummyClass' + no];
+		return tests.ClassTest['DummyClass' + no];
 	},
 },
 'testing', {
 	testClassKnowsItsModule: function() {
-		var moduleName = 'Tests.ClassTest.DummyModule1';
+		var moduleName = 'tests.ClassTest.DummyModule1';
 		this.createModule(moduleName, this.createDummyClass.curry(1));
 		var klass = this.getDummyClass(1);
 		this.assertEquals(module(moduleName).namespaceIdentifier, klass.sourceModule.namespaceIdentifier);
 	},
 	testReEvaluationDoesNotChangeSourceModule: function() {
-		var moduleName = 'Tests.ClassTest.DummyModule1';
+		var moduleName = 'tests.ClassTest.DummyModule1';
 		this.createModule(moduleName, this.createDummyClass.curry(1));
 		var klass = this.createDummyClass(1);
 		this.assertEquals(module(moduleName).namespaceIdentifier, klass.sourceModule.namespaceIdentifier);
 	},
 	testNestedModuleDefs: function() {
-		var moduleName1 = 'Tests.ClassTest.DummyModule1',
-			moduleName2 = 'Tests.ClassTest.DummyModule2';
+		var moduleName1 = 'tests.ClassTest.DummyModule1',
+			moduleName2 = 'tests.ClassTest.DummyModule2';
 		this.createModule(moduleName1,
 			this.createModule.curry(moduleName2, this.createDummyClass.curry(2)),
 			this.createDummyClass.curry(1));

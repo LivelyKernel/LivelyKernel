@@ -1,6 +1,6 @@
-module('Tests.NetworkTest').requires('lively.TestFramework').toRun(function() {
+module('tests.NetworkTest').requires('lively.TestFramework').toRun(function() {
     
-TestCase.subclass('Tests.NetworkTest.URLTest', {
+TestCase.subclass('tests.NetworkTest.URLTest', {
     
     testEnsureAbsoluteURL1: function() {
         var urlString = 'http://livelykernel.sunlabs.com/repository/lively-wiki/index.xhtml';
@@ -150,7 +150,7 @@ TestCase.subclass('Tests.NetworkTest.URLTest', {
     
 });
 
-TestCase.subclass('Tests.NetworkTest.WebResourceTest',
+TestCase.subclass('tests.NetworkTest.WebResourceTest',
 'settings', {
     shouldRun: !Config.serverInvokedTest,
 },

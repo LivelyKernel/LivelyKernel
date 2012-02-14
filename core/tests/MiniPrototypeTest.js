@@ -1,10 +1,10 @@
-module('Tests.MiniPrototypeTest').requires('lively.TestFramework').toRun(function() {
+module('tests.MiniPrototypeTest').requires('lively.TestFramework').toRun(function() {
 
 /**
  * @class ObjectTest
  * Tests for extending the MiniPrototype
  */
-TestCase.subclass('Tests.MiniPrototypeTest.ObjectTest', {
+TestCase.subclass('tests.MiniPrototypeTest.ObjectTest', {
 
     testExtendSetsDisplayName: function() {
 		var obj = {};

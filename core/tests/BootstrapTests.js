@@ -1,6 +1,6 @@
-module('Tests.BootstrapTests').requires('lively.TestFramework').toRun(function() {
+module('tests.BootstrapTests').requires('lively.TestFramework').toRun(function() {
 
-TestCase.subclass('Tests.BootstrapTests.WorldDataTest',
+TestCase.subclass('tests.BootstrapTests.WorldDataTest',
 'accessing', {
 	xmlDoc: function() {
 var str =  '<html xmlns=\"http://www.w3.org/1999/xhtml\"> \n\

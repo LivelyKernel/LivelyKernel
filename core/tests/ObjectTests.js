@@ -1,6 +1,6 @@
-module('Tests.ObjectTests').requires('lively.TestFramework').toRun(function() {
+module('tests.ObjectTests').requires('lively.TestFramework').toRun(function() {
 
-TestCase.subclass('Tests.ObjectTests.ObjectPropertyOperationsTest',
+TestCase.subclass('tests.ObjectTests.ObjectPropertyOperationsTest',
 'testing', {
 	test01aObjectMerge: function() {
 		var a = {foo: 2, m: function() { return 6}},
@@ -20,9 +20,9 @@ TestCase.subclass('Tests.ObjectTests.ObjectPropertyOperationsTest',
 	},
 
 	test02GetAllSlotsInPropertyHierarchy: function() {
-		var classA = Object.subclass('Tests.ObjectTests.ClassA', { foo: 3 }),
-			classB = classA.subclass('Tests.ObjectTests.ClassB'),
-			classC = classB.subclass('Tests.ObjectTests.ClassC', {foo: 4 }),
+		var classA = Object.subclass('tests.ObjectTests.ClassA', { foo: 3 }),
+			classB = classA.subclass('tests.ObjectTests.ClassB'),
+			classC = classB.subclass('tests.ObjectTests.ClassC', {foo: 4 }),
 			instance = new classC();
 		instance.foo = 5;
 		var instance2 = Object.inherit(instance);
@@ -35,8 +35,8 @@ TestCase.subclass('Tests.ObjectTests.ObjectPropertyOperationsTest',
 		}
 	},
 	test03MergePropertiesFromHierarchy: function() {
-		var classA = Object.subclass('Tests.ObjectTests.ClassA', {style: {foo: 3, bar: 4}}),
-			classB = classA.subclass('Tests.ObjectTests.ClassB', {style: {bar: 5}}),
+		var classA = Object.subclass('tests.ObjectTests.ClassA', {style: {foo: 3, bar: 4}}),
+			classB = classA.subclass('tests.ObjectTests.ClassB', {style: {bar: 5}}),
 			instance = new classB();
 		instance.style = {baz: 9};
 		try {

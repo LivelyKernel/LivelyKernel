@@ -96,9 +96,6 @@ TestCase.subclass('Tests.TraitTests.TraitCreation',
 		var obj = new this.dummyA();
 		this.assertEquals(33, obj.m1(), 'Original method not overwritten');
 	},
-
-
-
 	testAliasing: function() {
 		this.removeTraitAfterwards('Foo');
 		var trait = Trait('Foo', {b: function() { return 2 }});
@@ -124,7 +121,6 @@ TestCase.subclass('Tests.TraitTests.TraitCreation',
 		var obj = new this.dummyA();
 		this.assertEquals(33, obj.m1());
 	},
-
 	testClassUpdated: function() {
 		this.removeTraitAfterwards('Foo');
 		var trait = Trait('Foo', {b: function() { return 2 }});
@@ -193,16 +189,11 @@ TestCase.subclass('Tests.TraitTests.TraitCreation',
 	},
     testSourceModule: function() {
         this.removeTraitAfterwards('Foo');
-	var trait = Trait('Foo', {b: function() { return 2 }});
+	    var trait = Trait('Foo', {b: function() { return 2 }});
         this.assert(trait.sourceModule, "trait has no source module");
         this.assert(trait.def.b.sourceModule, "trait function has no source module");
 
     },
-
-
-
-
-
 });
 
 }) // end of module

@@ -8,12 +8,10 @@ TestCase.subclass('Tests.BaseTest.PointTest', {
         this.assertEqualState(p2, pt(10,25))
     },
     testSubPtForArgumentErrors: function() {
-        // enter comment here
         try {
             pt(12, 42).subPt(23, 32);
             this.assert(false, "subPt should check for non-point arguments");
         } catch (e) { }
-
         try {
             var p = pt(12, 42).subPt({x: 12, y: 42});
             this.assertEquals(p.toString(), pt(0,0).toString(), "subPt failed");
@@ -22,7 +20,6 @@ TestCase.subclass('Tests.BaseTest.PointTest', {
         }
     },
     testAddPtForArgumentErrors: function() {
-        // enter comment here
         try {
             pt(12, 42).addPt(23, 32);
             this.assert(false, "addPt should check for non-point arguments");
@@ -64,7 +61,6 @@ TestCase.subclass('Tests.BaseTest.ObjectsTest', {
 		this.assertEquals(Objects.safeToString(undefined), 'undefined');
 		this.assertEquals(Objects.safeToString(2), '2');
 	}
-	
 });
 
 

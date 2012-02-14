@@ -49,8 +49,6 @@ TestCase.subclass('Tests.ScriptingTests.OnlinePartsBinTest',
 		item.loadPart();
 		this.assertEquals(id, item.part.getPartsBinMetaInfo().id, 'meta info not updated!')
 	},
-
-
 	testLoadPartVersions: function() {
 		var partsSpace = lively.PartsBin.partsSpaceNamed('PartsBin'),
 			item = partsSpace.getPartItemNamed('TestObject');
@@ -132,9 +130,9 @@ TestCase.subclass('Tests.ScriptingTests.OnlinePartsBinTest',
 		var partsSpace = lively.PartsBin.partsSpaceNamed('PartsBin'),
 			item = partsSpace.getPartItemNamed('TestObject');
 		var rev = item.getHeadRevision();
-                alertOK('all revs ' + item.loadPartVersions().partVersions)
-                var lastRev = item.loadPartVersions().partVersions.first().rev;
-            	this.assertEquals(rev, lastRev , 'revs not equal')
+        alertOK('all revs ' + item.loadPartVersions().partVersions)
+        var lastRev = item.loadPartVersions().partVersions.first().rev;
+        this.assertEquals(rev, lastRev , 'revs not equal')
 	},
 	testLoadPartHasRevisionOnLoad: function() {
 		var partsSpace = lively.PartsBin.partsSpaceNamed('PartsBin'),
@@ -148,16 +146,10 @@ TestCase.subclass('Tests.ScriptingTests.OnlinePartsBinTest',
 		item.loadPart();
 		var oldRevisionOnLoad = item.part.partsBinMetaInfo.revisionOnLoad;
 
-                item.uploadPart();
-                this.assert(oldRevisionOnLoad !== item.part.partsBinMetaInfo.revisionOnLoad, 
+        item.uploadPart();
+        this.assert(oldRevisionOnLoad !== item.part.partsBinMetaInfo.revisionOnLoad, 
                     'rev did not change')
 	},
-
-
-
-
-
-
 })
 
 Tests.ScriptingTests.OnlinePartsBinTest.subclass('Tests.ScriptingTests.DroppableBehaviorTest',

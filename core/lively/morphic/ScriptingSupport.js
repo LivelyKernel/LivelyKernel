@@ -403,8 +403,6 @@ lively.morphic.Box.subclass('lively.morphic.DraggableBehaviorMorph',
 // });
 // lively.morphic.CopyStyleLayer.beGlobal();
 
-module('lively.PartCaching').load(false);
-
 Trait('lively.morphic.DraggableBehavior').applyTo(lively.morphic.DraggableBehaviorMorph,
     {override: ['onDragStart', 'onDragEnd', 'dropOn']})
 });

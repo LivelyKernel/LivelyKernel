@@ -21,15 +21,15 @@ MINISERVER_TEST_FILES = $(shell find $(MINISERVER_DIR)/*_test.js | $(REL_PATH))
 RUN_MINISERVER_TESTS = $(QUNIT) --code $(MINISERVER_FILES) --tests $(MINISERVER_TEST_FILES)
 
 # watches for file changes and restarts server
-start_mini_server:
+start_server:
 	@ echo "minimal server starting: http://localhost:$(MINISERVER_PORT)/"
 	$(NODEMON) --watch $(MINISERVER_DIR) $(MINISERVER) $(MINISERVER_PORT)
 
-mini_server_tests:
+run_server_tests:
 	$(RUN_MINISERVER_TESTS)
 
 # wathes for file changes and reruns tests
-mini_server_tests_watch:
+start_server_tests_watch:
 	$(NODEMON) --watch $(MINISERVER_DIR) --exec $(RUN_MINISERVER_TESTS)
 
 

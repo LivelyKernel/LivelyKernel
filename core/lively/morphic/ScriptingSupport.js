@@ -60,7 +60,6 @@ lively.morphic.Morph.addMethods(
 
         try {
             this.setScale(85 / Math.max(bounds.width, bounds.height)*oldScale);
-            // this.setScale(85 / Math.max(this.getExtent().x, this.getExtent().y));
 
             this.align(this.bounds().topLeft(), pt(5,5));
             var html = this.logoHTMLString();
@@ -133,7 +132,6 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
                 morph.ignoreEvents();
 
                 morph.setBounds(new Rectangle(3,3,94,94));
-                // morph.setClipMode('hidden');
                 item.addMorphBack(morph);
             }};
         var webR = new WebResource(url).forceUncached();
@@ -216,13 +214,6 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
     },
 
 
-},
-'menu', {
-    // morphMenu: function($super, evt) {
-        // var menu = $super(evt);
-        // menu.addItem(["delete item", this.interactiveDeleteOnServer.bind(this)])
-        // return menu
-    // },
 },
 'server interaction', {
     deleteOnServer: function() {
@@ -386,22 +377,6 @@ lively.morphic.Box.subclass('lively.morphic.DraggableBehaviorMorph',
         morph.applyStyle(this.styleObject);
     },
 });
-
-// cop.create('lively.morphic.CopyStyleLayer');
-// lively.morphic.CopyStyleLayer.refineClass(lively.morphic.Morph, {
-//     morphMenuItems: function() {
-//         var items = cop.proceed();
-// 		//if (this !== this.world())
-//         	items.push(["copy style", this.copyAsDropStyle.bind(this)]);
-//         return items;
-//     },
-//     copyAsDropStyle: function() {
-//         var m = new lively.morphic.DraggableBehaviorMorph();
-//         m.copyStyleFrom(this);
-//         this.world().firstHand().grabMorph(m);
-//     }
-// });
-// lively.morphic.CopyStyleLayer.beGlobal();
 
 Trait('lively.morphic.DraggableBehavior').applyTo(lively.morphic.DraggableBehaviorMorph,
     {override: ['onDragStart', 'onDragEnd', 'dropOn']})

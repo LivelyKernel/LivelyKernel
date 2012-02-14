@@ -63,7 +63,7 @@ var testList = [
 require(['lively.TestFramework'].concat(testList)).toRun(function() {
     var suite = TestSuite.forAllAvailableTests();
     suite.runFinished = function() {
-        var result = suite.result.printResult();
+        var result = suite.result.getJsonResult();
         postResult(result);
         if (!getURLParam('stayOpen')) {
             exit.delay(0.5);

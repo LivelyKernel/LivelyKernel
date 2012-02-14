@@ -532,6 +532,7 @@ Object.subclass('TestResult', {
         return "[TestResult " + this.shortResult() + "]"
     },
 
+    // FIXME remove unless needed
     printResult: function() {
         var string = 'Tests run: ' + this.runs() + ' -- Tests failed: ' + this.failed.length;
         if (this.failed.length) {
@@ -550,6 +551,29 @@ Object.subclass('TestResult', {
         }, this);
         string += this.failed.length == 0 ? '\n[PASSED]' : '\n[FAILED]' ;
         return string;
+    },
+
+    getJsonResult: function() {
+        var that = this,
+            sortedList = $A(Properties.all(this.timeToRun)).
+                sort(function(a,b) {
+                    return that.getTimeToRun(a) - 
+                           that.getTimeToRun(b);
+            }),
+            runtimes = sortedList.map(function(ea) {
+                    return {"time": that.getTimeToRun(ea),
+                            "module":ea};
+            });
+        var obj = {
+            "runs": this.runs(),
+            "fails": this.failed.length,
+            "messages": this.failed.map(function(ea) {
+                    return ea.classname + '.' + ea.selector + '\n   -->'
+                    + ea.err.message;
+                }),
+            "runtimes": runtimes
+            }
+        return JSON.stringify(obj);;
     },
 
     shortResult: function() {

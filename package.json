@@ -12,7 +12,8 @@
     "node": "~0.6.7"
   },
   "dependencies": {
-    "express": "2.x"
+    "express": "2.x",
+    "colorize": "0.1.0"
   },
   "devDependencies": {
       "nodemon": "~0.6",

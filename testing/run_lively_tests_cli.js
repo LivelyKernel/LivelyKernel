@@ -1,4 +1,5 @@
 var http = require('http'),
+    colorize = require('colorize'),
     config = require('./config');
 
 var verbose = false;
@@ -34,6 +35,25 @@ function post(path, data, callback) {
     req.end();
 }
 
+function printResult(data) {
+    console.log('--- run times ---\n\n');
+    data.runtimes.forEach(function(ea) {
+       console.log(ea.time + '\t' + ea.module);
+    });
+    console.log('\n\n\n');
+    console.log('tests run: ' + data.runs);
+    if (data.fails > 0) {
+        console.log(colorize.ansify('#red[FAILED]'));
+        data.messages.forEach(function(ea) {
+           console.log(ea);
+        });
+        console.log(colorize.ansify('#red[' + data.messages.length + 
+            ' FAILED]'));
+    } else {
+        console.log(colorize.ansify('#green[PASSED]'));
+    }    
+}
+
 // poll
 var maxRequests = config.timeout, currentRequests = 0;
 function tryToGetReport(data) {
@@ -49,7 +69,8 @@ function tryToGetReport(data) {
         }, 1000);
         return;
     }
-    console.log('\n===== test result =====\n\n' + data.result);
+    console.log('\n===== test result =====\n\n');
+    printResult(JSON.parse(data.result));
 }
 
 function startTests() {

@@ -249,8 +249,8 @@ lively.morphic.Tests.MorphTests.subclass('lively.morphic.Tests.OriginTests',
         this.assertEquals(pt(-15,-15), m2.getPosition(), 'submorph should not have been moved');
     },
     test06addRectangleToEllipse: function(useClipping) {
-        var ellipse = $world.openPartItem("Ellipse", "PartsBin/Basic");
-        var rectangle = $world.openPartItem("Rectangle", "PartsBin/Basic");
+        var ellipse = new lively.morphic.Morph.makeEllipse(new Rectangle(0,0,100,100));
+        var rectangle = new lively.morphic.Morph.makeRectangle(new Rectangle(0,0,100,100));
         ellipse.addMorph(rectangle);
         rectangle.setPosition(pt(0,0));
         

@@ -502,6 +502,14 @@ Object.extend(lively.morphic.Morph, {
         path.setFill(fill);
         return path;
     },
+    makeEllipse: function(aRectangle) {
+        var ellipse = new lively.morphic.Morph();
+        ellipse.setShape(new lively.morphic.Shapes.Ellipse(aRectangle));
+        ellipse.setFill(Color.green);
+        ellipse.setOrigin(aRectangle.extent().scaleBy(0.5));
+        return ellipse;
+    },
+
 
 
 })

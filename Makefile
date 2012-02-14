@@ -29,7 +29,7 @@ run_server_tests:
 	$(RUN_MINISERVER_TESTS)
 
 # wathes for file changes and reruns tests
-start_server_tests_watch:
+run_server_tests_continuously:
 	$(NODEMON) --watch $(MINISERVER_DIR) --exec $(RUN_MINISERVER_TESTS)
 
 
@@ -41,7 +41,7 @@ CLI_TEST_STARTER = ./testing/run_lively_tests_cli.js
 run_kernel_tests:
 	node $(CLI_TEST_STARTER)
 
-run_tests_continously:
+run_kernel_tests_continuously:
 	$(NODEMON) --watch ./testing/ --watch ./core/ $(CLI_TEST_STARTER)
 
 ##########

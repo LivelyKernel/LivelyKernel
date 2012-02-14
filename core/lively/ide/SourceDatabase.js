@@ -74,8 +74,6 @@ Object.subclass('lively.ide.ModuleWrapper',
             root = this.parseOmeta(source);
         } else if (this.type() == 'lkml') {
             root = this.parseLkml(source);
-        } else if (this.type() == 'st') {
-            root = this.parseSt(source);
         } else { 
             throw dbgOn(new Error('Don\'t know how to parse ' + this.type + ' of ' + this.moduleName()))
         }
@@ -105,17 +103,6 @@ Object.subclass('lively.ide.ModuleWrapper',
 
     parseLkml: function(source) {
         return ChangeSet.fromFile(this.fileName(), source);
-    },
-    
-    parseSt: function(source) {
-        if (!Global['SmalltalkParser']) return null;
-        var ast = OMetaSupport.matchAllWithGrammar(SmalltalkParser, "smalltalkClasses", source, true);
-        if (!ast) {
-          console.warn('Couldn\'t parse ' + this.fileName());
-          return null;
-        }
-        ast.setFileName(this.fileName());
-        return ast;
     },
 },
 'saving', {

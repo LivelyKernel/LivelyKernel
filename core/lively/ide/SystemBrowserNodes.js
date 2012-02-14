@@ -60,12 +60,7 @@ lively.ide.BrowserNode.subclass('lively.ide.SourceControlNode', {
             } else if (fn.endsWith('.lkml')) {
                 moduleNodes.push(new lively.ide.ChangeSetNode(
                     ChangeSet.fromFile(fn, srcDb.getCachedText(fn)), b, this));
-            } else if (fn.endsWith('.st')) {
-                require('lively.SmalltalkParserSupport').toRun(function() {
-                    moduleNodes.push(new StBrowserFileNode(
-                        srcDb.rootFragmentForModule(fn), b, this, fn));
-                }.bind(this))
-            }
+            } 
         };
         moduleNodes = moduleNodes.sortBy(function(node) { return node.asString().toLowerCase() });
 
@@ -660,19 +655,13 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
     sourceString: function($super) {
         var src = $super();
         var view = this.browser.viewAs;
-        if (!view) return src;
-        if (view != 'javascript' && view != 'smalltalk')
+        if (!view) {
+            return src;
+        }
+        if (view != 'javascript') {
             return 'unknown source view';
-        var browserNode = this;
-        var result = 'loading Smalltalk module, click again on list item';
-        require('lively.SmalltalkParser').toRun(function() {
-            var jsSrc = '{' + src + '}'; // as literal object
-            var jsAst = OMetaSupport.matchAllWithGrammar(BSOMetaJSParser, "topLevel", jsSrc, true);
-            jsAst = jsAst[1][1]; // access the binding, not the json object nor sequence node
-            var stAst = OMetaSupport.matchWithGrammar(JS2StConverter, "trans", jsAst, true);
-            result = view == 'javascript' ? stAst.toJavaScript() : stAst.toSmalltalk();
-        });
-        return result
+        }
+        return result;
     },
     
     evalSource: function(newSource) {

@@ -240,8 +240,8 @@ lively.ide.BrowserCommand.subclass('lively.ide.ViewSourceCommand', {
     var world = lively.morphic.World.current();
     var spec = [
         {caption: 'default', value: undefined},
-        {caption: 'javascript', value: 'javascript'},
-        {caption: 'smalltalk', value: 'smalltalk'}];
+        {caption: 'javascript', value: 'javascript'}
+    ];
     var items = spec.collect(function(ea) {
       return [ea.caption,function(evt) {
             browser.ensureSourceNotAccidentlyDeleted(function() {

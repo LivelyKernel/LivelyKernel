@@ -532,14 +532,15 @@ Object.subclass('TestResult', {
         return "[TestResult " + this.shortResult() + "]"
     },
 
-    // not used, but can be useful for just getting a string
     printResult: function() {
         var string = 'Tests run: ' + this.runs() + ' -- Tests failed: ' + this.failed.length;
-        string += ' -- Failed tests: \n';
-        this.failed.each(function(ea) {
-            string +=  ea.classname + '.' + ea.selector + '\n   -->'
-                + ea.err.message +  '\n';
-        });
+        if (this.failed.length) {
+            string += ' -- Failed tests: \n';
+            this.failed.each(function(ea) {
+                string +=  ea.classname + '.' + ea.selector + '\n   -->'
+                    + ea.err.message +  '\n';
+            });
+        }
         string += ' -- TestCases timeToRuns: \n';
         var self = this;
         var sortedList = $A(Properties.all(this.timeToRun)).sort(function(a,b) {
@@ -547,7 +548,8 @@ Object.subclass('TestResult', {
         sortedList.each(function(ea){
            string +=  this.getTimeToRun(ea)  + " " + ea+ "\n"
         }, this);
-        return string
+        string += this.failed.length == 0 ? '\n[PASSED]' : '\n[FAILED]' ;
+        return string;
     },
 
     shortResult: function() {

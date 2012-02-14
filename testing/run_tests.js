@@ -52,7 +52,7 @@ var testList = [
     "tests.ClassTest",
     "tests.TraitTests",
     "tests.TracingTests",
-    "lively.persistence.Tests",
+    "lively.persistence.tests.PersistenceTests",
     "lively.bindings.tests.BindingTests",
     "lively.ast.tests.AstTests",
     "cop.LayersTest",

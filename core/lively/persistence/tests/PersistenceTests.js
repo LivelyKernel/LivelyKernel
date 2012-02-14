@@ -1,4 +1,4 @@
-module('lively.persistence.Tests').requires('lively.persistence.Serializer', 'lively.TestFramework').toRun(function() {
+module('lively.persistence.tests.PersistenceTests').requires('lively.persistence.Serializer', 'lively.TestFramework').toRun(function() {
 
 Object.subclass('lively.persistence.tests.SmartRefTestDummy', // for testing
 'default category', {

@@ -42,18 +42,22 @@ function getResult(id) {
 
 // running the actual tests
 var testList = [
-    "Tests.TestFrameworkTests"
-    // "Tests.BaseTest",
-    // "Tests.HelperTest",
-    // "Tests.MiniPrototypeTest",
-    // "Tests.ObjectTests",
-    // "Tests.OmetaTest",
-    // "Tests.TraitTests",
-    // "Tests.TracingTests",
-    // "lively.persistence.Tests",
+    "Tests.TestFrameworkTests",
+    "Tests.BaseTest",
+    "Tests.HelperTest",
+    "Tests.MiniPrototypeTest",
+    "Tests.ObjectTests",
+    "Tests.ModuleSystemTests",
+    "Tests.OmetaTest",
+    "Tests.ClassTest",
+    "Tests.TraitTests",
+    "Tests.TracingTests",
+    "lively.persistence.Tests",
+    "lively.bindings.Tests",
+    "lively.AST.Tests",
+    "cop.LayersTest",
     // "lively.morphic.Tests",
-    // "lively.bindings.Tests",
-    // "lively.bindings.GeometryBindingsTest"
+    // "lively.bindings.GeometryBindingsTest",
 ];
 
 require(['lively.TestFramework'].concat(testList)).toRun(function() {

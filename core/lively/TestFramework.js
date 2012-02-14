@@ -471,10 +471,22 @@ Object.subclass('TestSuite', {
 
 Object.extend(TestSuite, {
     runAllInModule: function(m) {
+        var suite = this.forTestsInModule(m);
+        suite.runAll();
+        return suite;
+    },
+    forTestsInModule: function(m) {
         var suite = new this();
         suite.addTestCasesFromModule(m);
-        suite.runAll();
-        return suite
+        return suite;
+    },
+    forAllAvailableTests: function() {
+        var classes = Global.classes(true).select(function(ea) {
+            return ea.isRunnableTestCaseClass && ea.isRunnableTestCaseClass();
+        });
+        var suite = new this();
+        suite.addTestCases(classes);
+        return suite;
     }
 });
 

@@ -1,0 +1,23 @@
+{
+  "author": "The Lively Kernel Team <lively-kernel@hpi.uni-potsdam.de>",
+  "name": "LivelyKernel",
+  "description": "Core modules of the Lively Kernel",
+  "version": "0.0.1",
+  "homepage": "http://lively-kernel.org",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/rksm/LivelyKernel.git"
+  },
+  "engines": {
+    "node": "~0.6.7"
+  },
+  "dependencies": {
+    "express": "2.x"
+  },
+  "devDependencies": {
+      "nodemon": "~0.6",
+      "qunit": "~0.2",
+      "jshint": "~0.5"
+  },
+  "optionalDependencies": {}
+}

@@ -1,5 +1,6 @@
 var express = require('express'),
-    spawn = require('child_process').spawn;
+    spawn = require('child_process').spawn,
+    config = require('../testing/config');
 
 // start with "nodemon minimal_server/serve.js" for development
 
@@ -45,20 +46,14 @@ function setupServer(testHandler) {
 var browserInterface = {
 
     open: function(url) {
+        var browser = config.browsers[config.os][config.browser];
         if (this.process) {
             this.closeBrowser();
             setTimeout(function() { browserInterface.open(url) }, 200);
             return;
         }
-        console.log('open chrome on ' + url);
-        // see http://peter.sh/experiments/chromium-command-line-switches/
-        this.process = spawn("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-              ["--no-process-singleton-dialog", "--user-data-dir=/tmp/", "--no-first-run",
-               "--disable-default-apps", //"--no-startup-window",
-               "--disable-history-quick-provider", "--disable-history-url-provider",
-               "--disable-breakpad", "--disable-background-mode",
-               "--disable-background-networking", "--disable-preconnect", "--disabled",
-               url]);
+        console.log('open ' + config.browser + '/' + config.os + ' on ' + url);
+        this.process = spawn(browser.path, browser.args.concat([url]));
     },
 
     closeBrowser: function(id) {

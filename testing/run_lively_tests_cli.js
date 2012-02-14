@@ -1,4 +1,5 @@
-var http = require('http');
+var http = require('http'),
+    config = require('./config');
 
 var verbose = false;
 function log(msg) {
@@ -34,7 +35,7 @@ function post(path, data, callback) {
 }
 
 // poll
-var maxRequests = 20, currentRequests = 0;
+var maxRequests = config.timeout, currentRequests = 0;
 function tryToGetReport(data) {
     if (currentRequests >= maxRequests) {
         console.log('Time out!');

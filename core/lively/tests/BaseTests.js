@@ -1,6 +1,6 @@
-module('tests.BaseTests').requires('lively.TestFramework').toRun(function() {
+module('lively.tests.BaseTests').requires('lively.TestFramework').toRun(function() {
 
-TestCase.subclass('tests.BaseTests.PointTest', {
+TestCase.subclass('lively.tests.BaseTests.PointTest', {
     
     testGriddedBy: function() {
         var p = pt(12, 26)
@@ -34,7 +34,7 @@ TestCase.subclass('tests.BaseTests.PointTest', {
     },
 });
 
-TestCase.subclass('tests.BaseTests.ObjectsTest', {
+TestCase.subclass('lively.tests.BaseTests.ObjectsTest', {
 	testTypeStringOf: function() {
 		this.assertEquals(Objects.typeStringOf('some string'), 'String');
 		this.assertEquals(Objects.typeStringOf(0), 'Number');

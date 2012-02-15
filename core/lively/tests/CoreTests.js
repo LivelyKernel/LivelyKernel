@@ -1,11 +1,11 @@
-module('tests.CoreTests').requires('lively.TestFramework').toRun(function() {
+module('lively.tests.CoreTests').requires('lively.TestFramework').toRun(function() {
 
 
 /**
  * @class ConnectModelTest
  * Tests for understanding Record, Relay and View Behavior
  */
-TestCase.subclass('tests.CoreTests.ConnectModelTest', {
+TestCase.subclass('lively.tests.CoreTests.ConnectModelTest', {
 
     testAddObserver: function() {
         var formalModel = Record.newPlainInstance({MyValue: "Hello World"});
@@ -58,7 +58,7 @@ TestCase.subclass('tests.CoreTests.ConnectModelTest', {
 
 });
 
-TestCase.subclass('tests.CoreTests.TestModel', {
+TestCase.subclass('lively.tests.CoreTests.TestModel', {
 
 	testSetterSource: function() {
 		var calls = 0; var test = this;
@@ -172,7 +172,7 @@ lively.data.Wrapper.subclass('DummyCopierObject', {
 	},
 });	
 
-TestCase.subclass('tests.CoreTests.CopierTest', {
+TestCase.subclass('lively.tests.CoreTests.CopierTest', {
 	
 	createObjectStructure: function() {
 		var objects = {
@@ -383,7 +383,7 @@ debugger
 	},
 	
 });
-TestCase.subclass('tests.CoreTests.ClipboardCopierTest',
+TestCase.subclass('lively.tests.CoreTests.ClipboardCopierTest',
 'default category', {
 	testCopyMorphsAsXMLString: function() {
 
@@ -400,7 +400,7 @@ TestCase.subclass('tests.CoreTests.ClipboardCopierTest',
 });
 
 
-TestCase.subclass("tests.CoreTests.CopyMorphTest", {
+TestCase.subclass("lively.tests.CoreTests.CopyMorphTest", {
 
 	testMorphCustomAttribut: function() {
 		var morph = Morph.makeRectangle(new Rectangle(0, 0, 10, 10));
@@ -418,7 +418,7 @@ TestCase.subclass("tests.CoreTests.CopyMorphTest", {
 
 
 
-TestCase.subclass("tests.CoreTests.EncodeWrapperJSONTest", {
+TestCase.subclass("lively.tests.CoreTests.EncodeWrapperJSONTest", {
 
 	setUp: function() {
 		this.ref = WorldMorph.current();
@@ -459,7 +459,7 @@ TestCase.subclass("tests.CoreTests.EncodeWrapperJSONTest", {
 	
 });
 
-TestCase.subclass('tests.CoreTests.DocLinkConversionTest', {
+TestCase.subclass('lively.tests.CoreTests.DocLinkConversionTest', {
 
 	exampleDoc: function() {
 		return stringToXML(
@@ -595,21 +595,7 @@ TestCase.subclass('LoaderTest',
 		this.assertEquals(expected, this.sut.makeAbsolute(mainURL));
 		this.assertEquals(expected, this.sut.makeAbsolute(Config.codeBase + 'lively/foo/../Main.js'));
 	},
-
-	// testURLWithDoubleSlash: function() {
-		// this.assert(sut.scriptInDOM(Config.codeBase + 'lively//Main.js'));
-	// },
 });
-
-
-
-
-// logMethod(Morph.prototype, 'copyFrom'); 
-
-
-// logMethod(Morph.prototype, 'removeMorph');
-// logMethod(Morph.prototype,  'removeRawNode');
-
 
 console.log('loaded CoreTest.js');
 

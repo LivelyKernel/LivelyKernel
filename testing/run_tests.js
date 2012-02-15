@@ -42,16 +42,15 @@ function getResult(id) {
 
 // running the actual tests
 var testList = [
-    "tests.TestFrameworkTests",
-    "tests.BaseTests",
-    "tests.HelperTests",
-    "tests.MiniPrototypeTests",
-    "tests.ObjectTests",
-    "tests.ModuleSystemTests",
-    "tests.OmetaTests",
-    "tests.ClassTests",
-    "tests.TraitTests",
-    "tests.TracingTests",
+    "lively.tests.TestFrameworkTests",
+    "lively.tests.BaseTests",
+    "lively.tests.HelperTests",
+    "lively.tests.MiniPrototypeTests",
+    "lively.tests.ObjectTests",
+    "lively.tests.ModuleSystemTests",
+    "lively.tests.ClassTests",
+    "lively.tests.TraitTests",
+    "lively.tests.TracingTests", // broke that...hmn
     "lively.persistence.tests.PersistenceTests",
     "lively.bindings.tests.BindingTests",
     "lively.ast.tests.AstTests",
@@ -60,9 +59,10 @@ var testList = [
     "lively.morphic.tests.TabTests",
     "lively.morphic.tests.DataGridTests",
     "lively.morphic.tests.Connectors",
-    "cop.LayersTest",
     "lively.bindings.tests.GeometryBindingTests",
     // "lively.morphic.tests.PathTests",                    // 3 red tests
+    "cop.LayersTest",
+    "ometa.tests.OmetaTests",
 ];
 
 require(['lively.TestFramework'].concat(testList)).toRun(function() {

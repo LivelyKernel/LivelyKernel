@@ -1,6 +1,6 @@
-module('tests.OmetaTests').requires('lively.TestFramework', 'lively.Helper', 'lively.Ometa').toRun(function() {
+module('ometa.tests.OmetaTests').requires('lively.TestFramework', 'lively.Helper', 'lively.Ometa').toRun(function() {
 
-TestCase.subclass('tests.OmetaTests.TextTest', {
+TestCase.subclass('ometa.tests.OmetaTests.TextTest', {
     shouldRun: false,
     styleOfIncludes: function(spec, style) {
         var names = Object.keys(spec).select(function(ea) { return spec.hasOwnProperty(ea) });
@@ -27,7 +27,7 @@ TestCase.subclass('tests.OmetaTests.TextTest', {
 });
 
 
-TestCase.subclass('tests.OmetaTests.OmetaTest', {             
+TestCase.subclass('ometa.tests.OmetaTests.OmetaTest', {             
     testBSOMetaJSParser: function() {
         var s = "3+ 4";
         var tree = LKOMetaJSParser.matchAll(s, "topLevel");
@@ -43,13 +43,13 @@ TestCase.subclass('tests.OmetaTests.OmetaTest', {
     },
     
     testOmetaSampleInterpreter: function() {
-        var calcSrc = LKOMetaJSParser.matchAll(tests.OmetaTests.ometaSampleInterpeter, "topLevel");
+        var calcSrc = LKOMetaJSParser.matchAll(ometa.tests.OmetaTests.ometaSampleInterpeter, "topLevel");
         var result = eval(LKOMetaJSTranslator.match(calcSrc, "trans"));
         this.assertEquals(result, 42);
     },
     
     testEvalOmeta: function() {
-        this.assertEquals(OMetaSupport.ometaEval(tests.OmetaTests.ometaSampleInterpeter), 42)
+        this.assertEquals(OMetaSupport.ometaEval(ometa.tests.OmetaTests.ometaSampleInterpeter), 42)
     },
 
 	testOMetaUnderstandsNewExpr: function() {
@@ -58,7 +58,7 @@ TestCase.subclass('tests.OmetaTests.OmetaTest', {
 	}
 });
 
-Object.extend(tests.OmetaTests, {
+Object.extend(ometa.tests.OmetaTests, {
 	ometaSampleInterpeter: "        ometa Calc {  \n\
   digit    = super(#digit):d          -> digitValue(d),\n\
   number   = number:n digit:d         -> (n * 10 + d) \n\

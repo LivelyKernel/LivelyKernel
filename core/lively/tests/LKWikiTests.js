@@ -1,4 +1,4 @@
-module('tests.LKWikiTests').requires('lively.TestFramework', 'lively.LKWiki', 'tests.SerializationTests').toRun(function(thisModule, testModule, wikiModule) {
+module('lively.tests.LKWikiTests').requires('lively.TestFramework', 'lively.LKWiki', 'tests.SerializationTests').toRun(function(thisModule, testModule, wikiModule) {
 
 thisModule.createPropfindResponse = function(filename, partOfRepoUrl, revisionNumber) {
 	/* e.g. fileName = 'abc', partOfRepoUrl = '/testsvn/repo1/' revisionNumber = 74 */
@@ -52,13 +52,13 @@ thisModule.createReportResponse = function() {
 	return new DOMParser().parseFromString(xmlString, "text/xml")
 };
 
-TestCase.subclass('tests.LKWikiTests.SVNResourceTest', {
+TestCase.subclass('lively.tests.LKWikiTests.SVNResourceTest', {
 	
 	setUp: function() {
 		/* Mock the NetRequest: save NetRequest */
 		this.oldNetRequest = NetRequest;
 		/* Create the mock */
-		NetRequest.subclass('tests.LKWikiTests.MockNetRequest', {
+		NetRequest.subclass('lively.tests.LKWikiTests.MockNetRequest', {
 			onReadyStateChange: function() {
 				this.setModelValue('setStatus', this.getStatus());
 				this.setModelValue('setResponseText', this.getResponseText());
@@ -160,44 +160,12 @@ TestCase.subclass('tests.LKWikiTests.SVNResourceTest', {
 		this.assertEquals(expectedData[1].author, result[1].author, 'Metadata is not correct');
 	},
 	
-    // testListDirectory: function() {
-    //     var theUrl = 'http://localhost/livelyBranch/proxy/wiki/test/';
-    //     this.svnResource = new SVNResource('http://localhost/livelyBranch/proxy/wiki',
-    //          Record.newPlainInstance({URL: theUrl, ContentText: null}));
-    //     var contentText = '<html><head><title>repo1 - Revision 268: /test</title></head>' + 
-    //         '<body>' +
-    //         '<h2>repo1 - Revision 268: /test</h2>' + 
-    //         '<ul>'
-    //           '<li><a href="../">..</a></li>' + 
-    //           '<li><a href="a.js">Contributions.js</a></li>' +
-    //           '<li><a href="abc.js">Core.js</a></li>' +
-    //           '<li><a href="demo1.xhtml">demo1.xhtml</a></li>' +
-    //           '<li><a href="folder1/">folder1/</a></li>' +
-    //          '</ul>' +
-    //          '<hr noshade><em>Powered by <a href="http://subversion.tigris.org/">Subversion</a> version 1.5.1 (r32289).</em>'
-    //         '</body></html>';
-    //  var expected = [url + 'a.js', url + 'abc.js', url + 'demo1.xhtml', url + 'folder1/'];
-    //  thisModule.MockNetRequest.prototype.request = function(method, url, content) {
-    //      test.assertEquals(method, 'GET');
-    //      test.assertEquals(theUrl, url);
-    //      wasRequested = true;
-    //      this.onReadyStateChange();
-    //      return this;
-    //  };
-    //  thisModule.MockNetRequest.prototype.getResponseText = function() {
-    //      return contentText;
-    //  };
-    //  
-    //  this.svnResource.fetch(true);
-    //  this.assert(wasRequested, 'request() should be called');
-    // },
-	
 	tearDown: function() {
 		NetRequest = this.oldNetRequest;
 	}
 });
 
-TestCase.subclass('tests.LKWikiTests.SVNVersionInfoTest', {
+TestCase.subclass('lively.tests.LKWikiTests.SVNVersionInfoTest', {
     testParseUTCDate: function() {
         var sut = new SVNVersionInfo({rev: 0, date: '', author: null});
         var dateString = '2008-08-08T23:03:01.342813Z';
@@ -209,9 +177,6 @@ TestCase.subclass('tests.LKWikiTests.SVNVersionInfoTest', {
     testToString: function() {
         var sut = new SVNVersionInfo({rev: 75, date: '2008-08-08T23:03:01.342813Z', author: null});
 		this.assert(sut.toString().match(/(no author).*Fri Aug 08 2008, Revision 75/));
-
-        // see SVNVersionInfo.toString()
-        // this.assert(sut.toString().orig === sut, 'vers info string has not pointer to original');
     },
 
 testSerializeToNode: function() {
@@ -221,7 +186,7 @@ testSerializeToNode: function() {
 },
 });
 
-TestCase.subclass('tests.LKWikiTests.WikiNavigatorTest', {
+TestCase.subclass('lively.tests.LKWikiTests.WikiNavigatorTest', {
     
 	shouldRun: false, // WikiNavigator already makes request on creation...
 	
@@ -251,27 +216,9 @@ TestCase.subclass('tests.LKWikiTests.WikiNavigatorTest', {
         WikiNavigator.current = this.nav;
     },
     
-    // testFindVersions: function() {
-    //     var wasCalled = false;
-    //     this.nav.model.setVersions = this.nav.model.setVersions.wrap(function(proceed, list) {
-    //         wasCalled = true;
-    //         proceed(list); 
-    //     });
-    //     // execute
-    //     this.nav.findVersions();
-    //     this.assert(wasCalled, "setversions was not triggered");
-    //     this.assert(this.nav.model.getVersions().length > 0, "cannot read versions from: " + this.nav.model.getURL());
-    // },
-    // 
-    // testWikiWorldExists: function() {
-    //     this.nav = new WikiNavigator('http://localhost/livelyBranch/proxy/wiki/abc');
-    //     this.assert(this.nav.worldExists(), 'did not found abc');
-    //     this.nav = new WikiNavigator('http://localhost/livelyBranch/proxy/wiki/IdoNOTexists');
-    //     this.assert(!this.nav.worldExists(), 'notified false existence');
-    // }
 });
 
-TestCase.subclass('tests.LKWikiTests.InteractiveAuthorizationTest', {
+TestCase.subclass('lively.tests.LKWikiTests.InteractiveAuthorizationTest', {
 
 	shouldRun: false,
 
@@ -360,24 +307,6 @@ TestCase.subclass('tests.LKWikiTests.InteractiveAuthorizationTest', {
 		this.assert(this.wasAllowed === false, 'logout isn\'t working');
 	},
 
-/*	testUserWriteAcess: function() {
-		this.tryPut('123test123.xhtml');
-		this.assert(this.wasAllowed === true, 'xhtml');
-		// not allowed
-		this.tryPut('index.xhtml');
-		this.assert(this.wasAllowed === false, 'index');
-		this.tryPut('example.xhtml');
-		this.assert(this.wasAllowed === false, 'example');
-		this.login(); this.tryPut('livelyTest.xhtml');
-		this.assert(this.wasAllowed === false, 'lively*');
-		this.login(); this.tryPut('non-test.xhtml');
-		this.assert(this.wasAllowed === false, 'non-*xhtml');
-		this.login(); this.tryPut('Core.js');
-		this.assert(this.wasAllowed === false, 'js');
-		this.login(); this.tryPut('livelyTest.js');
-		this.assert(this.wasAllowed === false, 'lively*js');
-	}, */
-
 	testUserWriteAcess1: function() {
 		this.tryPut('123test123.xhtml');
 		this.assert(this.wasAllowed === true, 'xhtml');
@@ -427,7 +356,7 @@ TestCase.subclass('tests.LKWikiTests.InteractiveAuthorizationTest', {
 	},
 
 });
-TestCase.subclass('tests.LKWikiTests.WikiNetworkAnalyzerTest', {
+TestCase.subclass('lively.tests.LKWikiTests.WikiNetworkAnalyzerTest', {
 
 	sampleDocument: function() {
 		return stringToXML('<?xml version="1.0" encoding="utf-8"?>' + '\n' +
@@ -591,7 +520,7 @@ testAppendLogInformation: function() {
 
 
 });
-tests.SerializationTests.SerializationBaseTestCase.subclass('tests.LKWikiTests.WikiWorldProxyTest', {
+tests.SerializationTests.SerializationBaseTestCase.subclass('lively.tests.LKWikiTests.WikiWorldProxyTest', {
 
 createProxy: function(spec) {
 	var url = new URL('http://dummy');
@@ -638,7 +567,7 @@ testConstructDocumentOfChangeSet: function() {
 
 });
 
-TestCase.subclass('tests.LKWikiTests.SerializerTest', {
+TestCase.subclass('lively.tests.LKWikiTests.SerializerTest', {
 
 	testSerializeAndDeserializeBasicObjects: function() {
 		var basic = {
@@ -673,7 +602,7 @@ TestCase.subclass('tests.LKWikiTests.SerializerTest', {
 	},
 });
 
-TestCase.subclass('tests.LKWikiTests.WikiPatcherTest', {
+TestCase.subclass('lively.tests.LKWikiTests.WikiPatcherTest', {
     
     unpatchedSrc: '<title>Lively Kernel canvas</title>\n' +
         '<defs>\n' +
@@ -720,7 +649,6 @@ thisModule.exampleSVNResource = function() {
 	exampleResource = res;
 };
 
-//exampleSVNResource();
 
 thisModule.printExampleSVNResource = function() {
 	console.log(exampleResource.getModelValue('getHeadRevision'));

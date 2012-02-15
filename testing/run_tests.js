@@ -55,9 +55,14 @@ var testList = [
     "lively.persistence.tests.PersistenceTests",
     "lively.bindings.tests.BindingTests",
     "lively.ast.tests.AstTests",
+    "lively.morphic.tests.Morphic",
+    "lively.morphic.tests.Morphic2",
+    "lively.morphic.tests.TabTests",
+    "lively.morphic.tests.DataGridTests",
+    "lively.morphic.tests.Connectors",
     "cop.LayersTest",
-    // "lively.morphic.Tests",
-    // "lively.bindings.GeometryBindingsTest",
+    // "lively.bindings.tests.GeometryBindingsTests",       // broken right now
+    // "lively.morphic.tests.PathTests",                    // 3 red tests
 ];
 
 require(['lively.TestFramework'].concat(testList)).toRun(function() {

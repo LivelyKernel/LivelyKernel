@@ -61,7 +61,7 @@ var testList = [
     "lively.morphic.tests.DataGridTests",
     "lively.morphic.tests.Connectors",
     "cop.LayersTest",
-    // "lively.bindings.tests.GeometryBindingsTests",       // broken right now
+    "lively.bindings.tests.GeometryBindingTests",
     // "lively.morphic.tests.PathTests",                    // 3 red tests
 ];
 

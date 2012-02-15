@@ -43,13 +43,13 @@ function getResult(id) {
 // running the actual tests
 var testList = [
     "tests.TestFrameworkTests",
-    "tests.BaseTest",
-    "tests.HelperTest",
-    "tests.MiniPrototypeTest",
+    "tests.BaseTests",
+    "tests.HelperTests",
+    "tests.MiniPrototypeTests",
     "tests.ObjectTests",
     "tests.ModuleSystemTests",
-    "tests.OmetaTest",
-    "tests.ClassTest",
+    "tests.OmetaTests",
+    "tests.ClassTests",
     "tests.TraitTests",
     "tests.TracingTests",
     "lively.persistence.tests.PersistenceTests",

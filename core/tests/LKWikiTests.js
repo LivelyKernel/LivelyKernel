@@ -1,4 +1,4 @@
-module('tests.LKWikiTest').requires('lively.TestFramework', 'lively.LKWiki', 'tests.SerializationTests').toRun(function(thisModule, testModule, wikiModule) {
+module('tests.LKWikiTests').requires('lively.TestFramework', 'lively.LKWiki', 'tests.SerializationTests').toRun(function(thisModule, testModule, wikiModule) {
 
 thisModule.createPropfindResponse = function(filename, partOfRepoUrl, revisionNumber) {
 	/* e.g. fileName = 'abc', partOfRepoUrl = '/testsvn/repo1/' revisionNumber = 74 */
@@ -52,13 +52,13 @@ thisModule.createReportResponse = function() {
 	return new DOMParser().parseFromString(xmlString, "text/xml")
 };
 
-TestCase.subclass('tests.LKWikiTest.SVNResourceTest', {
+TestCase.subclass('tests.LKWikiTests.SVNResourceTest', {
 	
 	setUp: function() {
 		/* Mock the NetRequest: save NetRequest */
 		this.oldNetRequest = NetRequest;
 		/* Create the mock */
-		NetRequest.subclass('tests.LKWikiTest.MockNetRequest', {
+		NetRequest.subclass('tests.LKWikiTests.MockNetRequest', {
 			onReadyStateChange: function() {
 				this.setModelValue('setStatus', this.getStatus());
 				this.setModelValue('setResponseText', this.getResponseText());
@@ -197,7 +197,7 @@ TestCase.subclass('tests.LKWikiTest.SVNResourceTest', {
 	}
 });
 
-TestCase.subclass('tests.LKWikiTest.SVNVersionInfoTest', {
+TestCase.subclass('tests.LKWikiTests.SVNVersionInfoTest', {
     testParseUTCDate: function() {
         var sut = new SVNVersionInfo({rev: 0, date: '', author: null});
         var dateString = '2008-08-08T23:03:01.342813Z';
@@ -221,7 +221,7 @@ testSerializeToNode: function() {
 },
 });
 
-TestCase.subclass('tests.LKWikiTest.WikiNavigatorTest', {
+TestCase.subclass('tests.LKWikiTests.WikiNavigatorTest', {
     
 	shouldRun: false, // WikiNavigator already makes request on creation...
 	
@@ -271,7 +271,7 @@ TestCase.subclass('tests.LKWikiTest.WikiNavigatorTest', {
     // }
 });
 
-TestCase.subclass('tests.LKWikiTest.InteractiveAuthorizationTest', {
+TestCase.subclass('tests.LKWikiTests.InteractiveAuthorizationTest', {
 
 	shouldRun: false,
 
@@ -427,7 +427,7 @@ TestCase.subclass('tests.LKWikiTest.InteractiveAuthorizationTest', {
 	},
 
 });
-TestCase.subclass('tests.LKWikiTest.WikiNetworkAnalyzerTest', {
+TestCase.subclass('tests.LKWikiTests.WikiNetworkAnalyzerTest', {
 
 	sampleDocument: function() {
 		return stringToXML('<?xml version="1.0" encoding="utf-8"?>' + '\n' +
@@ -591,7 +591,7 @@ testAppendLogInformation: function() {
 
 
 });
-tests.SerializationTests.SerializationBaseTestCase.subclass('tests.LKWikiTest.WikiWorldProxyTest', {
+tests.SerializationTests.SerializationBaseTestCase.subclass('tests.LKWikiTests.WikiWorldProxyTest', {
 
 createProxy: function(spec) {
 	var url = new URL('http://dummy');
@@ -638,7 +638,7 @@ testConstructDocumentOfChangeSet: function() {
 
 });
 
-TestCase.subclass('tests.LKWikiTest.SerializerTest', {
+TestCase.subclass('tests.LKWikiTests.SerializerTest', {
 
 	testSerializeAndDeserializeBasicObjects: function() {
 		var basic = {
@@ -673,7 +673,7 @@ TestCase.subclass('tests.LKWikiTest.SerializerTest', {
 	},
 });
 
-TestCase.subclass('tests.LKWikiTest.WikiPatcherTest', {
+TestCase.subclass('tests.LKWikiTests.WikiPatcherTest', {
     
     unpatchedSrc: '<title>Lively Kernel canvas</title>\n' +
         '<defs>\n' +

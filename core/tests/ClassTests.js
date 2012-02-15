@@ -1,6 +1,6 @@
-module('tests.ClassTest').requires('lively.TestFramework').toRun(function() {
+module('tests.ClassTests').requires('lively.TestFramework').toRun(function() {
 
-TestCase.subclass('tests.ClassTest.ClassTest', {
+TestCase.subclass('tests.ClassTests.ClassTest', {
 	
 	testIsSuperclass: function() {
 		TestCase.subclass('Dummy1', {});
@@ -84,7 +84,7 @@ TestCase.subclass('tests.ClassTest.ClassTest', {
 	
 });
 
-TestCase.subclass('tests.ClassTest.NamespaceTest', {
+TestCase.subclass('tests.ClassTests.NamespaceTest', {
     
     setUp: function() {
         // create namespaces
@@ -152,7 +152,7 @@ TestCase.subclass('tests.ClassTest.NamespaceTest', {
     },
 })
 
-TestCase.subclass('tests.ClassTest.MethodCategoryTest', 
+TestCase.subclass('tests.ClassTests.MethodCategoryTest', 
 'running', {
 
 	tearDown: function() {
@@ -218,7 +218,7 @@ testAddMethodsWithMultipleCategories: function() {
 	},
 
 });
-TestCase.subclass('tests.ClassTest.ModuleRelatedClassTests',
+TestCase.subclass('tests.ClassTests.ModuleRelatedClassTests',
 'running', {
 	setUp: function($super) {
 		$super();

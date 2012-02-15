@@ -1,11 +1,11 @@
-module('tests.CoreTest').requires('lively.TestFramework').toRun(function() {
+module('tests.CoreTests').requires('lively.TestFramework').toRun(function() {
 
 
 /**
  * @class ConnectModelTest
  * Tests for understanding Record, Relay and View Behavior
  */
-TestCase.subclass('tests.CoreTest.ConnectModelTest', {
+TestCase.subclass('tests.CoreTests.ConnectModelTest', {
 
     testAddObserver: function() {
         var formalModel = Record.newPlainInstance({MyValue: "Hello World"});
@@ -58,7 +58,7 @@ TestCase.subclass('tests.CoreTest.ConnectModelTest', {
 
 });
 
-TestCase.subclass('tests.CoreTest.TestModel', {
+TestCase.subclass('tests.CoreTests.TestModel', {
 
 	testSetterSource: function() {
 		var calls = 0; var test = this;
@@ -172,7 +172,7 @@ lively.data.Wrapper.subclass('DummyCopierObject', {
 	},
 });	
 
-TestCase.subclass('tests.CoreTest.CopierTest', {
+TestCase.subclass('tests.CoreTests.CopierTest', {
 	
 	createObjectStructure: function() {
 		var objects = {
@@ -383,7 +383,7 @@ debugger
 	},
 	
 });
-TestCase.subclass('tests.CoreTest.ClipboardCopierTest',
+TestCase.subclass('tests.CoreTests.ClipboardCopierTest',
 'default category', {
 	testCopyMorphsAsXMLString: function() {
 
@@ -400,7 +400,7 @@ TestCase.subclass('tests.CoreTest.ClipboardCopierTest',
 });
 
 
-TestCase.subclass("tests.CoreTest.CopyMorphTest", {
+TestCase.subclass("tests.CoreTests.CopyMorphTest", {
 
 	testMorphCustomAttribut: function() {
 		var morph = Morph.makeRectangle(new Rectangle(0, 0, 10, 10));
@@ -418,7 +418,7 @@ TestCase.subclass("tests.CoreTest.CopyMorphTest", {
 
 
 
-TestCase.subclass("tests.CoreTest.EncodeWrapperJSONTest", {
+TestCase.subclass("tests.CoreTests.EncodeWrapperJSONTest", {
 
 	setUp: function() {
 		this.ref = WorldMorph.current();
@@ -459,7 +459,7 @@ TestCase.subclass("tests.CoreTest.EncodeWrapperJSONTest", {
 	
 });
 
-TestCase.subclass('tests.CoreTest.DocLinkConversionTest', {
+TestCase.subclass('tests.CoreTests.DocLinkConversionTest', {
 
 	exampleDoc: function() {
 		return stringToXML(

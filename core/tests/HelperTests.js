@@ -1,6 +1,6 @@
-module('tests.HelperTest').requires('lively.TestFramework', 'lively.Helper').toRun(function() {
+module('tests.HelperTests').requires('lively.TestFramework', 'lively.Helper').toRun(function() {
 
-TestCase.subclass('tests.HelperTest.XMLConverterTest', {
+TestCase.subclass('tests.HelperTests.XMLConverterTest', {
 
 	toXML: function(string) {
 		return new DOMParser().parseFromString(string, "text/xml").documentElement;

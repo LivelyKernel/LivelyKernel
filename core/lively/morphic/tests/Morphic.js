@@ -680,12 +680,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
 
 
 
+    test09TextStringOfTextOutsideSceneGraphIsSerialized: function() {
+        var m = new lively.morphic.Morph(),
+            s,
+            d;
+        m.hiddenTextMorph = new lively.morphic.Text();
+        m.hiddenTextSTring = textString = 'Hello';
 
-
-
-
-
-
+        s = lively.persistence.Serializer.serialize(m);
+        d = lively.persistence.Serializer.deserialize(s);
+        this.assertEquals(d.hiddenTextMorph.textString, 'Hello', 'serialization of removed text should preserve its contents');
+    },
 
 });
 

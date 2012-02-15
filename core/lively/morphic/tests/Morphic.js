@@ -685,7 +685,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
             s,
             d;
         m.hiddenTextMorph = new lively.morphic.Text();
-        m.hiddenTextSTring = textString = 'Hello';
+        m.hiddenTextMorph.textString = 'Hello';
 
         s = lively.persistence.Serializer.serialize(m);
         d = lively.persistence.Serializer.deserialize(s);

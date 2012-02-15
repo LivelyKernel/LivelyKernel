@@ -74,10 +74,12 @@ function tryToGetReport(data) {
 }
 
 function startTests() {
+    var browser = config.browsers[config.os][config.browser];
     post('/test-request', {
+        browser: browser.path,
+        browserArgs: browser.args,
         testWorldPath: 'testing/run_tests.xhtml',
         loadScript: "run_tests.js"
     }, tryToGetReport);
 }
-
 startTests();

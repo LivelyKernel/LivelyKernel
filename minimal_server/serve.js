@@ -1,6 +1,16 @@
 var express = require('express'),
     spawn = require('child_process').spawn,
-    config = require('../testing/config');
+    defaultBrowser = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", 
+    defaultArgs =  ["--no-process-singleton-dialog", 
+                    "--user-data-dir=/tmp/", "--no-first-run",
+                    "--disable-default-apps", 
+                    //"--no-startup-window",
+                    "--disable-history-quick-provider", 
+                    "--disable-history-url-provider",
+                    "--disable-breakpad", 
+                    "--disable-background-mode",
+                    "--disable-background-networking", 
+                    "--disable-preconnect", "--disabled"];
 
 // start with "nodemon minimal_server/serve.js" for development
 
@@ -45,15 +55,23 @@ function setupServer(testHandler) {
 
 var browserInterface = {
 
-    open: function(url) {
-        var browser = config.browsers[config.os][config.browser];
+    open: function(url, browserPath, browserArgs) {
+        if (!browserPath) {
+            browserPath = defaultBrowser;
+        }
+        if (!browserArgs) {
+            browserArgs = defaultArgs;
+        }
         if (this.process) {
             this.closeBrowser();
-            setTimeout(function() { browserInterface.open(url) }, 200);
+            setTimeout(function() { 
+                    browserInterface.open(url, browserPath, 
+                        browserArgs);
+                }, 200);
             return;
         }
-        console.log('open ' + config.browser + '/' + config.os + ' on ' + url);
-        this.process = spawn(browser.path, browser.args.concat([url]));
+        console.log('open ' + browserPath + ' on ' + url);
+        this.process = spawn(browserPath, browserArgs.concat([url]));
     },
 
     closeBrowser: function(id) {
@@ -93,9 +111,11 @@ TestHandler.prototype.urlForBrowser = function(req) {
 };
 
 TestHandler.prototype.handleTestRequest = function(req) {
-    var url = this.urlForBrowser(req);
+    var url = this.urlForBrowser(req),
+        browser = req.body.browser,
+        args = req.body.browserArgs;
     if (!url) throw new Error('no url for browsing');
-    this.browserInterface.open(url);
+    this.browserInterface.open(url, browser, args);
     return {result: 'browser started with ' + url, testRunId: currentTestId};
 };
 

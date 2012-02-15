@@ -56,7 +56,13 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Path',
         //return this.cachedVertices;
     },
     getBounds: function() {
-        return this.renderContextDispatch('getPathBounds');
+        //return this.renderContextDispatch('getPathBounds');
+        var vertices = this.vertices(),
+            minX = vertices.min(function(ea) { return ea.x; }),
+            minY = vertices.min(function(ea) { return ea.y; }),
+            maxX = vertices.max(function(ea) { return ea.x; }),
+            maxY = vertices.max(function(ea) { return ea.y; });
+        return rect(pt(minX-1, minY-1), pt(maxX, maxY));
     },
     getExtent: function() {
         return this.getBounds().extent()

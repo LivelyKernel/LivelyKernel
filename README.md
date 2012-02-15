@@ -53,7 +53,7 @@ In /apache_config you can find sample config files for Apache. Soon there will b
 Note: Make sure you have all required node.js modules installed. Run `npm install` to do so.
 To start the Lively tests from the command line first start the server:
 
-    make start_mini_server
+    make start_server
 
 To initiate a test run do
 

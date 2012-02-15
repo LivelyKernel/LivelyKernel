@@ -924,31 +924,15 @@ lively.morphic.Shapes.Path.addMethods(
         return defNode;
     },
 
-getPathBoundsHTML: function (ctx) {
-        var pathNode = this.getPathNodeHTML(ctx),
-            bb = ctx.domInterface.isInDOM(ctx.morphNode) && pathNode && Rectangle.ensure(pathNode.getBBox()),
-            offset = pt(0,0);
-
-        // svg.getBBox() doesn't work for horizontal and vertical lines: it doesn't reflects widths
-        if (!bb) bb = Rectangle.unionPts(this.vertices());
-
-        // adapt bounds so that lines are extented in all directions and
-        // the viewBox always shows complete rectangular lines
-        var strokeWidth = this.getBorderWidth();
-        bb.width = bb.width + strokeWidth;
-        bb.x = bb.x - strokeWidth / 2 + offset.x;
-        bb.height = bb.height + strokeWidth;
-        bb.y = bb.y - strokeWidth / 2 + offset.y;
-
-        // HTML height and width need integers, the viewbox accepts floats, but both should start at the same point
-        bb.x = Math.floor(bb.x);
-        bb.y = Math.floor(bb.y);
-
-        // HTML height and width of the element can't be fractions, we round up to leave enough space for the viewbox
-        bb.width = Math.ceil(bb.width);
-        bb.height = Math.ceil(bb.height);
-
-        return bb;
+    getPathBoundsHTML: function (ctx) {
+        var vertices = this.vertices(),
+            minX = vertices.min(function(ea) { return ea.x; }),
+            minY = vertices.min(function(ea) { return ea.y; }),
+            maxX = vertices.max(function(ea) { return ea.x; }),
+            maxY = vertices.max(function(ea) { return ea.y; }),
+            halfStroke = Math.floor(this.getBorderWidth() / 2);
+        return rect(pt(minX - 1 - halfStroke, minY - 1 - halfStroke),
+                    pt(maxX + halfStroke, maxY + halfStroke));
     },
 
     getTotalLengthHTML: function(ctx) {

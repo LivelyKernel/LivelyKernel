@@ -11,16 +11,16 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.LineTest',
             tagName: 'div', // line morph
             childNodes: [{ // extra div, svg specific
                 tagName: 'div', 
-                style: {top: '45px', left: '45px'},
+                style: {top: '44px', left: '44px'},
                 childNodes: [{ // shape
                     tagName: 'svg',
-                    attributes: {height: '60', width: '60', viewBox: '45 45 60 60'}
+                    attributes: {height: '61', width: '61', viewBox: '44 44 61 61'}
                 }]
             }]
         };
         this.assertNodeMatches(expected, path.renderContext().getMorphNode(), "morph, shape and viewBox reflect the borderWidth, extended by borderWidth/2 in all directions");
-        this.assertEquals(rect(pt(45.0,45.0),pt(105.0,105.0)), path.shape.getBounds());  
-        this.assertEquals(rect(pt(45.0,45.0),pt(105.0,105.0)), path.bounds());
+        this.assertEquals(rect(pt(44.0,44.0),pt(105.0,105.0)), path.shape.getBounds());  
+        this.assertEquals(rect(pt(44.0,44.0),pt(105.0,105.0)), path.bounds());
     },
     test01AddMorph: function() {
         var m = new lively.morphic.Path([pt(0,0), pt(20,100), pt(100,100)])

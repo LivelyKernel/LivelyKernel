@@ -50,7 +50,7 @@ var testList = [
     "lively.tests.ModuleSystemTests",
     "lively.tests.ClassTests",
     "lively.tests.TraitTests",
-    "lively.tests.TracingTests", // broke that...hmn
+    "lively.tests.TracingTests",
     "lively.persistence.tests.PersistenceTests",
     "lively.bindings.tests.BindingTests",
     "lively.ast.tests.AstTests",
@@ -60,7 +60,7 @@ var testList = [
     "lively.morphic.tests.DataGridTests",
     "lively.morphic.tests.Connectors",
     "lively.bindings.tests.GeometryBindingTests",
-    // "lively.morphic.tests.PathTests",                    // 3 red tests
+    "lively.morphic.tests.PathTests",               
     "cop.LayersTest",
     "ometa.tests.OmetaTests",
 ];

@@ -603,7 +603,7 @@ var LivelyLoader = {
         ];
         var modules1 = [
             // language extensions
-            // 'lively/lang/String.js',
+            'lively/lang/String.js',
         ];
         var modules2 = [
             // configs

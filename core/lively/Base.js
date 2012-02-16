@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2006-2009 Sun Microsystems, Inc.
  * Copyright (c) 2008-2011 Hasso Plattner Institute
@@ -663,156 +662,7 @@ var Class = {
 
 };
 
-var Strings = {
-    documentation: "Convenience methods on strings",
 
-    format: function Strings$format() {
-        return Strings.formatFromArray($A(arguments));
-    },
-
-    // adapted from firebug lite
-    formatFromArray: function Strings$formatFromArray(objects) {
-        var self = objects.shift();
-        if(!self) {console.log("Error in Strings>>formatFromArray, self is undefined")};
-
-        function appendText(object, string) {
-            return "" + object;
-        }
-
-        function appendObject(object, string) {
-            return "" + object;
-        }
-
-        function appendInteger(value, string) {
-            return value.toString();
-        }
-
-        function appendFloat(value, string, precision) {
-            dbgOn(!value.toFixed);
-            if (precision > -1) return value.toFixed(precision);
-            else return value.toString();
-        }
-
-        var appenderMap = {s: appendText, d: appendInteger, i: appendInteger, f: appendFloat};
-        var reg = /((^%|[^\\]%)(\d+)?(\.)([a-zA-Z]))|((^%|[^\\]%)([a-zA-Z]))/;
-
-        function parseFormat(fmt) {
-            var oldFmt = fmt;
-            var parts = [];
-
-            for (var m = reg.exec(fmt); m; m = reg.exec(fmt)) {
-                var type = m[8] || m[5],
-                    appender = type in appenderMap ? appenderMap[type] : appendObject,
-                    precision = m[3] ? parseInt(m[3]) : (m[4] == "." ? -1 : 0);
-                parts.push(fmt.substr(0, m[0][0] == "%" ? m.index : m.index + 1));
-                parts.push({appender: appender, precision: precision});
-
-                fmt = fmt.substr(m.index + m[0].length);
-            }
-            if (fmt)
-                parts.push(fmt.toString());
-
-            return parts;
-        };
-
-        var parts = parseFormat(self),
-            str = "",
-            objIndex = 0;
-
-        for (var i = 0; i < parts.length; ++i) {
-            var part = parts[i];
-            if (part && typeof(part) == "object") {
-                var object = objects[objIndex++];
-                str += (part.appender || appendText)(object, str, part.precision);
-            } else {
-                str += appendText(part, str);
-            }
-        }
-        return str;
-    },
-
-    withDecimalPrecision: function Strings$withDecimalPrecision(str, precision) {
-        var floatValue = parseFloat(str);
-        return isNaN(floatValue) ? str : floatValue.toFixed(precision);
-    },
-
-    indent: function (str, indentString, depth) {
-        if (!depth || depth <= 0) return str;
-        while (depth > 0) {
-            depth--;
-            str = indentString + str;
-        }
-        return str;
-    },
-
-    removeSurroundingWhitespaces: function(str) {
-        function removeTrailingWhitespace(string) {
-            while (string.length > 0 && /\s|\n|\r/.test(string[string.length - 1]))
-                string = string.substring(0, string.length - 1);
-            return string;
-        }
-
-        function removeLeadingWhitespace(string) {
-            return string.replace(/^[\n\s]*(.*)/, '$1');
-        }
-
-        return removeLeadingWhitespace(removeTrailingWhitespace(str));
-    },
-
-    print: function(str) {
-        var result = str;
-        result = result.replace(/\n/g, '\\n\\\n')
-        result = result.replace(/("|')/g, '\\$1')
-        result = '\'' + result + '\'';
-        return result
-    },
-
-    lines: function(str) {
-        return str.split(/\n\r?/);
-    },
-
-    tokens: function(str, regex) {
-        regex = regex || /\s+/;
-        return str.split(regex);
-    },
-
-    printNested: function(list, depth) {
-        depth = depth || 0;
-        var s = ""
-        list.forEach(function(ea) {
-            if (ea instanceof Array)
-                s += Strings.printNested(ea, depth + 1)
-            else
-                s +=  Strings.indent(ea +"\n", '  ', depth);
-        })
-        return s
-    },
-
-    camelCaseString: function(s) {
-        return s.split(" ").invoke('capitalize').join("")
-    },
-
-        tableize: function(s) {
-            return Strings.lines(s).collect(function(ea) {
-                return Strings.tokens(ea)
-            })
-        },
-    newUUID: function() {
-        // copied from Martin's UUID class
-    var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-        return v.toString(16);
-    }).toUpperCase();
-    return id;
-    },
-	unescapeCharacterEntities: function(s) {
-		// like &uml;
-		var div = XHTMLNS.create('div');
-		div.innerHTML = s;
-		return div.textContent
-	},
-
-};
 var Numbers = {
     random: function(min, max) {
         // both min and max are included
@@ -1641,20 +1491,6 @@ Object.extend(Number.prototype, {
         return this/180 * Math.PI;
     }
 
-});
-
-
-/**
-  * Extensions to class String
-  */
-Object.extend(String.prototype, {
-    size: function() { // so code can treat, eg, Texts like Strings
-        return this.length;
-    },
-
-    asString: function() { // so code can treat, eg, Texts like Strings
-        return this;
-    }
 });
 
 /**

@@ -1063,39 +1063,6 @@ function logStack() {
     this.console.log(printStack())
 };
 
-/**
-  * Charset
-  */
-Object.subclass('CharSet', {
-    documentation: "limited support for charsets"
-});
-
-Object.extend(CharSet, {
-    lowercase: "abcdefghijklmnopqrstuvwxyz",
-    uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-    digits: "0123456789",
-    underscore: "_",
-    nonAlpha: "`1234567890-=[]\;',./",
-    shiftedNonAlpha: '~!@#$%^&*()_+{}:"<>?|',
-    leftBrackets: "*({[<'" + '"',
-    rightBrackets: "*)}]>'" + '"'
-});
-
-Object.extend(CharSet, {
-    // select word, brackets
-    alphaNum: CharSet.lowercase + CharSet.uppercase + CharSet.digits + CharSet.underscore,
-    charsAsTyped: CharSet.uppercase + CharSet.nonAlpha,
-    charsUnshifted: CharSet.lowercase + CharSet.nonAlpha,
-    charsShifted: CharSet.uppercase + CharSet.shiftedNonAlpha,
-
-    nonBlank: function(cc) {
-        return " \n\r\t".include(cc) == false;
-    }
-
-});
-
-
-
 namespace('lively');
 Global.console && Global.console.log("loaded basic library");
 
@@ -2006,6 +1973,7 @@ Object.subclass('UUID',
 	}
 
 });
+
 lively.LocalStorage = {
     isAvailable: function() { return Global.localStorage != undefined },
     get: function(propName) {

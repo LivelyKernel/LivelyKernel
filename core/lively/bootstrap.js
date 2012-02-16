@@ -593,16 +593,43 @@ var LivelyLoader = {
             return;
         }
 
-        JSLoader.resolveAndLoadAll(codeBase, [
+        var modules0 = [
+            // libs
             this.jqueryPath,
             'lib/jsuri.js',
             'lively/Migration.js',
             'lively/JSON.js',
             'lively/miniprototype.js',
+        ];
+        var modules1 = [
+            // language extensions
+            // 'lively/lang/String.js',
+        ];
+        var modules2 = [
+            // configs
             'lively/defaultconfig.js',
             'lively/localconfig.js',
-            'lively/Base.js'],
-            thenDoFunc);
+        ];
+        var modules3 = [
+            // Base
+            'lively/Base.js'
+        ];
+        JSLoader.resolveAndLoadAll(codeBase,
+            modules0,
+            function() {
+                JSLoader.resolveAndLoadAll(codeBase,
+                    modules1,
+                    function() {
+                        JSLoader.resolveAndLoadAll(codeBase,
+                            modules2,
+                            function() {
+                                JSLoader.resolveAndLoadAll(codeBase, modules3, thenDoFunc);
+                            }
+                        );
+                    }
+                );
+            }
+        );
     },
 
     startHeadless: function() {

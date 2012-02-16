@@ -74,7 +74,8 @@ function tryToGetReport(data) {
 }
 
 function startTests() {
-    var browser = config.browsers[config.os][config.browser];
+    var browserName = process.argv[2] || config.browser,
+        browser = config.browsers[config.os][browserName];
     post('/test-request', {
         browser: browser.path,
         browserArgs: browser.args,

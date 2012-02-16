@@ -25,11 +25,11 @@ start_server:
 	@ echo "minimal server starting: http://localhost:$(MINISERVER_PORT)/"
 	$(NODEMON) --watch $(MINISERVER_DIR) $(MINISERVER) $(MINISERVER_PORT)
 
-run_server_tests:
+server_tests:
 	$(RUN_MINISERVER_TESTS)
 
 # wathes for file changes and reruns tests
-run_server_tests_continuously:
+server_tests_continuously:
 	$(NODEMON) --watch $(MINISERVER_DIR) --exec $(RUN_MINISERVER_TESTS)
 
 
@@ -38,11 +38,23 @@ run_server_tests_continuously:
 #######################
 TEST_SCRIPTS = $(shell find ./testing/*.js)
 CLI_TEST_STARTER = ./testing/run_lively_tests_cli.js
-run_kernel_tests:
+kernel_tests:
 	node $(CLI_TEST_STARTER)
 
-run_kernel_tests_continuously:
+kernel_tests_continuously:
 	$(NODEMON) --watch ./testing/ --watch ./core/ $(CLI_TEST_STARTER)
+
+kernel_tests_chrome:
+	node $(CLI_TEST_STARTER) Chrome
+
+kernel_tests_continuously_chrome:
+	$(NODEMON) --watch ./testing/ --watch ./core/ $(CLI_TEST_STARTER) Chrome
+
+kernel_tests_firefox:
+	node $(CLI_TEST_STARTER) Firefox
+
+kernel_tests_continuously_firefox:
+	$(NODEMON) --watch ./testing/ --watch ./core/ $(CLI_TEST_STARTER) Firefox
 
 ##########
 # jshint #

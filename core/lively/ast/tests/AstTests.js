@@ -529,7 +529,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTest',
         this.assertIdentity(null, result);
     },
     test28SimpleRegex: function() {
-        var src = '/aaa/.match("aaa")',
+        var src = '/aaa/.test("aaa")',
             ast = this.parseJS(src, 'expr'),
             result  = ast.startInterpretation();
         this.assertIdentity(true, result);

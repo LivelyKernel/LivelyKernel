@@ -599,7 +599,7 @@ var LivelyLoader = {
             'lib/jsuri.js',
             'lively/Migration.js',
             'lively/JSON.js',
-            'lively/miniprototype.js',
+            'lively/lang/Object.js',
         ];
         var modules1 = [
             // language extensions

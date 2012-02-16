@@ -45,7 +45,6 @@ var testList = [
     "lively.tests.TestFrameworkTests",
     "lively.tests.BaseTests",
     "lively.tests.HelperTests",
-    "lively.tests.MiniPrototypeTests",
     "lively.tests.ObjectTests",
     "lively.tests.ModuleSystemTests",
     "lively.tests.ClassTests",

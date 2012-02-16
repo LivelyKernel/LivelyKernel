@@ -418,7 +418,7 @@ Object.extend(Array, {
 // Global Helper - Arrays
 ///////////////////////////////////////////////////////////////////////////////
 
-var Arrays = {
+Arrays = {
     equal: function(firstArray, secondArray) {
         // deprecated, use anArray.equals
         return firstArray.equals(secondArray);

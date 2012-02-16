@@ -605,7 +605,8 @@ var LivelyLoader = {
             // language extensions
             'lively/lang/Function.js',
             'lively/lang/String.js',
-            'lively/lang/Array.js'
+            'lively/lang/Array.js',
+            'lively/lang/Number.js'
         ];
         var modules2 = [
             // configs

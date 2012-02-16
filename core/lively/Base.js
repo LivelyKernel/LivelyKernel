@@ -2045,11 +2045,6 @@ Object.extend(lively.Closure, {
     fromSource: function(source, varMapping) { return new this(null, varMapping || {}, source) },
 });
 
-Object.extend(Date, {
-    ensureTimeStamp: function(obj) {
-        return obj.timeStamp = Date.now();
-    },
-});
 Object.subclass('UUID',
 'generation', {
 

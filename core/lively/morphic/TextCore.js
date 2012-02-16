@@ -2252,7 +2252,9 @@ Object.subclass('lively.morphic.TextChunk',
     restoreFromCacheContent: function() {
         // if this.storedString is undefined we dont want to print it "undefined"
         this.textString = this.storedString || "";
-        delete this.storedString;
+        // FIXME not deleting storedString in order to not lose the content when 
+        // restoring an element that is not in the scenegraph
+        //delete this.storedString;
     },
 });
 

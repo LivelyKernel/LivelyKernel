@@ -1,35 +1,48 @@
-// extensions to String instances
+///////////////////////////////////////////////////////////////////////////////
+// Extensions to String instances
+///////////////////////////////////////////////////////////////////////////////
+
 Object.extend(String.prototype, {
     asString: function() { // so code can treat, eg, Texts like Strings
         return this;
     },
+
     empty: function() {
       return this == '';
     },
+
+    
     blank: function() {
       return /^\s*$/.test(this);
     },
+
     size: function() { // so code can treat, eg, Texts like Strings
         return this.length;
     },
+
     include: function(pattern) {
         return this.indexOf(pattern) > -1;
     },
+
     startsWith: function(pattern) {
         return this.indexOf(pattern) === 0;
     },
+
     endsWith: function(pattern) {
         var d = this.length - pattern.length;
         return d >= 0 && this.lastIndexOf(pattern) === d;
     },
+
     truncate: function(length, truncation) {
         length = length || 30;
         truncation = truncation === undefined ? '...' : truncation;
         return this.length > length ? this.slice(0, length - truncation.length) + truncation : String(this);
     },
+
     strip: function() {
         return this.replace(/^\s+/, '').replace(/\s+$/, '');
     },
+
     camelize: function() {
         var parts = this.split('-'),
             len = parts.length;
@@ -42,12 +55,14 @@ Object.extend(String.prototype, {
 
         return camelized;
     },
+
     capitalize: function() {
         if (this.length < 1) {
             return this;
         }
         return this.charAt(0).toUpperCase() + this.slice(1);
     },
+
     toQueryParams: function(separator) {
         var match = this.strip().match(/([^?#]*)(#.*)?$/);
         if (!match) {
@@ -68,23 +83,30 @@ Object.extend(String.prototype, {
         });
         return hash;
     },
+
     toArray: function() {
         return this.split('');
     },
+
     succ: function() {
         return this.slice(0, this.length - 1) + String.fromCharCode(this.charCodeAt(this.length - 1) + 1);
     },
+
     times: function(count) {
         return count < 1 ? '' : new Array(count + 1).join(this);
     },
+
 });
 
-// Global Strings - Helper
+///////////////////////////////////////////////////////////////////////////////
+// Global Helper - Strings
+///////////////////////////////////////////////////////////////////////////////
 
 Strings = {
     format: function Strings$format() {
         return Strings.formatFromArray($A(arguments));
     },
+
     // adapted from firebug lite
     formatFromArray: function Strings$formatFromArray(objects) {
         var self = objects.shift();
@@ -145,10 +167,12 @@ Strings = {
         }
         return str;
     },
+
     withDecimalPrecision: function(str, precision) {
         var floatValue = parseFloat(str);
         return isNaN(floatValue) ? str : floatValue.toFixed(precision);
     },
+
     indent: function (str, indentString, depth) {
         if (!depth || depth <= 0) return str;
         while (depth > 0) {
@@ -157,19 +181,19 @@ Strings = {
         }
         return str;
     },
+
     removeSurroundingWhitespaces: function(str) {
         function removeTrailingWhitespace(string) {
             while (string.length > 0 && /\s|\n|\r/.test(string[string.length - 1]))
                 string = string.substring(0, string.length - 1);
             return string;
         }
-
         function removeLeadingWhitespace(string) {
             return string.replace(/^[\n\s]*(.*)/, '$1');
         }
-
         return removeLeadingWhitespace(removeTrailingWhitespace(str));
     },
+
     print: function(str) {
         var result = str;
         result = result.replace(/\n/g, '\\n\\\n')
@@ -177,13 +201,16 @@ Strings = {
         result = '\'' + result + '\'';
         return result
     },
+
     lines: function(str) {
         return str.split(/\n\r?/);
     },
+
     tokens: function(str, regex) {
         regex = regex || /\s+/;
         return str.split(regex);
     },
+
     printNested: function(list, depth) {
         depth = depth || 0;
         var s = ""
@@ -195,14 +222,17 @@ Strings = {
         })
         return s
     },
+
     camelCaseString: function(s) {
         return s.split(" ").invoke('capitalize').join("")
     },
+
     tableize: function(s) {
         return Strings.lines(s).collect(function(ea) {
             return Strings.tokens(ea)
         })
     },
+
     newUUID: function() {
         // copied from Martin's UUID class
         var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -211,6 +241,7 @@ Strings = {
         }).toUpperCase();
         return id;
     },
+
 	unescapeCharacterEntities: function(s) {
 		// like &uml;
 		var div = XHTMLNS.create('div');

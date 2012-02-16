@@ -1,17 +1,3 @@
-/*  Prototype JavaScript framework, version 1.6.0_rc1
- *  (c) 2005-2007 Sam Stephenson
- *
- *  Prototype is freely distributable under the terms of an MIT-style license.
- *  For details, see the Prototype web site: http://www.prototypejs.org/
- *
- *--------------------------------------------------------------------------*/
-// Note this version is heavily trimmed from its original form.
-
-var Prototype = {
-  Version: '1.6.0_rc1_LK_Mini',
-  K: function(x) { return x }
-};
-
 // JL: patch add displayName to functions
 // possible problems with Traits / Mixin Usage
 Object.extend = function(destination, source) {
@@ -103,47 +89,6 @@ Object.extend(Object, {
   },
 })
 };
-
-Object.extend(Function.prototype, {
-  argumentNames: function() {
-    //var names = this.toString().match(/^[\s\(]*function[^(]*\((.*?)\)/)[1].split(",").invoke("strip");
-      var names = this.toString().match(/^[\s\(]*function[^(]*\(([^)]*)\)/)[1]
-      .replace(/\/\/.*?[\r\n]|\/\*(?:.|[\r\n])*?\*\//g, '')
-      .replace(/\s+/g, '').split(',');
-
-    return names.length == 1 && !names[0] ? [] : names;
-  },
-
-	curry: function curry() {
-		if (!arguments.length) return this;
-		var __method = this, args = $A(arguments),
-			wrappedFunc = function curried() {
-				return __method.apply(this, args.concat($A(arguments)));
-			}
-		wrappedFunc.isWrapper = true;
-		wrappedFunc.originalFunction = __method;
-		return wrappedFunc;
-	},
-
-  delay: function delay() {
-    var __method = this, args = $A(arguments), timeout = args.shift() * 1000;
-    return window.setTimeout(function delayed() {
-      return __method.apply(__method, args);
-    }, timeout);
-  },
-
-  wrap: function wrap(wrapper) {
-    var __method = this;
-    var wrappedFunc = function wrapped() {
-      var wrapperArgs = wrapper.isWrapper ? $A(arguments) : [__method.bind(this)].concat($A(arguments));
-      return wrapper.apply(this, wrapperArgs);
-    }
-	wrappedFunc.isWrapper = true;
-	wrappedFunc.originalFunction = __method;
-	return wrappedFunc;
-  }
-
-});
 
 
 RegExp.prototype.match = RegExp.prototype.test;

@@ -603,6 +603,7 @@ var LivelyLoader = {
         ];
         var modules1 = [
             // language extensions
+            'lively/lang/Function.js',
             'lively/lang/String.js',
             'lively/lang/Array.js'
         ];

@@ -662,56 +662,6 @@ var Class = {
 
 };
 
-var Properties = {
-    documentation: "convenience property access functions",
-
-    all: function Properties$all(object, predicate) {
-        var a = [];
-        for (var name in object) {
-            if ((object.__lookupGetter__(name) || !Object.isFunction(object[name])) && (predicate ? predicate(name, object) : true))
-                a.push(name);
-        }
-        return a;
-    },
-
-    own: function Properties$own(object) {
-        var a = [];
-        for (var name in object) {
-            if (object.hasOwnProperty(name) && (object.__lookupGetter__(name) || !Object.isFunction(object[name])))
-                a.push(name);
-        }
-        return a;
-    },
-
-    forEachOwn: function Properties$forEachOwn(object, func, context) {
-        for (var name in object) {
-            if (!object.hasOwnProperty(name)) continue;
-            var value = object[name];
-            if (!(value instanceof Function))
-                var result = func.call(context || this, name, value);
-        }
-    },
-
-    nameFor: function Properties$nameFor(object, value) {
-        for (var name in object)
-            if (object[name] === value) return name;
-        return undefined
-    },
-    values: function Properties$values(obj) {
-        var values = [];
-        for (var name in obj) values.push(obj[name]);
-        return values;
-    },
-    ownValues: function Properties$ownValues(obj) {
-        var values = [];
-        for (var name in obj) if (obj.hasOwnProperty(name)) values.push(obj[name]);
-        return values;
-    },
-    printObjectSize: function(obj) {
-        return Numbers.humanReadableByteSize(JSON.stringify(obj).length)
-    }
-};
-
 // bootstrap namespaces
 Object.subclass('Namespace',
 'initializing', {

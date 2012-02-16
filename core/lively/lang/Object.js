@@ -1,5 +1,4 @@
 // The following is heavily inspired by the Prototype JavaScript framework
-
 /*  Prototype JavaScript framework, version 1.6.0_rc1
  *  (c) 2005-2007 Sam Stephenson
  *
@@ -8,9 +7,9 @@
  *
  *--------------------------------------------------------------------------*/
 
- ///////////////////////////////////////////////////////////////////////////////
- // Extensions to the Object object
- ///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// Extensions to the Object object
+///////////////////////////////////////////////////////////////////////////////
 
 // JL: patch add displayName to functions
 // possible problems with Traits / Mixin Usage
@@ -85,56 +84,57 @@ Object.extend(Object, {
     isUndefined: function(object) {
         return typeof object == "undefined";
     },
-    
+
     inherit: function(obj) {
-        var constructor = function ProtoConstructor() { return this }
+        var constructor = function ProtoConstructor() {
+                return this
+            }
         constructor.prototype = obj;
         var newInstance = new constructor();
         newInstance.constructor = constructor;
         return newInstance;
     },
-    
+
     merge: function(objs) {
         // if objs are arrays just concat them
         // if objs are real objs then merge properties
         if (Object.isArray(objs[0])) // test for all?
-            return Array.prototype.concat.apply([], objs)
+        return Array.prototype.concat.apply([], objs)
         var result = {};
         for (var i = 0; i < objs.length; i++) {
             var obj = objs[i];
             for (var name in obj)
-                if (obj.hasOwnProperty(name))
-                    result[name] = obj[name]
+            if (obj.hasOwnProperty(name)) result[name] = obj[name]
         }
         return result;
     },
-    
+
     valuesInPropertyHierarchy: function(obj, name) {
         // lookup all properties named name in the proto hierarchy of obj
         // also uses Lively's class structure
-        var result = [], lookupObj = obj;
+        var result = [],
+            lookupObj = obj;
         while (true) {
-            if (lookupObj.hasOwnProperty(name))
-                result.push(lookupObj[name])
+            if (lookupObj.hasOwnProperty(name)) result.push(lookupObj[name])
             var proto = Class.getPrototype(lookupObj);
-            if (!proto || proto === lookupObj)
-                proto = Class.getSuperPrototype(lookupObj);
-            if (!proto)
-                return result.reverse();
+            if (!proto || proto === lookupObj) proto = Class.getSuperPrototype(lookupObj);
+            if (!proto) return result.reverse();
             lookupObj = proto;
         }
     },
-    
+
     mergePropertyInHierarchy: function(obj, propName) {
         return this.merge(this.valuesInPropertyHierarchy(obj, propName));
     },
-    
+
     protoCopy: function(obj) {
-        var protoCreator = function() { return this };
+        var protoCreator = function() {
+                return this
+            };
         protoCreator.prototype = obj;
         var protoObj = new protoCreator();
         return protoObj;
-    } 
+    }
 });
 
 
@@ -152,34 +152,30 @@ if (this.window && window.navigator && window.navigator.userAgent.match(/Firefox
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Global Helper - Objects
+// Global Helper - Objects and Properties
 ///////////////////////////////////////////////////////////////////////////////
 
 Objects = {
-
     typeStringOf: function(obj) {
-        if (obj === null)
-            return "null";
-        if (obj === undefined)
-            return "undefined";
+        if (obj === null) return "null";
+        if (obj === undefined) return "undefined";
         return obj.constructor.name;
     },
 
     shortPrintStringOf: function(obj) {
         // primitive values
-        if (!this.isMutableType(obj))
-            return this.safeToString(obj);
+        if (!this.isMutableType(obj)) return this.safeToString(obj);
 
         // constructed objects
-        if (obj.constructor.name != 'Object' && obj.constructor.name != 'Array')
-            return obj.constructor.name;
+        if (obj.constructor.name != 'Object' && obj.constructor.name != 'Array') return obj.constructor.name;
 
         // arrays or plain objects
         var typeString = "";
+
         function displayTypeAndLength(obj, collectionType, firstBracket, secondBracket) {
             if (obj.constructor.name === collectionType) {
                 typeString += firstBracket;
-            if (Properties.own(obj).length > 0) typeString += "...";
+                if (Properties.own(obj).length > 0) typeString += "...";
                 typeString += secondBracket;
             }
         }
@@ -194,10 +190,58 @@ Objects = {
     },
 
     safeToString: function(obj) {
-      try {
-          return obj ? obj.toString() : String(obj);
-      } catch(e) {
-          return '<error printing object>'
-      }
+        try {
+            return obj ? obj.toString() : String(obj);
+        } catch (e) {
+            return '<error printing object>'
+        }
+    }
+};
+
+Properties = {
+    all: function(object, predicate) {
+        var a = [];
+        for (var name in object) {
+            if ((object.__lookupGetter__(name) || !Object.isFunction(object[name])) && (predicate ? predicate(name, object) : true)) a.push(name);
+        }
+        return a;
+    },
+
+    own: function(object) {
+        var a = [];
+        for (var name in object) {
+            if (object.hasOwnProperty(name) && (object.__lookupGetter__(name) || !Object.isFunction(object[name]))) a.push(name);
+        }
+        return a;
+    },
+
+    forEachOwn: function(object, func, context) {
+        for (var name in object) {
+            if (!object.hasOwnProperty(name)) continue;
+            var value = object[name];
+            if (!(value instanceof Function)) var result = func.call(context || this, name, value);
+        }
+    },
+
+    nameFor: function(object, value) {
+        for (var name in object)
+        if (object[name] === value) return name;
+        return undefined
+    },
+    
+    values: function(obj) {
+        var values = [];
+        for (var name in obj) values.push(obj[name]);
+        return values;
+    },
+    
+    ownValues: function(obj) {
+        var values = [];
+        for (var name in obj) if (obj.hasOwnProperty(name)) values.push(obj[name]);
+        return values;
+    },
+    
+    printObjectSize: function(obj) {
+        return Numbers.humanReadableByteSize(JSON.stringify(obj).length)
     }
 };

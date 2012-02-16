@@ -57,7 +57,9 @@ To start the Lively tests from the command line first start the server:
 
 To initiate a test run do
 
-    make run_kernel_tests
+    make kernel_tests
+    
+This runs tests in the browser you specified in testing/config.js. Alternatively, you can use the make targets kernel_tests_firefox or kernel_tests_chrome.
 
 #### How it works
 

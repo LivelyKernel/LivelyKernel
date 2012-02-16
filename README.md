@@ -27,7 +27,7 @@ Clone the Lively Kernel repository.
 
     git clone git@github.com:rksm/LivelyKernel.git ~/LivelyKernel
 
-Then initialize the project dependencies. Currently we are using [express.js](http://expressjs.com/) for file serving.
+Then initialize the project dependencies. Currently we are using [express.js](http://expressjs.com/) and [nodemon](https://github.com/remy/nodemon) for file serving.
 
     cd ~/LivelyKernel
     npm install
@@ -36,7 +36,7 @@ Then initialize the project dependencies. Currently we are using [express.js](ht
 
 Now you can start the server with
 
-    make start_mini_server
+    make start_server
 
 and visit [blank.xhtml](http://localhost:9001/blank.xhtml) to start a minimal version of Lively Kernel.
 

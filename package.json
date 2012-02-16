@@ -13,12 +13,12 @@
   },
   "dependencies": {
     "express": "2.x",
-    "colorize": "0.1.0"
+    "colorize": "0.1.0",
+    "nodemon": "~0.6"
   },
   "devDependencies": {
-      "nodemon": "~0.6",
-      "qunit": "~0.2",
-      "jshint": "~0.5"
+    "qunit": "~0.2",
+    "jshint": "~0.5"
   },
   "optionalDependencies": {}
 }

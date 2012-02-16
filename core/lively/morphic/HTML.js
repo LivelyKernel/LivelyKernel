@@ -395,7 +395,12 @@ lively.morphic.Text.addMethods(
         if (ctx.textNode)
             ctx.domInterface.setMinWidth(ctx.textNode, value);
     },
-    getTextStringHTML: function(ctx) { return ctx.textNode ? ctx.textNode.textContent : '' },
+    getTextStringHTML: function(ctx) { 
+        //return ctx.textNode ? ctx.textNode.textContent : '' 
+        return this.getTextChunks().reduce(function (s, ea) {
+                return s + ea.textString;
+            }, '');
+    },
     setFontSizeHTML: function(ctx, size) {
         if (ctx.textNode)
             ctx.textNode.style.fontSize = size + 'pt'

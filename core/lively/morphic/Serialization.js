@@ -117,6 +117,10 @@ lively.morphic.Text.addMethods(
     onrestore: function($super) {
         $super();
         this.charsTyped = '';
+        var chunks = this.getTextChunks();
+        chunks.forEach(function(ea) {
+                ea.textString = ea.storedString;
+            });
     },
     prepareForNewRenderContext: function($super,renderCtx) {
         $super(renderCtx);

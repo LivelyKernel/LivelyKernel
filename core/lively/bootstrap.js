@@ -593,46 +593,21 @@ var LivelyLoader = {
             return;
         }
 
-        var modules0 = [
-            // libs
+        var modules = [
             this.jqueryPath,
             'lib/jsuri.js',
             'lively/Migration.js',
             'lively/JSON.js',
             'lively/lang/Object.js',
-        ];
-        var modules1 = [
-            // language extensions
             'lively/lang/Function.js',
             'lively/lang/String.js',
             'lively/lang/Array.js',
-            'lively/lang/Number.js'
-        ];
-        var modules2 = [
-            // configs
+            'lively/lang/Number.js',
             'lively/defaultconfig.js',
             'lively/localconfig.js',
-        ];
-        var modules3 = [
-            // Base
             'lively/Base.js'
         ];
-        JSLoader.resolveAndLoadAll(codeBase,
-            modules0,
-            function() {
-                JSLoader.resolveAndLoadAll(codeBase,
-                    modules1,
-                    function() {
-                        JSLoader.resolveAndLoadAll(codeBase,
-                            modules2,
-                            function() {
-                                JSLoader.resolveAndLoadAll(codeBase, modules3, thenDoFunc);
-                            }
-                        );
-                    }
-                );
-            }
-        );
+        JSLoader.resolveAndLoadAll(codeBase, modules, thenDoFunc);
     },
 
     startHeadless: function() {

@@ -8,49 +8,93 @@ Object.subclass("Point", {
         this.y = y;
         return this;
     },
-    toFixed: function(val) { 
-        return new lively.Point(this.x.toFixed(val), this.y.toFixed(val)) 
+    toFixed: function(val) {
+        return new lively.Point(this.x.toFixed(val), this.y.toFixed(val))
     },
 
-    deserialize: function(importer, string) { // reverse of toString
+    deserialize: function(importer, string) {
+        // reverse of toString
         var array = string.slice(3, -1).split(',');
         this.x = lively.data.Coordinate.parse(array[0]);
         this.y = lively.data.Coordinate.parse(array[1]);
     },
 
     addPt: function(p) {
-        if (arguments.length != 1)
-            throw('addPt() only takes 1 parameter.');
+        if (arguments.length != 1) throw ('addPt() only takes 1 parameter.');
 
         return new lively.Point(this.x + p.x, this.y + p.y);
     },
-    addXY: function(dx,dy) { return new lively.Point(this.x + dx, this.y + dy); },
-    midPt: function(p) { return new lively.Point((this.x + p.x)/2, (this.y + p.y)/2); },
+    
+    addXY: function(dx, dy) {
+        return new lively.Point(this.x + dx, this.y + dy);
+    },
+    
+    midPt: function(p) {
+        return new lively.Point((this.x + p.x) / 2, (this.y + p.y) / 2);
+    },
+    
     subPt: function(p) {
-        if (arguments.length != 1)
-            throw('subPt() only takes 1 parameter.');
+        if (arguments.length != 1) throw ('subPt() only takes 1 parameter.');
 
         return new lively.Point(this.x - p.x, this.y - p.y);
     },
-    subXY: function(dx,dy) { return new lively.Point(this.x - dx, this.y - dy); },
-    negated: function() { return new lively.Point(-this.x, -this.y); },
-    inverted: function() { return new lively.Point(1.0/this.x, 1.0/this.y); },
-    invertedSafely: function() { return new lively.Point(this.x && 1.0/this.x, this.y && 1.0/this.y); },
-    scaleBy: function(scale) { return new lively.Point(this.x*scale,this.y*scale); },
-    scaleByPt: function(scalePt) { return new lively.Point(this.x*scalePt.x,this.y*scalePt.y); },
-    lessPt: function(p) { return this.x < p.x && this.y < p.y; },
-    leqPt: function(p) { return this.x <= p.x && this.y <= p.y; },
-    eqPt: function(p) { return this.x == p.x && this.y == p.y; },
-    equals: function(p) { return this.eqPt(p); },
-    withX: function(x) { return pt(x, this.y); },
-    withY: function(y) { return pt(this.x, y); },
+    
+    subXY: function(dx, dy) {
+        return new lively.Point(this.x - dx, this.y - dy);
+    },
+    
+    negated: function() {
+        return new lively.Point(-this.x, -this.y);
+    },
+    
+    inverted: function() {
+        return new lively.Point(1.0 / this.x, 1.0 / this.y);
+    },
+    
+    invertedSafely: function() {
+        return new lively.Point(this.x && 1.0 / this.x, this.y && 1.0 / this.y);
+    },
+    
+    scaleBy: function(scale) {
+        return new lively.Point(this.x * scale, this.y * scale);
+    },
+    
+    scaleByPt: function(scalePt) {
+        return new lively.Point(this.x * scalePt.x, this.y * scalePt.y);
+    },
+    
+    lessPt: function(p) {
+        return this.x < p.x && this.y < p.y;
+    },
+    
+    leqPt: function(p) {
+        return this.x <= p.x && this.y <= p.y;
+    },
+    
+    eqPt: function(p) {
+        return this.x == p.x && this.y == p.y;
+    },
+    
+    equals: function(p) {
+        return this.eqPt(p);
+    },
+    
+    withX: function(x) {
+        return pt(x, this.y);
+    },
+    
+    withY: function(y) {
+        return pt(this.x, y);
+    },
 
     normalized: function() {
         var r = this.r();
         return pt(this.x / r, this.y / r);
     },
 
-    dotProduct: function(p) { return this.x * p.x + this.y * p.y },
+    dotProduct: function(p) {
+        return this.x * p.x + this.y * p.y
+    },
 
     minPt: function(p, acc) {
         if (!acc) acc = new lively.Point(0, 0);
@@ -66,17 +110,21 @@ Object.subclass("Point", {
         return acc;
     },
 
-    roundTo: function(quantum) { return new lively.Point(this.x.roundTo(quantum), this.y.roundTo(quantum)); },
+    roundTo: function(quantum) {
+        return new lively.Point(this.x.roundTo(quantum), this.y.roundTo(quantum));
+    },
 
-    random: function() {  return new lively.Point(this.x*Math.random(), this.y*Math.random());     },
+    random: function() {
+        return new lively.Point(this.x * Math.random(), this.y * Math.random());
+    },
 
     dist: function(p) {
         var dx = this.x - p.x;
         var dy = this.y - p.y;
-        return Math.sqrt(dx*dx + dy*dy);
+        return Math.sqrt(dx * dx + dy * dy);
     },
 
-    nearestPointOnLineBetween: function(p1, p2) { // fasten seat belts...
+    nearestPointOnLineBetween: function(p1, p2) {
         if (p1.x == p2.x) return pt(p1.x, this.y);
         if (p1.y == p2.y) return pt(this.x, p1.y);
         var x1 = p1.x;
@@ -84,57 +132,73 @@ Object.subclass("Point", {
         var x21 = p2.x - x1;
         var y21 = p2.y - y1;
         var t = (((this.y - y1) / x21) + ((this.x - x1) / y21)) / ((x21 / y21) + (y21 / x21));
-        return pt(x1 + (t * x21) , y1 + (t * y21));
+        return pt(x1 + (t * x21), y1 + (t * y21));
     },
 
-    asRectangle: function() { return new Rectangle(this.x, this.y, 0, 0); },
-    extent: function(ext) { return new Rectangle(this.x, this.y, ext.x, ext.y); },
-    extentAsRectangle: function() { return new Rectangle(0, 0, this.x, this.y) },
+    asRectangle: function() {
+        return new Rectangle(this.x, this.y, 0, 0);
+    },
+    extent: function(ext) {
+        return new Rectangle(this.x, this.y, ext.x, ext.y);
+    },
+    extentAsRectangle: function() {
+        return new Rectangle(0, 0, this.x, this.y)
+    },
 
     toString: function() {
         return Strings.format("pt(%1.f,%1.f)", this.x, this.y);
     },
 
     toTuple: function() {
-        return [ this.x, this.y ];
+        return [this.x, this.y];
     },
 
-    toLiteral: function() { return {x: this.x, y: this.y}; },
+    toLiteral: function() {
+        return {
+            x: this.x,
+            y: this.y
+        };
+    },
 
     inspect: function() {
         return JSON.serialize(this);
     },
 
     matrixTransform: function(mx, acc) {
-        if (!acc) acc = pt(0, 0); // if no accumulator passed, allocate a fresh one
+        // if no accumulator passed, allocate a fresh one
+        if (!acc) acc = pt(0, 0);
         acc.x = mx.a * this.x + mx.c * this.y + mx.e;
         acc.y = mx.b * this.x + mx.d * this.y + mx.f;
         return acc;
     },
 
     matrixTransformDirection: function(mx, acc) {
-        if (!acc) acc = pt(0, 0); // if no accumulator passed, allocate a fresh one
-        acc.x = mx.a * this.x + mx.c * this.y ;
-        acc.y = mx.b * this.x + mx.d * this.y ;
+        // if no accumulator passed, allocate a fresh one
+        if (!acc) acc = pt(0, 0);
+        acc.x = mx.a * this.x + mx.c * this.y;
+        acc.y = mx.b * this.x + mx.d * this.y;
         return acc;
     },
 
-    // Polar coordinates (theta=0 is East on screen, and increases in CCW direction
-    r: function() { return this.dist(pt(0,0)); },
-    theta: function() { return Math.atan2(this.y,this.x); },
+    r: function() {
+        // Polar coordinates (theta=0 is East on screen, and increases in CCW
+        // direction
+        return this.dist(pt(0, 0));
+    },
+    theta: function() {
+        return Math.atan2(this.y, this.x);
+    },
 
-    copy: function() { return new lively.Point(this.x, this.y); }
-});
+    copy: function() {
+        return new lively.Point(this.x, this.y);
+    },
 
-lively.Point = Point;
-
-lively.Point.addMethods({
 
     fastR: function() {
-        var a = this.x*this.x+this.y*this.y;
+        var a = this.x * this.x + this.y * this.y;
         var x = 17;
         for (var i = 0; i < 6; i++)
-        x = (x+a/x)/2;
+        x = (x + a / x) / 2;
         return x;
     },
 
@@ -143,14 +207,12 @@ lively.Point.addMethods({
         return pt(this.x / r, this.y / r);
     },
 
-        griddedBy: function(grid) {
-            return pt(this.x - (this.x % grid.x),this.y - (this.y % grid.y))
-        }
-});
-
-Object.extend(lively.Point, {
-
-    ensure: function(duck) { // make sure we have a Lively point
+    griddedBy: function(grid) {
+        return pt(this.x - (this.x % grid.x), this.y - (this.y % grid.y))
+    },
+    
+    ensure: function(duck) { 
+        // make sure we have a Lively point
         if (duck instanceof lively.Point) {
             return duck;
         } else {
@@ -158,15 +220,23 @@ Object.extend(lively.Point, {
         }
     },
 
-    // Note: theta=0 is East on the screen, and increases in counter-clockwise direction
-    polar: function(r, theta) { return new lively.Point(r*Math.cos(theta), r*Math.sin(theta)); },
-    random: function(scalePt) { return new lively.Point(scalePt.x.randomSmallerInteger(), scalePt.y.randomSmallerInteger()); },
-
+    polar: function(r, theta) {
+        // Note: theta=0 is East on the screen, and increases in 
+        // counter-clockwise direction
+        return new lively.Point(r * Math.cos(theta), r * Math.sin(theta));
+    },
+    random: function(scalePt) {
+        return new lively.Point(scalePt.x.randomSmallerInteger(), scalePt.y.randomSmallerInteger());
+    },
+    
     fromLiteral: function(literal) {
         return pt(literal.x, literal.y);
     }
-
 });
+
+
+// FIXME: Point in global namespace
+lively.Point = Point;
 
 lively.pt = function(x, y) {
     return new lively.Point(x, y);
@@ -504,7 +574,6 @@ Object.subclass('Rectangle',
 );
 
 Object.extend(Rectangle, {
-
     fromAny: function(ptA, ptB) {
         return rect(ptA.minPt(ptB), ptA.maxPt(ptB));
     },
@@ -558,6 +627,9 @@ Object.extend(Rectangle, {
     }
 
 });
+
+// FIXME: Point in global namespace
+lively.Rectangle = Rectangle;
 
 lively.rect = function(location, corner) {
     return new Rectangle(location.x, location.y, corner.x - location.x, corner.y - location.y);
@@ -713,7 +785,6 @@ Object.subclass('lively.morphic.Similitude',
                  'deg) scale(' + scale + ',' + scale + ')';
     },
 
-
     toString: function() {
         return this.toCSSValue();
     },
@@ -829,18 +900,17 @@ Object.subclass('lively.morphic.Similitude',
 Object.subclass("Color", {
 
     documentation: "Fully portable support for RGB colors. A bit of rgba support is also included.",
-
     isColor: true,
-
+    
     initialize: function(r, g, b, a) {
         this.r = r || 0;
         this.g = g || 0;
         this.b = b || 0;
         this.a = a || (a === 0 ? 0 : 1);
     },
-
-    // Mix with another color -- 1.0 is all this, 0.0 is all other
+    
     mixedWith: function(other, proportion) {
+        // Mix with another color -- 1.0 is all this, 0.0 is all other
         var p = proportion,
             q = 1.0 - p;
         return new Color(this.r*p + other.r*q, this.g*p + other.g*q, this.b*p + other.b*q, this.a*p + other.a*q);
@@ -905,18 +975,6 @@ Object.subclass("Color", {
 });
 
 Object.extend(Color, {
-
-    black: new Color(0,0,0),
-    white: new Color(1,1,1),
-    gray: new Color(0.8,0.8,0.8),
-    red: new Color(0.8,0,0),
-    green: new Color(0,0.8,0),
-    yellow: new Color(0.8,0.8,0),
-    blue:  new Color(0,0,0.8),
-    purple: new Color(1,0,1),
-    magenta: new Color(1,0,1),
-
-
     random: function() {
         return new Color(Math.random(),Math.random(),Math.random());
     },
@@ -949,8 +1007,8 @@ Object.extend(Color, {
         return Color.wheelHsb(n,0.0,0.9,0.7);
     },
 
-    // Return an array of n colors of varying hue
     wheelHsb: function(n,hue,sat,brt) {
+        // Return an array of n colors of varying hue
         var a = new Array(n);
         var step = 360.0 / (Math.max(n,1));
 
@@ -1005,11 +1063,13 @@ Object.extend(Color, {
 
     parseHex: function(str) {
         var rHex, gHex, bHex;
-        if (str.length == 7) { // like #CC0000
+        if (str.length == 7) { 
+            // like #CC0000
             rHex = str.substring(1,3);
             gHex = str.substring(3,5);
             bHex = str.substring(5,7);
-        } else if (str.length == 4) { // short form like #C00
+        } else if (str.length == 4) { 
+            // short form like #C00
             rHex = str.substring(1,2);
             rHex += rHex;
             gHex = str.substring(2,3);
@@ -1027,24 +1087,28 @@ Object.extend(Color, {
 });
 
 Object.extend(Color, {
-    darkGray: Color.gray.darker(),
-    lightGray: Color.gray.lighter(),
-    veryLightGray: Color.gray.lighter().lighter(),
+    // extended again to make use of Color.rgb
+    black: new Color(0,0,0),
+    white: new Color(1,1,1),
+    gray: new Color(0.8,0.8,0.8),
+    red: new Color(0.8,0,0),
+    green: new Color(0,0.8,0),
+    yellow: new Color(0.8,0.8,0),
+    blue:  new Color(0,0,0.8),
+    purple: new Color(1,0,1),
+    magenta: new Color(1,0,1),
+    pink: Color.rgb(255, 30, 153),
     turquoise: Color.rgb(0, 240, 255),
-    //      brown: Color.rgb(182, 67, 0),
-    //      red: Color.rgb(255, 0, 0),
-    orange: Color.rgb(255, 153, 0),
-    //      yellow: Color.rgb(204, 255, 0),
-    //      limeGreen: Color.rgb(51, 255, 0),
-    //      green: Color.rgb(0, 255, 102),
-    //      cyan: Color.rgb(0, 255, 255),
-    //      blue: Color.rgb(0, 102, 255),
-    //      purple: Color.rgb(131, 0, 201),
-    //      magenta: Color.rgb(204, 0, 255),
-    //      pink: Color.rgb(255, 30, 153),
-
     tangerine: Color.rgb(242, 133, 0),
-
+    orange: Color.rgb(255, 153, 0),
+    cyan: Color.rgb(0, 255, 255),
+    brown: Color.rgb(182, 67, 0),
+    limeGreen: Color.rgb(51, 255, 0),
+    darkGray: Color.rgb(102,102,102),
+    lightGray: Color.rgb(230,230,230),
+    veryLightGray: Color.rgb(243,243,243),
+    
+    // FIXME: are the following palettes used!?
     primary: {
         // Sun palette
         blue: Color.rgb(0x53, 0x82, 0xA1),
@@ -1052,14 +1116,12 @@ Object.extend(Color, {
         green: Color.rgb(0xb2, 0xbc, 00),
         yellow: Color.rgb(0xff, 0xc7, 0x26)
     },
-
     secondary: {
         blue: Color.rgb(0x35, 0x55, 0x6b),
         orange: Color.rgb(0xc0, 0x66, 0x00),
         green: Color.rgb(0x7f, 0x79, 0x00),
         yellow: Color.rgb(0xc6, 0x92, 0x00)
     },
-
     neutral: {
         lightGray: Color.rgb(0xbd, 0xbe, 0xc0),
         gray: Color.rgb(0x80, 0x72, 0x77)

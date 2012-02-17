@@ -83,10 +83,4 @@ Please that [wiki page](https://github.com/rksm/LivelyKernel/wiki/Git-Github-Hin
 
 ## Installing PartsBin
 
-The Lively PartsBin is full of useful development tools. It does not come with the core distribution from this repostiory, but you can download Parts from Webwerkstatt:
-
-    make install_partsbin
-
-In case your PartsBin is outdated, check out the latest revision using
-
-    make update_partsbin
+You can install all the cool tools from Webwerkstatt's PartsBin. Have a look at [the HOWTO](https://github.com/rksm/LivelyKernel/wiki/How-to-make-PartsBin-work).

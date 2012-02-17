@@ -256,7 +256,7 @@ Object.subclass('Rectangle',
     corners: ["topLeft","topRight","bottomRight","bottomLeft"],
     sides: ["leftCenter","rightCenter","topCenter","bottomCenter"],
 },
-'initialization', {
+'initializing', {
     initialize: function(x, y, w, h) {
         this.x = x || 0;
         this.y = y || 0;
@@ -897,25 +897,33 @@ Object.subclass('lively.morphic.Similitude',
 });
 
 
-Object.subclass("Color", {
-
+Object.subclass("Color", 
+'documentation', {
     documentation: "Fully portable support for RGB colors. A bit of rgba support is also included.",
+},
+'settings', {
     isColor: true,
-    
+},
+'initializing', {
     initialize: function(r, g, b, a) {
         this.r = r || 0;
         this.g = g || 0;
         this.b = b || 0;
         this.a = a || (a === 0 ? 0 : 1);
-    },
-    
-    mixedWith: function(other, proportion) {
-        // Mix with another color -- 1.0 is all this, 0.0 is all other
-        var p = proportion,
-            q = 1.0 - p;
-        return new Color(this.r*p + other.r*q, this.g*p + other.g*q, this.b*p + other.b*q, this.a*p + other.a*q);
-    },
-
+    }
+},
+'accessing', {
+    grayValue: function() {
+        return (this.r + this.g + this.b) / 3
+    }
+},
+'comparing', {
+    equals: function(other) {
+        if(!other) return false;
+        return this.r === other.r && this.g === other.g && this.b === other.b && this.a === other.a;
+    }
+},
+'transforming', {
     darker: function(recursion) {
         var result = this.mixedWith(Color.black, 0.5);
         return recursion > 1  ? result.darker(recursion - 1) : result;
@@ -926,26 +934,44 @@ Object.subclass("Color", {
             return this;
         var result = this.mixedWith(Color.white, 0.5);
         return recursion > 1 ? result.lighter(recursion - 1) : result;
-    },
-
+    }
+},
+'printing', {
     toString: function() {
         function floor(x) { return Math.floor(x*255.99) };
         // 06/10/10 currently no rgba support for SVG:
         // http://code.google.com/p/chromium/issues/detail?id=45435
-        // return "rgba(" + floor(this.r) + "," + floor(this.g) + "," + 
-        //      floor(this.b) + "," + this.a + ")";
         return "rgb(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + ")";
     },
-
+    
     toRGBAString: function() {
         function floor(x) { return Math.floor(x*255.99) };
         return "rgba(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + "," + this.a + ")";
-    },
-
+    }
+},
+'converting', {
     toTuple: function() {
         return [this.r, this.g, this.b, this.a];
+    }
+},
+'instance creation', {
+    withA: function(a) {
+        return new Color(this.r, this.g, this.b, a)
     },
-
+    
+    mixedWith: function(other, proportion) {
+        // Mix with another color -- 1.0 is all this, 0.0 is all other
+        var p = proportion,
+            q = 1.0 - p;
+        return new Color(this.r*p + other.r*q, this.g*p + other.g*q, this.b*p + other.b*q, this.a*p + other.a*q);
+    },
+    
+    // FIXME: invert sounds like mutation, versus createInverse or similar
+    invert: function() {
+        return Color.rgb(255 * (1 - this.r), 255 * (1 - this.g), 255 * (1 - this.b))
+    } 
+},
+'serializing', {
     deserialize: function(importer, colorStringOrTuple) {
         if (!colorStringOrTuple) return null;
         var color;
@@ -957,22 +983,9 @@ Object.subclass("Color", {
         this.b = color.b;
         if (!color.a && color.a !== 0) color.a = 1;
         this.a = color.a;
-    },
-
-    grayValue: function() {
-        return (this.r + this.g + this.b) / 3
-    },
-
-    withA: function(a) { return new Color(this.r, this.g, this.b, a) },
-
-    equals: function(other) {
-        if(!other) return false;
-        return this.r === other.r && this.g === other.g && this.b === other.b && this.a === other.a;
-    },
-    invert: function() { return Color.rgb(255 * (1 - this.r), 255 * (1 - this.g), 255 * (1 - this.b)) },
-
-
-});
+    }    
+}
+);
 
 Object.extend(Color, {
     random: function() {

@@ -228,11 +228,13 @@ TestCase.subclass('lively.persistence.tests.ObjectGraphLinearizerPluginTest',
         var morph1 = lively.morphic.Morph.makeRectangle(0,0, 100, 100),
             morph2 = lively.morphic.Morph.makeRectangle(0,0, 50, 50);
         morph1.addMorph(morph2);
-        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
+        // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively();
         var string = this.serializer.serialize(morph1),
             jso = JSON.parse(string),
             result = lively.persistence.Serializer.sourceModulesIn(jso);
-        this.assertEqualState(['Global.lively.morphic.Core', 'Global.lively.morphic.Shapes', 'Global', 'Global.lively.morphic.Events'], result);
+        this.assertEqualState(['Global.lively.morphic.Core', 'Global.lively.morphic.Shapes', 
+                'Global.lively.morphic.Graphics', 'Global.lively.morphic.Events'], result);
     },
 
     testDoNotSerializeFoundInClassHierarchy: function() {

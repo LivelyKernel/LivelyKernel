@@ -1,4 +1,4 @@
-module('lively.morphic.Shapes').requires().toRun(function() {
+module('lively.morphic.Shapes').requires('lively.morphic.Graphics').toRun(function() {
 
 Object.subclass('lively.morphic.Shapes.Shape',
 'initializing', {

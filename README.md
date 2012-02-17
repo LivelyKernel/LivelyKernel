@@ -14,6 +14,8 @@ This repository is a fork of the Lively Kernel Webwerkstatt wiki at HPI (http://
 
 Changes in this repository are likely to be ported back to Webwerkstatt.
 
+To learn more about the motivation and long-term plan for this project see [the wiki](https://github.com/rksm/LivelyKernel/wiki/Lively-Kernel-and-Webwerkstatt).
+
 
 ## Running Lively Kernel with node.js
 

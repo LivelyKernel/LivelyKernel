@@ -14,6 +14,8 @@ This repository is a fork of the Lively Kernel Webwerkstatt wiki at HPI (http://
 
 Changes in this repository are likely to be ported back to Webwerkstatt.
 
+To learn more about the motivation and long-term plan for this project see [the wiki](https://github.com/rksm/LivelyKernel/wiki/Lively-Kernel-and-Webwerkstatt).
+
 
 ## Running Lively Kernel with node.js
 
@@ -57,7 +59,9 @@ To start the Lively tests from the command line first start the server:
 
 To initiate a test run do
 
-    make run_kernel_tests
+    make kernel_tests
+    
+This runs tests in the browser you specified in testing/config.js. Alternatively, you can use the make targets kernel_tests_firefox or kernel_tests_chrome.
 
 #### How it works
 
@@ -75,3 +79,14 @@ To try it out manually visit: <http://localhost:9001/testing/run_tests.xhtml?tes
 ## Working with github and the git repository
 
 Please that [wiki page](https://github.com/rksm/LivelyKernel/wiki/Git-Github-Hints) for some best practices.
+
+
+## Installing PartsBin
+
+The Lively PartsBin is full of useful development tools. It does not come with the core distribution from this repostiory, but you can download Parts from Webwerkstatt:
+
+    make install_partsbin
+
+In case your PartsBin is outdated, check out the latest revision using
+
+    make update_partsbin

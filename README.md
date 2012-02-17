@@ -79,3 +79,14 @@ To try it out manually visit: <http://localhost:9001/testing/run_tests.xhtml?tes
 ## Working with github and the git repository
 
 Please that [wiki page](https://github.com/rksm/LivelyKernel/wiki/Git-Github-Hints) for some best practices.
+
+
+## Installing PartsBin
+
+The Lively PartsBin is full of useful development tools. It does not come with the core distribution from this repostiory, but you can download Parts from Webwerkstatt:
+
+    make install_partsbin
+
+In case your PartsBin is outdated, check out the latest revision using
+
+    make update_partsbin

@@ -344,9 +344,17 @@ Object.extend(URL, {
             new URL(urlString) :
             URL.codeBase.withRelativePath(urlString);
     },
+    ensureAbsoluteRootPathURL: function(urlString) {
+        return /^http.*/.test(urlString) ?
+            new URL(urlString) :
+            new URL(Config.rootPath).withRelativePath(urlString);
+    },
 
 
-    fromLiteral: function(literal) { return new URL(literal) },
+
+    fromLiteral: function(literal) { 
+        return new URL(literal) 
+    },
 
     makeProxied: function makeProxied(url) {
         url = url instanceof URL ? url : new URL(url);

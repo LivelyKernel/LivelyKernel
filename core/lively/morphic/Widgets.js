@@ -845,7 +845,6 @@ lively.morphic.Text.addMethods(
 lively.morphic.World.addMethods(
 'tools', {
     loadPartItem: function(partName, optPartspaceName) {
-        debugger;
         var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld';
         var part = lively.PartsBin.getPart(partName, optPartspaceName);
         if (!part) 

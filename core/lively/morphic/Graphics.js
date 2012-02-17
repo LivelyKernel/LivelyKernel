@@ -8,8 +8,9 @@ Object.subclass("Point", {
         this.y = y;
         return this;
     },
-    toFixed: function(val) { return new lively.Point(this.x.toFixed(val), this.y.toFixed(val)) },
-
+    toFixed: function(val) { 
+        return new lively.Point(this.x.toFixed(val), this.y.toFixed(val)) 
+    },
 
     deserialize: function(importer, string) { // reverse of toString
         var array = string.slice(3, -1).split(',');
@@ -167,167 +168,300 @@ Object.extend(lively.Point, {
 
 });
 
-// FIXME: GLOBAL
-Global.pt = function(x, y) {
+lively.pt = function(x, y) {
     return new lively.Point(x, y);
 }
+
+// FIXME: deprecated GLOBAL function
+Global.pt = function(x, y) {    
+    // DEPRECATED: use lively.pt(x, y) instead
+    return lively.pt(x, y);
+}
     
-Object.subclass("Rectangle", {
-
-    documentation: "primitive rectangle",
-    // structually equivalent to SVGRect
-
+Object.subclass("Rectangle", 
+'documentation', {
+    documentation: "primitive rectangle, structually equivalent to SVGRect",
+},
+'settings', {
+    corners: ["topLeft","topRight","bottomRight","bottomLeft"],
+    sides: ["leftCenter","rightCenter","topCenter","bottomCenter"],
+},
+'initialization', {
     initialize: function(x, y, w, h) {
         this.x = x || 0;
         this.y = y || 0;
         this.width = w || 0;
         this.height = h || 0;
     },
+},
+'rectangle factory', {
+    copy: function() {
+        return new Rectangle(this.x, this.y, this.width, this.height);
+    },
 
-    copy: function() { return new Rectangle(this.x, this.y, this.width, this.height);  },
     toFixed: function(val) {
         return new Rectangle(this.x.toFixed(val), this.y.toFixed(val), this.width.toFixed(val), this.height.toFixed(val));
     },
-
-    maxX: function() { return this.x + this.width; },
-    maxY: function() { return this.y + this.height; },
-
-
-    withWidth: function(w) { return new Rectangle(this.x, this.y, w, this.height)},
-    withHeight: function(h) { return new Rectangle(this.x, this.y, this.width, h)},
-    withX: function(x) { return new Rectangle(x, this.y, this.width, this.height)},
-    withY: function(y) { return new Rectangle(this.x, y, this.width, this.height)},
-    extent: function() { return new lively.Point(this.width,this.height); },
-    withExtent: function(ext) { return new Rectangle(this.x, this.y, ext.x, ext.y); },
-    center: function() { return new lively.Point(this.x+(this.width/2),this.y+(this.height/2))},
-
-    //Control point readers and writers
-    topLeft: function() { return new lively.Point(this.x, this.y)},
-    topRight: function() { return new lively.Point(this.maxX(), this.y)},
-    bottomRight: function() { return new lively.Point(this.maxX(), this.maxY())},
-    bottomLeft: function() { return new lively.Point(this.x, this.maxY())},
-    leftCenter: function() { return new lively.Point(this.x, this.center().y)},
-    rightCenter: function() { return new lively.Point(this.maxX(), this.center().y)},
-    topCenter: function() { return new lively.Point(this.center().x, this.y)},
-    bottomCenter: function() { return new lively.Point(this.center().x, this.maxY())},
-    withTopLeft: function(p) { return Rectangle.fromAny(p, this.bottomRight()) },
-    withTopRight: function(p) { return Rectangle.fromAny(p, this.bottomLeft()) },
-    withBottomRight: function(p) { return Rectangle.fromAny(p, this.topLeft()) },
-    withBottomLeft: function(p) { return Rectangle.fromAny(p, this.topRight()) },
-    withLeftCenter: function(p) { return new Rectangle(p.x, this.y, this.width + (this.x - p.x), this.height)},
-    withRightCenter: function(p) { return new Rectangle(this.x, this.y, p.x - this.x, this.height)},
-    withTopCenter: function(p) { return new Rectangle(this.x, p.y, this.width, this.height + (this.y - p.y))},
-    withBottomCenter: function(p) { return new Rectangle(this.x, this.y, this.width, p.y - this.y)}
-});
-
-Rectangle.addMethods({
-
-    equals: function(other) {
-        if (!other) return false;
-        return     this.x == other.x && this.y == other.y && this.width == other.width && this.height == other.height;
+    
+    withWidth: function(w) {
+        return new Rectangle(this.x, this.y, w, this.height)
     },
-
-    containsPoint: function(p) {
-        return this.x <= p.x && p.x <= this.x + this.width && this.y<= p.y && p.y <= this.y + this.height;
+    
+    withHeight: function(h) {
+        return new Rectangle(this.x, this.y, this.width, h)
     },
-
-    containsRect: function(r) {
-        return this.x <= r.x && this.y<= r.y && r.maxX()<=this.maxX() && r.maxY()<=this.maxY();
+    
+    withX: function(x) {
+        return new Rectangle(x, this.y, this.width, this.height)
     },
-
-    constrainPt: function(pt) { return pt.maxPt(this.topLeft()).minPt(this.bottomRight()); },
-    realWidth: function() { return this.x < 0 ? -this.x + this.width : this.width },
-    realHeight: function() { return this.y < 0 ? -this.y + this.height : this.height },
-
-
-    relativeToAbsPoint: function(relPt) {
-        return new lively.Point(
-            this.x + this.width * relPt.x,
-            this.y + this.height * relPt.y)
+    
+    withY: function(y) {
+        return new Rectangle(this.x, y, this.width, this.height)
     },
-
-
-    intersection: function(r) {
-        // return rect(this.topLeft().maxPt(r.topLeft()),this.bottomRight().minPt(r.bottomRight()));
-        var nx = Math.max(this.x, r.x);
-        var ny = Math.max(this.y, r.y);
-        var nw = Math.min(this.x + this.width, r.x + r.width) - nx;
-        var nh = Math.min(this.y + this.height, r.y + r.height) - ny;
-        return new Rectangle(nx, ny, nw, nh);
+    
+    withExtent: function(ext) {
+        return new Rectangle(this.x, this.y, ext.x, ext.y);
     },
-
-    intersects: function(r) { return this.intersection(r).isNonEmpty(); },    // not the fastest
-
-    union: function(r) {
-        return rect(this.topLeft().minPt(r.topLeft()),this.bottomRight().maxPt(r.bottomRight()));
+    
+    withTopLeft: function(p) {
+        return Rectangle.fromAny(p, this.bottomRight())
     },
-
-    isNonEmpty: function(rect) { return this.width > 0 && this.height > 0; },
-
-    dist: function(r) { // dist between two rects
-        var p1 = this.closestPointToPt(r.center());
-        var p2 = r.closestPointToPt(p1);
-        return p1.dist(p2);
+    
+    withTopRight: function(p) {
+        return Rectangle.fromAny(p, this.bottomLeft())
     },
-
-    closestPointToPt: function(p) { // Assume p lies outside me; return a point on my perimeter
-        return pt(Math.min(Math.max(this.x, p.x), this.maxX()),
-        Math.min(Math.max(this.y, p.y), this.maxY()));
+    
+    withBottomRight: function(p) {
+        return Rectangle.fromAny(p, this.topLeft())
     },
-
-    randomPoint: function() { // return a some point from inside me
-        return lively.Point.random(pt(this.width, this.height)).addPt(this.topLeft());
+    
+    withBottomLeft: function(p) {
+        return Rectangle.fromAny(p, this.topRight())
     },
-
-    translatedBy: function(d) {
-        return new Rectangle(this.x+d.x, this.y+d.y, this.width, this.height);
+    
+    withLeftCenter: function(p) {
+        return new Rectangle(p.x, this.y, this.width + (this.x - p.x), this.height)
     },
-
-    scaleByRect: function(r) { // r is a relative rect, as a pane spec in a window
-        return new Rectangle (
-            this.x + (r.x*this.width),
-            this.y + (r.y*this.height),
-            r.width * this.width,
-            r.height * this.height );
+    
+    withRightCenter: function(p) {
+        return new Rectangle(this.x, this.y, p.x - this.x, this.height)
     },
-
-    scaleRectIn: function(fullRect) { // return a relative rect for this as a part of fullRect
-        return new Rectangle (
-            (this.x - fullRect.x) / fullRect.width,
-            (this.y - fullRect.y) / fullRect.height,
-            this.width    / fullRect.width,
-            this.height / fullRect.height );
+    
+    withTopCenter: function(p) {
+        return new Rectangle(this.x, p.y, this.width, this.height + (this.y - p.y))
     },
-
+    
+    withBottomCenter: function(p) {
+        return new Rectangle(this.x, this.y, this.width, p.y - this.y)
+    },
+    
     insetBy: function(d) {
-        return new Rectangle(this.x+d, this.y+d, this.width-(d*2), this.height-(d*2));
+        return new Rectangle(this.x + d, this.y + d, this.width - (d * 2), this.height - (d * 2));
     },
 
     insetByPt: function(p) {
-        return new Rectangle(this.x+p.x, this.y+p.y, this.width-(p.x*2), this.height-(p.y*2));
+        return new Rectangle(this.x + p.x, this.y + p.y, this.width - (p.x * 2), this.height - (p.y * 2));
+    }
+},
+'debugging', {
+    toString: function() {
+        return Strings.format("rect(%s,%s)", this.topLeft(), this.bottomRight());
+    },
+},
+'point properties', {
+    topLeft: function() {
+        return new lively.Point(this.x, this.y)
+    },
+    
+    topRight: function() {
+        return new lively.Point(this.maxX(), this.y)
+    },
+    
+    bottomRight: function() {
+        return new lively.Point(this.maxX(), this.maxY())
+    },
+    
+    bottomLeft: function() {
+        return new lively.Point(this.x, this.maxY())
+    },
+    
+    leftCenter: function() {
+        return new lively.Point(this.x, this.center().y)
+    },
+    
+    rightCenter: function() {
+        return new lively.Point(this.maxX(), this.center().y)
+    },
+    
+    topCenter: function() {
+        return new lively.Point(this.center().x, this.y)
+    },
+    
+    bottomCenter: function() {
+        return new lively.Point(this.center().x, this.maxY())
+    },
+    
+    extent: function() {
+        return new lively.Point(this.width, this.height);
+    },
+    
+    center: function() {
+        return new lively.Point(this.x + (this.width / 2), this.y + (this.height / 2))
+    },
+},
+'comparison', {
+    equals: function(other) {
+        if (!other) {
+            return false;
+        }
+        return this.x == other.x && this.y == other.y && this.width == other.width && this.height == other.height;
+    },
+    
+    containsPoint: function(p) {
+        return this.x <= p.x && p.x <= this.x + this.width && this.y <= p.y && p.y <= this.y + this.height;
     },
 
-    expandBy: function(delta) { return this.insetBy(0 - delta); },
+    containsRect: function(r) {
+        return this.x <= r.x && this.y <= r.y && r.maxX() <= this.maxX() && r.maxY() <= this.maxY();
+    },
+
+    constrainPt: function(pt) {
+        return pt.maxPt(this.topLeft()).minPt(this.bottomRight());
+    },
+    
+    intersects: function(r) {
+        return this.intersection(r).isNonEmpty();
+    },
+},
+'SVG interface', {
+    // modeled after the CSS box model: http://www.w3.org/TR/REC-CSS2/box.html
+    left: function() {
+        return this.x;
+    },
+    
+    right: function() {
+        return this.maxX();
+    },
+
+    top: function() {
+        return this.y;
+    },
+
+    bottom: function() {
+        return this.maxY();
+    },
+
+    toInsetTuple: function() {
+        return [this.left(), this.top(), this.right(), this.bottom()];
+    },
+
+    toAttributeValue: function(d) {
+        var d = 0.01,
+            result = [this.left()];
+        if (this.top() === this.bottom() && this.left() === this.right()) {
+            if (this.top() === this.left()) result.push(this.top());
+            } else result = result.concat([this.top(), this.right(), this.bottom()]);
+            return result.invoke('roundTo', d || 0.01);
+    },
+
+    insetByRect: function(r) {
+        return new Rectangle(this.x + r.left(), this.y + r.top(), this.width -
+                 (r.left() + r.right()), this.height - (r.top() + r.bottom()));
+    },
+
+    outsetByRect: function(r) {
+        return new Rectangle(this.x - r.left(), this.y - r.top(), this.width +
+                 (r.left() + r.right()), this.height + (r.top() + r.bottom()));
+    },
+
+    toLiteral: function() { 
+        return {x: this.x, y: this.y, width: this.width, height: this.height}; 
+    } 
+},
+'translation', {
+    translatedBy: function(d) {
+        return new Rectangle(this.x + d.x, this.y + d.y, this.width, this.height);
+    },
+
+    scaleByRect: function(r) {
+        // r is a relative rect, as a pane spec in a window
+        return new Rectangle(
+        this.x + (r.x * this.width), this.y + (r.y * this.height), r.width * this.width, r.height * this.height);
+    },
+
+    scaleRectIn: function(fullRect) {
+        // return a relative rect for this as a part of fullRect
+        return new Rectangle((this.x - fullRect.x) / fullRect.width, (this.y - fullRect.y) / fullRect.height, this.width / fullRect.width, this.height / fullRect.height);
+    }
+},
+{  
+    
+    
+
+    maxX: function() {
+        return this.x + this.width;
+    },
+
+    maxY: function() {
+        return this.y + this.height;
+    },
+
+    realWidth: function() {
+        return this.x < 0 ? -this.x + this.width : this.width
+    },
+    
+    realHeight: function() {
+        return this.y < 0 ? -this.y + this.height : this.height
+    },
+
+    relativeToAbsPoint: function(relPt) {
+        return new lively.Point(
+        this.x + this.width * relPt.x, this.y + this.height * relPt.y)
+    },
+
+    intersection: function(rect) {
+        var nx = Math.max(this.x, rect.x);
+        var ny = Math.max(this.y, rect.y);
+        var nw = Math.min(this.x + this.width, rect.x + rect.width) - nx;
+        var nh = Math.min(this.y + this.height, rect.y + rect.height) - ny;
+        return new Rectangle(nx, ny, nw, nh);
+    },
+
+    union: function(r) {
+        return rect(this.topLeft().minPt(r.topLeft()), this.bottomRight().maxPt(r.bottomRight()));
+    },
+
+    isNonEmpty: function(rect) {
+        return this.width > 0 && this.height > 0;
+    },
+
+    dist: function(rect) {
+        var p1 = this.closestPointToPt(rect.center());
+        var p2 = rect.closestPointToPt(p1);
+        return p1.dist(p2);
+    },
+
+    closestPointToPt: function(p) {
+        // Assume p lies outside me; return a point on my perimeter
+        return pt(Math.min(Math.max(this.x, p.x), this.maxX()), Math.min(Math.max(this.y, p.y), this.maxY()));
+    },
+
+    randomPoint: function() {
+        return lively.Point.random(pt(this.width, this.height)).addPt(this.topLeft());
+    },
+
+    expandBy: function(delta) {
+        return this.insetBy(0 - delta);
+    },
 
     transformRectForInclusion: function(other) {
         var topLeft = this.topLeft().maxPt(other.topLeft()),
             newBottomRight = topLeft.addPt(other.extent()),
             innerBottomRight = this.bottomRight().minPt(newBottomRight);
-// alert('this.bottomRight' + this.bottomRight())
-// alert('newBottomRight' + newBottomRight)
-// alert('innerBottomRight' + innerBottomRight)
         return rect(topLeft, innerBottomRight);
-        return topLeft.extent(bottomRight);
     },
-});
-
-Object.extend(Rectangle, {
-    corners: ["topLeft","topRight","bottomRight","bottomLeft"],
-    sides: ["leftCenter","rightCenter","topCenter","bottomCenter"]
-});
-
-Rectangle.addMethods({
-
+    
+    // PARTS category
     partNamed: function(partName) {
         return this[partName].call(this);
     },
@@ -358,67 +492,14 @@ Rectangle.addMethods({
         return nearest;
     },
 
-    toString: function() {
-        return Strings.format("rect(%s,%s)", this.topLeft(), this.bottomRight());
-    },
-
     toTuple: function() {
         return [this.x, this.y, this.width, this.height];
     },
 
     inspect: function() {
         return JSON.serialize(this);
-    }
+    },
 });
-
-Rectangle.addMethods({
-    // These methods enable using rectangles as insets, modeled after
-    // the CSS box model, see http://www.w3.org/TR/REC-CSS2/box.html
-    // note topLeft() bottomRight() etc, return the intuitively
-    // correct values for Rectangles used as insets.
-
-    left: function() {
-        return this.x;
-    },
-
-    right: function() {
-        return this.maxX();
-    },
-
-    top: function() {
-        return this.y;
-    },
-
-    bottom: function() {
-        return this.maxY();
-    },
-
-    toInsetTuple: function() {
-        return [this.left(), this.top(), this.right(), this.bottom()];
-    },
-
-    toAttributeValue: function(d) {
-        var d = 0.01,
-            result = [this.left()];
-        if (this.top() === this.bottom() && this.left() === this.right()) {
-            if (this.top() === this.left()) result.push(this.top());
-            } else result = result.concat([this.top(), this.right(), this.bottom()]);
-            return result.invoke('roundTo', d || 0.01);
-    },
-
-    insetByRect: function(r) {
-        return new Rectangle(this.x + r.left(), this.y + r.top(), this.width - (r.left() + r.right()), this.height - (r.top() + r.bottom()));
-    },
-
-    outsetByRect: function(r) {
-        return new Rectangle(this.x - r.left(), this.y - r.top(), this.width + (r.left() + r.right()), this.height + (r.top() + r.bottom()));
-    },
-
-    toLiteral: function() { return {x: this.x, y: this.y, width: this.width, height: this.height}; },
-
-});
-
-
 
 Object.extend(Rectangle, {
 
@@ -434,7 +515,7 @@ Object.extend(Rectangle, {
         var min = points[0],
             max = points[0];
 
-        // AT: Loop starts from 1 intentionally
+        // starts from 1 intentionally
         for (var i = 1; i < points.length; i++) {
             min = min.minPt(points[i]);
             max = max.maxPt(points[i]);
@@ -476,9 +557,14 @@ Object.extend(Rectangle, {
 
 });
 
-// FIXME: GLOBAL function
-Global.rect = function(location, corner) {
+lively.rect = function(location, corner) {
     return new Rectangle(location.x, location.y, corner.x - location.x, corner.y - location.y);
+}
+
+// FIXME: deprecated GLOBAL function
+Global.rect = function(location, corner) {
+    // DEPRECATED: use lively.rect(location, corner) instead
+    return lively.rect(location, corner);
 };
 
 Object.subclass('lively.morphic.Similitude',
@@ -490,7 +576,8 @@ Object.subclass('lively.morphic.Similitude',
 },
 'initializing', {
     initialize: function(duck) {
-        // matrix is a duck with a,b,c,d,e,f, could be an SVG matrix or a Lively Transform
+        // matrix is a duck with a,b,c,d,e,f, could be an SVG matrix or a
+        // Lively Transform
         // alternatively, its a combination of translation rotation and scale
         if (duck) {
             if (duck instanceof lively.Point) {
@@ -511,7 +598,6 @@ Object.subclass('lively.morphic.Similitude',
             this.a = this.d = 1.0;
             this.b = this.c = this.e = this.f = 0.0;
         }
-        // this.matrix_ = this.copy()//this.toMatrix();
     },
 
     copy: function() {
@@ -526,30 +612,36 @@ Object.subclass('lively.morphic.Similitude',
         this.e = this.ensureNumber(mx.e);
         this.f = this.ensureNumber(mx.f);
     },
-
 },
 'accessing', {
     getRotation: function() { // in degrees
-        // Note the ambiguity with negative scales is resolved by assuming scale x is positive
+        // Note the ambiguity with negative scales is resolved by assuming
+        // scale x is positive
         var r = Math.atan2(-this.c, this.a).toDegrees();
-        return Math.abs(r) < this.eps ? 0 : r; // don't bother with values very close to 0
+        
+        // don't bother with values very close to 0
+        return Math.abs(r) < this.eps ? 0 : r; 
     },
 
     getScale: function() {
         // Note the ambiguity with negative scales and rotation is resolved by assuming scale x is positive
         var a = this.a, c = this.c, s = Math.sqrt(a * a + c * c);
-        return Math.abs(s - 1) < this.eps ? 1 : s; // don't bother with values very close to 1
+        
+        // don't bother with values very close to 1
+        return Math.abs(s - 1) < this.eps ? 1 : s; 
     },
 
     getScalePoint: function() {
-        // Note the ambiguity with negative scales and rotation is resolved by assuming scale x is positive
+        // Note the ambiguity with negative scales and rotation is resolved by
+        // assuming scale x is positive
         var a = this.a,
             b = this.b,
             c = this.c,
             d = this.d,
             sx = Math.sqrt(a * a + c * c),
-            r =     Math.atan2(-c, a),     // radians
-            sy = (Math.abs(b) > Math.abs(d)) ? b / Math.sin(r) : d / Math.cos(r);  // avoid div by 0
+            r =     Math.atan2(-c, a), // radians
+            // avoid div by 0
+            sy = (Math.abs(b) > Math.abs(d)) ? b / Math.sin(r) : d / Math.cos(r);  
         return pt(sx, sy);
     },
 
@@ -560,7 +652,8 @@ Object.subclass('lively.morphic.Similitude',
 },
 'testing', {
     isTranslation: function() {
-        // as specified in http://www.w3.org/TR/SVG11/coords.html#InterfaceSVGTransform
+        // as specified in:
+        // http://www.w3.org/TR/SVG11/coords.html#InterfaceSVGTransform
         return (this.a==1 && this.b==0 && this.c==0 && this.d==1)
     },
 },
@@ -576,6 +669,7 @@ Object.subclass('lively.morphic.Similitude',
 
         return attr;
     },
+    
     toCSSValue: function(bounds) {
         var attr = '';
 
@@ -592,7 +686,8 @@ Object.subclass('lively.morphic.Similitude',
         }
 
         var theta = this.getRotation();
-        if (theta != 0.0) attr += " rotate(" + round(this.getRotation()) +"deg)"; // in degrees
+        if (theta != 0.0) attr += " rotate(" 
+                + round(this.getRotation()) +"deg)";
 
         if (bounds) {
             // FIXME this is to fix the rotation...!
@@ -602,20 +697,25 @@ Object.subclass('lively.morphic.Similitude',
         }
 
         var sp = this.getScalePoint();
-        if (sp.x != 1.0 || sp.y != 1.0)     attr += " scale(" + round(sp.x) + "," + round(sp.y) + ")";
+        if (sp.x != 1.0 || sp.y != 1.0) {
+            attr += " scale(" + round(sp.x) + "," + round(sp.y) + ")";
+        }
 
         return attr;
     },
+    
     toCSSTransformString: function() {
         var rot = this.getRotation(),
             scale = this.getScale();
-        return 'translate(' + this.e + 'px,' + this.f + 'px) rotate(' + rot + 'deg) scale(' + scale + ',' + scale + ')';
+        return 'translate(' + this.e + 'px,' + this.f + 'px) rotate(' + rot +
+                 'deg) scale(' + scale + ',' + scale + ')';
     },
 
 
     toString: function() {
         return this.toCSSValue();
     },
+    
     toMatrix: function() {
         return this.copy();
     },
@@ -647,7 +747,6 @@ Object.subclass('lively.morphic.Similitude',
     },
 },
 'transforming', {
-
     transformPoint: function(p, acc) {
         return p.matrixTransform(this, acc);
     },
@@ -666,7 +765,6 @@ Object.subclass('lively.morphic.Similitude',
     },
 
     transformRectToRect: function(r) {
-        // This gets called a lot from invalidRect, so it has been optimized a bit
         var minPt = pt(Infinity, Infinity),
             maxPt = pt(-Infinity, -Infinity);
         this.matrixTransformForMinMax(r.topLeft(), minPt, maxPt);
@@ -691,6 +789,7 @@ Object.subclass('lively.morphic.Similitude',
         this.matrix_ = this.toMatrix();
         return this;
     },
+    
     invert: function() {
         var m = this.copy();
 
@@ -706,26 +805,19 @@ Object.subclass('lively.morphic.Similitude',
 
         return this;
     },
+    
     inverse: function() {
         var matrix = this.matrix_ || this.toMatrix();
         var result = new this.constructor(matrix);
         result.invert();
         return result;
-    },
-
-    createInverse: function() {
-        // DEPRECATED
-        alert("Similitude>>createInverse is deprecated");
-        return this.inverse();
-    },
+    }
 },
 'helper', {
     ensureNumber: function(value) {
         // note that if a,b,.. f are not numbers, it's usually a
         // problem, which may crash browsers (like Safari) that don't
-        // do good typechecking of SVGMatrix properties before passing
-        // them to native code.     It's probably too late to figure out
-        // the cause, but at least we won't crash.
+        // do good typechecking of SVGMatrix properties 
         if (isNaN(value)) { throw dbgOn(new Error('not a number'));}
         return value;
     },
@@ -766,8 +858,10 @@ Object.subclass("Color", {
 
     toString: function() {
         function floor(x) { return Math.floor(x*255.99) };
-        // 06/10/10 currently no rgba support for SVG - http://code.google.com/p/chromium/issues/detail?id=45435
-        // return "rgba(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + "," + this.a + ")";
+        // 06/10/10 currently no rgba support for SVG:
+        // http://code.google.com/p/chromium/issues/detail?id=45435
+        // return "rgba(" + floor(this.r) + "," + floor(this.g) + "," + 
+        //      floor(this.b) + "," + this.a + ")";
         return "rgb(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + ")";
     },
 
@@ -782,7 +876,6 @@ Object.subclass("Color", {
 
     deserialize: function(importer, colorStringOrTuple) {
         if (!colorStringOrTuple) return null;
-        // dbgOn(!str.match);
         var color;
         if (colorStringOrTuple instanceof Color) color = colorStringOrTuple;
         else if (colorStringOrTuple instanceof String) color = Color.fromString(colorStringOrTuple)
@@ -895,7 +988,8 @@ Object.extend(Color, {
     },
 
     parseRGB: function(str) {
-        // match string of the form rgb([r],[g],[b]) or rgb([r%],[g%],[b%]), allowing whitespace between all components
+        // match string of the form rgb([r],[g],[b]) or rgb([r%],[g%],[b%]),
+        // allowing whitespace between all components
         var match = str.match(this.rgbaRegex);
         if (match) {
             var r = parseInt(match[1]) / (match[2] ? 100 : 255);
@@ -968,8 +1062,6 @@ Object.extend(Color, {
         lightGray: Color.rgb(0xbd, 0xbe, 0xc0),
         gray: Color.rgb(0x80, 0x72, 0x77)
     }
-
 });
-
 
 });

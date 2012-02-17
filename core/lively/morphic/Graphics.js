@@ -1,22 +1,27 @@
 module('lively.morphic.Graphics').requires().toRun(function() {
     
-Object.subclass("Point", {
-    documentation: "2D Point",
-
+Object.subclass("Point", 
+'documentation', {
+    documentation: "2D Point",    
+},
+'initializing', {
     initialize: function(x, y) {
         this.x = x;
         this.y = y;
         return this;
-    },
-    toFixed: function(val) {
-        return new lively.Point(this.x.toFixed(val), this.y.toFixed(val))
-    },
-
+    }
+},
+'serializing', {
     deserialize: function(importer, string) {
         // reverse of toString
         var array = string.slice(3, -1).split(',');
         this.x = lively.data.Coordinate.parse(array[0]);
         this.y = lively.data.Coordinate.parse(array[1]);
+    },    
+},
+'arithmetic', {
+    toFixed: function(val) {
+        return new lively.Point(this.x.toFixed(val), this.y.toFixed(val))
     },
 
     addPt: function(p) {
@@ -41,6 +46,15 @@ Object.subclass("Point", {
     
     subXY: function(dx, dy) {
         return new lively.Point(this.x - dx, this.y - dy);
+    }
+},
+'transforming', {
+    scaleBy: function(scale) {
+        return new lively.Point(this.x * scale, this.y * scale);
+    },
+    
+    scaleByPt: function(scalePt) {
+        return new lively.Point(this.x * scalePt.x, this.y * scalePt.y);
     },
     
     negated: function() {
@@ -54,15 +68,8 @@ Object.subclass("Point", {
     invertedSafely: function() {
         return new lively.Point(this.x && 1.0 / this.x, this.y && 1.0 / this.y);
     },
-    
-    scaleBy: function(scale) {
-        return new lively.Point(this.x * scale, this.y * scale);
-    },
-    
-    scaleByPt: function(scalePt) {
-        return new lively.Point(this.x * scalePt.x, this.y * scalePt.y);
-    },
-    
+},
+'comparing', {
     lessPt: function(p) {
         return this.x < p.x && this.y < p.y;
     },
@@ -77,25 +84,31 @@ Object.subclass("Point", {
     
     equals: function(p) {
         return this.eqPt(p);
+    }
+},
+'instance creation', {
+    
+    // FIXME: why is that on instance side
+    fromLiteral: function(literal) {
+        return lively.pt(literal.x, literal.y);
     },
     
     withX: function(x) {
-        return pt(x, this.y);
+        return lively.pt(x, this.y);
     },
     
     withY: function(y) {
-        return pt(this.x, y);
+        return lively.pt(this.x, y);
     },
-
-    normalized: function() {
-        var r = this.r();
-        return pt(this.x / r, this.y / r);
+    
+    copy: function() {
+        return new lively.Point(this.x, this.y);
     },
-
-    dotProduct: function(p) {
-        return this.x * p.x + this.y * p.y
+        
+    random: function(scalePt) {
+        return new lively.Point(scalePt.x.randomSmallerInteger(), scalePt.y.randomSmallerInteger());
     },
-
+    
     minPt: function(p, acc) {
         if (!acc) acc = new lively.Point(0, 0);
         acc.x = Math.min(this.x, p.x);
@@ -109,15 +122,62 @@ Object.subclass("Point", {
         acc.y = Math.max(this.y, p.y);
         return acc;
     },
+    
+    ensure: function(duck) { 
+        // make sure we have a Lively point
+        if (duck instanceof lively.Point) {
+            return duck;
+        } else {
+            return new lively.Point(duck.x, duck.y);
+        }
+    }
+},
+'point functions', {
+    normalized: function() {
+        var r = this.r();
+        return lively.pt(this.x / r, this.y / r);
+    },
+    
+    fastNormalized: function() {
+        var r = this.fastR();
+        return lively.pt(this.x / r, this.y / r);
+    },
 
+    dotProduct: function(p) {
+        return this.x * p.x + this.y * p.y
+    },
+    
+    polar: function(r, theta) {
+        // Note: theta=0 is East on the screen, and increases in 
+        // counter-clockwise direction
+        return new lively.Point(r * Math.cos(theta), r * Math.sin(theta));
+    },
+    
+    matrixTransform: function(mx, acc) {
+        // if no accumulator passed, allocate a fresh one
+        if (!acc) acc = lively.pt(0, 0);
+        acc.x = mx.a * this.x + mx.c * this.y + mx.e;
+        acc.y = mx.b * this.x + mx.d * this.y + mx.f;
+        return acc;
+    },
+
+    matrixTransformDirection: function(mx, acc) {
+        // if no accumulator passed, allocate a fresh one
+        if (!acc) acc = lively.pt(0, 0);
+        acc.x = mx.a * this.x + mx.c * this.y;
+        acc.y = mx.b * this.x + mx.d * this.y;
+        return acc;
+    },
+
+    griddedBy: function(grid) {
+        return lively.pt(this.x - (this.x % grid.x), this.y - (this.y % grid.y))
+    }
+},
+'round off', {
     roundTo: function(quantum) {
         return new lively.Point(this.x.roundTo(quantum), this.y.roundTo(quantum));
     },
-
-    random: function() {
-        return new lively.Point(this.x * Math.random(), this.y * Math.random());
-    },
-
+    
     dist: function(p) {
         var dx = this.x - p.x;
         var dy = this.y - p.y;
@@ -125,30 +185,29 @@ Object.subclass("Point", {
     },
 
     nearestPointOnLineBetween: function(p1, p2) {
-        if (p1.x == p2.x) return pt(p1.x, this.y);
-        if (p1.y == p2.y) return pt(this.x, p1.y);
+        if (p1.x == p2.x) return lively.pt(p1.x, this.y);
+        if (p1.y == p2.y) return lively.pt(this.x, p1.y);
         var x1 = p1.x;
         var y1 = p1.y;
         var x21 = p2.x - x1;
         var y21 = p2.y - y1;
         var t = (((this.y - y1) / x21) + ((this.x - x1) / y21)) / ((x21 / y21) + (y21 / x21));
-        return pt(x1 + (t * x21), y1 + (t * y21));
-    },
-
+        return lively.pt(x1 + (t * x21), y1 + (t * y21));
+    }
+},
+'converting', {
     asRectangle: function() {
         return new Rectangle(this.x, this.y, 0, 0);
     },
+    
     extent: function(ext) {
         return new Rectangle(this.x, this.y, ext.x, ext.y);
     },
+    
     extentAsRectangle: function() {
         return new Rectangle(0, 0, this.x, this.y)
     },
-
-    toString: function() {
-        return Strings.format("pt(%1.f,%1.f)", this.x, this.y);
-    },
-
+    
     toTuple: function() {
         return [this.x, this.y];
     },
@@ -158,42 +217,25 @@ Object.subclass("Point", {
             x: this.x,
             y: this.y
         };
-    },
-
+    }
+},
+'printing', {
+    toString: function() {
+        return Strings.format("lively.pt(%1.f,%1.f)", this.x, this.y);
+    }
+},
+'debugging', {
     inspect: function() {
         return JSON.serialize(this);
-    },
-
-    matrixTransform: function(mx, acc) {
-        // if no accumulator passed, allocate a fresh one
-        if (!acc) acc = pt(0, 0);
-        acc.x = mx.a * this.x + mx.c * this.y + mx.e;
-        acc.y = mx.b * this.x + mx.d * this.y + mx.f;
-        return acc;
-    },
-
-    matrixTransformDirection: function(mx, acc) {
-        // if no accumulator passed, allocate a fresh one
-        if (!acc) acc = pt(0, 0);
-        acc.x = mx.a * this.x + mx.c * this.y;
-        acc.y = mx.b * this.x + mx.d * this.y;
-        return acc;
-    },
-
+    }
+},
+'polar coordinates', {
     r: function() {
         // Polar coordinates (theta=0 is East on screen, and increases in CCW
         // direction
-        return this.dist(pt(0, 0));
+        return this.dist(lively.pt(0, 0));
     },
-    theta: function() {
-        return Math.atan2(this.y, this.x);
-    },
-
-    copy: function() {
-        return new lively.Point(this.x, this.y);
-    },
-
-
+    
     fastR: function() {
         var a = this.x * this.x + this.y * this.y;
         var x = 17;
@@ -201,37 +243,11 @@ Object.subclass("Point", {
         x = (x + a / x) / 2;
         return x;
     },
-
-    fastNormalized: function() {
-        var r = this.fastR();
-        return pt(this.x / r, this.y / r);
-    },
-
-    griddedBy: function(grid) {
-        return pt(this.x - (this.x % grid.x), this.y - (this.y % grid.y))
-    },
     
-    ensure: function(duck) { 
-        // make sure we have a Lively point
-        if (duck instanceof lively.Point) {
-            return duck;
-        } else {
-            return new lively.Point(duck.x, duck.y);
-        }
-    },
-
-    polar: function(r, theta) {
-        // Note: theta=0 is East on the screen, and increases in 
-        // counter-clockwise direction
-        return new lively.Point(r * Math.cos(theta), r * Math.sin(theta));
-    },
-    random: function(scalePt) {
-        return new lively.Point(scalePt.x.randomSmallerInteger(), scalePt.y.randomSmallerInteger());
-    },
-    
-    fromLiteral: function(literal) {
-        return pt(literal.x, literal.y);
+    theta: function() {
+        return Math.atan2(this.y, this.x);
     }
+}
 });
 
 
@@ -340,7 +356,7 @@ Object.subclass('Rectangle',
 },
 'printing', {
     toString: function() {
-        return Strings.format("rect(%s,%s)", this.topLeft(), this.bottomRight());
+        return Strings.format("lively.rect(%s,%s)", this.topLeft(), this.bottomRight());
     }
 },
 'comparing', {
@@ -438,7 +454,7 @@ Object.subclass('Rectangle',
         var topLeft = this.topLeft().maxPt(other.topLeft()),
             newBottomRight = topLeft.addPt(other.extent()),
             innerBottomRight = this.bottomRight().minPt(newBottomRight);
-        return rect(topLeft, innerBottomRight);
+        return lively.rect(topLeft, innerBottomRight);
     },
     
     insetByRect: function(r) {
@@ -461,7 +477,7 @@ Object.subclass('Rectangle',
     },
 
     union: function(r) {
-        return rect(this.topLeft().minPt(r.topLeft()), this.bottomRight().maxPt(r.bottomRight()));
+        return lively.rect(this.topLeft().minPt(r.topLeft()), this.bottomRight().maxPt(r.bottomRight()));
     },
 
     dist: function(rect) {
@@ -477,7 +493,7 @@ Object.subclass('Rectangle',
     
     closestPointToPt: function(p) {
         // Assume p lies outside me; return a point on my perimeter
-        return pt(Math.min(Math.max(this.x, p.x), this.maxX()), Math.min(Math.max(this.y, p.y), this.maxY()));
+        return lively.pt(Math.min(Math.max(this.x, p.x), this.maxX()), Math.min(Math.max(this.y, p.y), this.maxY()));
     }
 },
 'properties', {
@@ -498,7 +514,7 @@ Object.subclass('Rectangle',
     },
     
     randomPoint: function() {
-        return lively.Point.random(pt(this.width, this.height)).addPt(this.topLeft());
+        return lively.Point.random(lively.pt(this.width, this.height)).addPt(this.topLeft());
     },
     
     constrainPt: function(pt) {
@@ -575,7 +591,7 @@ Object.subclass('Rectangle',
 
 Object.extend(Rectangle, {
     fromAny: function(ptA, ptB) {
-        return rect(ptA.minPt(ptB), ptA.maxPt(ptB));
+        return lively.rect(ptA.minPt(ptB), ptA.maxPt(ptB));
     },
 
     fromLiteral: function(literal) {
@@ -592,7 +608,7 @@ Object.extend(Rectangle, {
             max = max.maxPt(points[i]);
         }
 
-        return rect(min, max);
+        return lively.rect(min, max);
     },
 
     ensure: function(duck) {

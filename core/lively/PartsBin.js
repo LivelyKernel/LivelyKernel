@@ -384,7 +384,7 @@ Object.subclass('lively.PartsBin.PartsSpace',
     },
 
 
-    getURL: function() { return URL.ensureAbsoluteCodeBaseURL(this.name).asDirectory() },
+    getURL: function() { return URL.ensureAbsoluteRootPathURL(this.name).asDirectory() },
     getPartItems: function() {
         return Properties.ownValues(this.partItems);
     },

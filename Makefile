@@ -70,3 +70,14 @@ jshint:
 
 jshint_watch:
 	$(NODEMON) --exec $(RUN_JSHINT)
+
+
+#######################
+# PartsBin (optional) #
+#######################
+install_partsbin:
+	svn co http://lively-kernel.org/repository/webwerkstatt/core/PartsBin/ PartsBin
+
+update_partsbin:
+	cd PartsBin && svn up
+

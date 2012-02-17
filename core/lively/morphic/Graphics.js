@@ -247,7 +247,6 @@ Object.subclass("Point",
     theta: function() {
         return Math.atan2(this.y, this.x);
     }
-}
 });
 
 

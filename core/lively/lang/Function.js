@@ -221,6 +221,71 @@ Object.extend(Function.prototype, {
             return trace;
         }
     },
+    
+    unbind: function() {
+        // for serializing functions
+        return Function.fromString(this.toString());
+    },
+    
+    asScript: function(optVarMapping) {
+        return lively.Closure.fromFunction(this, optVarMapping).recreateFunc();
+    },
+    asScriptOf: function(obj, optName, optMapping) {
+        var name = optName || this.name;
+        if (!name) {
+            throw Error("Function that wants to be a script needs a name: " + this);
+        }
+        var constructor = obj.constructor,
+            mapping = {
+                "this": obj
+            };
+        if (optMapping) mapping = Object.merge([mapping, optMapping]);
+        if (constructor && constructor.prototype && constructor.prototype[name]) {
+            var superFunc = function() {
+                    try {
+                        return obj.constructor.prototype[name].apply(obj, arguments)
+                    } catch (e) {
+                        alert('Error in $super call: ' + e + '\n' + e.stack);
+                        return null;
+                    }
+                };
+            mapping["$super"] = lively.Closure.fromFunction(superFunc, {
+                "obj": obj,
+                name: name
+            }).recreateFunc();
+        }
+        return this.asScript(mapping).addToObject(obj, name);
+    },
+    
+    addToObject: function(obj, name) {
+        this.name = name;
+        obj[name] = this;
+        // suppport for tracing
+        if (lively.Tracing && lively.Tracing.stackTracingEnabled) {
+            lively.Tracing.instrumentMethod(obj, name, {
+                declaredObject: Objects.safeToString(obj)
+            });
+        }
+        return this;
+    },
+    
+    binds: function(varMapping) {
+        // convenience function
+        return lively.Closure.fromFunction(this, varMapping || {}).recreateFunc()
+    },
+    
+    setProperty: function(name, value) {
+        this[name] = value;
+        if (this.hasLivelyClosure) this.livelyClosure.funcProperties[name] = value
+    },
+    
+    getVarMapping: function() {
+        if (this.hasLivelyClosure) return this.livelyClosure.varMapping;
+        if (this.isWrapper) return this.originalFunction.varMapping;
+        if (this.varMapping) return this.varMapping;
+        return {}
+    }
+
 });
 
 

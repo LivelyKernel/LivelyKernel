@@ -1,7 +1,8 @@
 var http = require('http'),
     colorize = require('colorize'),
     config = require('./config'),
-    optparse = require('optparse');
+    optparse = require('optparse'),
+    spawn = require('child_process').spawn;
 
 
 ////////////////////////////////////////////////////////
@@ -124,20 +125,12 @@ function printResult(testRunId, data) {
 }
 
 function notifyResult(testRunId, data) {
-    // console.log('\n=== test result for test run %s ===', testRunId);
-    // console.log('\nexecution time per test case:');
-    // data.runtimes.forEach(function(ea) {
-    //    console.log(ea.time + '\t' + ea.module);
-    // });
-    // console.log('\n');
-    // console.log('tests run: ' + data.runs);
-    // if (data.fails > 0) {
-    //     console.log(colorize.ansify('#red[FAILED]'));
-    //     data.messages.forEach(function(ea) { console.log(ea); });
-    //     console.log(colorize.ansify('#red[' + data.messages.length + ' FAILED]'));
-    // } else {
-    //     console.log(colorize.ansify('#green[PASSED]'));
-    // }
+    if (!options.notifier) return;
+    var msg = (data.fails == 0 ? 'SUCCCESS' : "FAILURE") + "\n"
+            + data.runs + " tests run, " + data.fails + " failures";
+    spawn(options.notifier, ["--message", msg,
+                             "--identifier", "LivelyCoreTests" + options.testScript,
+                             "--image", "core/media/lively_logo.png"]);
 }
 
 // poll

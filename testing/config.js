@@ -16,7 +16,7 @@ module.exports = Config = {
     timeout: 60,
     // ------------- what system do you want to test on?
     defaultBrowser: "chrome",
-    defaultNotifier: "growl",
+    defaultNotifier: "growlnotify",
     defaultTestScript: "run_tests.js",
     defaultTestWorld: 'testing/run_tests.xhtml',
 

@@ -22,15 +22,15 @@
  * THE SOFTWARE.
  */
 
-module('cop.LayersTest').requires('cop.Layers', 'lively.TestFramework', 'cop.CopBenchmark').toRun(function(thisModule) {
+module('cop.tests.LayerTests').requires('cop.Layers', 'lively.TestFramework', 'cop.CopBenchmark').toRun(function(thisModule) {
 
 
-// COP Example from: Hirschfeld, Costanza, Nierstrasz. 2008. Context-oriented Programming. JOT)
-var copExample = function() { 
+// COP Example from: Hirschfeld, Costanza, Nierstrasz. 2008.
+// Context-oriented Programming. JOT)
+var copExample = function() {
 
 cop.create("AddressLayer");
 cop.create("EmploymentLayer");
-
 
 Object.subclass('cop.example.Person', {
     
@@ -211,7 +211,7 @@ cop.example.DummyClass.subclass('cop.example.SecondDummySubclass', {
 
 
 
-TestCase.subclass('cop.LayersTest.CopExampleTest', {
+TestCase.subclass('cop.tests.LayerTests.CopExampleTest', {
     
     testCopExample: function() {
         copExample();
@@ -244,7 +244,7 @@ TestCase.subclass('cop.LayersTest.CopExampleTest', {
 
 var currentTest = undefined;
 
-TestCase.subclass('cop.LayersTest.LayerTest',
+TestCase.subclass('cop.tests.LayerTests.LayerTest',
 'running', {
 
     setUp: function() {
@@ -804,13 +804,13 @@ debugger
     },
     testLayersRememberSourceModule: function() {
         this.assert(DummyLayer.sourceModule, 'no sourceModule');
-        this.assert(DummyLayer.sourceModule == cop.LayersTest, 'wrong sourceModule');
+        this.assert(DummyLayer.sourceModule == cop.tests.LayerTests, 'wrong sourceModule');
     },
 
 
 });
 
-TestCase.subclass('cop.LayersTest.AdaptArgumentsInLayer', {
+TestCase.subclass('cop.tests.LayerTests.AdaptArgumentsInLayer', {
     testAdaptArgumentsInLayer: function() {
         var o = {say: function(a) {return "Say: " +a}},
             l = cop.basicCreate('L')
@@ -825,7 +825,7 @@ TestCase.subclass('cop.LayersTest.AdaptArgumentsInLayer', {
     },
 })
 
-TestCase.subclass('cop.LayersTest.LayerTestCase', {
+TestCase.subclass('cop.tests.LayerTests.LayerTestCase', {
     setUp: function() {
         this.tmpClassName = 'TmpDummyClass';
         this.tmpSubclassName = 'TmpDummySubclass';
@@ -863,7 +863,7 @@ TestCase.subclass('cop.LayersTest.LayerTestCase', {
     }
 });
 
-cop.LayersTest.LayerTestCase.subclass('cop.LayersTest.LayerSubclassingTest', {
+cop.tests.LayerTests.LayerTestCase.subclass('cop.tests.LayerTests.LayerSubclassingTest', {
 
     testSetup: function() {
         this.assert(this.dummyClass());
@@ -978,7 +978,7 @@ LayerExamples = {
  * (Supportet in Mozilla, WebKit et al)
  *
  */
-TestCase.subclass('cop.LayersTest.GetterAndSetterTest', {
+TestCase.subclass('cop.tests.LayerTests.GetterAndSetterTest', {
     
     testGetterInObject: function() {
         var o = { get b() { return 4}};
@@ -1071,7 +1071,7 @@ Object.subclass('cop.tests.MyClass', {
     },
 });
 
-TestCase.subclass('cop.LayersTest.LayerStateTest', {
+TestCase.subclass('cop.tests.LayerTests.LayerStateTest', {
 
     testMakePropertyLayerAware: function() {
         var o = {a: 3};
@@ -1308,7 +1308,7 @@ LayerableObject.subclass("DummyOtherObject", {
 
 });
 
-TestCase.subclass('cop.LayersTest.LayerObjectActivationTest', {
+TestCase.subclass('cop.tests.LayerTests.LayerObjectActivationTest', {
     
     setUp: function() {
         this.o = new DummyLayerableObject();
@@ -1404,7 +1404,7 @@ debugger
     
 });
 
-TestCase.subclass('cop.LayersTest.ActiveLayersTest', {
+TestCase.subclass('cop.tests.LayerTests.ActiveLayersTest', {
 
     testOverrideActiveLayers: function() {
         var self = this, o = new cop.example.DummyClass();
@@ -1428,8 +1428,8 @@ debugger
     
 });
 
-// DEPRICATED
-cop.LayersTest.LayerTestCase.subclass('cop.LayersTest.LayerActivationRestrictionTest', {
+// FIXME: DEPRICATED
+cop.tests.LayerTests.LayerTestCase.subclass('cop.tests.LayerTests.LayerActivationRestrictionTest', {
     
     setUp: function($super) {
         $super();
@@ -1453,7 +1453,7 @@ cop.LayersTest.LayerTestCase.subclass('cop.LayersTest.LayerActivationRestriction
     }
 });
 
-cop.LayersTest.LayerTestCase.subclass('cop.LayersTest.LayerAltSyntaxTest', {
+cop.tests.LayerTests.LayerTestCase.subclass('cop.tests.LayerTests.LayerAltSyntaxTest', {
     
     testNewSyntax: function() {
         var l = cop.create("MyDummyLayer2");
@@ -1493,7 +1493,7 @@ cop.LayersTest.LayerTestCase.subclass('cop.LayersTest.LayerAltSyntaxTest', {
 });
 
 
-TestCase.subclass('cop.LayersTest.CopProceedTest', {
+TestCase.subclass('cop.tests.LayerTests.CopProceedTest', {
 
     setUp: function() {
         this.originalProceed = cop.proceed;
@@ -1655,7 +1655,7 @@ TestCase.subclass('cop.LayersTest.CopProceedTest', {
 
 })
 
-TestCase.subclass('cop.LayersTest.ContextJSBugs', {
+TestCase.subclass('cop.tests.LayerTests.ContextJSBugs', {
 
     testLookupLayeredFunctionForObjectIgnoresInheritedProperties: function() {
         var layer = new Layer();
@@ -1734,7 +1734,7 @@ TestCase.subclass("cop.UninstallLayerTest", {
             
     }
 });
-TestCase.subclass('cop.LayersTest.UnrefineObjectTest', {
+TestCase.subclass('cop.tests.LayerTests.UnrefineObjectTest', {
 
     testUntrefineObject: function() {
         var object = {foo: function() {return 3 }}

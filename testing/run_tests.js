@@ -61,7 +61,7 @@ var testList = [
     "lively.morphic.tests.Connectors",
     "lively.bindings.tests.GeometryBindingTests",
     "lively.morphic.tests.PathTests",               
-    "cop.LayersTest",
+    "cop.tests.LayerTests",
     "ometa.tests.OmetaTests",
 ];
 

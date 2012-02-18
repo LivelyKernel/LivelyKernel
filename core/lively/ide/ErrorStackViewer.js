@@ -1,9 +1,4 @@
-module('lively.ide.IDE').requires('lively.Helper', 'lively.ide.SystemCodeBrowser', 'lively.ide.LocalBrowser', 'lively.ide.VersionTools').toRun(function() {
-    
-    // Modules: "+Modules" --> setModule in model
-    // Modules: "-Modules" --> getModule in model
-    // Modules: "Modules" --> getModule and getModule in model, 
-    // onModuleUpdate required
+module('lively.ide.ErrorStackViewer').requires('lively.Helper', 'lively.ide.SystemCodeBrowser', 'lively.ide.LocalBrowser', 'lively.ide.VersionTools').toRun(function() {
 
 Object.subclass('lively.ide.ChromeErrorParser',
 'parse', {
@@ -119,6 +114,7 @@ lively.ide.ModuleFileParser.subclass('lively.ide.CombinedModulesFileParser',
 		return undefined
 	}
 });
+
 Object.subclass('lively.ide.ChromeErrorLine',
 'default category', {
 	toString: function() {
@@ -154,6 +150,7 @@ Object.subclass('lively.ide.ChromeErrorLine',
 		return new URL(this.url).relativePathFrom(URL.codeBase) 
 	},
 });
+
 Widget.subclass('lively.ide.ErrorStackViewer',
 'settings', {
 	viewTitle: "Error Stack Viewer",

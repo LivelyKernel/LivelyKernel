@@ -110,7 +110,8 @@ Trait('TextChunkOwner',
 'garbage collection', {
     fixChunks: function() {
 
-        var selRange = this.isFocused() && this.getSelectionRange();
+        //var selRange = this.isFocused() && this.getSelectionRange();
+        var selRange = this.hasSelection() && this.getSelectionRange();
 
         var chunks = this.garbageCollectChunks();
 
@@ -827,9 +828,11 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             this.splitText();
         } else {
             var range = this.getSelectionRange(),
-                endIdx = Math.max(range[0], range[1]),
+                endIdx = 0,
                 length = this.textString.length;
-
+            if (range) {
+                endIdx = Math.max(range[0], range[1]);
+            } 
             // when at end insert a br alement if none is there
             if (length == endIdx) {
                 var chunk = this.getTextChunks().last();
@@ -1072,7 +1075,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         var node = element,
             selRange = this.getSelectionRange(),
             sel = this.domSelection(),
-            range = sel.getRangeAt(0);
+            range;
+        if (!sel) {
+            // FIXME: This fixes the empty workspace bug. What else is needed?
+            this.renderContext().textNode.appendChild(element);
+            return;
+        }
+        range = sel.getRangeAt(0);
 
         if (overwriteSelection) {
             // save info for 'More' command
@@ -1880,6 +1889,10 @@ this. textNodeString()
         this.syntaxHighlightingOnSave = false;
         disconnect(this, 'savedTextString', this, 'highlightJavaScriptSyntax');
     },
+    hasSelection: function() {
+        return this.domSelection() !== null;
+    },
+
 
 
 
@@ -2418,6 +2431,11 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
             // fragment = XHTMLNS.newFragment(chunkNodes);
         morph.insertTextChunksAtCursor(this.getTextChunks(), false, true);
     },
+    hasSelection: function() {
+        // FIXME look for selection in chunk nodes?
+        return false;
+    },
+
 
 });
 

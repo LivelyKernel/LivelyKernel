@@ -212,18 +212,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.BrowseWorldCommand', {
 
     wantsButton: Functions.True,
 
-    asString: function() { return 'Browse world...' },
-
-    trigger: function() {
-        var w = lively.morphic.World.current();
-        w.prompt('Enter URL for World', function(url) {
-            require('lively.LKWiki').toRun(function() {
-                url = new URL(url);
-                var proxy = new WikiWorldProxy(url, url.getDirectory());
-                new lively.ide.LocalCodeBrowser(proxy).open();                
-            })
-        });
-    },
+    asString: function() { return 'Browse world...' }
 
 });
 

@@ -45,7 +45,7 @@ Object.subclass('lively.persistence.StandAlonePackaging.Helper',
         // TODO: make generic to include all original configs
         var configStr = 'Config = {standAlone: true, codeBase: "", rootPath: "../"';
         if (Config.isNewMorphic)
-            configStr += ', isNewMorphic: true, showWikiNavigator: false';
+            configStr += ', isNewMorphic: true';
         this.addScriptTagTo(
             doc.getElementsByTagName('head')[0],
             configStr + '}');

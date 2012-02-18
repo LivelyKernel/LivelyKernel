@@ -317,8 +317,6 @@ Object.extend(Config, {
     showFahrenheitCelsiusExample: false,
     showTextListExample: false,
     openFabrikBrowserExample: false,
-    // Wiki
-    showWikiNavigator: true,
     // Tests
     loadTests: [], //e.g. ["FabrikTest", "RecordTest", "TestFrameworkTests", "ClassTest", "LKWikiTest", "DevelopTest", "MorphTest"]
     showTesterRunner: false,

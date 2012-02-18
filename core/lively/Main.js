@@ -230,13 +230,6 @@ Object.subclass('lively.Main.Loader',
             .visibleSelection:focus  { outline: 2px auto -webkit-focus-ring-color;}')
     },
 
-    showWikiNavigator: function() {
-        require('lively.LKWiki').toRun(function() {
-            console.log('starting WikiNavigator');
-            WikiNavigator.enableWikiNavigator();
-        });
-    },
-
     canvasHeightPatch: function(canvas) {
         if (canvas.height && canvas.height.baseVal && canvas.height.baseVal.value < 200) {
             // a forced value, some browsers have problems with height=100%
@@ -280,7 +273,6 @@ Object.subclass('lively.Main.Loader',
     onFinishLoading: function(world) {
         console.groupEnd("World loading");
         world.hideHostMouseCursor();
-        if (Config.showWikiNavigator) this.showWikiNavigator();
         this.browserSpecificFixes()
         lively.bindings.signal(this, 'finishLoading', world);
         lively.bindings.signal(world, 'finishLoading', world);

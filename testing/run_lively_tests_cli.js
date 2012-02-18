@@ -35,42 +35,58 @@ function post(path, data, callback) {
     req.end();
 }
 
-function printResult(data) {
-    console.log('--- run times ---\n\n');
+function printResult(testRunId, data) {
+    console.log('\n=== test result for test run %s ===', testRunId);
+    console.log('\nexecution time per test case:');
     data.runtimes.forEach(function(ea) {
        console.log(ea.time + '\t' + ea.module);
     });
-    console.log('\n\n\n');
+    console.log('\n');
     console.log('tests run: ' + data.runs);
     if (data.fails > 0) {
         console.log(colorize.ansify('#red[FAILED]'));
-        data.messages.forEach(function(ea) {
-           console.log(ea);
-        });
-        console.log(colorize.ansify('#red[' + data.messages.length + 
-            ' FAILED]'));
+        data.messages.forEach(function(ea) { console.log(ea); });
+        console.log(colorize.ansify('#red[' + data.messages.length + ' FAILED]'));
     } else {
         console.log(colorize.ansify('#green[PASSED]'));
-    }    
+    }
+}
+
+function notifyResult(testRunId, data) {
+    // console.log('\n=== test result for test run %s ===', testRunId);
+    // console.log('\nexecution time per test case:');
+    // data.runtimes.forEach(function(ea) {
+    //    console.log(ea.time + '\t' + ea.module);
+    // });
+    // console.log('\n');
+    // console.log('tests run: ' + data.runs);
+    // if (data.fails > 0) {
+    //     console.log(colorize.ansify('#red[FAILED]'));
+    //     data.messages.forEach(function(ea) { console.log(ea); });
+    //     console.log(colorize.ansify('#red[' + data.messages.length + ' FAILED]'));
+    // } else {
+    //     console.log(colorize.ansify('#green[PASSED]'));
+    // }
 }
 
 // poll
 var maxRequests = config.timeout, currentRequests = 0;
+
 function tryToGetReport(data) {
     if (currentRequests >= maxRequests) {
-        console.log('Time out!');
+        console.log(colorize.ansify('#red[TIMEOUT]'));
         return;
     }
     if (data.state !== 'done') {
-        console.log('waiting for tests to finish, test run id: ' + data.testRunId);
+        process.stdout.write('.');
         currentRequests++;
         setTimeout(function() {
             post('/test-report', {testRunId: data.testRunId}, tryToGetReport);
         }, 1000);
         return;
     }
-    console.log('\n===== test result =====\n\n');
-    printResult(JSON.parse(data.result));
+    printResult(data.testRunId, JSON.parse(data.result));
+    notifyResult(data.testRunId, JSON.parse(data.result));
 }
 
 function startTests() {
@@ -83,4 +99,5 @@ function startTests() {
         loadScript: "run_tests.js"
     }, tryToGetReport);
 }
+
 startTests();

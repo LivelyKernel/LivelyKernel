@@ -553,43 +553,38 @@ Object.subclass('TestResult', {
         return string;
     },
 
-    getJsonResult: function() {
+    getJSONResult: function() {
         var that = this,
-            sortedList = $A(Properties.all(this.timeToRun)).
-                sort(function(a,b) {
-                    return that.getTimeToRun(a) - 
-                           that.getTimeToRun(b);
+            resultData = $A(Properties.all(this.timeToRun)),
+            sortedList = resultData.sortBy(function(result) {
+                return that.getTimeToRun(result);
             }),
             runtimes = sortedList.map(function(ea) {
-                    return {"time": that.getTimeToRun(ea),
-                            "module":ea};
-            });
-        var obj = {
-            "runs": this.runs(),
-            "fails": this.failed.length,
-            "messages": this.failed.map(function(ea) {
+                return {"time": that.getTimeToRun(ea), "module":ea};
+            }),
+            jsonData = {
+                "runs": this.runs(),
+                "fails": this.failed.length,
+                "messages": this.failed.map(function(ea) {
                     return ea.classname + '.' + ea.selector + '\n   -->'
-                    + ea.err.message;
+                         + ea.err.message;
                 }),
-            "runtimes": runtimes
-            }
-        return JSON.stringify(obj);;
+                "runtimes": runtimes
+            };
+        return JSON.stringify(jsonData);;
     },
 
     shortResult: function() {
-        if (!this.failed)
-            return;
-        var time = Object.values(this.timeToRun).inject(0, function(sum, ea) {return sum + ea});
-        var msg = Strings.format('Tests run: %s -- Tests failed: %s -- Time: %ss',
-            this.runs(), this.failed.length, time/1000);
-        return  msg;
+        if (!this.failed) return "";
+        var time = Object.values(this.timeToRun)
+                   .inject(0, function(sum, ea) { return sum + ea }),
+            msg = Strings.format('Tests run: %s -- Tests failed: %s -- Time: %ss',
+                                 this.runs(), this.failed.length, time/1000);
+        return msg;
     },
 
     getFileNameFromError: function(err) {
-        if (err.sourceURL)
-            return new URL(err.sourceURL).filename()
-        else
-            return "";
+        return err.sourceURL ? new URL(err.sourceURL).filename() : "";
     },
 
     failureList: function() {

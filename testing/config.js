@@ -1,20 +1,20 @@
 // see http://peter.sh/experiments/chromium-command-line-switches/
-var chromeArgs =   ["--no-process-singleton-dialog", 
+var chromeArgs =   ["--no-process-singleton-dialog",
                     "--user-data-dir=/tmp/", "--no-first-run",
-                    "--disable-default-apps", 
+                    "--disable-default-apps",
                     //"--no-startup-window",
-                    "--disable-history-quick-provider", 
+                    "--disable-history-quick-provider",
                     "--disable-history-url-provider",
-                    "--disable-breakpad", 
+                    "--disable-breakpad",
                     "--disable-background-mode",
-                    "--disable-background-networking", 
+                    "--disable-background-networking",
                     "--disable-preconnect", "--disabled"],
     firefoxArgs =  [];
 
 module.exports = Config = {
 
     timeout: 60,
-// ------------- what system do you want to test on?  
+// ------------- what system do you want to test on?
     os: "Darwin", // should be: `uname -s`
     browser: "Chrome",
 
@@ -41,5 +41,4 @@ module.exports = Config = {
 
         }
     }
-
 };

@@ -36,7 +36,8 @@ function postResult(message) {
 // currently only used for interactive testing
 function getResult(id) {
     // getResult(1)
-    $.post('/test-report', {testRunId: id}, function(data) { alert(JSON.stringify(data)) });
+    $.post('/test-report', {testRunId: id}, function(data) {
+      alert(JSON.stringify(data)) });
 }
 
 
@@ -50,7 +51,7 @@ var testList = [
     "lively.tests.ClassTests",
     "lively.tests.TraitTests",
     "lively.tests.TracingTests",
-	"lively.lang.tests.ExtensionTests",
+    "lively.lang.tests.ExtensionTests",
     "lively.persistence.tests.PersistenceTests",
     "lively.bindings.tests.BindingTests",
     "lively.ast.tests.AstTests",
@@ -60,19 +61,17 @@ var testList = [
     "lively.morphic.tests.DataGridTests",
     "lively.morphic.tests.Connectors",
     "lively.bindings.tests.GeometryBindingTests",
-    "lively.morphic.tests.PathTests",               
+    "lively.morphic.tests.PathTests",
     "cop.tests.LayerTests",
-    "ometa.tests.OmetaTests",
+    "ometa.tests.OmetaTests"
 ];
 
 require(['lively.TestFramework'].concat(testList)).toRun(function() {
     var suite = TestSuite.forAllAvailableTests();
     suite.runFinished = function() {
-        var result = suite.result.getJsonResult();
+        var result = suite.result.getJSONResult();
         postResult(result);
-        if (!getURLParam('stayOpen')) {
-            exit.delay(0.5);
-        }
+        if (!getURLParam('stayOpen')) { exit.delay(0.5); }
     };
     suite.runAll();
 });

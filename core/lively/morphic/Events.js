@@ -1183,6 +1183,11 @@ lively.morphic.List.addMethods(
     onMouseOver: function(evt) {
         return true;
     },
+    onMouseMove: function(evt) {
+        evt.stop();
+        return true;
+    },
+
 
     selectItemFromEvt: function(evt) {
         var idx = this.renderContextDispatch('getItemIndexFromEvent', evt);

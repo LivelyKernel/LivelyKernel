@@ -126,7 +126,7 @@ function printResult(testRunId, data) {
 
 function notifyResult(testRunId, data) {
     if (!options.notifier) return;
-    var msg = (data.fails == 0 ? 'SUCCCESS' : "FAILURE") + "\n"
+    var msg = (data.fails ? "FAILURE" : 'SUCCCESS') + "\n"
             + data.runs + " tests run, " + data.fails + " failures";
     spawn(options.notifier, ["--message", msg,
                              "--identifier", "LivelyCoreTests" + options.testScript,
@@ -156,7 +156,7 @@ function tryToGetReport(data) {
 
 function startTests() {
     post('/test-request', {
-        browser: options.browserConf.path,
+        browser: options.browserConf.pa2th,
         browserArgs: options.browserConf.args,
         testWorldPath: options.testWorld,
         loadScript: options.testScript

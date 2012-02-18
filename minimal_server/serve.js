@@ -1,15 +1,15 @@
 var express = require('express'),
     spawn = require('child_process').spawn,
-    defaultBrowser = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", 
-    defaultArgs =  ["--no-process-singleton-dialog", 
+    defaultBrowser = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    defaultArgs =  ["--no-process-singleton-dialog",
                     "--user-data-dir=/tmp/", "--no-first-run",
-                    "--disable-default-apps", 
+                    "--disable-default-apps",
                     //"--no-startup-window",
-                    "--disable-history-quick-provider", 
+                    "--disable-history-quick-provider",
                     "--disable-history-url-provider",
-                    "--disable-breakpad", 
+                    "--disable-breakpad",
                     "--disable-background-mode",
-                    "--disable-background-networking", 
+                    "--disable-background-networking",
                     "--disable-preconnect", "--disabled"];
 
 // start with "nodemon minimal_server/serve.js" for development
@@ -64,8 +64,8 @@ var browserInterface = {
         }
         if (this.process) {
             this.closeBrowser();
-            setTimeout(function() { 
-                    browserInterface.open(url, browserPath, 
+            setTimeout(function() {
+                    browserInterface.open(url, browserPath,
                         browserArgs);
                 }, 200);
             return;

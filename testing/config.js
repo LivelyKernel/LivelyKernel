@@ -1,3 +1,4 @@
+/*globals */
 // see http://peter.sh/experiments/chromium-command-line-switches/
 var chromeArgs =   ["--no-process-singleton-dialog",
                     "--user-data-dir=/tmp/", "--no-first-run",
@@ -11,7 +12,7 @@ var chromeArgs =   ["--no-process-singleton-dialog",
                     "--disable-preconnect", "--disabled"],
     firefoxArgs =  [];
 
-module.exports = Config = {
+var Config = {
 
     timeout: 60,
     // ------------- what system do you want to test on?
@@ -44,3 +45,5 @@ module.exports = Config = {
         }
     }
 };
+
+module.exports = Config;

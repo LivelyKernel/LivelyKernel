@@ -127,7 +127,8 @@ function printResult(testRunId, data) {
 function notifyResult(testRunId, data) {
     if (!options.notifier) return;
     var msg = (data.fails ? "FAILURE" : 'SUCCCESS') + "\n"
-            + data.runs + " tests run, " + data.fails + " failures";
+            + data.runs + " tests run, " + data.fails + " failures"
+            + "\n" + data.failedTestNames.join("\n");
     spawn(options.notifier, ["--message", msg,
                              "--identifier", "LivelyCoreTests" + options.testScript,
                              "--image", "core/media/lively_logo.png"]);

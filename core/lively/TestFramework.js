@@ -47,13 +47,38 @@ Object.subclass('TestCase',
     testName: function() { return this.name() + '>>' + this.currentSelector },
     id: function() { return this.name() + '>>' + this.currentSelector },
     allTestSelectors: function() {
-        return this.constructor.functionNames().select(function(ea) {
-            return this.constructor.prototype.hasOwnProperty(ea) && ea.startsWith('test');
-        }, this);
+        return this.constructor.functionNames().select(
+            this.getTestSelectorFilter());
     },
+
+    getTestSelectorFilter: function() {
+        if (this._selectorFilterFunc) return this._selectorFilterFunc;
+        var self = this;
+        function isMyOwn(sel) {
+            return self.constructor.prototype.hasOwnProperty(sel)
+                && sel.startsWith('test');
+        }
+        var filter = this.testSelectorFilter, filterFunc;
+        if (Object.isString(filter)) {
+            filterFunc = function(sel) { return sel.include(filter); }
+        } else if (filter && filter.test && Object.isFunction(filter.test)) {
+            filterFunc = function(sel) { return filter.test(sel); };
+        } else if (Object.isFunction(filter)) { // important that this is last
+            filterFunc = filter;
+        }
+        return this._selectorFilterFunc = function(sel) {
+            return isMyOwn(sel) && (filterFunc ? filterFunc(sel) : true);
+        };
+    },
+
+    setTestSelectorFilter: function(filter) {
+        this.testSelectorFilter = filter;
+        return this;
+    },
+
     toString: function() {
         return "a" + this.constructor.name +"" + "(" + this.timeToRun +")"
-    },
+    }
 },
 'running', {
     runAll: function(statusUpdateFunc) {
@@ -84,7 +109,7 @@ Object.subclass('TestCase',
             this.addAndSignalSuccess();
         } catch (e) {
             this.addAndSignalFailure(e);
-        } finally {
+         } finally {
             try {
                 this.tearDown();
             } catch(e) {
@@ -371,12 +396,15 @@ TestCase.subclass('AsyncTestCase', {
 
         tests.doAndContinue(
             function(next, test) { test.runAndDoWhenDone(next) },
-            function() { whenDoneFunc && whenDoneFunc(); console.log('All tests of ' + self.name() + ' done') },
+            function() { whenDoneFunc && whenDoneFunc();
+                         console.log('All tests of ' + self.name() + ' done') },
             this);
 
         return tests;
     },
-    runAllThenDo: function(statusUpdateFunc, whenDoneFunc) { this.runAll(statusUpdateFunc, whenDoneFunc) },
+    runAllThenDo: function(statusUpdateFunc, whenDoneFunc) {
+        this.runAll(statusUpdateFunc, whenDoneFunc);
+    },
     runAndDoWhenDone: function(func) {
         this.runTest();
         var self = this, waitMs = 100; // time for checking if test is done
@@ -437,6 +465,14 @@ Object.subclass('TestSuite', {
     setTestCases: function(testCaseClasses) {
         this.testCaseClasses = testCaseClasses
     },
+    setTestSelectorFilter: function(filter) {
+        this.testSelectorFilter = filter;
+        return this;
+    },
+    setTestCaseFilter: function(filter) {
+        this.testCaseFilter = filter;
+        return this;
+    },
     addTestCases: function(testClasses) {
         this.setTestCases(this.testCaseClasses.concat(testClasses));
     },
@@ -458,9 +494,12 @@ Object.subclass('TestSuite', {
         this.testClassesToRun = this.testCaseClasses;
         this.runDelayed(statusUpdateFunc);
     },
+
     runDelayed: function() {
         var testCaseClass = this.testClassesToRun.shift();
+
         if (!testCaseClass) { this.runFinished && this.runFinished(); return }
+        // if (!this.testCaseFilter(testCaseClass.type)) { this.runDelayed(); return }
 
         var testCase = new testCaseClass(this.result)
         this.showProgress && this.showProgress(testCase);
@@ -523,8 +562,7 @@ Object.subclass('TestResult', {
     },
 
     runs: function() {
-        if (!this.failed)
-            return 0;
+        if (!this.failed) return 0;
         return this.failed.length + this.succeeded.length;
     },
 
@@ -534,7 +572,7 @@ Object.subclass('TestResult', {
 
     // FIXME remove unless needed
     printResult: function() {
-        var string = 'Tests run: ' + this.runs() + ' -- Tests failed: ' + this.failed.length;
+        var string = 'Tests run: ' + this.runs()+ ' -- Tests failed: ' + this.failed.length;
         if (this.failed.length) {
             string += ' -- Failed tests: \n';
             this.failed.each(function(ea) {
@@ -553,25 +591,28 @@ Object.subclass('TestResult', {
         return string;
     },
 
-    getJSONResult: function() {
-        var that = this,
-            resultData = $A(Properties.all(this.timeToRun)),
-            sortedList = resultData.sortBy(function(result) {
-                return that.getTimeToRun(result);
-            }),
-            runtimes = sortedList.map(function(ea) {
-                return {"time": that.getTimeToRun(ea), "module":ea};
-            }),
+    failuresToString: function(withError) {
+        return this.failed.collect(function(ea) {
+            return Strings.format("%s>>%s%s", ea.classname, ea.selector,
+                                  withError ? '\n\t--> ' + ea.err.message : "");
+        });
+    },
+
+    asJSONString: function() {
+        var resultData = Properties.all(this.timeToRun),
+            sortedByExecTime = resultData.sortBy(function(result) {
+                return this.getTimeToRun(result);
+            }, this),
             jsonData = {
-                "runs": this.runs(),
-                "fails": this.failed.length,
-                "messages": this.failed.map(function(ea) {
-                    return ea.classname + '.' + ea.selector + '\n   -->'
-                         + ea.err.message;
-                }),
-                "runtimes": runtimes
+                runs: this.runs(),
+                fails: this.failed.length,
+                failedTestNames: this.failuresToString(),
+                messages: this.failuresToString(true),
+                runtimes: sortedByExecTime.map(function(ea) {
+                    return {time: this.getTimeToRun(ea), module: ea};
+                }, this)
             };
-        return JSON.stringify(jsonData);;
+        return JSON.stringify(jsonData);
     },
 
     shortResult: function() {

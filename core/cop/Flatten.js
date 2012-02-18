@@ -313,7 +313,7 @@ Layer.addMethods(
         var blacklistDescr = blacklist.collect(function(spec) {
             return '{object: ' + this.objectName(spec.object) + ', name: ' + spec.name + '}'
         }, this);
-        require('lively.ide.ErrorStackViewer').toRun(function() {
+        require('lively.ide').toRun(function() {
             var flattened = this.flattened(blacklist);
             var note = Strings.format('/*\n * Generated file\n * %s\n * %s.writeFlattened(\'%s\', [%s], [%s])\n */',
                 new Date(), this.name, moduleName, blacklistDescr.join(','), JSON.stringify(requirements));

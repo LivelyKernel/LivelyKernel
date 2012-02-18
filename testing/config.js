@@ -14,27 +14,29 @@ var chromeArgs =   ["--no-process-singleton-dialog",
 module.exports = Config = {
 
     timeout: 60,
-// ------------- what system do you want to test on?
-    os: "Darwin", // should be: `uname -s`
-    browser: "Chrome",
+    // ------------- what system do you want to test on?
+    defaultBrowser: "chrome",
+    defaultNotifier: "growl",
+    defaultTestScript: "run_tests.js",
+    defaultTestWorld: 'testing/run_tests.xhtml',
 
-    browsers: {
-        "Darwin": {
-            "Chrome": {
+    platformConfigs: {
+        "darwin": {
+            "chrome": {
                 path: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
                 args: chromeArgs
             },
-            "Firefox": {
+            "firefox": {
                 path: "/Applications/Firefox.app/Contents/MacOS/firefox",
                 args: firefoxArgs
             }
         },
-        "Linux": {
-            "Chrome": {
+        "linux": {
+            "chrome": {
                 path: "/usr/bin/chromium-browser",
                 args: chromeArgs
             },
-            "Firefox": {
+            "firefox": {
                 path: "/usr/bin/firefox",
                 args: firefoxArgs
             }

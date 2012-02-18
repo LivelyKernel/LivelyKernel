@@ -1,11 +1,81 @@
 var http = require('http'),
     colorize = require('colorize'),
-    config = require('./config');
+    config = require('./config'),
+    optparse = require('optparse');
 
-var verbose = false;
+
+////////////////////////////////////////////////////////
+// Parse the command line options and merge them with //
+// config settings                                    //
+////////////////////////////////////////////////////////
+
+// for option parser help see https://github.com/jfd/optparse-js
+var platformConf = config.platformConfigs[process.platform],
+    supportedBrowsers = Object.keys(platformConf),
+    defaultBrowser = '"' + config.defaultBrowser + '"',
+    switches = [
+        ['-h', '--help', "Shows this help section."],
+        ['-v', '--verbose', "Print progress and debug information."],
+        ['-b', '--browser NAME', "Which browser to use. Options are \""
+                               + supportedBrowsers.join('", "')
+                               + "\". If not specified then "
+                               + defaultBrowser + " is used."],
+        ['-n', '--notifier NAME', "Use a system notifier to output results. "
+                                + "Currently \"" + config.defaultNotifier
+                                + "\" is supported."],
+        ['--test-script FILE', "Script file that is sent to the browser and "
+                             + "runs the tests. If not specified then \""
+                             + config.defaultTestScript + "\" is used."]],
+    parser = new optparse.OptionParser(switches);
+
+
+// Internal variable to store options.
+var options = {
+    browserName: config.defaultBrowser,
+    browserConf: platformConf[config.defaultBrowser],
+    notifier: null,
+    testScript: config.defaultTestScript,
+    testWorld: config.defaultTestWorld,
+    verbose: false,
+    maxRequests: config.timeout
+};
+
+parser.on("help", function() {
+    console.log(parser.toString());
+    process.exit(0);
+});
+
+parser.on("verbose", function() { options.verbose = true; });
+
+parser.on("browser", function(name, value) {
+    console.assert(supportedBrowsers.indexOf(value) >= 0,
+                  "Unsupported browser: " + value);
+    options.browserName = value;
+    options.browserConf = platformConf[value];
+});
+
+parser.on("notifier", function(name, value) {
+    console.assert(config.defaultNotifier === value,
+                  "Unsupported notifier: " + value);
+    options.notifier = value;
+});
+
+parser.on("test-script", function(name, value) {
+    options.testScript = value;
+});
+
+parser.parse(process.argv);
+
 function log(msg) {
-    if (verbose) console.log(msg);
+    if (options.verbose) console.log(msg);
 }
+
+log(options);
+
+
+///////////////////////////////////////////////////////////
+// Define functions for server interaction and reporting //
+///////////////////////////////////////////////////////////
 
 function post(path, data, callback) {
     var options = {
@@ -36,7 +106,8 @@ function post(path, data, callback) {
 }
 
 function printResult(testRunId, data) {
-    console.log('\n=== test result for test run %s ===', testRunId);
+    console.log('\n=== test result for test run %s in %s ===',
+                testRunId, options.browserName);
     console.log('\nexecution time per test case:');
     data.runtimes.forEach(function(ea) {
        console.log(ea.time + '\t' + ea.module);
@@ -70,7 +141,7 @@ function notifyResult(testRunId, data) {
 }
 
 // poll
-var maxRequests = config.timeout, currentRequests = 0;
+var maxRequests = options.maxRequests, currentRequests = 0;
 
 function tryToGetReport(data) {
     if (currentRequests >= maxRequests) {
@@ -87,16 +158,15 @@ function tryToGetReport(data) {
     }
     printResult(data.testRunId, JSON.parse(data.result));
     notifyResult(data.testRunId, JSON.parse(data.result));
+    process.exit(0);
 }
 
 function startTests() {
-    var browserName = process.argv[2] || config.browser,
-        browser = config.browsers[config.os][browserName];
     post('/test-request', {
-        browser: browser.path,
-        browserArgs: browser.args,
-        testWorldPath: 'testing/run_tests.xhtml',
-        loadScript: "run_tests.js"
+        browser: options.browserConf.path,
+        browserArgs: options.browserConf.args,
+        testWorldPath: options.testWorld,
+        loadScript: options.testScript
     }, tryToGetReport);
 }
 

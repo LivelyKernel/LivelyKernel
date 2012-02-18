@@ -9,15 +9,9 @@ Config.debugExtras = false;
 
 Config.showFabrikWeatherWidgetExample = false;
 
-// Config.highlightSyntax = true;
-// Config.usePieMenus = false;
-
 Config.askBeforeQuit = true;
 
-// Config.modulesOnWorldLoad = Config.modulesOnWorldLoad.concat(["cop/Layers", "tests/LayersTest"])
-// Config.modulesOnWorldLoad = Config.modulesOnWorldLoad.concat(["lively.Fabrik", "lively.Presentation", "cop.Layers", 'lively.LayerableMorphs', "cop.Workspace", "lively.Graffle", "lively.Undo", "lively.TabCompletion", "lively.SyntaxHighlighting"])
 Config.modulesOnWorldLoad = Config.modulesOnWorldLoad.concat(["lively.Graffle", "lively.Undo", "lively.ide.AutoCompletion", "lively.ide.SyntaxHighlighting", 'lively.Scripting'])
-
 Config.showNetworkExamples = true
 
 
@@ -32,12 +26,6 @@ Config.confirmNavigation = false;
 Config.resizeScreenToWorldBounds = true;
  
 Config.disableScriptCaching = true;
-
-// document.body.style.cursor = 'none';
-// document.body.style.cursor = 'url("/repository/webwerkstatt/media/nocursor.gif"), none';
-// new URL(Config.codeBase).withFilename('media/nocursor.gif').withRelativePartsResolved().pathname
-
-// document.body.style.cursor = 'wait'
 
 Config.silentFailOnWrapperClassNotFound = true;
 

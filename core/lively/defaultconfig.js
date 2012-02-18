@@ -48,8 +48,9 @@ var UserAgent = (function() {
 
     // Determines User Agent capabilities
     return {
-        // Newer versions of WebKit implement proper SVGTransform API,
-        // with potentially better performance. Scratch that, lets make it more predictable:
+        // Newer versions of WebKit implement proper SVGTransform API, with
+        // potentially better performance. Scratch that, lets make it more
+        // predictable:
         usableTransformAPI: (webKitVersion < 0), //webKitVersion >= 525,
         usableDropShadow: webKitVersion >= 525,
         canExtendBrowserObjects: !isRhino, // Error, document
@@ -86,62 +87,6 @@ var UserAgent = (function() {
     };
 
 })();
-
-//--------------------------
-//  iPhone/iPad support...
-// Here is a first cut at iPad touch/mouse compatibility
-//  set usePieMenus = true since we can't use modifier keys on clicks
-// In touch mode [only get mouseDown events]
-//        if down/up with little movement, then set drag mode (touchIsMouse = true)
-//    In drag mode
-//        if down/up with little movement, then set touch mode
-//    detect both of these in WoldMorph showPieMenu
-//    Indicate touch mode by pentagonal blue cursor
-//    Indicate drag mode by regular arrow, but bigger for iPad
-//--------------------------
-// Following iPhone/iPad code borrowed from...
-//    http://rossboucher.com/2008/08/19/iphone-touch-events-in-javascript/
-// UserAgent.touchHandler = function(event) {
-//     var first = event.changedTouches[0],
-//         type = "";
-//     switch(event.type) {  
-//         case "touchstart": type = "mousedown"; break;
-//         case "touchmove":  type = "mousemove"; break;        
-//         case "touchend":   type = "mouseup"; break;
-//         default: return;
-//     }
-// 
-//     //initMouseEvent(type, canBubble, cancelable, view, clickCount, 
-//     //           screenX, screenY, clientX, clientY, ctrlKey, 
-//     //           altKey, shiftKey, metaKey, button, relatedTarget);
-//     var simulatedEvent = document.createEvent("MouseEvent");
-//     simulatedEvent.initMouseEvent(type, true, true, window, 1, 
-//                               first.screenX, first.screenY, 
-//                               first.clientX, first.clientY, false, 
-//                               false, false, false, 0/*left*/, null);
-//     first.target.dispatchEvent(simulatedEvent);
-//     event.preventDefault();
-// };
-// UserAgent.touchBeMouse = function (evt) {
-//     if (this.touchIsMouse) return;
-//     this.touchIsMouse = true;
-//     if (evt) evt.hand.lookNormal();  // indicate mouse mode
-//     document.addEventListener("touchstart", this.touchHandler, true);
-//     document.addEventListener("touchmove", this.touchHandler, true);
-//     document.addEventListener("touchend", this.touchHandler, true);
-//     document.addEventListener("touchcancel", this.touchHandler, true); 
-// };
-// UserAgent.touchBeTouch = function (evt) {
-//     if (!this.touchIsMouse) return;
-//     this.touchIsMouse = false;
-//     if (evt) evt.hand.lookTouchy();  // Indicate touch mode (pan / zoom)
-//     document.removeEventListener("touchstart", this.touchHandler, true);
-//     document.removeEventListener("touchmove", this.touchHandler, true);
-//     document.removeEventListener("touchend", this.touchHandler, true);
-//     document.removeEventListener("touchcancel", this.touchHandler, true); 
-// };
-// if (UserAgent.isTouch) UserAgent.touchBeMouse();
-
 
 //--------------------------
 // Determine runtime behavior based on UA capabilities and user choices (override in localconfig.js)

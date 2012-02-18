@@ -465,14 +465,43 @@ Object.subclass('TestSuite', {
     setTestCases: function(testCaseClasses) {
         this.testCaseClasses = testCaseClasses
     },
+
     setTestSelectorFilter: function(filter) {
         this.testSelectorFilter = filter;
         return this;
     },
+
     setTestCaseFilter: function(filter) {
         this.testCaseFilter = filter;
         return this;
     },
+
+    getTestCaseFilter: function() {
+        // FIXME duplication with TestCase>>getTestSelectorFilter
+        var filter = this.testCaseFilter, filterFunc;
+        if (Object.isString(filter)) {
+            filterFunc = function(name) { return name.include(filter); }
+        } else if (filter && filter.test && Object.isFunction(filter.test)) {
+            filterFunc = function(name) { return filter.test(name); };
+        } else if (Object.isFunction(filter)) { // important that this is last
+            filterFunc = filter;
+        }
+        return filterFunc;
+    },
+
+    setTestFilterSpec: function(spec) {
+        if (!spec) return this;
+        var parts = spec.split('|');
+        this.setTestCaseFilter(parts[0]).
+            setTestSelectorFilter(parts[1]);
+        return this;
+    },
+
+    shouldTestClassRun: function(testClass) {
+        var filter = this.getTestCaseFilter();
+        return filter ? filter(Class.className(testClass)) : true;
+    },
+
     addTestCases: function(testClasses) {
         this.setTestCases(this.testCaseClasses.concat(testClasses));
     },
@@ -498,14 +527,20 @@ Object.subclass('TestSuite', {
     runDelayed: function() {
         var testCaseClass = this.testClassesToRun.shift();
 
-        if (!testCaseClass) { this.runFinished && this.runFinished(); return }
-        // if (!this.testCaseFilter(testCaseClass.type)) { this.runDelayed(); return }
+        if (!testCaseClass) {
+            this.runFinished && this.runFinished(); return }
 
-        var testCase = new testCaseClass(this.result)
+        if (!this.shouldTestClassRun(testCaseClass)) {
+            this.runDelayed(); return }
+
+        var testCase = new testCaseClass(this.result);
+        testCase.setTestSelectorFilter(this.testSelectorFilter);
         this.showProgress && this.showProgress(testCase);
 
-        (function() {testCase.runAllThenDo(Functions.Null, this.runDelayed.bind(this))}).bind(this).morphicDelay(0);
-    },
+        (function() {
+            testCase.runAllThenDo(Functions.Null, this.runDelayed.bind(this))
+        }).bind(this).delay(0);
+    }
 });
 
 Object.extend(TestSuite, {

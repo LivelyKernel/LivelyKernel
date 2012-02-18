@@ -251,19 +251,34 @@ AsyncTestCase.subclass('TestSuiteTest', {
         this.delay(function() {
             this.assertEquals(3, ts.result.runs(), 'result');
 	    this.done();
-	}, 50);
+	}, 20);
     },
 
     testRunFiltered: function() {
         var ts = new TestSuite();
         ts.setTestCases([DummyTestCase1, DummyTestCase2, DummyTestCase3]);
-        ts.setTestSelectorFilter(/Test1/);
-        ts.setTestCaseFilter(/Case[12]/);
+        ts.setTestSelectorFilter(/Test1/).setTestCaseFilter(/Case[12]/);
+        this.assert(ts.shouldTestClassRun(DummyTestCase1),
+                    'testClass filter failed 1');
+        this.assert(!ts.shouldTestClassRun(DummyTestCase3),
+                    'testClass filter failed 2');
         ts.runAll();
         this.delay(function() {
             this.assertEquals(1, ts.result.runs(), 'result');
 	    this.done();
-	}, 50);
+	}, 20);
+    },
+
+    testParseFilterSpec: function() {
+        var ts = new TestSuite(),
+            spec = "Foo\.Bar\..*|test3$";
+        ts.setTestFilterSpec(spec);
+        this.assert(ts.shouldTestClassRun({type: "Foo.Bar.Baz"}),
+                    'testClass filter failed 1');
+        this.assert(!ts.shouldTestClassRun({type: "Foo.Zork.Baz"}),
+                    'testClass filter failed 2');
+        ts.runAll();
+	this.done();
     }
 
 });

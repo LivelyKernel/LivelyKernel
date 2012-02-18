@@ -1,41 +1,17 @@
-/*
- * Copyright (c) 2006-2009 Sun Microsystems, Inc.
- * Copyright (c) 2008-2011 Hasso Plattner Institute
- *
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
-
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-
-module('lively.ide').requires('lively.Helper', 'lively.ide.SystemCodeBrowser', 'lively.ide.LocalBrowser', 'lively.ide.VersionTools').toRun(function() {
+module('lively.ide.IDE').requires('lively.Helper', 'lively.ide.SystemCodeBrowser', 'lively.ide.LocalBrowser', 'lively.ide.VersionTools').toRun(function() {
     
     // Modules: "+Modules" --> setModule in model
     // Modules: "-Modules" --> getModule in model
-    // Modules: "Modules" --> getModule and getModule in model, onModuleUpdate required
+    // Modules: "Modules" --> getModule and getModule in model, 
+    // onModuleUpdate required
 
 Object.subclass('lively.ide.ChromeErrorParser',
 'parse', {
 	parseStackLine: function(lineString) {
-		var m = lineString.match(/.*(http.*\.js)\?([A-Za-z0-9]+)\:(\d+):(\d+)/)
+		var m = lineString.match(/.*(http.*\.js)\?([A-Za-z0-9]+)\:(\d+):(\d+)/);require('lively.ide.SyntaxHighlighting').toRun(function() {
 
-		var errorLine = new lively.ide.ChromeErrorLine()
-		errorLine.full = lineString
+		var errorLine = new lively.ide.ChromeErrorLine();
+		errorLine.full = lineString;
 		if (m == undefined) {
 			return errorLine;
 		}
@@ -44,13 +20,13 @@ Object.subclass('lively.ide.ChromeErrorParser',
 		errorLine.line = Number(m[3]);
 		errorLine.linePosition = Number(m[4]);
 
-		return errorLine
+		return errorLine;
 	},
 
 	parseErrorStack: function(errorStackString) {
-		return errorStackString.split("\n")
-			.select(function(ea) {return ea.startsWith("    at ")})
-			.collect(function(ea) {return this.parseStackLine(ea)}, this) 
+		return errorStackString.split("\n").
+			select(function(ea) {return ea.startsWith("    at ")}).
+			collect(function(ea) {return this.parseStackLine(ea)}, this);
 	},
 
 	fileFragmentList: function(errorStackString) {
@@ -58,7 +34,7 @@ Object.subclass('lively.ide.ChromeErrorParser',
 		var sc = lively.ide.startSourceControl();
 
 		return parsedStack.collect(function(ea) {
-			return ea.fileFragment()
+			return ea.fileFragment();
 		})
 	},
 });
@@ -73,6 +49,7 @@ Object.subclass('lively.ide.ModuleFileParser',
 			pos = pos + lines[i].length + 1
 		return pos 
 	},
+    
 	lineOfCharPos: function (lines, charPos) {
 		// line counts from 0
 		var i = 0;
@@ -87,6 +64,7 @@ Object.subclass('lively.ide.ModuleFileParser',
 		return string.split(/[\n\r]/g)
 	},
 });
+
 lively.ide.ModuleFileParser.subclass('lively.ide.CombinedModulesFileParser',
 'default category', {
 	combinedModulesFile:  "generated/combinedModules.js",
@@ -105,6 +83,7 @@ lively.ide.ModuleFileParser.subclass('lively.ide.CombinedModulesFileParser',
 		}
 		return matches
 	},
+    
 	moduleForCombinedLineRef: function(combinedModules, line) {
 		var fileOffsets = this.parseCombinedModulesString(combinedModules);
 		var lines = this.linesOfString(combinedModules);
@@ -118,13 +97,15 @@ lively.ide.ModuleFileParser.subclass('lively.ide.CombinedModulesFileParser',
 		var fileOffset = totalCharPos - (lastFileOffset ? lastFileOffset.offset || 0 : 0);
 		return {file: lastFileOffset.file, offset: fileOffset} 
 	},
+    
 	getCombinedModulesContent: function() {
 		if (!this.combinedModulesContent)
 			this.combinedModulesContent = 
 				new WebResource(URL.codeBase.withFilename(this.combinedModulesFile)).get().content;
 		return this.combinedModulesContent
 	},
-	transformFileLineAndCharPosReference: function(obj) {
+	
+    transformFileLineAndCharPosReference: function(obj) {
 		// charPos is not touched 
 		if (!obj) return undefined
 
@@ -136,9 +117,7 @@ lively.ide.ModuleFileParser.subclass('lively.ide.CombinedModulesFileParser',
 			return {file: fileOffset.file, line: realLine, charPos: obj.charPos}		
 		}
 		return undefined
-	},
-
-
+	}
 });
 Object.subclass('lively.ide.ChromeErrorLine',
 'default category', {
@@ -148,7 +127,8 @@ Object.subclass('lively.ide.ChromeErrorLine',
 			return this.full;
 		return "" + this.objectPart()+ "." + this.methodPart()  + " (" + this.path() + " " + this.line + ":" + this.linePosition + ")" 
 	},
-	fileFragment: function() {
+	
+    fileFragment: function() {
 		debugger
 		var sc = lively.ide.startSourceControl(),
 			moduleWrapper = sc.addModule(this.path());
@@ -173,18 +153,13 @@ Object.subclass('lively.ide.ChromeErrorLine',
 		if (this.url == undefined) return ""
 		return new URL(this.url).relativePathFrom(URL.codeBase) 
 	},
-
-
 });
 Widget.subclass('lively.ide.ErrorStackViewer',
 'settings', {
-	
 	viewTitle: "Error Stack Viewer",
     initialViewExtent: pt(700, 500),
-
 },
 'initializing', {
-
 	buildView: function(extent) {
 		extent = extent || this.initialViewExtent;
 
@@ -235,7 +210,8 @@ Widget.subclass('lively.ide.ErrorStackViewer',
 		})
 		this.errorStackList = list;
 	},
-	setError: function(error) {
+	
+    setError: function(error) {
 		if (error.stack)
 			this.setErrorStack(error.stack);
 		this.errorMessage = error.message;
@@ -243,7 +219,6 @@ Widget.subclass('lively.ide.ErrorStackViewer',
 		this.updateErrorMessage();
 	},
 },
-
 'actions', {
 	updateErrorMessage: function() {
 		if (this.panel == undefined)

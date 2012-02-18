@@ -709,7 +709,7 @@ Object.subclass('lively.Main.Examples', {
         }
 
         if (Config.showSystemBrowser) {
-            require('lively.ide').toRun(function() {
+            require('lively.ide.IDE').toRun(function() {
                 new lively.ide.SystemBrowser().openIn(Config.webStoreInMain ? lively.morphic.World.current() : devWorld.myWorld, pt(100, 350))
             })
         }

@@ -433,7 +433,10 @@ Object.extend(lively.PartsBin, {
         return this.partSpaces[name];
     },
     partsSpaceWithURL: function(url) {
-        var name = url.isIn(URL.codeBase) ? url.relativePathFrom(URL.codeBase) : url.toString();
+        var rootPath = new URL(Config.rootPath),
+            name = url.isIn(rootPath) ? 
+                url.relativePathFrom(rootPath) : 
+                url.toString();
         return this.partsSpaceNamed(name);
     },
 

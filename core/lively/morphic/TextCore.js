@@ -1225,10 +1225,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
     getSelectionRange: function() {
 
-        if (UserAgent.fireFoxVersion) {
-            return this.getSelectionRange2();
-        }
-
         // FIXME this only works for textNodes that have the form
         // <div><span></text*></span*></div> or <div></text*></div>
         var parent = this.renderContext().textNode;
@@ -1297,71 +1293,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         return result;
     },
-    getSelectionRange2: function() {
-        console.log('Enter Text>>getSelectionRange2');
-        // FIXME this only works for textNodes that have the form
-        // <div><span></text*></span*></div> or <div></text*></div>
 
-        var parent = this.renderContext().textNode;
-        if (!parent) return [0,0];
-        var textNodeType = parent.TEXT_NODE;
-        var textNodes = [];
-
-        // collect the text nodes
-        for (var i = 0; i < parent.childNodes.length; i++) {
-            var child = parent.childNodes[i];
-            if (child.nodeType === textNodeType) {
-                textNodes.push(child)
-            } else {
-                for (var j = 0; j < child.childNodes.length; j++) {
-                    var childchild = child.childNodes[j];
-                    if (childchild.nodeType === textNodeType)
-                        textNodes.push(childchild)
-                }
-            }
-        }
-        // --------
-
-        // this function calculates how many characters are between the start of
-        // the parent element and the node.
-        // The node is expected to be a childNode of parent
-        function nodeOffsetFrom(node) {
-            if (!node) return 0;
-            var offset = 0;
-            for (var i = 0; i < textNodes.length; i++) {
-                var nodeBefore = textNodes[i];
-                if ((node.compareDocumentPosition(nodeBefore) & node.DOCUMENT_POSITION_PRECEDING) != 0) {
-                    offset += nodeBefore.textContent.length;
-                }
-            }
-            return offset;
-        }
-        var sel = this.domSelection();
-        if (!sel) return null;
-
-        // anchor is the start node, focusNode is the end node of the selection
-        // see https://developer.mozilla.org/en/DOM/Selection
-
-        // there is a problem with the above algorithm when calling getSelectionRange
-        // when the caret is at the end of the text. In this case anchorNode and focusNode
-        // are not textNodes and nodeOffsetFrom() would not return anything meaningful
-        // Since anchorNode.childNodes[anchorOffset] and focusNode.childNodes[focusOffset]
-        // identify the node from/to selection was exist, use this node for calculation
-        // In this case return the text length as indexes of the range
-        var anchorIsText = sel.anchorNode.nodeType == textNodeType;
-        var anchorNode = anchorIsText ? sel.anchorNode : sel.anchorNode.childNodes[sel.anchorOffset];
-        var anchorOffset = anchorIsText ? sel.anchorOffset : 0;
-
-        var focusIsText = sel.focusNode.nodeType == textNodeType;
-        var fixedFocusOffset = sel.focusOffset;//!focusIsText && (sel.focusOffset >= sel.focusNode.childNodes.length) ? (sel.focusNode.childNodes.length - 1) : sel.focusOffset;
-        var focusNode = focusIsText ? sel.focusNode : sel.focusNode.childNodes[fixedFocusOffset];
-        var focusOffset = focusIsText ? sel.focusOffset : 0;
-
-        var result = [nodeOffsetFrom(anchorNode) + anchorOffset,
-                      nodeOffsetFrom(focusNode) + focusOffset];
-
-        return result;
-    },
 
     selectAll: function() {
         if (this.textString.length > 0)

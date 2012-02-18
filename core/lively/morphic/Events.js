@@ -1181,13 +1181,7 @@ lively.morphic.List.addMethods(
         return $super(evt)
     },
     onMouseOver: function(evt) {
-        return false
-        if (this.selectOnMove) {
-            var idx = this.selectItemFromEvt(evt);
-            evt.stopPropagation();
-            return idx > -1;
-        }
-        return false;
+        return true;
     },
 
     selectItemFromEvt: function(evt) {

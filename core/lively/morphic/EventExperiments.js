@@ -1,37 +1,5 @@
 module('lively.morphic.EventExperiments').requires('cop.Layers', 'lively.LayerableMorphs', 'lively.morphic.Halos').toRun(function() {
 
-cop.create('EventLogLayer')
-.refineClass(lively.morphic.Morph, {
-    logEvent: function(name) {
-        console.log(Strings.indent('', '  ', lively.morphic.Morph.eventDepth[name]) + name + ' ' + this);
-    },
-    onMouseDown: function(evt) {
-        var name = 'onMouseDown';
-        this.logEvent(name)
-        lively.morphic.Morph.eventDepth[name]++
-        var result = cop.proceed(evt);
-        (function() { lively.morphic.Morph.eventDepth[name]-- }).delay(0)
-        return result;
-    },
-    onMouseUp: function(evt) {
-        var name = 'onMouseUp';
-        this.logEvent(name)
-        lively.morphic.Morph.eventDepth[name]++
-        var result = cop.proceed(evt);
-        (function() { lively.morphic.Morph.eventDepth[name]-- }).delay(0)
-        return result;
-    },
-    onMouseMove: function(evt) {
-        var name = 'onMouseMove';
-        this.logEvent(name)
-        lively.morphic.Morph.eventDepth[name]++
-        var result = cop.proceed(evt);
-        (function() { lively.morphic.Morph.eventDepth[name]-- }).delay(0)
-        return result;
-    },
-}).beNotGlobal()
-
-
 Object.extend(lively.morphic.Morph, {
     eventDepth: {
         onMouseDown: 0,

@@ -1259,7 +1259,6 @@ lively.morphic.List.addMethods(
         this.itemList = [];
         this.selection = null;
         this.selectedLineNo = -1;
-        this.selectOnMove = false;
         if (optItems) this.updateList(optItems);
     },
 },
@@ -1360,7 +1359,6 @@ lively.morphic.List.addMethods(
 'styling', {
     applyStyle: function($super, spec) {
         $super(spec);
-        if (spec.selectOnMove !== undefined) this.selectOnMove = spec.selectOnMove;
         if (spec.fontFamily !== undefined) this.setFontFamily(spec.fontFamily);
         if (spec.fontSize !== undefined) this.setFontSize(spec.fontSize);
     },

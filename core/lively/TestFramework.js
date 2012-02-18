@@ -492,8 +492,8 @@ Object.subclass('TestSuite', {
     setTestFilterSpec: function(spec) {
         if (!spec) return this;
         var parts = spec.split('|');
-        this.setTestCaseFilter(parts[0]).
-            setTestSelectorFilter(parts[1]);
+        this.setTestCaseFilter(new RegExp(parts[0])).
+            setTestSelectorFilter(new RegExp(parts[1]));
         return this;
     },
 
@@ -544,22 +544,22 @@ Object.subclass('TestSuite', {
 });
 
 Object.extend(TestSuite, {
-    runAllInModule: function(m) {
-        var suite = this.forTestsInModule(m);
+    runAllInModule: function(m, optFilterSpec) {
+        var suite = this.forTestsInModule(m, optFilterSpec);
         suite.runAll();
         return suite;
     },
-    forTestsInModule: function(m) {
+    forTestsInModule: function(m, optFilterSpec) {
         var suite = new this();
-        suite.addTestCasesFromModule(m);
+        suite.setTestFilterSpec(optFilterSpec).addTestCasesFromModule(m);
         return suite;
     },
-    forAllAvailableTests: function() {
+    forAllAvailableTests: function(optFilterSpec) {
         var classes = Global.classes(true).select(function(ea) {
             return ea.isRunnableTestCaseClass && ea.isRunnableTestCaseClass();
         });
         var suite = new this();
-        suite.addTestCases(classes);
+        suite.setTestFilterSpec(optFilterSpec).addTestCases(classes);
         return suite;
     }
 });

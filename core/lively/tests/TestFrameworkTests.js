@@ -277,7 +277,6 @@ AsyncTestCase.subclass('TestSuiteTest', {
                     'testClass filter failed 1');
         this.assert(!ts.shouldTestClassRun({type: "Foo.Zork.Baz"}),
                     'testClass filter failed 2');
-        ts.runAll();
 	this.done();
     }
 

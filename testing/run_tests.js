@@ -66,8 +66,19 @@ var testList = [
     "ometa.tests.OmetaTests"
 ];
 
+// filter is something like "lively.morphic.*|.*Origin.*|test03"
+var filter = getURLParam('testFilter'), suiteFilter;
+if (filter) {
+    var parts = filter.split('|'),
+        modulePart = parts[0],
+        moduleFilterRegexp = new RegExp(modulePart);
+    testList = testList.select(function(name) {
+        return moduleFilterRegexp.test(name) });
+    suiteFilter = parts.slice(1).join('|'); // last 2
+}
+
 require(['lively.TestFramework'].concat(testList)).toRun(function() {
-    var suite = TestSuite.forAllAvailableTests();
+    var suite = TestSuite.forAllAvailableTests(suiteFilter);
     suite.runFinished = function() {
         var result = suite.result.asJSONString();
         postResult(result);

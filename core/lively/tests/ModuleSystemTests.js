@@ -28,6 +28,4 @@ TestCase.subclass('lively.tests.ModuleSystemTests.LoaderTest', {
 	
 });
 
-console.log('ModuleSystemTests.js loaded');
-
 });

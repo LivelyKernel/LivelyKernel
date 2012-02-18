@@ -75,11 +75,6 @@ var JSLoader = {
             return null;
         }
         var css = this.isCSS(url);
-        if (css){
-            console.log('loading css ' + url );
-        } else {
-            console.log('loading script ' + url );
-        }
 
         // adapt URL
         var exactUrl = url;
@@ -206,7 +201,7 @@ var JSLoader = {
     loadAll: function(urls, cb) {
         urls.reverse().reduce(function(loadPrevious, url) {
             return function() { JSLoader.loadJs(url, loadPrevious); };
-        }, function() { console.log('loadAll done'); cb && cb(); })();
+        }, function() { cb && cb(); })();
     },
 
     resolveAndLoadAll: function(baseURL, urls, cb) {

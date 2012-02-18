@@ -597,6 +597,4 @@ TestCase.subclass('LoaderTest',
 	},
 });
 
-console.log('loaded CoreTest.js');
-
 }) // end of module

@@ -3,5 +3,4 @@ console.log('loading lively.morphic with ' + reqs)
 
 module('lively.morphic').requires(reqs).toRun(function() {
 
-console.log('lively.morphic loaded')
 }) // end of module

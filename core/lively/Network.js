@@ -1629,8 +1629,5 @@ Object.extend(WebResource, {
     create: function(url) { return new this(url) },
 });
 
-console.log('loaded Network.js');
-
-
 }); // end of module
 

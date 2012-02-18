@@ -242,6 +242,4 @@ Object.extend(Global, {
 
 });
 
-console.log('Helper.js is loaded');
-
 });

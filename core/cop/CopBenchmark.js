@@ -1217,6 +1217,4 @@ Object.extend(CopBenchmark, {
 	}
 })
 
-
 });
-console.log("loaded LayersTest.js");

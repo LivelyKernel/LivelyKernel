@@ -1772,4 +1772,3 @@ TestCase.subclass('cop.LayersTest.UnrefineObjectTest', {
 
 
 });
-console.log("loaded LayersTest.js");

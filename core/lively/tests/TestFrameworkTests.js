@@ -430,7 +430,4 @@ AsyncTestCase.subclass('lively.tests.TestFrameworkTests.AsyncTestCaseTest', {
 
   });
 
-
-console.log('loaded TestFrameworkTests.js');
-
 }) // end of module

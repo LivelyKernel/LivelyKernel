@@ -1,4 +1,4 @@
-module('lively.WidgetsTraits').requires('lively.Traits').toRun(function() {
+module('lively.WidgetsTraits').requires('lively.Traits', 'lively.morphic.Graphics').toRun(function() {
 
 // -------------
 // Windows

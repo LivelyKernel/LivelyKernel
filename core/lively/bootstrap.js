@@ -606,7 +606,8 @@ var LivelyLoader = {
             'lively/defaultconfig.js',
             'lively/localconfig.js',
             'lively/Base.js',
-            'lively/lang/Closure.js'
+            'lively/lang/Closure.js',   // FIXME: require module instead
+            'lively/lang/UUID.js'       // FIXME: require module instead
         ];
         JSLoader.resolveAndLoadAll(codeBase, modules, thenDoFunc);
     },

@@ -605,7 +605,8 @@ var LivelyLoader = {
             'lively/lang/Number.js',
             'lively/defaultconfig.js',
             'lively/localconfig.js',
-            'lively/Base.js'
+            'lively/Base.js',
+            'lively/lang/Closure.js'
         ];
         JSLoader.resolveAndLoadAll(codeBase, modules, thenDoFunc);
     },

@@ -1028,7 +1028,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
  domSelection: function() {
         var sel = Global.getSelection(),
             textNode = this.renderContext().textNode;
-        if (!sel || !sel.focusNode) {
+        if (!sel || !sel.focusNode || !textNode) {
             return null;
         }
         if (sel.focusNode.compareDocumentPosition(textNode) &

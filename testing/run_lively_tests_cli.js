@@ -24,6 +24,16 @@ var platformConf = config.platformConfigs[process.platform],
         ['-n', '--notifier NAME', "Use a system notifier to output results. "
                                 + "Currently \"" + config.defaultNotifier
                                 + "\" is supported."],
+        ['-f', '--focus FILTER', "A filter is a string that can have three"
+                               + "parts separated by \"|\". All parts define"
+                               + " JS regexps.\n\t\t\t\tThe first is for "
+                               + "matching test modules to load, the second "
+                               + "matches test classes, the third test method"
+                               + "names.\n\t\t\t\tExample: "
+                               + "\"testframework|.*|filter\" will only run "
+                               + "those tests that are in modules matching "
+                               + "'testframework' and are\n\t\t\t\tdefined in"
+                               + "those test methods that match 'filter'."],
         ['--test-script FILE', "Script file that is sent to the browser and "
                              + "runs the tests. If not specified then \""
                              + config.defaultTestScript + "\" is used."]],
@@ -38,7 +48,8 @@ var options = {
     testScript: config.defaultTestScript,
     testWorld: config.defaultTestWorld,
     verbose: false,
-    maxRequests: config.timeout
+    maxRequests: config.timeout,
+    testFilter: null
 };
 
 parser.on("help", function() {
@@ -63,6 +74,10 @@ parser.on("notifier", function(name, value) {
 
 parser.on("test-script", function(name, value) {
     options.testScript = value;
+});
+
+parser.on("filter", function(name, value) {
+    options.testFilter = value;
 });
 
 parser.parse(process.argv);
@@ -160,7 +175,8 @@ function startTests() {
         browser: options.browserConf.pa2th,
         browserArgs: options.browserConf.args,
         testWorldPath: options.testWorld,
-        loadScript: options.testScript
+        loadScript: options.testScript,
+        testFilter: options.testFilter
     }, tryToGetReport);
 }
 

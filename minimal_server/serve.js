@@ -1,3 +1,5 @@
+/*globals escape*/
+
 var express = require('express'),
     spawn = require('child_process').spawn,
     defaultBrowser = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -103,10 +105,12 @@ TestHandler.prototype.newId = function() { return ++currentTestId; };
 TestHandler.prototype.urlForBrowser = function(req) {
     var host = req.headers.host,
         worldPath = req.body.testWorldPath,
-        scriptPath = req.body.loadScript;
+        scriptPath = req.body.loadScript,
+        testFilter = req.body.testFilter;
     if (!host || !worldPath) return null;
     var url = "http://" + host + '/' + worldPath + '?testRunId=' + this.newId();
-    url += scriptPath ? "&loadScript=" + scriptPath : '';
+    url += scriptPath ? "&loadScript=" + escape(scriptPath) : '';
+    url += testFilter ? "&testFilter=" + escape(testFilter) : '';
     return url;
 };
 

@@ -76,7 +76,7 @@ parser.on("test-script", function(name, value) {
     options.testScript = value;
 });
 
-parser.on("filter", function(name, value) {
+parser.on("focus", function(name, value) {
     options.testFilter = value;
 });
 

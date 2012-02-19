@@ -60,8 +60,20 @@ To start the Lively tests from the command line first start the server:
 To initiate a test run do
 
     make kernel_tests
-    
+
 This runs tests in the browser you specified in testing/config.js. Alternatively, you can use the make targets kernel_tests_firefox or kernel_tests_chrome.
+
+#### Test options
+
+Behind `make kernel_tests` there is the script `testing/run_lively_tests_cli.js`. Start it with
+
+    node testing/run_lively_tests_cli.js --help
+
+to see all available options. A few useful ones are:
+
+- Change the browser with `-b`. We currently support `chrome` and `firefox`.
+- Filter tests to run with `-f`, e.g. `-f "testframework|.*|filter"` will only run those tests that are in modules matching '"testframework' (there is just `lively.TestFramework`) and are defined in those test methods that match 'filter'. Generally, there are three parts to a filter that are interpreted as regular expressions. The first one matches modules, the second test classes, and the third test methods. You don't need to specify all parts. This makes it very easy to run focus tests.
+- Output the results via a notification system lile 'growlnotify' with `-n growlnotify`.
 
 #### How it works
 

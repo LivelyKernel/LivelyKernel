@@ -13,7 +13,7 @@ function alertForever(msg) {
 function getURLParam(name) {
     var queryRegex = new RegExp(name + '=([^\\&]+)'),
         match = document.URL.split('?').last().match(queryRegex);
-    return match && match[1];
+    return match && unescape(match[1]);
 }
 
 
@@ -71,7 +71,7 @@ var filter = getURLParam('testFilter'), suiteFilter;
 if (filter) {
     var parts = filter.split('|'),
         modulePart = parts[0],
-        moduleFilterRegexp = new RegExp(modulePart);
+        moduleFilterRegexp = new RegExp(modulePart, "i");
     testList = testList.select(function(name) {
         return moduleFilterRegexp.test(name) });
     suiteFilter = parts.slice(1).join('|'); // last 2

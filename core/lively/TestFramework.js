@@ -492,8 +492,8 @@ Object.subclass('TestSuite', {
     setTestFilterSpec: function(spec) {
         if (!spec) return this;
         var parts = spec.split('|');
-        this.setTestCaseFilter(new RegExp(parts[0])).
-            setTestSelectorFilter(new RegExp(parts[1]));
+        this.setTestCaseFilter(new RegExp(parts[0], "i")).
+            setTestSelectorFilter(new RegExp(parts[1], "i"));
         return this;
     },
 

@@ -271,7 +271,7 @@ AsyncTestCase.subclass('TestSuiteTest', {
 
     testParseFilterSpec: function() {
         var ts = new TestSuite(),
-            spec = "Foo\.Bar\..*|test3$";
+            spec = "Foo\.bar\..*|test3$";
         ts.setTestFilterSpec(spec);
         this.assert(ts.shouldTestClassRun({type: "Foo.Bar.Baz"}),
                     'testClass filter failed 1');

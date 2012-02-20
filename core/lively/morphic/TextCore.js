@@ -906,12 +906,11 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return true;
     },
     onLeftPressed: function($super, evt) {
-        var isSelecting = evt.isShiftDown(),                
-            range = this.getSelectionRange(),                
-            newRange;
         if ($super(evt)) return true;
         if (evt.isCommandKey()) {
-            newRange = this.selectWord(this.textString, range[0]);
+            var isSelecting = evt.isShiftDown(),
+                range = this.getSelectionRange(),
+                newRange = this.selectWord(this.textString, range[0]);
             if (range[0] !== newRange[0]) {
                 this.setSelectionRange(newRange[0], isSelecting ? range[1] : newRange[0]);
             } else {

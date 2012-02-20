@@ -926,12 +926,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                 // since we don't cancel the event the selection will also be collapsed
             }
         }
-        if (isSelecting) {
-            var s = Math.min(range[0], range[1]),
-                e = Math.max(range[0], range[1]);
-            this.setSelectionRange(s - 1, e);
-            evt.stop();
-        }
         return true;
     },
     onRightPressed: function($super, evt) {

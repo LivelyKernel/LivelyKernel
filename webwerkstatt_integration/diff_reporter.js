@@ -1,23 +1,41 @@
 /*globals exports*/
 
 function RepoDiffReporter(spec) {
-  this.rootLK = spec.rootLK;
-  this.rootWW = spec.rootWW;
+    for (var name in spec) {
+        this[name] = spec[name];
+    }
 };
 
 RepoDiffReporter.prototype.parseDiffOutput = function(string) {
-  this.diffOutput = string;
-  this.lines = string.split("\n");
+    this.diffOutput = string;
+    this.lines = string.split("\n");
 }
 
 RepoDiffReporter.prototype.filesDiffing = function() {
-  // var diffLines = [];
-  // this.lines.forEach(function(ea) { })
+    return this.lines
+           .filter(function(ea) { return ea.match(/ differ$/) })
+           .map(function(ea) {
+               return ea.
+                   replace(this.lk.root, "").
+                   replace(this.ww.root, "").
+                   replace(/^Files /, "").
+                   replace(/ differ$/, "").
+                   replace(/ and .*/, "");
+           }, this);
+}
 
-  return ["core/cop/CopBenchmark.js",
-                    "core/lively/Base.js",
-                    "core/lively/ide/SystemCodeBrowser.js",
-                    "core/lively/localconfig.js"];
+RepoDiffReporter.prototype.filesOnlyIn = function(repoName) {
+    var repoDir = this[repoName].root;
+    return this.lines
+           .filter(function(ea) {
+               return ea.indexOf(repoDir) >= 0 && ea.indexOf("Only in") >= 0;
+           })
+           .map(function(ea) {
+               return ea.
+                   replace(repoDir, "").
+                   replace("Only in ", "").
+                   replace(/\/?: /, "/");
+           });
 }
 
 

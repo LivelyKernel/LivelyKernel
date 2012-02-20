@@ -1,4 +1,4 @@
-/*global QUnit, test, equal, same, raises*/
+/*global QUnit, test, equal, same, raises, console, RepoDiffReporter*/
 
 /*
 continously run with:
@@ -34,18 +34,28 @@ var fakeDiff = "Files /Users/robert/Dropbox/Projects/LivelyKernel/core/cop/CopBe
                     "core/lively/ide/SystemCodeBrowser.js",
                     "core/lively/localconfig.js"];
 
+
 var rootLK = "/Users/robert/Dropbox/Projects/LivelyKernel/",
     rootWW = "/Users/robert/server/webwerkstatt/",
     sut;
 
 QUnit.module('diff parsing short', {
     setup: function() {
-      sut = new RepoDiffReporter({rootLK: rootLK, rootWW: rootWW});
-      sut.parseDiffOutput(fakeDiff);
+        var settings = {
+            lk: {root: rootLK, name: 'core'},
+            ww: {root: rootWW, name: "webwerkstatt"}
+        };
+        sut = new RepoDiffReporter(settings);
+        sut.parseDiffOutput(fakeDiff);
     },
     teardown: function() {}
 });
 
 test("find diffing files", function () {
-    same(sut.filesDiffing(), diffingFiles, "did not find files diffing");
+    same(sut.filesDiffing(), diffingFiles, "files diffing");
+});
+
+test("find extra files", function () {
+    same(sut.filesOnlyIn('lk'), filesOnlyInLK, "lk only");
+    same(sut.filesOnlyIn('ww'), filesOnlyInWW, "ww only");
 });

@@ -42,8 +42,9 @@ var rootLK = "/Users/robert/Dropbox/Projects/LivelyKernel/",
 QUnit.module('diff parsing short', {
     setup: function() {
         var settings = {
-            lk: {root: rootLK, name: 'core'},
-            ww: {root: rootWW, name: "webwerkstatt"}
+            lk: {root: rootLK, name: 'core', repoType: 'git'},
+            ww: {root: rootWW, name: "webwerkstatt", repoType: 'svn'},
+            repoUpdater: {}
         };
         sut = new RepoDiffReporter(settings);
         sut.parseDiffOutput(fakeDiff);
@@ -58,4 +59,17 @@ test("find diffing files", function () {
 test("find extra files", function () {
     same(sut.filesOnlyIn('lk'), filesOnlyInLK, "lk only");
     same(sut.filesOnlyIn('ww'), filesOnlyInWW, "ww only");
+});
+
+test("produce report calls repo updater", function () {
+    var svnUpdateDir, gitUpdateDir,
+        cbCalled, cb = function() { cbCalled = true };
+    sut.repoUpdater = {
+        updateSVN: function(dir, cb) { svnUpdateDir = dir; cb() },
+        updateGIT: function(dir, cb) { gitUpdateDir = dir; cb() }
+    }
+    sut.produceResultThenDo(cb);
+    equal(rootLK, gitUpdateDir, 'git update dir ' + gitUpdateDir);
+    equal(rootWW, svnUpdateDir, 'svn update dir ' + svnUpdateDir);
+    equal(true, cbCalled, 'result cb not called');
 });

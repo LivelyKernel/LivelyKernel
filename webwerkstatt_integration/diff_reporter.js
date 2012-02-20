@@ -38,5 +38,16 @@ RepoDiffReporter.prototype.filesOnlyIn = function(repoName) {
            });
 }
 
+RepoDiffReporter.prototype.produceResultThenDo = function(callback) {
+    var lkUpdateMethod = 'update' + this.lk.repoType.toUpperCase(),
+        wwUpdateMethod = 'update' + this.ww.repoType.toUpperCase(),
+        lkIsUpdated = false, wwIsUpdated = false,
+        tryCallback = function() { lkIsUpdated && wwIsUpdated && callback() },
+        lkDone = function() { console.log('lk updated...'); lkIsUpdated = true; tryCallback() },
+        wwDone = function() { console.log('ww updated...'); wwIsUpdated = true; tryCallback() };
+    this.repoUpdater[lkUpdateMethod](this.lk.root, lkDone);
+    this.repoUpdater[wwUpdateMethod](this.ww.root, wwDone);
+}
+
 
 exports.RepoDiffReporter = RepoDiffReporter;

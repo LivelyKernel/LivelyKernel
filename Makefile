@@ -45,16 +45,16 @@ kernel_tests_continuously:
 	$(NODEMON) --watch ./testing/ --watch ./core/ $(CLI_TEST_STARTER)
 
 kernel_tests_chrome:
-	node $(CLI_TEST_STARTER) Chrome
+	node $(CLI_TEST_STARTER) -b chrome
 
 kernel_tests_continuously_chrome:
-	$(NODEMON) --watch ./testing/ --watch ./core/ $(CLI_TEST_STARTER) Chrome
+	$(NODEMON) --watch ./testing/ --watch ./core/ $(CLI_TEST_STARTER) -b chrome
 
 kernel_tests_firefox:
-	node $(CLI_TEST_STARTER) Firefox
+	node $(CLI_TEST_STARTER) -b firefox
 
 kernel_tests_continuously_firefox:
-	$(NODEMON) --watch ./testing/ --watch ./core/ $(CLI_TEST_STARTER) Firefox
+	$(NODEMON) --watch ./testing/ --watch ./core/ $(CLI_TEST_STARTER) -b firefox
 
 ##########
 # jshint #

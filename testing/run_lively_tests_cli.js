@@ -172,7 +172,7 @@ function tryToGetReport(data) {
 
 function startTests() {
     post('/test-request', {
-        browser: options.browserConf.pa2th,
+        browser: options.browserConf.path,
         browserArgs: options.browserConf.args,
         testWorldPath: options.testWorld,
         loadScript: options.testScript,

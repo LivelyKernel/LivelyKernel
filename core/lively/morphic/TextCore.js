@@ -906,11 +906,12 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return true;
     },
     onLeftPressed: function($super, evt) {
+        var isSelecting = evt.isShiftDown(),                
+            range = this.getSelectionRange(),                
+            newRange;
         if ($super(evt)) return true;
         if (evt.isCommandKey()) {
-            var isSelecting = evt.isShiftDown(),
-                range = this.getSelectionRange(),
-                newRange = this.selectWord(this.textString, range[0]);
+            newRange = this.selectWord(this.textString, range[0]);
             if (range[0] !== newRange[0]) {
                 this.setSelectionRange(newRange[0], isSelecting ? range[1] : newRange[0]);
             } else {
@@ -924,6 +925,12 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                 // will create a selection of the tab/softtab
                 // since we don't cancel the event the selection will also be collapsed
             }
+        }
+        if (isSelecting) {
+            var s = Math.min(range[0], range[1]),
+                e = Math.max(range[0], range[1]);
+            this.setSelectionRange(s - 1, e);
+            evt.stop();
         }
         return true;
     },

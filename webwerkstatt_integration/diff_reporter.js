@@ -39,14 +39,21 @@ RepoDiffReporter.prototype.filesOnlyIn = function(repoName) {
 }
 
 RepoDiffReporter.prototype.produceResultThenDo = function(callback) {
-    var lkUpdateMethod = 'update' + this.lk.repoType.toUpperCase(),
-        wwUpdateMethod = 'update' + this.ww.repoType.toUpperCase(),
-        lkIsUpdated = false, wwIsUpdated = false,
-        tryCallback = function() { lkIsUpdated && wwIsUpdated && callback() },
-        lkDone = function() { console.log('lk updated...'); lkIsUpdated = true; tryCallback() },
-        wwDone = function() { console.log('ww updated...'); wwIsUpdated = true; tryCallback() };
-    this.repoUpdater[lkUpdateMethod](this.lk.root, lkDone);
-    this.repoUpdater[wwUpdateMethod](this.ww.root, wwDone);
+    var self = this, si = this.systemInterface;
+    function runDiff() {
+        si.quickDiff(self.lk.root, self.ww.root, callback);
+    }
+    function runUpdate(whenDone) {
+        var lkUpdateMethod = 'update' + self.lk.repoType.toUpperCase(),
+            wwUpdateMethod = 'update' + self.ww.repoType.toUpperCase(),
+            lkIsUpdated = false, wwIsUpdated = false,
+            tryDone = function() { lkIsUpdated && wwIsUpdated && whenDone() },
+            lkDone = function() { console.log('lk updated...'); lkIsUpdated = true; tryDone() },
+            wwDone = function() { console.log('ww updated...'); wwIsUpdated = true; tryDone() };
+        si[lkUpdateMethod](self.lk.root, lkDone);
+        si[wwUpdateMethod](self.ww.root, wwDone);
+    }
+    runUpdate(runDiff);
 }
 
 

@@ -512,7 +512,7 @@ lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
     ensureAngleIndicator: function() {
         // show a red line between the hand and the origin of the target morph
         if (this.lineIndicator) return this.lineIndicator;
-        var line = Morph.makeLine([pt(0,0), pt(0,0)]).applyStyle({borderColor: Color.red});
+        var line = lively.morphic.Morph.makeLine([pt(0,0), pt(0,0)]).applyStyle({borderColor: Color.red});
         return this.lineIndicator = this.addMorph(line);
     },
     removeAngleIndicator: function() {

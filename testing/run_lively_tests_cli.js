@@ -1,3 +1,4 @@
+/*global require, console, process, JSON, setTimeout*/
 var http = require('http'),
     colorize = require('colorize'),
     config = require('./config'),

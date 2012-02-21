@@ -45,34 +45,33 @@ QUnit.module('diff parsing short', {
             updateSVN: function(dir, whenDone) { this.svnUpdateDir = dir; whenDone() },
             updateGIT: function(dir, whenDone) { this.gitUpdateDir = dir; whenDone() },
             quickDiff: function(dir1, dir2, whenDone) {
-                this.diffDir1 = dir1, this.diffDir2 = dir2, whenDone()},
+                this.diffDir1 = dir1, this.diffDir2 = dir2, whenDone(fakeDiff) },
             diff: function() {}
         }
         var settings = {
             systemInterface: systemInterfaceMock,
-            lk: {root: rootLK, name: 'core', repoType: 'git'},
-            ww: {root: rootWW, name: "webwerkstatt", repoType: 'svn'},
+            lk: {root: rootLK, updateMethod: "updateGIT"},
+            ww: {root: rootWW, updateMethod: "updateSVN"},
             repoUpdater: {}
         };
         sut = new RepoDiffReporter(settings);
-        sut.parseDiffOutput(fakeDiff);
     },
     teardown: function() {}
 });
 
 test("find diffing files", function () {
-    same(sut.filesDiffing(), diffingFiles, "files diffing");
+    same(sut.filesDiffing(fakeDiff), diffingFiles, "files diffing");
 });
 
 test("find extra files", function () {
-    same(sut.filesOnlyIn('lk'), filesOnlyInLK, "lk only");
-    same(sut.filesOnlyIn('ww'), filesOnlyInWW, "ww only");
+    same(sut.filesOnlyIn('lk', fakeDiff), filesOnlyInLK, "lk only");
+    same(sut.filesOnlyIn('ww', fakeDiff), filesOnlyInWW, "ww only");
 });
 
 test("produce report calls updater", function () {
     var cbCalled, cb = function() { cbCalled = true },
         siMock = sut.systemInterface;
-    sut.produceResultThenDo(cb);
+    sut.produceReportThenDo(cb);
     equal(rootLK, siMock.gitUpdateDir, 'git update dir ');
     equal(rootWW, siMock.svnUpdateDir, 'svn update dir ');
     equal(true, cbCalled, 'result cb not called');
@@ -81,8 +80,16 @@ test("produce report calls updater", function () {
 test("produce report calls quick diff", function () {
     var called, done = function() { called = true },
         siMock = sut.systemInterface;
-    sut.produceResultThenDo(done);
+    sut.produceReportThenDo(done);
     equal(called, true, 'quick diff not called');
     equal(rootLK, siMock.diffDir1, "lk diff dir wrong");
     equal(rootWW, siMock.diffDir2, 'ww diff dir wrong');
+});
+
+test("report includes 'only' and 'diff' files", function () {
+    var report;
+    sut.produceReportThenDo(function(result) { report = result });
+    same(report.onlyin.ww, filesOnlyInWW, 'ww only');
+    same(report.onlyin.lk, filesOnlyInLK, 'lk only');
+    same(report.diffingFiles, diffingFiles, 'diffing files');
 });

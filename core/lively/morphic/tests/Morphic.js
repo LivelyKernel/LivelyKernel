@@ -691,6 +691,24 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         d = lively.persistence.Serializer.deserialize(s);
         this.assertEquals(d.hiddenTextMorph.textString, 'Hello', 'serialization of removed text should preserve its contents');
     },
+    test10PasteIntoEmptyTextEnsuresSelection: function() {
+        var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20));
+        this.world.addMorph(m);
+        m.textString = '';
+        m.onPaste({
+            clipboardData: {
+                getData: function(type) { 
+                        if (type === "text/plain") {
+                            return "foo";
+                        } 
+                        return false;
+                    }
+                }, 
+            stop: function() {}
+            });
+        this.assertEquals(m.textString, "foo", "string was not pasted into empty text");
+    },
+
 
 });
 
@@ -1280,6 +1298,8 @@ lively.morphic.tests.TextMorphRichTextTests.subclass('lively.morphic.tests.RichT
         this.checkChunks([{textString: 'te', style: {fontWeight: 'bold'}}], this.text)
         this.checkChunks([{textString: 'st', style: {fontWeight: 'bold'}}], rt)
     },
+
+
 
 
 

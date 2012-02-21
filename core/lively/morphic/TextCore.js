@@ -2429,6 +2429,9 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     replaceSelectionInMorph: function(morph) {
         // var chunkNodes = this.textChunks.invoke('getChunkNode'),
             // fragment = XHTMLNS.newFragment(chunkNodes);
+        if (!morph.getSelectionRange()) {
+            morph.setSelectionRange(morph.textString.length, morph.textString.length);
+        }
         morph.insertTextChunksAtCursor(this.getTextChunks(), false, true);
     },
     hasSelection: function() {

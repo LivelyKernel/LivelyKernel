@@ -1,11 +1,16 @@
 /*global require, exports, process, console, JSON*/
 
-var spawn = require('child_process').spawn,
-    fs = require('ls');
+var exec = require('child_process').exec,
+    fs = require('fs');
 
-var RepoDiffReporter = function RepoDiffReporter(spec) {
+function RepoDiffReporter(spec) {
     for (var name in spec) {
-        this[name] = spec[name];
+        if (spec.hasOwnProperty(name)) {
+            this[name] = spec[name];
+        }
+    }
+    if (!this.systemInterface) {
+        this.systemInterface = SystemInterface;
     }
 };
 
@@ -43,6 +48,7 @@ RepoDiffReporter.prototype.produceReportThenDo = function(callback) {
     var self = this, si = this.systemInterface;
 
     function produceReport(rawQuickDiff) {
+        console.log('-> Got diff, parsing...')
         var report = {
             onlyin: {
                 ww: self.filesOnlyIn('ww', rawQuickDiff),
@@ -62,8 +68,8 @@ RepoDiffReporter.prototype.produceReportThenDo = function(callback) {
     function runUpdate(whenDone) {
         var lkIsUpdated = false, wwIsUpdated = false,
             tryDone = function() { lkIsUpdated && wwIsUpdated && whenDone() },
-            lkDone = function() { console.log('lk updated...'); lkIsUpdated = true; tryDone() },
-            wwDone = function() { console.log('ww updated...'); wwIsUpdated = true; tryDone() };
+            lkDone = function() { console.log('-> lk updated...'); lkIsUpdated = true; tryDone() },
+            wwDone = function() { console.log('-> ww updated...'); wwIsUpdated = true; tryDone() };
         si[self.lk.updateMethod](self.lk.root, lkDone);
         si[self.ww.updateMethod](self.ww.root, wwDone);
     }
@@ -73,51 +79,47 @@ RepoDiffReporter.prototype.produceReportThenDo = function(callback) {
 
 
 var SystemInterface = {
-    runCommandAndDo: function(cmd, args, whenDone, env) {
-        var spawned = spawn(cmd, args), out = "", err = "";
-        spawned.stdout.on('data', function (data) {
-            console.log(cmd + ' stdout: ' + data);
-            out += data;
-        });
-        spawned.stderr.on('data', function (data) {
-            console.log(cmd + ' stderr: ' + data);
-            err += data;
-        });
-        spawned.on('exit', function (code) {
-            if (code == 0) {
-                whenDone(out, err);
+
+    runCommandAndDo: function(cmd, options, whenDone) {
+        console.log('-> running ' + cmd + '...');
+        exec(cmd, options, function(error, stdout, stderr) {
+            if (!error) {
+                whenDone(stdout, stderr);
                 return;
             }
-            console.log('Error in ' + cmd + '\n' + err);
+            console.log('Error in ' + cmd + '\n' + stderr);
             process.exit(1);
         });
     },
+
     updateSVN: function(dir, whenDone) {
-        this.runCommandAndDo('svn', ['update'], whenDone);
+        this.runCommandAndDo('svn update', {cwd: dir, env: process.env}, whenDone);
     },
+
     updateGIT: function(dir, whenDone) {
-        this.runCommandAndDo('git', ['pull'], whenDone);
+        this.runCommandAndDo('git pull', {cwd: dir, env: process.env}, whenDone);
     },
-    quickDiff: function(lk_dir, ww_dir, whenDone) {
-        process.env.LK_DIR = lk_dir;
-        process.env.WW_DIR = ww_dir;
-        this.runCommandAndDo('web inte/quickDiff.sh', whenDone);
+
+    quickDiff: function(lkDir, wwDir, whenDone) {
+        this.runCommandAndDo('diff ' + lkDir + '/core/ ' + wwDir
+                            + '/core/ -x ".svn" -u -r -q | sort',
+                             {cwd: null, env: process.env},
+                             whenDone);
     },
+
     diff: function() {},
+
     writeFile: function(path, content) {
+        console.log('-> writing ' + path);
         fs.writeFileSync(path, content);
     }
+
 }
 
-function doDiff() {
-    var settings = {
-        systemInterface: SystemInterface,
-        lk: {root: rootLK, updateMethod: "updateGIT"},
-        ww: {root: rootWW, updateMethod: "updateSVN"}
-    };
-    var reporter = new RepoDiffReporter(settings);
+RepoDiffReporter.createReport = function(settings) {
+    var reporter = new this(settings);
     reporter.produceReportThenDo(function(result) {
-        SystemInterface.writeFile("...", JSON.stringify(result));
+        SystemInterface.writeFile(settings.reportFile, JSON.stringify(result));
     });
 }
 

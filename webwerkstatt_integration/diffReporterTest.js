@@ -3,8 +3,8 @@
 /*
 continously run with:
 nodemon --exec qunit \
-        --code ./webwerkstatt_integration/diff_reporter.js \
-        --tests ./webwerkstatt_integration/diff_reporter_test.js
+        --code ./webwerkstatt_integration/diffReporter.js \
+        --tests ./webwerkstatt_integration/diffReporterTest.js
 */
 
 var fakeDiff = "Files /Users/robert/Dropbox/Projects/LivelyKernel/core/cop/CopBenchmark.js and /Users/robert/server/webwerkstatt/core/cop/CopBenchmark.js differ\n" +
@@ -51,8 +51,7 @@ QUnit.module('diff parsing short', {
         var settings = {
             systemInterface: systemInterfaceMock,
             lk: {root: rootLK, updateMethod: "updateGIT"},
-            ww: {root: rootWW, updateMethod: "updateSVN"},
-            repoUpdater: {}
+            ww: {root: rootWW, updateMethod: "updateSVN"}
         };
         sut = new RepoDiffReporter(settings);
     },

@@ -242,7 +242,7 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
         partMorph.align(partMorph.bounds().center(), lively.morphic.World.current().visibleBounds().center())
     },
     startLoadingPart: function(actionOnLoad) {
-        var waitRect = Morph.makeRectangle(this.getExtent().extentAsRectangle());
+        var waitRect = lively.morphic.Morph.makeRectangle(this.getExtent().extentAsRectangle());
         waitRect.applyStyle({fill: Color.gray, fillOpacity: 0.6})
         this.addMorph(waitRect);
         connect(this.partItem, 'part', waitRect, 'remove');

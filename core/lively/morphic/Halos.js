@@ -470,16 +470,18 @@ lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
 },
 'halo actions', {
     dragAction: function(evt, moveDelta) {
+        var target = this.targetMorph,
+            globalPosition = target.getGlobalTransform().transformPoint(pt(0,0));
         if (!evt.isShiftDown()) { 
             // Normally rotate the morph, with detents at multiples of 45 degrees
-            var nowHandAngle = evt.getPosition().subPt(this.targetMorph.getPosition()).theta();
+            var nowHandAngle = evt.getPosition().subPt(globalPosition).theta();
             var newRotation = this.startRotation + (nowHandAngle - this.startHandAngle);
             newRotation = newRotation.toDegrees().detent(10, 45).toRadians();
             this.setInfo(newRotation.toDegrees().toPrecision(5) + ' degrees'); 
             this.targetMorph.setRotation(newRotation);
         } else {
             // If shift key, scale it with detents at multiples of 0.5
-            var nowHandDist = evt.getPosition().subPt(this.targetMorph.getPosition()).r();
+            var nowHandDist = evt.getPosition().subPt(globalPosition).r();
             var newScale = (this.startScale * nowHandDist / Math.max(this.startHandDist, 40));
             newScale = newScale.detent(0.1, 0.5);
             this.setInfo('scale: ' + newScale.toPrecision(5));
@@ -496,10 +498,12 @@ lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
     },
 
     dragStartAction: function(evt) {
+        var target = this.targetMorph,
+            globalPosition = target.getGlobalTransform().transformPoint(pt(0,0));
         this.startRotation = this.targetMorph.getRotation();
         this.startScale = this.targetMorph.getScale();
-        this.startHandAngle = evt.getPosition().subPt(this.targetMorph.getPosition()).theta();
-        this.startHandDist = evt.getPosition().subPt(this.targetMorph.getPosition()).r();
+        this.startHandAngle = evt.getPosition().subPt(globalPosition).theta();
+        this.startHandDist = evt.getPosition().subPt(globalPosition).r();
         this.targetMorph.removeHalosWithout(this.world(), [this, this.getBoundsHalo()]);
         this.updateAngleIndicator(evt.hand);
         this.isHaloIsBeingDragged = true;

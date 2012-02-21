@@ -1028,15 +1028,19 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
 },
 'selection', {
- domSelection: function() {
+    domSelection: function() {
         var sel = Global.getSelection(),
             textNode = this.renderContext().textNode;
         if (!sel || !sel.focusNode || !textNode) {
             return null;
         }
-        if (sel.focusNode.compareDocumentPosition(textNode) &
+        if (!textNode.parentNode) {
+            console.log('warning: Text>>domSelection: textNode is not in DOM');
+            return null;
+        }
+        if (sel.focusNode.compareDocumentPosition(textNode.parentNode) &
                 Node.DOCUMENT_POSITION_CONTAINS) {
-            // textNode contains focused selection's focusNode
+            // textNode's parent contains focused selection's focusNode
             return sel;
         }
         return null;

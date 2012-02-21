@@ -157,17 +157,25 @@ if (this.window && window.navigator && window.navigator.userAgent.match(/Firefox
 
 Objects = {
     typeStringOf: function(obj) {
-        if (obj === null) return "null";
-        if (obj === undefined) return "undefined";
+        if (obj === null) {
+            return "null";
+        }
+        if (Object.isUndefined(obj)) {
+            return "undefined";    
+        }
         return obj.constructor.name;
     },
 
     shortPrintStringOf: function(obj) {
         // primitive values
-        if (!this.isMutableType(obj)) return this.safeToString(obj);
+        if (!this.isMutableType(obj)) {
+            return this.safeToString(obj);   
+        }
 
         // constructed objects
-        if (obj.constructor.name != 'Object' && obj.constructor.name != 'Array') return obj.constructor.name;
+        if (obj.constructor.name != 'Object' && !Object.isArray(obj)) {
+            return obj.constructor.name;
+        }
 
         // arrays or plain objects
         var typeString = "";

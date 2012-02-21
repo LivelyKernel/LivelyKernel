@@ -46,6 +46,9 @@ QUnit.module('diff parsing short', {
             updateGIT: function(dir, whenDone) { this.gitUpdateDir = dir; whenDone() },
             quickDiff: function(dir1, dir2, whenDone) {
                 this.diffDir1 = dir1, this.diffDir2 = dir2, whenDone(fakeDiff) },
+            fileDiff: function(filePath, dir1, dir2, whenDone) {
+                whenDone('diff for ' + filePath);
+            },
             diff: function() {}
         }
         var settings = {
@@ -83,6 +86,19 @@ test("produce report calls quick diff", function () {
     equal(called, true, 'quick diff not called');
     equal(rootLK, siMock.diffDir1, "lk diff dir wrong");
     equal(rootWW, siMock.diffDir2, 'ww diff dir wrong');
+});
+
+test("produce report calls file diff", function () {
+    var done = function(report) { result = report },
+        siMock = sut.systemInterface,
+        result;
+    sut.produceReportThenDo(done);
+    equal(diffingFiles.length, Object.keys(result.fileDiffs).length,
+          'not produced (all) file diffs');
+    diffingFiles.forEach(function(path) {
+        equal('diff for ' + path, result.fileDiffs[path],
+              "diff for " + path + "wrong");
+    });
 });
 
 test("report includes 'only' and 'diff' files", function () {

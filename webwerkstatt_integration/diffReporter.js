@@ -54,9 +54,39 @@ RepoDiffReporter.prototype.produceReportThenDo = function(callback) {
                 ww: self.filesOnlyIn('ww', rawQuickDiff),
                 lk: self.filesOnlyIn('lk', rawQuickDiff)
             },
-            diffingFiles: self.filesDiffing(rawQuickDiff)
+            diffingFiles: self.filesDiffing(rawQuickDiff),
+            fileDiffs: {}
         }
-        callback(report);
+
+        doFileDiffs(report.diffingFiles, function(diffs) {
+            report.fileDiffs = diffs;
+            callback(report);
+        })
+
+    }
+
+    function doFileDiffs(filesToDiff, whenDone) {
+        var diffs = {};
+        // helper
+        var filesToDiffHelper = [].concat(filesToDiff); // clone
+        function diffDoneFor(file) { // why is ther eno without or sth???!!!
+            var idx = filesToDiffHelper.indexOf(file);
+            if (idx >= 0) filesToDiffHelper.splice(idx, 1);
+        }
+        function allDiffsDone() { return filesToDiffHelper.length === 0 }
+
+        if (filesToDiff.length == 0) {
+            whenDone(diffs);
+        } else {
+            filesToDiff.forEach(function(filePath) {
+                console.log('-> Diffing ' + filePath + '...');
+                si.fileDiff(filePath, self.lk.root, self.ww.root, function(diff) {
+                    diffs[filePath] = diff;
+                    diffDoneFor(filePath);
+                    if (allDiffsDone()) whenDone(diffs);
+                });
+            });
+        }
     }
 
     function runDiff() {
@@ -80,14 +110,14 @@ RepoDiffReporter.prototype.produceReportThenDo = function(callback) {
 
 var SystemInterface = {
 
-    runCommandAndDo: function(cmd, options, whenDone) {
+    runCommandAndDo: function(cmd, options, whenDone, ignoreExitCode) {
         console.log('-> running ' + cmd + '...');
         exec(cmd, options, function(error, stdout, stderr) {
-            if (!error) {
+            if (!error || ignoreExitCode) {
                 whenDone(stdout, stderr);
                 return;
             }
-            console.log('Error in ' + cmd + '\n' + stderr);
+            console.log('Error in ' + error + ' ' + cmd + '\n' + stderr + '\n-----\n' + stdout);
             process.exit(1);
         });
     },
@@ -105,6 +135,14 @@ var SystemInterface = {
                             + '/core -x ".svn" -u -r -q | sort',
                              {cwd: null, env: process.env},
                              whenDone);
+    },
+
+    fileDiff: function(relativePath, lkDir, wwDir, whenDone) {
+        this.runCommandAndDo('diff ' + lkDir + relativePath + ' '
+                            + wwDir + relativePath + ' -u',
+                             {cwd: null, env: process.env},
+                             whenDone,
+                             true);
     },
 
     diff: function() {},

@@ -101,8 +101,8 @@ var SystemInterface = {
     },
 
     quickDiff: function(lkDir, wwDir, whenDone) {
-        this.runCommandAndDo('diff ' + lkDir + '/core/ ' + wwDir
-                            + '/core/ -x ".svn" -u -r -q | sort',
+        this.runCommandAndDo('diff ' + lkDir + '/core ' + wwDir
+                            + '/core -x ".svn" -u -r -q | sort',
                              {cwd: null, env: process.env},
                              whenDone);
     },

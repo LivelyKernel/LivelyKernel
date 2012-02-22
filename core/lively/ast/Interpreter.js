@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.ast.Interpreter').requires('lively.ast.generated.Nodes').toRun(function() {
+module('lively.ast.Interpreter').requires('lively.ast.generated.Nodes', 'lively.ast.Parser').toRun(function() {
 
 Object.subclass('lively.ast.Interpreter.Frame',
 'initialization', {
@@ -110,7 +110,19 @@ Object.subclass('lively.ast.Interpreter.Frame',
             return this.getFunc().name;
         if (this.getFunc().declaredClass)
             return this.getFunc().declaredClass + ">>" + this.getFunc().methodName;
+        if (this.funcAst && this.funcAst._parent && this.funcAst._parent.isVarDeclaration)
+            return this.funcAst._parent.name;
         return 'anonymous';
+    },
+    getFuncSource: function() {
+        // get the top-most 'real function'
+        var current = this.funcAst;
+        var realFunc = this.getFunc(); // fallback: this function
+        while (current) {
+            if (current.realFunction) realFunc = current.realFunction;
+            current = current._parent;
+        }
+        return String(realFunc);
     },
     findFrame: function(name) {
         if (this.mapping.hasOwnProperty(name)) return {
@@ -162,12 +174,6 @@ Object.subclass('lively.ast.Interpreter.Frame',
     stopContinue: function() {
         this.continueTriggered = false
     },
-    triggerNew: function() {
-        this.newTriggered = true
-    },
-    stopNew: function() {
-        this.newTriggered = false
-    },
 },
 'accessing for UI', {
     listItemsForIntrospection: function() {
@@ -209,6 +215,11 @@ Object.subclass('lively.ast.Interpreter.Frame',
     hasNextStatement: function() {
         return this.pc.nextStatement() != null;
     },
+    restart: function() {
+        this.initialize(this.mapping);
+        this.breakAtFirstStatement();
+        this.resume();
+    }
 },
 'resuming', {
     isResuming: function() {
@@ -269,8 +280,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
 },
 'printing', {
     highlightSourceText: function(text) {
-        var source = String(this.getFunc());
-        text.setTextString(source);
+        text.setTextString(this.getFuncSource());
         text.highlightJavaScriptSyntax();
         if (this.pc !== null) {
             var style = { backgroundColor: Color.web.salmon.lighter() },
@@ -343,8 +353,7 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
 'invoking', {
     invoke: function(node, recv, func, argValues) {
         var frame = this.currentFrame,
-            newCall = frame.newTriggered;
-        if (newCall) frame.stopNew();
+            newCall = node._parent && node._parent.isNew;
         var caller = lively.ast.FunctionCaller.defaultInstance;
         frame.setPC(node);
         return caller.activate(frame, newCall, func, node.name, recv, argValues);
@@ -676,8 +685,8 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
         return this.invoke(node, recv, func, argValues);
     },
     visitNew: function(node) {
-        var frame = this.currentFrame;
-            frame.triggerNew();
+        // No need to do anything because Send and Call
+        // will look up _parent for New
         return this.visit(node.clsExpr);
     },
     visitVarDeclaration: function(node) {
@@ -790,6 +799,14 @@ Object.subclass('lively.ast.FunctionCaller', 'documentation', {
     },
 },
 'interpretation', {
+    shouldInterpret: function(func) {
+        if (this.isNative(func))
+            return false;
+        return
+            func.hasOwnProperty("forInterpretation") ||
+            frame.breakAtCalls ||
+            func.containsDebugger();
+    },
     activate: function(frame, isNewCall, func, funcName, recv, argValues) {
         // if we send apply to a function (recv) we want to interpret it
         // although apply is a native function
@@ -800,8 +817,7 @@ Object.subclass('lively.ast.FunctionCaller', 'documentation', {
             argValues = argValues[0]; // the second arg are the arguments (as an array)
         }
 
-        if (func.hasOwnProperty("forInterpretation") ||
-            (!this.isNative(func) && (frame.breakAtCalls || func.containsDebugger()))) {
+        if (this.shouldInterpret(func)) {
             func = func.forInterpretation(Global);
         }
 
@@ -973,7 +989,7 @@ lively.ast.Function.addMethods('accessing', {
         var fn = function(/*args*/) {
             return that.apply(this, $A(arguments));
         };
-        fn.forInterpretation = function() { return this; };
+        fn.forInterpretation = function() { return that; };
         return fn;
     }
 },

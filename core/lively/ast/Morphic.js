@@ -32,13 +32,12 @@ Object.extend(lively.morphic.Morph, {
     },
 });
 
-cop.create('DebugScriptLayer')
-.beGlobal()
+cop.create('DebugScriptsLayer')
 .refineClass(lively.morphic.Morph, {
     addScript: function(funcOrString, optName) {
         var func = Function.fromString(funcOrString),
             name = func.name || optName;
-        if (Config.debugScripts === true && func.containsDebugger()) {
+        if (func.containsDebugger()) {
             func = func.forDebugging("lively.morphic.Morph.openDebugger");
         }
         var script = func.asScriptOf(this, name);
@@ -67,19 +66,6 @@ lively.morphic.Text.addMethods(
     }
 });
 
-cop.create('DebugItLayer')
-.beGlobal()
-.refineClass(lively.morphic.Text, {
-    processCommandKeys: function(evt) {
-        var key = evt.getKeyChar();
-        if (key) key = key.toLowerCase();
-        if (evt.isShiftDown() && key == "d") {
-            this.debugSelection();
-            return true;
-        }
-        return cop.proceed(evt);
-    },
-});
 cop.create('DebugGlobalErrorHandlerLayer')
 .beGlobal()
 .refineClass(lively.morphic.EventHandler, {

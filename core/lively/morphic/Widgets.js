@@ -1016,7 +1016,12 @@ lively.morphic.World.addMethods(
         // method tracing items
         function disableGlobalTracing() {
             // FIXME better to move this functionality into lively.Tracing
-            $morph("TracingController").stopTrace();
+            var controller = $morph("TracingController");
+            if (controller) {
+                controller.stopTrace();
+            } else {
+                lively.Tracing.stopGlobalDebugging();
+            }
         }
         var tracersInstalled = lively.Tracing && lively.Tracing.stackTracingEnabled,
             globalTracingEnabled = tracersInstalled && lively.Tracing.globalTracingEnabled;
@@ -1027,14 +1032,30 @@ lively.morphic.World.addMethods(
             }]);
 
             if (!globalTracingEnabled) {
-                items.push(['Start global tracing', function() { lively.Tracing.startGlobalTracing() }])
-            } else {
-                items.push(['Stop global tracing', disableGlobalTracing])
+                items.push(['Start global tracing', function() {
+                    lively.Tracing.startGlobalTracing()
+                }]);
+                items.push(['Start global debugging', function() {
+                    require('lively.ast.Morphic').toRun(function() {
+                        lively.Tracing.startGlobalDebugging()
+                    });
+                }]);
             }
         } else {
-            items.push(['Prepare system for tracing', function() {
+            items.push(['Prepare system for tracing/debugging', function() {
                 require("lively.Tracing").toRun(function() {
                     lively.Tracing.installStackTracers();
+                });
+            }]);
+        }
+        if (Global.DebugScriptsLayer && DebugScriptsLayer.isGlobal()) {
+            items.push(['[X] Debug Morphic Scripts', function() {
+                DebugScriptsLayer.beNotGlobal()
+            }]);
+        } else {
+            items.push(['[  ] Debug Morphic Scripts', function() {
+                require('lively.ast.Morphic').toRun(function() {
+                    DebugScriptsLayer.beGlobal()
                 });
             }]);
         }
@@ -1131,10 +1152,38 @@ lively.morphic.World.addMethods(
 },
 'dialogs', {
     openDialog: function(dialog) {
-        var visibleBounds = this.visibleBounds();
-        var window = dialog.openIn(this, pt(0,0));
+        var activeWindow = $world.getActiveWindow() || $world,
+            visibleBounds = this.visibleBounds(),
+            blockee = activeWindow.targetMorph || $world,
+            pointOfAlign = activeWindow.targetMorph ? 
+                blockee.getShape().getBounds().topRight() :        
+                this.visibleBounds().center(),
+            window = dialog.openIn(this, pt(0,0)),
+            d,
+            transparentMorph,
+            blockMorph;
         window.align(window.owner.localize(window.bounds().center()), visibleBounds.center());
         window.focus();
+        d = dialog
+        if (!activeWindow) return d;
+
+        blockMorph = lively.morphic.Morph.makeRectangle(blockee.bounds());
+        blockMorph.applyStyle({
+            fill: null,
+            borderWidth: 0,
+        });
+        transparentMorph = lively.morphic.Morph.makeRectangle(blockMorph.getShape().getBounds());
+        blockMorph.addMorph(transparentMorph);
+        transparentMorph.applyStyle({
+            fill: Color.black,
+            opacity: 0.5,
+        });
+        
+        blockMorph.addMorph(d.panel);
+        d.panel.align(d.panel.bounds().topRight(), pointOfAlign);
+
+        activeWindow.addMorph(blockMorph);
+        connect(d.panel, 'remove', blockMorph, 'remove');
         return dialog;
     },
     confirm: function (message, callback) {
@@ -1237,6 +1286,11 @@ lively.morphic.World.addMethods(
                     .statusMessage('Removed ' + url, 'Error removing ' + url, true)
                     .del();
             })
+    },
+    getActiveWindow: function() {
+        return this.world().submorphs.detect(function (ea) {
+            return ea.isWindow && ea.highlighted
+        });
     }
 });
 
@@ -1631,7 +1685,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
 },
 'mouse event handling', {
     highlight: function(trueForLight) {
-        this.highlighted = true;
+        this.highlighted = trueForLight;
         var fill = this.titleBar.getStyle().fill || this.titleBar.getFill(),
             newFill = trueForLight ? fill.lighter(2) : fill;
         this.titleBar.setFill(newFill);
@@ -1716,6 +1770,8 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
         this.expandedPosition = this.getPosition();
         this.targetMorph.onWindowCollapse && this.targetMorph.onWindowCollapse();
         this.targetMorph.remove();
+        this.helperMorphs = this.submorphs.withoutAll([this.targetMorph, this.titleBar]);
+        this.helperMorphs.invoke('remove');
         if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(true);
         var finCollapse = function () {
             this.state = 'collapsed';  // Set it now so setExtent works right
@@ -1745,6 +1801,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
             }
 
             this.addMorph(this.targetMorph);
+
+            this.helperMorphs.forEach(function(ea) {
+                this.addMorph(ea)
+            }, this);
+
             // Bring this window forward if it wasn't already
             this.owner && this.owner.addMorphFront(this);
             this.targetMorph.onWindowExpand && this.targetMorph.onWindowExpand();

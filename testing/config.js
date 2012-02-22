@@ -14,7 +14,7 @@ var chromeArgs =   ["--no-process-singleton-dialog",
 
 var Config = {
 
-    timeout: 60,
+    timeout: 300,
     // ------------- what system do you want to test on?
     defaultBrowser: "chrome",
     defaultNotifier: "growlnotify",

@@ -89,4 +89,4 @@ install_chrome_travis:
 	sudo apt-get install chromium-browser
 
 start_server_forever:
-	./node_modules/forever/bin/forever start minimal_server/serve.js 9001
+	./node_modules/forever/bin/forever start minimal_server/serve.js 9001 && echo 'setTimeout(function(){ }, 2500);' | node

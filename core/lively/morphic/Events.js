@@ -168,9 +168,9 @@ Object.subclass('lively.morphic.EventHandler',
         if (evt.hasLivelyPatch) return evt;
 
         evt.hasLivelyPatch = true;
-        evt.isLeftMouseButtonDown = function() { return evt.which === 1 };
-        evt.isMiddleMouseButtonDown = function() { return evt.which === 2 };
-        evt.isRightMouseButtonDown = function() { return evt.which === 3 };
+        evt.isLeftMouseButtonDown = function() { return Event.MOUSE_LEFT_DETECTOR(evt) };
+        evt.isMiddleMouseButtonDown = function() { return Event.MOUSE_MIDDLE_DETECTOR(evt) };
+        evt.isRightMouseButtonDown = function() { return Event.MOUSE_RIGHT_DETECTOR(evt) };
 
         evt.isCommandKey = function() {
             // this is LK convention, not the content of the event
@@ -303,6 +303,7 @@ lively.morphic.EventHandler.subclass('lively.morphic.RelayEventHandler',
         return result ? true : $super(evt);
     },
 });
+
 Object.extend(Event, {
     // copied from prototype.js:
     KEY_BACKSPACE: 8,
@@ -325,7 +326,23 @@ Object.extend(Event, {
     KEY_SHIFT:    16,
     KEY_CTRL:     17,
     KEY_ALT:      18,
-    KEY_CMD:      91
+    KEY_CMD:      91,
+
+    MOUSE_LEFT_DETECTOR: (function() {
+        return UserAgent.fireFoxVersion ?
+            function(evt) { return evt.world.clickedOnMorph && evt.which === 1 } :
+            function(evt) { return evt.which === 1 }
+    })(),
+    MOUSE_MIDDLE_DETECTOR: (function() {
+        return UserAgent.fireFoxVersion ?
+            function(evt) { return evt.world.clickedOnMorph && evt.which === 2 } :
+            function(evt) { return evt.which === 2 }
+    })(),
+    MOUSE_RIGHT_DETECTOR: (function() {
+        return UserAgent.fireFoxVersion ?
+            function(evt) { return evt.world.clickedOnMorph && evt.which === 3 } :
+            function(evt) { return evt.which === 3 }
+    })()
 });
 
 Trait('ScrollableTrait',
@@ -642,10 +659,7 @@ handleOnCapture);
 
     },
 
-    onMouseUp: function(evt) {
-
-        return false;
-    },
+    onMouseUp: function(evt) { return false; },
     onMouseUpEntry: function(evt) {
         var world = evt.world,
             completeClick = world.clickedOnMorph === this,
@@ -750,6 +764,8 @@ handleOnCapture);
         if (this.eventsAreIgnored) { return false; }
         return this.onMouseMove(evt);
     },
+    onMouseOut: function(evt) { return false; },
+
 
     onContextMenu: function(evt) {
         // we are invoking menus in onMouseDown
@@ -1181,7 +1197,12 @@ lively.morphic.List.addMethods(
         return $super(evt)
     },
     onMouseOver: function(evt) {
-        return true;
+        if (this.selectOnMove) {
+            var idx = this.selectItemFromEvt(evt);
+            evt.stopPropagation();
+            return idx > -1;
+        }
+        return false;
     },
     onMouseMove: function(evt) {
         evt.stop();
@@ -1381,12 +1402,18 @@ lively.morphic.World.addMethods(
 'mouse event handling', {
     onMouseDown: function($super, evt) {
         this.eventStartPos = evt.getPosition();
+        var activeWindow = this.getActiveWindow();
+        if (activeWindow) {
+            activeWindow.highlight(false)
+        };
         return false;
     },
     onMouseUp: function(evt) {
         evt.hand.removeOpenMenu(evt);
-        if (!evt.isCommandKey() && (!this.clickedOnMorph || !this.clickedOnMorph.isHalo))
+        if (!evt.isCommandKey() && (!this.clickedOnMorph || !this.clickedOnMorph.isHalo)
+                                && !this.ignoreHalos) {
             this.removeHalosOfCurrentHaloTarget();
+        }
 
         // FIXME should be hand.draggedMorph!
         var draggedMorph = this.draggedMorph;
@@ -1805,6 +1832,15 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     hand: function() { return this },
     morphsContainingPoint: function(point, list) {
         return list || [];
+    },
+    morphUnderMe: function() {
+        return this.world().morphsContainingPoint(this.getPosition()).first();
+    },
+},
+'testing', {
+    isPressed: function() {
+        // FIXME, this depends on world behavior!!!
+        return !!this.world().clickedOnMorph;
     },
 },
 'event handling', {

@@ -7,4 +7,4 @@ before_install:
 before_script: 
   - "make start_server_forever" 
 
-script: "make server_tests"
+script: "make kernel_tests"

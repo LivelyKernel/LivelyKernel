@@ -459,13 +459,13 @@ TestCase.subclass('lively.ast.tests.InterpreterTest',
             result  = ast.startInterpretation();
         this.assertEquals(2, result);
     },
-    test24bNewThenObjAccess: function() {
+    X_test24bNewThenObjAccess: function() {
         var src = 'function m() { this.a = 2 }; new m().a',
             ast = this.parseJS(src),
             result  = ast.startInterpretation();
         this.assertEquals(2, result);
     },
-    test24cNewPrototypeInheritence: function() {
+    X_test24cNewPrototypeInheritence: function() {
         var src = 'function m() { this.a = 1 }; m.prototype.b = 2; new m().b',
             ast = this.parseJS(src),
             result  = ast.startInterpretation();
@@ -477,13 +477,13 @@ TestCase.subclass('lively.ast.tests.InterpreterTest',
             result  = ast.startInterpretation();
         this.assertEquals(2, result);
     },
-    test24eObjReallyInherits: function() {
+    X_test24eObjReallyInherits: function() {
         var src = 'function m() {}; m.prototype.a = 2; var obj = new m(); m.prototype.a = 1; obj.a',
             ast = this.parseJS(src),
             result  = ast.startInterpretation();
         this.assertEquals(1, result);
     },
-    test24eFuncCallInNewExpr: function() {
+    X_test24eFuncCallInNewExpr: function() {
         var src = 'function m() { this.a = (function() { return 1 })() }; new m().a',
             ast = this.parseJS(src),
             result  = ast.startInterpretation();
@@ -1105,7 +1105,7 @@ TestCase.subclass('lively.ast.tests.BreakpointTest',
         this.assertEquals(frame.mapping["i"], 23);
         frame.stepToNextStatement();
     },
-    testStepOverAnotherDebugger: function() {
+    X_testStepOverAnotherDebugger: function() {
         var that = this;
         var outer = this.assertBreaksWhenInterpretated(this.examples.callAnotherDebugger);
         this.assertBreaks(function() { outer.stepToNextStatement(); });
@@ -1123,7 +1123,7 @@ TestCase.subclass('lively.ast.tests.BreakpointTest',
         );
         //outer.stepToNextStatement();
     },
-    testStepInto: function() {
+    X_testStepInto: function() {
         var that = this;
         var outer = this.assertBreaksWhenInterpretated(this.examples.callNoDebugger);
         this.assertEquals(outer.mapping["a"], 65);
@@ -1140,7 +1140,7 @@ TestCase.subclass('lively.ast.tests.BreakpointTest',
         this.assertEquals(outer.mapping["j"], 23);
         this.assertEquals(outer.resume(), 46);
     },
-    testResumeReturnAfterStepInto: function() {
+    X_testResumeReturnAfterStepInto: function() {
         var that = this;
         var outer = this.assertBreaksWhenInterpretated(this.examples.returnNoDebugger);
         this.assertEquals(outer.mapping["j"], 23);
@@ -1152,7 +1152,7 @@ TestCase.subclass('lively.ast.tests.BreakpointTest',
         this.assertEquals(inner.mapping["i"], 23);
         this.assertEquals(inner.resume(), 46);
     },
-    testStepOutAfterReturnStepInto: function() {
+    X_testStepOutAfterReturnStepInto: function() {
         var that = this;
         var outer = this.assertBreaksWhenInterpretated(this.examples.returnNoDebugger);
         this.assertBreaks(function() { that.assert(outer.stepToNextStatement()); });
@@ -1188,7 +1188,7 @@ TestCase.subclass('lively.ast.tests.BreakpointTest',
         this.assertBreaks(function() { frame.stepToNextStatement(); });
         this.assertEquals(frame.mapping.i, 24);
     },
-    testFactorial: function() {
+    X_testFactorial: function() {
         var that = this;
         var fun = this.examples.factorial.forInterpretation();
         var fac3 = this.assertBreaks(function() {

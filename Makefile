@@ -86,7 +86,7 @@ update_partsbin:
 #############
 
 install_chrome_travis:
-    sudo apt-get install chromium-browser
+	sudo apt-get install chromium-browser
 
 start_server_forever:
-    ./node_modules/forever/bin/forever start minimal_server/serve.js
+	./node_modules/forever/bin/forever start minimal_server/serve.js

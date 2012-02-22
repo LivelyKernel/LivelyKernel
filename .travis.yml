@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+  - 0.6
+
+before_install: 
+  - "make install_chrome_travis"
+before_script: 
+  - "make start_server_forever" 
+
+script: "make server_tests"

@@ -166,9 +166,10 @@ function tryToGetReport(data) {
         }, 1000);
         return;
     }
-    printResult(data.testRunId, JSON.parse(data.result));
-    notifyResult(data.testRunId, JSON.parse(data.result));
-    process.exit(0);
+    var result = JSON.parse(data.result);
+    printResult(data.testRunId, result);
+    notifyResult(data.testRunId, result);
+    process.exit(result.fails ? 1 : 0);
 }
 
 function startTests() {

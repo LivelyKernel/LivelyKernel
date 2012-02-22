@@ -81,3 +81,12 @@ install_partsbin:
 update_partsbin:
 	cd PartsBin && svn up
 
+#############
+# Travis-CI #
+#############
+
+install_chrome_travis:
+    sudo apt-get install chromium-browser
+
+start_server_forever:
+    ./node_modules/forever/bin/forever start minimal_server/serve.js

@@ -80,7 +80,7 @@ RepoDiffReporter.prototype.produceReportThenDo = function(callback) {
         } else {
             filesToDiff.forEach(function(filePath) {
                 console.log('-> Diffing ' + filePath + '...');
-                si.fileDiff(filePath, self.lk.root, self.ww.root, function(diff) {
+                si.fileDiff(filePath, self.ww.root, self.lk.root, function(diff) {
                     diffs[filePath] = diff;
                     diffDoneFor(filePath);
                     if (allDiffsDone()) whenDone(diffs);
@@ -90,7 +90,7 @@ RepoDiffReporter.prototype.produceReportThenDo = function(callback) {
     }
 
     function runDiff() {
-        si.quickDiff(self.lk.root, self.ww.root, function(rawQuickDiff) {
+        si.quickDiff(self.ww.root, self.lk.root, function(rawQuickDiff) {
             produceReport(rawQuickDiff);
         });
     }

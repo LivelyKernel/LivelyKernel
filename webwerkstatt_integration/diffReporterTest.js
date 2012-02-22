@@ -84,8 +84,8 @@ test("produce report calls quick diff", function () {
         siMock = sut.systemInterface;
     sut.produceReportThenDo(done);
     equal(called, true, 'quick diff not called');
-    equal(rootLK, siMock.diffDir1, "lk diff dir wrong");
-    equal(rootWW, siMock.diffDir2, 'ww diff dir wrong');
+    equal(rootLK, siMock.diffDir2, "lk diff dir wrong");
+    equal(rootWW, siMock.diffDir1, 'ww diff dir wrong');
 });
 
 test("produce report calls file diff", function () {

@@ -1067,7 +1067,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     selectionString: function() {
                 
         // HTML only, works in FF & Chrome
-        var sel = Global.domSelection();
+        var sel = this.domSelection();
         if (!sel) { return ''; }
         var range = sel.getRangeAt(0);
         if (!range) { return ''; }

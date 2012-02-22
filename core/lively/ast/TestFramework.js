@@ -2,18 +2,36 @@ module('lively.ast.TestFramework').requires('lively.TestFramework', 'lively.ast.
 cop.create('DebugTestsLayer')
 .refineClass(TestCase, {
     runTest: function(aSelector) {
-        var sel = aSelector || this.currentSelector;
-        var old = this[sel];
+        if (!this.shouldRun) return;
+        this.currentSelector = aSelector || this.currentSelector;
+        this.running();
+        var runTearDown = true;
         try {
-            if (Config.debugScripts === true) {
-                this[sel] = old.forDebugging("lively.morphic.Morph.openDebugger");
+            this.setUp();
+            console.log("so");
+            this[this.currentSelector].forInterpretation().call(this);
+            this.addAndSignalSuccess();
+        } catch (e) {
+            if (e.isUnwindException) {
+                runTearDown = false;
+                lively.morphic.Morph.openDebugger(e.topFrame, e.toString())
+            } else {
+                this.addAndSignalFailure(e);
             }
-            return cop.proceed(aSelector);
         } finally {
-            this[sel] = old;
+            try {
+                if (runTearDown) this.tearDown();
+            } catch(e) {
+                this.log('Couldn\'t run tearDown for ' + this.id() + ' ' + e);
+            }
         }
+        return this.result;
     },
+})
+.refineClass(lively.AST.FunctionCaller, {
+    shouldInterpret: function(func) {
+        return !this.isNative(func);
+    }
 });
-
 
 }) // end of module

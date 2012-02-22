@@ -31,7 +31,6 @@ TestCase.subclass('lively.ast.tests.ParserTest',
 },
 'helper', {
     parseJS: function(src, rule) {
-        // return lively.ast.Parser.parse(src, rule)
         return OMetaSupport.matchAllWithGrammar(LivelyJSParser, rule || 'topLevel', src)
     },
 },
@@ -850,6 +849,11 @@ TestCase.subclass('lively.ast.tests.ClosureTest',
 });
 
 Object.subclass('lively.ast.tests.Examples',
+'initialization', {
+    initialize: function() {
+        this.val = 0;
+    },
+},
 'subjects', {
     nodebugger: function() {
         var i = 23;
@@ -943,6 +947,17 @@ Object.subclass('lively.ast.tests.Examples',
         }
         return a;
     },
+    restart: function() {
+        var i = 0;
+        i++;
+        debugger;
+        i++;
+        return i;
+    },
+    restartSideEffect: function() {
+        var i = this.val + 1;
+        debugger;
+    }
 });
 
 TestCase.subclass('lively.ast.tests.ContainsDebuggerTest',
@@ -1121,7 +1136,6 @@ TestCase.subclass('lively.ast.tests.BreakpointTest',
         this.assertEquals(outer, inner.getCaller());
     },
     testResumeReturn: function() {
-        var that = this;
         var outer = this.assertBreaksWhenInterpretated(this.examples.returnNoDebugger);
         this.assertEquals(outer.mapping["j"], 23);
         this.assertEquals(outer.resume(), 46);
@@ -1155,9 +1169,7 @@ TestCase.subclass('lively.ast.tests.BreakpointTest',
         this.assertEquals(outer.mapping["k"], 46);
     },
     testStepOverIfThen: function() {
-        var that = this;
         var frame = this.assertBreaksWhenInterpretated(this.examples.ifthenelse, 1);
-        var mapping = frame.mapping;
         this.assertEquals(frame.mapping.i, 1);
         this.assertBreaks(function() { frame.stepToNextStatement(); });
         this.assertEquals(frame.mapping.i, 1);
@@ -1167,9 +1179,7 @@ TestCase.subclass('lively.ast.tests.BreakpointTest',
         this.assertEquals(frame.mapping.i, 23);
     },
     testStepOverIfElse: function() {
-        var that = this;
         var frame = this.assertBreaksWhenInterpretated(this.examples.ifthenelse, 2);
-        var mapping = frame.mapping;
         this.assertEquals(frame.mapping.i, 2);
         this.assertBreaks(function() { frame.stepToNextStatement(); });
         this.assertEquals(frame.mapping.i, 2);
@@ -1214,7 +1224,6 @@ TestCase.subclass('lively.ast.tests.BreakpointTest',
         this.assertEquals(6, fac2.resume());
     },
     testForLoop: function() {
-        var that = this;
         var frame = this.assertBreaksWhenInterpretated(this.examples.forloop);
         this.assertStep(frame,{});
         this.assertStep(frame,{a:0});
@@ -1232,6 +1241,31 @@ TestCase.subclass('lively.ast.tests.BreakpointTest',
         this.assertStep(frame,{a:6,i:3});
         this.assertStep(frame,{a:6,i:4});
         this.assertEquals(frame.resume(),6);
+    },
+    testSimpleRestart: function() {
+        var that = this;
+        var frame = this.assertBreaksWhenInterpretated(this.examples.restart);
+        this.assertEquals(frame.mapping.i, 1);
+        this.assertBreaks(function() {
+            frame.restart();
+        });
+        this.assertBreaks(function() {
+            that.assert(frame.resume());
+        });
+        this.assertEquals(frame.mapping.i, 1);
+    },
+    testSideEffectRestart: function() {
+        var that = this;
+        var frame = this.assertBreaksWhenInterpretated(this.examples.restartSideEffect);
+        this.assertEquals(frame.mapping.i, 1);
+        this.assertBreaks(function() {
+            that.assert(frame.restart());
+        });
+        this.examples.val = 2;
+        this.assertBreaks(function() {
+            that.assert(frame.resume());
+        });
+        this.assertEquals(frame.mapping.i, 3);
     }
 });
 

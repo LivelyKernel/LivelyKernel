@@ -140,18 +140,17 @@ Object.extend(lively.ide, {
 
         var promise = {}, moduleName, moduleType;
         if (Object.isString(moduleNameOrSpec)) {
-            moduleName = moduleSpec;
+            moduleName = moduleNameOrSpec;
         } else if (moduleNameOrSpec.name) {
             moduleName = moduleNameOrSpec.name;
             moduleType = moduleNameOrSpec.type || moduleType;
         }
 
-
         if (objectName) {
             objectName = objectName.replace(/^Global\./,"");
         }
-   
-        var relative = module(sourceModuleName).relativePath(moduleType),
+
+        var relative = module(moduleName).relativePath(moduleType),
             moduleNode = lively.ide.startSourceControl().addModule(relative),
             rootNode = moduleNode.ast(),
             fileFragments = rootNode.subElements(10).select(function(ea) {

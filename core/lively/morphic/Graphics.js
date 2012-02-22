@@ -954,8 +954,9 @@ Object.subclass("Color",
 'printing', {
     toString: function() {
         function floor(x) { return Math.floor(x*255.99) };
-        // 06/10/10 currently no rgba support for SVG:
-        // http://code.google.com/p/chromium/issues/detail?id=45435
+        if (this.a && this.a != 1)
+            return this.toRGBAString();
+
         return "rgb(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + ")";
     },
     
@@ -967,7 +968,26 @@ Object.subclass("Color",
 'converting', {
     toTuple: function() {
         return [this.r, this.g, this.b, this.a];
-    }
+    },
+    toHSB: function() {
+        var max = Math.max(this.r, this.g, this.b);
+        var min = Math.min(this.r, this.g, this.b);
+        var h, s, b = max;
+        if (max == min)
+            h = 0;
+        else if (max == this.r)
+            h = 60 * (0 + ((this.g - this.b) / (max - min)));
+        else if (max == this.g)
+            h = 60 * (2 + ((this.b - this.r) / (max - min)));
+        else if (max == this.b)
+            h = 60 * (4 + ((this.r - this.g) / (max - min)));
+        h = (h + 360) % 360;
+        if (max == 0)
+            s = 0
+        else
+            s = (max - min) / max;    
+        return [h, s, b];    
+    }   
 },
 'instance creation', {
     withA: function(a) {
@@ -983,7 +1003,7 @@ Object.subclass("Color",
     
     // FIXME: invert sounds like mutation, versus createInverse or similar
     invert: function() {
-        return Color.rgb(255 * (1 - this.r), 255 * (1 - this.g), 255 * (1 - this.b))
+        return Color.rgb(255 * (1 - this.r), 255 * (1 - this.g), 255 * (1 - this.b));
     } 
 },
 'serializing', {

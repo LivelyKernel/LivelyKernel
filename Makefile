@@ -93,7 +93,7 @@ install_xvfb_travis:
 	sudo apt-get install xvfb
 	
 start_xvfb_forever:
-	Xvfb :1 &
+	Xvfb :1 -screen 0 800x600x24&
 
 start_server_forever:
 	./node_modules/forever/bin/forever start minimal_server/serve.js 9001 && echo 'setTimeout(function(){ }, 2500);' | node

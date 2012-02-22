@@ -9,4 +9,4 @@ before_script:
   - "make start_xvfb_forever"
   - "make start_server_forever" 
 
-script: "make kernel_tests"
+script: "make kernel_tests_travis"

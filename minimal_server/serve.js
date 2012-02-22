@@ -82,7 +82,7 @@ var browserInterface = {
         // give the browser some time to finish requests
         setTimeout(function() {
             if (self.process) { // sometimes process is already gone?!
-                self.process.kill("SIGTERM");
+                self.process.kill("SIGKILL");
             }
             self.process = null;
         }, 100);

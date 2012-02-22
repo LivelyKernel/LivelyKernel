@@ -153,6 +153,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
 lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindingsTest',
 'testing', {
     test01ConnectMorphNameToText: function() {
+        if (Config.noVisualConnect) {
+            return;
+        }
         var morph = new lively.morphic.Morph.makeRectangle(0,0, 20, 20),
             text = new lively.morphic.Text(new Rectangle(100,0,100,20), '');
         this.world.addMorph(morph);
@@ -182,6 +185,9 @@ lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindings
         this.assert(Properties.own(cPoints).include('textString'), 'textString not in there')
     },
     test04DisconnectMorphNameToText: function() {
+        if (Config.noVisualConnect) {
+            return;
+        }
         var morph = new lively.morphic.Morph.makeRectangle(0,0, 20, 20),
             text = new lively.morphic.Text(new Rectangle(100,0,100,20), '');
         this.world.addMorph(morph);

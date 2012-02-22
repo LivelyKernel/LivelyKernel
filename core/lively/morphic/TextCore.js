@@ -503,8 +503,19 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         var data = htmlData || '<span>' + textData + '</span>',  // own rich text
             richText = lively.morphic.HTMLParser.pastedHTMLToRichText(data);
-        richText.replaceSelectionInMorph(this)
-
+        try {
+          richText.replaceSelectionInMorph(this)
+        } catch(e) {
+            var selRange = this.getSelectionRange();
+            $world.setStatusMessage("Error in Text>>onPaste() @ replaceSelelectionInMorph",
+                Color.red, undefined, function() {
+                    inspect({
+                        richText: richText, 
+                        text: this, 
+                        selecitonRange: selRange})
+                }.bind(this))
+            $world.logError(e);
+        }
         evt.stop()
         return true;
     },
@@ -525,6 +536,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (evt.isShiftDown()) {  // shifted commands here...
             switch (key) {
                 case "i": { this.doInspect(); return true; }
+                case "d": { this.doDebugit(); return true; }
                 case "p": { this.doListProtocol(); return true; }
                 case "f": { this.doBrowseImplementors(); return true; }
                 case "b": { this.doBrowseClass(); return true; }
@@ -610,6 +622,12 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
     doDoit: function() { this.evalSelection(false) },
     doPrintit: function() { this.evalSelection(true) },
+    doDebugIt: function() {
+        var that = this;
+        require('lively.ast.Morphic').toRun(function() {
+            that.debugSelection();
+        });
+    },
     doSave: function() {
         // resetting cachedTextString is necessary when doSave is not triggered by
         // cmd+s but from outside (e.g. from a button). The cachedTextString would not have
@@ -1049,7 +1067,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     selectionString: function() {
                 
         // HTML only, works in FF & Chrome
-        var sel = Global.getSelection();
+        var sel = Global.domSelection();
         if (!sel) { return ''; }
         var range = sel.getRangeAt(0);
         if (!range) { return ''; }
@@ -1166,7 +1184,11 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     removeTextSelection: function() {},
     getSelectionOrLineString: function() {
         var sel = this.domSelection(),
-            range = sel.getRangeAt(0);
+            range;
+        if (!sel) {
+            return '';
+        }
+        range = sel.getRangeAt(0);
         if (range.collapsed)
             this.selectCurrentLine();
         return this.selectionString();
@@ -1625,6 +1647,9 @@ this. textNodeString()
         // returns bounds of selection in world coordinates
         var r = this.domSelection().getRangeAt(0).getBoundingClientRect()
         var s = 1 / this.world().getScale();
+        if (!r) {
+            return undefined;
+        }
 
         r = rect(pt(s * r.left , s * r.top), pt(s * r.right, s * r.bottom));
         return r.translatedBy($world.visibleBounds().topLeft());

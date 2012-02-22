@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.ast.Parser').requires('lively.Ometa', 'lively.ast.generated.Translator', 'lively.ast.generated.Nodes', 'lively.ast.Interpreter', 'lively.ast.LivelyJSParser').toRun(function() {
+module('lively.ast.Parser').requires('lively.Ometa', 'lively.ast.generated.Translator', 'lively.ast.generated.Nodes', 'lively.ast.LivelyJSParser').toRun(function() {
 
 
 Object.extend(LivelyJSParser, {

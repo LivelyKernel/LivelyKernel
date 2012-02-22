@@ -1202,7 +1202,7 @@ function startWorld(startupFunc) {
     }, true);
 
     window.addEventListener('beforeunload', function(evt) {
-        if (window.Config && window.askBeforeQuit) {
+        if (window.Config && window.Config.askBeforeQuit) {
             var msg = "Lively Kernel data may be lost if not saved.";
 	          evt.returnValue = msg;
 	          return msg;

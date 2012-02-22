@@ -14,7 +14,7 @@ var chromeArgs =   ["--no-process-singleton-dialog",
 
 var Config = {
 
-    timeout: 300,
+    timeout: 60,
     // ------------- what system do you want to test on?
     defaultBrowser: "chrome",
     defaultNotifier: "growlnotify",
@@ -41,7 +41,6 @@ var Config = {
                 path: "/usr/bin/firefox",
                 args: firefoxArgs
             }
-
         }
     }
 };

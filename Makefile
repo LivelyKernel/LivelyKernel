@@ -81,6 +81,7 @@ install_partsbin:
 update_partsbin:
 	cd PartsBin && svn up
 
+
 #############
 # Travis-CI #
 #############
@@ -88,5 +89,14 @@ update_partsbin:
 install_chrome_travis:
 	sudo apt-get install chromium-browser
 
+install_xvfb_travis: 
+	sudo apt-get install xvfb
+	
+start_xvfb_forever:
+	Xvfb :1 &
+
 start_server_forever:
 	./node_modules/forever/bin/forever start minimal_server/serve.js 9001 && echo 'setTimeout(function(){ }, 2500);' | node
+
+kernel_tests_travis:
+	node $(CLI_TEST_STARTER) --display :1

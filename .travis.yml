@@ -2,11 +2,9 @@ language: node_js
 node_js:
   - 0.6
 
-before_install: 
-  - "make install_chrome_travis"
-  - "make install_xvfb_travis"
 before_script: 
-  - "make start_xvfb_forever"
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
   - "make start_server_forever" 
 
-script: "make kernel_tests_travis"
+script: "make kernel_tests_firefox_travis"

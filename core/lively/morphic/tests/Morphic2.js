@@ -508,7 +508,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextLayoutTests',
 
 });
 
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.HtmlParserTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic2.HtmlParserTests',
 'running', {
     setUp: function($super) {
         $super();
@@ -582,8 +582,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.HtmlParserTests',
         lively.morphic.HTMLParser.sanitizeNode(node);
         this.assertEquals(node.textContent, "bla", "pasting with & is broken");
     },
-
-
+    testSanitizeNodeWithAmp2: function() {
+        var s = '<a href="http://host/p?a=1%26b=2">H&amp;M</a>';
+        var node = lively.morphic.HTMLParser.sourceToNode(s);
+        lively.morphic.HTMLParser.sanitizeNode(node);
+        this.assertEquals(node.textContent, "H&M", "pasting with & is broken");
+    },  
+    testSanitizeNodeWithLt: function() {
+        var s = '1&lt;2';
+        var node = lively.morphic.HTMLParser.sourceToNode(s);
+        lively.morphic.HTMLParser.sanitizeNode(node);
+        this.assertEquals(node.textContent, "1<2", "pasting with & is broken");
+    },
 
 
 

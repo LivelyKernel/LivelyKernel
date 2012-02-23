@@ -41,6 +41,8 @@ var rootLK = "/Users/robert/Dropbox/Projects/LivelyKernel/",
 
 QUnit.module('diff parsing short', {
     setup: function() {
+        // lk = repo1
+        // ww = repo2
         var systemInterfaceMock = {
             updateSVN: function(dir, whenDone) { this.svnUpdateDir = dir; whenDone() },
             updateGIT: function(dir, whenDone) { this.gitUpdateDir = dir; whenDone() },
@@ -53,8 +55,8 @@ QUnit.module('diff parsing short', {
         }
         var settings = {
             systemInterface: systemInterfaceMock,
-            lk: {root: rootLK, updateMethod: "updateGIT"},
-            ww: {root: rootWW, updateMethod: "updateSVN"}
+            repo1: {root: rootLK, updateMethod: "updateGIT"},
+            repo2: {root: rootWW, updateMethod: "updateSVN"}
         };
         sut = new RepoDiffReporter(settings);
     },
@@ -66,8 +68,8 @@ test("find diffing files", function () {
 });
 
 test("find extra files", function () {
-    same(sut.filesOnlyIn('lk', fakeDiff), filesOnlyInLK, "lk only");
-    same(sut.filesOnlyIn('ww', fakeDiff), filesOnlyInWW, "ww only");
+    same(sut.filesOnlyIn('repo1', fakeDiff), filesOnlyInLK, "lk only");
+    same(sut.filesOnlyIn('repo2', fakeDiff), filesOnlyInWW, "ww only");
 });
 
 test("produce report calls updater", function () {
@@ -104,7 +106,7 @@ test("produce report calls file diff", function () {
 test("report includes 'only' and 'diff' files", function () {
     var report;
     sut.produceReportThenDo(function(result) { report = result });
-    same(report.onlyin.ww, filesOnlyInWW, 'ww only');
-    same(report.onlyin.lk, filesOnlyInLK, 'lk only');
+    same(report.onlyin.repo2, filesOnlyInWW, 'ww only');
+    same(report.onlyin.repo1, filesOnlyInLK, 'lk only');
     same(report.diffingFiles, diffingFiles, 'diffing files');
 });

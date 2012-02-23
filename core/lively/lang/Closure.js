@@ -3,7 +3,7 @@ module('lively.lang.Closure').requires().toRun(function() {
 ///////////////////////////////////////////////////////////////////////////////
 // Class defintion: lively.Closure
 ///////////////////////////////////////////////////////////////////////////////
-// FIXME: change namespace lively.Closure ==> lively.lang.Closure
+
 Object.subclass('lively.Closure',
 'documentation', {
     documentation: 'represents a function and its bound values'  

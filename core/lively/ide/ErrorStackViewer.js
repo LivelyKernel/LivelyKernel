@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.ide.ErrorStackViewer').requires('lively.Helper', 'lively.ide.SystemCodeBrowser', 'lively.ide.LocalBrowser', 'lively.ide.VersionTools').toRun(function() {
+module('lively.ide.ErrorViewer').requires('lively.Helper', 'lively.ide.SystemCodeBrowser', 'lively.ide.LocalBrowser', 'lively.ide.VersionTools').toRun(function() {
 
 Object.subclass('lively.ide.ChromeErrorParser',
 'parse', {

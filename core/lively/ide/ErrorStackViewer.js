@@ -27,7 +27,7 @@ module('lively.ide.ErrorStackViewer').requires('lively.Helper', 'lively.ide.Syst
 Object.subclass('lively.ide.ChromeErrorParser',
 'parse', {
 	parseStackLine: function(lineString) {
-		var m = lineString.match(/.*(http.*\.js)\?([A-Za-z0-9]+)\:(\d+):(\d+)/);require('lively.ide.SyntaxHighlighting').toRun(function() {
+		var m = lineString.match(/.*(http.*\.js)\?([A-Za-z0-9]+)\:(\d+):(\d+)/);
 
 		var errorLine = new lively.ide.ChromeErrorLine();
 		errorLine.full = lineString;
@@ -63,12 +63,12 @@ Object.subclass('lively.ide.ModuleFileParser',
 'default category', {
 	charPosOfLine: function (lines, line) {
 		// line counts from 0
-		var pos = 0; 
+		var pos = 0;
 		for (var i = 0; i < line ; i++)
 			pos = pos + lines[i].length + 1
-		return pos 
+		return pos
 	},
-    
+
 	lineOfCharPos: function (lines, charPos) {
 		// line counts from 0
 		var i = 0;
@@ -102,30 +102,30 @@ lively.ide.ModuleFileParser.subclass('lively.ide.CombinedModulesFileParser',
 		}
 		return matches
 	},
-    
+
 	moduleForCombinedLineRef: function(combinedModules, line) {
 		var fileOffsets = this.parseCombinedModulesString(combinedModules);
 		var lines = this.linesOfString(combinedModules);
 		var i=0;
 		var lastFileOffset;
-		var totalCharPos = this.charPosOfLine(lines, line)	
+		var totalCharPos = this.charPosOfLine(lines, line)
 		while(fileOffsets[i] && fileOffsets[i].offset < totalCharPos) {
 			lastFileOffset = fileOffsets[i];
 			i++
 		}
 		var fileOffset = totalCharPos - (lastFileOffset ? lastFileOffset.offset || 0 : 0);
-		return {file: lastFileOffset.file, offset: fileOffset} 
+		return {file: lastFileOffset.file, offset: fileOffset}
 	},
-    
+
 	getCombinedModulesContent: function() {
 		if (!this.combinedModulesContent)
-			this.combinedModulesContent = 
+			this.combinedModulesContent =
 				new WebResource(URL.codeBase.withFilename(this.combinedModulesFile)).get().content;
 		return this.combinedModulesContent
 	},
-	
+
     transformFileLineAndCharPosReference: function(obj) {
-		// charPos is not touched 
+		// charPos is not touched
 		if (!obj) return undefined
 
 		if (obj.file == this.combinedModulesFile) {
@@ -133,7 +133,7 @@ lively.ide.ModuleFileParser.subclass('lively.ide.CombinedModulesFileParser',
 				realFileContent = new WebResource(URL.codeBase.withFilename(fileOffset.file)).get().content,
 				realLines = this.linesOfString(realFileContent),
 				realLine = this.lineOfCharPos(realLines, fileOffset.offset);
-			return {file: fileOffset.file, line: realLine, charPos: obj.charPos}		
+			return {file: fileOffset.file, line: realLine, charPos: obj.charPos}
 		}
 		return undefined
 	}
@@ -145,9 +145,9 @@ Object.subclass('lively.ide.ChromeErrorLine',
 		// return this.full
 		if (this.url == undefined)
 			return this.full;
-		return "" + this.objectPart()+ "." + this.methodPart()  + " (" + this.path() + " " + this.line + ":" + this.linePosition + ")" 
+		return "" + this.objectPart()+ "." + this.methodPart()  + " (" + this.path() + " " + this.line + ":" + this.linePosition + ")"
 	},
-	
+
     fileFragment: function() {
 		debugger
 		var sc = lively.ide.startSourceControl(),
@@ -171,7 +171,7 @@ Object.subclass('lively.ide.ChromeErrorLine',
 
 	path: function() {
 		if (this.url == undefined) return ""
-		return new URL(this.url).relativePathFrom(URL.codeBase) 
+		return new URL(this.url).relativePathFrom(URL.codeBase)
 	},
 });
 
@@ -190,7 +190,7 @@ Widget.subclass('lively.ide.ErrorStackViewer',
 			['browseButton', newButton, new Rectangle(0, 0.5, 0.2, 0.05)],
 			['sourcePane', newTextPane, new Rectangle(0, 0.55, 1, 0.45)],
 		]);
-		
+
 		var browseButton = panel.browseButton;
 		browseButton.setLabel('browse');
 		browseButton.plugTo(this, {fire: '->browseSelection'});
@@ -210,17 +210,17 @@ Widget.subclass('lively.ide.ErrorStackViewer',
 
 		this.panel = panel;
 		panel.ownerWidget = this;
-		
+
 		this.updateErrorMessage();
 
 
 		return panel;
 	},
-	
+
 	setErrorStack: function(errorStackString) {
 		var list = new lively.ide.ChromeErrorParser().parseErrorStack(errorStackString)
 		var combinedModulesParser = new lively.ide.CombinedModulesFileParser();
-		list = list.collect(function(ea){ 
+		list = list.collect(function(ea){
 			var converted = combinedModulesParser.transformFileLineAndCharPosReference(
 				{file: ea.path(), line: ea.line});
 			if (converted) {
@@ -231,7 +231,7 @@ Widget.subclass('lively.ide.ErrorStackViewer',
 		})
 		this.errorStackList = list;
 	},
-	
+
     setError: function(error) {
 		if (error.stack)
 			this.setErrorStack(error.stack);
@@ -256,14 +256,14 @@ Widget.subclass('lively.ide.ErrorStackViewer',
 
 		var from = fileFragment.charsUpToLine(errorLine.line) + errorLine.linePosition
 		var to = fileFragment.charsUpToLine(errorLine.line + 1) - 1; // line end
-		
-		// error text selection		
+
+		// error text selection
 		if (this.sourceTextMorph.errorTextSelection) {
 			 this.sourceTextMorph.errorTextSelection.undraw()
 		} else {
 			this.sourceTextMorph.errorTextSelection = new TextSelectionMorph();
 			this.sourceTextMorph.addMorph(this.sourceTextMorph.errorTextSelection)
-			this.sourceTextMorph.style = 
+			this.sourceTextMorph.style =
 				{fill: Color.gray.lighter(), borderWidth: 0, strokeOpacity: 0, borderRadius: 1};
 		}
 		var selectionRange = [from - 1, to-1];

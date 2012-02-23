@@ -24,12 +24,12 @@
 
 module('lively.ide.ErrorViewer').requires('lively.Helper', 'lively.ide.SystemCodeBrowser', 'lively.ide.LocalBrowser', 'lively.ide.VersionTools').toRun(function() {
 
-Object.subclass('lively.ide.ChromeErrorParser',
+Object.subclass('lively.ide.ErrorViewer.ChromeErrorParser',
 'parse', {
 	parseStackLine: function(lineString) {
 		var m = lineString.match(/.*(http.*\.js)\?([A-Za-z0-9]+)\:(\d+):(\d+)/);
 
-		var errorLine = new lively.ide.ChromeErrorLine();
+		var errorLine = new lively.ide.ErrorViewer.ChromeErrorLine();
 		errorLine.full = lineString;
 		if (m == undefined) {
 			return errorLine;
@@ -59,7 +59,7 @@ Object.subclass('lively.ide.ChromeErrorParser',
 });
 
 
-Object.subclass('lively.ide.ModuleFileParser',
+Object.subclass('lively.ide.ErrorViewer.ModuleFileParser',
 'default category', {
 	charPosOfLine: function (lines, line) {
 		// line counts from 0
@@ -84,7 +84,7 @@ Object.subclass('lively.ide.ModuleFileParser',
 	},
 });
 
-lively.ide.ModuleFileParser.subclass('lively.ide.CombinedModulesFileParser',
+lively.ide.ErrorViewer.ModuleFileParser.subclass('lively.ide.ErrorViewer.CombinedModulesFileParser',
 'default category', {
 	combinedModulesFile:  "generated/combinedModules.js",
 
@@ -139,7 +139,7 @@ lively.ide.ModuleFileParser.subclass('lively.ide.CombinedModulesFileParser',
 	}
 });
 
-Object.subclass('lively.ide.ChromeErrorLine',
+Object.subclass('lively.ide.ErrorViewer.ChromeErrorLine',
 'default category', {
 	toString: function() {
 		// return this.full
@@ -175,7 +175,7 @@ Object.subclass('lively.ide.ChromeErrorLine',
 	},
 });
 
-Widget.subclass('lively.ide.ErrorStackViewer',
+Widget.subclass('lively.ide.ErrorViewer.ErrorStackViewer',
 'settings', {
 	viewTitle: "Error Stack Viewer",
     initialViewExtent: pt(700, 500),
@@ -218,8 +218,8 @@ Widget.subclass('lively.ide.ErrorStackViewer',
 	},
 
 	setErrorStack: function(errorStackString) {
-		var list = new lively.ide.ChromeErrorParser().parseErrorStack(errorStackString)
-		var combinedModulesParser = new lively.ide.CombinedModulesFileParser();
+		var list = new lively.ide.ErrorViewer.ChromeErrorParser().parseErrorStack(errorStackString)
+		var combinedModulesParser = new lively.ide.ErrorViewer.CombinedModulesFileParser();
 		list = list.collect(function(ea){
 			var converted = combinedModulesParser.transformFileLineAndCharPosReference(
 				{file: ea.path(), line: ea.line});

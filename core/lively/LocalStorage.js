@@ -4,7 +4,7 @@ module('lively.LocalStorage').requires().toRun(function() {
  // Lively Helper - lively.LocalStorage
  ///////////////////////////////////////////////////////////////////////////////
 
-lively.LocalStorage = {
+Object.extend(lively.LocalStorage, {
     isAvailable: function() { return Global.localStorage != undefined },
     get: function(propName) {
         if (!this.isAvailable) return null;
@@ -14,6 +14,6 @@ lively.LocalStorage = {
         if (!this.isAvailable) return null;
         return localStorage['lively' + propName] = value;
     }
-}
+});
 
 }); // end of module

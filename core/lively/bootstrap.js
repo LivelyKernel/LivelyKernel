@@ -418,7 +418,7 @@ var LivelyLoader = {
 
     modulePaths: (function setModulePaths() {
         if (!window.Config) { window.Config = {}; }
-        var defaultPaths = ['users/', 'projects/', 'documentation/'];
+        var defaultPaths = ['users/', 'projects/', 'documentation/', 'server/'];
         if (Config.modulePaths === undefined) {
             Config.modulePaths = defaultPaths;
         } else {

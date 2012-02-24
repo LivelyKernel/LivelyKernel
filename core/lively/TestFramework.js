@@ -44,7 +44,10 @@ Object.subclass('TestCase',
 },
 'accessing', {
     name: function() { return this.constructor.type },
-    testName: function() { return this.name() + '>>' + this.currentSelector },
+    getTestName: function() { 
+        // renamed from testName. not called. remove?
+        return this.name() + '>>' + this.currentSelector 
+    },
     id: function() { return this.name() + '>>' + this.currentSelector },
     allTestSelectors: function() {
         return this.constructor.functionNames().select(

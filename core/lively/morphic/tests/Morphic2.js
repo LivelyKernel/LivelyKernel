@@ -515,7 +515,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic2.HtmlPars
     },
 },
 'testing', {
-
     testSanitizeHtml: function() {
         var s1 = "a<br>b"
         var r1 = this.sut.sanitizeHtml(s1)
@@ -592,13 +591,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic2.HtmlPars
         var node = lively.morphic.HTMLParser.sourceToNode(s);
         lively.morphic.HTMLParser.sanitizeNode(node);
         this.assertEquals(node.textContent, "1<2", "pasting with & is broken");
+    }
+});
+
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.jQueryTests', {
+    test01jQueryReturnsjQueryObject: function() {
+        var m = new lively.morphic.Morph();
+        this.assert(m.jQuery() instanceof jQuery);
     },
-
-
-
-
-
-
+    test02jQueryReturnsWrappedShapeNode: function() {
+        var m = new lively.morphic.Morph();
+        this.assertEquals(m.jQuery()[0], m.renderContext().shapeNode)
+    }
 });
 
 }) // end of module

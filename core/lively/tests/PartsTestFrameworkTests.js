@@ -48,6 +48,14 @@ TestCase.subclass('lively.tests.PartsTestFrameworkTests.PartTestTest', 'testing'
         this.assertEquals(Functions.own(this.part.getTestsObject()).length, 2, 
                 'one test method was expected to be removed');
     },
+    test05CopyPartBeforeTesting: function() {
+        this.part.setFill(Color.blue);
+        this.part.addPartTest(function test01(aPart) {
+                aPart.setFill(Color.red);
+            });
+        this.part.runPartTests();
+        this.assert(this.part.getFill().equals(Color.blue), 'test should not have changed the original part');
+    },
 
 
 });

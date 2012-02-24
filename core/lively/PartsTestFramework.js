@@ -33,7 +33,8 @@ TestCase.subclass('lively.PartTestCase', 'accessing', {
         this.running();
         try {
             this.setUp();
-            this[this.currentSelector](this.getPartUnderTest());
+            // copy the part so a test can't break the original one
+            this[this.currentSelector](this.getPartUnderTest().copy());
             this.addAndSignalSuccess();
         } catch (e) {
             this.addAndSignalFailure(e);

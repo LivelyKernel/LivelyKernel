@@ -1,6 +1,6 @@
 module('lively.persistence.tests.PersistenceTests').requires('lively.persistence.Serializer', 'lively.TestFramework').toRun(function() {
 
-Object.subclass('lively.persistence.tests.SmartRefTestDummy', // for testing
+Object.subclass('lively.persistence.tests.PersistenceTests.SmartRefTestDummy', // for testing
 'default category', {
     someProperty: 23,
     m1: function() { return 99 },
@@ -8,7 +8,7 @@ Object.subclass('lively.persistence.tests.SmartRefTestDummy', // for testing
 });
 
 
-TestCase.subclass('lively.persistence.tests.ObjectGraphLinearizerTest',
+TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest',
 'running', {
     setUp: function($super) {
         $super();
@@ -129,7 +129,7 @@ TestCase.subclass('lively.persistence.tests.ObjectGraphLinearizerTest',
 })
 
 
-TestCase.subclass('lively.persistence.tests.ObjectGraphLinearizerPluginTest',
+TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerPluginTest',
 'running', {
     setUp: function($super) {
         $super();
@@ -153,8 +153,8 @@ TestCase.subclass('lively.persistence.tests.ObjectGraphLinearizerPluginTest',
         this.assertEquals(23*2, result.bar);
     },
     test02SerializeLivelyClassInstance: function() {
-        var instance1 = new lively.persistence.tests.SmartRefTestDummy(),
-            instance2 = new lively.persistence.tests.SmartRefTestDummy();
+        var instance1 = new lively.persistence.tests.PersistenceTests.SmartRefTestDummy(),
+            instance2 = new lively.persistence.tests.PersistenceTests.SmartRefTestDummy();
         instance1.friend = instance2;
         instance2.specialProperty = 'some string';
 
@@ -165,16 +165,22 @@ TestCase.subclass('lively.persistence.tests.ObjectGraphLinearizerPluginTest',
 
         this.assert(result.m1, 'deserialized does not have method');
         this.assertEquals(99, result.m1(), 'wrong method invocation result');
-        lively.persistence.tests.SmartRefTestDummy.prototype.someProperty = -1; // change after serialization
-        this.assertEquals(lively.persistence.tests.SmartRefTestDummy.prototype.someProperty, result.someProperty, 'proto prop');
+        lively.persistence.tests.PersistenceTests.SmartRefTestDummy.
+            prototype.someProperty = -1; // change after serialization
+        this.assertEquals(lively.persistence.tests.PersistenceTests.
+            SmartRefTestDummy.prototype.someProperty, result.someProperty, 'proto prop');
 
-        this.assertIdentity(lively.persistence.tests.SmartRefTestDummy, result.constructor, 'constructor 1');
-        this.assertIdentity(lively.persistence.tests.SmartRefTestDummy, result.friend.constructor, 'constructor 2');
-        this.assert(result instanceof lively.persistence.tests.SmartRefTestDummy, 'instanceof 1');
-        this.assert(result.friend instanceof lively.persistence.tests.SmartRefTestDummy, 'instanceof 2');
+        this.assertIdentity(lively.persistence.tests.PersistenceTests.SmartRefTestDummy, 
+            result.constructor, 'constructor 1');
+        this.assertIdentity(lively.persistence.tests.PersistenceTests.SmartRefTestDummy, 
+            result.friend.constructor, 'constructor 2');
+        this.assert(result instanceof lively.persistence.tests.PersistenceTests.SmartRefTestDummy, 
+            'instanceof 1');
+        this.assert(result.friend instanceof lively.persistence.tests.PersistenceTests.SmartRefTestDummy, 
+            'instanceof 2');
     },
     testSerializeObjectSpecificLayers: function() {
-        var instance1 = new lively.persistence.tests.SmartRefTestDummy()
+        var instance1 = new lively.persistence.tests.PersistenceTests.SmartRefTestDummy()
         var layer = cop.create('TestSerializeLayersLayer');
         instance1.withLayers = [layer];
 
@@ -188,7 +194,7 @@ TestCase.subclass('lively.persistence.tests.ObjectGraphLinearizerPluginTest',
             'deserialized layer is not identical with original');
     },
     testSerializeObjectSpecificWithoutLayers: function() {
-        var instance1 = new lively.persistence.tests.SmartRefTestDummy()
+        var instance1 = new lively.persistence.tests.PersistenceTests.SmartRefTestDummy()
         var layer = cop.create('TestSerializeLayersLayer');
         instance1.withoutLayers = [layer];
 
@@ -354,7 +360,7 @@ TestCase.subclass('lively.persistence.tests.ObjectGraphLinearizerPluginTest',
     },
 });
 
-TestCase.subclass('lively.persistence.tests.RestoreTest',
+TestCase.subclass('lively.persistence.tests.PersistenceTests.RestoreTest',
 'running', {
     setUp: function($super) {
         $super();
@@ -434,7 +440,7 @@ TestCase.subclass('lively.persistence.tests.RestoreTest',
 
 });
 
-TestCase.subclass('lively.persistence.tests.PrototypeInstanceSerializationTest',
+TestCase.subclass('lively.persistence.tests.PersistenceTests.PrototypeInstanceSerializationTest',
 'helper', {
     createObj: function(constr, constrArg) {
         constr.prototype.foo = 3;

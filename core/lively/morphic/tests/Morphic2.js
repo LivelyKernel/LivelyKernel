@@ -11,7 +11,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PivotPointTests',
     },
     tearDown: function($super) {
         $super();
-        // lively.morphic.TransformRefactoringLayer.beNotGlobal();
         lively.morphic.TransformAggregationLayer.beNotGlobal();
     },
 },

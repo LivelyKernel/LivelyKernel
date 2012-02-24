@@ -562,7 +562,7 @@ TestCase.subclass('lively.tests.CoreTests.DocLinkConversionTest', {
 
 
 });
-TestCase.subclass('LoaderTest',
+TestCase.subclass('lively.tests.CoreTests.LoaderTest',
 'running', {
 	setUp: function() {
 		this.sut = Loader;

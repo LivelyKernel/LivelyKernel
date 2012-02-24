@@ -74,7 +74,7 @@ TestCase.subclass('lively.tests.HelperTests.XMLConverterTest', {
 	}
 });
 
-TestCase.subclass('LocalStorageTests', {
+TestCase.subclass('lively.tests.HelperTests.LocalStorageTests', {
     setup: function() {
         this['__test__'] = lively.LocalStorage.get('__test__');
     },

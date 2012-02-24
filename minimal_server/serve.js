@@ -74,7 +74,7 @@ var browserInterface = {
         }
         console.log('open ' + browserPath + ' on ' + url);
         if (display) {
-            this.process = spawn("DISPLAY=localhost:" + display + '.0 ' + browserPath, browserArgs.concat([url]));
+            this.process = spawn(browserPath, browserArgs.concat([url]), {env: {'DISPLAY' : display}});
         } else {
             this.process = spawn(browserPath, browserArgs.concat([url]));
         }        

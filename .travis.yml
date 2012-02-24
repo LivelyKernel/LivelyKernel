@@ -5,6 +5,7 @@ node_js:
 before_install: 
   - "make install_chrome_travis"
   - "make install_xvfb_travis"
+  
 before_script: 
   - "make start_xvfb_forever"
   - "make start_server_forever" 

@@ -40,6 +40,15 @@ TestCase.subclass('lively.tests.PartsTestFrameworkTests.PartTestTest', 'testing'
         this.assertEquals(result.result.failed.length, 0, 'expected no tests to fail');
         this.assertEquals(result.result.succeeded.length, 1, 'expected 1 test to succeed');
     },
+    test04RemoveTestMethod: function() {
+        this.part.addPartTest(function test01() {});
+        this.part.addPartTest(function test02() {});
+        this.part.addPartTest(function test03() {});
+        this.part.removePartTest('test03');
+        this.assertEquals(Functions.own(this.part.getTestsObject()).length, 2, 
+                'one test method was expected to be removed');
+    },
+
 
 });
 

@@ -26,8 +26,8 @@ TestCase.subclass('lively.tests.PartsTestFrameworkTests.PartTestTest', 'testing'
                 this.assert(false, 'fail');
             });
         result = this.part.runPartTests();
-        this.assertEquals(result.result.failed.length, 1, 'expected 1 test to fail');
-        this.assertEquals(result.result.succeeded.length, 1, 'expected 1 test to succeed');
+        this.assertEquals(result.failed.length, 1, 'expected 1 test to fail');
+        this.assertEquals(result.succeeded.length, 1, 'expected 1 test to succeed');
     },
     test03PassPartAsArgument: function() {
         var result;
@@ -37,8 +37,8 @@ TestCase.subclass('lively.tests.PartsTestFrameworkTests.PartTestTest', 'testing'
                             'Rectangle was expected to be blue');
                     });
         result = this.part.runPartTests();
-        this.assertEquals(result.result.failed.length, 0, 'expected no tests to fail');
-        this.assertEquals(result.result.succeeded.length, 1, 'expected 1 test to succeed');
+        this.assertEquals(result.failed.length, 0, 'expected no tests to fail');
+        this.assertEquals(result.succeeded.length, 1, 'expected 1 test to succeed');
     },
     test04RemoveTestMethod: function() {
         this.part.addPartTest(function test01() {});

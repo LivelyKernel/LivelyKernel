@@ -76,14 +76,19 @@ lively.morphic.Morph.addMethods('parts testing', {
     },
  
     runPartTests: function() {
+        var testCase = this.createPartTestCase();
+        testCase.runAll();
+        return testCase.result;
+    },
+    createPartTestCase: function() {
         var testCase = new lively.PartTestCase(null, null, this),
             tests = this.ensurePartTestsObject();
         for (funcName in tests) {
             testCase.addScript(tests[funcName], funcName);
         }
-        testCase.runAll();
         return testCase;
     },
+
 
 });
 

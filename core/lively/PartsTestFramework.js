@@ -65,7 +65,15 @@ lively.morphic.Morph.addMethods('parts testing', {
     },
     addPartTest: function(aFunction) {
         aFunction.asScriptOf(this.ensurePartTestsObject(), aFunction.name);
-    }, 
+    },
+    removePartTest: function(aSelector) {
+        var testsObject = this.getTestsObject();
+        if (!testsObject) {
+            return;
+        }
+        delete testsObject[aSelector];
+    },
+ 
     runPartTests: function() {
         var testCase = new lively.PartTestCase(null, null, this),
             tests = this.ensurePartTestsObject();

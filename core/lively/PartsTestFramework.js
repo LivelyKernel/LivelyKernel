@@ -91,5 +91,11 @@ lively.morphic.Morph.addMethods('parts testing', {
 
 
 });
+TestSuite.addMethods('parts tests', {
 
+    addTestCasesFromPart: function(aPart) {
+        this.addTestCases([aPart.createPartTestCase()]);
+    },
+
+});
 }) // end of module

@@ -76,7 +76,7 @@ jshint_watch:
 # PartsBin (optional) #
 #######################
 install_partsbin:
-	svn co http://lively-kernel.org/repository/webwerkstatt/core/PartsBin/ PartsBin
+	svn co http://lively-kernel.org/repository/webwerkstatt/PartsBin/ PartsBin
 
 update_partsbin:
 	cd PartsBin && svn up

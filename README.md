@@ -2,19 +2,12 @@
 
 For general information about the Lively Kernel, see http://lively-kernel.org/.
 
-This repository is a fork of the Lively Kernel Webwerkstatt wiki at HPI (http://www.lively-kernel.org/repository/webwerkstatt/). We want to use it in order to
 
-- modularize and reorganize the core code
-- implement a workflow that integrates the explorative and self-sustaining approach of Lively with the ability to provide maintainability and isolated feature development, i.e.
-    - fix bugs without keeping others from doing their work
-    - reuse modules from Lively for other projects
-    - be able to create stable milestones instead of rolling releases
-    - run Webwerkstatt against those artifacts
-- modernize Lively Kernel's infrastructure and explore new technology
+## This Repository
 
-Changes in this repository are likely to be ported back to Webwerkstatt.
+This repository is a fork of the Lively Kernel Webwerkstatt wiki at [HPI](http://www.lively-kernel.org/repository/webwerkstatt/). 
 
-To learn more about the motivation and long-term plan for this project see [the wiki](https://github.com/rksm/LivelyKernel/wiki/Lively-Kernel-and-Webwerkstatt).
+To learn more about the motivation and long-term vision for this repository see [the wiki](https://github.com/rksm/LivelyKernel/wiki/Repository-Purpose).
 
 
 ## Running Lively Kernel with node.js
@@ -86,6 +79,11 @@ This will by default open the world <http://localhost:9001/testing/run_tests.xht
 By default, a POST request to <http://localhost:9001/test-report> will inform the server about results and close the browser session (if the browser was started from inside the server).
 
 To try it out manually visit: <http://localhost:9001/testing/run_tests.xhtml?testRunId=1&loadScript=run_tests.js&stayOpen=true>
+
+
+## LivelyKernel on Travis-CI
+
+We use [Travis-CI](http://www.travis-ci.org) to run tests continuously on every commit into the Master branch. Visit [travis-ci.org/#!/rksm/LivelyKernel](http://travis-ci.org/#!/rksm/LivelyKernel) for the current status of LivelyKernel builds on Travis.
 
 
 ## Working with github and the git repository

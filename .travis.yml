@@ -3,11 +3,11 @@ node_js:
   - 0.6
 
 before_install: 
-  - "make install_chrome_travis"
-  - "make install_xvfb_travis"
+  - "make install_chrome_on_travis"
+  - "make install_xvfb_on_travis"
   
 before_script: 
-  - "make start_xvfb_forever"
+  - "make start_xvfb"
   - "make start_server_forever" 
 
-script: "make kernel_tests_travis"
+script: "make travis_tests"

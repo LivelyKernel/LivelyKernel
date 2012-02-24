@@ -86,17 +86,20 @@ update_partsbin:
 # Travis-CI #
 #############
 
-install_chrome_travis:
+# before_install cmds
+install_chrome_on_travis:
 	sudo apt-get install chromium-browser
 
-install_xvfb_travis: 
+install_xvfb_on_travis: 
 	sudo apt-get install xvfb
 	
-start_xvfb_forever:
+# before_script cmds 
+start_xvfb:
 	Xvfb :1 -screen 0 800x600x24&
 
 start_server_forever:
 	./node_modules/forever/bin/forever start minimal_server/serve.js 9001 && echo 'setTimeout(function(){ }, 2500);' | node
-
-kernel_tests_travis:
+	
+# travis-ci test script 
+travis_tests:
 	node $(CLI_TEST_STARTER) --display :1

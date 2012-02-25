@@ -20,8 +20,8 @@ RepoDiffReporter.prototype.filesDiffing = function(rawQuickDiff) {
            .filter(function(ea) { return ea.match(/ differ$/) })
            .map(function(ea) {
                return ea.
-                   replace(this.lk.root, "").
-                   replace(this.ww.root, "").
+                   replace(this.repo1.root, "").
+                   replace(this.repo2.root, "").
                    replace(/^Files /, "").
                    replace(/ differ$/, "").
                    replace(/ and .*/, "");
@@ -51,8 +51,8 @@ RepoDiffReporter.prototype.produceReportThenDo = function(callback) {
         console.log('-> Got diff, parsing...')
         var report = {
             onlyin: {
-                ww: self.filesOnlyIn('ww', rawQuickDiff),
-                lk: self.filesOnlyIn('lk', rawQuickDiff)
+                repo2: self.filesOnlyIn('repo2', rawQuickDiff),
+                repo1: self.filesOnlyIn('repo1', rawQuickDiff)
             },
             diffingFiles: self.filesDiffing(rawQuickDiff),
             fileDiffs: {}
@@ -80,7 +80,7 @@ RepoDiffReporter.prototype.produceReportThenDo = function(callback) {
         } else {
             filesToDiff.forEach(function(filePath) {
                 console.log('-> Diffing ' + filePath + '...');
-                si.fileDiff(filePath, self.ww.root, self.lk.root, function(diff) {
+                si.fileDiff(filePath, self.repo2.root, self.repo1.root, function(diff) {
                     diffs[filePath] = diff;
                     diffDoneFor(filePath);
                     if (allDiffsDone()) whenDone(diffs);
@@ -90,18 +90,18 @@ RepoDiffReporter.prototype.produceReportThenDo = function(callback) {
     }
 
     function runDiff() {
-        si.quickDiff(self.ww.root, self.lk.root, function(rawQuickDiff) {
+        si.quickDiff(self.repo2.root, self.repo1.root, function(rawQuickDiff) {
             produceReport(rawQuickDiff);
         });
     }
 
     function runUpdate(whenDone) {
-        var lkIsUpdated = false, wwIsUpdated = false,
-            tryDone = function() { lkIsUpdated && wwIsUpdated && whenDone() },
-            lkDone = function() { console.log('-> lk updated...'); lkIsUpdated = true; tryDone() },
-            wwDone = function() { console.log('-> ww updated...'); wwIsUpdated = true; tryDone() };
-        si[self.lk.updateMethod](self.lk.root, lkDone);
-        si[self.ww.updateMethod](self.ww.root, wwDone);
+        var repo1IsUpdated = false, repo2IsUpdated = false,
+            tryDone = function() { repo1IsUpdated && repo2IsUpdated && whenDone() },
+            repo1Done = function() { console.log('-> repo1 updated...'); repo1IsUpdated = true; tryDone() },
+            repo2Done = function() { console.log('-> repo2 updated...'); repo2IsUpdated = true; tryDone() };
+        si[self.repo1.updateMethod](self.repo1.root, repo1Done);
+        si[self.repo2.updateMethod](self.repo2.root, repo2Done);
     }
 
     runUpdate(runDiff);
@@ -130,16 +130,16 @@ var SystemInterface = {
         this.runCommandAndDo('git pull', {cwd: dir, env: process.env}, whenDone);
     },
 
-    quickDiff: function(lkDir, wwDir, whenDone) {
-        this.runCommandAndDo('diff ' + lkDir + '/core ' + wwDir
+    quickDiff: function(repo1Dir, repo2Dir, whenDone) {
+        this.runCommandAndDo('diff ' + repo1Dir + '/core ' + repo2Dir
                             + '/core -x ".svn" -u -r -q | sort',
                              {cwd: null, env: process.env},
                              whenDone);
     },
 
-    fileDiff: function(relativePath, lkDir, wwDir, whenDone) {
-        this.runCommandAndDo('diff ' + lkDir + relativePath + ' '
-                            + wwDir + relativePath + ' -u',
+    fileDiff: function(relativePath, repo1Dir, repo2Dir, whenDone) {
+        this.runCommandAndDo('diff ' + repo1Dir + relativePath + ' '
+                            + repo2Dir + relativePath + ' -u',
                              {cwd: null, env: process.env},
                              whenDone,
                              true);

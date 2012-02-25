@@ -60,16 +60,21 @@ function rsyncWithGit() {
         seq(function() { console.log('sync done'); next(); });
 }
 
+var gitMirrorBranchName = 'ww-mirror';
+function gitPull() {
+
+}
+
 function gitPush() {
-    var gitMirrorBranchName = 'ww-mirror',
-        next = this;
+    var next = this;
     Seq().
         seq(exec, ['git commit -am \'[mirror commit] {"rev": "' + rev + '"}\''].join(' '),
             {cwd: gitRepoDir}, Seq).
         seq(exec, ['git push origin', gitMirrorBranchName].join(' '),
             {cwd: gitRepoDir, env: process.env}, Seq).
         // seq(exec, 'ssh-agent ssh-add /home/robert/.ssh/webwerkstatt_mirror_rsa; git push origin ' + gitMirrorBranchName, {cwd: gitRepoDir}, Seq).
-        seq(function() { console.log('push done'); next(); });
+        seq(function() { console.log('push done'); next(); }).
+        catch(function() { console.log('push error: ' + this.error.message); next(); });
 }
 
 function sshSetup() {
@@ -105,11 +110,16 @@ function unlock() {
         seq(function() { console.log('unlocked'); next(); });
 }
 
-Seq().
-    seq(lock).
-    seq(checkIfCoreCommit).
-    seq(updateWebwerkstattWorkingCopy).
-    seq(rsyncWithGit).
-    seq(sshSetup).
-    seq(gitPush).
-    seq(unlock);
+try {
+    Seq().
+        seq(lock).
+        seq(checkIfCoreCommit).
+        seq(updateWebwerkstattWorkingCopy).
+        seq(rsyncWithGit).
+        // seq(sshSetup).
+        seq(gitPush).
+        seq(unlock);
+} catch(e) {
+    console.log('Error: ' + e);
+    Seq().seq(unlock);
+}

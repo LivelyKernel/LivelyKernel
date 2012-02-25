@@ -1,6 +1,8 @@
 # Lively Kernel
 
-For general information about the Lively Kernel, see http://lively-kernel.org/.
+For general information about the Lively Kernel, see [lively-kernel.org](http://lively-kernel.org/). 
+
+For feedback, announcement and discussions, please feel invited to subscribe to our [mailing list](http://lively-kernel.org/list/index.html).
 
 
 ## This Repository

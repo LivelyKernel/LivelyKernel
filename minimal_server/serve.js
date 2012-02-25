@@ -1,4 +1,4 @@
-/*globals escape*/
+/*global escape, require, process, console, setTimeout, JSON, __dirname*/
 
 var express = require('express'),
     spawn = require('child_process').spawn,
@@ -25,7 +25,7 @@ var args = process.argv.slice(2),
 function setupServer(testHandler) {
     var app = express.createServer();
     // app.use(express.logger());
-    app.use("/", express.static(__dirname + '/../'));
+    app.use("/", express["static"](__dirname + '/../'));
     app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
     app.use(express.bodyParser());
 
@@ -77,7 +77,7 @@ var browserInterface = {
             this.process = spawn(browserPath, browserArgs.concat([url]), {env: {'DISPLAY' : display}});
         } else {
             this.process = spawn(browserPath, browserArgs.concat([url]));
-        }        
+        }
     },
 
     closeBrowser: function(id) {

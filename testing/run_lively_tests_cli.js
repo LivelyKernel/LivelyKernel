@@ -84,7 +84,7 @@ parser.on("focus", function(name, value) {
 });
 
 parser.on("display", function(name, value) {
-    options.display = value; 
+    options.display = value;
 });
 
 parser.parse(process.argv);

@@ -1,5 +1,31 @@
 /*global require, process, console, setTimeout*/
 
+
+/*
+ * This script will rsync the webwerkstatt core directory with the
+ * ww-mirror branch of the Lively Kernel core repository. The commit message
+ * includes the svn revision that was used for the sync.
+ *
+ * The steps that are done:
+ * - lock using a file to not allow concurrent syncs (sync will wait a certain time)
+ * - if no core commit, unlock and do nothing
+ * - update webwerkstatt working copy
+ * - rsync svn repo with git repo (takes care of deletions, renames)
+ * - git reset, clean, pull -- the git repo should be OK, just to be sure
+ * - git add, commit, push
+ * - unlock
+ *
+ * This script runs as a post commit hook of the webwerkstatt svn repo.
+ * It is invoke with:
+ *
+ * node /home/robert/webwerkstatt/git-core-mirror/lk/scripts/svn-sync.js \
+ *      --svn-repo /etc/environments/svn_repositories/webwerkstatt \
+ *      --svn-wc /home/robert/webwerkstatt/git-core-mirror/ww/ \
+ *      --git-repo /home/robert/webwerkstatt/git-core-mirror/svn-mirror/ \
+ *      --rev 140250 \
+ *      --lockfile /home/robert/webwerkstatt/git-core-mirror/mirror.lock
+ */
+
 var optparse = require('optparse'),
     exec = require('child_process').exec,
     fs = require('fs'),
@@ -7,7 +33,7 @@ var optparse = require('optparse'),
 
 var switches = [
     ['-h', '--help', "This tool requires a local path to a svn repository and a version number."
-               + "From that it will rsync"],
+                   + "From that it will rsync"],
     ['--svn-repo DIR', "Path to svn repository"],
     ['--svn-wc DIR', "Path to SVN workingcopy that is svn updated and used as a source for the sync"],
     ['--git-repo DIR', "local path to the git repository with the branch that mirrors the svn reository"],
@@ -30,13 +56,13 @@ if (!rev || !svnRepo || !svnWc || !gitRepoDir || !lockFile) showHelpAndExit();
 
 function run(cmd, cb, next, options) {
     exec(cmd, options, function() {
-	var invokeNext = cb.apply(this, arguments);
-	if (invokeNext) {
-	    next();
-	} else {
-	    next(1);
-	    console.log('early exit');
-	};
+	      var invokeNext = cb.apply(this, arguments);
+	      if (invokeNext) {
+	          next();
+	      } else {
+	          next(1);
+	          console.log('early exit');
+	      };
     });
 }
 
@@ -44,24 +70,24 @@ function run(cmd, cb, next, options) {
 // svn / rsync
 // -=-=-=-=-=-=-=-=-=-=-
 function checkIfCoreCommit(thenDo) {
-    function isCoreCommit(err, committedFiles) {
+    function testIfCoreCommit(err, committedFiles) {
         var lines = committedFiles.split('\n'),
             pattern = 'core/',
-	    isCoreCommit = lines.some(function (line) { return line.indexOf(pattern) >= 0 });
-	console.log('is core commit: ' + isCoreCommit);
-	return isCoreCommit;
+	          isCoreCommit = lines.some(function (line) { return line.indexOf(pattern) >= 0; });
+	      console.log('is core commit: ' + isCoreCommit);
+	      return isCoreCommit;
     }
-    run(['svnlook', 'changed', svnRepo , '-r', rev].join(' '), isCoreCommit, this);
+    run(['svnlook', 'changed', svnRepo , '-r', rev].join(' '), testIfCoreCommit, this);
 }
 
 function updateWebwerkstattWorkingCopy() {
     run(['svn up', svnWc, '-r', rev].join(' '),
-	function(err, out) { console.log('updated: ' + out); return true }, this);
+	      function(err, out) { console.log('updated: ' + out); return true; }, this);
 }
 
 function rsyncWithGit() {
     run(['rsync -ra --delete --exclude=".svn" --exclude="localconfig.js"', svnWc, gitRepoDir + '/core/'].join(' '),
-	function(err, out) { console.log('sync done: ' + out); return true }, this);
+	      function(err, out) { console.log('sync done: ' + out); return true; }, this);
 }
 
 // -=-=-=-=-=-=-=-=-=-=-
@@ -69,9 +95,9 @@ function rsyncWithGit() {
 // -=-=-=-=-=-=-=-=-=-=-
 function runGitCmd(cmd, name, next) {
     exec(cmd, {env: process.env, cwd: gitRepoDir},
-	 function(code, err, out) {
-	     console.log(['== ' + name + ' ==', code, err, out].join('\n'));
-	     next(); });
+	       function(code, err, out) {
+	           console.log(['== ' + name + ' ==', code, err, out].join('\n'));
+	           next(); });
 }
 
 function gitClean() {
@@ -85,9 +111,9 @@ function gitPull() { // should not be necessary but just to be sure...
 
 function gitPush() {
     runGitCmd(['git add .;',
-	      'git commit -am "[mirror commit] {\\"rev\\":\\"', rev, '\\"}";',
-	      'git push -n origin', gitMirrorBranchName].join(' '),
-	      'PUSH', this);
+	             'git commit -am "[mirror commit] {\\"rev\\":\\"', rev, '\\"}";',
+	             'git push -n origin', gitMirrorBranchName].join(' '),
+	            'PUSH', this);
 }
 
 // -=-=-=-=-=-=-=-=-=-=-
@@ -103,7 +129,7 @@ function lock() {
     try {
         fs.statSync(lockFile);
         console.log('is locked, waiting');
-        setTimeout(function() { lock.call(next) }, 200);
+        setTimeout(function() { lock.call(next); }, 200);
     } catch (e) {
         // if error, means that file not there, we are ready to go
         fs.writeFileSync(lockFile, 'locked by mirror script, rev ' + rev);

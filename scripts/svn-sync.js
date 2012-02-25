@@ -28,6 +28,9 @@ parser.parse(process.argv);
 
 if (!rev || !svnRepo || !svnWc || !gitRepoDir || !lockFile) showHelpAndExit();
 
+// -=-=-=-=-=-=-=-=-=-=-
+// svn / rsync
+// -=-=-=-=-=-=-=-=-=-=-
 function checkIfCoreCommit(thenDo) {
     var next = this;
     function isCoreCommit(committedFiles) {
@@ -60,30 +63,41 @@ function rsyncWithGit() {
         seq(function() { console.log('sync done'); next(); });
 }
 
+// -=-=-=-=-=-=-=-=-=-=-
+// git commands
+// -=-=-=-=-=-=-=-=-=-=-
+function gitClean() {
+    var next = this;
+    Seq().
+        seq(exec, 'git reset --hard && git clean --force -d',
+            {cwd: gitRepoDir, env: process.env}, Seq).
+        seq(function() { console.log('pull clean'); next(); });
+
+}
+
 var gitMirrorBranchName = 'ww-mirror';
 function gitPull() {
-
+    var next = this;
+    Seq().
+        seq(exec, 'git pull origin ' +  gitMirrorBranchName,
+            {cwd: gitRepoDir, env: process.env}, Seq).
+        seq(function() { console.log('pull done'); next(); });
 }
 
 function gitPush() {
     var next = this;
     Seq().
-        seq(exec, ['git commit -am \'[mirror commit] {"rev": "' + rev + '"}\''].join(' '),
+        seq(exec, ['git commit -am [mirror commit] {"rev": "' + rev + '"}'].join(' '),
             {cwd: gitRepoDir}, Seq).
         seq(exec, ['git push origin', gitMirrorBranchName].join(' '),
             {cwd: gitRepoDir, env: process.env}, Seq).
-        // seq(exec, 'ssh-agent ssh-add /home/robert/.ssh/webwerkstatt_mirror_rsa; git push origin ' + gitMirrorBranchName, {cwd: gitRepoDir}, Seq).
-        seq(function() { console.log('push done'); next(); }).
-        catch(function() { console.log('push error: ' + this.error.message); next(); });
+        seq(function() { console.log('push done'); next(); })
+        ['catch'](function() { console.log('push error: ' + this.error.message); next(); });
 }
 
-function sshSetup() {
-    var next = this;
-    Seq().
-        seq(exec, 'eval `ssh-agent`; ssh-add /home/robert/.ssh/webwerkstatt_mirror_rsa', Seq).
-        seq(function() { console.log('ssh setup done'); next(); });
-}
-
+// -=-=-=-=-=-=-=-=-=-=-
+// lock / unlock
+// -=-=-=-=-=-=-=-=-=-=-
 var timeout = Date.now() + 5000;
 function lock() {
     if (Date.now() > timeout) {
@@ -110,15 +124,20 @@ function unlock() {
         seq(function() { console.log('unlocked'); next(); });
 }
 
+// -=-=-=-=-=-=-=-=-=-=-
+// let it run
+// -=-=-=-=-=-=-=-=-=-=-
 try {
     Seq().
         seq(lock).
         seq(checkIfCoreCommit).
         seq(updateWebwerkstattWorkingCopy).
         seq(rsyncWithGit).
-        // seq(sshSetup).
+        seq(gitClean).
+        seq(gitPull).
         seq(gitPush).
         seq(unlock);
+        // catch(unlock);
 } catch(e) {
     console.log('Error: ' + e);
     Seq().seq(unlock);

@@ -86,7 +86,8 @@ function updateWebwerkstattWorkingCopy() {
 }
 
 function rsyncWithGit() {
-    run(['rsync -ra --delete --exclude=".svn" --exclude="localconfig.js"', svnWc, gitRepoDir + '/core/'].join(' '),
+    run(['rsync -ra --delete --filter=". ', gitRepoDir, '/webwerkstatt_mirror.filter" ',
+         svnWc, ' ', gitRepoDir, '/core/'].join(''),
 	      function(err, out) { console.log('sync done: ' + out); return true; }, this);
 }
 

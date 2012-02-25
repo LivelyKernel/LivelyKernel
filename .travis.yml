@@ -11,3 +11,7 @@ before_script:
   - "make start_server_forever" 
 
 script: "make travis_tests"
+
+branches:
+  only:
+    - master

@@ -112,7 +112,7 @@ function gitPull() { // should not be necessary but just to be sure...
 function gitPush() {
     runGitCmd(['git add .;',
 	             'git commit -am "[mirror commit] {\\"rev\\":\\"', rev, '\\"}";',
-	             'git push -n origin', gitMirrorBranchName].join(' '),
+	             'git push origin', gitMirrorBranchName].join(' '),
 	            'PUSH', this);
 }
 

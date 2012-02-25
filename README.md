@@ -83,8 +83,8 @@ To try it out manually visit: <http://localhost:9001/testing/run_tests.xhtml?tes
 
 ## LivelyKernel on Travis-CI
 
-We use [Travis-CI](http://www.travis-ci.org) to run tests continuously on every commit into the Master branch. Visit [travis-ci.org/#!/rksm/LivelyKernel](http://travis-ci.org/#!/rksm/LivelyKernel) for the current status of LivelyKernel builds on Travis.
-
+We use [Travis-CI](http://www.travis-ci.org) to run tests continuously on every commit into the Master branch: 
+[![Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png)](http://travis-ci.org/rksm/LivelyKernel)
 
 ## Working with github and the git repository
 

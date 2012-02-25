@@ -28,71 +28,66 @@ parser.parse(process.argv);
 
 if (!rev || !svnRepo || !svnWc || !gitRepoDir || !lockFile) showHelpAndExit();
 
+function run(cmd, cb, next, options) {
+    exec(cmd, options, function() {
+	var invokeNext = cb.apply(this, arguments);
+	if (invokeNext) {
+	    next();
+	} else {
+	    next(1);
+	    console.log('early exit');
+	};
+    });
+}
+
 // -=-=-=-=-=-=-=-=-=-=-
 // svn / rsync
 // -=-=-=-=-=-=-=-=-=-=-
 function checkIfCoreCommit(thenDo) {
-    var next = this;
-    function isCoreCommit(committedFiles) {
+    function isCoreCommit(err, committedFiles) {
         var lines = committedFiles.split('\n'),
             pattern = 'core/',
-            isCoreCommit = lines.some(function (line) { return line.indexOf(pattern) >= 0 });
-        console.log('rev ' + rev + ' is core commit: ' + isCoreCommit);
-        if (isCoreCommit) next();
+	    isCoreCommit = lines.some(function (line) { return line.indexOf(pattern) >= 0 });
+	console.log('is core commit: ' + isCoreCommit);
+	return isCoreCommit;
     }
-    Seq().
-        seq(exec, ['svnlook', 'changed', svnRepo , '-r', rev].join(' '), Seq).
-        seq(isCoreCommit);
+    run(['svnlook', 'changed', svnRepo , '-r', rev].join(' '), isCoreCommit, this);
 }
 
 function updateWebwerkstattWorkingCopy() {
-    var next = this;
-    Seq().
-        seq(function() {
-            console.log('svn updating: ' + ['svn up', svnWc, '-r', rev].join(' '));
-            exec(['svn up', svnWc, '-r', rev].join(' '), this);
-        }).
-        seq(function(out) { console.log('updated: ' + out); next(); });
+    run(['svn up', svnWc, '-r', rev].join(' '),
+	function(err, out) { console.log('updated: ' + out); return true }, this);
 }
 
 function rsyncWithGit() {
-    var next = this;
-    Seq().
-        seq(exec, ['rsync -ra --delete --exclude=".svn" --exclude="localconfig.js"',
-                   svnWc, gitRepoDir + '/core/'].join(' '), Seq).
-        seq(function() { console.log('sync done'); next(); });
+    run(['rsync -ra --delete --exclude=".svn" --exclude="localconfig.js"', svnWc, gitRepoDir + '/core/'].join(' '),
+	function(err, out) { console.log('sync done: ' + out); return true }, this);
 }
 
 // -=-=-=-=-=-=-=-=-=-=-
 // git commands
 // -=-=-=-=-=-=-=-=-=-=-
-function gitClean() {
-    var next = this;
-    Seq().
-        seq(exec, 'git reset --hard && git clean --force -d',
-            {cwd: gitRepoDir, env: process.env}, Seq).
-        seq(function() { console.log('pull clean'); next(); });
+function runGitCmd(cmd, name, next) {
+    exec(cmd, {env: process.env, cwd: gitRepoDir},
+	 function(code, err, out) {
+	     console.log(['== ' + name + ' ==', code, err, out].join('\n'));
+	     next(); });
+}
 
+function gitClean() {
+    runGitCmd('git reset --hard && git clean --force -d', 'CLEAN', this);
 }
 
 var gitMirrorBranchName = 'ww-mirror';
-function gitPull() {
-    var next = this;
-    Seq().
-        seq(exec, 'git pull origin ' +  gitMirrorBranchName,
-            {cwd: gitRepoDir, env: process.env}, Seq).
-        seq(function() { console.log('pull done'); next(); });
+function gitPull() { // should not be necessary but just to be sure...
+    runGitCmd('git pull origin ' + gitMirrorBranchName, 'PULL', this);
 }
 
 function gitPush() {
-    var next = this;
-    Seq().
-        seq(exec, ['git commit -am [mirror commit] {"rev": "' + rev + '"}'].join(' '),
-            {cwd: gitRepoDir}, Seq).
-        seq(exec, ['git push origin', gitMirrorBranchName].join(' '),
-            {cwd: gitRepoDir, env: process.env}, Seq).
-        seq(function() { console.log('push done'); next(); })
-        ['catch'](function() { console.log('push error: ' + this.error.message); next(); });
+    runGitCmd(['git add .;',
+	      'git commit -am "[mirror commit] {\\"rev\\":\\"', rev, '\\"}";',
+	      'git push -n origin', gitMirrorBranchName].join(' '),
+	      'PUSH', this);
 }
 
 // -=-=-=-=-=-=-=-=-=-=-
@@ -118,10 +113,10 @@ function lock() {
 }
 
 function unlock() {
-    var next = this;
+    var next = typeof this == 'function' && this;
     Seq().
         seq(fs.unlink, lockFile, Seq).
-        seq(function() { console.log('unlocked'); next(); });
+        seq(function() { console.log('unlocked'); next && next(); });
 }
 
 // -=-=-=-=-=-=-=-=-=-=-
@@ -131,13 +126,13 @@ try {
     Seq().
         seq(lock).
         seq(checkIfCoreCommit).
-        seq(updateWebwerkstattWorkingCopy).
-        seq(rsyncWithGit).
         seq(gitClean).
         seq(gitPull).
+        seq(updateWebwerkstattWorkingCopy).
+        seq(rsyncWithGit).
         seq(gitPush).
-        seq(unlock);
-        // catch(unlock);
+        seq(unlock).
+        catch(unlock);
 } catch(e) {
     console.log('Error: ' + e);
     Seq().seq(unlock);

@@ -210,10 +210,10 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         this.assertEquals(6, funcAst.body.children[0].trueExpr.astIndex());
         this.assertEquals(7, funcAst.body.children[0].falseExpr.astIndex());
         this.assertEquals(8, funcAst.body.children[0].astIndex());
-        this.assertEquals(10, funcAst.body.children[1].fn.astIndex());
-        this.assertEquals(11, funcAst.body.children[1].astIndex());
-        this.assertEquals(12, funcAst.body.astIndex());
-        this.assertEquals(13, funcAst.astIndex());
+        this.assertEquals(9, funcAst.body.children[1].fn.astIndex());
+        this.assertEquals(10, funcAst.body.children[1].astIndex());
+        this.assertEquals(11, funcAst.body.astIndex());
+        this.assertEquals(12, funcAst.astIndex());
     },
     test05bEnumerateASTNodesButNotNestedFunctions: function() {
         var funcAst = function() { (function() { return 3 }); foo() }.ast();

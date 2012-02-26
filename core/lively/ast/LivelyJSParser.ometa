@@ -57,7 +57,8 @@ toks =
 token :tt = tok:t ?(t[0] == tt) -> { t[2] }, // we return t[2] not t[1] because t[1] is the pos
 spacesNoNl = (~'\n' space)*,
 expr =
-	pos:p1 listOf(#exprPart, ','):bs pos:p2	-> [#begin, [p1, p2]].concat(bs),
+	pos:p1 expr:f ',' exprPart:s pos:p2	-> [#begin, [p1, p2], f,s]
+        | exprPart,
 exprPart =
 	pos:p1 orExpr:e (
 		"?" expr:t ":" expr:f pos:p2			-> [#condExpr, [p1, p2], e, t, f]

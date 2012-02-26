@@ -459,7 +459,7 @@ TestCase.subclass('lively.ast.tests.AstTests.InterpreterTest',
             result  = ast.startInterpretation();
         this.assertEquals(2, result);
     },
-    X_test24bNewThenObjAccess: function() {
+    test24bNewThenObjAccess: function() {
         var src = 'function m() { this.a = 2 }; new m().a',
             ast = this.parseJS(src),
             result  = ast.startInterpretation();

@@ -1,3 +1,8 @@
+2.1.2 / 2012-02-26
+==================
+
+  * This is just an experimental core link with our core link script, no changes from lk are merged into webwerksatt
+
 2.1.1 / 2012-02-23
 ==================
 

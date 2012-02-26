@@ -152,7 +152,7 @@ funcRest =
 sc =
 	spacesNoNl ('\n' | &'}' | end) | ";",
 binding =
-	pos:p1 "name":n ( "=" expr | empty pos:p -> [#get, [p, p], 'undefined'] ):v pos:p2
+	pos:p1 "name":n ( "=" exprPart | empty pos:p -> [#get, [p, p], 'undefined'] ):v pos:p2
 	-> [#var, [p1, p2], n, v],
 bindingList =
 	pos:p1 listOf(#binding, ','):bs pos:p2	-> [#begin, [p1, p2]].concat(bs),

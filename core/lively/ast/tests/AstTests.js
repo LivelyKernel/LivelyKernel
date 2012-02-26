@@ -180,7 +180,7 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         this.assertIdentity(funcAst,
             funcAst.body.children[0]
                 .trueExpr
-                .expr
+                .expr.children[0]
                 .right.parentFunction());
     },
 

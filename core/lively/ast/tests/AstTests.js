@@ -179,8 +179,8 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         var funcAst = function() { if (true) return 1 + m(); foo() }.ast();
         this.assertIdentity(funcAst,
             funcAst.body.children[0]
-                .trueExpr
-                .expr.children[0]
+                .trueExpr.children[0]
+                .expr
                 .right.parentFunction());
     },
 

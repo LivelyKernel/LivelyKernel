@@ -201,11 +201,11 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         // 11   Call(children)
         // 12  Sequence(body)
         // 13 Function(undefined)
-        this.assertEquals(0, funcAst.body.children[0].condExpr.children[0].astIndex());
+        this.assertEquals(0, funcAst.body.children[0].condExpr.astIndex());
         this.assertEquals(1, funcAst.body.children[0].condExpr.astIndex());
-        this.assertEquals(2, funcAst.body.children[0].trueExpr.children[0].expr.children[0].left.astIndex());
-        this.assertEquals(3, funcAst.body.children[0].trueExpr.children[0].expr.children[0].right.fn.astIndex());
-        this.assertEquals(4, funcAst.body.children[0].trueExpr.children[0].expr.children[0].right.astIndex());
+        this.assertEquals(2, funcAst.body.children[0].trueExpr.children[0].expr.left.astIndex());
+        this.assertEquals(3, funcAst.body.children[0].trueExpr.children[0].expr.right.fn.astIndex());
+        this.assertEquals(4, funcAst.body.children[0].trueExpr.children[0].expr.right.astIndex());
         this.assertEquals(5, funcAst.body.children[0].trueExpr.children[0].expr.children[0].astIndex());
         this.assertEquals(6, funcAst.body.children[0].trueExpr.children[0].expr.astIndex());
         this.assertEquals(7, funcAst.body.children[0].trueExpr.children[0].astIndex());

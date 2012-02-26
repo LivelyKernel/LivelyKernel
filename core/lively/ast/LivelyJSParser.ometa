@@ -113,27 +113,28 @@ unary =
 		| "typeof" unary:p   pos:p2 -> [#unop,  [p1, p2], "typeof",   p])
 	| postfix,
 postfix =
-	pos:p1 newExpr:p ( spacesNoNl "++"	pos:p2	-> [#postop, [p1, p2], "++", p]
-		| spacesNoNl "--" pos:p2				-> [#postop, [p1, p2], "--", p]
+	pos:p1 callExpr:p ( spacesNoNl "++" pos:p2	-> [#postop, [p1, p2], "++", p]
+		| spacesNoNl "--" pos:p2			-> [#postop, [p1, p2], "--", p]
 		| empty							-> p
 	),
-newExpr =
-	pos:p1 "new" callExpr:e pos:p2								-> [#new, [p1, p2], e]
-        | callExpr,
+args = "(" listOf(#expr, ','):as ")" -> as,
 callExpr =
-	pos:p1 callExpr:p ( "." "name":m "(" listOf(#expr, ','):as ")" pos:p2	-> [#send, [p1, p2], m, p].concat(as)
-		| "(" listOf(#expr, ','):as ")" pos:p2				-> [#call, [p1, p2], p].concat(as)
+	pos:p1 callExpr:p (
+		"." "name":m args:as pos:p2	-> [#send, [p1, p2], m, p].concat(as)
+		| args:as pos:p2				-> [#call, [p1, p2], p].concat(as)
+		)
+	| primExpr,
+memberExpr =
+	pos:p1 memberExpr:p (
+		"[" expr:i "]" pos:p2				-> [#getp, [p1, p2], i, p]
+		| "." pos:p3 "name":f pos:p2		-> [#getp, [p1, p2], [#string, [p3,p2], f], p]
 		)
 	| primExpr,
 primExpr =
-	pos:p1 primExpr:p ( "[" expr:i "]" pos:p2				-> [#getp, [p1, p2], i, p]
-		| "." pos:p3 "name":f pos:p2						-> [#getp, [p1, p2], [#string, [p3,p2], f], p]
-		)
-	| primExprHd,
-primExprHd =
 	"(" expr:e ")" -> e
 	| pos:p1 (
 		"this" pos:p2											-> [#this, [p1, p2]]
+		| "new" pos:p3 memberExpr:e (args | empty -> []):as pos:p2	-> [#new, [p1, p2], [#call, [p3, p2], e].concat(as)]
 		| "name":n pos:p2										-> [#get, [p1, p2], n]
 		| "number":n pos:p2										-> [#number, [p1, p2], n]
 		| "string":s pos:p2										-> [#string, [p1, p2], s]

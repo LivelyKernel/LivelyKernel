@@ -1304,20 +1304,20 @@ TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
     testIfThenElseBlock: function() {
         var fun = function() {if(2>1){a(3);a(4)}else{c=3;c=4};var a=1};
         var ast = fun.ast();
-        var node = ast.firstStatement(); //2>1
-        this.assert(node.isBinaryOp);
-        node = node.nextStatement(); //a(3)
-        this.assert(node.isCall);
-        node = node.nextStatement(); //a(4)
-        this.assert(node.isCall);
-        node = node.nextStatement(); //var a=1
-        this.assert(node.isVarDeclaration);
-        node = ast.nodeForAstIndex(13); // c=3
-        this.assert(node.isSet);
-        node = node.nextStatement(); // c=4
-        this.assert(node.isSet);
-        node = node.nextStatement(); //var a=1
-        this.assert(node.isVarDeclaration);
+        var node = ast.firstStatement();
+        this.assert(node.isBinaryOp, "2>1");
+        node = node.nextStatement();
+        this.assert(node.isCall, "a(3)");
+        node = node.nextStatement();
+        this.assert(node.isCall, "a(4)");
+        node = node.nextStatement();
+        this.assert(node.isVarDeclaration, "var a=1");
+        node = ast.nodeForAstIndex(13);
+        this.assert(node.isSet, "c=3");
+        node = node.nextStatement();
+        this.assert(node.isSet, "c=4");
+        node = node.nextStatement();
+        this.assert(node.isVarDeclaration, "var a=1");
     },
     testForLoop: function() {
         var fun = function() {var a=0;for(var i=1;i<4;i++){a=i}};

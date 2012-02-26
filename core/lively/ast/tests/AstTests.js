@@ -1312,7 +1312,7 @@ TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
         this.assert(node.isCall, "a(4)");
         node = node.nextStatement();
         this.assert(node.isVarDeclaration, "var a=1");
-        node = ast.nodeForAstIndex(13);
+        node = ast.nodeForAstIndex(12);
         this.assert(node.isSet, "c=3");
         node = node.nextStatement();
         this.assert(node.isSet, "c=4");

@@ -1183,7 +1183,7 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         this.assertBreaks(function() { frame.stepToNextStatement(); });
         this.assertEquals(frame.mapping.i, 24);
     },
-    X_testFactorial: function() {
+    testFactorial: function() {
         var that = this;
         var fun = this.examples.factorial.forInterpretation();
         var fac3 = this.assertBreaks(function() {

@@ -61,21 +61,21 @@ expr =
         | exprPart,
 exprPart =
 	pos:p1 orExpr:e (
-		"?" expr:t ":" expr:f pos:p2			-> [#condExpr, [p1, p2], e, t, f]
-		| "="    expr:rhs pos:p2			-> [#set,  [p1, p2], e, rhs]
-		| "+="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "+",   rhs]
-		| "-="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "-",   rhs]
-		| "*="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "*",   rhs]
-		| "/="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "/",   rhs]
-		| "%="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "%",   rhs]
-		| "&="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "&",   rhs]
-		| "&&="  expr:rhs pos:p2			-> [#mset, [p1, p2], e, "&&",  rhs]
-		| "|="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "|",   rhs]
-		| "||="  expr:rhs pos:p2			-> [#mset, [p1, p2], e, "||",  rhs]
-		| "^="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "^",   rhs]
-		| ">>="  expr:rhs pos:p2			-> [#mset, [p1, p2], e, ">>",  rhs]
-		| "<<="  expr:rhs pos:p2			-> [#mset, [p1, p2], e, "<<",  rhs]
-		| ">>>=" expr:rhs pos:p2			-> [#mset, [p1, p2], e, ">>>", rhs]
+		"?" exprPart:t ":" exprPart:f pos:p2			-> [#condExpr, [p1, p2], e, t, f]
+		| "="    exprPart:rhs pos:p2			-> [#set,  [p1, p2], e, rhs]
+		| "+="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "+",   rhs]
+		| "-="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "-",   rhs]
+		| "*="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "*",   rhs]
+		| "/="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "/",   rhs]
+		| "%="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "%",   rhs]
+		| "&="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "&",   rhs]
+		| "&&="  exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "&&",  rhs]
+		| "|="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "|",   rhs]
+		| "||="  exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "||",  rhs]
+		| "^="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "^",   rhs]
+		| ">>="  exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, ">>",  rhs]
+		| "<<="  exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "<<",  rhs]
+		| ">>>=" exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, ">>>", rhs]
 		| empty									-> e
 	),
 orExpr =

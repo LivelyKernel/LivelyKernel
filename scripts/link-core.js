@@ -133,13 +133,10 @@ Seq()
 .seq(shell.runInteractively,
      __dirname + '/edit-changelog.sh', [options.changeLogInputFile],
      Seq)
-.seq(execLogger('edit change log input'))
 .seq(fs.readFile, options.changeLogInputFile, Seq)
 .seq(function(changes) { embedInChangeLog(changes, options.changeLogFile, this) })
 .seq(fs.unlink, options.changeLogInputFile, Seq)
 .seq(logger('(2) done.'))
-.seq(fs.readFile, options.changeLogFile, Seq)
-.seq(execLogger('changeLogFile'), Seq)
 
 // ==== version file ====
 .seq(logger('\n(3) Updating version file (' + options.versionFile + '):'))
@@ -172,10 +169,13 @@ Seq()
 .seq(logger('\n(5) done'))
 
 // ==== final Message ====
-.seq(logger('\nThe core is almost linked...\nWhat you have to do now is to go into\n' +
+.seq(logger('\nThe core is almost linked...\n\nWhat you have to do now is to go into\n' +
             '\t' + options.lkDir + '\n\t and run `git push && git push tags` ' +
             'To commit the new change log and the new tag.\nAlso, in\n' +
            '\t' + options.wwDir + '\n\trun `svn st` and `svn diff` to review ' +
-           'and maybe modify the changes. When you are done run `svn ci`.\n' +
-           'Thats it! The new core is linked.'))
+           'and maybe modify the changes. Remember to run the tests!\n\t' +
+            'When you are done run `svn ci`. Thats it! The new core is linked.\n\n' +
+           'If you want to reset the changes made run\n\t ' +
+            'cd ' + options.lkDir + ' && ' + 'git tag ' + options.tag + ' -d && git reset --hard' +
+           '\nand\n\tcd ' + options.wwDir + ' && svn revert . -R'))
 .seq(function() { process.exit(0) })

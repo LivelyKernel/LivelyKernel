@@ -123,7 +123,7 @@ callExpr =
 		"." "name":m args:as pos:p2	-> [#send, [p1, p2], m, p].concat(as)
 		| args:as pos:p2				-> [#call, [p1, p2], p].concat(as)
 		)
-	| primExpr,
+	| memberExpr,
 memberExpr =
 	pos:p1 memberExpr:p (
 		"[" expr:i "]" pos:p2				-> [#getp, [p1, p2], i, p]

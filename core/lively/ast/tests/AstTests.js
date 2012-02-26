@@ -1101,7 +1101,6 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         frame.stepToNextStatement();
     },
     testStepOverAnotherDebugger: function() {
-        debugger;
         var that = this;
         var outer = this.assertBreaksWhenInterpretated(this.examples.callAnotherDebugger);
         this.assertBreaks(function() { outer.stepToNextStatement(); });

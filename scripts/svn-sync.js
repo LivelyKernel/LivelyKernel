@@ -101,7 +101,7 @@ function updateWebwerkstattWorkingCopy() {
 
 function findSVNAuthor() {
     run(['svnlook', 'author', svnRepo , '-r', rev].join(' '),
-       function(err, out) { svnInfo.author = out; return true; }, this);
+        function(err, out) { svnInfo.author = out.replace(/\n$/g, ''); return true; }, this);
 }
 
 function findSVNCommitMessae() {
@@ -129,10 +129,12 @@ function gitPull() { // should not be necessary but just to be sure...
 }
 
 function gitPush() {
-    runGitCmd(['git add .; ',
-	             'git commit -am "[mirror commit]\n', JSON.stringify(svnInfo, null, 2), '"; ',
-	             'git push origin', gitMirrorBranchName].join(''),
-	            'PUSH', this);
+    var cmd = ['git add .; ',
+	       'git commit --author="webwerkstatt ghost <lively-kernel@hpi.uni-potsdam.de>" ',
+               '-am \'[mirror commit]\n', JSON.stringify(svnInfo, null, 2), '\'; ',
+	       'git push origin ', gitMirrorBranchName].join('');
+    console.log(cmd);
+    runGitCmd(cmd, 'PUSH', this);
 }
 
 // -=-=-=-=-=-=-=-=-=-=-

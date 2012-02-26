@@ -802,10 +802,9 @@ Object.subclass('lively.ast.FunctionCaller', 'documentation', {
     shouldInterpret: function(frame, func) {
         if (this.isNative(func))
             return false;
-        return
-            func.hasOwnProperty("forInterpretation") ||
-            frame.breakAtCalls ||
-            func.containsDebugger();
+        return func.hasOwnProperty("forInterpretation") ||
+                frame.breakAtCalls ||
+                func.containsDebugger();
     },
     activate: function(frame, isNewCall, func, funcName, recv, argValues) {
         // if we send apply to a function (recv) we want to interpret it

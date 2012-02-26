@@ -28,8 +28,7 @@ if (Config.isNewMorphic) throw new Error('lively.Core loaded with NewMorphic!!!!
 
 /* Code loader. Appends file to DOM. */
 Object.extend(Global, {
-
-	Loader: JSLoader //new ScriptLoader(),
+    Loader: JSLoader //new ScriptLoader(),
 });
 
 // test which checks if all modules are loaded

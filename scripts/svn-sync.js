@@ -67,14 +67,28 @@ function run(cmd, cb, next, options) {
 }
 
 // -=-=-=-=-=-=-=-=-=-=-
-// svn / rsync
+// generic / rsync
 // -=-=-=-=-=-=-=-=-=-=-
+
+function rsyncWithGit() {
+    run(['rsync -ra --delete --filter=". ', gitRepoDir, '/webwerkstatt_mirror.filter" ',
+         svnWc, ' ', gitRepoDir, '/core/'].join(''),
+	      function(err, out) { console.log('sync done: ' + out); return true; }, this);
+}
+
+// -=-=-=-=-=-=-=-=-=-=-
+// svn
+// -=-=-=-=-=-=-=-=-=-=-
+
+var svnInfo = {rev: rev, author: "", changes: "", msg: ""};
+
 function checkIfCoreCommit(thenDo) {
     function testIfCoreCommit(err, committedFiles) {
         var lines = committedFiles.split('\n'),
             pattern = 'core/',
 	          isCoreCommit = lines.some(function (line) { return line.indexOf(pattern) >= 0; });
 	      console.log('is core commit: ' + isCoreCommit);
+        svnInfo.changes = committedFiles;
 	      return isCoreCommit;
     }
     run(['svnlook', 'changed', svnRepo , '-r', rev].join(' '), testIfCoreCommit, this);
@@ -85,10 +99,14 @@ function updateWebwerkstattWorkingCopy() {
 	      function(err, out) { console.log('updated: ' + out); return true; }, this);
 }
 
-function rsyncWithGit() {
-    run(['rsync -ra --delete --filter=". ', gitRepoDir, '/webwerkstatt_mirror.filter" ',
-         svnWc, ' ', gitRepoDir, '/core/'].join(''),
-	      function(err, out) { console.log('sync done: ' + out); return true; }, this);
+function findSVNAuthor() {
+    run(['svnlook', 'author', svnRepo , '-r', rev].join(' '),
+       function(err, out) { svnInfo.author = out; return true; }, this);
+}
+
+function findSVNCommitMessae() {
+    run(['svnlook', 'log', svnRepo , '-r', rev].join(' '),
+       function(err, out) { svnInfo.msg = out; return true; }, this);
 }
 
 // -=-=-=-=-=-=-=-=-=-=-
@@ -111,9 +129,9 @@ function gitPull() { // should not be necessary but just to be sure...
 }
 
 function gitPush() {
-    runGitCmd(['git add .;',
-	             'git commit -am "[mirror commit] {\\"rev\\":\\"', rev, '\\"}";',
-	             'git push origin', gitMirrorBranchName].join(' '),
+    runGitCmd(['git add .; ',
+	             'git commit -am "[mirror commit]\n', JSON.stringify(svnInfo, null, 2), '"; ',
+	             'git push origin', gitMirrorBranchName].join(''),
 	            'PUSH', this);
 }
 
@@ -153,6 +171,8 @@ try {
     Seq().
         seq(lock).
         seq(checkIfCoreCommit).
+        seq(findSVNAuthor).
+        seq(findSVNCommitMessae).
         seq(gitClean).
         seq(gitPull).
         seq(updateWebwerkstattWorkingCopy).

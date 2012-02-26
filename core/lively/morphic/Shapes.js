@@ -30,8 +30,13 @@ Object.subclass('lively.morphic.Shapes.Shape',
             this.setFill(fill.withA(opacity))
     },
     getFillOpacity: function() {
-        var op = this.shapeGetter('FillOpacity');
-        return op === undefined ? 1 : op;
+
+        var fill = this.getFill();
+        if(fill && typeof fill.a === "number") {
+            return fill.a
+        } else {
+            return 1;
+        }
     },
     setBorderWidth: function(width) { return this.shapeSetter('BorderWidth', width) },
     getBorderWidth: function() { 

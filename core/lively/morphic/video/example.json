@@ -1,0 +1,14 @@
+{
+  "id": "2398ab8a9b9a99a9b",
+  "poster": "media/bbb_watchtrailer.gif",
+  "title": "Big buck bunny",
+  "sources": [
+      {"src": "media/bbb_trailer_400p.ogg", "type": "video/ogg"},
+      {"src": "media/bbb_trailer_mobile.m4v", "type": "video/mp4"}
+  ],
+  "subtitles": [
+      {"src": "media/test.srt", "lang": "en"}
+  ],
+
+  "src_ie": "media/bbb_trailer_mobile.m4v"
+}

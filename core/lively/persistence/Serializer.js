@@ -497,7 +497,16 @@ ObjectLinearizerPlugin.subclass('StoreAndRestorePlugin',
             this.restoreObjects.push(obj);
     },
     deserializationDone: function() {
-        this.restoreObjects.invoke('onrestore');
+        this.restoreObjects.forEach(function(ea){
+            try {
+                ea.onrestore()
+            } catch(e) {
+                // be forgiving because a failure in an onrestore method should not break 
+                // the entire page
+                console.error('Deserialization Error during runing onrestore in: ' + ea 
+                    + '\nError:' + e)
+            } 
+        })
     },
 });
 ObjectLinearizerPlugin.subclass('DoNotSerializePlugin',

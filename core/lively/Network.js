@@ -304,6 +304,7 @@ Object.extend(URL, {
         }
         return url.withRelativePartsResolved();
     })(),
+    root: new URL(Config.rootPath),
 })
 
 Object.extend(URL, {

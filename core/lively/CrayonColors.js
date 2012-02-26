@@ -1,4 +1,4 @@
-module('lively.CrayonColors').requires().toRun(function() {
+module('lively.CrayonColors').requires('lively.morphic.Graphics').toRun(function() {
 
 Object.subclass('CrayonColors');
 Object.extend(CrayonColors, {

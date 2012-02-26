@@ -250,8 +250,8 @@ AsyncTestCase.subclass('TestSuiteTest', {
         ts.runAll();
         this.delay(function() {
             this.assertEquals(3, ts.result.runs(), 'result');
-	          this.done();
-	      }, 80);
+	    this.done();
+	}, 20);
     },
 
     testRunFiltered: function() {

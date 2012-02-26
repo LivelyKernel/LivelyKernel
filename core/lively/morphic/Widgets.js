@@ -966,6 +966,17 @@ lively.morphic.World.addMethods(
         });
         text.setSelectionRange(0,0)
         return text;
+    },
+    openBootstrapParts: function() {
+        // load the bootstrap part from webwerkstat
+        // this part can fetch all his friends :-)
+        var oldRootPath = Config.rootPath
+        try {
+            Config.rootPath = 'http://lively-kernel.org/repository/webwerkstatt/'
+            this.openPartItem("BootstrapParts", "PartsBin/Tools")
+        } finally {
+            Config.rootPath = oldRootPath
+        }
     }
 },
 'menu', {
@@ -1082,6 +1093,7 @@ lively.morphic.World.addMethods(
             ['Debugging', this.debuggingMenuItems(world)],
             ['Wiki', [
                 ['about this wiki', this.openAboutBox.bind(this)],
+                ['bootstrap parts from webwerkstatt', this.openBootstrapParts.bind(this)],
                 ['view versions of this world', this.openVersionViewer.bind(this)],
                 ['download world', function() {
                     require('lively.persistence.StandAlonePackaging').toRun(function() {
@@ -1292,6 +1304,7 @@ lively.morphic.World.addMethods(
             return ea.isWindow && ea.highlighted
         });
     }
+    
 });
 
 lively.morphic.List.addMethods(

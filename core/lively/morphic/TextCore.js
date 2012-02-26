@@ -622,7 +622,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
     doDoit: function() { this.evalSelection(false) },
     doPrintit: function() { this.evalSelection(true) },
-    doDebugIt: function() {
+    doDebugit: function() {
         var that = this;
         require('lively.ast.Morphic').toRun(function() {
             that.debugSelection();

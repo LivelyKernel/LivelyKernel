@@ -22,7 +22,6 @@
  * THE SOFTWARE.
  */
 
-
 // set to the context enclosing the SVG context.
 // rk: replaced "this.window.top || this.window" with "this.window"
 // rk: when is it necessary to use the parent context?
@@ -33,7 +32,6 @@ function dbgOn(cond, optMessage) {
     // also call as: throw dbgOn(new Error(....))
     return cond;
 }
-
 
 // namespace logic adapted from
 // http://higher-order.blogspot.com/2008/02/designing-clientserver-web-applications.html

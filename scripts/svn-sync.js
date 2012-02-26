@@ -130,10 +130,10 @@ function gitPull() { // should not be necessary but just to be sure...
 
 function gitPush() {
     var cmd = ['git add .; ',
-	           'git commit --author="', svnInfo.author || 'webwerkstatt ghost',
+	             'git commit --author="', svnInfo.author || 'webwerkstatt ghost',
                ' <lively-kernel@hpi.uni-potsdam.de>" ',
                '-am \'[mirror commit]\n', JSON.stringify(svnInfo, null, 2), '\'; ',
-	           'git push origin ', gitMirrorBranchName].join('');
+	             'git push origin ', gitMirrorBranchName].join('');
     console.log(cmd);
     runGitCmd(cmd, 'PUSH', this);
 }

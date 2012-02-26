@@ -154,12 +154,9 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
                     children: [{
                         isReturn: true,
                         expr: {
-                            isSequence: true,
-                            children: [{
-                                isPostOp: true,
-                                name: '++',
-                                expr: {isVariable: true, name: 'a'}
-                            }]
+                            isPostOp: true,
+                            name: '++',
+                            expr: {isVariable: true, name: 'a'}
                         }
                     }]
                 },

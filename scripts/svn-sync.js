@@ -18,7 +18,7 @@
  * This script runs as a post commit hook of the webwerkstatt svn repo.
  * It is invoke with:
  *
- * node /home/robert/webwerkstatt/git-core-mirror/lk/scripts/svn-sync.js \
+ * node /home/robert/webwerkstatt/git-core-mirror/scripts/scripts/svn-sync.js \
  *      --svn-repo /etc/environments/svn_repositories/webwerkstatt \
  *      --svn-wc /home/robert/webwerkstatt/git-core-mirror/ww/ \
  *      --git-repo /home/robert/webwerkstatt/git-core-mirror/svn-mirror/ \

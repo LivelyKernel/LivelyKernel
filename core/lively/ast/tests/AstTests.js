@@ -1118,7 +1118,7 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         );
         //outer.stepToNextStatement();
     },
-    X_testStepInto: function() {
+    testStepInto: function() {
         var that = this;
         var outer = this.assertBreaksWhenInterpretated(this.examples.callNoDebugger);
         this.assertEquals(outer.mapping["a"], 65);

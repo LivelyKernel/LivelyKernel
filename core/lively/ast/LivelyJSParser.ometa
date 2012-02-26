@@ -120,10 +120,12 @@ postfix =
 args = "(" listOf(#expr, ','):as ")" -> as,
 callExpr =
 	pos:p1 callExpr:p (
+		args:as pos:p2				-> [#call, [p1, p2], p].concat(as)
 		"." "name":m args:as pos:p2	-> [#send, [p1, p2], m, p].concat(as)
-		| args:as pos:p2				-> [#call, [p1, p2], p].concat(as)
+		| "[" expr:i "]" pos:p2			-> [#getp, [p1, p2], i, p]
+		| "." pos:p3 "name":f pos:p2	-> [#getp, [p1, p2], [#string, [p3,p2], f], p]
 		)
-	| memberExpr,
+	| primExpr,
 memberExpr =
 	pos:p1 memberExpr:p (
 		"[" expr:i "]" pos:p2				-> [#getp, [p1, p2], i, p]

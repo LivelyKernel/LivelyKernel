@@ -817,7 +817,7 @@ Object.subclass('lively.ast.FunctionCaller', 'documentation', {
             argValues = argValues[0]; // the second arg are the arguments (as an array)
         }
 
-        if (this.shouldInterpret(func)) {
+        if (this.shouldInterpret(frame, func)) {
             func = func.forInterpretation(Global);
         }
 

@@ -478,7 +478,7 @@ TestCase.subclass('lively.ast.tests.AstTests.InterpreterTest',
             result  = ast.startInterpretation();
         this.assertEquals(1, result);
     },
-    X_test24eFuncCallInNewExpr: function() {
+    test24eFuncCallInNewExpr: function() {
         var src = 'function m() { this.a = (function() { return 1 })() }; new m().a',
             ast = this.parseJS(src),
             result  = ast.startInterpretation();

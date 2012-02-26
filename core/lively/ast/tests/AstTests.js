@@ -472,7 +472,7 @@ TestCase.subclass('lively.ast.tests.AstTests.InterpreterTest',
             result  = ast.startInterpretation();
         this.assertEquals(2, result);
     },
-    X_test24eObjReallyInherits: function() {
+    test24eObjReallyInherits: function() {
         var src = 'function m() {}; m.prototype.a = 2; var obj = new m(); m.prototype.a = 1; obj.a',
             ast = this.parseJS(src),
             result  = ast.startInterpretation();

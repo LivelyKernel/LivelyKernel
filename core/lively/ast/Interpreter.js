@@ -799,7 +799,7 @@ Object.subclass('lively.ast.FunctionCaller', 'documentation', {
     },
 },
 'interpretation', {
-    shouldInterpret: function(func) {
+    shouldInterpret: function(frame, func) {
         if (this.isNative(func))
             return false;
         return

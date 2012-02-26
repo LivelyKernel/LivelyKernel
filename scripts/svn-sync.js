@@ -87,9 +87,9 @@ function checkIfCoreCommit(thenDo) {
         var lines = committedFiles.split('\n'),
             pattern = 'core/',
 	          isCoreCommit = lines.some(function (line) { return line.indexOf(pattern) >= 0; });
-	      console.log('is core commit: ' + isCoreCommit);
+	    console.log(rev + ' is core commit: ' + isCoreCommit);
         svnInfo.changes = committedFiles;
-	      return isCoreCommit;
+	    return isCoreCommit;
     }
     run(['svnlook', 'changed', svnRepo , '-r', rev].join(' '), testIfCoreCommit, this);
 }
@@ -130,9 +130,10 @@ function gitPull() { // should not be necessary but just to be sure...
 
 function gitPush() {
     var cmd = ['git add .; ',
-	       'git commit --author="webwerkstatt ghost <lively-kernel@hpi.uni-potsdam.de>" ',
+	           'git commit --author="', svnInfo.author || 'webwerkstatt ghost',
+               ' <lively-kernel@hpi.uni-potsdam.de>" ',
                '-am \'[mirror commit]\n', JSON.stringify(svnInfo, null, 2), '\'; ',
-	       'git push origin ', gitMirrorBranchName].join('');
+	           'git push origin ', gitMirrorBranchName].join('');
     console.log(cmd);
     runGitCmd(cmd, 'PUSH', this);
 }

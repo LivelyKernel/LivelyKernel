@@ -989,6 +989,7 @@ lively.ast.Function.addMethods('accessing', {
             return that.apply(this, $A(arguments));
         };
         fn.forInterpretation = function() { return that; };
+        fn.prototype = this.prototype;
         return fn;
     }
 },

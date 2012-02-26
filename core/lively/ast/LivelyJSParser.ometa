@@ -151,7 +151,7 @@ json =
 	-> [#json, [p1, p2]].concat(bs),
 
 jsonBinding =
-	pos:p1 jsonPropName:n ":" expr:v pos:p2
+	pos:p1 jsonPropName:n ":" exprPart:v pos:p2
 	-> [#binding, [p1, p2], n, v],
 jsonPropName = "name" | "number" | "string",
 formal = spaces "name",

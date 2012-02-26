@@ -206,7 +206,7 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         this.assertEquals(2, funcAst.body.children[0].trueExpr.children[0].expr.right.fn.astIndex());
         this.assertEquals(3, funcAst.body.children[0].trueExpr.children[0].expr.right.astIndex());
         this.assertEquals(4, funcAst.body.children[0].trueExpr.children[0].expr.astIndex());
-        this.assertEquals(6, funcAst.body.children[0].trueExpr.children[0].astIndex());
+        this.assertEquals(5, funcAst.body.children[0].trueExpr.children[0].astIndex());
         this.assertEquals(7, funcAst.body.children[0].trueExpr.astIndex());
         this.assertEquals(8, funcAst.body.children[0].falseExpr.astIndex());
         this.assertEquals(9, funcAst.body.children[0].astIndex());

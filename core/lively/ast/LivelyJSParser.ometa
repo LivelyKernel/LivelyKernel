@@ -113,15 +113,21 @@ unary =
 		| "typeof" unary:p   pos:p2 -> [#unop,  [p1, p2], "typeof",   p])
 	| postfix,
 postfix =
-	pos:p1 primExpr:p ( spacesNoNl "++"	pos:p2	-> [#postop, [p1, p2], "++", p]
+	pos:p1 newExpr:p ( spacesNoNl "++"	pos:p2	-> [#postop, [p1, p2], "++", p]
 		| spacesNoNl "--" pos:p2				-> [#postop, [p1, p2], "--", p]
 		| empty							-> p
 	),
+newExpr =
+	pos:p1 "new" callExpr:e pos:p2								-> [#new, [p1, p2], e]
+        | callExpr,
+callExpr =
+	pos:p1 callExpr:p ( "." "name":m "(" listOf(#expr, ','):as ")" pos:p2	-> [#send, [p1, p2], m, p].concat(as)
+		| "(" listOf(#expr, ','):as ")" pos:p2				-> [#call, [p1, p2], p].concat(as)
+		)
+	| primExpr,
 primExpr =
 	pos:p1 primExpr:p ( "[" expr:i "]" pos:p2				-> [#getp, [p1, p2], i, p]
-		| "." "name":m "(" listOf(#expr, ','):as ")" pos:p2	-> [#send, [p1, p2], m, p].concat(as)
 		| "." pos:p3 "name":f pos:p2						-> [#getp, [p1, p2], [#string, [p3,p2], f], p]
-		| "(" listOf(#expr, ','):as ")" pos:p2				-> [#call, [p1, p2], p].concat(as)
 		)
 	| primExprHd,
 primExprHd =
@@ -132,7 +138,6 @@ primExprHd =
 		| "number":n pos:p2										-> [#number, [p1, p2], n]
 		| "string":s pos:p2										-> [#string, [p1, p2], s]
 		| "function" ("name" | empty) funcRest
-		| "new" primExpr:e 	pos:p2								-> [#new, [p1, p2], e]
 		| "[" listOf(#expr, ','):es ("," | empty) "]"	pos:p2	-> [#arr, [p1, p2]].concat(es)
 		| "/" (escapeChar | ~'\/' char)*:e "/" letter*:f pos:p2	-> [#regex, [p1, p2], e.join(''), f.join('')]
 	 )

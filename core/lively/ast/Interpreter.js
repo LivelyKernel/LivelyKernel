@@ -687,6 +687,7 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     visitNew: function(node) {
         // No need to do anything because Send and Call
         // will look up _parent for New
+         debugger;
         return this.visit(node.clsExpr);
     },
     visitVarDeclaration: function(node) {

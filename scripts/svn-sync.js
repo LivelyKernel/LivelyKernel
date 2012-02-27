@@ -104,7 +104,7 @@ function findSVNAuthor() {
         function(err, out) { svnInfo.author = out.replace(/\n$/g, ''); return true; }, this);
 }
 
-function findSVNCommitMessae() {
+function findSVNCommitMessage() {
     run(['svnlook', 'log', svnRepo , '-r', rev].join(' '),
        function(err, out) { svnInfo.msg = out; return true; }, this);
 }
@@ -175,7 +175,7 @@ try {
         seq(lock).
         seq(checkIfCoreCommit).
         seq(findSVNAuthor).
-        seq(findSVNCommitMessae).
+        seq(findSVNCommitMessage).
         seq(gitClean).
         seq(gitPull).
         seq(updateWebwerkstattWorkingCopy).

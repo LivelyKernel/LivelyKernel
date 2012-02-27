@@ -6,6 +6,7 @@
 REL_PATH = sed "s/.*/.\/&/"
 QUNIT = ./node_modules/qunit/bin/cli.js
 NODEMON = ./node_modules/nodemon/nodemon.js
+FOREVER = ./node_modules/forever/bin/forever
 
 
 #################################################
@@ -24,6 +25,9 @@ RUN_MINISERVER_TESTS = $(QUNIT) --code $(MINISERVER_FILES) --tests $(MINISERVER_
 start_server:
 	@ echo "minimal server starting: http://localhost:$(MINISERVER_PORT)/"
 	$(NODEMON) --watch $(MINISERVER_DIR) $(MINISERVER) $(MINISERVER_PORT)
+
+start_server_forever:
+	 $(FOREVER) start $(MINISERVER) $(MINISERVER_PORT) && echo 'setTimeout(function(){ }, 2500);' | node
 
 server_tests:
 	$(RUN_MINISERVER_TESTS)
@@ -85,14 +89,11 @@ update_partsbin:
 #############
 # Travis-CI #
 #############
-	
-# before_script cmds 
+
+# before_script cmds
 start_xvfb:
 	Xvfb :1 -screen 0 800x600x24&
 
-start_server_forever:
-	./node_modules/forever/bin/forever start minimal_server/serve.js 9001 && echo 'setTimeout(function(){ }, 2500);' | node
-	
-# travis-ci test script 
+# travis-ci test script
 travis_tests:
 	node $(CLI_TEST_STARTER) --display :1

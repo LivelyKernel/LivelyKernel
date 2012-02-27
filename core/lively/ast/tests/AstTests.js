@@ -570,7 +570,7 @@ TestCase.subclass('lively.ast.tests.AstTests.InterpreterTest',
         this.assertEquals(3, result);
     },
     test36AlternativeMethodSend: function() {
-        var func = function(){var obj = {a:23,foo:function(){return this.a}};return obj["foo"]())}
+        var func = function(){var obj = {a:23,foo:function(){return this.a}};return obj["foo"]()}
         var result = func.forInterpretation().call();
         this.assertEquals(23, result);
     },

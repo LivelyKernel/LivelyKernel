@@ -1,6 +1,6 @@
 module('lively.bindings.tests.GeometryBindingTests').requires('lively.morphic.tests.Morphic', 'lively.bindings.GeometryBindings').toRun(function() {
 
-lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingTest',
+lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingTests.GeometryBindingTest',
 'testing', {
     test01ConnectToExtentOfAMorph: function() {
         var morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20),

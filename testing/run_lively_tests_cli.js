@@ -25,6 +25,7 @@ var platformConf = config.platformConfigs[process.platform],
         ['-n', '--notifier NAME', "Use a system notifier to output results. "
                                 + "Currently \"" + config.defaultNotifier
                                 + "\" is supported."],
+        ['-d', '--display NUMBER', 'Secify a display id for running chrome with xvfb'],
         ['-f', '--focus FILTER', "A filter is a string that can have three"
                                + "parts separated by \"|\". All parts define"
                                + " JS regexps.\n\t\t\t\tThe first is for "
@@ -50,7 +51,8 @@ var options = {
     testWorld: config.defaultTestWorld,
     verbose: false,
     maxRequests: config.timeout,
-    testFilter: null
+    testFilter: null,
+    display: null
 };
 
 parser.on("help", function() {
@@ -79,6 +81,10 @@ parser.on("test-script", function(name, value) {
 
 parser.on("focus", function(name, value) {
     options.testFilter = value;
+});
+
+parser.on("display", function(name, value) {
+    options.display = value;
 });
 
 parser.parse(process.argv);
@@ -166,15 +172,17 @@ function tryToGetReport(data) {
         }, 1000);
         return;
     }
-    printResult(data.testRunId, JSON.parse(data.result));
-    notifyResult(data.testRunId, JSON.parse(data.result));
-    process.exit(0);
+    var result = JSON.parse(data.result);
+    printResult(data.testRunId, result);
+    notifyResult(data.testRunId, result);
+    process.exit(result.fails ? 1 : 0);
 }
 
 function startTests() {
     post('/test-request', {
         browser: options.browserConf.path,
         browserArgs: options.browserConf.args,
+        display: options.display,
         testWorldPath: options.testWorld,
         loadScript: options.testScript,
         testFilter: options.testFilter

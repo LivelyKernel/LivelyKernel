@@ -4,7 +4,7 @@ module('lively.lang.CharSet').requires().toRun(function() {
 // Class defintion: CharSet
 ///////////////////////////////////////////////////////////////////////////////
 
-Object.subclass('lively.lang.CharSet', {
+Object.subclass('CharSet', {
     documentation: "limited support for charsets",
     lowercase: "abcdefghijklmnopqrstuvwxyz",
     uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -16,7 +16,7 @@ Object.subclass('lively.lang.CharSet', {
     rightBrackets: "*)}]>'" + '"'
 });
 
-Object.extend(lively.lang.CharSet, {
+Object.extend(CharSet, {
     // select word, brackets
     alphaNum: CharSet.lowercase + CharSet.uppercase + CharSet.digits + CharSet.underscore,
     charsAsTyped: CharSet.uppercase + CharSet.nonAlpha,

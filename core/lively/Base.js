@@ -22,6 +22,7 @@
  * THE SOFTWARE.
  */
 
+
 // set to the context enclosing the SVG context.
 // rk: replaced "this.window.top || this.window" with "this.window"
 // rk: when is it necessary to use the parent context?
@@ -32,6 +33,7 @@ function dbgOn(cond, optMessage) {
     // also call as: throw dbgOn(new Error(....))
     return cond;
 }
+
 
 // namespace logic adapted from
 // http://higher-order.blogspot.com/2008/02/designing-clientserver-web-applications.html
@@ -185,6 +187,7 @@ function module(moduleName) {
 
         return {
             toRun: function(code) {
+                var debugCode = code;
                 code = code.curry(module); // pass in own module name for nested requirements
                 var codeWrapper = function() { // run code with namespace modules as additional parameters
                     try {
@@ -192,7 +195,7 @@ function module(moduleName) {
                         code.apply(this, requiredModules);
                         module._isLoaded = true;
                     } catch(e) {
-                        module.logError(module + '>>basicRequire: ' + e)
+                        module.logError(module + '>>basicRequire: ' + e, debugCode)
                     } finally {
                         module.deactivate();
                     }
@@ -756,7 +759,8 @@ Namespace.addMethods(
     },
 
     uri: function(optType) { // FIXME cleanup necessary
-        if (this.__cachedUri) { return this.__cachedUri; }
+        if (this.__cachedUri && !optType) { return this.__cachedUri; }
+        var url;
         if (this.fromDB) {
             var id = this.namespaceIdentifier; // something like lively.Core
             var namespacePrefix;
@@ -767,7 +771,7 @@ Namespace.addMethods(
                 throw dbgOn(new Error('unknown namespaceIdentifier'));
 
             // FIXME: extract to Config.codeBaseDB
-            var url = Config.couchDBURL + '/' + this.fromDB + '/_design/raw_data/_list/javascript/for-module?module=' + id;
+            url = Config.couchDBURL + '/' + this.fromDB + '/_design/raw_data/_list/javascript/for-module?module=' + id;
             this.__cachedUri = url;
             return url;
         } else {
@@ -949,7 +953,7 @@ Namespace.addMethods(
 'debugging', {
     toString: function() { return 'module(' + this.namespaceIdentifier + ')' },
     inspect: function() { this.toString() + ' defined at ' + this.defStack },
-        logError: function(e) {
+        logError: function(e, optCode) {
             var list = this.traceDependendModules();
             var msg = 'Error while loading ' + this.moduleName + ': ' + e;
             msg += '\ndependencies: ' + Strings.printNested(list)
@@ -957,9 +961,12 @@ Namespace.addMethods(
                 lively.morphic.World.current().logError(e)
 
             if (e.stack) msg = msg + e.stack;
+
+            if (optCode)
+                msg += "code:\n" + optCode;
             console.error(msg);
             dbgOn(true);
-        }
+        },
 });
 
 Object.extend(Namespace, {
@@ -991,9 +998,21 @@ Object.extend(Namespace, {
     bootstrapModules: function() {
         // return a string to include in bootstrap.js
         var urls = this.topologicalSortLoadedModules().collect(function(ea) {
-            return new URL(ea.uri()).relativePathFrom(URL.codeBase)  });
-        var manual = [LivelyLoader.jqueryPath, 'lively/miniprototype.js', 'lively/JSON.js', 'lively/defaultconfig.js', 'lively/localconfig.js', 'lively/Base.js'];
-
+            return new URL(ea.uri()).relativePathFrom(URL.codeBase) });
+        var manual = [LivelyLoader.jqueryPath,
+            'lively/Migration.js',
+            'lively/JSON.js',
+            'lively/lang/Object.js',
+            'lively/lang/Function.js',
+            'lively/lang/String.js',
+            'lively/lang/Array.js',
+            'lively/lang/Number.js',
+            'lively/defaultconfig.js',
+            'lively/localconfig.js',
+            'lively/Base.js',
+            'lively/lang/Closure.js',   // FIXME: require module instead
+            'lively/lang/UUID.js',       // FIXME: require module instead
+            'lively/LocalStorage.js'];
         urls = manual.concat(urls);
         return urls;
     },

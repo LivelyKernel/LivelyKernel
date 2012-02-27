@@ -1,6 +1,6 @@
 module('lively.bindings.tests.BindingTests').requires('lively.TestFramework', 'lively.bindings').toRun(function() {
 
-TestCase.subclass('lively.bindings.tests.ConnectionTest', {
+TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
 
     test01SimpleConnection: function() {
         var obj1 = {x: 4};
@@ -454,7 +454,7 @@ TestCase.subclass('lively.bindings.tests.ConnectionTest', {
     },
 });
 
-TestCase.subclass('lively.bindings.tests.ConnectionSerializationTest', {
+TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionSerializationTest', {
 
     setUp: function($super) {
         $super();
@@ -570,7 +570,7 @@ TestCase.subclass('lively.bindings.tests.ConnectionSerializationTest', {
         this.assertEquals(2, this.newTextMorph1.someScript1(), 'connect not working after deserialization');
     },
 });
-Object.subclass('lively.bindings.tests.BindingsProfiler', {
+Object.subclass('lively.bindings.tests.BindingTests.BindingsProfiler', {
 
     connectCount: 20000,
 
@@ -657,7 +657,7 @@ Object.subclass('lively.bindings.tests.BindingsProfiler', {
 
 });
 
-TestCase.subclass('lively.bindings.tests.BindingsDuplicateTest', {
+TestCase.subclass('lively.bindings.tests.BindingTests.BindingsDuplicateTest', {
 
     setUp: function() {
         this.sut = lively.morphic.Morph.makeRectangle(100,100,100,50);
@@ -725,7 +725,7 @@ TestCase.subclass('lively.bindings.tests.BindingsDuplicateTest', {
     },
 
 });
-TestCase.subclass('lively.bindings.tests.PlugTest',
+TestCase.subclass('lively.bindings.tests.BindingTests.PlugTest',
 'running', {
     setUp: function($super) {
         $super();
@@ -760,7 +760,7 @@ TestCase.subclass('lively.bindings.tests.PlugTest',
         this.assertEquals(pt(10,10), morph.getPosition(), 'positionOfMorph')
     },
 });
-TestCase.subclass('lively.bindings.tests.ConnectionJSONSerializationTest', {
+TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionJSONSerializationTest', {
 
     test01ObjConnectedToMethodDeserialization: function() {
         var obj1 = {m: function m(arg) { this.b = arg }.asScript()},

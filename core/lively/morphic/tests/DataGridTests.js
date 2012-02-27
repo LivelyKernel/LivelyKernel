@@ -1,6 +1,6 @@
 module('lively.morphic.tests.DataGridTests').requires('lively.morphic.tests.Morphic').toRun(function() {
 
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests.DataGridTests',
 'running', {
     setUp: function($super) {
         $super();
@@ -45,8 +45,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests',
         this.assertEquals(this.grid.at(0,0).getContent(), 1, '(0,0) expected to contain 1');
         this.assertEquals(this.grid.at(1,0).getContent(), 3, '(0,1) expected to contain 3');
     },
-
-
     test06resizeRowsAndCols: function() {
         // TODO does not belong here - write GridLayout
         //this.grid.at(1,1).setExtent(pt(77,77));
@@ -181,26 +179,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests',
         this.grid.setColNames(['Foo', 'Bar']);
         this.grid.at(1,3).activate();
         this.assertEquals(this.grid.getActiveColName(), 'Bar', 'col name should be Bar');
-    },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    }
 });
 }) // end of module

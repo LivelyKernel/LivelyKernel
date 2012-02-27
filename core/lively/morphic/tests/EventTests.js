@@ -1,6 +1,6 @@
 module('lively.morphic.tests.EventTests').requires('lively.morphic.tests.Morphic').toRun(function() {
 
-lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LockingTests',
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.EventTests.LockingTests',
 'helper', {
     dragFromTo: function(morph, startMousePos, endMousePos) {
         var dragTriggerOffset = pt(10,0)
@@ -77,13 +77,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LockingTests',
         this.dragFromTo(m2, pt(55,55), pt(65,55));
         this.assertEquals(pt(0,0), m1.getPosition(), 'owner dragged');
         this.assertEquals(pt(60,50), m2.getPosition(), 'submorph not dragged');
-    },
-
-
-
-
-
-
+    }
 });
 
 }) // end of moduledule

@@ -2518,7 +2518,7 @@ Object.extend(lively.morphic.HTMLParser, {
         return string
             .replace(/\<br.*?\>/g, "<br />")
             .replace(/\<meta.*?\>/g, "")
-            .replace(/\&/g, "&amp;");
+            .replace(/\&(?![a-zA-Z]+;)/g, '&amp;');
     },
     sanitizeNode: function (node) {
         // strips node of newlines text nodes, that have no meaning

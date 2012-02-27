@@ -1,4 +1,4 @@
-/*globals escape*/
+/*global escape, require, process, console, setTimeout, JSON, __dirname*/
 
 var express = require('express'),
     spawn = require('child_process').spawn,
@@ -25,7 +25,7 @@ var args = process.argv.slice(2),
 function setupServer(testHandler) {
     var app = express.createServer();
     // app.use(express.logger());
-    app.use("/", express.static(__dirname + '/../'));
+    app.use("/", express["static"](__dirname + '/../'));
     app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
     app.use(express.bodyParser());
 
@@ -57,7 +57,7 @@ function setupServer(testHandler) {
 
 var browserInterface = {
 
-    open: function(url, browserPath, browserArgs) {
+    open: function(url, browserPath, browserArgs, display) {
         if (!browserPath) {
             browserPath = defaultBrowser;
         }
@@ -73,7 +73,11 @@ var browserInterface = {
             return;
         }
         console.log('open ' + browserPath + ' on ' + url);
-        this.process = spawn(browserPath, browserArgs.concat([url]));
+        if (display) {
+            this.process = spawn(browserPath, browserArgs.concat([url]), {env: {'DISPLAY' : display}});
+        } else {
+            this.process = spawn(browserPath, browserArgs.concat([url]));
+        }
     },
 
     closeBrowser: function(id) {
@@ -117,9 +121,10 @@ TestHandler.prototype.urlForBrowser = function(req) {
 TestHandler.prototype.handleTestRequest = function(req) {
     var url = this.urlForBrowser(req),
         browser = req.body.browser,
-        args = req.body.browserArgs;
+        args = req.body.browserArgs,
+        display = req.body.display;
     if (!url) throw new Error('no url for browsing');
-    this.browserInterface.open(url, browser, args);
+    this.browserInterface.open(url, browser, args, display);
     return {result: 'browser started with ' + url, testRunId: currentTestId};
 };
 

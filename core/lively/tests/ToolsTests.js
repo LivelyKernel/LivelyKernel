@@ -2290,7 +2290,7 @@ TestCase.subclass('lively.tests.ToolsTests.ChromeErrorStackParserTest',
 	testParseErrorStackLine: function() {
 		var line = "    at TextMorph.<anonymous> (http://www.lively-kernel.org/repository/webwerkstatt/lively/ide/SyntaxHighlighting.js?fx1291814980471:347:20)"
 
-		var errorParser = new lively.ide.ChromeErrorParser();
+		var errorParser = new lively.ide.ErrorViewer.ChromeErrorParser();
 		
 		var result = errorParser.parseStackLine(line)
 		this.assert(result, "no result");
@@ -2304,7 +2304,7 @@ TestCase.subclass('lively.tests.ToolsTests.ChromeErrorStackParserTest',
 	testParseErrorStack: function() {
 		var errorStackString = this.errorStackString();
 		
-		var errorParser = new lively.ide.ChromeErrorParser();
+		var errorParser = new lively.ide.ErrorViewer.ChromeErrorParser();
 		var result = errorParser.parseErrorStack(errorStackString)
 		
 		this.assert(result, "no result");
@@ -2314,7 +2314,7 @@ TestCase.subclass('lively.tests.ToolsTests.ChromeErrorStackParserTest',
 	},
 	testFileFragmentList: function() {
 		var errorStackString = this.errorStackString();
-		var errorParser = new lively.ide.ChromeErrorParser();
+		var errorParser = new lively.ide.ErrorViewer.ChromeErrorParser();
 		var result = errorParser.fileFragmentList(errorStackString)				
 		this.assert(result, "no result")
 
@@ -2334,7 +2334,7 @@ TestCase.subclass('lively.tests.ToolsTests.ChromeErrorStackParserTest',
 	},
 
 	testErrorStackViewer: function() {
-		var w = new lively.ide.ErrorStackViewer();
+		var w = new lively.ide.ErrorViewer.ErrorStackViewer();
 		w.setErrorStack(this.errorStackString())
 	},
 
@@ -2347,7 +2347,7 @@ TestCase.subclass('lively.tests.ToolsTests.ChromeErrorStackParserTest',
 TestCase.subclass('lively.tests.ToolsTests.CombinedModulesFileParserTest',
 'default category', {
 	setUp: function() {
-		this.sut = new lively.ide.CombinedModulesFileParser();
+		this.sut = new lively.ide.ErrorViewer.CombinedModulesFileParser();
 	},
 
 	testLinesOfString: function() {

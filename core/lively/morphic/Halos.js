@@ -280,7 +280,7 @@ lively.morphic.Halo.subclass('lively.morphic.ResizeHalo',
     dragAction: function(evt, moveDelta) {
         
         moveDelta =  this.tranformMoveDeltaDependingOnHaloPosition(evt, moveDelta, 'bottomRight');
-        var extent = this.targetMorph.getExtent().scaleBy(this.targetMorph.getScale());;
+        var extent = this.targetMorph.getExtent().scaleBy(this.targetMorph.getScale());
         if (evt.isShiftDown()) {
             var ratio = extent.x / extent.y,
                 ratioPt = pt(1, 1 / ratio),

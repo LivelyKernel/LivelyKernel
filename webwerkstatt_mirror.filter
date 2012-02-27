@@ -1,0 +1,11 @@
+- .svn
+- .git
+- .gitignore
+- /lively/localconfig.js
+- /apps/
+- /install.txt
+- /lib/
++ /lib/jquery*
+- /lively/jsMorphic/
+- /lively/jsMorphic.js
+- /coreVersion.json

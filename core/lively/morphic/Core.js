@@ -520,7 +520,14 @@ Object.subclass('lively.morphic.Morph',
                 found = true;}});
         return found;
     },
-
+},
+'jquery', {
+    jQueryNode: function() {
+        return this.renderContext().shapeNode;
+    },
+    jQuery: function() {
+        return jQuery(this.jQueryNode());
+    }
 });
 
 lively.morphic.Morph.subclass('lively.morphic.World',

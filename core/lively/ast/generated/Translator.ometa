@@ -1,0 +1,114 @@
+ometa JSTranslator <: Parser {
+trans = [:t apply(t):ans] -> ans,
+begin =
+	:pos trans*:children end
+	-> { new lively.ast.Sequence(pos, children) },
+number =
+	:pos :value
+	-> { new lively.ast.Number(pos, value) },
+string =
+	:pos :value
+	-> { new lively.ast.String(pos, value) },
+condExpr =
+	:pos trans:condExpr trans:trueExpr trans:falseExpr
+	-> { new lively.ast.Cond(pos, condExpr, trueExpr, falseExpr) },
+if =
+	:pos trans:condExpr trans:trueExpr trans:falseExpr
+	-> { new lively.ast.If(pos, condExpr, trueExpr, falseExpr) },
+while =
+	:pos trans:condExpr trans:body
+	-> { new lively.ast.While(pos, condExpr, body) },
+doWhile =
+	:pos trans:body trans:condExpr
+	-> { new lively.ast.DoWhile(pos, body, condExpr) },
+for =
+	:pos trans:init trans:condExpr trans:upd trans:body
+	-> { new lively.ast.For(pos, init, condExpr, upd, body) },
+forIn =
+	:pos trans:name trans:obj trans:body
+	-> { new lively.ast.ForIn(pos, name, obj, body) },
+set =
+	:pos trans:left trans:right
+	-> { new lively.ast.Set(pos, left, right) },
+mset =
+	:pos trans:left :name trans:right
+	-> { new lively.ast.ModifyingSet(pos, left, name, right) },
+binop =
+	:pos :name trans:left trans:right
+	-> { new lively.ast.BinaryOp(pos, name, left, right) },
+unop =
+	:pos :name trans:expr
+	-> { new lively.ast.UnaryOp(pos, name, expr) },
+preop =
+	:pos :name trans:expr
+	-> { new lively.ast.PreOp(pos, name, expr) },
+postop =
+	:pos :name trans:expr
+	-> { new lively.ast.PostOp(pos, name, expr) },
+this =
+	:pos
+	-> { new lively.ast.This(pos) },
+get =
+	:pos :name
+	-> { new lively.ast.Variable(pos, name) },
+getp =
+	:pos trans:slotName trans:obj
+	-> { new lively.ast.GetSlot(pos, slotName, obj) },
+break =
+	:pos
+	-> { new lively.ast.Break(pos) },
+debugger =
+	:pos
+	-> { new lively.ast.Debugger(pos) },
+continue =
+	:pos
+	-> { new lively.ast.Continue(pos) },
+arr =
+	:pos trans*:elements
+	-> { new lively.ast.ArrayLiteral(pos, elements) },
+return =
+	:pos trans:expr
+	-> { new lively.ast.Return(pos, expr) },
+with =
+	:pos trans:obj trans:body
+	-> { new lively.ast.With(pos, obj, body) },
+send =
+	:pos :name trans:recv trans*:args
+	-> { new lively.ast.Send(pos, name, recv, args) },
+call =
+	:pos trans:fn trans*:args
+	-> { new lively.ast.Call(pos, fn, args) },
+new =
+	:pos trans:clsExpr
+	-> { new lively.ast.New(pos, clsExpr) },
+var =
+	:pos :name trans:val
+	-> { new lively.ast.VarDeclaration(pos, name, val) },
+throw =
+	:pos trans:expr
+	-> { new lively.ast.Throw(pos, expr) },
+try =
+	:pos trans:trySeq :errName trans:catchSeq trans:finallySeq
+	-> { new lively.ast.TryCatchFinally(pos, trySeq, errName, catchSeq, finallySeq) },
+func =
+	:pos :args trans:body
+	-> { new lively.ast.Function(pos, args, body) },
+json =
+	:pos trans*:properties
+	-> { new lively.ast.ObjectLiteral(pos, properties) },
+binding =
+	:pos :name trans:property
+	-> { new lively.ast.ObjProperty(pos, name, property) },
+switch =
+	:pos trans:expr trans*:cases
+	-> { new lively.ast.Switch(pos, expr, cases) },
+case =
+	:pos trans:condExpr trans:thenExpr
+	-> { new lively.ast.Case(pos, condExpr, thenExpr) },
+default =
+	:pos trans:defaultExpr
+	-> { new lively.ast.Default(pos, defaultExpr) },
+regex =
+	:pos :exprString :flags
+	-> { new lively.ast.Regex(pos, exprString, flags) }
+}

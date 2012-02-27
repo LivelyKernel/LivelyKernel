@@ -1,20 +1,15 @@
 # Lively Kernel
 
-For general information about the Lively Kernel, see http://lively-kernel.org/.
+For general information about the Lively Kernel, see [lively-kernel.org](http://lively-kernel.org/). 
 
-This repository is a fork of the Lively Kernel Webwerkstatt wiki at HPI (http://www.lively-kernel.org/repository/webwerkstatt/). We want to use it in order to
+For feedback, announcement and discussions, please feel invited to subscribe to our [mailing list](http://lively-kernel.org/list/index.html).
 
-- modularize and reorganize the core code
-- implement a workflow that integrates the explorative and self-sustaining approach of Lively with the ability to provide maintainability and isolated feature development, i.e.
-    - fix bugs without keeping others from doing their work
-    - reuse modules from Lively for other projects
-    - be able to create stable milestones instead of rolling releases
-    - run Webwerkstatt against those artifacts
-- modernize Lively Kernel's infrastructure and explore new technology
 
-Changes in this repository are likely to be ported back to Webwerkstatt.
+## This Repository
 
-To learn more about the motivation and long-term plan for this project see [the wiki](https://github.com/rksm/LivelyKernel/wiki/Lively-Kernel-and-Webwerkstatt).
+This repository is a fork of the Lively Kernel Webwerkstatt wiki at [HPI](http://www.lively-kernel.org/repository/webwerkstatt/). 
+
+To learn more about the motivation and long-term vision for this repository see [the wiki](https://github.com/rksm/LivelyKernel/wiki/Repository-Purpose).
 
 
 ## Running Lively Kernel with node.js
@@ -87,6 +82,11 @@ By default, a POST request to <http://localhost:9001/test-report> will inform th
 
 To try it out manually visit: <http://localhost:9001/testing/run_tests.xhtml?testRunId=1&loadScript=run_tests.js&stayOpen=true>
 
+
+## LivelyKernel on Travis-CI
+
+We use [Travis-CI](http://www.travis-ci.org) to run tests continuously on every commit into the Master branch: 
+[![Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png)](http://travis-ci.org/rksm/LivelyKernel)
 
 ## Working with github and the git repository
 

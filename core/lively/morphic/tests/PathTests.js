@@ -1,6 +1,6 @@
 module('lively.morphic.tests.PathTests').requires('lively.morphic.tests.Morphic').toRun(function() {
 
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.LineTest',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PathTests.LineTest',
 'testing', {
     test00ReflectsBorderWidth: function() {
         var path = new lively.morphic.Path([pt(50,50), pt(50,100), pt(100,100)]);
@@ -246,7 +246,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.LineTest',
     },
 
 });
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PathOriginTest',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PathTests.PathOriginTest',
 'testing', {
     test01SettingOriginDoesNotChangeBounds: function() {
         var verts = [pt(0,0), pt(100, 0), pt(100,100), pt(0,0)],

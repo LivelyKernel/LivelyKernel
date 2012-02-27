@@ -19,7 +19,8 @@
   },
   "devDependencies": {
     "qunit": "~0.2",
-    "jshint": "~0.5"
+    "jshint": "~0.5",
+    "forever": "~0.8.5"
   },
   "optionalDependencies": {}
 }

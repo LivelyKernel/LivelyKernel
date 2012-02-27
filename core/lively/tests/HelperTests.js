@@ -1,4 +1,4 @@
-module('lively.tests.HelperTests').requires('lively.TestFramework', 'lively.Helper').toRun(function() {
+module('lively.tests.HelperTests').requires('lively.TestFramework', 'lively.Helper', 'lively.LocalStorage').toRun(function() {
 
 TestCase.subclass('lively.tests.HelperTests.XMLConverterTest', {
 
@@ -71,8 +71,30 @@ TestCase.subclass('lively.tests.HelperTests.XMLConverterTest', {
 		this.assertEquals(result.childNodes.length, 1);
 		this.assertEquals(result.childNodes[0].childNodes.length, 2);
 		this.assertEquals(result.childNodes[0].textContent, 'Hello World');
-	},
-
+	}
 });
+
+TestCase.subclass('lively.tests.HelperTests.LocalStorageTests', {
+    setup: function() {
+        this['__test__'] = lively.LocalStorage.get('__test__');
+    },
+    
+    tearDown: function() {
+        lively.LocalStorage.set('__test__', this['__test__']);
+    },
+    
+    test01LocalStorageAvailability: function() {
+        this.assertEquals(window.localStorage != undefined, lively.LocalStorage.isAvailable()); 
+    },
+    
+    test02LocalStorageValues: function() {
+        if (!lively.LocalStorage.isAvailable()) {
+            this.assert(true);
+        }
+        lively.LocalStorage.set('__test__', 22.2);
+        this.assertEquals(lively.LocalStorage.get('__test__'), 22.2);
+    }
+});
+
 
 }); // end of module

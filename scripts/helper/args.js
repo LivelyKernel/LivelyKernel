@@ -24,8 +24,12 @@ function switchOptions(switches, defaultOptions) {
         parser = new optparse.OptionParser(switches);
     switchNames(switches).forEach(function(name) {
         var prettyName = prettyOptionName(name);
-        options[prettyName] = options[prettyName] || null;
-        parser.on(name, function(key, value) { options[prettyName] = value; }); });
+        options[prettyName] = options[prettyName] || undefined;
+        parser.on(name, function(key, value) {
+            value = value || null; // to mark parsed args
+            options[prettyName] = value; });
+    });
+    options.defined = function(name) { return options[name] !== undefined; };
     options.showHelpAndExit = function() { console.log(parser.toString()); process.exit(0); };
     parser.on('help', options.showHelpAndExit); // overwrite help
     delete options.help;

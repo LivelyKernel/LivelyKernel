@@ -12,9 +12,9 @@
  */
 
 
-var args = require('./args'),
+var args = require('./helper/args'),
     fs = require('fs'),
-    shell = require('./shell'),
+    shell = require('./helper/shell'),
     exec = require('child_process').exec,
     Seq = require('seq');
 
@@ -131,7 +131,7 @@ Seq()
 .seq(logger('Please edit the change log in the editor that will open...'))
 .seq(wait(3000))
 .seq(shell.runInteractively,
-     __dirname + '/edit-changelog.sh', [options.changeLogInputFile],
+     __dirname + '/helper/edit-changelog.sh', [options.changeLogInputFile],
      Seq)
 .seq(fs.readFile, options.changeLogInputFile, Seq)
 .seq(function(changes) { embedInChangeLog(changes, options.changeLogFile, this) })

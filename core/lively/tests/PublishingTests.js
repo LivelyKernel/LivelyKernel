@@ -1,4 +1,4 @@
-module('lively.tests.PublishingTests').requires().toRun(function() {
+module('lively.tests.PublishingTests').requires('lively.PartsTestFramework').toRun(function() {
 
 // Enter your code here
 

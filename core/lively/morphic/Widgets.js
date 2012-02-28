@@ -909,9 +909,23 @@ lively.morphic.World.addMethods(
         return part;
     },
     openPublishPartDialogFor: function(morph) {
-        var part = this.openPartItem('PublishPartDialog', 'PartsBin/Dialogs');
+        /*var part = this.openPartItem('PublishPartDialog', 'PartsBin/Dialogs');
         part.targetMorph.setTarget(morph);
-        return part;
+        return part;*/
+        var publishDialog = this.loadPartItem('PublishPartDialog', 'PartsBin/Dialogs');
+        var metaInfo = morph.getPartsBinMetaInfo();
+        publishDialog.targetMorph.setTarget(morph);
+        if (morph.isCurrentPartsBinVersion()) {
+            publishDialog.openInWorldCenter();
+        }
+        else {
+            $world.confirm(metaInfo.partsSpaceName
+                + metaInfo.partName
+                + " was changed since loading it. Overwrite?", function (answer) {
+                    answer && publishDialog.openInWorldCenter();
+                })
+        }
+        return publishDialog;
     },
     openConnectDocumentation: function() {
         return this.openPartItem('HowConnectWorks', 'PartsBin/Documentation');

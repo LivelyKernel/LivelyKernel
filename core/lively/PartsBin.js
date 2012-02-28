@@ -592,7 +592,7 @@ Trait('lively.PartsBin.PartTrait', {
     },
     asHTMLLogo: function() {
         return '<html><body>please implement</body></html>'
-    }
+    },
 });
 
 

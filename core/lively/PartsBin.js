@@ -187,6 +187,18 @@ Object.subclass('lively.PartsBin.PartItem',
             return this;
         }
 
+        // a revisionOnLoad should always be set! If no PartsBinMetaInfo can be found, the revisionOnLoad is computed via the webresource
+        if (rev) {
+            this.rev = rev
+        }
+        else if (this.partVersions) {
+            this.rev = this.partVersions.first().rev
+        }
+        else {
+            var webR = new WebResource(this.getFileURL());
+            this.rev = webR && webR.exists() && webR.getVersions().versions.first().rev
+        };
+
         // ensure that setPartFromJSON is only called when both json and metaInfo are there.
         var loadTrigger = {
             item: this,

@@ -15,7 +15,8 @@
     "express": "2.x",
     "colorize": "0.1.0",
     "nodemon": "~0.6",
-    "optparse": "~1.0"
+    "optparse": "~1.0",
+    "seq": "latest"
   },
   "devDependencies": {
     "qunit": "~0.2",

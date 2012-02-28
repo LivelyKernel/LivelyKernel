@@ -37,3 +37,6 @@ Config.ignoreAdvice = false;
 
 Config.loadUserConfig = true;
 Config.ChromeSVGRenderingHotfix = true;
+
+Config.modulePaths.push('apps')
+

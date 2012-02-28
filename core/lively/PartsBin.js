@@ -202,7 +202,7 @@ Object.subclass('lively.PartsBin.PartItem',
         // ensure that setPartFromJSON is only called when both json and metaInfo are there.
         var loadTrigger = {
             item: this,
-            rev: rev,
+            rev: this.rev,
             triggerSetPart: function() {
                 this.item.setPartFromJSON(this.json, this.metaInfo, this.rev);
             },
@@ -226,6 +226,7 @@ Object.subclass('lively.PartsBin.PartItem',
         
         this.load(isAsync, rev);
         this.loadPartMetaInfo(isAsync, rev)
+
         return this;
     },
 

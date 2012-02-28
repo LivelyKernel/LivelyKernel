@@ -606,6 +606,13 @@ Trait('lively.PartsBin.PartTrait', {
             return true;
         }
     },
+    updateHeadRevision: function() {
+        //headRevision of a morph is set when it is published
+        var rev = this.getPartItem().loadPartVersions().partVersions.first().rev;
+        this.headRevision = rev;
+        return rev;
+    },
+
 
 });
 

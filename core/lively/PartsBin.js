@@ -306,6 +306,10 @@ Object.subclass('lively.PartsBin.PartItem',
     toString: function() {
         return 'PartsItem(' + this.name + ',' + this.getPartsSpace() + ')';
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 });
 
 Object.subclass('lively.PartsBin.PartsBinMetaInfo',

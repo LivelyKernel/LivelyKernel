@@ -292,7 +292,7 @@ Object.subclass('lively.PartsBin.PartItem',
         var webR = new WebResource(this.getFileURL());
         return webR.getHeadRevision().headRevision;
     },
-    newMethod: function() {
+    isInPartsBin: function() {
         // enter comment here
     },
 

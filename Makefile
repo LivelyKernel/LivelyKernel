@@ -85,13 +85,6 @@ update_partsbin:
 #############
 # Travis-CI #
 #############
-
-# before_install cmds
-install_chrome_on_travis:
-	sudo apt-get install chromium-browser
-
-install_xvfb_on_travis: 
-	sudo apt-get install xvfb
 	
 # before_script cmds 
 start_xvfb:

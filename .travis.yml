@@ -3,8 +3,9 @@ node_js:
   - 0.6
 
 before_install: 
-  - "make install_chrome_on_travis"
-  - "make install_xvfb_on_travis"
+  - "sudo apt-get update"
+  - "sudo apt-get install chromium-browser"
+  - "sudo apt-get install xvfb"
   
 before_script: 
   - "make start_xvfb"
@@ -15,3 +16,4 @@ script: "make travis_tests"
 branches:
   only:
     - master
+    

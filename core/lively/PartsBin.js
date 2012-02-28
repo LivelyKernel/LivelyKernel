@@ -278,7 +278,8 @@ Object.subclass('lively.PartsBin.PartItem',
             .put(serialized.json);
 
         new WebResource(this.getHTMLLogoURL()).beAsync().put(serialized.htmlLogo);
-        new WebResource(this.getMetaInfoURL()).beAsync().put(serialized.metaInfo);
+        var resource = new WebResource(this.getMetaInfoURL()).beAsync().put(serialized.metaInfo);
+        return resource;
     },
     copyFilesFrom: function(otherItem) {
         new WebResource(otherItem.getFileURL()).copyTo(this.getFileURL());

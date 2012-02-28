@@ -593,6 +593,20 @@ Trait('lively.PartsBin.PartTrait', {
     asHTMLLogo: function() {
         return '<html><body>please implement</body></html>'
     },
+    isCurrentPartsBinVersion: function() {
+        //Returns true if called on a morph that is a copy of a current PartsBin version 
+        if (this.getPartItem().isInPartsBin()) {
+            var curRevision = this.getPartItem().loadPartVersions().partVersions.first().rev
+            var myVersion = this.headRevision || this.getPartsBinMetaInfo().revisionOnLoad;
+    
+            if (curRevision == myVersion) return true
+            return false
+        }
+        else {
+            return true;
+        }
+    },
+
 });
 
 

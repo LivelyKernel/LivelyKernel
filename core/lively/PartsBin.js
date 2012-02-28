@@ -26,7 +26,17 @@ Object.subclass('lively.PartsBin.PartItem',
     },
 
     getFileURL: function() {
-        return this.getPartsSpace().getURL().withFilename(this.name + ".json")
+        /*return this.getPartsSpace().getURL().withFilename(this.name + ".json")*/
+
+        var partName;
+        // the fileURL is computed with the partName stored in the PartsBinMetaInfo, if possible
+        if (this.part && this.part.getPartsBinMetaInfo()) {
+            partName = this.part.getPartsBinMetaInfo().partName
+        }
+        else {
+            partName = this.name;
+        }
+        return this.getPartsSpace().getURL().withFilename(partName + ".json")
     },
     getMetaInfoURL: function() {
         return this.getPartsSpace().getURL().withFilename(this.name + ".metainfo")

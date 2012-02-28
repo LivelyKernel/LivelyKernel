@@ -306,8 +306,9 @@ Object.subclass('lively.PartsBin.PartItem',
     toString: function() {
         return 'PartsItem(' + this.name + ',' + this.getPartsSpace() + ')';
     },
-    newMethod: function() {
-        // enter comment here
+    isInPartsBin: function() {
+        //if there is a PartsBin representation, this returns true. If a Part was deleted from PartsBin, but an artifact of is published, this returns false
+        return (new WebResource(this.getFileURL())).exists()
     },
 
 });

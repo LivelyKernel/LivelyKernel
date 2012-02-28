@@ -1,8 +1,7 @@
 /*global exports, require, console*/
 
 var fs = require('fs'),
-    spawn = require('child_process').spawn,
-    exec = require('child_process').exec,
+    shell = require('./helper/shell'),
     path = require('path'),
     Seq = require('seq');
 
@@ -14,19 +13,6 @@ function Subcommand(filename, dir) { this.filename = filename; this.dir = dir; }
 
 Subcommand.prototype.name = function() {
     return this.filename.replace(/^lk\-/, '').replace(/\.js|\.sh/, '');
-};
-
-Subcommand.prototype.execString = function(args) {
-    var cmd = /.js$/.test(this.filename) ? 'node ' : '';
-    cmd += path.join(this.dir, this.filename);
-    if (args) { cmd += ' ' + args.join(' '); }
-    return cmd;
-};
-
-Subcommand.prototype.exec = function(args, thenDo) {
-    var cmd = this.cmdString(args);
-    console.log('RUNNING [' +  cmd + ']');
-    spawn(cmd, function(code, out, err) { thenDo(out); });
 };
 
 Subcommand.prototype.spawnCmdAndArgs = function(args) {
@@ -41,22 +27,8 @@ Subcommand.prototype.spawnCmdAndArgs = function(args) {
 };
 
 Subcommand.prototype.spawn = function(args, onExit) {
-    var spawnSpec = this.spawnCmdAndArgs(args),
-        spawned = spawn(spawnSpec.cmd, spawnSpec.args);
-
-    // redirect fds
-    spawned.stdout.on('data', function (data) {
-        process.stdout.write(data);
-    });
-
-    spawned.stderr.on('data', function (data) {
-        process.stdout.write(data);
-    });
-
-    spawned.on('exit', function (code) {
-        onExit && onExit();
-    });
-
+    var spawnSpec = this.spawnCmdAndArgs(args);
+    shell.redirectedSpawn(spawnSpec.cmd, spawnSpec.args, onExit);
 };
 
 Subcommand.prototype.showHelp = function(thenDo) {

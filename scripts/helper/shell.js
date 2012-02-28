@@ -20,6 +20,24 @@ function runInteractively(cmd, opts, callback) {
 
 exports.runInteractively = runInteractively;
 
+function redirectedSpawn(cmd, args, cb, options) {
+    var out = "", err = "",
+        spawned = spawn(cmd, args, options);
+    // redirect fds
+    spawned.stdout.on('data', function (data) {
+        process.stdout.write(data);
+        out += data;
+    });
+    spawned.stderr.on('data', function (data) {
+        process.stdout.write(data);
+        err += data;
+    });
+    spawned.on('exit', function (code) {
+        if (cb) { cb(code, out, err) }
+    });
+};
+
+exports.redirectedSpawn = redirectedSpawn;
 
 // ---------------------------------------------
 // stuff below is still WIP

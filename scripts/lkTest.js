@@ -30,18 +30,6 @@ test("get subcommand", function () {
     equal('lk-foo.js', cmd.filename, "foo");
 });
 
-test("get exec path js", function () {
-    var cmd = lk.getSubcommand('foo'),
-        execString = cmd.execString();
-    equal('node ' + scriptDir + '/lk-foo.js', execString);
-});
-
-test("get exec path sh", function () {
-    var cmd = lk.getSubcommand('bar-baz'),
-        execString = cmd.execString();
-    equal(scriptDir + '/lk-bar-baz.sh', execString);
-});
-
 test("get spawn args js", function () {
     var cmd = lk.getSubcommand('foo'),
         spawnSpec = cmd.spawnCmdAndArgs(['--foo']);

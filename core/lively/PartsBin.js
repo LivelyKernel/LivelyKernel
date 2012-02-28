@@ -529,7 +529,16 @@ Trait('lively.PartsBin.PartTrait', {
         this.getPartsBinMetaInfo().migrationLevel = LivelyMigrationSupport.migrationLevel;
         this.getPartsBinMetaInfo().partName = this.name;
         
-        this.getPartItem().uploadPart();
+        var metaResource = this.getPartItem().uploadPart();
+
+        // set head revision to newly created revision
+        connect(metaResource, 'status', this, 'updateHeadRevision', {
+            updater: function ($upt, status) {
+                if (status.isDone()) {
+                    $upt();
+                }
+            }
+        });
     },
     copyToPartsBinWithUserRequest: function() {
         this.world().openPublishPartDialogFor(this)

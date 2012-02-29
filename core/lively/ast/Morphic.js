@@ -68,8 +68,8 @@ lively.morphic.Text.addMethods(
 
 cop.create('DebugGlobalErrorHandlerLayer')
 .beGlobal()
-.refineClass(lively.morphic.EventHandler, {
-    handleError: function(err, target, eventSpec) {
+.refineClass(lively.morphic.World, {
+    logError: function(err, optName) {
         if (err.simStack) {
             var frame = lively.ast.Interpreter.Frame.fromTraceNode(err.simStack);
             lively.morphic.Morph.openDebugger(frame, err.toString());

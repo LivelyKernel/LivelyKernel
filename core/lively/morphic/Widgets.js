@@ -2498,7 +2498,13 @@ Trait('SelectionMorphTrait',
 })
 Object.subclass('SelectionMorphLayer',
 'events', {
-    m1: function() {},
+     onMouseDown: function (evt) {
+        // remove the selection when clicking into the world...
+        if(this.selectionMorph && (this.morphsContainingPoint(this.eventStartPos).length == 1)) {
+            this.resetSelection()
+        }
+        return cop.proceed();
+    }
 });
 .applyTo(lively.morphic.World, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
 

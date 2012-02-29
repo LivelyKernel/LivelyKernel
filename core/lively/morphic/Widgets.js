@@ -2456,6 +2456,7 @@ Trait('SelectionMorphTrait',
     },
     onDrag: function(evt) {
         if(!this.selectionMorph) return
+        this.selectionMorph.lastChanged = Date.now();
 
         var p1 = this.localize(evt.getPosition()),
             p2 = this.selectionMorph.initialPosition;

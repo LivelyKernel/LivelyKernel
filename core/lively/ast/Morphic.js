@@ -75,7 +75,7 @@ cop.create('DebugGlobalErrorHandlerLayer')
             lively.morphic.Morph.openDebugger(frame, err.toString());
             return false;
         } else {
-            return cop.proceed(err, target, eventSpec);
+            return cop.proceed(err, optName);
         }
     },
 });

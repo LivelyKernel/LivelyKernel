@@ -2443,10 +2443,8 @@ Trait('SelectionMorphTrait',
         }
 
         this.resetSelection()
-        this.selectionMorph.lastChanged = Date.now();
         if (this.selectionMorph.owner !== this)
             this.addMorph(this.selectionMorph);
-
         var pos = this.localize(evt.getPosition());
         this.selectionMorph.withoutPropagationDo(function() {
             this.selectionMorph.setPosition(pos)

@@ -604,7 +604,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     },
 },
 'sub menu', {
-    openSubMenu: function (evt, name, items) {
+    openSubMenu: function(evt, name, items) {
         var m = new lively.morphic.Menu(null, items);
         this.addMorph(m);
         m.fitToItems()
@@ -612,12 +612,9 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         m.ownerMenu = this;
 
         // we do this twice because effect of fitToItems is delayed
-        m.setVisible(false); // we hide it because it is first shown at the wrong position
         m.offsetForOwnerMenu();
-        (function() {
-            m.offsetForOwnerMenu()
-            m.setVisible(true);
-        }).delay(0);
+        m.offsetForOwnerMenu.bind(m).delay(0);
+
         return m;
     },
     removeSubMenu: function() { if (this.subMenu) { var m = this.subMenu; m.ownerMenu = null; this.subMenu = null; m.remove() } },
@@ -698,7 +695,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     offsetForOwnerMenu: function() {
         var owner = this.ownerMenu,
             visibleBounds = this.world().visibleBounds(),
-            localVisibleBounds = this.getTransform().inverse().transformRectToRect(visibleBounds),
+            localVisibleBounds = owner.getTransform().inverse().transformRectToRect(visibleBounds),
             newBounds = this.moveSubMenuBoundsForVisibility(
                 this.innerBounds(),
                 owner.overItemMorph ? owner.overItemMorph.bounds() : new Rectangle(0,0,0,0),
@@ -744,7 +741,7 @@ lively.morphic.Morph.addMethods(
         evt.stop();
         return true;
     },
-    morphMenuItems: function () {
+    morphMenuItems: function() {
         var self = this, items = [];
         items.push([
             'publish', function(evt) {
@@ -765,26 +762,11 @@ lively.morphic.Morph.addMethods(
         })])
         // Connections Scripting Support
         if (this.attributeConnections && this.attributeConnections.length > 0) {
-            items.push(["connections", this.attributeConnections
-                .reject(function(ea) { return ea.dependedBy}) // Meta connection
-                .reject(function(ea) { return ea.targetMethodName == 'alignToMagnet'}) // Meta connection
-                .collect(function(ea) {
-                    var s = ea.sourceAttrName + " -> " + ea.targetObj  + "." + ea.targetMethodName
-                    return [s, [
-                        ["disconnect", function() {
-                            alertOK("disconnecting " + ea)
-                            ea.disconnect()}],
-                        ["edit converter", function() {
-                            var window = lively.bindings.editConnection(ea);
-                        }],
-                        ["show", function() {
-                            lively.bindings.showConnection(ea);
-                        }],
-                        ["hide", function() {
-                            if (ea.visualConnector) ea.visualConnector.remove();
-                        }],
-                    ]]
-                })])
+            items.push(["connections", this.attributeConnections.collect(function(ea) {
+                    return [ea, [["disconnect", function() {
+                        alertOK("disconnecting " + ea)
+                        ea.disconnect()}]]]
+            })])
         }
 
         if (this.grabbingEnabled || this.grabbingEnabled == undefined) {
@@ -1102,17 +1084,6 @@ lively.morphic.World.addMethods(
                 });
             }]);
         }
-        if (Global.DebugMethodsLayer && DebugMethodsLayer.isGlobal()) {
-            items.push(['[X] Debug Methods', function() {
-                DebugScriptsLayer.beNotGlobal()
-            }]);
-        } else {
-            items.push(['[  ] Debug Methods', function() {
-                require('lively.ast.Morphic').toRun(function() {
-                    DebugMethodsLayer.beGlobal()
-                });
-            }]);
-        }
         return items;
     },
 
@@ -1224,11 +1195,17 @@ lively.morphic.World.addMethods(
         if (!activeWindow) return d;
 
         blockMorph = lively.morphic.Morph.makeRectangle(blockee.bounds());
+        blockMorph.disableGrabbing();
+        blockMorph.disableDragging();
+        blockMorph.isEpiMorph = true;
         blockMorph.applyStyle({
             fill: null,
             borderWidth: 0,
         });
         transparentMorph = lively.morphic.Morph.makeRectangle(blockMorph.getShape().getBounds());
+        transparentMorph.disableGrabbing();
+        transparentMorph.disableDragging();
+        transparentMorph.isEpiMorph = true;
         blockMorph.addMorph(transparentMorph);
         transparentMorph.applyStyle({
             fill: Color.black,

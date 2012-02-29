@@ -262,7 +262,7 @@ Object.subclass('lively.morphic.EventHandler',
             'Error in handleEvent when calling %s>>%s',
             target, eventSpec.targetMethodName);
         if (world) {
-            world.logError(title);
+            world.logError(error, title);
         } else {
             alert(title + error.toString() + error.stack.toString());
         }

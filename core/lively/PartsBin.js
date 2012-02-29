@@ -77,8 +77,8 @@ Object.subclass('lively.PartsBin.PartItem',
             return this.targetName;
         }
     },
-    newMethod: function() {
-        // enter comment here
+    escapePartName: function(partName) {
+        return encodeURI(partName);
     },
 
 },

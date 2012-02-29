@@ -46,7 +46,7 @@ cop.create('DebugScriptsLayer')
         return script;
     },
 });
-cop.create('DebugMethodsLayer').refineClass(Object, {
+cop.create('DebugMethodsLayer').refineObject(Object, {
     addCategorizedMethods: function(categoryName, source) {
         for (var property in source) {
             var func = source[property];

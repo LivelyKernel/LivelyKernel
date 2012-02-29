@@ -439,8 +439,7 @@ Object.extend(lively.bindings, {
             'Editor for ' + con.targetObj.name + ' -> ' + con.sourceObj.name :
             'Editor for converter function';
         var window = $world.addFramedMorph(editor, title)
-        window.align(window.bounds().topCenter(),
-            visualConnector.bounds().bottomCenter())
+       
     },
 
 });

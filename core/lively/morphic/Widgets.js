@@ -617,7 +617,6 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         (function() {
             m.offsetForOwnerMenu()
             m.setVisible(true);
-
         }).delay(0);
         return m;
     },
@@ -699,8 +698,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     offsetForOwnerMenu: function() {
         var owner = this.ownerMenu,
             visibleBounds = this.world().visibleBounds(),
-            localVisibleBounds = owner.getTransform().inverse().transformRectToRect(visibleBounds),
-            newBounds = this.moveSubMenuBoundsForVisibility(
+            localVisibleBounds = this.ubMenuBoundsForVisibility(
                 this.innerBounds(),
                 owner.overItemMorph ? owner.overItemMorph.bounds() : new Rectangle(0,0,0,0),
                 localVisibleBounds);

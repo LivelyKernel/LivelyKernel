@@ -443,6 +443,10 @@ Object.extend(lively.bindings, {
         var window = $world.addFramedMorph(editor, title)
         return window 
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
 });
 

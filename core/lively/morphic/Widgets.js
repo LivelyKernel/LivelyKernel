@@ -2496,6 +2496,10 @@ Trait('SelectionMorphTrait',
         this.selectionMorph.reset();
     },
 })
+Object.subclass('MyClass',
+'default category', {
+    m1: function() {},
+});
 .applyTo(lively.morphic.World, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
 
 lively.morphic.WindowedApp.subclass('lively.morphic.TextEditor',

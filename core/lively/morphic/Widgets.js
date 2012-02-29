@@ -2496,8 +2496,8 @@ Trait('SelectionMorphTrait',
         this.selectionMorph.reset();
     },
 })
-Object.subclass('MyClass',
-'default category', {
+Object.subclass('SelectionMorphLayer',
+'events', {
     m1: function() {},
 });
 .applyTo(lively.morphic.World, {override: ['onDrag', 'onDragStart', 'onDragEnd']});

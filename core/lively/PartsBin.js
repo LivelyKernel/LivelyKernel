@@ -80,6 +80,10 @@ Object.subclass('lively.PartsBin.PartItem',
     escapePartName: function(partName) {
         return encodeURI(partName);
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
 },
 'serialization', {

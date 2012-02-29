@@ -174,7 +174,7 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
         targetMorph = targetMorph || this.targetMorph;
         var world = targetMorph.world(),
             owner = targetMorph.owner;
-        if (!world) return pt(0,0);
+        if (!world || !owner) return pt(0,0);
         if (!owner && targetMorph === world) owner = world;
 
         var bounds = targetMorph.bounds(),

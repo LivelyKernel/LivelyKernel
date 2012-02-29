@@ -1102,6 +1102,17 @@ lively.morphic.World.addMethods(
                 });
             }]);
         }
+        if (Global.DebugMethodsLayer && DebugMethodsLayer.isGlobal()) {
+            items.push(['[X] Debug Methods', function() {
+                DebugScriptsLayer.beNotGlobal()
+            }]);
+        } else {
+            items.push(['[  ] Debug Methods', function() {
+                require('lively.ast.Morphic').toRun(function() {
+                    DebugMethodsLayer.beGlobal()
+                });
+            }]);
+        }
         return items;
     },
 

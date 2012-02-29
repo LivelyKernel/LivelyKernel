@@ -407,22 +407,7 @@ Object.extend(lively.bindings, {
             var visualConnector = this, con = this.con, world = this.world();
             var items = [
                 ['edit converter', function() {
-                    var source = con.converterString ||
-                        'function converter(value) {\n    return value\n}',
-                        editor = new lively.morphic.Text(new Rectangle(0,0, 400, 200), source);
-                    editor.doitContext = con;
-                    connect(editor, 'savedTextString', con, 'converterString', {updater:
-                        function($upd, source) { this.targetObj.converter = null; $upd(source) }});
-                    connect(editor, 'savedTextString', world, 'alertOK', {converter:
-                        function() { return 'setting new converter' }})
-                    editor.applyStyle({syntaxHighlighting: true,
-                        fontFamily: 'Courier', resizeWidth: true, resizeHeight: true});
-                    var title = con.targetObj.name && con.sourceObj.name ?
-                        'Editor for ' + con.targetObj.name + ' -> ' + con.sourceObj.name :
-                        'Editor for converter function';
-                    var window = world.addFramedMorph(editor, title)
-                    window.align(window.bounds().topCenter(),
-                        visualConnector.bounds().bottomCenter())
+                  lively.bindings.editConnection(con)
                 }],
                 ['hide', function() {
                     visualConnector.disconnectFromMagnets();

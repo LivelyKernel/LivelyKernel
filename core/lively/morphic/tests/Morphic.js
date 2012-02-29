@@ -1537,7 +1537,7 @@ AsyncTestCase.subclass('lively.morphic.tests.ScriptTests',
             script.stop();
             this.assertEquals(2, n, 'Script not continued');
             this.done();
-        }, 100);
+        }, 40);
     },
     test03MorphStartStepping: function() {
         var m = new lively.morphic.Morph(),

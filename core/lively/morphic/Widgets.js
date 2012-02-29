@@ -2443,6 +2443,7 @@ Trait('SelectionMorphTrait',
         }
 
         this.resetSelection()
+        this.selectionMorph.lastChanged = Date.now();
         if (this.selectionMorph.owner !== this)
             this.addMorph(this.selectionMorph);
 

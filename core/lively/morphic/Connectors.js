@@ -443,7 +443,9 @@ Object.extend(lively.bindings, {
         var window = $world.addFramedMorph(editor, title)
         return window 
     },
-    showConnection: function() {
+    showConnection: function(con) {
+        var source = con.sourceObj,
+            target = con.targetObj;
 
         var visualConnector = source.createConnectorTo(target);
 

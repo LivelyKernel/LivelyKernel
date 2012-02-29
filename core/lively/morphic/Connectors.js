@@ -431,7 +431,7 @@ Object.extend(lively.bindings, {
             editor.doitContext = con;
         connect(editor, 'savedTextString', con, 'converterString', {updater:
             function($upd, source) { this.targetObj.converter = null; $upd(source) }});
-        connect(editor, 'savedTextString', world, 'alertOK', {converter:
+        connect(editor, 'savedTextString', $world, 'alertOK', {converter:
             function() { return 'setting new converter' }})
         editor.applyStyle({syntaxHighlighting: true,
             fontFamily: 'Courier', resizeWidth: true, resizeHeight: true});

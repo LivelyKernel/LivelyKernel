@@ -604,7 +604,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     },
 },
 'sub menu', {
-    openSubMenu: function(evt, name, items) {
+    openSubMenu: function (evt, name, items) {
         var m = new lively.morphic.Menu(null, items);
         this.addMorph(m);
         m.fitToItems()
@@ -612,9 +612,13 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         m.ownerMenu = this;
 
         // we do this twice because effect of fitToItems is delayed
+        m.setVisible(false); // we hide it because it is first shown at the wrong position
         m.offsetForOwnerMenu();
-        m.offsetForOwnerMenu.bind(m).delay(0);
+        (function() {
+            m.offsetForOwnerMenu()
+            m.setVisible(true);
 
+        }).delay(0);
         return m;
     },
     removeSubMenu: function() { if (this.subMenu) { var m = this.subMenu; m.ownerMenu = null; this.subMenu = null; m.remove() } },

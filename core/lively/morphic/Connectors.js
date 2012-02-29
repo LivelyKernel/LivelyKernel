@@ -443,8 +443,40 @@ Object.extend(lively.bindings, {
         var window = $world.addFramedMorph(editor, title)
         return window 
     },
-    newMethod: function() {
-        // enter comment here
+    showConnection: function() {
+
+        var visualConnector = source.createConnectorTo(target);
+
+        // arrow head
+        var arrowHead = new lively.morphic.Path([pt(0,0), pt(0,12), pt(16,6), pt(0,0)]);
+        arrowHead.applyStyle({borderWidth: 0, borderColor: Color.black, fill: Color.black})
+        arrowHead.adjustOrigin(pt(12,6))
+        visualConnector.addArrowHeadEnd(arrowHead)
+
+        con.visualConnector = visualConnector;
+        con.visualConnector.con = con; // FIXME
+        visualConnector.showsMorphMenu = true; // FIX ... MEE !!!!!
+
+        visualConnector.addScript(function morphMenuItems() {
+            var visualConnector = this, con = this.con, world = $world;
+            var items = [
+                ['edit converter', function() {
+                    var window = lively.bindings.editConnection(con);
+                    window.align(window.bounds().topCenter(),
+                    visualConnector.bounds().bottomCenter())
+                }],
+                ['hide', function() {
+                    visualConnector.disconnectFromMagnets();
+                    visualConnector.remove();
+                }],
+                ['disconnect', function() {
+                    alertOK('Disconnected ' + visualConnector.con);
+                    visualConnector.con.visualDisconnect();
+                }],
+                ['cancel', function() {}],
+            ];
+            return items;
+        })
     },
 
 

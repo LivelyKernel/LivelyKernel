@@ -438,7 +438,7 @@ Object.extend(lively.bindings, {
         var title = con.targetObj.name && con.sourceObj.name ?
             'Editor for ' + con.targetObj.name + ' -> ' + con.sourceObj.name :
             'Editor for converter function';
-        var window = world.addFramedMorph(editor, title)
+        var window = $world.addFramedMorph(editor, title)
         window.align(window.bounds().topCenter(),
             visualConnector.bounds().bottomCenter())
     },

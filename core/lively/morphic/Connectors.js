@@ -439,6 +439,10 @@ Object.extend(lively.bindings, {
 
         return con;
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 });
 
 AttributeConnection.addMethods(

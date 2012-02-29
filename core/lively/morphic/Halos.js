@@ -633,7 +633,7 @@ lively.morphic.Halo.subclass('lively.morphic.RenameHalo',
             world = targetMorph.world(),
             owner = targetMorph.owner;
         if (!world || !owner) return;
-        var    bounds = targetMorph.bounds(),
+        var bounds = targetMorph.bounds(),
             boundsInWorld = owner.getGlobalTransform().transformRectToRect(bounds),
             visibleBounds = this.computeHaloBounds(boundsInWorld, world);
         this.align(this.bounds().topCenter(), visibleBounds.bottomCenter())

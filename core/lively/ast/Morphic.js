@@ -46,6 +46,12 @@ cop.create('DebugScriptsLayer')
         return script;
     },
 });
+cop.create('MyLayer').refineClass(MyClass, {
+    methodName: function(arg1) {
+        var result = cop.proceed(arg1);
+        return result
+undefined},
+});
 
 lively.morphic.Text.addMethods(
 'debugging', {

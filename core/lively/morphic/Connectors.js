@@ -407,7 +407,9 @@ Object.extend(lively.bindings, {
             var visualConnector = this, con = this.con, world = $world;
             var items = [
                 ['edit converter', function() {
-                  lively.bindings.editConnection(con)
+                    var window = lively.bindings.editConnection(con);
+                    window.align(window.bounds().topCenter(),
+                    visualConnector.bounds().bottomCenter())
                 }],
                 ['hide', function() {
                     visualConnector.disconnectFromMagnets();

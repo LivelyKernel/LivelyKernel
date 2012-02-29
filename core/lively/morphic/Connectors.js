@@ -404,7 +404,7 @@ Object.extend(lively.bindings, {
         visualConnector.showsMorphMenu = true; // FIX ... MEE !!!!!
 
         visualConnector.addScript(function morphMenuItems() {
-            var visualConnector = this, con = this.con, world = this.world();
+            var visualConnector = this, con = this.con, world = $world;
             var items = [
                 ['edit converter', function() {
                   lively.bindings.editConnection(con)

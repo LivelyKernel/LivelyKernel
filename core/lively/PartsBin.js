@@ -36,7 +36,7 @@ Object.subclass('lively.PartsBin.PartItem',
         else {
             partName = this.name;
         }
-        return this.getPartsSpace().getURL().withFilename(partName + ".json")
+        return this.getPartsSpace().getURL().withFilename(this.escapePartName(partName) + ".json")
     },
     getMetaInfoURL: function() {
         return this.getPartsSpace().getURL().withFilename(this.name + ".metainfo")

@@ -77,6 +77,10 @@ Object.subclass('lively.PartsBin.PartItem',
             return this.targetName;
         }
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 },
 'serialization', {
     getSerializer: function() {

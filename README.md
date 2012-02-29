@@ -20,6 +20,8 @@ First you need [node.js](http://nodejs.org/). Then you need [npm](http://npmjs.o
 
 ### Installation
 
+!Note! Find a more detailed installation description in INSTALL.md
+
 Clone the Lively Kernel repository.
 
     git clone git@github.com:rksm/LivelyKernel.git ~/LivelyKernel

@@ -46,11 +46,20 @@ cop.create('DebugScriptsLayer')
         return script;
     },
 });
-cop.create('MyLayer').refineClass(MyClass, {
-    methodName: function(arg1) {
-        var result = cop.proceed(arg1);
-        return result
-undefined},
+cop.create('DebugMethodsLayer').refineClass(Object, {
+    addCategorizedMethods: function(categoryName, source) {
+        for (var property in source) {
+            var func = source[property];
+            if (Object.isFunction(func)) {
+                if (func.containsDebugger()) {
+                    var origSource = func.toString();
+                    source[property] = func.forDebugging("lively.morphic.Morph.openDebugger");
+                    source[property].toString = function() { return origSource; };
+                }
+            }
+        }
+        return cop.proceed(categoryName, source);
+    },
 });
 
 lively.morphic.Text.addMethods(

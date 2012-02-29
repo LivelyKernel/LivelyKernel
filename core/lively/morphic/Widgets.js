@@ -2445,7 +2445,7 @@ Trait('SelectionMorphTrait',
         this.resetSelection()
         if (this.selectionMorph.owner !== this)
             this.addMorph(this.selectionMorph);
-        var pos = this.localize(evt.getPosition());
+        var pos = this.localize(this.eventStartPos);
         this.selectionMorph.withoutPropagationDo(function() {
             this.selectionMorph.setPosition(pos)
             this.selectionMorph.setExtent(pt(1, 1))

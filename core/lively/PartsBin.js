@@ -22,7 +22,7 @@ Object.subclass('lively.PartsBin.PartItem',
         return this.getPartsSpace().getURL().withFilename(this.escapedName() + ".svg")
     },
     getHTMLLogoURL: function() {
-        return this.getPartsSpace().getURL().withFilename(this.name + ".html")
+        return this.getPartsSpace().getURL().withFilename(this.escapedName() + ".html")
     },
 
     getFileURL: function() {

@@ -48,13 +48,14 @@ cop.create('DebugScriptsLayer')
 });
 cop.create('DebugMethodsLayer').refineObject(Object, {
     addCategorizedMethods: function(categoryName, source) {
+        console.log(categoryName);
         for (var property in source) {
             var func = source[property];
             if (Object.isFunction(func)) {
                 if (func.containsDebugger()) {
                     var origSource = func.toString();
                     source[property] = func.forDebugging("lively.morphic.Morph.openDebugger");
-                    source[property].toString = function() { return origSource; };
+                    //source[property].toString = function() { return origSource; };
                 }
             }
         }

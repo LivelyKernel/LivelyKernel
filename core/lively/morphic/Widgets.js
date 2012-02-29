@@ -2471,6 +2471,7 @@ Trait('SelectionMorphTrait',
     },
     onDragEnd: function(evt) {
         var self = this;
+
         if (!self.selectionMorph) return;
         var selectionBounds = self.selectionMorph.bounds();
         var selectedMorphs  = this.submorphs

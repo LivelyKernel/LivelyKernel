@@ -1,9 +1,9 @@
-/*global exports, require, console*/
+/*global exports, require, module, console, process, __dirname*/
 
 var fs = require('fs'),
-    shell = require('./helper/shell'),
     path = require('path'),
-    Seq = require('seq');
+    lkEnv = require('./env'),
+    shell = require('./helper/shell');
 
 
 // -=-=-=-=-=-=-=-=-=-=-

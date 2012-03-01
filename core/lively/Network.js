@@ -1581,12 +1581,34 @@ Object.subclass('WebResource',
         // set it when retrieved so that connections work
         this.revAndLocations = revAndLocations;
     },
+
+    ensureDavXmlNs: function(doc) {
+        // FIXME read xmlds:D or xmlns:d instead of guessing
+        var tmp,
+            davNs;
+        if (this.davNs) {
+          return this.davNs
+        }
+        try {
+            tmp = new Query("/D:multistatus").findFirst(doc.documentElement);
+            davNs = "D";
+        } catch (e) {
+            try {
+                tmp = new Query("/d:multistatus").findFirst(doc.documentElement);
+                davNs = "d";
+            } catch (e) {
+            }
+        }
+        this.davNs = davNs;
+        return davNs;
+    },
+
     pvtProcessPropfindForSubElements: function(doc) {
         if (!this.status.isSuccess())
             throw new Error('Cannot access subElements of ' + this.getURL());
-        // FIXME: resolve prefix "D" to something meaningful?
-        var nodes = new Query("/D:multistatus/D:response").findAll(doc.documentElement)
-        var urlQ = new Query('D:href');
+        var davNs = this.ensureDavXmlNs(doc);
+        var nodes = new Query("/" + davNs + ":multistatus/" + davNs + ":response").findAll(doc.documentElement)
+        var urlQ = new Query(davNs + ':href');
         nodes.shift(); // remove first since it points to this WebResource
         var result = [];
         for (var i = 0; i < nodes.length; i++) {

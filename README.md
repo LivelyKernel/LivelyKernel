@@ -20,7 +20,7 @@ First you need [node.js](http://nodejs.org/). Then you need [npm](http://npmjs.o
 
 ### Installation
 
-!Note! Find a more detailed installation description in INSTALL.md
+*Note:* A more detailed installation description for serving Lively worlds with Apache can be found in [INSTALL.md](INSTALL.md).
 
 Clone the Lively Kernel repository.
 

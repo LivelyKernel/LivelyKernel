@@ -218,13 +218,15 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     draggingEnabled: true,
 },
 'initializing', {
-    initialize: function($super, bounds, string) {
+    initialize: function($super, bounds, string, dontFit) {
         $super(this.defaultShape());
         if (bounds) this.setBounds(bounds);
         this.textString = string || '';
         this.charsTyped = '';
         this.evalEnabled = false;
-        this.fit();
+        if(!dontFit){
+            this.fit();
+        }
     },
 },
 'styling', {

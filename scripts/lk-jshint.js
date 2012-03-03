@@ -18,7 +18,7 @@ var env = process.env,
 // -=-=-=-=-=-=-=-=-=-=-
 var filesToCheck = shell.files(env.MINISERVER_DIR)
                    .concat(shell.files(env.LK_TEST_SCRIPT_DIR, /js$/)),
-    cmdAndArgs   = [env.JSHINT]
+    cmdAndArgs   = [path.relative(env.LK_SCRIPTS_ROOT, env.JSHINT)]
                    .concat(filesToCheck)
                    .concat(['--config', env.JSHINT_CONFIG]);
 
@@ -30,4 +30,4 @@ var cmd = cmdAndArgs[0],
     cmdArgs = cmdAndArgs.slice(1);
 
 shell.redirectedSpawn(cmd, cmdArgs,
-                      function(code) { process.exit(code); });
+                      function(code) { process.exit(code); }, null, true);

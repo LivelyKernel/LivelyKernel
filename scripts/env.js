@@ -5,11 +5,15 @@ var fs = require('fs'),
     Seq = require('seq'),
     env = process.env;
 
+function relToRoot(dirInRoot) {
+    return path.relative(env.LK_SCRIPTS_ROOT, env.LK_SCRIPTS_ROOT + dirInRoot);
+}
+
 /*
  * general stuff
  */
 env.LK_SCRIPTS_ROOT = path.normalize(__dirname + '/..');
-env.NODEMODULES     = env.NODEMODULES || env.LK_SCRIPTS_ROOT + "/node_modules";
+env.NODEMODULES     = env.NODEMODULES || relToRoot("/node_modules");
 env.QUNIT           = env.QUNIT       || env.NODEMODULES + "/qunit/bin/cli.js";
 env.NODEMON         = env.NODEMON     || env.NODEMODULES + "/nodemon/nodemon.js";
 env.FOREVER         = env.FOREVER     || env.NODEMODULES + "/forever/bin/forever";
@@ -25,7 +29,8 @@ env.MINISERVER      = env.MINISERVER_DIR + "/serve.js";
  * tests
  */
 env.MINISERVER_TEST_FILES = env.MINISERVER_DIR + '/*_test.js';
-env.LK_TEST_SCRIPT_DIR    = env.LK_SCRIPTS_ROOT + '/testing/';
+env.LK_TEST_SCRIPT_DIR    = env.LK_SCRIPTS_ROOT + '/testing';
+env.LK_TEST_STARTER       = env.LK_TEST_SCRIPT_DIR + '/run_lively_tests_cli.js';
 
 
 /*

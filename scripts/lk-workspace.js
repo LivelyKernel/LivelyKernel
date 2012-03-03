@@ -21,7 +21,7 @@ var options = {
     wwSvnUrl: "http://lively-kernel.org/repository/webwerkstatt/"
 };
 
-var options = args.options([
+options = args.options([
     ['-h', '--help', 'show this help'],
     ['--remove', 'completely delete the workspace'],
     ['--reset', 'reset both the svn and git repositories if they exist but do not delete them'],

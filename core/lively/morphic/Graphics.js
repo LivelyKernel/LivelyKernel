@@ -248,8 +248,8 @@ Object.subclass("Point",
         return Math.atan2(this.y, this.x);
     }
 });
-Object.extend(SomeObject, {
-    m1: function() {},
+Object.extend(Point, {
+    polar: function() {},
 });
 
 

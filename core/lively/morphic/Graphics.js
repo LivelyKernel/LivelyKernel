@@ -147,11 +147,7 @@ Object.subclass("Point",
         return this.x * p.x + this.y * p.y
     },
     
-    polar: function(r, theta) {
-        // Note: theta=0 is East on the screen, and increases in 
-        // counter-clockwise direction
-        return new lively.Point(r * Math.cos(theta), r * Math.sin(theta));
-    },
+
     
     matrixTransform: function(mx, acc) {
         // if no accumulator passed, allocate a fresh one

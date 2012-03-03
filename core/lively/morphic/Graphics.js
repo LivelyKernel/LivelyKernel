@@ -249,7 +249,11 @@ Object.subclass("Point",
     }
 });
 Object.extend(Point, {
-    polar: function() {},
+    polar: function(r, theta) {
+        // Note: theta=0 is East on the screen, and increases in 
+        // counter-clockwise direction
+        return new lively.Point(r * Math.cos(theta), r * Math.sin(theta));
+    },
 });
 
 

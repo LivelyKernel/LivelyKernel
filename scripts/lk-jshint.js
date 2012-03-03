@@ -17,10 +17,11 @@ var env = process.env,
 // the real thing
 // -=-=-=-=-=-=-=-=-=-=-
 var filesToCheck = shell.files(env.MINISERVER_DIR)
-                   .concat(shell.files(env.LK_TEST_SCRIPT_DIR, /js$/)),
+                   .concat(shell.files(env.LK_TEST_SCRIPT_DIR, /[^#].*js$/))
+                   .map(function(ea) { return path.relative(env.LK_SCRIPTS_ROOT, ea) }),
     cmdAndArgs   = [path.relative(env.LK_SCRIPTS_ROOT, env.JSHINT)]
                    .concat(filesToCheck)
-                   .concat(['--config', env.JSHINT_CONFIG]);
+                   .concat(['--config', path.relative(env.LK_SCRIPTS_ROOT, env.JSHINT_CONFIG)]);
 
 if (options.defined('watch')) {
   cmdAndArgs = [env.NODEMON, '--exec'].concat(cmdAndArgs);

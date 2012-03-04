@@ -2,18 +2,17 @@ language: node_js
 node_js:
   - 0.6
 
-before_install: 
+before_install:
   - "sudo apt-get update"
   - "sudo apt-get install chromium-browser"
   - "sudo apt-get install xvfb"
-  
-before_script: 
-  - "make start_xvfb"
-  - "make start_server_forever" 
+
+before_script:
+  - "Xvfb :1 -screen 0 800x600x24&"
+  - "make start_server_forever"
 
 script: "make travis_tests"
 
 branches:
   only:
     - master
-    

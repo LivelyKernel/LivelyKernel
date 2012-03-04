@@ -11,6 +11,9 @@
   "engines": {
     "node": "~0.6.7"
   },
+  "bin" : {
+    "lk" : "./bin/lk"
+  },
   "dependencies": {
     "express": "2.x",
     "colorize": "0.1.0",

@@ -128,7 +128,7 @@ lively.morphic.ColorChooser.subclass('lively.morphic.CustomColorChooser',
         // lively.morphic.CustomColorChooser.prototype.gatherCustomColors()
         var colors = [];
         var gatherColor = function(eaColor) {
-            if (!colors.detect(function(colorSetEa) {
+            if (eaColor && !colors.detect(function(colorSetEa) {
                 return colorSetEa.equals(eaColor)}))
                 colors.push(eaColor)
         }

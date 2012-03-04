@@ -2,23 +2,11 @@
 
 
 /*
- * This script will rsync the webwerkstatt core directory with the
- * ww-mirror branch of the Lively Kernel core repository. The commit message
- * includes the svn revision that was used for the sync.
- *
- * The steps that are done:
- * - lock using a file to not allow concurrent syncs (sync will wait a certain time)
- * - if no core commit, unlock and do nothing
- * - update webwerkstatt working copy
- * - rsync svn repo with git repo (takes care of deletions, renames)
- * - git reset, clean, pull -- the git repo should be OK, just to be sure
- * - git add, commit, push
- * - unlock
  *
  * This script runs as a post commit hook of the webwerkstatt svn repo.
  * It is invoke with:
  *
- * node /home/robert/webwerkstatt/git-core-mirror/scripts/scripts/svn-sync.js \
+ * lk ww-mirror \
  *      --svn-repo /etc/environments/svn_repositories/webwerkstatt \
  *      --svn-wc /home/robert/webwerkstatt/git-core-mirror/ww/ \
  *      --git-repo /home/robert/webwerkstatt/git-core-mirror/svn-mirror/ \
@@ -43,6 +31,18 @@ var switches = [
     svnRepo, svnWc, rev, targetDir, gitRepoDir, lockFile;
 
 function showHelpAndExit() { console.log(parser.toString()); process.exit(1); }
+parser.banner = "This script will rsync the webwerkstatt core directory with the\n" +
+    "ww-mirror branch of the Lively Kernel core repository. The commit message\n" +
+    "includes the svn revision that was used for the sync.\n" +
+    "The steps that are done:\n" +
+    "- lock using a file to not allow concurrent syncs (sync will wait a certain time)\n" +
+    "- if no core commit, unlock and do nothing\n" +
+    "- update webwerkstatt working copy\n" +
+    "- rsync svn repo with git repo (takes care of deletions, renames)\n" +
+    "- git reset, clean, pull -- the git repo should be OK, just to be sure\n" +
+    "- git add, commit, push\n" +
+    "- unlock\n"
+    + "The script is currently used as a post-commit hook for the webwerkstatt repository.";
 parser.on("help", showHelpAndExit);
 parser.on("svn-repo", function(name, value) { svnRepo = value });
 parser.on("svn-wc", function(name, value) { svnWc = value });

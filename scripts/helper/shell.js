@@ -3,7 +3,10 @@
 // interactive shell commands
 // see http://groups.google.com/group/nodejs/browse_thread/thread/6fd25d16b250aa7d
 var spawn = require('child_process').spawn,
-    tty = require('tty');
+    tty = require('tty'),
+    fs = require('fs'),
+    path = require('path');
+
 
 function runInteractively(cmd, opts, callback) {
     process.stdin.pause();
@@ -20,6 +23,27 @@ function runInteractively(cmd, opts, callback) {
 
 exports.runInteractively = runInteractively;
 
+function redirectedSpawn(cmd, args, cb, options, verbose) {
+    var out = "", err = "",
+        spawned = spawn(cmd, args, options);
+    if (verbose) {
+        console.log(cmd + ' ' + args.join(' '));
+    }
+    // redirect fds
+    spawned.stdout.on('data', function (data) {
+        process.stdout.write(data);
+        out += data;
+    });
+    spawned.stderr.on('data', function (data) {
+        process.stdout.write(data);
+        err += data;
+    });
+    spawned.on('exit', function (code) {
+        if (cb) { cb(code, out, err) }
+    });
+};
+
+exports.redirectedSpawn = redirectedSpawn;
 
 // ---------------------------------------------
 // stuff below is still WIP
@@ -59,3 +83,16 @@ exports.run = run;
 exports.runV = runVerbose;
 exports.runAll = runVerbose;
 exports.pipe = pipe;
+
+
+/*
+ * file helpers
+ */
+function files(dir, matcher) {
+    var files = fs.readdirSync(dir).map(function(ea) { return path.join(dir, ea) });
+    if (matcher) {
+        files = files.filter(function(ea) { return  matcher.test(ea) });
+    }
+    return files;
+}
+exports.files = files;

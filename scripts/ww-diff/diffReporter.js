@@ -1,4 +1,5 @@
 /*global require, exports, process, console, JSON*/
+/*jshint expr: true, immed: true, lastsemic: true*/
 
 var exec = require('child_process').exec,
     fs = require('fs');
@@ -12,7 +13,7 @@ function RepoDiffReporter(spec) {
     if (!this.systemInterface) {
         this.systemInterface = SystemInterface;
     }
-};
+}
 
 RepoDiffReporter.prototype.filesDiffing = function(rawQuickDiff) {
     var lines = rawQuickDiff.split('\n');
@@ -26,7 +27,7 @@ RepoDiffReporter.prototype.filesDiffing = function(rawQuickDiff) {
                    replace(/ differ$/, "").
                    replace(/ and .*/, "");
            }, this);
-}
+};
 
 RepoDiffReporter.prototype.filesOnlyIn = function(repoName, rawQuickDiff) {
     var repoDir = this[repoName].root,
@@ -41,14 +42,14 @@ RepoDiffReporter.prototype.filesOnlyIn = function(repoName, rawQuickDiff) {
                    replace("Only in ", "").
                    replace(/\/?: /, "/");
            });
-}
+};
 
 RepoDiffReporter.prototype.produceReportThenDo = function(callback) {
     //stitching steps together
     var self = this, si = this.systemInterface;
 
     function produceReport(rawQuickDiff) {
-        console.log('-> Got diff, parsing...')
+        console.log('-> Got diff, parsing...');
         var report = {
             onlyin: {
                 ww: self.filesOnlyIn('ww', rawQuickDiff),
@@ -56,12 +57,12 @@ RepoDiffReporter.prototype.produceReportThenDo = function(callback) {
             },
             diffingFiles: self.filesDiffing(rawQuickDiff),
             fileDiffs: {}
-        }
+        };
 
         doFileDiffs(report.diffingFiles, function(diffs) {
             report.fileDiffs = diffs;
             callback(report);
-        })
+        });
 
     }
 
@@ -75,7 +76,7 @@ RepoDiffReporter.prototype.produceReportThenDo = function(callback) {
         }
         function allDiffsDone() { return filesToDiffHelper.length === 0 }
 
-        if (filesToDiff.length == 0) {
+        if (filesToDiff.length === 0) {
             whenDone(diffs);
         } else {
             filesToDiff.forEach(function(filePath) {
@@ -105,7 +106,7 @@ RepoDiffReporter.prototype.produceReportThenDo = function(callback) {
     }
 
     runUpdate(runDiff);
-}
+};
 
 
 var SystemInterface = {
@@ -131,15 +132,15 @@ var SystemInterface = {
     },
 
     quickDiff: function(lkDir, wwDir, whenDone) {
-        this.runCommandAndDo('diff ' + lkDir + '/core ' + wwDir
-                            + '/core -x ".svn" -u -r -q | sort',
+        this.runCommandAndDo('diff ' + lkDir + '/core ' + wwDir +
+                             '/core -x ".svn" -u -r -q | sort',
                              {cwd: null, env: process.env},
                              whenDone);
     },
 
     fileDiff: function(relativePath, lkDir, wwDir, whenDone) {
-        this.runCommandAndDo('diff ' + lkDir + relativePath + ' '
-                            + wwDir + relativePath + ' -u',
+        this.runCommandAndDo('diff ' + lkDir + relativePath + ' ' +
+                             wwDir + relativePath + ' -u',
                              {cwd: null, env: process.env},
                              whenDone,
                              true);
@@ -152,13 +153,13 @@ var SystemInterface = {
         fs.writeFileSync(path, content);
     }
 
-}
+};
 
 RepoDiffReporter.createReport = function(settings) {
     var reporter = new this(settings);
     reporter.produceReportThenDo(function(result) {
         SystemInterface.writeFile(settings.reportFile, JSON.stringify(result));
     });
-}
+};
 
 exports.RepoDiffReporter = RepoDiffReporter;

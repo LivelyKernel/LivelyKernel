@@ -47,3 +47,10 @@ env.JSHINT_CONFIG = env.JSHINT_CONFIG || env.LK_SCRIPTS_ROOT + "/jshint.config";
 env.WORKSPACE_DIR = env.WORKSPACE_DIR || relToRoot('/workspace');
 env.WORKSPACE_LK  = env.WORKSPACE_LK  || relToRoot('/workspace/lk');
 env.WORKSPACE_WW  = env.WORKSPACE_WW  || relToRoot('/workspace/ww');
+
+
+/*
+ * PartsBin
+ */
+env.PARTSBIN_DIR     = env.PARTSBIN_DIR || relToRoot("/PartsBin");
+env.PARTSBIN_SVN_URL = "http://lively-kernel.org/repository/webwerkstatt/PartsBin/"

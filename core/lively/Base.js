@@ -42,6 +42,8 @@ function assert(value, message) {
     try { throw new Error() } catch(e) { stack = e.stack || ''}
     alert('Assertion failed' + (message ? ': ' + message : '!') + '\n' + stack)
 };
+
+
 var using = (function() {
 
     function Util(args) {  // args is an escaping arguments array

@@ -1,4 +1,4 @@
-/*globals alertOK, require, TestSuite, unescape*/
+/*global alertOK, require, TestSuite, unescape, $, JSON*/
 
 // some helpers
 function exit() {

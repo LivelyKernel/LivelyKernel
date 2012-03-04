@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+# ln -s $LIVELY/bin/lk /usr/local/bin/lk
+# rm /usr/local/bin/lk
+
+DIR=$(dirname $(readlink /usr/local/bin/lk))
+node $DIR/../scripts/lk.js "$@"

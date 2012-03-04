@@ -1,3 +1,6 @@
+# Scripts #
+workspace/
+
 # Worlds #
 *.xhtml
 !blank.xhtml

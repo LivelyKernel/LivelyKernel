@@ -1,48 +1,58 @@
 # Lively Kernel
 
-For general information about the Lively Kernel, see [lively-kernel.org](http://lively-kernel.org/). 
+Lively Kernel is a web-based runtime and development environment that makes creation of web applications much more immediate and direct. Please see [lively-kernel.org](http://lively-kernel.org/) for more general information about the Lively Kernel project.
 
 For feedback, announcement and discussions, please feel invited to subscribe to our [mailing list](http://lively-kernel.org/list/index.html).
 
-
-## This Repository
-
-This repository is a fork of the Lively Kernel Webwerkstatt wiki at [HPI](http://www.lively-kernel.org/repository/webwerkstatt/). 
-
-To learn more about the motivation and long-term vision for this repository see [the wiki](https://github.com/rksm/LivelyKernel/wiki/Repository-Purpose).
+This repository is a fork of the Lively Kernel Webwerkstatt wiki at [HPI](http://www.lively-kernel.org/repository/webwerkstatt/). To learn more about the motivation and long-term vision for this repository see [the wiki](https://github.com/rksm/LivelyKernel/wiki/Repository-Purpose).
 
 
-## Running Lively Kernel with node.js
+## Installation
 
-### Requirements
+Get Lively Kernel *core* up and running.
 
-First you need [node.js](http://nodejs.org/). Then you need [npm](http://npmjs.org/), the "Node Package Manager". Install npm with: `curl http://npmjs.org/install.sh | sh`
+### Prerequisites
 
-### Installation
+1. node.js: In a terminal try running `node -v`. If that fails [install node.js](http://nodejs.org/#download).
 
-*Note:* A more detailed installation description for serving Lively worlds with Apache can be found in [INSTALL.md](LivelyKernel/blob/master/INSTALL.md).
-
-Clone the Lively Kernel repository.
-
-    git clone git@github.com:rksm/LivelyKernel.git ~/LivelyKernel
-
-Then initialize the project dependencies. Currently we are using [express.js](http://expressjs.com/) and [nodemon](https://github.com/remy/nodemon) for file serving.
-
-    cd ~/LivelyKernel
-    npm install
+2. npm: Try running `npm -v`. If that fails run `curl http://npmjs.org/install.sh | sh` in your terminal to install it.
 
 ### Running Lively
 
-Now you can start the server with
+1. Clone the Lively Kernel repository.
 
-    make start_server
+```
+git clone git@github.com:rksm/LivelyKernel.git ~/LivelyKernel
+```
 
-and visit [blank.xhtml](http://localhost:9001/blank.xhtml) to start a minimal version of Lively Kernel.
+2. Go into the Lively Kernel directory and run npm:
+
+```
+cd ~/LivelyKernel
+npm install
+```
+
+3. In that directory start the minimal server
+
+```
+lk server
+```
+
+That's it. You can now visit a rather boring page [blank.xhtml](http://localhost:9001/blank.xhtml) workd or run the tests with `lk test`.
 
 
-## Running Lively Kernel with apache
+### Setup an apache server
 
-In /apache_config you can find sample config files for Apache. Soon there will be more documentation on how to install Lively locally on different systems.
+*Note 1* You only need to do this if you want to run a full-fletched Lively Kernel installation that provides the functionality to run a [Lively Wiki](http://www.hpi.uni-potsdam.de/hirschfeld/projects/livelywiki/index.html).
+
+*Note 2* We are currently working on a pure node.js solution to get rid of apache and the complicated setup process.
+
+See [installation notes for apache on Debian and Mac OS x](https://github.com/rksm/LivelyKernel/wiki/Lively-kernel-installation-on-debian-and-mac-os-x) for details.
+ 
+
+### Installing the Webwerkstatt PartsBin
+
+You can install all the cool tools from Webwerkstatt's PartsBin. Have a look at [the HOWTO](https://github.com/rksm/LivelyKernel/wiki/How-to-make-PartsBin-work).
 
 
 ## Running the tests
@@ -52,49 +62,21 @@ In /apache_config you can find sample config files for Apache. Soon there will b
 Note: Make sure you have all required node.js modules installed. Run `npm install` to do so.
 To start the Lively tests from the command line first start the server:
 
-    make start_server
+    lk server
 
 To initiate a test run do
 
-    make kernel_tests
+    lk test
 
-This runs tests in the browser you specified in testing/config.js. Alternatively, you can use the make targets kernel_tests_firefox or kernel_tests_chrome.
-
-#### Test options
-
-Behind `make kernel_tests` there is the script `testing/run_lively_tests_cli.js`. Start it with
-
-    node testing/run_lively_tests_cli.js --help
-
-to see all available options. A few useful ones are:
-
-- Change the browser with `-b`. We currently support `chrome` and `firefox`.
-- Filter tests to run with `-f`, e.g. `-f "testframework|.*|filter"` will only run those tests that are in modules matching '"testframework' (there is just `lively.TestFramework`) and are defined in those test methods that match 'filter'. Generally, there are three parts to a filter that are interpreted as regular expressions. The first one matches modules, the second test classes, and the third test methods. You don't need to specify all parts. This makes it very easy to run focus tests.
-- Output the results via a notification system lile 'growlnotify' with `-n growlnotify`.
-
-#### How it works
-
-The mini server provides a HTTP interface for running and reporting tests. When a new test run is requested, a Chrome instance is started and a URL to a Lively Kernel world opened. Alongside are passed queries that will the world instruct to load a test script that is executed as soon as the world is loaded.
-
-A test run is requested by POSTing to <http://localhost:9001/test-request>.
-
-This will by default open the world <http://localhost:9001/testing/run_tests.xhtml> and run the script `testing/run_tests.js`. The server will also add an id parameter that is later used for reporting. `run_tests.js` determines what tests should be loaded, how to run them, and how the reporting happens.
-
-By default, a POST request to <http://localhost:9001/test-report> will inform the server about results and close the browser session (if the browser was started from inside the server).
-
-To try it out manually visit: <http://localhost:9001/testing/run_tests.xhtml?testRunId=1&loadScript=run_tests.js&stayOpen=true>
+This runs tests in the browser you specified in testing/config.js. See `lk test --help` for all [the test runner options](https://github.com/rksm/LivelyKernel/wiki/Lk-script-test).
 
 
 ## LivelyKernel on Travis-CI
 
-We use [Travis-CI](http://www.travis-ci.org) to run tests continuously on every commit into the Master branch: 
+We use [Travis-CI](http://www.travis-ci.org) to run tests continuously on every commit into the Master branch:
 [![Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png)](http://travis-ci.org/rksm/LivelyKernel)
 
-## Working with github and the git repository
 
-Please that [wiki page](https://github.com/rksm/LivelyKernel/wiki/Git-Github-Hints) for some best practices.
+## Contributing
 
-
-## Installing PartsBin
-
-You can install all the cool tools from Webwerkstatt's PartsBin. Have a look at [the HOWTO](https://github.com/rksm/LivelyKernel/wiki/How-to-make-PartsBin-work).
+Please this [wiki page](https://github.com/rksm/LivelyKernel/wiki/Git-Github-Hints) for some best practices to work with git and github.

@@ -12,9 +12,9 @@
  */
 
 
-var args = require('./args'),
+var args = require('./helper/args'),
     fs = require('fs'),
-    shell = require('./shell'),
+    shell = require('./helper/shell'),
     exec = require('child_process').exec,
     Seq = require('seq');
 
@@ -28,7 +28,19 @@ var options = args.options([
     ['-t', '--tag TAG', 'New version tag'],
     ['--push-tag', 'Push the tag to github?'],
     ['--lk-dir DIR', 'Path to Lively-Kernel repository'],
-    ['--ww-dir DIR', 'Path to Lively-Kernel repository']]);
+    ['--ww-dir DIR', 'Path to Lively-Kernel repository']],
+    {},
+"Make a new version of LivelyKernel core (specified by '--tag') and link that "
++ "new version  to webwerstatt.\n"
++ "This operates on local LivelyKernel core and webwerkstatt repositories "
++ "that are specified by '--lk-dir' and '--ww-dir'. The script will\n"
++ "(1) Update both repos\n"
++ "(2) Ask you to update the change log (release documentation, History.md)\n"
++ "(3) Update the version file (coreVersion.json)\n"
++ "(4) Syncing the core source code with the webwerksatt code\n"
++ "(5) Tag the git core reposiory with the new version.\n"
++ "To really make the changes on the remote repositories you will have to"
++ " run 'git push' and 'svn commit' afterwards");
 
 if (!options.lkDir || !options.wwDir || !options.tag) options.showHelpAndExit();
 
@@ -131,7 +143,7 @@ Seq()
 .seq(logger('Please edit the change log in the editor that will open...'))
 .seq(wait(3000))
 .seq(shell.runInteractively,
-     __dirname + '/edit-changelog.sh', [options.changeLogInputFile],
+     __dirname + '/helper/edit-changelog.sh', [options.changeLogInputFile],
      Seq)
 .seq(fs.readFile, options.changeLogInputFile, Seq)
 .seq(function(changes) { embedInChangeLog(changes, options.changeLogFile, this) })

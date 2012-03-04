@@ -13,6 +13,7 @@ function relToRoot(dirInRoot) {
  * general stuff
  */
 env.LK_SCRIPTS_ROOT = path.normalize(__dirname + '/..');
+env.LK_SCRIPTS_DIR  = relToRoot("/scripts");
 env.NODEMODULES     = env.NODEMODULES || relToRoot("/node_modules");
 env.QUNIT           = env.QUNIT       || env.NODEMODULES + "/qunit/bin/cli.js";
 env.NODEMON         = env.NODEMON     || env.NODEMODULES + "/nodemon/nodemon.js";
@@ -38,3 +39,11 @@ env.LK_TEST_STARTER       = env.LK_TEST_SCRIPT_DIR + '/run_lively_tests_cli.js';
  */
 env.JSHINT        = env.JSHINT        || env.LK_SCRIPTS_ROOT + "/node_modules/jshint/bin/hint";
 env.JSHINT_CONFIG = env.JSHINT_CONFIG || env.LK_SCRIPTS_ROOT + "/jshint.config";
+
+
+/*
+ * workspace
+ */
+env.WORKSPACE_DIR = env.WORKSPACE_DIR || relToRoot('/workspace');
+env.WORKSPACE_LK  = env.WORKSPACE_LK  || relToRoot('/workspace/lk');
+env.WORKSPACE_WW  = env.WORKSPACE_WW  || relToRoot('/workspace/ww');

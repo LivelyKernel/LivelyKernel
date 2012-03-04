@@ -1,9 +1,10 @@
-/*global require*/
+/*global require, process, __dirname, console*/
 var args = require('./helper/args'),
     shell = require('./helper/shell'),
     exec = require('child_process').exec,
     Seq = require('seq'),
-    path = require('path');
+    path = require('path'),
+    env = process.env;
 
 
 /*
@@ -30,21 +31,21 @@ options = args.options([
      ' on branch ' + options.lkBranch]], options);
 
 var actions = [],
-    shellOpts = {cwd: path.join(__dirname, '..'), env: process.env};
+    shellOpts = {cwd: env.LK_SCRIPTS_ROOT, env: process.env};
 
 
 if (options.defined('remove')) {
     actions.push({
         msg: 'clean',
         func: function(next) {
-            shell.redirectedSpawn('rm', ['-rfv', './workspace/'], next, shellOpts);
+            shell.redirectedSpawn('rm', ['-rfv', env.WORKSPACE_DIR], next);
         }
     });
 }
 
 function svnReset(next) {
     return function() {
-        var dir = 'workspace/ww';
+        var dir = env.WORKSPACE_WW;
         exec(['if [[ -d ', dir, ' ]]; then cd ', dir, '; svn revert -R .; fi'].join(''),
              shellOpts, next);
     };
@@ -52,8 +53,9 @@ function svnReset(next) {
 
 function gitReset(next) {
     return function() {
-        var dir = 'workspace/lk';
-        exec(['if [[ -d ', dir, ' ]]; then cd ', dir, '; git reset --hard; git clean -d -f; fi'].join(''),
+        var dir = env.WORKSPACE_LK;
+        exec(['if [[ -d ', dir, ' ]]; then cd ', dir, '; ',
+              'git reset --hard; git clean -d -f; fi'].join(''),
              shellOpts, next);
     };
 }
@@ -73,8 +75,9 @@ if (options.defined('checkoutLk')) {
         msg: 'git clone ' + options.lkGitUrl,
         func: function(next) {
             Seq()
-            .seq(exec, 'mkdir -p ./workspace/', shellOpts, Seq)
-            .seq(exec, ['git clone -b ', options.lkBranch, ' -- ', options.lkGitUrl, ' ./workspace/lk'].join(''),
+            .seq(exec, 'mkdir -p ' + env.WORKSPACE_DIR, shellOpts, Seq)
+            .seq(exec, ['git clone -b ', options.lkBranch, ' -- ',
+                        options.lkGitUrl, ' ', env.WORKSPACE_LK].join(''),
                  shellOpts, next);
         }
     });
@@ -85,8 +88,9 @@ if (options.defined('checkoutWw')) {
         msg: 'svn co ' + options.wwSvnUrl,
         func: function(next) {
             Seq()
-            .seq(exec, 'mkdir -p ./workspace/', shellOpts, Seq)
-            .seq(exec, ['svn co ', options.wwSvnUrl, './workspace/ww'].join(' '), shellOpts, next);
+            .seq(exec, 'mkdir -p ' + env.WORKSPACE_DIR, shellOpts, Seq)
+            .seq(exec, ['svn co ', options.wwSvnUrl, env.WORKSPACE_WW].join(' '),
+                 shellOpts, next);
         }
     });
 }

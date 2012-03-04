@@ -3,5 +3,12 @@
 # ln -s $LIVELY/bin/lk /usr/local/bin/lk
 # rm /usr/local/bin/lk
 
-DIR=$(dirname $(readlink /usr/local/bin/lk))
+# check if we are directly invoked or using a symlink
+# since we need to find out what the real directory is
+LK_SCRIPT_PATH=$(readlink $0)
+if [[ ! $LK_SCRIPT_PATH ]]; then
+  LK_SCRIPT_PATH=$0
+fi
+DIR=$(dirname $LK_SCRIPT_PATH)
+
 node $DIR/../scripts/lk.js "$@"

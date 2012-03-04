@@ -21,28 +21,36 @@ Get Lively Kernel *core* up and running.
 
 1. Clone the Lively Kernel repository.
 
-    git clone git@github.com:rksm/LivelyKernel.git ~/LivelyKernel
+```
+git clone git@github.com:rksm/LivelyKernel.git ~/LivelyKernel
+```
 
 2. Go into the Lively Kernel directory and run npm:
 
-    cd ~/LivelyKernel
-    npm install
+```
+cd ~/LivelyKernel
+npm install
+```
 
 3. In that directory start the minimal server
 
-    lk server
+```
+lk server
+```
 
 That's it. You can now visit a rather boring page [blank.xhtml](http://localhost:9001/blank.xhtml) workd or run the tests with `lk test`.
 
 
-## Setup an apache server
+### Setup an apache server
 
-For running a full-fletched Lively Kernel installation that provides the functionality to run a [Lively Wiki](http://www.hpi.uni-potsdam.de/hirschfeld/projects/livelywiki/index.html) you currently need to setup an apache server. See the [installation notes for apache on Debian and Mac OS x](https://github.com/rksm/LivelyKernel/wiki/Lively-kernel-installation-on-debian-and-mac-os-x) for details.
+*Note 1* You only need to do this if you want to run a full-fletched Lively Kernel installation that provides the functionality to run a [Lively Wiki](http://www.hpi.uni-potsdam.de/hirschfeld/projects/livelywiki/index.html).
 
-*Note:* We are currently working on a pure node.js solution to get rid of apache and the complicated setup process.
+*Note 2* We are currently working on a pure node.js solution to get rid of apache and the complicated setup process.
 
+See [installation notes for apache on Debian and Mac OS x](https://github.com/rksm/LivelyKernel/wiki/Lively-kernel-installation-on-debian-and-mac-os-x) for details.
+ 
 
-## Installing the Webwerkstatt PartsBin
+### Installing the Webwerkstatt PartsBin
 
 You can install all the cool tools from Webwerkstatt's PartsBin. Have a look at [the HOWTO](https://github.com/rksm/LivelyKernel/wiki/How-to-make-PartsBin-work).
 

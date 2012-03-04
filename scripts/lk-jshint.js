@@ -9,8 +9,8 @@ var args = require('./helper/args'),
 // -=-=-=-=-=-=-=-=-=-=-
 var env = process.env,
     options = args.options([
-    ['-h', '--help', 'show this help'],
-    ['-w', '--watch', 'Run with nodemon and watch for file changes']]);
+        ['-h', '--help', 'show this help'],
+        ['-w', '--watch', 'Run with nodemon and watch for file changes']]);
 
 
 // -=-=-=-=-=-=-=-=-=-=-

@@ -88,11 +88,6 @@ Object.subclass("Point",
 },
 'instance creation', {
     
-    // FIXME: why is that on instance side
-    fromLiteral: function(literal) {
-        return lively.pt(literal.x, literal.y);
-    },
-    
     withX: function(x) {
         return lively.pt(x, this.y);
     },
@@ -103,10 +98,6 @@ Object.subclass("Point",
     
     copy: function() {
         return new lively.Point(this.x, this.y);
-    },
-        
-    random: function(scalePt) {
-        return new lively.Point(scalePt.x.randomSmallerInteger(), scalePt.y.randomSmallerInteger());
     },
     
     minPt: function(p, acc) {
@@ -121,15 +112,6 @@ Object.subclass("Point",
         acc.x = Math.max(this.x, p.x);
         acc.y = Math.max(this.y, p.y);
         return acc;
-    },
-    
-    ensure: function(duck) { 
-        // make sure we have a Lively point
-        if (duck instanceof lively.Point) {
-            return duck;
-        } else {
-            return new lively.Point(duck.x, duck.y);
-        }
     }
 },
 'point functions', {
@@ -146,8 +128,6 @@ Object.subclass("Point",
     dotProduct: function(p) {
         return this.x * p.x + this.y * p.y
     },
-    
-
     
     matrixTransform: function(mx, acc) {
         // if no accumulator passed, allocate a fresh one
@@ -243,13 +223,6 @@ Object.subclass("Point",
     theta: function() {
         return Math.atan2(this.y, this.x);
     }
-});
-Object.extend(Point, {
-    polar: function(r, theta) {
-        // Note: theta=0 is East on the screen, and increases in 
-        // counter-clockwise direction
-        return new lively.Point(r * Math.cos(theta), r * Math.sin(theta));
-    },
 });
 
 
@@ -590,6 +563,31 @@ Object.subclass('Rectangle',
     }
 }
 );
+
+Object.extend(lively.Point, {
+    ensure: function(duck) {
+        if (duck instanceof lively.Point) {
+            return duck;
+        } else {
+            return new lively.Point(duck.x, duck.y);
+        }
+    },
+
+    polar: function(r, theta) {
+        // theta=0 is East on the screen, 
+        // increases in counter-clockwise direction
+        return new lively.Point(r * Math.cos(theta), r * Math.sin(theta));
+    },
+    
+    random: function(scalePt) {
+        return new lively.Point(scalePt.x.randomSmallerInteger(), scalePt.y.randomSmallerInteger());
+    },
+
+    fromLiteral: function(literal) {
+        return lively.pt(literal.x, literal.y);
+    }
+});
+
 
 Object.extend(Rectangle, {
     fromAny: function(ptA, ptB) {
@@ -955,16 +953,15 @@ Object.subclass("Color",
     }
 },
 'printing', {
-    toString: function() {
-        function floor(x) { return Math.floor(x*255.99) };
-        // 06/10/10 currently no rgba support for SVG:
-        // http://code.google.com/p/chromium/issues/detail?id=45435
-        if (this.a !== 1){
-            return "rgba(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + "," + this.a +")";
-        }
-        return "rgb(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + ")";
-    },
-    
+    toString: function() {    
+        function floor(x) { return Math.floor(x*255.99) };    
+        // 06/10/10 currently no rgba support for SVG:    
+        // http://code.google.com/p/chromium/issues/detail?id=45435    
+        if (this.a !== 1){    
+            return "rgba(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + "," + this.a +")";    
+        }    
+        return "rgb(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + ")";    
+    },    
     toRGBAString: function() {
         function floor(x) { return Math.floor(x*255.99) };
         return "rgba(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + "," + this.a + ")";
@@ -973,7 +970,26 @@ Object.subclass("Color",
 'converting', {
     toTuple: function() {
         return [this.r, this.g, this.b, this.a];
-    }
+    },
+    toHSB: function() {
+        var max = Math.max(this.r, this.g, this.b);
+        var min = Math.min(this.r, this.g, this.b);
+        var h, s, b = max;
+        if (max == min)
+            h = 0;
+        else if (max == this.r)
+            h = 60 * (0 + ((this.g - this.b) / (max - min)));
+        else if (max == this.g)
+            h = 60 * (2 + ((this.b - this.r) / (max - min)));
+        else if (max == this.b)
+            h = 60 * (4 + ((this.r - this.g) / (max - min)));
+        h = (h + 360) % 360;
+        if (max == 0)
+            s = 0
+        else
+            s = (max - min) / max;    
+        return [h, s, b];    
+    }   
 },
 'instance creation', {
     withA: function(a) {
@@ -989,7 +1005,7 @@ Object.subclass("Color",
     
     // FIXME: invert sounds like mutation, versus createInverse or similar
     invert: function() {
-        return Color.rgb(255 * (1 - this.r), 255 * (1 - this.g), 255 * (1 - this.b))
+        return Color.rgb(255 * (1 - this.r), 255 * (1 - this.g), 255 * (1 - this.b));
     } 
 },
 'serializing', {

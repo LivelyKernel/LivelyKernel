@@ -9,9 +9,9 @@ before_install:
 
 before_script:
   - "Xvfb :1 -screen 0 800x600x24&"
-  - "make start_server_forever"
+  - "./bin/lk server --forever"
 
-script: "make travis_tests"
+script: "./bin/lk test --display :1"
 
 branches:
   only:

@@ -88,11 +88,6 @@ Object.subclass("Point",
 },
 'instance creation', {
     
-    // FIXME: why is that on instance side
-    fromLiteral: function(literal) {
-        return lively.pt(literal.x, literal.y);
-    },
-    
     withX: function(x) {
         return lively.pt(x, this.y);
     },
@@ -103,10 +98,6 @@ Object.subclass("Point",
     
     copy: function() {
         return new lively.Point(this.x, this.y);
-    },
-        
-    random: function(scalePt) {
-        return new lively.Point(scalePt.x.randomSmallerInteger(), scalePt.y.randomSmallerInteger());
     },
     
     minPt: function(p, acc) {
@@ -121,15 +112,6 @@ Object.subclass("Point",
         acc.x = Math.max(this.x, p.x);
         acc.y = Math.max(this.y, p.y);
         return acc;
-    },
-    
-    ensure: function(duck) { 
-        // make sure we have a Lively point
-        if (duck instanceof lively.Point) {
-            return duck;
-        } else {
-            return new lively.Point(duck.x, duck.y);
-        }
     }
 },
 'point functions', {
@@ -145,12 +127,6 @@ Object.subclass("Point",
 
     dotProduct: function(p) {
         return this.x * p.x + this.y * p.y
-    },
-    
-    polar: function(r, theta) {
-        // Note: theta=0 is East on the screen, and increases in 
-        // counter-clockwise direction
-        return new lively.Point(r * Math.cos(theta), r * Math.sin(theta));
     },
     
     matrixTransform: function(mx, acc) {
@@ -587,6 +563,31 @@ Object.subclass('Rectangle',
     }
 }
 );
+
+Object.extend(lively.Point, {
+    ensure: function(duck) {
+        if (duck instanceof lively.Point) {
+            return duck;
+        } else {
+            return new lively.Point(duck.x, duck.y);
+        }
+    },
+
+    polar: function(r, theta) {
+        // theta=0 is East on the screen, 
+        // increases in counter-clockwise direction
+        return new lively.Point(r * Math.cos(theta), r * Math.sin(theta));
+    },
+    
+    random: function(scalePt) {
+        return new lively.Point(scalePt.x.randomSmallerInteger(), scalePt.y.randomSmallerInteger());
+    },
+
+    fromLiteral: function(literal) {
+        return lively.pt(literal.x, literal.y);
+    }
+});
+
 
 Object.extend(Rectangle, {
     fromAny: function(ptA, ptB) {

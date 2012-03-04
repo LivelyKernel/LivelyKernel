@@ -13,7 +13,9 @@ var options = args.options([
     ['-w', '--watch', 'Run with nodemon and watch for file changes'],
     ['-f', '--forever', 'Run with forever and restart server on a crash'],
     ['-p', '--port NUMBER', "On which port to run"],
-    ['-m', '--mini-server', 'Start the minimal server (this is the default)']]);
+    ['-m', '--mini-server', 'Start the minimal server (this is the default)']],
+    {},
+    "Start the LivelyKernel mini-server used for running the tests.");
 
 // use the mini server by default, extend this check when new
 // server options are added

@@ -3,7 +3,9 @@
 var fs = require('fs'),
     path = require('path'),
     lkEnv = require('./env'),
-    shell = require('./helper/shell');
+    shell = require('./helper/shell'),
+    console = require('colorize').console,
+    async = require('async');
 
 
 // -=-=-=-=-=-=-=-=-=-=-
@@ -35,6 +37,18 @@ Subcommand.prototype.showHelp = function(thenDo) {
     this.spawn(['--help'], thenDo);
 };
 
+function printHelpForAllSubComamndsAndExit(nextArg) {
+    var asMarkDown = nextArg === "--markdown";
+    async.forEachSeries(subcommands, function(subcommand, next) {
+        var name = 'lk ' + subcommand.name(),
+            msg = asMarkDown ? "### " + name + '\n' : '#underline[' + name + ']';
+        console.log(msg);
+        subcommand.showHelp(function() {
+            console.log("\n");
+            next();
+        });
+    }, function() { process.exit(0); })
+}
 
 // -=-=-=-=-=-=-=-=-=-=-
 // lk def
@@ -68,7 +82,10 @@ var lk = {
     showUsage: function() {
         var names = subcommands.map(function(ea) { return ea.name(); });
         console.log('Available subcommands:\n  ' + names.join('\n  '));
-        console.log('Run \'lk help SUBCOMMAND\' to get more information about the specific subcommand.');
+        console.log('Run \'lk help SUBCOMMAND\' to get more information about '
+                    + 'the specific subcommand.\n'
+                    + 'Run \'lk help --all\' to get a complete overview '
+                    + 'for all subcommands');
     }
 
 };
@@ -85,7 +102,7 @@ function processArgs(args) {
     var cmdName = args[0],
         cmdArgs = args.slice(1);
 
-    if (!cmdName || (cmdName == 'help' && cmdArgs.length === 0)) {
+    if (!cmdName) {
         lk.showUsage();
         process.exit(0);
     }
@@ -93,11 +110,13 @@ function processArgs(args) {
     if (cmdName == 'help') {
         var subCmdName = cmdArgs[0],
             subCmd = lk.getSubcommand(subCmdName);
-        if (subCmd) {
+        if (subCmdName == "--all") {
+            printHelpForAllSubComamndsAndExit(cmdArgs[1]);
+        } else if (subCmd) {
             subCmd.showHelp(function() { process.exit(0); });
         } else {
-            console.log('cannot find help for ' + subCmdName);
-            process.exit(0);
+            lk.showUsage();
+            process.exit();
         }
         return;
     }

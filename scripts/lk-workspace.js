@@ -28,7 +28,9 @@ options = args.options([
     ['--reset', 'reset both the svn and git repositories if they exist but do not delete them'],
     ['--checkout-ww', 'create ./workspace/ww/, checked out from ' + options.wwSvnUrl],
     ['--checkout-lk', 'create ./workspace/lk/, checked out from ' + options.lkGitUrl +
-     ' on branch ' + options.lkBranch]], options);
+     ' on branch ' + options.lkBranch]], options,
+    "Script that manages local copies of the LivelyKernel core "
+    + "and webwerksatt repository in " + env.WORKSPACE_DIR + '/');
 
 var actions = [],
     shellOpts = {cwd: env.LK_SCRIPTS_ROOT, env: process.env};

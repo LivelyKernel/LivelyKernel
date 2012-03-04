@@ -12,7 +12,9 @@ var env = process.env,
         ['-h', '--help', 'Show this help.'],
         ['-i', '--install DIR', 'Install the PartsBin from ' + env.PARTSBIN_SVN_URL
              + 'into DIR or ' + env.PARTSBIN_DIR + ' if no DIR given'],
-        ['-u', '--update', 'Update the PartsBin']]);
+        ['-u', '--update', 'Update the PartsBin']],
+        {},
+        "Installs and updates the webwerkstatt PartsBin");
 
 
 // -=-=-=-=-=-=-=-=-=-=-

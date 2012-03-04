@@ -38,7 +38,9 @@ var platformConf = config.platformConfigs[process.platform],
                                + "those test methods that match 'filter'."],
         ['--test-script FILE', "Script file that is sent to the browser and "
                              + "runs the tests. If not specified then \""
-                             + config.defaultTestScript + "\" is used."]]);
+                             + config.defaultTestScript + "\" is used."]],
+        {},
+        "Run the core tests.");
 
 var cmd = options.defined('watch') ? env.NODEMON : 'node',
     argList = [];

@@ -10,7 +10,10 @@ var args = require('./helper/args'),
 var env = process.env,
     options = args.options([
         ['-h', '--help', 'show this help'],
-        ['-w', '--watch', 'Run with nodemon and watch for file changes']]);
+        ['-w', '--watch', 'Run with nodemon and watch for file changes']],
+        {},
+        "Run jshint on files in " + env.MINISERVER_DIR + "/ and " +
+        env.LK_TEST_SCRIPT_DIR + '/');
 
 
 // -=-=-=-=-=-=-=-=-=-=-

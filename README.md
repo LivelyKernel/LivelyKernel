@@ -81,4 +81,4 @@ We use [Travis-CI](http://www.travis-ci.org) to run tests continuously on every 
 
 Please this [wiki page](https://github.com/rksm/LivelyKernel/wiki/Git-Github-Hints) for some best practices to work with git and github.
 
-All code is published under the [MIT licents](https://github.com/rksm/LivelyKernel/blob/master/LICENSE).
+All code is published under the [MIT license](https://github.com/rksm/LivelyKernel/blob/master/LICENSE).

@@ -12,17 +12,17 @@
  */
 
 
-var args = require('./helper/args'),
-    fs = require('fs'),
+var args  = require('./helper/args'),
+    fs    = require('fs'),
     shell = require('./helper/shell'),
-    exec = require('child_process').exec,
-    Seq = require('seq');
+    exec  = require('child_process').exec,
+    Seq   = require('seq'),
+    env   = process.env;
 
 
 // -=-=-=-=-=-=-=-=-=-=-
 // script options
 // -=-=-=-=-=-=-=-=-=-=-
-
 var options = args.options([
     ['-h', '--help', 'foo'],
     ['-t', '--tag TAG', 'New version tag'],
@@ -33,29 +33,28 @@ var options = args.options([
 "Make a new version of LivelyKernel core (specified by '--tag') and link that "
 + "new version  to webwerstatt.\n"
 + "This operates on local LivelyKernel core and webwerkstatt repositories "
-+ "that are specified by '--lk-dir' and '--ww-dir'. The script will\n"
-+ "(1) Update both repos\n"
-+ "(2) Ask you to update the change log (release documentation, History.md)\n"
-+ "(3) Update the version file (coreVersion.json)\n"
-+ "(4) Syncing the core source code with the webwerksatt code\n"
-+ "(5) Tag the git core reposiory with the new version.\n"
++ "that are specified by '--lk-dir' and '--ww-dir'. The script will\n\n"
++ "1. Update both repos\n"
++ "2. Ask you to update the change log (release documentation, History.md)\n"
++ "3. Update the version file (coreVersion.json)\n"
++ "4. Syncing the core source code with the webwerksatt code (uses `lk sync`)\n"
++ "5. Tag the git core reposiory with the new version.\n\n"
 + "To really make the changes on the remote repositories you will have to"
 + " run 'git push' and 'svn commit' afterwards");
 
 if (!options.lkDir || !options.wwDir || !options.tag) options.showHelpAndExit();
 
 // those things are fixed for now
-options.lkCore = options.lkDir + '/core/';
-options.changeLogFile = options.lkCore + 'History.md';
+options.lkCore             = options.lkDir + '/core/';
+options.changeLogFile      = options.lkCore + 'History.md';
 options.changeLogInputFile = options.lkDir + '/changes-' + options.tag + '.md';
-options.wwCore = options.wwDir + '/core/';
-options.versionFile = options.wwCore + 'coreVersion.json';
+options.wwCore             = options.wwDir + '/core/';
+options.versionFile        = options.wwCore + 'coreVersion.json';
 
 
 // -=-=-=-=-=-=-=-=-=-=-
 // changelog helpers
 // -=-=-=-=-=-=-=-=-=-=-
-
 function changeLogEntryTemplate(tag, date) {
     var templ = tag + ' / ';
     templ += date.toISOString().replace(/T.*/, '');
@@ -80,7 +79,6 @@ function embedInChangeLog(descr, logFile, callback) {
 // -=-=-=-=-=-=-=-=-=-=-
 // svn helpers
 // -=-=-=-=-=-=-=-=-=-=-
-
 function getSVNRev(callback) {
     var next = this;
     exec('svn info | ' +
@@ -105,7 +103,6 @@ function getSVNRev(callback) {
 // -=-=-=-=-=-=-=-=-=-=-
 // generic helpers
 // -=-=-=-=-=-=-=-=-=-=-
-
 function execLogger(cmd) {
     return function(out, err) {
         console.log(['===\n', cmd, ':\n', out, '\n', err ? err : '', '\n==='].join(''));
@@ -123,21 +120,20 @@ function wait(ms) { return function() { setTimeout(this, ms) } }
 // -=-=-=-=-=-=-=-=-=-=-
 // the real thing
 // -=-=-=-=-=-=-=-=-=-=-
-
 console.log('Link process started: Will link version ' + options.tag +
             ' of core repo ' + options.lkDir + ' to ' + options.wwDir);
 
 Seq()
 // ==== update ====
-.seq(logger('\n(1) Doing `svn up` and `git pull`:'))
+.seq(logger('\n1. Doing `svn up` and `git pull`:'))
 .seq(exec, 'svn up', {cwd: options.wwDir}, Seq)
 .seq(execLogger('svn up'))
 .seq(exec, 'git co master; git pull --rebase', {cwd: options.lkDir}, Seq)
 .seq(execLogger('git co + pull'))
-.seq(logger('(1) done.'))
+.seq(logger('1. done.'))
 
 // ==== change log ====
-.seq(logger('\n(2) Updating change log (' + options.changeLogFile + '):'))
+.seq(logger('\n2. Updating change log (' + options.changeLogFile + '):'))
 .seq(fs.writeFile, options.changeLogInputFile,
      changeLogEntryTemplate(options.tag, new Date()), Seq)
 .seq(logger('Please edit the change log in the editor that will open...'))
@@ -148,10 +144,10 @@ Seq()
 .seq(fs.readFile, options.changeLogInputFile, Seq)
 .seq(function(changes) { embedInChangeLog(changes, options.changeLogFile, this) })
 .seq(fs.unlink, options.changeLogInputFile, Seq)
-.seq(logger('(2) done.'))
+.seq(logger('2. done.'))
 
 // ==== version file ====
-.seq(logger('\n(3) Updating version file (' + options.versionFile + '):'))
+.seq(logger('\n3. Updating version file (' + options.versionFile + '):'))
 .seq(getSVNRev, Seq)
 .seq(function(svnRev) {
     var info = {
@@ -161,24 +157,20 @@ Seq()
     console.log(JSON.stringify(info, null, 2));
     fs.writeFile(options.versionFile, JSON.stringify(info, null, 2), this);
 })
-.seq(logger('\n(3) done'), Seq)
+.seq(logger('\n3. done'), Seq)
 
 // ==== synching ww with lk ====
-.seq(logger('\n(4) Pushing changes from LivelyKernel to webwerksatt:'))
-.seq(exec, ['rsync -ra --delete --filter=". ', options.lkDir, '/webwerkstatt_mirror.filter" ',
-            options.lkCore, ' ', options.wwCore].join(''), Seq)
-.seq(exec, 'svn rm $( svn status | sed -e "/^!/!d" -e "s/^!//" )', // `svn rm` missing
-     {cwd: options.wwCore}, Seq)
-.seq(exec, 'svn add . --force', {cwd: options.wwCore}, Seq) // add new
-.seq(exec, 'svn st', {cwd: options.wwCore}, Seq)
+.seq(logger('\n4. Syncing changes from LivelyKernel to webwerksatt:'))
+.seq(exec, [env.LK_SCRIPTS_ROOT + "/bin/lk sync --from-lk-to-ww " +
+          "--lk-dir ", options.lkDir, "--ww-dir ", options.wwDir].join(''), Seq)
 .seq(execLogger('svn status'))
-.seq(logger('\n(4) Pushing changes done. See `svn diff ' + options.wwDir + '`' +
+.seq(logger('\n4. Syncing changes done. See `svn diff ' + options.wwDir + '`' +
            ' for a list of changes'))
 
 // ==== tag ====
-.seq(logger('\n(5) Running `git tag ' + options.tag + '`:'))
+.seq(logger('\n5. Running `git tag ' + options.tag + '`:'))
 .seq(exec, 'git tag ' + options.tag, {cwd: options.lkCore}, Seq)
-.seq(logger('\n(5) done'))
+.seq(logger('\n5. done'))
 
 // ==== final Message ====
 .seq(logger('\nThe core is almost linked...\n\nWhat you have to do now is to go into\n' +

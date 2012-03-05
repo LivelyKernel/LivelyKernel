@@ -1,5 +1,5 @@
 /*global require, process, console, setTimeout*/
-
+/*jshint immed: true, lastsemic: true, expr: true*/
 
 /*
  *
@@ -15,13 +15,14 @@
  */
 
 var optparse = require('optparse'),
-    exec = require('child_process').exec,
-    fs = require('fs'),
-    Seq = require('seq');
+    exec     = require('child_process').exec,
+    fs       = require('fs'),
+    Seq      = require('seq'),
+    env      = process.env;
 
 var switches = [
-    ['-h', '--help', "This tool requires a local path to a svn repository and a version number."
-                   + "From that it will rsync"],
+    ['-h', '--help', "This tool requires a local path to a svn repository and a version number." +
+                   "From that it will rsync"],
     ['--svn-repo DIR', "Path to svn repository"],
     ['--svn-wc DIR', "Path to SVN workingcopy that is svn updated and used as a source for the sync"],
     ['--git-repo DIR', "local path to the git repository with the branch that mirrors the svn reository"],
@@ -34,19 +35,19 @@ function showHelpAndExit() { console.log(parser.toString()); process.exit(1); }
 parser.banner = "This script will rsync the webwerkstatt core directory with the\n" +
     "ww-mirror branch of the Lively Kernel core repository. The commit message\n" +
     "includes the svn revision that was used for the sync.\n" +
-    "The steps that are done:\n" +
-    "- lock using a file to not allow concurrent syncs (sync will wait a certain time)\n" +
-    "- if no core commit, unlock and do nothing\n" +
-    "- update webwerkstatt working copy\n" +
-    "- rsync svn repo with git repo (takes care of deletions, renames)\n" +
-    "- git reset, clean, pull -- the git repo should be OK, just to be sure\n" +
-    "- git add, commit, push\n" +
-    "- unlock\n"
-    + "The script is currently used as a post-commit hook for the webwerkstatt repository.";
-parser.on("help", showHelpAndExit);
+    "The steps that are done:\n\n" +
+    "1. lock using a file to not allow concurrent syncs (sync will wait a certain time)\n" +
+    "2. if no core commit, unlock and do nothing\n" +
+    "3. update webwerkstatt working copy\n" +
+    "4. `lk sync` svn repo with git repo (takes care of deletions, renames)\n" +
+    "5. git reset, clean, pull -- the git repo should be OK, just to be sure\n" +
+    "6. git add, commit, push\n" +
+    "7. unlock\n\n" +
+    "The script is currently used as a post-commit hook for the webwerkstatt repository.";
+parser.on("help",     showHelpAndExit);
 parser.on("svn-repo", function(name, value) { svnRepo = value });
-parser.on("svn-wc", function(name, value) { svnWc = value });
-parser.on("rev", function(name, value) { rev = value });
+parser.on("svn-wc",   function(name, value) { svnWc = value });
+parser.on("rev",      function(name, value) { rev = value });
 parser.on("git-repo", function(name, value) { gitRepoDir = value });
 parser.on("lockfile", function(name, value) { lockFile = value });
 
@@ -62,24 +63,21 @@ function run(cmd, cb, next, options) {
 	      } else {
 	          next(1);
 	          console.log('early exit');
-	      };
+	      }
     });
 }
 
 // -=-=-=-=-=-=-=-=-=-=-
 // generic / rsync
 // -=-=-=-=-=-=-=-=-=-=-
-
-function rsyncWithGit() {
-    run(['rsync -ra --delete --filter=". ', gitRepoDir, '/webwerkstatt_mirror.filter" ',
-         svnWc, ' ', gitRepoDir, '/core/'].join(''),
-	      function(err, out) { console.log('sync done: ' + out); return true; }, this);
+function syncWithGit() {
+    exec([env.LK_SCRIPTS_ROOT + "/bin/lk sync --from-ww-to-lk " +
+          "--lk-dir ", gitRepoDir, "--ww-dir ", svnWc].join(''), this);
 }
 
 // -=-=-=-=-=-=-=-=-=-=-
 // svn
 // -=-=-=-=-=-=-=-=-=-=-
-
 var svnInfo = {rev: rev, author: "", changes: "", msg: ""};
 
 function checkIfCoreCommit(thenDo) {
@@ -128,9 +126,8 @@ function gitPull() { // should not be necessary but just to be sure...
     runGitCmd('git pull origin ' + gitMirrorBranchName, 'PULL', this);
 }
 
-function gitPush() {
-    var cmd = ['git add .; ',
-	             'git commit --author="', svnInfo.author || 'webwerkstatt ghost',
+function gitCommitAndPush() {
+    var cmd = ['git commit --author="', svnInfo.author || 'webwerkstatt ghost',
                ' <lively-kernel@hpi.uni-potsdam.de>" ',
                '-am \'[mirror commit]\n', JSON.stringify(svnInfo, null, 2), '\'; ',
 	             'git push origin ', gitMirrorBranchName].join('');
@@ -179,8 +176,8 @@ try {
         seq(gitClean).
         seq(gitPull).
         seq(updateWebwerkstattWorkingCopy).
-        seq(rsyncWithGit).
-        seq(gitPush).
+        seq(syncWithGit).
+        seq(gitCommitAndPush).
         seq(unlock).
         catch(unlock);
 } catch(e) {

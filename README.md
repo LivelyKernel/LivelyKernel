@@ -71,7 +71,7 @@ To initiate a test run do
 This runs tests in the browser you specified in testing/config.js. See `lk test --help` for all [the test runner options](https://github.com/rksm/LivelyKernel/wiki/Lk-script-test).
 
 
-## LivelyKernel on Travis-CI
+### LivelyKernel on Travis-CI
 
 We use [Travis-CI](http://www.travis-ci.org) to run tests continuously on every commit into the Master branch:
 [![Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png)](http://travis-ci.org/rksm/LivelyKernel)
@@ -80,3 +80,5 @@ We use [Travis-CI](http://www.travis-ci.org) to run tests continuously on every 
 ## Contributing
 
 Please this [wiki page](https://github.com/rksm/LivelyKernel/wiki/Git-Github-Hints) for some best practices to work with git and github.
+
+All code is published under the [MIT licents](https://github.com/rksm/LivelyKernel/blob/master/LICENSE).

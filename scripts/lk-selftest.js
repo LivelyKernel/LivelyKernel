@@ -32,6 +32,6 @@ async.series([
         test: path.join(env.LK_SCRIPTS_ROOT, '/scripts/lkTest.js'),
         scope: 'lk:'}),
     qunitRun.bind(null, {
-        code: path.join(env.LK_SCRIPTS_ROOT, "/webwerkstatt_integration/diffReporter.js"),
-        test: path.join(env.LK_SCRIPTS_ROOT, "/webwerkstatt_integration/diffReporterTest.js")})
+        code: path.join(env.LK_SCRIPTS_ROOT, "/scripts/ww-diff/diffReporter.js"),
+        test: path.join(env.LK_SCRIPTS_ROOT, "/scripts/ww-diff/diffReporterTest.js")})
 ]);

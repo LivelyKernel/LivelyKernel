@@ -35,7 +35,7 @@ if (!options.lk) {
         options.showHelpAndExit();
     }
 }
-options.lk = path.resolve(__dirname, options.lk);
+options.lk = path.resolve(env.PWD, options.lk);
 
 if (!options.ww) {
     if (path.existsSync(defaultWWDir)) {
@@ -46,7 +46,7 @@ if (!options.ww) {
         options.showHelpAndExit();
     }
 }
-options.ww = path.resolve(__dirname, options.ww);
+options.ww = path.resolve(env.PWD, options.ww);
 
 if (!options.output) {
     options.output = defaultDiffFile;

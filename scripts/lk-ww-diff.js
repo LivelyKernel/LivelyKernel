@@ -1,4 +1,4 @@
-/*global require, process, console*/
+/*global require, process, console, __dirname*/
 var args = require('./helper/args'),
     shell = require('./helper/shell'),
     path = require('path');
@@ -35,6 +35,7 @@ if (!options.lk) {
         options.showHelpAndExit();
     }
 }
+options.lk = path.resolve(__dirname, options.lk);
 
 if (!options.ww) {
     if (path.existsSync(defaultWWDir)) {
@@ -45,6 +46,7 @@ if (!options.ww) {
         options.showHelpAndExit();
     }
 }
+options.ww = path.resolve(__dirname, options.ww);
 
 if (!options.output) {
     options.output = defaultDiffFile;
@@ -53,7 +55,6 @@ if (!options.output) {
 // -=-=-=-=-=-=-=-=-=-=-
 // the real thing
 // -=-=-=-=-=-=-=-=-=-=-
-
 var argList = ['--lk', options.lk,
                '--ww', options.ww,
               '--output', options.output];

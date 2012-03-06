@@ -21,24 +21,25 @@ Get Lively Kernel *core* up and running.
 
 1. Clone the Lively Kernel repository.
 
-```
-git clone git@github.com:rksm/LivelyKernel.git ~/LivelyKernel
-```
+    ```
+    git clone git@github.com:rksm/LivelyKernel.git ~/LivelyKernel
+    ```
 
 2. Go into the Lively Kernel directory and run npm:
 
-```
-cd ~/LivelyKernel
-npm install
-```
+    ```
+    cd ~/LivelyKernel
+    npm install
+    ```
 
 3. In that directory start the minimal server
 
-```
-lk server
-```
+    ```
+    lk server
+    ```
 
-That's it. You can now visit a rather boring page [blank.xhtml](http://localhost:9001/blank.xhtml) workd or run the tests with `lk test`.
+
+That's it. You can now visit ther rather boring page [blank.xhtml](http://localhost:9001/blank.xhtml) or run the tests with `lk test`.
 
 
 ### Setup an apache server

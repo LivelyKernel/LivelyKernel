@@ -611,8 +611,13 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         this.subMenu = m;
         m.ownerMenu = this;
 
-        // we do this twice because effect of fitToItems is delayed
+          // we do this twice because effect of fitToItems is delayed
+        m.setVisible(false); // we hide it because it is first shown at the wrong position
         m.offsetForOwnerMenu();
+        (function() {
+            m.offsetForOwnerMenu()
+            m.setVisible(true);
+        }).delay(0);
         m.offsetForOwnerMenu.bind(m).delay(0);
 
         return m;

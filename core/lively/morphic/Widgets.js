@@ -618,7 +618,6 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             m.offsetForOwnerMenu()
             m.setVisible(true);
         }).delay(0);
-        m.offsetForOwnerMenu.bind(m).delay(0);
 
         return m;
     },

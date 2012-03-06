@@ -766,26 +766,12 @@ lively.morphic.Morph.addMethods(
         })])
         // Connections Scripting Support
         if (this.attributeConnections && this.attributeConnections.length > 0) {
-            items.push(["connections", this.attributeConnections
-                .reject(function(ea) { return ea.dependedBy}) // Meta connection
-                .reject(function(ea) { return ea.targetMethodName == 'alignToMagnet'}) // Meta connection
-                .collect(function(ea) {
-                    var s = ea.sourceAttrName + " -> " + ea.targetObj  + "." + ea.targetMethodName
-                    return [s, [
-                        ["disconnect", function() {
-                            alertOK("disconnecting " + ea)
-                            ea.disconnect()}],
-                        ["edit converter", function() {
-                            var window = lively.bindings.editConnection(ea);
-                        }],
-                        ["show", function() {
-                            lively.bindings.showConnection(ea);
-                        }],
-                        ["hide", function() {
-                            if (ea.visualConnector) ea.visualConnector.remove();
-                        }],
-                    ]]
-                })])
+            items.push(["connections", this.attributeConnections.collect(function(ea) {
+                    return [ea, [["disconnect", function() {
+                        alertOK("disconnecting " + ea)
+                        ea.disconnect()}]]]
+            })])
+        }
 
         if (this.grabbingEnabled || this.grabbingEnabled == undefined) {
             items.push(["disable grabbing", this.disableGrabbing.bind(this)])

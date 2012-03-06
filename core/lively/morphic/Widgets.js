@@ -1194,7 +1194,9 @@ lively.morphic.World.addMethods(
         d = dialog
         if (!activeWindow) return d;
 
-        blockMorph = lively.morphic.Morph.makeRectangle(blockee.bounds());
+        // normal bounds can be negative.. we want the shape bounds here
+        var bounds = blockee.shape.bounds().translatedBy(blockee.getPosition());
+        blockMorph = lively.morphic.Morph.makeRectangle(bounds);
         blockMorph.disableGrabbing();
         blockMorph.disableDragging();
         blockMorph.isEpiMorph = true;

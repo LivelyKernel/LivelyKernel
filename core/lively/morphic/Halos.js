@@ -344,14 +344,14 @@ lively.morphic.Halo.subclass('lively.morphic.DragHalo',
 },
 'halo actions', {
     dragAction: function(evt, moveDelta) {
-    
+        console.log("1")
         moveDelta =  this.tranformMoveDeltaDependingOnHaloPosition(evt, moveDelta, 'topRight')
             
         var transform = this.targetMorph.owner.getGlobalTransform();
         var oldPos = transform.transformPoint(pt(0,0)),
             newPos = oldPos.addPt(moveDelta);
         var newPos = transform.inverse().transformPoint(newPos);
-        
+        console.log("2")
         var newTargetPos = this.targetMorph.getPosition().addPt(newPos) 
         if (evt.isAltDown()) {
             newTargetPos = newTargetPos.griddedBy(this.targetMorph.getGridPoint())
@@ -359,7 +359,7 @@ lively.morphic.Halo.subclass('lively.morphic.DragHalo',
         this.setInfo('pos: ' + newTargetPos) 
         this.lastHaloPosition = this.getPosition();
         this.targetMorph.setPosition(newTargetPos);
-
+        console.log("3")
         this.targetMorph.halos.invoke('alignAtTarget');
 
         // we might think about only moving the halos when targetMorph.onDrag returns true

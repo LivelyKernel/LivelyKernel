@@ -359,7 +359,7 @@ lively.morphic.Halo.subclass('lively.morphic.DragHalo',
         this.setInfo('pos: ' + newTargetPos) 
         this.lastHaloPosition = this.getPosition();
         this.targetMorph.setPosition(newTargetPos);
-        console.log("3")
+        console.log(this.targetMorph.halos)
         this.targetMorph.halos.invoke('alignAtTarget');
         console.log("4")
 

@@ -361,6 +361,7 @@ lively.morphic.Halo.subclass('lively.morphic.DragHalo',
         this.targetMorph.setPosition(newTargetPos);
         console.log("3")
         this.targetMorph.halos.invoke('alignAtTarget');
+        console.log("4")
 
         // we might think about only moving the halos when targetMorph.onDrag returns true
         // morphs could return false to indicate that they don't want to be moved on every

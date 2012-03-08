@@ -209,7 +209,7 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
 
     tranformMoveDeltaDependingOnHaloPosition: function(evt, moveDelta, cornerName) {
         // Griding and rounding might move the morph differently
-        // so we have to do recalculate the delta...
+        // so we have to recalculate the delta...
         if(!evt.isAltDown())
             return moveDelta
 

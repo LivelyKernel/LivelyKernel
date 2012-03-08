@@ -171,7 +171,9 @@ lively.morphic.Gradient.subclass('lively.morphic.LinearGradient',
         eastwest:    rect(pt(0, 0), pt(1, 0)),
         westeast:    rect(pt(1, 0), pt(0, 0)),
         southwest:    rect(pt(1, 0), pt(0, 1)),  // Down and to the left
-        southeast:    rect(pt(0, 0), pt(1, 1)) 
+        southeast:    rect(pt(0, 0), pt(1, 1)),
+        northeast:    rect(pt(0, 1), pt(1, 0)),
+        northwest:    rect(pt(1, 1), pt(0, 0)) 
     },
 },
 'initializing', {

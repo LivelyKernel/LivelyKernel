@@ -195,6 +195,7 @@ Object.subclass('lively.morphic.Morph',
 
         if (morph.isAncestorOf(this)) {
             alert('addMorph: Circular relationships between morphs not allowed');
+            laert('tried to drop ' + morph + ' on ' + this);
             return;
         }
 

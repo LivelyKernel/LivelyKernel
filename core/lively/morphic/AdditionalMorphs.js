@@ -317,6 +317,7 @@ Object.subclass('lively.morphic.ControlPoint',
             vector = pos.subPt(other.getPos()),
             rot = vector.theta();
         this.marker.setRotation(rot);
+        console.log("setting position of marker morph to "+pos);
         this.marker.setPosition(pos);
     },
 });

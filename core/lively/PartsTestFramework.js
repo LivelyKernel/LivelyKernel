@@ -13,6 +13,12 @@ TestCase.subclass('lively.PartTestCase', 'accessing', {
                 debugger;
                 var testCase = new that.constructor(that.result, sel, that.getPartUnderTest());
                 testCase.addScript(that[sel]);
+                // add helper functions.
+                Functions.own(this).forEach(function(ea) {
+                    if (! ea.startsWith("test") {
+                        testCase.addScript(that[ea]);
+                    }
+                });
                 return testCase;
             });
     },

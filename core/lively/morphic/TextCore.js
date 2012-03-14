@@ -1920,8 +1920,8 @@ this. textNodeString()
     hasSelection: function() {
         return this.domSelection() !== null;
     },
-    newMethod: function() {
-        // enter comment here
+    onBlur: function(evt) {
+        this.savedSelectionRange = this.getSelectionRange(); 
     },
 
 

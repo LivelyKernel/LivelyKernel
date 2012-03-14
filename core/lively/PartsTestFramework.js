@@ -13,7 +13,7 @@ TestCase.subclass('lively.PartTestCase', 'accessing', {
                 var testCase = new that.constructor(that.result, sel, that.getPartUnderTest());
                 testCase.addScript(that[sel]);
                 // add helper functions
-                Functions.own(this).forEach(function(ea) {
+                Functions.own(that).forEach(function(ea) {
                     if (! ea.startsWith("test")) {
                         testCase.addScript(that[ea]);
                     }

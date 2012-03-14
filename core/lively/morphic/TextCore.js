@@ -1920,6 +1920,10 @@ this. textNodeString()
     hasSelection: function() {
         return this.domSelection() !== null;
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
 
 

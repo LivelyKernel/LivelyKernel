@@ -1929,7 +1929,6 @@ this. textNodeString()
         return this.domSelection() !== null;
     },
     onBlur: function(evt) {
-        alertOK('blur');
         this.savedSelectionRange = this.getSelectionRange(); 
     },
 

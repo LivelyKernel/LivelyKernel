@@ -1040,6 +1040,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         this.priorSelectionRange = this.getSelectionRange();
 
+        // restore selection range on focus
+        var s = this.savedSelectionRange;
+        if (s && (s[0] <= a[0] && s[1] >= a[1])) { 
+            this.setSelectionRange(s[0], s[1]);
+            delete this.savedSelectionRange;
+            evt.stop();
+        }
         return false;
     },
 
@@ -1921,6 +1928,10 @@ this. textNodeString()
     hasSelection: function() {
         return this.domSelection() !== null;
     },
+    onBlur: function(evt) {
+        this.savedSelectionRange = this.getSelectionRange();
+    },
+
 
 
 

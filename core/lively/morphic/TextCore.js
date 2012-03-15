@@ -1940,7 +1940,9 @@ this. textNodeString()
         return this.domSelection() !== null;
     },
     onBlur: function(evt) {
-        this.savedSelectionRange = this.getSelectionRange(); 
+        this.savedSelectionRange = this.getSelectionRange();
+        console.log('<< onBlur')
+        console.log(this.savedSelectionRange)
     },
 
 

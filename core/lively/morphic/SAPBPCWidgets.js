@@ -1,6 +1,6 @@
 module('lively.morphic.SAPBPCWidgets').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles').toRun(function() {
 
-lively.morphic.Morph.subclass('lively.morphic.SAPCheckBox',
+lively.morphic.Morph.subclass('lively.morphic.SAPCheckBox2',
 'properties', {
     connections: {
         setChecked: {}

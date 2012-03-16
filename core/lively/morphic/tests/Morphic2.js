@@ -591,7 +591,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic2.HtmlPars
         var node = lively.morphic.HTMLParser.sourceToNode(s);
         lively.morphic.HTMLParser.sanitizeNode(node);
         this.assertEquals(node.textContent, "1<2", "pasting with & is broken");
-    }
+    },
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.jQueryTests', {

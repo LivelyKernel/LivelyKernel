@@ -593,10 +593,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic2.HtmlPars
         this.assertEquals(node.textContent, "1<2", "pasting with & is broken");
     },
     testSanitizeNodeWithLt: function() {
-        var s = '1&lt;2';
+        var s = '<span>&lt;</span>';
         var node = lively.morphic.HTMLParser.sourceToNode(s);
         lively.morphic.HTMLParser.sanitizeNode(node);
-        this.assertEquals(node.textContent, "1<2", "pasting with & is broken");
+        this.assertEquals(node.textContent, "<", "pasting with & is broken");
     },
 
 });

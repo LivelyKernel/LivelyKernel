@@ -491,7 +491,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         evt.stopPropagation()
         return true;
     },
-    onPaste: function(evt) {
+    onPaste: function (evt) {
         var htmlData = evt.clipboardData && evt.clipboardData.getData("text/html"),
             textData = evt.clipboardData && evt.clipboardData.getData("text/plain");
 
@@ -500,7 +500,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             return false; // let HTML magic handle paste
         }
 
-        var data = htmlData || '<span>' + textData + '</span>',  // own rich text
+        var data = htmlData ||  lively.morphic.HTMLParser.stringToHTML(textData) // own rich text
             richText = lively.morphic.HTMLParser.pastedHTMLToRichText(data);
         try {
           richText.replaceSelectionInMorph(this)

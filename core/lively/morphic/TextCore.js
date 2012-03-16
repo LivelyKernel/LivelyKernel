@@ -2612,6 +2612,9 @@ Object.extend(lively.morphic.HTMLParser, {
         var s = name.split("-").invoke('capitalize').join("")
         return s.charAt(0).toLowerCase() + s.substring(1);
     },
+    stringToHTML: function(textData) {
+        return  '<span>' + textData.replace(/</g,"&lt;") + '</span>'
+    },
 });
 
 Object.subclass('lively.morphic.Text.ShortcutHandler',

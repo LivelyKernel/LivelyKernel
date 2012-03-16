@@ -9,7 +9,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCheckBox',
 'initializing', {
     initialize: function($super, isChecked) {
         $super(this.createShape());
-        this.setChecked(isChecked);
+        this.setChecked(false);
     },
     createShape: function() {
         var node = XHTMLNS.create('input');

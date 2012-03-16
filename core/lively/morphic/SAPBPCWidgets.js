@@ -56,7 +56,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCheckBox',
 });
 
 
-lively.morphic.Morph.subclass('lively.morphic.DataGrid',
+lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
 'initialization', {
     initialize: function($super, numCols, numRows) {
         $super();
@@ -98,7 +98,7 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         }
     },
     createCell: function(x, y, headOffset) {
-        var cell = new lively.morphic.DataGridCell();
+        var cell = new lively.morphic.SAPDataGridCell();
         cell.doitContext = this;
         cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         cell.addToGrid(this);
@@ -115,7 +115,7 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         }
     },
     createColHead: function(index, title) {
-        var head = new lively.morphic.DataGridColHead();
+        var head = new lively.morphic.SAPDataGridColHead();
         head.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         head.addToGrid(this);
         head.gridCoords = pt(index, 0);
@@ -412,7 +412,7 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
     },
 });
 
-lively.morphic.Text.subclass('lively.morphic.DataGridCell',
+lively.morphic.Text.subclass('lively.morphic.SAPDataGridCell',
 'default category', {
     addToGrid: function(aGrid) {
         this.grid = aGrid;
@@ -502,7 +502,7 @@ lively.morphic.Text.subclass('lively.morphic.DataGridCell',
         return floatValue;
     },
 });
-lively.morphic.Text.subclass('lively.morphic.DataGridColHead',
+lively.morphic.Text.subclass('lively.morphic.SAPDataGridColHead',
 'default category', {
     initialize: function($super, arg1, arg2) {
         $super(arg1, arg2);

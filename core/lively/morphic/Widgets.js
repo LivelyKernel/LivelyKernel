@@ -1846,7 +1846,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
             this.shape.setBounds(this.titleBar.bounds());
         }.bind(this);
         if (this.collapsedPosition && this.collapsedPosition.dist(this.getPosition()) > 100)
-            this.animatedInterpolateTo(this.collapsedPosition, 5, 50, finCollapse);
+            this.animatedInterpolateTo(this.collapsedPosition, 10, 25, finCollapse);
         else finCollapse();
     },
     expand: function() {

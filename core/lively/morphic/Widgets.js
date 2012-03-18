@@ -1684,7 +1684,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
             titleHeight = titleBar.bounds().height - titleBar.getBorderWidth();
         this.setBounds(bounds.withHeight(bounds.height + titleHeight));
         this.targetMorph = this.addMorph(targetMorph);
-        if (Config.danTest) this.reframeHandle = this.addMorph(this.makeReframeHandle());
+        if (Config.danTest) {
+            this.reframeHandle = this.addMorph(this.makeReframeHandle());
+            this.reframeHandle.align(this.reframeHandle.bounds().bottomRight(), this.bounds().bottomright());
+            }
         this.titleBar = this.addMorph(titleBar);
         //this.contentOffset = pt(0, titleHeight - titleBar.getBorderWidth()/2); // FIXME: hack
         this.contentOffset = pt(0, titleHeight);

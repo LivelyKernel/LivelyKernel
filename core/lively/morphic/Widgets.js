@@ -1199,10 +1199,10 @@ lively.morphic.World.addMethods(
         return pane;
     },
 
-    internalAddWindow: function(morph, title, pos) {
+    internalAddWindow: function(morph, title, pos, suppressReframeHandle) {
         morph.applyStyle({borderWidth: 1, borderColor: CrayonColors.iron});
         pos = pos || this.firstHand().getPosition().subPt(pt(5, 5));
-        var win = this.addFramedMorph(morph, String(title || ""), pos);
+        var win = this.addFramedMorph(morph, String(title || ""), pos, suppressReframeHandle);
         return morph;
     },
 },

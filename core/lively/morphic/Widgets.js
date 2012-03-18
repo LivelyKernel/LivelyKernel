@@ -1717,6 +1717,7 @@ removeHalos: function($super, optWorld) {
     $super(optWorld)
     },
 showHalos: function($super) {
+    // Hide the reframe handle in case of menu reframe
     this.reframeHandle && this.reframeHandle.remove()
     $super()
     },

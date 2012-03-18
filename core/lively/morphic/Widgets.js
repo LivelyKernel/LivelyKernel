@@ -1735,8 +1735,8 @@ makeReframeHandle: function() {
         };
     return handle;
 },
-    newMethod: function() {
-        // enter comment here
+alignReframeHandle: function() {
+    this.reframeHandle.align(this.reframeHandle.bounds().bottomRight(), this.owner.getExtent());
     },
 
 

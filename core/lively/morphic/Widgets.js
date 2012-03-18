@@ -1736,7 +1736,7 @@ makeReframeHandle: function() {
     return handle;
 },
 alignReframeHandle: function() {
-    if (this.reframeHandle) this.reframeHandle.align(this.reframeHandle.bounds().bottomRight(), this.owner.getExtent());
+    if (this.reframeHandle) this.reframeHandle.align(this.reframeHandle.bounds().bottomRight(), this.getExtent());
     },
 
 

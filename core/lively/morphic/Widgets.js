@@ -1716,6 +1716,10 @@ removeHalos: function($super, optWorld) {
         }
     $super(optWorld)
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
 makeReframeHandle: function() {
     var handle = Morph.makePolygon([pt(14, 0), pt(14, 14), pt(0, 14)], 0, null, Color.black);

@@ -1725,7 +1725,8 @@ makeReframeHandle: function() {
         this.dragStartPoint = null;
         this.originalTargetExtent = null;
         };
-    return handle},
+    return handle;
+},
 
     getBounds: function($super) {
         if (this.titleBar && this.isCollapsed()) {

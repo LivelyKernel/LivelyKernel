@@ -1710,6 +1710,8 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
         return new lively.morphic.TitleBar(titleString, width, this, optSuppressControls);
     },
 removeHalos: function($super, optWorld) {
+    // Sadly, this doesn't get called when click away from halo
+    // Need to patch World.removeHalosFor, or refactor so it calls this
     if (this.reframeHandle) {
         this.addMorphFront(this.reframeHandle);
         this.alignReframeHandle();

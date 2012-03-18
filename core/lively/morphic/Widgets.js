@@ -1709,6 +1709,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
         // Overridden in TabbedPanelMorph
         return new lively.morphic.TitleBar(titleString, width, this, optSuppressControls);
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 makeReframeHandle: function() {
     var handle = Morph.makePolygon([pt(14, 0), pt(14, 14), pt(0, 14)], 0, null, Color.black);
     handle.onDragStart = function(evt) {

@@ -1178,8 +1178,8 @@ lively.morphic.World.addMethods(
     },
 },
 'windows', {
-    addFramedMorph: function(morph, title, optLoc, optSuppressControls) {
-        var w = this.addMorph(new lively.morphic.Window(morph, title || 'Window', optSuppressControls));
+    addFramedMorph: function(morph, title, optLoc, optSuppressControls, suppressReframeHandle) {
+        var w = this.addMorph(new lively.morphic.Window(morph, title || 'Window', optSuppressControls, suppressReframeHandle));
         w.setPosition(optLoc || this.positionForNewMorph(morph));
         return w;
     },

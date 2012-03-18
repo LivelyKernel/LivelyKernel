@@ -1708,6 +1708,23 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
     },
 makeReframeHandle: function() {
     var handle = Morph.makePolygon([pt(10, 0), pt(10, 10), pt(0, 10)], 0, null, Color.black);
+    handle.onDragStart = function(evt) {
+        this.dragStartPoint = evt.mousePoint;
+        this.originalTargetExtent = this.owner.getExtent();
+        };
+    handle.onDrag = function(evt) {
+        var moveDelta = evt.mousePoint.subPt(this.dragStartPoint)
+        if (evt.isShiftDown()) {
+            var maxDelta = Math.max(moveDelta.x, moveDelta.y);
+	    moveDelta = pt(maxDelta, maxDelta);
+            };
+        this.owner.setExtent(this.originalTargetExtent.addPt(moveDelta));
+        this.align(this.bounds().bottomRight(), this.owner.getExtent());
+        };
+    handle.onDragEnd = function (evt) {
+        this.dragStartPoint = null;
+        this.originalTargetExtent = null;
+        };
     return handle},
 
     getBounds: function($super) {

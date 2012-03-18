@@ -1710,7 +1710,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
         return new lively.morphic.TitleBar(titleString, width, this, optSuppressControls);
     },
 removeHalos: function($super, optWorld) {
-    if (this.reframeHandle && !this.submorphs.includes(this.reframeHandle) {
+    if (this.reframeHandle && !this.submorphs.includes(this.reframeHandle)) {
         this.addMorph(this.reframeHandle);
         this.alignReframeHandle();
         }

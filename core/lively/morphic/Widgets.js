@@ -1706,9 +1706,9 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
         // Overridden in TabbedPanelMorph
         return new lively.morphic.TitleBar(titleString, width, this, optSuppressControls);
     },
-    newMethod: function() {
-        // enter comment here
-    },
+makeReframeHandle: function() {
+    var handle = Morph.makePolygon([pt(10, 0), pt(10, 10), pt(0, 10)], 0, null, Color.black);
+    return handle},
 
     getBounds: function($super) {
         if (this.titleBar && this.isCollapsed()) {

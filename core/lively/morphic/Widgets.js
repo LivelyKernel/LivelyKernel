@@ -1716,8 +1716,9 @@ removeHalos: function($super, optWorld) {
         }
     $super(optWorld)
     },
-    newMethod: function() {
-        // enter comment here
+showHalos: function($super) {
+    this.reframeHandle && this.reframeHandle.remove()
+    $super()
     },
 
 

@@ -1735,6 +1735,10 @@ makeReframeHandle: function() {
         };
     return handle;
 },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
     getBounds: function($super) {
         if (this.titleBar && this.isCollapsed()) {

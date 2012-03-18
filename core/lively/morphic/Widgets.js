@@ -1711,7 +1711,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
     },
 removeHalos: function($super, optWorld) {
     if (this.reframeHandle) {
-        this.addMorph(this.reframeHandle);
+        this.addMorphFront(this.reframeHandle);
         this.alignReframeHandle();
         }
     $super(optWorld)

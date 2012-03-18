@@ -1811,6 +1811,10 @@ alignReframeHandle: function() {
             scrolls.push(ea.getScroll());
         });
         this.owner.addMorphFront(this); // come forward
+        if (this.reframeHandle) {
+            this.addMorphFront(this.reframeHandle);
+            this.alignReframeHandle();
+            }
         (function() {
         textsAndLists.forEach(function(ea, i) { ea.setScroll(scrolls[i][0], scrolls[i][1]) });
         this.targetMorph && this.targetMorph.onWindowGetsFocus && this.targetMorph.onWindowGetsFocus();

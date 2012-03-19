@@ -1726,7 +1726,7 @@ showHalos: function($super) {
 
 
 makeReframeHandle: function() {
-    var handle = Morph.makePolygon([pt(14, 0), pt(14, 14), pt(0, 14)], 0, null, Color.black);
+    var handle = Morph.makePolygon([pt(14, 0), pt(14, 14), pt(0, 14)], 0, null, Color.gray);
     handle.onDragStart = function(evt) {
         this.dragStartPoint = evt.mousePoint;
         this.originalTargetExtent = this.owner.getExtent();

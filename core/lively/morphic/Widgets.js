@@ -808,6 +808,9 @@ lively.morphic.Morph.addMethods(
         }])
         }
 
+        items.push(["Style", function() {
+        }])
+
         if (this.reset)
             items.push(['reset', this.reset.bind(this)])
         return items;

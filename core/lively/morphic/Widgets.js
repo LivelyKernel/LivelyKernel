@@ -810,7 +810,7 @@ lively.morphic.Morph.addMethods(
 
         items.push(["Tools", [['inspect', function() {}],
                               ['explore', function() {}],
-                              ['style', function() {}],]
+                              ['style', function() {}]]
                    ])
 
         if (this.reset)

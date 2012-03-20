@@ -4,7 +4,7 @@ workspace/
 # Worlds #
 *.xhtml
 !blank.xhtml
-!testing/run_tests.xhtml
+!run_tests.xhtml
 
 # Node #
 node_modules

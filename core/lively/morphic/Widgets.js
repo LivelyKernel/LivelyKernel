@@ -809,7 +809,7 @@ lively.morphic.Morph.addMethods(
         }
 
         items.push(["Style", function() {
-            return [1,2,3]
+            return [["1"],["2"],["3"]]
         }])
 
         if (this.reset)

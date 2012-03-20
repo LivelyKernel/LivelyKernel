@@ -810,7 +810,7 @@ lively.morphic.Morph.addMethods(
 
         items.push(["Style", [['1', function() {}],
                               ['2', function() {}],
-                              ['3', function() {}],
+                              ['3', function() {}],]
                    ])
 
         if (this.reset)

@@ -808,11 +808,6 @@ lively.morphic.Morph.addMethods(
         }])
         }
 
-        items.push(["Style", [['inspect', function() {}],
-                              ['explore', function() {}],
-                              ['Style', function() {}]]
-                   ])
-
         if (this.reset)
             items.push(['reset', this.reset.bind(this)])
         return items;

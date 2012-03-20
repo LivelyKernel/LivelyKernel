@@ -808,7 +808,7 @@ lively.morphic.Morph.addMethods(
         }])
         }
 
-        items.push(["Style", [['1','s'],["2",'s'],["3",'s']]])
+        items.push(["Style", ['1','2','3'])
 
         if (this.reset)
             items.push(['reset', this.reset.bind(this)])

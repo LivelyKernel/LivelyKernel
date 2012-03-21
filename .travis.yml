@@ -21,4 +21,3 @@ script: "lk test --display :1"
 branches:
   only:
     - master
-    - split-lk-scripts

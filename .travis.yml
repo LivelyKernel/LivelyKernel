@@ -6,13 +6,18 @@ before_install:
   - "sudo apt-get update"
   - "sudo apt-get install chromium-browser"
   - "sudo apt-get install xvfb"
+  - npm install -g livelykernel-scripts
+
+after_install:
+  - "ln -s $PWD `lk scripts-dir`/workspace/lk"
 
 before_script:
   - "Xvfb :1 -screen 0 800x600x24&"
-  - "./bin/lk server --forever"
+  - "lk server --forever"
 
-script: "./bin/lk test --display :1"
+script: "lk test --display :1"
 
 branches:
   only:
     - master
+    - split-lk-scripts

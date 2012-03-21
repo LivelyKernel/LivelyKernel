@@ -1110,7 +1110,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         // FIXME refactor!!!
         var node = element,
             selRange = this.getSelectionRange(),
-            sel = this.domSelection(),
+            sel = this.savedSelectionRange || this.domSelection(),
             range;
         if (!sel) {
             // FIXME: This fixes the empty workspace bug. What else is needed?

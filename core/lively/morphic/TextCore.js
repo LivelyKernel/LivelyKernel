@@ -455,22 +455,36 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return true;
     },
     onKeyUp: function(evt) {
-        // actually it should only be necessary to null the text cache here, it should
-        // be possible to remove cachedTextString = null from onKeyPress and onKeyDown
-        this.cachedTextString = null
-
-        // textString getter is expensive so only trigger when observers exist
-        // Note that textString may not be changed, e.g. when pressing a control key only
-        if (this.attributeConnections)
-            lively.bindings.signal(this, 'textString', this.textString);
-
-        this.fit();
-
-        if (evt.isShiftDown())
-            this.priorSelectionRange = this.getSelectionRange();
-
-        evt.stop();
-        return true;
+        var a = this.getSelectionRange();
+        // this happens when text has lost selection
+        if (!a) return false;
+        var incomingSelection = this.priorSelectionRange;
+        this.charsTyped = '';
+        // test if we have a null selection and same as before
+        if (this.priorSelectionRange != null
+            && a[0] == a[1]  // null selection
+            && this.priorSelectionRange[0] == a[0]
+            && this.priorSelectionRange[1] == a[1]) {
+            // It is a null selection, repeated in the same place --
+            // select word or range [and don't change previousSel]
+            if (a[0] == 0 || a[0] == this.textString.length) {
+                this.setSelectionRange(0, this.textString.length);
+            } else {
+                var range = this.selectWord(this.textString, a[0]);
+                this.setSelectionRange(range[0], range[1]+1);
+            }
+        } else {
+            this.previousSelection = incomingSelection;  // for 'exchange' command
+        }
+        this.priorSelectionRange = this.getSelectionRange();
+        // restore selection range on focus
+        var s = this.savedSelectionRange;
+        if (s && (s[0] <= a[0] && s[1] >= a[1])) {
+             this.setSelectionRange(s[0], s[1]);
+            delete this.savedSelectionRange;
+            evt.stop();
+        }
+        return false;
     },
     onKeyPress: function(evt) {
         this.cachedTextString = null;

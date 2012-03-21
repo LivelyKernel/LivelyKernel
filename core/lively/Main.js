@@ -282,7 +282,9 @@ Object.subclass('lively.Main.Loader',
             Config.finishLoadingCallbacks.forEach(function(cb){
                 cb(world);
             });
-        }
+        } else {
+            console.log("Not running any finishLoadingCallbacks");
+        }            
     },
 
 },

@@ -1932,11 +1932,7 @@ this. textNodeString()
     hasSelection: function() {
         return this.domSelection() !== null;
     },
-    onBlur: function(evt) {
-        this.savedSelectionRange = this.getSelectionRange();
-        console.log('<< onBlur')
-        console.log(this.savedSelectionRange)
-    },
+
 
 
 

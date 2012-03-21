@@ -477,13 +477,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             this.previousSelection = incomingSelection;  // for 'exchange' command
         }
         this.priorSelectionRange = this.getSelectionRange();
-        // restore selection range on focus
-        var s = this.savedSelectionRange;
-        if (s && (s[0] <= a[0] && s[1] >= a[1])) {
-             this.setSelectionRange(s[0], s[1]);
-            delete this.savedSelectionRange;
-            evt.stop();
-        }
+
         return false;
     },
     onKeyPress: function(evt) {

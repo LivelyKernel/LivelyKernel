@@ -3,9 +3,6 @@ node_js:
   - 0.6
 
 before_install:
-  - "sudo apt-get update"
-  - "sudo apt-get install chromium-browser"
-  - "sudo apt-get install xvfb"
   - npm install -g livelykernel-scripts
 
 after_install:

@@ -1889,6 +1889,8 @@ this. textNodeString()
     },
     onBlur: function(evt) {
         this.savedSelectionRange = this.getSelectionRange();
+        console.log('<< onBlur');
+        console.log(this.savedSelectionRange);
     },
 
 

@@ -278,9 +278,10 @@ Object.subclass('lively.Main.Loader',
         lively.bindings.signal(world, 'finishLoading', world);
         // notify libraries loaded *very* early
         if (Config.finishLoadingCallbacks) {
-          Config.finishLoadingCallbacks.forEach(function(cb){
-            cb(world);
-          });
+            console.log("Running finishLoadingCallbacks");
+            Config.finishLoadingCallbacks.forEach(function(cb){
+                cb(world);
+            });
         }
     },
 

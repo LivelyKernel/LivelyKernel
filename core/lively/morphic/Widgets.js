@@ -1779,6 +1779,7 @@ alignReframeHandle: function() {
                 if (input || input == '') self.setTitle(input)
             }, self.getTitle())
         }])
+        console.log(items)
         return items;
     },
 },

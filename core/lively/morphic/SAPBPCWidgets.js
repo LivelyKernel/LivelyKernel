@@ -289,6 +289,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
     },
     setColNames: function(anArray) {
         this.colNames = anArray;
+    debugger;
         for (var i = 0; i < this.colHeads.length; i++) {
             if (i < anArray.length) {
                 this.colHeads[i].textString = anArray[i];

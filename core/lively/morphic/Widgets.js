@@ -1763,13 +1763,13 @@ alignReframeHandle: function() {
 },
 'menu', {
     showTargetMorphMenu: function() {
-        var target;
+        var target, menu;
         if (this.targetMorph) {
             target = this.targetMorph;
         } else {
             target = this;
         }
-        target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
+        menu = target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
     },
     morphMenuItems: function($super) {
         var self = this, items = $super();

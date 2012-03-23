@@ -85,6 +85,28 @@ Object.subclass('lively.morphic.Shapes.Shape',
         if(diffsArray.length > 0) return false;
         return true;
     },
+    getDiffsTo: function (otherShape) {
+        var self = this;
+        var blacklist = ["get"];
+        var diffsArray = Functions.all(this).withoutAll(blacklist).select(function (ea) {
+            if ( ea.startsWith("get") && otherShape[ea]) {
+                try {
+                    if ( self[ea]() && typeof(self[ea]()) == 'object') {
+                        return !self[ea]().equals(otherShape[ea]());
+                    }
+                    else {
+                        return (self[ea]() != otherShape[ea]())
+                    }
+                }
+                catch (ex) {
+                    return false
+                }
+            }
+        });
+        if(!this.name == otherShape.name) {diffsArray.push("constructor")};
+        return diffsArray;        
+    },
+
 });
 
 lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Rectangle');

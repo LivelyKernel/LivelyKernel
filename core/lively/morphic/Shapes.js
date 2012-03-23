@@ -78,6 +78,13 @@ Object.subclass('lively.morphic.Shapes.Shape',
     getPadding: function() {
         return this.shapeGetter('Padding') || this.setPadding(new Rectangle(0,0,0,0));
     },
+},
+'comparing', {
+    equals: function (otherShape) {
+        var diffsArray = this.getDiffsTo(otherShape)
+        if(diffsArray.length > 0) return false;
+        return true;
+    },
 });
 
 lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Rectangle');

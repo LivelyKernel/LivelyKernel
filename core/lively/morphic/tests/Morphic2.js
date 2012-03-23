@@ -798,6 +798,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assert(m1.equals(m3), "Morphs are not equal after copying");
     },
 
+},
+'atomic diff', {
+
 });
 
 }) // end of module

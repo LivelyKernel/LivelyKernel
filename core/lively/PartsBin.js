@@ -199,8 +199,8 @@ Object.subclass('lively.PartsBin.PartItem',
         if (rev) {
             this.rev = rev
         }
-        else if (this.partVersions) {
-            this.rev = this.partVersions.first().rev
+        else if (this.loadPartVersions && this.loadPartVersions().partVersions) {
+            this.rev = this.loadPartVersions().partVersions.first().rev
         }
         else {
             var webR = new WebResource(this.getFileURL());

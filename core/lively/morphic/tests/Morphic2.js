@@ -728,6 +728,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
     },
 
 },
+'diffing', {
+    testCopy: function() {
+            var m = Morph.makeRectangle(0,0,100,100);
+            var m2 = m.copy();
+            this.assert(m2.derivationIds, "No derivationsIds Array")
+    },
+},
 'equals extensions', {
     testGradientEquals: function() {
         var color = Color.red;

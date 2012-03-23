@@ -836,6 +836,16 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assert(!ad1.diffAgainst(ad2), 'Should not have found a diff')
         this.assert(ad1.diffAgainst(ad3), 'Should have found a diff')
     },
+}, 
+'diff', {
+    testIsEmpty: function() {
+        var d1 = new Diff();
+        var d2 = new Diff({});
+        var d3 = new Diff({added: {abc:"123"}});
+        this.assert(d1.isEmpty(), 'new diff was not empty');
+        this.assert(d2.isEmpty(), 'empty diff was not empty');
+        this.assert(!d3.isEmpty(), 'filled diff was empty');
+    },
 });
 
 }) // end of module

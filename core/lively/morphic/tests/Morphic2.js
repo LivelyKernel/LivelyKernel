@@ -846,6 +846,53 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assert(d2.isEmpty(), 'empty diff was not empty');
         this.assert(!d3.isEmpty(), 'filled diff was empty');
     },
+}, 
+'diff list', {
+    testMixWith: function() {
+        var l1 = new DiffList(),
+            l2 = new DiffList(),
+            l3 = new DiffList();
+        l2["123"] = new Diff(
+            {"added1": "", "added2": ""}, 
+            {"removed1": ""}, 
+            {"modified1": "", "modified2": ""}
+        );
+        l3["abc"] = new Diff(
+            {"addedA": ""}, 
+            {"removedA": ""}, 
+            {"modifiedA": "", "modifiedB": ""}
+        );
+        this.assertEquals(l1.mixWith(l2)["123"].added.added1, "", 
+            'wrong list when adding to empty')
+        this.assertEquals(l2.mixWith(l1)["123"].added.added1, "", 
+            'wrong list when adding empty')
+        this.assertEquals(l2.mixWith(l3)["123"].added.added1, "", 
+            'wrong list when adding to filled 1')
+        this.assertEquals(l2.mixWith(l3)["abc"].added.addedA, "", 
+            'wrong list when adding to filled 2')
+    },
+    testIsEmpty: function() {
+        var l1 = new DiffList();
+        var l2 = new DiffList();
+        l2["123"] = new Diff({});
+        var l3 = new DiffList();
+        l3["123"] = new Diff({"added1" : ""});
+        this.assert(l1.isEmpty(), 'new List was not empty');
+        this.assert(l2.isEmpty(), 'list with empty diff was not empty');
+        this.assert(!l3.isEmpty(), 'filled list was empty')
+    },
+    testDiffAgainst: function() {
+        var c1 = new AtomicDiff("color", "property", Color.blue, Color.green),
+            c2 = new AtomicDiff("borderColor", "property", Color.gray, Color.green),
+            b1 = new AtomicDiff("color", "property", Color.yellow, Color.green),
+            b2 = new AtomicDiff("borderColor", "property", Color.gray, Color.green),
+            b3 = new AtomicDiff("size", "property", 1, 0);
+
+        var d1 = new Diff({"123" : {"m1":"morph1"}},{"456" : {"m2":"morph2"}},{color:c1, borderColor:c2}),
+            d2 = new Diff({},{},{color:b1, borderColor:b2, size:b3}),
+            d3 = new Diff({"ABC" : {"m2":"morph2"}}, {"ABC" : {"m2":"morph2"}} );
+    },
+
 });
 
 }) // end of module

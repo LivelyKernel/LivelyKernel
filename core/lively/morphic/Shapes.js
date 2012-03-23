@@ -160,6 +160,18 @@ Object.subclass('lively.morphic.Gradient',
     getStopsDarker: function(n) {
         return this.stops.collect(function(ea) { return {offset: ea.offset, color: ea.color.darker(n)} })
     },
+    equals: function(otherGradient) {
+        var i;
+        if (this.vector && !this.vector.equals(otherGradient.vector)) return false;
+        for (i=0;i<this.stops.length;i++) {
+            if (
+                !this.stops[i].color.equals(otherGradient.stops[i].color) 
+                || !this.stops[i].offset == otherGradient.stops[i].offset 
+            ) return false
+        }
+        return true;
+    },
+
 });
 
 

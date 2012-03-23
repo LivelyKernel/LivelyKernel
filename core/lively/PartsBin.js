@@ -328,6 +328,10 @@ Object.subclass('lively.PartsBin.PartItem',
         //if there is a PartsBin representation, this returns true. If a Part was deleted from PartsBin, but an artifact of is published, this returns false
         return (new WebResource(this.getFileURL())).exists()
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
 
 

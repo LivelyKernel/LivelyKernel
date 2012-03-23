@@ -618,6 +618,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
     m1: function() {
         //foobar
     },
+},
+'equals extensions', {
+
 });
 
 }) // end of module

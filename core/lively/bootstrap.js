@@ -337,7 +337,6 @@ var JSLoader = {
     },
 
     getSync: function(url, forceUncached) {
-console.log('sync load of: ' + url);
         return this.getSyncReq(url, forceUncached).responseText;
     },
 

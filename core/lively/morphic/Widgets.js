@@ -1763,13 +1763,19 @@ alignReframeHandle: function() {
 },
 'menu', {
     showTargetMorphMenu: function() {
-        var target, menu;
+        var target, menu, items;
         if (this.targetMorph) {
             target = this.targetMorph;
         } else {
             target = this;
         }
         menu = target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
+        items = menu.items;
+        items[0] = [
+            'publish window', function(evt) {
+            this.copyToPartsBinWithUserRequest();
+        }]
+        menu.addItems(items)
         console.log(menu.morphMenuItems())
     },
     morphMenuItems: function($super) {

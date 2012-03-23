@@ -341,6 +341,14 @@ Object.subclass('lively.PartsBin.PartItem',
             this.alert('Problem saving ' + status.url + ': ' + status)
         }
     },
+    askToOverwrite: function(url) {
+        var self = this;
+        $world.confirm(String(url) + ' was changed since loading it. Overwrite?', 
+            function (answer) {
+                answer && self.uploadPart()
+            })
+    },
+
 
 
 

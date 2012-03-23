@@ -643,6 +643,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assert(!a.equals(c),'the vectors should not have been the same');
         this.assert(!a.equals(d),'the colors should not have been the same');
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 });
 
 }) // end of module

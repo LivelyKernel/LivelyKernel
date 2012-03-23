@@ -278,4 +278,110 @@ Object.subclass('AtomicDiff',
     },
 });
 
+Object.subclass('Diff',
+'initializing', {
+    initialize: function(optAdded, optRemoved, optModified, optSubmorphsModified) {
+        this.added = optAdded || {}; // morphs that were added
+        this.removed = optRemoved || {}; // morphs that were removed
+        this.modified = optModified || {}; // properties that were changed
+        this.submorphsModified = optSubmorphsModified || new Array(); // submoprhs that are modified
+        this.matchingId = undefined;
+        return this;
+    },
+},
+'diffing', {
+    diffAgainst: function(otherDiff, modifiedList, addedList, removedList, optGiven) {
+        // returns a diff between diffs based on a merge matrix.
+        var diffModified = this.diffModified(otherDiff);
+        var diffRemoved = otherDiff.diffRemoved(modifiedList, removedList)
+        var given = optGiven || {added:{}, removed:{}, updated:{}, conflicted:{}}
+
+        var result = {
+            added: this.joinDiffs(otherDiff.added, given.added),
+            removed: this.joinDiffs(diffRemoved.removed, given.removed),
+            updated: this.joinDiffs(diffModified.updated, given.updated),
+            conflicted: this.joinDiffs(diffRemoved.conflicted, diffModified.conflicted, given.conflicted)
+        }
+        if (Properties.own(result.added).length>0 
+            || Properties.own(result.removed).length>0
+            || Properties.own(result.updated).length>0
+            || Properties.own(result.conflicted).length>0) return result;
+        return undefined
+    },
+    diffAdded: function(otherDiff) {
+        // joins two lists of morphs that were added.
+        // Extendable: can get a lookup to see whether a morph was just moved
+        var added = {},
+            self = this;
+
+        Properties.own(self.added).each(function (ea) {
+            added[ea] = self.added[ea];
+        })
+        Properties.own(otherDiff.added).each(function (ea) {
+            added[ea] = otherDiff.added[ea];
+        })
+        return added;
+    },
+    diffRemoved: function(modifiedList, removedList) {
+        // merges two lists of morphs that were removed.
+        // Extendable: can get a lookup to see whether a morph was just moved
+        var result = {removed: {}, conflicted: {}},
+            self = this;
+        Properties.own(self.removed).each(function (ea) {
+            if (removedList[ea]) {}
+            else if (modifiedList[ea]) {
+                result.conflicted[ea] = result.conflicted[ea] || [];
+                result.conflicted[ea].push(new AtomicDiff("removed", "submorph", {}, self.removed[ea]))
+            }
+            else {
+                result.removed[ea] = self.removed[ea]
+            }
+        })
+        return result;
+    },
+    diffModified: function(otherDiff) {
+        //joins the modifications, which includes the atomic diffing of conflicting values
+        var modified = {updated: {}, conflicted: {}},
+            self = this;
+
+        Properties.own(self.modified).each(function (ea) {
+            if (otherDiff.modified[ea]) {
+                var d = self.modified[ea].diffAgainst(otherDiff.modified[ea]);
+                d && (modified.conflicted[ea] = d);
+            }
+        })
+        Properties.own(otherDiff.modified).each(function (ea) {
+            if (!self.modified[ea]) {
+                modified.updated[ea] = new AtomicDiff(otherDiff.modified[ea].type, otherDiff.modified[ea].oldValue, otherDiff.modified[ea].newValue);
+            }
+        })
+
+        return modified
+    },
+    joinDiffs: function() {
+        // joins all diff list objects given
+        var result = {},
+            args = arguments;
+
+        for (var i = 0; i<args.length; i++) {
+            Properties.own(args[i]).each(function (ea) {
+                result[ea] = args[i][ea]
+            })
+        }
+        return result
+    },
+    isEmpty: function() {
+        // determines whether the diff contains changes
+        var self = this;
+        if (Properties.own(self.added).length > 0 
+            || Properties.own(self.removed).length > 0 
+            || Properties.own(self.modified).length > 0
+            || self.submorphsModified.length > 0) {
+            return false
+        }
+        else return true
+    },
+
+});
+
 }) // end of module

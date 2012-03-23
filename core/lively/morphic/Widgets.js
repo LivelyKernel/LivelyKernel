@@ -1779,6 +1779,10 @@ alignReframeHandle: function() {
                 if (input || input == '') self.setTitle(input)
             }, self.getTitle())
         }])
+        items.push([
+            'publish window', function(evt) {
+            self.copyToPartsBinWithUserRequest();
+        }])
         console.log(items)
         return items;
     },

@@ -734,6 +734,37 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
             var m2 = m.copy();
             this.assert(m2.derivationIds, "No derivationsIds Array")
     },
+    testDiffTo: function() {
+        var m1 = $world.loadPartItem("Rectangle", "/PartsBin/Basic")
+        var m2 = $world.loadPartItem("Rectangle", "/PartsBin/Basic")
+        m1.addMorph(m2);
+        //simulate copyToPartsBin
+        var pbv = m1.copy();
+        //simulate copyFromPartsBin
+        var m3 = pbv.copy();
+        var m4 = m3.copy();
+        //this.assert(!m4.diffTo(m3), "found changes, but there weren't some") //required in three way diff, therefore staying
+        var m5 = $world.loadPartItem("Rectangle", "/PartsBin/Basic")
+        m4.addMorph(m5)
+
+        //added morphs
+        this.assert(m4.diffTo(m3), "no changes found")
+        this.assert(m4.diffTo(m3)[m4.id].added[m5.id], "no addition found")
+        this.assertEquals(m4.diffTo(m3)[m4.id].added[m5.id],m5, "wrong addition found")
+
+        //removed morphs
+        var m6 = m4.copy();
+        m6.submorphs[1].remove();
+        this.assert(m6.diffTo(m4)[m6.id].removed[m5.id], "no removal found")
+        this.assertEquals(m6.diffTo(m4)[m6.id].removed[m5.id], m5, "wrong removal found");
+
+        //modified morphs
+        m6.submorphs[0].setFill(Color.red);
+        this.assert(m6.diffTo(m4)[m6.submorphs[0].id].modified['Fill'], "no removal found")  
+        
+        //submorphsModified
+        this.assert(m4.diffTo(m3)[m4.id].submorphsModified.length >= 0, 'submorphs were not modified')
+    },
 },
 'equals extensions', {
     testGradientEquals: function() {

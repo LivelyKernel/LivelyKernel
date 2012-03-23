@@ -206,6 +206,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         });
     },
     getDataArray: function() {
+    debugger;
 		var arrResult;
 		for (var i = 0; i < this.numCols; i++) {
 			for (var j = 0; j < this.numRows; j++) {

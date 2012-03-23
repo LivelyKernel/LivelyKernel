@@ -1926,6 +1926,10 @@ alignReframeHandle: function() {
         else finExpand();
         if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(false);
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
 });
 

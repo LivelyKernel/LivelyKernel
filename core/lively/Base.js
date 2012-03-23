@@ -43,7 +43,6 @@ function assert(value, message) {
     alert('Assertion failed' + (message ? ': ' + message : '!') + '\n' + stack)
 };
 
-
 var using = (function() {
 
     function Util(args) {  // args is an escaping arguments array

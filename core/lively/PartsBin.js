@@ -329,7 +329,17 @@ Object.subclass('lively.PartsBin.PartItem',
         return (new WebResource(this.getFileURL())).exists()
     },
     handleSaveStatus: function(status) {
-        // enter comment here
+        // handles the request for overwrite on header 412
+        if (!status.isDone()) return;
+        if (status.code() === 412) {
+            this.askToOverwrite(status.url);
+            return;
+        }
+        if (status.isSuccess()) {
+            this.part.updateHeadRevision(); // update the rev used for overwrite check
+        } else {
+            this.alert('Problem saving ' + status.url + ': ' + status)
+        }
     },
 
 

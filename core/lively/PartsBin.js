@@ -335,7 +335,7 @@ Object.subclass('lively.PartsBin.PartItem',
             return;
         }
         if (status.isSuccess()) {
-            this.part.updateHeadRevision(); // update the rev used for overwrite check
+            this.updateRevisionOnLoad();
         } else {
             this.alert('Problem saving ' + status.url + ': ' + status)
         }

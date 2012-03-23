@@ -644,7 +644,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assert(!a.equals(d),'the colors should not have been the same');
     },
     testMorphEquals: function() {
-        // enter comment here
+        var m1 = $world.loadPartItem("Rectangle", "PartsBin/Basic");
+        var m2 = $world.loadPartItem("Rectangle", "PartsBin/Basic")
+        var m3 = m1.copy();
+        this.assert(m1.equals(m2), "Morphs that were both loaded from the same part are not equal");
+        this.assert(m1.equals(m3), "Morphs are not equal after copying");
     },
 
 });

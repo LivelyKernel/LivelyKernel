@@ -243,4 +243,39 @@ lively.morphic.Morph.addMethods(
 
 });
 
+Object.subclass('AtomicDiff',
+'initializing', {
+    initialize: function(type, newValue, oldValue) {
+        this.type = type || undefined;
+        this.newValue = newValue || undefined; 
+        this.oldValue = oldValue || undefined;
+        return this;
+    },
+},
+'diffing', {
+    diffAgainst: function(otherDiff) {
+        // performs an atomic diff diff (sic!) based on an atomic merge matrix
+        if (this.newValue && typeof(this.newValue.equals) == "function") {
+            if (this.newValue.equals(otherDiff.newValue)) return undefined
+            else {
+                return new AtomicDiff(this.type, this.newValue, otherDiff.newValue)
+            }
+        }
+        else {
+            if (this.type == 'script') {
+                if (this.newValue.toString() == otherDiff.newValue.toString()) return undefined
+                else { 
+                    return new AtomicDiff(this.type, this.newValue, otherDiff.newValue)
+                }
+            }
+            else {
+                if (this.newValue == otherDiff.newValue) return undefined
+                else { 
+                    return new AtomicDiff(this.type, this.newValue, otherDiff.newValue)
+                }
+            }
+        }
+    },
+});
+
 }) // end of module

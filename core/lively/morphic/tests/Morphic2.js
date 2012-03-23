@@ -613,8 +613,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.jQueryTests', {
         this.assertEquals(m.jQuery()[0], m.renderContext().shapeNode)
     }
 });
-Object.subclass('MyClass',
-'default category', {
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests', 
+'inheritance', {
     m1: function() {},
 });
 

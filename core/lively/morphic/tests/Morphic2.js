@@ -620,7 +620,29 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
     },
 },
 'equals extensions', {
-
+    testGradientEquals: function() {
+        var color = Color.red;
+        var a = new lively.morphic.LinearGradient([
+                {offset: 0, color: color.mixedWith(Color.white, 0.4)},
+                {offset: 0.5, color: color.mixedWith(Color.white, 0.8)},
+                {offset: 1, color: color.mixedWith(Color.black, 0.9)}], "northsouth");
+        var b = new lively.morphic.LinearGradient([
+                {offset: 0, color: color.mixedWith(Color.white, 0.4)},
+                {offset: 0.5, color: color.mixedWith(Color.white, 0.8)},
+                {offset: 1, color: color.mixedWith(Color.black, 0.9)}], "northsouth");
+        var c = new lively.morphic.LinearGradient([
+                {offset: 0, color: color.mixedWith(Color.white, 0.4)},
+                {offset: 0.5, color: color.mixedWith(Color.white, 0.8)},
+                {offset: 1, color: color.mixedWith(Color.black, 0.9)}], "northwest");
+        color = Color.green;
+        var d = new lively.morphic.LinearGradient([
+                {offset: 0, color: color.mixedWith(Color.white, 0.4)},
+                {offset: 0.5, color: color.mixedWith(Color.white, 0.8)},
+                {offset: 1, color: color.mixedWith(Color.black, 0.9)}], "northsouth");
+        this.assert(a.equals(b),'equal vectors were not equal');
+        this.assert(!a.equals(c),'the vectors should not have been the same');
+        this.assert(!a.equals(d),'the colors should not have been the same');
+    },
 });
 
 }) // end of module

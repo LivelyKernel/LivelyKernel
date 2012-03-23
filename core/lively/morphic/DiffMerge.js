@@ -116,7 +116,129 @@ lively.morphic.Morph.addMethods(
         var diff = this.newThreeWayDiff();
         $world.openPartItem("MorphDiffer", "PartsBin/Tools").get("MorphDiffer").initializeWith(this, diff);
     },
+},
+'inheritance', {
+    findById: function (id) {
+        // this method returns the submorph of this that matches the given id
+        var morph = undefined;
+        this.withAllSubmorphsDo(function (ea) {
+            if (ea.id == id) morph = ea;
+        });
+        return morph;
+    },
 
+
+
+
+    findParentPartVersion: function () {
+        //this returns the PartsBin version of the morph that matches the morphs revisionOnLoad
+        var revision = this.partsBinMetaInfo? this.getPartsBinMetaInfo().revisionOnLoad : null ;
+        return this.getPartItem().loadPart(false, null, revision).part;
+    },
+    findCurrentPartVersion: function () {
+        // returns the current version in PartsBin as morph
+        return this.getPartItem().loadPart(false).part;
+    },
+    findDerivationParent: function (optScope) {
+        //returns the nearest ancestor in line that can be found in scope or world
+        if (!this.derivationIds) return undefined;
+
+        var scope = optScope || $world,
+            result = undefined,
+            commonIds = new Array(),
+            self = this;
+
+        scope.withAllSubmorphsDo(function (ea) {
+            var tempCommonIds = self.derivationIds.intersect(ea.derivationIds);
+            if (tempCommonIds.equals(ea.derivationIds)
+                //&& tempCommonIds.length <= self.derivationIds.length
+                && tempCommonIds.length > commonIds.length) {
+                commonIds = tempCommonIds;
+                result = ea;
+            }
+        })
+
+        return result;
+    },
+    findDerivationSibling: function (optScope) {
+        //returns the nearest sibling in line that can be found in scope or world
+        if (!this.derivationIds) return undefined;
+        var scope = optScope || $world,
+            result = undefined,
+            commonIds = new Array(),
+            self = this;
+
+        optScope.withAllSubmorphsDo(function (ea) {
+            var tempCommonIds = self.derivationIds.intersect(ea.derivationIds);
+            if (tempCommonIds.length > commonIds.length) {
+                commonIds = tempCommonIds;
+                result = ea;
+            }
+        })
+
+        return result;
+    },
+    findSiblingInRelative: function(sibling, parent) {
+        // Finds the siblings submorph that matches the morph. The common parent is manually given, and must be computed beforehand.
+        if(!sibling || !parent) return;
+
+        //if the morph is the pendent to the sibling, return the whole sibling
+        if (this.isDirectDescendentOf(parent)) return sibling
+
+        var denotedSibling = this.findDerivationSibling(sibling);
+        if (!denotedSibling) return undefined
+
+        //find the matching morph in parent
+        var denotedParent1 = this.findDerivationParent(parent);
+        var denotedParent2 = denotedSibling.findDerivationParent(parent);
+        if ((!denotedParent1 || !denotedParent2) || (denotedParent1 != denotedParent2)) return undefined
+
+        if (denotedSibling.derivationIds.intersect(this.derivationIds).length > denotedParent1.derivationIds.length) {
+            return denotedSibling
+        }
+        else return undefined;
+    },
+
+
+    isDirectDescendentOf: function(parent) {
+        //returns true if I am in a copy row of a parent morph
+        if (this.derivationIds.equals(parent.derivationIds)) return false
+        else if (this.derivationIds.intersect(parent.derivationIds).equals(parent.derivationIds)) return true
+        else return false
+    },
+
+    existsAlreadyIn: function(parent) {
+        // returns true, if this submorph already exists as submorph in parent morph
+
+        // true, if I am in direct ancestors line
+        if (this.isDirectDescendentOf(parent)) return true;
+
+        var parentPendent = this.findDerivationParent(parent);
+        if (parentPendent.derivationIds.intersect(this.derivationIds) == this.findParentPartVersion().derivationIds) return false;
+        else return parentPendent || false;     
+    },
+    findCommonParentPartVersion: function(sibling) {
+        //returns the youngest PartVersion the morph has in common with the sibling given
+
+        // are revision numbers strictly increasing? if so, following code would do it:
+        // var rev = Math.max(this.getPartsBinMetaInfo().revisionOnLoad, sibling.getPartsBinMetaInfo().revisionOnLoad)
+        // return this.getPartItem().loadPart(false, null, rev).part;
+
+        var commonAncestorIds = this.derivationIds.intersect(sibling.derivationIds);
+        commonAncestorIds.pop();
+
+        var myRevisions = this.getPartItem().loadPartVersions(false).partVersions.clone();
+        var siblingRevisions = sibling.getPartItem().loadPartVersions(false).partVersions.clone();
+
+        var rev = undefined;
+        if (myRevisions.indexOf(this.getPartsBinMetaInfo().revisionOnLoad) > siblingRevisions.indexOf(sibling.getPartsBinMetaInfo().revisionOnLoad)) {
+            rev = sibling.getPartsBinMetaInfo().revisionOnLoad
+        }
+        else {
+            rev = this.getPartsBinMetaInfo().revisionOnLoad
+        }
+        return this.getPartItem().loadPart(false, null, rev).part;
+    },
 
 
 });

@@ -800,7 +800,42 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
 },
 'atomic diff', {
+    testDiffAgainst: function() {
+        var d1 = new AtomicDiff("property", Color.gray, Color.red);
+        var d2 = new AtomicDiff("property", Color.green, Color.red);
+        var d3 = new AtomicDiff("property", Color.green, Color.red);
+        var d4 = new AtomicDiff("property", Color.green, Color.red);
 
+        var diff = d1.diffAgainst(d2);
+        var noDiff = d2.diffAgainst(d3);
+        var diff2 = d3.diffAgainst(d4);
+
+        this.assert(diff, 'no diff found');
+        this.assert(!noDiff,'should not have diffed');
+        this.assertEquals(diff.type, "property", "wrong type");
+        this.assertEquals(diff.newValue, Color.gray, "wrong newValue");
+        this.assertEquals(diff.oldValue, Color.green, "wrong oldValue");
+        this.assert(!diff2, 'should have found no diff')
+        
+    },
+    testDiffAgainst: function() {
+        var f1 = function () {
+            alertOK("foo")
+        }
+        var f2 = function () {
+            alertOK("foo")
+        }
+        var f3 = function () {
+            alertOK("foobar")
+        }
+
+        var ad1 = new AtomicDiff('script', f1, f2);
+        var ad2 = new AtomicDiff('script', f1, f2);
+        var ad3 = new AtomicDiff('script', f3, f2);
+        
+        this.assert(!ad1.diffAgainst(ad2), 'Should not have found a diff')
+        this.assert(ad1.diffAgainst(ad3), 'Should have found a diff')
+    },
 });
 
 }) // end of module

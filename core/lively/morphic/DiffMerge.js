@@ -384,4 +384,119 @@ Object.subclass('Diff',
 
 });
 
+Object.subclass('DiffList',
+'initialization', {
+    initialize: function() {
+        return this;
+    },
+},
+'maintaining', {
+    mixWith: function (otherList) {
+        // two diff lists are merged - like array1.concat(array2)
+        var self = this;
+        Properties.own(otherList).each(function (ea) {
+            self[ea] = otherList[ea];
+        })
+        return self;
+    },
+    isEmpty: function() {
+        // determines if any changes were found
+        var self = this,
+            filled = false;
+        Properties.own(self).each(function (ea) {
+            if (!self[ea].isEmpty()) filled = true;
+        })
+        return !filled
+    },
+
+    diffAgainst: function(otherList) {
+        // diffs two diffLists
+        // Returns a diff with added & removed morphs and properties that were updated in the otherList or are conflicted, for each entry in the list. 
+        var self = this,
+            modified = this.collectModified(),
+            removed = this.collectRemoved(),
+            added = this.collectAdded(),
+            result = new DiffList(); 
+
+        Properties.own(otherList).each(function (ea) {
+            var against = new Diff(),
+                curId = undefined;
+            Properties.own(self).each(function (each) {
+                if (self[each].matchingId == otherList[ea].matchingId) {
+                    var r = self[each].diffAgainst(otherList[ea], modified, added, removed, result[each])
+                    if (r) result[each] = r;
+                    curId = each
+                }
+            })
+            if (!curId && !otherList[ea].isEmpty()) {
+                var parId;
+                curId = Properties.own(self).find(function (each) {
+                    if (removed.intersect(self[each].removed).length >= 0) {
+                        parId = each;
+                        return true
+                    }
+                    else return false
+                })
+                result[curId] = result[curId] || {"added": {}, "removed": {}, "updated": {}, "conflicted": {}};
+                result[curId].conflicted[ea] = new AtomicDiff("submorph", {}, self[parId].removed[otherList[ea].matchingId])
+            } 
+        })
+        return result
+    },
+    findMatchingDiffPairs: function(otherList) {
+        // endless recursion -.-
+        var self = this;
+        Properties.own(otherList).collect(function (ea) {
+            return Properties.own(self).collect(function (each) {
+                if (self[each].matchingId == otherList[ea].matchingId) {
+                    return [self[each],otherList[ea]];
+                }
+            })/*.select(function (each) {
+                return each;
+            })*/
+        })
+    },
+
+    collectAdded: function() {
+        // returns all morphs that were added
+        var added = [],
+            self = this;
+        Properties.own(self).each(function (ea) {
+            added.pushAll(self[ea].added);
+        })
+        return added;
+    },
+    collectRemoved: function() {
+        // returns a list of morphs that were removed
+        var removed = [],
+            self = this;
+        Properties.own(self).each(function (ea) {
+            removed.pushAll(self[ea].removed);
+        })
+        return removed;
+    },
+    collectModified: function() {
+        // returns a list of morphs that were modified
+        var self = this,
+            modified = [];
+        Properties.own(self).each(function (ea) {
+            if(Properties.own(self[ea].modified).length > 0) modified.push(ea)
+        })
+        return modified;
+    },
+    collectConflicted: function() {
+        // returns a list of morphs that were conflicted
+        var self = this,
+            conflicted = [];
+        Properties.own(self).each(function (ea) {
+            if(Properties.own(self[ea].conflicted).length > 0) conflicted.push(ea)
+        })
+        return conflicted;
+    },
+
+
+
+
+});
+
 }) // end of module

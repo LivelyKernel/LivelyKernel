@@ -616,7 +616,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.jQueryTests', {
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests', 
 'inheritance', {
     m1: function() {
-        //foo
+        //foobar
     },
 });
 

@@ -342,9 +342,9 @@ Object.subclass('lively.PartsBin.PartItem',
     },
     updateRevisionOnLoad: function() {
         // the revisionOnLoad in PartsBinMetaInfo is updated on publishing.
-        var webR = new WebResource(this.getPartItem().getFileURL()),
+        var webR = new WebResource(this.getFileURL()),
             a = webR.getHeadRevision().headRevision;
-        this.getPartsBinMetaInfo && (this.getPartsBinMetaInfo().revisionOnLoad = rev);
+        this.part.getPartsBinMetaInfo && (this.part.getPartsBinMetaInfo().revisionOnLoad = rev);
     },
 
     askToOverwrite: function(url) {

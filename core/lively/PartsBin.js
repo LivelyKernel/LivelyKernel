@@ -340,7 +340,7 @@ Object.subclass('lively.PartsBin.PartItem',
             this.alert('Problem saving ' + status.url + ': ' + status)
         }
     },
-    newMethod: function() {
+    updateHeadRevision: function() {
         // enter comment here
     },
 

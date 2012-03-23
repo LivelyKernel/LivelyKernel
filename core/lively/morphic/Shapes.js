@@ -86,6 +86,8 @@ Object.subclass('lively.morphic.Shapes.Shape',
         return true;
     },
     getDiffsTo: function (otherShape) {
+        // returns a list of differences between two shapes.
+        // TODO: refactor, adapt to morph diffing
         var self = this;
         var blacklist = ["get"];
         var diffsArray = Functions.all(this).withoutAll(blacklist).select(function (ea) {

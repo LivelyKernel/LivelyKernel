@@ -1770,14 +1770,7 @@ alignReframeHandle: function() {
             target = this;
         }
         menu = target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
-        items = menu.items;
-        self = this;
-        items[0] = [
-            'publish window', function(evt) {
-            self.copyToPartsBinWithUserRequest();
-        }]
-        menu.addItems(items)
-        console.log(menu.morphMenuItems())
+        this.patchTargetMorphMenu(menu)
     },
     morphMenuItems: function($super) {
         var self = this, items = $super();

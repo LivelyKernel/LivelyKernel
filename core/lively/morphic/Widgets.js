@@ -1763,7 +1763,7 @@ alignReframeHandle: function() {
 },
 'menu', {
     showTargetMorphMenu: function() {
-        var target, menu, items;
+        var target, menu, items, self;
         if (this.targetMorph) {
             target = this.targetMorph;
         } else {
@@ -1771,9 +1771,10 @@ alignReframeHandle: function() {
         }
         menu = target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
         items = menu.items;
+        self = this;
         items[0] = [
             'publish window', function(evt) {
-            this.copyToPartsBinWithUserRequest();
+            self.copyToPartsBinWithUserRequest();
         }]
         menu.addItems(items)
         console.log(menu.morphMenuItems())

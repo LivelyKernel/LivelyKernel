@@ -98,7 +98,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         }
     },
     createCell: function(x, y, headOffset) {
-debugger;
+
         var cell = new lively.morphic.SAPDataGridCell();
         cell.doitContext = this;
         cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));

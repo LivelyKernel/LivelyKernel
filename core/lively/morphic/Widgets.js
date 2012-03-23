@@ -746,6 +746,7 @@ lively.morphic.Morph.addMethods(
         return true;
     },
     morphMenuItems: function() {
+        console.log(this)
         var self = this, items = [];
         items.push([
             'publish', function(evt) {

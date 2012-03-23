@@ -341,7 +341,9 @@ Object.subclass('lively.PartsBin.PartItem',
         }
     },
     updateHeadRevision: function() {
-        // enter comment here
+        var webR = new WebResource(this.getPartItem().getFileURL()),
+            a = webR.getHeadRevision().headRevision;
+        this.getPartsBinMetaInfo && (this.getPartsBinMetaInfo().revisionOnLoad = rev);
     },
 
     askToOverwrite: function(url) {

@@ -1373,6 +1373,7 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
     },
     deactivate: function() {
         this.setFill(Color.gray);
+        this.isActive = false;
     },
     addCloseButton: function() {
         var closer = new lively.morphic.Button;

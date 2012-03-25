@@ -30,6 +30,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TabTests.TabTests
         this.tabContainer.setTabBarStrategy(new lively.morphic.TabStrategyHide());
         this.assertEquals(this.tabContainer.getExtent().y, extent.y-tabBarExtent.y, 'TabContainer extent did not shrink when hiding tab bar');
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
 
 });

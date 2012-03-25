@@ -205,17 +205,20 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
             return obj;
         });
     },
-    getDataArray: function() {
-    debugger;
-		var arrResult;
-		for (var i = 0; i < this.numCols; i++) {
-			for (var j = 0; j < this.numRows; j++) {
-				arrResult[i][j]=this.rows[j][i].getContent();
-			}
-		}
-       
-            return arrResult;
+    getDataArrObjects: function() {
+        var that = this;
+        return this.rows.map(function(ea){
+            var arrColumns = {};
+            for (var i = 0; i < that.numCols; i++) {
+                if (that.colNames[i] != undefined) {
+					arrColumns[i]= ea[i].getContent();
+                    //obj[that.colNames[i]] = ea[i].getContent();
+                }
+            }
+            return arrColumns;
+        });
     },
+,
     createDataRowFromObject: function(anObject) {
         var row = [],
             names = this.getColNames();

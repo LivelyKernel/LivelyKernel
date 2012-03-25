@@ -1139,6 +1139,9 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
         this.getTabBar().addTab(aTab);
     },   
 
+    activeTab: function() {
+        
+    },
 });
 
 lively.morphic.Morph.subclass('lively.morphic.TabBar',

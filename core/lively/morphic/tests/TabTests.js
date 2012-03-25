@@ -39,6 +39,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TabTests.TabTests
         this.assert(t2.isActive, 't2 not active');
         this.assert(!t1.isActive, 't1 is active?');
         this.assertEquals(t2.getPane(), this.tabContainer.topSubmorph());
+        this.assertEquals(t2, this.tabContainer.activeTab());
+        this.assertEquals(t2.getPane(), this.tabContainer.activePane());
     },
 
 

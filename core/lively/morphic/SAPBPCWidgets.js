@@ -209,13 +209,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         var that = this;
         return this.rows.map(function(ea){
             var arrColumns = [];
- debugger;
+ //debugger;
             for (var i = 0; i < that.numCols; i++) {
-                if (that.colNames[i] != undefined) {
+                //if (that.colNames[i] != undefined) {
                  
 		  arrColumns[i]= ea[i].getContent();
                     //obj[that.colNames[i]] = ea[i].getContent();
-                }
+                //}
             }
             return arrColumns;
         });

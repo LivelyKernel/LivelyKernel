@@ -1368,6 +1368,7 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         this.getTabContainer().addTabPane(this.getPane());
         this.setFill(Color.white);
         delete this.isInActivationCycle;
+        this.isActive = true;
         this.getPane().onActivate();
     },
     deactivate: function() {

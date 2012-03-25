@@ -1140,7 +1140,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
     },   
 
     activeTab: function() {
-        
+        return this.getTabs().detect(function(ea) { return ea.isActive });
     },
 });
 

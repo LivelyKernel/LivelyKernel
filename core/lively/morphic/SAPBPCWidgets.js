@@ -211,7 +211,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
             var arrColumns = [];
             for (var i = 0; i < that.numCols; i++) {
                 if (that.colNames[i] != undefined) {
-                  //debugger;
+                  debugger;
 		  arrColumns[i]= ea[i].getContent();
                     //obj[that.colNames[i]] = ea[i].getContent();
                 }

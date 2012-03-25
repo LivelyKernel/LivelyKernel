@@ -218,7 +218,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
             return arrColumns;
         });
     },
-,
     createDataRowFromObject: function(anObject) {
         var row = [],
             names = this.getColNames();

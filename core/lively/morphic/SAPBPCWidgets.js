@@ -498,6 +498,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPDataGridCell',
 
     put: function(aValue) {
         // TODO: check if aValue starts with =, then evaluate it or not
+        debugger;
         this.textString = aValue;
     },
     onKeyPress: function($super, evt) {

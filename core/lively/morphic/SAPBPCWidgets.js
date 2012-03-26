@@ -551,7 +551,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPDataGridColHead',
 'default category', {
     initialize: function($super, arg1, arg2) {
         $super(arg1, arg2);
-        this.setFill(Color.rgb(220, 220, 200));
+        this.setFill(Color.rgb(223, 227, 232));
     },
     addToGrid: function(aGrid) {
         this.grid = aGrid;

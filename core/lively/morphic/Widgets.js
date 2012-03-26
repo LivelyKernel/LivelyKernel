@@ -907,10 +907,11 @@ lively.morphic.World.addMethods(
         var toolPane = this.get('ToolTabPane');
         if (!toolPane) {
             toolPane = this.openPartItem('ToolTabPane', 'PartsBin/Dialogs'); 
-            toolPane.openInWindow()
-            toolPane.owner.name = toolPane.name +"Window"
+            toolPane.openInWindow();
+            toolPane.owner.name = toolPane.name +"Window";
+            toolPane.owner.minExtent = pt(370,700);
             var corner = toolPane.withAllSubmorphsSelect(function (ea) {
-                return ea.name == "ResizeCorner"
+                return ea.name == "ResizeCorner";
             }).first()
             corner && toolPane.owner.addMorph(corner)
         }

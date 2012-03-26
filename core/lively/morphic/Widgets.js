@@ -909,8 +909,10 @@ lively.morphic.World.addMethods(
             toolPane = this.openPartItem('ToolTabPane', 'PartsBin/Dialogs'); 
             toolPane.openInWindow()
             toolPane.owner.name = toolPane.name +"Window"
-            /*if (toolPane.get("ResizeCorner"))
-                toolPane.get("ToolTabPaneWindow").addMorph(toolPane.get("ResizeCorner"))*/
+            var corner = toolPane.withAllSubmorphsSelect(function (ea) {
+                return ea.name == "ResizeCorner"
+            }).first()
+            corner && toolPane.owner.addMorph(corner)
         }
         var part = toolPane.openMethodFinderFor(searchString)
         return part;

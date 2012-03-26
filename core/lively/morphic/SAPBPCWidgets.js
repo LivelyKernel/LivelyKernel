@@ -434,6 +434,15 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         this.rows.pop();
         this.numRows--;
         this.createLayout();
+        var that=this;
+        this.rows.map(function(ea){
+            for (var i = 0; i < that.numCols; i++) {
+               if (ea[i]!=null){
+                    ea[i].setExtent(pt(that.defaultCellWidth, that.defaultCellHeight));
+                }
+            }
+        });
+
     },
 
 

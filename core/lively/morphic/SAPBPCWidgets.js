@@ -406,6 +406,9 @@ debugger;
         while (this.colNames.length > lastColIndex) {
             this.colNames.pop();
         }
+        
+        this.numCols--;
+        this.createLayout();
         //reset height
         var that=this;
         this.rows.map(function(ea){
@@ -416,8 +419,7 @@ debugger;
             }
         });
 
-        this.numCols--;
-        this.createLayout();
+
     },
     removeRow: function() {
         var lastRowIndex = this.numRows - 1;

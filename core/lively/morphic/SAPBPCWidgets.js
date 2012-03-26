@@ -410,8 +410,9 @@ debugger;
         var that=this;
         this.rows.map(function(ea){
             for (var i = 0; i < that.numCols; i++) {
-               
-                //ea[i].setExtent(pt(that.defaultCellWidth, that.defaultCellHeight));
+               if (ea[i]!=null){
+                    ea[i].setExtent(pt(that.defaultCellWidth, that.defaultCellHeight));
+                }
             }
         });
 

@@ -478,7 +478,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPDataGridCell',
             return;
         }
         this.grid.activeCell = null;
-        this.setBorderColor(Color.black);
+        this.setBorderColor(Color.rgb(230,230,230));
         this.setBorderWidth(1);
         this.updateEvalExpression();
         this.updateDisplay();

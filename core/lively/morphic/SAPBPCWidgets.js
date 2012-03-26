@@ -406,6 +406,12 @@ debugger;
         while (this.colNames.length > lastColIndex) {
             this.colNames.pop();
         }
+        //reset height
+        this.rows.map(function(ea){
+            for (var i = 0; i < that.numCols; i++) {
+                
+            }
+        });
 
         this.numCols--;
         this.createLayout();

@@ -462,7 +462,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPDataGridCell',
     addToGrid: function(aGrid) {
         this.grid = aGrid;
         this.grid.addMorph(this);
-        this.setBorderColor(Color.rgb(230,230,230));
+        this.setBorderColor(Color.rgb(177,181,186));
         this.setFill(Color.rgb(255, 2550, 255));
     },
     activate: function() {
@@ -480,7 +480,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPDataGridCell',
             return;
         }
         this.grid.activeCell = null;
-        this.setBorderColor(Color.rgb(230,230,230));
+        this.setBorderColor(Color.rgb(177,181,186));
         this.setBorderWidth(1);
         this.updateEvalExpression();
         this.updateDisplay();

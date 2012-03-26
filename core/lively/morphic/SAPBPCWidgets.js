@@ -128,7 +128,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
 
     createLayout: function() {
         var head = this.hideColHeads ? 0 : 1;
+debugger;
         this.setLayouter(new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head));
+
         this.applyLayout();
     },
 

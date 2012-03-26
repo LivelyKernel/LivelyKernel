@@ -408,8 +408,9 @@ debugger;
         }
         //reset height
         this.rows.map(function(ea){
-            for (var i = 0; i < that.numCols; i++) {
-                
+            for (var i = 0; i < this.numCols; i++) {
+               
+                ea[i].setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
             }
         });
 

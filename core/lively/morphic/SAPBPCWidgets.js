@@ -411,7 +411,7 @@ debugger;
         this.rows.map(function(ea){
             for (var i = 0; i < that.numCols; i++) {
                
-                ea[i].setExtent(pt(that.defaultCellWidth, that.defaultCellHeight));
+                //ea[i].setExtent(pt(that.defaultCellWidth, that.defaultCellHeight));
             }
         });
 

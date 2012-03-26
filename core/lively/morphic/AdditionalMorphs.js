@@ -1140,7 +1140,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
     },   
 
     panes: function() {
-        return this.getTabBar().invoke('getTab').invoke('getPane');
+        return this.getTabBar().getTabs().invoke('getPane');
     },
 
     activeTab: function() {

@@ -391,7 +391,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
     },
     removeCol: function() {
         var lastColIndex = this.numCols - 1;
-debugger;
+//debugger;
         this.rows.map(function(ea) {
             return ea[lastColIndex];}).
                 forEach(function(ea) {
@@ -409,7 +409,7 @@ debugger;
         
         this.numCols--;
         this.createLayout();
-        //reset height
+//Hak March 26 2012 reset height.
         var that=this;
         this.rows.map(function(ea){
             for (var i = 0; i < that.numCols; i++) {
@@ -418,7 +418,12 @@ debugger;
                 }
             }
         });
-
+        for (var i = 0; i < this.numCols; i++) {
+            if (this.colHeads[i]!=null){
+                this.colHeads[i].setExtent(pt(that.defaultCellWidth, that.defaultCellHeight));
+            }
+        }
+//Hak March 26 2012 reset height done.
 
     },
     removeRow: function() {

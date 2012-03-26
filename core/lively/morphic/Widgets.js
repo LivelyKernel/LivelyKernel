@@ -915,6 +915,11 @@ lively.morphic.World.addMethods(
             corner && toolPane.owner.addMorph(corner)
         }
         var part = toolPane.openMethodFinderFor(searchString)
+        part.owner.layout = {
+            resizeWidth: true,
+            resizeHeight: true,
+            adjustForNewBounds: true,
+        }
         return part;
     },
     openVersionViewer: function(evt) {

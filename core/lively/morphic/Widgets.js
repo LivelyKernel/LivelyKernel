@@ -911,8 +911,8 @@ lively.morphic.World.addMethods(
             toolPane.owner.name = toolPane.name +"Window"
         }
         var part = toolPane.openMethodFinderFor(searchString)
-        if (toolPane.get("ResizeCorner"))
-            toolPane.get("ToolTabPaneWindow").addMorph(toolPane.get("ResizeCorner"))
+        /*if (toolPane.get("ResizeCorner"))
+            toolPane.get("ToolTabPaneWindow").addMorph(toolPane.get("ResizeCorner"))*/
         return part;
     },
     openVersionViewer: function(evt) {

@@ -407,10 +407,11 @@ debugger;
             this.colNames.pop();
         }
         //reset height
+        var that=this;
         this.rows.map(function(ea){
-            for (var i = 0; i < this.numCols; i++) {
+            for (var i = 0; i < that.numCols; i++) {
                
-                ea[i].setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
+                ea[i].setExtent(pt(that.defaultCellWidth, that.defaultCellHeight));
             }
         });
 

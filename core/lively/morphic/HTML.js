@@ -859,6 +859,7 @@ debugger;
             width = $element.width() || 0,
             height = $element.height() || 0,
             extent = pt(width || height);
+alert(extent);
         this.setExtent(extent);
         this.shapeNode = element;
     },

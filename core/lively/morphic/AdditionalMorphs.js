@@ -1150,8 +1150,10 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
     activePane: function() {
         return this.activeTab().getPane();
     },
-    newMethod: function() {
-        // enter comment here
+    adjustForNewBounds: function($super) {
+        // resizedPanes holds a list that can be checked against endless recursion while setting the extent of the TabPanes
+        $super();
+        delete(this.resizedPanes);
     },
 
 });

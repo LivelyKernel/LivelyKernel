@@ -842,6 +842,11 @@ lively.morphic.Shapes.External.addMethods(
     initHTML: function($super, ctx) {
         ctx.shapeNode = this.shapeNode;
     },
+    renderHTML: function($super, ctx) {
+        if (!ctx.shapeNode) {
+            ctx.shapeNode = this.shapeNode;
+        }
+    },
 },
 'initializing', {
     initFromStringifiedShapeNodeHTML: function(ctx) {

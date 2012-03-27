@@ -1456,6 +1456,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         var container = this.getTabContainer();
         this.adjustClipping(aPoint);
         container.resizedPanes = container.resizedPanes || new Array();
+        // TODO refactor: either resizedPanes list or isInResizeCycle, not both!
         if (container.resizedPanes.indexOf(this.id) < 0) {
             if (!this.isInResizeCycle) {
                 container.onResizePane(aPoint);

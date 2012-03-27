@@ -274,6 +274,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         return true;
     },
     onEnterPressed: function($super, evt) {
+        //Hak March27 2012:  calculate formula
+        if (!this.activeCell) {
+            var sValue = this.activeCell.textString;
+            console.log("SAPDataGrid.onEnterPressed sValue=" + sValue );
+        }
         this.onDownPressed(evt);
         return true;
     },

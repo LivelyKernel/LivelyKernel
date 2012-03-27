@@ -846,6 +846,7 @@ lively.morphic.Shapes.External.addMethods(
         if (!ctx.shapeNode) {
             ctx.shapeNode = this.shapeNode;
         }
+        $super(ctx);
     },
 },
 'initializing', {

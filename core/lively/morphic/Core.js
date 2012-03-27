@@ -216,10 +216,12 @@ Object.subclass('lively.morphic.Morph',
         if (tfm) {
             morph.setTransform(tfm);
         }
+
         var parentRenderCtxt = this.renderContext(),
             subRenderCtxt = morph.renderContext(),
             ctx = parentRenderCtxt.constructor !== subRenderCtxt.constructor ?
                 parentRenderCtxt.newForChild() : subRenderCtxt;
+        morph.renderAfterUsing(ctx, optMorphBefore);
 
         morph.resumeSteppingAll();
 

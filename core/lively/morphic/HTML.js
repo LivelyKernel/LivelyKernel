@@ -845,6 +845,7 @@ lively.morphic.Shapes.External.addMethods(
 },
 'initializing', {
     initFromStringifiedShapeNodeHTML: function(ctx) {
+if (Global.halt) debugger
         var element;
         if (this.stringifiedShapeNode) {
             element = stringToXML(this.stringifiedShapeNode);

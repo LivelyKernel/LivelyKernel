@@ -845,7 +845,7 @@ lively.morphic.Shapes.External.addMethods(
 },
 'initializing', {
     initFromStringifiedShapeNodeHTML: function(ctx) {
-                var element;
+        var element;
         if (this.stringifiedShapeNode) {
             element = stringToXML(this.stringifiedShapeNode);
             element.parentNode && element.parentNode.removeChild(element);
@@ -859,8 +859,7 @@ lively.morphic.Shapes.External.addMethods(
             element.style.height = ((this.extent && this.extent.y) || 200) + 'px'
         }
         this.shapeNode = element
-    }
-    },
+    },},
 },
 'accessing', {
     getExtentHTML: function(ctx) {

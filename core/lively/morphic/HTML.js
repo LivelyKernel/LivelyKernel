@@ -845,7 +845,21 @@ lively.morphic.Shapes.External.addMethods(
 },
 'initializing', {
     initFromStringifiedShapeNodeHTML: function(ctx) {
-        
+                var element;
+        if (this.stringifiedShapeNode) {
+            element = stringToXML(this.stringifiedShapeNode);
+            element.parentNode && element.parentNode.removeChild(element);
+        }
+        if (!element) {
+            element = XHTMLNS.create('div');
+            element.style.backgroundColor = Color.red.toCSSString();
+        }
+        if (element.style) { 
+            element.style.width = ((this.extent && this.extent.x) || 200) + 'px'
+            element.style.height = ((this.extent && this.extent.y) || 200) + 'px'
+        }
+        this.shapeNode = element
+    }
     },
 },
 'accessing', {

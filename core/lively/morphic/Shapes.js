@@ -138,6 +138,9 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.External',
     initialize: function($super, element) {
         this.shapeNode = document.importNode(element, true);
     },
+    initFromStringifiedShapeNode: function() {
+        return this.renderContextDispatch('initFromStringifiedShapeNode');
+    },
 },
 'serialization', {
     doNotSerialize: ['shapeNode'],

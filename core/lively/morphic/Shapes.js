@@ -151,7 +151,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.External',
         }
     },
     onrestore: function() {
-        this.initFromStringifiedShapeNode();
+        this.initFromStringifiedShapeNodeHTML(null);
     },
 },
 'accessing', {

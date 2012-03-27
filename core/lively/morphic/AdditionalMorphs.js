@@ -1262,8 +1262,13 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         return this.tabContainer;
     },
     adjustTabSizes: function(aPoint) {
-        this.getTabs().forEach(function(ea) {
-            ea.getPane().adjustToNewContainerSize(aPoint);});
+        if (!this.adjustedTabSizes) {
+            var self = this;
+            this.getTabs().forEach(function(ea) {
+                self.adjustedTabSizes = true;
+                ea.getPane().adjustToNewContainerSize(aPoint);
+            });
+        }
         this.setExtent(this.getTabContainer().getTabBarStrategy().
             tabBarExtent(this.getTabContainer()));
     

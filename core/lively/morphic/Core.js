@@ -220,9 +220,6 @@ Object.subclass('lively.morphic.Morph',
             subRenderCtxt = morph.renderContext(),
             ctx = parentRenderCtxt.constructor !== subRenderCtxt.constructor ?
                 parentRenderCtxt.newForChild() : subRenderCtxt;
-        console.log("before context: " + morph.getExtent())
-
-        morph.renderAfterUsing(ctx, optMorphBefore);
         console.log("after context: " + morph.getExtent())
 
         morph.resumeSteppingAll();

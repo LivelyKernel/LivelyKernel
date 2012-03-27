@@ -1442,6 +1442,10 @@ Object.subclass('WebResource',
         request.del(this.getURL());
         return this;
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
     post: function(content, contentType) {
         this.content = content;

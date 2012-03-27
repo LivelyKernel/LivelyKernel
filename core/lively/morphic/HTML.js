@@ -835,6 +835,7 @@ lively.morphic.Shapes.External.addMethods(
 'HTML render settings', {
     htmlDispatchTable: {
         getExtent: 'getExtentHTML',
+        initFromStringifiedShapeNode: 'initFromStringifiedShapeNodeHTML'
     },
 },
 'rendering', {

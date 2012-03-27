@@ -843,6 +843,11 @@ lively.morphic.Shapes.External.addMethods(
         ctx.shapeNode = this.shapeNode;
     },
 },
+'initializing', {
+    initFromStringifiedShapeNodeHTML: function(ctx) {
+        
+    },
+},
 'accessing', {
     getExtentHTML: function(ctx) {
         var node = ctx.shapeNode;

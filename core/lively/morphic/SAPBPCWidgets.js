@@ -276,7 +276,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
     onEnterPressed: function($super, evt) {
         //Hak March27 2012:  calculate formula
 debugger;
-        if (!this.activeCell) {
+        if (this.activeCell !=null){
             var sValue = this.activeCell.textString;
             console.log("SAPDataGrid.onEnterPressed sValue=" + sValue );
         }

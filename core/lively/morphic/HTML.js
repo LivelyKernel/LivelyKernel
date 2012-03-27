@@ -865,8 +865,8 @@ debugger
 },
 'accessing', {
     getExtentHTML: function(ctx) {
-        var node = ctx.shapeNode;
-        return node ? pt(node.offsetWidth, node.offsetHeight) : pt(0,0);
+        var $node = $(ctx.shapeNode);
+        return pt($node.width() || 0, $node.height() || 0);
     },
     setOpacityHTML: function(ctx, value) { if (ctx.shapeNode.style) ctx.shapeNode.style.opacity = value; },
 

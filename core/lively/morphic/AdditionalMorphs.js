@@ -1084,6 +1084,8 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
     },
 
     addTabPane: function(aTabPane) {
+        aTabPane.layout = aTabPane.layout || {};
+        aTabPane.layout.adjustForNewBounds = true;
         this.addMorph(aTabPane);
         this.getTabBarStrategy().
             adjustPanePositionInContainer(aTabPane, this);

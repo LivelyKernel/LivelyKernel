@@ -4,7 +4,8 @@ TestCase.subclass('lively.morphic.tests.ShapeTests.ExternalShapeTest',
 'testing', {
 
     test01InitExternalShapeSetsExtent: function() {
-        var shape = new lively.morphic.Shapes.External();
+        var elem = document.createElement('input'),
+            shape = new lively.morphic.Shapes.External(elem);
         shape.stringifiedShapeNode = '<input xmlns="http://www.w3.org/1999/xhtml" type="checkbox" style="width: 3px; height: 15px; " />';
         shape.initFromStringifiedShapeNode();
         this.assertEquals(pt(3, 15), shape.getExtent());

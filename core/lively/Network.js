@@ -1442,8 +1442,9 @@ Object.subclass('WebResource',
         request.del(this.getURL());
         return this;
     },
-    newMethod: function() {
-        // enter comment here
+    delete: function() {
+        // I am only a convenience method
+        return this.del.apply(this, $A(arguments));
     },
 
 

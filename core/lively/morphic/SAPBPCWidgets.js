@@ -278,6 +278,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         if (this.activeCell !=null){
             var sValue = this.activeCell.textString;
             console.log("SAPDataGrid.onEnterPressed sValue=" + sValue );
+            if (sValue .charAt(0)=="="){
+                this.activeCell.textString=this.parseFormula(sValue);
+            }
+
         }
         this.onDownPressed(evt);
         return true;
@@ -452,8 +456,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         });
 
     },
+//Hak March 27 2012.
+    parseFormula: function(sFormula) {
+		//we need somthing smart to parse 
+		return 255;
 
-
+    },
     morphMenuItems: function ($super) {
         var items = $super();
         items.push(['+ column', this.addCol.bind(this)]);

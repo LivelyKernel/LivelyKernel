@@ -858,9 +858,9 @@ lively.morphic.Shapes.External.addMethods(
             width = $element.width() || 0,
             height = $element.height() || 0,
             extent = pt(width, height);
-debugger
         this.setExtent(extent);
         this.shapeNode = element;
+        ctx.shapeNode = element;
     },
 },
 'accessing', {

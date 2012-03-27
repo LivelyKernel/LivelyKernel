@@ -861,7 +861,7 @@ if (Global.halt) debugger
             extent = pt(width, height);
         this.setExtent(extent);
         this.shapeNode = element;
-        ctx.shapeNode = element;
+        // ctx.shapeNode = element;
     },
 },
 'accessing', {

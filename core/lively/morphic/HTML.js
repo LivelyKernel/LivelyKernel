@@ -860,6 +860,7 @@ if (Global.halt) debugger
             height = $element.height() || 0,
             extent = pt(width, height);
         this.setExtent(extent);
+alert('initFromStringifiedShapeNodeHTML: ' + element)
         this.shapeNode = element;
         // ctx.shapeNode = element;
     },

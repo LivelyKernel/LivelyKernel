@@ -5,7 +5,8 @@ TestCase.subclass('lively.morphic.tests.ShapeTests.ExternalShapeTest',
 
     test01InitExternalShapeSetsExtent: function() {
         var elem = document.createElement('input'),
-            shape = new lively.morphic.Shapes.External(elem);
+            shape = new lively.morphic.Shapes.External(elem),
+            morph = new lively.morphic.Morph(shape); // for initializing the renderContext
         shape.stringifiedShapeNode = '<input xmlns="http://www.w3.org/1999/xhtml" type="checkbox" style="width: 3px; height: 15px; " />';
 debugger
         shape.initFromStringifiedShapeNode();

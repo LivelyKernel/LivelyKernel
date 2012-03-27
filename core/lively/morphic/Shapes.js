@@ -151,6 +151,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.External',
         }
     },
     onrestore: function() {
+        // FIXME this directly depends on HTML
         this.initFromStringifiedShapeNodeHTML(null);
     },
 },

@@ -859,7 +859,7 @@ lively.morphic.Shapes.External.addMethods(
             element.style.height = ((this.extent && this.extent.y) || 200) + 'px'
         }
         this.shapeNode = element
-    },},
+    },
 },
 'accessing', {
     getExtentHTML: function(ctx) {

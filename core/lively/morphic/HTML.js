@@ -846,7 +846,6 @@ lively.morphic.Shapes.External.addMethods(
 'initializing', {
     initFromStringifiedShapeNodeHTML: function(ctx) {
         var element;
-debugger;
         if (this.stringifiedShapeNode) {
             element = stringToXML(this.stringifiedShapeNode);
             element.parentNode && element.parentNode.removeChild(element);
@@ -859,6 +858,7 @@ debugger;
             width = $element.width() || 0,
             height = $element.height() || 0,
             extent = pt(width, height);
+debugger
         this.setExtent(extent);
         this.shapeNode = element;
     },

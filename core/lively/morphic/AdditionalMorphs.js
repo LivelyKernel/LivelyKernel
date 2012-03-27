@@ -1458,7 +1458,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         container.resizedPanes = container.resizedPanes || new Array();
         // TODO refactor: either resizedPanes list or isInResizeCycle, not both!
         if (container.resizedPanes.indexOf(this.id) < 0) {
-            ontainer.resizedPanes.push(this.id);
+            container.resizedPanes.push(this.id);
             if (!this.isInResizeCycle) {
                 container.onResizePane(aPoint);
             }

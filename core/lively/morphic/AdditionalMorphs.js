@@ -1455,8 +1455,11 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         $super(aPoint);
         var container = this.getTabContainer();
         this.adjustClipping(aPoint);
-        if (!this.isInResizeCycle) {
-            container.onResizePane(aPoint);
+        container.resizedPanes = container.resizedPanes || new Array();
+        if (container.resizedPanes.indexOf(this.id) < 0) {
+            if (!this.isInResizeCycle) {
+                container.onResizePane(aPoint);
+            }
         }
     },
 

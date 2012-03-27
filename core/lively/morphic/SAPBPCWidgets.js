@@ -139,7 +139,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         return this.rows[y][x];
     },
     atPut: function(x, y, value) {
-        debugger;
+        //debugger;
+        console.log("SAPDataGrid.atPut: x=" + x + ", y=" + y + ", value=" + value );
         this.rows[y][x].textString = value;
     },
     clear: function() {

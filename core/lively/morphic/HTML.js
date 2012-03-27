@@ -855,11 +855,12 @@ debugger;
             element = XHTMLNS.create('div');
             element.style.backgroundColor = Color.red.toCSSString();
         }
-        // if (element.style) { 
-            element.style.width = ((this.extent && this.extent.x) || 200) + 'px'
-            element.style.height = ((this.extent && this.extent.y) || 200) + 'px'
-        // }
-        this.shapeNode = element
+        var $element = $(element),
+            width = $element.width() || 0,
+            height = $element.height() || 0,
+            extent = pt(width || height);
+        this.setExtent(extent);
+        this.shapeNode = element;
     },
 },
 'accessing', {

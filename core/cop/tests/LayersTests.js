@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-module('cop.LayersTest').requires('cop.Layers', 'lively.TestFramework', 'cop.CopBenchmark').toRun(function(thisModule) {
+module('cop.tests.LayersTest').requires('cop.Layers', 'lively.TestFramework', 'cop.CopBenchmark').toRun(function(thisModule) {
 
 
 // COP Example from: Hirschfeld, Costanza, Nierstrasz. 2008. Context-oriented Programming. JOT)

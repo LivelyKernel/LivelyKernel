@@ -1,5 +1,5 @@
-module('lively.morphic.tests.ShapeTests').requires().toRun(function() {
+module('lively.morphic.tests.ShapeTests').requires('lively.TestFramework').toRun(function() {
 
-// Enter your code here
+
 
 }) // end of module

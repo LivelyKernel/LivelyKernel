@@ -916,6 +916,7 @@ lively.morphic.World.addMethods(
             corner && toolPane.owner.addMorph(corner)
         }
         var part = toolPane.openMethodFinderFor(searchString)
+        part.setExtent(toolPane.tabPaneExtent)
         part.owner.layout = part.owner.layout || {};
         part.owner.layout.resizeWidth = true;
         part.owner.layout.resizeHeight = true;

@@ -858,7 +858,7 @@ debugger;
         var $element = $(element),
             width = $element.width() || 0,
             height = $element.height() || 0,
-            extent = pt(width || height);
+            extent = pt(width, height);
 alert(width);
 alert(height);
         this.setExtent(extent);

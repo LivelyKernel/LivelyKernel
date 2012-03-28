@@ -471,7 +471,7 @@ currently only support
         var nAve = 0;
     	var nValue; 
         
-        debugger;
+        //debugger;
         if (sValue){
         
             sValue = sValue.toUpperCase();

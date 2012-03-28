@@ -250,8 +250,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
     removeValue: function(node) {
         var that = this;
         node.withAllChildNodesDo(function(child){
-            var pos = child.position();
-            delete that.values[pos[0] + "-" + pos[1]];
+            delete that.values[child.position()];
             return true;
         });
     },

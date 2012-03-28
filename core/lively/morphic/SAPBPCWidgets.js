@@ -470,6 +470,7 @@ currently only support
         var nTotal = 0;
         var nAve = 0;
     	var nValue; 
+        
         debugger;
         if (sValue){
         
@@ -496,13 +497,15 @@ currently only support
                 arrValue= sValue.replace(/=AVERAGE\(/g, "").replace(/\)/g,"").split(":");
                 var oStartCell = this.parseformulaCellIndex(arrValue[0]);
                 var oEndCell = this.parseformulaCellIndex(arrValue[1]);
+                var nCount=0;
                 if (oStartCell.columnIndex==oEndCell.columnIndex){
                     for (var nRow = oStartCell.rowIndex; nRow <= oEndCell.rowIndex; nRow ++) {
                         nValue = parseFloat(this.at(oStartCell.columnIndex,nRow).textString);
 		        if (isNaN(nValue)) {nValue=0}
 		        nTotal  +=nValue;
+                        nCount +=1;
 		    }
-                    nAve = nTotal/(oEndCell.rowIndex- oStartCell.rowIndex);
+                    nAve = nTotal/nCount;
                     nAve = parseInt(nAve)
 	       }else{//summing horizontally
                     for (var nCol = oStartCell.columnIndex; nCol <= oEndCell.columnIndex; nCol ++) {

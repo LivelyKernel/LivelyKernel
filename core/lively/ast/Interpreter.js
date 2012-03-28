@@ -243,8 +243,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
         return value ? value : this.setPC(node);
     },
     putValue: function(node, value) {
-        var pos = node.position();
-        return this.values[pos[0] + "-" + pos[1]] = {
+        return this.values[node.position()] = {
             val: value
         };
     },

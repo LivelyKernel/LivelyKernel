@@ -903,7 +903,7 @@ Object.extend(lively.ast.FunctionCaller, {
 
 lively.ast.Node.addMethods('interpretation', {
     position: function() {
-        return[this.pos[0], this.pos[1]];
+        return this.pos[0] + "-" + this.pos[1];
     },
     startInterpretation: function(optMapping) {
         return lively.ast.getInterpreter().run(this, optMapping);

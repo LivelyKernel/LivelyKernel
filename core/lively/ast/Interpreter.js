@@ -238,8 +238,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
         if (this.isBreakingAt(node)) this.halt();
     },
     getValue: function(node) {
-        var pos = node.position();
-        var value = this.values[pos[0] + "-" + pos[1]];
+        var value = this.values[node.position()];
         // if no value was cached, set PC and compute normally
         return value ? value : this.setPC(node);
     },

@@ -503,6 +503,7 @@ currently only support
 		        nTotal  +=nValue;
 		    }
                     nAve = nTotal/(oEndCell.rowIndex- oStartCell.rowIndex);
+                    nAve = parseInt(nAve)
 	       }else{//summing horizontally
                     for (var nCol = oStartCell.columnIndex; nCol <= oEndCell.columnIndex; nCol ++) {
 						

@@ -456,10 +456,41 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         });
 
     },
-//Hak March 27 2012.
-    parseFormula: function(sFormula) {
-		//we need somthing smart to parse 
-		return 255;
+/*
+Hak March 27 2012.
+we need smart parser!! this is for POS only
+currently only support 
+=AVERAGE(E3:E7)
+=SUM(E3:E6)
+=E3
+*/
+    parseFormula: function(sValue) {	
+        var arrValue;
+	if (sValue){
+        sValue = sValue.toUpperCase();
+        if (sValue.substr(0,5)=="=SUM("){
+            arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");
+            var oStartCell = parseformulaCellIndex(arrValue[0]);
+            var oEndCell = parseformulaCellIndex(arrValue[1]);
+				//summing vertically
+            if (oStartCell.columnIndex==oEndCell.columnIndex){
+                for (var nRow = oStartCell.rowIndex; nRow <= oEndCell.rowIndex; nRow ++) {
+                    //nValue = parseFloat(this.get('BPCGrid').at(nCol ,nRow).textString);
+		  //if (isNaN(nValue)) {nValue=0}
+		  //nTotal  +=nValue;
+		}
+	   }else{//summing horizontally
+                for (var nCol = oStartCell.columnIndex; nCol <= oEndCell.columnIndex; nCol ++) {
+						
+		  }
+                }
+            }else if(sValue.substr(0,9)=="=AVERAGE("){
+				
+	   }else{
+        
+	   }		
+        }
+    return 255;
 
     },
     morphMenuItems: function ($super) {

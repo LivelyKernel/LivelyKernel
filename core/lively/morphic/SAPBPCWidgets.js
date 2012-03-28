@@ -497,7 +497,6 @@ currently only support
 	   }		
         }
     return 255;
-
     },
     parseformulaCellIndex: function (sValue){
         var oIndex={};

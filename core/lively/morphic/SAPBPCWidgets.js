@@ -505,19 +505,17 @@ currently only support
 		        nTotal  +=nValue;
                         nCount +=1;
 		    }
-                    nAve = nTotal/nCount;
-                    nAve = parseInt(nAve)
+                    nAve = parseInt(nTotal/nCount)
 	       }else{//summing horizontally
                     for (var nCol = oStartCell.columnIndex; nCol <= oEndCell.columnIndex; nCol ++) {
 						
 		      }
                 }
-                
-                return nAve; 
-
-				
-	   }else{
-        
+                return nAve;	
+	   }else{  //copying other cell
+                var oCell = this.parseformulaCellIndex(sValue);
+                nValue = parseFloat(this.at(oCell.columnIndex,oCell.rowIndex).textString);
+                return nValue; 
 	   }		
         }
     return 255;

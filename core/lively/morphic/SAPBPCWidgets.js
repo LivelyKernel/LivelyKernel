@@ -513,7 +513,8 @@ currently only support
                 }
                 return nAve;	
 	   }else{  //copying other cell
-                var oCell = this.parseformulaCellIndex(sValue);
+                var oCell = this.parseformulaCellIndex(sValue.replace(/=/g, ""));
+                
                 nValue = parseFloat(this.at(oCell.columnIndex,oCell.rowIndex).textString);
                 return nValue; 
 	   }		

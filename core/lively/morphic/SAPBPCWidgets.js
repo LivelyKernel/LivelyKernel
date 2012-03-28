@@ -256,8 +256,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
                     x < this.numCols; x++) {
                 //hak formula
                 sValue = this.renderFunction(this.dataModel[y][x]);
-                if (sValue .charAt(0)=="="){
-                    console.log(sValue);
+                if (sValue.charAt(0)=="="){
+                    //console.log(sValue);
                     sValue = this.parseFormula(sValue);
                 }
                 this.at(x,y).textString = sValue;

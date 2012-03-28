@@ -466,7 +466,11 @@ currently only support
 */
     parseFormula: function(sValue) {	
         var arrValue;
-	if (sValue){
+        var nTotal;
+    	var nValue; 
+
+        if (sValue){
+        
             sValue = sValue.toUpperCase();
             if (sValue.substr(0,5)=="=SUM("){
                 arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");
@@ -476,15 +480,16 @@ currently only support
                 debugger;
                 if (oStartCell.columnIndex==oEndCell.columnIndex){
                     for (var nRow = oStartCell.rowIndex; nRow <= oEndCell.rowIndex; nRow ++) {
-                        //nValue = parseFloat(this.get('BPCGrid').at(nCol ,nRow).textString);
-		      //if (isNaN(nValue)) {nValue=0}
-		      //nTotal  +=nValue;
+                        nValue = parseFloat(this.at(oStartCell.columnIndex,nRow).textString);
+		        if (isNaN(nValue)) {nValue=0}
+		        nTotal  +=nValue;
 		    }
 	       }else{//summing horizontally
                     for (var nCol = oStartCell.columnIndex; nCol <= oEndCell.columnIndex; nCol ++) {
 						
 		      }
                 }
+                return nTotal;  
             }else if(sValue.substr(0,9)=="=AVERAGE("){
 				
 	   }else{

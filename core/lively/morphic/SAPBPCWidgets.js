@@ -254,6 +254,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
                 y < this.numRows; y++) {
             for (var x = 0; x < this.dataModel[y].length &&
                     x < this.numCols; x++) {
+                //hak formula
+                sValue = this.renderFunction(this.dataModel[y][x]);
+                if (sValue .charAt(0)=="="){
+                    console.log(sValue);
+                }
                 this.at(x,y).textString = this.renderFunction(this.dataModel[y][x]);
             }
         }

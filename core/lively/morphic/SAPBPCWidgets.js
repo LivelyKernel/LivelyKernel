@@ -466,7 +466,7 @@ currently only support
 */
     parseFormula: function(sValue) {	
         var arrValue;
-        var nTotal;
+        var nTotal = 0;
     	var nValue; 
         debugger;
         if (sValue){

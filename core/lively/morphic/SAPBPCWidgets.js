@@ -474,10 +474,10 @@ currently only support
             sValue = sValue.toUpperCase();
             if (sValue.substr(0,5)=="=SUM("){
                 arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");
-                var oStartCell = parseformulaCellIndex(arrValue[0]);
-                var oEndCell = parseformulaCellIndex(arrValue[1]);
+                var oStartCell = this.parseformulaCellIndex(arrValue[0]);
+                var oEndCell = this.parseformulaCellIndex(arrValue[1]);
+
 	       //summing vertically
-                
                 if (oStartCell.columnIndex==oEndCell.columnIndex){
                     for (var nRow = oStartCell.rowIndex; nRow <= oEndCell.rowIndex; nRow ++) {
                         nValue = parseFloat(this.at(oStartCell.columnIndex,nRow).textString);

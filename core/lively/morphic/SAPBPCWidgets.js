@@ -291,7 +291,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
             console.log("SAPDataGrid.onEnterPressed sValue=" + sValue );
             if (sValue .charAt(0)=="="){
                 this.activeCell.textString=this.parseFormula(sValue);
-                this.activeCell.setToolTip(sValue);
+                //'Formula \n test'
+                this.activeCell.setToolTip('Formula: \n' + sValue);
                 this.activeCell.cellformula = sValue;
                 
             }

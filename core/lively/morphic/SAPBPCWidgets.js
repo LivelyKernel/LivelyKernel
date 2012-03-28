@@ -259,6 +259,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
                 if (sValue.charAt(0)=="="){
                     //console.log(sValue);
                     this.at(x,y).cellformula = sValue;
+
+                    this.at(x,y).setToolTip('Formula: \n' + sValue);
+
+
                     sValue = this.parseFormula(sValue);
                 }
                 this.at(x,y).textString = sValue;

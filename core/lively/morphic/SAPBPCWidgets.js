@@ -499,6 +499,22 @@ currently only support
     return 255;
 
     },
+    parseformulaCellIndex: function (sValue){
+        var oIndex={};
+	var sRow = sValue.replace(/[A-Za-z]/g,'');
+	var sCol = sValue.replace(sRow,'');
+	var instruct = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	var sNewCol = '';
+		
+	for (var i=0; i<sCol.length; i++) {
+	   var n = instruct.indexOf(sCol[i]);
+	   if (n == -1) { sNewCol += sCol[i]; } else { sNewCol += n.toString(); }
+	}
+		
+	oIndex.columnIndex = sNewCol;
+	oIndex.rowIndex = sRow;
+	return oIndex;
+    },
     morphMenuItems: function ($super) {
         var items = $super();
         items.push(['+ column', this.addCol.bind(this)]);

@@ -469,7 +469,7 @@ currently only support
         var arrValue;
         var nTotal = 0;
     	var nValue; 
-        debugger;
+        //debugger;
         if (sValue){
         
             sValue = sValue.toUpperCase();

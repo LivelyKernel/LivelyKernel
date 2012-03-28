@@ -61,7 +61,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
     initialize: function($super, numCols, numRows) {
         $super();
         this.defaultCellHeight = 30;
-        this.defaultCellWidth = 80;
+        this.defaultCellWidth = 180;
         this.borderSize = 50;
         this.colNames = new Array(numCols);
         this.numCols = numCols;

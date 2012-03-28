@@ -258,10 +258,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
                 sValue = this.renderFunction(this.dataModel[y][x]);
                 if (sValue.charAt(0)=="="){
                     //console.log(sValue);
+                    this.at(x,y).cellformula = sValue;
                     sValue = this.parseFormula(sValue);
                 }
                 this.at(x,y).textString = sValue;
-                this.at(x,y).cellformula = sValue;
+               
                 //this.at(x,y).textString = this.renderFunction(this.dataModel[y][x]);
             }
         }

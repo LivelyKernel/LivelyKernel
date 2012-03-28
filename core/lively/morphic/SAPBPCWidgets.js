@@ -468,6 +468,7 @@ currently only support
     parseFormula: function(sValue) {	
         var arrValue;
         var nTotal = 0;
+        var nAve = 0;
     	var nValue; 
         //debugger;
         if (sValue){
@@ -492,6 +493,24 @@ currently only support
                 }
                 return nTotal;  
             }else if(sValue.substr(0,9)=="=AVERAGE("){
+                arrValue= sValue.replace(/=AVERAGE\(/g, "").replace(/\)/g,"").split(":");
+                var oStartCell = this.parseformulaCellIndex(arrValue[0]);
+                var oEndCell = this.parseformulaCellIndex(arrValue[1]);
+                if (oStartCell.columnIndex==oEndCell.columnIndex){
+                    for (var nRow = oStartCell.rowIndex; nRow <= oEndCell.rowIndex; nRow ++) {
+                        nValue = parseFloat(this.at(oStartCell.columnIndex,nRow).textString);
+		        if (isNaN(nValue)) {nValue=0}
+		        nTotal  +=nValue;
+		    }
+                    nAve = nTotal/(oStartCell.rowIndex- oEndCell.rowIndex);
+	       }else{//summing horizontally
+                    for (var nCol = oStartCell.columnIndex; nCol <= oEndCell.columnIndex; nCol ++) {
+						
+		      }
+                }
+                
+                return nAve; 
+
 				
 	   }else{
         

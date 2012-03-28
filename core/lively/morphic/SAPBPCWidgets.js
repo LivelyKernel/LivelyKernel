@@ -187,6 +187,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
     setData: function(aJsArray) {
         this.clear();
         this.dataModel = [];
+        debugger;
         var that = this;
         aJsArray.forEach(function(ea) {
             if (ea.constructor.name === 'Array') {

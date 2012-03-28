@@ -467,22 +467,22 @@ currently only support
     parseFormula: function(sValue) {	
         var arrValue;
 	if (sValue){
-        sValue = sValue.toUpperCase();
-        if (sValue.substr(0,5)=="=SUM("){
-            arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");
-            var oStartCell = parseformulaCellIndex(arrValue[0]);
-            var oEndCell = parseformulaCellIndex(arrValue[1]);
-				//summing vertically
-            if (oStartCell.columnIndex==oEndCell.columnIndex){
-                for (var nRow = oStartCell.rowIndex; nRow <= oEndCell.rowIndex; nRow ++) {
-                    //nValue = parseFloat(this.get('BPCGrid').at(nCol ,nRow).textString);
-		  //if (isNaN(nValue)) {nValue=0}
-		  //nTotal  +=nValue;
-		}
-	   }else{//summing horizontally
-                for (var nCol = oStartCell.columnIndex; nCol <= oEndCell.columnIndex; nCol ++) {
+            sValue = sValue.toUpperCase();
+            if (sValue.substr(0,5)=="=SUM("){
+                arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");
+                var oStartCell = parseformulaCellIndex(arrValue[0]);
+                var oEndCell = parseformulaCellIndex(arrValue[1]);
+	       //summing vertically
+                if (oStartCell.columnIndex==oEndCell.columnIndex){
+                    for (var nRow = oStartCell.rowIndex; nRow <= oEndCell.rowIndex; nRow ++) {
+                        //nValue = parseFloat(this.get('BPCGrid').at(nCol ,nRow).textString);
+		      //if (isNaN(nValue)) {nValue=0}
+		      //nTotal  +=nValue;
+		    }
+	       }else{//summing horizontally
+                    for (var nCol = oStartCell.columnIndex; nCol <= oEndCell.columnIndex; nCol ++) {
 						
-		  }
+		      }
                 }
             }else if(sValue.substr(0,9)=="=AVERAGE("){
 				

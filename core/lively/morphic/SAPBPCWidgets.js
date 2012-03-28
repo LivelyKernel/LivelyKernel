@@ -468,7 +468,7 @@ currently only support
         var arrValue;
         var nTotal;
     	var nValue; 
-
+        debugger;
         if (sValue){
         
             sValue = sValue.toUpperCase();
@@ -477,7 +477,7 @@ currently only support
                 var oStartCell = parseformulaCellIndex(arrValue[0]);
                 var oEndCell = parseformulaCellIndex(arrValue[1]);
 	       //summing vertically
-                debugger;
+                
                 if (oStartCell.columnIndex==oEndCell.columnIndex){
                     for (var nRow = oStartCell.rowIndex; nRow <= oEndCell.rowIndex; nRow ++) {
                         nValue = parseFloat(this.at(oStartCell.columnIndex,nRow).textString);

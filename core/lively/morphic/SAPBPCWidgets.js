@@ -502,7 +502,7 @@ currently only support
 		        if (isNaN(nValue)) {nValue=0}
 		        nTotal  +=nValue;
 		    }
-                    nAve = nTotal/(oStartCell.rowIndex- oEndCell.rowIndex);
+                    nAve = nTotal/(oEndCell.rowIndex- oStartCell.rowIndex);
 	       }else{//summing horizontally
                     for (var nCol = oStartCell.columnIndex; nCol <= oEndCell.columnIndex; nCol ++) {
 						

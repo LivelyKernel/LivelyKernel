@@ -228,7 +228,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
     createDataRowFromObject: function(anObject) {
         var row = [],
             names = this.getColNames();
-        debugger;
+        
         if (names.select(function(ea) {return ea != undefined}).length == 0) { 
             //col names have not been set
             for (var prop in anObject) {

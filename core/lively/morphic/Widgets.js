@@ -1366,7 +1366,7 @@ lively.morphic.List.addMethods(
     },
 },
 'settings', {
-    style: {borderColor: Color.black, borderWidth: 0, fill: Color.gray.lighter().lighter(), clipMode: 'auto', fontFamily: 'Helvetica', fontSize: 10, grabbingEnabled: false},
+    style: {borderColor: Color.black, borderWidth: 0, fill: Color.gray.lighter().lighter(), clipMode: 'auto', fontFamily: 'Helvetica', fontSize: 10, enableGrabbing: false},
     selectionColor: Color.green.lighter(),
     isList: true,
 },

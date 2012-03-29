@@ -342,6 +342,7 @@ Object.subclass('lively.PartsBin.PartItem',
         if (status.isSuccess()) {
             alertOK("Successfully saved "+status.url+" in PartsBin.")
             this.updateRevisionOnLoad();
+            $world.get('PublishPartDialog') && $world.get('PublishPartDialog').remove()
         } else {
             this.alert('Problem saving ' + status.url + ': ' + status)
         }

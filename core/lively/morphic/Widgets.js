@@ -1154,8 +1154,8 @@ lively.morphic.World.addMethods(
 				        ["on Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
                 ["more...", function() { window.open(Config.rootPath + 'documentation/'); }]
             ]],
-            ['save world as ...', this.interactiveSaveWorldAs.bind(this)],
-            ['save world', this.saveWorld.bind(this)]
+            ['save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],
+            ['save world', this.saveWorld.bind(this), 'synchron']
         ];
         return items;
     }

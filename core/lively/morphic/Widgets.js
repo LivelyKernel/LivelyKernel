@@ -941,6 +941,7 @@ lively.morphic.World.addMethods(
         var metaInfo = morph.getPartsBinMetaInfo();
         publishDialog.targetMorph.setTarget(morph);
         publishDialog.openInWorldCenter();
+        $world.publishPartDialog = publishDialog;
         return publishDialog;
     },
     openConnectDocumentation: function() {

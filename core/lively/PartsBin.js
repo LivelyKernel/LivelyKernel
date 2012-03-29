@@ -344,7 +344,7 @@ Object.subclass('lively.PartsBin.PartItem',
             this.updateRevisionOnLoad();
             if ($world.publishPartDialog) {
                 $world.publishPartDialog.remove();
-                delete $world.pusblishPartDialog;
+                delete $world.publishPartDialog;
             }
         } else {
             this.alert('Problem saving ' + status.url + ': ' + status)

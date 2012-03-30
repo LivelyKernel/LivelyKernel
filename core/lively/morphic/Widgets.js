@@ -1781,6 +1781,7 @@ alignReframeHandle: function() {
             target = this;
         }
         menu = target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
+        console.log("showTarget")
         this.patchTargetMorphMenu(menu)
     },
     morphMenuItems: function($super) {

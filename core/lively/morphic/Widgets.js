@@ -1931,7 +1931,7 @@ alignReframeHandle: function() {
         if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(false);
     },
     patchTargetMorphMenu: function(menu) {
-        console.log("1 patchTargetMorphMenu")
+        console.log("1 patchTargetMorphMenu: "+ menu)
 
         var items = menu.items,
             self = this;

@@ -1600,6 +1600,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
             //this.collapseButton.linkToStyles('titleBar_collapseButton');
 
             this.connectButtons(windowMorph);
+            console.log('initialize')
         }
         // This will align the buttons and label properly
         this.adjustForNewBounds();

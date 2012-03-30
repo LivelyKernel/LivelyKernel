@@ -1939,6 +1939,7 @@ alignReframeHandle: function() {
             self.copyToPartsBinWithUserRequest();
         }]
         menu.addItems(items)
+        console.log("patchTargetMorphMenu")
     },
 
 

@@ -1783,7 +1783,6 @@ alignReframeHandle: function() {
         } else {
             target = this;
         }
-        console.log("showTargetMorphMenu")
         menu = target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
         this.patchTargetMorphMenu(menu)
     },

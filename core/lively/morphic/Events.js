@@ -951,6 +951,8 @@ handleOnCapture);
             placeholderPosition = this.placeholder.getPosition();
         }
         aMorph.addMorph(this);
+        delete this.previousOwner;
+        delete this.previousPosition;
         this.onDropOn(aMorph);
         if (placeholderPosition) {
             delete(this.placeholder);

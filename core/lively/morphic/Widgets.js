@@ -1139,7 +1139,8 @@ lively.morphic.World.addMethods(
             clipMode: 'auto',
             fixedWidth: true, fixedHeight: true,
             resizeWidth: true, resizeHeight: true,
-            syntaxHighlighting: spec.syntaxHighlighting});
+            syntaxHighlighting: spec.syntaxHighlighting,
+            padding: Rectangle.inset(4,2)});
         return pane;
     },
 

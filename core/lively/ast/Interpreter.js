@@ -799,13 +799,12 @@ Object.subclass('lively.ast.FunctionCaller', 'documentation', {
     },
 },
 'interpretation', {
-    shouldInterpret: function(func) {
+    shouldInterpret: function(frame, func) {
         if (this.isNative(func))
             return false;
-        return
-            func.hasOwnProperty("forInterpretation") ||
-            frame.breakAtCalls ||
-            func.containsDebugger();
+        return func.hasOwnProperty("forInterpretation") ||
+                frame.breakAtCalls ||
+                func.containsDebugger();
     },
     activate: function(frame, isNewCall, func, funcName, recv, argValues) {
         // if we send apply to a function (recv) we want to interpret it
@@ -817,7 +816,7 @@ Object.subclass('lively.ast.FunctionCaller', 'documentation', {
             argValues = argValues[0]; // the second arg are the arguments (as an array)
         }
 
-        if (this.shouldInterpret(func)) {
+        if (this.shouldInterpret(frame, func)) {
             func = func.forInterpretation(Global);
         }
 
@@ -990,6 +989,7 @@ lively.ast.Function.addMethods('accessing', {
             return that.apply(this, $A(arguments));
         };
         fn.forInterpretation = function() { return that; };
+        fn.prototype = this.prototype;
         return fn;
     }
 },

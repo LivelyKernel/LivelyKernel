@@ -154,12 +154,9 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
                     children: [{
                         isReturn: true,
                         expr: {
-                            isSequence: true,
-                            children: [{
-                                isPostOp: true,
-                                name: '++',
-                                expr: {isVariable: true, name: 'a'}
-                            }]
+                            isPostOp: true,
+                            name: '++',
+                            expr: {isVariable: true, name: 'a'}
                         }
                     }]
                 },
@@ -183,7 +180,7 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         this.assertIdentity(funcAst,
             funcAst.body.children[0]
                 .trueExpr.children[0]
-                .expr.children[0]
+                .expr
                 .right.parentFunction());
     },
 
@@ -204,21 +201,19 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         // 11   Call(children)
         // 12  Sequence(body)
         // 13 Function(undefined)
-        this.assertEquals(0, funcAst.body.children[0].condExpr.children[0].astIndex());
-        this.assertEquals(1, funcAst.body.children[0].condExpr.astIndex());
-        this.assertEquals(2, funcAst.body.children[0].trueExpr.children[0].expr.children[0].left.astIndex());
-        this.assertEquals(3, funcAst.body.children[0].trueExpr.children[0].expr.children[0].right.fn.astIndex());
-        this.assertEquals(4, funcAst.body.children[0].trueExpr.children[0].expr.children[0].right.astIndex());
-        this.assertEquals(5, funcAst.body.children[0].trueExpr.children[0].expr.children[0].astIndex());
-        this.assertEquals(6, funcAst.body.children[0].trueExpr.children[0].expr.astIndex());
-        this.assertEquals(7, funcAst.body.children[0].trueExpr.children[0].astIndex());
-        this.assertEquals(8, funcAst.body.children[0].trueExpr.astIndex());
-        this.assertEquals(9, funcAst.body.children[0].falseExpr.astIndex());
-        this.assertEquals(10, funcAst.body.children[0].astIndex());
-        this.assertEquals(11, funcAst.body.children[1].fn.astIndex());
-        this.assertEquals(12, funcAst.body.children[1].astIndex());
-        this.assertEquals(13, funcAst.body.astIndex());
-        this.assertEquals(14, funcAst.astIndex());
+        this.assertEquals(0, funcAst.body.children[0].condExpr.astIndex());
+        this.assertEquals(1, funcAst.body.children[0].trueExpr.children[0].expr.left.astIndex());
+        this.assertEquals(2, funcAst.body.children[0].trueExpr.children[0].expr.right.fn.astIndex());
+        this.assertEquals(3, funcAst.body.children[0].trueExpr.children[0].expr.right.astIndex());
+        this.assertEquals(4, funcAst.body.children[0].trueExpr.children[0].expr.astIndex());
+        this.assertEquals(5, funcAst.body.children[0].trueExpr.children[0].astIndex());
+        this.assertEquals(6, funcAst.body.children[0].trueExpr.astIndex());
+        this.assertEquals(7, funcAst.body.children[0].falseExpr.astIndex());
+        this.assertEquals(8, funcAst.body.children[0].astIndex());
+        this.assertEquals(9, funcAst.body.children[1].fn.astIndex());
+        this.assertEquals(10, funcAst.body.children[1].astIndex());
+        this.assertEquals(11, funcAst.body.astIndex());
+        this.assertEquals(12, funcAst.astIndex());
     },
     test05bEnumerateASTNodesButNotNestedFunctions: function() {
         var funcAst = function() { (function() { return 3 }); foo() }.ast();
@@ -459,13 +454,13 @@ TestCase.subclass('lively.ast.tests.AstTests.InterpreterTest',
             result  = ast.startInterpretation();
         this.assertEquals(2, result);
     },
-    X_test24bNewThenObjAccess: function() {
+    test24bNewThenObjAccess: function() {
         var src = 'function m() { this.a = 2 }; new m().a',
             ast = this.parseJS(src),
             result  = ast.startInterpretation();
         this.assertEquals(2, result);
     },
-    X_test24cNewPrototypeInheritence: function() {
+    test24cNewPrototypeInheritence: function() {
         var src = 'function m() { this.a = 1 }; m.prototype.b = 2; new m().b',
             ast = this.parseJS(src),
             result  = ast.startInterpretation();
@@ -477,13 +472,13 @@ TestCase.subclass('lively.ast.tests.AstTests.InterpreterTest',
             result  = ast.startInterpretation();
         this.assertEquals(2, result);
     },
-    X_test24eObjReallyInherits: function() {
+    test24eObjReallyInherits: function() {
         var src = 'function m() {}; m.prototype.a = 2; var obj = new m(); m.prototype.a = 1; obj.a',
             ast = this.parseJS(src),
             result  = ast.startInterpretation();
         this.assertEquals(1, result);
     },
-    X_test24eFuncCallInNewExpr: function() {
+    test24eFuncCallInNewExpr: function() {
         var src = 'function m() { this.a = (function() { return 1 })() }; new m().a',
             ast = this.parseJS(src),
             result  = ast.startInterpretation();
@@ -1105,7 +1100,7 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         this.assertEquals(frame.mapping["i"], 23);
         frame.stepToNextStatement();
     },
-    X_testStepOverAnotherDebugger: function() {
+    testStepOverAnotherDebugger: function() {
         var that = this;
         var outer = this.assertBreaksWhenInterpretated(this.examples.callAnotherDebugger);
         this.assertBreaks(function() { outer.stepToNextStatement(); });
@@ -1123,7 +1118,7 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         );
         //outer.stepToNextStatement();
     },
-    X_testStepInto: function() {
+    testStepInto: function() {
         var that = this;
         var outer = this.assertBreaksWhenInterpretated(this.examples.callNoDebugger);
         this.assertEquals(outer.mapping["a"], 65);
@@ -1140,7 +1135,7 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         this.assertEquals(outer.mapping["j"], 23);
         this.assertEquals(outer.resume(), 46);
     },
-    X_testResumeReturnAfterStepInto: function() {
+    testResumeReturnAfterStepInto: function() {
         var that = this;
         var outer = this.assertBreaksWhenInterpretated(this.examples.returnNoDebugger);
         this.assertEquals(outer.mapping["j"], 23);
@@ -1152,7 +1147,7 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         this.assertEquals(inner.mapping["i"], 23);
         this.assertEquals(inner.resume(), 46);
     },
-    X_testStepOutAfterReturnStepInto: function() {
+    testStepOutAfterReturnStepInto: function() {
         var that = this;
         var outer = this.assertBreaksWhenInterpretated(this.examples.returnNoDebugger);
         this.assertBreaks(function() { that.assert(outer.stepToNextStatement()); });
@@ -1188,7 +1183,7 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         this.assertBreaks(function() { frame.stepToNextStatement(); });
         this.assertEquals(frame.mapping.i, 24);
     },
-    X_testFactorial: function() {
+    testFactorial: function() {
         var that = this;
         var fun = this.examples.factorial.forInterpretation();
         var fac3 = this.assertBreaks(function() {
@@ -1309,20 +1304,20 @@ TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
     testIfThenElseBlock: function() {
         var fun = function() {if(2>1){a(3);a(4)}else{c=3;c=4};var a=1};
         var ast = fun.ast();
-        var node = ast.firstStatement(); //2>1
-        this.assert(node.isBinaryOp);
-        node = node.nextStatement(); //a(3)
-        this.assert(node.isCall);
-        node = node.nextStatement(); //a(4)
-        this.assert(node.isCall);
-        node = node.nextStatement(); //var a=1
-        this.assert(node.isVarDeclaration);
-        node = ast.nodeForAstIndex(13); // c=3
-        this.assert(node.isSet);
-        node = node.nextStatement(); // c=4
-        this.assert(node.isSet);
-        node = node.nextStatement(); //var a=1
-        this.assert(node.isVarDeclaration);
+        var node = ast.firstStatement();
+        this.assert(node.isBinaryOp, "2>1");
+        node = node.nextStatement();
+        this.assert(node.isCall, "a(3)");
+        node = node.nextStatement();
+        this.assert(node.isCall, "a(4)");
+        node = node.nextStatement();
+        this.assert(node.isVarDeclaration, "var a=1");
+        node = ast.nodeForAstIndex(12);
+        this.assert(node.isSet, "c=3");
+        node = node.nextStatement();
+        this.assert(node.isSet, "c=4");
+        node = node.nextStatement();
+        this.assert(node.isVarDeclaration, "var a=1");
     },
     testForLoop: function() {
         var fun = function() {var a=0;for(var i=1;i<4;i++){a=i}};

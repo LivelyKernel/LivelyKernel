@@ -56,25 +56,26 @@ toks =
 	-> ts,
 token :tt = tok:t ?(t[0] == tt) -> { t[2] }, // we return t[2] not t[1] because t[1] is the pos
 spacesNoNl = (~'\n' space)*,
-exprList =
-    pos:p1 listOf(#expr, ','):bs pos:p2	-> [#begin, [p1, p2]].concat(bs),
 expr =
+	pos:p1 expr:f ',' exprPart:s pos:p2	-> [#begin, [p1, p2], f,s]
+        | exprPart,
+exprPart =
 	pos:p1 orExpr:e (
-		"?" expr:t ":" expr:f pos:p2			-> [#condExpr, [p1, p2], e, t, f]
-		| "="    expr:rhs pos:p2			-> [#set,  [p1, p2], e, rhs]
-		| "+="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "+",   rhs]
-		| "-="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "-",   rhs]
-		| "*="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "*",   rhs]
-		| "/="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "/",   rhs]
-		| "%="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "%",   rhs]
-		| "&="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "&",   rhs]
-		| "&&="  expr:rhs pos:p2			-> [#mset, [p1, p2], e, "&&",  rhs]
-		| "|="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "|",   rhs]
-		| "||="  expr:rhs pos:p2			-> [#mset, [p1, p2], e, "||",  rhs]
-		| "^="   expr:rhs pos:p2			-> [#mset, [p1, p2], e, "^",   rhs]
-		| ">>="  expr:rhs pos:p2			-> [#mset, [p1, p2], e, ">>",  rhs]
-		| "<<="  expr:rhs pos:p2			-> [#mset, [p1, p2], e, "<<",  rhs]
-		| ">>>=" expr:rhs pos:p2			-> [#mset, [p1, p2], e, ">>>", rhs]
+		"?" exprPart:t ":" exprPart:f pos:p2			-> [#condExpr, [p1, p2], e, t, f]
+		| "="    exprPart:rhs pos:p2			-> [#set,  [p1, p2], e, rhs]
+		| "+="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "+",   rhs]
+		| "-="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "-",   rhs]
+		| "*="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "*",   rhs]
+		| "/="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "/",   rhs]
+		| "%="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "%",   rhs]
+		| "&="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "&",   rhs]
+		| "&&="  exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "&&",  rhs]
+		| "|="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "|",   rhs]
+		| "||="  exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "||",  rhs]
+		| "^="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "^",   rhs]
+		| ">>="  exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, ">>",  rhs]
+		| "<<="  exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "<<",  rhs]
+		| ">>>=" exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, ">>>", rhs]
 		| empty									-> e
 	),
 orExpr =
@@ -112,27 +113,35 @@ unary =
 		| "typeof" unary:p   pos:p2 -> [#unop,  [p1, p2], "typeof",   p])
 	| postfix,
 postfix =
-	pos:p1 primExpr:p ( spacesNoNl "++"	pos:p2	-> [#postop, [p1, p2], "++", p]
-		| spacesNoNl "--" pos:p2				-> [#postop, [p1, p2], "--", p]
+	pos:p1 callExpr:p ( spacesNoNl "++" pos:p2	-> [#postop, [p1, p2], "++", p]
+		| spacesNoNl "--" pos:p2			-> [#postop, [p1, p2], "--", p]
 		| empty							-> p
 	),
-primExpr =
-	pos:p1 primExpr:p ( "[" exprList:i "]" pos:p2				-> [#getp, [p1, p2], i, p]
-		| "." "name":m "(" listOf(#expr, ','):as ")" pos:p2	-> [#send, [p1, p2], m, p].concat(as)
-		| "." pos:p3 "name":f pos:p2						-> [#getp, [p1, p2], [#string, [p3,p2], f], p]
-		| "(" listOf(#expr, ','):as ")" pos:p2				-> [#call, [p1, p2], p].concat(as)
+args = "(" listOf(#exprPart, ','):as ")" -> as,
+callExpr =
+	pos:p1 callExpr:p (
+		args:as pos:p2				-> [#call, [p1, p2], p].concat(as)
+		| "." "name":m args:as pos:p2	-> [#send, [p1, p2], m, p].concat(as)
+		| "[" expr:i "]" pos:p2			-> [#getp, [p1, p2], i, p]
+		| "." pos:p3 "name":f pos:p2	-> [#getp, [p1, p2], [#string, [p3,p2], f], p]
 		)
-	| primExprHd,
-primExprHd =
+	| primExpr,
+memberExpr =
+	pos:p1 memberExpr:p (
+		"[" expr:i "]" pos:p2				-> [#getp, [p1, p2], i, p]
+		| "." pos:p3 "name":f pos:p2		-> [#getp, [p1, p2], [#string, [p3,p2], f], p]
+		)
+	| primExpr,
+primExpr =
 	"(" expr:e ")" -> e
 	| pos:p1 (
 		"this" pos:p2											-> [#this, [p1, p2]]
+		| "new" pos:p3 memberExpr:e (args | empty -> []):as pos:p2	-> [#new, [p1, p2], [#call, [p3, p2], e].concat(as)]
 		| "name":n pos:p2										-> [#get, [p1, p2], n]
 		| "number":n pos:p2										-> [#number, [p1, p2], n]
 		| "string":s pos:p2										-> [#string, [p1, p2], s]
 		| "function" ("name" | empty) funcRest
-		| "new" primExpr:e 	pos:p2								-> [#new, [p1, p2], e]
-		| "[" listOf(#expr, ','):es ("," | empty) "]"	pos:p2	-> [#arr, [p1, p2]].concat(es)
+		| "[" listOf(#exprPart, ','):es ("," | empty) "]"	pos:p2	-> [#arr, [p1, p2]].concat(es)
 		| "/" (escapeChar | ~'\/' char)*:e "/" letter*:f pos:p2	-> [#regex, [p1, p2], e.join(''), f.join('')]
 	 )
 	| json,
@@ -142,7 +151,7 @@ json =
 	-> [#json, [p1, p2]].concat(bs),
 
 jsonBinding =
-	pos:p1 jsonPropName:n ":" expr:v pos:p2
+	pos:p1 jsonPropName:n ":" exprPart:v pos:p2
 	-> [#binding, [p1, p2], n, v],
 jsonPropName = "name" | "number" | "string",
 formal = spaces "name",
@@ -152,7 +161,7 @@ funcRest =
 sc =
 	spacesNoNl ('\n' | &'}' | end) | ";",
 binding =
-	pos:p1 "name":n ( "=" expr | empty pos:p -> [#get, [p, p], 'undefined'] ):v pos:p2
+	pos:p1 "name":n ( "=" exprPart | empty pos:p -> [#get, [p, p], 'undefined'] ):v pos:p2
 	-> [#var, [p1, p2], n, v],
 bindingList =
 	pos:p1 listOf(#binding, ','):bs pos:p2	-> [#begin, [p1, p2]].concat(bs),
@@ -163,16 +172,16 @@ stmt =
 	block
 	| pos:p1 (
 		"var" bindingList:bs sc pos:p2	-> bs
-		| "if" "(" exprList:c ")" stmt:t
+		| "if" "(" expr:c ")" stmt:t
 			( "else" stmt
 		    | empty pos:p -> [#get, [p,p], 'undefined']
 			):f (sc | empty) pos:p2					-> [#if, [p1, p2], c, t, f]
-		| "while" "(" exprList:c ")" stmt:s pos:p2		-> [#while,   [p1, p2], c, s]
-		| "do" stmt:s "while" "(" exprList:c ")" sc pos:p2 -> [#doWhile, [p1, p2], s, c]
+		| "while" "(" expr:c ")" stmt:s pos:p2		-> [#while,   [p1, p2], c, s]
+		| "do" stmt:s "while" "(" expr:c ")" sc pos:p2 -> [#doWhile, [p1, p2], s, c]
 		| "for" "("
-			( "var" bindingList | exprList | empty pos:p -> [#get, [p, p], 'undefined'] ):i
+			( "var" bindingList | expr | empty pos:p -> [#get, [p, p], 'undefined'] ):i
 			";" ( expr | empty pos:p -> [#get, [p, p], 'true'] ):c
-			";" ( exprList | empty pos:p -> [#get, [p, p], 'undefined'] ):u
+			";" ( expr | empty pos:p -> [#get, [p, p], 'undefined'] ):u
 			")" stmt:s pos:p2						-> [#for, [p1, p2], i, c, u, s]
 		| "for" "("
 			( pos:p3 ( "var" "name":n pos:p4 -> [#var, [p3, p4], n, [#get, [p3, p3], 'undefined']] ) | "name":n pos:p4 -> [#get, [p3, p4], n] ):v
@@ -184,13 +193,13 @@ stmt =
 		| "break" sc pos:p2							-> [#break, [p1, p2]]
 		| "debugger" sc pos:p2							-> [#debugger, [p1, p2]]
 		| "continue" sc pos:p2						-> [#continue, [p1, p2]]
-		| "throw" spacesNoNl exprList:e sc pos:p2		-> [#throw, [p1, p2], e]
+		| "throw" spacesNoNl expr:e sc pos:p2		-> [#throw, [p1, p2], e]
 		| "try" block:t
 			( "catch" "(" "name":e ")" block | empty pos:p -> [#get, [p,p], 'undefined'] ):c
 			( "finally" block | empty pos:p -> [#get, [p,p], 'undefined'] ):f sc pos:p2
 			-> [#try, [p1, p2], t, e, c, f]
-		| "return" ( exprList | empty pos:p -> [#get, [p,p], 'undefined'] ):e sc pos:p2 -> [#return, [p1, p2], e]
-		| "with" "(" exprList:x ")" stmt:s pos:p2		-> [#with, [p1, p2], x, s]
+		| "return" ( expr | empty pos:p -> [#get, [p,p], 'undefined'] ):e sc pos:p2 -> [#return, [p1, p2], e]
+		| "with" "(" expr:x ")" stmt:s pos:p2		-> [#with, [p1, p2], x, s]
 		| expr:e sc									-> e
 		| ";" pos:p2								-> [#get, [p1, p2], "undefined"]),
 srcElem =

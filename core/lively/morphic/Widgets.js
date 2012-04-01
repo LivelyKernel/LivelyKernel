@@ -737,7 +737,7 @@ lively.morphic.Morph.addMethods(
         this.showsMorphMenu = true;
     },
     disableMorphMenu: function() { this.showsMorphMenu = false },
-    openMorphMenuAt: function(pos) {
+    openMorphMenuAt: function(pos, itemsCallback) {
         var items = this.morphMenuItems();
         if (itemsCallback instanceof Function)
             items = itemsCallback(items);

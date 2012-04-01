@@ -1166,8 +1166,8 @@ lively.morphic.World.addMethods(
     },
 },
 'windows', {
-    addFramedMorph: function(morph, title, optLoc, optSuppressControls) {
-        var w = this.addMorph(new lively.morphic.Window(morph, title || 'Window', optSuppressControls));
+    addFramedMorph: function(morph, title, optLoc, optSuppressControls, suppressReframeHandle) {
+        var w = this.addMorph(new lively.morphic.Window(morph, title || 'Window', optSuppressControls, suppressReframeHandle));
         w.setPosition(optLoc || this.positionForNewMorph(morph));
         return w;
     },
@@ -1187,10 +1187,10 @@ lively.morphic.World.addMethods(
         return pane;
     },
 
-    internalAddWindow: function(morph, title, pos) {
+    internalAddWindow: function(morph, title, pos, suppressReframeHandle) {
         morph.applyStyle({borderWidth: 1, borderColor: CrayonColors.iron});
         pos = pos || this.firstHand().getPosition().subPt(pt(5, 5));
-        var win = this.addFramedMorph(morph, String(title || ""), pos);
+        var win = this.addFramedMorph(morph, String(title || ""), pos, suppressReframeHandle);
         return morph;
     },
 },
@@ -1671,6 +1671,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
             titleHeight = titleBar.bounds().height - titleBar.getBorderWidth();
         this.setBounds(bounds.withHeight(bounds.height + titleHeight));
         this.targetMorph = this.addMorph(targetMorph);
+        if (Config.danTest) {
+            this.reframeHandle = this.addMorph(this.makeReframeHandle());
+            this.alignReframeHandle();
+            }
         this.titleBar = this.addMorph(titleBar);
         //this.contentOffset = pt(0, titleHeight - titleBar.getBorderWidth()/2); // FIXME: hack
         this.contentOffset = pt(0, titleHeight);
@@ -1692,6 +1696,48 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
         // Overridden in TabbedPanelMorph
         return new lively.morphic.TitleBar(titleString, width, this, optSuppressControls);
     },
+removeHalos: function($super, optWorld) {
+    // Sadly, this doesn't get called when click away from halo
+    // Need to patch World.removeHalosFor, or refactor so it calls this
+    if (this.reframeHandle) {
+        this.addMorphFront(this.reframeHandle);
+        this.alignReframeHandle();
+        }
+    $super(optWorld)
+    },
+showHalos: function($super) {
+    // Hide the reframe handle in case of menu reframe
+    this.reframeHandle && this.reframeHandle.remove()
+    $super()
+    },
+
+
+makeReframeHandle: function() {
+    var handle = Morph.makePolygon([pt(14, 0), pt(14, 14), pt(0, 14)], 0, null, Color.gray);
+    handle.onDragStart = function(evt) {
+        this.dragStartPoint = evt.mousePoint;
+        this.originalTargetExtent = this.owner.getExtent();
+        };
+    handle.onDrag = function(evt) {
+        var moveDelta = evt.mousePoint.subPt(this.dragStartPoint)
+        if (evt.isShiftDown()) {
+            var maxDelta = Math.max(moveDelta.x, moveDelta.y);
+	    moveDelta = pt(maxDelta, maxDelta);
+            };
+        this.owner.setExtent(this.originalTargetExtent.addPt(moveDelta));
+        this.align(this.bounds().bottomRight(), this.owner.getExtent());
+        };
+    handle.onDragEnd = function (evt) {
+        this.dragStartPoint = null;
+        this.originalTargetExtent = null;
+        };
+    return handle;
+},
+alignReframeHandle: function() {
+    if (this.reframeHandle) this.reframeHandle.align(this.reframeHandle.bounds().bottomRight(), this.getExtent());
+    },
+
+
     getBounds: function($super) {
         if (this.titleBar && this.isCollapsed()) {
             var titleBarTranslation = this.titleBar.getGlobalTransform().getTranslation();
@@ -1755,6 +1801,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
             scrolls.push(ea.getScroll());
         });
         this.owner.addMorphFront(this); // come forward
+        if (this.reframeHandle) {
+            this.addMorphFront(this.reframeHandle);
+            this.alignReframeHandle();
+            }
         (function() {
         textsAndLists.forEach(function(ea, i) { ea.setScroll(scrolls[i][0], scrolls[i][1]) });
         this.targetMorph && this.targetMorph.onWindowGetsFocus && this.targetMorph.onWindowGetsFocus();

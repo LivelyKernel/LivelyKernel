@@ -26,7 +26,17 @@ Object.subclass('lively.PartsBin.PartItem',
     },
 
     getFileURL: function() {
-        return this.getPartsSpace().getURL().withFilename(this.name + ".json")
+        /*return this.getPartsSpace().getURL().withFilename(this.name + ".json")*/
+
+        var partName;
+        // the fileURL is computed with the partName stored in the PartsBinMetaInfo, if possible
+        if (this.part && this.part.getPartsBinMetaInfo()) {
+            partName = this.part.getPartsBinMetaInfo().partName
+        }
+        else {
+            partName = this.name;
+        }
+        return this.getPartsSpace().getURL().withFilename(partName + ".json")
     },
     getMetaInfoURL: function() {
         return this.getPartsSpace().getURL().withFilename(this.name + ".metainfo")
@@ -177,10 +187,22 @@ Object.subclass('lively.PartsBin.PartItem',
             return this;
         }
 
+        // a revisionOnLoad should always be set! If no PartsBinMetaInfo can be found, the revisionOnLoad is computed via the webresource
+        if (rev) {
+            this.rev = rev
+        }
+        else if (this.partVersions) {
+            this.rev = this.partVersions.first().rev
+        }
+        else {
+            var webR = new WebResource(this.getFileURL());
+            this.rev = webR && webR.exists() && webR.getVersions().versions.first().rev
+        };
+
         // ensure that setPartFromJSON is only called when both json and metaInfo are there.
         var loadTrigger = {
             item: this,
-            rev: rev,
+            rev: this.rev,
             triggerSetPart: function() {
                 this.item.setPartFromJSON(this.json, this.metaInfo, this.rev);
             },
@@ -204,6 +226,7 @@ Object.subclass('lively.PartsBin.PartItem',
         
         this.load(isAsync, rev);
         this.loadPartMetaInfo(isAsync, rev)
+
         return this;
     },
 
@@ -268,7 +291,8 @@ Object.subclass('lively.PartsBin.PartItem',
             .put(serialized.json);
 
         new WebResource(this.getHTMLLogoURL()).beAsync().put(serialized.htmlLogo);
-        new WebResource(this.getMetaInfoURL()).beAsync().put(serialized.metaInfo);
+        var resource = new WebResource(this.getMetaInfoURL()).beAsync().put(serialized.metaInfo);
+        return resource;
     },
     copyFilesFrom: function(otherItem) {
         new WebResource(otherItem.getFileURL()).copyTo(this.getFileURL());
@@ -292,6 +316,11 @@ Object.subclass('lively.PartsBin.PartItem',
         var webR = new WebResource(this.getFileURL());
         return webR.getHeadRevision().headRevision;
     },
+    isInPartsBin: function() {
+        //if there is a PartsBin representation, this returns true. If a Part was deleted from PartsBin, but an artifact of is published, this returns false
+        return (new WebResource(this.getFileURL())).exists()
+    },
+
 
 
 
@@ -306,6 +335,8 @@ Object.subclass('lively.PartsBin.PartItem',
     toString: function() {
         return 'PartsItem(' + this.name + ',' + this.getPartsSpace() + ')';
     },
+
+
 });
 
 Object.subclass('lively.PartsBin.PartsBinMetaInfo',
@@ -498,7 +529,16 @@ Trait('lively.PartsBin.PartTrait', {
         this.getPartsBinMetaInfo().migrationLevel = LivelyMigrationSupport.migrationLevel;
         this.getPartsBinMetaInfo().partName = this.name;
         
-        this.getPartItem().uploadPart();
+        var metaResource = this.getPartItem().uploadPart();
+
+        // set head revision to newly created revision
+        connect(metaResource, 'status', this, 'updateHeadRevision', {
+            updater: function ($upt, status) {
+                if (status.isDone()) {
+                    $upt();
+                }
+            }
+        });
     },
     copyToPartsBinWithUserRequest: function() {
         this.world().openPublishPartDialogFor(this)
@@ -590,7 +630,28 @@ Trait('lively.PartsBin.PartTrait', {
     },
     asHTMLLogo: function() {
         return '<html><body>please implement</body></html>'
-    }
+    },
+    isCurrentPartsBinVersion: function() {
+        //Returns true if called on a morph that is a copy of a current PartsBin version 
+        if (this.getPartItem().isInPartsBin()) {
+            var curRevision = this.getPartItem().loadPartVersions().partVersions.first().rev
+            var myVersion = this.headRevision || this.getPartsBinMetaInfo().revisionOnLoad;
+    
+            if (curRevision == myVersion) return true
+            return false
+        }
+        else {
+            return true;
+        }
+    },
+    updateHeadRevision: function() {
+        //headRevision of a morph is set when it is published
+        var rev = this.getPartItem().loadPartVersions().partVersions.first().rev;
+        this.headRevision = rev;
+        return rev;
+    },
+
+
 });
 
 

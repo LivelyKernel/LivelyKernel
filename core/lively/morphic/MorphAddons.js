@@ -195,6 +195,11 @@ lively.morphic.Morph.addMethods(
             this.owner.setTitle(this.name);
         }
     },
+    openInWorldCenter: function() {
+        //parallel functionality as in openPartItem
+        this.openInWorld();
+        this.align(this.bounds().center(), $world.visibleBounds().center());
+    },
 },
 'removing', {
     removeAllMorphs: function() {

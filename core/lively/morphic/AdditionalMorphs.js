@@ -1139,6 +1139,17 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
         this.getTabBar().addTab(aTab);
     },   
 
+    panes: function() {
+        return this.getTabBar().getTabs().invoke('getPane');
+    },
+
+    activeTab: function() {
+        return this.getTabBar().getTabs().detect(function(ea) { return ea.isActive });
+    },
+
+    activePane: function() {
+        return this.activeTab().getPane();
+    },
 });
 
 lively.morphic.Morph.subclass('lively.morphic.TabBar',
@@ -1368,10 +1379,12 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         this.getTabContainer().addTabPane(this.getPane());
         this.setFill(Color.white);
         delete this.isInActivationCycle;
+        this.isActive = true;
         this.getPane().onActivate();
     },
     deactivate: function() {
         this.setFill(Color.gray);
+        this.isActive = false;
     },
     addCloseButton: function() {
         var closer = new lively.morphic.Button;

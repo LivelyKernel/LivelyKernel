@@ -82,7 +82,7 @@ lively.morphic.World.addMethods(
     removeHalosFor: function(morph, withoutHalos) {
         withoutHalos = withoutHalos || [];
         if (withoutHalos.length === 0) {
-            delete this.currentHaloTarget;
+            this.currentHaloTarget = undefined;
             morph.showsHalos = false;
         }
         if (!morph.halos) return;

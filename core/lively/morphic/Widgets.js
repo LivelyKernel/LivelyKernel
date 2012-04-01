@@ -1775,7 +1775,7 @@ alignReframeHandle: function() {
 'menu', {
     showTargetMorphMenu: function() {
         var target, menu, items, self, callback;
-        if (this.targetMorph) {
+        if (this.targetMorph || this.isWindow) {
             alertOK('1')
             target = this.targetMorph;
             callback = function(items) {

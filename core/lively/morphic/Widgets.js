@@ -1780,6 +1780,7 @@ alignReframeHandle: function() {
         var target, menu, items, self, callback;
         if (this.targetMorph) {
             target = this.targetMorph;
+            self = this;
             callback = function(items) {
                 items[0] = [
                     'publish window', function(evt) {

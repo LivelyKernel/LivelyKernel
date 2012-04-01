@@ -725,8 +725,6 @@ Object.extend(lively.morphic.Menu, {
         return this.openAt(lively.morphic.World.current().firstHand().getPosition(), title, items);
     },
     openAt: function(pos, title, items) {
-        console.log("openAt: "+menu);
-
         var menu = new lively.morphic.Menu(title, items);
         return menu.openIn(lively.morphic.World.current(), pos, false);
     },

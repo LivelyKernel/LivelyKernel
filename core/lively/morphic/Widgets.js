@@ -1784,7 +1784,8 @@ alignReframeHandle: function() {
                 items[0] = [
                     'publish window', function(evt) {
                     self.copyToPartsBinWithUserRequest();
-                }]}        
+                }]}
+                return items;        
             } 
         else {
             target = this;

@@ -297,7 +297,7 @@ lively.morphic.EventHandler.subclass('lively.morphic.RelayEventHandler',
         }
 
         // For some reason it works a bit better when we generate the events again...
-        if (true || evt.type == 'mousemove') {
+        if (evt.type === 'mousemove' || evt.type === 'mousedown' || evt.type === 'mouseup' || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'mouseover' || evt.type === 'mouseout' || evt.type === 'mousewheel' || evt.type === 'mouseenter' || evt.type === 'mouseleave') {
             var e = document.createEvent("MouseEvents"),
                 be = evt,
                 et = be.type;

@@ -1,5 +1,77 @@
 module('lively.morphic.tests.EventTests').requires('lively.morphic.tests.Morphic').toRun(function() {
 
+// this testcase was migrated from lively.morphic.tests.Morphic
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OldEventTests',
+'testing', {
+    xtest05DropMorph: function() {
+        var morph1 = new lively.morphic.Morph(),
+            morph2 = new lively.morphic.Morph();
+        // this.world.addHandMorph();
+        this.world.addMorph(morph1);
+        this.world.addMorph(morph2);
+        morph1.setBounds(new Rectangle(0,0, 100, 100));
+        morph2.setBounds(new Rectangle(0,0, 80, 80));
+        morph1.applyStyle({fill: Color.red});
+        morph2.applyStyle({fill: Color.green});
+
+        // is already done by style settings
+        // this.world.enableDropping();
+        // morph1.enableDropping();
+        // morph1.enableGrabbing();
+        // morph2.enableDropping();
+        // morph2.enableGrabbing();
+
+        this.doMouseEvent({type: 'mousedown', pos: pt(20,20), target: morph2.renderContext().getMorphNode(), button: 0});
+
+        this.assert(this.world.firstHand().submorphs.include(morph2), 'morph not grabbed');
+
+        this.doMouseEvent({type: 'mouseup', pos: pt(20,20), target: this.world.renderContext().getMorphNode()});
+
+        this.assert(morph1.submorphs.include(morph2), 'morph not dropped on morph2');
+    },
+    test01DragMorph: function() {
+        var dragStarted = false,
+            dragMoved = false,
+            dragEnded = false,
+            morph = new lively.morphic.Morph(),
+            morphNode = morph.renderContext().getMorphNode();
+        this.world.addMorph(morph);
+        morph.setBounds(new Rectangle(0,0, 100, 100));
+        morph.applyStyle({fill: Color.red, enableDragging: true});
+
+        morph.onDragStart = function() { dragStarted = true }
+        morph.onDrag = function() { dragMoved = true }
+        morph.onDragEnd = function() { dragEnded = true }
+
+        this.doMouseEvent({type: 'mousedown', pos: pt(20,20), target: morphNode, button: 0});
+        this.assert(!dragStarted, 'drag already started after mousedown');
+
+        this.doMouseEvent({type: 'mousemove', pos: pt(25,25), target: morphNode, button: 0});
+        this.assert(dragStarted, 'drag not started after mousedown and mousemove');
+        this.assert(!dragMoved, 'drag already moved at dragStart');
+
+        this.doMouseEvent({type: 'mousemove', pos: pt(30,30), target: morphNode, button: 0});
+        this.assert(dragMoved, 'drag not moved after mousemove');
+
+        this.doMouseEvent({type: 'mouseup', pos: pt(30,30), target: morphNode, button: 0});
+        this.assert(dragEnded, 'dragEnd not called');
+    },
+    test02RelayMouseEventsToMorphBeneath: function() {
+        var morph1 = lively.morphic.Morph.makeRectangle(0,0,100,100),
+            morph2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+
+        this.world.addMorph(morph1);
+        this.world.addMorph(morph2);
+
+        morph2.relayMouseEventsToMorphBeneath();
+
+        lively.morphic.EventSimulator.doMouseEvent(
+            {type: 'mousedown', pos: pt(20,20), target: morph2, button: 0});
+        this.assertIdentity(morph1, this.world.clickedOnMorph);
+    },
+
+});
+
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.EventTests.LockingTests',
 'helper', {
     dragFromTo: function(morph, startMousePos, endMousePos) {

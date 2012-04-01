@@ -1004,6 +1004,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             // evt.stop();
         // }
 
+        // restore selection range on focus
+        var s = this.savedSelectionRange;
+        if (s && (s[0] <= a[0] && s[1] >= a[1])) { 
+            this.setSelectionRange(s[0], s[1]);
+            delete this.savedSelectionRange;
+            evt.stop();
+        }
         return false;
     },
     onSelectStart: function($super, evt) {
@@ -1887,6 +1894,10 @@ this. textNodeString()
 
         this.modifySelectedLines(function(line) { return line.replace(tabRegex, tab) });
     },
+    onBlur: function(evt) {
+        this.savedSelectionRange = this.getSelectionRange();
+    },
+
 
     tabspacesForCursorPos: function() {
         var cursorPos = this.getSelectionRange()[0]
@@ -1929,7 +1940,9 @@ this. textNodeString()
         return this.domSelection() !== null;
     },
     onBlur: function(evt) {
-        this.savedSelectionRange = this.getSelectionRange(); 
+        this.savedSelectionRange = this.getSelectionRange();
+        console.log('<< onBlur')
+        console.log(this.savedSelectionRange)
     },
 
 

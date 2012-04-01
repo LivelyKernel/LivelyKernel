@@ -738,7 +738,6 @@ lively.morphic.Morph.addMethods(
     },
     disableMorphMenu: function() { this.showsMorphMenu = false },
     openMorphMenuAt: function(pos) {
-        console.log("openMorphMenuAt")
         return lively.morphic.Menu.openAt(pos, this.name || this.toString(), this.morphMenuItems());
     },
     showMorphMenu: function(evt) {

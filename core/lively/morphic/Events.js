@@ -257,8 +257,15 @@ Object.subclass('lively.morphic.EventHandler',
     },
 
     handleError: function(error, target, eventSpec) {
-        alert(Strings.format('Error in handleEvent when calling %s>>%s: %s\n%s',
-                target, eventSpec.targetMethodName, error, error.stack))
+        var world = lively.morphic.World.current();
+        var title = Strings.format(
+            'Error in handleEvent when calling %s>>%s',
+            target, eventSpec.targetMethodName);
+        if (world) {
+            world.logError(error, title);
+        } else {
+            alert(title + error.toString() + error.stack.toString());
+        }
     }
 },
 'debugging', {

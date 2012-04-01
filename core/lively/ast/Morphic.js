@@ -46,6 +46,12 @@ cop.create('DebugScriptsLayer')
         return script;
     },
 });
+cop.create('MyLayer').refineClass(MyClass, {
+    methodName: function(arg1) {
+        var result = cop.proceed(arg1);
+        return result
+undefined},
+});
 
 lively.morphic.Text.addMethods(
 'debugging', {
@@ -68,14 +74,14 @@ lively.morphic.Text.addMethods(
 
 cop.create('DebugGlobalErrorHandlerLayer')
 .beGlobal()
-.refineClass(lively.morphic.EventHandler, {
-    handleError: function(err, target, eventSpec) {
+.refineClass(lively.morphic.World, {
+    logError: function(err, optName) {
         if (err.simStack) {
             var frame = lively.ast.Interpreter.Frame.fromTraceNode(err.simStack);
             lively.morphic.Morph.openDebugger(frame, err.toString());
             return false;
         } else {
-            return cop.proceed(err, target, eventSpec);
+            return cop.proceed(err, optName);
         }
     },
 });

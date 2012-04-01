@@ -742,6 +742,7 @@ lively.morphic.Morph.addMethods(
         var items = this.morphMenuItems();
         if (itemsCallback instanceof Function)
             items = itemsCallback(items);
+        alertOK(items)
         return lively.morphic.Menu.openAt(pos, this.name || this.toString(), items);
     },
     showMorphMenu: function(evt) {

@@ -1935,23 +1935,7 @@ alignReframeHandle: function() {
         else finExpand();
         if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(false);
     },
-    patchTargetMorphMenu: function(menu) {
-        console.log("1 patchTargetMorphMenu: "+ menu)
 
-        var items = menu.items,
-            self = this;
-        //publish the whole window instead of the target morph
-        console.log("2 patchTargetMorphMenu")
-
-        items[0] = [
-            'publish window', function(evt) {
-            self.copyToPartsBinWithUserRequest();
-        }]
-        console.log("3 patchTargetMorphMenu")
-
-        menu.addItems(items)
-        console.log("4 patchTargetMorphMenu")
-    },
 
 
 });

@@ -16,6 +16,10 @@ Object.extend(Global, {
             extent = args.shift() || pt(12,12);
 
         var b = new lively.morphic.Morph();
+
+        b.ignoreEvents();
+        b.disableEvents();
+        b.setOpacity(0.5)
         b.setBounds(extent.extentAsRectangle());
         b.align(b.getCenter(), pos);
         b.setFill(Color.red);

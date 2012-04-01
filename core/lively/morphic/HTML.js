@@ -835,17 +835,42 @@ lively.morphic.Shapes.External.addMethods(
 'HTML render settings', {
     htmlDispatchTable: {
         getExtent: 'getExtentHTML',
+        initFromStringifiedShapeNode: 'initFromStringifiedShapeNodeHTML'
     },
 },
 'rendering', {
     initHTML: function($super, ctx) {
         ctx.shapeNode = this.shapeNode;
     },
+    renderHTML: function($super, ctx) {
+        if (!ctx.shapeNode) {
+            ctx.shapeNode = this.shapeNode;
+        }
+    },
+},
+'initializing', {
+    initFromStringifiedShapeNodeHTML: function(ctx) {
+        var element;
+        if (this.stringifiedShapeNode) {
+            element = stringToXML(this.stringifiedShapeNode);
+            element.parentNode && element.parentNode.removeChild(element);
+        }
+        if (!element) {
+            element = XHTMLNS.create('div');
+            element.style.backgroundColor = Color.red.toCSSString();
+        }
+        var $element = $(element),
+            width = $element.width() || 0,
+            height = $element.height() || 0,
+            extent = pt(width, height);
+        this.setExtent(extent);
+        this.shapeNode = element;
+    },
 },
 'accessing', {
     getExtentHTML: function(ctx) {
-        var node = ctx.shapeNode;
-        return node ? pt(node.offsetWidth, node.offsetHeight) : pt(0,0);
+        var $node = $(ctx.shapeNode);
+        return pt($node.width() || 0, $node.height() || 0);
     },
     setOpacityHTML: function(ctx, value) { if (ctx.shapeNode.style) ctx.shapeNode.style.opacity = value; },
 

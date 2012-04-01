@@ -108,7 +108,7 @@ lively.morphic.Text.addMethods(
     syntaxHighlightingCharLimit: 4000,
     highlightJavaScriptSyntax: function() {
         // FIXME use defaultconfig
-        if (URL.source.toString().include('disableSyntaxHighlighting=true')) return;
+        if (URL.source && URL.source.toString().include('disableSyntaxHighlighting=true')) return;
         if (!this.renderContext().textNode) return; // FIXME
         var length = this.textString.length;
 
@@ -143,7 +143,7 @@ lively.morphic.Text.addMethods(
     },
     highlightLaTeXSyntax: function() {
         // FIXME use defaultconfig
-        if (URL.source.toString().include('disableSyntaxHighlighting=true')) return;
+        if (URL.source && URL.source.toString().include('disableSyntaxHighlighting=true')) return;
         if (!this.renderContext().textNode) return; // FIXME
         var length = this.textString.length;
 

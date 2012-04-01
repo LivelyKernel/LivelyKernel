@@ -1785,6 +1785,11 @@ alignReframeHandle: function() {
     },
     morphMenuItems: function($super) {
         var self = this, items = $super();
+
+        items[0] = [
+            'publish window', function(evt) {
+            self.copyToPartsBinWithUserRequest();
+        }]
         items.push([
             'set title', function(evt) {
             $world.prompt('Enter new title', function(input) {

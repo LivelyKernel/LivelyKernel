@@ -196,7 +196,7 @@ Object.subclass('lively.PartsBin.PartItem',
         }
         else {
             var webR = new WebResource(this.getFileURL());
-            this.rev = webR && webR.exists() && webR.getVersions().versions.first().rev
+            this.rev = webR && webR.exists() && webR.getVersions().versions && webR.getVersions().versions.first().rev
         };
 
         // ensure that setPartFromJSON is only called when both json and metaInfo are there.

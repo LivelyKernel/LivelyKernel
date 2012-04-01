@@ -1786,7 +1786,7 @@ alignReframeHandle: function() {
         else {
             target = this;
         }
-        menu = target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
+        menu = target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)), callback);
     },
     morphMenuItems: function($super) {
         var self = this, items = $super();

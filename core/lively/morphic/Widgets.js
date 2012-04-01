@@ -847,7 +847,7 @@ lively.morphic.World.addMethods(
     loadPartItem: function(partName, optPartspaceName) {
         var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld';
         var part = lively.PartsBin.getPart(partName, optPartspaceName);
-        if (!part) 
+        if (!part)
         	return;
         if (part.onCreateFromPartsBin) part.onCreateFromPartsBin();
         return part;
@@ -888,7 +888,7 @@ lively.morphic.World.addMethods(
     openMethodFinderFor: function(searchString) {
         var toolPane = this.get('ToolTabPane');
         if (!toolPane) {
-            toolPane = this.openPartItem('ToolTabPane', 'PartsBin/Dialogs'); 
+            toolPane = this.openPartItem('ToolTabPane', 'PartsBin/Dialogs');
             toolPane.openInWindow()
             toolPane.owner.name = toolPane.name +"Window"
         }
@@ -1170,8 +1170,8 @@ lively.morphic.World.addMethods(
         var activeWindow = $world.getActiveWindow() || $world,
             visibleBounds = this.visibleBounds(),
             blockee = activeWindow.targetMorph || $world,
-            pointOfAlign = activeWindow.targetMorph ? 
-                blockee.getShape().getBounds().topRight() :        
+            pointOfAlign = activeWindow.targetMorph ?
+                blockee.getShape().getBounds().topRight() :
                 this.visibleBounds().center(),
             window = dialog.openIn(this, pt(0,0)),
             d,
@@ -1199,7 +1199,7 @@ lively.morphic.World.addMethods(
             fill: Color.black,
             opacity: 0.5,
         });
-        
+
         blockMorph.addMorph(d.panel);
         d.panel.align(d.panel.bounds().topRight(), pointOfAlign);
 
@@ -2432,8 +2432,7 @@ Trait('SelectionMorphTrait',
         this.resetSelection()
         if (this.selectionMorph.owner !== this)
             this.addMorph(this.selectionMorph);
-
-        var pos = this.localize(evt.getPosition());
+        var pos = this.localize(this.eventStartPos);
         this.selectionMorph.withoutPropagationDo(function() {
             this.selectionMorph.setPosition(pos)
             this.selectionMorph.setExtent(pt(1, 1))

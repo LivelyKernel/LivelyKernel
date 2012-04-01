@@ -1413,6 +1413,12 @@ lively.morphic.World.addMethods(
         if (activeWindow) {
             activeWindow.highlight(false)
         };
+
+        // remove the selection when clicking into the world...
+        if(this.selectionMorph && (this.morphsContainingPoint(this.eventStartPos).length == 1)) {
+            this.resetSelection()
+        } 
+
         return false;
     },
     onMouseUp: function(evt) {

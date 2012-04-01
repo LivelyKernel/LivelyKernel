@@ -911,6 +911,11 @@ lively.morphic.World.addMethods(
             toolPane.owner.name = toolPane.name +"Window"
         }
         var part = toolPane.openMethodFinderFor(searchString)
+        part.setExtent(toolPane.tabPaneExtent)
+        part.owner.layout = part.owner.layout || {};
+        part.owner.layout.resizeWidth = true;
+        part.owner.layout.resizeHeight = true;
+        part.owner.layout.adjustForNewBounds = true;
         return part;
     },
     openVersionViewer: function(evt) {

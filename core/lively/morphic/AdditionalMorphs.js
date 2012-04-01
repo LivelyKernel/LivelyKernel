@@ -1084,6 +1084,8 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
     },
 
     addTabPane: function(aTabPane) {
+        aTabPane.layout = aTabPane.layout || {};
+        aTabPane.layout.adjustForNewBounds = true;
         this.addMorph(aTabPane);
         this.getTabBarStrategy().
             adjustPanePositionInContainer(aTabPane, this);
@@ -1150,6 +1152,12 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
     activePane: function() {
         return this.activeTab().getPane();
     },
+    adjustForNewBounds: function($super) {
+        // resizedPanes holds a list that can be checked against endless recursion while setting the extent of the TabPanes
+        $super();
+        delete(this.resizedPanes);
+    },
+
 });
 
 lively.morphic.Morph.subclass('lively.morphic.TabBar',
@@ -1447,8 +1455,12 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         $super(aPoint);
         var container = this.getTabContainer();
         this.adjustClipping(aPoint);
-        if (!this.isInResizeCycle) {
-            container.onResizePane(aPoint);
+        container.resizedPanes = container.resizedPanes || new Array();
+        // TODO refactor: either resizedPanes list or isInResizeCycle, not both!
+        if (container.resizedPanes.indexOf(this.id) < 0) {
+            if (!this.isInResizeCycle) {
+                container.onResizePane(aPoint);
+            }
         }
     },
 

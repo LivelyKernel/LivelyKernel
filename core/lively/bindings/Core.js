@@ -147,7 +147,7 @@ Object.subclass('AttributeConnection',
 			this.removeSourceObjGetterAndSetter();
 	},
 
-	update: function(newValue, oldValue) {
+	update: function (newValue, oldValue) {
 		// This method is optimized for Safari and Chrome. See tests.BindingsTest.BindingsProfiler
 		// and http://lively-kernel.org/repository/webwerkstatt/draft/ModelRevised.xhtml
 		// The following requirements exists:
@@ -188,10 +188,12 @@ Object.subclass('AttributeConnection',
 				callOrSetTarget(newValue);		
 		} catch(e) {
 			dbgOn(Config.debugConnect);
-			alert('Error when trying to update ' + this + ' with value '
-				+ newValue + ':\n' + e + '\n' + e.stack);
-			if (Global.lively.morphic.World && lively.morphic.World.current())
-				lively.morphic.World.current().logError('AttributeConnection>>update: ' + e);
+			if (Global.lively.morphic.World && lively.morphic.World.current()) {
+				lively.morphic.World.current().logError(e, 'AttributeConnection>>update: ');
+                        } else {
+                            alert('Error when trying to update ' + this + ' with value '
+				    + newValue + ':\n' + e + '\n' + e.stack);
+                        }
 		} finally {
 			this.isActive = false;
 		}

@@ -611,9 +611,13 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         this.subMenu = m;
         m.ownerMenu = this;
 
-        // we do this twice because effect of fitToItems is delayed
+          // we do this twice because effect of fitToItems is delayed
+        m.setVisible(false); // we hide it because it is first shown at the wrong position
         m.offsetForOwnerMenu();
-        m.offsetForOwnerMenu.bind(m).delay(0);
+        (function() {
+            m.offsetForOwnerMenu()
+            m.setVisible(true);
+        }).delay(0);
 
         return m;
     },
@@ -695,7 +699,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     offsetForOwnerMenu: function() {
         var owner = this.ownerMenu,
             visibleBounds = this.world().visibleBounds(),
-            localVisibleBounds = owner.getTransform().inverse().transformRectToRect(visibleBounds),
+            localVisibleBounds = this.getTransform().inverse().transformRectToRect(visibleBounds),
             newBounds = this.moveSubMenuBoundsForVisibility(
                 this.innerBounds(),
                 owner.overItemMorph ? owner.overItemMorph.bounds() : new Rectangle(0,0,0,0),
@@ -760,13 +764,27 @@ lively.morphic.Morph.addMethods(
         items.push(["get halo on...", morphs.collect(function(ea) {
                 return [ea, function(evt) { ea.toggleHalos(evt)}]
         })])
-        // Connections Scripting Support
-        if (this.attributeConnections && this.attributeConnections.length > 0) {
-            items.push(["connections", this.attributeConnections.collect(function(ea) {
-                    return [ea, [["disconnect", function() {
-                        alertOK("disconnecting " + ea)
-                        ea.disconnect()}]]]
-            })])
+         if (this.attributeConnections && this.attributeConnections.length > 0) {
+            items.push(["connections", this.attributeConnections
+                .reject(function(ea) { return ea.dependedBy}) // Meta connection
+                .reject(function(ea) { return ea.targetMethodName == 'alignToMagnet'}) // Meta connection
+                .collect(function(ea) {
+                    var s = ea.sourceAttrName + " -> " + ea.targetObj  + "." + ea.targetMethodName
+                    return [s, [
+                        ["disconnect", function() {
+                            alertOK("disconnecting " + ea)
+                            ea.disconnect()}],
+                        ["edit converter", function() {
+                            var window = lively.bindings.editConnection(ea);
+                        }],
+                        ["show", function() {
+                            lively.bindings.showConnection(ea);
+                        }],
+                        ["hide", function() {
+                            if (ea.visualConnector) ea.visualConnector.remove();
+                        }],
+                    ]]
+                })])
         }
 
         if (this.grabbingEnabled || this.grabbingEnabled == undefined) {
@@ -1182,7 +1200,9 @@ lively.morphic.World.addMethods(
         d = dialog
         if (!activeWindow) return d;
 
-        blockMorph = lively.morphic.Morph.makeRectangle(blockee.bounds());
+        // normal bounds can be negative.. we want the shape bounds here
+        var bounds = blockee.shape.bounds().translatedBy(blockee.getPosition());
+        blockMorph = lively.morphic.Morph.makeRectangle(bounds);
         blockMorph.disableGrabbing();
         blockMorph.disableDragging();
         blockMorph.isEpiMorph = true;

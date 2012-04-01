@@ -1262,8 +1262,13 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         return this.tabContainer;
     },
     adjustTabSizes: function(aPoint) {
-        this.getTabs().forEach(function(ea) {
-            ea.getPane().adjustToNewContainerSize(aPoint);});
+        if (!this.adjustedTabSizes) {
+            var self = this;
+            this.getTabs().forEach(function(ea) {
+                self.adjustedTabSizes = true;
+                ea.getPane().adjustToNewContainerSize(aPoint);
+            });
+        }
         this.setExtent(this.getTabContainer().getTabBarStrategy().
             tabBarExtent(this.getTabContainer()));
     
@@ -1458,6 +1463,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         container.resizedPanes = container.resizedPanes || new Array();
         // TODO refactor: either resizedPanes list or isInResizeCycle, not both!
         if (container.resizedPanes.indexOf(this.id) < 0) {
+            container.resizedPanes.push(this.id);
             if (!this.isInResizeCycle) {
                 container.onResizePane(aPoint);
             }

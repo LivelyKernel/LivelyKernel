@@ -19,10 +19,10 @@ Object.subclass('lively.PartsBin.PartItem',
 },
 'accessing', {
     getLogoURL: function() {
-        return this.getPartsSpace().getURL().withFilename(this.name + ".svg")
+        return this.getPartsSpace().getURL().withFilename(this.escapedName() + ".svg")
     },
     getHTMLLogoURL: function() {
-        return this.getPartsSpace().getURL().withFilename(this.name + ".html")
+        return this.getPartsSpace().getURL().withFilename(this.escapedName() + ".html")
     },
 
     getFileURL: function() {
@@ -36,14 +36,14 @@ Object.subclass('lively.PartsBin.PartItem',
         else {
             partName = this.name;
         }
-        return this.getPartsSpace().getURL().withFilename(partName + ".json")
+        return this.getPartsSpace().getURL().withFilename(this.escapePartName(partName) + ".json")
     },
     getMetaInfoURL: function() {
-        return this.getPartsSpace().getURL().withFilename(this.name + ".metainfo")
+        return this.getPartsSpace().getURL().withFilename(this.escapedName() + ".metainfo")
     },
 
     getPartsSpace: function() {
-        return lively.PartsBin.partsSpaceNamed(this.partsSpaceName);
+        return lively.PartsBin.partsSpaceNamed(this.escapePartName(this.partsSpaceName));
     },
 
     setPartFromJSON: function(json, metaInfo, rev) {
@@ -77,6 +77,14 @@ Object.subclass('lively.PartsBin.PartItem',
             return this.targetName;
         }
     },
+    escapePartName: function(partName) {
+        return encodeURI(partName);
+    },
+    escapedName: function() {
+        return this.escapePartName(this.name);
+    },
+
+
 },
 'serialization', {
     getSerializer: function() {

@@ -57,6 +57,7 @@ var testList = [
     "lively.ast.tests.AstTests",
     "lively.morphic.tests.Morphic",
     "lively.morphic.tests.Morphic2",
+    "lively.morphic.tests.ShapeTests",
     "lively.morphic.tests.TabTests",
     "lively.morphic.tests.DataGridTests",
     "lively.morphic.tests.Connectors",

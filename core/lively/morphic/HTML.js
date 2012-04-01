@@ -395,8 +395,8 @@ lively.morphic.Text.addMethods(
         if (ctx.textNode)
             ctx.domInterface.setMinWidth(ctx.textNode, value);
     },
-    getTextStringHTML: function(ctx) { 
-        //return ctx.textNode ? ctx.textNode.textContent : '' 
+    getTextStringHTML: function(ctx) {
+        //return ctx.textNode ? ctx.textNode.textContent : ''
         return this.getTextChunks().reduce(function (s, ea) {
                 return s + ea.textString;
             }, '');
@@ -865,6 +865,7 @@ lively.morphic.Shapes.External.addMethods(
             extent = pt(width, height);
         this.setExtent(extent);
         this.shapeNode = element;
+        ctx.shapeNode = element;
     },
 },
 'accessing', {

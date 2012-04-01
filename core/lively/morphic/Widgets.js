@@ -2430,14 +2430,17 @@ Trait('SelectionMorphTrait',
         }
 
         this.resetSelection()
+
         if (this.selectionMorph.owner !== this)
             this.addMorph(this.selectionMorph);
-        var pos = this.localize(this.eventStartPos);
+
+        var pos = this.localize(this.eventStartPos || evt.getPosition());
         this.selectionMorph.withoutPropagationDo(function() {
             this.selectionMorph.setPosition(pos)
             this.selectionMorph.setExtent(pt(1, 1))
             this.selectionMorph.initialPosition = pos;
         }.bind(this))
+
     },
     onDrag: function(evt) {
         if(!this.selectionMorph) return

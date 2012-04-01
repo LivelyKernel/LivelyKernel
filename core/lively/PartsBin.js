@@ -199,8 +199,8 @@ Object.subclass('lively.PartsBin.PartItem',
         if (rev) {
             this.rev = rev
         }
-        else if (this.partVersions) {
-            this.rev = this.partVersions.first().rev
+        else if (this.loadPartVersions && this.loadPartVersions().partVersions) {
+            this.rev = this.loadPartVersions().partVersions.first().rev
         }
         else {
             var webR = new WebResource(this.getFileURL());
@@ -280,7 +280,7 @@ Object.subclass('lively.PartsBin.PartItem',
         new WebResource(this.getFileURL()).beAsync().del();
         new WebResource(this.getMetaInfoURL()).beAsync().del();
     },
-    uploadPart: function() {
+    uploadPart: function(checkForOverwrite) {
         if (!this.part) {
             alert('Cannot upload part item ' + this.name + ' because there is no part!')
             return;
@@ -289,18 +289,17 @@ Object.subclass('lively.PartsBin.PartItem',
         this.part.getPartsBinMetaInfo().setPartsSpace(this.getPartsSpace());
         var name = this.part.name,
             serialized = this.serializePart(this.part);
-
-        new WebResource(this.getFileURL())
+        
+        var webR = new WebResource(this.getFileURL())
             .beAsync()
-            .createProgressBar('Uploading ' + name)
-            .statusMessage(
-                'Copied ' + name + ' to PartsBin ' + this.getPartsSpace().getURL(),
-                'Failure uploading ' + name + '!')
-            .put(serialized.json);
+            .createProgressBar('Uploading ' + name);
 
-        new WebResource(this.getHTMLLogoURL()).beAsync().put(serialized.htmlLogo);
-        var resource = new WebResource(this.getMetaInfoURL()).beAsync().put(serialized.metaInfo);
-        return resource;
+        connect(webR, 'status', this, 'handleSaveStatus');
+        var rev = this.part.getPartsBinMetaInfo().revisionOnLoad;
+
+        webR.put(serialized.json, null, checkForOverwrite? rev : null);
+        new WebResource(this.getHTMLLogoURL()).beAsync().put(serialized.htmlLogo, null, checkForOverwrite? rev : null);
+        new WebResource(this.getMetaInfoURL()).beAsync().put(serialized.metaInfo, null, checkForOverwrite? rev : null);
     },
     copyFilesFrom: function(otherItem) {
         new WebResource(otherItem.getFileURL()).copyTo(this.getFileURL());
@@ -328,6 +327,28 @@ Object.subclass('lively.PartsBin.PartItem',
         //if there is a PartsBin representation, this returns true. If a Part was deleted from PartsBin, but an artifact of is published, this returns false
         return (new WebResource(this.getFileURL())).exists()
     },
+    handleSaveStatus: function(status) {
+        // handles the request for overwrite on header 412
+        if (!status.isDone()) return;
+        if (status.code() === 412) {
+            this.askToOverwrite(status.url);
+            return;
+        }
+        if (status.isSuccess()) {
+            this.part.updateHeadRevision(); // update the rev used for overwrite check
+        } else {
+            this.alert('Problem saving ' + status.url + ': ' + status)
+        }
+    },
+    askToOverwrite: function(url) {
+        var self = this;
+        $world.confirm(String(url) + ' was changed since loading it. Overwrite?', 
+            function (answer) {
+                answer && self.uploadPart()
+            })
+    },
+
+
 
 
 
@@ -537,16 +558,7 @@ Trait('lively.PartsBin.PartTrait', {
         this.getPartsBinMetaInfo().migrationLevel = LivelyMigrationSupport.migrationLevel;
         this.getPartsBinMetaInfo().partName = this.name;
         
-        var metaResource = this.getPartItem().uploadPart();
-
-        // set head revision to newly created revision
-        connect(metaResource, 'status', this, 'updateHeadRevision', {
-            updater: function ($upt, status) {
-                if (status.isDone()) {
-                    $upt();
-                }
-            }
-        });
+        this.getPartItem().uploadPart(true);
     },
     copyToPartsBinWithUserRequest: function() {
         this.world().openPublishPartDialogFor(this)

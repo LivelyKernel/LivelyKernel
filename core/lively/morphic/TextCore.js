@@ -219,8 +219,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 },
 'initializing', {
     initialize: function($super, bounds, string) {
-        $super(this.defaultShape());
-        if (bounds) this.setBounds(bounds);
+        $super(this.defaultShape(bounds));
         this.textString = string || '';
         this.charsTyped = '';
         this.evalEnabled = false;

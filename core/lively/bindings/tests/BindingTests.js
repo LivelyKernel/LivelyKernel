@@ -95,29 +95,26 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
     },
     
     test10ErrorWhenConverterReferencesEnvironment: function() {
-        var obj1 = {}, obj2 = {}, externalVal = 42;
-        connect(obj1, 'value', obj2, 'value', {converter: function(val) { return val + externalVal }});
-        
-        // mock worlds error displaying for this test's extent, to not have errors displayed on test runs
-        // try-catch directly around obj1.value does not work: error does not happen on top of this frame
-        var originalSetStatusMessage = $world.setStatusMessage;
+        var obj1 = {}, obj2 = {}, externalVal = 42, world = $world;
+        connect(obj1, 'value', obj2, 'value',
+                {converter: function(val) { return val + externalVal }});
+        // mock worlds error displaying for this test's extent,
+        // to not have errors displayed on test runs
+        // try-catch directly around obj1.value does not work:
+        // error does not happen on top of this frame
+        var originalSetStatusMessage = world.setStatusMessage,
+            numberOfErrorMessages = 0;
         try {
-            var numberOfErrorMessages = 0;
-            $world.setStatusMessage = function() {
-                numberOfErrorMessages += 1;
-                $world.setStatusMessage = function() {
-                    numberOfErrorMessages += 1;
-                    $world.setStatusMessage = originalSetStatusMessage;
-                }
-            }
+            world.setStatusMessage = function() { numberOfErrorMessages++; }
             obj1.value = 2;
         } catch (e) {
-            $world.setStatusMessage = originalSetStatusMessage;
+            world.setStatusMessage = originalSetStatusMessage;
             throw e;
         }
-        
-        this.assert(numberOfErrorMessages === 2, 'no error when using external val in converter');
-        $world.setStatusMessage = originalSetStatusMessage; // necessary when test wasn't successful - i.e. no errors
+         // necessary when test wasn't successful - i.e. no errors
+        world.setStatusMessage = originalSetStatusMessage;
+        this.assertEquals(1, numberOfErrorMessages,
+                          'no error when using external val in converter');
     },
 
     test11NewConnectionReplacesOld: function() {

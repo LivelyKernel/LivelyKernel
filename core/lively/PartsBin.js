@@ -335,11 +335,18 @@ Object.subclass('lively.PartsBin.PartItem',
             return;
         }
         if (status.isSuccess()) {
-            this.part.updateHeadRevision(); // update the rev used for overwrite check
+            this.updateRevisionOnLoad();
         } else {
             this.alert('Problem saving ' + status.url + ': ' + status)
         }
     },
+    updateRevisionOnLoad: function() {
+        // the revisionOnLoad in PartsBinMetaInfo is updated on publishing.
+        var webR = new WebResource(this.getFileURL()),
+            rev = webR.getHeadRevision().headRevision;
+        this.part.getPartsBinMetaInfo && (this.part.getPartsBinMetaInfo().revisionOnLoad = rev);
+    },
+
     askToOverwrite: function(url) {
         var self = this;
         $world.confirm(String(url) + ' was changed since loading it. Overwrite?', 
@@ -651,25 +658,8 @@ Trait('lively.PartsBin.PartTrait', {
     asHTMLLogo: function() {
         return '<html><body>please implement</body></html>'
     },
-    isCurrentPartsBinVersion: function() {
-        //Returns true if called on a morph that is a copy of a current PartsBin version 
-        if (this.getPartItem().isInPartsBin()) {
-            var curRevision = this.getPartItem().loadPartVersions().partVersions.first().rev
-            var myVersion = this.headRevision || this.getPartsBinMetaInfo().revisionOnLoad;
-    
-            if (curRevision == myVersion) return true
-            return false
-        }
-        else {
-            return true;
-        }
-    },
-    updateHeadRevision: function() {
-        //headRevision of a morph is set when it is published
-        var rev = this.getPartItem().loadPartVersions().partVersions.first().rev;
-        this.headRevision = rev;
-        return rev;
-    },
+
+
 
 
 });

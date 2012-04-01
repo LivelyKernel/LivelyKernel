@@ -89,6 +89,9 @@ lively.morphic.Morph.addMethods(
         this.removeWithLayer(lively.morphic.GrabbingLayer);
         this.removeWithoutLayer(lively.morphic.GrabbingLayer);
     },
+    lockOwner: function() {
+        return this.ownerChain().detect(function(ea) { return ea.isLockOwner });
+    }
 });
 
 cop.create('lively.morphic.GrabbingDefaultLayer')
@@ -97,9 +100,9 @@ cop.create('lively.morphic.GrabbingDefaultLayer')
         if (!this.isLocked()) return cop.proceed(evt);
         if (cop.proceed(evt)) return true;
         if (this.isLockOwner) { evt.hand.grabMorph(this); return true };
-        var unlockedOwner = this.ownerChain().detect(function(ea) { return ea.isLockOwner });
-        if (unlockedOwner && !unlockedOwner.isWorld) {
-            evt.hand.grabMorph(unlockedOwner); return true }
+        var lockOwner = this.lockOwner();
+        if (lockOwner && !lockOwner.isWorld) {
+            evt.hand.grabMorph(lockOwner); return true }
         return false
     },
 }).beGlobal();

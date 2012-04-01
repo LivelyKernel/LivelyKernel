@@ -79,10 +79,9 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.EventTests.LockingT
         // grab morph
         this.doMouseEvent({type: 'mousedown', pos: startMousePos, target: morph});
         this.doMouseEvent({type: 'mousemove', pos: startMousePos.addPt(dragTriggerOffset), target: morph});
-        // this.doMouseEvent({type: 'mousemove', pos: startMousePos, target: morph});
-        // this.doMouseEvent({type: 'mousemove', pos: endMousePos, target: morph});
+        this.doMouseEvent({type: 'mousemove', pos: startMousePos, target: morph});
         // move
-        this.doMouseEvent({type: 'mousemove', pos: endMousePos.addPt(dragTriggerOffset), target: morph});
+        this.doMouseEvent({type: 'mousemove', pos: endMousePos, target: morph});
         // drop
         this.doMouseEvent({type: 'mouseup', pos: endMousePos, target: morph.world()});
     },

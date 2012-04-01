@@ -331,10 +331,16 @@ Object.subclass('lively.PartsBin.PartItem',
         // handles the request for overwrite on header 412
         if (!status.isDone()) return;
         if (status.code() === 412) {
-            this.askToOverwrite(status.url);
+            if (status.url.asWebResource().exists())
+                this.askToOverwrite(status.url);
+            else {
+                alertOK("New part "+status.url+" is being stored.");
+                this.uploadPart();
+            }
             return;
         }
         if (status.isSuccess()) {
+            alertOK("Successfully saved "+status.url+" in PartsBin.")
             this.updateRevisionOnLoad();
         } else {
             this.alert('Problem saving ' + status.url + ': ' + status)

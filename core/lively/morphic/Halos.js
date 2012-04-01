@@ -174,7 +174,7 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
         targetMorph = targetMorph || this.targetMorph;
         var world = targetMorph.world(),
             owner = targetMorph.owner;
-        if (!world) return pt(0,0);
+        if (!world || !owner) return pt(0,0);
         if (!owner && targetMorph === world) owner = world;
 
         var bounds = targetMorph.bounds(),
@@ -815,9 +815,11 @@ lively.morphic.Halo.subclass('lively.morphic.BoundsHalo',
         return pos;
     },
     alignAtTarget: function() {
+    
         var targetMorph = this.targetMorph,
             world = targetMorph.world();
-        if (!world) return pt(0,0);
+        if (!world || !targetMorph.owner) return pt(0,0);
+    
         var bounds = targetMorph.bounds(),
             boundsInWorld = targetMorph.owner.getGlobalTransform().transformRectToRect(bounds);
         this.setBounds(boundsInWorld);

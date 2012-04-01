@@ -1750,13 +1750,14 @@ alignReframeHandle: function() {
 },
 'menu', {
     showTargetMorphMenu: function() {
-        var target;
+        var target, menu, items, self;
         if (this.targetMorph) {
             target = this.targetMorph;
         } else {
             target = this;
         }
-        target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
+        menu = target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
+        this.patchTargetMorphMenu(menu)
     },
     morphMenuItems: function($super) {
         var self = this, items = $super();
@@ -1905,6 +1906,17 @@ alignReframeHandle: function() {
         else finExpand();
         if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(false);
     },
+    patchTargetMorphMenu: function(menu) {
+        var items = menu.items,
+            self = this;
+        //publish the whole window instead of the target morph
+        items[0] = [
+            'publish window', function(evt) {
+            self.copyToPartsBinWithUserRequest();
+        }]
+        menu.addItems(items)
+    },
+
 
 });
 

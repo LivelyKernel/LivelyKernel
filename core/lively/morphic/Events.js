@@ -992,6 +992,7 @@ handleOnCapture);
             this.submorphs.invoke('remove')
         })
         shadow.setTransform(local ? this.getTransform() : this.getGlobalTransform());
+        shadow.disableDropping();
         //shadow.originalMorph = this;
         //this.grabShadow = shadow;
         return shadow;

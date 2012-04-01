@@ -1774,21 +1774,14 @@ alignReframeHandle: function() {
 },
 'menu', {
     showTargetMorphMenu: function() {
-        var target, menu, items, self, callback;
+        var target, menu, items;
         if (this.targetMorph) {
-            target = this.targetMorph;
-            self = this;
-            callback = function(items) {
-                items[0] = [
-                    'publish window', function(evt) {
-                    self.copyToPartsBinWithUserRequest();
-                }]}
-                return items;        
+            target = this.targetMorph;    
             } 
         else {
             target = this;
         }
-        menu = target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)), callback);
+        menu = target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
     },
     morphMenuItems: function($super) {
         var self = this, items = $super();

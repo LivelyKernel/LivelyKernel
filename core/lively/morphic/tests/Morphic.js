@@ -1687,18 +1687,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
 
 
 });
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ExternalShapesTests',
-'testing', {
-    test01AddADivShape: function() {
-        //var div = stringToXML('<div style="width: 100px;">a test</div>');
-        var div = document.createElement('div');
-        div.innerHTML = "a test";
-        var morph = new lively.morphic.Morph(new lively.morphic.Shapes.External(div));
-        this.world.addMorph(morph);
-        this.assert(morph.getExtent().x > 0, 'width of morph not bigger than 0');
-        this.assert(morph.getExtent().y > 0, 'height of morph not bigger than 0');
-    },
-});
+
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.LayoutTests',
 'testing', {
     test01DropJournalLayoutOnMorph: function() {

@@ -1,6 +1,6 @@
-module('lively.morphic.tests.ShapeTests').requires('lively.TestFramework').toRun(function() {
+module('lively.morphic.tests.ShapeTests').requires('lively.morphic.tests.Morphic').toRun(function() {
 
-TestCase.subclass('lively.morphic.tests.ShapeTests.ExternalShapeTest',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ShapeTests.ExternalShapeTest',
 'testing', {
 
     test01InitExternalShapeSetsExtent: function() {
@@ -14,7 +14,17 @@ TestCase.subclass('lively.morphic.tests.ShapeTests.ExternalShapeTest',
                                      + ' />';
         shape.initFromStringifiedShapeNode();
         this.assertEquals(pt(3, 15), shape.getExtent());
-    }
+    },
+
+    test02AddASpanShapeThatAutomaticallyDefinesExtent: function() {
+        var span = document.createElement('span');
+        span.textContent = "a test";
+        var morph = new lively.morphic.Morph(new lively.morphic.Shapes.External(span));
+        this.world.addMorph(morph);
+        var extent = morph.getExtent();
+        this.assert(extent.x > 0, 'width of morph not bigger than 0');
+        this.assert(extent.y > 0, 'height of morph not bigger than 0');
+    },
 
 });
 

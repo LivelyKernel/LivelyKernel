@@ -949,6 +949,8 @@ handleOnCapture);
             placeholderPosition = this.placeholder.getPosition();
         }
         aMorph.addMorph(this);
+        delete this.previousOwner;
+        delete this.previousPosition;
         this.onDropOn(aMorph);
         if (placeholderPosition) {
             delete(this.placeholder);
@@ -1865,6 +1867,8 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 },
 'event handling', {
     grabMorph: function(morph, evt) {
+        morph.previousOwner = morph.owner;
+        morph.previousPosition = morph.getPosition();
         return this.grabMorphs([morph], evt)
     },
     grabMorphs: function(morphs, evt) {

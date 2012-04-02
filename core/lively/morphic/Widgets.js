@@ -936,6 +936,7 @@ lively.morphic.World.addMethods(
         var metaInfo = morph.getPartsBinMetaInfo();
         publishDialog.targetMorph.setTarget(morph);
         publishDialog.openInWorldCenter();
+        $world.publishPartDialog = publishDialog;
         return publishDialog;
     },
     openConnectDocumentation: function() {
@@ -1348,7 +1349,7 @@ lively.morphic.List.addMethods(
     },
 },
 'settings', {
-    style: {borderColor: Color.black, borderWidth: 0, fill: Color.gray.lighter().lighter(), clipMode: 'auto', fontFamily: 'Helvetica', fontSize: 10},
+    style: {borderColor: Color.black, borderWidth: 0, fill: Color.gray.lighter().lighter(), clipMode: 'auto', fontFamily: 'Helvetica', fontSize: 10, enableGrabbing: false},
     selectionColor: Color.green.lighter(),
     isList: true,
 },

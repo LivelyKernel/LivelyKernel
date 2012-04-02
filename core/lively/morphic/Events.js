@@ -1185,7 +1185,7 @@ lively.morphic.List.addMethods(
             // this happens e.g. when clicked on a scrollbar
             if (idx >= 0) {
                 this.updateSelectionAndLineNoProperties(idx);
-			}
+            }
 
             if (idx >= 0 && this.isMultipleSelectionList && evt.isShiftDown()) {
                 if (this.getSelectedIndexes().include(idx))

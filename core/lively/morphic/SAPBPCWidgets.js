@@ -411,6 +411,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         this.createLayout();
     },
     addRow: function() {
+    debugger;
         var row = [];
         for (var i = 0; i < this.numCols; i++) {
             var cell = this.createCell(i, this.numRows, this.hideColHeads ? 0 : 1);

@@ -238,22 +238,19 @@ Object.subclass('lively.ast.Interpreter.Frame',
         if (this.isBreakingAt(node)) this.halt();
     },
     getValue: function(node) {
-        var pos = node.position();
-        var value = this.values[pos[0] + "-" + pos[1]];
+        var value = this.values[node.position()];
         // if no value was cached, set PC and compute normally
         return value ? value : this.setPC(node);
     },
     putValue: function(node, value) {
-        var pos = node.position();
-        return this.values[pos[0] + "-" + pos[1]] = {
+        return this.values[node.position()] = {
             val: value
         };
     },
     removeValue: function(node) {
         var that = this;
         node.withAllChildNodesDo(function(child){
-            var pos = child.position();
-            delete that.values[pos[0] + "-" + pos[1]];
+            delete that.values[child.position()];
             return true;
         });
     },
@@ -283,9 +280,8 @@ Object.subclass('lively.ast.Interpreter.Frame',
         text.setTextString(this.getFuncSource());
         text.highlightJavaScriptSyntax();
         if (this.pc !== null) {
-            var style = { backgroundColor: Color.web.salmon.lighter() },
-                pos = this.pc.position();
-            text.emphasize(style, pos[0], pos[1]);
+            var style = { backgroundColor: Color.web.salmon.lighter() };
+            text.emphasize(style, this.pc.pos[0], this.pc.pos[1]);
         }
     },
 },
@@ -903,7 +899,7 @@ Object.extend(lively.ast.FunctionCaller, {
 
 lively.ast.Node.addMethods('interpretation', {
     position: function() {
-        return[this.pos[0], this.pos[1]];
+        return this.pos[0] + "-" + this.pos[1];
     },
     startInterpretation: function(optMapping) {
         return lively.ast.getInterpreter().run(this, optMapping);

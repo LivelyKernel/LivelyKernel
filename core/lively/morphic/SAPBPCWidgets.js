@@ -73,7 +73,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         this.initializeMorph();
     },
     timer: function(){
-        var int=self.setInterval("var d=new Date();this.sTime =d.toLocaleTimeString();",1000);
+        var int=self.setInterval(this.timerCounter(),1000);
     },
     timerCounter: function(){
         var d=new Date();

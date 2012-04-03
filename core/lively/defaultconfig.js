@@ -346,4 +346,6 @@ Config.copDynamicInlining = false;
 
 Config.globalGrabbing = true;
 
+Config.visualConnectEnabled = false
+
 if (ExistingConfig) Object.extend(Config, ExistingConfig);

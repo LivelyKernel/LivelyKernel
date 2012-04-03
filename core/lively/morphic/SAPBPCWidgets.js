@@ -67,25 +67,20 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         this.numCols = numCols;
         this.numRows = numRows;
         this.activeCellContent = '';
-        this.sTime='';
-        this.timer();
         this.initializeData();
         this.initializeMorph();
     },
-    timer: function(){
-        var int=setInterval(this.timerCounter(),1000);
-    },
-    timerCounter: function(){
-        var d=new Date();
-	this.sTime =d.toLocaleTimeString();
-        
-    },
     initializeData: function() {
+        var start = new Date().getTime();
         this.rows = [];
         this.dataModel = [];
         this.addScript(function renderFunction(value) { return value; });
+        var elapsed = new Date().getTime() - start;
+	elapsed = elapsed/1000;
+	console.log('End initializeData=' + elapsed);
     },
     initializeMorph: function() {
+        var start = new Date().getTime();    
         this.setExtent(pt(
             this.numCols * this.defaultCellWidth  + 2 * this.borderSize,
             this.numRows * this.defaultCellHeight + 2 * this.borderSize));
@@ -95,6 +90,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         }
         this.createCells();
         this.createLayout();
+        var elapsed = new Date().getTime() - start;
+	elapsed = elapsed/1000;
+	console.log('End initializeMorph=' + elapsed);
     },
     createCells: function() {
         var headOffset = this.hideColHeads ? 0 : 1;

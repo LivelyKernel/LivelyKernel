@@ -1443,8 +1443,6 @@ Object.subclass('WebResource',
         return this;
     },
 
-
-
     post: function(content, contentType) {
         this.content = content;
         var request = this.createNetRequest();

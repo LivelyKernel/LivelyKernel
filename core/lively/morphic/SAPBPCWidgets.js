@@ -88,6 +88,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
     },
     createCells: function() {
         var headOffset = this.hideColHeads ? 0 : 1;
+        console.log('Start createCells');
         for (var y = 0; y < this.numRows; y++) {
             var row = [];
             for (var x = 0; x < this.numCols; x++) {
@@ -96,6 +97,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
             }
             this.rows.push(row);
         }
+        console.log('End createCells');
     },
     createCell: function(x, y, headOffset) {
 

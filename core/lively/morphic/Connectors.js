@@ -389,9 +389,9 @@ Object.extend(lively.bindings, {
 
         var con = this.connect(source, sourceProp, target, targetProp, spec);
 
-        if (Config.noVisualConnect) return con;
+        if (Config.visualConnectEnabled)
+            this.showConnection(con);
 
-        this.showConnection(con)
         return con;
     },
     editConnection: function(con) {

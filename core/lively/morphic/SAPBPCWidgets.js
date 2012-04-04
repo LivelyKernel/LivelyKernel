@@ -737,6 +737,15 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         this.textString = this.textString.substring(0, this.textString.length-1);
         evt.stop();
     },
+    onMouseDown: function (evt) {
+        if (evt.isLeftMouseButtonDown()) {
+            //this.activate();
+        }
+    },
+
+    put: function(aValue) {
+        this.textString = aValue;
+    },
 
 
 });

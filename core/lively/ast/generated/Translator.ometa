@@ -73,7 +73,7 @@ with =
 	:pos trans:obj trans:body
 	-> { new lively.ast.With(pos, obj, body) },
 send =
-	:pos :property trans:recv trans*:args
+	:pos trans:property trans:recv trans*:args
 	-> { new lively.ast.Send(pos, property, recv, args) },
 call =
 	:pos trans:fn trans*:args

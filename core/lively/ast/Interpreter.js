@@ -671,8 +671,9 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     },
     visitSend: function(node) {
         var recv = this.visit(node.recv),
-            argValues = node.args.collect(function(ea) { return this.visit(ea) }, this);
-        return this.invoke(node, recv, recv[node.name], argValues);
+        property = this.visit(node.property),
+        argValues = node.args.collect(function(ea) { return this.visit(ea) }, this);
+        return this.invoke(node, recv, recv[property], argValues);
     },
     visitCall: function(node) {
         var func = this.visit(node.fn),

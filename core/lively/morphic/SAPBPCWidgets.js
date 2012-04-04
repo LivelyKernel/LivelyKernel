@@ -70,6 +70,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         this.activeCellContent = '';
         this.initializeData();
         this.initializeMorph();
+        this.initializeAnnotation();
 
     },
     initializeAnnotation: function() {

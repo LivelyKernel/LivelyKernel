@@ -753,7 +753,7 @@ lively.ast.Node.subclass('lively.ast.Send',
                 var recvJS = this.recv.asJS(depth);
                 if (this.recv.isFunction) recvJS = '(' + recvJS + ')';
                 return Strings.format(
-                    '%s["%s"](%s)',
+                    '%s[%s](%s)',
                     recvJS, this.property.asJS(depth), this.args.invoke('asJS').join(','));
             },
 },

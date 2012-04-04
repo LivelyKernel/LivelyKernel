@@ -164,7 +164,7 @@ console.log('End createLayout =' + elapsed);
 
  showAnnotation: function(nRow, nColumn) {
         this.oAnnotation.setVisible(true);
-        this.oAnnotation.textString = 'test haha';
+        this.oAnnotation.textString = 'test annotation....';
         //alert(this.rows[nColumn][nRow].getPosition());
         this.oAnnotation.setPosition(this.rows[nColumn][nRow].getPosition());
 

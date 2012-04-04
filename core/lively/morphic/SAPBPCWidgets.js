@@ -152,6 +152,12 @@ console.log('End createLayout =' + elapsed);
 
     },
 
+
+ showAnnotation: function(nRow, nColumn) {
+        
+    },
+
+
     at: function(x, y) {
         return this.rows[y][x];
     },

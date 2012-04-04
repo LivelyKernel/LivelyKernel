@@ -735,6 +735,7 @@ lively.ast.Node.subclass('lively.ast.Send',
 		this.recv = recv;
 		this.args = args;
 		args.forEach(function(node) { node.setParent(this) }, this);
+		property.setParent(this);
 		recv.setParent(this);
 	},
 },

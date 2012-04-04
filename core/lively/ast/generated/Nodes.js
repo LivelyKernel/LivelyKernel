@@ -729,9 +729,9 @@ lively.ast.Node.subclass('lively.ast.Send',
 	isSend: true,
 },
 'initializing', {
-	initialize: function($super, pos, name, recv, args) {
+	initialize: function($super, pos, property, recv, args) {
 		this.pos = pos;
-		this.name = name;
+		this.property = property;
 		this.recv = recv;
 		this.args = args;
 		args.forEach(function(node) { node.setParent(this) }, this);
@@ -739,9 +739,13 @@ lively.ast.Node.subclass('lively.ast.Send',
 	},
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.recv, this.args) },
-	toString: function () { return Strings.format('%s(%s[%s](%s))',
-                                                         this.constructor.name, this.recv, this.name, this.args.join(',')) },
+	printConstruction: function () {
+                return this.printConstructorCall(this.pos, this.property, this.recv, this.args)
+            },
+	toString: function () {
+                return Strings.format('%s(%s[%s](%s))',
+                    this.constructor.name, this.recv, this.property, this.args.join(','))
+            },
 },
 'conversion', {
 	asJS: function (depth) {
@@ -749,11 +753,11 @@ lively.ast.Node.subclass('lively.ast.Send',
                 if (this.recv.isFunction) recvJS = '(' + recvJS + ')';
                 return Strings.format(
                     '%s["%s"](%s)',
-                    recvJS, this.name, this.args.invoke('asJS').join(','));
+                    recvJS, this.property.asJS(depth), this.args.invoke('asJS').join(','));
             },
 },
 'accessing', {
-	getName: function () { return this.name },
+	getName: function () { return this.property },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitSend(this);

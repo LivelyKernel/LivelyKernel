@@ -166,7 +166,7 @@ console.log('End createLayout =' + elapsed);
         this.oAnnotation.setVisible(true);
         this.oAnnotation.textString = 'test haha';
     },
- hideAnnotation: function(nRow, nColumn) {
+ hideAnnotation: function() {
         this.oAnnotation.setVisible(false);
     },
 

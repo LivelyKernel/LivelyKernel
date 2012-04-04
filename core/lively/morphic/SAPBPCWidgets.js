@@ -163,9 +163,11 @@ console.log('End createLayout =' + elapsed);
 
 
  showAnnotation: function(nRow, nColumn) {
-        
+        this.oAnnotation.setVisible(true);
     },
-
+ hideAnnotation: function(nRow, nColumn) {
+        this.oAnnotation.setVisible(false);
+    },
 
     at: function(x, y) {
         return this.rows[y][x];

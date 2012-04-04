@@ -715,7 +715,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
     },
 
     send: {
-        className: 'Send', rules: [':pos', ':property', 'trans:recv', 'trans*:args'],
+        className: 'Send', rules: [':pos', 'trans:property', 'trans:recv', 'trans*:args'],
         debugging: {
             printConstruction: function() {
                 return this.printConstructorCall(this.pos, this.property, this.recv, this.args)

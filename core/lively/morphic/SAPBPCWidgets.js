@@ -742,6 +742,11 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
             this.displayExpression();
         }
     },
+    displayExpression: function() {
+        if (this.evalExpression !== undefined) {
+            this.textString = '=' + this.evalExpression;
+        }
+    },
 
     put: function(aValue) {
         this.textString = aValue;

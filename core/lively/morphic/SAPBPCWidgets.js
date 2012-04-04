@@ -739,7 +739,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
     },
     onMouseDown: function (evt) {
         if (evt.isLeftMouseButtonDown()) {
-            //this.activate();
+            this.displayExpression();
         }
     },
 

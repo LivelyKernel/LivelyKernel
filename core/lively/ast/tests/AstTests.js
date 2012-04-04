@@ -256,8 +256,8 @@ TestCase.subclass('lively.ast.tests.AstTests.ReplaceTest',
                 right: {property: {value: 'foo'}}
             };
 
-        this.assertEquals(2, nodes.length, "bl");
-        node.replaceWith(replacement)
+        this.assertEquals(2, nodes.length);
+        node.replaceWith(replacement);
         this.assertMatches(expected, ast);
     },
     test02ReplaceNodesMatching: function() {

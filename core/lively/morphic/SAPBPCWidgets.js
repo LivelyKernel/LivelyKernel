@@ -591,6 +591,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPDataGridCell',
         this.setBorderColor(Color.rgb(177,181,186));
         this.setFill(Color.rgb(255, 2550, 255));
         this.cellformula='';
+        this.annotation='';
     },
     activate: function() {
         if (this.grid.activeCell) {

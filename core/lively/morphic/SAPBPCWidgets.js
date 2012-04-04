@@ -724,7 +724,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         this.grid.addMorph(this);
     },
     onKeyPress: function($super, evt) {
-        // enter comment here
+        //debugger;
         $super(evt);
         this.textString += String.fromCharCode(evt.getKeyCode());
     },
@@ -738,7 +738,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         evt.stop();
     },
     onMouseDown: function (evt) {
-    debugger;
+    //debugger;
         if (evt.isLeftMouseButtonDown()) {
             this.displayExpression();
         }

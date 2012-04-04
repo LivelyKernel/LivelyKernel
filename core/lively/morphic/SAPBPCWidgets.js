@@ -428,7 +428,7 @@ console.log('End createLayout =' + elapsed);
         this.createLayout();
     },
     addRow: function() {
-    debugger;
+    //debugger;
         var row = [];
         for (var i = 0; i < this.numCols; i++) {
             var cell = this.createCell(i, this.numRows, this.hideColHeads ? 0 : 1);

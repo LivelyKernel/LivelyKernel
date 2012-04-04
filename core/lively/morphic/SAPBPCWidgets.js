@@ -66,9 +66,15 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         this.colNames = new Array(numCols);
         this.numCols = numCols;
         this.numRows = numRows;
+        this.oAnnotation = null;
         this.activeCellContent = '';
         this.initializeData();
         this.initializeMorph();
+
+    },
+    initializeAnnotation: function() {
+
+        //this.oAnnotation = new lively.morphic.SAPDataGridCell();
     },
     initializeData: function() {
         var start = new Date().getTime();

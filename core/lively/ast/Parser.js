@@ -715,7 +715,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
     },
 
     send: {
-        className: 'Send', rules: [':pos', ':name', 'trans:recv', 'trans*:args'],
+        className: 'Send', rules: [':pos', ':property', 'trans:recv', 'trans*:args'],
         debugging: {
             printConstruction: function() { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.recv, this.args) },
             toString: function() { return Strings.format('%s(%s[%s](%s))',
@@ -727,11 +727,11 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
                 if (this.recv.isFunction) recvJS = '(' + recvJS + ')';
                 return Strings.format(
                     '%s["%s"](%s)',
-                    recvJS, this.name, this.args.invoke('asJS').join(','));
+                    recvJS, this.property.asJS(depth), this.args.invoke('asJS').join(','));
             },
         },
         accessing: {
-            getName: function() { return this.name },
+            getName: function() { return this.property },
         },
     },
 

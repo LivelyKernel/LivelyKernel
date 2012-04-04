@@ -723,6 +723,21 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         this.grid = aGrid;
         this.grid.addMorph(this);
     },
+    onKeyPress: function($super, evt) {
+        // enter comment here
+        $super(evt);
+        this.textString += String.fromCharCode(evt.getKeyCode());
+    },
+    onBackspacePressed: function($super, evt) {
+        $super(evt);
+        if (!this.textString) {
+            evt.stop(); 
+            return true; 
+        }
+        this.textString = this.textString.substring(0, this.textString.length-1);
+        evt.stop();
+    },
+
 
 });
 

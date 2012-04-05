@@ -319,6 +319,7 @@ console.log('End createLayout =' + elapsed);
         }
     },
     onKeyPress: function(evt) {
+        debugger;
         if (!this.activeCell) {
             this.at(0,0).activate();
         }

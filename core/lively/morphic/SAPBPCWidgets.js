@@ -200,7 +200,7 @@ console.log('End createLayout =' + elapsed);
     },
     onLeftPressed: function(evt) {
         //testing cell text is focused or not 
-    debugger;
+    console.log("SAPDataGrid.onLeftPressed");
         if (!this.activeCell) {
          }else{
               alert(this.activeCell.isFocused())

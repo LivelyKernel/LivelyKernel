@@ -526,9 +526,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic2.HtmlPars
         this.assertEquals(r1, "a&amp;b")
     },
     testSanitizeHtmlUnbalancedTags: function() {
-        var s1 = "a<br>b"
+        var s1 = "<span>abc"
         var r1 = this.sut.sanitizeHtml(s1)
-        this.assertEquals(r1, "a<br />b")
+        this.assertEquals(r1, "abc")
     },
 
 

@@ -268,6 +268,7 @@ console.log('End createLayout =' + elapsed);
     onKeyDown: function($super, evt) {
 
     console.log("SAPGrid.onKeyDown");
+        debugger;
         if (!this.activeCell) {
            
         }else{

@@ -322,7 +322,7 @@ console.log('End createLayout =' + elapsed);
     onKeyDown: function($super, evt) {
  //debugger;
     console.log("SAPDataGrid.onKeyDown");
-        evt.stop();
+        //evt.stop();
     },
 
     onKeyPress: function(evt) {

@@ -160,9 +160,11 @@ elapsed = elapsed/1000;
 console.log('End createLayout =' + elapsed);
 
     },
+    writeAnnotation: function(nColumn,nRow,sText) {
+        this.get('BPCGrid').at(nColumn,nRow).annotation = sText;
+    },
 
-
- showAnnotation: function(nRow, nColumn) {
+ showAnnotation: function(nColumn,nRow) {
         this.oAnnotation.setVisible(true);
         this.oAnnotation.textString = 'test annotation....';
         //alert(this.rows[nColumn][nRow].getPosition());

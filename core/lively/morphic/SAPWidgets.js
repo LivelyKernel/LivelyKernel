@@ -572,14 +572,42 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
 });
 lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
 'default category', {
-    initialize: function($super, arg1, arg2) {
-        $super(arg1, arg2);
-        this.setFill(Color.rgb(255, 255, 225));
-        this.setBorderColor(Color.rgb(0,0,0));
-    },
+   
     addToGrid: function(aGrid) {
         this.grid = aGrid;
         this.grid.addMorph(this);
+    },initialize: function($super, arg) {
+        $super(arg);
+        this.setFill(Color.rgb(255, 255, 225));
+        this.setBorderColor(Color.rgb(0,0,0));
+        this.evalExpression = undefined;
+    },
+    updateDisplay: function() {
+        if (this.evalExpression !== undefined) {
+            this.textString = this.grid.evaluateExpression(this.evalExpression);
+        }
+    },
+    updateEvalExpression: function() {
+        if (this.textString.substring(0,1) === '=') {
+            this.evalExpression = this.textString.substring(1);
+            //this.textString = this.grid.evaluateExpression(this.textString.substring(1));
+        } else {
+            this.evalExpression = undefined;
+        }
+    },
+
+    displayExpression: function() {
+        if (this.evalExpression !== undefined) {
+            this.textString = '=' + this.evalExpression;
+        }
+    },
+    getContent: function() {
+        var content = this.textString,
+            floatValue = parseFloat(content);
+        if (isNaN(floatValue)) {
+            return content;
+        }
+        return floatValue;
     }
 
 

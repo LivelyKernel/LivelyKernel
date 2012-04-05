@@ -7,9 +7,6 @@ lively.morphic.Morph.subclass('lively.morphic.testRec',
         this.numofRecs = nNumofRecs;
         this.drawRecs()
     },
-    addMorph: function($super, morph) {
-        $super(morph);
-    },
     drawRecs: function() {
         var start = new Date().getTime();    
 
@@ -31,8 +28,7 @@ lively.morphic.Morph.subclass('lively.morphic.rectMorph',
     initialize: function($super) {
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,100,100)))
         this.setFill(Color.red)
-    },
-    newMethod: function() {},
+    }
 });
 
 

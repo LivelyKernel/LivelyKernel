@@ -1756,14 +1756,14 @@ alignReframeHandle: function() {
 },
 'menu', {
     showTargetMorphMenu: function() {
-        var target, menu, items, self;
+        var target, menu, items;
         if (this.targetMorph) {
-            target = this.targetMorph;
-        } else {
+            target = this.targetMorph;    
+            } 
+        else {
             target = this;
         }
         menu = target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
-        this.patchTargetMorphMenu(menu)
     },
     morphMenuItems: function($super) {
         var self = this, items = $super();

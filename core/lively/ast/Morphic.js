@@ -114,11 +114,11 @@ Object.extend(lively.Tracing, {
         }).delay(0.2);
     },
 });
-cop.create('MyLayer').refineClass(MyClass, {
-    methodName: function(arg1) {
-        var result = cop.proceed(arg1);
-        return result
-undefined},
+cop.create('DeepInterpretationLayer')
+.refineClass(lively.ast.FunctionCaller, {
+    shouldInterpret: function(frame, func) {
+        return !this.isNative(func);
+    }
 });
 
 

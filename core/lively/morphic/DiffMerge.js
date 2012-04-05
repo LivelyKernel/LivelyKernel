@@ -247,8 +247,8 @@ Object.subclass('AtomicDiff',
 'initializing', {
     initialize: function(type, newValue, oldValue) {
         this.type = type || undefined;
-        this.newValue = newValue || undefined; 
-        this.oldValue = oldValue || undefined;
+        this.newValue = (typeof(newValue) === 'undefined')? undefined : newValue; 
+        this.oldValue = (typeof(oldValue) === 'undefined')? undefined : oldValue; 
         return this;
     },
 },

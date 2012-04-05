@@ -272,7 +272,7 @@ console.log('End createLayout =' + elapsed);
         if (!this.activeCell) {
            
         }else{
-            alert(this.activeCell.isFocused())
+            //alert(this.activeCell.isFocused())
         }
         $super(evt);
     },

@@ -281,7 +281,6 @@ console.log('End createLayout =' + elapsed);
         console.log("SAPGrid.onKeyPress");
 
         if (this.oAnnotation.isVisible()){
-             console.log("oAnnotation.isVisible");
             $super(evt);
         }else{
             if (!this.activeCell) {

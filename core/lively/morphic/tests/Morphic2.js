@@ -525,6 +525,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic2.HtmlPars
         var r1 = this.sut.sanitizeHtml(s1)
         this.assertEquals(r1, "a&amp;b")
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
     testSourceCodeToNodeStrippedBRs: function() {
       var node = lively.morphic.HTMLParser.sourceToNode('a<br />b')

@@ -2533,13 +2533,16 @@ Object.extend(lively.morphic.HTMLParser, {
         }
         return node
     },
-    sanitizeHtml: function(string) {
+    sanitizeHtml: function (string) {
         // replaces html br with newline
         var s = string
             .replace(/\<br.*?\>/g, "<br />")
             .replace(/\<meta.*?\>/g, "")
             .replace(/\&(?![a-zA-Z]+;)/g, '&amp;');
-
+        // now it becomes really ugly... we need some kind of general html parser here
+        if (s.match(/<span.*>/g) && !s.match(/<\/span>/g)) {
+            s = s.replace(/<\/?span.*>/g,"")
+        }
         return s
     },
     sanitizeNode: function (node) {

@@ -21,7 +21,7 @@ lively.morphic.Morph.subclass('lively.morphic.testRec',
         }
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
-	console.log('End initializeMorph=' + elapsed);
+	console.log('Time =' + elapsed);
         alert("done adding " + this.numofRecs);
     },
 });

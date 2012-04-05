@@ -109,9 +109,17 @@ console.log('End createLayout =' + elapsed);
     },
 
  showAnnotation: function(nColumn,nRow) {
-        this.oAnnotation.setVisible(true);
-        this.oAnnotation.textString = 'test annotation....';
+        
         //alert(this.rows[nColumn][nRow].getPosition());
+        var sAnnotation = this.at(nColumn,nRow).annotation;
+        this.oAnnotation.setVisible(true);
+        if (sAnnotation){
+            this.oAnnotation.textString = sAnnotation ;
+        }else{
+            this.oAnnotation.textString = 'Enter your note: ';
+        }
+        
+
         this.oAnnotation.setPosition(this.rows[nColumn][nRow].getPosition());
 
     },

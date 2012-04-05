@@ -16,8 +16,7 @@ lively.morphic.Morph.subclass('lively.morphic.testRec',
             oRec = new lively.morphic.rectMorph();
             this.addMorph(oRec);
         }
-
-         this.addMorph(oRec);
+        alert("done adding " + this.numofRecs);
     },
 });
 

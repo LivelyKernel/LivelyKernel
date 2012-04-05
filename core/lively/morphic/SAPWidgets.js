@@ -287,7 +287,7 @@ console.log('End createLayout =' + elapsed);
                 this.at(0,0).activate();
             }
             this.activeCell.onKeyPress(evt);
-             $super(evt);
+              evt.stop(); 
         }
 
         

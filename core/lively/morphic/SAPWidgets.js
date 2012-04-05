@@ -282,13 +282,16 @@ console.log('End createLayout =' + elapsed);
 
         if (this.oAnnotation.isVisible()){
              console.log("oAnnotation.isVisible");
+            $super(evt);
+        }else{
+            if (!this.activeCell) {
+                this.at(0,0).activate();
+            }
+            this.activeCell.onKeyPress(evt);
+            evt.stop();
         }
 
-        if (!this.activeCell) {
-            this.at(0,0).activate();
-        }
-        this.activeCell.onKeyPress(evt);
-        evt.stop();
+        
     },
     onBackspacePressed: function(evt) {
         if (!this.activeCell) {

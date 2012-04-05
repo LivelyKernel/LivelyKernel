@@ -602,6 +602,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.grid.recalculateRowsFirst();
     },
     onMouseDown: function (evt) {
+        debugger;
         if (evt.isLeftMouseButtonDown()) {
             this.activate();
         }

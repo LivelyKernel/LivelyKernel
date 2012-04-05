@@ -2535,7 +2535,7 @@ Object.extend(lively.morphic.HTMLParser, {
     },
     sanitizeHtml: function(string) {
         // replaces html br with newline
-        var s string
+        var s = string
             .replace(/\<br.*?\>/g, "<br />")
             .replace(/\<meta.*?\>/g, "")
             .replace(/\&(?![a-zA-Z]+;)/g, '&amp;');

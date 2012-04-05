@@ -930,6 +930,9 @@ lively.ast.Function.addMethods('accessing', {
     },
 },
 'interpretation', {
+    forInterpretation: function() {
+        return this;
+    },
     position: function() {
         return[this.pos[1] - 1, this.pos[1]];
     },

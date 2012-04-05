@@ -608,39 +608,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.updateDisplay();
         this.grid.recalculateRowsFirst();
     },
-    onMouseDown: function (evt) {
-        //debugger;
-        if (evt.isLeftMouseButtonDown()) {
-            this.activate();
-        }
-    },
-
-
-
-
-    put: function(aValue) {
-        // TODO: check if aValue starts with =, then evaluate it or not
-        debugger;
-        this.textString = aValue;
-    },
-    onKeyPress: function($super, evt) {
-        // enter comment here
-        $super(evt);
-        this.textString += String.fromCharCode(evt.getKeyCode());
-    },
-    onBackspacePressed: function($super, evt) {
-        $super(evt);
-        if (!this.textString) {
-            evt.stop(); 
-            return true; 
-        }
-        this.textString = this.textString.substring(0, this.textString.length-1);
-        evt.stop();
-    },
-
-
-
-
     initialize: function($super, arg) {
         $super(arg);
         this.evalExpression = undefined;

@@ -11,11 +11,17 @@ lively.morphic.Morph.subclass('lively.morphic.testRec',
         $super(morph);
     },
     drawRecs: function() {
+        var start = new Date().getTime();    
+
         var oRec;
+        
          for (var n= 0; n< this.numofRecs; n++) {
             oRec = new lively.morphic.rectMorph();
             this.addMorph(oRec);
         }
+        var elapsed = new Date().getTime() - start;
+	elapsed = elapsed/1000;
+	console.log('End initializeMorph=' + elapsed);
         alert("done adding " + this.numofRecs);
     },
 });

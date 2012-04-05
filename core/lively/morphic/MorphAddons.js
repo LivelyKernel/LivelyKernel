@@ -29,6 +29,7 @@ Object.extend(Global, {
     },
     newShowRect: function (rect, duration) {
         var b = new lively.morphic.Morph();
+        b.isEpiMorph = true;
         b.setBounds(rect);
         b.applyStyle({fill: null, borderWidth: 2, borderColor: Color.red})
         newShowThenHide(b, duration);

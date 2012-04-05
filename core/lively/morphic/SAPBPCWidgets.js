@@ -199,9 +199,11 @@ console.log('End createLayout =' + elapsed);
         evt.stop();
     },
     onLeftPressed: function(evt) {
-         if (!this.activeCell) {
+        //testing cell text is focused or not 
+    debugger;
+        if (!this.activeCell) {
          }else{
-            alert(this.activeCell.isFocused())
+              alert(this.activeCell.isFocused())
          }
         this.moveActiveCellBy(pt(-1,0));
         evt.stop();

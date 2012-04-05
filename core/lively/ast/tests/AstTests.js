@@ -248,26 +248,26 @@ TestCase.subclass('lively.ast.tests.AstTests.ReplaceTest',
 'testing', {
     test01ReplaceWith: function() {
         var ast = this.parseJS('this.baz(this.foo()) + this.foo()', 'expr'),
-            nodes = ast.nodesMatching(function(node) { return node.isSend && node.name == 'foo' }),
+            nodes = ast.nodesMatching(function(node) { return node.isSend && node.property.value == 'foo' }),
             node = nodes[0],
             replacement = this.parseJS('this.bar()', 'expr'),
             expected = {
-                left: {name: 'baz', args: [{name: 'bar'}]},
-                right: {name: 'foo'}
+                left: {property: {value: 'baz'}, args: [{property: {value: 'bar'}}]},
+                right: {property: {value: 'foo'}}
             };
 
         this.assertEquals(2, nodes.length);
-        node.replaceWith(replacement)
+        node.replaceWith(replacement);
         this.assertMatches(expected, ast);
     },
     test02ReplaceNodesMatching: function() {
         var astToReplace = this.parseJS('this.baz(this.foo()) + this.foo()', 'stmt'),
             expected = {
-                left: {name: 'baz', args: [{name: 'bar'}]},
-                right: {name: 'bar'}
+                left: {property: {value: 'baz'}, args: [{property: {value: 'bar'}}]},
+                right: {property: {value: 'bar'}}
             };
         astToReplace.replaceNodesMatching(
-            function(node) { return node.isSend && node.name == 'foo' },
+            function(node) { return node.isSend && node.property.value == 'foo' },
             function() { return this.parseJS('this.bar()', 'expr') }.bind(this));
 
         this.assertMatches(expected, astToReplace);

@@ -14,7 +14,8 @@ lively.morphic.Morph.subclass('lively.morphic.testRec',
         
          for (var n= 0; n< this.numofRecs; n++) {
             oRec = new lively.morphic.rectMorph();
-            this.addMorph(oRec);
+            oRec.addToMorph(this);
+            //this.addMorph(oRec);
         }
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
@@ -29,6 +30,10 @@ lively.morphic.Morph.subclass('lively.morphic.rectMorph',
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,100,100)))
         this.setFill(Color.red)
     }
+     addToMorph: function(oParent) {
+        this.oParent = oParent;
+        this.oParent.addMorph(this);
+    },
 });
 
 

@@ -264,7 +264,7 @@ console.log('End createLayout =' + elapsed);
             this.activeCellContent = this.activeCell.getContent();
         }
     },
-
+/*
     onKeyDown: function($super, evt) {
 
     console.log("SAPGrid.onKeyDown");
@@ -275,7 +275,7 @@ console.log('End createLayout =' + elapsed);
             //alert(this.activeCell.isFocused())
         }
         $super(evt);
-    },
+    },*/
 
     onKeyPress: function($super,evt) {
         console.log("SAPGrid.onKeyPress");

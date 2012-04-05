@@ -1065,7 +1065,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             return null;
         }
         if (!textNode.parentNode) {
-            console.log('warning: Text>>domSelection: textNode is not in DOM');
+            // This is really annoying
+            // console.log('warning: Text>>domSelection: textNode is not in DOM');
             return null;
         }
         if (sel.focusNode.compareDocumentPosition(textNode.parentNode) &

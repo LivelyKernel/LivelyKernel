@@ -2535,10 +2535,12 @@ Object.extend(lively.morphic.HTMLParser, {
     },
     sanitizeHtml: function(string) {
         // replaces html br with newline
-        return string
+        var s string
             .replace(/\<br.*?\>/g, "<br />")
             .replace(/\<meta.*?\>/g, "")
             .replace(/\&(?![a-zA-Z]+;)/g, '&amp;');
+
+        return s
     },
     sanitizeNode: function (node) {
         // strips node of newlines text nodes, that have no meaning

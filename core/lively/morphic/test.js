@@ -12,6 +12,9 @@ lively.morphic.Morph.subclass('lively.morphic.testRec',
     },
     drawRecs: function() {
         alert(this.numofRecs);
+        var oRec = new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,100,100));
+
+         this.addToGrid(oRec);
     },
 });
 

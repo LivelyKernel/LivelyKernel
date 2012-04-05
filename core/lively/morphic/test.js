@@ -11,9 +11,12 @@ lively.morphic.Morph.subclass('lively.morphic.testRec',
         $super(morph);
     },
     drawRecs: function() {
-        alert(this.numofRecs);
-        var oRec = new lively.morphic.rectMorph();
-        //debugger;
+        var oRec;
+         for (var n= 0; n< this.numofRecs; n++) {
+            oRec = new lively.morphic.rectMorph();
+            this.addMorph(oRec);
+        }
+
          this.addMorph(oRec);
     },
 });

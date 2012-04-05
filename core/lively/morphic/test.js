@@ -29,7 +29,7 @@ lively.morphic.Morph.subclass('lively.morphic.rectMorph',
     initialize: function($super) {
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,100,100)))
         this.setFill(Color.red)
-    }
+    },
      addToMorph: function(oParent) {
         this.oParent = oParent;
         this.oParent.addMorph(this);

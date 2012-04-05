@@ -699,7 +699,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         this.grid.addMorph(this);
     },
     onKeyPress: function($super, evt) {
-       // debugger;
+       debugger;
         $super(evt);
         //this.textString += String.fromCharCode(evt.getKeyCode());
     },

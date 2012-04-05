@@ -32,9 +32,6 @@ lively.morphic.Morph.subclass('lively.morphic.rectMorph',
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,100,100)))
         this.setFill(Color.red)
     },
-    addMorph: function($super, morph) {
-        $super(morph);
-    },
     newMethod: function() {},
 });
 

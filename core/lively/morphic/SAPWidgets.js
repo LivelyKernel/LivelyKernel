@@ -264,13 +264,13 @@ console.log('End createLayout =' + elapsed);
             this.activeCellContent = this.activeCell.getContent();
         }
     },
-/*can't use this... it will stop everything
+
     onKeyDown: function($super, evt) {
- //debugger;
+
     console.log("SAPGrid.onKeyDown");
-        //evt.stop();
+        $super(evt);
     },
-*/
+
     onKeyPress: function(evt) {
         console.log("SAPGrid.onKeyPress");
         if (!this.activeCell) {

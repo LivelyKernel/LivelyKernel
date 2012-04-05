@@ -268,6 +268,11 @@ console.log('End createLayout =' + elapsed);
     onKeyDown: function($super, evt) {
 
     console.log("SAPGrid.onKeyDown");
+        if (!this.activeCell) {
+           
+        }else{
+            alert(this.activeCell.isFocused())
+        }
         $super(evt);
     },
 

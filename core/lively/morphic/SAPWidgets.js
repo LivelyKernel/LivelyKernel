@@ -729,6 +729,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
     },
 
     put: function(aValue) {
+        console.log("Annotation.put")
         this.textString = aValue;
     },
 

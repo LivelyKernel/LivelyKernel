@@ -319,7 +319,7 @@ console.log('End createLayout =' + elapsed);
         }
     },
     onKeyPress: function(evt) {
-        debugger;
+        console.log("SAPDataGrid.onKeyPress");
         if (!this.activeCell) {
             this.at(0,0).activate();
         }

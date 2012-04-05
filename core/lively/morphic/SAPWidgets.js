@@ -135,31 +135,6 @@ console.log('End createLayout =' + elapsed);
             }
         }
     },
-
-    onUpPressed: function(evt) {
-        this.moveActiveCellBy(pt(0,-1));
-        evt.stop();
-    },
-    onDownPressed: function(evt) {
-        this.moveActiveCellBy(pt(0,1));
-        evt.stop();
-    },
-    onLeftPressed: function(evt) {
-        //testing cell text is focused or not 
-    console.log("SAPGrid.onLeftPressed");
-        if (!this.activeCell) {
-         }else{
-              alert(this.activeCell.isFocused())
-         }
-        this.moveActiveCellBy(pt(-1,0));
-        evt.stop();
-    },
-    onRightPressed: function(evt) {
-        this.moveActiveCellBy(pt(1,0));
-        evt.stop();
-    },
-
-
     moveActiveCellBy: function(aPoint) {
         if (!this.activeCell) {
             this.at(0,0).activate();
@@ -264,64 +239,6 @@ console.log('End createLayout =' + elapsed);
             this.activeCellContent = this.activeCell.getContent();
         }
     },
-
-    onKeyDown: function($super, evt) {
-
-    console.log("SAPGrid.onKeyDown");
-        //debugger;
-        if (!this.activeCell) {
-           
-        }else{
-            //alert(this.activeCell.isFocused())
-        }
-        $super(evt);
-    },
-
-    onKeyPress: function($super,evt) {
-        console.log("SAPGrid.onKeyPress");
-
-        if (this.oAnnotation.isVisible()){
-            $super(evt);
-        }else{
-            if (!this.activeCell) {
-                this.at(0,0).activate();
-            }
-            this.activeCell.onKeyPress(evt);
-            evt.stop();
-        }
-
-        
-    },
-    onBackspacePressed: function(evt) {
-        if (!this.activeCell) {
-            this.at(0,0).activate();
-        }
-        this.activeCell.onBackspacePressed(evt);
-        return true;
-    },
-    onEnterPressed: function($super, evt) {
-        //Hak March27 2012:  calculate formula
-        if (this.activeCell !=null){
-            var sValue = this.activeCell.textString;
-            console.log("SAPGrid.onEnterPressed sValue=" + sValue );
-            if (sValue .charAt(0)=="="){
-                this.activeCell.textString=this.parseFormula(sValue);
-                //'Formula \n test'
-                this.activeCell.setToolTip('Formula: \n' + sValue);
-                this.activeCell.cellformula = sValue;
-                
-            }
-
-        }
-        this.onDownPressed(evt);
-        return true;
-    },
-    onTabPressed: function($super, evt) {
-        this.onRightPressed(evt);
-        return true;
-    },
-
-
 
     setActiveCellContent: function(aString) {
         if (!this.activeCell) {

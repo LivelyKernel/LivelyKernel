@@ -199,6 +199,7 @@ console.log('End createLayout =' + elapsed);
 
         for (var i = 0; i < arrNotes.length; i++) {
             this.at(arrNotes[i].nColumn ,arrNotes[i].nRow ).annotation= arrNotes[i].sNote;
+          
         }
         
 

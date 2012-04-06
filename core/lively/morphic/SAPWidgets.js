@@ -22,7 +22,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.oAnnotation.addToGrid(this);
         this.oAnnotation.setVisible(false);
         this.oAnnotation.setExtent(lively.pt(200,100));
-    },
+    }, 
     initializeData: function() {
         var start = new Date().getTime();
         this.rows = [];
@@ -617,6 +617,10 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.updateDisplay();
         this.grid.recalculateRowsFirst();
     },
+	 hasAnnotation: function() {
+        this.setBorderColor(Color.orange);
+        this.setBorderWidth(1);
+    },
     onMouseDown: function (evt) {
         //debugger;
         if (evt.isLeftMouseButtonDown()) {
@@ -736,6 +740,43 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         console.log("Annotation.put")
         this.textString = aValue;
     },
+
+
+});
+
+
+}) // end of modulextString = aValue;
+    },
+
+
+});
+
+
+}) // end of module    },
+
+
+});
+
+
+}) // end of module    },
+
+
+});
+
+
+}) // end of module    },
+
+
+});
+
+
+}) // end of module    },
+
+
+});
+
+
+}) // end of module    },
 
 
 });

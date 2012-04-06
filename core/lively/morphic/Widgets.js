@@ -247,8 +247,6 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
     },
 },
 'event handling', {
-
-
     onClick: function(evt) {
         // for halos/menus
          if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) {
@@ -256,12 +254,9 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
             return true;
         }
         // we do it ourselves
-        this.setChecked(!this.isChecked())
-        // evt.stop();
-         return true;
+        this.setChecked(!this.isChecked());
+        return true;
      },
-
-
 },
 'serialization', {
     prepareForNewRenderContext: function ($super, renderCtx) {

@@ -74,7 +74,7 @@ TestCase.subclass('lively.morphic.tests.TestCase',
         if (expected.style)
             Properties.forEachOwn(expected.style, function(key, expected) {
                 if (!node.style[key]) {
-                    alert("Warning: " + key + " is falsy in " + node + ".style"); 
+                    alert("Warning: " + key + " is falsy in " + node + ".style");
                 }
                 var actualValue = node.style[key].replace(/ /g, '');
                 if (Object.isFunction(expected)) {
@@ -129,7 +129,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
             childNodes: [
                 {tagName: 'div', childNodes: [ // world shape
                     {tagName: 'div', childNodes: [{tagName: 'div'}]} // m and its shape
-                ]}, 
+                ]},
             ]};
         this.assertNodeMatches(expected, this.world.renderContext().getMorphNode());
     },
@@ -164,7 +164,7 @@ console.log(Exporter.stringify(this.world.renderContext().getMorphNode()));
                     {tagName: 'div'}, // hand
                     {tagName: 'svg',
                         childNodes: [{tagName: 'g', childNodes: [{tagName: 'ellipse'}]}]}
-                ]}, 
+                ]},
             ]
         };
         this.assertNodeMatches(expected, this.world.renderContext().getMorphNode());
@@ -195,7 +195,7 @@ console.log(Exporter.stringify(this.world.renderContext().getMorphNode()));
         morph2.setExtent(pt(100, 150))
         morph3.setExtent(pt(150, 100))
 
-        // order back to front: morph1, morph3, morph2        
+        // order back to front: morph1, morph3, morph2
         /*var expected = {
             tagName: 'div', // morphNode
             childNodes: [{tagName: 'div', childNodes: [ // shape
@@ -234,15 +234,15 @@ console.log(Exporter.stringify(this.world.renderContext().getMorphNode()));
             [{offset: 0, color: Color.red}, {offset: 0.8, color: Color.green}], "northSouth"));
         var expected = {
             tagName: 'div',
-            childNodes: [{ 
+            childNodes: [{
                 tagName: 'div', // morph's shape
                 style: {'background': "-webkit-gradient(linear,0%0%,0%100%,from(rgb(204,0,0)),color-stop(0.8,rgb(0,204,0)))"}
-            }] 
+            }]
         }
         if (jQuery.browser.mozilla) {
             expected = {
             tagName: 'div',
-            childNodes: [{ 
+            childNodes: [{
                     tagName: 'div', // morph's shape
                     style: {'background': "-moz-linear-gradient(90deg,rgb(204,0,0)0%,rgb(0,204,0)80%)repeatscroll0%0%transparent"}
 
@@ -257,18 +257,18 @@ console.log(Exporter.stringify(this.world.renderContext().getMorphNode()));
             [{offset: 0, color: Color.red}, {offset: 0.8, color: Color.green}], pt(0.5,0.3)));
         var expected = {
             tagName: 'div',
-            childNodes: [{ 
+            childNodes: [{
                 tagName: 'div', // morph's shape
                 style: {'background': "-webkit-gradient(radial,50%30%,0,50%50%,25,from(rgb(204,0,0)),color-stop(0.8,rgb(0,204,0)))"}
-            }] 
+            }]
         }
         if (jQuery.browser.mozilla) {
             expected = {
             tagName: 'div',
-            childNodes: [{ 
+            childNodes: [{
                 tagName: 'div', // morph's shape
                 style: {'background': "-moz-radial-gradient(50%50%,circlefarthest-corner,rgb(204,0,0)0%,rgb(0,204,0)80%)repeatscroll0%0%transparent"}
-            }] 
+            }]
             }
         }
         this.assertNodeMatches(expected, morph.renderContext().getMorphNode());
@@ -281,7 +281,7 @@ console.log(Exporter.stringify(this.world.renderContext().getMorphNode()));
         morph.setStrokeOpacity(0.5);
         var expected = {
             tagName: 'div',
-            childNodes: [{ 
+            childNodes: [{
                 tagName: 'div', // morph's shape
                 style: {
                     // FIXME float conversion in style makes it hard to test directly
@@ -289,7 +289,7 @@ console.log(Exporter.stringify(this.world.renderContext().getMorphNode()));
                         return result.include('2.5px') && result.include('solid') && result.include('rgba(0,204')
                     }
                 }
-            }] 
+            }]
         }
         this.assertNodeMatches(expected, morph.renderContext().getMorphNode());
     },
@@ -299,10 +299,10 @@ console.log(Exporter.stringify(this.world.renderContext().getMorphNode()));
         morph.setBorderRadius(3.5);
         var expected = {
             tagName: 'div',
-            childNodes: [{ 
+            childNodes: [{
                 tagName: 'div', // morph's shape
                 style: {    'border-top-left-radius': '3.5px3.5px'}
-            }] 
+            }]
         }
         if (jQuery.browser.mozilla) {
             expected = {
@@ -315,7 +315,7 @@ console.log(Exporter.stringify(this.world.renderContext().getMorphNode()));
     },
     test16MorphsContainingPoint: function() {
         var morph = lively.morphic.Morph.makeRectangle(0, 0, 100, 100),
-            submorph = lively.morphic.Morph.makeRectangle(20, 20, 30, 30), 
+            submorph = lively.morphic.Morph.makeRectangle(20, 20, 30, 30),
             subsubmorph = lively.morphic.Morph.makeRectangle(25, 25, 5, 5),
             morph2 = lively.morphic.Morph.makeRectangle(48, 48, 100, 100);
         this.world.addMorph(morph)
@@ -379,7 +379,7 @@ this. openMorphsInRealWorld()
     },
     test19MorphsContainingPointDosNotIncludeOffsetedOwner: function() {
         var owner = lively.morphic.Morph.makeRectangle(0, 0, 100, 100),
-            submorph = lively.morphic.Morph.makeRectangle(110, 10, 90, 90), 
+            submorph = lively.morphic.Morph.makeRectangle(110, 10, 90, 90),
             other = lively.morphic.Morph.makeRectangle(100, 0, 100, 100);
 
         owner.name = 'owner'; submorph.name = 'submorph'; other.name = 'other';
@@ -407,77 +407,6 @@ this. openMorphsInRealWorld()
 });
 
 
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests',
-'testing', {
-    xtest05DropMorph: function() {
-        var morph1 = new lively.morphic.Morph(),
-            morph2 = new lively.morphic.Morph();
-        // this.world.addHandMorph();
-        this.world.addMorph(morph1);
-        this.world.addMorph(morph2);
-        morph1.setBounds(new Rectangle(0,0, 100, 100));
-        morph2.setBounds(new Rectangle(0,0, 80, 80));
-        morph1.applyStyle({fill: Color.red});
-        morph2.applyStyle({fill: Color.green});
-
-        // is already done by style settings
-        // this.world.enableDropping();
-        // morph1.enableDropping();
-        // morph1.enableGrabbing();
-        // morph2.enableDropping();
-        // morph2.enableGrabbing();
-
-        this.doMouseEvent({type: 'mousedown', pos: pt(20,20), target: morph2.renderContext().getMorphNode(), button: 0});
-
-        this.assert(this.world.firstHand().submorphs.include(morph2), 'morph not grabbed');
-
-        this.doMouseEvent({type: 'mouseup', pos: pt(20,20), target: this.world.renderContext().getMorphNode()});
-
-        this.assert(morph1.submorphs.include(morph2), 'morph not dropped on morph2');        
-    },
-    test01DragMorph: function() {
-        var dragStarted = false,
-            dragMoved = false,
-            dragEnded = false,
-            morph = new lively.morphic.Morph(),
-            morphNode = morph.renderContext().getMorphNode();
-        this.world.addMorph(morph);
-        morph.setBounds(new Rectangle(0,0, 100, 100));
-        morph.applyStyle({fill: Color.red, enableDragging: true});
-
-        morph.onDragStart = function() { dragStarted = true }
-        morph.onDrag = function() { dragMoved = true }
-        morph.onDragEnd = function() { dragEnded = true }
-
-        this.doMouseEvent({type: 'mousedown', pos: pt(20,20), target: morphNode, button: 0});
-        this.assert(!dragStarted, 'drag already started after mousedown');
-
-        this.doMouseEvent({type: 'mousemove', pos: pt(25,25), target: morphNode, button: 0});
-        this.assert(dragStarted, 'drag not started after mousedown and mousemove');
-        this.assert(!dragMoved, 'drag already moved at dragStart');
-
-        this.doMouseEvent({type: 'mousemove', pos: pt(30,30), target: morphNode, button: 0});
-        this.assert(dragMoved, 'drag not moved after mousemove');
-
-        this.doMouseEvent({type: 'mouseup', pos: pt(30,30), target: morphNode, button: 0});
-        this.assert(dragEnded, 'dragEnd not called');
-    },
-    test02RelayMouseEventsToMorphBeneath: function() {
-        var morph1 = lively.morphic.Morph.makeRectangle(0,0,100,100),
-            morph2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
-
-        this.world.addMorph(morph1);
-        this.world.addMorph(morph2);
-
-        morph2.relayMouseEventsToMorphBeneath();
-
-        lively.morphic.EventSimulator.doMouseEvent(
-            {type: 'mousedown', pos: pt(20,20), target: morph2, button: 0});
-        this.assertIdentity(morph1, this.world.clickedOnMorph);
-    },
-
-});
-    
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CopyMorphTests',
 'testing', {
     test01CopySimpleMorph: function() {
@@ -560,7 +489,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
             childNodes: [
                 {tagName: 'div', childNodes: [ // shape
                     {tagName: 'div', textContent: 'Foo'}] // text node
-                }, 
+                },
             ]};
         this.assertNodeMatches(expected, m.renderContext().getMorphNode());
     },
@@ -665,7 +594,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         var splitted = m.splitText();
         splitted.emphasizeAll({fontWeight: 'bold'});
         splitted.mergeText();
-        
+
         this.assert(!splitted.owner, 'splitted not removed');
         this.assertEquals('This is a test', m.textString, 'spittedFrom string');
         this.assertMatches({fontWeight: 'bold'}, m.getEmphasisAt(11))
@@ -675,7 +604,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20), "");
         connect(m, 'textString', m, 'someOtherField')
         var copy = m.duplicate()
-        this.assert(copy.textString == '', 'copy is broken')    
+        this.assert(copy.textString == '', 'copy is broken')
     },
 
 
@@ -697,13 +626,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         m.textString = '';
         m.onPaste({
             clipboardData: {
-                getData: function(type) { 
+                getData: function(type) {
                         if (type === "text/plain") {
                             return "foo";
-                        } 
+                        }
                         return false;
                     }
-                }, 
+                },
             stop: function() {}
             });
         this.assertEquals(m.textString, "foo", "string was not pasted into empty text");
@@ -986,7 +915,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         ]);
 
         var chunks = this.text.getTextChunks(), result;
-        
+
         result = this.text.getChunkAndLocalIndex(0);
         this.assertEquals(chunks[0], result[0]); // test for chunk
         this.assertEquals(0, result[1]); // test for local index
@@ -1162,7 +1091,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.checkDOM([
             {tagName: 'span', textContent: 'foo\n', style: {fontWeight: ''}},
             {tagName: 'span', textContent: 'morebar', style: {fontWeight: 'bold'}}]);
-    }, 
+    },
 
     test22EmphasizeRegex: function() {
         this.text.setTextString("a1b2c");
@@ -1185,7 +1114,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.assertEquals('test', rt.textChunks[1].textString);
         this.assertEquals('normal', rt.textChunks[0].style.getFontWeight());
         this.assertEquals('bold', rt.textChunks[1].style.getFontWeight());
-        
+
     },
     test24aInsertTextChunks: function() {
         this.text.setTextString('ein');
@@ -1577,7 +1506,7 @@ AsyncTestCase.subclass('lively.morphic.tests.ScriptTests',
 
         this.assertEquals(1, m.scripts.length, 'script added twice');
         this.assertEquals(20, m.scripts[0].tickTime, 'tickTime not OK');
-        
+
         this.done();
     },
     test06FunctionScriptOnce: function() {
@@ -1631,7 +1560,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HaloTests',
         var m1 = lively.morphic.Morph.makeRectangle(0,0, 100, 100);
         m1.align(m1.bounds().topRight(), this.world.bounds().topRight());
         this.world.addMorph(m1);
-        m1.showHalos();        
+        m1.showHalos();
         m1.halos.forEach(function(ea) {
             if (ea.constructor == lively.morphic.OriginHalo) return;
             if (ea.constructor == lively.morphic.RenameHalo) return;
@@ -1668,7 +1597,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ImageTests',
 'testing', {
     testImageMorphHTML: function() {
         var url = 'http://lively-kernel.org/repository/webwerkstatt/media/hpi_logo.png',
-            morph = new lively.morphic.Image(new Rectangle(0,0,100,100), url) 
+            morph = new lively.morphic.Image(new Rectangle(0,0,100,100), url)
         this.world.addMorph(morph);
         var expected = {
             tagName: 'div',
@@ -1677,7 +1606,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ImageTests',
                 childNodes: [{tagName: 'img', attributes: {src: url}}]
             }],
         };
-        this.assertNodeMatches(expected, morph.renderContext().getMorphNode());        
+        this.assertNodeMatches(expected, morph.renderContext().getMorphNode());
     },
 });
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
@@ -1758,18 +1687,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
 
 
 });
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ExternalShapesTests',
-'testing', {
-    test01AddADivShape: function() {
-        //var div = stringToXML('<div style="width: 100px;">a test</div>');
-        var div = document.createElement('div');
-        div.innerHTML = "a test";
-        var morph = new lively.morphic.Morph(new lively.morphic.Shapes.External(div));
-        this.world.addMorph(morph);
-        this.assert(morph.getExtent().x > 0, 'width of morph not bigger than 0');
-        this.assert(morph.getExtent().y > 0, 'height of morph not bigger than 0');
-    },
-});
+
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.LayoutTests',
 'testing', {
     test01DropJournalLayoutOnMorph: function() {
@@ -1939,7 +1857,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.RenderingTest',
         this.assert(!domInterface.isInDOM(m1.renderContext().morphNode), 'm1 node in DOM?')
         this.assert(!domInterface.isInDOM(m2.renderContext().morphNode), 'm2 node in DOM?')
         this.world.addMorph(m1)
-        this.assert(domInterface.isInDOM(m1.renderContext().morphNode), 'm1 node not in DOM?')        
+        this.assert(domInterface.isInDOM(m1.renderContext().morphNode), 'm1 node not in DOM?')
         this.assert(domInterface.isInDOM(m2.renderContext().morphNode), 'm2 node not in DOM?')
     },
     test02RenderCrossBrowserLinearGradient: function() {

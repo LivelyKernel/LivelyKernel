@@ -276,6 +276,13 @@ Object.subclass('lively.Main.Loader',
         this.browserSpecificFixes()
         lively.bindings.signal(this, 'finishLoading', world);
         lively.bindings.signal(world, 'finishLoading', world);
+        // notify libraries loaded *very* early
+        if (Config.finishLoadingCallbacks) {
+            Config.finishLoadingCallbacks.forEach(function(cb){
+                cb(world);
+            });
+        }
+        console.log("The world is now completely loaded.");
     },
 
 },

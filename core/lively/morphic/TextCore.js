@@ -219,8 +219,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 },
 'initializing', {
     initialize: function($super, bounds, string) {
-        $super(this.defaultShape());
-        if (bounds) this.setBounds(bounds);
+        $super(this.defaultShape(bounds));
         this.textString = string || '';
         this.charsTyped = '';
         this.evalEnabled = false;
@@ -492,7 +491,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         evt.stopPropagation()
         return true;
     },
-    onPaste: function(evt) {
+    onPaste: function (evt) {
         var htmlData = evt.clipboardData && evt.clipboardData.getData("text/html"),
             textData = evt.clipboardData && evt.clipboardData.getData("text/plain");
 
@@ -501,7 +500,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             return false; // let HTML magic handle paste
         }
 
-        var data = htmlData || '<span>' + textData + '</span>',  // own rich text
+        var data = htmlData ||  lively.morphic.HTMLParser.stringToHTML(textData) // own rich text
             richText = lively.morphic.HTMLParser.pastedHTMLToRichText(data);
         try {
           richText.replaceSelectionInMorph(this)
@@ -542,6 +541,11 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                 case "b": { this.doBrowseClass(); return true; }
                 case "s": { this.convertTabsToSpaces(); return true; }
                 case "u": { this.unEmphasizeSelection(); return true; }
+                case "5": { this.emphasizeSelection({color: Color.black}); return true; }
+                case "6": { this.emphasizeSelection({color: Color.red}); return true; }
+                case "7": { this.emphasizeSelection({color: Color.green}); return true; }
+                case "8": { this.emphasizeSelection({color: Color.blue}); return true; }
+
             }
         }
 
@@ -1005,6 +1009,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             // evt.stop();
         // }
 
+        // restore selection range on focus
+        var s = this.savedSelectionRange;
+        if (s && (s[0] <= a[0] && s[1] >= a[1])) { 
+            this.setSelectionRange(s[0], s[1]);
+            delete this.savedSelectionRange;
+            evt.stop();
+        }
         return false;
     },
     onSelectStart: function($super, evt) {
@@ -1040,6 +1051,14 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         this.priorSelectionRange = this.getSelectionRange();
 
+
+        // restore selection range on focus 
+        var s = this.savedSelectionRange;
+        if (s && (s[0] <= a[0] && s[1] >= a[1])) {
+            this.setSelectionRange(s[0], s[1]);
+            delete this.savedSelectionRange;
+            evt.stop();
+        }
         return false;
     },
 
@@ -1880,6 +1899,10 @@ this. textNodeString()
 
         this.modifySelectedLines(function(line) { return line.replace(tabRegex, tab) });
     },
+    onBlur: function(evt) {
+        this.savedSelectionRange = this.getSelectionRange();
+    },
+
 
     tabspacesForCursorPos: function() {
         var cursorPos = this.getSelectionRange()[0]
@@ -1921,6 +1944,12 @@ this. textNodeString()
     hasSelection: function() {
         return this.domSelection() !== null;
     },
+    onBlur: function(evt) {
+        this.savedSelectionRange = this.getSelectionRange();
+        console.log('<< onBlur')
+        console.log(this.savedSelectionRange)
+    },
+
 
 
 
@@ -2587,6 +2616,9 @@ Object.extend(lively.morphic.HTMLParser, {
     convertStyleName: function(name) {
         var s = name.split("-").invoke('capitalize').join("")
         return s.charAt(0).toLowerCase() + s.substring(1);
+    },
+    stringToHTML: function(textData) {
+        return  '<span>' + textData.replace(/</g,"&lt;") + '</span>'
     },
 });
 

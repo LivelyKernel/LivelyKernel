@@ -19,17 +19,27 @@ Object.subclass('lively.PartsBin.PartItem',
 },
 'accessing', {
     getLogoURL: function() {
-        return this.getPartsSpace().getURL().withFilename(this.name + ".svg")
+        return this.getPartsSpace().getURL().withFilename(this.escapedName() + ".svg")
     },
     getHTMLLogoURL: function() {
-        return this.getPartsSpace().getURL().withFilename(this.name + ".html")
+        return this.getPartsSpace().getURL().withFilename(this.escapedName() + ".html")
     },
 
     getFileURL: function() {
-        return this.getPartsSpace().getURL().withFilename(this.name + ".json")
+        /*return this.getPartsSpace().getURL().withFilename(this.name + ".json")*/
+
+        var partName;
+        // the fileURL is computed with the partName stored in the PartsBinMetaInfo, if possible
+        if (this.part && this.part.getPartsBinMetaInfo()) {
+            partName = this.part.getPartsBinMetaInfo().partName
+        }
+        else {
+            partName = this.name;
+        }
+        return this.getPartsSpace().getURL().withFilename(this.escapePartName(partName) + ".json")
     },
     getMetaInfoURL: function() {
-        return this.getPartsSpace().getURL().withFilename(this.name + ".metainfo")
+        return this.getPartsSpace().getURL().withFilename(this.escapedName() + ".metainfo")
     },
 
     getPartsSpace: function() {
@@ -67,6 +77,14 @@ Object.subclass('lively.PartsBin.PartItem',
             return this.targetName;
         }
     },
+    escapePartName: function(partName) {
+        return encodeURI(partName);
+    },
+    escapedName: function() {
+        return this.escapePartName(this.name);
+    },
+
+
 },
 'serialization', {
     getSerializer: function() {
@@ -177,10 +195,22 @@ Object.subclass('lively.PartsBin.PartItem',
             return this;
         }
 
+        // a revisionOnLoad should always be set! If no PartsBinMetaInfo can be found, the revisionOnLoad is computed via the webresource
+        if (rev) {
+            this.rev = rev
+        }
+        else if (this.loadPartVersions && this.loadPartVersions().partVersions) {
+            this.rev = this.loadPartVersions().partVersions.first().rev
+        }
+        else {
+            var webR = new WebResource(this.getFileURL());
+            this.rev = webR && webR.exists() && webR.getVersions().versions && webR.getVersions().versions.first().rev
+        };
+
         // ensure that setPartFromJSON is only called when both json and metaInfo are there.
         var loadTrigger = {
             item: this,
-            rev: rev,
+            rev: this.rev,
             triggerSetPart: function() {
                 this.item.setPartFromJSON(this.json, this.metaInfo, this.rev);
             },
@@ -204,6 +234,7 @@ Object.subclass('lively.PartsBin.PartItem',
         
         this.load(isAsync, rev);
         this.loadPartMetaInfo(isAsync, rev)
+
         return this;
     },
 
@@ -249,7 +280,7 @@ Object.subclass('lively.PartsBin.PartItem',
         new WebResource(this.getFileURL()).beAsync().del();
         new WebResource(this.getMetaInfoURL()).beAsync().del();
     },
-    uploadPart: function() {
+    uploadPart: function(checkForOverwrite) {
         if (!this.part) {
             alert('Cannot upload part item ' + this.name + ' because there is no part!')
             return;
@@ -258,17 +289,17 @@ Object.subclass('lively.PartsBin.PartItem',
         this.part.getPartsBinMetaInfo().setPartsSpace(this.getPartsSpace());
         var name = this.part.name,
             serialized = this.serializePart(this.part);
-
-        new WebResource(this.getFileURL())
+        
+        var webR = new WebResource(this.getFileURL())
             .beAsync()
-            .createProgressBar('Uploading ' + name)
-            .statusMessage(
-                'Copied ' + name + ' to PartsBin ' + this.getPartsSpace().getURL(),
-                'Failure uploading ' + name + '!')
-            .put(serialized.json);
+            .createProgressBar('Uploading ' + name);
 
-        new WebResource(this.getHTMLLogoURL()).beAsync().put(serialized.htmlLogo);
-        new WebResource(this.getMetaInfoURL()).beAsync().put(serialized.metaInfo);
+        connect(webR, 'status', this, 'handleSaveStatus');
+        var rev = this.part.getPartsBinMetaInfo().revisionOnLoad;
+
+        webR.put(serialized.json, null, checkForOverwrite? rev : null);
+        new WebResource(this.getHTMLLogoURL()).beAsync().put(serialized.htmlLogo, null, checkForOverwrite? rev : null);
+        new WebResource(this.getMetaInfoURL()).beAsync().put(serialized.metaInfo, null, checkForOverwrite? rev : null);
     },
     copyFilesFrom: function(otherItem) {
         new WebResource(otherItem.getFileURL()).copyTo(this.getFileURL());
@@ -292,6 +323,50 @@ Object.subclass('lively.PartsBin.PartItem',
         var webR = new WebResource(this.getFileURL());
         return webR.getHeadRevision().headRevision;
     },
+    isInPartsBin: function() {
+        //if there is a PartsBin representation, this returns true. If a Part was deleted from PartsBin, but an artifact of is published, this returns false
+        return (new WebResource(this.getFileURL())).exists()
+    },
+    handleSaveStatus: function(status) {
+        // handles the request for overwrite on header 412
+        if (!status.isDone()) return;
+        if (status.code() === 412) {
+            if (status.url.asWebResource().exists())
+                this.askToOverwrite(status.url);
+            else {
+                alertOK("New part "+status.url+" is being stored.");
+                this.uploadPart();
+            }
+            return;
+        }
+        if (status.isSuccess()) {
+            alertOK("Successfully saved "+status.url+" in PartsBin.")
+            this.updateRevisionOnLoad();
+            if ($world.publishPartDialog) {
+                $world.publishPartDialog.remove();
+                delete $world.publishPartDialog;
+            }
+        } else {
+            this.alert('Problem saving ' + status.url + ': ' + status)
+        }
+    },
+    updateRevisionOnLoad: function() {
+        // the revisionOnLoad in PartsBinMetaInfo is updated on publishing.
+        var webR = new WebResource(this.getFileURL()),
+            rev = webR.getHeadRevision().headRevision;
+        this.part.getPartsBinMetaInfo && (this.part.getPartsBinMetaInfo().revisionOnLoad = rev);
+    },
+
+    askToOverwrite: function(url) {
+        var self = this;
+        $world.confirm(String(url) + ' was changed since loading it. Overwrite?', 
+            function (answer) {
+                answer && self.uploadPart()
+            })
+    },
+
+
+
 
 
 
@@ -306,6 +381,8 @@ Object.subclass('lively.PartsBin.PartItem',
     toString: function() {
         return 'PartsItem(' + this.name + ',' + this.getPartsSpace() + ')';
     },
+
+
 });
 
 Object.subclass('lively.PartsBin.PartsBinMetaInfo',
@@ -384,7 +461,7 @@ Object.subclass('lively.PartsBin.PartsSpace',
     },
 
 
-    getURL: function() { return URL.ensureAbsoluteRootPathURL(this.name).asDirectory() },
+    getURL: function() { return URL.ensureAbsoluteRootPathURL(encodeURI(this.name)).asDirectory() },
     getPartItems: function() {
         return Properties.ownValues(this.partItems);
     },
@@ -498,7 +575,7 @@ Trait('lively.PartsBin.PartTrait', {
         this.getPartsBinMetaInfo().migrationLevel = LivelyMigrationSupport.migrationLevel;
         this.getPartsBinMetaInfo().partName = this.name;
         
-        this.getPartItem().uploadPart();
+        this.getPartItem().uploadPart(true);
     },
     copyToPartsBinWithUserRequest: function() {
         this.world().openPublishPartDialogFor(this)
@@ -590,7 +667,11 @@ Trait('lively.PartsBin.PartTrait', {
     },
     asHTMLLogo: function() {
         return '<html><body>please implement</body></html>'
-    }
+    },
+
+
+
+
 });
 
 

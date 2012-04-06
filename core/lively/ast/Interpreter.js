@@ -238,22 +238,19 @@ Object.subclass('lively.ast.Interpreter.Frame',
         if (this.isBreakingAt(node)) this.halt();
     },
     getValue: function(node) {
-        var pos = node.position();
-        var value = this.values[pos[0] + "-" + pos[1]];
+        var value = this.values[node.position()];
         // if no value was cached, set PC and compute normally
         return value ? value : this.setPC(node);
     },
     putValue: function(node, value) {
-        var pos = node.position();
-        return this.values[pos[0] + "-" + pos[1]] = {
+        return this.values[node.position()] = {
             val: value
         };
     },
     removeValue: function(node) {
         var that = this;
         node.withAllChildNodesDo(function(child){
-            var pos = child.position();
-            delete that.values[pos[0] + "-" + pos[1]];
+            delete that.values[child.position()];
             return true;
         });
     },
@@ -283,9 +280,8 @@ Object.subclass('lively.ast.Interpreter.Frame',
         text.setTextString(this.getFuncSource());
         text.highlightJavaScriptSyntax();
         if (this.pc !== null) {
-            var style = { backgroundColor: Color.web.salmon.lighter() },
-                pos = this.pc.position();
-            text.emphasize(style, pos[0], pos[1]);
+            var style = { backgroundColor: Color.web.salmon.lighter() };
+            text.emphasize(style, this.pc.pos[0], this.pc.pos[1]);
         }
     },
 },
@@ -675,8 +671,9 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     },
     visitSend: function(node) {
         var recv = this.visit(node.recv),
-            argValues = node.args.collect(function(ea) { return this.visit(ea) }, this);
-        return this.invoke(node, recv, recv[node.name], argValues);
+        property = this.visit(node.property),
+        argValues = node.args.collect(function(ea) { return this.visit(ea) }, this);
+        return this.invoke(node, recv, recv[property], argValues);
     },
     visitCall: function(node) {
         var func = this.visit(node.fn),
@@ -799,13 +796,12 @@ Object.subclass('lively.ast.FunctionCaller', 'documentation', {
     },
 },
 'interpretation', {
-    shouldInterpret: function(func) {
+    shouldInterpret: function(frame, func) {
         if (this.isNative(func))
             return false;
-        return
-            func.hasOwnProperty("forInterpretation") ||
-            frame.breakAtCalls ||
-            func.containsDebugger();
+        return func.hasOwnProperty("forInterpretation") ||
+                frame.breakAtCalls ||
+                func.containsDebugger();
     },
     activate: function(frame, isNewCall, func, funcName, recv, argValues) {
         // if we send apply to a function (recv) we want to interpret it
@@ -817,7 +813,7 @@ Object.subclass('lively.ast.FunctionCaller', 'documentation', {
             argValues = argValues[0]; // the second arg are the arguments (as an array)
         }
 
-        if (this.shouldInterpret(func)) {
+        if (this.shouldInterpret(frame, func)) {
             func = func.forInterpretation(Global);
         }
 
@@ -904,7 +900,7 @@ Object.extend(lively.ast.FunctionCaller, {
 
 lively.ast.Node.addMethods('interpretation', {
     position: function() {
-        return[this.pos[0], this.pos[1]];
+        return this.pos[0] + "-" + this.pos[1];
     },
     startInterpretation: function(optMapping) {
         return lively.ast.getInterpreter().run(this, optMapping);
@@ -990,6 +986,7 @@ lively.ast.Function.addMethods('accessing', {
             return that.apply(this, $A(arguments));
         };
         fn.forInterpretation = function() { return that; };
+        fn.prototype = this.prototype;
         return fn;
     }
 },

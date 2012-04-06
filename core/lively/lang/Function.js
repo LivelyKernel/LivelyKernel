@@ -245,7 +245,10 @@ Object.extend(Function.prototype, {
                     try {
                         return obj.constructor.prototype[name].apply(obj, arguments)
                     } catch (e) {
-                        alert('Error in $super call: ' + e + '\n' + e.stack);
+                        if ($world) 
+                            $world.logError(e, 'Error in $super call')
+                        else
+                            alert('Error in $super call: ' + e + '\n' + e.stack);
                         return null;
                     }
                 };

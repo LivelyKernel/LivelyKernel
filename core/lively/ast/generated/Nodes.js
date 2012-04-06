@@ -14,50 +14,53 @@ lively.ast.Node.subclass('lively.ast.Sequence',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.children) },
-	toString: function () {return Strings.format('%s(%s)',
-				this.constructor.name, this.children.join(','))
-			},
+	toString: function () {
+                return Strings.format(
+                    '%s(%s)',
+                    this.constructor.name, this.children.join(','))
+            },
 },
 'conversion', {
 	asJS: function (depth) {
-				var indent = this.indent(depth || 0);
-				depth = depth || -1;
-				return this.children.invoke('asJS', depth + 1).join(';\n' + indent);
-			},
+                var indent = this.indent(depth || 0);
+                depth = depth || -1;
+                return this.children.invoke('asJS', depth + 1).join(';\n' + indent);
+            },
 },
 'insertion', {
 	insertBefore: function (newNode, existingNode) {
-				for (var i = 0; i < this.children.length; i++)
-					if (this.children[i].nodesMatching(function(node) { return node === existingNode }).length > 0)
-						break;
-				if (!this.children[i])
-					throw dbgOn(new Error('insertBefore: ' + existingNode + ' not in ' + this));
-				return this.insertAt(newNode, i);
-			},
+                for (var i = 0; i < this.children.length; i++)
+                    if (this.children[i].nodesMatching(function(node) {
+                        return node === existingNode }).length > 0)
+                        break;
+                if (!this.children[i])
+                    throw dbgOn(new Error('insertBefore: ' + existingNode + ' not in ' + this));
+                return this.insertAt(newNode, i);
+            },
 	insertAt: function (newNode, idx) {
-				this.children.pushAt(newNode, idx);
-				newNode.setParent(this);
-				return newNode;
-			},
+                this.children.pushAt(newNode, idx);
+                newNode.setParent(this);
+                return newNode;
+            },
 },
 'accessing', {
 	parentSequence: function () { return this },
 },
 'stepping', {
 	firstStatement: function () {
-                        return this.children.length > 0
-                            ? this.children[0].firstStatement()
-                            : this;
-                    },
+                return this.children.length > 0
+                     ? this.children[0].firstStatement()
+                     : this;
+            },
 	nextStatement: function ($super, node) {
-                        var idx = this.children.indexOf(node);
-                        if (idx >= 0 && idx < this.children.length - 1)
-                            return this.children[idx + 1];
-                        return $super(this);
-                    },
+                var idx = this.children.indexOf(node);
+                if (idx >= 0 && idx < this.children.length - 1)
+                    return this.children[idx + 1];
+                return $super(this);
+            },
 	isComposite: function () {
-                        return true;
-                    },
+                return true;
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitSequence(this);
@@ -127,14 +130,16 @@ lively.ast.Node.subclass('lively.ast.Cond',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.condExpr, this.trueExpr, this.falseExpr) },
-	toString: function () { return Strings.format('%s(%s?%s:%s)',
-				this.constructor.name, this.condExpr, this.trueExpr, this.falseExpr) },
+	toString: function () { return Strings.format(
+                '%s(%s?%s:%s)',
+                this.constructor.name, this.condExpr, this.trueExpr, this.falseExpr) },
 },
 'conversion', {
 	asJS: function (depth) {
-				return Strings.format('(%s) ? (%s) : (%s)',
-					this.condExpr.asJS(depth), this.trueExpr.asJS(depth), this.falseExpr.asJS(depth));
-			},
+                return Strings.format(
+                    '(%s) ? (%s) : (%s)',
+                    this.condExpr.asJS(depth), this.trueExpr.asJS(depth), this.falseExpr.asJS(depth));
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitCond(this);
@@ -147,44 +152,42 @@ lively.ast.Node.subclass('lively.ast.If',
 },
 'initializing', {
 	initialize: function ($super, pos, condExpr, trueExpr, falseExpr) {
-				this.pos = pos;
-				this.condExpr = condExpr;
-				// FIXME actually this could be done with OMeta
-				this.trueExpr = trueExpr.isSequence || this.isUndefined(trueExpr) ? trueExpr : new lively.ast.Sequence(trueExpr.pos, [trueExpr]);
-				this.falseExpr = falseExpr.isSequence || this.isUndefined(falseExpr) ? falseExpr : new lively.ast.Sequence(trueExpr.pos, [falseExpr]);
-				condExpr.setParent(this);
-				this.trueExpr.setParent(this);
-				this.falseExpr.setParent(this);
-			},
+                this.pos = pos;
+                this.condExpr = condExpr;
+                // FIXME actually this could be done with OMeta
+                this.trueExpr = trueExpr.isSequence || this.isUndefined(trueExpr) ?
+                    trueExpr : new lively.ast.Sequence(trueExpr.pos, [trueExpr]);
+                this.falseExpr = falseExpr.isSequence || this.isUndefined(falseExpr) ?
+                    falseExpr : new lively.ast.Sequence(trueExpr.pos, [falseExpr]);
+                condExpr.setParent(this);
+                this.trueExpr.setParent(this);
+                this.falseExpr.setParent(this);
+            },
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.condExpr, this.trueExpr, this.falseExpr) },
-	toString: function () { return Strings.format('%s(%s?%s:%s)',
-				this.constructor.name, this.condExpr, this.trueExpr, this.falseExpr) },
+	toString: function () { return Strings.format(
+                '%s(%s?%s:%s)',
+                this.constructor.name, this.condExpr, this.trueExpr, this.falseExpr) },
 },
 'conversion', {
 	asJS: function (depth) {
-				var str = Strings.format('if (%s) {%s}',
-					this.condExpr.asJS(depth), this.trueExpr.asJS(depth));
-				if (!this.isUndefined(this.falseExpr))
-					str += ' else {' + this.falseExpr.asJS(depth) + '}';
-				return str;
-			},
+                var str = Strings.format(
+                    'if (%s) {%s}',
+                    this.condExpr.asJS(depth), this.trueExpr.asJS(depth));
+                if (!this.isUndefined(this.falseExpr))
+                    str += ' else {' + this.falseExpr.asJS(depth) + '}';
+                return str;
+            },
 },
 'stepping', {
 	firstStatement: function () {
-                        return this.condExpr.firstStatement();
-                    },
+                return this.condExpr.firstStatement();
+            },
 	nextStatement: function ($super, node) {
-                        if (node === this.condExpr) {
-                            return this.trueExpr;
-                        } else {
-                            return $super(this);
-                        }
-                    },
-	isComposite: function () {
-                        return true;
-                    },
+                return node === this.condExpr ? this.trueExpr : $super(this);
+            },
+	isComposite: function () { return true; },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitIf(this);
@@ -206,14 +209,16 @@ lively.ast.Node.subclass('lively.ast.While',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.condExpr, this.body) },
-	toString: function () { return Strings.format('%s(%s?%s)',
-				this.constructor.name, this.condExpr, this.body) },
+	toString: function () { return Strings.format(
+                '%s(%s?%s)',
+                this.constructor.name, this.condExpr, this.body) },
 },
 'conversion', {
 	asJS: function (depth) {
-				return Strings.format('while (%s) {%s}',
-					this.condExpr.asJS(depth), this.body.asJS(depth));
-			},
+                return Strings.format(
+                    'while (%s) {%s}',
+                    this.condExpr.asJS(depth), this.body.asJS(depth));
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitWhile(this);
@@ -235,14 +240,16 @@ lively.ast.Node.subclass('lively.ast.DoWhile',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.body, this.condExpr) },
-	toString: function () { return Strings.format('%s(%s while%s)',
-				this.constructor.name, this.body, this.condExpr) },
+	toString: function () { return Strings.format(
+                '%s(%s while%s)',
+                this.constructor.name, this.body, this.condExpr) },
 },
 'conversion', {
 	asJS: function (depth) {
-				return Strings.format('do {%s} while (%s);',
-					this.body.asJS(depth), this.condExpr.asJS(depth));
-			},
+                return Strings.format(
+                    'do {%s} while (%s);',
+                    this.body.asJS(depth), this.condExpr.asJS(depth));
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitDoWhile(this);
@@ -268,33 +275,35 @@ lively.ast.Node.subclass('lively.ast.For',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.init, this.condExpr, this.upd, this.body) },
-	toString: function () { return Strings.format('%s(%s;%s;%s do %s)',
-				this.constructor.name, this.init, this.condExpr, this.upd, this.body) },
+	toString: function () { return Strings.format(
+                '%s(%s;%s;%s do %s)',
+                this.constructor.name, this.init, this.condExpr, this.upd, this.body) },
 },
 'conversion', {
 	asJS: function (depth) {
-				return Strings.format('for (%s; %s; %s) {%s}',
-					this.init.asJS(depth), this.condExpr.asJS(depth), this.upd.asJS(depth), this.body.asJS(depth));
-			},
+                return Strings.format(
+                    'for (%s; %s; %s) {%s}',
+                    this.init.asJS(depth), this.condExpr.asJS(depth), this.upd.asJS(depth), this.body.asJS(depth));
+            },
 },
 'stepping', {
 	firstStatement: function () {
-                        return this.init.firstStatement();
-                    },
+                return this.init.firstStatement();
+            },
 	nextStatement: function ($super, node) {
-                        if (node === this.init || node === this.upd) {
-                            return this.condExpr;
-                        } else if (node === this.condExpr) {
-                            return this.body;
-                        } else if (node === this.body) {
-                            return this.upd;
-                        } else {
-                            return $super(this);
-                        }
-                    },
+                if (node === this.init || node === this.upd) {
+                    return this.condExpr;
+                } else if (node === this.condExpr) {
+                    return this.body;
+                } else if (node === this.body) {
+                    return this.upd;
+                } else {
+                    return $super(this);
+                }
+            },
 	isComposite: function () {
-                        return true;
-                    },
+                return true;
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitFor(this);
@@ -318,14 +327,18 @@ lively.ast.Node.subclass('lively.ast.ForIn',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.name, this.obj, this.body) },
-	toString: function () { return Strings.format('%s(%s in %s do %s)',
-				this.constructor.name, this.name, this.obj, this.body) },
+	toString: function () {
+                return Strings.format(
+                    '%s(%s in %s do %s)',
+                    this.constructor.name, this.name, this.obj, this.body);
+            },
 },
 'conversion', {
 	asJS: function (depth) {
-				return Strings.format('for (var %s in %s) {%s}',
-					this.name.asJS(depth), this.obj.asJS(depth), this.body.asJS(depth));
-			},
+                return Strings.format(
+                    'for (var %s in %s) {%s}',
+                    this.name.asJS(depth), this.obj.asJS(depth), this.body.asJS(depth));
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitForIn(this);
@@ -347,8 +360,9 @@ lively.ast.Node.subclass('lively.ast.Set',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.left, this.right) },
-	toString: function () { return Strings.format('%s(%s = %s)',
-				this.constructor.name, this.left, this.right) },
+	toString: function () { return Strings.format(
+                '%s(%s = %s)',
+                this.constructor.name, this.left, this.right) },
 },
 'conversion', {
 	asJS: function (depth) { return this.left.asJS(depth) + ' = ' + this.right.asJS(depth) },
@@ -374,8 +388,9 @@ lively.ast.Node.subclass('lively.ast.ModifyingSet',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.left, '"' + this.name + '"', this.right) },
-	toString: function () { return Strings.format('%s(%s %s %s)',
-				this.constructor.name, this.left, this.name, this.right) },
+	toString: function () { return Strings.format(
+                '%s(%s %s %s)',
+                this.constructor.name, this.left, this.name, this.right) },
 },
 'conversion', {
 	asJS: function (depth) { return this.left.asJS(depth) + ' ' + this.name + '= ' + this.right.asJS(depth) },
@@ -401,8 +416,9 @@ lively.ast.Node.subclass('lively.ast.BinaryOp',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.name + '"', this.left, this.right) },
-	toString: function () { return Strings.format('%s(%s %s %s)',
-				this.constructor.name, this.left, this.name, this.right) },
+	toString: function () { return Strings.format(
+                '%s(%s %s %s)',
+                this.constructor.name, this.left, this.name, this.right) },
 },
 'conversion', {
 	asJS: function (depth) { return this.left.asJS(depth) + ' ' + this.name + ' ' + this.right.asJS(depth) },
@@ -426,8 +442,9 @@ lively.ast.Node.subclass('lively.ast.UnaryOp',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.name + '"', this.expr) },
-	toString: function () { return Strings.format('%s(%s%s)',
-				this.constructor.name, this.name, this.expr) },
+	toString: function () { return Strings.format(
+                '%s(%s%s)',
+                this.constructor.name, this.name, this.expr) },
 },
 'conversion', {
 	asJS: function (depth) { return this.name + this.expr.asJS(depth) },
@@ -451,8 +468,9 @@ lively.ast.Node.subclass('lively.ast.PreOp',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.name+'"', this.expr) },
-	toString: function () { return Strings.format('%s(%s%s)',
-				this.constructor.name, this.name, this.expr) },
+	toString: function () { return Strings.format(
+                '%s(%s%s)',
+                this.constructor.name, this.name, this.expr) },
 },
 'conversion', {
 	asJS: function (depth) { return this.name + this.expr.asJS(depth) },
@@ -476,8 +494,9 @@ lively.ast.Node.subclass('lively.ast.PostOp',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.expr) },
-	toString: function () { return Strings.format('%s(%s%s)',
-				this.constructor.name, this.expr, this.name) },
+	toString: function () { return Strings.format(
+                '%s(%s%s)',
+                this.constructor.name, this.expr, this.name) },
 },
 'conversion', {
 	asJS: function (depth) { return this.expr.asJS(depth) + this.name },
@@ -522,8 +541,9 @@ lively.ast.Node.subclass('lively.ast.Variable',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"') },
-	toString: function () { return Strings.format('%s(%s)',
-				this.constructor.name, this.name) },
+	toString: function () { return Strings.format(
+                '%s(%s)',
+                this.constructor.name, this.name) },
 },
 'conversion', {
 	asJS: function (depth) { return this.name },
@@ -548,15 +568,16 @@ lively.ast.Node.subclass('lively.ast.GetSlot',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.slotName, this.obj) },
-	toString: function () { return Strings.format('%s(%s[%s])',
-				this.constructor.name, this.obj, this.slotName) },
+	toString: function () { return Strings.format(
+                '%s(%s[%s])',
+                this.constructor.name, this.obj, this.slotName) },
 },
 'conversion', {
 	asJS: function (depth) {
-				var objJS = this.obj.asJS(depth);
-				if (this.obj.isFunction) objJS = '(' + objJS + ')';
-				return objJS + '[' + this.slotName.asJS(depth) + ']';
-			},
+                var objJS = this.obj.asJS(depth);
+                if (this.obj.isFunction) objJS = '(' + objJS + ')';
+                return objJS + '[' + this.slotName.asJS(depth) + ']';
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitGetSlot(this);
@@ -639,8 +660,9 @@ lively.ast.Node.subclass('lively.ast.ArrayLiteral',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.elements) },
-	toString: function () { return Strings.format('%s(%s)',
-				this.constructor.name, this.elements.join(',')) },
+	toString: function () { return Strings.format(
+                '%s(%s)',
+                this.constructor.name, this.elements.join(',')) },
 },
 'conversion', {
 	asJS: function (depth) { return '[' + this.elements.invoke('asJS').join(',') + ']' },
@@ -663,8 +685,9 @@ lively.ast.Node.subclass('lively.ast.Return',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.expr) },
-	toString: function () { return Strings.format('%s(%s)',
-				this.constructor.name, this.expr) },
+	toString: function () { return Strings.format(
+                '%s(%s)',
+                this.constructor.name, this.expr) },
 },
 'conversion', {
 	asJS: function (depth) { return 'return ' + this.expr.asJS(depth) },
@@ -689,8 +712,9 @@ lively.ast.Node.subclass('lively.ast.With',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.obj, this.body) },
-	toString: function () { return Strings.format('%s(%s %s)',
-				this.constructor.name, this.obj, this.body) },
+	toString: function () { return Strings.format(
+                '%s(%s %s)',
+                this.constructor.name, this.obj, this.body) },
 },
 'conversion', {
 	asJS: function (depth) { return 'with (' + this.obj.asJS(depth) + ') {' + this.body.asJS(depth) + '}' },
@@ -705,30 +729,36 @@ lively.ast.Node.subclass('lively.ast.Send',
 	isSend: true,
 },
 'initializing', {
-	initialize: function($super, pos, name, recv, args) {
+	initialize: function($super, pos, property, recv, args) {
 		this.pos = pos;
-		this.name = name;
+		this.property = property;
 		this.recv = recv;
 		this.args = args;
 		args.forEach(function(node) { node.setParent(this) }, this);
+		property.setParent(this);
 		recv.setParent(this);
 	},
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.recv, this.args) },
-	toString: function () { return Strings.format('%s(%s[%s](%s))',
-				this.constructor.name, this.recv, this.name, this.args.join(',')) },
+	printConstruction: function () {
+                return this.printConstructorCall(this.pos, this.property, this.recv, this.args)
+            },
+	toString: function () {
+                return Strings.format('%s(%s[%s](%s))',
+                    this.constructor.name, this.recv, this.property, this.args.join(','))
+            },
 },
 'conversion', {
 	asJS: function (depth) {
-				var recvJS = this.recv.asJS(depth);
-				if (this.recv.isFunction) recvJS = '(' + recvJS + ')';
-				return Strings.format('%s["%s"](%s)',
-					recvJS, this.name, this.args.invoke('asJS').join(','));
-			},
+                var recvJS = this.recv.asJS(depth);
+                if (this.recv.isFunction) recvJS = '(' + recvJS + ')';
+                return Strings.format(
+                    '%s[%s](%s)',
+                    recvJS, this.property.asJS(depth), this.args.invoke('asJS').join(','));
+            },
 },
 'accessing', {
-	getName: function () { return this.name },
+	getName: function () { return this.property },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitSend(this);
@@ -750,14 +780,15 @@ lively.ast.Node.subclass('lively.ast.Call',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.fn, this.args) },
-	toString: function () { return Strings.format('%s(%s(%s))',
-				this.constructor.name, this.fn, this.args.join(',')) },
+	toString: function () { return Strings.format(
+                '%s(%s(%s))',
+                this.constructor.name, this.fn, this.args.join(',')) },
 },
 'conversion', {
 	asJS: function (depth) {
-				return Strings.format('%s(%s)',
-					this.fn.asJS(depth), this.args.invoke('asJS').join(','));
-			},
+                return Strings.format('%s(%s)',
+                                      this.fn.asJS(depth), this.args.invoke('asJS').join(','));
+            },
 },
 'accessing', {
 	getName: function () { return this.fn.name },
@@ -780,13 +811,14 @@ lively.ast.Node.subclass('lively.ast.New',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.clsExpr) },
-	toString: function () { return Strings.format('%s(%s)',
-				this.constructor.name, this.clsExpr) },
+	toString: function () { return Strings.format(
+                '%s(%s)',
+                this.constructor.name, this.clsExpr) },
 },
 'conversion', {
 	asJS: function (depth) {
-				return 'new ' + this.clsExpr.asJS(depth);
-			},
+                return 'new ' + this.clsExpr.asJS(depth);
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitNew(this);
@@ -807,13 +839,14 @@ lively.ast.Node.subclass('lively.ast.VarDeclaration',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.val) },
-	toString: function () { return Strings.format('%s(%s = %s)',
-				this.constructor.name, this.name, this.val) },
+	toString: function () { return Strings.format(
+                '%s(%s = %s)',
+                this.constructor.name, this.name, this.val) },
 },
 'conversion', {
 	asJS: function (depth) {
-				return Strings.format('var %s = %s', this.name, this.val.asJS(depth));
-			},
+                return Strings.format('var %s = %s', this.name, this.val.asJS(depth));
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitVarDeclaration(this);
@@ -833,8 +866,11 @@ lively.ast.Node.subclass('lively.ast.Throw',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.expr) },
-	toString: function () { return Strings.format('%s(%s)',
-				this.constructor.name, this.expr) },
+	toString: function () {
+                return Strings.format(
+                    '%s(%s)',
+                    this.constructor.name, this.expr)
+            },
 },
 'conversion', {
 	asJS: function (depth) { return 'throw ' + this.expr.asJS(depth) },
@@ -862,21 +898,24 @@ lively.ast.Node.subclass('lively.ast.TryCatchFinally',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.trySeq, '"'+this.errName+'"', this.catchSeq, this.finallySeq) },
-	toString: function () { return Strings.format('%s(%s %s %s)',
-				this.constructor.name, this.trySeq, this.catchSeq, this.finallySeq) },
+	toString: function () {
+                return Strings.format(
+                    '%s(%s %s %s)',
+                    this.constructor.name, this.trySeq, this.catchSeq, this.finallySeq)
+            },
 },
 'conversion', {
 	asJS: function (depth) {
-				var baseIndent = this.indent(depth-1),
-					indent = this.indent(depth),
-					str = 'try {\n' + indent + this.trySeq.asJS(depth) + '\n' + baseIndent + '}';
-				if (!this.isUndefined(this.catchSeq))
-					str += ' catch(' + this.errName + ') {\n' +
-						indent + this.catchSeq.asJS(depth) + '\n' + baseIndent + '}';
-				if (!this.isUndefined(this.finallySeq))
-					str += ' finally {\n' + indent + this.finallySeq.asJS(depth) + '\n' + baseIndent + '}';
-				return str;
-			},
+                var baseIndent = this.indent(depth-1),
+                    indent = this.indent(depth),
+                str = 'try {\n' + indent + this.trySeq.asJS(depth) + '\n' + baseIndent + '}';
+                if (!this.isUndefined(this.catchSeq))
+                    str += ' catch(' + this.errName + ') {\n' +
+                    indent + this.catchSeq.asJS(depth) + '\n' + baseIndent + '}';
+                if (!this.isUndefined(this.finallySeq))
+                    str += ' finally {\n' + indent + this.finallySeq.asJS(depth) + '\n' + baseIndent + '}';
+                return str;
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitTryCatchFinally(this);
@@ -897,15 +936,18 @@ lively.ast.Node.subclass('lively.ast.Function',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.args.collect(function(ea) { return '"' + ea + '"' }), this.body) },
-	toString: function () { return Strings.format('%s(function(%s) %s)',
-				this.constructor.name, this.args.join(','), this.body) },
+	toString: function () {
+                return Strings.format(
+                    '%s(function(%s) %s)',
+                    this.constructor.name, this.args.join(','), this.body)
+            },
 },
 'conversion', {
 	asJS: function (depth) {
-				return Strings.format('function%s(%s) {\n%s\n}',
-					this.name ? ' ' + this.name : '',this.args.join(','),
-					this.indent(depth+1) + this.body.asJS(depth+1));
-			},
+                return Strings.format('function%s(%s) {\n%s\n}',
+                                      this.name ? ' ' + this.name : '',this.args.join(','),
+                                      this.indent(depth+1) + this.body.asJS(depth+1));
+            },
 },
 'accessing', {
 	setName: function (name) { this.name = name },
@@ -931,13 +973,16 @@ lively.ast.Node.subclass('lively.ast.ObjectLiteral',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.properties) },
-	toString: function () { return Strings.format('%s({%s})',
-				this.constructor.name, this.properties.join(',')) },
+	toString: function () {
+                return Strings.format(
+                    '%s({%s})',
+                    this.constructor.name, this.properties.join(','))
+            },
 },
 'conversion', {
 	asJS: function (depth) {
-				return '{' + this.properties.invoke('asJS').join(',') + '}';
-			},
+                return '{' + this.properties.invoke('asJS').join(',') + '}';
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitObjectLiteral(this);
@@ -958,13 +1003,15 @@ lively.ast.Node.subclass('lively.ast.ObjProperty',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.property) },
-	toString: function () { return Strings.format('%s(%s: %s)',
-				this.constructor.name, this.name, this.property) },
+	toString: function () {
+          return Strings.format(
+              '%s(%s: %s)',
+              this.constructor.name, this.name, this.property) },
 },
 'conversion', {
 	asJS: function (depth) {
-				return Strings.format('"%s": %s', this.name, this.property.asJS(depth));
-			},
+                return Strings.format('"%s": %s', this.name, this.property.asJS(depth));
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitObjProperty(this);
@@ -987,13 +1034,13 @@ lively.ast.Node.subclass('lively.ast.Switch',
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.expr, this.cases) },
 	toString: function () { return Strings.format('%s(%s %s)',
-				this.constructor.name, this.expr, this.cases.join('\n')) },
+                                                         this.constructor.name, this.expr, this.cases.join('\n')) },
 },
 'conversion', {
 	asJS: function (depth) {
-				return Strings.format('switch (%s) {%s}',
-					this.expr.asJS(depth), this.cases.invoke('asJS').join('\n'));
-			},
+                return Strings.format('switch (%s) {%s}',
+                                      this.expr.asJS(depth), this.cases.invoke('asJS').join('\n'));
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitSwitch(this);
@@ -1015,13 +1062,15 @@ lively.ast.Node.subclass('lively.ast.Case',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.condExpr, this.thenExpr) },
-	toString: function () { return Strings.format('%s(%s: %s)',
-				this.constructor.name, this.condExpr, this.thenExpr) },
+	toString: function () {
+                return Strings.format(
+                    '%s(%s: %s)',
+                    this.constructor.name, this.condExpr, this.thenExpr) },
 },
 'conversion', {
 	asJS: function (depth) {
-				return 'case ' + this.condExpr.asJS(depth) + ': ' + this.thenExpr.asJS(depth);
-			},
+                return 'case ' + this.condExpr.asJS(depth) + ': ' + this.thenExpr.asJS(depth);
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitCase(this);
@@ -1041,8 +1090,9 @@ lively.ast.Node.subclass('lively.ast.Default',
 },
 'debugging', {
 	printConstruction: function () { return this.printConstructorCall(this.pos, this.defaultExpr) },
-	toString: function () { return Strings.format('%s(default: %s)',
-				this.constructor.name,  this.defaultExpr) },
+	toString: function () { return Strings.format(
+                '%s(default: %s)',
+                this.constructor.name,  this.defaultExpr) },
 },
 'conversion', {
 	asJS: function (depth) { return 'default: ' + this.defaultExpr.asJS(depth) },

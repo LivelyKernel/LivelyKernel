@@ -30,6 +30,19 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TabTests.TabTests
         this.tabContainer.setTabBarStrategy(new lively.morphic.TabStrategyHide());
         this.assertEquals(this.tabContainer.getExtent().y, extent.y-tabBarExtent.y, 'TabContainer extent did not shrink when hiding tab bar');
     },
+    test04GetActiveTab: function() {
+        var bar = this.tabContainer.getTabBar(),
+            t1 = this.tabContainer.addTabLabeled('Tab1'),
+            t2 = this.tabContainer.addTabLabeled('Tab2');
+        bar.activateTab(t1);
+        bar.activateTab(t2);
+        this.assert(t2.isActive, 't2 not active');
+        this.assert(!t1.isActive, 't1 is active?');
+        this.assertEquals(t2.getPane(), this.tabContainer.topSubmorph());
+        this.assertEquals(t2, this.tabContainer.activeTab());
+        this.assertEquals(t2.getPane(), this.tabContainer.activePane());
+    },
+
 
 
 });

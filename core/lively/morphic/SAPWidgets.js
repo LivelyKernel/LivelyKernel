@@ -182,30 +182,6 @@ console.log('End createLayout =' + elapsed);
             this.at(curX + aPoint.x, curY + aPoint.y).activate();
         }
     },
-
-    setAnnotationData: function(aJsArray) {
-        var arrNotes=[];
-        var oAnnotation = {};
-        
-        oAnnotation.nRow = 1;
-        oAnnotation.nColumn = 2;
-        oAnnotation.sNote = "this is for cell [1,2]";
-        arrNotes.push(oAnnotation);
-        oAnnotation = {};
-        oAnnotation.nRow = 2;
-        oAnnotation.nColumn = 3;
-        oAnnotation.sNote = "this is for cell [2,3]";
-        arrNotes.push(oAnnotation);
-
-        for (var i = 0; i < arrNotes.length; i++) {
-            this.at(arrNotes[i].nColumn ,arrNotes[i].nRow ).annotation= arrNotes[i].sNote;
-            this.at(arrNotes[i].nColumn ,arrNotes[i].nRow ).annotationCell();
-          
-        }
-        
-
-    },
-
     setData: function(aJsArray) {
         this.clear();
         this.dataModel = [];
@@ -629,6 +605,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.setBorderColor(Color.red);
         this.setBorderWidth(2);
         this.displayExpression();
+		
     },
     deactivate: function() {
         if (this.grid.activeCell !== this) {
@@ -640,20 +617,15 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.updateEvalExpression();
         this.updateDisplay();
         this.grid.recalculateRowsFirst();
-        if (this.annotation){
-	   this.annotationCell();
-	}
-        if (this.cellformula){
-	   this.formulaCell();
-	}
-			 
+		
+		if (this.annotation){
+			this.hasAnnotation();
+		}
+		
+		
     },
-    annotationCell: function() {
+	 hasAnnotation: function() {
         this.setBorderColor(Color.orange);
-        this.setBorderWidth(1);
-    },
-    formulaCell: function() {
-        this.setBorderColor(Color.green);
         this.setBorderWidth(1);
     },
     onMouseDown: function (evt) {
@@ -662,9 +634,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
             this.activate();
         }
     },
-    onDoubleClick:function(evt){
-        alert(0)
-},
 
 
 
@@ -777,6 +746,13 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
     put: function(aValue) {
         console.log("Annotation.put")
         this.textString = aValue;
+    },
+
+
+});
+
+
+}) // end of modulextString = aValue;
     },
 
 

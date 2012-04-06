@@ -474,16 +474,15 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
         var borderWidth = this.getBorderSize();
         var spacing = this.getSpacing();
         var childWidth = width - 2*borderWidth;
+
+        var fixedChildrenHeight = submorphs.reduce(function(s, e) {
+            return !e.layout || !e.layout.resizeHeight ?
+                s + e.getExtent().y : s;
+        }, 0);
         
-        var fixedChildrenHeight = submorphs.reduce(function (s, e) 
-            {if (e.layout == undefined || e.layout.resizeHeight == false || e.layout.resizeHeight == undefined) 
-                {return s + e.getExtent().y;}
-            else
-                {return s;}}, 0);
-        
-        var varChildren = submorphs.select(function(e)
-            {return e.layout != undefined && e.layout.resizeHeight == true;});
-        var varChildrenCount = varChildren.size();        
+        var varChildren = submorphs.select(function(e) {
+                return e.layout && e.layout.resizeHeight; }),
+            varChildrenCount = varChildren.size();    
 
         var varChildrenHeight = extent.y - 
             fixedChildrenHeight - 
@@ -502,23 +501,23 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
         var minWidth = this.getMinWidth(container, submorphs);
         var minHeight = this.getMinHeight(container, submorphs);
         if (width < minWidth || height < minHeight) {
-            if (width < minWidth)
-                {width = minWidth;}
-            if (extent.y < minHeight)
-                {height = minHeight;}
-            container.setExtent(new lively.Point(width, height));
+            if (width < minWidth) width = minWidth;
+            if (extent.y < minHeight) height = minHeight;
+            container.setExtent(pt(width, height));
         }
     
-        submorphs.reduce(function (y, morph)
-            {morph.setPositionTopLeft(new lively.Point(borderWidth, y));
+        submorphs.reduce(function (y, morph) {
+            morph.setPositionTopLeft(pt(borderWidth, y));
             var newHeight = morph.getExtent().y;
-            var newWidth = (morph.layout != undefined && morph.layout.resizeWidth == true) ? 
+            var newWidth = (morph.layout && morph.layout.resizeWidth == true) ? 
                 childWidth : 
                 morph.getExtent().x;
-            if (morph.layout != undefined && morph.layout.resizeHeight == true)
-                {newHeight = varChildHeight;}
-            morph.setExtent(new lively.Point(newWidth, newHeight));
-            return y + morph.getExtent().y + spacing;}, borderWidth);
+            if (morph.layout && morph.layout.resizeHeight) {
+                newHeight = varChildHeight;
+            }
+            morph.setExtent(pt(newWidth, newHeight));
+            return y + morph.getExtent().y + spacing;
+        }, borderWidth);
     },
 
 	getMinHeight: function(container, submorphs) {

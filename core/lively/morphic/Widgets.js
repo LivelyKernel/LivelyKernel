@@ -136,8 +136,14 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
         $super(imageShape);
         this.setPosition(bounds.topLeft());
         this.setImageURL(url);
-        if (useNativeExtent) connect(imageShape, 'isLoaded', this, 'setNativeExtent', {removeAfterUpdate: true});
-        else connect(imageShape, 'isLoaded', this, 'setExtent', {removeAfterUpdate: true, converter: function() { return this.targetObj.getExtent() }});
+        if (useNativeExtent) {
+            connect(imageShape, 'isLoaded', this, 'setNativeExtent',
+                    {removeAfterUpdate: true});
+        } else {
+            connect(imageShape, 'isLoaded', this, 'setExtent',
+                    {removeAfterUpdate: true, converter: function() {
+                        return this.targetObj.getExtent() }});
+        }
     },
     createImageShape: function(bounds, url) {
         return new lively.morphic.Shapes.Image(bounds, url);
@@ -149,6 +155,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
     getNativeExtent: function() { return this.shape.getNativeExtent() },
     setNativeExtent: function() {
         var ext = this.getNativeExtent();
+        // FIXME magic numbers
         if (ext.x < 10) ext.x = 10;
         if (ext.y < 10) ext.y = 10;
         return this.setExtent(ext);
@@ -199,8 +206,8 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
         }
     },
     encodeOnServer: function(urlString) {
-        var cmd = 'curl --silent "' + urlString + '" | openssl base64'
-        var result = new CommandLineServerInterface().beSync().runCommand(cmd).result;
+        var cmd = 'curl --silent "' + urlString + '" | openssl base64',
+            result = new CommandLineServerInterface().beSync().runCommand(cmd).result;
         return result && result.stdout ? result.stdout : '';
     },
 });

@@ -640,14 +640,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.grid.recalculateRowsFirst();
     },
     hasAnnotation: function() {
-        if (this.grid.activeCell) {
-            this.grid.activeCell.deactivate();
-        }    
-        this.grid.activeCell = this;
-        this.grid.activeCellContent = this.textString;
-        this.setBorderColor(Color.red);
-        this.setBorderWidth(2);
-        this.displayExpression();
+        this.setBorderColor(Color.orange);
+        this.setBorderWidth(1);
     },
     onMouseDown: function (evt) {
         //debugger;

@@ -643,6 +643,9 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         if (this.annotation){
 	   this.annotationCell();
 	}
+        if (this.cellformula){
+	   this.formulaCell();
+	}
 			 
     },
     annotationCell: function() {

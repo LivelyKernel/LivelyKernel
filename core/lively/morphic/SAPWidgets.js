@@ -197,6 +197,10 @@ console.log('End createLayout =' + elapsed);
         oAnnotation.sNote = "this is for cell [2,3]";
         arrNotes.push(oAnnotation);
 
+        for (var i = 0; i < arrNotes.length; i++) {
+            this.at(arrNotes[i].nColumn ,arrNotes[i].nRow ).annotation= arrNotes[i].sNote;
+        }
+        
 
     },
 

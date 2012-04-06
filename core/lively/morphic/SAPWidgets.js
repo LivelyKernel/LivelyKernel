@@ -639,7 +639,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.updateDisplay();
         this.grid.recalculateRowsFirst();
     },
-    hasAnnotation: function() {
+    annotationCell: function() {
         this.setBorderColor(Color.orange);
         this.setBorderWidth(1);
     },

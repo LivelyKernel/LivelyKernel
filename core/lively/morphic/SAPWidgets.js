@@ -605,7 +605,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.setBorderColor(Color.red);
         this.setBorderWidth(2);
         this.displayExpression();
-		
     },
     deactivate: function() {
         if (this.grid.activeCell !== this) {
@@ -617,12 +616,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.updateEvalExpression();
         this.updateDisplay();
         this.grid.recalculateRowsFirst();
-		
-		if (this.annotation){
-			this.hasAnnotation();
-		}
-		
-		
     },
 	 hasAnnotation: function() {
         this.setBorderColor(Color.orange);

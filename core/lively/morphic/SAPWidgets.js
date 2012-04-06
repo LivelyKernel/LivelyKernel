@@ -746,8 +746,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
 });
 
 
-}) // end of module    },
-
+}) // end of module
 
 });
 

@@ -16,6 +16,10 @@ Object.extend(Global, {
             extent = args.shift() || pt(12,12);
 
         var b = new lively.morphic.Morph();
+
+        b.ignoreEvents();
+        b.disableEvents();
+        b.setOpacity(0.5)
         b.setBounds(extent.extentAsRectangle());
         b.align(b.getCenter(), pos);
         b.setFill(Color.red);
@@ -25,6 +29,7 @@ Object.extend(Global, {
     },
     newShowRect: function (rect, duration) {
         var b = new lively.morphic.Morph();
+        b.isEpiMorph = true;
         b.setBounds(rect);
         b.applyStyle({fill: null, borderWidth: 2, borderColor: Color.red})
         newShowThenHide(b, duration);
@@ -194,6 +199,11 @@ lively.morphic.Morph.addMethods(
             this.owner.setName(this.name);
             this.owner.setTitle(this.name);
         }
+    },
+    openInWorldCenter: function() {
+        //parallel functionality as in openPartItem
+        this.openInWorld();
+        this.align(this.bounds().center(), $world.visibleBounds().center());
     },
 },
 'removing', {

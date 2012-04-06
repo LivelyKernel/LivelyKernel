@@ -102,6 +102,9 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.External',
     initialize: function($super, element) {
         this.shapeNode = document.importNode(element, true);
     },
+    initFromStringifiedShapeNode: function() {
+        return this.renderContextDispatch('initFromStringifiedShapeNode');
+    },
 },
 'serialization', {
     doNotSerialize: ['shapeNode'],
@@ -112,20 +115,8 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.External',
         }
     },
     onrestore: function() {
-        var element;
-        if (this.stringifiedShapeNode) {
-            element = stringToXML(this.stringifiedShapeNode);
-            element.parentNode && element.parentNode.removeChild(element);
-        }
-        if (!element) {
-            element = XHTMLNS.create('div');
-            element.style.backgroundColor = Color.red.toCSSString();
-        }
-        if (element.style) { 
-            element.style.width = ((this.extent && this.extent.x) || 200) + 'px'
-            element.style.height = ((this.extent && this.extent.y) || 200) + 'px'
-        }
-        this.shapeNode = element
+        // FIXME this directly depends on HTML
+        this.initFromStringifiedShapeNodeHTML(null);
     },
 },
 'accessing', {
@@ -166,7 +157,9 @@ lively.morphic.Gradient.subclass('lively.morphic.LinearGradient',
         eastwest:    rect(pt(0, 0), pt(1, 0)),
         westeast:    rect(pt(1, 0), pt(0, 0)),
         southwest:    rect(pt(1, 0), pt(0, 1)),  // Down and to the left
-        southeast:    rect(pt(0, 0), pt(1, 1)) 
+        southeast:    rect(pt(0, 0), pt(1, 1)),
+        northeast:    rect(pt(0, 1), pt(1, 0)),
+        northwest:    rect(pt(1, 1), pt(0, 0)) 
     },
 },
 'initializing', {

@@ -257,8 +257,15 @@ Object.subclass('lively.morphic.EventHandler',
     },
 
     handleError: function(error, target, eventSpec) {
-        alert(Strings.format('Error in handleEvent when calling %s>>%s: %s\n%s',
-                target, eventSpec.targetMethodName, error, error.stack))
+        var world = lively.morphic.World.current();
+        var title = Strings.format(
+            'Error in handleEvent when calling %s>>%s',
+            target, eventSpec.targetMethodName);
+        if (world) {
+            world.logError(error, title);
+        } else {
+            alert(title + error.toString() + error.stack.toString());
+        }
     }
 },
 'debugging', {
@@ -290,7 +297,7 @@ lively.morphic.EventHandler.subclass('lively.morphic.RelayEventHandler',
         }
 
         // For some reason it works a bit better when we generate the events again...
-        if (true || evt.type == 'mousemove') {
+        if (evt.type === 'mousemove' || evt.type === 'mousedown' || evt.type === 'mouseup' || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'mouseover' || evt.type === 'mouseout' || evt.type === 'mousewheel' || evt.type === 'mouseenter' || evt.type === 'mouseleave') {
             var e = document.createEvent("MouseEvents"),
                 be = evt,
                 et = be.type;
@@ -754,8 +761,8 @@ handleOnCapture);
         return true;
     },
 
-    onMouseMove: function(evt) {
-    },
+    onMouseMove: function(evt) {},
+
     onMouseMoveEntry: function(evt) {
         if ((new Date().getTime() > evt.hand.lastScrollTime + 250) &&
                 (!this.isText || this.isScrollable())) {
@@ -942,6 +949,8 @@ handleOnCapture);
             placeholderPosition = this.placeholder.getPosition();
         }
         aMorph.addMorph(this);
+        delete this.previousOwner;
+        delete this.previousPosition;
         this.onDropOn(aMorph);
         if (placeholderPosition) {
             delete(this.placeholder);
@@ -985,6 +994,7 @@ handleOnCapture);
             this.submorphs.invoke('remove')
         })
         shadow.setTransform(local ? this.getTransform() : this.getGlobalTransform());
+        shadow.disableDropping();
         //shadow.originalMorph = this;
         //this.grabShadow = shadow;
         return shadow;
@@ -1014,9 +1024,11 @@ handleOnCapture);
     openInHand: function() {
         lively.morphic.World.current().firstHand().grabMorph(this);
     },
-    handlesSelectStart: function(evt) {
+    correctForDragOffset: function(evt) {
         // do I respond to onSelectStart in a meaningful way?
-        return (this.getWindow() !== null)
+        if (this.getWindow()) return false;
+        if (this.lockOwner() && this.isLocked()) return false;
+        return true;
     },
     isTopmostMorph: function(aPoint) {
         var world = this.world();
@@ -1144,8 +1156,8 @@ lively.morphic.Text.addMethods(
         $super(evt);
         this.constructor.prototype.activeInstance = this;
     },
-    handlesSelectStart: function(evt) {
-        return this.allowInput;
+    correctForDragOffset: function(evt) {
+        return !this.allowInput;
     }
 });
 lively.morphic.List.addMethods(
@@ -1175,7 +1187,7 @@ lively.morphic.List.addMethods(
             // this happens e.g. when clicked on a scrollbar
             if (idx >= 0) {
                 this.updateSelectionAndLineNoProperties(idx);
-			}
+            }
 
             if (idx >= 0 && this.isMultipleSelectionList && evt.isShiftDown()) {
                 if (this.getSelectedIndexes().include(idx))
@@ -1235,8 +1247,8 @@ lively.morphic.List.addMethods(
     basicGetScrollableNode: function(evt) {
         return this.renderContext().listNode;
     },
-    handlesSelectStart: function(evt) {
-        return true;
+    correctForDragOffset: function(evt) {
+        return false;
     },
     onChange: function(evt) {
         var idx = this.renderContextDispatch('getSelectedIndexes').first();
@@ -1406,6 +1418,13 @@ lively.morphic.World.addMethods(
         if (activeWindow) {
             activeWindow.highlight(false)
         };
+
+        // remove the selection when clicking into the world...
+         if(this.selectionMorph && $world.selectionMorph.owner
+            && (this.morphsContainingPoint(this.eventStartPos).length == 1)) {
+            this.resetSelection()
+        }
+
         return false;
     },
     onMouseUp: function(evt) {
@@ -1441,49 +1460,52 @@ lively.morphic.World.addMethods(
         }
 
         // try to initiate dragging and call onDragStart
-        if (!this.clickedOnMorph) return false;
+        var targetMorph = this.clickedOnMorph;
+        if (!targetMorph) return false;
 
 
         var minDragDistReached = this.eventStartPos &&
-            (this.eventStartPos.dist(evt.getPosition()) > this.clickedOnMorph.dragTriggerDistance);
+            (this.eventStartPos.dist(evt.getPosition()) > targetMorph.dragTriggerDistance);
 
         if (!minDragDistReached) return false;
 
-        if (evt.isCommandKey() && !this.clickedOnMorph.isEpiMorph && evt.isLeftMouseButtonDown()) {
+        if (evt.isCommandKey() && !targetMorph.isEpiMorph && evt.isLeftMouseButtonDown()) {
             if (evt.hand.submorphs.length > 0) return;
-            if (!this.clickedOnMorph.isGrabbable(evt)) return;  // Don't drag world, etc
-            evt.hand.grabMorph(this.clickedOnMorph);
+            if (!targetMorph.isGrabbable(evt)) return;  // Don't drag world, etc
+            evt.hand.grabMorph(targetMorph);
             return;
         }
 
-        if (evt.isShiftDown() && !this.clickedOnMorph.isEpiMorph && evt.isLeftMouseButtonDown()) {
+        if (evt.isShiftDown() && !targetMorph.isEpiMorph && evt.isLeftMouseButtonDown()) {
             if (evt.hand.submorphs.length > 0) return;
-            if (!this.clickedOnMorph.owner) return;
-              if (this.clickedOnMorph instanceof lively.morphic.World) return
+            if (!targetMorph.owner) return;
+              if (targetMorph instanceof lively.morphic.World) return
 
-            this.clickedOnMorph.removeHalos();
-            // alertOK("copy " + this.clickedOnMorph);
+            targetMorph.removeHalos();
+            // alertOK("copy " + targetMorph);
 
-            var copy = this.clickedOnMorph.copy();
+            var copy = targetMorph.copy();
 
-            this.clickedOnMorph.owner.addMorph(copy); // FIXME for setting the right position
+            targetMorph.owner.addMorph(copy); // FIXME for setting the right position
             evt.hand.grabMorph(copy);
-            this.clickedOnMorph = copy;
+            targetMorph = copy;
             return;
         }
 
-        if (this.clickedOnMorph.isGrabbable()) { // world is never grabbable ...
+        if (targetMorph.isGrabbable()) { // world is never grabbable ...
             // morphs that do not have a selection can be dragged
             // (Lists, Texts, Boxes inside a window cannot be dragged by just clicking and moving)
             // before dragging, we want to move the mouse pointer back to the spot we
             // clicked on when we started dragging.
             // FIXME this should also work for Cmd-Drag and Shift-Drag
-            if (!this.clickedOnMorph.handlesSelectStart()) {
-                this.clickedOnMorph.moveBy(evt.getPosition().subPt(this.eventStartPos));
+            var lockOwner = targetMorph.lockOwner(),
+                grabTarget = lockOwner && targetMorph.isLocked() ? lockOwner : targetMorph;
+            if (grabTarget.correctForDragOffset()) {
+                grabTarget.moveBy(evt.getPosition().subPt(this.eventStartPos));
             }
-            this.draggedMorph = this.clickedOnMorph;
+            this.draggedMorph = targetMorph;
             this.draggedMorph.onDragStart && this.draggedMorph.onDragStart(evt);
-        } else if (this.clickedOnMorph === this) { // world handles selections
+        } else if (targetMorph === this) { // world handles selections
             this.draggedMorph = this;
             this.onDragStart(evt);
         }
@@ -1512,8 +1534,8 @@ lively.morphic.World.addMethods(
         var scaleDelta = 1 + wheelDelta / 3000;
 
         // this.scaleBy(scaleDelta);
-        var newScale = oldScale * scaleDelta,
-            newScale = Math.max(Math.min(newScale, maxScale), minScale);
+        var newScale = oldScale * scaleDelta;
+        newScale = Math.max(Math.min(newScale, maxScale), minScale);
         this.setScale(newScale)
 
         // actually this should be a layoutChanged but implementing
@@ -1573,8 +1595,8 @@ lively.morphic.World.addMethods(
         node.scrollTop = 0
         node.scrollLeft = 0
     },
-    handlesSelectStart: function(evt) {
-        return true;
+    correctForDragOffset: function(evt) {
+        return false;
     },
     updateScrollFocus: function() {
         var that = this;
@@ -1845,6 +1867,8 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 },
 'event handling', {
     grabMorph: function(morph, evt) {
+        morph.previousOwner = morph.owner;
+        morph.previousPosition = morph.getPosition();
         return this.grabMorphs([morph], evt)
     },
     grabMorphs: function(morphs, evt) {

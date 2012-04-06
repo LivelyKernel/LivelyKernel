@@ -253,7 +253,7 @@ lively.morphic.Shapes.External.addMethods(
 });
 
 lively.morphic.Shapes.Path.addMethods(
-'SVg render settings', {
+'SVG render settings', {
     svgDispatchTable: {
         setPathElements: 'setPathElementsSVG',
         getPathBounds: 'getPathBoundsSVG',

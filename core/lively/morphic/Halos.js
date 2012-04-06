@@ -82,7 +82,7 @@ lively.morphic.World.addMethods(
     removeHalosFor: function(morph, withoutHalos) {
         withoutHalos = withoutHalos || [];
         if (withoutHalos.length === 0) {
-            delete this.currentHaloTarget;
+            this.currentHaloTarget = undefined;
             morph.showsHalos = false;
         }
         if (!morph.halos) return;
@@ -174,7 +174,7 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
         targetMorph = targetMorph || this.targetMorph;
         var world = targetMorph.world(),
             owner = targetMorph.owner;
-        if (!world) return pt(0,0);
+        if (!world || !owner) return pt(0,0);
         if (!owner && targetMorph === world) owner = world;
 
         var bounds = targetMorph.bounds(),
@@ -209,7 +209,7 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
 
     tranformMoveDeltaDependingOnHaloPosition: function(evt, moveDelta, cornerName) {
         // Griding and rounding might move the morph differently
-        // so we have to do recalculate the delta...
+        // so we have to recalculate the delta...
         if(!evt.isAltDown())
             return moveDelta
 
@@ -631,8 +631,9 @@ lively.morphic.Halo.subclass('lively.morphic.RenameHalo',
         this.setExtent(this.labelMorph.getExtent());
         var targetMorph = this.targetMorph,
             world = targetMorph.world(),
-            owner = targetMorph.owner,
-            bounds = targetMorph.bounds(),
+            owner = targetMorph.owner;
+        if (!world || !owner) return;
+        var bounds = targetMorph.bounds(),
             boundsInWorld = owner.getGlobalTransform().transformRectToRect(bounds),
             visibleBounds = this.computeHaloBounds(boundsInWorld, world);
         this.align(this.bounds().topCenter(), visibleBounds.bottomCenter())
@@ -815,9 +816,11 @@ lively.morphic.Halo.subclass('lively.morphic.BoundsHalo',
         return pos;
     },
     alignAtTarget: function() {
+    
         var targetMorph = this.targetMorph,
             world = targetMorph.world();
-        if (!world) return pt(0,0);
+        if (!world || !targetMorph.owner) return pt(0,0);
+    
         var bounds = targetMorph.bounds(),
             boundsInWorld = targetMorph.owner.getGlobalTransform().transformRectToRect(bounds);
         this.setBounds(boundsInWorld);

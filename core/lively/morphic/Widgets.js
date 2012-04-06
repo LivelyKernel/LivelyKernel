@@ -611,9 +611,13 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         this.subMenu = m;
         m.ownerMenu = this;
 
-        // we do this twice because effect of fitToItems is delayed
+          // we do this twice because effect of fitToItems is delayed
+        m.setVisible(false); // we hide it because it is first shown at the wrong position
         m.offsetForOwnerMenu();
-        m.offsetForOwnerMenu.bind(m).delay(0);
+        (function() {
+            m.offsetForOwnerMenu()
+            m.setVisible(true);
+        }).delay(0);
 
         return m;
     },
@@ -695,7 +699,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     offsetForOwnerMenu: function() {
         var owner = this.ownerMenu,
             visibleBounds = this.world().visibleBounds(),
-            localVisibleBounds = owner.getTransform().inverse().transformRectToRect(visibleBounds),
+            localVisibleBounds = this.getTransform().inverse().transformRectToRect(visibleBounds),
             newBounds = this.moveSubMenuBoundsForVisibility(
                 this.innerBounds(),
                 owner.overItemMorph ? owner.overItemMorph.bounds() : new Rectangle(0,0,0,0),
@@ -760,13 +764,27 @@ lively.morphic.Morph.addMethods(
         items.push(["get halo on...", morphs.collect(function(ea) {
                 return [ea, function(evt) { ea.toggleHalos(evt)}]
         })])
-        // Connections Scripting Support
-        if (this.attributeConnections && this.attributeConnections.length > 0) {
-            items.push(["connections", this.attributeConnections.collect(function(ea) {
-                    return [ea, [["disconnect", function() {
-                        alertOK("disconnecting " + ea)
-                        ea.disconnect()}]]]
-            })])
+         if (this.attributeConnections && this.attributeConnections.length > 0) {
+            items.push(["connections", this.attributeConnections
+                .reject(function(ea) { return ea.dependedBy}) // Meta connection
+                .reject(function(ea) { return ea.targetMethodName == 'alignToMagnet'}) // Meta connection
+                .collect(function(ea) {
+                    var s = ea.sourceAttrName + " -> " + ea.targetObj  + "." + ea.targetMethodName
+                    return [s, [
+                        ["disconnect", function() {
+                            alertOK("disconnecting " + ea)
+                            ea.disconnect()}],
+                        ["edit converter", function() {
+                            var window = lively.bindings.editConnection(ea);
+                        }],
+                        ["show", function() {
+                            lively.bindings.showConnection(ea);
+                        }],
+                        ["hide", function() {
+                            if (ea.visualConnector) ea.visualConnector.remove();
+                        }],
+                    ]]
+                })])
         }
 
         if (this.grabbingEnabled || this.grabbingEnabled == undefined) {
@@ -847,7 +865,7 @@ lively.morphic.World.addMethods(
     loadPartItem: function(partName, optPartspaceName) {
         var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld';
         var part = lively.PartsBin.getPart(partName, optPartspaceName);
-        if (!part) 
+        if (!part)
         	return;
         if (part.onCreateFromPartsBin) part.onCreateFromPartsBin();
         return part;
@@ -888,11 +906,16 @@ lively.morphic.World.addMethods(
     openMethodFinderFor: function(searchString) {
         var toolPane = this.get('ToolTabPane');
         if (!toolPane) {
-            toolPane = this.openPartItem('ToolTabPane', 'PartsBin/Dialogs'); 
+            toolPane = this.openPartItem('ToolTabPane', 'PartsBin/Dialogs');
             toolPane.openInWindow()
             toolPane.owner.name = toolPane.name +"Window"
         }
         var part = toolPane.openMethodFinderFor(searchString)
+        part.setExtent(toolPane.tabPaneExtent)
+        part.owner.layout = part.owner.layout || {};
+        part.owner.layout.resizeWidth = true;
+        part.owner.layout.resizeHeight = true;
+        part.owner.layout.adjustForNewBounds = true;
         return part;
     },
     openVersionViewer: function(evt) {
@@ -909,9 +932,12 @@ lively.morphic.World.addMethods(
         return part;
     },
     openPublishPartDialogFor: function(morph) {
-        var part = this.openPartItem('PublishPartDialog', 'PartsBin/Dialogs');
-        part.targetMorph.setTarget(morph);
-        return part;
+                var publishDialog = this.loadPartItem('PublishPartDialog', 'PartsBin/Dialogs');
+        var metaInfo = morph.getPartsBinMetaInfo();
+        publishDialog.targetMorph.setTarget(morph);
+        publishDialog.openInWorldCenter();
+        $world.publishPartDialog = publishDialog;
+        return publishDialog;
     },
     openConnectDocumentation: function() {
         return this.openPartItem('HowConnectWorks', 'PartsBin/Documentation');
@@ -1059,6 +1085,17 @@ lively.morphic.World.addMethods(
                 });
             }]);
         }
+        if (Global.DebugMethodsLayer && DebugMethodsLayer.isGlobal()) {
+            items.push(['[X] Debug Methods', function() {
+                DebugMethodsLayer.beNotGlobal()
+            }]);
+        } else {
+            items.push(['[  ] Debug Methods', function() {
+                require('lively.ast.Morphic').toRun(function() {
+                    DebugMethodsLayer.beGlobal()
+                });
+            }]);
+        }
         return items;
     },
 
@@ -1101,8 +1138,8 @@ lively.morphic.World.addMethods(
 				        ["on Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
                 ["more...", function() { window.open(Config.rootPath + 'documentation/'); }]
             ]],
-            ['save world as ...', this.interactiveSaveWorldAs.bind(this)],
-            ['save world', this.saveWorld.bind(this)]
+            ['save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],
+            ['save world', this.saveWorld.bind(this), 'synchron']
         ];
         return items;
     }
@@ -1123,8 +1160,8 @@ lively.morphic.World.addMethods(
     },
 },
 'windows', {
-    addFramedMorph: function(morph, title, optLoc, optSuppressControls) {
-        var w = this.addMorph(new lively.morphic.Window(morph, title || 'Window', optSuppressControls));
+    addFramedMorph: function(morph, title, optLoc, optSuppressControls, suppressReframeHandle) {
+        var w = this.addMorph(new lively.morphic.Window(morph, title || 'Window', optSuppressControls, suppressReframeHandle));
         w.setPosition(optLoc || this.positionForNewMorph(morph));
         return w;
     },
@@ -1139,14 +1176,15 @@ lively.morphic.World.addMethods(
             clipMode: 'auto',
             fixedWidth: true, fixedHeight: true,
             resizeWidth: true, resizeHeight: true,
-            syntaxHighlighting: spec.syntaxHighlighting});
+            syntaxHighlighting: spec.syntaxHighlighting,
+            padding: Rectangle.inset(4,2)});
         return pane;
     },
 
-    internalAddWindow: function(morph, title, pos) {
+    internalAddWindow: function(morph, title, pos, suppressReframeHandle) {
         morph.applyStyle({borderWidth: 1, borderColor: CrayonColors.iron});
         pos = pos || this.firstHand().getPosition().subPt(pt(5, 5));
-        var win = this.addFramedMorph(morph, String(title || ""), pos);
+        var win = this.addFramedMorph(morph, String(title || ""), pos, suppressReframeHandle);
         return morph;
     },
 },
@@ -1155,8 +1193,8 @@ lively.morphic.World.addMethods(
         var activeWindow = $world.getActiveWindow() || $world,
             visibleBounds = this.visibleBounds(),
             blockee = activeWindow.targetMorph || $world,
-            pointOfAlign = activeWindow.targetMorph ? 
-                blockee.getShape().getBounds().topRight() :        
+            pointOfAlign = activeWindow.targetMorph ?
+                blockee.getShape().getBounds().topRight() :
                 this.visibleBounds().center(),
             window = dialog.openIn(this, pt(0,0)),
             d,
@@ -1167,18 +1205,26 @@ lively.morphic.World.addMethods(
         d = dialog
         if (!activeWindow) return d;
 
-        blockMorph = lively.morphic.Morph.makeRectangle(blockee.bounds());
+        // normal bounds can be negative.. we want the shape bounds here
+        var bounds = blockee.shape.bounds().translatedBy(blockee.getPosition());
+        blockMorph = lively.morphic.Morph.makeRectangle(bounds);
+        blockMorph.disableGrabbing();
+        blockMorph.disableDragging();
+        blockMorph.isEpiMorph = true;
         blockMorph.applyStyle({
             fill: null,
             borderWidth: 0,
         });
         transparentMorph = lively.morphic.Morph.makeRectangle(blockMorph.getShape().getBounds());
+        transparentMorph.disableGrabbing();
+        transparentMorph.disableDragging();
+        transparentMorph.isEpiMorph = true;
         blockMorph.addMorph(transparentMorph);
         transparentMorph.applyStyle({
             fill: Color.black,
             opacity: 0.5,
         });
-        
+
         blockMorph.addMorph(d.panel);
         d.panel.align(d.panel.bounds().topRight(), pointOfAlign);
 
@@ -1303,7 +1349,7 @@ lively.morphic.List.addMethods(
     },
 },
 'settings', {
-    style: {borderColor: Color.black, borderWidth: 0, fill: Color.gray.lighter().lighter(), clipMode: 'auto', fontFamily: 'Helvetica', fontSize: 10},
+    style: {borderColor: Color.black, borderWidth: 0, fill: Color.gray.lighter().lighter(), clipMode: 'auto', fontFamily: 'Helvetica', fontSize: 10, enableGrabbing: false},
     selectionColor: Color.green.lighter(),
     isList: true,
 },
@@ -1619,6 +1665,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
             titleHeight = titleBar.bounds().height - titleBar.getBorderWidth();
         this.setBounds(bounds.withHeight(bounds.height + titleHeight));
         this.targetMorph = this.addMorph(targetMorph);
+        if (Config.danTest) {
+            this.reframeHandle = this.addMorph(this.makeReframeHandle());
+            this.alignReframeHandle();
+            }
         this.titleBar = this.addMorph(titleBar);
         //this.contentOffset = pt(0, titleHeight - titleBar.getBorderWidth()/2); // FIXME: hack
         this.contentOffset = pt(0, titleHeight);
@@ -1640,6 +1690,48 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
         // Overridden in TabbedPanelMorph
         return new lively.morphic.TitleBar(titleString, width, this, optSuppressControls);
     },
+removeHalos: function($super, optWorld) {
+    // Sadly, this doesn't get called when click away from halo
+    // Need to patch World.removeHalosFor, or refactor so it calls this
+    if (this.reframeHandle) {
+        this.addMorphFront(this.reframeHandle);
+        this.alignReframeHandle();
+        }
+    $super(optWorld)
+    },
+showHalos: function($super) {
+    // Hide the reframe handle in case of menu reframe
+    this.reframeHandle && this.reframeHandle.remove()
+    $super()
+    },
+
+
+makeReframeHandle: function() {
+    var handle = Morph.makePolygon([pt(14, 0), pt(14, 14), pt(0, 14)], 0, null, Color.gray);
+    handle.onDragStart = function(evt) {
+        this.dragStartPoint = evt.mousePoint;
+        this.originalTargetExtent = this.owner.getExtent();
+        };
+    handle.onDrag = function(evt) {
+        var moveDelta = evt.mousePoint.subPt(this.dragStartPoint)
+        if (evt.isShiftDown()) {
+            var maxDelta = Math.max(moveDelta.x, moveDelta.y);
+	    moveDelta = pt(maxDelta, maxDelta);
+            };
+        this.owner.setExtent(this.originalTargetExtent.addPt(moveDelta));
+        this.align(this.bounds().bottomRight(), this.owner.getExtent());
+        };
+    handle.onDragEnd = function (evt) {
+        this.dragStartPoint = null;
+        this.originalTargetExtent = null;
+        };
+    return handle;
+},
+alignReframeHandle: function() {
+    if (this.reframeHandle) this.reframeHandle.align(this.reframeHandle.bounds().bottomRight(), this.getExtent());
+    },
+
+
     getBounds: function($super) {
         if (this.titleBar && this.isCollapsed()) {
             var titleBarTranslation = this.titleBar.getGlobalTransform().getTranslation();
@@ -1664,16 +1756,22 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
 },
 'menu', {
     showTargetMorphMenu: function() {
-        var target;
+        var target, menu, items;
         if (this.targetMorph) {
-            target = this.targetMorph;
-        } else {
+            target = this.targetMorph;    
+            } 
+        else {
             target = this;
         }
-        target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
+        menu = target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
     },
     morphMenuItems: function($super) {
         var self = this, items = $super();
+
+        items[0] = [
+            'publish window', function(evt) {
+            self.copyToPartsBinWithUserRequest();
+        }]
         items.push([
             'set title', function(evt) {
             $world.prompt('Enter new title', function(input) {
@@ -1703,6 +1801,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
             scrolls.push(ea.getScroll());
         });
         this.owner.addMorphFront(this); // come forward
+        if (this.reframeHandle) {
+            this.addMorphFront(this.reframeHandle);
+            this.alignReframeHandle();
+            }
         (function() {
         textsAndLists.forEach(function(ea, i) { ea.setScroll(scrolls[i][0], scrolls[i][1]) });
         this.targetMorph && this.targetMorph.onWindowGetsFocus && this.targetMorph.onWindowGetsFocus();
@@ -2409,15 +2511,17 @@ Trait('SelectionMorphTrait',
         }
 
         this.resetSelection()
+
         if (this.selectionMorph.owner !== this)
             this.addMorph(this.selectionMorph);
 
-        var pos = this.localize(evt.getPosition());
+        var pos = this.localize(this.eventStartPos || evt.getPosition());
         this.selectionMorph.withoutPropagationDo(function() {
             this.selectionMorph.setPosition(pos)
             this.selectionMorph.setExtent(pt(1, 1))
             this.selectionMorph.initialPosition = pos;
         }.bind(this))
+
     },
     onDrag: function(evt) {
         if(!this.selectionMorph) return

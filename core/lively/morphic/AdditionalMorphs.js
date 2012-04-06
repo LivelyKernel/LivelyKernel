@@ -1084,6 +1084,8 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
     },
 
     addTabPane: function(aTabPane) {
+        aTabPane.layout = aTabPane.layout || {};
+        aTabPane.layout.adjustForNewBounds = true;
         this.addMorph(aTabPane);
         this.getTabBarStrategy().
             adjustPanePositionInContainer(aTabPane, this);
@@ -1138,6 +1140,23 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
         aContainer.getTabBar().removeTab(aTab);
         this.getTabBar().addTab(aTab);
     },   
+
+    panes: function() {
+        return this.getTabBar().getTabs().invoke('getPane');
+    },
+
+    activeTab: function() {
+        return this.getTabBar().getTabs().detect(function(ea) { return ea.isActive });
+    },
+
+    activePane: function() {
+        return this.activeTab().getPane();
+    },
+    adjustForNewBounds: function($super) {
+        // resizedPanes holds a list that can be checked against endless recursion while setting the extent of the TabPanes
+        $super();
+        delete(this.resizedPanes);
+    },
 
 });
 
@@ -1243,8 +1262,13 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         return this.tabContainer;
     },
     adjustTabSizes: function(aPoint) {
-        this.getTabs().forEach(function(ea) {
-            ea.getPane().adjustToNewContainerSize(aPoint);});
+        if (!this.adjustedTabSizes) {
+            var self = this;
+            this.getTabs().forEach(function(ea) {
+                self.adjustedTabSizes = true;
+                ea.getPane().adjustToNewContainerSize(aPoint);
+            });
+        }
         this.setExtent(this.getTabContainer().getTabBarStrategy().
             tabBarExtent(this.getTabContainer()));
     
@@ -1368,10 +1392,12 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         this.getTabContainer().addTabPane(this.getPane());
         this.setFill(Color.white);
         delete this.isInActivationCycle;
+        this.isActive = true;
         this.getPane().onActivate();
     },
     deactivate: function() {
         this.setFill(Color.gray);
+        this.isActive = false;
     },
     addCloseButton: function() {
         var closer = new lively.morphic.Button;
@@ -1434,8 +1460,13 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         $super(aPoint);
         var container = this.getTabContainer();
         this.adjustClipping(aPoint);
-        if (!this.isInResizeCycle) {
-            container.onResizePane(aPoint);
+        container.resizedPanes = container.resizedPanes || new Array();
+        // TODO refactor: either resizedPanes list or isInResizeCycle, not both!
+        if (container.resizedPanes.indexOf(this.id) < 0) {
+            container.resizedPanes.push(this.id);
+            if (!this.isInResizeCycle) {
+                container.onResizePane(aPoint);
+            }
         }
     },
 

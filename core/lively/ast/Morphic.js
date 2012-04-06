@@ -46,6 +46,22 @@ cop.create('DebugScriptsLayer')
         return script;
     },
 });
+cop.create('DebugMethodsLayer').refineObject(Function.prototype, {
+    addCategorizedMethods: function(categoryName, source) {
+        console.log("sppp" + categoryName);
+        for (var property in source) {
+            var func = source[property];
+            if (Object.isFunction(func)) {
+                if (func.containsDebugger()) {
+                    var origSource = func.toString();
+                    source[property] = func.forDebugging("lively.morphic.Morph.openDebugger");
+                    source[property].toString = function() { return origSource; };
+                }
+            }
+        }
+        return cop.proceed(categoryName, source);
+    },
+});
 
 lively.morphic.Text.addMethods(
 'debugging', {
@@ -68,14 +84,14 @@ lively.morphic.Text.addMethods(
 
 cop.create('DebugGlobalErrorHandlerLayer')
 .beGlobal()
-.refineClass(lively.morphic.EventHandler, {
-    handleError: function(err, target, eventSpec) {
+.refineClass(lively.morphic.World, {
+    logError: function(err, optName) {
         if (err.simStack) {
             var frame = lively.ast.Interpreter.Frame.fromTraceNode(err.simStack);
             lively.morphic.Morph.openDebugger(frame, err.toString());
             return false;
         } else {
-            return cop.proceed(err, target, eventSpec);
+            return cop.proceed(err, optName);
         }
     },
 });

@@ -10,9 +10,14 @@ TestCase.subclass('lively.PartTestCase', 'accessing', {
     createTests: function() {
         var that = this;
         return this.allTestSelectors().collect(function(sel) {
-                debugger;
                 var testCase = new that.constructor(that.result, sel, that.getPartUnderTest());
                 testCase.addScript(that[sel]);
+                // add helper functions
+                Functions.own(that).forEach(function(ea) {
+                    if (! ea.startsWith("test")) {
+                        testCase.addScript(that[ea]);
+                    }
+                });
                 return testCase;
             });
     },

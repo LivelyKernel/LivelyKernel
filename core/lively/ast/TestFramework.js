@@ -28,7 +28,7 @@ cop.create('DebugTestsLayer')
         return this.result;
     },
 })
-.refineClass(lively.AST.FunctionCaller, {
+.refineClass(lively.ast.FunctionCaller, {
     shouldInterpret: function(func) {
         return !this.isNative(func);
     }

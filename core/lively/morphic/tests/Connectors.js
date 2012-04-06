@@ -153,7 +153,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
 lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindingsTest',
 'testing', {
     test01ConnectMorphNameToText: function() {
-        if (Config.noVisualConnect) {
+        if (!Config.visualConnectEnabled) {
             return;
         }
         var morph = new lively.morphic.Morph.makeRectangle(0,0, 20, 20),

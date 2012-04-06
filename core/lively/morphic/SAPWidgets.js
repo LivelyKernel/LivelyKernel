@@ -1,6 +1,62 @@
-module('lively.morphic.SAPWidgets').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles').toRun(function() {
+module('lively.morphic.SAPBPCWidgets').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles').toRun(function() {
 
-lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
+lively.morphic.Morph.subclass('lively.morphic.SAPCheckBox',
+'properties', {
+    connections: {
+        setChecked: {}
+    }
+},
+'initializing', {
+    initialize: function($super, isChecked) {
+        $super(this.createShape());
+        this.setChecked(isChecked);
+    },
+    createShape: function() {
+        var node = XHTMLNS.create('input');
+        node.type = 'checkbox';
+        return new lively.morphic.Shapes.External(node);
+    },
+},
+'accessing', {
+    setChecked: function(bool) {
+        this.checked = bool;
+        this.renderContext().shapeNode.checked = bool;
+        return bool;
+    },
+},
+'testing', {
+    isChecked: function() {
+        return this.checked;
+    },
+},
+'event handling', {
+
+
+    onClick: function(evt) {
+        // for halos/menus
+         if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) {
+            evt.stop()
+            return true;
+        }
+        // we do it ourselves
+        this.setChecked(!this.isChecked())
+        // evt.stop();
+         return true;
+     },
+
+
+},
+'serialization', {
+    prepareForNewRenderContext: function ($super, renderCtx) {
+        $super(renderCtx);
+        // FIXME what about connections to this.isChecked?
+        // they would be updated here...
+        this.setChecked(this.isChecked());
+    },
+});
+
+
+lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
 'initialization', {
     initialize: function($super, numCols, numRows) {
         $super();
@@ -64,7 +120,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     },
     createCell: function(x, y, headOffset) {
 
-        var cell = new lively.morphic.SAPGridCell();
+        var cell = new lively.morphic.SAPDataGridCell();
         cell.doitContext = this;
         cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         cell.addToGrid(this);
@@ -81,7 +137,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
     },
     createColHead: function(index, title) {
-        var head = new lively.morphic.SAPGridColHead();
+        var head = new lively.morphic.SAPDataGridColHead();
         head.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         head.addToGrid(this);
         head.gridCoords = pt(index, 0);
@@ -109,17 +165,9 @@ console.log('End createLayout =' + elapsed);
     },
 
  showAnnotation: function(nColumn,nRow) {
-        
-        //alert(this.rows[nColumn][nRow].getPosition());
-        var sAnnotation = this.at(nColumn,nRow).annotation;
         this.oAnnotation.setVisible(true);
-        if (sAnnotation){
-            this.oAnnotation.textString = sAnnotation ;
-        }else{
-            this.oAnnotation.textString = 'Enter your note: ';
-        }
-        
-
+        this.oAnnotation.textString = 'test annotation....';
+        //alert(this.rows[nColumn][nRow].getPosition());
         this.oAnnotation.setPosition(this.rows[nColumn][nRow].getPosition());
 
     },
@@ -132,7 +180,7 @@ console.log('End createLayout =' + elapsed);
     },
     atPut: function(x, y, value) {
         //debugger;
-        console.log("SAPGrid.atPut: x=" + x + ", y=" + y + ", value=" + value );
+        console.log("SAPDataGrid.atPut: x=" + x + ", y=" + y + ", value=" + value );
         this.rows[y][x].textString = value;
     },
     clear: function() {
@@ -154,7 +202,7 @@ console.log('End createLayout =' + elapsed);
     },
     onLeftPressed: function(evt) {
         //testing cell text is focused or not 
-    console.log("SAPGrid.onLeftPressed");
+    console.log("SAPDataGrid.onLeftPressed");
         if (!this.activeCell) {
          }else{
               alert(this.activeCell.isFocused())
@@ -182,11 +230,6 @@ console.log('End createLayout =' + elapsed);
             this.at(curX + aPoint.x, curY + aPoint.y).activate();
         }
     },
-
-    setAnnotationData: function(aJsArray) {
-        
-    },
-
     setData: function(aJsArray) {
         this.clear();
         this.dataModel = [];
@@ -277,34 +320,20 @@ console.log('End createLayout =' + elapsed);
             this.activeCellContent = this.activeCell.getContent();
         }
     },
-/*
+/*can't use this... it will stop everything
     onKeyDown: function($super, evt) {
-
-    console.log("SAPGrid.onKeyDown");
-        //debugger;
+ //debugger;
+    console.log("SAPDataGrid.onKeyDown");
+        //evt.stop();
+    },
+*/
+    onKeyPress: function(evt) {
+        console.log("SAPDataGrid.onKeyPress");
         if (!this.activeCell) {
-           
-        }else{
-            //alert(this.activeCell.isFocused())
+            this.at(0,0).activate();
         }
-        $super(evt);
-    },*/
-
-    onKeyPress: function($super,evt) {
-        console.log("SAPGrid.onKeyPress");
-
-        if (this.oAnnotation.isVisible()){
-            //this.oAnnotation.onKeyPress(evt);
-             evt.stop(); 
-        }else{
-            if (!this.activeCell) {
-                this.at(0,0).activate();
-            }
-            this.activeCell.onKeyPress(evt);
-              evt.stop(); 
-        }
-
-        
+        this.activeCell.onKeyPress(evt);
+        evt.stop();
     },
     onBackspacePressed: function(evt) {
         if (!this.activeCell) {
@@ -317,7 +346,7 @@ console.log('End createLayout =' + elapsed);
         //Hak March27 2012:  calculate formula
         if (this.activeCell !=null){
             var sValue = this.activeCell.textString;
-            console.log("SAPGrid.onEnterPressed sValue=" + sValue );
+            console.log("SAPDataGrid.onEnterPressed sValue=" + sValue );
             if (sValue .charAt(0)=="="){
                 this.activeCell.textString=this.parseFormula(sValue);
                 //'Formula \n test'
@@ -591,7 +620,7 @@ currently only support
     },
 });
 
-lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
+lively.morphic.Text.subclass('lively.morphic.SAPDataGridCell',
 'default category', {
     addToGrid: function(aGrid) {
         this.grid = aGrid;
@@ -623,7 +652,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.grid.recalculateRowsFirst();
     },
     onMouseDown: function (evt) {
-        //debugger;
         if (evt.isLeftMouseButtonDown()) {
             this.activate();
         }
@@ -687,7 +715,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         return floatValue;
     },
 });
-lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
+lively.morphic.Text.subclass('lively.morphic.SAPDataGridColHead',
 'default category', {
     initialize: function($super, arg1, arg2) {
         $super(arg1, arg2);
@@ -711,9 +739,14 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         this.grid = aGrid;
         this.grid.addMorph(this);
     },
+    onKeyDown: function($super, evt) {
+ //debugger;
+        $super(evt);
+        this.textString += String.fromCharCode(evt.getKeyCode());
+    },
     onKeyPress: function($super, evt) {
-       debugger;
-        //$super(evt);
+       // debugger;
+        $super(evt);
         this.textString += String.fromCharCode(evt.getKeyCode());
     },
     onBackspacePressed: function($super, evt) {
@@ -738,7 +771,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
     },
 
     put: function(aValue) {
-        console.log("Annotation.put")
         this.textString = aValue;
     },
 

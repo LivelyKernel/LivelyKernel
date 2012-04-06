@@ -184,7 +184,20 @@ console.log('End createLayout =' + elapsed);
     },
 
     setAnnotationData: function(aJsArray) {
+        var arrNotes=[];
+        var oAnnotation = {};
         
+        oAnnotation.nRow = 1;
+        oAnnotation.nColumn = 2;
+        oAnnotation.sNote = "this is for cell [1,2]";
+        arrNotes.push(oAnnotation);
+        oAnnotation = {};
+        oAnnotation.nRow = 2;
+        oAnnotation.nColumn = 3;
+        oAnnotation.sNote = "this is for cell [2,3]";
+        arrNotes.push(oAnnotation);
+
+
     },
 
     setData: function(aJsArray) {

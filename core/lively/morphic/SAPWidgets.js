@@ -182,6 +182,11 @@ console.log('End createLayout =' + elapsed);
             this.at(curX + aPoint.x, curY + aPoint.y).activate();
         }
     },
+
+    setAnnotationData: function(aJsArray) {
+        
+    },
+
     setData: function(aJsArray) {
         this.clear();
         this.dataModel = [];

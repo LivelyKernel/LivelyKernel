@@ -639,6 +639,16 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.updateDisplay();
         this.grid.recalculateRowsFirst();
     },
+    hasAnnotation: function() {
+        if (this.grid.activeCell) {
+            this.grid.activeCell.deactivate();
+        }    
+        this.grid.activeCell = this;
+        this.grid.activeCellContent = this.textString;
+        this.setBorderColor(Color.red);
+        this.setBorderWidth(2);
+        this.displayExpression();
+    },
     onMouseDown: function (evt) {
         //debugger;
         if (evt.isLeftMouseButtonDown()) {

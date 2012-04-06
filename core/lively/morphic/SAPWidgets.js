@@ -649,6 +649,10 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.setBorderColor(Color.orange);
         this.setBorderWidth(1);
     },
+    formulaCell: function() {
+        this.setBorderColor(Color.green);
+        this.setBorderWidth(1);
+    },
     onMouseDown: function (evt) {
         //debugger;
         if (evt.isLeftMouseButtonDown()) {

@@ -182,6 +182,11 @@ console.log('End createLayout =' + elapsed);
             this.at(curX + aPoint.x, curY + aPoint.y).activate();
         }
     },
+
+    setAnnotationData: function(aJsArray) {
+        
+    },
+
     setData: function(aJsArray) {
         this.clear();
         this.dataModel = [];
@@ -617,10 +622,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.updateDisplay();
         this.grid.recalculateRowsFirst();
     },
-	 hasAnnotation: function() {
-        this.setBorderColor(Color.orange);
-        this.setBorderWidth(1);
-    },
     onMouseDown: function (evt) {
         //debugger;
         if (evt.isLeftMouseButtonDown()) {
@@ -739,13 +740,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
     put: function(aValue) {
         console.log("Annotation.put")
         this.textString = aValue;
-    },
-
-
-});
-
-
-}) // end of modulextString = aValue;
     },
 
 

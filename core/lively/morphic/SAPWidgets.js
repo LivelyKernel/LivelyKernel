@@ -640,6 +640,10 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.updateEvalExpression();
         this.updateDisplay();
         this.grid.recalculateRowsFirst();
+        if (this.annotation){
+	   this.hasAnnotation();
+	}
+			 
     },
     annotationCell: function() {
         this.setBorderColor(Color.orange);

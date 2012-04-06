@@ -617,15 +617,10 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.updateDisplay();
         this.grid.recalculateRowsFirst();
     },
-    annotationCell: function() {
+	 hasAnnotation: function() {
         this.setBorderColor(Color.orange);
         this.setBorderWidth(1);
     },
-    formulaCell: function() {
-        this.setBorderColor(Color.green);
-        this.setBorderWidth(1);
-    },
-   
     onMouseDown: function (evt) {
         //debugger;
         if (evt.isLeftMouseButtonDown()) {
@@ -752,6 +747,12 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
 
 }) // end of modulextString = aValue;
     },
+
+
+});
+
+
+}) // end of module    },
 
 
 });

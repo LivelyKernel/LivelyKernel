@@ -932,11 +932,15 @@ lively.morphic.World.addMethods(
         return part;
     },
     openPublishPartDialogFor: function(morph) {
-                var publishDialog = this.loadPartItem('PublishPartDialog', 'PartsBin/Dialogs');
-        var metaInfo = morph.getPartsBinMetaInfo();
+        var publishDialog = this.loadPartItem('PublishPartDialog', 'PartsBin/Dialogs'),
+            metaInfo = morph.getPartsBinMetaInfo();
+        if (!publishDialog) {
+            alert("Cannot open PublishPartDialog!");
+            return null;
+        }
         publishDialog.targetMorph.setTarget(morph);
         publishDialog.openInWorldCenter();
-        $world.publishPartDialog = publishDialog;
+        this.publishPartDialog = publishDialog;
         return publishDialog;
     },
     openConnectDocumentation: function() {

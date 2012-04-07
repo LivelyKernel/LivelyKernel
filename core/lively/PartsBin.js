@@ -578,7 +578,7 @@ Trait('lively.PartsBin.PartTrait', {
         this.getPartItem().uploadPart(true);
     },
     copyToPartsBinWithUserRequest: function() {
-        this.world().openPublishPartDialogFor(this)
+        this.world().openPublishPartDialogFor(this);
     },
 
     copyToMyPartsBin: function() {

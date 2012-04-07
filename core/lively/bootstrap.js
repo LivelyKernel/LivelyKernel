@@ -105,7 +105,7 @@ var JSLoader = {
     },
 
     loadSync: function(url, onLoadCb, script) {
-        if( this.isCSS(url)) {
+        if (this.isCSS(url)) {
             console.log('skipping eval for css: ' + url );
             if (typeof onLoadCb === 'function') onLoadCb();
             return;

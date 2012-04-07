@@ -22,7 +22,6 @@
  * THE SOFTWARE.
  */
 
-
 // set to the context enclosing the SVG context.
 // rk: replaced "this.window.top || this.window" with "this.window"
 // rk: when is it necessary to use the parent context?
@@ -34,7 +33,6 @@ function dbgOn(cond, optMessage) {
     return cond;
 }
 
-
 // namespace logic adapted from
 // http://higher-order.blogspot.com/2008/02/designing-clientserver-web-applications.html
 function assert(value, message) {
@@ -44,6 +42,7 @@ function assert(value, message) {
     try { throw new Error() } catch(e) { stack = e.stack || ''}
     alert('Assertion failed' + (message ? ': ' + message : '!') + '\n' + stack)
 };
+
 var using = (function() {
 
     function Util(args) {  // args is an escaping arguments array

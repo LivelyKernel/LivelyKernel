@@ -277,6 +277,7 @@ Object.extend(lively.Tracing, {
         lively.morphic.World.current().withAllSubmorphsDo(function(morph) {
            lively.Tracing.instrumentObject(morph, remove);
         });
+        return this;
     },
 
     uninstallStackTracers: function() { this.installStackTracers(true) },

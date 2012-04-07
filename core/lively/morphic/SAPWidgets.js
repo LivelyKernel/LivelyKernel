@@ -23,12 +23,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.oAnnotation.addToGrid(this);
         this.oAnnotation.setVisible(false);
         this.oAnnotation.setExtent(lively.pt(200,100));
-        this.oAnnotation.name = '[test]';
-
-        
-
-
-
     },
     initializeData: function() {
         var start = new Date().getTime();

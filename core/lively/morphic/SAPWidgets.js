@@ -648,8 +648,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     },
     onDoubleClick: function (evt) {
         if (this.annotation){
-            var nCol= this.activeCell.gridCoords.x;
-            var nRow = this.activeCell.gridCoords.y;
+            var nCol= this.gridCoords.x;
+            var nRow = this.gridCoords.y;
             alert(nCol + " " + nRow);
             //this.grid
 	  //this.get('BPCGrid').showAnnotation(2,2);

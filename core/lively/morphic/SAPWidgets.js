@@ -676,10 +676,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.textString = this.textString.substring(0, this.textString.length-1);
         evt.stop();
     },
-
-
-
-
     initialize: function($super, arg) {
         $super(arg);
         this.evalExpression = undefined;

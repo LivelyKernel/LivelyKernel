@@ -322,8 +322,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     appendTextString: function(string) { return this.textString += string },
 
     insertTextStringAt: function(index, string) {
-        var chunks = this.sliceTextChunks(index - 1, index);
-        chunks[0] && chunks[0].textString += string;
+        var chunks = this.sliceTextChunks(index - 1, index),
+            firstChunk = chunks[0];
+        if (!firstChunk) {
+            console.warn('insertTextStringAt failed, found no text chunk!');
+            return;
+        }
+        firstChunk.textString += string;
         this.coalesceChunks();
     },
 

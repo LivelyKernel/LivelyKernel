@@ -6,7 +6,7 @@ For feedback, announcement and discussions, please feel invited to subscribe to 
 
 This repository is a fork of the Lively Kernel Webwerkstatt wiki at [HPI](http://www.lively-kernel.org/repository/webwerkstatt/). To learn more about the motivation and long-term vision for this repository see [the wiki](https://github.com/rksm/LivelyKernel/wiki/Repository-Purpose).
 
-Current build status of the master branch: [Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png)
+Current build status of the master branch: ![Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png)
 
 ## Installation
 

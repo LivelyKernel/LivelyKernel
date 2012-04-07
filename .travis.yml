@@ -9,10 +9,8 @@ before_install:
   - "sudo apt-get install xvfb"
   - "npm install -g livelykernel-scripts@latest"
 
-after_install:
-  - "ln -s $PWD `lk scripts-dir`/workspace/lk"
-
 before_script:
+  - "ln -s $PWD `lk scripts-dir`/workspace/lk"
   - "Xvfb :1 -screen 0 800x600x24&"
   - "lk server --forever"
 

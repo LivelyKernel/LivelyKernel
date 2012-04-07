@@ -116,7 +116,7 @@ console.log('End createLayout =' + elapsed);
         if (sAnnotation){
             this.oAnnotation.textString = sAnnotation ;
         }else{
-            this.oAnnotation.textString = 'Enter your note: ';
+            this.oAnnotation.textString = '';
         }
         
 

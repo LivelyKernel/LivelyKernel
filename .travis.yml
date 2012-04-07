@@ -3,6 +3,9 @@ language: node_js
 node_js:
   - 0.6
 
+python:
+  - "2.7"
+
 before_install:
   - "sudo apt-get update"
   - "sudo apt-get install chromium-browser"

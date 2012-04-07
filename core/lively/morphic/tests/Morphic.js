@@ -637,8 +637,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
             });
         this.assertEquals(m.textString, "foo", "string was not pasted into empty text");
     },
-
-
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichTextTests',
@@ -1170,9 +1168,16 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             {tagName: 'span', textContent: 'intest', style: {fontWeight: ''}}])
     },
 
+    test27aInsertStringAt: function() {
+        this.text.setTextString('some text');
+        this.text.toggleBoldness(2,4);
+        this.text.insertTextStringAt(4, ' more');
 
-
-
+        this.checkChunks(
+            [{textString: 'so'},
+            {textString: 'me more', style: {fontWeight: 'bold'}},
+            {textString: ' text'}]);
+    },
 
 });
 lively.morphic.tests.TextMorphRichTextTests.subclass('lively.morphic.tests.RichTextTests',

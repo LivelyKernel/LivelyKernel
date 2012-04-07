@@ -49,12 +49,25 @@ That's it. You can now visit ther rather boring page [blank.xhtml](http://localh
 *Note 2* We are currently working on a pure node.js solution to get rid of apache and the complicated setup process.
 
 See [installation notes for apache on Debian and Mac OS x](https://github.com/rksm/LivelyKernel/wiki/Lively-kernel-installation-on-debian-and-mac-os-x) for details.
- 
+
 
 ### Installing the Webwerkstatt PartsBin
 
 You can install all the cool tools from Webwerkstatt's PartsBin. Have a look at [the HOWTO](https://github.com/rksm/LivelyKernel/wiki/How-to-make-PartsBin-work).
 
+
+### Using livelykernel-scripts
+
+We will shortly publish an automated installer. In the meantime you may want to try out:
+
+```sh
+npm install -g livelykernel-scripts
+lk workspace --checkout-lk
+echo "Lively Kernel core is now installed in `lk scripts-dir`/workspace/lk/"
+lk server
+```
+
+You can now use `lk test` to run the tests and visit [blank.xhtml](http://localhost:9001/blank.xhtml).
 
 ## Running the tests
 

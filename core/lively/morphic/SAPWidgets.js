@@ -17,9 +17,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeAnnotation();
 
     },
-     onDoubleClick: function (evt) {
-       alert(onDoubleClick);
-    },
     initializeAnnotation: function() {
         this.oAnnotation = new lively.morphic.SAPGridAnnotation();
         this.oAnnotation.addToGrid(this);

@@ -2,7 +2,7 @@
   "author": "The Lively Kernel Team <lively-kernel@hpi.uni-potsdam.de>",
   "name": "livelykernel",
   "description": "Core modules of the Lively Kernel",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "homepage": "http://lively-kernel.org",
   "repository": {
     "type": "git",

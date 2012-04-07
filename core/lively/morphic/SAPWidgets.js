@@ -646,7 +646,9 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
             this.activate();
         }
     },
-
+    onDoubleClick: function (evt) {
+       alert(onDoubleClick);
+    },
 
 
 

@@ -1239,9 +1239,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             {tagName: 'span', textContent: 'intest', style: {fontWeight: ''}}])
     },
 
-
-
-
+    test11InsertStringAt: function() {
+        // enter comment here
+    },
 
 });
 lively.morphic.tests.TextMorphRichTextTests.subclass('lively.morphic.tests.RichTextTests',

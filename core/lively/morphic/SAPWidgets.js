@@ -297,7 +297,7 @@ console.log('End createLayout =' + elapsed);
 
     onKeyPress: function($super,evt) {
         console.log("SAPGrid.onKeyPress");
-
+debugger;
         if (this.oAnnotation.isVisible()){
             this.oAnnotation.onKeyPress(evt);
              evt.stop(); 

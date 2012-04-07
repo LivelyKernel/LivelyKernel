@@ -293,7 +293,7 @@ console.log('End createLayout =' + elapsed);
             //alert(this.activeCell.isFocused())
         }
         $super(evt);
-    },
+    },*/
 
     onKeyPress: function($super,evt) {
         console.log("SAPGrid.onKeyPress");
@@ -339,7 +339,7 @@ console.log('End createLayout =' + elapsed);
         this.onRightPressed(evt);
         return true;
     },
-*/
+
 
 
     setActiveCellContent: function(aString) {
@@ -663,7 +663,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         debugger;
         this.textString = aValue;
     },
-    /*onKeyPress: function($super, evt) {
+    onKeyPress: function($super, evt) {
         console.log("SAPGridCell.onKeyPress");        
         $super(evt);
         this.textString += String.fromCharCode(evt.getKeyCode());
@@ -676,7 +676,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         }
         this.textString = this.textString.substring(0, this.textString.length-1);
         evt.stop();
-    },*/
+    },
     initialize: function($super, arg) {
         $super(arg);
         this.evalExpression = undefined;
@@ -734,7 +734,38 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
     addToGrid: function(aGrid) {
         this.grid = aGrid;
         this.grid.addMorph(this);
-    }
+    },
+    onKeyPress: function($super, evt) {
+       console.log("SAPGridAnnotation.onKeyPress");
+        $super(evt);
+        this.textString += String.fromCharCode(evt.getKeyCode());
+    },
+    onBackspacePressed: function($super, evt) {
+        $super(evt);
+        if (!this.textString) {
+            evt.stop(); 
+            return true; 
+        }
+        this.textString = this.textString.substring(0, this.textString.length-1);
+        evt.stop();
+    },
+    onMouseDown: function (evt) {
+    //debugger;
+        if (evt.isLeftMouseButtonDown()) {
+            this.displayExpression();
+        }
+    },
+    displayExpression: function() {
+        if (this.evalExpression !== undefined) {
+            this.textString = '=' + this.evalExpression;
+        }
+    },
+
+    put: function(aValue) {
+        console.log("Annotation.put")
+        this.textString = aValue;
+    },
+
 
 });
 

@@ -735,7 +735,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         this.grid = aGrid;
         this.grid.addMorph(this);
     },
-    onKeyPress: function($super, evt) {
+    /*onKeyPress: function($super, evt) {
        console.log("SAPGridAnnotation.onKeyPress");
         $super(evt);
         this.textString += String.fromCharCode(evt.getKeyCode());
@@ -748,7 +748,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         }
         this.textString = this.textString.substring(0, this.textString.length-1);
         evt.stop();
-    },
+    },*/
     onMouseDown: function (evt) {
     //debugger;
         if (evt.isLeftMouseButtonDown()) {

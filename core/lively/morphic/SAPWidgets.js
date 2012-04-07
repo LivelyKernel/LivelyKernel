@@ -22,9 +22,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.oAnnotation.doitContext = this;
         this.oAnnotation.setExtent(lively.pt(200,100));
         this.oAnnotation.addToGrid(this);
-        //this.oAnnotation.setVisible(false);
-        
-     
+        this.oAnnotation.setVisible(false);
     },
     initializeData: function() {
         var start = new Date().getTime();

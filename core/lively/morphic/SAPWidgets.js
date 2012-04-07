@@ -19,6 +19,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     },
     initializeAnnotation: function() {
         this.oAnnotation = new lively.morphic.SAPGridAnnotation();
+        this.oAnnotation.doitContext = this;
         this.oAnnotation.addToGrid(this);
         this.oAnnotation.setVisible(false);
         this.oAnnotation.setExtent(lively.pt(200,100));

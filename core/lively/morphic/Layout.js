@@ -252,10 +252,6 @@ Object.subclass('lively.morphic.Layout.Layout',
         aMorph.applyLayout();
     },
 
-
-
-
-
     getMinHeight: function(container, submorphs) {
             alert('getMinHeight on abstract Layout');
             return 0;
@@ -957,10 +953,6 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.TileLayout',
         return true;
     },
 
-
-
-
-
-
 });
+
 }); // end of module

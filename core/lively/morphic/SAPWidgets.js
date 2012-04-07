@@ -43,7 +43,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.createColHeads();
         }
         this.createCells();
-        this.createLayout();
+        //this.createLayout();
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
 	console.log('End initializeMorph=' + elapsed);

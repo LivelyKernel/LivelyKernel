@@ -44,7 +44,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PivotPointTests',
         morph.setRotation((90).toRadians()); // apply some transformation
         morph.setPivotPoint(pt(50, 10)); // coordinates local to morph
         this.assertEquals(rect(pt(-20, 0), pt(0, 100)), morph.bounds(), 'setPivotPoint wrong')
-        
+
         morph.setRotation(0);
 
         this.assertEquals(pt(-60, 40).extent(pt(100,20)), morph.bounds());
@@ -97,7 +97,7 @@ debugger
         morph.setRotation((90).toRadians()); // apply some transformation
         morph.adjustOrigin(pt(50, 10)); // coordinates local to morph
         this.assertEquals(rect(pt(-20, 0), pt(0, 100)), morph.bounds(), 'adjustOrigin wrong')
-        
+
         morph.setRotation(0);
 
         this.assertEquals(pt(-60, 40).extent(pt(100,20)), morph.bounds());
@@ -116,7 +116,7 @@ debugger
         var morph = lively.morphic.Morph.makeRectangle(0, 0, 100, 20);
         this.world.addMorph(morph);
 
-        var submorph = lively.morphic.Morph.makeRectangle(0, 0, 10, 10); 
+        var submorph = lively.morphic.Morph.makeRectangle(0, 0, 10, 10);
         morph.addMorph(submorph)
         submorph.setPosition(pt(30,30))
 
@@ -213,7 +213,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
         morph.setRotation((90).toRadians()); // apply some transformation
         morph.adjustOrigin(pt(50, 10)); // coordinates local to morph
         this.assertEquals(rect(pt(-20, 0), pt(0, 100)), morph.bounds(), 'adjustOrigin wrong')
-        
+
         morph.setRotation(0);
 
         this.assertEquals(pt(-60, 40).extent(pt(100,20)), morph.bounds());
@@ -239,7 +239,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
 
         m1.adjustOrigin(pt(25,25));
         if (useClipping)
-            m1.setClipMode('hidden'); 
+            m1.setClipMode('hidden');
 
         // tets if transformForNewOwner works correctly
         m1.addMorph(m2);
@@ -252,7 +252,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
         var rectangle = new lively.morphic.Morph.makeRectangle(new Rectangle(0,0,100,100));
         ellipse.addMorph(rectangle);
         rectangle.setPosition(pt(0,0));
-        
+
         var rPos = rectangle.getPositionInWorld();
         var ePos = ellipse.getPositionInWorld().addPt(ellipse.getOrigin());
         this.assertEquals(rPos.x, ePos.x);
@@ -316,10 +316,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ClipMorphTest',
         m1.setClipMode('hidden');
         var expected = {
             tagName: 'div',
-            childNodes: [{ 
+            childNodes: [{
                 tagName: 'div', // m1's shape
                 style: {overflow: 'hidden', backgroundColor: Color.red.toString()}
-            }] 
+            }]
         }
         this.assertNodeMatches(expected, m1.renderContext().getMorphNode());
     },
@@ -330,10 +330,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ClipMorphTest',
         m1.setClipMode('visible');
         var expected = {
             tagName: 'div',
-            childNodes: [{ 
+            childNodes: [{
                 tagName: 'div', // m1's shape node
                 style: {backgroundColor: Color.red.toString()}
-            }] 
+            }]
         }
         this.assertNodeMatches(expected, m1.renderContext().getMorphNode());
     },
@@ -345,12 +345,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ClipMorphTest',
         m1.addMorph(m2);
         var expected = {
             tagName: 'div', // m1
-            childNodes: [{ 
+            childNodes: [{
                 tagName: 'div', // m1's shape
                 style: {overflow: 'hidden'},
                 childNodes: [
                     {tagName: 'div', /* m1's submorphNode */ childNodes: [
-                        {tagName: 'div', /* m2 */ childNodes: [{ 
+                        {tagName: 'div', /* m2 */ childNodes: [{
                             tagName: 'div', // m2's shape
                             style: {backgroundColor: Color.red.toString()}
                         }]
@@ -363,7 +363,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ClipMorphTest',
     test04aBoundsWithClipModeAndOrigin: function() {
         var m1 = new lively.morphic.Morph.makeRectangle(0,0,50,50);
         this.world.addMorph(m1);
- 
+
         m1.setClipMode('hidden');
         m1.adjustOrigin(pt(25,25));
         this.assertEquals(pt(25,25), m1.getPosition(), 'pos');
@@ -382,7 +382,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ClipMorphTest',
             m2 = new lively.morphic.Morph.makeRectangle(10,10,40,40);;
         this.world.addMorph(m1);
         m1.addMorph(m2);
- 
+
         m1.setClipMode('hidden');
         m1.adjustOrigin(pt(25,25));
         this.assertEquals(pt(25,25), m1.getPosition(), 'pos');
@@ -393,7 +393,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ClipMorphTest',
             m2 = new lively.morphic.Morph.makeRectangle(10,10,40,40);
         this.world.addMorph(m1);
         m1.addMorph(m2);
- 
+
         m1.adjustOrigin(pt(25,25));
         m1.setClipMode('hidden');
         this.assertEquals(pt(25,25), m1.getPosition(), 'pos');
@@ -434,12 +434,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextLayoutTests',
         this.assertEquals(this.text.innerBounds(), this.text.visibleTextBounds());
         this.text.applyStyle({padding: Rectangle.inset(2,2)});
         this.assertEquals(this.text.innerBounds().insetBy(2), this.text.visibleTextBounds());
-        
+
         // FIXME: text bounds are not correct at the moment, not specified
-        
+
         // IMO: in contrast to other morphs the border of a text should not grow inwards, i.e. should not decrease extent and font size of a text.
         // i especially don't want to resize text after i added a border.
-                
+
         // this.text.applyStyle({borderWidth: 3});
         // this.assertEquals(this.text.innerBounds().insetBy(2+3), this.text.visibleTextBounds());
     },
@@ -465,10 +465,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextLayoutTests',
             tagName: 'div', // world morph
             childNodes: [
                 {tagName: 'div', childNodes: [ // world shape
-                    {tagName: 'div', 
-                     childNodes: [{tagName: 'span'}], 
+                    {tagName: 'div',
+                     childNodes: [{tagName: 'span'}],
                      style: {maxWidth: '20px'}} // m and its shape
-                ]}, 
+                ]},
             ]};
 
         this.assertNodeMatches(expected, this.text.renderContext().getMorphNode());
@@ -526,11 +526,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic2.HtmlPars
         this.assertEquals(r1, "a&amp;b")
     },
     testSanitizeHtmlUnbalancedTags: function() {
-        var s1 = "<span>abc"
-        var r1 = this.sut.sanitizeHtml(s1)
-        this.assertEquals(r1, "abc")
+        var s1 = "<span>abc",
+            r1 = this.sut.sanitizeHtml(s1);
+        this.assertEquals(r1, "abc");
     },
-
 
     testSourceCodeToNodeStrippedBRs: function() {
       var node = lively.morphic.HTMLParser.sourceToNode('a<br />b')
@@ -591,7 +590,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic2.HtmlPars
         var node = lively.morphic.HTMLParser.sourceToNode(s);
         lively.morphic.HTMLParser.sanitizeNode(node);
         this.assertEquals(node.textContent, "H&M", "pasting with & is broken");
-    },  
+    },
     testSanitizeNodeWithLt: function() {
         var s = '1&lt;2';
         var node = lively.morphic.HTMLParser.sourceToNode(s);
@@ -619,12 +618,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.jQueryTests', {
         this.assertEquals(m.jQuery()[0], m.renderContext().shapeNode)
     }
 });
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests', 
+
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 'inheritance', {
     testFindById: function() {
         this.setupMorphs();
-    
-        this.assertEquals(this.m1.findById(this.m1_1.id), this.m1_1, 'First submorph not found.')    
+
+        this.assertEquals(this.m1.findById(this.m1_1.id), this.m1_1, 'First submorph not found.')
         this.assertEquals(this.m1.findById(this.m1_1_1.id), this.m1_1_1, 'Submorph of submorph not found.')
         this.assertEquals(this.m1.findById(this.m1_2.id), this.m1_2, 'Second Submorph not found.')
     },
@@ -766,8 +766,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
         //modified morphs
         m6.submorphs[0].setFill(Color.red);
-        this.assert(m6.diffTo(m4)[m6.submorphs[0].id].modified['Fill'], "no removal found")  
-        
+        this.assert(m6.diffTo(m4)[m6.submorphs[0].id].modified['Fill'], "no removal found")
+
         //submorphsModified
         this.assert(m4.diffTo(m3)[m4.id].submorphsModified.length >= 0, 'submorphs were not modified')
     },
@@ -822,7 +822,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assertEquals(diff.newValue, Color.gray, "wrong newValue");
         this.assertEquals(diff.oldValue, Color.green, "wrong oldValue");
         this.assert(!diff2, 'should have found no diff')
-        
+
     },
     testDiffAgainst: function() {
         var f1 = function () {
@@ -838,11 +838,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var ad1 = new AtomicDiff('script', f1, f2);
         var ad2 = new AtomicDiff('script', f1, f2);
         var ad3 = new AtomicDiff('script', f3, f2);
-        
+
         this.assert(!ad1.diffAgainst(ad2), 'Should not have found a diff')
         this.assert(ad1.diffAgainst(ad3), 'Should have found a diff')
     },
-}, 
+},
 'diff', {
     testIsEmpty: function() {
         var d1 = new Diff();
@@ -852,29 +852,29 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assert(d2.isEmpty(), 'empty diff was not empty');
         this.assert(!d3.isEmpty(), 'filled diff was empty');
     },
-}, 
+},
 'diff list', {
     testMixWith: function() {
         var l1 = new DiffList(),
             l2 = new DiffList(),
             l3 = new DiffList();
         l2["123"] = new Diff(
-            {"added1": "", "added2": ""}, 
-            {"removed1": ""}, 
+            {"added1": "", "added2": ""},
+            {"removed1": ""},
             {"modified1": "", "modified2": ""}
         );
         l3["abc"] = new Diff(
-            {"addedA": ""}, 
-            {"removedA": ""}, 
+            {"addedA": ""},
+            {"removedA": ""},
             {"modifiedA": "", "modifiedB": ""}
         );
-        this.assertEquals(l1.mixWith(l2)["123"].added.added1, "", 
+        this.assertEquals(l1.mixWith(l2)["123"].added.added1, "",
             'wrong list when adding to empty')
-        this.assertEquals(l2.mixWith(l1)["123"].added.added1, "", 
+        this.assertEquals(l2.mixWith(l1)["123"].added.added1, "",
             'wrong list when adding empty')
-        this.assertEquals(l2.mixWith(l3)["123"].added.added1, "", 
+        this.assertEquals(l2.mixWith(l3)["123"].added.added1, "",
             'wrong list when adding to filled 1')
-        this.assertEquals(l2.mixWith(l3)["abc"].added.addedA, "", 
+        this.assertEquals(l2.mixWith(l3)["abc"].added.addedA, "",
             'wrong list when adding to filled 2')
     },
     testIsEmpty: function() {

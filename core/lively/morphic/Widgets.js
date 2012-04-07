@@ -867,7 +867,7 @@ lively.morphic.World.addMethods(
     loadPartItem: function(partName, optPartspaceName) {
         var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld';
         var part = lively.PartsBin.getPart(partName, optPartspaceName);
-        if (!part) 
+        if (!part)
         	return;
         if (part.onCreateFromPartsBin) part.onCreateFromPartsBin();
         return part;
@@ -908,7 +908,7 @@ lively.morphic.World.addMethods(
     openMethodFinderFor: function(searchString) {
         var toolPane = this.get('ToolTabPane');
         if (!toolPane) {
-            toolPane = this.openPartItem('ToolTabPane', 'PartsBin/Dialogs'); 
+            toolPane = this.openPartItem('ToolTabPane', 'PartsBin/Dialogs');
             toolPane.openInWindow();
             toolPane.owner.name = toolPane.name +"Window";
             toolPane.owner.minExtent = pt(700,370);
@@ -1212,8 +1212,8 @@ lively.morphic.World.addMethods(
         var activeWindow = $world.getActiveWindow() || $world,
             visibleBounds = this.visibleBounds(),
             blockee = activeWindow.targetMorph || $world,
-            pointOfAlign = activeWindow.targetMorph ? 
-                blockee.getShape().getBounds().topRight() :        
+            pointOfAlign = activeWindow.targetMorph ?
+                blockee.getShape().getBounds().topRight() :
                 this.visibleBounds().center(),
             window = dialog.openIn(this, pt(0,0)),
             d,
@@ -1243,7 +1243,7 @@ lively.morphic.World.addMethods(
             fill: Color.black,
             opacity: 0.5,
         });
-        
+
         blockMorph.addMorph(d.panel);
         d.panel.align(d.panel.bounds().topRight(), pointOfAlign);
 
@@ -1357,7 +1357,7 @@ lively.morphic.World.addMethods(
             return ea.isWindow && ea.highlighted
         });
     }
-    
+
 });
 
 lively.morphic.List.addMethods(
@@ -1747,10 +1747,11 @@ makeReframeHandle: function() {
         };
     return handle;
 },
-alignReframeHandle: function() {
-    if (this.reframeHandle) this.reframeHandle.align(this.reframeHandle.bounds().bottomRight(), this.getExtent());
+    alignReframeHandle: function() {
+        if (this.reframeHandle) {
+            this.reframeHandle.align(this.reframeHandle.bounds().bottomRight(), this.getExtent());
+        }
     },
-
 
     getBounds: function($super) {
         if (this.titleBar && this.isCollapsed()) {
@@ -1760,44 +1761,36 @@ alignReframeHandle: function() {
         return $super();
     },
     initiateShutdown: function() {
-        if (this.isShutdown()) return;
+        if (this.isShutdown()) return null;
         if (this.onShutdown) this.onShutdown();
         this.remove();
         this.state = 'shutdown'; // no one will ever know...
         return true;
     },
     resetTitleBar: function() {
-        oldTitleBar = this.titleBar
-        this.titleBar.remove()
-        this.titleBar = this.makeTitleBar(oldTitleBar.label.textString, this.getExtent().x)
+        var oldTitleBar = this.titleBar;
+        oldTitleBar.remove();
+        this.titleBar = this.makeTitleBar(oldTitleBar.label.textString, this.getExtent().x);
         this.addMorph(this.titleBar);
     },
 
 },
 'menu', {
     showTargetMorphMenu: function() {
-        var target, menu, items;
-        if (this.targetMorph) {
-            target = this.targetMorph;    
-            } 
-        else {
-            target = this;
-        }
-        menu = target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
+        var target = this.targetMorph || this;
+        target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
     },
     morphMenuItems: function($super) {
         var self = this, items = $super();
-
         items[0] = [
             'publish window', function(evt) {
-            self.copyToPartsBinWithUserRequest();
-        }]
+                self.copyToPartsBinWithUserRequest();
+            }];
         items.push([
             'set title', function(evt) {
-            $world.prompt('Enter new title', function(input) {
-                if (input || input == '') self.setTitle(input)
-            }, self.getTitle())
-        }])
+                $world.prompt('Enter new title', function(input) {
+                    if (input || input == '') self.setTitle(input);
+                }, self.getTitle()); }]);
         return items;
     },
 },
@@ -1937,8 +1930,6 @@ alignReframeHandle: function() {
         else finExpand();
         if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(false);
     },
-
-
 
 });
 
@@ -2546,7 +2537,7 @@ Trait('SelectionMorphTrait',
 
     },
     onDrag: function(evt) {
-        if(!this.selectionMorph) return
+        if (!this.selectionMorph) return
         var p1 = this.localize(evt.getPosition()),
             p2 = this.selectionMorph.initialPosition;
 
@@ -2560,7 +2551,6 @@ Trait('SelectionMorphTrait',
     },
     onDragEnd: function(evt) {
         var self = this;
-
         if (!self.selectionMorph) return;
         var selectionBounds = self.selectionMorph.bounds();
         var selectedMorphs  = this.submorphs

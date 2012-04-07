@@ -2,8 +2,8 @@ module('lively.morphic.tests.CoreToolsTests').requires('lively.morphic.tests.Mor
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CoreToolsTests.PartsBinTests',
 'running', {
-    setUp: function($super) {
-    },
+    shouldRun: URL.source.toString().include('webwerkstatt/'),
+
     tearDown: function($super) {
         if (this.publishDialog) {
             this.publishDialog.remove();

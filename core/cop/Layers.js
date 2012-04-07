@@ -444,8 +444,10 @@ Object.extend(cop, {
 
     // layer around only the class methods
     layerClass: function(layer, classObject, defs) {
-        if (!classObject || !classObject.prototype) throw new Error(
-            "ContextJS: can not refine class '" +             classObject +  "' in " + layer)
+        if (!classObject || !classObject.prototype) {
+            throw new Error("ContextJS: can not refine class '" +
+                            classObject +  "' in " + layer);
+        }
         cop.layerObject(layer, classObject.prototype, defs);
     },
 

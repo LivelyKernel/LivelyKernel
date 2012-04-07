@@ -124,7 +124,7 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
         if (!text || text == '') return null;
         if (this.labelMorph) this.labelMorph.remove();
         this.labelMorph = new lively.morphic.Text(new Rectangle(0,0, 0, 0), text).beLabel({align: 'center', fixedWidth: false, fixedHeight: false, textColor: Color.darkGray});
-        
+
         this.addMorph(this.labelMorph);
         (function() {
             this.labelMorph.fit();
@@ -219,7 +219,7 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
 
         var deltaOffset = newOffset.subPt(this.startOffset)
 
-        moveDelta = moveDelta.addPt(deltaOffset)        
+        moveDelta = moveDelta.addPt(deltaOffset)
         return moveDelta
      },
 },
@@ -273,12 +273,12 @@ lively.morphic.Halo.subclass('lively.morphic.ResizeHalo',
 'settings', {
     style: {fill: Color.green, toolTip: 'resizes the object'},
     labelText: 'R',
-    horizontalPos: 3, 
+    horizontalPos: 3,
     verticalPos: 3,
 },
 'halo actions', {
     dragAction: function(evt, moveDelta) {
-        
+
         moveDelta =  this.tranformMoveDeltaDependingOnHaloPosition(evt, moveDelta, 'bottomRight');
         var extent = this.targetMorph.getExtent().scaleBy(this.targetMorph.getScale());
         if (evt.isShiftDown()) {
@@ -346,22 +346,21 @@ lively.morphic.Halo.subclass('lively.morphic.DragHalo',
     dragAction: function(evt, moveDelta) {
 
         moveDelta =  this.tranformMoveDeltaDependingOnHaloPosition(evt, moveDelta, 'topRight')
-            
+
         var transform = this.targetMorph.owner.getGlobalTransform();
         var oldPos = transform.transformPoint(pt(0,0)),
             newPos = oldPos.addPt(moveDelta);
         var newPos = transform.inverse().transformPoint(newPos);
 
-        var newTargetPos = this.targetMorph.getPosition().addPt(newPos) 
+        var newTargetPos = this.targetMorph.getPosition().addPt(newPos)
         if (evt.isAltDown()) {
             newTargetPos = newTargetPos.griddedBy(this.targetMorph.getGridPoint())
         }
-        this.setInfo('pos: ' + newTargetPos) 
+        this.setInfo('pos: ' + newTargetPos)
         this.lastHaloPosition = this.getPosition();
         this.targetMorph.setPosition(newTargetPos);
 
         this.targetMorph.halos.invoke('alignAtTarget');
-
 
         // we might think about only moving the halos when targetMorph.onDrag returns true
         // morphs could return false to indicate that they don't want to be moved on every
@@ -429,10 +428,10 @@ lively.morphic.Halo.subclass('lively.morphic.CopyHalo',
         if (this.copiedTarget && this.copiedTarget.halos)
             this.copiedTarget.halos.invoke('alignAtTarget');
     },
-    dragStartAction: function(evt) { 
+    dragStartAction: function(evt) {
         if(this.hasClicked) return;
         this.targetMorph.removeHalos();
-        
+
         try {
             this.copiedTarget = this.targetMorph.copy();
         } catch(e) {
@@ -473,12 +472,12 @@ lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
     dragAction: function(evt, moveDelta) {
         var target = this.targetMorph,
             globalPosition = target.getGlobalTransform().transformPoint(pt(0,0));
-        if (!evt.isShiftDown()) { 
+        if (!evt.isShiftDown()) {
             // Normally rotate the morph, with detents at multiples of 45 degrees
             var nowHandAngle = evt.getPosition().subPt(globalPosition).theta();
             var newRotation = this.startRotation + (nowHandAngle - this.startHandAngle);
             newRotation = newRotation.toDegrees().detent(10, 45).toRadians();
-            this.setInfo(newRotation.toDegrees().toPrecision(5) + ' degrees'); 
+            this.setInfo(newRotation.toDegrees().toPrecision(5) + ' degrees');
             this.targetMorph.setRotation(newRotation);
         } else {
             // If shift key, scale it with detents at multiples of 0.5
@@ -577,7 +576,7 @@ lively.morphic.Halo.subclass('lively.morphic.MenuHalo',
         //For some reason, the folowing statement results in the menu being grabbed
         //this.targetMorph.showMorphMenu(evt);
 
-        //The statements that follow are an attempted work-around, but clearly the 
+        //The statements that follow are an attempted work-around, but clearly the
         //fix should be somewhere else.
         var morph = this.targetMorph;
         var menu = lively.morphic.Menu.openAt(evt.getPosition(), morph.name || morph.toString(), morph.morphMenuItems());
@@ -725,7 +724,7 @@ lively.morphic.Halo.subclass('lively.morphic.OriginHalo',
         var world = this.targetMorph.world();
         if (!world) return pt(0,0);
 
-        
+
         var pos = pt(0,0).matrixTransform(this.targetMorph.getGlobalTransform()),
             pos = pos.subPt(this.getExtent().scaleBy(0.5));
         return pos;
@@ -817,11 +816,11 @@ lively.morphic.Halo.subclass('lively.morphic.BoundsHalo',
         return pos;
     },
     alignAtTarget: function() {
-    
+
         var targetMorph = this.targetMorph,
             world = targetMorph.world();
         if (!world || !targetMorph.owner) return pt(0,0);
-    
+
         var bounds = targetMorph.bounds(),
             boundsInWorld = targetMorph.owner.getGlobalTransform().transformRectToRect(bounds);
         this.setBounds(boundsInWorld);

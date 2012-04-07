@@ -953,15 +953,14 @@ Object.subclass("Color",
     }
 },
 'printing', {
-    toString: function() {    
-        function floor(x) { return Math.floor(x*255.99) };    
-        // 06/10/10 currently no rgba support for SVG:    
-        // http://code.google.com/p/chromium/issues/detail?id=45435    
-        if (this.a !== 1){    
-            return "rgba(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + "," + this.a +")";    
-        }    
-        return "rgb(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + ")";    
-    },    
+    toString: function() {
+        function floor(x) { return Math.floor(x*255.99) };
+        if (this.a && this.a != 1)
+            return this.toRGBAString();
+
+        return "rgb(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + ")";
+    },
+    
     toRGBAString: function() {
         function floor(x) { return Math.floor(x*255.99) };
         return "rgba(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + "," + this.a + ")";

@@ -1,6 +1,6 @@
-module('cop.LayerInliningTests').requires('lively.TestFramework', 'cop.Flatten').toRun(function() {
+module('cop.tests.LayerInliningTests').requires('lively.TestFramework', 'cop.Flatten').toRun(function() {
 
-Object.subclass('cop.LayerInliningTests.Dummy', {
+Object.subclass('cop.tests.LayerInliningTests.Dummy', {
 
     m1: function() { return 23 },
 
@@ -17,17 +17,17 @@ Object.subclass('cop.LayerInliningTests.Dummy', {
 
 });
 
-Object.extend(cop.LayerInliningTests.Dummy, {
+Object.extend(cop.tests.LayerInliningTests.Dummy, {
     classMethod1: function() { return 49 },
 });
 
-cop.create('cop.LayerInliningTests.FlattenTestLayer')
-.refineClass(cop.LayerInliningTests.Dummy, {
-    
+cop.create('cop.tests.LayerInliningTests.FlattenTestLayer')
+.refineClass(cop.tests.LayerInliningTests.Dummy, {
+
     get x() { return 4 },
 
     m1: function() { return 42 },
-    
+
     m2: function(arg) { return arg + 3 },
 
     m3: function(arg) {
@@ -42,16 +42,16 @@ cop.create('cop.LayerInliningTests.FlattenTestLayer')
 
     printLayers: function() { return 'FlattenTestLayer-' + cop.proceed() },
 })
-.refineObject(cop.LayerInliningTests.Dummy, {
+.refineObject(cop.tests.LayerInliningTests.Dummy, {
     classMethod1: Functions.Null
 })
-.refineObject(cop.LayerInliningTests, {
+.refineObject(cop.tests.LayerInliningTests, {
     get foo() { return 3 },
 })
 
-cop.create('cop.LayerInliningTests.FlattenTestLayer2')
-.refineClass(cop.LayerInliningTests.Dummy, {
-    
+cop.create('cop.tests.LayerInliningTests.FlattenTestLayer2')
+.refineClass(cop.tests.LayerInliningTests.Dummy, {
+
     m1: function() { return 43 },
 
     m4: function(arg) {
@@ -60,21 +60,21 @@ cop.create('cop.LayerInliningTests.FlattenTestLayer2')
 
     printLayers: function() { return 'FlattenTestLayer2-' + cop.proceed() },
 });
-TestCase.subclass('cop.LayerInliningTests.MethodManipulatorTest', {
+TestCase.subclass('cop.tests.LayerInliningTests.MethodManipulatorTest', {
 
     setUp: function() {
         this.sut = new MethodManipulator();
-        this.dummyClass = cop.LayerInliningTests.Dummy;
+        this.dummyClass = cop.tests.LayerInliningTests.Dummy;
     },
 
     test01ExtractFirstParameter: function() {
         var src = 'function() { return 42 },';
         var result = this.sut.firstParameter(src);
-        this.assertEqual(null, result)
+        this.assertEquals(null, result)
 
         src = 'function($super, arg) {\n\t\tcop.proceed(arg);\n\t\treturn arg + 10;\n\t    },';
         result = this.sut.firstParameter(src);
-        this.assertEqual('$super', result)
+        this.assertEquals('$super', result)
     },
 
     test02ExtractMethodBody: function() {
@@ -84,7 +84,7 @@ TestCase.subclass('cop.LayerInliningTests.MethodManipulatorTest', {
         this.assertEquals(expected, result, 'm1');
 
         src = 'function(arg) {\n\t\tcop.proceed(arg);\n\t\treturn arg + 10;\n\t},'
-        result = this.sut.methodBody(src);    
+        result = this.sut.methodBody(src);
         expected = 'cop.proceed(arg);\n\t\treturn arg + 10;';
         this.assertEquals(expected, result, 'm3');
     },
@@ -95,7 +95,7 @@ TestCase.subclass('cop.LayerInliningTests.MethodManipulatorTest', {
         var result = this.sut.removeFirstParameter(src);
         this.assertEquals(expected, result);
     },
-    
+
     test04InlineProceed: function() {
         var proceedName = 'cop.proceed';
         var data = [
@@ -156,17 +156,17 @@ TestCase.subclass('cop.LayerInliningTests.MethodManipulatorTest', {
 });
 
 
-TestCase.subclass('cop.LayerInliningTests.FlattenTest', {
+TestCase.subclass('cop.tests.LayerInliningTests.FlattenTest', {
 
     setUp: function() {
-        this.sut = cop.LayerInliningTests.FlattenTestLayer;
-        this.dummyClass = cop.LayerInliningTests.Dummy;
+        this.sut = cop.tests.LayerInliningTests.FlattenTestLayer;
+        this.dummyClass = cop.tests.LayerInliningTests.Dummy;
     },
 
     test01aFindLayeredMethods: function() {
         var result = this.sut.namesOfLayeredMethods(this.dummyClass.prototype),
             expected = ['m1', 'm2', 'm3' ,'m4'];
-    
+
         result = this.sut.namesOfLayeredMethods(this.dummyClass);
         expected = ['classMethod1'];
         this.assertEqualState(expected, result);
@@ -183,7 +183,7 @@ TestCase.subclass('cop.LayerInliningTests.FlattenTest', {
 
     test01cFindAllLayeredObjects: function() {
         var result = this.sut.layeredObjects(),
-            expected = [this.dummyClass.prototype, this.dummyClass, cop.LayerInliningTests];
+            expected = [this.dummyClass.prototype, this.dummyClass, cop.tests.LayerInliningTests];
         this.assertEquals(expected[0], result[0]);
         this.assertEquals(expected[1], result[1]);
         this.assertEquals(expected[2], result[2]);
@@ -219,10 +219,10 @@ TestCase.subclass('cop.LayerInliningTests.FlattenTest', {
         this.assertEquals(expected, result);
     },
     test06FlattenLayer: function() {
-        var blacklist = [{object: cop.LayerInliningTests.Dummy.prototype, name: 'm2'}],
+        var blacklist = [{object: cop.tests.LayerInliningTests.Dummy.prototype, name: 'm2'}],
             result = this.sut.flattened(blacklist),
             expected =
-'cop.LayerInliningTests.Dummy.addMethods({\n\n\
+'cop.tests.LayerInliningTests.Dummy.addMethods({\n\n\
     get x() { return 4 },\n\n\
     m1: function() { return 42 },\n\n\
     m3: function(arg) {\n\
@@ -238,10 +238,10 @@ TestCase.subclass('cop.LayerInliningTests.FlattenTest', {
     },\n\n\
     printLayers: function() { return \'FlattenTestLayer-\' + (function() { return \'BaseLayer\'}).call(this) },\n\n\
 });\n\n\
-Object.extend(cop.LayerInliningTests.Dummy, {\n\n\
+Object.extend(cop.tests.LayerInliningTests.Dummy, {\n\n\
     classMethod1: function Functions$Null() { return null; },\n\n\
 });\n\n\
-Object.extend(Global.cop.LayerInliningTests, {\n\n\
+Object.extend(Global.cop.tests.LayerInliningTests, {\n\n\
     get foo() { return 3 },\n\n\
 });'
         this.assertEquals(expected.replace(/    /g, '\t'), result.replace(/    /g, '\t'));
@@ -252,13 +252,13 @@ Object.extend(Global.cop.LayerInliningTests, {\n\n\
 
 
 });
-TestCase.subclass('cop.LayerInliningTests.InlinerTest',
+TestCase.subclass('cop.tests.LayerInliningTests.InlinerTest',
 'running', {
     setUp: function($super) {
         $super();
-        this.dummyClass = cop.LayerInliningTests.Dummy;
-        this.layer1 = cop.LayerInliningTests.FlattenTestLayer;
-        this.layer2 = cop.LayerInliningTests.FlattenTestLayer2;
+        this.dummyClass = cop.tests.LayerInliningTests.Dummy;
+        this.layer1 = cop.tests.LayerInliningTests.FlattenTestLayer;
+        this.layer2 = cop.tests.LayerInliningTests.FlattenTestLayer2;
 cop.recompileLayers([this.layer1, this.layer2])
         cop.invalidateInlineMethodCache();
     },
@@ -339,7 +339,7 @@ debugger
 
     test04OnLayerChangeCompiledMethodIsOnvalidated: function() {
         this.restoreMethodAfterwards(this.dummyClass.prototype, 'printLayers')
-        var layer = cop.create('cop.LayerInliningTests.FlattenTestLayer3')
+        var layer = cop.create('cop.tests.LayerInliningTests.FlattenTestLayer3')
         .refineClass(this.dummyClass, {
             printLayers: function() { return 'FlattenTestLayer3-' + cop.proceed() },
         })
@@ -391,7 +391,7 @@ debugger
         this.assertEquals(2, obj.y, 'cannot correctly access prop after layering')
     },
     test07PartialMethodsCanBindClosureValues: function() {
-        if (Global.Test07PartialMethodsCanBindClosureValues) 
+        if (Global.Test07PartialMethodsCanBindClosureValues)
             Global.Test07PartialMethodsCanBindClosureValues.remove();
         var klass = Object.subclass('Test07PartialMethodsCanBindClosureValues', {
                 m: function() { return x }.binds({x: 3})
@@ -431,7 +431,7 @@ debugger
     },
     test09InlinedLayersAreCached: function() {
         var obj = new this.dummyClass();
-        
+
         this.assert(!cop.inlinedMethodCache[obj._layer_object_id], 'cache already exists');
         obj.m1();
         cop.withLayers([this.layer1], function() { obj.m1() });
@@ -447,11 +447,11 @@ debugger
 
 
 });
-TestCase.subclass('cop.LayerInliningTests.LayerHashingTest',
+TestCase.subclass('cop.tests.LayerInliningTests.LayerHashingTest',
 'running', {
     setUp: function($super) {
         $super();
-        this.klass = Object.subclass('cop.LayerInliningTests.LayerHashingTestDummy', {
+        this.klass = Object.subclass('cop.tests.LayerInliningTests.LayerHashingTestDummy', {
             m1: function() { return 3 }
         });
         this.layer = cop.create('LayerHashingTest').refineClass(this.klass, {
@@ -473,7 +473,7 @@ TestCase.subclass('cop.LayerInliningTests.LayerHashingTest',
     newMethod: function() {
         // enter comment here
     },
- 
+
 });
 
 }) // end of module

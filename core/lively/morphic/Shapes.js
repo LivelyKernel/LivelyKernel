@@ -30,16 +30,11 @@ Object.subclass('lively.morphic.Shapes.Shape',
             this.setFill(fill.withA(opacity))
     },
     getFillOpacity: function() {
-
         var fill = this.getFill();
-        if(fill && typeof fill.a === "number") {
-            return fill.a
-        } else {
-            return 1;
-        }
+        return (fill && typeof fill.a === "number") ? fill.a : 1;
     },
     setBorderWidth: function(width) { return this.shapeSetter('BorderWidth', width) },
-    getBorderWidth: function() { 
+    getBorderWidth: function() {
         return this.shapeGetter('BorderWidth')  || 0;
     },
     setBorderColor: function(fill) { return this.shapeSetter('BorderColor', fill) },
@@ -88,25 +83,24 @@ Object.subclass('lively.morphic.Shapes.Shape',
     getDiffsTo: function (otherShape) {
         // returns a list of differences between two shapes.
         // TODO: refactor, adapt to morph diffing
-        var self = this;
-        var blacklist = ["get"];
-        var diffsArray = Functions.all(this).withoutAll(blacklist).select(function (ea) {
-            if ( ea.startsWith("get") && otherShape[ea]) {
+        var self = this,
+            blacklist = ["get"],
+            diffsArray = Functions.all(this).withoutAll(blacklist).select(function (ea) {
+                if (!ea.startsWith("get") || !otherShape[ea]) return false;
                 try {
-                    if ( self[ea]() && typeof(self[ea]()) == 'object') {
+                    if (self[ea]() && typeof(self[ea]()) == 'object') {
                         return !self[ea]().equals(otherShape[ea]());
+                    } else {
+                        return self[ea]() != otherShape[ea]();
                     }
-                    else {
-                        return (self[ea]() != otherShape[ea]())
-                    }
+                } catch (ex) {
+                    return false;
                 }
-                catch (ex) {
-                    return false
-                }
-            }
-        });
-        if(!this.name == otherShape.name) {diffsArray.push("constructor")};
-        return diffsArray;        
+            });
+        if (!this.name == otherShape.name) {
+            diffsArray.push("constructor");
+        };
+        return diffsArray;
     },
 
 });
@@ -156,10 +150,9 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.External',
     },
 },
 'accessing', {
-    getExtent: function() { 
-        
+    getExtent: function() {
         // FIXME: this does not work in Firefox
-        return this.renderContextDispatch('getExtent') || pt(0,0) 
+        return this.renderContextDispatch('getExtent') || pt(0,0);
     },
 });
 
@@ -177,21 +170,22 @@ Object.subclass('lively.morphic.Gradient',
         this.stops = stops || [];
     },
     getStopsLighter: function(n) {
-        return this.stops.collect(function(ea) { return {offset: ea.offset, color: ea.color.lighter(n)} })
+        return this.stops.collect(function(ea) {
+            return {offset: ea.offset, color: ea.color.lighter(n)};
+        });
     },
     getStopsDarker: function(n) {
-        return this.stops.collect(function(ea) { return {offset: ea.offset, color: ea.color.darker(n)} })
+        return this.stops.collect(function(ea) {
+            return {offset: ea.offset, color: ea.color.darker(n)};
+        });
     },
 },
 'comparing', {
     equals: function(otherGradient) {
-        var i;
         if (this.vector && !this.vector.equals(otherGradient.vector)) return false;
-        for (i=0;i<this.stops.length;i++) {
-            if (
-                !this.stops[i].color.equals(otherGradient.stops[i].color) 
-                || !this.stops[i].offset == otherGradient.stops[i].offset 
-            ) return false
+        for (var i = 0; i < this.stops.length; i++) {
+            if (!this.stops[i].color.equals(otherGradient.stops[i].color)
+                || !this.stops[i].offset == otherGradient.stops[i].offset) return false;
         }
         return true;
     },
@@ -209,7 +203,7 @@ lively.morphic.Gradient.subclass('lively.morphic.LinearGradient',
         southwest:    rect(pt(1, 0), pt(0, 1)),  // Down and to the left
         southeast:    rect(pt(0, 0), pt(1, 1)),
         northeast:    rect(pt(0, 1), pt(1, 0)),
-        northwest:    rect(pt(1, 1), pt(0, 0)) 
+        northwest:    rect(pt(1, 1), pt(0, 0))
     },
 },
 'initializing', {

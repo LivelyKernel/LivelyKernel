@@ -26,24 +26,24 @@
  * Network.js.  Networking capabilities.
  *
  * Note: In a browser-based implementation of our system,
- * most of the necessary networking functionality is 
- * inherited from the browser.  
+ * most of the necessary networking functionality is
+ * inherited from the browser.
  */
 
 module('lively.Network').requires('lively.bindings', 'lively.NoMoreModels', 'lively.Data').toRun(function(thisModule) {
-    
+
 Object.subclass('URL', {
     splitter: new RegExp('(http:|https:|file:)' + '(//[^/:]*(:[0-9]+)?)?' + '(/.*)?'),
     pathSplitter: new RegExp("([^\\?#]*)(\\?[^#]*)?(#.*)?"),
-    
+
     initialize: function(/*...*/) { // same field names as window.location
         dbgOn(!arguments[0]);
         if (Object.isString(arguments[0].valueOf())) {
             var urlString = arguments[0];
             var result = urlString.match(this.splitter);
             if (!result) throw new Error("malformed URL string '" + urlString + "'");
-            this.protocol = result[1]; 
-            if (!result[1]) 
+            this.protocol = result[1];
+            if (!result[1])
                 throw new Error("bad url " + urlString + ", " + result);
             this.hostname = result[2] && result[2].substring(2).split(':')[0]; // skip the leading slashes and remove port
             this.port = result[3] && parseInt(result[3].substring(1)); // skip the colon
@@ -69,11 +69,11 @@ Object.subclass('URL', {
             if (spec.hash !== undefined) this.hash = spec.hash;
         }
     },
-    
+
     inspect: function() {
         return JSON.serialize(this);
     },
-    
+
     toString: function() {
         return this.protocol + "//" + this.hostname + (this.port ? ":" + this.port : "") + this.fullPath();
     },
@@ -81,11 +81,11 @@ Object.subclass('URL', {
     fullPath: function() {
         return this.pathname + (this.search || "") + (this.hash || "");
     },
-    
+
     isLeaf: function() {
         return !this.fullPath().endsWith('/');
     },
-    
+
     // POSIX style
     dirname: function() {
         var p = this.pathname;
@@ -102,7 +102,7 @@ Object.subclass('URL', {
     normalizedHostname: function() {
         return this.hostname.replace(/^www\.(.*)/, '$1');
     },
-    
+
     getDirectory: function() {
         return this.withPath(this.dirname());
     },
@@ -110,16 +110,16 @@ Object.subclass('URL', {
         return this.fullPath().endsWith('/') ?
             this : new URL(this.withoutQuery().toString() + '/');
     },
-        
-        
-        
-        
 
 
-    withPath: function(path) { 
+
+
+
+
+    withPath: function(path) {
         var result = path.match(this.pathSplitter);
         if (!result) return null;
-        return new URL({protocol: this.protocol, port: this.port, hostname: this.hostname, pathname: 
+        return new URL({protocol: this.protocol, port: this.port, hostname: this.hostname, pathname:
             result[1], search: result[2], hash: result[3] });
     },
 
@@ -133,12 +133,12 @@ Object.subclass('URL', {
         }
         return this.withPath(this.pathname + pathString);
     },
-    
+
     withFilename: function(filename) {
         if (filename == "./" || filename == ".") // a bit of normalization, not foolproof
             filename = "";
         var dirPart = this.isLeaf() ? this.dirname() : this.fullPath();
-        return new URL({protocol: this.protocol, port: this.port, 
+        return new URL({protocol: this.protocol, port: this.port,
             hostname: this.hostname, pathname: dirPart + filename});
     },
 
@@ -154,7 +154,7 @@ Object.subclass('URL', {
         return new URL({protocol: this.protocol, port: this.port, hostname: this.hostname, pathname: this.pathname,
             search: "?" + this.toQueryString(record), hash: this.hash});
     },
-    
+
     withoutQuery: function() {
         return new URL({protocol: this.protocol, port: this.port, hostname: this.hostname, pathname: this.pathname});
     },
@@ -165,7 +165,7 @@ Object.subclass('URL', {
             return {};
         return s.toQueryParams();
     },
-    
+
     eq: function(url) {
         if (!url) return false;
         return url.protocol == this.protocol &&
@@ -225,7 +225,7 @@ Object.subclass('URL', {
         var relative = this.relativePathFrom(repo);
         return repo.withPath(repo.pathname + "!svn/bc/" + revision + "/" + relative);
     },
-    
+
     notSvnVersioned: function() {
         // concatenates the two ends of the url
         // "http://localhost/livelyBranch/proxy/wiki/!svn/bc/187/test/index.xhtml"
@@ -237,7 +237,7 @@ Object.subclass('URL', {
         // URLs are literal
         return Object.clone(this);
     },
-    
+
     toExpression: function() {
         // this does not work with the new prototype.js (rev 2808) anymore
         // return 'new URL(JSON.unserialize(\'' + JSON.serialize(this) + '\'))';
@@ -310,7 +310,7 @@ Object.extend(URL, {
 Object.extend(URL, {
     proxy: (function() {
         if (!Config.proxyURL) {
-            if (URL.source.protocol.startsWith("file")) 
+            if (URL.source.protocol.startsWith("file"))
                 console.log("loading from localhost, proxying won't work");
             return URL.source.withFilename("proxy/");
         } else {
@@ -318,7 +318,7 @@ Object.extend(URL, {
             if (!str.endsWith('/')) str += '/';
             return new URL(str);
         }
-    })(),    
+    })(),
 });
 
 Object.extend(URL, {
@@ -332,7 +332,7 @@ Object.extend(URL, {
 });
 
 Object.extend(URL, {
-    
+
     create: function(string) { return new URL(string) },
 
     ensureAbsoluteURL: function(urlString) {
@@ -353,8 +353,8 @@ Object.extend(URL, {
 
 
 
-    fromLiteral: function(literal) { 
-        return new URL(literal) 
+    fromLiteral: function(literal) {
+        return new URL(literal)
     },
 
     makeProxied: function makeProxied(url) {
@@ -458,7 +458,7 @@ View.subclass('NetRequest', {
     },
 
     requestNetworkAccess: function() {
-        if (Global.netscape && Global.location.protocol == "file:") {       
+        if (Global.netscape && Global.location.protocol == "file:") {
             try {
                 netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
                 console.log("requested browser read privilege");
@@ -502,7 +502,7 @@ View.subclass('NetRequest', {
             this.setStatus(this.getStatus());
             if (this.transport.responseText !== undefined)
                 this.setResponseText(this.getResponseText());
-            if (this.transport.responseXML !== undefined) 
+            if (this.transport.responseXML !== undefined)
                 this.setResponseXML(this.getResponseXML());
             if (this.transport.getAllResponseHeaders() !== undefined)
                 this.setResponseHeaders(this.getResponseHeaders());
@@ -511,7 +511,7 @@ View.subclass('NetRequest', {
     },
 
     onProgress: function(progress) { this.setProgress(progress) },
-    
+
     setRequestHeaders: function(record) {
         Properties.forEachOwn(record, function(prop, value) {
             this.requestHeaders[prop] = value;
@@ -548,7 +548,7 @@ View.subclass('NetRequest', {
     request: function(method, url, content) {
         try {
             this.url = url;
-            this.method = method.toUpperCase();        
+            this.method = method.toUpperCase();
             this.transport.open(this.method, url.toString(), !this.isSync);
             Properties.forEachOwn(this.requestHeaders, function(p, value) {
                 this.transport.setRequestHeader(p, value);
@@ -557,7 +557,7 @@ View.subclass('NetRequest', {
                 this.transport.send(content || '');
             else
                 this.transport.sendAsBinary(content || '');
-            if (Global.isFirefox && this.isSync) // mr: FF does not use callback when sync 
+            if (Global.isFirefox && this.isSync) // mr: FF does not use callback when sync
                 this.onReadyStateChange();
             return this;
         } catch (er) {
@@ -614,7 +614,7 @@ View.subclass('NetRequest', {
         </D:lockinfo>', owner || 'unknown user');
         return this.request("LOCK", URL.makeProxied(url), content);
     },
-    
+
     unlock: function(url, lockToken, force) {
         if (force) {
             var req = new NetRequest().beSync().propfind(url);
@@ -641,7 +641,7 @@ NetRequestReporterTrait = {
         // update the model if there is one
         if (this.getModel && this.getModel() && this.getModel().setRequestStatus)
             this.getModel().setRequestStatus(status);
-        
+
         var world = lively.morphic.World.current();
         // some formatting for alerting. could be moved elsewhere
         var request = status.requestString();
@@ -661,7 +661,7 @@ NetRequestReporterTrait = {
                 // FIXME reissue request? need the 'Location' response header for it
                 world.alert("HTTP/301: Moved to " + status.getResponseHeader("Location") + "\non " + request);
             } else if (status.code() == 401) {
-                world.alert("not authorized to access\n" + request); 
+                world.alert("not authorized to access\n" + request);
                 // should try to authorize
             } else if (status.code() == 412) {
                 console.log("the resource was changed elsewhere\n" + request);
@@ -701,7 +701,7 @@ View.subclass('Resource'/*, NetRequestReporterTrait*/, {
             setProgress: 'setProgress'
         });
     },
-    
+
     initialize: function(plug, contentType) {
         this.contentType  = contentType;
         this.connectModel(plug);
@@ -720,7 +720,7 @@ View.subclass('Resource'/*, NetRequestReporterTrait*/, {
                 this.getModel().setRequestStatus(status);
         }.bind(this);
     },
-    
+
     updateView: function(aspect, source) {
         var p = this.modelPlug;
         if (!p) return;
@@ -785,7 +785,7 @@ Resource.subclass('SVNResource', {
             setProgress: 'setProgress'
         });
     },
-    
+
     initialize: function($super, repoUrl, plug, contentType) {
         this.repoUrl = repoUrl.toString();
         $super(plug, contentType);
@@ -816,7 +816,7 @@ Resource.subclass('SVNResource', {
         };
         return req;
     },
-    
+
     store: function($super, content, optSync, optRequestHeaders, optHeadRev) {
         // if optHeadRev is not undefined than the store will only succeed
         // if the head revision of the resource is really optHeadRev
@@ -832,7 +832,7 @@ Resource.subclass('SVNResource', {
         }
         return $super(content, optSync, headers);
     },
-    
+
     del: function(sync, optRequestHeaders) {
         var req = new NetRequest(this.createNetRequest());
         if (sync) req.beSync();
@@ -930,7 +930,7 @@ Resource.subclass('SVNResource', {
                         if (repoUrl.endsWith(relPath))
                             spec.url = repoUrl; // hmmm???
                         else
-                            spec.url = repoUrl.toString() + relPath.slice(1); 
+                            spec.url = repoUrl.toString() + relPath.slice(1);
                         if (!spec.changes) spec.changes = [];
                         var type = logProp.tagName.split('-').first();
                         var url = logProp.tagName.include('modified-path') ? logProp.textContent : null;
@@ -947,7 +947,7 @@ Resource.subclass('SVNResource', {
         versionInfos = versionInfos.sortBy(function(vInfo) { return vInfo.rev }).reverse();
         this.setMetadata(versionInfos);
     },
-    
+
     pvtScanLogReportForVersionInfosTrace: function(logReport) {
         lively.lang.Execution.trace(this.pvtScanLogReportForVersionInfos.curry(logReport).bind(this));
     },
@@ -967,7 +967,7 @@ Resource.subclass('SVNResource', {
 
     pvtRequestMetadataXML: function(startRev, endRev) {
         return Strings.format(
-            '<S:log-report xmlns:S="svn:" xmlns:D="DAV:">' + 
+            '<S:log-report xmlns:S="svn:" xmlns:D="DAV:">' +
             '<S:start-revision>%s</S:start-revision>' +
             '<S:end-revision>%s</S:end-revision>' +
             '<S:discover-changed-paths/>' +
@@ -1003,7 +1003,7 @@ Resource.subclass('SVNResource', {
         doFunc();
         this.setURL(tempUrl);
     },
-    
+
     createVersionURLString: function(rev) {
         return this.repoUrl + '/!svn/bc/' + rev + '/' + this.getLocalUrl();
     },
@@ -1048,24 +1048,24 @@ Object.subclass('SVNVersionInfo', {
         // string = new String(string);
         // string.orig = this;
         // TODO work around Serialization bug
-        var timeString = this.date.toTimeString ? 
+        var timeString = this.date.toTimeString ?
             this.date.toTimeString() :
             'no time';
 
-        var dateString = this.date.toDateString ? 
+        var dateString = this.date.toDateString ?
             this.date.toDateString() :
             'no date';
 
         return Strings.format('%s, %s, %s, Rev. %s',
             this.author, timeString, dateString, this.rev);
     },
-    
+
     toExpression: function() {
         return Strings.format('new SVNVersionInfo({rev: %s, url: %s, date: %s, author: %s, change: %s, fileSize: %s})',
         this.rev, toExpression(this.url), toExpression(this.date),
         toExpression(this.author), toExpression(this.change), toExpression(this.fileSize));
     },
-    
+
 });
 Object.extend(SVNVersionInfo, {
     fromPropfindNode: function(node) {
@@ -1248,7 +1248,7 @@ Object.subclass('WebResource',
                 var sendSelector = webR.isBinary() && req.sendAsBinary ? 'sendAsBinary' : 'send';
                 try {
                     req[sendSelector](content);
-                    if (Global.isFirefox && isSync) // mr: FF does not use callback when sync 
+                    if (Global.isFirefox && isSync) // mr: FF does not use callback when sync
                         onReadyStateChange();
                 } catch (er) {
                     webR.status = createStatus();
@@ -1438,6 +1438,8 @@ Object.subclass('WebResource',
     },
 
     del: function() {
+        // this mehod intentionally not called delete because some JS engines
+        // throw an error when parsing "keywords" as object key names
         var request = this.createNetRequest();
         request.del(this.getURL());
         return this;
@@ -1451,7 +1453,7 @@ Object.subclass('WebResource',
         request.post(this.getURL(), content);
         return this;
     },
-    
+
     exists: function() {
         // for async use this.get().isExisting directly
         try {
@@ -1475,7 +1477,7 @@ Object.subclass('WebResource',
     report: function(content) {
         var req = this.createNetRequest();
         req.report(this.getURL(), content);
-        return this;        
+        return this;
     },
 
 
@@ -1497,7 +1499,7 @@ Object.subclass('WebResource',
         return this;
     },
 
-    
+
     getVersions: function(startRev, endRev) {
         var res = this.createResource();
         if (!startRev) {
@@ -1582,12 +1584,34 @@ Object.subclass('WebResource',
         // set it when retrieved so that connections work
         this.revAndLocations = revAndLocations;
     },
+
+    ensureDavXmlNs: function(doc) {
+        // FIXME read xmlds:D or xmlns:d instead of guessing
+        var tmp,
+            davNs;
+        if (this.davNs) {
+          return this.davNs
+        }
+        try {
+            tmp = new Query("/D:multistatus").findFirst(doc.documentElement);
+            davNs = "D";
+        } catch (e) {
+            try {
+                tmp = new Query("/d:multistatus").findFirst(doc.documentElement);
+                davNs = "d";
+            } catch (e) {
+            }
+        }
+        this.davNs = davNs;
+        return davNs;
+    },
+
     pvtProcessPropfindForSubElements: function(doc) {
         if (!this.status.isSuccess())
             throw new Error('Cannot access subElements of ' + this.getURL());
-        // FIXME: resolve prefix "D" to something meaningful?
-        var nodes = new Query("/D:multistatus/D:response").findAll(doc.documentElement)
-        var urlQ = new Query('D:href');
+        var davNs = this.ensureDavXmlNs(doc);
+        var nodes = new Query("/" + davNs + ":multistatus/" + davNs + ":response").findAll(doc.documentElement)
+        var urlQ = new Query(davNs + ':href');
         nodes.shift(); // remove first since it points to this WebResource
         var result = [];
         for (var i = 0; i < nodes.length; i++) {
@@ -1631,4 +1655,3 @@ Object.extend(WebResource, {
 });
 
 }); // end of module
-

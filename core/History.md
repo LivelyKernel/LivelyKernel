@@ -1,15 +1,19 @@
+
 2.1.3 / 2012-04-07
 ==================
 
 Features:
+
 * Support for Morphic debugging (Christopher Schuster)
 * publishing to the PartsBin will check and warn when a conflicting publish operation occured (Astrid Thomschke)
 
 Minor features:
+
 * Globally disable syntax highlighting on world load when disableSyntaxHighlighting=true is added as a query to the world URL
 * New text shortcuts. Cmd + Shift + 5/6/7/8 - make selected text black/red/green/blue (Cmd key is Ctrl on windows):
 
 Fixes:
+
 * visual connections were fixed
 * text has default padding
 * fixing issues when layouting menus

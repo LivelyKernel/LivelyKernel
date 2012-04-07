@@ -1246,7 +1246,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
 
         this.checkChunks(
             [{textString: 'so'},
-            {textString: 'me more'},
+            {textString: 'me more', style: {fontWeight: 'bold'}},
             {textString: ' text'}]);
     },
 

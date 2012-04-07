@@ -18,13 +18,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
     },
     initializeAnnotation: function() {
-        var oAnnotation  = new lively.morphic.SAPGridAnnotation();
-        oAnnotation = new lively.morphic.SAPGridAnnotation();
-        oAnnotation.doitContext = this;
-        oAnnotation.addToGrid(this);
-        oAnnotation.setVisible(false);
-        oAnnotation.setExtent(lively.pt(200,100));
-        this.oAnnotation =oAnnotation;
+        this.oAnnotation= new lively.morphic.SAPGridAnnotation();
+        this.oAnnotation.doitContext = this;
+        this.oAnnotation.setExtent(lively.pt(200,100));
+        this.oAnnotation.addToGrid(this);
+        //this.oAnnotation.setVisible(false);
+        
+     
     },
     initializeData: function() {
         var start = new Date().getTime();

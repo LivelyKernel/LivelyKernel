@@ -641,7 +641,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.setBorderWidth(1);
     },
     onMouseDown: function (evt) {
-        //debugger;
+        console.log('SAPGridCell.onMouseDown')
         if (evt.isLeftMouseButtonDown()) {
             this.activate();
         }

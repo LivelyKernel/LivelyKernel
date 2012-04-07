@@ -321,6 +321,12 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     getTextString: function() { return this.textString },
     appendTextString: function(string) { return this.textString += string },
 
+    insertTextStringAt: function(index, string) {
+        var chunks = this.sliceTextChunks(index - 1, index);
+        chunks[0] && chunks[0].textString += string;
+        this.coalesceChunks();
+    },
+
     setTextColor: function(color) { return this.morphicSetter('TextColor', color) },
     getTextColor: function() { return this.morphicGetter('TextColor') || Color.black },
     setFontSize: function(size) { return this.morphicSetter('FontSize', size) },

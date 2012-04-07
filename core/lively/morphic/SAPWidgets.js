@@ -293,7 +293,7 @@ console.log('End createLayout =' + elapsed);
             //alert(this.activeCell.isFocused())
         }
         $super(evt);
-    },*/
+    },
 
     onKeyPress: function($super,evt) {
         console.log("SAPGrid.onKeyPress");
@@ -339,7 +339,7 @@ console.log('End createLayout =' + elapsed);
         this.onRightPressed(evt);
         return true;
     },
-
+*/
 
 
     setActiveCellContent: function(aString) {

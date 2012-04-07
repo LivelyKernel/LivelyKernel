@@ -120,7 +120,7 @@ console.log('End createLayout =' + elapsed);
         }
         
 
-        this.oAnnotation.setPosition(this.rows[nColumn][nRow].getPosition());
+        this.oAnnotation.setPosition(this.at(nColumn,nRow).getPosition());
 
     },
  hideAnnotation: function() {

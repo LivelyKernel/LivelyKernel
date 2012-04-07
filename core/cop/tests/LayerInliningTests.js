@@ -23,11 +23,11 @@ Object.extend(cop.tests.LayerInliningTests.Dummy, {
 
 cop.create('cop.tests.LayerInliningTests.FlattenTestLayer')
 .refineClass(cop.tests.LayerInliningTests.Dummy, {
-    
+
     get x() { return 4 },
 
     m1: function() { return 42 },
-    
+
     m2: function(arg) { return arg + 3 },
 
     m3: function(arg) {
@@ -51,7 +51,7 @@ cop.create('cop.tests.LayerInliningTests.FlattenTestLayer')
 
 cop.create('cop.tests.LayerInliningTests.FlattenTestLayer2')
 .refineClass(cop.tests.LayerInliningTests.Dummy, {
-    
+
     m1: function() { return 43 },
 
     m4: function(arg) {
@@ -84,7 +84,7 @@ TestCase.subclass('cop.tests.LayerInliningTests.MethodManipulatorTest', {
         this.assertEquals(expected, result, 'm1');
 
         src = 'function(arg) {\n\t\tcop.proceed(arg);\n\t\treturn arg + 10;\n\t},'
-        result = this.sut.methodBody(src);    
+        result = this.sut.methodBody(src);
         expected = 'cop.proceed(arg);\n\t\treturn arg + 10;';
         this.assertEquals(expected, result, 'm3');
     },
@@ -95,7 +95,7 @@ TestCase.subclass('cop.tests.LayerInliningTests.MethodManipulatorTest', {
         var result = this.sut.removeFirstParameter(src);
         this.assertEquals(expected, result);
     },
-    
+
     test04InlineProceed: function() {
         var proceedName = 'cop.proceed';
         var data = [
@@ -166,7 +166,7 @@ TestCase.subclass('cop.tests.LayerInliningTests.FlattenTest', {
     test01aFindLayeredMethods: function() {
         var result = this.sut.namesOfLayeredMethods(this.dummyClass.prototype),
             expected = ['m1', 'm2', 'm3' ,'m4'];
-    
+
         result = this.sut.namesOfLayeredMethods(this.dummyClass);
         expected = ['classMethod1'];
         this.assertEqualState(expected, result);
@@ -391,7 +391,7 @@ debugger
         this.assertEquals(2, obj.y, 'cannot correctly access prop after layering')
     },
     test07PartialMethodsCanBindClosureValues: function() {
-        if (Global.Test07PartialMethodsCanBindClosureValues) 
+        if (Global.Test07PartialMethodsCanBindClosureValues)
             Global.Test07PartialMethodsCanBindClosureValues.remove();
         var klass = Object.subclass('Test07PartialMethodsCanBindClosureValues', {
                 m: function() { return x }.binds({x: 3})
@@ -431,7 +431,7 @@ debugger
     },
     test09InlinedLayersAreCached: function() {
         var obj = new this.dummyClass();
-        
+
         this.assert(!cop.inlinedMethodCache[obj._layer_object_id], 'cache already exists');
         obj.m1();
         cop.withLayers([this.layer1], function() { obj.m1() });
@@ -473,7 +473,7 @@ TestCase.subclass('cop.tests.LayerInliningTests.LayerHashingTest',
     newMethod: function() {
         // enter comment here
     },
- 
+
 });
 
 }) // end of module

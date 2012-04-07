@@ -7,7 +7,7 @@ before_install:
   - "sudo apt-get update"
   - "sudo apt-get install chromium-browser"
   - "sudo apt-get install xvfb"
-  - "npm install -g livelykernel-scripts"
+  - "npm install -g livelykernel-scripts@latest"
 
 after_install:
   - "ln -s $PWD `lk scripts-dir`/workspace/lk"

@@ -646,11 +646,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
             this.activate();
         }
     },
-    onDoubleClick: function (evt) {
-       alert(onDoubleClick);
-    },
-
-
+   
 
     put: function(aValue) {
         // TODO: check if aValue starts with =, then evaluate it or not

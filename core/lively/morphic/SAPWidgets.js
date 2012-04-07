@@ -648,7 +648,9 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     },
    
      onDoubleClick: function (evt) {
-       alert('onDoubleClick');
+        if (this.annotation){
+	  
+	}
     },
 
     put: function(aValue) {

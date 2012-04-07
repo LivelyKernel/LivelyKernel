@@ -489,15 +489,25 @@ ObjectLinearizerPlugin.subclass('StoreAndRestorePlugin',
 },
 'plugin interface', {
     serializeObj: function(original, persistentCopy) {
-        if (typeof original.onstore === 'function')
+        if (typeof original.onstore === 'function') {
             original.onstore(persistentCopy);
+        }
     },
     afterDeserializeObj: function(obj) {
-        if (typeof obj.onrestore === 'function')
+        if (typeof obj.onrestore === 'function') {
             this.restoreObjects.push(obj);
+        }
     },
     deserializationDone: function() {
-        this.restoreObjects.invoke('onrestore');
+        this.restoreObjects.forEach(function(ea) {
+            try {
+                ea.onrestore();
+            } catch(e) {
+                // be forgiving because a failure in an onrestore method should
+                // not break the entire page
+                console.error(Strings.format('Error during onrestore in %s: %s', ea, e));
+            }
+        })
     },
 });
 ObjectLinearizerPlugin.subclass('DoNotSerializePlugin',

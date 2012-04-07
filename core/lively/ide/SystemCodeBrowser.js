@@ -128,6 +128,7 @@ Object.extend(lively.ide.SystemBrowser, {
         return browser;
     },
 });
+
 Object.extend(lively.ide, {
     browse: function(objectName, methodName, moduleNameOrSpec) {
         // Browse a method in a object (class, layer, etc)
@@ -162,11 +163,11 @@ Object.extend(lively.ide, {
             return fileFragments[0].browseIt()
         } else {
             alert("could not browse " + methodName + " in " + objectName);
+            rootNode.browseIt();
             return false;
         }
 
         return promise;
     },
 });
-
 }) // end of module

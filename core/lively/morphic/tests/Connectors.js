@@ -6,7 +6,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
         var ctrlPt = connector.getControlPoints()[idxOfControlPoint],
             prevCtrlPtPos = ctrlPt.getGlobalPos(),
             morphStartPos = morph.getPosition();
-        try {
+        try { 
             morph.moveBy(pt(10,10))
             var currentCtrlPtPos = ctrlPt.getGlobalPos();
             this.assertEquals(prevCtrlPtPos, currentCtrlPtPos, 'when morph moved connector moved also');
@@ -21,7 +21,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
         var ctrlPt = connector.getControlPoints()[idxOfControlPoint],
             prevCtrlPtPos = ctrlPt.getGlobalPos(),
             morphStartPos = morph.getPosition();
-        try {
+        try { 
             morph.moveBy(pt(10,10))
             var currentCtrlPtPos = ctrlPt.getGlobalPos();
             this.assertEquals(prevCtrlPtPos.addXY(10,10), currentCtrlPtPos, 'morph did not move with connection')
@@ -41,24 +41,24 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
     test02ConnectVertexControlPointToMorphMagnet: function() {
         var morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20);
         morph.setPosition(pt(100,100))
-        var magnet = morph.getMagnets()[0];
+        var magnet = morph.getMagnets()[0];   
         this.world.addMorph(morph);
 
         var line =  new lively.morphic.Path([pt(0,0), pt(20,100)])
         this.world.addMorph(line);
 
-        var cp = line.getControlPoints()[0];
+        var cp = line.getControlPoints()[0];    
         cp.setConnectedMagnet(magnet);
 
         this.assertIdentity(cp.getConnectedMagnet(), magnet)
         this.assertIdentity(magnet.getConnectedControlPoints()[0], cp);
-
+        
         this.assertEquals(cp.getGlobalPos(), magnet.getGlobalPosition(), "cp did not move");
-
+        
     },
     test03MoveMorphMovesControlPointOfConnector: function() {
         var morph = lively.morphic.Morph.makeRectangle(100,100, 20, 20),
-            magnet = morph.getMagnets()[0];
+            magnet = morph.getMagnets()[0];   
         this.world.addMorph(morph);
 
         var line = new lively.morphic.Path([pt(0,0), pt(20,100)])
@@ -68,7 +68,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
         cp.setConnectedMagnet(magnet);
 
         morph.moveBy(pt(10,10));
-
+        
         this.assertEquals(cp.getGlobalPos(), magnet.getGlobalPosition(), "cp did not move");
 
         var owner = lively.morphic.Morph.makeRectangle(50,50, 50, 50);
@@ -80,7 +80,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
     },
     test04Disconnect: function() {
         var morph = lively.morphic.Morph.makeRectangle(100,100, 20, 20),
-            magnet = morph.getMagnets()[0];
+            magnet = morph.getMagnets()[0];   
         this.world.addMorph(morph);
 
         var line = new lively.morphic.Path([pt(0,0), pt(20,100)])
@@ -132,19 +132,19 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
     },
     test08MagnetSetNearestMagnetToControlPoint: function() {
 
-
+        
         var morph1 = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
             morph2 = lively.morphic.Morph.makeRectangle(100,100, 20, 20);
-
+        
         this.world.addMorph(morph1);
         this.world.addMorph(morph2);
 
-        var magnetSet = new lively.morphic.MagnetSet(this.world)
+        var magnetSet = new lively.morphic.MagnetSet(this.world)        
         this.assert(magnetSet.magnets.length >= 2)
         var line =  new lively.morphic.Path([pt(0,0), pt(100,100)]);
+        
 
-
-        var nearest = magnetSet.nearestMagnetsToControlPoint(line.getControlPoints()[1]);
+        var nearest = magnetSet.nearestMagnetsToControlPoint(line.getControlPoints()[1]);    
         this.assertEquals(nearest.length, 1, "what points else")
         this.assertIdentity(nearest[0].morph, morph2, "wrong morph")
     },
@@ -165,7 +165,7 @@ lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindings
 
         morph.setName('Foo');
         this.assertEquals('Foo', text.textString);
-
+        
         this.assertConnectorMovesWithMorph(morph, con.getVisualConnector(), 0);
         this.assertConnectorMovesWithMorph(text, con.getVisualConnector(), 1);
     },
@@ -185,7 +185,7 @@ lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindings
         this.assert(Properties.own(cPoints).include('textString'), 'textString not in there')
     },
     test04DisconnectMorphNameToText: function() {
-        if (!Config.visualConnectEnabled) {
+        if (Config.noVisualConnect) {
             return;
         }
         var morph = new lively.morphic.Morph.makeRectangle(0,0, 20, 20),
@@ -221,7 +221,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MagnetTest',
         this.assert(!magnet.cachedGlobalPosition, "cache is empty");
     },
     test03MagnetSet: function() {
-        var magnetSet = new lively.morphic.MagnetSet()
+        var magnetSet = new lively.morphic.MagnetSet()        
         var morph1 = lively.morphic.Morph.makeRectangle(5,5, 20, 20);
         this.world.addMorph(morph1)
 

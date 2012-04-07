@@ -4,7 +4,7 @@ node_js:
   - 0.6
 
 python:
-  - "2.7"
+  - "2.6"
 
 before_install:
   - "sudo apt-get update"

@@ -646,11 +646,11 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
             this.activate();
         }
     },
-   
-     onDoubleClick: function (evt) {
+    onDoubleClick: function (evt) {
         if (this.annotation){
-            var nCol;
-            var nRow;
+            var nCol= this.activeCell.gridCoords.x;
+            var nRow = this.activeCell.gridCoords.y;
+            alert(nCol + " " + nRow);
             //this.grid
 	  //this.get('BPCGrid').showAnnotation(2,2);
 	}

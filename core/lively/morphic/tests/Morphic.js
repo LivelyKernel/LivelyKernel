@@ -1239,8 +1239,15 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             {tagName: 'span', textContent: 'intest', style: {fontWeight: ''}}])
     },
 
-    test11InsertStringAt: function() {
-        // enter comment here
+    test27aInsertStringAt: function() {
+        this.text.setTextString('some text');
+        this.text.toggleBoldness(2,4);
+        this.text.insertStringAt(4, ' more', 4);
+
+        this.checkChunks(
+            [{textString: 'so'},
+            {textString: 'me more'},
+            {textString: ' text'}]);
     },
 
 });

@@ -708,12 +708,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
             });
         this.assertEquals(m.textString, "foo", "string was not pasted into empty text");
     },
-    test11InsertStringAt: function() {
-        // enter comment here
-    },
-
-
-
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichTextTests',

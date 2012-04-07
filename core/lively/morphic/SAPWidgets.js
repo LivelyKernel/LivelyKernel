@@ -299,7 +299,7 @@ console.log('End createLayout =' + elapsed);
 
         if (this.oAnnotation.isVisible()){
             //this.oAnnotation.onKeyPress(evt);
-             evt.stop(); 
+             //evt.stop(); 
         }else{
             if (!this.activeCell) {
                 this.at(0,0).activate();

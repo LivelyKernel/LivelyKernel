@@ -650,6 +650,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         if (this.annotation){
             var nCol= this.gridCoords.x;
             var nRow = this.gridCoords.y;
+            console.log("nCol=" + nCol);
+            console.log("nRow =" + nRow );
 	    this.grid.showAnnotation(nCol,nRow);
 	}
     },

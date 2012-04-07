@@ -520,8 +520,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             $world.setStatusMessage("Error in Text>>onPaste() @ replaceSelelectionInMorph",
                 Color.red, undefined, function() {
                     inspect({
-                        richText: richText, 
-                        text: this, 
+                        richText: richText,
+                        text: this,
                         selecitonRange: selRange})
                 }.bind(this))
             $world.logError(e);
@@ -637,7 +637,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
     doDoit: function() { this.evalSelection(false) },
     doPrintit: function() { this.evalSelection(true) },
-    doDebugIt: function() {
+    doDebugit: function() {
         var that = this;
         require('lively.ast.Morphic').toRun(function() {
             that.debugSelection();
@@ -865,7 +865,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                 length = this.textString.length;
             if (range) {
                 endIdx = Math.max(range[0], range[1]);
-            } 
+            }
             // when at end insert a br alement if none is there
             if (length == endIdx) {
                 var chunk = this.getTextChunks().last();
@@ -1022,7 +1022,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         // restore selection range on focus
         var s = this.savedSelectionRange;
-        if (s && (s[0] <= a[0] && s[1] >= a[1])) { 
+        if (s && (s[0] <= a[0] && s[1] >= a[1])) {
             this.setSelectionRange(s[0], s[1]);
             delete this.savedSelectionRange;
             evt.stop();
@@ -1083,7 +1083,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             return null;
         }
         if (!textNode.parentNode) {
-            console.log('warning: Text>>domSelection: textNode is not in DOM');
+            // console.log('warning: Text>>domSelection: textNode is not in DOM');
             return null;
         }
         if (sel.focusNode.compareDocumentPosition(textNode.parentNode) &
@@ -1095,7 +1095,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     selectionString: function() {
-                
+
         // HTML only, works in FF & Chrome
         var sel = this.domSelection();
         if (!sel) { return ''; }
@@ -1104,7 +1104,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         var fragment = range.cloneContents();
         if (!fragment) { return ''; }
         return fragment.textContent;
-        
+
         // 2012-01-06 proposed generalized solution
         // aSelection.toString() replaces '\n' with ' '
         // this could be a general solution, but breaks other tests in Chrome?!
@@ -1957,14 +1957,7 @@ this. textNodeString()
     },
     onBlur: function(evt) {
         this.savedSelectionRange = this.getSelectionRange();
-        console.log('<< onBlur')
-        console.log(this.savedSelectionRange)
     },
-
-
-
-
-
 });
 
 
@@ -2271,7 +2264,7 @@ Object.subclass('lively.morphic.TextChunk',
     restoreFromCacheContent: function() {
         // if this.storedString is undefined we dont want to print it "undefined"
         this.textString = this.storedString || "";
-        // FIXME not deleting storedString in order to not lose the content when 
+        // FIXME not deleting storedString in order to not lose the content when
         // restoring an element that is not in the scenegraph
         //delete this.storedString;
     },
@@ -2555,10 +2548,15 @@ Object.extend(lively.morphic.HTMLParser, {
     },
     sanitizeHtml: function(string) {
         // replaces html br with newline
-        return string
-            .replace(/\<br.*?\>/g, "<br />")
-            .replace(/\<meta.*?\>/g, "")
-            .replace(/\&(?![a-zA-Z]+;)/g, '&amp;');
+        var s = string
+            .replace(/\<br.*?\>/g        , "<br />")
+            .replace(/\<meta.*?\>/g      , "")
+            .replace(/\&(?![a-zA-Z]+;)/g , '&amp;');
+        // now it becomes really ugly... we need some kind of general html parser here
+        if (s.match(/<span.*>/g) && !s.match(/<\/span>/g)) {
+            s = s.replace(/<\/?span.*>/g,"");
+        }
+        return s;
     },
     sanitizeNode: function (node) {
         // strips node of newlines text nodes, that have no meaning

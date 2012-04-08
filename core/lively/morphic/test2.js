@@ -8,7 +8,7 @@ lively.morphic.Morph.subclass('lively.morphic.test2',
     },
     addTextField: function() {
         var start = new Date().getTime();    
-
+debugger;
         var oRec;
         
          for (var n= 0; n< this.numofRecs; n++) {

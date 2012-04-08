@@ -27,8 +27,9 @@ lively.morphic.Text.subclass('lively.morphic.testText',
 'method category', {
     initialize: function($super,arg1, arg2) {
         $super(arg1, arg2);
-        this.setFill(Color.rgb(255, 255, 225));
+        this.setFill(Color.red);
         this.setBorderColor(Color.rgb(0,0,0));
+        this.setExtent(lively.pt(50,100));
     },
      addToMorph: function(oParent) {
         this.oParent = oParent;

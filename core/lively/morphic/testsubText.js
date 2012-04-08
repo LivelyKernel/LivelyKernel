@@ -9,12 +9,12 @@ lively.morphic.Morph.subclass('lively.morphic.testsubTextMain',
         this.setFill(Color.rgb(0,0,255));
     },
     drawRecs: function() {
-        var start = new Date().getTime();    
+        var start = new Date().getTime();
         debugger;
         var oRec;
-        
+
          for (var n= 0; n< this.numofRecs; n++) {
-            oRec = new lively.morphic.testText();
+            oRec = new lively.morphic.testNewText();
             //oRec  = new lively.morphic.Text(new Rectangle(0,0, 100, 20), '');
             //this.addMorph(oRec);
             oRec.addToMorph(this);
@@ -38,6 +38,20 @@ lively.morphic.Morph.subclass('lively.morphic.testText',
         this.oParent = oParent;
         this.oParent.addMorph(this);
     },
+});
+
+lively.morphic.Text.subclass('lively.morphic.testNewText',
+'default category', {
+    initialize: function($super, arg1, arg2) {
+        $super(arg1, arg2);
+        this.setFill(Color.rgb(220, 220, 200));
+        this.setExtent(lively.pt(50,50));
+    },
+    addToMorph: function(oParent) {
+        this.oParent = oParent;
+        this.oParent.addMorph(this);
+    },
+
 });
 
 

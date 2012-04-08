@@ -43,60 +43,60 @@ Object.extend(OMetaSupport, {
     
     translateAndWrite: function(sourceFileName, destFileName, additionalRequirements) {
 	var requirementsString = additionalRequirements ? ',\'' + additionalRequirements.join('\',\'') + '\'' : '';
-	var str = Strings.format('module(\'%s\').requires(\'ometa.parser\'%s).toRun(function() {\n%s\n});',
-		destFileName.replace(/\.js$/, '').replace(/\//g, '.'),
-		requirementsString,
-		OMetaSupport.translateToJs(OMetaSupport.fileContent(sourceFileName)));
-	OMetaSupport.writeGrammar(destFileName, str)
-	lively.morphic.World.current().setStatusMessage(
-		Strings.format('Successfully compiled OMeta grammar %s to %s',sourceFileName, destFileName),
-		Color.green, 3);
+    var str = Strings.format('module(\'%s\').requires(\'ometa.parser\'%s).toRun(function() {\n%s\n});',
+        destFileName.replace(/\.js$/, '').replace(/\//g, '.'),
+        requirementsString,
+        OMetaSupport.translateToJs(OMetaSupport.fileContent(sourceFileName)));
+    OMetaSupport.writeGrammar(destFileName, str)
+    lively.morphic.World.current().setStatusMessage(
+        Strings.format('Successfully compiled OMeta grammar %s to %s',sourceFileName, destFileName),
+        Color.green, 3);
     },
     
     ometaEval: function(src) {
         var jsSrc = OMetaSupport.translateToJs(src);
         return eval(jsSrc);
     },
-    
+
     translateToJs: function(src) {
         var ometaSrc = OMetaSupport.matchAllWithGrammar(LKOMetaJSParser, "topLevel", src);
         if (!ometaSrc) throw new Error('Problem in translateToJs: Cannot create OMeta Ast from source');
         var jsSrc = OMetaSupport.matchWithGrammar(LKOMetaJSTranslator, "trans", ometaSrc);
         return jsSrc;
     },
-    
+
     matchAllWithGrammar: function(grammar, rule, src, errorHandling) {
-		// errorHandling can be undefined or a callback or true (own error handle is used)
-		var errorFunc;
-		if (!errorHandling) errorFunc = OMetaSupport.handleErrorDebug;
-		else if (errorHandling instanceof Function) errorFunc = errorHandling
-		else errorFunc = OMetaSupport.handleErrorDebug;
+        // errorHandling can be undefined or a callback or true (own error handle is used)
+        var errorFunc;
+        if (!errorHandling) errorFunc = OMetaSupport.handleErrorDebug;
+        else if (errorHandling instanceof Function) errorFunc = errorHandling
+        else errorFunc = OMetaSupport.handleErrorDebug;
         return grammar.matchAll(src, rule, null, errorFunc.curry(src, rule));
     },
     
     matchWithGrammar: function(grammar, rule, src, errorHandling) {
-		// errorHandling can be undefined or a callback or true (own error handle is used)
-		var errorFunc;
-		if (!errorHandling) errorFunc = OMetaSupport.handleErrorDebug;
-		else if (errorHandling instanceof Function) errorFunc = errorHandling
-		else errorFunc = OMetaSupport.handleErrorDebug;
-		return grammar.match(src, rule, null, errorFunc.curry(src, rule));
+        // errorHandling can be undefined or a callback or true (own error handle is used)
+        var errorFunc;
+        if (!errorHandling) errorFunc = OMetaSupport.handleErrorDebug;
+        else if (errorHandling instanceof Function) errorFunc = errorHandling
+        else errorFunc = OMetaSupport.handleErrorDebug;
+        return grammar.match(src, rule, null, errorFunc.curry(src, rule));
     },
     
     handleErrorDebug: function(src, rule, grammarInstance, errorIndex) {
-		var charsBefore = 500;
-		var charsAfter = 250;
-		var msg = 'OMeta Error -- ' + rule + '\n';
-		var startIndex = Math.max(0, errorIndex - charsBefore);
-		var stopIndex = Math.min(src.length, errorIndex + charsAfter);
+        var charsBefore = 500;
+        var charsAfter = 250;
+        var msg = 'OMeta Error -- ' + rule + '\n';
+        var startIndex = Math.max(0, errorIndex - charsBefore);
+        var stopIndex = Math.min(src.length, errorIndex + charsAfter);
 
-		//console.log('Last twenty Rules: ' + grammarInstance._ruleStack && grammarInstance._ruleStack.slice(grammarInstance._ruleStack.length-20));
-		msg += src.constructor === Array ?
-			'src = [' + src.toString() + ']' :
-			src.substring(startIndex, errorIndex) + '<--Error-->' + src.substring(errorIndex, stopIndex);
-		console.log(msg)
-		return msg
-	},
+        //console.log('Last twenty Rules: ' + grammarInstance._ruleStack && grammarInstance._ruleStack.slice(grammarInstance._ruleStack.length-20));
+        msg += src.constructor === Array ?
+            'src = [' + src.toString() + ']' :
+            src.substring(startIndex, errorIndex) + '<--Error-->' + src.substring(errorIndex, stopIndex);
+        console.log(msg);
+        return msg;
+    },
     
     handleError: function(src, rule, grammarInstance, errorIndex) {},
     

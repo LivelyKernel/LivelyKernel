@@ -105,8 +105,8 @@ elapsed = elapsed/1000;
 console.log('End createLayout =' + elapsed);
 
     },
-    writeAnnotation: function(nColumn,nRow,sText) {
-        this.get('BPCGrid').at(nColumn,nRow).annotation = sText;
+    setAnnotation: function(nColumn,nRow,sText) {
+        this.at(nColumn,nRow).annotation = sText;
     },
 
  showAnnotation: function(nColumn,nRow) {
@@ -120,7 +120,8 @@ console.log('End createLayout =' + elapsed);
             this.oAnnotation.textString = '';
         }
         
-
+        this.oAnnotation.nColumn=nColumn;
+        this.oAnnotation.nRow=nRow;
         this.oAnnotation.setPosition(this.at(nColumn,nRow).getPosition());
 
     },
@@ -294,7 +295,7 @@ console.log('End createLayout =' + elapsed);
         }
         $super(evt);
     },*/
-
+/*
     onKeyPress: function($super,evt) {
         console.log("SAPGrid.onKeyPress");
 //debugger;
@@ -310,14 +311,14 @@ console.log('End createLayout =' + elapsed);
         }
 
         
-    },
-    onBackspacePressed: function(evt) {
+    },*/
+    /*onBackspacePressed: function(evt) {
         if (!this.activeCell) {
             this.at(0,0).activate();
         }
         this.activeCell.onBackspacePressed(evt);
         return true;
-    },
+    },*/
     onEnterPressed: function($super, evt) {
         //Hak March27 2012:  calculate formula
         if (this.activeCell !=null){
@@ -663,7 +664,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         debugger;
         this.textString = aValue;
     },
-    onKeyPress: function($super, evt) {
+    /*onKeyPress: function($super, evt) {
         console.log("SAPGridCell.onKeyPress");        
         $super(evt);
         this.textString += String.fromCharCode(evt.getKeyCode());
@@ -676,7 +677,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         }
         this.textString = this.textString.substring(0, this.textString.length-1);
         evt.stop();
-    },
+    },*/
     initialize: function($super, arg) {
         $super(arg);
         this.evalExpression = undefined;
@@ -728,6 +729,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
 'default category', {
     initialize: function($super, arg1, arg2) {
         $super(arg1, arg2);
+        this.nColumn=0;
+        this.nRow=0;
         this.setFill(Color.rgb(255, 255, 225));
         this.setBorderColor(Color.rgb(0,0,0));
     },
@@ -738,9 +741,9 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
     onKeyPress: function($super, evt) {
        console.log("SAPGridAnnotation.onKeyPress");
         $super(evt);
-        this.textString += String.fromCharCode(evt.getKeyCode());
+        //this.textString += String.fromCharCode(evt.getKeyCode());
     },
-    onBackspacePressed: function($super, evt) {
+    /*onBackspacePressed: function($super, evt) {
         $super(evt);
         if (!this.textString) {
             evt.stop(); 
@@ -765,7 +768,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         console.log("Annotation.put")
         this.textString = aValue;
     },
-
+    */
 
 });
 

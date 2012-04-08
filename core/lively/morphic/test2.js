@@ -1,5 +1,4 @@
-module('lively.morphic.test2').requires().toRun(function() {
-
+module('lively.morphic.test2').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles').toRun(function() {
 lively.morphic.Morph.subclass('lively.morphic.test2',
 'method category', {
     initialize: function($super,nNumofRecs) {

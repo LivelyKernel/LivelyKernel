@@ -23,7 +23,7 @@ lively.morphic.Morph.subclass('lively.morphic.test2',
 */
     },
 });
-
+/*
 lively.morphic.Text.subclass('lively.morphic.testText',
 'method category', {
     initialize: function($super,arg1, arg2) {
@@ -36,6 +36,6 @@ lively.morphic.Text.subclass('lively.morphic.testText',
         this.oParent.addMorph(this);
     },
 });
-
+*/
 
 }) // end of module

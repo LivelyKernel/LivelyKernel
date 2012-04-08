@@ -13,7 +13,7 @@ lively.morphic.Morph.subclass('lively.morphic.test2',
         var oRec;
         
          for (var n= 0; n< this.numofRecs; n++) {
-            oRec = new lively.morphic.testText();
+            oRec = new lively.morphic.testText2();
             oRec.addToMorph(this);
         }
         var elapsed = new Date().getTime() - start;

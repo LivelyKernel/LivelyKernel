@@ -114,6 +114,12 @@ Object.extend(lively.Tracing, {
         }).delay(0.2);
     },
 });
+cop.create('DeepInterpretationLayer')
+.refineClass(lively.ast.FunctionCaller, {
+    shouldInterpret: function(frame, func) {
+        return !this.isNative(func);
+    }
+});
 
 
 

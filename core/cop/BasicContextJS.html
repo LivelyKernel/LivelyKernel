@@ -1,0 +1,29 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+       "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<title>Script-Bereiche definieren</title>
+
+<script src="miniprototype.js" type="text/javascript" ></script>
+<script src="MiniBase.js" type="text/javascript" ></script>
+<script src="Layers.js" type="text/javascript" ></script>
+ 
+</head>
+<body>
+
+</head>
+<body>
+<h1>Basic ContextJS </h1>
+
+    <script  type="text/javascript">
+        var o = {m: function() { return 3}}
+        cop.create("L").refineObject(o, {
+            m: function() {
+                return cop.proceed() + 4
+            }
+        })        
+        document.write("basic o.m(): " + o.m())
+        document.write(" with L o.m(): " + (cop.withLayers([L], function() { return o.m()})))
+    </script>
+</body>
+</html>

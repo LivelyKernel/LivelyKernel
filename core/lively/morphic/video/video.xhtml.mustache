@@ -1,0 +1,85 @@
+
+	<script>
+		$('html').addClass('js-on');
+		$(function(){
+			$('div#{{id}}').jmeControl({
+				fullscreen: {
+					tryFullScreen: false
+				}
+			});
+		});	
+	</script>
+				
+	<video poster="{{poster}}}" preload="none" controls="controls">
+		{{#sources}}
+		<source src="{{src}}" type="{{type}}" />
+		{{/sources}}
+		
+		<!-- optional extra flash-fallback, don't use if you don't like :-) -->
+		<object id="flash-msie-video" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="430" height="280">
+			<param name="movie" value="packages/player.swf" />
+			<!--[if !IE]>-->
+			<object id="flash-w3c-video" type="application/x-shockwave-flash" data="packages/player.swf" width="430" height="280">
+			<!--<![endif]-->
+				<param name="allowfullscreen" value="true"/>
+				<param name="flashvars" value="file={{src_ie}}&amp;&amp;image={{poster}}"/>
+				
+				<!-- optional extra html-fallback -->
+				<div class="fallback">
+					<img src="{{poster}}" alt="" />
+					<div class="fallback-text">
+						<p>Please use a modern browser or install <a href="http://get.adobe.com/flashplayer/">Flash-Plugin</a></p>
+						<ul>
+							{{#sources}}
+							<li><a class="source" href="{{src}}">{{title}} ({{type}})</a></li>
+							{{/sources}}
+							
+							<!--
+							<li><a class="track" type="application/ttaf+xml" href="caption.xml" lang="de" data-enabled="enabled">DFXP/ttml file</a></li>
+							-->
+							{{#subtitles}}
+							<li><a class="track" href="{{src}}" lang="{{lang}}" data-enabled="enabled">subtitles for language: {{lang}}</a></li>
+							{{/subtitles}}
+						</ul>
+					</div>
+				</div>
+				<!-- END: optional extra html-fallback -->
+				
+			<!--[if !IE]>-->
+			</object>
+			<!--<![endif]-->
+		</object>
+		<!-- END: optional extra flash-fallback -->
+	</video>
+	<div class="media-state"></div>
+	<div class="media-controls">
+		<a class="play-pause" title="play / pause"><span class="ui-icon"> </span><span class="button-text">play / pause</span></a>
+		<span class="current-time player-display" title="current position">00:00</span>
+		<div class="timeline-slider">
+			<span class="handle-label">play position</span>
+			<span class="ui-slider-handle" title="play position"></span>
+			<div class="progressbar"></div>
+		</div>
+		<span class="duration player-display" title="duration">00:00</span>
+		<a class="mute-unmute" title="mute / unmute"><span class="ui-icon ui-icon-volume-on"> </span><span class="button-text">mute / unmute</span></a>
+		<div class="volume-slider"><span class="handle-label">volume control</span><span class="ui-slider-handle" title="volume control"></span></div>
+		<a class="toggle-track" title="track on / track off"><span class="ui-icon"> </span><span class="button-text">track on / track off</span></a>
+		<a class="fullscreen" title="zoomin / zoomout"><span class="ui-icon"> </span><span class="button-text">zoomin / zoomout</span></a>
+	</div>
+
+		
+<!--[if IE]>
+		<script>
+			if(location.protocol === 'file:'){
+				$('<small class="flash-hint">Note that you have to <a href="http://www.macromedia.com/support/documentation/en/flashplayer/help/settings_manager04.html">add your development directory to the local trusted security sandbox</a>, to get the controls work with the flash backend</small>')
+					.css({opacity: 0})
+					.insertAfter('div.media-player')
+					.fadeTo(1000, 1)
+					.delay(3000)
+					.fadeOut(400, function(){
+						$(this).remove();
+					})
+				;
+			}
+		</script>
+<![endif]-->

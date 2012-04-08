@@ -1,4 +1,4 @@
-module('lively.morphic.testsubText').requires('lively.morphic.Core', 'lively.morphic.TextCore','lively.morphic.Halos', 'lively.morphic.Widgets', 'lively.morphic.Styles','lively.morphic').toRun(function() {
+module('lively.morphic.testsubText').requires('lively.morphic.Core', 'lively.morphic.TextCore','lively.morphic.Halos', 'lively.morphic.Widgets', 'lively.morphic.Styles','lively.morphic','lively.morphic.Shapes').toRun(function() {
 
 lively.morphic.Morph.subclass('lively.morphic.testsubTextMain',
 'method category', {
@@ -14,9 +14,10 @@ lively.morphic.Morph.subclass('lively.morphic.testsubTextMain',
         var oRec;
         
          for (var n= 0; n< this.numofRecs; n++) {
-            //oRec = new lively.morphic.testText();
-            //oRec  = new lively.morphic.Text(new Rectangle(20,400, 100, 30), 'abc');
-            //oRec.addToMorph(this);
+            oRec = new lively.morphic.testText();
+            //oRec  = new lively.morphic.Text(new Rectangle(0,0, 100, 20), '');
+            //this.addMorph(oRec);
+            oRec.addToMorph(this);
         }
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;

@@ -12,7 +12,7 @@ lively.morphic.Morph.subclass('lively.morphic.test2',
         debugger;
         var oRec;
         
-         for (var n= 0; n< this.numofRecs; n++) {
+        /* for (var n= 0; n< this.numofRecs; n++) {
             oRec = new lively.morphic.testText();
             oRec.addToMorph(this);
         }
@@ -20,6 +20,7 @@ lively.morphic.Morph.subclass('lively.morphic.test2',
 	elapsed = elapsed/1000;
 	console.log('Time =' + elapsed);
         alert("done Time to add " +  this.numofRecs + " rectangles took "+ elapsed + " sec.");
+*/
     },
 });
 

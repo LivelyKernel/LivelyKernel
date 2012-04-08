@@ -23,7 +23,19 @@ lively.morphic.Morph.subclass('lively.morphic.test2',
     },
 });
 
-lively.morphic.Text.subclass('lively.morphic.testText',
+lively.morphic.Morph.subclass('lively.morphic.testText',
+'method category', {
+    initialize: function($super) {
+        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,100,100)))
+        this.setFill(Color.red)
+    },
+     addToMorph: function(oParent) {
+        this.oParent = oParent;
+        this.oParent.addMorph(this);
+    },
+});
+
+lively.morphic.Text.subclass('lively.morphic.testText2',
 'method category', {
     initialize: function($super,arg1, arg2) {
         $super(arg1, arg2);

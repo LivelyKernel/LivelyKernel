@@ -13,7 +13,7 @@ lively.morphic.Morph.subclass('lively.morphic.test2',
         var oRec;
         
          for (var n= 0; n< this.numofRecs; n++) {
-            //oRec = new lively.morphic.testText2();
+            //oRec = new lively.morphic.testText();
             //oRec.addToMorph(this);
         }
         var elapsed = new Date().getTime() - start;
@@ -35,19 +35,6 @@ lively.morphic.Morph.subclass('lively.morphic.testText',
     },
 });
 
-lively.morphic.Text.subclass('lively.morphic.testText2',
-'method category', {
-    initialize: function($super,arg1, arg2) {
-        $super(arg1, arg2);
-        this.setFill(Color.rgb(255,0,0));
-        this.setBorderColor(Color.rgb(0,0,0));
-        this.setExtent(lively.pt(50,100));
-    },
-     addToMorph: function(oParent) {
-        this.oParent = oParent;
-        this.oParent.addMorph(this);
-    },
-});
 
 
 }) // end of module

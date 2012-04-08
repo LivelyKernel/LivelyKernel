@@ -5,6 +5,7 @@ lively.morphic.Morph.subclass('lively.morphic.test2',
         $super();
         this.numofRecs = nNumofRecs;
         this.drawRecs()
+        this.setFill(Color.rgb(0,0,255));
     },
     drawRecs: function() {
         var start = new Date().getTime();    
@@ -26,7 +27,7 @@ lively.morphic.Text.subclass('lively.morphic.testText',
 'method category', {
     initialize: function($super,arg1, arg2) {
         $super(arg1, arg2);
-        this.setFill(Color.red);
+        this.setFill(Color.rgb(255,0,0));
         this.setBorderColor(Color.rgb(0,0,0));
         this.setExtent(lively.pt(50,100));
     },

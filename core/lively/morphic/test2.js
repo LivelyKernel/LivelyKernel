@@ -18,7 +18,6 @@ lively.morphic.Morph.subclass('lively.morphic.test2',
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
 	console.log('Time =' + elapsed);
-        alert("done Time to add " +  this.numofRecs + " rectangles took "+ elapsed + " sec.");
 
     },
 });

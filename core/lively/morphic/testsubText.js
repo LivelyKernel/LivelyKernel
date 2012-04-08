@@ -14,8 +14,8 @@ lively.morphic.Morph.subclass('lively.morphic.testsubTextMain',
         var oRec;
         
          for (var n= 0; n< this.numofRecs; n++) {
-            //oRec = new lively.morphic.testText2();
-            //oRec.addToMorph(this);
+            oRec = new lively.morphic.testText();
+            oRec.addToMorph(this);
         }
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
@@ -23,5 +23,18 @@ lively.morphic.Morph.subclass('lively.morphic.testsubTextMain',
 
     },
 });
+
+lively.morphic.Morph.subclass('lively.morphic.testText',
+'method category', {
+    initialize: function($super) {
+        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,100,100)))
+        this.setFill(Color.red)
+    },
+     addToMorph: function(oParent) {
+        this.oParent = oParent;
+        this.oParent.addMorph(this);
+    },
+});
+
 
 }) // end of module

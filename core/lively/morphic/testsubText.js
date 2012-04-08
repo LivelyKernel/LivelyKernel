@@ -9,10 +9,10 @@ lively.morphic.Morph.subclass('lively.morphic.testsubTextMain',
         this.setFill(Color.rgb(0,0,255));
     },
     drawRecs: function() {
-        var start = new Date().getTime();
+        var start = new Date().getTime();    
         debugger;
         var oRec;
-
+        
          for (var n= 0; n< this.numofRecs; n++) {
             oRec = new lively.morphic.testNewText();
             //oRec  = new lively.morphic.Text(new Rectangle(0,0, 100, 20), '');
@@ -53,6 +53,7 @@ lively.morphic.Text.subclass('lively.morphic.testNewText',
     },
 
 });
+
 
 
 }) // end of module

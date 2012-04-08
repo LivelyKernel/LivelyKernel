@@ -1,13 +1,12 @@
 module('lively.morphic.test2').requires().toRun(function() {
-
 lively.morphic.Morph.subclass('lively.morphic.test2',
 'method category', {
     initialize: function($super,nNumofRecs) {
         $super();
         this.numofRecs = nNumofRecs;
-        this.addTextField()
+        this.drawRecs()
     },
-    addTextField: function() {
+    drawRecs: function() {
         var start = new Date().getTime();    
         debugger;
         var oRec;

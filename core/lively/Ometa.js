@@ -33,7 +33,7 @@ Object.subclass('OMetaSupport');
 
 Object.extend(OMetaSupport, {
     
-	ometaGrammarDir: URL.codeBase,  
+    ometaGrammarDir: URL.codeBase,  
 
     fromFile: function(fileName) {
         var src = OMetaSupport.fileContent(fileName);

@@ -722,6 +722,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
     },
 
     testExistsAlreadyIn: function(parent) {
+        // todo: only the existment property of direct descendents is tested!
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m1.addMorph(m2)

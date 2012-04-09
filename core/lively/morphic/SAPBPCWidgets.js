@@ -1,4 +1,4 @@
-module('lively.morphic.SAPBPCWidgets').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles').toRun(function() {
+module('lively.morphic.SAPBPCWidgets').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles', 'users.robertkrahn.MassMorphCreation').toRun(function() {
 
 lively.morphic.Morph.subclass('lively.morphic.SAPCheckBox',
 'properties', {
@@ -146,20 +146,38 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
     },
     createCells: function() {
         var headOffset = this.hideColHeads ? 0 : 1;
+
         var start = new Date().getTime();
+
+        var self = this,
+            cells = lively.morphic.Morph.createN(this.numRows * this.numCols, function() {
+                return self.createCellOptimized();
+            });
+
         for (var y = 0; y < this.numRows; y++) {
             var row = [];
             for (var x = 0; x < this.numCols; x++) {
-                var cell = this.createCell(x, y, headOffset);
+                var cell = cells.pop();
+                cell.addToGrid(this);
+                cell.gridCoords = pt(x, y + headOffset);
+                cell.name = '[' + x + ';' + y + ']';
                 row.push(cell);
             }
             this.rows.push(row);
         }
+
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
 	console.log('End createCells =' + elapsed);
         GridBenchmark.add(this, 'createCells', elapsed);
     },
+    createCellOptimized: function() {
+        var cell = new lively.morphic.SAPDataGridCell();
+        cell.doitContext = this;
+        cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
+        return cell;
+    },
+
     createCell: function(x, y, headOffset) {
         var cell = new lively.morphic.SAPDataGridCell();
         cell.doitContext = this;
@@ -191,29 +209,38 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
 
     createLayout: function() {
         var start = new Date().getTime();
+
         var head = this.hideColHeads ? 0 : 1;
 
-        this.setLayouter(new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head));
+        var layouter = new lively.morphic.Layout.GridLayout(
+            this, this.numCols, this.numRows + head);
+        this.setLayouter(layouter);
+        layouter.rows = this.rows;
 
         this.applyLayout();
-var elapsed = new Date().getTime() - start;
-elapsed = elapsed/1000;
-console.log('End createLayout =' + elapsed);
-GridBenchmark.add(this, 'createLayout', elapsed);
 
+        var elapsed = new Date().getTime() - start;
+        elapsed = elapsed/1000;
+        console.log('End createLayout =' + elapsed);
+        GridBenchmark.add(this, 'createLayout', elapsed);
     },
+
+    getLayoutableSubmorphs: function() {
+        return this.submorphs;
+    },
+
     writeAnnotation: function(nColumn,nRow,sText) {
         this.get('BPCGrid').at(nColumn,nRow).annotation = sText;
     },
 
- showAnnotation: function(nColumn,nRow) {
+    showAnnotation: function(nColumn,nRow) {
         this.oAnnotation.setVisible(true);
         this.oAnnotation.textString = 'test annotation....';
         //alert(this.rows[nColumn][nRow].getPosition());
         this.oAnnotation.setPosition(this.rows[nColumn][nRow].getPosition());
-
     },
- hideAnnotation: function() {
+
+    hideAnnotation: function() {
         this.oAnnotation.setVisible(false);
     },
 
@@ -770,8 +797,9 @@ lively.morphic.Text.subclass('lively.morphic.SAPDataGridColHead',
         this.grid = aGrid;
         this.grid.addMorph(this);
     },
-
+    updateDisplay: Functions.Null
 });
+
 lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
 'default category', {
     initialize: function($super, arg1, arg2) {

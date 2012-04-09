@@ -650,9 +650,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100)
         m1.getPartsBinMetaInfo().revisionOnLoad = 2;
         m1.getPartItem = getPartItemFactory;
-        m2.getPartsBinMetaInfo().revisionOnLoad = 2;
-        m2.getPartItem = getPartItemFactory;
-        m1
 
         this.assertEquals(m1.findParentPartVersion().getPartsBinMetaInfo().revisionOnLoad, m1.getPartsBinMetaInfo().revisionOnLoad, 'Revision number of current revision was wrong.')
         

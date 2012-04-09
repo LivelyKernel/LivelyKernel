@@ -629,9 +629,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         m1.addMorph(m1_1);
         m1_1.addMorph(m1_1_1);
         m1.addMorph(m1_2);  
-        this.assertEquals(this.m1.findById(this.m1_1.id), this.m1_1, 'First submorph not found.')
-        this.assertEquals(this.m1.findById(this.m1_1_1.id), this.m1_1_1, 'Submorph of submorph not found.')
-        this.assertEquals(this.m1.findById(this.m1_2.id), this.m1_2, 'Second Submorph not found.')
+        this.assertEquals(m1.findById(m1_1.id), m1_1, 'First submorph not found.')
+        this.assertEquals(m1.findById(m1_1_1.id), m1_1_1, 'Submorph of submorph not found.')
+        this.assertEquals(m1.findById(m1_2.id), m1_2, 'Second Submorph not found.')
     },
 
 

@@ -729,7 +729,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
 'default category', {
     initialize: function($super, arg1, arg2) {
         $super(arg1, arg2);
-        this.nColumn=0;
+        this.nColumn=0; //need to know which cell
         this.nRow=0;
         this.setFill(Color.rgb(255, 255, 225));
         this.setBorderColor(Color.rgb(0,0,0));
@@ -741,6 +741,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
     onKeyPress: function($super, evt) {
        console.log("SAPGridAnnotation.onKeyPress");
         $super(evt);
+        alert(this.textString);
         //this.textString += String.fromCharCode(evt.getKeyCode());
     },
     /*onBackspacePressed: function($super, evt) {

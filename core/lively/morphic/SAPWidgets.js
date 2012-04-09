@@ -742,7 +742,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
        console.log("SAPGridAnnotation.onKeyUp");
         $super(evt);
         //Saving annotation
-        
+        this.grid.setAnnotation(this.nColumn,this.nRow,sText);
 
         //this.textString += String.fromCharCode(evt.getKeyCode());
     },

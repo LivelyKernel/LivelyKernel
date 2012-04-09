@@ -46,11 +46,11 @@ lively.morphic.Morph.addMethods(
         diffList[self.id] = diff;
         return diffList;
     },
-    newThreeWayDiff: function() {
+    newThreeWayDiff: function(optSibling, optParent) {
         // performs a threeWayDiff based on the Parts PartsBin versions
         var self = this,
-            parent = this.findParentPartVersion(),
-            sibling = this.findCurrentPartVersion(),
+            parent = optParent || this.findParentPartVersion(),
+            sibling = optSibling || this.findCurrentPartVersion(),
             resultList = new DiffList();
 
         if (sibling.getPartsBinMetaInfo().revisionOnLoad == parent.getPartsBinMetaInfo().revisionOnLoad) {

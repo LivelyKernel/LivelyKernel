@@ -121,10 +121,17 @@ lively.morphic.Morph.addMethods(
                 ny + cy - topLeft.y));
         }
     },
+
     getLayoutableSubmorphs: function() {
-        return this.submorphs.reject(function(ea) {
-            return (ea.isEpiMorph || ea.isBeingDragged);
-        });
+        // reject is damn slow..., optimize it!
+        var morphs = new Array(this.submorphs.length);
+        for (var i = 0; i < this.submorphs.length; i++) {
+            var m = this.submorphs[i];
+            if (!m.isEpiMorph && !m.isBeingDragged) {
+                morphs.push(m)
+            }
+        }
+        return morphs;
     },
 
     getPositionInWorld: function() {
@@ -601,15 +608,16 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.GridLayout',
     },
 
     initializePlaceholders: function() {
-        this.rows = [];
+        this.rows = this.rows || [];
         for (var y = 0; y < this.numRows; y++) {
-            var row = []
+            var row = this.rows[y] || [];
             for (var x = 0; x < this.numCols; x++) {
-                //fill owner with placeholders
+                // fill owner with placeholders if ncessary
+                if (row[x]) continue;
                 var m = new lively.morphic.Layout.GridLayoutPlaceholder(x, y);
-                row.push(m);
+                row[x] = m;
             }
-            this.rows.push(row);
+            this.rows[y] = row;
         }
     },
 

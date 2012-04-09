@@ -743,7 +743,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m1.derivationIds = [1]
         var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
-        m1.derivationIds = [2]
+        m1.derivationIds = [1]
 
         var m4 = m1.copy().copy(); // simulate copyToPartsBin
         m4.addMorph(m2)

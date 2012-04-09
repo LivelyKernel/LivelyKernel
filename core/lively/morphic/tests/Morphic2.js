@@ -677,10 +677,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
     testFindDerivationParent: function() {
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100)
         m1.derivationIds = [1];
-        // simulate copyToPartsBin
-        var pbv = m1.copy();
-        // simulate copyFromPartsBin
-        var m2 = pbv.copy();
+        var m2 = pbv.copy().copy();
 
         debugger
 

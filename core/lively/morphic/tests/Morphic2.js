@@ -629,7 +629,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
 
     testFindParentPartVersion: function() {
-        this.setupMorphs();
         var m1 = Morph.makeRectangle(0,0,100,100);
 
         this.assertEquals(m1.findParentPartVersion().getPartsBinMetaInfo().revisionOnLoad, m1.getPartsBinMetaInfo().revisionOnLoad, 'Revision number of current revision was wrong.')

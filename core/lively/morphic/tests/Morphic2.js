@@ -622,8 +622,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.jQueryTests', {
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 'inheritance', {
     testFindById: function() {
-        this.setupMorphs();
-
         this.assertEquals(this.m1.findById(this.m1_1.id), this.m1_1, 'First submorph not found.')
         this.assertEquals(this.m1.findById(this.m1_1_1.id), this.m1_1_1, 'Submorph of submorph not found.')
         this.assertEquals(this.m1.findById(this.m1_2.id), this.m1_2, 'Second Submorph not found.')

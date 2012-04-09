@@ -677,9 +677,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
     testFindDerivationParent: function() {
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100)
         m1.derivationIds = [1];
-        var m2 = m1.copy().copy();
-
-        debugger
+        var m2 = m1.copy().copy(); // copyToPartsBin simulated
 
         this.assert(m2.findDerivationParent(m1), "No parent found.")
         this.assert(m2.findDerivationParent(m1) === m1, "Wrong parent found 1.")
@@ -688,11 +686,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var m6 = lively.morphic.Morph.makeRectangle(0,0,100,100)
         m1.addMorph(m3);
         m3.addMorph(m6);
-        //simulate copyToPartsBin
-        var m4 = m1.copy();
-        //simulate copyFromPartsBin
-        var m5 = m4.copy();
-        console.log(m5.copy())
+        var m5 = m1.copy().copy(); //simulate copyToPartsBin
+
         this.assert(m5.submorphs[0].findDerivationParent(m4) === m4.submorphs[0], "Wrong parent found 2.")
         this.assert(m5.submorphs[0].submorphs[0].findDerivationParent(m4) === m4.submorphs[0].submorphs[0], "Wrong parent found 2.")
     },

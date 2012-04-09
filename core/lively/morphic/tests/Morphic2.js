@@ -754,7 +754,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         // simulate copyFromPartsBin
         var m6 = m5.copy();
         var m7 = m5.copy();
-        this.assertEquals(m6.findSiblingInRelative(m7, m5), m7, 'Wrong sibling with real parent')
+        this.assertEquals(m6.findSiblingInRelative(m7, m5), m7, 'Wrong sibling with real parent');
         this.assertEquals(m6.submorphs[0].findSiblingInRelative(m7, m5), m7.submorphs[0], 'Wrong submorphs sibling with real parent')
         this.assertEquals(m6.findSiblingInRelative(m7, m3), m7, 'Wrong sibling with grand parent')
         this.assert(!m6.submorphs[0].findSiblingInRelative(m7, m3), 'Wrong submorph sibling with grand parent')

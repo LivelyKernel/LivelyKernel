@@ -5,18 +5,18 @@ Object.extend(LivelyMigrationSupport, {
         log = log || alertOK;
 
         var from = new WebResource(sourceURL).forceUncached();
-    
+
         if (fixLinks) {
             log("FIX LINK NOT YET IMPLEMENTED")
         }
-     
+
         new WebResource(destURL.getDirectory()).ensureExistance();
 
         var content = from.get().contentDocument;
 
         if (!dryRun) from.moveTo(destURL);
 
-        if (! sourceURL.filename().endsWith('.xhtml')) {    
+        if (! sourceURL.filename().endsWith('.xhtml')) {
             if (onFinish) onFinish()
             return
         }
@@ -26,10 +26,10 @@ Object.extend(LivelyMigrationSupport, {
 
 
         if (fixLinks) {
-            
+
         }
 
-        new DocLinkConverter(URL.codeBase, destURL.getDirectory()).convert(content)            
+        new DocLinkConverter(URL.codeBase, destURL.getDirectory()).convert(content)
 
         connect(dest, 'status', {
             onMove: function(status) {
@@ -42,10 +42,10 @@ Object.extend(LivelyMigrationSupport, {
             if (onFinish) onFinish()
 
         }}, 'onMove')
-        if (!dryRun) 
+        if (!dryRun)
             dest.put(content)
         else
-            if (onFinish) onFinish()      
+            if (onFinish) onFinish()
     },
 
     createWorldInfo: function(url) {
@@ -53,7 +53,7 @@ Object.extend(LivelyMigrationSupport, {
             url: url,
             fetchMetaData: function() {
                 var webR = new WebResource(this.url).beAsync();
-                connect(webR, 'content', this, 'extractMetaData', { 
+                connect(webR, 'content', this, 'extractMetaData', {
                     updater: function($upd, content) {
                     if (this.sourceObj.status.isDone()) $upd(content)} });
                 webR.get();
@@ -77,79 +77,82 @@ Migration Level History:
 1 - world expects that dragging is enabled so that selection morph is created
 2 - renamed setOverflowMode to setClipMode --> _OverflowMode --> _ClipMode
 3 - [NOT YET WORKING] CSS text attribute white-space should be set to pre-line instead of pre-wrap to support text-align justify
+4 - ???
+5 - ???
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-if (LivelyMigrationSupport.documentMigrationLevel < 1) {
+if (false && LivelyMigrationSupport.documentMigrationLevel < 1) {
     lively.bindings.callWhenNotNull(
         lively.morphic.World, 'currentWorld',
         {enableDragging: function(w) { w.enableDragging()}}, 'enableDragging');
 }
 
-if (LivelyMigrationSupport.documentMigrationLevel < 2) {
-cop.create('DocumentMigrationLevel2Layer')
-.refineClass(lively.morphic.Morph, {
-    onrestore: function() {
-        if (this._OverflowMode) {
-            this._ClipMode = this._OverflowMode;
-            delete this._OverflowMode;
-        }
-        cop.proceed();
-    },
-}).beGlobal();
+if (false && LivelyMigrationSupport.documentMigrationLevel < 2) {
+    cop.create('DocumentMigrationLevel2Layer')
+    .refineClass(lively.morphic.Morph, {
+        onrestore: function() {
+            if (this._OverflowMode) {
+                this._ClipMode = this._OverflowMode;
+                delete this._OverflowMode;
+            }
+            cop.proceed();
+        },
+    }).beGlobal();
 };
 
-// if (LivelyMigrationSupport.documentMigrationLevel < 3) {
-// cop.create('DocumentMigrationLevel3Layer')
-// .refineClass(lively.morphic.Text, {
-    // onrestore: function() {
-        // this._WhiteSpaceHandling = 'pre-line';
-        // cop.proceed();
-    // },
-// }).beGlobal();
-// };
+if (false && LivelyMigrationSupport.documentMigrationLevel < 3) {
+    cop.create('DocumentMigrationLevel3Layer')
+    .refineClass(lively.morphic.Text, {
+        onrestore: function() {
+            this._WhiteSpaceHandling = 'pre-line';
+            cop.proceed();
+        },
+    }).beGlobal();
+};
 
-if (LivelyMigrationSupport.documentMigrationLevel < 4) {
-/// fixes the issue that after ignore events label was still shown
-cop.create('DocumentMigrationLevel4Layer')
-.refineClass(lively.morphic.Text, {
-    prepareForNewRenderContext: function(ctx) {
-        cop.proceed(ctx);
-        if (this.eventsAreIgnored)
+if (false && LivelyMigrationSupport.documentMigrationLevel < 4) {
+    /// fixes the issue that after ignore events label was still shown
+    cop.create('DocumentMigrationLevel4Layer')
+    .refineClass(lively.morphic.Text, {
+        prepareForNewRenderContext: function(ctx) {
+            cop.proceed(ctx);
+            if (this.eventsAreIgnored)
             this.ignoreEvents() // will set the right properties
-    },
-}).beGlobal();
+        },
+    }).beGlobal();
 };
 
-if (LivelyMigrationSupport.documentMigrationLevel < 5) {
-/// fixes the issue that after ignore events label was still shown
-cop.create('DocumentMigrationLevel5Layer')
-.refineClass(lively.morphic.Morph, {
-    onrestore: function() {
-        if (typeof this.isClip === 'boolean' && this.hasOwnProperty('isClip')) {
-            delete this.isClip
-        }
-        cop.proceed();
-    },
-}).beGlobal();
+if (false && LivelyMigrationSupport.documentMigrationLevel < 5) {
+    /// fixes the issue that after ignore events label was still shown
+    cop.create('DocumentMigrationLevel5Layer')
+    .refineClass(lively.morphic.Morph, {
+        onrestore: function() {
+            if (typeof this.isClip === 'boolean' && this.hasOwnProperty('isClip')) {
+                delete this.isClip
+            }
+            cop.proceed();
+        },
+    }).beGlobal();
 };
 
 if (Config.enableShapeGetterAndSetterRefactoringLayer) {
-// this layer will make shapes compatible that stored their properties manually
-// the new scheme for shapes is the same as for morphs, e.g.: shape._Extent instead of shape.extent
-cop.create('ShapeGetterAndSetterRefactoringLayer')
-.refineClass(lively.morphic.Shapes.Shape, {
-    onrestore: function() {
-        if (this.position) { this._Position = this.position; delete this.position };
-        if (this.extent) { this._Extent = this.extent; delete this.extent };
-        if (this.fill) { this._Fill = this.fill; delete this.fill };
-        if (this.position) { this._Position = this.position; delete this.position };
-        if (this.borderWidth) { this._BorderWidth = this.borderWidth; delete this.borderWidth };
-        if (this.borderColor) { this._BorderColor = this.borderColor; delete this.borderColor };
-        if (this.strokeOpacity) { this._StrokeOpacity = this.strokeOpacity; delete this.strokeOpacity };
-        if (this.borderRadius) { this._BorderRadius = this.borderRadius; delete this.borderRadius };
-        cop.proceed();
-    },
-}).beGlobal();
+    // this layer will make shapes compatible that stored their properties
+    // manually the new scheme for shapes is the same as for morphs, e.g.:
+    // shape._Extent instead of shape.extent
+    cop.create('ShapeGetterAndSetterRefactoringLayer')
+    .refineClass(lively.morphic.Shapes.Shape, {
+        onrestore: function() {
+            if (this.position) { this._Position = this.position; delete this.position };
+            if (this.extent) { this._Extent = this.extent; delete this.extent };
+            if (this.fill) { this._Fill = this.fill; delete this.fill };
+            if (this.position) { this._Position = this.position; delete this.position };
+            if (this.borderWidth) { this._BorderWidth = this.borderWidth; delete this.borderWidth };
+            if (this.borderColor) { this._BorderColor = this.borderColor; delete this.borderColor };
+            if (this.strokeOpacity) { this._StrokeOpacity = this.strokeOpacity; delete this.strokeOpacity };
+            if (this.borderRadius) { this._BorderRadius = this.borderRadius; delete this.borderRadius };
+            cop.proceed();
+        },
+    }).beGlobal();
 };
 
 }) // end of module

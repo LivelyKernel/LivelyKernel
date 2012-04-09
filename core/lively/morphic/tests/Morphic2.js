@@ -661,10 +661,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var m1 = Morph.makeRectangle(0,0,100,100);
         m1.getPartsBinMetaInfo().revisionOnLoad = 2;
         m1.getPartItem = function () {
-            return {part: m1,
+            return {part: this,
                     loadPart: function () {
-                        return m1;
-                    }}
+                        return {part: this,
+                                loadPart: function () {
+                                    return this;
+                                }.bind(this)}
+                    }.bind(this)}
         };
         this.assertEquals(m1.getPartsBinMetaInfo().revisionOnLoad,
             m1.findCurrentPartVersion().getPartsBinMetaInfo().revisionOnLoad, 

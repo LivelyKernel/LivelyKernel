@@ -741,15 +741,17 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
     onKeyUp: function($super, evt) {
        console.log("SAPGridAnnotation.onKeyUp");
         $super(evt);
-        alert(this.textString);
+        //Saving annotation
+        
+
         //this.textString += String.fromCharCode(evt.getKeyCode());
     },
-    onKeyPress: function($super, evt) {
+    /*onKeyPress: function($super, evt) {
        console.log("SAPGridAnnotation.onKeyPress");
         $super(evt);
         alert(this.textString);
         //this.textString += String.fromCharCode(evt.getKeyCode());
-    },
+    },*/
     /*onBackspacePressed: function($super, evt) {
         $super(evt);
         if (!this.textString) {

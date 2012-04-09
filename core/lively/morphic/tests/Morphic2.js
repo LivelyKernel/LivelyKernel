@@ -679,7 +679,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         // simulate copyToPartsBin
         var pbv = m1.copy();
         // simulate copyFromPartsBin
-        var m2 = pbv.copy();
+        var m2 = pbv.copy().copy();
 
         this.assert(m2.findDerivationParent(m1), "No parent found.")
         this.assert(m2.findDerivationParent(m1) === m1, "Wrong parent found 1.")

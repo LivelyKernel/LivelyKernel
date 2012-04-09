@@ -745,8 +745,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
             this.assert(m2.derivationIds, "No derivationsIds Array")
     },
     testDiffTo: function() {
-        var m1 = $world.loadPartItem("Rectangle", "/PartsBin/Basic")
-        var m2 = $world.loadPartItem("Rectangle", "/PartsBin/Basic")
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m1.addMorph(m2);
         //simulate copyToPartsBin
         var pbv = m1.copy();
@@ -754,7 +754,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var m3 = pbv.copy();
         var m4 = m3.copy();
         //this.assert(!m4.diffTo(m3), "found changes, but there weren't some") //required in three way diff, therefore staying
-        var m5 = $world.loadPartItem("Rectangle", "/PartsBin/Basic")
+        var m5 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m4.addMorph(m5)
 
         //added morphs

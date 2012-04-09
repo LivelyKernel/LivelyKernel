@@ -164,7 +164,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         var cell = new lively.morphic.SAPDataGridCell();
         cell.doitContext = this;
         cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
-        // cell.addToGrid(this);
+        cell.addToGrid(this);
         cell.gridCoords = pt(x, y + headOffset);
         cell.name = '[' + x + ';' + y + ']';
         return cell;

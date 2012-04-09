@@ -330,6 +330,8 @@ console.log('End createLayout =' + elapsed);
                 this.activeCell.setToolTip('Formula: \n' + sValue);
                 this.activeCell.cellformula = sValue;
                 
+                this.activeCell.setBorderStyle("dotted");
+                
             }
 
         }

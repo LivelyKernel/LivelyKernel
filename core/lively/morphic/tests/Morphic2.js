@@ -655,7 +655,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
         this.assert(m2.findDerivationParent(m1), "No parent found.")
         this.assert(m2.findDerivationParent(m1) === m1, "Wrong parent found 1.")
-
+        console.log('foo')
         var m3 = $world.loadPartItem("Rectangle", "/PartsBin/Basic/")
         var m6 = $world.loadPartItem("Rectangle", "/PartsBin/Basic/")
         m1.addMorph(m3);

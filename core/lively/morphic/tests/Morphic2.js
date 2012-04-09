@@ -741,7 +741,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
     testFindSiblingInRelative: function() {
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        m1.derivationIds = [1]
         var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        m1.derivationIds = [2]
         // simulate copyToPartsBin
         var m3 = m1.copy();
         // simulate copyFromPartsBin

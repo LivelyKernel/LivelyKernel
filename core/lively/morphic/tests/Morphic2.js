@@ -726,7 +726,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m1.addMorph(m2)
         var m4 = m1.copy().copy(); // simulate copyToPartsBin
-        m4.isDirectDescendentOf: function () {return true}; 
+
+        m4.isDirectDescendentOf =  function () {return true}; 
+        m4.submorphs[0].isDirectDescendentOf =  function () {return true}; 
 
         this.assert(m4.existsAlreadyIn(m3), "Should exist in first generation")
         this.assert(m4.submorphs[0].existsAlreadyIn(m3), "submorph should exist in first generation");

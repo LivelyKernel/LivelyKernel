@@ -770,6 +770,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
         //modified morphs
         m6.submorphs[0].setFill(Color.red);
+        debugger
         this.assert(m6.diffTo(m4)[m6.submorphs[0].id].modified['Fill'], "no removal found")
 
         //submorphsModified

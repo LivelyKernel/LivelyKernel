@@ -10,7 +10,7 @@ lively.morphic.Morph.subclass('lively.morphic.testsubTextMain',
     },
     drawRecs: function() {
         var start = new Date().getTime();    
-        debugger;
+        //debugger;
         var oRec;
         
          for (var n= 0; n< this.numofRecs; n++) {

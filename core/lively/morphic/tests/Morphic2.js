@@ -685,7 +685,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var m3 = lively.morphic.Morph.makeRectangle(0,0,100,100)
         m3.derivationIds = [1];
         var m6 = lively.morphic.Morph.makeRectangle(0,0,100,100)
-        m3.derivationIds = [1];
+        m6.derivationIds = [1];
 
         m1.addMorph(m3);
         m3.addMorph(m6);

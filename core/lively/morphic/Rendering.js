@@ -178,7 +178,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
         } else if (this.isSVG(node)) {
             this.setSVGFillOrStrokePaint(node, 'fill', fill);
         }
-        
+
     },
     setSVGFillOrStrokePaint: function(node, propName, paint) {
         var cachedProperty = '_' + propName; // like _fill
@@ -252,11 +252,6 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
         var transform = new lively.morphic.Similitude(pos, rot, pt(scale,scale));
         transform.applyTo(node)
     },
-
-
-
-
-
 
     setExtent: function(node, extent) {
         if (this.isHTML(node)) {
@@ -458,13 +453,20 @@ lively.morphic.Morph.addMethods(
         this.setRenderContext(newCtx);
         this.getShape().setRenderContext(newCtx);
         this.renderContextDispatch('init');
-        this.getShape().renderUsing(newCtx);
-        if (this.owner) this.renderContextDispatch('append');
-        for (var i = 0; i < this.submorphs.length; i++)
+        if (this.owner) {
+            this.renderContextDispatch('append');
+        } else {
+            this.getShape().renderUsing(newCtx);
+        }
+        for (var i = 0; i < this.submorphs.length; i++) {
             this.submorphs[i].prepareForNewRenderContext(newCtx.newForChild());
+        }
         this.registerForEvents(Config.handleOnCapture);
         this.resumeStepping();
-        if (this.onLoad) this.onLoad.bind(this).delay(0);
+        if (this.onLoad) {
+            var self = this;
+            (function() { self.onLoad(); }).delay(0);
+        }
     },
 
 });

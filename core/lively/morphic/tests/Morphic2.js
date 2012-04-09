@@ -771,7 +771,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         //modified morphs
         m6.submorphs[0].setFill(Global.Color.red);
         debugger
-        this.assert(m6.diffTo(m4)[m6.submorphs[0].id].modified['Fill'], "no removal found")
+        this.assert(m6.diffTo(m4)[m4.submorphs[0].id].modified['Fill'], "no removal found")
 
         //submorphsModified
         this.assert(m4.diffTo(m3)[m4.id].submorphsModified.length >= 0, 'submorphs were not modified')

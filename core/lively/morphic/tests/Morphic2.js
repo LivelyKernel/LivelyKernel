@@ -637,11 +637,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
     testFindParentPartVersion: function() {
         var getPartItemFactory = function () {
-            var self = this;
             return {part: this,
                     loadPart: function () {
                         return self;
-                    }}
+                    }.bind(this)}
         };
 
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);

@@ -738,6 +738,12 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         this.grid = aGrid;
         this.grid.addMorph(this);
     },
+    onKeyUp: function($super, evt) {
+       console.log("SAPGridAnnotation.onKeyUp");
+        $super(evt);
+        alert(this.textString);
+        //this.textString += String.fromCharCode(evt.getKeyCode());
+    },
     onKeyPress: function($super, evt) {
        console.log("SAPGridAnnotation.onKeyPress");
         $super(evt);

@@ -723,14 +723,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
     testExistsAlreadyIn: function(parent) {
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
-        m1.derivationIds = [1];
         var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
-        m2.derivationIds = [1];
         m1.addMorph(m2)
-        //simulate copyToPartsBin
-        var m3 = m1.copy();
-        //simulate copyFromPartsBin
-        var m4 = m3.copy();
+        var m4 = m1.copy().copy(); // simulate copyToPartsBin
         this.assert(m4.existsAlreadyIn(m3), "Should exist 1")
         this.assert(m4.submorphs[0].existsAlreadyIn(m3), "should exist 2");
         var m5 = m4.copy()

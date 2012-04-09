@@ -270,6 +270,7 @@ console.log('End createLayout =' + elapsed);
                     this.at(x,y).cellformula = sValue;
 
                     this.at(x,y).setToolTip('Formula: \n' + sValue);
+                    this.activeCell.setBorderStyle("dotted");
 
 
                     sValue = this.parseFormula(sValue);

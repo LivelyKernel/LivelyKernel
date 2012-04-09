@@ -740,8 +740,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
     },
 
     testFindSiblingInRelative: function() {
-        var m1 = $world.loadPartItem("Rectangle", "/PartsBin/Basic");
-        var m2 = $world.loadPartItem("Rectangle", "/PartsBin/Basic");
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         // simulate copyToPartsBin
         var m3 = m1.copy();
         // simulate copyFromPartsBin

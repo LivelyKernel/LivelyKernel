@@ -681,8 +681,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assert(m2.findDerivationParent(m1), "No parent found.")
         this.assert(m2.findDerivationParent(m1) === m1, "Wrong parent found 1.")
 
-        var m3 = $world.loadPartItem("Rectangle", "/PartsBin/Basic/")
-        var m6 = $world.loadPartItem("Rectangle", "/PartsBin/Basic/")
+        var m3 = lively.morphic.Morph.makeRectangle(0,0,100,100)
+        var m6 = lively.morphic.Morph.makeRectangle(0,0,100,100)
         m1.addMorph(m3);
         m3.addMorph(m6);
         //simulate copyToPartsBin

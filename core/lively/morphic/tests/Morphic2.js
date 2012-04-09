@@ -636,17 +636,22 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
 
     testFindParentPartVersion: function() {
-        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
-
-        this.assertEquals(m1.findParentPartVersion().getPartsBinMetaInfo().revisionOnLoad, m1.getPartsBinMetaInfo().revisionOnLoad, 'Revision number of current revision was wrong.')
-        var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100)
-        m1.getPartsBinMetaInfo().revisionOnLoad = 2;
-        m1.getPartItem = function () {
+        var getPartItemFactory = function () {
             return {part: this,
                     loadPart: function () {
                         return this;
                     }.bind(this)}
         };
+
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100)
+        m1.getPartsBinMetaInfo().revisionOnLoad = 2;
+        m1.getPartItem = getPartItemFactory;
+        m2.getPartsBinMetaInfo().revisionOnLoad = 2;
+        m2.getPartItem = getPartItemFactory;
+
+        this.assertEquals(m1.findParentPartVersion().getPartsBinMetaInfo().revisionOnLoad, m1.getPartsBinMetaInfo().revisionOnLoad, 'Revision number of current revision was wrong.')
+        
         this.assert(!m2.findParentPartVersion().getPartsBinMetaInfo().revisionOnLoad, "Should't have found a match");
     },
 

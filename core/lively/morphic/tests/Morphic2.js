@@ -689,7 +689,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var m5 = m1.copy().copy(); //simulate copyToPartsBin
 
         this.assert(m5.submorphs[0].findDerivationParent(m4) === m4.submorphs[0], "Wrong parent found 2.")
-        this.assert(m5.submorphs[0].submorphs[0].findDerivationParent(m4) === m4.submorphs[0].submorphs[0], "Wrong parent found 2.")
+        this.assert(m5.submorphs[0].submorphs[0].findDerivationParent(m1) === m4.submorphs[0].submorphs[0], "Wrong parent found 2.")
     },
     testFindDerivationSibling: function() {
         var m1 = $world.loadPartItem("Rectangle", "/PartsBin/Basic");

@@ -1,4 +1,4 @@
-module('lively.morphic.tests.Morphic2').requires('lively.morphic.tests.Morphic').toRun(function() {
+module('lively.morphic.tests.Morphic2').requires('lively.morphic.tests.Morphic', lively.morphic.DiffMerge).toRun(function() {
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PivotPointTests',
 'running', {

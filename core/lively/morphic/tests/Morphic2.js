@@ -711,6 +711,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
     testIsDirectDescendentOf: function() {
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        
         var m2 = m1.copy();
         this.assert(m2.isDirectDescendentOf(m1), 'found m2 not as descendent');
         var m3 = m1.copy();

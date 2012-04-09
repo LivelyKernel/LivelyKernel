@@ -622,6 +622,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.jQueryTests', {
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 'inheritance', {
     testFindById: function() {
+        var m1 = Morph.makeRectangle(0,0,100,100);
+        var m1_1 = Morph.makeRectangle(0,0,100,100);
+        var m1_2 = Morph.makeRectangle(0,0,100,100);
+        var m1_1_1 = Morph.makeRectangle(0,0,100,100);
+        m1.addMorph(m1_1);
+        m1_1.addMorph(m1_1_1);
+        m1.addMorph(m1_2);  
         this.assertEquals(this.m1.findById(this.m1_1.id), this.m1_1, 'First submorph not found.')
         this.assertEquals(this.m1.findById(this.m1_1_1.id), this.m1_1_1, 'Submorph of submorph not found.')
         this.assertEquals(this.m1.findById(this.m1_2.id), this.m1_2, 'Second Submorph not found.')

@@ -688,6 +688,15 @@ currently only support
         items.push(['- row', this.removeRow.bind(this)]);
         return items;
     },
+
+    readCSV: function(seperator, string) {
+        var values = string.split(new RegExp(seperator + '|\n'));
+        for (var y = 0; y < this.numRows; y++) {
+            for (var x = 0; x < this.numCols; x++) {
+                this.atPut(x, y, values.shift());
+            }
+        }
+    }
 });
 
 lively.morphic.Text.subclass('lively.morphic.SAPDataGridCell',

@@ -10,6 +10,7 @@ before_install:
   - "npm install -g livelykernel-scripts@latest"
 
 before_script:
+  - "mkdir `lk scripts-dir`/workspace"
   - echo "Linking $PWD to `lk scripts-dir`/workspace/lk"
   - "ln -s $PWD `lk scripts-dir`/workspace/lk"
   - "Xvfb :1 -screen 0 800x600x24&"

@@ -31,7 +31,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCheckBox',
 },
 'event handling', {
 
-
     onClick: function(evt) {
         // for halos/menus
          if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) {
@@ -44,7 +43,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCheckBox',
          return true;
      },
 
-
 },
 'serialization', {
     prepareForNewRenderContext: function ($super, renderCtx) {
@@ -54,6 +52,48 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCheckBox',
         this.setChecked(this.isChecked());
     },
 });
+
+/*
+GridBenchmark.run([[10,50]]);
+*/
+Global.GridBenchmark = {
+
+    benchmarkResults: {},
+
+    run: function(allColsAndRows) {
+        allColsAndRows.forEachShowingProgress(
+            $morph('ProgressBar'),
+            function(colsAndRows) {
+                var grid = new lively.morphic.SAPDataGrid(colsAndRows[0], colsAndRows[1]);
+                grid.name="BPCGrid";
+                grid.openInWorld(pt(1200, 0));
+                grid.remove();
+            },
+            function(colsAndRows) {
+                return colsAndRows[0] + '/' + colsAndRows[1];
+            })
+    },
+
+    add: function(grid, funcName, elapsed) {
+        var entryName = grid.numRows + '/' + grid.numCols,
+            entry = this.benchmarkResults[entryName] || {};
+        entry[funcName] = elapsed;
+        this.benchmarkResults[entryName] = entry;
+    },
+
+    toString: function() {
+        var resultsPerSize = []
+        Properties.forEachOwn(this.benchmarkResults, function(name, entry) {
+            var lines = [Strings.format('Results for %s:', name)];
+            Properties.forEachOwn(entry, function(funcName, secs) {
+                lines.push(funcName + ': ' + secs);
+            })
+            resultsPerSize.push(lines.join('\n\t'));
+        })
+        return "GridBenchmark:\n\n" + resultsPerSize.join('\n\n');
+    },
+
+}
 
 
 lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
@@ -89,7 +129,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
 	console.log('End initializeData=' + elapsed);
     },
     initializeMorph: function() {
-        var start = new Date().getTime();    
+        var start = new Date().getTime();
         this.setExtent(pt(
             this.numCols * this.defaultCellWidth  + 2 * this.borderSize,
             this.numRows * this.defaultCellHeight + 2 * this.borderSize));
@@ -102,6 +142,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
 	console.log('End initializeMorph=' + elapsed);
+        GridBenchmark.add(this, 'initializeMorph', elapsed);
     },
     createCells: function() {
         var headOffset = this.hideColHeads ? 0 : 1;
@@ -114,16 +155,16 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
             }
             this.rows.push(row);
         }
-       var elapsed = new Date().getTime() - start;
-		elapsed = elapsed/1000;
-		 console.log('End createCells =' + elapsed);
+        var elapsed = new Date().getTime() - start;
+	elapsed = elapsed/1000;
+	console.log('End createCells =' + elapsed);
+        GridBenchmark.add(this, 'createCells', elapsed);
     },
     createCell: function(x, y, headOffset) {
-
         var cell = new lively.morphic.SAPDataGridCell();
         cell.doitContext = this;
         cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
-        cell.addToGrid(this);
+        // cell.addToGrid(this);
         cell.gridCoords = pt(x, y + headOffset);
         cell.name = '[' + x + ';' + y + ']';
         return cell;
@@ -158,6 +199,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPDataGrid',
 var elapsed = new Date().getTime() - start;
 elapsed = elapsed/1000;
 console.log('End createLayout =' + elapsed);
+GridBenchmark.add(this, 'createLayout', elapsed);
 
     },
     writeAnnotation: function(nColumn,nRow,sText) {
@@ -201,7 +243,7 @@ console.log('End createLayout =' + elapsed);
         evt.stop();
     },
     onLeftPressed: function(evt) {
-        //testing cell text is focused or not 
+        //testing cell text is focused or not
     console.log("SAPDataGrid.onLeftPressed");
         if (!this.activeCell) {
          }else{
@@ -264,7 +306,7 @@ console.log('End createLayout =' + elapsed);
  //debugger;
             for (var i = 0; i < that.numCols; i++) {
                 //if (that.colNames[i] != undefined) {
-                 
+
 		  arrColumns[i]= ea[i].getContent();
                     //obj[that.colNames[i]] = ea[i].getContent();
                 //}
@@ -275,8 +317,8 @@ console.log('End createLayout =' + elapsed);
     createDataRowFromObject: function(anObject) {
         var row = [],
             names = this.getColNames();
-        
-        if (names.select(function(ea) {return ea != undefined}).length == 0) { 
+
+        if (names.select(function(ea) {return ea != undefined}).length == 0) {
             //col names have not been set
             for (var prop in anObject) {
                row.push(anObject[prop]);
@@ -289,7 +331,7 @@ console.log('End createLayout =' + elapsed);
                 if (names[i] in anObject) {
                     row[i] = anObject[names[i]];
                 }
-            }            
+            }
         }
         return row;
     },
@@ -301,7 +343,7 @@ console.log('End createLayout =' + elapsed);
             for (var x = 0; x < this.dataModel[y].length &&
                     x < this.numCols; x++) {
                 //hak formula
-                sValue = this.renderFunction(this.dataModel[y][x]);
+                var sValue = this.renderFunction(this.dataModel[y][x]);
                 if (sValue.charAt(0)=="="){
                     //console.log(sValue);
                     this.at(x,y).cellformula = sValue;
@@ -312,7 +354,7 @@ console.log('End createLayout =' + elapsed);
                     sValue = this.parseFormula(sValue);
                 }
                 this.at(x,y).textString = sValue;
-               
+
                 //this.at(x,y).textString = this.renderFunction(this.dataModel[y][x]);
             }
         }
@@ -321,6 +363,7 @@ console.log('End createLayout =' + elapsed);
         }
     },
 /*can't use this... it will stop everything
+  rk: you can use this, just call $super(evt);
     onKeyDown: function($super, evt) {
  //debugger;
     console.log("SAPDataGrid.onKeyDown");
@@ -352,7 +395,7 @@ console.log('End createLayout =' + elapsed);
                 //'Formula \n test'
                 this.activeCell.setToolTip('Formula: \n' + sValue);
                 this.activeCell.cellformula = sValue;
-                
+
             }
 
         }
@@ -368,7 +411,7 @@ console.log('End createLayout =' + elapsed);
 
     setActiveCellContent: function(aString) {
         if (!this.activeCell) {
-            this.at(0,0).activate(); 
+            this.at(0,0).activate();
         }
         this.activeCell.textString = aString;
     },
@@ -452,7 +495,7 @@ console.log('End createLayout =' + elapsed);
         this.colNames.push(undefined);
         var realColName = (colName && typeof(colName) == 'string') ? colName : undefined;
         this.colNames[this.numCols] = realColName;
-        
+
         if (!this.hideColHeads) {
             var head = this.createColHead(this.numCols, realColName);
             this.colHeads.push(head);
@@ -492,7 +535,7 @@ console.log('End createLayout =' + elapsed);
         while (this.colNames.length > lastColIndex) {
             this.colNames.pop();
         }
-        
+
         this.numCols--;
         this.createLayout();
 //Hak March 26 2012 reset height.
@@ -533,20 +576,20 @@ console.log('End createLayout =' + elapsed);
 /*
 Hak March 27 2012.
 we need smart parser!! this is for POS only
-currently only support 
+currently only support
 =AVERAGE(E3:E7)
 =SUM(E3:E6)
 =E3
 */
-    parseFormula: function(sValue) {	
+    parseFormula: function(sValue) {
         var arrValue;
         var nTotal = 0;
         var nAve = 0;
-    	var nValue; 
-        
+    	var nValue;
+
         //debugger;
         if (sValue){
-        
+
             sValue = sValue.toUpperCase();
             if (sValue.substr(0,5)=="=SUM("){
                 arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");
@@ -562,10 +605,10 @@ currently only support
 		    }
 	       }else{//summing horizontally
                     for (var nCol = oStartCell.columnIndex; nCol <= oEndCell.columnIndex; nCol ++) {
-						
+
 		      }
                 }
-                return nTotal;  
+                return nTotal;
             }else if(sValue.substr(0,9)=="=AVERAGE("){
                 arrValue= sValue.replace(/=AVERAGE\(/g, "").replace(/\)/g,"").split(":");
                 var oStartCell = this.parseformulaCellIndex(arrValue[0]);
@@ -581,16 +624,16 @@ currently only support
                     nAve = parseInt(nTotal/nCount)
 	       }else{//summing horizontally
                     for (var nCol = oStartCell.columnIndex; nCol <= oEndCell.columnIndex; nCol ++) {
-						
+
 		      }
                 }
-                return nAve;	
+                return nAve;
 	   }else{  //copying other cell
                 var oCell = this.parseformulaCellIndex(sValue.replace(/=/g, ""));
-                
+
                 nValue = parseFloat(this.at(oCell.columnIndex,oCell.rowIndex).textString);
-                return nValue; 
-	   }		
+                return nValue;
+	   }
         }
     return 255;
     },
@@ -600,12 +643,12 @@ currently only support
 	var sCol = sValue.replace(sRow,'');
 	var instruct = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 	var sNewCol = '';
-		
+
 	for (var i=0; i<sCol.length; i++) {
 	   var n = instruct.indexOf(sCol[i]);
 	   if (n == -1) { sNewCol += sCol[i]; } else { sNewCol += n.toString(); }
 	}
-		
+
 	oIndex.columnIndex = sNewCol;
 	oIndex.rowIndex = sRow;
 	return oIndex;
@@ -621,19 +664,29 @@ currently only support
 });
 
 lively.morphic.Text.subclass('lively.morphic.SAPDataGridCell',
+'settings', {
+    style: {
+        borderColor: Color.rgb(177,181,186),
+        fill: Color.rgb(255, 2550, 255)
+    }
+},
+"initializing", {
+    initialize: function($super, bounds, string) {
+        $super(bounds, string);
+        this.evalExpression = undefined;
+    },
+},
 'default category', {
     addToGrid: function(aGrid) {
         this.grid = aGrid;
         this.grid.addMorph(this);
-        this.setBorderColor(Color.rgb(177,181,186));
-        this.setFill(Color.rgb(255, 2550, 255));
-        this.cellformula='';
-        this.annotation='';//maybe we need array object to save more than one
+        this.cellformula = '';
+        this.annotation = ''; //maybe we need array object to save more than one
     },
     activate: function() {
         if (this.grid.activeCell) {
             this.grid.activeCell.deactivate();
-        }    
+        }
         this.grid.activeCell = this;
         this.grid.activeCellContent = this.textString;
         this.setBorderColor(Color.red);
@@ -657,9 +710,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPDataGridCell',
         }
     },
 
-
-
-
     put: function(aValue) {
         // TODO: check if aValue starts with =, then evaluate it or not
         debugger;
@@ -673,20 +723,13 @@ lively.morphic.Text.subclass('lively.morphic.SAPDataGridCell',
     onBackspacePressed: function($super, evt) {
         $super(evt);
         if (!this.textString) {
-            evt.stop(); 
-            return true; 
+            evt.stop();
+            return true;
         }
         this.textString = this.textString.substring(0, this.textString.length-1);
         evt.stop();
     },
 
-
-
-
-    initialize: function($super, arg) {
-        $super(arg);
-        this.evalExpression = undefined;
-    },
     updateDisplay: function() {
         if (this.evalExpression !== undefined) {
             this.textString = this.grid.evaluateExpression(this.evalExpression);
@@ -715,6 +758,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPDataGridCell',
         return floatValue;
     },
 });
+
 lively.morphic.Text.subclass('lively.morphic.SAPDataGridColHead',
 'default category', {
     initialize: function($super, arg1, arg2) {
@@ -752,8 +796,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
     onBackspacePressed: function($super, evt) {
         $super(evt);
         if (!this.textString) {
-            evt.stop(); 
-            return true; 
+            evt.stop();
+            return true;
         }
         this.textString = this.textString.substring(0, this.textString.length-1);
         evt.stop();

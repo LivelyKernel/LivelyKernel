@@ -653,7 +653,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
                         return m1;
                     }}
         };
-        this.assertEquals(m1.getPartsBinMetaInfo().revisionOnLoad, m1.findCurrentPartVersion().getPartsBinMetaInfo().revisionOnLoad, 'Wrong revision number')
+        this.assertEquals(m1.getPartsBinMetaInfo().revisionOnLoad,
+            m1.findCurrentPartVersion().getPartsBinMetaInfo().revisionOnLoad, 
+            'Wrong revision number')
     },
 
     testFindDerivationParent: function() {

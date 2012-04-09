@@ -639,7 +639,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var getPartItemFactory = function () {
             return {part: this,
                     loadPart: function () {
-                        return self;
+                        return this;
                     }.bind(this)}
         };
 

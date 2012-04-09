@@ -758,15 +758,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assert(!m8.submorphs[0].findSiblingInRelative(m7, m4), 'Wrong submorph sibling with grand parent')
     },
 
-    testFindCommonParentPartVersion: function() {
-        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
-        var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
-        this.assert(m1.findCommonParentPartVersion(m2).getPartsBinMetaInfo().revisionOnLoad == m1.getPartsBinMetaInfo().revisionOnLoad, 'wrong version 1')
-        var m3 = m1.copy();
-        this.assert(m3.findCommonParentPartVersion(m2).getPartsBinMetaInfo().revisionOnLoad == m1.getPartsBinMetaInfo().revisionOnLoad, 'wrong version 2')
-        var m4 = m2.copy();
-        this.assert(m3.findCommonParentPartVersion(m4).getPartsBinMetaInfo().revisionOnLoad == m1.getPartsBinMetaInfo().revisionOnLoad, 'wrong version 3')
-    },
+
 
 },
 'diffing', {

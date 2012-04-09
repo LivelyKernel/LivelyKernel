@@ -744,16 +744,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         m1.derivationIds = [1]
         var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m1.derivationIds = [2]
-        // simulate copyToPartsBin
-        var m3 = m1.copy();
-        // simulate copyFromPartsBin
-        var m4 = m3.copy();
+
+        var m4 = m1.copy().copy(); // simulate copyToPartsBin
         m4.addMorph(m2)
-        // simulate copyToPartsBin
-        var m5 = m4.copy();
-        // simulate copyFromPartsBin
-        var m6 = m5.copy();
-        var m7 = m5.copy();
+        var m6 = m4.copy().copy(); // simulate copyToPartsBin
+        var m7 = m4.copy().copy(); // simulate copyToPartsBin
         this.assertEquals(m6.findSiblingInRelative(m7, m5), m7, 'Wrong sibling with real parent');
         this.assertEquals(m6.submorphs[0].findSiblingInRelative(m7, m5), m7.submorphs[0], 'Wrong submorphs sibling with real parent')
         this.assertEquals(m6.findSiblingInRelative(m7, m3), m7, 'Wrong sibling with grand parent')

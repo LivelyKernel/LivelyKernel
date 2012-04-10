@@ -1,4 +1,4 @@
-dmodule('lively.morphic.Canvas').requires('lively.morphic.Rendering').toRun(function() {
+module('lively.morphic.Canvas').requires('lively.morphic.Rendering').toRun(function() {
 
 lively.morphic.Rendering.RenderContext.subclass('lively.morphic.Canvas.RenderContext',
 'settings', {

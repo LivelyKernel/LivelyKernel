@@ -1303,7 +1303,7 @@ lively.morphic.World.addMethods(
             world.setExtent(newExtent)
         }, this.getExtent())
     },
-    newMethod: function() {
+    askForNewBackgroundColor: function() {
         // enter comment here
     },
 

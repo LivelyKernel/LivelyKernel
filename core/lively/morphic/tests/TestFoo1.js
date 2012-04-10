@@ -1,4 +1,4 @@
-module('lively.morphic.tests.TestFoo1').requires().toRun(function() {
+module('lively.morphic.tests.Admin').requires().toRun(function() {
 // Globals -------------------------------------------------------------------
 var data_attrib = null;
 var data_prop = null;

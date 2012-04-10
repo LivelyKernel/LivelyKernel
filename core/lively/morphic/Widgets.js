@@ -1132,7 +1132,8 @@ lively.morphic.World.addMethods(
             ]],
             ['Preferences', [
                 ['set username', this.askForUserName.bind(this)],
-                ['set extent', this.askForNewWorldExtent.bind(this)]]
+                ['set extent', this.askForNewWorldExtent.bind(this)]],
+                ['set baclground color', this.askForNewBackgroundColor.bind(this)]]
             ],
             ['Debugging', this.debuggingMenuItems(world)],
             ['Wiki', [

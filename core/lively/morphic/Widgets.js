@@ -1323,7 +1323,7 @@ lively.morphic.World.addMethods(
             }
             alert("set world background color " +  newColor);
             world.setFill(newColor)
-        }, "Color." + oldColor))
+        }, "Color." + oldColor)
     },
 
     setCurrentUser: function(username) {

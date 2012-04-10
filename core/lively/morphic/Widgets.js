@@ -1303,6 +1303,10 @@ lively.morphic.World.addMethods(
             world.setExtent(newExtent)
         }, this.getExtent())
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
     setCurrentUser: function(username) {
         this.currentUser = username;
         if (lively.LocalStorage)

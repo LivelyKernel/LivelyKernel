@@ -1304,7 +1304,22 @@ lively.morphic.World.addMethods(
         }, this.getExtent())
     },
     askForNewBackgroundColor: function() {
-        // enter comment here
+        var world = this;
+        this.prompt("Please, give new world background color", function(str) {
+            if (!str) return;
+            var newColor;
+            try {
+                newColor = eval(str);
+            } catch(e) {
+                alert("could not eval: " + str)
+            };
+            if (! (newColor instanceof Color)) {
+                alert("" + newColor + " " + "is not a proper Color")
+                return
+            }
+            alert("set world background color " +  newColor);
+            world.setFill(newColor)
+        }, this.getFill())
     },
 
     setCurrentUser: function(username) {

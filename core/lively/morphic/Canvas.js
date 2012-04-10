@@ -1,4 +1,4 @@
-module('lively.morphic.Canvas').requires('lively.morphic.Rendering').toRun(function() {
+dmodule('lively.morphic.Canvas').requires('lively.morphic.Rendering').toRun(function() {
 
 lively.morphic.Rendering.RenderContext.subclass('lively.morphic.Canvas.RenderContext',
 'settings', {
@@ -16,8 +16,7 @@ lively.morphic.Rendering.RenderContext.subclass('lively.morphic.Canvas.RenderCon
 },
 'accessing', {
     getCanvas: function() { return this.canvas },
-    getGraphicContext: function() {
-        debugger;
+    getGraphicContext: function() {        
         if (this._graphicContext) return this._graphicContext;
         var canvas = this.getCanvas();
         if (!canvas || !canvas.getContext) throw new Error('Cannot access canvas or drawing context');

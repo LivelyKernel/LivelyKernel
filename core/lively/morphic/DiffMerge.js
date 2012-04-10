@@ -102,13 +102,11 @@ lively.morphic.Morph.addMethods(
         var self = this;
         Functions.own(self).each(function (ea) {
             if (otherMorph[ea]) {
-                if (self[ea].toString() != otherMorph[ea].toString()) {
-                    diff[ea] = new AtomicDiff("script", self[ea], otherMorph[ea])
-                }
+                if (self[ea].toString() != otherMorph[ea].toString())
+                    diff[ea] = new AtomicDiff("script", self[ea].toString(), otherMorph[ea].toString())
             }
-            else {
-                diff[ea] = new AtomicDiff("script", self[ea], otherMorph[ea])
-            }
+            else 
+                diff[ea] = new AtomicDiff("script", self[ea].toString())
         })
     },
     showThreeWayDiff: function() {

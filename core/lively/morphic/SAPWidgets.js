@@ -18,6 +18,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeAnnotation();
 
     },
+    updateRowDisplay: function() {
+        alert(0);
+    },
     setVisibleRowCount: function(iVisibleRowCount) {
         this.VisibleRowCount = iVisibleRowCount;
     },

@@ -11,11 +11,15 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.numCols = numCols;
         this.numRows = numRows;
         this.oAnnotation = null;
+        this.VisibleRowCount=50;
         this.activeCellContent = '';
         this.initializeData();
         this.initializeMorph();
         this.initializeAnnotation();
 
+    },
+    setVisibleRowCount: function(iVisibleRowCount) {
+        this.VisibleRowCount = iVisibleRowCount;
     },
     initializeAnnotation: function() {
         this.oAnnotation= new lively.morphic.SAPGridAnnotation();

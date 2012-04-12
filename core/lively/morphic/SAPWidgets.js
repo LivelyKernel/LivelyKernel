@@ -18,6 +18,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeAnnotation();
 
         this.prviousScrollValue=0;
+        this.maxNoofRow = 10000;
+        this.maxNoofColumn = 1000;
 
     },
     updateRowDisplay: function(evt) {

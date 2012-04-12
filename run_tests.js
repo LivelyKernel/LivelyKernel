@@ -30,14 +30,7 @@ if (!testRunId) {
 // result processing
 function postResult(message) {
     alertOK("Result: \n" + message);
-    $.post('/test-result', {testRunId: testRunId, testResults: message});
-}
-
-// currently only used for interactive testing
-function getResult(id) {
-    // getResult(1)
-    $.post('/test-report', {testRunId: id}, function(data) {
-      alert(JSON.stringify(data)) });
+    $.post('/test-result/' + testRunId, {testRunId: testRunId, testResults: message});
 }
 
 

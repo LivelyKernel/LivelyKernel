@@ -36,8 +36,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         if (this.prviousScrollValue !=nScrollValue){
             console.log(nScrollValue);
             this.prviousScrollValue = nScrollValue;
+            this.updateDisplay();
         }
-        this.updateDisplay();
+        
 
     },
     setVisibleRowCount: function(iVisibleRowCount) {
@@ -235,6 +236,18 @@ console.log('End createLayout =' + elapsed);
         this.dataModel = [];
         //debugger;
         var that = this;
+
+        //saving to global empty data
+        debugger;
+
+        for (var nRow = 0; nRow < aJsArray.length; nRow++) {
+		var arrColumns=[];
+		for (var nCol = 0; nCol < aJsArray[nRow].length ; nCol++) {
+			this.arrData[nRow][nCol]=aJsArray[nRow][nCol];
+		}
+	}
+
+
         aJsArray.forEach(function(ea) {
             if (ea.constructor.name === 'Array') {
                 that.dataModel.push(ea);

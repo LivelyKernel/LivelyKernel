@@ -234,8 +234,6 @@ console.log('End createLayout =' + elapsed);
     setData: function(aJsArray) {
         this.clear();
         this.dataModel = [];
-        //debugger;
-        
 
         //saving to global empty data
         debugger;

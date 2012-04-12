@@ -235,17 +235,30 @@ console.log('End createLayout =' + elapsed);
         this.clear();
         this.dataModel = [];
 
-        //saving to global empty data
+        
         debugger;
+        var nRow;
+        var nCol;
+        var arrColumns=[];
 
-        for (var nRow = 0; nRow < aJsArray.length; nRow++) {
-		var arrColumns=[];
-		for (var nCol = 0; nCol < aJsArray[nRow].length ; nCol++) {
-			this.arrData[nRow][nCol]=aJsArray[nRow][nCol];
-		}
+        //saving to global empty data
+        for (nRow = 0; nRow < aJsArray.length; nRow++) {
+	   for (nCol = 0; nCol < aJsArray[nRow].length ; nCol++) {
+		this.arrData[nRow][nCol]=aJsArray[nRow][nCol];
+	   }
 	}
 
-        var that = this;
+        //saving only visible row/column to dataModel
+        for (var nRow = 0; nRow < this.VisibleRowCount; nRow++) {
+            arrColumns=[];
+            for (var nCol = 0; nCol < this.VisibleColumnCount ; nCol++) {
+                arrColumns[nCol] = this.arrData[nRow][nCol];
+	    }
+            this.dataModel.push(arrColumns);
+	}
+        
+        
+        /*var that = this;
         aJsArray.forEach(function(ea) {
             if (ea.constructor.name === 'Array') {
                 that.dataModel.push(ea);
@@ -253,7 +266,7 @@ console.log('End createLayout =' + elapsed);
             }
             var row = that.createDataRowFromObject(ea);
             that.dataModel.push(row);
-        });
+        });*/
         this.updateDisplay();
     },
     getDataObjects: function() {

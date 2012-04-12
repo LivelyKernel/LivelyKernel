@@ -235,7 +235,7 @@ console.log('End createLayout =' + elapsed);
         this.clear();
         this.dataModel = [];
         //debugger;
-        var that = this;
+        
 
         //saving to global empty data
         debugger;
@@ -247,7 +247,7 @@ console.log('End createLayout =' + elapsed);
 		}
 	}
 
-
+        var that = this;
         aJsArray.forEach(function(ea) {
             if (ea.constructor.name === 'Array') {
                 that.dataModel.push(ea);

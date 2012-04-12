@@ -13,7 +13,7 @@ lively.morphic.Morph.addMethods(
         if (!this.submorphs) return null;
         for (var i = 0; i < this.submorphs.length; i++) {
             var morph = this.submorphs[i];
-            if (morph.getName() === name) return morph;
+            if (morph.getName() === name || morph.toString() === name) return morph;
         }
         for (var i = 0; i < this.submorphs.length; i++)  {
             var morph = this.submorphs[i].getMorphNamed(name);

@@ -64,7 +64,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
-	console.log('End initializeData(create empty data)=' + elapsed);
+	console.log('End initializeData(create empty data' + "maxNoofRow = " + this.maxNoofRow + "maxNoofColumn=" + this.maxNoofColumn +")="  + elapsed);
     },
     initializeMorph: function() {
         var start = new Date().getTime();    

@@ -86,7 +86,7 @@ console.log("nEndRow  " + nStartRow);
         for (var nRow = 0; nRow < this.maxNoofRow ; nRow++) {
 		var arrColumns=[];
 		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
-			arrColumns[nCol] = 0;
+			arrColumns[nCol] = "";
 		}
 		this.arrData.push(arrColumns);
 	}

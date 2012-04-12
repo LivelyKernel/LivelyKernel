@@ -82,4 +82,3 @@ require(['lively.TestFramework'].concat(testList)).toRun(function() {
     };
     suite.runAll();
 });
-

@@ -20,8 +20,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     },
     updateRowDisplay: function(evt) {
        
-        var nScrollValue = parseInt(evt);
+        //var nScrollValue = parseInt(evt);
+        var nScrollValue= parseFloat(evt).toFixed(2);
          console.log(nScrollValue + " :  "  + evt);
+        
 
     },
     setVisibleRowCount: function(iVisibleRowCount) {

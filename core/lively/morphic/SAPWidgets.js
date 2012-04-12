@@ -52,7 +52,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             nStartRow= parseInt(nScrollValue*100);
             nEndRow  = nStartRow + this.VisibleRowCount;
                 
-
+console.log("nStartRow" + nStartRow);
+console.log("nEndRow  " + nStartRow);
             for (nRow = nStartRow; nRow < nEndRow  ; nRow++) {
                 arrColumns=[];
                 for (nCol = 0; nCol < this.VisibleColumnCount ; nCol++) {

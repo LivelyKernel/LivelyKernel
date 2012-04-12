@@ -30,7 +30,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
     },
     updateRowDisplay: function(evt) {
-       debugger;
+       //debugger;
         //var nScrollValue = parseInt(evt);
         if (isNaN(evt)){
             console.log("nan " + evt);

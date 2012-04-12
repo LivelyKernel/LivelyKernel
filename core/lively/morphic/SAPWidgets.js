@@ -49,6 +49,16 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.rows = [];
         this.dataModel = [];
         this.addScript(function renderFunction(value) { return value; });
+
+        for (var nRow = 0; nRow < this.maxNoofRow ; nRow++) {
+		var arrColumns=[];
+		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
+			arrColumns[nCol] = 0;
+		}
+		this.arrData.push(arrColumns);
+	}
+
+
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
 	console.log('End initializeData=' + elapsed);

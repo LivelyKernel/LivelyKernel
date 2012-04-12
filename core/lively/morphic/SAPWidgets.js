@@ -257,7 +257,7 @@ console.log('End createLayout =' + elapsed);
         this.dataModel = [];
 
         
-        debugger;
+        //debugger;
         var nRow;
         var nCol;
         var arrColumns=[];

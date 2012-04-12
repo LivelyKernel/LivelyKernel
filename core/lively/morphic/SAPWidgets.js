@@ -25,7 +25,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         //var nScrollValue = parseInt(evt);
         var nScrollValue= parseFloat(evt).toFixed(2);
         if (this.prviousScrollValue !=nScrollValue){
-            console.log(nScrollValue + " :  "  + evt);
+            console.log(nScrollValue);
             this.prviousScrollValue = nScrollValue;
         }
 

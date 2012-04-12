@@ -17,6 +17,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeMorph();
         this.initializeAnnotation();
 
+        this.prviousScrollValue=0;
+
     },
     updateRowDisplay: function(evt) {
        

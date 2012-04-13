@@ -269,7 +269,7 @@ console.log('End createLayout =' + elapsed);
             //this.at(arrNotes[i].column,arrNotes[i].row ).annotation= arrNotes[i].note;
             //this.at(arrNotes[i].column,arrNotes[i].row ).annotationCell();
             //this.arrData[arrNotes[i].row][arrNotes[i].column].annotation = arrNotes[i].note;
-            this.setAnnotation: function(arrNotes[i].column,arrNotes[i].row,arrNotes[i].note)
+            this.setAnnotation(arrNotes[i].column,arrNotes[i].row,arrNotes[i].note)
         }
     },
 

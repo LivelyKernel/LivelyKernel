@@ -121,7 +121,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         if (nEndRow < nDataLength ){
             nEndRow  = nDataLength ;
         }
-
+console.log('nStartRow =' + nStartRow );
+console.log('nEndRow =' + nEndRow );
         
        
 

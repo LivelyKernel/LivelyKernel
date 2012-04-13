@@ -301,7 +301,7 @@ console.log('End createLayout =' + elapsed);
 		this.arrData[nRow][nCol].value=aJsArray[nRow][nCol];
 	   }
 	}
-        
+        debugger;
         this.createEmptyCells(aJsArray.length);
 
         //saving only visible row/column to dataModel

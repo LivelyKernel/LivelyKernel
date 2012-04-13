@@ -85,7 +85,8 @@ console.log("nEndRow  " + nStartRow);
         //looping takes about 0.4 sec.  maybe we should add rows when scroll is moving.
      
         var oCell={};
-        for (var nRow = 0; nRow < this.maxNoofRow ; nRow++) {
+        //for (var nRow = 0; nRow < this.maxNoofRow ; nRow++) {
+        for (var nRow = 0; nRow < 100 ; nRow++) {
 		var arrColumns=[];
 		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
                         //arrColumns[nCol]= "";

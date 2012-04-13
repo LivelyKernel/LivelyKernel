@@ -766,11 +766,12 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         debugger;
         this.textString = aValue;
     },
-    /*onKeyPress: function($super, evt) {
+    onKeyPress: function($super, evt) {
         console.log("SAPGridCell.onKeyPress");        
         $super(evt);
-        this.textString += String.fromCharCode(evt.getKeyCode());
+        //this.textString += String.fromCharCode(evt.getKeyCode());
     },
+    /*
     onBackspacePressed: function($super, evt) {
         $super(evt);
         if (!this.textString) {

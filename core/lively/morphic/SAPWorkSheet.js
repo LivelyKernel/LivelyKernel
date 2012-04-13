@@ -33,12 +33,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
     },
     updateRowDisplay: function(evt) {
-       //debugger;
+       debugger;
         if (isNaN(evt)){
             console.log("nan " + evt);
             return;
         }
-        var nScrollValue= parseFloat(evt).toFixed(2);
+        var nScrollValue= parseInt(evt);//.toFixed(2);
         if (this.prviousScrollValue !=nScrollValue){
         
             this.prviousScrollValue = nScrollValue;
@@ -49,7 +49,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             var nCol;
             var arrColumns=[];
             
-            this.startRow = parseInt(nScrollValue*100);
+            this.startRow = nScrollValue;
             this.endRow = this.startRow + this.VisibleRowCount;
 
             if (this.endRow> this.arrData.length){
@@ -105,12 +105,25 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	console.log('End initializeMorph=' + elapsed);
     },
     //Create empty cells
-    createEmptyCells: function() {
+    createEmptyCells: function(nDataLength) {
         //create 500 rows
+        
+        if(typeof nDataLength == 'undefined') {
+            nDataLength = 0;
+        }
+
+
         var oCell={};
         var arrColumns;
         var nStartRow = this.arrData.length;
-        for (var nRow = nStartRow ; nRow < 500 ; nRow++) {
+        var nEndRow = nStartRow + 100;
+
+        if (nEndRow < nDataLength ){
+            nEndRow  = nDataLength ;
+        }
+
+        
+        for (var nRow = nStartRow ; nRow < nEndRow ; nRow++) {
 		arrColumns=[];
 		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
                         //arrColumns[nCol]= "";
@@ -283,12 +296,14 @@ console.log('End createLayout =' + elapsed);
         var arrColumns=[];
 
         //saving to global empty data
+
+        this.createEmptyCells(aJsArray.length);
+
         for (nRow = 0; nRow < aJsArray.length; nRow++) {
 	   for (nCol = 0; nCol < aJsArray[nRow].length ; nCol++) {
 		this.arrData[nRow][nCol].value=aJsArray[nRow][nCol];
 	   }
 	}
-
         //saving only visible row/column to dataModel
         for (nRow = 0; nRow < this.VisibleRowCount; nRow++) {
             arrColumns=[];

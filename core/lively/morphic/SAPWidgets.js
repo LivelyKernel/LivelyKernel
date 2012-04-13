@@ -367,22 +367,16 @@ console.log('End createLayout =' + elapsed);
                 y < this.numRows; y++) {
             for (var x = 0; x < this.dataModel[y].length &&
                     x < this.numCols; x++) {
-                //hak formula
-                //sValue = this.renderFunction(this.dataModel[y][x].value);
+            
+            
                 sValue = this.dataModel[y][x].value.toString();
                 if (sValue.charAt(0)=="="){
-                    //console.log(sValue);
                     this.at(x,y).cellformula = sValue;
-
                     this.at(x,y).setToolTip('Formula: \n' + sValue);
                     this.at(x,y).setBorderStyle("dotted");
-
-
                     sValue = this.parseFormula(sValue);
                 }
                 this.at(x,y).textString = sValue;
-               
-                //this.at(x,y).textString = this.renderFunction(this.dataModel[y][x]);
             }
         }
         if (this.activeCell) {

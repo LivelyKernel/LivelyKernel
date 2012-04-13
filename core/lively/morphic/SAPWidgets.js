@@ -80,6 +80,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.rows = [];
         this.dataModel = [];
         this.addScript(function renderFunction(value) { return value; });
+         
+        this.createEmptyCells();
+
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
 	console.log('End initializeData=' + elapsed);

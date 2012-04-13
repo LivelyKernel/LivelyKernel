@@ -53,7 +53,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.endRow = this.startRow + this.VisibleRowCount;
 
             if (this.endRow> this.arrData.length){
-                createEmptyCells();
+                this.createEmptyCells();
             }
 
             for (nRow = this.startRow; nRow < this.endRow; nRow++) {

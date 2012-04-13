@@ -771,7 +771,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         console.log("SAPGridCell.onKeyUp: "  + this.textString);
         var nCol= this.gridCoords.x;
         var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
-nRow  = nRow  + this.startRow;
+//nRow  = nRow  + this.grid.startRow;
        this.grid.arrData[][].value=this.textString;
 
         $super(evt);

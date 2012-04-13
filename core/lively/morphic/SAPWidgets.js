@@ -88,7 +88,7 @@ console.log("nEndRow  " + nStartRow);
 
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
-	console.log('End initializeData(create empty data' + "maxNoofRow = " + this.maxNoofRow + "maxNoofColumn=" + this.maxNoofColumn +")="  + elapsed);
+	console.log('End initializeData '  + elapsed);
     },
     initializeMorph: function() {
         var start = new Date().getTime();    
@@ -107,11 +107,11 @@ console.log("nEndRow  " + nStartRow);
     },
     //Create empty cells
     createEmptyCells: function() {
-        //create 1000 rows
+        //create 500 rows
         var oCell={};
         var arrColumns;
         var nStartRow = this.arrData.length;
-        for (var nRow = nStartRow ; nRow < 1000 ; nRow++) {
+        for (var nRow = nStartRow ; nRow < 500 ; nRow++) {
 		arrColumns=[];
 		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
                         //arrColumns[nCol]= "";

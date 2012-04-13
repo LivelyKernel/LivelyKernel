@@ -43,6 +43,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
             this.clear();
             this.dataModel = [];
+
             var nStartRow=0;
             var nEndRow = 0;
             var nRow;
@@ -51,6 +52,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             
             nStartRow= parseInt(nScrollValue*100);
             nEndRow  = nStartRow + this.VisibleRowCount;
+
+            if (nEndRow > this.arrData.length){
+                    
+            }
+
                 
 console.log("nStartRow " + nStartRow);
 console.log("nEndRow  " + nEndRow );
@@ -61,7 +67,6 @@ console.log("nEndRow  " + nEndRow );
 	       }
                 this.dataModel.push(arrColumns);
             }
-        
             this.updateDisplay();
         }
         

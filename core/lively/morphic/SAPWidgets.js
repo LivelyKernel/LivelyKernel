@@ -110,7 +110,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var oCell={};
         var arrColumns;
         var nStartRow = this.arrData.length;
-        for (var nRow = nStartRow ; nRow < 100 ; nRow++) {
+        var nEndRow = nStartRow + 100;
+        
+        for (var nRow = nStartRow ; nRow < nEndRow ; nRow++) {
 		arrColumns=[];
 		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
                         //arrColumns[nCol]= "";

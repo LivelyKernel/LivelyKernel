@@ -84,13 +84,16 @@ console.log("nEndRow  " + nStartRow);
         this.addScript(function renderFunction(value) { return value; });
         //looping takes about 0.4 sec.  maybe we should add rows when scroll is moving.
         debugger;
+        var oCell={};
         for (var nRow = 0; nRow < this.maxNoofRow ; nRow++) {
 		var arrColumns=[];
 		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
                         //arrColumns[nCol]= "";
-			arrColumns[nCol].value = "";
-                        arrColumns[nCol].annotation = "";
-                        arrColumns[nCol].formula = "";
+                        oCell ={}; 
+                        oCell.value = "";
+                        oCell.annotation = "";
+                        oCell.formula = "";
+			arrColumns[nCol] = oCell ;
 		}
 		this.arrData.push(arrColumns);
 	}

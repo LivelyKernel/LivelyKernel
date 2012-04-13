@@ -105,6 +105,7 @@ console.log("nEndRow  " + nStartRow);
 	elapsed = elapsed/1000;
 	console.log('End initializeMorph=' + elapsed);
     },
+    //Create empty cells
     createEmptyCells: function() {
         //create 1000 rows
         var oCell={};

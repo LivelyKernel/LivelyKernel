@@ -83,7 +83,7 @@ console.log("nEndRow  " + nStartRow);
         this.dataModel = [];
         this.addScript(function renderFunction(value) { return value; });
         
-        createEmptyCells();
+        this.createEmptyCells();
 
 
         var elapsed = new Date().getTime() - start;

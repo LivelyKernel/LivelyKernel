@@ -116,7 +116,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var oCell={};
         var arrColumns;
         var nStartRow = this.arrData.length;
-        var nEndRow = nStartRow + 1000;
+        var nEndRow = nStartRow + 500;
 
         if (nEndRow < nDataLength ){
             nEndRow  = nDataLength ;

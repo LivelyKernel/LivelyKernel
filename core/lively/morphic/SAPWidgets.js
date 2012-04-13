@@ -83,22 +83,7 @@ console.log("nEndRow  " + nStartRow);
         this.dataModel = [];
         this.addScript(function renderFunction(value) { return value; });
         
-     
-        var oCell={};
-        //for (var nRow = 0; nRow < this.maxNoofRow ; nRow++) {
-        //create 1000 rows for default 
-        for (var nRow = 0; nRow < 1000 ; nRow++) {
-		var arrColumns=[];
-		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
-                        //arrColumns[nCol]= "";
-                        oCell ={}; 
-                        oCell.value = "";
-                        oCell.annotation = "";
-                        oCell.formula = "";
-			arrColumns[nCol] = oCell ;
-		}
-		this.arrData.push(arrColumns);
-	}
+        createEmptyCells();
 
 
         var elapsed = new Date().getTime() - start;
@@ -121,10 +106,12 @@ console.log("nEndRow  " + nStartRow);
 	console.log('End initializeMorph=' + elapsed);
     },
     createEmptyCells: function() {
-        //create 1000 rows for default 
+        //create 1000 rows
+        var oCell={};
+        var arrColumns;
         var nStartRow = this.arrData.length;
         for (var nRow = nStartRow ; nRow < 1000 ; nRow++) {
-		var arrColumns=[];
+		arrColumns=[];
 		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
                         //arrColumns[nCol]= "";
                         oCell ={}; 

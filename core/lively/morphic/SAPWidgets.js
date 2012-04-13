@@ -104,7 +104,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	elapsed = elapsed/1000;
 	console.log('End initializeMorph=' + elapsed);
     },
-    //Create empty cells
     createEmptyCells: function() {
         //create 500 rows
         var oCell={};
@@ -148,7 +147,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         cell.name = '[' + x + ';' + y + ']';
         return cell;
     },
-
     createColHeads: function() {
         this.colHeads = [];
         for (var i = 0; i < this.numCols; i++) {
@@ -166,8 +164,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         head.textString = head.name;
         return head;
     },
-
-
     createLayout: function() {
         var start = new Date().getTime();
         var head = this.hideColHeads ? 0 : 1;
@@ -223,7 +219,6 @@ console.log('End createLayout =' + elapsed);
             }
         }
     },
-
     onUpPressed: function(evt) {
         this.moveActiveCellBy(pt(0,-1));
         evt.stop();
@@ -246,8 +241,6 @@ console.log('End createLayout =' + elapsed);
         this.moveActiveCellBy(pt(1,0));
         evt.stop();
     },
-
-
     moveActiveCellBy: function(aPoint) {
         if (!this.activeCell) {
             this.at(0,0).activate();
@@ -262,7 +255,6 @@ console.log('End createLayout =' + elapsed);
             this.at(curX + aPoint.x, curY + aPoint.y).activate();
         }
     },
-
     setAnnotationData: function(arrNotes) {
         for (var i = 0; i < arrNotes.length; i++) {
             //this.at(arrNotes[i].nColumn ,arrNotes[i].nRow ).annotation= arrNotes[i].sNote;
@@ -273,7 +265,6 @@ console.log('End createLayout =' + elapsed);
             this.setAnnotation(arrNotes[i].column,arrNotes[i].row,arrNotes[i].note);
         }
     },
-
     setData: function(aJsArray) {
         this.clear();
         this.dataModel = [];

@@ -86,10 +86,10 @@ console.log("nEndRow  " + nStartRow);
         for (var nRow = 0; nRow < this.maxNoofRow ; nRow++) {
 		var arrColumns=[];
 		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
-                        arrColumns[nCol]= "";
-			//arrColumns[nCol].value = "";
-                        //arrColumns[nCol].annotation = "";
-                        //arrColumns[nCol].formula = "";
+                        //arrColumns[nCol]= "";
+			arrColumns[nCol].value = "";
+                        arrColumns[nCol].annotation = "";
+                        arrColumns[nCol].formula = "";
 		}
 		this.arrData.push(arrColumns);
 	}
@@ -281,7 +281,7 @@ console.log('End createLayout =' + elapsed);
         for (nRow = 0; nRow < this.VisibleRowCount; nRow++) {
             arrColumns=[];
             for (nCol = 0; nCol < this.VisibleColumnCount ; nCol++) {
-                arrColumns[nCol] = this.arrData[nRow][nCol];
+                arrColumns[nCol] = this.arrData[nRow][nCol].value;
 	    }
             this.dataModel.push(arrColumns);
 	}

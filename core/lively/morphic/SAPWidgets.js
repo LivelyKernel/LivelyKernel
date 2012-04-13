@@ -11,51 +11,15 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.numCols = numCols;
         this.numRows = numRows;
         this.oAnnotation = null;
-        this.prviousScrollValue=0;
-        this.maxNoofRow = 10000;
-        this.maxNoofColumn = 1000;
-        this.VisibleRowCount=10;
-        this.VisibleColumnCount=10;
-        this.arrData=[];
-        this.startRow = 0;
-        this.endRow = 0;
+        this.VisibleRowCount=50;
         this.activeCellContent = '';
         this.initializeData();
         this.initializeMorph();
         this.initializeAnnotation();
+
     },
     updateRowDisplay: function(evt) {
-        if (isNaN(evt)){
-            console.log("nan " + evt);
-            return;
-        }
-        var nScrollValue= parseFloat(evt).toFixed(2);
-        if (this.prviousScrollValue !=nScrollValue){
-        
-            this.prviousScrollValue = nScrollValue;
-            this.clear();
-            this.dataModel = [];
-            
-            var nRow;
-            var nCol;
-            var arrColumns=[];
-            
-            this.startRow = parseInt(nScrollValue*100);
-            this.endRow = this.startRow + this.VisibleRowCount;
-
-            if (this.endRow> this.arrData.length){
-                this.createEmptyCells();
-            }
-
-            for (nRow = this.startRow; nRow < this.endRow; nRow++) {
-                arrColumns=[];
-                for (nCol = 0; nCol < this.VisibleColumnCount ; nCol++) {
-                    arrColumns[nCol] = this.arrData[nRow][nCol];
-	       }
-                this.dataModel.push(arrColumns);
-            }
-            this.updateDisplay();
-        }
+        console.log(evt);
     },
     setVisibleRowCount: function(iVisibleRowCount) {
         this.VisibleRowCount = iVisibleRowCount;
@@ -72,12 +36,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.rows = [];
         this.dataModel = [];
         this.addScript(function renderFunction(value) { return value; });
-        
-        this.createEmptyCells();
-
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
-	console.log('End initializeData '  + elapsed);
+	console.log('End initializeData=' + elapsed);
     },
     initializeMorph: function() {
         var start = new Date().getTime();    
@@ -93,23 +54,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
 	console.log('End initializeMorph=' + elapsed);
-    },
-    createEmptyCells: function() {
-        var oCell={};
-        var arrColumns;
-        var nStartRow = this.arrData.length;
-        for (var nRow = nStartRow ; nRow < 500 ; nRow++) {
-		arrColumns=[];
-		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
-                        //arrColumns[nCol]= "";
-                        oCell ={}; 
-                        oCell.value = "";
-                        oCell.annotation = "";
-                        oCell.formula = "";
-			arrColumns[nCol] = oCell ;
-		}
-		this.arrData.push(arrColumns);
-	}
     },
     createCells: function() {
         var headOffset = this.hideColHeads ? 0 : 1;
@@ -136,6 +80,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         cell.name = '[' + x + ';' + y + ']';
         return cell;
     },
+
     createColHeads: function() {
         this.colHeads = [];
         for (var i = 0; i < this.numCols; i++) {
@@ -153,6 +98,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         head.textString = head.name;
         return head;
     },
+
+
     createLayout: function() {
         var start = new Date().getTime();
         var head = this.hideColHeads ? 0 : 1;
@@ -166,9 +113,12 @@ console.log('End createLayout =' + elapsed);
 
     },
     setAnnotation: function(nColumn,nRow,sText) {
-        this.arrData[nRow][nColumn].annotation = sText;
+        this.at(nColumn,nRow).annotation = sText;
     },
-    showAnnotation: function(nColumn,nRow) {
+
+ showAnnotation: function(nColumn,nRow) {
+        
+        //alert(this.rows[nColumn][nRow].getPosition());
         var sAnnotation = this.at(nColumn,nRow).annotation;
         this.oAnnotation.setVisible(true);
         if (sAnnotation){
@@ -182,7 +132,7 @@ console.log('End createLayout =' + elapsed);
         this.oAnnotation.setPosition(this.at(nColumn,nRow).getPosition());
 
     },
-    hideAnnotation: function() {
+ hideAnnotation: function() {
         this.oAnnotation.setVisible(false);
     },
 
@@ -202,6 +152,7 @@ console.log('End createLayout =' + elapsed);
             }
         }
     },
+
     onUpPressed: function(evt) {
         this.moveActiveCellBy(pt(0,-1));
         evt.stop();
@@ -224,6 +175,8 @@ console.log('End createLayout =' + elapsed);
         this.moveActiveCellBy(pt(1,0));
         evt.stop();
     },
+
+
     moveActiveCellBy: function(aPoint) {
         if (!this.activeCell) {
             this.at(0,0).activate();
@@ -238,39 +191,29 @@ console.log('End createLayout =' + elapsed);
             this.at(curX + aPoint.x, curY + aPoint.y).activate();
         }
     },
+
     setAnnotationData: function(arrNotes) {
         for (var i = 0; i < arrNotes.length; i++) {
             //this.at(arrNotes[i].nColumn ,arrNotes[i].nRow ).annotation= arrNotes[i].sNote;
             //this.at(arrNotes[i].nColumn ,arrNotes[i].nRow ).annotationCell();
-            //this.at(arrNotes[i].column,arrNotes[i].row ).annotation= arrNotes[i].note;
-            //this.at(arrNotes[i].column,arrNotes[i].row ).annotationCell();
-            //this.arrData[arrNotes[i].row][arrNotes[i].column].annotation = arrNotes[i].note;
-            this.setAnnotation(arrNotes[i].column,arrNotes[i].row,arrNotes[i].note);
+            this.at(arrNotes[i].column,arrNotes[i].row ).annotation= arrNotes[i].note;
+            this.at(arrNotes[i].column,arrNotes[i].row ).annotationCell();
         }
     },
+
     setData: function(aJsArray) {
         this.clear();
         this.dataModel = [];
-
-        var nRow;
-        var nCol;
-        var arrColumns=[];
-
-        //saving to global empty data
-        for (nRow = 0; nRow < aJsArray.length; nRow++) {
-	   for (nCol = 0; nCol < aJsArray[nRow].length ; nCol++) {
-		this.arrData[nRow][nCol].value=aJsArray[nRow][nCol];
-	   }
-	}
-
-        //saving only visible row/column to dataModel
-        for (nRow = 0; nRow < this.VisibleRowCount; nRow++) {
-            arrColumns=[];
-            for (nCol = 0; nCol < this.VisibleColumnCount ; nCol++) {
-                arrColumns[nCol] = this.arrData[nRow][nCol];
-	    }
-            this.dataModel.push(arrColumns);
-	}
+        //debugger;
+        var that = this;
+        aJsArray.forEach(function(ea) {
+            if (ea.constructor.name === 'Array') {
+                that.dataModel.push(ea);
+                return;
+            }
+            var row = that.createDataRowFromObject(ea);
+            that.dataModel.push(row);
+        });
         this.updateDisplay();
     },
     getDataObjects: function() {
@@ -289,10 +232,13 @@ console.log('End createLayout =' + elapsed);
         var that = this;
         return this.rows.map(function(ea){
             var arrColumns = [];
+ //debugger;
             for (var i = 0; i < that.numCols; i++) {
-               
-		  arrColumns[i]= ea[i].getContent();
+                //if (that.colNames[i] != undefined) {
                  
+		  arrColumns[i]= ea[i].getContent();
+                    //obj[that.colNames[i]] = ea[i].getContent();
+                //}
             }
             return arrColumns;
         });
@@ -319,29 +265,69 @@ console.log('End createLayout =' + elapsed);
         return row;
     },
 
+
     updateDisplay: function() {
-  
         for (var y = 0; y < this.dataModel.length &&
                 y < this.numRows; y++) {
             for (var x = 0; x < this.dataModel[y].length &&
                     x < this.numCols; x++) {
-            
-            
-                sValue = this.dataModel[y][x].value.toString();
-                
+                //hak formula
+                sValue = this.renderFunction(this.dataModel[y][x]);
                 if (sValue.charAt(0)=="="){
+                    //console.log(sValue);
                     this.at(x,y).cellformula = sValue;
+
                     this.at(x,y).setToolTip('Formula: \n' + sValue);
                     this.at(x,y).setBorderStyle("dotted");
+
+
                     sValue = this.parseFormula(sValue);
                 }
                 this.at(x,y).textString = sValue;
+               
+                //this.at(x,y).textString = this.renderFunction(this.dataModel[y][x]);
             }
         }
         if (this.activeCell) {
             this.activeCellContent = this.activeCell.getContent();
         }
     },
+/*
+    onKeyDown: function($super, evt) {
+
+    console.log("SAPGrid.onKeyDown");
+        //debugger;
+        if (!this.activeCell) {
+           
+        }else{
+            //alert(this.activeCell.isFocused())
+        }
+        $super(evt);
+    },*/
+/*
+    onKeyPress: function($super,evt) {
+        console.log("SAPGrid.onKeyPress");
+//debugger;
+        if (this.oAnnotation.isVisible()){
+            this.oAnnotation.onKeyPress(evt);
+             evt.stop(); 
+        }else{
+            if (!this.activeCell) {
+                this.at(0,0).activate();
+            }
+            this.activeCell.onKeyPress(evt);
+              evt.stop(); 
+        }
+
+        
+    },*/
+    /*onBackspacePressed: function(evt) {
+        if (!this.activeCell) {
+            this.at(0,0).activate();
+        }
+        this.activeCell.onBackspacePressed(evt);
+        return true;
+    },*/
     onEnterPressed: function($super, evt) {
         //Hak March27 2012:  calculate formula
         if (this.activeCell !=null){
@@ -365,6 +351,8 @@ console.log('End createLayout =' + elapsed);
         this.onRightPressed(evt);
         return true;
     },
+
+
 
     setActiveCellContent: function(aString) {
         if (!this.activeCell) {
@@ -410,6 +398,8 @@ console.log('End createLayout =' + elapsed);
         return this.colHeads[anInteger];
     },
 
+
+
     recalculateRowsFirst: function() {
         this.rows.forEach(function (row) {
             row.forEach(function (col) {
@@ -423,7 +413,10 @@ console.log('End createLayout =' + elapsed);
         for (var i = 0; i < this.numCols && i < this.colNames.length; i++) {
             if (this.colNames[i]) {
                 var value = activeRow[i].getContent();
-               
+                //if (activeRow[i].__secretHiddenValue) {
+                //       // FIXME this will be gone once we have refactored the data model
+                //    value = activeRow[i].__secretHiddenValue;
+                //}
                 result[this.colNames[i]] = value;
             }
         }
@@ -460,6 +453,7 @@ console.log('End createLayout =' + elapsed);
         this.createLayout();
     },
     addRow: function() {
+    //debugger;
         var row = [];
         for (var i = 0; i < this.numCols; i++) {
             var cell = this.createCell(i, this.numRows, this.hideColHeads ? 0 : 1);
@@ -471,6 +465,7 @@ console.log('End createLayout =' + elapsed);
     },
     removeCol: function() {
         var lastColIndex = this.numCols - 1;
+//debugger;
         this.rows.map(function(ea) {
             return ea[lastColIndex];}).
                 forEach(function(ea) {
@@ -620,6 +615,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.grid.addMorph(this);
         this.setBorderColor(Color.rgb(177,181,186));
         this.setFill(Color.rgb(255, 2550, 255));
+        //this.cellformula='';
+        //this.annotation='';//maybe we need array object to save more than one
     },
     activate: function() {
         if (this.grid.activeCell) {
@@ -678,16 +675,20 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         debugger;
         this.textString = aValue;
     },
-    onKeyUp: function($super, evt) {
-
-        console.log("SAPGridCell.onKeyUp: "  + this.textString);
-        var nCol= this.gridCoords.x;
-        var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
-        nRow  = nRow  + this.grid.startRow;
-       this.grid.arrData[nRow][nCol].value=this.textString;
-
+    /*onKeyPress: function($super, evt) {
+        console.log("SAPGridCell.onKeyPress");        
         $super(evt);
+        this.textString += String.fromCharCode(evt.getKeyCode());
     },
+    onBackspacePressed: function($super, evt) {
+        $super(evt);
+        if (!this.textString) {
+            evt.stop(); 
+            return true; 
+        }
+        this.textString = this.textString.substring(0, this.textString.length-1);
+        evt.stop();
+    },*/
     initialize: function($super, arg) {
         $super(arg);
         this.evalExpression = undefined;
@@ -755,7 +756,40 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         this.grid.setAnnotation(this.nColumn,this.nRow,this.textString);
 
         //this.textString += String.fromCharCode(evt.getKeyCode());
-    }
+    },
+    /*onKeyPress: function($super, evt) {
+       console.log("SAPGridAnnotation.onKeyPress");
+        $super(evt);
+        alert(this.textString);
+        //this.textString += String.fromCharCode(evt.getKeyCode());
+    },*/
+    /*onBackspacePressed: function($super, evt) {
+        $super(evt);
+        if (!this.textString) {
+            evt.stop(); 
+            return true; 
+        }
+        this.textString = this.textString.substring(0, this.textString.length-1);
+        evt.stop();
+    },
+    onMouseDown: function (evt) {
+    //debugger;
+        if (evt.isLeftMouseButtonDown()) {
+            this.displayExpression();
+        }
+    },
+    displayExpression: function() {
+        if (this.evalExpression !== undefined) {
+            this.textString = '=' + this.evalExpression;
+        }
+    },
+
+    put: function(aValue) {
+        console.log("Annotation.put")
+        this.textString = aValue;
+    },
+    */
+
 });
 
 

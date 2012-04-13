@@ -99,6 +99,24 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	elapsed = elapsed/1000;
 	console.log('End initializeMorph=' + elapsed);
     },
+    createEmptyCells: function() {
+        //create 500 rows
+        var oCell={};
+        var arrColumns;
+        var nStartRow = this.arrData.length;
+        for (var nRow = nStartRow ; nRow < 500 ; nRow++) {
+		arrColumns=[];
+		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
+                        //arrColumns[nCol]= "";
+                        oCell ={}; 
+                        oCell.value = "";
+                        oCell.annotation = "";
+                        oCell.formula = "";
+			arrColumns[nCol] = oCell ;
+		}
+		this.arrData.push(arrColumns);
+	}
+    },
     createCells: function() {
         var headOffset = this.hideColHeads ? 0 : 1;
         var start = new Date().getTime();

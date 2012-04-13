@@ -11,11 +11,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.numCols = numCols;
         this.numRows = numRows;
         this.oAnnotation = null;
-        this.VisibleRowCount=50;
-        this.activeCellContent = '';
-
-
-   
+        
+         //for smart scroll feature
         this.prviousScrollValue=0;
         this.maxNoofRow = 10000;
         this.maxNoofColumn = 1000;
@@ -26,9 +23,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.endRow = 0;
 
 
+
+        this.activeCellContent = '';
         this.initializeData();
         this.initializeMorph();
         this.initializeAnnotation();
+
+       
 
     },
     updateRowDisplay: function(evt) {
@@ -80,12 +81,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.rows = [];
         this.dataModel = [];
         this.addScript(function renderFunction(value) { return value; });
-         
+        
         this.createEmptyCells();
+
 
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
-	console.log('End initializeData=' + elapsed);
+	console.log('End initializeData '  + elapsed);
     },
     initializeMorph: function() {
         var start = new Date().getTime();    
@@ -102,12 +104,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	elapsed = elapsed/1000;
 	console.log('End initializeMorph=' + elapsed);
     },
+    //Create empty cells
     createEmptyCells: function() {
         //create 500 rows
         var oCell={};
         var arrColumns;
         var nStartRow = this.arrData.length;
-        for (var nRow = nStartRow ; nRow < 20 ; nRow++) {
+        for (var nRow = nStartRow ; nRow < 30 ; nRow++) {
 		arrColumns=[];
 		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
                         //arrColumns[nCol]= "";
@@ -178,7 +181,10 @@ console.log('End createLayout =' + elapsed);
 
     },
     setAnnotation: function(nColumn,nRow,sText) {
-        this.at(nColumn,nRow).annotation = sText;
+        //this.at(nColumn,nRow).annotation = sText;
+        this.arrData[nRow][nColumn].annotation = sText;
+
+        
     },
 
  showAnnotation: function(nColumn,nRow) {
@@ -261,16 +267,39 @@ console.log('End createLayout =' + elapsed);
         for (var i = 0; i < arrNotes.length; i++) {
             //this.at(arrNotes[i].nColumn ,arrNotes[i].nRow ).annotation= arrNotes[i].sNote;
             //this.at(arrNotes[i].nColumn ,arrNotes[i].nRow ).annotationCell();
-            this.at(arrNotes[i].column,arrNotes[i].row ).annotation= arrNotes[i].note;
-            this.at(arrNotes[i].column,arrNotes[i].row ).annotationCell();
+            //this.at(arrNotes[i].column,arrNotes[i].row ).annotation= arrNotes[i].note;
+            //this.at(arrNotes[i].column,arrNotes[i].row ).annotationCell();
+            //this.arrData[arrNotes[i].row][arrNotes[i].column].annotation = arrNotes[i].note;
+            this.setAnnotation(arrNotes[i].column,arrNotes[i].row,arrNotes[i].note);
         }
     },
 
     setData: function(aJsArray) {
         this.clear();
         this.dataModel = [];
-        //debugger;
-        var that = this;
+
+        var nRow;
+        var nCol;
+        var arrColumns=[];
+
+        //saving to global empty data
+        for (nRow = 0; nRow < aJsArray.length; nRow++) {
+	   for (nCol = 0; nCol < aJsArray[nRow].length ; nCol++) {
+		this.arrData[nRow][nCol].value=aJsArray[nRow][nCol];
+	   }
+	}
+
+        //saving only visible row/column to dataModel
+        for (nRow = 0; nRow < this.VisibleRowCount; nRow++) {
+            arrColumns=[];
+            for (nCol = 0; nCol < this.VisibleColumnCount ; nCol++) {
+                arrColumns[nCol] = this.arrData[nRow][nCol];
+	    }
+            this.dataModel.push(arrColumns);
+	}
+        
+        
+        /*var that = this;
         aJsArray.forEach(function(ea) {
             if (ea.constructor.name === 'Array') {
                 that.dataModel.push(ea);
@@ -278,7 +307,7 @@ console.log('End createLayout =' + elapsed);
             }
             var row = that.createDataRowFromObject(ea);
             that.dataModel.push(row);
-        });
+        });*/
         this.updateDisplay();
     },
     getDataObjects: function() {
@@ -332,25 +361,22 @@ console.log('End createLayout =' + elapsed);
 
 
     updateDisplay: function() {
+  
         for (var y = 0; y < this.dataModel.length &&
                 y < this.numRows; y++) {
             for (var x = 0; x < this.dataModel[y].length &&
                     x < this.numCols; x++) {
-                //hak formula
-                sValue = this.renderFunction(this.dataModel[y][x]);
+            
+            
+                sValue = this.dataModel[y][x].value.toString();
+                
                 if (sValue.charAt(0)=="="){
-                    //console.log(sValue);
                     this.at(x,y).cellformula = sValue;
-
                     this.at(x,y).setToolTip('Formula: \n' + sValue);
                     this.at(x,y).setBorderStyle("dotted");
-
-
                     sValue = this.parseFormula(sValue);
                 }
                 this.at(x,y).textString = sValue;
-               
-                //this.at(x,y).textString = this.renderFunction(this.dataModel[y][x]);
             }
         }
         if (this.activeCell) {
@@ -746,15 +772,17 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         var nCol= this.gridCoords.x;
         var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
         nRow  = nRow  + this.grid.startRow;
-       //this.grid.arrData[nRow][nCol].value=this.textString;
+       this.grid.arrData[nRow][nCol].value=this.textString;
 
         $super(evt);
     },
     /*onKeyPress: function($super, evt) {
-        console.log("SAPGridCell.onKeyPress");        
+        console.log("SAPGridCell.onKeyPress: " + this.textString );  
         $super(evt);
-        this.textString += String.fromCharCode(evt.getKeyCode());
-    },
+         
+        //this.textString += String.fromCharCode(evt.getKeyCode());
+    },*/
+    /*
     onBackspacePressed: function($super, evt) {
         $super(evt);
         if (!this.textString) {

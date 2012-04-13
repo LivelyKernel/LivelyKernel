@@ -13,6 +13,19 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.oAnnotation = null;
         this.VisibleRowCount=50;
         this.activeCellContent = '';
+
+
+   
+        this.prviousScrollValue=0;
+        this.maxNoofRow = 10000;
+        this.maxNoofColumn = 1000;
+        this.VisibleRowCount=10;
+        this.VisibleColumnCount=10;
+        this.arrData=[];
+        this.startRow = 0;
+        this.endRow = 0;
+
+
         this.initializeData();
         this.initializeMorph();
         this.initializeAnnotation();

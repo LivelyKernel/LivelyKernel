@@ -269,7 +269,7 @@ console.log('End createLayout =' + elapsed);
         this.dataModel = [];
 
         
-        //debugger;
+        debugger;
         var nRow;
         var nCol;
         var arrColumns=[];
@@ -277,7 +277,7 @@ console.log('End createLayout =' + elapsed);
         //saving to global empty data
         for (nRow = 0; nRow < aJsArray.length; nRow++) {
 	   for (nCol = 0; nCol < aJsArray[nRow].length ; nCol++) {
-		this.arrData[nRow][nCol]=aJsArray[nRow][nCol];
+		this.arrData[nRow][nCol].value=aJsArray[nRow][nCol];
 	   }
 	}
 

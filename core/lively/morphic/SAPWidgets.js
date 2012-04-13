@@ -56,9 +56,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 createEmptyCells();
             }
 
-                
-console.log("nStartRow " + nStartRow);
-console.log("nEndRow  " + nEndRow );
             for (nRow = nStartRow; nRow < nEndRow  ; nRow++) {
                 arrColumns=[];
                 for (nCol = 0; nCol < this.VisibleColumnCount ; nCol++) {

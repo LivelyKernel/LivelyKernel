@@ -44,21 +44,19 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.prviousScrollValue = nScrollValue;
             this.clear();
             this.dataModel = [];
-
-            var nStartRow=0;
-            var nEndRow = 0;
+            
             var nRow;
             var nCol;
             var arrColumns=[];
             
-            nStartRow= parseInt(nScrollValue*100);
-            nEndRow  = nStartRow + this.VisibleRowCount;
+            this.startRow = parseInt(nScrollValue*100);
+            this.endRow = nStartRow + this.VisibleRowCount;
 
-            if (nEndRow > this.arrData.length){
+            if (this.endRow> this.arrData.length){
                 createEmptyCells();
             }
 
-            for (nRow = nStartRow; nRow < nEndRow  ; nRow++) {
+            for (nRow = this.startRow; nRow < this.endRow; nRow++) {
                 arrColumns=[];
                 for (nCol = 0; nCol < this.VisibleColumnCount ; nCol++) {
                     arrColumns[nCol] = this.arrData[nRow][nCol];

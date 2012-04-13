@@ -38,7 +38,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             console.log("nan " + evt);
             return;
         }
-        var nScrollValue= parseFloat(evt).toFixed(2);
+        var nScrollValue= parseInt(evt);//.toFixed(2);
         if (this.prviousScrollValue !=nScrollValue){
         
             this.prviousScrollValue = nScrollValue;
@@ -49,7 +49,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             var nCol;
             var arrColumns=[];
             
-            this.startRow = parseInt(nScrollValue*100);
+            this.startRow = nScrollValue;
             this.endRow = this.startRow + this.VisibleRowCount;
 
             if (this.endRow> this.arrData.length){

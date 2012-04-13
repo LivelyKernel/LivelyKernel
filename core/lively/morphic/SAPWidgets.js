@@ -62,7 +62,7 @@ console.log("nEndRow  " + nEndRow );
             for (nRow = nStartRow; nRow < nEndRow  ; nRow++) {
                 arrColumns=[];
                 for (nCol = 0; nCol < this.VisibleColumnCount ; nCol++) {
-                    arrColumns[nCol] = this.arrData[nRow][nCol].value.toString();
+                    arrColumns[nCol] = this.arrData[nRow][nCol];
 	       }
                 this.dataModel.push(arrColumns);
             }

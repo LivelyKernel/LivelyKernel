@@ -104,6 +104,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	elapsed = elapsed/1000;
 	console.log('End initializeMorph=' + elapsed);
     },
+    
     //Create empty cells
     createEmptyCells: function(nDataLength) {
         //create 500 rows
@@ -716,6 +717,7 @@ currently only support
         return items;
     },
 });
+
 
 lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
 'default category', {

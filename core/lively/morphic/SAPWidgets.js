@@ -105,12 +105,23 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	console.log('End initializeMorph=' + elapsed);
     },
     //Create empty cells
-    createEmptyCells: function() {
+    createEmptyCells: function(nDataLength) {
         //create 500 rows
+        
+        if(typeof nDataLength == 'undefined') {
+            nDataLength = 0;
+        }
+
+
         var oCell={};
         var arrColumns;
         var nStartRow = this.arrData.length;
         var nEndRow = nStartRow + 100;
+
+        if (nEndRow < nDataLength ){
+            nEndRow  = nDataLength ;
+        }
+
         
         for (var nRow = nStartRow ; nRow < nEndRow ; nRow++) {
 		arrColumns=[];

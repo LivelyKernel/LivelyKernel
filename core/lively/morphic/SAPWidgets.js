@@ -11,8 +11,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.numCols = numCols;
         this.numRows = numRows;
         this.oAnnotation = null;
-        
-         //for smart scroll feature
         this.prviousScrollValue=0;
         this.maxNoofRow = 10000;
         this.maxNoofColumn = 1000;
@@ -21,19 +19,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.arrData=[];
         this.startRow = 0;
         this.endRow = 0;
-
-
-
         this.activeCellContent = '';
         this.initializeData();
         this.initializeMorph();
         this.initializeAnnotation();
-
-       
-
     },
     updateRowDisplay: function(evt) {
-       //debugger;
         if (isNaN(evt)){
             console.log("nan " + evt);
             return;
@@ -84,7 +75,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         
         this.createEmptyCells();
 
-
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
 	console.log('End initializeData '  + elapsed);
@@ -105,7 +95,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	console.log('End initializeMorph=' + elapsed);
     },
     createEmptyCells: function() {
-        //create 500 rows
         var oCell={};
         var arrColumns;
         var nStartRow = this.arrData.length;
@@ -177,15 +166,9 @@ console.log('End createLayout =' + elapsed);
 
     },
     setAnnotation: function(nColumn,nRow,sText) {
-        //this.at(nColumn,nRow).annotation = sText;
         this.arrData[nRow][nColumn].annotation = sText;
-
-        
     },
-
- showAnnotation: function(nColumn,nRow) {
-        
-        //alert(this.rows[nColumn][nRow].getPosition());
+    showAnnotation: function(nColumn,nRow) {
         var sAnnotation = this.at(nColumn,nRow).annotation;
         this.oAnnotation.setVisible(true);
         if (sAnnotation){
@@ -199,7 +182,7 @@ console.log('End createLayout =' + elapsed);
         this.oAnnotation.setPosition(this.at(nColumn,nRow).getPosition());
 
     },
- hideAnnotation: function() {
+    hideAnnotation: function() {
         this.oAnnotation.setVisible(false);
     },
 
@@ -288,17 +271,6 @@ console.log('End createLayout =' + elapsed);
 	    }
             this.dataModel.push(arrColumns);
 	}
-        
-        
-        /*var that = this;
-        aJsArray.forEach(function(ea) {
-            if (ea.constructor.name === 'Array') {
-                that.dataModel.push(ea);
-                return;
-            }
-            var row = that.createDataRowFromObject(ea);
-            that.dataModel.push(row);
-        });*/
         this.updateDisplay();
     },
     getDataObjects: function() {
@@ -317,13 +289,10 @@ console.log('End createLayout =' + elapsed);
         var that = this;
         return this.rows.map(function(ea){
             var arrColumns = [];
- //debugger;
             for (var i = 0; i < that.numCols; i++) {
-                //if (that.colNames[i] != undefined) {
-                 
+               
 		  arrColumns[i]= ea[i].getContent();
-                    //obj[that.colNames[i]] = ea[i].getContent();
-                //}
+                 
             }
             return arrColumns;
         });
@@ -350,7 +319,6 @@ console.log('End createLayout =' + elapsed);
         return row;
     },
 
-
     updateDisplay: function() {
   
         for (var y = 0; y < this.dataModel.length &&
@@ -374,42 +342,6 @@ console.log('End createLayout =' + elapsed);
             this.activeCellContent = this.activeCell.getContent();
         }
     },
-/*
-    onKeyDown: function($super, evt) {
-
-    console.log("SAPGrid.onKeyDown");
-        //debugger;
-        if (!this.activeCell) {
-           
-        }else{
-            //alert(this.activeCell.isFocused())
-        }
-        $super(evt);
-    },*/
-/*
-    onKeyPress: function($super,evt) {
-        console.log("SAPGrid.onKeyPress");
-//debugger;
-        if (this.oAnnotation.isVisible()){
-            this.oAnnotation.onKeyPress(evt);
-             evt.stop(); 
-        }else{
-            if (!this.activeCell) {
-                this.at(0,0).activate();
-            }
-            this.activeCell.onKeyPress(evt);
-              evt.stop(); 
-        }
-
-        
-    },*/
-    /*onBackspacePressed: function(evt) {
-        if (!this.activeCell) {
-            this.at(0,0).activate();
-        }
-        this.activeCell.onBackspacePressed(evt);
-        return true;
-    },*/
     onEnterPressed: function($super, evt) {
         //Hak March27 2012:  calculate formula
         if (this.activeCell !=null){
@@ -433,8 +365,6 @@ console.log('End createLayout =' + elapsed);
         this.onRightPressed(evt);
         return true;
     },
-
-
 
     setActiveCellContent: function(aString) {
         if (!this.activeCell) {
@@ -480,8 +410,6 @@ console.log('End createLayout =' + elapsed);
         return this.colHeads[anInteger];
     },
 
-
-
     recalculateRowsFirst: function() {
         this.rows.forEach(function (row) {
             row.forEach(function (col) {
@@ -495,10 +423,7 @@ console.log('End createLayout =' + elapsed);
         for (var i = 0; i < this.numCols && i < this.colNames.length; i++) {
             if (this.colNames[i]) {
                 var value = activeRow[i].getContent();
-                //if (activeRow[i].__secretHiddenValue) {
-                //       // FIXME this will be gone once we have refactored the data model
-                //    value = activeRow[i].__secretHiddenValue;
-                //}
+               
                 result[this.colNames[i]] = value;
             }
         }
@@ -535,7 +460,6 @@ console.log('End createLayout =' + elapsed);
         this.createLayout();
     },
     addRow: function() {
-    //debugger;
         var row = [];
         for (var i = 0; i < this.numCols; i++) {
             var cell = this.createCell(i, this.numRows, this.hideColHeads ? 0 : 1);
@@ -547,7 +471,6 @@ console.log('End createLayout =' + elapsed);
     },
     removeCol: function() {
         var lastColIndex = this.numCols - 1;
-//debugger;
         this.rows.map(function(ea) {
             return ea[lastColIndex];}).
                 forEach(function(ea) {

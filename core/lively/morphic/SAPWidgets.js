@@ -181,7 +181,7 @@ console.log('End createLayout =' + elapsed);
     },
     setAnnotation: function(nColumn,nRow,sText) {
         this.at(nColumn,nRow).annotation = sText;
-        //this.arrData[nRow][nColumn].annotation = sText;
+        this.arrData[nRow][nColumn].annotation = sText;
 
         
     },

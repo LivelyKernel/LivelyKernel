@@ -83,7 +83,7 @@ console.log("nEndRow  " + nStartRow);
         this.dataModel = [];
         this.addScript(function renderFunction(value) { return value; });
         //looping takes about 0.4 sec.  maybe we should add rows when scroll is moving.
-        debugger;
+     
         var oCell={};
         for (var nRow = 0; nRow < this.maxNoofRow ; nRow++) {
 		var arrColumns=[];

@@ -266,8 +266,8 @@ console.log('End createLayout =' + elapsed);
         for (var i = 0; i < arrNotes.length; i++) {
             //this.at(arrNotes[i].nColumn ,arrNotes[i].nRow ).annotation= arrNotes[i].sNote;
             //this.at(arrNotes[i].nColumn ,arrNotes[i].nRow ).annotationCell();
-            this.at(arrNotes[i].column,arrNotes[i].row ).annotation= arrNotes[i].note;
-            this.at(arrNotes[i].column,arrNotes[i].row ).annotationCell();
+            //this.at(arrNotes[i].column,arrNotes[i].row ).annotation= arrNotes[i].note;
+            //this.at(arrNotes[i].column,arrNotes[i].row ).annotationCell();
             this.arrData[nRow][nColumn].annotation = sText;
 
         }

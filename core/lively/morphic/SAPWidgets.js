@@ -275,7 +275,7 @@ console.log('End createLayout =' + elapsed);
         this.dataModel = [];
 
         
-        debugger;
+        //debugger;
         var nRow;
         var nCol;
         var arrColumns=[];
@@ -291,7 +291,7 @@ console.log('End createLayout =' + elapsed);
         for (nRow = 0; nRow < this.VisibleRowCount; nRow++) {
             arrColumns=[];
             for (nCol = 0; nCol < this.VisibleColumnCount ; nCol++) {
-                arrColumns[nCol] = this.arrData[nRow][nCol].value;
+                arrColumns[nCol] = this.arrData[nRow][nCol].value.toString();
 	    }
             this.dataModel.push(arrColumns);
 	}

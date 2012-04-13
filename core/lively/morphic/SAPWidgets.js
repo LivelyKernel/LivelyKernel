@@ -86,7 +86,7 @@ console.log("nEndRow  " + nStartRow);
      
         var oCell={};
         //for (var nRow = 0; nRow < this.maxNoofRow ; nRow++) {
-        for (var nRow = 0; nRow < 100 ; nRow++) {
+        for (var nRow = 0; nRow < 1000 ; nRow++) {
 		var arrColumns=[];
 		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
                         //arrColumns[nCol]= "";

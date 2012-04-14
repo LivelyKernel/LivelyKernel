@@ -322,6 +322,8 @@ m4: function() {},\n\
 TestCase.subclass('lively.tests.ToolsTests.LivelyIdeBrowse',
 'testing', {
 
+    shouldRun: false,
+
     testLivelyIdeBrowse: function() {
         var sut = lively.ide.browse("lively.morphic.Morph", "onMouseDown", "lively.morphic.Events");
 
@@ -338,7 +340,7 @@ TestCase.subclass('lively.tests.ToolsTests.LivelyIdeBrowse',
             // this.assertEquals(sut.pane3Selection.asString(), "event handling")
             this.assertEquals(sut.pane4Selection.asString(), "onMouseDown (proto)")
         } finally {
-            if(sut) sut.view.remove() // close window
+            if (sut) sut.view.remove() // close window
         }
     }
 

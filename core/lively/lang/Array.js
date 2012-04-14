@@ -411,6 +411,14 @@ Object.extend(Array, {
         result.push(i);
         return result;
     },
+    from: function(iterable) {
+        if (!iterable) return [];
+        if (iterable.toArray) return iterable.toArray();
+        var length = iterable.length,
+            results = new Array(length);
+        while (length--) results[length] = iterable[length];
+        return results;
+    }
 });
 
 
@@ -430,13 +438,5 @@ Arrays = {
 // Global
 ///////////////////////////////////////////////////////////////////////////////
 
-function $A(iterable) {
-    if (!iterable) return [];
-    if (iterable.toArray) return iterable.toArray();
-    var length = iterable.length,
-        results = new Array(length);
-    while (length--) results[length] = iterable[length];
-    return results;
-}
-
-Array.from = $A;
+// DEPRECATED!
+$A = Array.from;

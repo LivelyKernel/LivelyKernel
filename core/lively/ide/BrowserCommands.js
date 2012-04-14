@@ -391,9 +391,12 @@ lively.ide.BrowserCommand.subclass('lively.ide.ClassHierarchyViewCommand', {
             var indent = Array.range(1, level).inject('', function(str, idx) { return str + '  ' });
             return {isListItem: true, string: indent + (kl.type || kl.name), value: kl};
         });
-        var listPane = newRealListPane(new Rectangle(0,0, 400, 400));
-        listPane.innerMorph().updateList(list)
-        w.addFramedMorph(listPane, klass.type + ' and its subclasses');
+        //var listPane = newRealListPane(new Rectangle(0,0, 400, 400));
+        //listPane.innerMorph().updateList(list);
+        // w.addFramedMorph(listPane, klass.type + ' and its subclasses');
+        var asText = list.pluck('string').join('\n');
+            text = new lively.morphic.Text(null, asText);
+        w.addFramedMorph(text, klass.type + ' and its subclasses');
     },
 
 });

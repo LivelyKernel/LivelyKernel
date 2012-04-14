@@ -43,12 +43,14 @@ function postResult(message) {
 // running the actual tests
 var testList = [
     // core
-    "lively.tests.TestFrameworkTests",
     "lively.tests.BaseTests",
+    'lively.tests.BootstrapTests',
+    "lively.tests.ClassTests",
+    // 'lively.tests.CoreTests',
+    "lively.tests.TestFrameworkTests",
     "lively.tests.HelperTests",
     "lively.tests.ObjectTests",
     "lively.tests.ModuleSystemTests",
-    "lively.tests.ClassTests",
     "lively.tests.TraitTests",
     "lively.tests.TracingTests",
     "lively.tests.NetworkTests",

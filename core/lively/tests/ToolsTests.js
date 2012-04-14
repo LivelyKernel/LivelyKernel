@@ -22,6 +22,52 @@ Object.extend(tests.ToolsTests, {
 	  removeDummyNamespace: function() { delete tests.ToolsTests['testNS']  },
 });
 
+TestCase.subclass('lively.ide.tests.FileParserTests.FileParserTest', {
+
+    setUp: function() {
+	      this.sut = new FileParser();
+	      this.sut.verbose = false;
+    },
+
+    testParseClassDef: function() {
+	      var source = "Object.subclass('Test', {});"
+	      this.sut.parseFile('1', 0, source, null/*db*/, 'scan', null/*search_str*/)
+	      this.assertEquals(this.sut.changeList.length, 1);
+	      this.assertEquals(this.sut.changeList.first().name, 'Test');
+	      this.assertEquals(this.sut.changeList.first().type, 'classDef');
+    },
+
+    testScanModuleDef: function() {
+	      var source = "module('bla.blupf').requires('blupf.bla').toRun({\nObject.subclass('Test', {\n});\n\n});"
+	      this.sut.parseFile('2', 0, source, null/*db*/, 'scan', null/*search_str*/)
+	      this.assertEquals(this.sut.changeList.length, 2);
+	      this.assertEquals(this.sut.changeList[0].type, 'moduleDef');
+    },
+
+    testScanFunctionDef01: function() {
+	      var source = "module('bla.blupf').requires('blupf.bla').toRun({\nfunction abc(a,b,c) {\n return 1+2;\n};\nObject.subclass('Test', {\n});\n\n});"
+	          this.sut.parseFile('3', 0, source, null/*db*/, 'scan', null/*search_str*/)
+	      this.assertEquals(this.sut.changeList.length, 3);
+	      this.assertEquals(this.sut.changeList[1].type, 'functionDef');
+    },
+
+    testScanFunctionDef02: function() {
+        var source = "module('bla.blupf').requires('blupf.bla').toRun({\nvar abc = function(a,b,c) {\n return 1+2;\n};\nObject.subclass('Test', {\n});\n\n});"
+        this.sut.parseFile('4', 0, source, null/*db*/, 'scan', null/*search_str*/)
+        this.assertEquals(this.sut.changeList.length, 3);
+        this.assertEquals(this.sut.changeList[1].type, 'functionDef');
+    },
+
+    testScanFunctionDefInDB: function() {
+        var source = "function abc(a,b,c) {\n return 1+2;\n};"
+        var db = new SourceDatabase();
+        this.sut.parseFile('5', 0, source, db, 'import', null/*search_str*/)
+        this.assertEquals(this.sut.changeList.length, 1);
+        this.assertEquals(this.sut.changeList[0].type, 'functionDef');
+    }
+
+});
+
 TestCase.subclass('lively.tests.ToolsTests.ChangesTests',
 'running', {
 

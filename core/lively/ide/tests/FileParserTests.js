@@ -1,51 +1,5 @@
 module('lively.ide.tests.FileParserTests').requires('lively.TestFramework', 'lively.ide').toRun(function() {
 
-TestCase.subclass('lively.ide.tests.FileParserTests.FileParserTest', {
-
-    setUp: function() {
-	      this.sut = new FileParser();
-	      this.sut.verbose = false;
-    },
-
-    testParseClassDef: function() {
-	      var source = "Object.subclass('Test', {});"
-	      this.sut.parseFile('1', 0, source, null/*db*/, 'scan', null/*search_str*/)
-	      this.assertEquals(this.sut.changeList.length, 1);
-	      this.assertEquals(this.sut.changeList.first().name, 'Test');
-	      this.assertEquals(this.sut.changeList.first().type, 'classDef');
-    },
-
-    testScanModuleDef: function() {
-	      var source = "module('bla.blupf').requires('blupf.bla').toRun({\nObject.subclass('Test', {\n});\n\n});"
-	      this.sut.parseFile('2', 0, source, null/*db*/, 'scan', null/*search_str*/)
-	      this.assertEquals(this.sut.changeList.length, 2);
-	      this.assertEquals(this.sut.changeList[0].type, 'moduleDef');
-    },
-
-    testScanFunctionDef01: function() {
-	      var source = "module('bla.blupf').requires('blupf.bla').toRun({\nfunction abc(a,b,c) {\n return 1+2;\n};\nObject.subclass('Test', {\n});\n\n});"
-	          this.sut.parseFile('3', 0, source, null/*db*/, 'scan', null/*search_str*/)
-	      this.assertEquals(this.sut.changeList.length, 3);
-	      this.assertEquals(this.sut.changeList[1].type, 'functionDef');
-    },
-
-    testScanFunctionDef02: function() {
-        var source = "module('bla.blupf').requires('blupf.bla').toRun({\nvar abc = function(a,b,c) {\n return 1+2;\n};\nObject.subclass('Test', {\n});\n\n});"
-        this.sut.parseFile('4', 0, source, null/*db*/, 'scan', null/*search_str*/)
-        this.assertEquals(this.sut.changeList.length, 3);
-        this.assertEquals(this.sut.changeList[1].type, 'functionDef');
-    },
-
-    testScanFunctionDefInDB: function() {
-        var source = "function abc(a,b,c) {\n return 1+2;\n};"
-        var db = new SourceDatabase();
-        this.sut.parseFile('5', 0, source, db, 'import', null/*search_str*/)
-        this.assertEquals(this.sut.changeList.length, 1);
-        this.assertEquals(this.sut.changeList[0].type, 'functionDef');
-    }
-
-});
-
 TestCase.subclass('lively.ide.tests.FileParserTests.JsParserTest', {
 
     setUp: function() {
@@ -87,12 +41,12 @@ TestCase.subclass('lively.ide.tests.FileParserTests.JsParserTest', {
 	  }
 });
 
-tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.JsParserTest1', {
+lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.JsParserTest1', {
 
     testParseClass: function() {    // Object.subclass
         var src = 'Object.subclass(\'Dummy\', {\n' +
-            '\tsetUp: function() { tests.ToolsTests.createDummyNamespace() },\n' +
-            '\ttearDown: function() { tests.ToolsTests.removeDummyNamespace() }\n' +
+            '\tsetUp: function() { lively.ide.tests.FileParserTests.createDummyNamespace() },\n' +
+            '\ttearDown: function() { lively.ide.tests.FileParserTests.removeDummyNamespace() }\n' +
             '})';
         this.sut.src = src;
         var descriptor = this.sut.parseClass();
@@ -173,9 +127,9 @@ tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.JsParse
 
     testParseClassAndMethods: function() {  // Object.subclass
         var src = 'Object.subclass(\'Dummy\', {\n' +
-            '\tsetUp: function() { tests.ToolsTests.createDummyNamespace() },\n' +
+            '\tsetUp: function() { lively.ide.tests.FileParserTests.createDummyNamespace() },\n' +
             'formals: ["Pane1Content",\n\t\t"Pane1Selection"],\n' +
-            '\ttearDown: function() { tests.ToolsTests.removeDummyNamespace() }\n' +
+            '\ttearDown: function() { lively.ide.tests.FileParserTests.removeDummyNamespace() }\n' +
             '})';
         this.sut.src = src;
         var descriptor = this.sut.parseClass();
@@ -326,7 +280,7 @@ tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.JsParse
     },
 
     testParseClassExtension01: function() { // Object.extend(...);
-        var src = 'Object.extend(tests.ToolsTests.ScriptEnvironment, { \nopen: function() {\n\t\t1+2\n\t}\n});';
+        var src = 'Object.extend(lively.ide.tests.FileParserTests.ScriptEnvironment, { \nopen: function() {\n\t\t1+2\n\t}\n});';
         this.sut.src = src;
         var descriptor = this.sut.callOMeta('klassExtensionDef');
         this.assert(descriptor, 'no descriptor');
@@ -383,7 +337,7 @@ tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.JsParse
 
 });
 
-tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.JsParserParsesCoreTest', {
+lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.JsParserParsesCoreTest', {
 
 	  shouldRun: false,
 
@@ -399,7 +353,7 @@ tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.JsParse
 
 });
 
-tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.JsParserTest2', {
+lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.JsParserTest2', {
 
    	testFindLinNo: function() {
         var str = 'abc\ndef123\n\n\nxyz\n';
@@ -574,7 +528,7 @@ main.logCompletion("main").delay(Config.mainDelay);\n\
     },
 
     testParseModuledef: function() {
-        var src = 'module(\'lively.TileScripting\').requires(\'lively.Helper\').toRun(function(tests.ToolsTests) {\n\nMorph.addMethods({})\n});';
+        var src = 'module(\'lively.TileScripting\').requires(\'lively.Helper\').toRun(function(lively.ide.tests.FileParserTests) {\n\nMorph.addMethods({})\n});';
         var result = this.sut.parseSource(src);
 
         this.assertEquals(result.length, 1);
@@ -585,7 +539,7 @@ main.logCompletion("main").delay(Config.mainDelay);\n\
     },
 
 	  testParseModuleAndClass: function() {
-        var src = 'module(\'lively.xyz\').requires(\'abc.js\').toRun(function(tests.ToolsTests) {\n\Object.subclass(\'Abcdef\', {\n}); // this is a comment\n});';
+        var src = 'module(\'lively.xyz\').requires(\'abc.js\').toRun(function(lively.ide.tests.FileParserTests) {\n\Object.subclass(\'Abcdef\', {\n}); // this is a comment\n});';
         var result = this.sut.parseSource(src);
 
         this.assertEquals(result.length, 1);
@@ -594,7 +548,7 @@ main.logCompletion("main").delay(Config.mainDelay);\n\
     },
 
     testParseModuleAndUsingDef: function() { // /* ... */ || // ...
-        var src = 'module(\'lively.TileScripting\').requires(\'lively/Helper.js\').toRun(function(tests.ToolsTests) {\n\
+        var src = 'module(\'lively.TileScripting\').requires(\'lively/Helper.js\').toRun(function(lively.ide.tests.FileParserTests) {\n\
 using().run(function() {\nMorph.addMethods({})\n})\n});';
         var result = this.sut.parseSource(src);
         this.assertEquals(result.length, 1);
@@ -675,7 +629,7 @@ using().run(function() {\nMorph.addMethods({})\n})\n});';
 
 });
 
-tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.JsParserTest3', {
+lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.JsParserTest3', {
 
 	shouldRun: false,
 
@@ -734,7 +688,7 @@ tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.JsParse
 
 });
 
-tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.ContextJSParserTest', {
+lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.ContextJSParserTest', {
 	  test01ParseSimpleLayerDef: function() {
 	      var src = 'cop.create("TestLayer");';
 	      this.sut.src = src;
@@ -774,7 +728,7 @@ tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.Context
 
 });
 
-tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.TraitsParserTest', {
+lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.TraitsParserTest', {
 	  test01ParseSimpleTraitDef: function() {
 		    var src = 'Trait(\'Foo\');';
 		        this.sut.src = src;
@@ -812,7 +766,7 @@ tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.TraitsP
 
 });
 
-tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.MethodCategoryParseTest', {
+lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.MethodCategoryParseTest', {
 
 	  test01ParseAddMethodsWithCategory: function() {
 		    this.sut.debugMode = true
@@ -875,7 +829,7 @@ tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.MethodC
     },
 });
 
-tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.OMetaParserTest', {
+lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.OMetaParserTest', {
 
 	  documentation: 'For testing parsing of OMeta grammar definitions themselves',
 
@@ -952,7 +906,7 @@ tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.OMetaPa
 
 });
 
-tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.OMetaParserTestLKFile', {
+lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.OMetaParserTestLKFile', {
 
 	  shouldRun: false,
 
@@ -968,7 +922,7 @@ tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.OMetaPa
     },
 });
 
-tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.ChunkParserTest', {
+lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.ChunkParserTest', {
 
 	  setUp: function($super) {
 		    $super();
@@ -1027,7 +981,7 @@ tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.ChunkPa
 
 });
 
-tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.FileFragmentTest', {
+lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.FileFragmentTest', {
 
 	  setUp: function() {
 		    this.jsParser = new JsParser();
@@ -1386,7 +1340,7 @@ tests.ToolsTests.JsParserTest.subclass('lively.ide.tests.FileParserTests.FileFra
 
 });
 
-tests.ToolsTests.FileFragmentTest.subclass('lively.ide.tests.FileParserTests.FileFragmentNodeTests', {
+lively.ide.tests.FileParserTests.FileFragmentTest.subclass('lively.ide.tests.FileParserTests.FileFragmentNodeTests', {
 
 	shouldRun: false,
 

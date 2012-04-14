@@ -215,6 +215,7 @@ Object.subclass('AnotherSourceDatabase', {
 
     addModuleWithId: function(moduleId) {
         // enter comment here
+
     },
 
     reparseModule: function(fileName, readAgain) {

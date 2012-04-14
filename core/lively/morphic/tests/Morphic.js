@@ -129,7 +129,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
             childNodes: [
                 {tagName: 'div', childNodes: [ // world shape
                     {tagName: 'div', childNodes: [{tagName: 'div'}]} // m and its shape
-                ]},
+                ]}
             ]};
         this.assertNodeMatches(expected, this.world.renderContext().getMorphNode());
     },
@@ -144,11 +144,10 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
                 {tagName: 'div', childNodes: [ // shape
                     {tagName: 'div'}, // hand
                     {tagName: 'svg', // submorph
-                        childNodes: [{tagName: 'g', childNodes: [{tagName: 'rect'}]}]},
+                        childNodes: [{tagName: 'g', childNodes: [{tagName: 'rect'}]}]}
                 ]}, // world's shape
             ]
         };
-console.log(Exporter.stringify(this.world.renderContext().getMorphNode()));
         this.assertNodeMatches(expected, this.world.renderContext().getMorphNode());
     },
 
@@ -472,12 +471,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CopyMorphTests',
 
         this.assertIdentity(m1, m1.scripts[0].target, 'original target changed');
         this.assertIdentity(copy, copy.scripts[0].target, 'copy target changed');
-    },
-
-
-
+    }
 
 });
+
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
 'testing', {
     test01TextMorphHTML: function() {
@@ -1451,7 +1448,7 @@ TestCase.subclass('lively.morphic.tests.SimilitudeTests',
     },
 });
 
-AsyncTestCase.subclass('lively.morphic.tests.ScriptTests',
+AsyncTestCase.subclass('lively.morphic.tests.SteppingScriptTests',
 'testing', {
     test01StartAndStopTicking: function() {
         var n = 0, script = new lively.morphic.FunctionScript(function() { script.stop(); n++; });
@@ -1535,6 +1532,7 @@ AsyncTestCase.subclass('lively.morphic.tests.ScriptTests',
         }, 30);
     }
 });
+
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.SerializationTests',
 'testing', {
     test01SerializeSimpleWorld: function() {
@@ -1550,6 +1548,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.SerializationTests'
         this.assert(m1 !== this.world.submorphs[1], 'morphs are identical!!!');
     },
 });
+
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HaloTests',
 'testing', {
     test01ShowHalosForMorph: function() {
@@ -1591,9 +1590,6 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HaloTests',
         result = outer.transformRectForInclusion(r);
         this.assertEquals(new Rectangle(90,90, 10, 10), result);
     },
-
-
-
 
 });
 
@@ -1688,8 +1684,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
         var result = lively.morphic.Menu.prototype.moveBoundsForVisibility(menuBounds, ownerBounds)
         this.assertEquals(expected, result, 'transformed when onerBounds smaller');
     },
-
-
 
 });
 

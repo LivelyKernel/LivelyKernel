@@ -278,13 +278,13 @@ Object.extend(lively.morphic.World, {
         url = new URL(url); //.withQuery({dontBootstrap: true});
         function createIFrame(url, bounds) {
             // document.body.style.position = 'absolute'
-            iframe = XHTMLNS.create('iframe')
+            var iframe = XHTMLNS.create('iframe');
             // iframe.style.position = 'relative'
-            iframe.style.top = bounds.top() + 'px'
-            iframe.style.left = bounds.left() + 'px'
-            iframe.style.width = bounds.width + 'px'
-            iframe.style.height = bounds.height + 'px'
-            iframe.src = url.toString()
+            iframe.style.top = bounds.top() + 'px';
+            iframe.style.left = bounds.left() + 'px';
+            iframe.style.width = bounds.width + 'px';
+            iframe.style.height = bounds.height + 'px';
+            iframe.src = url.toString();
             return iframe;
         };
 

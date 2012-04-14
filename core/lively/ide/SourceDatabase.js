@@ -212,6 +212,10 @@ Object.subclass('AnotherSourceDatabase', {
         moduleWrapper.retrieveSourceAndParse(this);
         return this.modules[fileName] = moduleWrapper;
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
     reparseModule: function(fileName, readAgain) {
         if (readAgain)

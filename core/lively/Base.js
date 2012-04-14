@@ -730,6 +730,15 @@ Namespace.addMethods(
 },
 'accessing', { // module specific, should be a subclass?
 
+    name: function() {
+        var identifier =  this.namespaceIdentifier,
+            globalIdStart = 'Global.';
+        if (identifier.startsWith(globalIdStart)) {
+            identifier = identifier.substring(globalIdStart.length);
+        }
+        return identifier;
+    },
+
     findUri: function(optFileType) {
         var fileType = optFileType || 'js',
             fileExtension = '.' + fileType,
@@ -1028,6 +1037,24 @@ Object.extend(Namespace, {
     lively.lang.Namespace = Namespace;
     delete Namespace;
 })();
+
+lively.Module = lively.lang.Namespace;
+
+Object.extend(lively.Module, {
+    findAllInThenDo: function(url, callback) {
+        var dir = new URL(url).getDirectory();
+        if (url.isLeaf()) {
+            throw new Error(url + ' is not a directory!');
+        }
+        var webR = dir.asWebResource();
+        lively.bindings.connect(webR, 'subDocuments', {onLoad: function(files) {
+            var moduleNames = files.invoke('getURL') .invoke('asModuleName'),
+                modules = moduleNames.collect(function(name) { return module(name); })
+            callback(modules);
+        }}, 'onLoad');
+        webR.getSubElements();
+    }
+});
 
 (function setupLivelyLang() {
     lively.lang.Execution = {

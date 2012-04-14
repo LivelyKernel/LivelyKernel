@@ -1,17 +1,17 @@
 module('lively.tests.NetworkTests').requires('lively.TestFramework').toRun(function() {
-    
+
 TestCase.subclass('lively.tests.NetworkTests.URLTest', {
-    
+
     testEnsureAbsoluteURL1: function() {
         var urlString = 'http://livelykernel.sunlabs.com/repository/lively-wiki/index.xhtml';
         var result = URL.ensureAbsoluteURL(urlString);
         this.assertEquals(urlString, result.toString());
-        
+
         urlString = 'http://localhost/lively/index.xhtml';
         result = URL.ensureAbsoluteURL(urlString);
         this.assertEquals(urlString, result.toString());
     },
-    
+
     testEnsureAbsoluteURL2: function() {
         var urlString = 'index.xhtml';
         var result = URL.ensureAbsoluteURL(urlString);
@@ -32,7 +32,7 @@ TestCase.subclass('lively.tests.NetworkTests.URLTest', {
         var expected = 'http://foo.com/baz/';
         this.assertEquals(expected, result.toString());
     },
-    
+
     testRemoveRelativeParts2: function() {
         var urlString = 'http://localhost/webwerkstatt/projects/HTML5/presentation100720/../../../';
         var result = new URL(urlString).withRelativePartsResolved();
@@ -56,16 +56,16 @@ TestCase.subclass('lively.tests.NetworkTests.URLTest', {
 
     testRelativePathFrom1: function() {
         var expected = 'test/bar/baz';
-        
+
         var url1 = new URL('http://www.foo.org/test/bar/baz');
         var url2 = new URL('http://www.foo.org/');
         var result = url1.relativePathFrom(url2);
         this.assertEquals(expected, result.toString());
-        
+
         url2 = new URL('http://foo.org/');
         result = url1.relativePathFrom(url2);
         this.assertEquals(expected, result.toString());
-        
+
         try {
             url2 = new URL('http://foo.com/');
             result = url1.relativePathFrom(url2);
@@ -75,7 +75,7 @@ TestCase.subclass('lively.tests.NetworkTests.URLTest', {
 
     testRelativePathFrom2: function() {
         var expected = '../test/bar/baz';
-        
+
         var url1 = new URL('http://www.foo.org/test/bar/baz');
         var url2 = new URL('http://www.foo.org/bar/');
         var result = url1.relativePathFrom(url2);
@@ -91,23 +91,22 @@ TestCase.subclass('lively.tests.NetworkTests.URLTest', {
         this.assertEquals('', result.toString());
     },
 
-    
     testMakeProxy: function() {
         var originalProxy = URL.proxy;
         URL.proxy = new URL('http://foo.com/proxy/');
-        
-        try { // FIXME            
+
+        try { // FIXME
             // normal behavior
             var result = URL.makeProxied('http://bar.com/');
             var expected = 'http://foo.com/proxy/bar.com/';
             this.assertEquals(expected, result.toString());
 
-            // normal behavior with port        
+            // normal behavior with port
             result = URL.makeProxied('http://bar.com:1234/');
             expected = 'http://foo.com/proxy/bar.com:1234/';
             this.assertEquals(expected, result.toString());
 
-            // normal behavior, same URL and another port        
+            // normal behavior, same URL and another port
             result = URL.makeProxied('http://foo.com:1234/');
             expected = 'http://foo.com/proxy/foo.com:1234/';
             this.assertEquals(expected, result.toString());
@@ -115,7 +114,7 @@ TestCase.subclass('lively.tests.NetworkTests.URLTest', {
             // don't proxy yourself
             result = URL.makeProxied(URL.proxy);
             this.assertEquals(URL.proxy.toString(), result.toString());
-        
+
             // don't proxy yourself 2
             result = URL.makeProxied('http://www.foo.com/proxy/');
             this.assertEquals(URL.proxy.toString(), result.toString());
@@ -136,7 +135,7 @@ TestCase.subclass('lively.tests.NetworkTests.URLTest', {
         url1 = new URL('http://foo.com/bar/');
         url2 = new URL('http://foo.com/bar/baz');
         this.assert(url2.isIn(url1), 'isIn not woring');
-        
+
         url1 = new URL('http://bar.com/bar/');
         url2 = new URL('http://www.foo.com/bar/baz');
         this.assert(!url2.isIn(url1), 'isIn does not recognize differing URLS');
@@ -146,11 +145,23 @@ TestCase.subclass('lively.tests.NetworkTests.URLTest', {
         this.assert(url2.isIn(url1), 'www url not recognized');
     },
 
-
-    
+    testAsModuleName: function() {
+        var url = URL.codeBase.withFilename('foo/bar/Baz.js');
+        this.assertEquals('foo.bar.Baz', url.asModuleName());
+    }
 });
 
 TestCase.subclass('lively.tests.NetworkTests.WebResourceTest',
+'testing', {
+    testInitWithURL: function() {
+        var url = new URL('http://www.foo.com');
+        url.port = 1234;
+        var sut = new WebResource(url);
+        this.assert(url.eq(sut.getURL()), 'Given URL and used URL are not the same');
+    }
+});
+
+TestCase.subclass('lively.tests.NetworkTests.ActiveWebResourceTest',
 'settings', {
     shouldRun: !Config.serverInvokedTest,
 },
@@ -174,7 +185,7 @@ TestCase.subclass('lively.tests.NetworkTests.WebResourceTest',
     isWebDAVEnvironment: function() {
         return URL.source.normalizedHostname() !== 'localhost';
     },
-  
+
 },
 'running', {
     setUp: function($super) {
@@ -247,6 +258,7 @@ TestCase.subclass('lively.tests.NetworkTests.WebResourceTest',
         this.assert(other.exists());
         this.assertEquals(sut.get().content, other.get().content);
     },
+
     testCopyAndGetVersion: function() {
         if (!this.isWebDAVEnvironment()) return;
         var url2 = this.plainTextFileURL.withFilename('copiedFile.txt'),
@@ -259,7 +271,6 @@ TestCase.subclass('lively.tests.NetworkTests.WebResourceTest',
         this.assertEquals(sut.get().content, other.get(versions[1].rev).content);
     },
 
-
     testGetVersions: function() {
         if (!this.isWebDAVEnvironment()) return;
         var sut = new WebResource(this.plainTextFileURL);
@@ -267,7 +278,7 @@ TestCase.subclass('lively.tests.NetworkTests.WebResourceTest',
         this.assert(sut.headRevision);
         this.assertEquals(1, sut.versions.length);
     },
-    
+
     testGetWithVersion: function() {
         if (!this.isWebDAVEnvironment()) return;
         this.writeFile(this.plainTextFileURL, 'new version of file');
@@ -277,7 +288,7 @@ TestCase.subclass('lively.tests.NetworkTests.WebResourceTest',
         var rev = versions[0].rev;
         this.assert(this.plainTextString, sut.get(rev).content);
     },
-    
+
     testGetHeadRevision: function() {
         if (!this.isWebDAVEnvironment()) return;
         var sut = new WebResource(this.plainTextFileURL);
@@ -301,12 +312,6 @@ TestCase.subclass('lively.tests.NetworkTests.WebResourceTest',
         this.assert(webR.exists(), 'ensure existance did not work');
     },
 
-    testInitWithURL: function() {
-        this.plainTextFileURL.port = 1234;
-        this.assert(this.plainTextFileURL.toString().indexOf(':1234/') != -1, 'Port was not set correctly');
+});
 
-        var sut = new WebResource(this.plainTextFileURL);
-        this.assert(this.plainTextFileURL, sut.getURL(), 'Given URL and used URL are not the same');
-    },
-}); 
 });

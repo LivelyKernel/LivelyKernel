@@ -421,8 +421,11 @@ AnotherSourceDatabase.addMethods(
 });
  
 Object.extend(lively.ide, {
-    // see also lively.Tools.startSourceControl
+    sourceDB: function() {
+        return this.startSourceControl();
+    },
     startSourceControl: function() {
+        // creates or fetches
         if (lively.ide.SourceControl instanceof AnotherSourceDatabase)
             return lively.ide.SourceControl;
         lively.ide.SourceControl = new AnotherSourceDatabase();

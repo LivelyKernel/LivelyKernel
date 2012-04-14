@@ -6,6 +6,12 @@ function exit() {
     window.close();
 }
 
+function prepareConfig() {
+    // For closing the browser
+    Config.askBeforeQuit = false;
+    // for network tests
+    Config.serverInvokedTest = true;
+}
 function alertForever(msg) {
     alert(msg, 99999);
 }
@@ -36,6 +42,7 @@ function postResult(message) {
 
 // running the actual tests
 var testList = [
+    // core
     "lively.tests.TestFrameworkTests",
     "lively.tests.BaseTests",
     "lively.tests.HelperTests",
@@ -44,10 +51,17 @@ var testList = [
     "lively.tests.ClassTests",
     "lively.tests.TraitTests",
     "lively.tests.TracingTests",
+    "lively.tests.NetworkTests",
     "lively.lang.tests.ExtensionTests",
-    "lively.persistence.tests.PersistenceTests",
-    "lively.bindings.tests.BindingTests",
+
+    // AST / OMeta
+    "ometa.tests.OmetaTests",
     "lively.ast.tests.AstTests",
+
+    // persistence
+    "lively.persistence.tests.PersistenceTests",
+
+    // morphic
     "lively.morphic.tests.Morphic",
     "lively.morphic.tests.Morphic2",
     "lively.morphic.tests.ShapeTests",
@@ -56,10 +70,14 @@ var testList = [
     "lively.morphic.tests.Connectors",
     "lively.morphic.tests.CoreToolsTests",
     'lively.morphic.tests.EventTests',
-    "lively.bindings.tests.GeometryBindingTests",
     "lively.morphic.tests.PathTests",
-    "cop.tests.LayerTests",
-    "ometa.tests.OmetaTests"
+
+    //bindings
+    "lively.bindings.tests.GeometryBindingTests",
+    "lively.bindings.tests.BindingTests",
+
+    // cop
+    "cop.tests.LayerTests"
 ];
 
 // filter is something like "lively.morphic.*|.*Origin.*|test03"
@@ -72,6 +90,8 @@ if (filter) {
         return moduleFilterRegexp.test(name) });
     suiteFilter = parts.slice(1).join('|'); // last 2
 }
+
+prepareConfig();
 
 require(['lively.TestFramework'].concat(testList)).toRun(function() {
     var suite = TestSuite.forAllAvailableTests(suiteFilter);

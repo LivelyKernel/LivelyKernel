@@ -214,8 +214,8 @@ Object.subclass('AnotherSourceDatabase', {
     },
 
     addModuleWithId: function(moduleId) {
-        // enter comment here
-
+        var fileName = module(moduleId).relativePath();
+        return this.addModule(fileName);
     },
 
     reparseModule: function(fileName, readAgain) {

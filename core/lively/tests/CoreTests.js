@@ -1,148 +1,5 @@
 module('lively.tests.CoreTests').requires('lively.TestFramework').toRun(function() {
 
-
-/**
- * @class ConnectModelTest
- * Tests for understanding Record, Relay and View Behavior
- */
-TestCase.subclass('lively.tests.CoreTests.ConnectModelTest', {
-
-    testAddObserver: function() {
-        var formalModel = Record.newPlainInstance({MyValue: "Hello World"});
-        var view = new View();
-        var countUpdate = 0;
-        
-        view.onViewValueUpdate = function() {
-           countUpdate = countUpdate + 1;
-        };
-        
-        formalModel.addObserver(view, {MyValue: '!ViewValue'});
-        
-        this.assertEquals(countUpdate, 0, "onMyTextUpdate was called prematurely");        
-        formalModel.setMyValue("once");        
-        this.assertEquals(countUpdate, 1, "onMyTextUpdate was not called");        
-        
-        var observers = formalModel["MyValue$observers"]
-        this.assertEquals(observers.length, 1, "wrong number of registered observers");
-        
-    },
-    
-    testNotifyObserversOf: function() {
-		var formalModel1 = Record.newPlainInstance({MyValue1: "Hello World 1"});
-		var formalModel2 = Record.newPlainInstance({MyValue2: "Hello World 2"});
-
-        formalModel1.addObserver(formalModel2, {MyValue1: '=setMyValue2'}); 
-
-		// no kickstart here...
-		//this.assertEquals(formalModel1.getMyValue1(), formalModel2.getMyValue2(), "value was not updated initialy");
-
-		var value = "Hallo Welt";
-		formalModel1.setMyValue1(value);
-		this.assertEquals(formalModel2.getMyValue2(), value, "value2 was not update after setting value1");
-	},
-
-    testCyclicNotifyObserversOf: function() {
-		var formalModel1 = Record.newPlainInstance({MyValue1: "Hello World 1"});
-		var formalModel2 = Record.newPlainInstance({MyValue2: "Hello World 2"});
-
-        formalModel1.addObserver(formalModel2, {MyValue1: '=setMyValue2'}); 
-		formalModel2.addObserver(formalModel1, {MyValue2: '=setMyValue1'});
-
-		// no kickstart here...
-		//this.assertEquals(formalModel1.getMyValue1(), formalModel2.getMyValue2(), "value was not updated initialy");
-
-		var value = "Hallo Welt";
-		formalModel1.setMyValue1(value);
-		this.assertEquals(formalModel2.getMyValue2(), value, "value2 was not update after setting value1");
-	},
-
-});
-
-TestCase.subclass('lively.tests.CoreTests.TestModel', {
-
-	testSetterSource: function() {
-		var calls = 0; var test = this;
-		var m1 = Record.newPlainInstance({MyValue: 0});
-		var m2 = Record.newPlainInstance({MyValue: 1});
-		var obj = {onOtherValueUpdate: function(v, source) { test.localFunc(v, source) }};
-		Object.extend(obj, ViewTrait);
-		obj.relayToModel(m1, {OtherValue: "MyValue"});
-		obj.relayToModel(m2, {OtherValue: "MyValue"});
-
-		this.localFunc = function(v, source) { calls++; test.assertIdentity(m1, source) };
-		m1.setMyValue(2);
-		this.localFunc = function(v, source) { calls++; test.assertIdentity(m2, source) };
-		m2.setMyValue(3);
-		this.assertEquals(calls, 2);
-	},
-	
-	testNodeRecord: function() {
-		var rec = Record.newNodeInstance({Foo: null});
-		this.assert(rec.Foo$Element, "DOM node is missing");
-		var string = "HelloString";
-		rec.setFoo(string);
-		this.assert(rec.getFoo(), string, "string as node content is broken")
-		var obj = {bar: "hello", isJSONConformant: true};
-		rec.setFoo(obj);
-		this.assert(rec.Foo$Element, "DOM node for obj is missing");
-		this.assert(rec.getFoo(), "no foo")
-		this.assert(rec.getFoo().bar, "no foo bar")
-	},
-	
-	testStoreReferenceInNodeRecord: function() {
-			var rec = Record.newNodeInstance({Foo: null});
-			var widget = new Widget();
-			rec.setFoo(widget);
-			this.assertIdentity(rec.getFoo(), widget);
-	},
-	
-
-	testSetRecordFieldWithWrapper: function() {
-		var rec = Record.newNodeInstance();
-		var widget = new Widget();
-		rec.setRecordField("Foo", widget);
-		this.assertIdentity(rec["Foo$Element"], widget);
-	},
-	
-	testConverter: function() {
-		var value = {bar: "Hello", isJSONConformant: true};
-		var node = Converter.encodeProperty("Foo", value);
-		this.assert(node, "no node");
-	},
-
-	testConvertArray: function() {
-		var value = ["Hello"];
-		var node = Converter.encodeProperty("Foo", value);
-		this.assert(node, "no node");
-		this.assertEquals(node.textContent, '["Hello"]');
-	},
-
-	testConvertArrayWithReference: function() {
-		var ref = new Widget();
-		var value = ["Hello", ref];
-		var node = Converter.encodeProperty("Foo", value);
-		this.assert(node, "no node");
-		this.assertEquals(node.textContent, '["Hello","url(#' +ref.id()+')"]');
-	},
-	
-	testConvertArrayWithReferenceBack: function() {
-		var ref = new Widget();
-		var value = ["Hello", ref];
-		var node = Converter.encodeProperty("Foo", value);
-		
-	},
-	
-	xtestConvertWrapper: function() {
-		var rec = Record.newNodeInstance({Foo: null});
-		var ref = new DummyCopierObject();
-		var node = Converter.encodeProperty("Foo", ref);
-		this.assert(node, "no node");
-	},
-
-
-});
-
-
 lively.data.Wrapper.subclass('DummyCopierObject', {
 
 	doNotCopyProperties: ['id', 'rawNode', 'child', 'children'],
@@ -153,27 +10,27 @@ lively.data.Wrapper.subclass('DummyCopierObject', {
 		this.rawNode =  NodeFactory.create("g");
 		this.setId(this.newId());
 	},
-	
+
 	copyFrom: function($super, copier, other) {
 		$super(copier, other);
 		this.setId(this.newId());
 		copier.addMapping(other.id(), this);
-		
+
 		this.a = other.a;
 		this.b = other.b;
 		this.shallowChild = other.shallowChild;
-		
-		copier.smartCopyProperty("child", this, other);	
+
+		copier.smartCopyProperty("child", this, other);
 		copier.smartCopyProperty("children", this, other);
-	debugger	
+	debugger
 		copier.copyProperties(this, other);
 
 		return this;
 	},
-});	
+});
 
 TestCase.subclass('lively.tests.CoreTests.CopierTest', {
-	
+
 	createObjectStructure: function() {
 		var objects = {
 			obj1: new DummyCopierObject(),
@@ -184,14 +41,14 @@ TestCase.subclass('lively.tests.CoreTests.CopierTest', {
 		objects.obj1.children = [objects.obj2, objects.obj3];
 		return objects
 	},
-	
+
 	testSimpleCopy: function() {
 		var obj = new DummyCopierObject();
 		var copy = obj.copy(new Copier());
 		this.assertIdentity(obj.a, copy.a);
 		this.assertIdentity(obj.b, copy.b);
 	},
-	
+
 	testShallowCopy: function() {
 		var obj = new DummyCopierObject();
 		var obj2 = new DummyCopierObject();
@@ -199,17 +56,17 @@ TestCase.subclass('lively.tests.CoreTests.CopierTest', {
 		var copy = obj.copy(new Copier());
 		this.assertIdentity(copy.shallowChild, obj2, "copy.shallowChild is not obj2");
 	},
-	
-	
+
+
 	testSmartCopy: function() {
 		var obj = new DummyCopierObject();
 		var obj2 = new DummyCopierObject();
 		obj.child = obj2;
-		
+
 		var copy = new DummyCopierObject();
 		var copier = new Copier();
 		this.assert(copier.lookup(obj2.id()) === undefined, "lookup found a false positive...");
-		copier.smartCopyProperty("child", copy, obj);		
+		copier.smartCopyProperty("child", copy, obj);
 		this.assert(copy.child !== obj2, "copy.child is obj2");
 		this.assert(copy.child.id() !== obj2.id(), "copy.child.id() is obj2.id()");
 
@@ -236,7 +93,7 @@ testLookupOrCopy: function() {
 	testNestedCopy: function() {
 		var objects = this.createObjectStructure();
 		var copy = objects.obj1.copy(new Copier());
-		
+
 		this.assert(copy.child !== objects.obj2, "copy.child is obj2");
 		this.assert(copy.child.id() !== objects.obj2.id(), "copy.child.id() is obj2.id()");
 
@@ -261,9 +118,9 @@ testLookupOrCopy: function() {
 		obj.child = obj2;
 		obj.child.child = obj; // cycle
 		obj.children = [obj2, obj3]; // 2. cycle
-		
+
 		var copy = obj.copy(new Copier());
-		
+
 		this.assert(copy.child !== obj2, "copy.child is obj2");
 		this.assert(copy.child.id() !== obj2.id(), "copy.child.id() is obj2.id()");
 
@@ -274,7 +131,7 @@ testLookupOrCopy: function() {
 
 		// this.assert(copy.children[2].id() === copy.id(), "obj cycle 2 got copied wrong");
 	},
-	
+
 	testCopyNodeRecord: function() {
 		var record  =  Record.newNodeInstance({FooBar: ""});
 		record.addField("DynField");
@@ -287,7 +144,7 @@ testLookupOrCopy: function() {
 		this.assertEquals(record.getDynField(), copy.getDynField(), "dyn values are not copied");
 		this.assert(copier.lookup(record.id()), " model is not registered in copier");
 	},
-	
+
 	testCopyRelay: function() {
 		var record  =  Record.newNodeInstance({FooBar: ""});
 		record.setFooBar("Hello");
@@ -298,7 +155,7 @@ testLookupOrCopy: function() {
 		this.assert(copy !== relay, "relay and copy are identical");
 		this.assert(copy.delegatee === relay.delegatee, "relay.delegatee and copy.delegatee are not identical");
 	},
-	
+
 	testCopyTextMorphWithRelay: function() {
 		var model  =  Record.newNodeInstance({FooBar: ""}),
 			morph = new TextMorph(new Rectangle(0, 0, 0, 0));
@@ -309,20 +166,20 @@ debugger
 			morphCopy = morph.copy(copier);
 		this.assert(morphCopy.formalModel, " morph copy has no formalModel");
 		this.assertIdentity(morphCopy.getModel(), modelCopy, "morphCopy model (" + morphCopy.formalModel + ") is not modelCopy ");
-		
+
 		this.assert(morphCopy.getActualModel().id() != morph.getActualModel().id(), "copy model has same id");
-		
+
 		// this.assertEquals(morph.rawNode.childNodes.length, morphCopy.rawNode.childNodes.length, "number of raw childNodes changed");
 
 		// this.assert(morphCopy.rawNode.childNodes.length == morph.rawNode.childNodes.length, "morphCopy.rawNode.childNodes got messed up");
-	
+
 	},
 
 	testCopyTextMorph: function() {
 		var morph = new TextMorph(new Rectangle(0, 0, 0, 0));
 		var morphCopy = morph.copy(new Copier());
 		// we don't copy selection any more...
-		// this.assertEquals(morphCopy.rawNode.childNodes.length, morph.rawNode.childNodes.length, "morphCopy.rawNode.childNodes got messed up");		
+		// this.assertEquals(morphCopy.rawNode.childNodes.length, morph.rawNode.childNodes.length, "morphCopy.rawNode.childNodes got messed up");
 	},
 
 	testCopyClipMorph: function() {
@@ -333,7 +190,7 @@ debugger
 		var morphCopy = clipCopy.submorphs[0];
 		this.assert(clipCopy.clip !== clipMorph.clip, "clip is the same");
 		this.assert(clipCopy.clip.rawNode, "clip has no rawNode");
-		
+
 	},
 
 	testMorphWithSubnode: function() {
@@ -343,27 +200,27 @@ debugger
 		var morphCopy = morph.copy(new Copier());
 		this.assert(morphCopy.rawNode.childNodes.length == morph.rawNode.childNodes.length, "morphCopy.rawNode.childNodes got messed up");
 	},
-	
+
 	testCopyTwoObjectsWithSameCopier: function() {
 		var objects = {
 			obj1: new DummyCopierObject(),
-			obj2: new DummyCopierObject(), 
-			foreign: new DummyCopierObject(), 	
+			obj2: new DummyCopierObject(),
+			foreign: new DummyCopierObject(),
 		};
 		objects.obj1.other = objects.obj2;
 		objects.obj2.other = objects.obj1;
-	
+
 		objects.obj1.foreign = objects.foreign;
 
 		var copier = new Copier();
 		var copy1 = objects.obj1.copy(copier);
 		var copy2 = objects.obj2.copy(copier);
 		copier.patchReferences();
-		
+
 		this.assert(copy1.other === copy2, "copy1 broken");
 		this.assert(copy2.other === copy1, "copy2 broken");
-		
-		this.assert(copy1.foreign === objects.foreign, "foreign broken");	
+
+		this.assert(copy1.foreign === objects.foreign, "foreign broken");
 	},
 
 	testCopyNullProperty: function() {
@@ -373,7 +230,7 @@ debugger
 		sut.copyProperty("p", copy, original);
 		this.assertIdentity(copy.p, null)
 	},
-	
+
 	testCopyPointerEvents: function() {
 		var sut = Morph.makeRectangle(0,0,100,100);
 		this.assert(sut.getTrait("pointer-events") !== "none", "sut setup broken")
@@ -381,8 +238,9 @@ debugger
 		var copy = sut.duplicate()
 		this.assertEquals(copy.getTrait("pointer-events"), "none")
 	},
-	
+
 });
+
 TestCase.subclass('lively.tests.CoreTests.ClipboardCopierTest',
 'default category', {
 	testCopyMorphsAsXMLString: function() {
@@ -394,7 +252,7 @@ TestCase.subclass('lively.tests.CoreTests.ClipboardCopierTest',
 		m2.other = m1;
 		var xmlString = sut.copyMorphsAsXMLString([m1,m2]);
 
-		
+
 
 	},
 });
@@ -414,7 +272,7 @@ TestCase.subclass("lively.tests.CoreTests.CopyMorphTest", {
 		this.assertEquals(morphCopy.customArray.length, 3, " customArray broken");
 	},
 })
-	
+
 
 
 
@@ -424,12 +282,12 @@ TestCase.subclass("lively.tests.CoreTests.EncodeWrapperJSONTest", {
 		this.ref = WorldMorph.current();
 		this.value = [this.ref];
 	},
-		
+
 	testEncodeWrapper: function() {
 		this.string = JSON.serialize(this.value, Converter.wrapperAndNodeEncodeFilter)
 		this.assertEquals(this.string, '["url(#' + WorldMorph.current().id() + ')"]', "url does not match")
 	},
-	
+
 	testDecodeWrapper: function() {
 		this.string = JSON.serialize(this.value, Converter.wrapperAndNodeEncodeFilter)
 		this.value2 = JSON.unserialize(this.string, Converter.wrapperAndNodeDecodeFilter)
@@ -448,45 +306,45 @@ TestCase.subclass("lively.tests.CoreTests.EncodeWrapperJSONTest", {
 		root.addMorph(child);
 		this.assertIdentity(root.resolveUriToObject(child.id()), child, "relove is broken")
 	},
-	
-	// known to fail ... 
+
+	// known to fail ...
 	XtestStoreReferenceInRecordField: function() {
 		var ref = WorldMorph.current();
 		var record = Record.newNodeInstance({Foo: null, Bar: null});
 		record.setBar([3, ref]);
 		this.assertIdentity(record.getBar()[1], ref, "deep referencing in node records is broken")
-	},	
-	
+	},
+
 });
 
 TestCase.subclass('lively.tests.CoreTests.DocLinkConversionTest', {
 
 	exampleDoc: function() {
 		return stringToXML(
-		'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n' + 
-		'\n' + 
-		'<html xmlns="http://www.w3.org/1999/xhtml">\n' + 
-		'<head>\n' + 
-		'<title>Developer\'s Journal - Lively HTML</title>\n' + 
-		'</head>\n' + 
-		'\n' + 
-		'<body style="margin:0px">\n' + 
-		'\n' + 
-		'<svg xmlns="http://www.w3.org/2000/svg" xmlns:lively="http://www.experimentalstuff.com/Lively" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xhtml="http://www.w3.org/1999/xhtml" id="canvas" width="100%" height="100%" xml:space="preserve" xmlns:xml="http://www.w3.org/XML/1998/namespace" zoomAndPan="disable">\n' + 
-		'<title>Lively Kernel canvas</title>\n' + 
-		'<defs>\n' + 
-		'<script type="text/ecmascript" xlink:href="../../lively/JSON.js"/>\n' + 
-		'<script name="codeBase"><![CDATA[Config.codeBase=Config.getDocumentDirectory()+\'../../\'\]\]></script>\n' + 
-		'<script name="codeBase"><![CDATA[Config.codeBase=Config.getDocumentDirectory()+"../../"\]\]></script>\n' + 
-		'<script type="text/ecmascript" xlink:href="../../lively/localconfig.js"/>\n' + 
-		'<script type="text/ecmascript" xlink:href="../../lively/Base.js"/>\n' + 
-		'</defs>\n' + 
-		'\n' + 
-		'\n' + 
-		'<defs id="SystemDictionary"></defs>\n' + 
-		'<g type="WorldMorph" id="1:WorldMorph" transform="translate(0,0)"></g></svg>\n' + 
-		'\n' + 
-		'</body>\n' + 
+		'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n' +
+		'\n' +
+		'<html xmlns="http://www.w3.org/1999/xhtml">\n' +
+		'<head>\n' +
+		'<title>Developer\'s Journal - Lively HTML</title>\n' +
+		'</head>\n' +
+		'\n' +
+		'<body style="margin:0px">\n' +
+		'\n' +
+		'<svg xmlns="http://www.w3.org/2000/svg" xmlns:lively="http://www.experimentalstuff.com/Lively" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xhtml="http://www.w3.org/1999/xhtml" id="canvas" width="100%" height="100%" xml:space="preserve" xmlns:xml="http://www.w3.org/XML/1998/namespace" zoomAndPan="disable">\n' +
+		'<title>Lively Kernel canvas</title>\n' +
+		'<defs>\n' +
+		'<script type="text/ecmascript" xlink:href="../../lively/JSON.js"/>\n' +
+		'<script name="codeBase"><![CDATA[Config.codeBase=Config.getDocumentDirectory()+\'../../\'\]\]></script>\n' +
+		'<script name="codeBase"><![CDATA[Config.codeBase=Config.getDocumentDirectory()+"../../"\]\]></script>\n' +
+		'<script type="text/ecmascript" xlink:href="../../lively/localconfig.js"/>\n' +
+		'<script type="text/ecmascript" xlink:href="../../lively/Base.js"/>\n' +
+		'</defs>\n' +
+		'\n' +
+		'\n' +
+		'<defs id="SystemDictionary"></defs>\n' +
+		'<g type="WorldMorph" id="1:WorldMorph" transform="translate(0,0)"></g></svg>\n' +
+		'\n' +
+		'</body>\n' +
 		'</html>');
 	},
 
@@ -560,8 +418,8 @@ TestCase.subclass('lively.tests.CoreTests.DocLinkConversionTest', {
 		this.assertEquals(codeBase + 'lively/localconfig.js', scripts[2].getAttribute('xlink:href'));
 	},
 
-
 });
+
 TestCase.subclass('lively.tests.CoreTests.LoaderTest',
 'running', {
 	setUp: function() {
@@ -595,6 +453,7 @@ TestCase.subclass('lively.tests.CoreTests.LoaderTest',
 		this.assertEquals(expected, this.sut.makeAbsolute(mainURL));
 		this.assertEquals(expected, this.sut.makeAbsolute(Config.codeBase + 'lively/foo/../Main.js'));
 	},
+
 });
 
 }) // end of module

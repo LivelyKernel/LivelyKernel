@@ -85,6 +85,10 @@ Object.extend(Object, {
         return typeof object == "undefined";
     },
 
+    isRegExp: function(object) {
+        return object instanceof RegExp;
+    },
+
     inherit: function(obj) {
         var constructor = function ProtoConstructor() {
                 return this
@@ -161,7 +165,7 @@ Objects = {
             return "null";
         }
         if (Object.isUndefined(obj)) {
-            return "undefined";    
+            return "undefined";
         }
         return obj.constructor.name;
     },
@@ -169,7 +173,7 @@ Objects = {
     shortPrintStringOf: function(obj) {
         // primitive values
         if (!this.isMutableType(obj)) {
-            return this.safeToString(obj);   
+            return this.safeToString(obj);
         }
 
         // constructed objects
@@ -236,19 +240,19 @@ Properties = {
         if (object[name] === value) return name;
         return undefined
     },
-    
+
     values: function(obj) {
         var values = [];
         for (var name in obj) values.push(obj[name]);
         return values;
     },
-    
+
     ownValues: function(obj) {
         var values = [];
         for (var name in obj) if (obj.hasOwnProperty(name)) values.push(obj[name]);
         return values;
     },
-    
+
     printObjectSize: function(obj) {
         return Numbers.humanReadableByteSize(JSON.stringify(obj).length)
     }

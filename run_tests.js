@@ -47,13 +47,20 @@ var testList = [
     'lively.tests.BootstrapTests',
     "lively.tests.ClassTests",
     // 'lively.tests.CoreTests',
-    "lively.tests.TestFrameworkTests",
     "lively.tests.HelperTests",
-    "lively.tests.ObjectTests",
+    // 'lively.tests.LKWikiTests',
     "lively.tests.ModuleSystemTests",
-    "lively.tests.TraitTests",
-    "lively.tests.TracingTests",
     "lively.tests.NetworkTests",
+    "lively.tests.ObjectTests",
+    "lively.tests.PartsTestFrameworkTests",
+    // "lively.tests.PublishingTests",
+    // "lively.tests.ScriptingTests",
+    "lively.tests.TestFrameworkTests",
+    // "lively.tests.ToolsTests",
+    "lively.tests.TracingTests",
+    "lively.tests.TraitTests",
+
+    // lang support
     "lively.lang.tests.ExtensionTests",
 
     // AST / OMeta
@@ -63,16 +70,21 @@ var testList = [
     // persistence
     "lively.persistence.tests.PersistenceTests",
 
+    // ide / SCB
+    // "lively.ide.tests.FileParserTests",
+    'lively.ide.tests.SCBTests',
+
     // morphic
-    "lively.morphic.tests.Morphic",
-    "lively.morphic.tests.Morphic2",
-    "lively.morphic.tests.ShapeTests",
-    "lively.morphic.tests.TabTests",
-    "lively.morphic.tests.DataGridTests",
+    // "lively.morphic.tests.All",
     "lively.morphic.tests.Connectors",
     "lively.morphic.tests.CoreToolsTests",
-    'lively.morphic.tests.EventTests',
+    "lively.morphic.tests.DataGridTests",
+    "lively.morphic.tests.EventTests",
+    "lively.morphic.tests.Morphic",
+    "lively.morphic.tests.Morphic2",
     "lively.morphic.tests.PathTests",
+    "lively.morphic.tests.ShapeTests",
+    "lively.morphic.tests.TabTests",
 
     //bindings
     "lively.bindings.tests.GeometryBindingTests",

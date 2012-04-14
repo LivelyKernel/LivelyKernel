@@ -71,7 +71,7 @@ var testList = [
     "lively.persistence.tests.PersistenceTests",
 
     // ide / SCB
-    // "lively.ide.tests.FileParserTests",
+    "lively.ide.tests.FileParserTests",
     'lively.ide.tests.SCBTests',
 
     // morphic

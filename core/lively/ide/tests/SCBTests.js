@@ -319,4 +319,29 @@ m4: function() {},\n\
 
 });
 
+TestCase.subclass('lively.tests.ToolsTests.LivelyIdeBrowse',
+'testing', {
+
+    testLivelyIdeBrowse: function() {
+        var sut = lively.ide.browse("lively.morphic.Morph", "onMouseDown", "lively.morphic.Events");
+
+        this.assert(sut, "could not open browser")
+        try {
+            this.assertEquals(sut.targetURL, URL.codeBase + "lively/morphic/")
+
+            this.assert(sut.pane1Selection, "no selection in Pane1")
+            this.assertEquals(sut.pane1Selection.asString(), "Events.js")
+
+            this.assert(sut.pane2Selection, "no selection in Pane2")
+            this.assertEquals(sut.pane2Selection.asString(), "lively.morphic.Morph (extension)")
+
+            // this.assertEquals(sut.pane3Selection.asString(), "event handling")
+            this.assertEquals(sut.pane4Selection.asString(), "onMouseDown (proto)")
+        } finally {
+            if(sut) sut.view.remove() // close window
+        }
+    }
+
+});
+
 });

@@ -170,6 +170,98 @@ TestCase.subclass('lively.tests.TestFrameworkTests.TestCaseTest', {
 
 });
 
+TestCase.subclass('lively.tests.TestFrameworkTests.MockTest',
+'running', {
+    setUp: function($super) {
+        $super();
+        this.test = new TestCase();
+        this.asyncTest = new AsyncTestCase();
+        this.aClass = Object.subclass('lively.tests.DummyClass', { foo: function() {}});
+        this.aSubClass = this.aClass.subclass('lively.tests.DummySubClass');
+    },
+
+    tearDown: function($super) {
+        $super();
+        this.aSubClass.remove();
+        this.aClass.remove();
+    }
+},
+'testing', {
+
+    testInstallMock: function() {
+        var obj = {foo: function() { }},
+            mockFunc = function() {};
+        this.test.mock(obj, 'foo', mockFunc);
+        this.assertIdentity(mockFunc, obj.foo);
+    },
+
+    testInstallMockInClass: function() {
+        var klass = this.aClass,
+            obj = new klass(),
+            originalMethod = obj.foo,
+            mockWasCalled = false,
+            mockMethod = function() { mockWasCalled = true },
+            test = this.test,
+            self = this;
+        test.testWithMockInstall = function() {
+            test.mockClass(klass, 'foo', mockMethod);
+            self.assert(!obj.hasOwnProperty('foo'), 'mock installed in obj');
+            self.assertIdentity(mockMethod, klass.prototype.foo, 'mock not installed in class');
+            obj.foo();
+        }
+        test.runTest('testWithMockInstall');
+        this.assert(mockWasCalled, 'mock was not called');
+        this.assertIdentity(originalMethod, obj.foo, 'mock not uninstalled');
+        this.assertIdentity(originalMethod, klass.prototype.foo, 'mock not uninstalled in class');
+    },
+
+    testInstallMockInSubclass: function() {
+        var klass = this.aClass,
+            subclass = this.aSubClass,
+            originalMethod = subclass.prototype.foo,
+            mockMethod = function() {},
+            test = this.test,
+            self = this;
+        test.testWithMockInstall = function() {
+            test.mockClass(subclass, 'foo', mockMethod);
+            self.assert(subclass.prototype.hasOwnProperty('foo'), 'mock not installed in subclass');
+        }
+        test.runTest('testWithMockInstall');
+        this.assert(!subclass.prototype.hasOwnProperty('foo'), 'mock not uninstalled in subclass');
+        this.assertIdentity(originalMethod, klass.prototype.foo, 'mock not uninstalled in class');
+    },
+
+    testInstallCallAndUninstallMock: function() {
+        var obj = {},
+            mockWasCalled = false,
+            origWasCalled = false,
+            originalFunc = obj.foo = function() { origWasCalled = true },
+            mockFunc = function() { mockWasCalled = true },
+            test = this.test;
+        test.testWithMockInstall = function() {
+            test.mock(obj, 'foo', mockFunc);
+            obj.foo();
+        }
+        test.runTest('testWithMockInstall');
+        this.assert(mockWasCalled, 'mock was not called');
+        this.assert(!origWasCalled, 'orig was called');
+        this.assertIdentity(originalFunc, obj.foo, 'mock not uninstalled');
+    },
+
+    testAsyncTestUninstallsMock: function() {
+        var obj = {},
+            originalFunc = obj.foo = function() {},
+            mockFunc = function() {},
+            test = this.asyncTest;
+        test.testWithMockInstall = function() {
+            test.mock(obj, 'foo', mockFunc);
+            test.done();
+        }
+        test.runAndDoWhenDone('testWithMockInstall');
+        this.assertIdentity(originalFunc, obj.foo, 'mock not uninstalled');
+    }
+});
+
 /**
 * @class TestResultTest
      */
@@ -496,12 +588,12 @@ AsyncTestCase.subclass('lively.tests.TestFrameworkTests.AsyncTestCaseTest', {
         Global.test1Called = false;
         Global.test2AsyncCalled = false;
         Global.test3Called = false;
-
+        Global.tearDownCalled = 0;
         $super(statusUpdateFunc, whenDoneFunc);
     },
 
     tearDown: function() {
-        this.tearDownCalled = true
+        Global.tearDownCalled++;
     },
 
     test1: function() {
@@ -515,7 +607,7 @@ AsyncTestCase.subclass('lively.tests.TestFrameworkTests.AsyncTestCaseTest', {
             Global.test2AsyncCalled = true;
             this.assert(Global.test1Called, 'test1 was not called');
             this.assert(!Global.test3Called, 'test3 was already called');
-            this.assert(!this.tearDownCalled, 'tearDown was already called');
+            this.assertEquals(1, Global.tearDownCalled, 'tearDown not once called');
             this.done();
         }, 800);
     },
@@ -523,6 +615,7 @@ AsyncTestCase.subclass('lively.tests.TestFrameworkTests.AsyncTestCaseTest', {
     test3: function() {
         Global.test3Called = true;
         this.assert(Global.test2AsyncCalled, 'test2AsyncCalled was not called');
+        this.assertEquals(2, Global.tearDownCalled, 'tearDown not twice called');
         this.done();
     }
 

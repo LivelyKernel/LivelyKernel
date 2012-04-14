@@ -44,9 +44,9 @@ Object.subclass('TestCase',
 },
 'accessing', {
     name: function() { return this.constructor.type },
-    getTestName: function() { 
+    getTestName: function() {
         // renamed from testName. not called. remove?
-        return this.name() + '>>' + this.currentSelector 
+        return this.name() + '>>' + this.currentSelector;
     },
     id: function() { return this.name() + '>>' + this.currentSelector },
     allTestSelectors: function() {
@@ -114,6 +114,7 @@ Object.subclass('TestCase',
             this.addAndSignalFailure(e);
          } finally {
             try {
+                this.uninstallMocks();
                 this.tearDown();
             } catch(e) {
                 this.log('Couldn\'t run tearDown for ' + this.id() + ' ' + e);
@@ -371,6 +372,33 @@ Object.subclass('TestCase',
         var func = Function.fromString(funcOrString);
         return func.asScriptOf(this, optName);
     }
+},
+'mocks', {
+    mock: function(obj, selector, mockFunc) {
+        this.mocked = this.mocked || [];
+        this.mocked.push({
+            obj: obj,
+            selector: selector,
+            orig: obj[selector],
+            own: obj.hasOwnProperty(selector)
+        });
+        obj[selector] = mockFunc;
+    },
+
+    mockClass: function(klass, selector, mockFunc) {
+        this.mock(klass.prototype, selector, mockFunc);
+    },
+
+    uninstallMocks: function() {
+        if (!this.mocked) return;
+        this.mocked.forEach(function(mockSpec) {
+            if (mockSpec.own) {
+                mockSpec.obj[mockSpec.selector] = mockSpec.orig;
+            } else {
+                delete mockSpec.obj[mockSpec.selector];
+            }
+        });
+    }
 });
 
 Function.addMethods(
@@ -426,8 +454,11 @@ TestCase.subclass('AsyncTestCase', {
     runAllThenDo: function(statusUpdateFunc, whenDoneFunc) {
         this.runAll(statusUpdateFunc, whenDoneFunc);
     },
-    runAndDoWhenDone: function(func) {
-        this.runTest();
+    runAndDoWhenDone: function(/*optTestSelector, whenDoneFunc*/) {
+        var args            = Array.from(arguments),
+            optTestSelector = Object.isString(args[0]) && args[0],
+            whenDoneFunc    = optTestSelector ? args[1] : args[0];
+        this.runTest(optTestSelector);
         var self = this, waitMs = 100; // time for checking if test is done
         (function doWhenDone(timeWaited) {
             if (timeWaited >= self._maxWaitDelay) {
@@ -442,10 +473,11 @@ TestCase.subclass('AsyncTestCase', {
                 return;
             }
             try {
+                self.uninstallMocks();
                 self.tearDown();
             } catch(e) { if (!self._errorOccured) self.addAndSignalFailure(e) }
             if (!self._errorOccured) self.addAndSignalSuccess();
-            func();
+            whenDoneFunc && whenDoneFunc();
         })(0);
     },
     scheduled: function() { this.show('Scheduled ' + this.id()) },

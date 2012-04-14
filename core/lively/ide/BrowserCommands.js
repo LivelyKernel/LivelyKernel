@@ -395,7 +395,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.ClassHierarchyViewCommand', {
         //listPane.innerMorph().updateList(list);
         // w.addFramedMorph(listPane, klass.type + ' and its subclasses');
         var asText = list.pluck('string').join('\n');
-        w.addTextWindow({title: klass.type + ' and its subclasses', content: asText})
+        w.addTextWindow({title: klass.type + ' and its subclasses', content: asText});
     },
 
 });

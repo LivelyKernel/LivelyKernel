@@ -152,6 +152,20 @@ TestCase.subclass('lively.tests.TestFrameworkTests.TestCaseTest', {
         this.assert(!secondRun, 'function: second run');
         this.assertEqualState(['testFirst', 'testSecond'],
                               testSelectorsForFilter);
+    },
+
+    testAssertRaises: function() {
+        this.assertRaises(function() { throw new Error('foo') },'This should work');
+        this.assertRaises(function() { throw new Error('foo') }, /oo/, 'This should work 2');
+        this.assertRaises(function() { throw new Error('foo') },
+                          function(e) { return e.toString().include('foo') },
+                          'This should work 2');
+        try {
+            this.assertRaises(function() {}, 'This should fail');
+        } catch(e) {
+            return;
+        };
+        this.assert(false, 'assertRaises did not fail on non-error func');
     }
 
 });

@@ -264,6 +264,24 @@ Object.subclass('TestCase',
             };
             this.assertMatches(expected, actual, msg);
         }
+    },
+    assertRaises: function(/*func, optMatcher, msg*/) {
+        var args = Array.from(arguments),
+            func = args[0],
+            matcherRegexp = Object.isRegExp(args[1]) && args[1],
+            matcherFunc = (matcherRegexp && function(e) { return matcherRegexp.test(String(e)); })
+                       || (Object.isFunction(args[1]) && args[1]),
+            msg = matcherFunc || matcherRegexp ? args[2] : args[1];
+        try {
+            func();
+        } catch(e) {
+            if (matcherFunc) {
+                this.assert(matcherFunc(e), 'exception ' + e + ' raised but did no match '
+                                          + matcherFunc);
+            }
+            return;
+        }
+        this.assert(false, "No assertion raised. " + msg);
     }
 },
 

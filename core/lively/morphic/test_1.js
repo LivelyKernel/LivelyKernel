@@ -14,9 +14,6 @@ lively.morphic.Morph.subclass('lively.morphic.testPerform',
         oRec.addToMorph(this);
     },
     setData: function(aJsArray) {
-        this.clear();
-        this.dataModel = [];
-
         var nRow;
         var nCol;
         var arrColumns=[];

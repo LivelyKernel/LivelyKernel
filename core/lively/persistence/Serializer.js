@@ -1231,7 +1231,15 @@ Object.extend(lively.persistence.Serializer, {
     },
 
     deserializeChangeSetFromDocument: function(doc) {
-        var csMetaElement = doc.getElementById(this.changeSetElementId);
+        var jsCS = livelyPreload.WorldChangeSet,
+            meta = stringToXML(Strings.format("<meta id=\"WorldChangeSet\">\n" +
+                               "      <code>\n" +
+                               "        <doit name=\"local requirements\" automaticEval=\"true\"><![CDATA[[%s]]]></doit>\n" +
+                               "        <doit name=\"initializer\"><![CDATA[%s]]></doit>\n" +
+                               "      </code>\n" +
+                               "    </meta>", jsCS.localRequirements.code, jsCS.initializer.code));
+
+        var csMetaElement = meta;
         if (!csMetaElement)
             throw new Error('Cannot find ChangeSet meta element when deserializing');
         return ChangeSet.fromNode(csMetaElement);

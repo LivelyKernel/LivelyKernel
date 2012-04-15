@@ -956,21 +956,8 @@ LoadingScreen = {
         function addLine(str, style) {
             style = style || '';
             var line = document.createElement('div');
-
-            // html5 does not support cdata sections in the document. if
-            // the creation fails with a NOT_SUPPORTED_ERR, we simply
-            // create a text node.
-            var textElement;
-            try {
-              textElement = document.createCDATASection(str);
-            } catch (e) {
-              if (e.name === "NOT_SUPPORTED_ERR") {
-                textElement = document.createTextNode(str);
-              } else {
-                throw e;
-              }
-            }
-
+            var textElement = document.createElement('span');
+            textElement.textContent = str;
             line.appendChild(textElement);
             line.setAttribute('style', style);
             console.appendChild(line);
@@ -1169,9 +1156,7 @@ var LivelyMigrationSupport = {
     migrationLevelNodeId: 'LivelyMigrationLevel',
     moduleRenameDict: {},
     extractMigrationLevel: function(doc) {
-        // LivelyMigrationSupport.extractMigrationLevel(document);
-        var node = doc.getElementById(this.migrationLevelNodeId);
-        return node ? Number(node.textContent) : 0;
+        return window.LivelyMigrationLevel || 0;
     },
     setDocumentMigrationLevel: function(doc) {
         this.documentMigrationLevel = this.extractMigrationLevel(doc);

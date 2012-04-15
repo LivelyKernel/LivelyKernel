@@ -63,13 +63,8 @@ Object.extend(lively.Main.WorldDataAccessor, {
             // on it. However, Lively does, which is why we need this
             // distinction here.
 
-            var json = jsonNode.textContent;
-            if(json === "") {
-              // this is the content attribute, a.k.a. the proper way.
-              json = jsonNode.content;
-            }
-
-            return new lively.Main.NewMorphicData(canvas, jsonNode && json, changeSet);
+            var json = livelyPreload.jsonWorld;
+            return new lively.Main.NewMorphicData(canvas, json, changeSet);
         }
 
         if (Config.createNewWorld)

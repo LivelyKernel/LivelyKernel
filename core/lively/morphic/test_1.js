@@ -18,12 +18,19 @@ lively.morphic.Morph.subclass('lively.morphic.testPerform',
         var nCol;
         var arrColumns=[];
 
-        for (nRow = 0; nRow < aJsArray.length; nRow++) {
-	   for (nCol = 0; nCol < aJsArray[nRow].length ; nCol++) {
-		this.arrData[nRow][nCol].value=aJsArray[nRow][nCol];
-	   }
+
+        for (var nRow = 0; nRow < aJsArray.length; nRow++) {
+		arrColumns=[];
+		for (var nCol = 0; nCol < aJsArray[nRow].length ; nCol++) {
+                        //arrColumns[nCol]= "";
+                        oCell ={}; 
+                        oCell.value = aJsArray[nRow][nCol];
+                        oCell.annotation = "";
+                        oCell.formula = "";
+			arrColumns[nCol] = oCell ;
+		}
+		this.arrData.push(arrColumns);
 	}
-       
       
     },
 });

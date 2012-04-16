@@ -414,11 +414,11 @@ console.log('End createLayout =' + elapsed);
              
                 if (this.arrData[nOrgRow][nOrgCol].annotation){
                     this.at(x,y).annotationCell();
-                   
+                    console.log("deactivate: " +x+ "," + y);
                     console.log("annotationCell: " +nOrgCol+ "," + nOrgRow);
                 }else{
                     this.at(x,y).deactivate();
-                    console.log("deactivate: " +x+ "," + y);
+                    
                 }
             
                 sValue = this.dataModel[y][x].value.toString();

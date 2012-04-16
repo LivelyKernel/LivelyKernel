@@ -50,7 +50,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         connect(this.vScroll, "value", this, "updateRowDisplay", {});
         connect(this.hScroll , "value", this, "updateColumnDisplay", {});
     },
-    updateColumnDisplay: function() {
+    updateColumnDisplay: function(evt) {
         
     },
     updateRowDisplay: function(evt) {

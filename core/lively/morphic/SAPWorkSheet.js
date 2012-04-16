@@ -31,6 +31,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeData();
         this.initializeMorph();
         this.initializeAnnotation();
+        this.initializeScrolls();
 
        
 

@@ -414,7 +414,7 @@ console.log('End createLayout =' + elapsed);
              
                 if (this.arrData[nOrgRow][nOrgCol].annotation){
                     this.at(x,y).annotationCell();
-                    console.log("deactivate: " +x+ "," + y);
+                  
                     console.log("annotationCell: " +nOrgCol+ "," + nOrgRow + "("  +x +","+ y+")");
                 }else{
                     this.at(x,y).deactivate();

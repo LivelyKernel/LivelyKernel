@@ -1812,6 +1812,7 @@ makeReframeHandle: function() {
                 'publish window', function(evt) {
                 self.copyToPartsBinWithUserRequest();
                 }]
+            return items;
             }
         }
         target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)), itemFilter);

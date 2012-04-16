@@ -37,7 +37,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
     },
     initializeScrolls: function() {
-        this.vScroll = new lively.morphic.Slider(new Rectangle(1200,0, 15,300), 100);
+        this.vScroll = new lively.morphic.Slider(new Rectangle(1200,this.defaultCellHeight, 15,300), 100);
         this.addMorph(this.vScroll);
         connect(this.vScroll, "value", this, "updateRowDisplay", {});
     },

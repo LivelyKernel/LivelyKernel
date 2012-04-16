@@ -1811,7 +1811,7 @@ makeReframeHandle: function() {
             items[0] = [
                 'publish window', function(evt) {
                 self.copyToPartsBinWithUserRequest();
-            }]
+                }]
             }
         }
         target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));

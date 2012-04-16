@@ -225,8 +225,8 @@ console.log('End createLayout =' + elapsed);
         
         var nOrgRow = nRow  + this.grid.startRow;
         var nOrgCol = nColumn + this.grid.startColumn;
-        var sAnnotation = this.at(nColumn,nRow).annotation;
-        
+        //var sAnnotation = this.at(nColumn,nRow).annotation;
+        sAnnotation  = this.arrData[nOrgRow][nOrgCol].annotation
 
 
         this.oAnnotation.setVisible(true);

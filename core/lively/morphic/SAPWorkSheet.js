@@ -221,6 +221,10 @@ console.log('End createLayout =' + elapsed);
         
         //alert(this.rows[nColumn][nRow].getPosition());
         var sAnnotation = this.at(nColumn,nRow).annotation;
+        
+        //nRow  = nRow  + this.grid.startRow;
+        //nCol = nCol + this.grid.startColumn;
+
         this.oAnnotation.setVisible(true);
         if (sAnnotation){
             this.oAnnotation.textString = sAnnotation ;

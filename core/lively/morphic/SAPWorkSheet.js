@@ -219,11 +219,11 @@ console.log('End createLayout =' + elapsed);
 
  showAnnotation: function(nColumn,nRow) {
         
-        //alert(this.rows[nColumn][nRow].getPosition());
+        var nOrgRow = nRow  + this.grid.startRow;
+        var nOrgCol = nCol + this.grid.startColumn;
         var sAnnotation = this.at(nColumn,nRow).annotation;
         
-        //nRow  = nRow  + this.grid.startRow;
-        //nCol = nCol + this.grid.startColumn;
+
 
         this.oAnnotation.setVisible(true);
         if (sAnnotation){

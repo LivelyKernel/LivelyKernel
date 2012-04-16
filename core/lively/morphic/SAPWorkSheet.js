@@ -412,7 +412,7 @@ console.log('End createLayout =' + elapsed);
                 nOrgRow = y  + this.startRow;
                 nOrgCol = x+ this.startColumn;
                 
-                
+                //if (this.arrData[][].
             
                 sValue = this.dataModel[y][x].value.toString();
                 

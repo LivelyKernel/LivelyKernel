@@ -417,7 +417,7 @@ console.log('End createLayout =' + elapsed);
                   
                     console.log("annotationCell: " +nOrgCol+ "," + nOrgRow + "("  +x +","+ y+")");
                 }else{
-                    this.at(x,y).deactivate();
+                    this.at(x,y).deactivateCell();
                     //console.log("annotationCell: " +nOrgCol+ "," + nOrgRow + "("  +x +","+ y+")");
                 }
             

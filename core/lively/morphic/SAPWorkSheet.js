@@ -16,6 +16,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.prviousScrollValue=0;
         this.maxNoofRow = 10000;
         this.maxNoofColumn = 1000;
+        this.maxEmptyRowtoCreate = 500;
         this.VisibleRowCount=10;
         this.VisibleColumnCount=10;
         this.arrData=[];
@@ -57,7 +58,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     updateRowDisplay: function(evt) {
        //debugger;
         if (isNaN(evt)){
-            console.log("nan " + evt);
+            console.log("updateRowDisplay: NaN= " + evt);
             return;
         }
         var nScrollValue= parseInt(evt);//.toFixed(2);
@@ -126,20 +127,15 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	elapsed = elapsed/1000;
 	console.log('End initializeMorph=' + elapsed);
     },
-    
-    //Create empty cells
     createEmptyCells: function(nDataLength) {
-        //create 500 rows
-        
+        //create this.maxEmptyRowtoCreate
         if(typeof nDataLength == 'undefined') {
             nDataLength = 0;
         }
-
-
         var oCell={};
         var arrColumns;
         var nStartRow = this.arrData.length;
-        var nEndRow = nStartRow + 500;
+        var nEndRow = nStartRow + this.maxEmptyRowtoCreate;
 
         if (nEndRow < nDataLength ){
             nEndRow  = nDataLength ;

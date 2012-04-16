@@ -432,7 +432,7 @@ console.log('End createLayout =' + elapsed);
                 this.at(x,y).textString = sValue;
             }
         }
-        debugger;
+        //debugger;
         if (this.activeCell) {
             this.activeCellContent = this.activeCell.getContent();
         }
@@ -775,7 +775,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.displayExpression();
     },
     deactivate: function() {
-        if (this.grid.activeCell !== this) {
+        if (this.grid.activeCell !== this) {    
+            console.log("activeCell ")
             return;
         }
         this.grid.activeCell = null;

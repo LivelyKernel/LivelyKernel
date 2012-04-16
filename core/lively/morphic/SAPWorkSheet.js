@@ -224,7 +224,7 @@ console.log('End createLayout =' + elapsed);
  showAnnotation: function(nColumn,nRow) {
         
         var nOrgRow = nRow  + this.grid.startRow;
-        var nOrgCol = nCol + this.grid.startColumn;
+        var nOrgCol = nColumn + this.grid.startColumn;
         var sAnnotation = this.at(nColumn,nRow).annotation;
         
 

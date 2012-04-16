@@ -1814,6 +1814,17 @@ makeReframeHandle: function() {
                 }]
             }
         }
+        target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)), itemFilter);
+    },{
+        var target = this.targetMorph || this;
+        if (this.targetMorph) {
+            var self = this;
+            itemFilter = function (items) {
+            items[0] = [
+                'publish window', function(evt) {
+                self.copyToPartsBinWithUserRequest();
+            }]
+        }
         target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
     },
     morphMenuItems: function($super) {

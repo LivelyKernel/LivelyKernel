@@ -143,12 +143,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 console.log('nStartRow =' + nStartRow );
 console.log('nEndRow =' + nEndRow );
         
-       
-
         for (var nRow = nStartRow ; nRow < nEndRow ; nRow++) {
 		arrColumns=[];
 		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
-                        //arrColumns[nCol]= "";
                         oCell ={}; 
                         oCell.value = "";
                         oCell.annotation = "";

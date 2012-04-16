@@ -47,7 +47,7 @@ Object.subclass('lively.morphic.Morph',
     setScale: function(value) { return this.morphicSetter('Scale', value) },
     getScale: function() { return this.morphicGetter('Scale') || 1 },
     setBounds: function(bounds) {
-        this.setPosition(bounds.topLeft());
+        this.setPosition(bounds.topLeft().addPt(this.getOrigin()));
         this.setExtent(bounds.extent());
         return bounds;
     },

@@ -26,15 +26,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.vScroll = null;
         this.hScroll = null;
 
-
-
         this.activeCellContent = '';
         this.initializeData();
         this.initializeMorph();
         this.initializeAnnotation();
         this.initializeScrolls();
-
-       
 
     },
     initializeScrolls: function() {

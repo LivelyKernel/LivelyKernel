@@ -413,7 +413,7 @@ console.log('End createLayout =' + elapsed);
                 nOrgCol = x+ this.startColumn;
                 
                 if (this.arrData[nOrgRow][nOrgCol].annotation){
-                    
+                    this.at(x,y).annotationCell();
                 }
             
                 sValue = this.dataModel[y][x].value.toString();

@@ -216,7 +216,7 @@ console.log('End createLayout =' + elapsed);
         var nOrgRow = nRow  + this.grid.startRow;
         var nOrgCol = nColumn+ this.grid.startColumn;
 
-        this.arrData[nRow][nColumn].annotation = sText;
+        this.arrData[nOrgRow][nOrgCol].annotation = sText;
 
         
     },

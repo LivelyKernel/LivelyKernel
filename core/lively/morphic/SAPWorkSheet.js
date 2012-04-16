@@ -45,6 +45,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.addMorph(this.vScroll);
         connect(this.vScroll, "value", this, "updateRowDisplay", {});
     },
+    updateColumnDisplay: function() {
+        
+    },
     updateRowDisplay: function(evt) {
        //debugger;
         if (isNaN(evt)){

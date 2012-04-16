@@ -432,6 +432,7 @@ console.log('End createLayout =' + elapsed);
                 this.at(x,y).textString = sValue;
             }
         }
+        debugger;
         if (this.activeCell) {
             this.activeCellContent = this.activeCell.getContent();
         }

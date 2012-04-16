@@ -20,8 +20,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.VisibleRowCount=10;
         this.VisibleColumnCount=10;
         this.arrData=[];
-        this.startRow = 0;
-        this.endRow = 0;
+        this.startRow = 0;      //org start row
+        this.endRow = 0;        //org end row
+
+        this.startColumn = 0;    //org start column
+        this.endColumn = 0;      //org end column
     
         this.vScroll = null;
         this.hScroll = null;

@@ -418,7 +418,7 @@ console.log('End createLayout =' + elapsed);
                     console.log("annotationCell: " +nOrgCol+ "," + nOrgRow + "("  +x +","+ y+")");
                 }else{
                     this.at(x,y).deactivate();
-                    
+                    //console.log("annotationCell: " +nOrgCol+ "," + nOrgRow + "("  +x +","+ y+")");
                 }
             
                 sValue = this.dataModel[y][x].value.toString();

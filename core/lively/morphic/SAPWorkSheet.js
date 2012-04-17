@@ -470,9 +470,9 @@ var start = new Date().getTime();
                 nOrgCol = x + this.startColumn;
                 
                 if (this.arrData[nOrgRow][nOrgCol].annotation){
-                    //this.at(x,y).annotationCell();
+                    this.at(x,y).annotationCell();
                 }else{
-                    //this.at(x,y).deactivateCell();
+                    this.at(x,y).deactivateCell();
                 }
             
                 sValue = this.dataModel[y][x].value.toString();

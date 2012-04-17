@@ -151,7 +151,7 @@ console.log('createEmptyCells nEndRow =' + nEndRow );
         
         for (var nRow = nStartRow ; nRow < nEndRow ; nRow++) {
 		arrColumns=[];
-		for (var nCol = 0; nCol < this.maxNoofColumn ; nCol++) {
+		for (var nCol = 0; nCol < this.numCols; nCol++) {
                         oCell ={}; 
                         oCell.value = "";
                         oCell.annotation = "";

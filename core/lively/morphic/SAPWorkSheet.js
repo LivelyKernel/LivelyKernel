@@ -310,6 +310,7 @@ console.log('End createLayout =' + elapsed);
             //this.arrData[arrNotes[i].row][arrNotes[i].column].annotation = arrNotes[i].note;
             this.setAnnotation(arrNotes[i].column,arrNotes[i].row,arrNotes[i].note);
         }
+        this.updateDisplay();
     },
 
     setData: function(aJsArray) {
@@ -338,7 +339,6 @@ console.log('End createLayout =' + elapsed);
             this.dataModel.push(arrColumns);
 	}
         
-        
         /*var that = this;
         aJsArray.forEach(function(ea) {
             if (ea.constructor.name === 'Array') {
@@ -348,7 +348,6 @@ console.log('End createLayout =' + elapsed);
             var row = that.createDataRowFromObject(ea);
             that.dataModel.push(row);
         });*/
-        debugger;
         this.updateDisplay();
     },
     getDataObjects: function() {

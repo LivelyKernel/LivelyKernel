@@ -335,7 +335,7 @@ console.log('End createLayout =' + elapsed);
         var nRow;
         var nCol;
         var arrColumns=[];
-
+        debugger;
         //saving to global empty data
 
         /*this.createEmptyCells(aJsArray.length);

@@ -162,19 +162,30 @@ console.log('createEmptyCells nEndRow =' + nEndRow );
 	}
     },
     createCells: function() {
-         var headOffset = this.hideColHeads ? 0 : 1;
+        var headOffset = this.hideColHeads ? 0 : 1;
+
         var start = new Date().getTime();
+
+        var self = this,
+            cells = lively.morphic.Morph.createN(this.numRows * this.numCols, function() {
+                return self.createCellOptimized();
+            });
+
         for (var y = 0; y < this.numRows; y++) {
             var row = [];
             for (var x = 0; x < this.numCols; x++) {
-                var cell = this.createCell(x, y, headOffset);
+                var cell = cells.pop();
+                cell.addToGrid(this);
+                cell.gridCoords = pt(x, y + headOffset);
+                cell.name = '[' + x + ';' + y + ']';
                 row.push(cell);
             }
             this.rows.push(row);
         }
-       var elapsed = new Date().getTime() - start;
-		elapsed = elapsed/1000;
-		 console.log('End createCells =' + elapsed);
+
+        var elapsed = new Date().getTime() - start;
+	elapsed = elapsed/1000;
+	console.log('End createCells =' + elapsed);
     },
     createCellOptimized: function() {
         var cell = new lively.morphic.SAPDataGridCell();

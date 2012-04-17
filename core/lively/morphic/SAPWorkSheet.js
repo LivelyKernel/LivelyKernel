@@ -462,7 +462,7 @@ console.log('End createLayout =' + elapsed);
         var nOrgCol;
 debugger;
 var start = new Date().getTime();
-        for (var y = 0; y < this.dataModel.length &&
+        for (var y = 1; y < this.dataModel.length &&
                 y < this.numRows; y++) {
             for (var x = 0; x < this.dataModel[y].length &&
                     x < this.numCols; x++) {
@@ -470,9 +470,9 @@ var start = new Date().getTime();
                 nOrgCol = x + this.startColumn;
                 
                 if (this.arrData[nOrgRow][nOrgCol].annotation){
-                    //this.at(x,y).annotationCell();
+                    this.at(x,y).annotationCell();
                 }else{
-                    //this.at(x,y).deactivateCell();
+                    this.at(x,y).deactivateCell();
                 }
             
                 sValue = this.dataModel[y][x].value.toString();

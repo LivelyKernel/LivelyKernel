@@ -1080,4 +1080,10 @@ function logStack() {
     this.console.log(printStack())
 };
 
+(function setupjQuery(Global) {
+    var lively = Global.lively,
+        jQuery = Global.jQuery;
+    lively.$ = jQuery.noConflict();
+})(Global);
+
 namespace('lively');

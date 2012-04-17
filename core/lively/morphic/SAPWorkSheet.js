@@ -55,6 +55,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     },
     updateRowDisplay: function(evt) {
        //debugger;
+        
         this.hideAnnotation();
         if (isNaN(evt)){
             console.log("updateRowDisplay: NaN= " + evt);
@@ -62,7 +63,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
         var nScrollValue= parseInt(evt);//.toFixed(2);
         if (this.prviousScrollValue !=nScrollValue){
-        
+            console.log(nScrollValue);
             this.prviousScrollValue = nScrollValue;
             this.clear();
             this.dataModel = [];

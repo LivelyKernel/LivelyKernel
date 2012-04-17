@@ -207,15 +207,19 @@ console.log('createEmptyCells nEndRow =' + nEndRow );
 
 
     createLayout: function() {
-        var start = new Date().getTime();
+       var start = new Date().getTime();
+
         var head = this.hideColHeads ? 0 : 1;
 
-        this.setLayouter(new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head));
+        var layouter = new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head);
+		this.setLayouter(layouter);
+        layouter.rows = this.rows;
 
         this.applyLayout();
-var elapsed = new Date().getTime() - start;
-elapsed = elapsed/1000;
-console.log('End createLayout =' + elapsed);
+
+        var elapsed = new Date().getTime() - start;
+        elapsed = elapsed/1000;
+        console.log('End createLayout =' + elapsed);
 
     },
     setAnnotation: function(nColumn,nRow,sText) {

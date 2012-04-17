@@ -463,7 +463,7 @@ console.log('End createLayout =' + elapsed);
 //debugger;
 var start = new Date().getTime();
         for (var y = 1; y < this.dataModel.length &&
-                y < this.numRows; y++) {
+                y < this.numRows+1; y++) {
             for (var x = 0; x < this.dataModel[y].length &&
                     x < this.numCols; x++) {
                 nOrgRow = y  + this.startRow;

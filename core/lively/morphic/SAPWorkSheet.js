@@ -348,6 +348,7 @@ console.log('End createLayout =' + elapsed);
             var row = that.createDataRowFromObject(ea);
             that.dataModel.push(row);
         });*/
+        debugger;
         this.updateDisplay();
     },
     getDataObjects: function() {

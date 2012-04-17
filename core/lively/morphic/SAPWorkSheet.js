@@ -53,6 +53,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	elapsed = elapsed/1000;
 	console.log('End initializeScrolls=' + elapsed);
     },
+    getLayoutableSubmorphs: function() {
+        return this.submorphs;
+    },
     updateColumnDisplay: function(evt) {
         
     },

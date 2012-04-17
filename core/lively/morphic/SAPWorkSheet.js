@@ -801,7 +801,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         var nOrgCol = nCol+ this.grid.startColumn;
 
 
-        if (this.grid.arrData[nOrgRow][nOrgCol].annotarion){
+        if (this.grid.arrData[nOrgRow][nOrgCol].annotation){
             bResult = true;
         }
         return bResult

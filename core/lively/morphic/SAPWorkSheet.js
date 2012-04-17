@@ -330,13 +330,16 @@ console.log('End createLayout =' + elapsed);
 
         //saving to global empty data
 
-        //this.createEmptyCells(aJsArray.length);
+        /*this.createEmptyCells(aJsArray.length);
 
         for (nRow = 0; nRow < aJsArray.length; nRow++) {
 	   for (nCol = 0; nCol < aJsArray[nRow].length ; nCol++) {
 		this.arrData[nRow][nCol].value=aJsArray[nRow][nCol];
 	   }
 	}
+        */
+        this.arrData = aJsArray;
+
         //saving only visible row/column to dataModel
         for (nRow = 0; nRow < this.numRows; nRow++) {
             arrColumns=[];

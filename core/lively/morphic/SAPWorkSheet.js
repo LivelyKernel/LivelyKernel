@@ -792,6 +792,11 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     },
     hasAnnotation: function() {
         var bResult = false;
+        var nCol= this.gridCoords.x;
+        var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+        
+                
+
 
         return bResult
     },

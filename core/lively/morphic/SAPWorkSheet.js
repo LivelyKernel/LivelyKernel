@@ -87,9 +87,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 this.dataModel.push(arrColumns);
             }
             this.updateDisplay();
+            //if scroll reached end we need to increase
+            if (nScrollValue==this.valueScale){
+            }
+            
         }
         
-        //if scroll reached end we need to increase
+        
 
 
     },

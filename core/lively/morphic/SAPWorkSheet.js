@@ -483,7 +483,7 @@ var start = new Date().getTime();
                     this.at(x,y).setBorderStyle("dotted");
                     sValue = this.parseFormula(sValue);
                 }
-                this.at(x,y+1).textString = sValue;
+                this.at(x,y).textString = sValue;
             }
         }
         //debugger;

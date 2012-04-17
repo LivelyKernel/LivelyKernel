@@ -188,7 +188,7 @@ console.log('createEmptyCells nEndRow =' + nEndRow );
 	console.log('End createCells =' + elapsed);
     },
     createCellOptimized: function() {
-        var cell = new lively.morphic.SAPDataGridCell();
+        var cell = new lively.morphic.SAPGridCell();
         cell.doitContext = this;
         cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         return cell;

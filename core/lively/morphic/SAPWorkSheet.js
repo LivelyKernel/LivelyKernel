@@ -340,7 +340,7 @@ console.log('End createLayout =' + elapsed);
 	}
         */
         this.arrData = aJsArray;
-
+        this.vScroll.setValue(this.arrData.length);
         //saving only visible row/column to dataModel
         for (nRow = 0; nRow < this.numRows; nRow++) {
             arrColumns=[];

@@ -784,6 +784,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.updateDisplay();
         this.grid.recalculateRowsFirst();
         if (this.hasAnnotation()){
+            debugger;
 	   this.annotationCell();
 	}
         if (this.hasFormula()){

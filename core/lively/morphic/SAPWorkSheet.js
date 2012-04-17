@@ -330,7 +330,7 @@ console.log('End createLayout =' + elapsed);
 
         //saving to global empty data
 
-        this.createEmptyCells(aJsArray.length);
+        //this.createEmptyCells(aJsArray.length);
 
         for (nRow = 0; nRow < aJsArray.length; nRow++) {
 	   for (nCol = 0; nCol < aJsArray[nRow].length ; nCol++) {

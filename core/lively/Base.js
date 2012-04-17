@@ -730,6 +730,15 @@ Namespace.addMethods(
 },
 'accessing', { // module specific, should be a subclass?
 
+    name: function() {
+        var identifier =  this.namespaceIdentifier,
+            globalIdStart = 'Global.';
+        if (identifier.startsWith(globalIdStart)) {
+            identifier = identifier.substring(globalIdStart.length);
+        }
+        return identifier;
+    },
+
     findUri: function(optFileType) {
         var fileType = optFileType || 'js',
             fileExtension = '.' + fileType,
@@ -1021,15 +1030,50 @@ Object.extend(Namespace, {
     },
 });
 
-(function moveNamespaceClassToLivelyLang() {
+(function createLivelyNamespace(Global) {
     // namespace('lively.lang');
-    lively = new Namespace(Global, 'lively');
+    var preExistingLively = Global.lively;
+    delete Global.lively;
+    var lively = new Global.Namespace(Global, 'lively');
+    // FIXME this is just a hack to get properties of a potentially
+    // predefined "lively" object over to the namespace lively object
+    // namespaces should deal with this in general
+    if (preExistingLively) {
+        for (var name in preExistingLively) {
+            lively[name] = preExistingLively[name];
+        }
+    }
+    Global.lively = lively;
+})(Global);
+
+(function moveNamespaceClassToLivelyLang(Global) {
+    var lively = Global.lively,
+        Namespace = Global.Namespace;
     lively.lang = new Namespace(lively, 'lang');
     lively.lang.Namespace = Namespace;
-    delete Namespace;
-})();
+    // alias
+    lively.Module = lively.lang.Namespace;
+    delete Global.Namespace;
+})(Global);
 
-(function setupLivelyLang() {
+
+Object.extend(lively.Module, {
+    findAllInThenDo: function(url, callback) {
+        var dir = new URL(url).getDirectory();
+        if (url.isLeaf()) {
+            throw new Error(url + ' is not a directory!');
+        }
+        var webR = dir.asWebResource();
+        lively.bindings.connect(webR, 'subDocuments', {onLoad: function(files) {
+            var moduleNames = files.invoke('getURL') .invoke('asModuleName'),
+                modules = moduleNames.collect(function(name) { return module(name); })
+            callback(modules);
+        }}, 'onLoad');
+        webR.getSubElements();
+    }
+});
+
+(function setupLivelyLang(lively) {
     lively.lang.Execution = {
         showStack: Functions.Null,
         resetDebuggingStack: Functions.Null,
@@ -1039,7 +1083,7 @@ Object.extend(Namespace, {
         // lively.lang.let(y, function(x) { body }) is equivalent to { let y = x; body; }
         return arguments[arguments.length - 1].apply(this, arguments);
     }
-})();
+})(lively);
 
 /*
  * Stack Viewer when Dan's StackTracer is not available

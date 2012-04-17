@@ -790,6 +790,16 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
 	//   this.formulaCell();
 	//}
     },
+    hasAnnotation: function() {
+        var bResult = false;
+
+        return bResult
+    },
+    hasFormula: function() {
+        var bResult = false;
+
+        return bResult
+    },
     deactivateCell: function() {
         this.grid.activeCell = null;
         this.setBorderColor(Color.rgb(177,181,186));

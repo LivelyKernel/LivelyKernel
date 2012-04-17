@@ -860,7 +860,7 @@ lively.morphic.Shapes.External.addMethods(
             element = XHTMLNS.create('div');
             element.style.backgroundColor = Color.red.toCSSString();
         }
-        var $element = $(element),
+        var $element = new jQuery.fn.init(element),
             width = $element.width() || 0,
             height = $element.height() || 0,
             extent = pt(width, height);

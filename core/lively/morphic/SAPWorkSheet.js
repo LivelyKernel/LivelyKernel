@@ -345,7 +345,7 @@ console.log('End createLayout =' + elapsed);
         //saving only visible row/column to dataModel
         for (nRow = 0; nRow < this.numRows; nRow++) {
             arrColumns=[];
-            for (nCol = 0; nCol < this.VisibleColumnCount ; nCol++) {
+            for (nCol = 0; nCol < this.numCols; nCol++) {
                 arrColumns[nCol] = this.arrData[nRow][nCol];
 	    }
             this.dataModel.push(arrColumns);

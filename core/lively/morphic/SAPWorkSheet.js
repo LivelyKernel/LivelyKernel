@@ -357,6 +357,7 @@ console.log('End createLayout =' + elapsed);
         var arrColumns=[];
         //debugger;
         //saving to global empty data
+        var start = new Date().getTime();
 
         /*this.createEmptyCells(aJsArray.length);
 
@@ -389,6 +390,9 @@ console.log('End createLayout =' + elapsed);
             that.dataModel.push(row);
         });*/
         this.updateDisplay();
+        var elapsed = new Date().getTime() - start;
+	elapsed = elapsed/1000;
+	console.log('End setData=' + elapsed);
     },
     getDataObjects: function() {
         var that = this;

@@ -367,7 +367,7 @@ console.log('End createLayout =' + elapsed);
         var nRow;
         var nCol;
         var arrColumns=[];
-        debugger;
+        //debugger;
         //saving to global empty data
         var start = new Date().getTime();
 

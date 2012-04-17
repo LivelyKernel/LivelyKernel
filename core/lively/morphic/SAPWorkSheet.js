@@ -88,6 +88,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             }
             this.updateDisplay();
         }
+        
+        //if scroll reached end we need to increase
+
+
     },
     setVisibleRowCount: function(iVisibleRowCount) {
         this.VisibleRowCount = iVisibleRowCount;

@@ -228,6 +228,12 @@ Object.subclass('lively.morphic.Morph',
         if (this.getLayouter()) {
             this.getLayouter().onSubmorphAdded(this, morph, this.submorphs);
         }
+        if (morph.owner.owner) { // Is owner owner a stack?
+            if (morph.owner.owner.pageArray) {
+                morph.pageSpecific = true; // dropped morph is only on this page
+                    // call Stack.beInBackground to place in background
+            }
+        }
         return morph
     },
     withAllSubmorphsDo: function(func, context, depth) {

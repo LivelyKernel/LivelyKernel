@@ -783,12 +783,12 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.updateEvalExpression();
         this.updateDisplay();
         this.grid.recalculateRowsFirst();
-        //if (this.annotation){
-	//   this.annotationCell();
-	//}
-        //if (this.cellformula){
-	//   this.formulaCell();
-	//}
+        if (this.hasAnnotation()){
+	   this.annotationCell();
+	}
+        if (this.hasFormula()){
+	   this.formulaCell();
+	}
     },
     hasAnnotation: function() {
         var bResult = false;

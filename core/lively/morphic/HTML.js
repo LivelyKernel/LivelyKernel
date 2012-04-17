@@ -866,7 +866,7 @@ lively.morphic.Shapes.External.addMethods(
             extent = pt(width, height);
         this.setExtent(extent);
         this.shapeNode = element;
-        ctx.shapeNode = element;
+        ctx && (ctx.shapeNode = element);
     },
 },
 'accessing', {

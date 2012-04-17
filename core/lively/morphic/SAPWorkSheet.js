@@ -881,9 +881,9 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.grid.activeCell = null;
         this.setBorderColor(Color.rgb(177,181,186));
         this.setBorderWidth(1);
-        this.updateEvalExpression();
-        this.updateDisplay();
-        this.grid.recalculateRowsFirst();
+        //this.updateEvalExpression();
+        //this.updateDisplay();
+        //this.grid.recalculateRowsFirst();
     },
     annotationCell: function() {
         this.setBorderColor(Color.orange);

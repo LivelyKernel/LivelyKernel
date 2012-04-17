@@ -211,7 +211,7 @@ console.log('createEmptyCells nEndRow =' + nEndRow );
         var head = this.hideColHeads ? 0 : 1;
 
         //this.setLayouter(new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head));
-	
+	debugger;
         var layouter = new lively.morphic.Layout.GridLayout(
             this, this.numCols, this.numRows + head);
         this.setLayouter(layouter);
@@ -220,6 +220,7 @@ console.log('createEmptyCells nEndRow =' + nEndRow );
 		
 
         this.applyLayout();
+        
 var elapsed = new Date().getTime() - start;
 elapsed = elapsed/1000;
 console.log('End createLayout =' + elapsed);

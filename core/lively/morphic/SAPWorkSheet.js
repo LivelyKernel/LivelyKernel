@@ -212,6 +212,9 @@ console.log('createEmptyCells nEndRow =' + nEndRow );
 
         //this.setLayouter(new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head));
 	//debugger;
+
+        console.log(this.numCols + "," + this.numRows + "," + head )
+
         var layouter = new lively.morphic.Layout.GridLayout(
             this, this.numCols, this.numRows + head);
         this.setLayouter(layouter);

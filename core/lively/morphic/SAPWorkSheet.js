@@ -89,6 +89,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.updateDisplay();
             //if scroll reached end we need to increase
             if (nScrollValue==this.vScroll.valueScale){
+                alert(0)
             }
             
         }

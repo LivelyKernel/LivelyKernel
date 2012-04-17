@@ -417,7 +417,7 @@ console.log('End createLayout =' + elapsed);
 
         var nOrgRow;
         var nOrgCol;
-
+var start = new Date().getTime();
         for (var y = 0; y < this.dataModel.length &&
                 y < this.numRows; y++) {
             for (var x = 0; x < this.dataModel[y].length &&
@@ -446,6 +446,9 @@ console.log('End createLayout =' + elapsed);
         if (this.activeCell) {
             this.activeCellContent = this.activeCell.getContent();
         }
+var elapsed = new Date().getTime() - start;
+	elapsed = elapsed/1000;
+	console.log('updateDisplay:'  + elapsed);
     },
 /*
     onKeyDown: function($super, evt) {

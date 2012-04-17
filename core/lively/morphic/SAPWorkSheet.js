@@ -16,7 +16,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.prviousScrollValue=0;
         this.maxNoofRow = 10000;
         this.maxNoofColumn = 1000;
-        this.maxEmptyRowtoCreate = 500;
+        this.maxEmptyRowtoCreate = 200;
         this.arrData=[];
         this.startRow = 0;      //org start row
         this.endRow = 0;        //org end row

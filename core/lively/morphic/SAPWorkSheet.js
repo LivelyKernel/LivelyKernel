@@ -942,8 +942,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     initialize: function($super, arg) {
         $super(arg);
         this.evalExpression = undefined;
-        this.cellformula='';
-        this.annotation='';//maybe we need array object to save more than one
+        //this.cellformula='';
+        //this.annotation='';//maybe we need array object to save more than one
     },
     updateDisplay: function() {
         if (this.evalExpression !== undefined) {

@@ -86,11 +86,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             }
             this.updateDisplay();
             //if scroll reached end we need to increase
+            /* I need to rework this
             if (nScrollValue==this.vScroll.valueScale){
                this.vScroll.valueScale = nScrollValue + 100;
                this.vScroll.setValue(nScrollValue);
             }
-            
+            */
         }
         
         

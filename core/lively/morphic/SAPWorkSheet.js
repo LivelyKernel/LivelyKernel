@@ -165,7 +165,7 @@ console.log('createEmptyCells nEndRow =' + nEndRow );
         var headOffset = this.hideColHeads ? 0 : 1;
 
         var start = new Date().getTime();
-debgger;
+debugger;
         var self = this,
             cells = lively.morphic.Morph.createN(this.numRows * this.numCols, function() {
                 return self.createCellOptimized();

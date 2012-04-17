@@ -63,7 +63,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
         var nScrollValue= parseInt(evt);//.toFixed(2);
         if (this.prviousScrollValue !=nScrollValue){
-            console.log(nScrollValue);
+            //console.log(nScrollValue);
             this.prviousScrollValue = nScrollValue;
             this.clear();
             this.dataModel = [];

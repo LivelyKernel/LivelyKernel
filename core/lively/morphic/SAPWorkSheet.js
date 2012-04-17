@@ -5,7 +5,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     initialize: function($super, numCols, numRows) {
         $super();
         this.defaultCellHeight = 30;
-        this.defaultCellWidth = 100;
+        this.defaultCellWidth = 120;
         this.borderSize = 50;
         this.colNames = new Array(numCols);
         this.numCols = numCols;

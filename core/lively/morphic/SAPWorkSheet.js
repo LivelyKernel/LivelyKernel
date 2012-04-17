@@ -462,7 +462,7 @@ console.log('End createLayout =' + elapsed);
         var nOrgCol;
 debugger;
 var start = new Date().getTime();
-        for (var y = 1; y < this.dataModel.length &&
+        for (var y = 0; y < this.dataModel.length &&
                 y < this.numRows; y++) {
             for (var x = 0; x < this.dataModel[y].length &&
                     x < this.numCols; x++) {
@@ -483,7 +483,7 @@ var start = new Date().getTime();
                     this.at(x,y).setBorderStyle("dotted");
                     sValue = this.parseFormula(sValue);
                 }
-                this.at(x,y).textString = sValue;
+                this.at(x,y+1).textString = sValue;
             }
         }
         //debugger;

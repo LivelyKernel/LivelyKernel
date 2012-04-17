@@ -772,8 +772,9 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.displayExpression();
     },
     deactivate: function() {
+        console.log("deactivate ")
         if (this.grid.activeCell !== this) {    
-            console.log("activeCell ")
+            
             return;
         }
         this.grid.activeCell = null;

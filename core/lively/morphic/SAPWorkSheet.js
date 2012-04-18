@@ -224,7 +224,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         if(typeof nDataLength == 'undefined') {
             nDataLength = 0;
         }
-        debugger;
+        //debugger;
         var oCell={};
         var arrColumns;
         var nStartRow = this.arrData.length;

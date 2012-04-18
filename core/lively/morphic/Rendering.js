@@ -253,11 +253,6 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
         transform.applyTo(node)
     },
 
-
-
-
-
-
     setExtent: function(node, extent) {
         if (this.isHTML(node)) {
             node.style.width = extent.x + 'px';
@@ -463,14 +458,21 @@ lively.morphic.Morph.addMethods(
         this.setRenderContext(newCtx);
         this.getShape().setRenderContext(newCtx);
         this.renderContextDispatch('init');
-        this.getShape().renderUsing(newCtx);
-        if (this.owner) this.renderContextDispatch('append');
-        for (var i = 0; i < this.submorphs.length; i++)
+        if (this.owner) {
+            this.renderContextDispatch('append');
+        } else {
+            this.getShape().renderUsing(newCtx);
+        }
+        for (var i = 0; i < this.submorphs.length; i++) {
             this.submorphs[i].prepareForNewRenderContext(newCtx.newForChild());
+        }
         this.registerForEvents(Config.handleOnCapture);
         this.resumeStepping();
         this._isRendered = true;
-        if (this.onLoad) this.onLoad.bind(this).delay(0);
+        if (this.onLoad) {
+            var self = this;
+            (function() { self.onLoad(); }).delay(0);
+        }
     },
 
     isRendered: function() {

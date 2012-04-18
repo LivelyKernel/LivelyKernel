@@ -228,26 +228,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 		this.arrData.push(arrColumns);
 	}
     },
-    createEmptyCells: function(nDataLength) {
-        //create this.maxEmptyRowtoCreate
-        if(typeof nDataLength == 'undefined') {
-            nDataLength = 0;
-        }
-        //debugger;
+    createEmptyCells: function() {
+
         var oCell={};
         var arrColumns;
-        var nStartRow = this.arrData.length;
-        var nEndRow = nStartRow + this.maxEmptyRowtoCreate;
-        var nStartColumn=0;
-        var nEndColumn =nStartColumn + this.maxEmptyColumntoCreate;
-
-        if (nEndRow < nDataLength ){
-            nEndRow  = nDataLength ;
-        }
-        
-        for (var nRow = nStartRow ; nRow < nEndRow ; nRow++) {
+       
+        for (var nRow = 0; nRow < this.maxEmptyRowtoCreate; nRow++) {
 		arrColumns=[];
-		for (var nCol = 0; nCol < this.numCols; nCol++) {
+		for (var nCol = 0; nCol < this.maxEmptyColumntoCreate; nCol++) {
                         oCell ={}; 
                         oCell.value = "";
                         oCell.annotation = "";

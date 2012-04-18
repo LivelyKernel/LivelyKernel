@@ -57,6 +57,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     getLayoutableSubmorphs: function() {
         return this.submorphs;
     },
+    updateDataModel: function() {
+        
+    },
     //fires when horizontal scroll moves
     updateColumnDisplay: function(evt) {
         if (isNaN(evt)){

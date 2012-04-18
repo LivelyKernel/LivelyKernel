@@ -377,7 +377,7 @@ console.log('End createLayout =' + elapsed);
 
 
     updateDisplay: function() {
-  
+  debugger;
         for (var y = 0; y < this.dataModel.length &&
                 y < this.numRows; y++) {
             for (var x = 0; x < this.dataModel[y].length &&

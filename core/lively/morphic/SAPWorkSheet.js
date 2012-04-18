@@ -131,9 +131,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             }
             */
         }
-        
-        
-
 
     },
     initializeAnnotation: function() {

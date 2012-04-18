@@ -85,27 +85,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var nScrollValue= parseInt(evt); 
         if (this.prviousScrollColValue!=nScrollValue){
             this.prviousScrollColValue= nScrollValue;
-            this.clear();
-            this.dataModel = [];
-            var nRow;
-            var nCol;
-            var arrColumns=[];
-
+            
             this.startColumn = nScrollValue;
             this.endColumn = this.startColumn + this.numCols;
-            console.log("updateColumnDisplay:startColumn ,endColumn=  " + this.startColumn  + "," + this.endColumn);
-
+           
             if (this.endColumn > this.arrData[0].length){
                 this.expandColumns(this.endColumn);
             }
-            for (nRow = this.startRow; nRow < this.endRow; nRow++) {
-                arrColumns=[];
-                for (nCol = this.startColumn; nCol < this.endColumn; nCol++) {
-                    arrColumns[nCol-this.startColumn] = this.arrData[nRow][nCol];
-	       }
-                this.dataModel.push(arrColumns);
-            }
-            this.updateDisplay();
+            this.updateDataModel();
         }
         
     },

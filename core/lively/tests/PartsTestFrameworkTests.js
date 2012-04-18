@@ -13,7 +13,7 @@ TestCase.subclass('lively.tests.PartsTestFrameworkTests.PartTestTest', 'testing'
         this.part.addPartTest(function test01() {});
         this.part.addPartTest(function test02() {});
         this.part.addPartTest(function test03() {});
-        this.assertEquals(Functions.own(this.part.getTestsObject()).length, 3, 
+        this.assertEquals(Functions.own(this.part.getTestsObject()).length, 3,
                 'part under test was expected to have 3 test methods');
     },
 
@@ -33,7 +33,7 @@ TestCase.subclass('lively.tests.PartsTestFrameworkTests.PartTestTest', 'testing'
         var result;
         this.part.setFill(Color.blue);
         this.part.addPartTest(function test01RectangleIsBlue(aPart) {
-                        this.assert(aPart.getFill().equals(Color.blue), 
+                        this.assert(aPart.getFill().equals(Color.blue),
                             'Rectangle was expected to be blue');
                     });
         result = this.part.runPartTests();
@@ -45,7 +45,7 @@ TestCase.subclass('lively.tests.PartsTestFrameworkTests.PartTestTest', 'testing'
         this.part.addPartTest(function test02() {});
         this.part.addPartTest(function test03() {});
         this.part.removePartTest('test03');
-        this.assertEquals(Functions.own(this.part.getTestsObject()).length, 2, 
+        this.assertEquals(Functions.own(this.part.getTestsObject()).length, 2,
                 'one test method was expected to be removed');
     },
     test05CopyPartBeforeTesting: function() {

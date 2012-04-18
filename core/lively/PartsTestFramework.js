@@ -1,11 +1,11 @@
-module('lively.PartsTestFramework').requires('lively.morphic', 'lively.TestFramework').toRun(function() {
+module('lively.PartsTestFramework').requires('lively.morphic', 'lively.PartsBin', 'lively.TestFramework').toRun(function() {
 
 TestCase.subclass('lively.PartTestCase', 'accessing', {
     allTestSelectors: function() {
         var that = this;
         return Functions.own(that).select(function(selector) {
                 return selector.startsWith('test');
-            }); 
+            });
     },
     createTests: function() {
         var that = this;
@@ -53,10 +53,6 @@ TestCase.subclass('lively.PartTestCase', 'accessing', {
         return this.result;
     },
 
-
-
-
-
 });
 
 lively.morphic.Morph.addMethods('parts testing', {
@@ -79,7 +75,7 @@ lively.morphic.Morph.addMethods('parts testing', {
         }
         delete testsObject[aSelector];
     },
- 
+
     runPartTests: function() {
         var testCase = this.createPartTestCase();
         testCase.runAll();
@@ -96,6 +92,7 @@ lively.morphic.Morph.addMethods('parts testing', {
 
 
 });
+
 TestSuite.addMethods('parts tests', {
 
     addTestCasesFromPart: function(aPart) {
@@ -103,4 +100,5 @@ TestSuite.addMethods('parts tests', {
     },
 
 });
+
 }) // end of module

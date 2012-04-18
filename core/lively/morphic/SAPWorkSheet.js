@@ -109,10 +109,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var nScrollValue= parseInt(evt);//.toFixed(2);
         if (this.prviousScrollValue !=nScrollValue){
             this.prviousScrollValue = nScrollValue;
-            var nRow;
-            var nCol;
-            var arrColumns=[];
-    
+           
             this.startRow = nScrollValue;
             this.endRow = this.startRow + this.numRows;
 
@@ -121,7 +118,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             }
             this.updateDataModel();
 
-            //if scroll reached end we need to increase
+            //if scroll reached end we need to increase??
             /* I need to rework this
             if (nScrollValue==this.vScroll.valueScale){
                this.vScroll.valueScale = nScrollValue + 100;

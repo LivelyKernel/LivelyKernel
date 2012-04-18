@@ -121,14 +121,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         //ignore decimal point
         var nScrollValue= parseInt(evt);//.toFixed(2);
         if (this.prviousScrollValue !=nScrollValue){
-            //console.log(nScrollValue);
             this.prviousScrollValue = nScrollValue;
-            
-            
             var nRow;
             var nCol;
             var arrColumns=[];
-            
+    
             this.startRow = nScrollValue;
             this.endRow = this.startRow + this.numRows;
 

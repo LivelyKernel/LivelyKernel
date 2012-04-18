@@ -172,7 +172,26 @@ lively.morphic.Morph.addMethods(
         ctx.domInterface.setHTMLTransform(ctx.morphNode, this.getRotation(), this.getScale(), value);
     },
     setClipModeHTML: function(ctx, modeString) {
-        this.shape && this.shape.setClipMode(modeString);
+        this.setClipModeHTMLForNode(ctx, ctx.shapeNode, modeString);
+    },
+    setClipModeHTMLForNode: function(ctx, node, state) {
+        if (!node) return;
+        var style = node.style;
+        if (typeof state === "string") {
+            style.removeProperty('overflow-x');
+            style.removeProperty('overflow-y');
+            style.overflow = state;
+        } else if (typeof state === "object") {
+            style.removeProperty('overflow');
+            !state.x && style.removeProperty('overflow-x');
+            !state.y && style.removeProperty('overflow-y');
+            if (state.y) style.overflowY = state.y;
+            if (state.x) style.overflowX = state.x;
+        } else {
+            style.removeProperty('overflow');
+            style.removeProperty('overflow-x');
+            style.removeProperty('overflow-y');
+        }
     },
     showsHorizontalScrollBarHTML: function(ctx) {
         if (!ctx.shapeNode) return false;
@@ -518,7 +537,7 @@ lively.morphic.List.addMethods(
         this.resizeListHTML(ctx);
     },
     setClipModeHTML: function(ctx, modeString) {
-        ctx.listNode.style.overflow = modeString || 'auto';
+        this.setClipModeHTMLForNode(ctx, ctx.listNode, modeString);
     },
     setSizeHTML: function(ctx, size) {
         if (ctx.listNode) ctx.listNode.size = size;
@@ -639,8 +658,7 @@ lively.morphic.Shapes.Shape.addMethods(
         setStrokeOpacity: 'setStrokeOpacityHTML',
         setBorderRadius: 'setBorderRadiusHTML',
         setBorderStyle: 'setBorderStyleHTML',
-        setOpacity: 'setOpacityHTML',
-        setClipMode: 'setClipModeHTML',
+        setOpacity: 'setOpacityHTML'
     },
 },
 'initializing', {
@@ -654,7 +672,6 @@ lively.morphic.Shapes.Shape.addMethods(
         this.setOpacityHTML(ctx, this.getOpacity());
         this.setBorderWidthHTML(ctx, this.getBorderWidth()); // The other border props are initialized there as well
         this.setBorderStyleHTML(ctx, this.getBorderStyle());
-        this.setClipModeHTML(ctx, this.getClipMode());
         this.setPaddingHTML(ctx, this.getPadding()); // also sets extent
         if (UserAgent.fireFoxVersion)
             ctx.shapeNode['-moz-user-modify'] = 'read-only'
@@ -736,9 +753,6 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     setOpacityHTML: function(ctx, value) {
         ctx.shapeNode.style.opacity = value;
-    },
-    setClipModeHTML: function(ctx, modeString) {
-        if (ctx.shapeNode) ctx.shapeNode.style.overflow = modeString || 'auto';
     },
     setPaddingHTML: function(ctx, r) {
         if (r === undefined || !ctx.shapeNode) return r;
@@ -860,13 +874,13 @@ lively.morphic.Shapes.External.addMethods(
             element = XHTMLNS.create('div');
             element.style.backgroundColor = Color.red.toCSSString();
         }
-        var $element = new jQuery.fn.init(element),
+        var $element = $(element),
             width = $element.width() || 0,
             height = $element.height() || 0,
             extent = pt(width, height);
         this.setExtent(extent);
         this.shapeNode = element;
-        ctx && (ctx.shapeNode = element);
+        ctx.shapeNode = element;
     },
 },
 'accessing', {

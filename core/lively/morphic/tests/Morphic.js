@@ -1,96 +1,4 @@
-module('lively.morphic.tests.Morphic').requires('lively.TestFramework', 'lively.morphic.Complete', 'lively.morphic.Layout').toRun(function() {
-
-namespace('lively.morphic.Tests'); // FIXME to be removed
-
-TestCase.subclass('lively.morphic.tests.TestCase',
-'running', {
-    tearDown: function($super) {
-        $super();
-        this.removeTestWorld();
-    },
-},
-'helper', {
-    removeTestWorld: function() {
-        if (this.world) {
-            this.world.remove();
-            this.world = null;
-        }
-        if (this.oldAlert)
-            Global.alert = this.oldAlert;
-        if (this.existingWorld) {
-            this.existingWorld.displayOnCanvas(document.getElementsByTagName('body')[0]);
-            lively.morphic.World.currentWorld = this.existingWorld;
-            this.existingWorld = null;
-        }
-    },
-    openMorphsInRealWorld: function() {
-        this.removeTestWorld();
-    },
-    createWorld: function() {
-        if (this.world) return; // already created
-        this.existingWorld = lively.morphic.World.current();
-        this.world = lively.morphic.World.createOn(document.body, new Rectangle(0,0,300,300));
-        this.oldAlert = Global.alert;
-        Global.alert = function (msg) { this.existingWorld.alert(String(msg)) }.bind(this)
-    },
-    serializeAndDeserializeWorld: function() {
-        if (!this.world) {
-            alert('No test world created');
-            return
-        }
-        var json = this.world.serializeToJSON();
-        this.world.remove();
-        this.world = lively.morphic.World.createFromJSONOn(json, document.body);
-    },
-
-},
-'assertion', {
-    assertNodeMatches: function(expected, node) {
-        var self = this,
-            fail = function fail(msg) { self.assert(false, msg) };
-        if (!expected) fail('expected is null');
-        if (!node) fail('node is null but should be ' + expected.tagName);
-        if (expected.tagName != node.tagName) fail(expected.tagName + '!=' + node.tagName);
-        if (expected.parentNode && (expected.parentNode !== node.parentNode))
-            fail('parent is ' + node.parentNode + ' but should be ' + expected.parentNode);
-
-        if (expected.textContent) {
-            if (expected.textContent != node.textContent)
-                fail('textContent ' + expected.textContent + ' != ' + node.textContent);
-        }
-
-        if (expected.attributes)
-            Properties.forEachOwn(expected.attributes, function(key, expectedValue) {
-                var actualValue = node.getAttribute(key);
-                if (expectedValue instanceof RegExp) {
-                    if (!expectedValue.test(actualValue))
-                        fail('attribute ' + key + ' was ' + actualValue + ' and didn\'t match ' + expectedValue);
-                    return
-                }
-                if (expectedValue != actualValue) {
-                    fail('attribute ' + key + ' not ' + expectedValue + ' but ' + actualValue);
-                }
-            });
-        if (expected.style)
-            Properties.forEachOwn(expected.style, function(key, expected) {
-                if (!node.style[key]) {
-                    alert("Warning: " + key + " is falsy in " + node + ".style");
-                }
-                var actualValue = node.style[key].replace(/ /g, '');
-                if (Object.isFunction(expected)) {
-                    self.assert(expected.call(self, actualValue), 'value ' + actualValue + ' did no match')
-                    return
-                }
-                if (expected != actualValue)
-                    fail('style ' + key + ' not ' + expected + ' but ' + actualValue);
-            });
-        if (expected.childNodeLength)
-            this.assertEquals(expected.childNodeLength, node.childNodes.length, 'childNode.length of ' + node)
-        if (expected.childNodes)
-            for (var i = 0; i < expected.childNodes.length; i++)
-                this.assertNodeMatches(expected.childNodes[i], node.childNodes[i]);
-    },
-});
+module('lively.morphic.tests.Morphic').requires('lively.morphic.tests.Helper', 'lively.morphic.Layout').toRun(function() {
 
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.WorldTests',
 'testing', {
@@ -129,7 +37,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
             childNodes: [
                 {tagName: 'div', childNodes: [ // world shape
                     {tagName: 'div', childNodes: [{tagName: 'div'}]} // m and its shape
-                ]},
+                ]}
             ]};
         this.assertNodeMatches(expected, this.world.renderContext().getMorphNode());
     },
@@ -144,11 +52,10 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
                 {tagName: 'div', childNodes: [ // shape
                     {tagName: 'div'}, // hand
                     {tagName: 'svg', // submorph
-                        childNodes: [{tagName: 'g', childNodes: [{tagName: 'rect'}]}]},
+                        childNodes: [{tagName: 'g', childNodes: [{tagName: 'rect'}]}]}
                 ]}, // world's shape
             ]
         };
-console.log(Exporter.stringify(this.world.renderContext().getMorphNode()));
         this.assertNodeMatches(expected, this.world.renderContext().getMorphNode());
     },
 
@@ -472,12 +379,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CopyMorphTests',
 
         this.assertIdentity(m1, m1.scripts[0].target, 'original target changed');
         this.assertIdentity(copy, copy.scripts[0].target, 'copy target changed');
-    },
-
-
-
+    }
 
 });
+
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
 'testing', {
     test01TextMorphHTML: function() {
@@ -1180,6 +1085,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
     },
 
 });
+
 lively.morphic.tests.TextMorphRichTextTests.subclass('lively.morphic.tests.RichTextTests',
 'testing', {
     test01CreateRichText: function() {
@@ -1232,18 +1138,8 @@ lively.morphic.tests.TextMorphRichTextTests.subclass('lively.morphic.tests.RichT
         this.checkChunks([{textString: 'te', style: {fontWeight: 'bold'}}], this.text)
         this.checkChunks([{textString: 'st', style: {fontWeight: 'bold'}}], rt)
     },
-
-
-
-
-
-
-
-
-
-
-
 });
+
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ButtonMorphTests',
 'testing', {
     test01MorphBoundsOnCreation: function() {
@@ -1252,6 +1148,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ButtonMorphTests'
         this.assertEquals(bounds, morph.getBounds(), 'morph bounds');
     },
 });
+
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ListMorphTests',
 'testing', {
     test01SetAndRetrieveStringItems: function() {
@@ -1344,11 +1241,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ListMorphTests',
         this.assert(isSelected !== '', 'highlight wrong')
     },
 
-
-
-
-
 });
+
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MultipleSelectionListTests',
 'testing', {
     test01GetSelections: function() {
@@ -1375,11 +1269,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MultipleSelection
         this.assertEqualState([], list.getSelections());
     },
 
-
-
-
-
 });
+
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.AppTests',
 'testing', {
     test01ConfirmDialog: function() {
@@ -1400,6 +1291,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.AppTests',
         this.assertEquals('test input', answer, 'ok button does not work')
     },
 });
+
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CanvasRenderingTests',
 'testing', {
     test01UseCanvasRendererForSimpleMorph: function() {
@@ -1451,7 +1343,7 @@ TestCase.subclass('lively.morphic.tests.SimilitudeTests',
     },
 });
 
-AsyncTestCase.subclass('lively.morphic.tests.ScriptTests',
+AsyncTestCase.subclass('lively.morphic.tests.SteppingScriptTests',
 'testing', {
     test01StartAndStopTicking: function() {
         var n = 0, script = new lively.morphic.FunctionScript(function() { script.stop(); n++; });
@@ -1535,6 +1427,7 @@ AsyncTestCase.subclass('lively.morphic.tests.ScriptTests',
         }, 30);
     }
 });
+
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.SerializationTests',
 'testing', {
     test01SerializeSimpleWorld: function() {
@@ -1550,6 +1443,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.SerializationTests'
         this.assert(m1 !== this.world.submorphs[1], 'morphs are identical!!!');
     },
 });
+
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HaloTests',
 'testing', {
     test01ShowHalosForMorph: function() {
@@ -1591,9 +1485,6 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HaloTests',
         result = outer.transformRectForInclusion(r);
         this.assertEquals(new Rectangle(90,90, 10, 10), result);
     },
-
-
-
 
 });
 
@@ -1689,79 +1580,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
         this.assertEquals(expected, result, 'transformed when onerBounds smaller');
     },
 
-
-
 });
 
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.LayoutTests',
-'testing', {
-    test01DropJournalLayoutOnMorph: function() {
-        var container = new lively.morphic.Morph();
-        container.setExtent(new lively.Point(200,200));
-        container.setFill(Color.red);
-        container.setLayouter(new lively.morphic.Layout.JournalLayout());
-        this.world.addMorph(container);
-
-        var text = new lively.morphic.Text();
-        text.setExtent(new lively.Point(300, text.getExtent().y));
-        text.setTextString('hello world');
-        text.openInWorld();
-
-        text.growOrShrinkToFit();
-        container.addMorph(text);
-
-        this.assertEquals(container.getExtent().y, 2*container.getLayouter().getBorderSize() + text.getExtent().y, "expected morph's extent to be 200");
-    },
-    test02ApplyHBoxLayout: function() {
-        var container = new lively.morphic.Morph();
-        container.setExtent(new lively.Point(200,200));
-        container.setFill(Color.red);
-        container.setLayouter(new lively.morphic.Layout.HorizontalLayout());
-        this.world.addMorph(container);
-
-        var child = new lively.morphic.Morph();
-        child.setExtent(new lively.Point(200, 200));
-        child.layout = {};
-        child.layout.resizeWidth = true;
-        child.openInWorld();
-
-        container.addMorph(child);
-
-        this.assertEquals(child.getExtent().x, container.getExtent().x - 2*container.getLayouter().getBorderSize(), "expected child to fit into container");
-    },
-    test03GridLayoutDefaultSizes: function() {
-        var container = new lively.morphic.Morph();
-        container.setExtent(new lively.Point(200,200));
-        container.setFill(Color.red);
-        var grid = new lively.morphic.Layout.GridLayout();
-        container.setLayouter(grid);
-        this.world.addMorph(container);
-
-        for (var x = 0; x < grid.numCols; x++) {
-            assertEquals(grid.defaultColWidth, grid.getMinColWidth(x), 'col width should be same as default');
-        }
-        for (var y = 0; y < grid.numRows; y++) {
-            assertEquals(grid.defaultRowHeight, grid.getMinRowHeight(y), 'row height should be same as default');
-        }
-    },
-    test04TileLayoutMovesFirstMorphToTopLeft: function() {
-        var container = new lively.morphic.Morph();
-        container.setExtent(new lively.Point(200,200));
-        container.setFill(Color.red);
-        var l = new lively.morphic.Layout.TileLayout();
-        container.setLayouter(l);
-        this.world.addMorph(container);
-
-        var m = new lively.morphic.Morph();
-
-        container.addMorph(m);
-
-        this.assertEquals(m.getPosition(), pt(l.getSpacing(), l.getSpacing()), 'TileLayout did not set correct position of first submorph');
-    },
-
-
-
-});
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SelectionTest',
 'testing', {
     testGrabByHand: function() {
@@ -1854,37 +1674,30 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SelectionTest',
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.RenderingTest',
 'testing', {
-    test01NodeIsInDOM: function() {
-        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100),
-            m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
-        m1.addMorph(m2);
-        var domInterface = m1.renderContext().domInterface;
-        this.assert(!domInterface.isInDOM(m1.renderContext().morphNode), 'm1 node in DOM?')
-        this.assert(!domInterface.isInDOM(m2.renderContext().morphNode), 'm2 node in DOM?')
-        this.world.addMorph(m1)
-        this.assert(domInterface.isInDOM(m1.renderContext().morphNode), 'm1 node not in DOM?')
-        this.assert(domInterface.isInDOM(m2.renderContext().morphNode), 'm2 node not in DOM?')
-    },
-    test02RenderCrossBrowserLinearGradient: function() {
-        var gradient = new lively.morphic.LinearGradient(
-            [{offset: 0, color: Color.red}, {offset: 0.8, color: Color.green}], "northSouth");
-            expectedWebkit = '-webkit-gradient(linear, 0% 0%, 0% 100%,color-stop(0, rgb(204,0,0)),color-stop(0.8, rgb(0,204,0)))',
-            expectedFirefox = '-moz-linear-gradient(90deg, rgb(204,0,0) 0%, rgb(0,204,0) 80%)';
-            webkitResult = gradient.toCSSString(new Rectangle(0,0,100,100), '-webkit-'),
-            firefoxResult = gradient.toCSSString(new Rectangle(0,0,100,100), '-moz-');
-        this.assert(expectedWebkit == webkitResult || expectedFirefox == firefoxResult, 'browser does not render gradients correctly');
-    },
-    test02bRenderCrossBrowserRadialGradient: function() {
-        var gradient = new lively.morphic.RadialGradient(
-            [{offset: 0, color: Color.red}, {offset: 0.8, color: Color.green}], pt(0.5,0.3));
-            expectedWebkit = "-webkit-gradient(radial,50%30%,0,50%50%,50,color-stop(0,rgba(204,0,0,1)),color-stop(0.8,rgba(0,204,0,1)))",
-            expectedFirefox = '-moz-radial-gradient(50% 50%, circle cover, rgb(204,0,0) 0%, rgb(0,204,0) 80%)'
-            webkitResult = gradient.toCSSString(new Rectangle(0,0,100,100), '-webkit-'),
-            firefoxResult = gradient.toCSSString(new Rectangle(0,0,100,100), '-moz-');
-        this.assert(expectedWebkit == webkitResult.replace(/\s/g, '') || expectedFirefox == firefoxResult, 'browser does not render gradients correctly');
+    test01MorphKnowsAboutBeingRendered: function() {
+        var renderCalls = 0, test = this,
+            spy = function() {
+                renderCalls++;
+                test.assert(!this.isRendered(), "rendered too early?");
+            },
+            mock = this.mockClass(lively.morphic.Morph, 'prepareForNewRenderContext', spy).callsThrough(),
+            morph = new lively.morphic.Morph();
+        this.assertEquals(1, renderCalls);
+        this.assert(morph.isRendered(), "morph not rendered?");
     },
 
-
+    test02MorphNotRenderedAfterDeserialization: function() {
+        var morph = new lively.morphic.Morph(),
+            renderCalls = 0, test = this,
+            spy = function() {
+                renderCalls++;
+                test.assert(!this.isRendered(), "copy rendered too early?");
+            },
+            mock = this.mockClass(lively.morphic.Morph, 'prepareForNewRenderContext', spy).callsThrough(),
+            copy = morph.copy();
+        this.assertEquals(1, renderCalls);
+        this.assert(copy.isRendered(), "copy not rendered?");
+    }
 });
 
 

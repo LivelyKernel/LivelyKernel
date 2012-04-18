@@ -567,6 +567,32 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.GridLayout',
     defaultRowHeight: 50,
     defaultColWidth: 100
 },
+'initializing', {
+
+    initialize: function(container, numberOfColumns, numberOfRows) {
+        this.numCols = numberOfColumns;
+        this.numRows = numberOfRows;
+        this.morphsAdded = 0;
+        this.rows = [];
+        if (container) {
+            this.setContainer(container);
+        }
+    },
+
+    initializePlaceholders: function() {
+        this.rows = [];
+        for (var y = 0; y < this.numRows; y++) {
+            var row = []
+            for (var x = 0; x < this.numCols; x++) {
+                //fill owner with placeholders
+                var m = new lively.morphic.Layout.GridLayoutPlaceholder(x, y);
+                row.push(m);
+            }
+            this.rows.push(row);
+        }
+    },
+
+},
 'default category', {
 
     basicLayout: function(container, submorphs) {
@@ -578,15 +604,17 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.GridLayout',
         this.adjustRowAndColSizes();
         this.adjustPositions();
     },
+
     fillWithPlaceholders: function(container, submorphs) {
-        var submorphIndex = 0;
-        var that = this;
+        var submorphIndex = 0,
+            that = this;
         submorphs.forEach(function(ea) {
-            if (ea.gridCoords) {
-                if (ea.gridCoords.y >= that.numRows || ea.gridCoords.x >= that.numCols) {
-                    return;}
-                that.rows[ea.gridCoords.y][ea.gridCoords.x] = ea;
-                submorphIndex++;}
+            if (!ea.gridCoords) return;
+            if (ea.gridCoords.y >= that.numRows || ea.gridCoords.x >= that.numCols) {
+                return;
+            }
+            that.rows[ea.gridCoords.y][ea.gridCoords.x] = ea;
+            submorphIndex++;
         });
 
         for (var y = 0; y < this.numRows; y++) {
@@ -642,25 +670,6 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.GridLayout',
 	      return aMorph.getCenter().x;
     },
 
-    initialize: function(container, numberOfColumns, numberOfRows) {
-        this.numCols = numberOfColumns;
-        this.numRows = numberOfRows;
-        this.morphsAdded = 0;
-        this.rows = [];
-        if (container) this.setContainer(container);
-    },
-    initializePlaceholders: function() {
-        this.rows = [];
-        for (var y = 0; y < this.numRows; y++) {
-            var row = []
-            for (var x = 0; x < this.numCols; x++) {
-                // fill owner with placeholders
-                var m = new lively.morphic.Layout.GridLayoutPlaceholder(x, y);
-                row.push(m);
-            }
-            this.rows.push(row);
-        }
-    },
     getColWidth: function(columnIndex) {
         var cellsInCol = this.rows.map(function(ea) { return ea[columnIndex]; });
         return cellsInCol.reduce(function(s, ea) {return Math.max(ea.getExtent().x, s);}, 0);

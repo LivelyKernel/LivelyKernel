@@ -1,4 +1,4 @@
-module('lively.morphic.AdditionalMorphs').requires('lively.morphic.Halos').toRun(function() {
+module('lively.morphic.AdditionalMorphs').requires('lively.morphic.Halos', 'lively.persistence.MassMorphCreation').toRun(function() {
 
 lively.morphic.Morph.subclass('lively.morphic.Path',
 'properties', {
@@ -556,13 +556,27 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         this.createCells();
         this.createLayout();
     },
+
     createCells: function() {
         var headOffset = this.hideColHeads ? 0 : 1;
+
+        var self = this,
+            cells = lively.morphic.Morph.createN(this.numRows * this.numCols, function() {
+                return self.createCellOptimized();
+            });
+
+        function addCellToRow(row, x, y) {
+            var cell = cells.pop();
+            cell.addToGrid(self);
+            cell.gridCoords = pt(x, y + headOffset);
+            cell.name = '[' + x + ';' + y + ']';
+            row.push(cell);
+        }
+
         for (var y = 0; y < this.numRows; y++) {
             var row = [];
             for (var x = 0; x < this.numCols; x++) {
-                var cell = this.createCell(x, y, headOffset);
-                row.push(cell);
+                addCellToRow(row, x, y);
             }
             this.rows.push(row);
         }
@@ -576,6 +590,13 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         cell.name = '[' + x + ';' + y + ']';
         return cell;
     },
+
+    createCellOptimized: function() {
+       var cell = new lively.morphic.DataGridCell();
+       cell.doitContext = this;
+       cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
+       return cell;
+   },
 
     createColHeads: function() {
         this.colHeads = [];
@@ -596,9 +617,18 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
 
 
     createLayout: function() {
-        var head = this.hideColHeads ? 0 : 1;
-        this.setLayouter(new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head));
+        var head = this.hideColHeads ? 0 : 1,
+            layouter = new lively.morphic.Layout.GridLayout(
+                this, this.numCols, this.numRows + head);
+        this.setLayouter(layouter);
+        layouter.rows = this.rows;
         this.applyLayout();
+    },
+
+    getLayoutableSubmorphs: function() {
+        // FIXME this is for improving the layouting performance
+        // but it actually should work like $super
+        return this.submorphs;
     },
 
     at: function(x, y) {

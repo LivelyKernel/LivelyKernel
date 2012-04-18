@@ -1010,7 +1010,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         //Saving annotation
         var nOrgRow = this.nRow+ this.grid.startRow;
         var nOrgCol = this.nColumn+ this.grid.startColumn;
-
+debugger;
         this.grid.setAnnotation(nOrgCol ,nOrgRow,this.textString);
 
         //this.textString += String.fromCharCode(evt.getKeyCode());

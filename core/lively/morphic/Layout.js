@@ -260,6 +260,7 @@ Object.subclass('lively.morphic.Layout.Layout',
         // todo: refactor layout, basicLayout, ...
         // I need this so LayoutConfigurator can instantly relayout me
         this.container = aMorph;
+        aMorph.setLayouter(this);
         aMorph.applyLayout();
     },
     getContainer: function() {

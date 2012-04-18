@@ -4,7 +4,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests.Dat
 'running', {
     setUp: function($super) {
         $super();
-        this.grid = new lively.morphic.DataGrid(5,5);
+        this.grid = new lively.morphic.DataGrid(5,5, true);
         this.grid.openInWorld();
     },
     tearDown: function($super) {
@@ -25,7 +25,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests.Dat
         this.grid.at(2,2).put('76');
         this.grid.at(2,3).put('22');
         this.grid.at(2,4).put(this.grid.evaluateExpression("cell(2,2) + cell(2,3)"));
-        this.assertEquals(this.grid.at(2,4).textString, '98', 'evaluated expression did not add correctly'); 
+        this.assertEquals(this.grid.at(2,4).textString, '98', 'evaluated expression did not add correctly');
     },
     test04setArrayData: function() {
         this.grid.setData([ ['Hello', 'World'], [1, 3] ]);
@@ -52,13 +52,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests.Dat
         //this.assertEquals(this.grid.at(0,1).getExtent().y, 77, 'row should have been resized');
     },
     test07saveAndEditEvalExpression: function() {
-        var cell = this.grid.at(0,0);
+        var cell = this.grid.at(1,1);
         cell.activate();
         cell.textString = '=8*2';
         this.grid.at(0,1).activate();
         this.assertEquals(cell.textString, '16', 'cell should display result of 8*2');
         cell.activate();
-        this.assertEquals(cell.textString, '=8*2', 'cell should display expression =8*2'); 
+        this.assertEquals(cell.textString, '=8*2', 'cell should display expression =8*2');
     },
     test08recalculateRowsFirst: function() {
         var cell1, cell2;
@@ -97,7 +97,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests.Dat
         this.assertEquals(this.grid.getActiveRowIndex(), 3, 'getActiveRowIndex should return 3');
     },
     test12setHeadingsForColNames: function() {
-        this.grid.clear();
+        this.grid = new lively.morphic.DataGrid(5,5, false/*show col heads*/);
+        this.grid.openInWorld();
         this.grid.setColNames(['Foo', 'Bar']);
         this.assertEquals(this.grid.getColHead(0).textString, 'Foo', 'column header not set');
         this.assertEquals(this.grid.getColHead(1).textString, 'Bar', 'column header not set');
@@ -111,8 +112,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests.Dat
         var numCols = this.grid.numCols;
         this.grid.addCol();
         this.grid.at(numCols, 3).put(42);
-        this.assertEquals(this.grid.evaluateExpression('cell(' + numCols + ', 3)'), 
-            42, 
+        this.assertEquals(this.grid.evaluateExpression('cell(' + numCols + ', 3)'),
+            42,
             'expresssion did not evaluate correctly')
     },
     test15addRowAddsRow: function() {
@@ -159,20 +160,20 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests.Dat
     },
     test20removeCol: function() {
         this.grid.clear();
-        var numCols = this.grid.numCols;
-        var names = new Array(numCols);
+        var numCols = this.grid.numCols,
+            names = new Array(numCols);
         for (var i = 0; i < numCols; i++) {
             names[i] = 'col' + i;
             this.grid.at(0,i).put(i);
         }
         this.grid.setColNames(names);
         this.grid.removeCol();
-        this.assertEquals(this.grid.getDataObjects()[0]['col'+(numCols-1)],
-            undefined,
-            'last column was not removed');
+        this.assertEquals(this.grid.getDataObjects()[0]['col'+ (numCols-1)],
+                          undefined,
+                          'last column was not removed');
         this.assertEquals(this.grid.colHeads[numCols-1],
-            undefined,
-            'last column head was not removed');
+                          undefined,
+                          'last column head was not removed');
     },
     test21getActiveColName: function() {
         this.grid.clear();

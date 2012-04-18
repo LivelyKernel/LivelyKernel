@@ -529,9 +529,11 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
 },
 'initialization', {
 
-    initialize: function($super, numCols, numRows) {
+    initialize: function($super, numCols, numRows, hideColHeads) {
         $super();
+        this.hideColHeads = !!hideColHeads;
         this.colNames = new Array(numCols);
+        this.colHeads = [];
         this.numCols = numCols;
         this.numRows = numRows;
         this.activeCellContent = '';
@@ -558,9 +560,8 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
     },
 
     createCells: function() {
-        var headOffset = this.hideColHeads ? 0 : 1;
-
-        var self = this,
+        var headOffset = this.hideColHeads ? 0 : 1,
+            self = this,
             cells = lively.morphic.Morph.createN(this.numRows * this.numCols, function() {
                 return self.createCellOptimized();
             });
@@ -599,12 +600,12 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
    },
 
     createColHeads: function() {
-        this.colHeads = [];
         for (var i = 0; i < this.numCols; i++) {
             var head = this.createColHead(i);
             this.colHeads.push(head);
         }
     },
+
     createColHead: function(index, title) {
         var head = new lively.morphic.DataGridColHead();
         head.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
@@ -615,12 +616,10 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         return head;
     },
 
-
     createLayout: function() {
         var head = this.hideColHeads ? 0 : 1,
             layouter = new lively.morphic.Layout.GridLayout(
                 this, this.numCols, this.numRows + head);
-        this.setLayouter(layouter);
         layouter.rows = this.rows;
         this.applyLayout();
     },
@@ -637,6 +636,7 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
     atPut: function(x, y, value) {
         this.rows[y][x].textString = value;
     },
+
     clear: function() {
         for (var y = 0; y < this.numRows; y++) {
             for (var x = 0; x < this.numCols; x++) {
@@ -869,17 +869,17 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
     },
     removeCol: function() {
         var lastColIndex = this.numCols - 1;
-        this.rows.map(function(ea) {
-            return ea[lastColIndex];}).
-                forEach(function(ea) {
-                    delete ea.gridCoords;
-                    ea.remove();});
-        this.rows.forEach(function(ea) {
-            ea.pop();});
-
-        delete this.colHeads[lastColIndex].gridCoords;
-        this.colHeads[lastColIndex].remove();
-        this.colHeads.pop();
+        for (var i = 0; i < this.numRows; i++) {
+            delete this.rows[i][lastColIndex].gridCoords;
+            this.rows[i][lastColIndex].remove();
+            this.rows[i].pop();
+        }
+        var lastColHead = this.colHeads[lastColIndex];
+        if (lastColHead) {
+            delete lastColHead.gridCoords;
+            lastColHead.remove();
+            this.colHeads.pop();
+        }
         while (this.colNames.length > lastColIndex) {
             this.colNames.pop();
         }
@@ -887,16 +887,16 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         this.numCols--;
         this.createLayout();
     },
+
     removeRow: function() {
         var lastRowIndex = this.numRows - 1;
         this.rows[lastRowIndex].forEach(function(ea) {
             delete ea.gridCoords;
-            ea.remove();});
+            ea.remove(); });
         this.rows.pop();
         this.numRows--;
         this.createLayout();
     },
-
 
     morphMenuItems: function ($super) {
         var items = $super();
@@ -995,12 +995,11 @@ lively.morphic.Text.subclass('lively.morphic.DataGridCell',
 
 });
 
-lively.morphic.Text.subclass('lively.morphic.DataGridColHead',
+lively.morphic.DataGridCell.subclass('lively.morphic.DataGridColHead',
+'settings', {
+    style: { fill: Color.rgb(220, 220, 200) }
+},
 'default category', {
-    initialize: function($super, arg1, arg2) {
-        $super(arg1, arg2);
-        this.setFill(Color.rgb(220, 220, 200));
-    },
     addToGrid: function(aGrid) {
         this.grid = aGrid;
         this.grid.addMorph(this);

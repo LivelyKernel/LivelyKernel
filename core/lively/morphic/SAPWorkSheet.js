@@ -63,7 +63,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             return;
         }
         this.hideAnnotation();
-         var nScrollValue= parseInt(evt);
+        //ignol decimal point
+        var nScrollValue= parseInt(evt); 
+        if (this.prviousScrollColValue!=nScrollValue){
+            
+        }
         
     },
     updateRowDisplay: function(evt) {

@@ -178,7 +178,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
         } else if (this.isSVG(node)) {
             this.setSVGFillOrStrokePaint(node, 'fill', fill);
         }
-        
+
     },
     setSVGFillOrStrokePaint: function(node, propName, paint) {
         var cachedProperty = '_' + propName; // like _fill
@@ -433,15 +433,18 @@ Object.subclass('lively.morphic.Rendering.RenderContext',
 
 lively.morphic.Morph.addMethods(
 'rendering', {
+
     renderUsing: function(renderContext) {
         this.renderAfterUsing(renderContext, null);
     },
+
     renderAfterUsing: function(renderContext, morphBefore) {
         this.replaceRenderContextWith(renderContext);
         if (!renderContext.morphNode)
             this.prepareForNewRenderContext(renderContext)
         this.renderContextDispatch('append', morphBefore);
     },
+
     replaceRenderContextWith: function(newCtx) {
         var oldCtx = this.renderContext()
         if (oldCtx === newCtx) return;
@@ -449,11 +452,13 @@ lively.morphic.Morph.addMethods(
         this.renderContextDispatch('replaceRenderContext', newCtx);
         this.prepareForNewRenderContext(newCtx)
     },
+
     replaceRenderContextCompletely: function(newRenderContext) {
         this.remove()
         this.replaceRenderContextWith(newRenderContext);
         if (this.displayOnCanvas) this.displayOnCanvas(document.body);
     },
+
     prepareForNewRenderContext: function(newCtx) {
         this.setRenderContext(newCtx);
         this.getShape().setRenderContext(newCtx);

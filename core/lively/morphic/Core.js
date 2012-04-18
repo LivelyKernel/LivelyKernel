@@ -290,19 +290,21 @@ Object.subclass('lively.morphic.Morph',
     },
 },
 'morph removal', {
+
     remove: function() {
         this.suspendSteppingAll();
         if (this.showsHalos) this.removeHalos();
         this.renderContextDispatch('remove');
     },
+
     removeMorph: function(morph) {
+        // PRIVATE! do *not* call directly
         this.submorphs = this.submorphs.without(morph);
         morph.owner = null;
         if (this.getLayouter()) {
             this.getLayouter().onSubmorphRemoved(this, morph, this.submorphs);
         }
     },
-
 
 },
 'transformation', {
@@ -569,7 +571,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
     } else {
         width = topmost.clientWidth * scale;
         height = topmost.clientHeight * scale;
-    } 
+    }
     return topLeft.scaleBy(scale).extent(pt(width, height));
     },
 

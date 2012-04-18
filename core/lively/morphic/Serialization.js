@@ -41,8 +41,8 @@ lively.morphic.Morph.addMethods(
         }
         // this.prepareForNewRenderContext(this.renderContext());
     },
-    onstore: function() {
-    },
+
+    onstore: function() {},
 
 },
 'copying', {

@@ -366,8 +366,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     setMaxTextHeight: function(value) { this.morphicSetter('MaxTextHeight', value) },
     setMinTextWidth: function(value) { this.morphicSetter('MinTextWidth', value) },
     setMinTextHeight: function(value) { this.morphicSetter('MinTextHeight', value) },
-
-
     getTextNode: function() { return this.renderContext().textNode },
 
 },

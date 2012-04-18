@@ -75,7 +75,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
             this.startColumn = nScrollValue;
             this.endColumn = this.startColumn + this.numCols;
-            
+            console.log("updateColumnDisplay:startColumn ,endColumn=  " + startColumn  + "," + endColumn);
 
         }
         

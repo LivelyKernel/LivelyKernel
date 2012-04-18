@@ -91,6 +91,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.endColumn = this.startColumn + this.numCols;
             console.log("updateColumnDisplay:startColumn ,endColumn=  " + this.startColumn  + "," + this.endColumn);
 
+            if (this.endColumn > this.arrData[0].length){
+                this.createEmptyCells();
+            }
+
         }
         
     },

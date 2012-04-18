@@ -182,7 +182,7 @@ console.log('createEmptyCells nEndRow =' + nEndRow );
             cells = lively.morphic.Morph.createN(this.numRows * this.numCols, function() {
                 return self.createCellOptimized();
             });
-debugger;
+//debugger;
         for (var y = 0; y < this.numRows; y++) {
             var row = [];
             for (var x = 0; x < this.numCols; x++) {

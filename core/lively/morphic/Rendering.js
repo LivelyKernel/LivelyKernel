@@ -469,9 +469,17 @@ lively.morphic.Morph.addMethods(
             this.submorphs[i].prepareForNewRenderContext(newCtx.newForChild());
         this.registerForEvents(Config.handleOnCapture);
         this.resumeStepping();
+        this._isRendered = true;
         if (this.onLoad) this.onLoad.bind(this).delay(0);
     },
 
+    isRendered: function() {
+        // can be used to determine if this morph and all submorphs are
+        // rendered aleady = have a DOM representation. This does *not* mean that
+        // this morph is in the DOM! (use !!this.world() for this test). More specifically,
+        // even when you call #remove this will still return true since the morph
+        return !!this._isRendered;
+    }
 });
 
 lively.morphic.Shapes.Shape.addMethods(

@@ -46,7 +46,7 @@ lively.morphic.Morph.addMethods(
 
 },
 'copying', {
-    doNotSerialize: ['_renderContext', 'halos'],
+    doNotSerialize: ['_renderContext', 'halos', '_isRendered'],
 
     copy: function() {
         var copy = this.basicCopy();

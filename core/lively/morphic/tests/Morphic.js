@@ -1674,9 +1674,30 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SelectionTest',
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.RenderingTest',
 'testing', {
+    test01MorphKnowsAboutBeingRendered: function() {
+        var renderCalls = 0, test = this,
+            spy = function() {
+                renderCalls++;
+                test.assert(!this.isRendered(), "rendered too early?");
+            },
+            mock = this.mockClass(lively.morphic.Morph, 'prepareForNewRenderContext', spy).callsThrough(),
+            morph = new lively.morphic.Morph();
+        this.assertEquals(1, renderCalls);
+        this.assert(morph.isRendered(), "morph not rendered?");
     },
 
-
+    test02MorphNotRenderedAfterDeserialization: function() {
+        var morph = new lively.morphic.Morph(),
+            renderCalls = 0, test = this,
+            spy = function() {
+                renderCalls++;
+                test.assert(!this.isRendered(), "copy rendered too early?");
+            },
+            mock = this.mockClass(lively.morphic.Morph, 'prepareForNewRenderContext', spy).callsThrough(),
+            copy = morph.copy();
+        this.assertEquals(1, renderCalls);
+        this.assert(copy.isRendered(), "copy not rendered?");
+    }
 });
 
 

@@ -85,8 +85,14 @@ Object.extend(Object, {
         return typeof object == "undefined";
     },
 
+    isRegExp: function(object) {
+        return object instanceof RegExp;
+    },
+
     inherit: function(obj) {
-        var constructor = function ProtoConstructor() { return this }
+        var constructor = function ProtoConstructor() {
+            return this
+        }
         constructor.prototype = obj;
         var newInstance = new constructor();
         newInstance.constructor = constructor;
@@ -96,17 +102,13 @@ Object.extend(Object, {
     merge: function(objs) {
         // if objs are arrays just concat them
         // if objs are real objs then merge properties
-        if (Object.isArray(objs[0])) { // test for all?
-            return Array.prototype.concat.apply([], objs)
-        }
+        if (Object.isArray(objs[0])) // test for all?
+        return Array.prototype.concat.apply([], objs)
         var result = {};
         for (var i = 0; i < objs.length; i++) {
             var obj = objs[i];
-            for (var name in obj) {
-                if (obj.hasOwnProperty(name)) {
-                    result[name] = obj[name];
-                }
-            }
+            for (var name in obj)
+            if (obj.hasOwnProperty(name)) result[name] = obj[name]
         }
         return result;
     },
@@ -130,13 +132,12 @@ Object.extend(Object, {
     },
 
     protoCopy: function(obj) {
-        var protoCreator = function() {
-                return this
-            };
+        var protoCreator = function() { return this };
         protoCreator.prototype = obj;
         var protoObj = new protoCreator();
         return protoObj;
     }
+
 });
 
 
@@ -157,14 +158,11 @@ if (this.window && window.navigator && window.navigator.userAgent.match(/Firefox
 // Global Helper - Objects and Properties
 ///////////////////////////////////////////////////////////////////////////////
 
-Objects = {
+var Objects = {
+
     typeStringOf: function(obj) {
-        if (obj === null) {
-            return "null";
-        }
-        if (Object.isUndefined(obj)) {
-            return "undefined";
-        }
+        if (obj === null) { return "null" }
+        if (Object.isUndefined(obj)) { return "undefined" }
         return obj.constructor.name;
     },
 
@@ -203,12 +201,12 @@ Objects = {
         try {
             return obj ? obj.toString() : String(obj);
         } catch (e) {
-            return '<error printing object>'
+            return '<error printing object>';
         }
     }
 };
 
-Properties = {
+var Properties = {
     all: function(object, predicate) {
         var a = [];
         for (var name in object) {
@@ -252,6 +250,6 @@ Properties = {
     },
 
     printObjectSize: function(obj) {
-        return Numbers.humanReadableByteSize(JSON.stringify(obj).length)
+        return Numbers.humanReadableByteSize(JSON.stringify(obj).length);
     }
 };

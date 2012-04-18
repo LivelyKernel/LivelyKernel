@@ -189,12 +189,27 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	elapsed = elapsed/1000;
 	console.log('End initializeMorph=' + elapsed);
     },
-    expandColumns: function() {
+    //expand column data when moving scroll
+    expandColumns: function(nDataLength) {
         var start = new Date().getTime();    
         
-        
+        var nStartColumn=0;
+        var nEndColumn =nStartColumn + this.maxEmptyColumntoCreate;
+        if (nEndColumn < nDataLength ){
+            nEndColumn = nDataLength ;
+        }
 
-
+        for (var nRow = 0; nRow < this.arrData.length; nRow++) {
+		arrColumns=[];
+		for (var nStartColumn = 0; nCol < nEndColumn ; nCol++) {
+                        oCell ={}; 
+                        oCell.value = "";
+                        oCell.annotation = "";
+                        oCell.formula = "";
+			arrColumns[nCol] = oCell ;
+		}
+		this.arrData.push(arrColumns);
+	}
 
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;

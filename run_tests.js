@@ -69,6 +69,7 @@ var testList = [
 
     // persistence
     "lively.persistence.tests.PersistenceTests",
+    'lively.persistence.tests.MassMorphCreation',
 
     // ide / SCB
     "lively.ide.tests.FileParserTests",
@@ -80,6 +81,8 @@ var testList = [
     "lively.morphic.tests.CoreToolsTests",
     "lively.morphic.tests.DataGridTests",
     "lively.morphic.tests.EventTests",
+    'lively.morphic.tests.HTML',
+    "lively.morphic.tests.Layout",
     "lively.morphic.tests.Morphic",
     "lively.morphic.tests.Morphic2",
     "lively.morphic.tests.PathTests",

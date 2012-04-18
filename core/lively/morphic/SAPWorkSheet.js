@@ -57,6 +57,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     getLayoutableSubmorphs: function() {
         return this.submorphs;
     },
+    //fires when horizontal scroll moves
     updateColumnDisplay: function(evt) {
         if (isNaN(evt)){
             console.log("updateColumnDisplay: NaN= " + evt);
@@ -80,6 +81,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
         
     },
+    //fires when vertical scroll moves
     updateRowDisplay: function(evt) {
        //debugger;
         

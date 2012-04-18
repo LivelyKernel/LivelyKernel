@@ -121,8 +121,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         if (this.prviousScrollValue !=nScrollValue){
             //console.log(nScrollValue);
             this.prviousScrollValue = nScrollValue;
-            this.clear();
-            this.dataModel = [];
+            
             
             var nRow;
             var nCol;
@@ -134,7 +133,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             if (this.endRow> this.arrData.length){
                 this.createEmptyCells();
             }
-            
+            this.updateDataModel();
             /*for (nRow = this.startRow; nRow < this.endRow; nRow++) {
                 arrColumns=[];
                 for (nCol = this.startColumn; nCol < this.endColumn; nCol++) {

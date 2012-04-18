@@ -15,8 +15,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
          //for smart scroll feature
         this.prviousScrollValue=0;  //saving vertical scroll value
         this.prviousScrollColValue=0; //saving horizontal scroll value
-        this.maxNoofRow = 10000;
-        this.maxNoofColumn = 1000;
         this.maxEmptyRowtoCreate = 200;
         this.maxEmptyColumntoCreate = 50;
         this.arrData=[];

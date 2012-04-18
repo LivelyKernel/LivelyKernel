@@ -454,9 +454,12 @@ console.log('End createLayout =' + elapsed);
         this.arrData = aJsArray;
         //i need to rework this
         
-        
-        this.vScroll.valueScale = this.arrData.length;
-        this.hScroll.valueScale = this.arrData[0].length;
+        if (this.arrData.length > this.defaultMaxRowScrollValue){
+            this.vScroll.valueScale = this.arrData.length;
+        }
+        if (this.arrData.length > this.defaultMaxColScrollValue){
+            this.hScroll.valueScale = this.arrData[0].length;
+        }
 
         //saving only visible row/column to dataModel
         for (nRow = 0; nRow < this.numRows; nRow++) {

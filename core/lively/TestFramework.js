@@ -44,9 +44,9 @@ Object.subclass('TestCase',
 },
 'accessing', {
     name: function() { return this.constructor.type },
-    getTestName: function() { 
+    getTestName: function() {
         // renamed from testName. not called. remove?
-        return this.name() + '>>' + this.currentSelector 
+        return this.name() + '>>' + this.currentSelector;
     },
     id: function() { return this.name() + '>>' + this.currentSelector },
     allTestSelectors: function() {
@@ -114,6 +114,7 @@ Object.subclass('TestCase',
             this.addAndSignalFailure(e);
          } finally {
             try {
+                this.uninstallMocks();
                 this.tearDown();
             } catch(e) {
                 this.log('Couldn\'t run tearDown for ' + this.id() + ' ' + e);
@@ -264,6 +265,24 @@ Object.subclass('TestCase',
             };
             this.assertMatches(expected, actual, msg);
         }
+    },
+    assertRaises: function(/*func, optMatcher, msg*/) {
+        var args = Array.from(arguments),
+            func = args[0],
+            matcherRegexp = Object.isRegExp(args[1]) && args[1],
+            matcherFunc = (matcherRegexp && function(e) { return matcherRegexp.test(String(e)); })
+                       || (Object.isFunction(args[1]) && args[1]),
+            msg = matcherFunc || matcherRegexp ? args[2] : args[1];
+        try {
+            func();
+        } catch(e) {
+            if (matcherFunc) {
+                this.assert(matcherFunc(e), 'exception ' + e + ' raised but did no match '
+                                          + matcherFunc);
+            }
+            return;
+        }
+        this.assert(false, "No assertion raised. " + msg);
     }
 },
 
@@ -353,6 +372,39 @@ Object.subclass('TestCase',
         var func = Function.fromString(funcOrString);
         return func.asScriptOf(this, optName);
     }
+},
+'mocks', {
+    mock: function(obj, selector, spyFunc) {
+        var orig = obj[selector],
+            own = obj.hasOwnProperty(selector),
+            spy = {
+                install: function() { obj[selector] = spyFunc; return this },
+                uninstall: function() {
+                    if (own) obj[selector] = orig;
+                    else delete obj[selector];
+                    return this;
+                },
+                callsThrough: function() {
+                    obj[selector] = function() {
+                        spyFunc.apply(this, arguments);
+                        return orig.apply(this, arguments);
+                    };
+                    return this;
+                }
+            };
+        this.mocked = this.mocked || [];
+        this.mocked.push(spy);
+        return spy.install();
+    },
+
+    mockClass: function(klass, selector, mockFunc) {
+        return this.mock(klass.prototype, selector, mockFunc);
+    },
+
+    uninstallMocks: function() {
+        if (!this.mocked) return;
+        this.mocked.invoke('uninstall');
+    }
 });
 
 Function.addMethods(
@@ -408,8 +460,11 @@ TestCase.subclass('AsyncTestCase', {
     runAllThenDo: function(statusUpdateFunc, whenDoneFunc) {
         this.runAll(statusUpdateFunc, whenDoneFunc);
     },
-    runAndDoWhenDone: function(func) {
-        this.runTest();
+    runAndDoWhenDone: function(/*optTestSelector, whenDoneFunc*/) {
+        var args            = Array.from(arguments),
+            optTestSelector = Object.isString(args[0]) && args[0],
+            whenDoneFunc    = optTestSelector ? args[1] : args[0];
+        this.runTest(optTestSelector);
         var self = this, waitMs = 100; // time for checking if test is done
         (function doWhenDone(timeWaited) {
             if (timeWaited >= self._maxWaitDelay) {
@@ -424,10 +479,11 @@ TestCase.subclass('AsyncTestCase', {
                 return;
             }
             try {
+                self.uninstallMocks();
                 self.tearDown();
             } catch(e) { if (!self._errorOccured) self.addAndSignalFailure(e) }
             if (!self._errorOccured) self.addAndSignalSuccess();
-            func();
+            whenDoneFunc && whenDoneFunc();
         })(0);
     },
     scheduled: function() { this.show('Scheduled ' + this.id()) },

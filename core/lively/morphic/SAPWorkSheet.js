@@ -93,6 +93,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
             if (this.endColumn > this.arrData[0].length){
                 //this.createEmptyCells();
+                //
                  console.log("need create columns");
             }
 
@@ -196,6 +197,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var arrColumns;
         var nStartRow = this.arrData.length;
         var nEndRow = nStartRow + this.maxEmptyRowtoCreate;
+        var nStartColumn=0;
+        var nEndColumn =0;
 
         if (nEndRow < nDataLength ){
             nEndRow  = nDataLength ;

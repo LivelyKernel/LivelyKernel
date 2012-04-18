@@ -147,6 +147,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             }
             this.rows.push(row);
         }
+debugger;
        var elapsed = new Date().getTime() - start;
 		elapsed = elapsed/1000;
 		 console.log('End createCells =' + elapsed);

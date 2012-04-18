@@ -83,6 +83,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.hideAnnotation();
         //ignore decimal point
         var nScrollValue= parseInt(evt); 
+
         if (this.prviousScrollColValue!=nScrollValue){
             this.prviousScrollColValue= nScrollValue;
             
@@ -93,6 +94,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 this.expandColumns(this.endColumn);
             }
             this.updateDataModel();
+             /* I need to rework this
+            if (nScrollValue==this.vScroll.valueScale){
+               this.hScroll.valueScale = nScrollValue + 100;
+               this.hScroll.setValue(nScrollValue);
+            }
+            */
         }
         
     },

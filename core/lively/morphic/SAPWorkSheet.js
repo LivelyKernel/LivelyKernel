@@ -121,7 +121,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.endRow = this.startRow + this.numRows;
 
             if (this.endRow> this.arrData.length){
-                this.createEmptyCells();
+                this.expandRows();
             }
             this.updateDataModel();
 

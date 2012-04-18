@@ -21,10 +21,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.maxEmptyColumntoCreate = 50;
         this.arrData=[];
         this.startRow = 0;      //org start row
-        this.endRow = 0;        //org end row
+        this.endRow = numRows;        //org end row
 
         this.startColumn = 0;    //org start column
-        this.endColumn = 0;      //org end column
+        this.endColumn = numCols;      //org end column
     
         this.vScroll = null;
         this.hScroll = null;

@@ -99,7 +99,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             for (nRow = this.startRow; nRow < this.endRow; nRow++) {
                 arrColumns=[];
                 for (nCol = this.startColumn; nCol < this.endColumn; nCol++) {
-                    arrColumns[nCol] = this.arrData[nRow][nCol];
+                    arrColumns[nCol-this.startColumn] = this.arrData[nRow][nCol];
 	       }
                 this.dataModel.push(arrColumns);
             }

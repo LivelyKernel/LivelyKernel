@@ -526,6 +526,7 @@ lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.JournalLayo
 'default category', {
 
     basicLayout: function($super, container, submorphs) {
+        if (!container.isRendered()) return;
         // only fixed sized submorphs are allowed in this layout
         submorphs.forEach(function(each) {
             if (each.layout && each.layout.resizeHeight) {
@@ -569,7 +570,8 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.GridLayout',
 'default category', {
 
     basicLayout: function(container, submorphs) {
-        var filteredSubmorphs = submorphs.filter(function(ea) { return !ea.isPlaceholder;});
+        if (!container.isRendered()) return;
+        var filteredSubmorphs = submorphs.filter(function(ea) { return !ea.isPlaceholder; });
         this.removeOldPlaceholders();
         this.initializePlaceholders();
         this.fillWithPlaceholders(container, filteredSubmorphs);
@@ -652,7 +654,7 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.GridLayout',
         for (var y = 0; y < this.numRows; y++) {
             var row = []
             for (var x = 0; x < this.numCols; x++) {
-                //fill owner with placeholders
+                // fill owner with placeholders
                 var m = new lively.morphic.Layout.GridLayoutPlaceholder(x, y);
                 row.push(m);
             }

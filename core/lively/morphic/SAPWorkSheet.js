@@ -239,17 +239,17 @@ debugger;
                var start = new Date().getTime();
         var head = this.hideColHeads ? 0 : 1;
 
-        //this.setLayouter(new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head));
-	//debugger;
+        
 
         console.log(this.numCols + "," + this.numRows + "," + head )
 
-        var layouter = new lively.morphic.Layout.GridLayout(
-            this, this.numCols, this.numRows + head);
-        this.setLayouter(layouter);
-        layouter.rows = this.rows;
+        //var layouter = new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head);
+        //this.setLayouter(layouter);
+        //layouter.rows = this.rows;
 
-		
+	this.setLayouter(new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head));
+
+
 
         this.applyLayout();
         

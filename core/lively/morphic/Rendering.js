@@ -428,15 +428,18 @@ Object.subclass('lively.morphic.Rendering.RenderContext',
 
 lively.morphic.Morph.addMethods(
 'rendering', {
+
     renderUsing: function(renderContext) {
         this.renderAfterUsing(renderContext, null);
     },
+
     renderAfterUsing: function(renderContext, morphBefore) {
         this.replaceRenderContextWith(renderContext);
         if (!renderContext.morphNode)
             this.prepareForNewRenderContext(renderContext)
         this.renderContextDispatch('append', morphBefore);
     },
+
     replaceRenderContextWith: function(newCtx) {
         var oldCtx = this.renderContext()
         if (oldCtx === newCtx) return;
@@ -444,11 +447,13 @@ lively.morphic.Morph.addMethods(
         this.renderContextDispatch('replaceRenderContext', newCtx);
         this.prepareForNewRenderContext(newCtx)
     },
+
     replaceRenderContextCompletely: function(newRenderContext) {
         this.remove()
         this.replaceRenderContextWith(newRenderContext);
         if (this.displayOnCanvas) this.displayOnCanvas(document.body);
     },
+
     prepareForNewRenderContext: function(newCtx) {
         this.setRenderContext(newCtx);
         this.getShape().setRenderContext(newCtx);
@@ -463,12 +468,20 @@ lively.morphic.Morph.addMethods(
         }
         this.registerForEvents(Config.handleOnCapture);
         this.resumeStepping();
+        this._isRendered = true;
         if (this.onLoad) {
             var self = this;
             (function() { self.onLoad(); }).delay(0);
         }
     },
 
+    isRendered: function() {
+        // can be used to determine if this morph and all submorphs are
+        // rendered aleady = have a DOM representation. This does *not* mean that
+        // this morph is in the DOM! (use !!this.world() for this test). More specifically,
+        // even when you call #remove this will still return true since the morph
+        return !!this._isRendered;
+    }
 });
 
 lively.morphic.Shapes.Shape.addMethods(

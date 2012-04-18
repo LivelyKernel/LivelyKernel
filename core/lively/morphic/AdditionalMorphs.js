@@ -1,4 +1,4 @@
-module('lively.morphic.AdditionalMorphs').requires('lively.morphic.Halos').toRun(function() {
+module('lively.morphic.AdditionalMorphs').requires('lively.morphic.Halos', 'lively.persistence.MassMorphCreation').toRun(function() {
 
 lively.morphic.Morph.subclass('lively.morphic.Path',
 'properties', {
@@ -404,7 +404,7 @@ lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathInsertPointHalo
         return start.addPt(end.subPt(start).scaleBy(0.5))
     },
     getGlobalPos: function() {
-        return this.targetMorph.worldPoint(this.getLocalPos())
+        return this.targetMorph.worldPoint(this.getLocalPos());
     },
 },
 'halo behavior', {
@@ -428,7 +428,6 @@ lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathInsertPointHalo
             this.targetMorph.halos.invoke('alignAtTarget');
     },
 });
-
 cop.create('lively.morphic.PathOriginHackLayer')
 .refineClass(lively.morphic.Path, {
     getHalos: function() {
@@ -464,10 +463,8 @@ cop.create('lively.morphic.PathOriginHackLayer')
 .refineClass(lively.morphic.ControlPoint, {
     getPos: function() { return cop.proceed().subPt(this.morph.getOrigin()) },
 }).beNotGlobal();
-
-
 lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
-'initializing', {
+'default category', {
     initialize: function($super, initialExtent) {
         this.rootElement = document.createElement('div');
         this.shape = new lively.morphic.Shapes.External(this.rootElement)
@@ -478,9 +475,9 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
 
         this.setFill(Color.rgb(200,200,200));
     },
-},
-'serialization', {
     doNotSerialize: ['rootElement'],
+
+
 
     serializedChildren: function(aDomNode) {
         var result = [];
@@ -498,8 +495,6 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
         }
         return JSON.stringify(result);
     },
-},
-'DOM manipulation', {
     appendElement: function(elementMap) {
         var element = document.createElement(elementMap['name']);
         for (var property in elementMap) {
@@ -512,7 +507,6 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
         }
         return this.appendChild(element);
     },
-
     appendChild: function(aDomNode) {
         this.renderContext().shapeNode.appendChild(aDomNode);
         return aDomNode;
@@ -521,7 +515,6 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
     children: function() {
         return this.renderContext().shapeNode.children;
     },
-
     asJQuery: function() {
         return jQuery(this.renderContext().shapeNode);
     },
@@ -529,24 +522,31 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
 });
 
 lively.morphic.Morph.subclass('lively.morphic.DataGrid',
+'settings', {
+    defaultCellHeight: 30,
+    defaultCellWidth: 80,
+    borderSize: 50
+},
 'initialization', {
-    initialize: function($super, numCols, numRows) {
+
+    initialize: function($super, numCols, numRows, hideColHeads) {
         $super();
-        this.defaultCellHeight = 30;
-        this.defaultCellWidth = 80;
-        this.borderSize = 50;
+        this.hideColHeads = !!hideColHeads;
         this.colNames = new Array(numCols);
+        this.colHeads = [];
         this.numCols = numCols;
         this.numRows = numRows;
         this.activeCellContent = '';
         this.initializeData();
         this.initializeMorph();
     },
+
     initializeData: function() {
         this.rows = [];
         this.dataModel = [];
         this.addScript(function renderFunction(value) { return value; });
     },
+
     initializeMorph: function() {
         this.setExtent(pt(
             this.numCols * this.defaultCellWidth  + 2 * this.borderSize,
@@ -558,13 +558,26 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         this.createCells();
         this.createLayout();
     },
+
     createCells: function() {
-        var headOffset = this.hideColHeads ? 0 : 1;
+        var headOffset = this.hideColHeads ? 0 : 1,
+            self = this,
+            cells = lively.morphic.Morph.createN(this.numRows * this.numCols, function() {
+                return self.createCellOptimized();
+            });
+
+        function addCellToRow(row, x, y) {
+            var cell = cells.pop();
+            cell.addToGrid(self);
+            cell.gridCoords = pt(x, y + headOffset);
+            cell.name = '[' + x + ';' + y + ']';
+            row.push(cell);
+        }
+
         for (var y = 0; y < this.numRows; y++) {
             var row = [];
             for (var x = 0; x < this.numCols; x++) {
-                var cell = this.createCell(x, y, headOffset);
-                row.push(cell);
+                addCellToRow(row, x, y);
             }
             this.rows.push(row);
         }
@@ -579,8 +592,14 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         return cell;
     },
 
+    createCellOptimized: function() {
+       var cell = new lively.morphic.DataGridCell();
+       cell.doitContext = this;
+       cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
+       return cell;
+   },
+
     createColHeads: function() {
-        this.colHeads = [];
         for (var i = 0; i < this.numCols; i++) {
             var head = this.createColHead(i);
             this.colHeads.push(head);
@@ -597,12 +616,18 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         return head;
     },
 
-
     createLayout: function() {
-        var head = this.hideColHeads ? 0 : 1;
-        this.setLayouter(new lively.morphic.Layout.GridLayout(
-            this, this.numCols, this.numRows + head));
+        var head = this.hideColHeads ? 0 : 1,
+            layouter = new lively.morphic.Layout.GridLayout(
+                this, this.numCols, this.numRows + head);
+        layouter.rows = this.rows;
         this.applyLayout();
+    },
+
+    getLayoutableSubmorphs: function() {
+        // FIXME this is for improving the layouting performance
+        // but it actually should work like $super
+        return this.submorphs;
     },
 
     at: function(x, y) {
@@ -611,6 +636,7 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
     atPut: function(x, y, value) {
         this.rows[y][x].textString = value;
     },
+
     clear: function() {
         for (var y = 0; y < this.numRows; y++) {
             for (var x = 0; x < this.numCols; x++) {
@@ -636,6 +662,7 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         this.moveActiveCellBy(pt(1,0));
         evt.stop();
     },
+
 
     moveActiveCellBy: function(aPoint) {
         if (!this.activeCell) {
@@ -778,8 +805,6 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         return this.colHeads[anInteger];
     },
 
-
-
     recalculateRowsFirst: function() {
         this.rows.forEach(function (row) {
             row.forEach(function (col) {
@@ -844,17 +869,17 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
     },
     removeCol: function() {
         var lastColIndex = this.numCols - 1;
-        this.rows.map(function(ea) {
-            return ea[lastColIndex];}).
-                forEach(function(ea) {
-                    delete ea.gridCoords;
-                    ea.remove();});
-        this.rows.forEach(function(ea) {
-            ea.pop();});
-
-        delete this.colHeads[lastColIndex].gridCoords;
-        this.colHeads[lastColIndex].remove();
-        this.colHeads.pop();
+        for (var i = 0; i < this.numRows; i++) {
+            delete this.rows[i][lastColIndex].gridCoords;
+            this.rows[i][lastColIndex].remove();
+            this.rows[i].pop();
+        }
+        var lastColHead = this.colHeads[lastColIndex];
+        if (lastColHead) {
+            delete lastColHead.gridCoords;
+            lastColHead.remove();
+            this.colHeads.pop();
+        }
         while (this.colNames.length > lastColIndex) {
             this.colNames.pop();
         }
@@ -862,16 +887,16 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         this.numCols--;
         this.createLayout();
     },
+
     removeRow: function() {
         var lastRowIndex = this.numRows - 1;
         this.rows[lastRowIndex].forEach(function(ea) {
             delete ea.gridCoords;
-            ea.remove();});
+            ea.remove(); });
         this.rows.pop();
         this.numRows--;
         this.createLayout();
     },
-
 
     morphMenuItems: function ($super) {
         var items = $super();
@@ -881,14 +906,11 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         items.push(['- row', this.removeRow.bind(this)]);
         return items;
     },
+
 });
 
 lively.morphic.Text.subclass('lively.morphic.DataGridCell',
 'default category', {
-    initialize: function($super, arg) {
-        $super(arg);
-        this.evalExpression = undefined;
-    },
     addToGrid: function(aGrid) {
         this.grid = aGrid;
         this.grid.addMorph(this);
@@ -914,6 +936,7 @@ lively.morphic.Text.subclass('lively.morphic.DataGridCell',
         this.updateDisplay();
         this.grid.recalculateRowsFirst();
     },
+
     onMouseDown: function (evt) {
         if (evt.isLeftMouseButtonDown()) {
             this.activate();
@@ -937,8 +960,13 @@ lively.morphic.Text.subclass('lively.morphic.DataGridCell',
         }
         this.textString = this.textString.substring(0, this.textString.length-1);
         evt.stop();
+        return false;
     },
 
+    initialize: function($super, arg) {
+        $super(arg);
+        this.evalExpression = undefined;
+    },
     updateDisplay: function() {
         if (this.evalExpression !== undefined) {
             this.textString = this.grid.evaluateExpression(this.evalExpression);
@@ -958,26 +986,25 @@ lively.morphic.Text.subclass('lively.morphic.DataGridCell',
             this.textString = '=' + this.evalExpression;
         }
     },
+
     getContent: function() {
         var content = this.textString,
             floatValue = parseFloat(content);
-        if (isNaN(floatValue)) {
-            return content;
-        }
-        return floatValue;
+        return isNaN(floatValue) ? content : floatValue;
     },
+
 });
 
-lively.morphic.Text.subclass('lively.morphic.DataGridColHead',
+lively.morphic.DataGridCell.subclass('lively.morphic.DataGridColHead',
+'settings', {
+    style: { fill: Color.rgb(220, 220, 200) }
+},
 'default category', {
-    initialize: function($super, arg1, arg2) {
-        $super(arg1, arg2);
-        this.setFill(Color.rgb(220, 220, 200));
-    },
     addToGrid: function(aGrid) {
         this.grid = aGrid;
         this.grid.addMorph(this);
     },
+    updateDisplay: Functions.Null
 });
 
 lively.morphic.Morph.subclass('lively.morphic.TabContainer',
@@ -1015,6 +1042,8 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
         this.tabBarStrategy = aStrategy;
         aStrategy.applyTo(this);
     },
+
+
 
     getTabPaneExtent: function() {
         return this.tabPaneExtent;
@@ -1054,18 +1083,17 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
         this.getTabBar().activateTab(aTab);
     },
     morphMenuItems: function($super) {
-        var self = this, items = $super(),
-            otherContainers = this.world().withAllSubmorphsSelect(function(ea) {
-                return ea.isTabContainer(); });
+        var self = this, items = $super();
+        var otherContainers = this.world().withAllSubmorphsSelect(function(ea) {return ea.isTabContainer();});
 
         items.push(['adopt tab', otherContainers.map(function (container) {
-            return [container.toString(), container.getTabNames().map(function (tabName) {
-                return [tabName, function(evt) {
-                    self.adoptTabFromContainer(
-                        container.getTabByName(tabName), container);
-                }];
-            })];
-        })]);
+                return [container.toString(), container.getTabNames().map(function (tabName) {
+                        return [tabName, function(evt) {
+                                self.adoptTabFromContainer(container.getTabByName(tabName), container);
+                            }];
+                    })];
+            }
+        )]);
 
         items.push([
             'Tab Bar Strategy', [
@@ -1160,6 +1188,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         this.rearrangeTabs();
     },
 
+
     rearrangeTabs: function() {
         var offset = 0;
         this.getTabs().forEach(function(ea) {
@@ -1226,8 +1255,12 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
             tabBarExtent(this.getTabContainer()));
 
     },
-});
 
+
+
+
+
+});
 lively.morphic.Morph.subclass('lively.morphic.Tab',
 'default category', {
 
@@ -1284,6 +1317,8 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
     getPane: function() {
         return this.pane;
     },
+
+
 
     onMouseDown: function(evt) {
         this.getTabBar().activateTab(this);
@@ -1365,8 +1400,15 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
                 toolPane.owner.remove();
         }
     },
-});
 
+
+
+
+
+
+
+
+});
 lively.morphic.Morph.subclass('lively.morphic.TabPane',
 'default category', {
     initialize: function($super, tab, extent) {
@@ -1392,6 +1434,9 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         // this.owner.activateTab(...) to navigate
         this.getTabContainer().activateTab(aTab);
     },
+
+
+
 
     setExtent: function($super, aPoint) {
         $super(aPoint);
@@ -1438,6 +1483,14 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         $super(aMorph);
         this.adjustClipping(this.getExtent());
     },
+
+
+
+
+
+
+
+
 });
 
 
@@ -1483,6 +1536,8 @@ Object.subclass('lively.morphic.TabStrategyAbstract',
          throw "TabStrategyAbstract>>containerExtent: subclassResponsibility";
     },
 
+
+
 });
 
 lively.morphic.TabStrategyAbstract.subclass('lively.morphic.TabStrategyTop',
@@ -1496,8 +1551,8 @@ lively.morphic.TabStrategyAbstract.subclass('lively.morphic.TabStrategyTop',
 
     calculateInitialExtent: function(tabBar, tabPaneExtent) {
         var tabBarExtent = tabBar.getExtent();
-        return pt(  Math.max(tabBarExtent.x, tabPaneExtent.x),
-                    tabBarExtent.y + tabPaneExtent.y);
+        return pt(Math.max(tabBarExtent.x, tabPaneExtent.x),
+                  tabBarExtent.y + tabPaneExtent.y);
     },
 
     getTabBarWidth: function(aContainer) {
@@ -1516,6 +1571,8 @@ lively.morphic.TabStrategyAbstract.subclass('lively.morphic.TabStrategyTop',
     containerExtent: function(paneExtent, tabBarExtent) {
         return pt(paneExtent.x, tabBarExtent.y + paneExtent.y);
     },
+
+
 
 });
 
@@ -1552,6 +1609,8 @@ lively.morphic.TabStrategyAbstract.subclass('lively.morphic.TabStrategyRight',
         return pt(paneExtent.x + tabBarExtent.y, paneExtent.y);
     },
 
+
+
 });
 
 lively.morphic.TabStrategyAbstract.subclass('lively.morphic.TabStrategyBottom',
@@ -1584,8 +1643,9 @@ lively.morphic.TabStrategyAbstract.subclass('lively.morphic.TabStrategyBottom',
         return pt(paneExtent.x, tabBarExtent.y + paneExtent.y);
     },
 
-});
 
+
+});
 lively.morphic.TabStrategyAbstract.subclass('lively.morphic.TabStrategyLeft',
 'default category', {
 
@@ -1650,12 +1710,13 @@ lively.morphic.TabStrategyAbstract.subclass('lively.morphic.TabStrategyHide',
         return paneExtent;
     },
 
-});
 
+});
 lively.morphic.Morph.addMethods({
     isTabContainer: function() { return false; },
-});
 
+
+});
 lively.morphic.Morph.subclass('lively.morphic.FancyList',
 'default category', {
     initialize: function($super) {
@@ -1687,8 +1748,8 @@ lively.morphic.Morph.subclass('lively.morphic.FancyList',
         }
     },
 
-});
 
+});
 lively.morphic.Morph.subclass('lively.morphic.TilePane',
 'default category', {
     initialize: function($super) {
@@ -1725,6 +1786,7 @@ lively.morphic.Morph.subclass('lively.morphic.TilePane',
             this.getPane().setExtent(pt(aPoint.x - 30, aPoint.y));
         }
     },
+
 
 });
 

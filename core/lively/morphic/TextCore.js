@@ -366,8 +366,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     setMaxTextHeight: function(value) { this.morphicSetter('MaxTextHeight', value) },
     setMinTextWidth: function(value) { this.morphicSetter('MinTextWidth', value) },
     setMinTextHeight: function(value) { this.morphicSetter('MinTextHeight', value) },
-
-
     getTextNode: function() { return this.renderContext().textNode },
 
 },
@@ -379,7 +377,14 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         }
     },
     fit: function() {
-        if (!this.owner || this.owner.isInLayoutCycle) return;
+        // expensive operation, only do when we are in world since we cannot
+        // figure out the real bounds before we are in DOM anyway
+        if (!this.world()) return;
+        var owners = this.ownerChain();
+        for (var i = 0; i < owners.length; i++) {
+            if (owners[i].isInLayoutCycle || !owners[i].isRendered()) return;
+        }
+
         var extent = this.getExtent(),
             textExtent = this.getTextExtent(),
             borderWidth = this.getBorderWidth(),

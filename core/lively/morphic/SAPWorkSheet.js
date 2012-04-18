@@ -252,7 +252,8 @@ console.log('createEmptyCells nEndRow =' + nEndRow );
 
 
         this.applyLayout();
-        this.rows.shift()
+        this.rows.shift();
+        layouter.rows.shift()
         
 var elapsed = new Date().getTime() - start;
 elapsed = elapsed/1000;

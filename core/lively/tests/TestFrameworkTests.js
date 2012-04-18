@@ -259,6 +259,22 @@ TestCase.subclass('lively.tests.TestFrameworkTests.MockTest',
         }
         test.runAndDoWhenDone('testWithMockInstall');
         this.assertIdentity(originalFunc, obj.foo, 'mock not uninstalled');
+    },
+
+    testMockCallsThrough: function() {
+        var obj = {},
+            mockWasCalled = false,
+            origWasCalled = false,
+            originalFunc = obj.foo = function() { origWasCalled = true },
+            mockFunc = function() { mockWasCalled = true },
+            test = this.test;
+        test.testWithMockInstall = function() {
+            test.mock(obj, 'foo', mockFunc).callsThrough();
+            obj.foo();
+        }
+        test.runTest('testWithMockInstall');
+        this.assert(mockWasCalled, 'mock was not called');
+        this.assert(origWasCalled, 'orig was not called');
     }
 });
 

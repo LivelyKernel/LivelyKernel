@@ -374,30 +374,36 @@ Object.subclass('TestCase',
     }
 },
 'mocks', {
-    mock: function(obj, selector, mockFunc) {
+    mock: function(obj, selector, spyFunc) {
+        var orig = obj[selector],
+            own = obj.hasOwnProperty(selector),
+            spy = {
+                install: function() { obj[selector] = spyFunc; return this },
+                uninstall: function() {
+                    if (own) obj[selector] = orig;
+                    else delete obj[selector];
+                    return this;
+                },
+                callsThrough: function() {
+                    obj[selector] = function() {
+                        spyFunc.apply(this, arguments);
+                        return orig.apply(this, arguments);
+                    };
+                    return this;
+                }
+            };
         this.mocked = this.mocked || [];
-        this.mocked.push({
-            obj: obj,
-            selector: selector,
-            orig: obj[selector],
-            own: obj.hasOwnProperty(selector)
-        });
-        obj[selector] = mockFunc;
+        this.mocked.push(spy);
+        return spy.install();
     },
 
     mockClass: function(klass, selector, mockFunc) {
-        this.mock(klass.prototype, selector, mockFunc);
+        return this.mock(klass.prototype, selector, mockFunc);
     },
 
     uninstallMocks: function() {
         if (!this.mocked) return;
-        this.mocked.forEach(function(mockSpec) {
-            if (mockSpec.own) {
-                mockSpec.obj[mockSpec.selector] = mockSpec.orig;
-            } else {
-                delete mockSpec.obj[mockSpec.selector];
-            }
-        });
+        this.mocked.invoke('uninstall');
     }
 });
 

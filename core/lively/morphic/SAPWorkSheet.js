@@ -78,6 +78,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             console.log("updateRowDisplay: NaN= " + evt);
             return;
         }
+        //ignore decimal point
         var nScrollValue= parseInt(evt);//.toFixed(2);
         if (this.prviousScrollValue !=nScrollValue){
             //console.log(nScrollValue);

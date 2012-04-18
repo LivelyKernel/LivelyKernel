@@ -1005,7 +1005,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         this.grid.addMorph(this);
     },
     onKeyUp: function($super, evt) {
-       console.log("SAPGridAnnotation.onKeyUp");
+       
         $super(evt);
         //Saving annotation
         var nOrgRow = this.nRow+ this.grid.startRow;

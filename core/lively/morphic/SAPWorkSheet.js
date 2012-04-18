@@ -93,7 +93,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             console.log("updateColumnDisplay:startColumn ,endColumn=  " + this.startColumn  + "," + this.endColumn);
 
             if (this.endColumn > this.arrData[0].length){
-                debugger;
                 this.expandColumns(this.endColumn);
             }
             for (nRow = this.startRow; nRow < this.endRow; nRow++) {
@@ -103,9 +102,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	       }
                 this.dataModel.push(arrColumns);
             }
-
             this.updateDisplay();
-
         }
         
     },

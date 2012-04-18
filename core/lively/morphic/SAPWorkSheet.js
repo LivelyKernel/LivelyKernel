@@ -58,7 +58,17 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         return this.submorphs;
     },
     updateDataModel: function() {
-        
+        var nRow;
+        var nCol;
+        var arrColumns=[];
+        for (nRow = this.startRow; nRow < this.endRow; nRow++) {
+            arrColumns=[];
+            for (nCol = 0; nCol < this.numCols; nCol++) {
+                arrColumns[nCol] = this.arrData[nRow][nCol];
+	    }
+            this.dataModel.push(arrColumns);
+        }
+        this.updateDisplay();
     },
     //fires when horizontal scroll moves
     updateColumnDisplay: function(evt) {

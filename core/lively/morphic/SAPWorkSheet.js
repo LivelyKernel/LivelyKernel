@@ -17,6 +17,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.prviousScrollColValue=0; //saving horizontal scroll value
         this.maxEmptyRowtoCreate = 200;
         this.maxEmptyColumntoCreate = 50;
+        this.defaultMaxRowScrollValue = 100;
+        this.defaultMaxColScrollValue = 100;
         this.arrData=[];
         this.startRow = 0;      //org start row
         this.endRow = numRows;        //org end row

@@ -239,7 +239,7 @@ console.log('createEmptyCells nEndRow =' + nEndRow );
                var start = new Date().getTime();
         var head = this.hideColHeads ? 0 : 1;
 
-        
+        debugger;
 
         console.log(this.numCols + "," + this.numRows + "," + head )
         //this is optimize code but if we use this it adds header to rows so it messup

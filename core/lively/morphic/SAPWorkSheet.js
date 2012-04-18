@@ -217,8 +217,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         if (nEndRow < nDataLength ){
             nEndRow  = nDataLength ;
         }
-console.log('createEmptyCells nStartRow =' + nStartRow );
-console.log('createEmptyCells nEndRow =' + nEndRow );
         
         for (var nRow = nStartRow ; nRow < nEndRow ; nRow++) {
 		arrColumns=[];
@@ -248,8 +246,6 @@ console.log('createEmptyCells nEndRow =' + nEndRow );
         if (nEndRow < nDataLength ){
             nEndRow  = nDataLength ;
         }
-console.log('createEmptyCells nStartRow =' + nStartRow );
-console.log('createEmptyCells nEndRow =' + nEndRow );
         
         for (var nRow = nStartRow ; nRow < nEndRow ; nRow++) {
 		arrColumns=[];

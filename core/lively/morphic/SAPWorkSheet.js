@@ -452,7 +452,7 @@ console.log('End createLayout =' + elapsed);
         this.arrData = aJsArray;
         //i need to rework this
         
-
+        
         this.vScroll.valueScale = this.arrData.length;
         this.hScroll.valueScale = this.arrData[0].length;
 

@@ -586,7 +586,15 @@ console.log('End createLayout =' + elapsed);
                 }else{
                     this.at(x,y).deactivateCell();
                 }
-            
+                
+                if (this.arrData[nOrgRow][nOrgCol].formula){
+                    sValue = this.parseFormula(sValue);
+                    
+                }else{
+                    
+                }
+
+
                 sValue = this.dataModel[y][x].value.toString();
                 
                 if (sValue.charAt(0)=="="){

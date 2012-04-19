@@ -571,6 +571,7 @@ console.log('End createLayout =' + elapsed);
 
         var nOrgRow;
         var nOrgCol;
+        var sValue;
 //debugger;
 //var start = new Date().getTime();
         for (var y = 0; y < this.dataModel.length &&

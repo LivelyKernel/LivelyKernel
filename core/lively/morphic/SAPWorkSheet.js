@@ -90,20 +90,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.startColumn = nScrollValue;
             this.endColumn = this.startColumn + this.numCols;
             
-            //Expend column names
-            //this.colNames
-
-            /*for (var i = 0; i < this.colHeads.length; i++) {
-                if (i < anArray.length) {
-                    this.colHeads[i].textString = anArray[i];
-                } else {
-                    this.colHeads[i].textString = '';
-                }
-            }*/
-                
-
-
-           
             if (this.endColumn > this.arrData[0].length){
                 this.expandColumns(this.endColumn);
             }

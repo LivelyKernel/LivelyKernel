@@ -61,7 +61,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     updateDataModel: function() {
         this.clear();
         this.dataModel = [];
-        
         var nRow;
         var nCol;
         var arrColumns=[];
@@ -73,7 +72,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
            this.dataModel.push(arrColumns);
         }
         console.log("updateDataModel");
-        debugger;
+        //debugger;
         this.updateDisplay();
     },
     //fires when horizontal scroll moves

@@ -171,28 +171,33 @@ lively.morphic.Morph.addMethods(
     setPivotPointHTML: function(ctx, value) {
         ctx.domInterface.setHTMLTransform(ctx.morphNode, this.getRotation(), this.getScale(), value);
     },
-    setClipModeHTML: function(ctx, modeString) {
-        this.setClipModeHTMLForNode(ctx, ctx.shapeNode, modeString);
+
+    setClipModeHTML: function(ctx, clipMode) {
+        if (!ctx.shapeNode || this.delayedClipMode) {
+            this.delayedClipMode = clipMode;
+            return;
+        }
+        this.setClipModeHTMLForNode(ctx, ctx.shapeNode, clipMode);
     },
+
     setClipModeHTMLForNode: function(ctx, node, state) {
-        if (!node) return;
+        if (!node) { return /*should not happen...*/};
+
         var style = node.style;
         if (typeof state === "string") {
-            style.removeProperty('overflow-x');
-            style.removeProperty('overflow-y');
-            style.overflow = state;
+            style.overflowX = state;
+            style.overflowY = state;
         } else if (typeof state === "object") {
-            style.removeProperty('overflow');
-            !state.x && style.removeProperty('overflow-x');
-            !state.y && style.removeProperty('overflow-y');
-            if (state.y) style.overflowY = state.y;
-            if (state.x) style.overflowX = state.x;
+            if (!state.x) style.removeProperty('overflow-x');
+            else style.overflowX = state.x;
+            if (!state.y) style.removeProperty('overflow-y');
+            else style.overflowY = state.y;
         } else {
-            style.removeProperty('overflow');
             style.removeProperty('overflow-x');
             style.removeProperty('overflow-y');
         }
     },
+
     showsHorizontalScrollBarHTML: function(ctx) {
         if (!ctx.shapeNode) return false;
         var fullHeight = ctx.shapeNode.offsetHeight - this.getBorderWidth()*2,

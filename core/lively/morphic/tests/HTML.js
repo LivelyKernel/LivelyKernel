@@ -77,4 +77,20 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.ClipMode',
 
 });
 
+AsyncTestCase.subclass('lively.morphic.tests.HTML.ClipModeAsyncRenderingTest',
+'testing', {
+    test01BUGAsyncRenderingOverwritesClipMode: function() {
+        var test = this, morph = new lively.morphic.Morph();
+        morph.setClipMode('scroll');
+        var copy = morph.copy();
+        copy.setClipMode('hidden');
+
+        this.delay(function() {
+            test.assertEquals('hidden', copy.renderContext().shapeNode.style.overflow);
+            test.done();
+        }, 0.2);
+    }
+
+});
+
 });

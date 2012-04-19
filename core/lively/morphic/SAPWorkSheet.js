@@ -208,6 +208,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var arrColumns;
         var nStartRow = this.arrData.length;
         var nEndRow = nStartRow + this.maxEmptyRowtoCreate;
+        
         var nStartColumn=0;
         var nEndColumn =nStartColumn + this.maxEmptyColumntoCreate;
 

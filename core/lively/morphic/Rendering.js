@@ -467,11 +467,21 @@ lively.morphic.Morph.addMethods(
             this.submorphs[i].prepareForNewRenderContext(newCtx.newForChild());
         }
         this.registerForEvents(Config.handleOnCapture);
+        this.onRenderFinished(newCtx);
         this.resumeStepping();
-        this._isRendered = true;
         if (this.onLoad) {
             var self = this;
             (function() { self.onLoad(); }).delay(0);
+        }
+    },
+
+    onRenderFinished: function(ctx) {
+        this._isRendered = true;
+        // FIXME, this is a hack
+        if (this.delayedClipMode) {
+            var clipMode = this.delayedClipMode;
+            delete this.delayedClipMode;
+            this.setClipMode(clipMode);
         }
     },
 
@@ -481,7 +491,7 @@ lively.morphic.Morph.addMethods(
         // this morph is in the DOM! (use !!this.world() for this test). More specifically,
         // even when you call #remove this will still return true since the morph
         return !!this._isRendered;
-    }
+    },
 });
 
 lively.morphic.Shapes.Shape.addMethods(

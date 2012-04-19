@@ -582,7 +582,7 @@ console.log('End createLayout =' + elapsed);
                 nOrgCol = x + this.startColumn;
 //console.log("nOrgRow ,nOrgCol =" + nOrgRow + "," +nOrgCol );
                 
-                //sValue = this.dataModel[y][x].value.toString();
+                sValue = this.dataModel[y][x].value.toString();
 
                 if (this.arrData[nOrgRow][nOrgCol].annotation){
                     this.at(x,y).annotationCell();
@@ -597,7 +597,7 @@ console.log('End createLayout =' + elapsed);
 
 
                
-                
+                /*
                 if (sValue.charAt(0)=="="){
                     console.log('updateDisplay: x,y'  + x + ", " + y);
                     //this.at(x,y).cellformula = sValue;

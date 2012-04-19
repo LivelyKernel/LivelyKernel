@@ -482,6 +482,21 @@ console.log('End createLayout =' + elapsed);
             this.hScroll.valueScale = this.arrData[0].length;
         }
 
+
+        //create header
+           //Expend column names
+            //this.colNames
+        var nEndColumn = this.numCols;
+        if (this.arrData[0].length > this.numCols){
+            nEndColumn  = this.arrData[0].length;
+        }
+        
+
+        for (var nCol = 0; nCol < nEndColumn ; nCol++) {
+            //this.colNames
+        }
+
+
         //saving only visible row/column to dataModel
         for (nRow = 0; nRow < this.numRows; nRow++) {
             arrColumns=[];

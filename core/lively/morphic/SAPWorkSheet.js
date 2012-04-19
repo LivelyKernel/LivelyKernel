@@ -589,13 +589,11 @@ console.log('End createLayout =' + elapsed);
                 
                 if (this.arrData[nOrgRow][nOrgCol].formula){
                     sValue = this.parseFormula(sValue);
-                    
-                }else{
-                    
+                    this.at(x,y).formulaCell();
                 }
 
 
-                sValue = this.dataModel[y][x].value.toString();
+                /*sValue = this.dataModel[y][x].value.toString();
                 
                 if (sValue.charAt(0)=="="){
                     console.log('updateDisplay: x,y'  + x + ", " + y);
@@ -605,7 +603,7 @@ console.log('End createLayout =' + elapsed);
                     sValue = this.parseFormula(sValue);
                 }else{
                     this.at(x,y).setToolTip("");
-                }
+                }*/
                 this.at(x,y).textString = sValue;
             }
         }

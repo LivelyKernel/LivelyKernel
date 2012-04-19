@@ -201,7 +201,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 
 
 
-           console.log('this.arrData[0].length=' + this.arrData[0].length);
+           
         //Expend column cell
         for (var nRow = 0; nRow < this.arrData.length; nRow++) {
 		for (var nCol = nStartColumn ; nCol < nEndColumn ; nCol++) {
@@ -212,7 +212,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                         this.arrData[nRow][nCol] = oCell ;
 		}
 	}
-console.log('this.arrData[0].length=' + this.arrData[0].length);
+
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
 	console.log('expandColumns=' + elapsed);

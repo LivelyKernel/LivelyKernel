@@ -184,6 +184,25 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             nEndColumn = nDataLength ;
         }
         
+
+        
+            //Expend column names
+            //this.colNames
+        for (var nCol = nStartColumn ; nCol < nEndColumn ; nCol++) {
+            //this.colNames
+        }
+            /*for (var i = 0; i < this.colHeads.length; i++) {
+                if (i < anArray.length) {
+                    this.colHeads[i].textString = anArray[i];
+                } else {
+                    this.colHeads[i].textString = '';
+                }
+            }*/
+                
+
+
+           
+        //Expend column cell
         for (var nRow = 0; nRow < this.arrData.length; nRow++) {
 		for (var nCol = nStartColumn ; nCol < nEndColumn ; nCol++) {
                         oCell ={}; 

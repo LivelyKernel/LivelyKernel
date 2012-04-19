@@ -588,7 +588,7 @@ console.log('End createLayout =' + elapsed);
                 }
                 
                 if (this.arrData[nOrgRow][nOrgCol].formula){
-                    sValue = this.parseFormula(sValue);
+                    sValue = this.parseFormula(this.arrData[nOrgRow][nOrgCol].formula);
                     this.at(x,y).formulaCell();
                 }
 

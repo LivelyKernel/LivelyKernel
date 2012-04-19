@@ -176,6 +176,7 @@ lively.morphic.Morph.addMethods(
     },
     setClipModeHTMLForNode: function(ctx, node, state) {
         if (!node) {
+            var self = this;
             (function delayedSetClipMode() {
                 self.setClipModeHTMLForNode(ctx, node, state);
             }).delay(0);

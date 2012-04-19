@@ -93,6 +93,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             if (this.endColumn > this.arrData[0].length){
                 this.expandColumns(this.endColumn);
             }
+            
             this.updateDataModel();
              /* I need to rework this
             if (nScrollValue==this.vScroll.valueScale){

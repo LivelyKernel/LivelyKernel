@@ -47,7 +47,7 @@ var Enumerable = {
             var value = this[i];
             if (iterator.call(context, value, i)) return value;
         }
-        return null;
+        return undefined;
     },
 
     findAll: function(iterator, context) {

@@ -484,7 +484,7 @@ console.log('End createLayout =' + elapsed);
         }
 
         for (var nCol = 0; nCol < nEndColumn ; nCol++) {
-            this.colNames.push('Col' + nCol);
+            this.colNames[nCol]='Col' + nCol;
         }
 
 

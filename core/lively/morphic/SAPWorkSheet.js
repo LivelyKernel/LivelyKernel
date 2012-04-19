@@ -459,7 +459,7 @@ console.log('End createLayout =' + elapsed);
         if (this.arrData.length > this.defaultMaxRowScrollValue){
             this.vScroll.valueScale = this.arrData.length;
         }
-        if (this.arrData.length > this.defaultMaxColScrollValue){
+        if (this.arrData[0].length > this.defaultMaxColScrollValue){
             this.hScroll.valueScale = this.arrData[0].length;
         }
 

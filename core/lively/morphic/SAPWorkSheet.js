@@ -647,10 +647,13 @@ console.log('End createLayout =' + elapsed);
             var sValue = this.activeCell.textString;
             console.log("SAPGrid.onEnterPressed sValue=" + sValue );
             if (sValue .charAt(0)=="="){
-                var nX = this.getActiveColIndex();
-                var nY = this.getActiveRowIndex();
+                var nRow   = this.getActiveColIndex();
+                var nColumn = this.getActiveRowIndex();
+
+                var nOrgRow = nRow  + this.startRow;
+                var nOrgCol = nColumn+ this.startColumn;
                 
- console.log("SAPGrid.onEnterPressed nX ,nY ,sValue =" + nX + ", " + nY + ", " + sValue);
+ console.log("SAPGrid.onEnterPressed nOrgCol,nOrgRow ,sValue =" + nOrgCol+ ", " + nOrgRow + ", " + sValue);
                 this.activeCell.textString=this.parseFormula(sValue);
                 //'Formula \n test'
                 this.activeCell.setToolTip('Formula: \n' + sValue);

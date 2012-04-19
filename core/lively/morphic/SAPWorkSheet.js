@@ -650,7 +650,7 @@ console.log('End createLayout =' + elapsed);
                 var nX = this.getActiveColIndex();
                 var nY = this.getActiveRowIndex();
                 
- console.log("SAPGrid.onEnterPressed nX ,nY ,sValue =" nX +", " + nY+ ", " + sValue );
+ console.log("SAPGrid.onEnterPressed nX ,nY ,sValue =" nX + ", " + nY + ", " + sValue);
                 this.activeCell.textString=this.parseFormula(sValue);
                 //'Formula \n test'
                 this.activeCell.setToolTip('Formula: \n' + sValue);

@@ -479,6 +479,7 @@ debugger;
         //create header
            //Expend column names
             //this.colNames
+        debugger;
         var nEndColumn = this.numCols;
         if (this.arrData[0].length > this.numCols){
             nEndColumn  = this.arrData[0].length;

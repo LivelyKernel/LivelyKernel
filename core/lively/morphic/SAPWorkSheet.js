@@ -644,7 +644,7 @@ console.log('End createLayout =' + elapsed);
     onEnterPressed: function($super, evt) {
         //Hak March27 2012:  calculate formula
         if (this.activeCell !=null){
-            //var sValue = this.activeCell.textString;
+            var sValue = this.activeCell.textString;
             console.log("SAPGrid.onEnterPressed sValue=" + sValue );
             if (sValue .charAt(0)=="="){
                 var nX = this.getActiveColIndex();

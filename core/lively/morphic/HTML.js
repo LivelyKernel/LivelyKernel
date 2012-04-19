@@ -177,10 +177,10 @@ lively.morphic.Morph.addMethods(
     setClipModeHTMLForNode: function(ctx, node, state) {
         if (!node) {
             var self = this;
-            (function delayedSetClipMode() {
-                console.log('delaying set clip mode ' + state);
-                self.setClipModeHTMLForNode(ctx, node, state);
-            }).delay(1);
+            // (function delayedSetClipMode() {
+                // console.log('delaying set clip mode ' + state);
+                // self.setClipModeHTMLForNode(ctx, node, state);
+            // }).delay(1);
             return;
         }
         node.style.overflow = state || "auto";

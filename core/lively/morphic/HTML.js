@@ -172,7 +172,7 @@ lively.morphic.Morph.addMethods(
         ctx.domInterface.setHTMLTransform(ctx.morphNode, this.getRotation(), this.getScale(), value);
     },
     setClipModeHTML: function(ctx, modeString) {
-        ctx.listNode.style.overflow = modeString || 'auto';
+        if (ctx.listNode) ctx.listNode.style.overflow = modeString || 'auto';
     },
     showsHorizontalScrollBarHTML: function(ctx) {
         if (!ctx.shapeNode) return false;

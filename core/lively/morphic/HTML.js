@@ -184,6 +184,7 @@ lively.morphic.Morph.addMethods(
     setClipModeHTMLForNode: function(ctx, node, state) {
         if (!node) return;
         var style = node.style;
+debugger;
 console.log(state);
         if (typeof state === "string") {
             style.removeProperty('overflow-x');

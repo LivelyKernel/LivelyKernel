@@ -665,8 +665,8 @@ console.log('End createLayout =' + elapsed);
             var sValue = this.activeCell.textString;
             console.log("SAPGrid.onEnterPressed sValue=" + sValue );
             if (sValue .charAt(0)=="="){
-                var nRow   = this.getActiveColIndex();
-                var nColumn = this.getActiveRowIndex();
+                var nColumn = this.getActiveColIndex();
+                var nRow= this.getActiveRowIndex();
 
                 var nOrgRow = nRow  + this.startRow;
                 var nOrgCol = nColumn+ this.startColumn;

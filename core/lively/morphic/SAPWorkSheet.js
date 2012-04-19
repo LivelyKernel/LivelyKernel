@@ -487,17 +487,12 @@ debugger;
                 this.colNames.push('Col' + nCol);
             }
         }
-        //fill empty cells if data range is smaller
-        for (nRow = this.arrData.length; nRow < this.numRows; nRow++) {
-		for (var nCol = this.arrData[0].length; nCol < this.numCols; nCol++) {
-                        oCell ={}; 
-                        oCell.value = "";
-                        oCell.annotation = "";
-                        oCell.formula = "";
-                        this.arrData[nRow][nCol] = oCell 
-		}
-		this.arrData.push(arrColumns);
-        }
+    
+        var nDataRowLength = this.arrData.length;
+        var nDataColLength = this.arrData[0].length;
+        //bug when data range is less than default row and column length.
+        //need to add code here
+        
 
         //saving only visible row/column to dataModel
         for (nRow = 0; nRow < this.numRows; nRow++) {

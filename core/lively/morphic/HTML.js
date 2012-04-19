@@ -177,7 +177,7 @@ debugger;
             var self = this;
             (function delayedSetClipMode() {
                 self.setClipModeHTMLForNode(ctx, ctx.shapeNode, modeString);
-            }).delay(1);
+            }).delay(0);
             return;
         }
         this.setClipModeHTMLForNode(ctx, ctx.shapeNode, modeString);

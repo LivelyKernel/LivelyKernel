@@ -584,13 +584,13 @@ console.log('End createLayout =' + elapsed);
                 
                 sValue = this.dataModel[y][x].value.toString();
 
-                if (this.arrData[nOrgRow][nOrgCol].annotation){
+                if (this.arrData[y][x].annotation){
                     this.at(x,y).annotationCell();
                 }else{
                     this.at(x,y).deactivateCell();
                 }
                 
-                if (this.arrData[nOrgRow][nOrgCol].formula){
+                if (this.arrData[y][x].formula){
                     sValue = this.parseFormula(this.arrData[nOrgRow][nOrgCol].formula);
                     this.at(x,y).formulaCell();
                     this.at(x,y).setBorderStyle("dotted");

@@ -91,8 +91,8 @@ Object.extend(Object, {
 
     inherit: function(obj) {
         var constructor = function ProtoConstructor() {
-                return this
-            }
+            return this
+        }
         constructor.prototype = obj;
         var newInstance = new constructor();
         newInstance.constructor = constructor;
@@ -132,13 +132,12 @@ Object.extend(Object, {
     },
 
     protoCopy: function(obj) {
-        var protoCreator = function() {
-                return this
-            };
+        var protoCreator = function() { return this };
         protoCreator.prototype = obj;
         var protoObj = new protoCreator();
         return protoObj;
     }
+
 });
 
 
@@ -159,14 +158,11 @@ if (this.window && window.navigator && window.navigator.userAgent.match(/Firefox
 // Global Helper - Objects and Properties
 ///////////////////////////////////////////////////////////////////////////////
 
-Objects = {
+var Objects = {
+
     typeStringOf: function(obj) {
-        if (obj === null) {
-            return "null";
-        }
-        if (Object.isUndefined(obj)) {
-            return "undefined";
-        }
+        if (obj === null) { return "null" }
+        if (Object.isUndefined(obj)) { return "undefined" }
         return obj.constructor.name;
     },
 
@@ -205,7 +201,7 @@ Objects = {
         try {
             return obj ? obj.toString() : String(obj);
         } catch (e) {
-            return '<error printing object>'
+            return '<error printing object>';
         }
     }
 };
@@ -254,6 +250,6 @@ Properties = {
     },
 
     printObjectSize: function(obj) {
-        return Numbers.humanReadableByteSize(JSON.stringify(obj).length)
+        return Numbers.humanReadableByteSize(JSON.stringify(obj).length);
     }
 };

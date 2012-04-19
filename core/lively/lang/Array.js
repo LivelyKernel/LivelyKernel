@@ -47,6 +47,7 @@ var Enumerable = {
             var value = this[i];
             if (iterator.call(context, value, i)) return value;
         }
+        return undefined;
     },
 
     findAll: function(iterator, context) {
@@ -191,7 +192,7 @@ Object.extend(Enumerable, {
     select: Enumerable.findAll,
     filter: Enumerable.findAll,
     member: Enumerable.include,
-    entries: Enumerable.toArray,
+    entries: Enumerable.toArray
 });
 
 Object.extend(Array.prototype, Enumerable);
@@ -300,6 +301,7 @@ Object.extend(Array.prototype, {
     pushAt: function(item, index) {
         this.splice(index, 0, item);
     },
+
     removeAt: function(index) {
         this.splice(index, 1);
     },
@@ -309,10 +311,10 @@ Object.extend(Array.prototype, {
         this.push(items[i]);
         return this;
     },
+
     pushAllAt: function(items, idx) {
         this.splice.apply(this, [idx, 0].concat(items))
     },
-
 
     pushIfNotIncluded: function(item) {
         if (!this.include(item)) this.push(item);
@@ -320,7 +322,6 @@ Object.extend(Array.prototype, {
     replaceAt: function(item, index) {
         this.splice(index, 1, item);
     },
-
 
     nestedDelay: function(iterator, waitSecs, endFunc, context, optSynchronChunks) {
         endFunc = endFunc ||
@@ -337,6 +338,7 @@ Object.extend(Array.prototype, {
             }
         })();
     },
+
     doAndContinue: function(iterator, endFunc, context) {
         endFunc = endFunc ||
         function() {};
@@ -346,6 +348,7 @@ Object.extend(Array.prototype, {
             }
         })();
     },
+
     forEachShowingProgress: function(progressBar, iterator, labelFunc, whenDoneFunc, context) {
         progressBar.setValue(0);
         var steps = this.length;
@@ -368,11 +371,12 @@ Object.extend(Array.prototype, {
             }
         }))();
     },
+
     sum: function() {
         var sum = 0;
         for (var i = 0; i < this.length; i++) sum += this[i];
         return sum;
-    },
+    }
 
 });
 

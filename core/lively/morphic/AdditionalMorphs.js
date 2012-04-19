@@ -497,7 +497,7 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
     },
     appendElement: function(elementMap) {
         var element = document.createElement(elementMap['name']);
-        for (property in elementMap) {
+        for (var property in elementMap) {
             if (property === 'name') { continue; }
             if (property === 'innerHTML') {
                 element.innerHTML = elementMap['innerHTML'];

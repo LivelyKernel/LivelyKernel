@@ -644,9 +644,13 @@ console.log('End createLayout =' + elapsed);
     onEnterPressed: function($super, evt) {
         //Hak March27 2012:  calculate formula
         if (this.activeCell !=null){
-            var sValue = this.activeCell.textString;
+            //var sValue = this.activeCell.textString;
             console.log("SAPGrid.onEnterPressed sValue=" + sValue );
             if (sValue .charAt(0)=="="){
+                var nX = this.getActiveColIndex();
+                var nY = this.getActiveRowIndex();
+                
+ console.log("SAPGrid.onEnterPressed nX ,nY ,sValue =" nX +", " + nY+ ", " + sValue );
                 this.activeCell.textString=this.parseFormula(sValue);
                 //'Formula \n test'
                 this.activeCell.setToolTip('Formula: \n' + sValue);

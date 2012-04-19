@@ -182,7 +182,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     //expand column data when moving scroll
     expandColumns: function(nDataLength) {
         var start = new Date().getTime();    
-        debugger;
+        //debugger;
         var nStartColumn = this.arrData[0].length;
         var nEndColumn =nStartColumn + this.maxEmptyColumntoCreate;
         if (nEndColumn < nDataLength ){

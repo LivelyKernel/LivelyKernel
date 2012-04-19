@@ -187,7 +187,7 @@ lively.morphic.Morph.addMethods(
         if (typeof state === "string") {
             style.removeProperty('overflow-x');
             style.removeProperty('overflow-y');
-            style.overflow = state;
+            style.overflow = state || "auto";
         } else if (typeof state === "object") {
             style.removeProperty('overflow');
             !state.x && style.removeProperty('overflow-x');

@@ -591,10 +591,12 @@ console.log('End createLayout =' + elapsed);
                 
                 if (sValue.charAt(0)=="="){
                     console.log('updateDisplay: x,y'  + x + ", " + y);
-                    this.at(x,y).cellformula = sValue;
+                    //this.at(x,y).cellformula = sValue;
                     this.at(x,y).setToolTip('Formula: \n' + sValue);
                     this.at(x,y).setBorderStyle("dotted");
                     sValue = this.parseFormula(sValue);
+                }else{
+                    this.at(x,y).setToolTip("");
                 }
                 this.at(x,y).textString = sValue;
             }

@@ -72,6 +72,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	   }
            this.dataModel.push(arrColumns);
         }
+        debugger;
         this.updateDisplay();
     },
     //fires when horizontal scroll moves

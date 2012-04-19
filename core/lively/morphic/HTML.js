@@ -172,7 +172,7 @@ lively.morphic.Morph.addMethods(
         ctx.domInterface.setHTMLTransform(ctx.morphNode, this.getRotation(), this.getScale(), value);
     },
     setClipModeHTML: function(ctx, modeString) {
-        if (ctx.listNode) ctx.listNode.style.overflow = modeString || 'auto';
+        this.shape && this.shape.setClipMode(modeString);
     },
     showsHorizontalScrollBarHTML: function(ctx) {
         if (!ctx.shapeNode) return false;
@@ -518,7 +518,7 @@ lively.morphic.List.addMethods(
         this.resizeListHTML(ctx);
     },
     setClipModeHTML: function(ctx, modeString) {
-        this.setClipModeHTMLForNode(ctx, ctx.listNode, modeString);
+        ctx.listNode.style.overflow = modeString || 'auto';
     },
     setSizeHTML: function(ctx, size) {
         if (ctx.listNode) ctx.listNode.size = size;
@@ -640,7 +640,7 @@ lively.morphic.Shapes.Shape.addMethods(
         setBorderRadius: 'setBorderRadiusHTML',
         setBorderStyle: 'setBorderStyleHTML',
         setOpacity: 'setOpacityHTML',
-        setClipMode: 'setClipModeHTML'
+        setClipMode: 'setClipModeHTML',
     },
 },
 'initializing', {

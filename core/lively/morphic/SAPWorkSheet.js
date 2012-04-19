@@ -581,7 +581,8 @@ console.log('End createLayout =' + elapsed);
                 nOrgRow = y  + this.startRow;
                 nOrgCol = x + this.startColumn;
 //console.log("nOrgRow ,nOrgCol =" + nOrgRow + "," +nOrgCol );
-               
+                sValue = this.dataModel[y][x].value.toString();
+
                 if (this.arrData[nOrgRow][nOrgCol].annotation){
                     this.at(x,y).annotationCell();
                 }else{
@@ -594,7 +595,7 @@ console.log('End createLayout =' + elapsed);
                 }
 
 
-                /*sValue = this.dataModel[y][x].value.toString();
+               
                 
                 if (sValue.charAt(0)=="="){
                     console.log('updateDisplay: x,y'  + x + ", " + y);

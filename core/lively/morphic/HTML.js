@@ -173,6 +173,7 @@ lively.morphic.Morph.addMethods(
     },
     setClipModeHTML: function(ctx, modeString) {
          if (!ctx.shapeNode) {
+            // FIXME, this is a hack
             var self = this;
             (function delayedSetClipMode() {
                 self.setClipModeHTMLForNode(ctx, ctx.shapeNode, modeString);

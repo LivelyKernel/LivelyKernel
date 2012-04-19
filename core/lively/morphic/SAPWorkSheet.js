@@ -674,7 +674,7 @@ console.log('End createLayout =' + elapsed);
  console.log("SAPGrid.onEnterPressed nOrgCol,nOrgRow ,sValue =" + nOrgCol+ ", " + nOrgRow + ", " + sValue);
 
                 this.arrData[nOrgRow][nOrgCol].formula = sValue; 
-
+debugger;
                 this.activeCell.textString=this.parseFormula(sValue);
                 //'Formula \n test'
                 this.activeCell.setToolTip('Formula: \n' + sValue);

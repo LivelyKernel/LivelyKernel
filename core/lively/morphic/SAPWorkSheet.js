@@ -905,7 +905,8 @@ currently only support
                 var nCount=0;
                 if (oStartCell.columnIndex==oEndCell.columnIndex){
                     for (var nRow = oStartCell.rowIndex; nRow <= oEndCell.rowIndex; nRow ++) {
-                        nValue = parseFloat(this.at(oStartCell.columnIndex,nRow).textString);
+                        
+                        nValue = parseFloat(this.arrData[nRow][oStartCell.columnIndex].value);
 		        if (isNaN(nValue)) {nValue=0}
 		        nTotal  +=nValue;
                         nCount +=1;
@@ -919,8 +920,8 @@ currently only support
                 return nAve;	
 	   }else{  //copying other cell
                 var oCell = this.parseformulaCellIndex(sValue.replace(/=/g, ""));
-                
-                nValue = parseFloat(this.at(oCell.columnIndex,oCell.rowIndex).textString);
+               
+                nValue =  parseFloat(this.arrData[oCell.rowIndex][oCell.columnIndex].value);
                 return nValue; 
 	   }		
         }

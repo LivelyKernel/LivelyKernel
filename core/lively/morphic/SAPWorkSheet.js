@@ -456,7 +456,7 @@ console.log('End createLayout =' + elapsed);
         //debugger;
         //saving to global empty data
         var start = new Date().getTime();
-debugger;
+//debugger;
         /*this.createEmptyCells(aJsArray.length);
 
         for (nRow = 0; nRow < aJsArray.length; nRow++) {
@@ -479,7 +479,7 @@ debugger;
         //create header
            //Expend column names
             //this.colNames
-        debugger;
+        //debugger;
         var nEndColumn = this.numCols;
         if (this.arrData[0].length > this.numCols){
             nEndColumn  = this.arrData[0].length;

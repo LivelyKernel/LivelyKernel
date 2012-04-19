@@ -593,6 +593,8 @@ console.log('End createLayout =' + elapsed);
                 if (this.arrData[nOrgRow][nOrgCol].formula){
                     sValue = this.parseFormula(this.arrData[nOrgRow][nOrgCol].formula);
                     this.at(x,y).formulaCell();
+                }else{
+                    this.at(x,y).setToolTip("");
                 }
 
 

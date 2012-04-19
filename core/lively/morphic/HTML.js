@@ -182,7 +182,7 @@ lively.morphic.Morph.addMethods(
             }).delay(0);
             return;
         }
-        style.overflow = state || "auto";
+        node.style.overflow = state || "auto";
         return;
 
         var style = node.style;

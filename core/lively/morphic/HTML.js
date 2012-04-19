@@ -172,6 +172,13 @@ lively.morphic.Morph.addMethods(
         ctx.domInterface.setHTMLTransform(ctx.morphNode, this.getRotation(), this.getScale(), value);
     },
     setClipModeHTML: function(ctx, modeString) {
+         if (!ctx.shapeNode) {
+            var self = this;
+            (function delayedSetClipMode() {
+                self.setClipModeHTMLForNode(ctx, ctx.shapeNode, modeString);
+            }).delay(0);
+            return;
+        }
         this.setClipModeHTMLForNode(ctx, ctx.shapeNode, modeString);
     },
     setClipModeHTMLForNode: function(ctx, node, state) {

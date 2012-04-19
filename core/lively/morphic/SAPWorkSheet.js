@@ -455,7 +455,7 @@ console.log('End createLayout =' + elapsed);
         //debugger;
         //saving to global empty data
         var start = new Date().getTime();
-
+debugger;
         /*this.createEmptyCells(aJsArray.length);
 
         for (nRow = 0; nRow < aJsArray.length; nRow++) {

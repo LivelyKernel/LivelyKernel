@@ -483,8 +483,8 @@ debugger;
             nEndColumn  = this.arrData[0].length;
         }
 
-        for (var nCol = 0; nCol < nEndColumn ; nCol++) {
-            this.colNames[nCol]='Col' + nCol;
+        for (var nCol = this.numCols; nCol < nEndColumn ; nCol++) {
+            this.colNames.push('Col' + nCol);
         }
 
 

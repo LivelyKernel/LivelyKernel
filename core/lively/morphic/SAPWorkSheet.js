@@ -676,7 +676,7 @@ console.log('End createLayout =' + elapsed);
                 this.activeCell.textString=this.parseFormula(sValue);
                 //'Formula \n test'
                 this.activeCell.setToolTip('Formula: \n' + sValue);
-                this.activeCell.cellformula = sValue;
+                //this.activeCell.cellformula = sValue;
                 
                 this.activeCell.setBorderStyle("dotted");
                 

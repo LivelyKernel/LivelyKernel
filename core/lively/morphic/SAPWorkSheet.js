@@ -481,10 +481,9 @@ debugger;
         var nEndColumn = this.numCols;
         if (this.arrData[0].length > this.numCols){
             nEndColumn  = this.arrData[0].length;
-        }
-
-        for (var nCol = this.numCols; nCol < nEndColumn ; nCol++) {
-            this.colNames.push('Col' + nCol);
+            for (var nCol = this.numCols; nCol < nEndColumn ; nCol++) {
+                this.colNames.push('Col' + nCol);
+            }
         }
 
 

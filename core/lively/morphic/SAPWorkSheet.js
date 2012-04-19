@@ -886,7 +886,7 @@ currently only support
                 if (oStartCell.columnIndex==oEndCell.columnIndex){
                     for (var nRow = oStartCell.rowIndex; nRow <= oEndCell.rowIndex; nRow ++) {
                         
-                        nValue = parseFloat(this.arrData(nRow,oStartCell.columnIndex).value);
+                        nValue = parseFloat(this.arrData[nRow][oStartCell.columnIndex].value);
                         //nValue = parseFloat(this.at(oStartCell.columnIndex,nRow).textString);
 		        if (isNaN(nValue)) {nValue=0}
 		        nTotal  +=nValue;

@@ -490,8 +490,8 @@ console.log('End createLayout =' + elapsed);
         if (this.arrData[0].length > this.numCols){
             nEndColumn  = this.arrData[0].length;
         }
-        
-     
+        console.log("setData")
+     debugger;
         for (var nCol = this.colHeads.length; nCol < nEndColumn ; nCol++) {
             //this.colNames
      

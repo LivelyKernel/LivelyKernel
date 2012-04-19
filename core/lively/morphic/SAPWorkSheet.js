@@ -594,6 +594,7 @@ console.log('End createLayout =' + elapsed);
                 if (this.arrData[nOrgRow][nOrgCol].formula){
                     sValue = this.parseFormula(this.arrData[nOrgRow][nOrgCol].formula);
                     this.at(x,y).formulaCell();
+                    this.at(x,y).setToolTip('Formula: \n' + sValue);
                     this.at(x,y).setBorderStyle("dotted");
                 }else{
                     this.at(x,y).setToolTip("");

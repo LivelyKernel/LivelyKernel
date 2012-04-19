@@ -671,9 +671,10 @@ console.log('End createLayout =' + elapsed);
                 var nOrgRow = nRow  + this.startRow;
                 var nOrgCol = nColumn+ this.startColumn;
                 
- console.log("SAPGrid.onEnterPressed nOrgCol,nOrgRow ,sValue =" + nOrgCol+ ", " + nOrgRow + ", " + sValue);
+
 
                 this.arrData[nOrgRow][nOrgCol].formula = sValue; 
+ console.log("SAPGrid.onEnterPressed nOrgCol,nOrgRow ,sValue =" + nOrgCol+ ", " + nOrgRow + ", " + sValue);
 debugger;
                 this.activeCell.textString=this.parseFormula(sValue);
                 //'Formula \n test'

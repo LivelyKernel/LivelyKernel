@@ -195,9 +195,9 @@ lively.morphic.Morph.addMethods(
             if (state.y) style.overflowY = state.y;
             if (state.x) style.overflowX = state.x;
         } else {
-            style.removeProperty('overflow');
             style.removeProperty('overflow-x');
             style.removeProperty('overflow-y');
+            style.overflow = 'auto';
         }
     },
     showsHorizontalScrollBarHTML: function(ctx) {

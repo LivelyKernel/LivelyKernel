@@ -137,7 +137,7 @@ var Enumerable = {
         var result = new Array(this.length);
         for (var i = 0; i < this.length; i++) {
             result[i] = this[i][property];
-        {
+        }
         return result;
     },
 

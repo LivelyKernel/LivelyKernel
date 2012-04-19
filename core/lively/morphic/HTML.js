@@ -178,8 +178,9 @@ lively.morphic.Morph.addMethods(
         if (!node) {
             var self = this;
             (function delayedSetClipMode() {
+                console.log('delaying set clip mode');
                 self.setClipModeHTMLForNode(ctx, node, state);
-            }).delay(0);
+            }).delay(1);
             return;
         }
         node.style.overflow = state || "auto";

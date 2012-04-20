@@ -413,7 +413,7 @@ console.log('End createLayout =' + elapsed);
     console.log("SAPGrid.onLeftPressed");
         if (!this.activeCell) {
          }else{
-              alert(this.activeCell.isFocused())
+              //alert(this.activeCell.isFocused())
          }
         this.moveActiveCellBy(pt(-1,0));
         evt.stop();

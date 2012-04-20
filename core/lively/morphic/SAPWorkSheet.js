@@ -333,7 +333,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         //this.setLayouter(layouter);
         //layouter.rows = this.rows;
 
-	this.setLayouter(new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + 5));
+	this.setLayouter(new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head));
 
 
 

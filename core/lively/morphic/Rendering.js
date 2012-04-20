@@ -477,12 +477,7 @@ lively.morphic.Morph.addMethods(
 
     onRenderFinished: function(ctx) {
         this._isRendered = true;
-        // FIXME, this is a hack
-        if (this.delayedClipMode) {
-            var clipMode = this.delayedClipMode;
-            delete this.delayedClipMode;
-            this.setClipMode(clipMode);
-        }
+        this.renderContextDispatch('onRenderFinished', ctx);
     },
 
     isRendered: function() {

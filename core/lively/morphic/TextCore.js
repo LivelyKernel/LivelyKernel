@@ -1032,6 +1032,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             delete this.savedSelectionRange;
             evt.stop();
         }
+
         // hack around weired text focus
         this.focus.bind(this).delay(0)
 

@@ -102,8 +102,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.updateDataModel();
               //I need to rework this
             if (nScrollValue==this.vScroll.valueScale){
-               //this.hScroll.valueScale = nScrollValue + 50;
-               //this.hScroll.setValue(nScrollValue + 50);
+               this.hScroll.valueScale = nScrollValue + 50;
+               this.hScroll.setValue(nScrollValue + 48);
+               this.updateColumnDisplay(nScrollValue + 48)
             }
             
         }

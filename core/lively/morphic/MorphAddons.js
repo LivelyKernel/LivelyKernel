@@ -674,7 +674,10 @@ lively.morphic.HandMorph.addMethods(
 // really necessary to have this class?
 lively.morphic.Box.subclass('lively.morphic.Panel',
 'settings', {
-    style: {adjustForNewBounds: true},
+    style: {
+        resizeWidth: true, resizeHeight: true, // so it scales itself
+        adjustForNewBounds: true // so it layouts its submorphs
+    }
 },
 'initializing', {
     initialize: function($super, extent) {

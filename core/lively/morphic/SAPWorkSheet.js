@@ -102,8 +102,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.updateDataModel();
               //I need to rework this
             if (nScrollValue==this.vScroll.valueScale){
-               this.hScroll.valueScale = nScrollValue + 50;
-               this.hScroll.setValue(nScrollValue + 50);
+               //this.hScroll.valueScale = nScrollValue + 50;
+               //this.hScroll.setValue(nScrollValue + 50);
             }
             
         }
@@ -134,8 +134,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             //if scroll reached end we need to increase??
             // I need to rework this
             if (nScrollValue==this.vScroll.valueScale){
-               this.vScroll.valueScale = nScrollValue + 100;
-               this.vScroll.setValue(nScrollValue + 100);
+               this.vScroll.valueScale = nScrollValue + 50;
+               this.vScroll.setValue(nScrollValue + 50);
             }
             
         }

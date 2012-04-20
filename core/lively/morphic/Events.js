@@ -1099,11 +1099,6 @@ handleOnCapture);
 
     },
 
-
-
-
-
-
 });
 
 lively.morphic.Text.addMethods(
@@ -1148,13 +1143,14 @@ lively.morphic.Text.addMethods(
     onSelectStart: function(evt) {
         if (this.eventsAreIgnored)
             evt.stop();
-// alert(this.getSelectionRange())
+        // alert(this.getSelectionRange())
         // if (!this.bounds().containsPoint(evt.getPosition()))
             // evt.preventDefault();
         // just do the normal thing
+
+        // Allow HTML selection
         return true;
     },
-    onSelectionChange: function() {},
 
     onBlur: function($super, evt) {
         $super(evt);
@@ -1166,14 +1162,24 @@ lively.morphic.Text.addMethods(
             if (!world.focusedMorph()) world.focus();
         }).delay(0);
     },
+
     onFocus: function($super, evt) {
         $super(evt);
         this.constructor.prototype.activeInstance = this;
+        // restore selection range on focus
+        var s = this.priorSelectionRange;
+        if (s) {
+            delete this.priorSelectionRange;
+            var self = this;
+            (function() { self.setSelectionRange(s[0], s[1]); }).delay(0);
+        }
     },
+
     correctForDragOffset: function(evt) {
         return !this.allowInput;
     }
 });
+
 lively.morphic.List.addMethods(
 'mouse events', {
     onMouseDown: function(evt) {
@@ -1235,7 +1241,6 @@ lively.morphic.List.addMethods(
         return true;
     },
 
-
     selectItemFromEvt: function(evt) {
         var idx = this.renderContextDispatch('getItemIndexFromEvent', evt);
         this.selectAt(idx);
@@ -1258,6 +1263,7 @@ lively.morphic.List.addMethods(
 
 },
 'scrolling', {
+
     basicGetScrollableNode: function(evt) {
         return this.renderContext().listNode;
     },
@@ -1270,8 +1276,6 @@ lively.morphic.List.addMethods(
         this.changeTriggered = true; // see onBlur
         return false;
     },
-
-
 
 });
 
@@ -1290,8 +1294,8 @@ lively.morphic.DropDownList.addMethods(
         return true;
      },
 
-
     onChange: function (evt) {
+        // FIXME duplication with List
         var idx = this.renderContextDispatch('getSelectedIndexes').first();
         this.updateSelectionAndLineNoProperties(idx);
         this.changeTriggered = true; // see onBlur

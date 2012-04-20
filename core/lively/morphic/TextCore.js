@@ -1001,49 +1001,23 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         // FIXME: handled in Morph>>onMouseDown. remove.
         if (!evt.isLeftMouseButtonDown()) return false;
         if (evt.isCommandKey()) { // for halos
-            //$super(evt);
             evt.stop();
             return true;
         }
 
-        if (this.isFocused())
+        if (this.isFocused()) {
             this.priorSelectionRange = this.getSelectionRange();  // save for onMouseUp
-
-        //$super(evt);
+        }
 
         if (!this.allowInput && !this.allowsInput) {
             evt.stop();
             return false;
         }
 
-        // to prevent accidental scrolling to the top of the text
-        // if (!this.isFocused()) evt.stop();
-
-        // we clicked in morph but not in the text element itself
-        // if (!this.getTextBounds().containsPoint(this.localize(evt.getPosition()))) {
-            // this.focus();
-            // evt.stop();
-        // }
-
-        // restore selection range on focus
-        var s = this.savedSelectionRange;
-        if (s && (s[0] <= a[0] && s[1] >= a[1])) {
-            this.setSelectionRange(s[0], s[1]);
-            delete this.savedSelectionRange;
-            evt.stop();
-        }
-
-        // hack around weired text focus
-        this.focus.bind(this).delay(0)
-
         return false;
     },
-    onSelectStart: function($super, evt) {
-        // Allow HTML selection
-        return true;
-    },
-    onMouseUp: function(evt) {
 
+    onMouseUp: function(evt) {
         var a = this.getSelectionRange();
         // this happens when text has lost selection
         if (!a) return false;
@@ -1071,14 +1045,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         this.priorSelectionRange = this.getSelectionRange();
 
-
-        // restore selection range on focus 
-        var s = this.savedSelectionRange;
-        if (s && (s[0] <= a[0] && s[1] >= a[1])) {
-            this.setSelectionRange(s[0], s[1]);
-            delete this.savedSelectionRange;
-            evt.stop();
-        }
         return false;
     },
 
@@ -1258,9 +1224,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (sel.anchorNode)
             sel.modify(extendOrMove, direction, toWhere);
     },
-
-
-
 
     setSelectionRange: function(start, end) {
         if (start < 0) { start = 0; }
@@ -1805,9 +1768,6 @@ this. textNodeString()
         })
     },
 
-
-
-
     toggleEmphasisForSelection: function(emphAttributeType) {
         // emphAttributeType can be Boldness, ...
         try {
@@ -1820,6 +1780,7 @@ this. textNodeString()
             debugger;
         }
     },
+
     emphasizeSelection: function(emphSpec) {
         // emphAttributeType can be Boldness, ...
         try {
@@ -1832,7 +1793,6 @@ this. textNodeString()
             debugger;
         }
     },
-
 
     convertSelectionRangeForEmphasis: function(selRange) {
         var from = selRange[0], to = selRange[1];
@@ -1916,10 +1876,6 @@ this. textNodeString()
 
         this.modifySelectedLines(function(line) { return line.replace(tabRegex, tab) });
     },
-    onBlur: function(evt) {
-        this.savedSelectionRange = this.getSelectionRange();
-    },
-
 
     tabspacesForCursorPos: function() {
         var cursorPos = this.getSelectionRange()[0]
@@ -1960,9 +1916,6 @@ this. textNodeString()
     },
     hasSelection: function() {
         return this.domSelection() !== null;
-    },
-    onBlur: function(evt) {
-        this.savedSelectionRange = this.getSelectionRange();
     },
 });
 

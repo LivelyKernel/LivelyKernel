@@ -210,6 +210,11 @@ Object.subclass('AnotherSourceDatabase', {
         return this.modules[fileName] = moduleWrapper;
     },
 
+    addModuleWithId: function(moduleId) {
+        var fileName = module(moduleId).relativePath();
+        return this.addModule(fileName);
+    },
+
     reparseModule: function(fileName, readAgain) {
         if (readAgain)
             delete this.modules[fileName];
@@ -413,8 +418,11 @@ AnotherSourceDatabase.addMethods(
 });
 
 Object.extend(lively.ide, {
-    // see also lively.Tools.startSourceControl
+    sourceDB: function() {
+        return this.startSourceControl();
+    },
     startSourceControl: function() {
+        // creates or fetches
         if (lively.ide.SourceControl instanceof AnotherSourceDatabase)
             return lively.ide.SourceControl;
         lively.ide.SourceControl = new AnotherSourceDatabase();

@@ -1383,12 +1383,9 @@ lively.morphic.World.addMethods(
                     .del();
             })
     },
-    getActiveWindow: function() {
-        return this.world().submorphs.detect(function (ea) {
-            return ea.isWindow && ea.highlighted
-        });
+    getActiveWindow: function () {
+        return this.submorphs.detect(function (ea) { return ea.isWindow && ea.isActive() });
     }
-
 });
 
 lively.morphic.List.addMethods(
@@ -1604,6 +1601,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
         fixedWidth: true,
         fixedHeight: true,
         resizeWidth: true,
+        textColor: Color.darkGray,
         emphasize: {textShadow: {color: Color.white, offset: pt(0,1)}}
     }
 },
@@ -1654,8 +1652,8 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
 },
 'label', {
     setTitle: function(string) {
-        this.label.setTextString(string);
-        this.adjustForNewBounds()
+        this.label.replaceTextString(string);
+        this.adjustForNewBounds();
     },
 },
 'layouting', {
@@ -1847,10 +1845,17 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph')/*TOD
     highlight: function(trueForLight) {
         this.highlighted = trueForLight;
         var fill = this.titleBar.getStyle().fill || this.titleBar.getFill(),
-            newFill = trueForLight ? fill.lighter(2) : fill;
-        this.titleBar.setFill(newFill);
+            newFill = trueForLight ? fill.lighter(1) : fill;
+        this.titleBar.applyStyle({
+            fill: newFill,
+        });
+        this.titleBar.label.applyStyle({emphasize: {fontWeight: trueForLight ? 'bold' : 'normal'}});
     },
+
     isInFront: function() { return this.owner && this.owner.topMorph() === this },
+    isActive: function() {
+        return this.isInFront() && this.world() && this.highlighted;
+    },
 
     comeForward: function() {
         // adds the window before each other morph in owner
@@ -1866,38 +1871,40 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph')/*TOD
         if (this.reframeHandle) {
             this.addMorphFront(this.reframeHandle);
             this.alignReframeHandle();
-            }
+        }
         (function() {
-        textsAndLists.forEach(function(ea, i) { ea.setScroll(scrolls[i][0], scrolls[i][1]) });
-        this.targetMorph && this.targetMorph.onWindowGetsFocus && this.targetMorph.onWindowGetsFocus();
-        }).delay(0)
+            textsAndLists.forEach(function(ea, i) { ea.setScroll(scrolls[i][0], scrolls[i][1]) });
+            if (this.targetMorph && this.targetMorph.onWindowGetsFocus) {
+                this.targetMorph.onWindowGetsFocus();
+            }
+        }).delay(0);
     },
 
     onMouseDown: function(evt) {
-        var wasInFront = this.isInFront();
-        this.highlight(true);
+        var wasInFront = this.isActive();
+        // this.highlight(true);
         this.comeForward();
         if (!wasInFront) {
             this.world().submorphs.forEach(function(ea) {
                 ea !== this && ea.isWindow && ea.highlight(false);
-            }, this)
+            }, this);
+            this.highlight(true);
             if (this.morphsContainingPoint(evt.getPosition()).detect(function(ea) {
                 return ea.accessibleInInactiveWindow || true }))
                     return false; // was: $super(evt);
 
             this.cameForward = true; // for stopping the up as well
-            evt.world.clickedOnMorph = null; // dont initiate drag
+            evt.world.clickedOnMorph = null; // dont initiate drag, FIXME, global state!
             evt.stop(); // so that text, lists that are automatically doing things are not modified
             return true;
         } else {
-            this.highlight(true);
             this.comeForward();
             return false; // was: $super(evt);
         }
     },
     onMouseUp: function(evt) {
         if (this.cameForward) {
-            this.cameForward = false
+            this.cameForward = false;
             evt.stop();
             return true;
         }

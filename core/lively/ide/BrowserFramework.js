@@ -156,7 +156,7 @@ Widget.subclass('lively.ide.BasicBrowser',
     setupLocationInput: function() {
         var locInput = this.locationInput();
         if (!locInput) return;
-        locInput.beInputLine({fixedWidth: true, fixedHeight: true, fontSize: 10, scaleProportional: true});
+        locInput.beInputLine({fixedWidth: true, fixedHeight: true, fontSize: 10, scaleProportional: true, padding: Rectangle.inset(1)});
         locInput.noEval = true;
         locInput.linkToStyles(["Browser_locationInput"])
     },
@@ -210,7 +210,7 @@ Widget.subclass('lively.ide.BasicBrowser',
                 morph.addMorph(btn);
                 btn.applyStyle({padding: Rectangle.inset(0,4),
                                 scaleProportional: true,
-                                label: {fontSize: 8}})
+                                label: {fontSize: 9}})
             })
         this.buttonCommands = cmds;
     },

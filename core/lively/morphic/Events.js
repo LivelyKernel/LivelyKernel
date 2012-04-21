@@ -1432,10 +1432,6 @@ lively.morphic.World.addMethods(
 'mouse event handling', {
     onMouseDown: function($super, evt) {
         this.eventStartPos = evt.getPosition();
-        var activeWindow = this.getActiveWindow();
-        if (activeWindow) {
-            activeWindow.highlight(false)
-        };
 
         // remove the selection when clicking into the world...
          if(this.selectionMorph && $world.selectionMorph.owner
@@ -1451,6 +1447,12 @@ lively.morphic.World.addMethods(
                                 && !this.ignoreHalos) {
             this.removeHalosOfCurrentHaloTarget();
         }
+
+        var activeWindow = this.getActiveWindow();
+        if (activeWindow && (!this.clickedOnMorph ||
+                            this.clickedOnMorph.getWindow() !== activeWindow)) {
+            activeWindow.highlight(false);
+        };
 
         // FIXME should be hand.draggedMorph!
         var draggedMorph = this.draggedMorph;

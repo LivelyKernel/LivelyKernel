@@ -2244,7 +2244,7 @@ Object.subclass('lively.morphic.TextEmphasis',
     getItalics: function() { return (this.italics && this.italics !== '') ? this.italics : 'normal' },
     setItalics: function(italics) { this.italics = italics },
     getURI: function() { return this.uri },
-    setURI: function(link) { return this.uri = uri },
+    setURI: function(link) { return this.uri = link },
     getDoit: function() { return this.doit },
     setDoit: function(doit) { return this.doit = doit },
     getFontFamily: function() { return this.fontFamily },
@@ -2258,7 +2258,21 @@ Object.subclass('lively.morphic.TextEmphasis',
     getFontSize: function() { return this.fontSize },
     setFontSize: function(fontSize) { return this.fontSize = fontSize },
     getTextShadow: function() { return this.textShadow },
-    setTextShadow: function(textShadow) { return this.textShadow = textShadow },
+    setTextShadow: function(textShadow) {
+        if (!textShadow) {
+            textShadow = '';
+        } else if (Object.isString(textShadow)) {
+            // use it as it is
+        } else {
+            var shadowSpec = textShadow;
+            textShadow = "";
+            textShadow += shadowSpec.offset.x + 'px ';
+            textShadow += shadowSpec.offset.y + 'px ';
+            textShadow += shadowSpec.blur ? shadowSpec.blur + 'px ' : "0 ";
+            textShadow += shadowSpec.color.toCSSString();
+        }
+        this.textShadow = textShadow;
+    },
     getBackgroundColor: function() { return this.backgroundColor },
     setBackgroundColor: function(color) { return this.backgroundColor = color }
 },
@@ -2269,23 +2283,27 @@ Object.subclass('lively.morphic.TextEmphasis',
     add: function(spec) {
         for (var name in spec) {
             if (!spec.hasOwnProperty(name)) return;
-            this[name] = spec[name];
+            if (name === 'textShadow') { // FIXME
+                this.setTextShadow(spec[name]);
+            } else {
+                this[name] = spec[name];
+            }
         }
     },
 },
 'testing', {
     equals: function(other) {
-        if (this.getFontWeight() == other.getFontWeight() &&
-            this.getItalics() == other.getItalics() &&
-            this.getURI() == other.getURI() &&
-            this.getFontFamily() == other.getFontFamily() &&
-            this.getColor() == other.getColor() &&
-            this.getTextDecoration() == other.getTextDecoration() &&
-            this.getTextAlignment() == other.getTextAlignment() &&
-            this.getFontSize() == other.getFontSize() &&
-            this.getBackgroundColor() == other.getBackgroundColor() &&
-            !this.getDoit() && !other.getDoit() &&
-            Objects.equal(this.getTextShadow(), other.getTextShadow())) return true;
+        if (this.getFontWeight()       ==  other.getFontWeight()
+          && this.getItalics()         ==  other.getItalics()
+          && this.getURI()             ==  other.getURI()
+          && this.getFontFamily()      ==  other.getFontFamily()
+          && this.getColor()           ==  other.getColor()
+          && this.getTextDecoration()  ==  other.getTextDecoration()
+          && this.getTextAlignment()   ==  other.getTextAlignment()
+          && this.getFontSize()        ==  other.getFontSize()
+          && this.getBackgroundColor() ==  other.getBackgroundColor()
+          && this.getTextShadow()      === other.getTextShadow()
+          && !this.getDoit() && !other.getDoit()) return true;
 
         if (this.getDoit() && other.getDoit() &&
             this.getDoit().code == other.getDoit().code) return true;
@@ -2381,15 +2399,6 @@ Object.subclass('lively.morphic.TextEmphasis',
             // ignore none style properties
             if (name == 'uri') continue;
             if (name == 'doit') continue;
-            if (name === 'textShadow') {
-                var shadowSpec = this[name], shadow = "";
-                shadow += shadowSpec.offset.x + 'px ';
-                shadow += shadowSpec.offset.y + 'px ';
-                shadow += shadowSpec.blur ? shadowSpec.blur + 'px ' : "0 ";
-                shadow += shadowSpec.color.toCSSString();
-                node.style[name] = shadow;
-                continue;
-            }
             var styleName = name;
             if (name === 'italics') styleName = 'fontStyle';
             if (name === 'fontSize') { node.style[styleName] = this[name] + 'pt'; continue }

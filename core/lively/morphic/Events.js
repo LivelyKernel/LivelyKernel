@@ -1628,6 +1628,7 @@ lively.morphic.World.addMethods(
         return this.morphicSetter('Scroll', [x, y]);
     }
 });
+
 Object.subclass('lively.FileUploader',
 'file reader', {
     getFileReader: function(spec) {
@@ -1677,6 +1678,26 @@ Object.subclass('lively.FileUploader',
     onLoadImage: function(evt, spec) {
         var img = new lively.morphic.Image(spec.pos.extent(pt(200,200)), evt.target.result, true).openInWorld();
         img.name = spec.file.name;
+    },
+    onLoadImageBinary: function(evt, spec) {
+        this.uploadAndOpenImageTo(
+            URL.source.withFilename(spec.file.name),
+            spec.file.type, evt.target.result, spec.pos);
+    },
+
+    uploadAndOpenImageTo: function(url, mime, binaryData, pos) {
+        var onloadDo = function(status) {
+            if (!status.isDone()) return;
+            if (status.isSuccess()) this.openImage(url, mime, pos);
+            else alert('Failure uploading ' + url + ': ' + status);
+        }.bind(this)
+        var webR = this.uploadBinary(url, mime, binaryData, onloadDo);
+    },
+
+    openImage: function(url, mime, pos) {
+        var name = new URL(url).filename(),
+            img = new lively.morphic.Image(pos.extent(pt(200,200)), url, true).openInWorld();
+        img.name = name;
     }
 },
 'video loading', {
@@ -1752,8 +1773,8 @@ Object.subclass('lively.FileUploader',
             else alert('Failure uploading ' + url + ': ' + status);
         }.bind(this)
         var webR = this.uploadBinary(url, mime, binaryData, onloadDo);
-
     },
+
     openPDF: function(url, mime, pos) {
         if (false) {
             var embedNode = XHTMLNS.create('embed');
@@ -1807,27 +1828,25 @@ Object.subclass('lively.FileUploader',
             else if (file.type.match(pdfType)) pdfs.push(file);
             else texts.push(file);
         }
-        this.loadAndOpenDroppedFiles(evt, images, {onLoad: 'onLoadImage'});
+        var opt = evt.isAltDown();
+        this.loadAndOpenDroppedFiles(evt, images, {onLoad:  'onLoadImage' + (opt ? 'Binary' : ''), asBinary: opt});
         this.loadAndOpenDroppedFiles(evt, videos, {onLoad: 'onLoadVideo', asBinary: true});
         this.loadAndOpenDroppedFiles(evt, pdfs, {onLoad: 'onLoadPDF', asBinary: true});
         this.loadAndOpenDroppedFiles(evt, texts, {onLoad: 'onLoadText', asText: true});
-
-        // if (texts.length > 0) inspect(texts)
     },
 
     loadAndOpenDroppedFiles: function(evt, files, options) {
         var pos = evt.getPosition();
         files.forEach(function(file, i) {
             var fileReaderOptions = {
-                    onLoad: options.onLoad || 'onLoad',
-                    onError: options.onError || 'onError',
-                    onLoadStart: options.onLoadStart || 'onLoadStart',
-                    onLoadEnd: options.onLoadEnd || 'onLoadEnd',
-                    onProgress: options.onProgress || 'onProgress',
-                    file: file,
-                    pos: pos.addXY(15*i,15*i)
-                },
-                reader = this.getFileReader(fileReaderOptions);
+                onLoad: options.onLoad || 'onLoad',
+                onError: options.onError || 'onError',
+                onLoadStart: options.onLoadStart || 'onLoadStart',
+                onLoadEnd: options.onLoadEnd || 'onLoadEnd',
+                onProgress: options.onProgress || 'onProgress',
+                file: file,
+                pos: pos.addXY(15*i,15*i)
+            }, reader = this.getFileReader(fileReaderOptions);
             if (options.asBinary) reader.readAsBinaryString(file);
             else if (options.asText) reader.readAsText(file);
             else reader.readAsDataURL(file);

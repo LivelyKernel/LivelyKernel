@@ -14,17 +14,18 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
             {offset: 0.4, color: Color.gray.mixedWith(Color.white, 0.9)},
             {offset: 0.6, color: Color.gray.mixedWith(Color.white, 0.9)},
             {offset: 1, color: Color.gray.mixedWith(Color.white, 0.3)}],
-            "NorthSouth")
-    },
-    labelStyle: {
-        borderWidth: 0,
-        fill: null,
-        padding: Rectangle.inset(0,3),
-        fontSize: 10,
-        align: 'center',
-        fixedWidth: true,
-        fixedHeight: true,
-        textColor: Color.black
+            "NorthSouth"),
+        label: {
+            borderWidth: 0,
+            fill: null,
+            padding: Rectangle.inset(0,3),
+            fontSize: 10,
+            align: 'center',
+            fixedWidth: true,
+            fixedHeight: true,
+            textColor: Color.black,
+            clipMode: 'hidden'
+        }
     }
 },
 'initializing', {
@@ -41,21 +42,14 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 
         this.label = new lively.morphic.Text(this.getExtent().extentAsRectangle(), labelString);
         this.addMorph(this.label);
-        this.label.beLabel(this.labelStyle);
+        this.label.beLabel(this.style.label);
     },
 },
 'accessing', {
     setLabel: function(label) {
         this.label.setTextString(label);
         this.label.setExtent(this.getExtent());
-        // FIXME what about labelStyle defined in my prototype?
-        this.label.applyStyle({
-            align: 'center',
-            fixedHeight: true,
-            fixedWidth: true,
-            clipMode: 'hidden',
-            padding: Rectangle.inset(0,0)
-        });
+        this.label.applyStyle(this.style.label);
         return this;
     },
     getLabel: function(label) { return this.label.textString },
@@ -77,6 +71,12 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     changeAppearanceFor: function(value) {
         this.setFill(value ? this.lighterFill : this.normalFill);
     },
+    applyStyle: function($super, spec) {
+        $super(spec);
+        if (spec.label && this.label) {
+            this.label.applyStyle(spec.label);
+        }
+    }
 },
 'events', {
 

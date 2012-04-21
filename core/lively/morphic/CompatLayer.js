@@ -26,7 +26,7 @@ cop.create('NewMorphicCompatLayer')
 
     get newTextPane() {
         return function(initialBounds, defaultText) {
-            var text = new lively.morphic.Text(initialBounds, defaultText);
+            var text = new lively.morphic.Text(initialBounds.extent().extentAsRectangle(), defaultText);
             text.applyStyle({clipMode: 'scroll', fixedWidth: true, fixedHeight: true})
             return text
         }

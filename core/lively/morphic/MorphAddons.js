@@ -674,7 +674,10 @@ lively.morphic.HandMorph.addMethods(
 // really necessary to have this class?
 lively.morphic.Box.subclass('lively.morphic.Panel',
 'settings', {
-    style: {adjustForNewBounds: true},
+    style: {
+        resizeWidth: true, resizeHeight: true, // so it scales itself
+        adjustForNewBounds: true // so it layouts its submorphs
+    }
 },
 'initializing', {
     initialize: function($super, extent) {
@@ -692,13 +695,17 @@ Object.extend(lively.morphic.Panel, {
         //panel.linkToStyles(['panel']);
 
         paneSpecs.forEach(function(spec) {
-            var paneName = spec[0];
-            var paneConstructor = spec[1];
-            var paneRect = extent.extentAsRectangle().scaleByRect(spec[2]);
-            // fix for mixed class vs. function initialization bug
-            var pane = Class.isClass(paneConstructor) ?
-                new paneConstructor(new lively.morphic.Shapes.Rectangle(paneRect)) :
-                paneConstructor(paneRect);
+            var paneName = spec[0],
+                paneConstructor = spec[1],
+                relativeRect = spec[2] instanceof lively.Rectangle ?
+                    spec[2] :
+                    new lively.Rectangle(spec[2][0], spec[2][1], spec[2][2], spec[2][3]),
+                paneRect = extent.extentAsRectangle().scaleByRect(relativeRect),
+                // fix for mixed class vs. function initialization bug
+                pane = Class.isClass(paneConstructor) ?
+                    new paneConstructor(new lively.morphic.Shapes.Rectangle()) :
+                    pane = paneConstructor(paneRect);
+            pane.setBounds(paneRect);
             panel[paneName] = panel.addMorph(pane)
         });
 

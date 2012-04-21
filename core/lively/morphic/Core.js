@@ -501,12 +501,16 @@ Object.subclass('lively.morphic.Morph',
 
         if (spec.lock !== undefined) this[spec.lock ? 'lock' : 'unlock']();
 
-        if (spec.resizeWidth !== undefined || spec.resizeHeight !== undefined || spec.moveVertical !== undefined || spec.moveHorizontal !== undefined || spec.adjustForNewBounds !== undefined || spec.scaleHorizontal !== undefined || spec.scaleVertical !== undefined || spec.centeredVertical !== undefined || spec.centeredHorizontal !== undefined) {
+        if (spec.resizeWidth !== undefined || spec.resizeHeight !== undefined || spec.moveVertical !== undefined || spec.moveHorizontal !== undefined || spec.adjustForNewBounds !== undefined || spec.scaleHorizontal !== undefined || spec.scaleVertical !== undefined || spec.centeredVertical !== undefined || spec.centeredHorizontal !== undefined || spec.scaleProportional !== undefined) {
             this.layout = this.layout || {};
             if (spec.resizeWidth !== undefined) this.layout.resizeWidth = spec.resizeWidth;
             if (spec.resizeHeight !== undefined) this.layout.resizeHeight = spec.resizeHeight;
             if (spec.scaleHorizontal !== undefined) this.layout.scaleHorizontal = spec.scaleHorizontal;
             if (spec.scaleVertical !== undefined) this.layout.scaleVertical = spec.scaleVertical;
+            if (spec.scaleProportional !== undefined) {
+                this.layout.scaleVertical = spec.scaleProportional;
+                this.layout.scaleHorizontal = spec.scaleProportional;
+            }
 
             if (spec.centeredHorizontal !== undefined) this.layout.centeredHorizontal = spec.centeredHorizontal;
             if (spec.centeredVertical !== undefined) this.layout.centeredVertical = spec.centeredVertical;

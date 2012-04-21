@@ -26,8 +26,9 @@ Object.subclass('lively.PartsBin.PartItem',
     },
 
     getFileURL: function() {
-        /*return this.getPartsSpace().getURL().withFilename(this.name + ".json")*/
+        return this.getPartsSpace().getURL().withFilename(this.name + ".json")
 
+        /* from astrid */
         var partName;
         // the fileURL is computed with the partName stored in the PartsBinMetaInfo, if possible
         if (this.part && this.part.getPartsBinMetaInfo()) {

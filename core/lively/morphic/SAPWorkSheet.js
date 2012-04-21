@@ -1227,11 +1227,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     }
 },
 'default category', {
-    initialize: function($super, arg1, arg2) {
-        //
-        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(10,0,20,100)))
-        //this.setFill(Color.rgb(255, 255, 225));
-        //this.setBorderColor(Color.rgb(0,0,0));
+    initialize: function($super, nXpos, nYpos,nWidth,nHeight) {
+        //Rectangle(xPos,yPox,width,height)
+        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nXpos,nYpos,nWidth,nWidth)))
     }
     
    

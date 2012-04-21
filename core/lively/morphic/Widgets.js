@@ -913,9 +913,9 @@ lively.morphic.World.addMethods(
             toolPane.openInWindow();
             toolPane.owner.name = toolPane.name +"Window";
             toolPane.owner.minExtent = pt(700,370);
-            var corner = toolPane.withAllSubmorphsSelect(function (ea) {
+            var corner = toolPane.withAllSubmorphsDetect(function (ea) {
                 return ea.name == "ResizeCorner";
-            }).first()
+            });
             corner && toolPane.owner.addMorph(corner)
         }
         var part = toolPane.openMethodFinderFor(searchString)
@@ -1704,27 +1704,23 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph')/*TOD
         $super(new lively.morphic.Shapes.Rectangle());
         this.LK2 = true; // to enable workaround in WindowMorph trait.expand
 
-        var bounds = targetMorph.bounds();
-        var titleBar = this.makeTitleBar(titleString, bounds.width, optSuppressControls)
+        var bounds      = targetMorph.bounds(),
+            titleBar    = this.makeTitleBar(titleString, bounds.width, optSuppressControls),
             titleHeight = titleBar.bounds().height - titleBar.getBorderWidth();
         this.setBounds(bounds.withHeight(bounds.height + titleHeight));
         this.targetMorph = this.addMorph(targetMorph);
-        if (Config.danTest) {
-            this.reframeHandle = this.addMorph(this.makeReframeHandle());
-            this.alignReframeHandle();
-            }
+        this.reframeHandle = this.addMorph(this.makeReframeHandle());
+        this.alignReframeHandle();
         this.titleBar = this.addMorph(titleBar);
-        //this.contentOffset = pt(0, titleHeight - titleBar.getBorderWidth()/2); // FIXME: hack
         this.contentOffset = pt(0, titleHeight);
         targetMorph.setPosition(this.contentOffset);
         // this.closeAllToDnD();
 
-        this.collapsedTransform = null;
-        this.collapsedExtent = null;
-        this.expandedTransform = null;
-        this.expandedExtent = null;
+        this.collapsedTransform   = null;
+        this.collapsedExtent      = null;
+        this.expandedTransform    = null;
+        this.expandedExtent       = null;
         this.ignoreEventsOnExpand = false;
-
         return this;
     },
 
@@ -1741,7 +1737,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph')/*TOD
             this.addMorphFront(this.reframeHandle);
             this.alignReframeHandle();
         }
-        $super(optWorld)
+        $super(optWorld);
     },
     showHalos: function($super) {
         // Hide the reframe handle in case of menu reframe

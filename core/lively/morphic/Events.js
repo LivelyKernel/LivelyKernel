@@ -787,12 +787,6 @@ handleOnCapture);
     },
     onMouseOut: function(evt) { return false; },
 
-
-    onContextMenu: function(evt) {
-        // we are invoking menus in onMouseDown
-        if (!this.eventsAreIgnored && !evt.isCtrlDown()) evt.stop()
-    },
-
     dragTriggerDistance: 5, // the distance the mouse has to move before dragStart is triggered
 
     onDragStart: function(evt) {
@@ -810,10 +804,16 @@ handleOnCapture);
         var dragInterval = 50; // milliseconds
         var now = new Date().getTime();
     },
+
+    isNativeContextMenuEvt: function(evt) {
+        return evt.isCtrlDown() && evt.isAltDown();
+    },
+
     onContextMenu: function(evt) {
-        var ctrl = evt.isCtrlDown();
-        if (!ctrl) evt.stop();
-        return ctrl;
+        // we are invoking menus in onMouseDown
+        var nativeMenu = this.isNativeContextMenuEvt(evt);
+        if (!nativeMenu) evt.stop();
+        return nativeMenu;
     },
 
 },

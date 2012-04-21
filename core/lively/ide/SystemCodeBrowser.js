@@ -29,17 +29,17 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser', {
         connect(this.locationInput(), 'savedTextString', this, 'setTargetURL',
             {converter: function(value) { return new URL(value) }});
         this.targetURL = this.targetURL // hrmpf
-        this.locationInput().applyStyle({fontSize: 8, textColor: Color.darkGray})
+        this.locationInput().applyStyle({fontSize: 8, textColor: Color.darkGray, borderWidth: 0})
 
         this.panel.codeBaseDirBtn.setLabel('codebase');
         connect(this.panel.codeBaseDirBtn, 'fire', this, 'setTargetURL',
             {converter: function() { return URL.codeBase.withFilename('lively/')} })
-        this.panel.codeBaseDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}})
+        this.panel.codeBaseDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}, padding: Rectangle.inset(2)})
 
         this.panel.localDirBtn.setLabel('local');
         connect(this.panel.localDirBtn, 'fire', this, 'setTargetURL',
             {converter: function() { return URL.source.getDirectory() }});
-        this.panel.localDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}})
+        this.panel.localDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}, padding: Rectangle.inset(2)})
     },
 
     getTargetURL: function() {

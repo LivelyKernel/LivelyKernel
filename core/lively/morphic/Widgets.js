@@ -1606,6 +1606,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
         fixedWidth: true,
         fixedHeight: true,
         resizeWidth: true,
+        textColor: Color.darkGray,
         emphasize: {textShadow: {color: Color.white, offset: pt(0,1)}}
     }
 },
@@ -1851,8 +1852,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
     highlight: function(trueForLight) {
         this.highlighted = trueForLight;
         var fill = this.titleBar.getStyle().fill || this.titleBar.getFill(),
-            newFill = trueForLight ? fill.lighter(2) : fill;
-        this.titleBar.setFill(newFill);
+            newFill = trueForLight ? fill.lighter(1) : fill;
+        this.titleBar.applyStyle({
+            fill: newFill,
+        });
+        this.titleBar.label.applyStyle({emphasize: {fontWeight: trueForLight ? 'bold' : 'normal'}});
     },
     isInFront: function() { return this.owner && this.owner.topMorph() === this },
 
@@ -1870,11 +1874,13 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
         if (this.reframeHandle) {
             this.addMorphFront(this.reframeHandle);
             this.alignReframeHandle();
-            }
+        }
         (function() {
-        textsAndLists.forEach(function(ea, i) { ea.setScroll(scrolls[i][0], scrolls[i][1]) });
-        this.targetMorph && this.targetMorph.onWindowGetsFocus && this.targetMorph.onWindowGetsFocus();
-        }).delay(0)
+            textsAndLists.forEach(function(ea, i) { ea.setScroll(scrolls[i][0], scrolls[i][1]) });
+            if (this.targetMorph && this.targetMorph.onWindowGetsFocus) {
+                this.targetMorph.onWindowGetsFocus();
+            }
+        }).delay(0);
     },
 
     onMouseDown: function(evt) {

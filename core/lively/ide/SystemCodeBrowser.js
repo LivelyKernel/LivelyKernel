@@ -29,23 +29,24 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser', {
         connect(this.locationInput(), 'savedTextString', this, 'setTargetURL',
             {converter: function(value) { return new URL(value) }});
         this.targetURL = this.targetURL // hrmpf
+        this.locationInput().applyStyle({fontSize: 8, textColor: Color.darkGray})
 
         this.panel.codeBaseDirBtn.setLabel('codebase');
         connect(this.panel.codeBaseDirBtn, 'fire', this, 'setTargetURL',
             {converter: function() { return URL.codeBase.withFilename('lively/')} })
-        this.panel.codeBaseDirBtn.applyStyle({moveHorizontal: true})
+        this.panel.codeBaseDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}})
 
         this.panel.localDirBtn.setLabel('local');
         connect(this.panel.localDirBtn, 'fire', this, 'setTargetURL',
             {converter: function() { return URL.source.getDirectory() }});
-        this.panel.localDirBtn.applyStyle({moveHorizontal: true})
+        this.panel.localDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}})
     },
-    
+
     getTargetURL: function() {
         if (!this.targetURL) this.targetURL = this.sourceDatabase().codeBaseURL;
         return this.targetURL;
     },
-    
+
     setTargetURL: function(url) {
         url = url.withRelativePartsResolved();
         this.selectNothing();
@@ -67,7 +68,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser', {
             console.log('new url: ' + url);
         });
     },
-    
+
     rootNode: function() {
         var srcCtrl = lively.ide.startSourceControl();
         if (!this._rootNode)
@@ -105,7 +106,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser', {
     },
 
 });
- 
+
 Object.extend(lively.ide.SystemBrowser, {
     // lively.ide.SystemBrowser.browse('lively.Examples')
     browse: function(moduleName, klassName, methodName) {
@@ -133,7 +134,7 @@ Object.extend(lively.ide, {
     browse: function(objectName, methodName, moduleNameOrSpec) {
         // Browse a method in a object (class, layer, etc)
         // See MethodFinder for original implementation
-        // Example: 
+        // Example:
         // objectName = "lively.morphic.Morph"
         // methodName = "onMouseDown"
         // moduleNameOrSpec = "lively.morphic.Events"

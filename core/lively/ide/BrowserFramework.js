@@ -22,22 +22,19 @@ Widget.subclass('lively.ide.BasicBrowser',
     initialViewExtent: pt(820, 550),
 
     panelSpec: [
-            ['locationPane', newTextPane, new Rectangle(0, 0, 0.8, 0.04)],
-            ['codeBaseDirBtn', function(bnds) { 
-                    return new ButtonMorph(bnds) }, new Rectangle(0.8, 0, 0.12, 0.04)],
-            ['localDirBtn', function(bnds) { 
-                    return new ButtonMorph(bnds) }, new Rectangle(0.92, 0, 0.08, 0.04)],
-            ['Pane1', newDragnDropListPane, new Rectangle(0, 0.05, 0.25, 0.35)],
-            ['Pane2', newDragnDropListPane, new Rectangle(0.25, 0.05, 0.25, 0.35)],
-            ['Pane3', newDragnDropListPane, new Rectangle(0.5, 0.05, 0.25, 0.35)],
-            ['Pane4', newDragnDropListPane, new Rectangle(0.75, 0.05, 0.25, 0.35)],
-            ['midResizer', function(bnds) { 
-                    return new HorizontalDivider(bnds) }, new Rectangle(0, 0.44, 1, 0.01)],
-            ['sourcePane', newTextPane, new Rectangle(0, 0.45, 1, 0.55)],
-            // ['bottomResizer', function(bnds) { 
-                    // return new HorizontalDivider(bnds) }, new Rectangle(0, 0.99, 1, 0.01)],
-            //['commentPane', newTextPane, new Rectangle(0, 0.95, 1, 0.05)]
-        ],
+        ['locationPane', newTextPane,                                         [0,    0,    0.8,  0.03]],
+        ['codeBaseDirBtn', function(bnds) { return new ButtonMorph(bnds) },   [0.8,  0,    0.12, 0.03]],
+        ['localDirBtn', function(bnds) { return new ButtonMorph(bnds) },      [0.92, 0,    0.08, 0.03]],
+        ['Pane1', newDragnDropListPane,                                       [0,    0.03, 0.25, 0.37]],
+        ['Pane2', newDragnDropListPane,                                       [0.25, 0.03, 0.25, 0.37]],
+        ['Pane3', newDragnDropListPane,                                       [0.5,  0.03, 0.25, 0.37]],
+        ['Pane4', newDragnDropListPane,                                       [0.75, 0.03, 0.25, 0.37]],
+        ['midResizer', function(bnds) { return new HorizontalDivider(bnds) }, [0,    0.44, 1,    0.01]],
+        ['sourcePane', newTextPane,                                           [0,    0.45, 1,    0.55]]
+        // ['bottomResizer', function(bnds) {
+        // return new HorizontalDivider(bnds) }, new Rectangle(0, 0.99, 1, 0.01)],
+        //['commentPane', newTextPane, new Rectangle(0, 0.95, 1, 0.05)]
+    ],
 
     allPaneNames: ['Pane1', 'Pane2', 'Pane3', 'Pane4'],
 
@@ -53,7 +50,7 @@ Widget.subclass('lively.ide.BasicBrowser',
         $super();
         this.buttonCommands = [];
         // init filters
-        this.filterPlaces.forEach(function(ea) {  /*identity filter*/    
+        this.filterPlaces.forEach(function(ea) {  /*identity filter*/
             this['set' + ea + 'Filters']([new lively.ide.NodeFilter()]);
         }, this);
     },
@@ -62,6 +59,7 @@ Widget.subclass('lively.ide.BasicBrowser',
         function setupListPane(paneName) {
             var pane = browser.panel[paneName],
                 list = pane.innerMorph();
+            pane.applyStyle({scaleProportional: true});
             connect(list, 'selection', browser, 'set' + paneName + 'Selection', {
                 updater: function($upd, v) { $upd(v, this.sourceObj) }});
             list.plugTo(browser, {
@@ -101,21 +99,17 @@ Widget.subclass('lively.ide.BasicBrowser',
         this.allPaneNames.forEach(function(ea) { setupListPane(ea) });
     },
     setupSourceInput: function() {
-        if (!Config.isNewMorphic)
-            this.sourceInput().maxSafeSize = 2e6;
-        else
-            this.panel.sourcePane.applyStyle({
-                clipMode: 'auto', 
-                fixedHeight: true,
-                fixedWidth: true,
-                fontFamily: 'Monaco', 
-                fontSize: 10,
-                padding: Rectangle.inset(5,5,5,5),
-                // layouting poliy
-                resizeWidth: true, 
-                resizeHeight: true,
-                accessibleInInactiveWindow: true,
-            });
+        this.panel.sourcePane.applyStyle({
+            clipMode: 'auto',
+            fixedHeight: true,
+            fixedWidth: true,
+            fontFamily: 'Monaco',
+            fontSize: 10,
+            padding: Rectangle.inset(5,5,5,5),
+            // layouting poliy
+            scaleProportional: true,
+            accessibleInInactiveWindow: true,
+        });
 
         this.panel.sourcePane.innerMorph().noEval = true;
 
@@ -134,9 +128,7 @@ Widget.subclass('lively.ide.BasicBrowser',
     },
 
     buildView: function (extent) {
-
         extent = extent || this.initialViewExtent;
-
         var panel = new lively.ide.BrowserPanel(extent);
         PanelMorph.makePanedPanel(extent, this.panelSpec, panel);
         panel.applyStyle({fill: Color.lightGray})
@@ -156,27 +148,24 @@ Widget.subclass('lively.ide.BasicBrowser',
 
         panel.ownerWidget = this;
 
-        panel.applyStyle({resizeWidth: true, resizeHeight: true});
-
         this.start();
 
         return panel;
     },
-    
+
     setupLocationInput: function() {
         var locInput = this.locationInput();
         if (!locInput) return;
-        locInput.beInputLine({fixedWidth: true, fixedHeight: true, fontSize: 10, resizeWidth: true});
+        locInput.beInputLine({fixedWidth: true, fixedHeight: true, fontSize: 10, scaleProportional: true});
         locInput.noEval = true;
         locInput.linkToStyles(["Browser_locationInput"])
     },
-    
+
     setupResizers: function() {
         var panel = this.panel;
-        
+
         // for compatibility to old pages -- FIXME remove
-        if (!panel.midResizer) return 
-        
+        if (!panel.midResizer) return
         // resizer in the middle resiszes top panes, buttons and source pane
         this.allPaneNames.collect(function(name) {
             panel.midResizer.addScalingAbove(panel[name]);
@@ -185,8 +174,9 @@ Widget.subclass('lively.ide.BasicBrowser',
 
         // buttons
         panel.submorphs.forEach(function(m) {
-            if (m.constructor == ButtonMorph && m != panel.codeBaseDirBtn && m != panel.localDirBtn)
+            if (m instanceof lively.morphic.Button && m != panel.codeBaseDirBtn && m != panel.localDirBtn) {
                 panel.midResizer.addFixed(m);
+            }
         })
 
         // bottom resizer divides code and comment pane
@@ -196,41 +186,32 @@ Widget.subclass('lively.ide.BasicBrowser',
         // panel.bottomResizer.linkToStyles(["Browser_resizer"]);
         panel.midResizer.linkToStyles(["Browser_resizer"]);
     },
-    
+
     buildCommandButtons: function(morph) {
         var cmds = this.commands()
             .collect(function(ea) { return new ea(this) }, this)
             .select(function(ea) { return ea.wantsButton() });
+
         if (cmds.length === 0) return;
 
-        var height = Math.round(morph.getExtent().y * 0.04);
-        var width = morph.getExtent().x / cmds.length
-        var y = morph.getExtent().y * 0.44 - height;
-
-        var btns = cmds.forEach(function(cmd, i) {
-            // Refactor me!!!
-            var btn = new ButtonMorph(new Rectangle(i*width, y, width, height));
-            btn.command = cmd; // used in connection
-            btn.setLabel(cmd.asString());
-            lively.bindings.connect(btn, 'fire', cmd, 'trigger');
-            lively.bindings.connect(btn, 'fire', btn, 'setLabel', {
-                converter: function() { return this.getSourceObj().command.asString() }
-            });
-            if (!Config.isNewMorphic) {
-                // *wuergs* mixed old model and connect FIXME!!!
-                var btnModel = {
-                    setIsActive: function(val) { btn.onIsActiveUpdate(val) },
-                    getIsActive: function(val) { return cmd.isActive() }
-                };
-                btn.connectModel({model: btnModel, setIsActive: 'setIsActive', getIsActive: 'getIsActive'});
-            }
-            cmd.button = btn; // used in onPaneXUpdate, to be removed!!!
-            morph.addMorph(btn);
-            if (!Config.isNewMorphic)
-                btnModel.setIsActive(cmd.isActive());
-            else
-                btn.applyStyle({padding: Rectangle.inset(0,4)})
-        })
+        var height = Math.round(morph.getExtent().y * 0.04),
+            width = morph.getExtent().x / cmds.length,
+            y = morph.getExtent().y * 0.44 - height,
+            btns = cmds.forEach(function(cmd, i) {
+                // Refactor me!!!
+                var btn = new lively.morphic.Button(new Rectangle(i*width, y, width, height));
+                btn.command = cmd; // used in connection
+                btn.setLabel(cmd.asString());
+                lively.bindings.connect(btn, 'fire', cmd, 'trigger');
+                lively.bindings.connect(btn, 'fire', btn, 'setLabel', {
+                    converter: function() { return this.getSourceObj().command.asString() }
+                });
+                cmd.button = btn; // used in onPaneXUpdate, to be removed!!!
+                morph.addMorph(btn);
+                btn.applyStyle({padding: Rectangle.inset(0,4),
+                                scaleProportional: true,
+                                label: {fontSize: 8}})
+            })
         this.buttonCommands = cmds;
     },
 
@@ -238,7 +219,7 @@ Widget.subclass('lively.ide.BasicBrowser',
         this.setPane1Content(this.childsFilteredAndAsListItems(this.rootNode(), this.getRootFilters()));
         this.mySourceControl().registerBrowser(this);
     },
-    
+
     stop: function() {
         this.mySourceControl().unregisterBrowser(this);
     },
@@ -377,7 +358,7 @@ Widget.subclass('lively.ide.BasicBrowser',
     commands: function() { return [] },
 
     locationInput: function() { return this.panel.locationPane && this.panel.locationPane.innerMorph() },
-    
+
     sourceInput: function() { return this.panel.sourcePane.innerMorph() },
 
     mySourceControl: function() {
@@ -391,7 +372,7 @@ Widget.subclass('lively.ide.BasicBrowser',
     rootNode: function() {
         throw dbgOn(new Error('To be implemented from subclass'));
     },
- 
+
     selectedNode: function() {
         return this.getPane4Selection() || this.getPane3Selection() || this.getPane2Selection() || this.getPane1Selection();
     },
@@ -415,9 +396,9 @@ Widget.subclass('lively.ide.BasicBrowser',
             console.log('Weird bug: listItems: ' + listItems + ' has no collect in pane ' + paneName);
             return [];
         }
-        return listItems.collect(function(ea) { return ea.value })    
+        return listItems.collect(function(ea) { return ea.value })
     },
-    
+
     paneNameOfNode: function(node) {
         return this.allPaneNames.detect(function(pane) {
             // FIXME quality
@@ -426,7 +407,7 @@ Widget.subclass('lively.ide.BasicBrowser',
     },
 
     selectionInPane: function(pane) {
-        return this['get'+pane+'Selection'](); 
+        return this['get'+pane+'Selection']();
     },
 
     childsFilteredAndAsListItems: function(node, filters) {
@@ -485,7 +466,7 @@ Widget.subclass('lively.ide.BasicBrowser',
         this.pane1Selection = node; // for bindings
 
         this.panel['Pane2'] && this.panel['Pane2'].innerMorph().clearFilter(); // FIXME, lis filter, not a browser filter!
-        
+
         this.setPane2Selection(null, true);
         this.setPane2Content([this.emptyText]);
         if (!node) return
@@ -502,15 +483,15 @@ Widget.subclass('lively.ide.BasicBrowser',
 
         node.onSelect();
     },
- 
+
     onPane2SelectionUpdate: function(node) {
 
         this.pane2Selection = node; // for bindings
 
         this.panel['Pane3'] && this.panel['Pane3'].innerMorph().clearFilter(); // FIXME, lis filter, not a browser filter!
-    
+
         this.setPane3Selection(null);
-        this.setPane3Content([this.emptyText]);        
+        this.setPane3Content([this.emptyText]);
         if (!node) return
 
         this.setPane3Content(this.childsFilteredAndAsListItems(node, this.getPane2Filters()));
@@ -524,14 +505,14 @@ Widget.subclass('lively.ide.BasicBrowser',
 
         node.onSelect();
     },
- 
+
     onPane3SelectionUpdate: function(node) {
         this.pane3Selection = node; // for bindings
 
         this.panel['Pane4'] && this.panel['Pane4'].innerMorph().clearFilter(); // FIXME, lis filter, not a browser filter!
-    
+
         this.setPane4Selection(null);
-        this.setPane4Content([this.emptyText]);        
+        this.setPane4Content([this.emptyText]);
         if (!node) return;
 
         this.setPane4Content(this.childsFilteredAndAsListItems(node, this.getPane3Filters()));
@@ -627,7 +608,7 @@ Widget.subclass('lively.ide.BasicBrowser',
                 newNode = nodes.detect(function(ea) {return ea && ea.asString() === oldNode.asString()});
                this['set' + paneName + 'Selection'](newNode, true);
         }.bind(this);
-    
+
         this.start(); // select rootNode and generate new subnodes
 
         revertStateOfPane('Pane1', oldN1);
@@ -652,7 +633,7 @@ Widget.subclass('lively.ide.BasicBrowser',
         // currently update everything, this isn't really necessary
           this.allChanged();
     },
- 
+
     textChanged: function(node) {
         // be careful -- this can lead to overwritten source code
         var pane = this.paneNameOfNode(node);
@@ -661,7 +642,7 @@ Widget.subclass('lively.ide.BasicBrowser',
         this.inPaneSelectNodeMatching(pane, function(other) { return other.target == node.target });
         // this.setSourceString(node.sourceString());
     },
-    
+
     signalNewSource: function(changedNode) {
         this.mySourceControl().updateBrowsers(this, changedNode);
     },
@@ -708,7 +689,7 @@ Widget.subclass('lively.ide.BasicBrowser',
     },
 
     setStatusMessage: function(msg, color, delay) {
-        var s = this.panel.sourcePane;    
+        var s = this.panel.sourcePane;
         if (!this._statusMorph) {
             this._statusMorph = new TextMorph(pt(300,30).extentAsRectangle());
             this._statusMorph.applyStyle({borderWidth: 0, strokeOpacity: 0})
@@ -765,7 +746,7 @@ PanelMorph.subclass('lively.ide.BrowserPanel', {
     documentation: 'Hack for deserializing my browser widget',
 
     openForDragAndDrop: false,
-    
+
     onDeserialize: function($super) {
         var widget = new this.ownerWidget.constructor();
         if (widget instanceof lively.ide.WikiCodeBrowser) return; // FIXME deserialize wiki browser
@@ -778,7 +759,7 @@ PanelMorph.subclass('lively.ide.BrowserPanel', {
     },
 
     getPane: function(pane) { return this[pane] && this[pane].innerMorph() },
-    
+
     getSelectionTextOfPane: function(pane) {
         var pane = this.getPane(pane);
         if (!pane) return null;
@@ -796,9 +777,9 @@ PanelMorph.subclass('lively.ide.BrowserPanel', {
             if (!sel) return spec;
             spec[paneName] = sel;
             i++;
-        }            
+        }
     },
-    
+
     resetSelection: function(selectionSpec, widget) {
         for (var paneName in selectionSpec)
             widget.inPaneSelectNodeNamed(paneName, selectionSpec[paneName]);
@@ -873,7 +854,7 @@ Object.subclass('lively.ide.BrowserNode',
             } else {
                 msg += 'Couldn\'t save';
                 failureOccurred = true;
-            } 
+            }
         } catch(e) {
             dbgOn(true)
             msg += 'Error while saving: ' + e;
@@ -881,7 +862,7 @@ Object.subclass('lively.ide.BrowserNode',
         }
 
         msg += '\n';
-        
+
         // eval source
         try {
             if (this.browser.evaluate && this.evalSource(newSource)) {
@@ -892,7 +873,7 @@ Object.subclass('lively.ide.BrowserNode',
             }
         } catch(e) {
             msg += 'Error evaluating ' + e;
-            // TODO don't reference UI directly? 
+            // TODO don't reference UI directly?
             this.browser.panel.sourcePane.innerMorph().showError(e)
             errorOccurred = true;
         }
@@ -901,7 +882,7 @@ Object.subclass('lively.ide.BrowserNode',
         this.statusMessage(msg, color, delay);
         this.browser.signalNewSource(this);
     },
-    evalSource: function(newSource) { return false }, 
+    evalSource: function(newSource) { return false },
     saveSource: function(newSource, sourceControl) { return false },
 },
 'menu', {
@@ -913,7 +894,7 @@ Object.subclass('lively.ide.BrowserNode',
         this.browser && this.browser.setStatusMessage(string, optColor, optDelay);
     },
 },
-'updating', {    
+'updating', {
     signalChange: function() { this.browser.nodeChanged(this) },
     signalTextChange: function() { this.browser.textChanged(this) },
     onSelect: function() {  },
@@ -972,7 +953,7 @@ lively.ide.NodeFilter.subclass('lively.ide.NodeTypeFilter', {
 
     initialize: function(attrsThatShouldBeTrue) {
         this.attributes = attrsThatShouldBeTrue;
-    },    
+    },
 
     apply: function(nodes) {
         var attrs = this.attributes;

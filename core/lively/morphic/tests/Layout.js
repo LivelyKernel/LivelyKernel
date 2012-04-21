@@ -58,17 +58,17 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LayoutTests',
     }
 });
 
-lively.morphic.tests.TestCase.subclass('lively.morphic.tests.Layout.GridTest',
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.Layout.BasicTest',
 'testing', {
     testScaleVertically: function() {
-        var container = lively.morphic.Morph.makeRectangle(0,0, 100, 100),
-            submorph = lively.morphic.Morph.makeRectangle(0,0, 50, 50);
+        var container = lively.morphic.Morph.makeRectangle(0, 0,  100, 100),
+            submorph = lively.morphic.Morph.makeRectangle(10, 10, 50,  50);
         container.addMorph(submorph);
         container.applyStyle({adjustForNewBounds: true});
         submorph.applyStyle({scaleVertical: true});
         container.setExtent(pt(110, 110));
-        this.epsilon = 0.01;
-        this.assertEquals(new Rectangle(0,0, 50, 55), submorph.bounds());
+        this.epsilon = 0.001;
+        this.assertEquals(new Rectangle(10, 11, 50, 55), submorph.bounds());
     }
 });
 

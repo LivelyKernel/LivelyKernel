@@ -152,8 +152,9 @@ Object.subclass('lively.morphic.EventHandler',
         Global.LastEvent = evt;
         Global.LastEventWasHandled = false;
 
+        var wasHandled;
         try {
-            var wasHandled = target[eventSpec.targetMethodName](evt);
+            wasHandled = target[eventSpec.targetMethodName](evt);
         } catch(e) {
             this.handleError(e, target, eventSpec);
         }
@@ -210,7 +211,7 @@ Object.subclass('lively.morphic.EventHandler',
         evt.isKeyboardEvent = !evt.isMouseEvent && (evt.type === 'keydown' || evt.type === 'keyup' || evt.type === 'keypress');
 
         evt.isArrowKey = function() {
-            if(evt.isKeyboardEvent){
+            if (evt.isKeyboardEvent) {
                 var c = evt.getKeyCode();
                 return (c === Event.KEY_LEFT)
                     || (c === Event.KEY_RIGHT)
@@ -229,13 +230,15 @@ Object.subclass('lively.morphic.EventHandler',
         evt.hand = world.hands[0];
 
         evt.getPosition = function() {
-            if (!evt.scaledPos)
-                evt.scaledPos = evt.mousePoint.scaleBy(1/evt.world.getScale());
+            if (!evt.scaledPos) {
+                evt.scaledPos = evt.mousePoint.scaleBy(1 / evt.world.getScale());
+            }
             return evt.scaledPos;
         };
-        evt.mousePoint = evt.mousePoint || pt(evt.pageX || evt.clientX || 0, evt.pageY || evt.clientY || 0);
-
-        return evt
+        evt.mousePoint = evt.mousePoint
+                      || pt(evt.pageX || evt.clientX || 0,
+                            evt.pageY || evt.clientY || 0);
+        return evt;
     },
 
     handleEventCANVAS: function(evt) {
@@ -273,9 +276,12 @@ Object.subclass('lively.morphic.EventHandler',
         return '<EventHandler(' + Properties.all(this.dispatchTable) + ')>'
     }
 });
+
 Object.extend(lively.morphic.EventHandler, {
     prepareEventSystem: (function() {})()
 });
+
+
 lively.morphic.EventHandler.subclass('lively.morphic.RelayEventHandler',
 'initializing', {
     initialize: function($super, morph, relayFunc) {
@@ -1916,9 +1922,20 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 },
 'moving', {
     move: function(evt) {
-        var offsetX = 2, offsetY = 2,
-            pos = pt((evt.pageX || evt.clientX) + offsetX, (evt.pageY || evt.clientY) + offsetY);
-        pos = pos.scaleBy(1/this.world().getScale())
+        var offsetX = 2, offsetY = 2;
+
+        // rk 04/08/12 this is just a quick hack to have a correct mouse pos
+        // when the world is offsetted. Since this depends on HTML rendering,
+        // this should rather go into lively.morphic.Hand>>setPositionHTML or
+        // #getPositionHTML
+        var worldNode = this.world().renderContext().morphNode,
+            worldOffsetLeft = worldNode.offsetLeft,
+            worldOffsetTop = worldNode.offsetTop;
+
+        var pos = pt((evt.pageX || evt.clientX) + offsetX - worldOffsetLeft,
+                     (evt.pageY || evt.clientY) + offsetY - worldOffsetTop);
+
+        pos = pos.scaleBy(1/this.world().getScale());
         this.setPosition(pos);
         if (this.carriesGrabbedMorphs) {
             var carriedMorph = this.submorphs.detect(function(ea) {return !ea.isGrabShadow;}),

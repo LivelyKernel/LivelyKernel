@@ -233,19 +233,29 @@ Object.subclass('lively.morphic.Morph',
     withAllSubmorphsDo: function(func, context, depth) {
         if (!depth) depth = 0;
         func.call(context || Global, this, depth);
-        for (var i = 0; i < this.submorphs.length; i++)
+        for (var i = 0; i < this.submorphs.length; i++) {
             this.submorphs[i].withAllSubmorphsDo(func, context, depth + 1);
+        }
     },
     withAllSubmorphsSelect: function(func, context, depth) {
         if (!depth) depth = 0;
         var res = [];
-        if (func.call(context || Global, this, depth)) {
-            res.push(this);
-        }
+        if (func.call(context || Global, this, depth)) { res.push(this); }
         for (var i = 0; i < this.submorphs.length; i++) {
             res.pushAll(this.submorphs[i].withAllSubmorphsSelect(func, context, depth + 1));
         }
         return res;
+    },
+
+    withAllSubmorphsDetect: function(func, context, depth) {
+        if (!depth) depth = 0;
+        var res = [];
+        if (func.call(context || Global, this, depth)) { return this; }
+        for (var i = 0; i < this.submorphs.length; i++) {
+            var found = this.submorphs[i].withAllSubmorphsDetect(func, context, depth + 1);
+            if (found) return found;
+        }
+        return null;
     },
 
     submorphBounds: function(tfm) {

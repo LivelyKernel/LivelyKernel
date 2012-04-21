@@ -313,6 +313,21 @@ this. openMorphsInRealWorld()
     }
 });
 
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphInterfaceTests',
+'testing', {
+    testWithAllSubmorphsDetect: function() {
+        var m1 = new lively.morphic.Morph(),
+            m2 = new lively.morphic.Morph(),
+            m3 = new lively.morphic.Morph(),
+            m4 = new lively.morphic.Morph();
+        m1.addMorph(m2);
+        m2.addMorph(m3);
+        m2.addMorph(m4);
+        m3.shouldBeFound = true;
+        var result = m1.withAllSubmorphsDetect(function(m) { return m.shouldBeFound });
+        this.assertIdentity(m3, result);
+    }
+});
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CopyMorphTests',
 'testing', {

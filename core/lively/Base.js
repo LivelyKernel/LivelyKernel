@@ -1127,7 +1127,7 @@ function logStack() {
 (function setupjQuery(Global) {
     var lively = Global.lively,
         jQuery = Global.jQuery;
-    lively.$ = jQuery.noConflict(/*true -- really removes $*/);
+    Global.$ = lively.$ = jQuery.noConflict(/*true -- really removes $*/);
 })(Global);
 
 namespace('lively');

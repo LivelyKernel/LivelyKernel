@@ -101,7 +101,7 @@ Object.extend(Object, {
         // if objs are arrays just concat them
         // if objs are real objs then merge properties
         if (Object.isArray(objs[0])) { // test for all?
-            return Array.prototype.concat.apply([], objs)
+            return Array.prototype.concat.apply([], objs);
         }
         var result = {};
         for (var i = 0; i < objs.length; i++) {
@@ -160,7 +160,7 @@ if (this.window && window.navigator && window.navigator.userAgent.match(/Firefox
 // Global Helper - Objects and Properties
 ///////////////////////////////////////////////////////////////////////////////
 
-var Objects = {
+Objects = {
 
     typeStringOf: function(obj) {
         if (obj === null) { return "null" }

@@ -14,11 +14,22 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTMLText.TextAttrib
         this.text.setTextString('eintest');
         this.text.emphasizeAll({textShadow: {offset: pt(1,1), blur: 2, color: Color.red}});
         this.checkChunks([{textString: 'eintest'}]);
-        debugger
         this.checkDOM([{
             tagName: 'span',
             textContent: 'eintest',
             style: {textShadow: ['rgb(204,0,0)', '1px', '1px', '2px'].join('')}
+        }]);
+    },
+
+    test02ReplaceTextStringKeepsStyling: function() {
+        this.text.replaceTextString('eintest');
+        this.text.emphasizeAll({fontWeight: 'bold'});
+        this.text.replaceTextString('foo');
+        this.checkChunks([{textString: 'foo'}]);
+        this.checkDOM([{
+            tagName: 'span',
+            textContent: 'foo',
+            style: {fontWeight: 'bold'}
         }]);
     }
 });

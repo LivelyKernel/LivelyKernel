@@ -295,11 +295,12 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
     get textString() {
         // when the prototype property is accessed
-        if (this === this.constructor.prototype) return;
+        if (this === this.constructor.prototype) return undefined;
         if (!this.cachedTextString)
             this.cachedTextString = this.renderContextDispatch('getTextString');
         return this.cachedTextString;
     },
+
     set textString(string) {
         string = String(string);
 
@@ -318,10 +319,20 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     setTextString: function(string) { return this.textString = string },
+
     getTextString: function() { return this.textString },
+
     appendTextString: function(string) { return this.textString += string },
 
+    replaceTextString: function(string) {
+        var style = this.firstTextChunk().style;
+        this.textString = string;
+        this.emphasizeAll(style);
+        return string;
+    },
+
     insertTextStringAt: function(index, string) {
+        // keeping style
         var chunks = this.sliceTextChunks(index - 1, index),
             firstChunk = chunks[0];
         if (!firstChunk) {
@@ -1709,12 +1720,12 @@ this. textNodeString()
             this.setSelectionRange(from, to);
         }.bind(this));
     },
+
     toggleItalics: function(from, to) {
         this.changeEmphasis(from, to, function(emph, doEmph) {
             doEmph({italics: emph.getItalics() === 'italic' ? 'normal' : 'italic'})
         })
     },
-
 
     toggleBoldness: function(from, to) {
         this.changeEmphasis(from, to, function(emph, doEmph) {

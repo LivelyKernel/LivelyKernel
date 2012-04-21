@@ -90,9 +90,7 @@ Object.extend(Object, {
     },
 
     inherit: function(obj) {
-        var constructor = function ProtoConstructor() {
-            return this
-        }
+        var constructor = function ProtoConstructor() { return this }
         constructor.prototype = obj;
         var newInstance = new constructor();
         newInstance.constructor = constructor;
@@ -102,13 +100,17 @@ Object.extend(Object, {
     merge: function(objs) {
         // if objs are arrays just concat them
         // if objs are real objs then merge properties
-        if (Object.isArray(objs[0])) // test for all?
-        return Array.prototype.concat.apply([], objs)
+        if (Object.isArray(objs[0])) { // test for all?
+            return Array.prototype.concat.apply([], objs)
+        }
         var result = {};
         for (var i = 0; i < objs.length; i++) {
             var obj = objs[i];
-            for (var name in obj)
-            if (obj.hasOwnProperty(name)) result[name] = obj[name]
+            for (var name in obj) {
+                if (obj.hasOwnProperty(name)) {
+                    result[name] = obj[name];
+                }
+            }
         }
         return result;
     },

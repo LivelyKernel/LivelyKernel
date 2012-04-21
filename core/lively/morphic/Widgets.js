@@ -1131,7 +1131,8 @@ lively.morphic.World.addMethods(
             ]],
             ['Preferences', [
                 ['set username', this.askForUserName.bind(this)],
-                ['set extent', this.askForNewWorldExtent.bind(this)]]
+                ['set extent', this.askForNewWorldExtent.bind(this)],
+                ['set background color', this.askForNewBackgroundColor.bind(this)]],
             ],
             ['Debugging', this.debuggingMenuItems(world)],
             ['Wiki', [
@@ -1302,6 +1303,29 @@ lively.morphic.World.addMethods(
             world.setExtent(newExtent)
         }, this.getExtent())
     },
+    askForNewBackgroundColor: function() {
+        var world = this,
+            oldColor = this.getFill();
+        if(! (oldColor instanceof Color)){
+            oldColor = Color.rgb(255,255,255);
+        }
+        this.prompt("Please, give new world background color", function(str) {
+            if (!str) return;
+            var newColor;
+            try {
+                newColor = eval(str);
+            } catch(e) {
+                alert("could not eval: " + str)
+            };
+            if (! (newColor instanceof Color)) {
+                alert("" + newColor + " " + "is not a proper Color")
+                return
+            }
+            alert("set world background color " +  newColor);
+            world.setFill(newColor)
+        }, "Color." + oldColor)
+    },
+
     setCurrentUser: function(username) {
         this.currentUser = username;
         if (lively.LocalStorage)

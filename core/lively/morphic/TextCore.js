@@ -1850,7 +1850,6 @@ this. textNodeString()
         })
     },
 
-
     getEmphasisAt: function(idx) {
         var chunkAndIdx = this.getChunkAndLocalIndex(idx, true);
         return chunkAndIdx && chunkAndIdx[0].style;
@@ -1860,29 +1859,27 @@ this. textNodeString()
 'status messages', {
     setStatusMessage: function(msg, color, delay) {
         console.log("status: " + msg)
-        if (!this._statusMorph) {
-            this._statusMorph = new lively.morphic.Text(pt(400,80).extentAsRectangle());
-            this._statusMorph.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: Color.gray, fontSize: 16, fillOpacity: 1, fixedWidth: false, fixedHeight: false})
-            this._statusMorph.isEpiMorph = true;
-        }
         var statusMorph = this._statusMorph;
+        if (!statusMorph) {
+            statusMorph = new lively.morphic.Text(pt(400,80).extentAsRectangle());
+            statusMorph.applyStyle({borderWidth: 0,
+                                    strokeOpacity: 0,
+                                    fill: Color.gray,
+                                    fontSize: 16,
+                                    fillOpacity: 1,
+                                    fixedWidth: false,
+                                    fixedHeight: false});
+            statusMorph.isEpiMorph = true;
+            this._statusMorph = statusMorph;
+        }
         statusMorph.textString = msg;
         this.world().addMorph(statusMorph);
         statusMorph.setTextColor(color || Color.black);
-
-
-        this._statusMorph.fit.bind(this._statusMorph).delay(0);
         statusMorph.ignoreEvents();
         // FIXME getSelectionBounds does not work yet when there is a null selection
         if (this.isFocused()) {
-            // seems to be broken
-            // var bounds = this.getGlobalSelectionBounds(),
-            //     pos = bounds ? bounds.bottomLeft() : pt(0, 20),
-            //      pos = pos; //this.owner.worldPoint(pos);
-            // statusMorph.setPosition(pos);
-
             statusMorph.align(statusMorph.bounds().topLeft(),
-                this.worldPoint(this.innerBounds().bottomLeft()))
+                              this.worldPoint(this.innerBounds().bottomLeft()))
         } else {
             statusMorph.centerAt(this.worldPoint(this.innerBounds().center()));
         };

@@ -122,6 +122,7 @@ lively.morphic.Morph.addMethods(
         init: 'initHTML',
         append: 'appendHTML',
         remove: 'removeHTML',
+        onRenderFinished: 'onRenderFinishedHTML',
         triggerEvent: 'triggerEventHTML',
         setTransform: 'setTransformHTML',
         setPosition: 'setPositionHTML',
@@ -289,6 +290,14 @@ lively.morphic.Morph.addMethods(
     replaceRenderContextHTML: function(oldCtx, newCtx) {
         oldCtx.removeNode(oldCtx.morphNode);
     },
+    onRenderFinishedHTML: function(ctx) {
+        // FIXME, this is a hack
+        if (this.delayedClipMode) {
+            var clipMode = this.delayedClipMode;
+            delete this.delayedClipMode;
+            this.setClipMode(clipMode);
+        }
+    }
 },
 'removing', {
     removeHTML: function(ctx) {
@@ -371,10 +380,11 @@ lively.morphic.Text.addMethods(
         this.setTextColorHTML(ctx, this.getTextColor());
         this.setWhiteSpaceHandlingHTML(ctx, this.getWhiteSpaceHandling());
         this.fit();
-        if (this.textChunks)
+        if (this.textChunks) {
             this.textChunks.forEach(function(chunk) { chunk.addTo(this) }, this)
-        else
+        } else {
             this.updateTextHTML(ctx, this.textString);
+        }
     },
     appendHTML: function($super, ctx, optMorphAfter) {
         $super(ctx, optMorphAfter);
@@ -390,6 +400,10 @@ lively.morphic.Text.addMethods(
     updateTextHTML: function(ctx, string) {
         this.firstTextChunk().textString = string;
     },
+    onRenderFinishedHTML: function($super, ctx) {
+        $super(ctx);
+        this.fit.bind(this).delay(0);
+    }
 },
 'accessing', {
     getTextExtentHTML: function(ctx) {

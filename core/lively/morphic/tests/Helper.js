@@ -96,7 +96,28 @@ TestCase.subclass('lively.morphic.tests.TestCase',
         if (expected.childNodes)
             for (var i = 0; i < expected.childNodes.length; i++)
                 this.assertNodeMatches(expected.childNodes[i], node.childNodes[i]);
-    }
+    },
+
+    // text HTML test helper
+    checkRunArray: function(expectedRunArray) {
+        this.assertMatches(expectedRunArray.asArray(), this.text.textStyle.asArray());
+    },
+
+    checkChunks: function(expectedChunks, optTextChunkOwner) {
+        var textChunkOwner = optTextChunkOwner || this.text;
+        this.assertMatches(expectedChunks, textChunkOwner.getTextChunks());
+    },
+
+    checkDOM: function(expectedTextNodes) {
+        // check what was actually rendered
+        var expected = {
+            tagName: 'div',
+            childNodeLength: expectedTextNodes.length,
+            childNodes: expectedTextNodes
+        };
+        this.assertNodeMatches(expected, this.text.renderContext().textNode);
+    },
+
 });
 
 });

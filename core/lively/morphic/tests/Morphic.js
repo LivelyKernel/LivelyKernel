@@ -564,31 +564,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
     setUp: function($super) {
         $super();
         this.text = new lively.morphic.Text(new Rectangle(0,0, 400, 200));
-        // cop.withLayers([TextDevLayer], function() {
-            // return new lively.morphic.Text(new Rectangle(0,0, 400, 200));
-        // })
-        // this.text.setWithLayers([TextDevLayer]);
         this.world.addMorph(this.text);
     },
-    checkRunArray: function(expectedRunArray) {
-        this.assertMatches(expectedRunArray.asArray(), this.text.textStyle.asArray());
-    },
-    checkChunks: function(expectedChunks, optTextChunkOwner) {
-        var textChunkOwner = optTextChunkOwner || this.text;
-        this.assertMatches(expectedChunks, textChunkOwner.getTextChunks());
-    },
-
-    checkDOM: function(expectedTextNodes) {
-        // check what was actually rendered
-        var expected = {
-            tagName: 'div',
-            childNodeLength: expectedTextNodes.length,
-            childNodes: expectedTextNodes
-        };
-        this.assertNodeMatches(expected, this.text.renderContext().textNode);
-    },
-
-
 },
 'testing', {
     test01MorphHasTextChunk: function() {
@@ -699,8 +676,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             {tagName: 'span', textContent: 'ein', style: {fontWeight: 'bold'}},
             {tagName: 'span', textContent: 'test', style: {fontWeight: ''}}])
     },
-
-
 
     test07MakeTextBoldThenUnbold: function() {
         this.text.setTextString('eintest');

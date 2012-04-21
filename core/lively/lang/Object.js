@@ -205,6 +205,30 @@ Objects = {
         } catch (e) {
             return '<error printing object>';
         }
+    },
+
+    equal: function(a, b) {
+        function equals(leftObj, rightObj) {
+			      if (!leftObj && !rightObj) return true;
+			      if (!leftObj || !rightObj) return false;
+			      switch (leftObj.constructor) {
+				        case String:
+				        case Boolean:
+				        case Boolean:
+				        case Number: return leftObj == rightObj;
+			      };
+			      if (leftObj.isEqualNode) return leftObj.isEqualNode(rightObj);
+
+			      var cmp = function(left, right) {
+				        for (var name in left) {
+					          if (!(left[name] instanceof Function))
+						        if (!equals(left[name], right[name])) return false;
+				        };
+				        return true
+			      };
+			      return cmp(leftObj, rightObj) && cmp(rightObj, leftObj);
+		    }
+		    return equals(a, b);
     }
 };
 
@@ -254,4 +278,5 @@ Properties = {
     printObjectSize: function(obj) {
         return Numbers.humanReadableByteSize(JSON.stringify(obj).length);
     }
+
 };

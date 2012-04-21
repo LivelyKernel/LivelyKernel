@@ -210,12 +210,12 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         clipMode: 'auto',
         fontFamily: 'Helvetica',
         fontSize: 10,
-        padding: Rectangle.inset(4, 2),
+        padding: Rectangle.inset(4, 2)
     },
 
     autoAdjustPadding: true,
     suppressDropping: true,
-    draggingEnabled: true,
+    draggingEnabled: true
 },
 'initializing', {
     initialize: function($super, bounds, string) {
@@ -407,6 +407,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             allowInput: false,
             clipMode: 'hidden',
             handStyle: 'default',
+            emphasize: {textShadow: {offset: pt(0,1), color: Color.white}}
         };
         if (customStyle) labelStyle = Object.merge([labelStyle, customStyle]);
         this.applyStyle(labelStyle);
@@ -2256,8 +2257,10 @@ Object.subclass('lively.morphic.TextEmphasis',
     setTextAlignment: function(textAlign) { return this.textAlign = textAlign },
     getFontSize: function() { return this.fontSize },
     setFontSize: function(fontSize) { return this.fontSize = fontSize },
+    getTextShadow: function() { return this.textShadow },
+    setTextShadow: function(textShadow) { return this.textShadow = textShadow },
     getBackgroundColor: function() { return this.backgroundColor },
-    setBackgroundColor: function(color) { return this.backgroundColor = color },
+    setBackgroundColor: function(color) { return this.backgroundColor = color }
 },
 'cloning', {
     clone: function() { return new this.constructor(this) },
@@ -2281,10 +2284,11 @@ Object.subclass('lively.morphic.TextEmphasis',
             this.getTextAlignment() == other.getTextAlignment() &&
             this.getFontSize() == other.getFontSize() &&
             this.getBackgroundColor() == other.getBackgroundColor() &&
-            !this.getDoit() && !other.getDoit()) return true;
+            !this.getDoit() && !other.getDoit() &&
+            Objects.equal(this.getTextShadow(), other.getTextShadow())) return true;
 
         if (this.getDoit() && other.getDoit() &&
-            this.getDoit().code == other.getDoit().code) return true
+            this.getDoit().code == other.getDoit().code) return true;
 
         return false;
     },
@@ -2292,12 +2296,12 @@ Object.subclass('lively.morphic.TextEmphasis',
 'rendering', {
     applyToHTML: function(node, debugMode) {
 
-        var debugStyle = debugMode ? 'red solid thin' : 'none';
-        $ = jQuery;
+        var debugStyle = debugMode ? 'red solid thin' : 'none',
+            $ = lively.$;
 
         if (debugMode) {
-            var style = this;
-            var toolTip = $('#textChunkDebug');
+            var style = this,
+                toolTip = $('#textChunkDebug');
             if (toolTip.length == 0)
                 toolTip = $('<span id="textChunkDebug"/>');
             $('body').append(toolTip);
@@ -2377,6 +2381,15 @@ Object.subclass('lively.morphic.TextEmphasis',
             // ignore none style properties
             if (name == 'uri') continue;
             if (name == 'doit') continue;
+            if (name === 'textShadow') {
+                var shadowSpec = this[name], shadow = "";
+                shadow += shadowSpec.offset.x + 'px ';
+                shadow += shadowSpec.offset.y + 'px ';
+                shadow += shadowSpec.blur ? shadowSpec.blur + 'px ' : "0 ";
+                shadow += shadowSpec.color.toCSSString();
+                node.style[name] = shadow;
+                continue;
+            }
             var styleName = name;
             if (name === 'italics') styleName = 'fontStyle';
             if (name === 'fontSize') { node.style[styleName] = this[name] + 'pt'; continue }

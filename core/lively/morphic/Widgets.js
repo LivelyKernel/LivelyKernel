@@ -24,7 +24,8 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
             fixedWidth: true,
             fixedHeight: true,
             textColor: Color.black,
-            clipMode: 'hidden'
+            clipMode: 'hidden',
+            emphasize: {textShadow: {offset: pt(0,1), color: Color.white}}
         }
     }
 },
@@ -1185,7 +1186,9 @@ lively.morphic.World.addMethods(
 },
 'windows', {
     addFramedMorph: function(morph, title, optLoc, optSuppressControls, suppressReframeHandle) {
-        var w = this.addMorph(new lively.morphic.Window(morph, title || 'Window', optSuppressControls, suppressReframeHandle));
+        var w = this.addMorph(
+            new lively.morphic.Window(morph, title || 'Window',
+                                      optSuppressControls, suppressReframeHandle));
         w.setPosition(optLoc || this.positionForNewMorph(morph));
         return w;
     },
@@ -1589,9 +1592,20 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
         borderWidth: 1,
         borderColor: Color.darkGray,
         adjustForNewBounds: true,
-        resizeWidth: true,
+        resizeWidth: true
     },
-    labelStyle: {borderRadius: 0, padding: Rectangle.inset(0,0), fill: null, fontSize: 10, align: 'center', clipMode: 'hidden', fixedWidth: true, fixedHeight: true, resizeWidth: true},
+    labelStyle: {
+        borderRadius: 0,
+        padding: Rectangle.inset(0,0),
+        fill: null,
+        fontSize: 10,
+        align: 'center',
+        clipMode: 'hidden',
+        fixedWidth: true,
+        fixedHeight: true,
+        resizeWidth: true,
+        emphasize: {textShadow: {color: Color.white, offset: pt(0,1)}}
+    }
 },
 'intitializing', {
     initialize: function($super, headline, windowWidth, windowMorph, optSuppressControls) {

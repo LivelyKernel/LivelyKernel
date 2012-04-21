@@ -13,7 +13,7 @@ lively.morphic.Morph.addMethods(
         if (!this.submorphs) return null;
         for (var i = 0; i < this.submorphs.length; i++) {
             var morph = this.submorphs[i];
-            if (morph.getName() === name) return morph;
+            if (morph.getName() === name || morph.toString() === name) return morph;
         }
         for (var i = 0; i < this.submorphs.length; i++)  {
             var morph = this.submorphs[i].getMorphNamed(name);
@@ -22,13 +22,13 @@ lively.morphic.Morph.addMethods(
         return null;
     },
     getBreadthFirstUpwards: function (name) {
-        if (this.getName() == name) return this;
+        if (this.getName() === name || this.toString() === name) return this;
         var owner = this.owner;
         if (!owner) return null;
         for (var i = 0; i < owner.submorphs.length; i++) {
             var morph = owner.submorphs[i];
             if (morph === this) continue;
-            if (morph.getName() === name) return morph;
+            if (morph.getName() === name || morph.toString() === name) return morph;
             var foundInMorph = morph.getMorphNamed(name);
             if (foundInMorph) return foundInMorph;
         }

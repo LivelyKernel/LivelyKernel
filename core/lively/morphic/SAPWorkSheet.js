@@ -1234,8 +1234,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         nHeight = (nHeight==undefined) ? (30) : (nHeight);
         nWidth = (nWidth==undefined) ? (1200) : (nWidth);
         console.log(nHeight)
-        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nXpos,nYpos,nWidth,nHeight)))
-    }
+        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nXpos,nYpos,nWidth,nHeight)));
+        this.initializeMenu();
+    },initializeMenu: function() {
+
+        
+    },
     
    
 

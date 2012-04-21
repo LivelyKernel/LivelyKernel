@@ -1230,6 +1230,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     initialize: function($super, nXpos, nYpos,nWidth,nHeight) {
         //Rectangle(xPos,yPox,width,height)
         if (nHeight) nHeight= 50;
+        nHeight= (nHeight) ? (true nHeight) : (false 50);
         console.log(nHeight)
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nXpos,nYpos,nWidth,nHeight)))
     }

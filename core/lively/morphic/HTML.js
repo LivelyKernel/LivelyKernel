@@ -677,7 +677,6 @@ lively.morphic.Shapes.Shape.addMethods(
         this.setOpacityHTML(ctx, this.getOpacity());
         this.setBorderWidthHTML(ctx, this.getBorderWidth()); // The other border props are initialized there as well
         this.setBorderStyleHTML(ctx, this.getBorderStyle());
-        this.setClipModeHTML(ctx, this.getClipMode());
         this.setPaddingHTML(ctx, this.getPadding()); // also sets extent
         if (UserAgent.fireFoxVersion)
             ctx.shapeNode['-moz-user-modify'] = 'read-only'
@@ -759,9 +758,6 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     setOpacityHTML: function(ctx, value) {
         ctx.shapeNode.style.opacity = value;
-    },
-    setClipModeHTML: function(ctx, modeString) {
-        if (ctx.shapeNode) ctx.shapeNode.style.overflow = modeString || 'auto';
     },
     setPaddingHTML: function(ctx, r) {
         if (r === undefined || !ctx.shapeNode) return r;

@@ -85,18 +85,18 @@ Object.subclass('TestCase',
 },
 'running', {
     runAll: function(statusUpdateFunc) {
-        var tests = this.createTests(),
-            time = Functions.timeToRun(function() {
-                tests.forEach(function(test) {
-                    test.statusUpdateFunc = statusUpdateFunc;
-                    test.runTest();
-                })
-            })
-        this.result.setTimeToRun(this.name(), time);
+        var tests = this.createTests();
+        tests.forEach(function(test) {
+            test.statusUpdateFunc = statusUpdateFunc;
+            test.runTest();
+        });
         return this.result;
     },
     runAllThenDo: function(statusUpdateFunc, whenDoneFunc) {
-        this.runAll(statusUpdateFunc);
+        var time = Functions.timeToRun(function() {
+            this.runAll(statusUpdateFunc);
+        }.bind(this))
+        this.result.setTimeToRun(this.name(), time);
         whenDoneFunc();
     },
     setUp: function() {},
@@ -409,7 +409,11 @@ Object.subclass('TestCase',
 
 Function.addMethods(
 'test support', {
-    isRunnableTestCaseClass: function() { return this.isSubclassOf(TestCase) && this.prototype.shouldRun },
+    isRunnableTestCaseClass: function() {
+        return this.isSubclassOf(TestCase)
+            && !this.isAbstractTestClass
+            && this.prototype.shouldRun;
+    }
 });
 
 TestCase.subclass('AsyncTestCase', {
@@ -458,7 +462,11 @@ TestCase.subclass('AsyncTestCase', {
         return tests;
     },
     runAllThenDo: function(statusUpdateFunc, whenDoneFunc) {
-        this.runAll(statusUpdateFunc, whenDoneFunc);
+        var start = new Date();
+        this.runAll(statusUpdateFunc, function() {
+            this.result.setTimeToRun(this.name(), new Date() - start);
+            whenDoneFunc && whenDoneFunc();
+        }.bind(this));
     },
     runAndDoWhenDone: function(/*optTestSelector, whenDoneFunc*/) {
         var args            = Array.from(arguments),
@@ -492,6 +500,10 @@ TestCase.subclass('AsyncTestCase', {
     }
 });
 
+Object.extend(AsyncTestCase, {
+    isAbstractTestClass: true
+});
+
 TestCase.subclass('MorphTestCase', {
     setUp: function() {
         this.morphs = [];
@@ -513,6 +525,10 @@ TestCase.subclass('MorphTestCase', {
         return m;
     },
 
+});
+
+Object.extend(MorphTestCase, {
+    isAbstractTestClass: true
 });
 
 Object.subclass('TestSuite', {
@@ -635,7 +651,9 @@ Object.subclass('TestResult', {
     },
 
     getTimeToRun: function(testCaseName) {
-        return this.timeToRun[testCaseName]
+        return testCaseName ?
+            this.timeToRun[testCaseName] :
+            Properties.values(this.timeToRun).sum();
     },
 
     addSuccess: function(className, selector) {
@@ -678,9 +696,10 @@ Object.subclass('TestResult', {
         var self = this;
         var sortedList = $A(Properties.all(this.timeToRun)).sort(function(a,b) {
             return self.getTimeToRun(a) - self.getTimeToRun(b)});
-        sortedList.each(function(ea){
+        sortedList.forEach(function(ea){
            string +=  this.getTimeToRun(ea)  + " " + ea+ "\n"
         }, this);
+        string += 'Overall time: ' + (this.getTimeToRun() / 1000) + 's';
         string += this.failed.length == 0 ? '\n[PASSED]' : '\n[FAILED]' ;
         return string;
     },
@@ -704,7 +723,7 @@ Object.subclass('TestResult', {
                 messages: this.failuresToString(true),
                 runtimes: sortedByExecTime.map(function(ea) {
                     return {time: this.getTimeToRun(ea), module: ea};
-                }, this)
+                }, this).concat({time: this.getTimeToRun(), module: 'all'})
             };
         return JSON.stringify(jsonData);
     },

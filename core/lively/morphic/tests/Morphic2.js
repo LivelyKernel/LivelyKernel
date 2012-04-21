@@ -620,6 +620,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.jQueryTests', {
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
+'running', {
+    // FIXME Astrid, can you make these tests work for the core system two?
+    // might require some test fixture creation but it would definitely beworth it!
+    // Great to see the progress with morph diffing :)
+    shouldRun: !Config.serverInvokedTest
+},
 'inheritance', {
     testFindById: function() {
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);

@@ -741,8 +741,11 @@ lively.morphic.Morph.addMethods(
         this.showsMorphMenu = true;
     },
     disableMorphMenu: function() { this.showsMorphMenu = false },
-    openMorphMenuAt: function(pos) {
-        return lively.morphic.Menu.openAt(pos, this.name || this.toString(), this.morphMenuItems());
+    openMorphMenuAt: function(pos, itemFilter) {
+        if (!(itemFilter instanceof Function)) {
+            itemFilter = function (items) { return items }
+        }
+        return lively.morphic.Menu.openAt(pos, this.name || this.toString(), itemFilter(this.morphMenuItems()));
     },
     showMorphMenu: function(evt) {
         this.openMorphMenuAt(evt.getPosition());
@@ -1802,7 +1805,17 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph')/*TOD
 'menu', {
     showTargetMorphMenu: function() {
         var target = this.targetMorph || this;
-        target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)));
+        if (this.targetMorph) {
+            var self = this;
+            itemFilter = function (items) {
+            items[0] = [
+                'publish window', function(evt) {
+                self.copyToPartsBinWithUserRequest();
+                }]
+            return items;
+            }
+        }
+        target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)), itemFilter);
     },
     morphMenuItems: function($super) {
         var self = this, items = $super();

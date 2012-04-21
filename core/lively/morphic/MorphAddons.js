@@ -696,9 +696,12 @@ Object.extend(lively.morphic.Panel, {
             var paneConstructor = spec[1];
             var paneRect = extent.extentAsRectangle().scaleByRect(spec[2]);
             // fix for mixed class vs. function initialization bug
-            var pane = Class.isClass(paneConstructor) ? new paneConstructor(paneRect) : paneConstructor(paneRect);
+            var pane = Class.isClass(paneConstructor) ?
+                new paneConstructor(new lively.morphic.Shapes.Rectangle(paneRect)) :
+                paneConstructor(paneRect);
             panel[paneName] = panel.addMorph(pane)
         });
+
         return panel;
     }
 });

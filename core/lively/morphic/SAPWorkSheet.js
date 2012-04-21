@@ -1199,4 +1199,16 @@ console.log("SAPGridAnnotation.onKeyUp: org col/row " + nOrgCol +"," + nOrgRow);
 });
 
 
+lively.morphic.Text.subclass('lively.morphic.SAPGridToolBar',
+'default category', {
+    initialize: function($super, arg1, arg2) {
+        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,100,100)))
+        this.setFill(Color.rgb(255, 255, 225));
+        this.setBorderColor(Color.rgb(0,0,0));
+    }
+    
+   
+
+});
+
 }) // end of module

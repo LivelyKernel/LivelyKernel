@@ -622,18 +622,25 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.jQueryTests', {
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 'inheritance', {
     testFindById: function() {
-        this.assertEquals(this.m1.findById(this.m1_1.id), this.m1_1, 'First submorph not found.')
-        this.assertEquals(this.m1.findById(this.m1_1_1.id), this.m1_1_1, 'Submorph of submorph not found.')
-        this.assertEquals(this.m1.findById(this.m1_2.id), this.m1_2, 'Second Submorph not found.')
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        var m1_1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        var m1_2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        var m1_1_1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        m1.addMorph(m1_1);
+        m1_1.addMorph(m1_1_1);
+        m1.addMorph(m1_2);
+        this.assertEquals(m1.findById(m1_1.id), m1_1, 'First submorph not found.')
+        this.assertEquals(m1.findById(m1_1_1.id), m1_1_1, 'Submorph of submorph not found.')
+        this.assertEquals(m1.findById(m1_2.id), m1_2, 'Second Submorph not found.')
     },
 
 
     testFindParentPartVersion: function() {
-        this.setupMorphs();
-        var m1 = Morph.makeRectangle(0,0,100,100);
+        // this.setupMorphs();
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
 
         this.assertEquals(m1.findParentPartVersion().getPartsBinMetaInfo().revisionOnLoad, m1.getPartsBinMetaInfo().revisionOnLoad, 'Revision number of current revision was wrong.')
-        var m2 = Morph.makeRectangle(0,0,100,100)
+        var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100)
         this.assert(!m2.findParentPartVersion().getPartsBinMetaInfo().revisionOnLoad, "Should't have found a match");
     },
 
@@ -734,7 +741,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 },
 'diffing', {
     testCopy: function() {
-            var m = Morph.makeRectangle(0,0,100,100);
+            var m = lively.morphic.Morph.makeRectangle(0,0,100,100);
             var m2 = m.copy();
             this.assert(m2.derivationIds, "No derivationsIds Array")
     },

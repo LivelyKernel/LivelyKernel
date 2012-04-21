@@ -85,25 +85,33 @@ Object.subclass('lively.morphic.EventHandler',
         }, this);
     },
     registerHTMLAndSVG: function(eventSpec) {
+        var handler = this;
         eventSpec.node = eventSpec.node || this.morph.renderContext().morphNode;
+        if (!eventSpec.node) {
+            throw new Error('Cannot register Event handler because cannot find '
+                            + 'HTML/SVG morphNode');
+        }
         eventSpec.doNotSerialize = ['node'];
-        if (!eventSpec.node)
-            throw new Error('Cannot register Event handler because cannot find HTML/SVG morphNode');
-        eventSpec.handlerFunc = this.handleEvent.bind(this);
+        // bind is too expensive here
+        eventSpec.handlerFunc = function(evt) { handler.handleEvent(evt); };
         eventSpec.unregisterMethodName = 'unregisterHTMLAndSVGAndCANVAS';
-        eventSpec.node.addEventListener(eventSpec.type, eventSpec.handlerFunc, eventSpec.handleOnCapture);
+        eventSpec.node.addEventListener(
+            eventSpec.type, eventSpec.handlerFunc, eventSpec.handleOnCapture);
         this.register(eventSpec);
     },
     registerCANVAS: function(eventSpec) {
-        if (eventSpec.node) { alert('EventHandler still registered in DOM?'); debugger };
-// alert('registering event: ' + eventSpec.type + ' -> ' + eventSpec.target + '>>' + eventSpec.targetMethodName)
+        var handler = this;
+        if (eventSpec.node) { alert('EventHandler still registered in DOM?'); debugger; };
         eventSpec.node = this.morph.renderContext().getCanvas();
-        if (!eventSpec.node)
-            throw dbgOn(new Error('Cannot register event handler because cannot find CANVAS node'));
-        eventSpec.handlerFunc = this.handleEventCANVAS.bind(this);
+        if (!eventSpec.node) {
+            throw dbgOn(new Error('Cannot register event handler because cannot'
+                                  + 'find CANVAS node'));
+        }
+        eventSpec.handlerFunc = function(evt) { handler.handleEventCANVAS(evt); };
         eventSpec.unregisterMethodName = 'unregisterHTMLAndSVGAndCANVAS';
         eventSpec.handleOnCapture = false;
-        eventSpec.node.addEventListener(eventSpec.type, eventSpec.handlerFunc, eventSpec.handleOnCapture);
+        eventSpec.node.addEventListener(
+            eventSpec.type, eventSpec.handlerFunc, eventSpec.handleOnCapture);
         this.register(eventSpec);
     }
 },

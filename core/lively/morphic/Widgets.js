@@ -441,7 +441,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         }
 
         owner.addMorph(this);
-        this.fitToItems();
+        this.fitToItems.bind(this).delay(0);
 
         this.offsetForWorld(pos);
         // delayed because of fitToItems
@@ -528,8 +528,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                 enableGrabbing: false,
                 allowInput: false,
                 fontSize: 10.5,
-                padding: Rectangle.inset(4,4) });
-            itemMorph.setPadding(Rectangle.inset(3,2));
+                padding: Rectangle.inset(3,2) });
             itemMorph.onMouseUp = function(evt) {
                   if((evt.world.clickedOnMorph !== itemMorph)
                     && (Date.now() - evt.world.clickedOnMorphTime < 500))
@@ -543,11 +542,11 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                 return true;
             }
 
-
             itemMorph.registerForEvent('mouseover', itemMorph, 'onMouseOver');
             itemMorph.onMouseOver = function(evt) {
-                itemMorph.owner.itemMorphs.invoke('setFill', null);
-                itemMorph.owner.itemMorphs.invoke('setTextColor', Color.black);
+                if (itemMorph.isSelected) return true;
+                itemMorph.isSelected = true;
+                itemMorph.owner.itemMorphs.without(itemMorph).invoke('deselect');
                 itemMorph.applyStyle({
                     fill: new lively.morphic.LinearGradient([
                         {offset: 0, color: Color.rgb(100,131,248)},
@@ -563,9 +562,13 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             };
             itemMorph.addScript(function onMouseWheel(evt) {
                 return false; // to allow scrolling
-            })
+            });
             itemMorph.addScript(function onSelectStart(evt) {
                 return false; // to allow scrolling
+            });
+            itemMorph.addScript(function deselect(evt) {
+                this.isSelected = false;
+                this.applyStyle({fill: null, textColor: Color.black});
             })
             y += itemHeight;
             x = Math.max(x, itemMorph.getTextExtent().x);
@@ -611,7 +614,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     openSubMenu: function(evt, name, items) {
         var m = new lively.morphic.Menu(null, items);
         this.addMorph(m);
-        m.fitToItems()
+        m.fitToItems.bind(m).delay(0);
         this.subMenu = m;
         m.ownerMenu = this;
 

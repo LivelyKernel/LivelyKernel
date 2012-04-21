@@ -1,4 +1,4 @@
-module('lively.morphic.tests.Morphic2').requires('lively.morphic.tests.Morphic').toRun(function() {
+module('lively.morphic.tests.Morphic2').requires('lively.morphic.tests.Morphic', 'lively.morphic.DiffMerge').toRun(function() {
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PivotPointTests',
 'running', {
@@ -658,7 +658,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var m4 = m1.copy();
         //simulate copyFromPartsBin
         var m5 = m4.copy();
-
+        console.log(m5.copy())
         this.assert(m5.submorphs[0].findDerivationParent(m4) === m4.submorphs[0], "Wrong parent found 2.")
         this.assert(m5.submorphs[0].submorphs[0].findDerivationParent(m4) === m4.submorphs[0].submorphs[0], "Wrong parent found 2.")
     },

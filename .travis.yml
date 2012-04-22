@@ -21,3 +21,12 @@ script: "lk test --display :1"
 branches:
   only:
     - master
+
+notifications:
+  email:
+    - cschuster@ucdavis.edu
+    - danhhingalls@gmail.com
+    - fbornhofen@googlemail.com
+    - jens.lincke@hpi.uni-potsdam.de
+    - l.thamsen@googlemail.com
+    - robert.krahn@gmail.com

@@ -1259,25 +1259,25 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         
         this.imgSave = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
         this.imgSaveAs = new lively.morphic.Image(new Rectangle(24*1 + 10 + nGapWidth,3,24,24), "images/Save-as-icon.png"); 
-/*
+
         this.imgCopy= new lively.morphic.Image(new Rectangle(24*2 + 10 + 2*nGapWidth,3,24,24), "images/Actions-edit-copy-icon.png"); 
-        this.imgCut= new lively.morphic.Image(new Rectangle((24*3 + 10 + 3*nGapWidth,3,24,24), "images/Cut-icon.png"); 
-        this.imgPaste= new lively.morphic.Image(new Rectangle((24*4 + 10 + 4*nGapWidth,3,24,24), "images/Action-paste-icon.png"); 
-        this.imgClear= new lively.morphic.Image(new Rectangle((24*5 + 10 + 5*nGapWidth,3,24,24), "images/Actions-edit-clear-icon.png"); 
+        this.imgCut= new lively.morphic.Image(new Rectangle(24*3 + 10 + 3*nGapWidth,3,24,24), "images/Cut-icon.png"); 
+        this.imgPaste= new lively.morphic.Image(new Rectangle(24*4 + 10 + 4*nGapWidth,3,24,24), "images/Action-paste-icon.png"); 
+        this.imgClear= new lively.morphic.Image(new Rectangle(24*5 + 10 + 5*nGapWidth,3,24,24), "images/Actions-edit-clear-icon.png"); 
 
-        this.imgBold= new lively.morphic.Image(new Rectangle((24*6 + 10 + 6*nGapWidth,3,24,24), "images/Actions-format-text-bold-icon.png"); 
-        this.imgItalic = new lively.morphic.Image(new Rectangle((24*7 + 10 + 7*nGapWidth,3,24,24), "images/Actions-format-text-italic-icon.png"); 
-        this.imgUnderline= new lively.morphic.Image(new Rectangle((24*8 + 10 + 8*nGapWidth,3,24,24), "images/Actions-format-text-underline-icon.png"); 
+        this.imgBold= new lively.morphic.Image(new Rectangle(24*6 + 10 + 6*nGapWidth,3,24,24), "images/Actions-format-text-bold-icon.png"); 
+        this.imgItalic = new lively.morphic.Image(new Rectangle(24*7 + 10 + 7*nGapWidth,3,24,24), "images/Actions-format-text-italic-icon.png"); 
+        this.imgUnderline= new lively.morphic.Image(new Rectangle(24*8 + 10 + 8*nGapWidth,3,24,24), "images/Actions-format-text-underline-icon.png"); 
 
-        this.imgBackGroundColor= new lively.morphic.Image(new Rectangle((24*9 + 10 + 9*nGapWidth,3,24,24), "images/color-fill-icon.png"); 
-        this.imgFontColor= new lively.morphic.Image(new Rectangle((24*10 + 10 + 10*nGapWidth,3,24,24), "images/Actions-format-text-color-icon.png"); 
+        this.imgBackGroundColor= new lively.morphic.Image(new Rectangle(24*9 + 10 + 9*nGapWidth,3,24,24), "images/color-fill-icon.png"); 
+        this.imgFontColor= new lively.morphic.Image(new Rectangle(24*10 + 10 + 10*nGapWidth,3,24,24), "images/Actions-format-text-color-icon.png"); 
 
-        this.imgSignDollar= new lively.morphic.Image(new Rectangle((24*11 + 10 + 11*nGapWidth,3,24,24), "images/US-dollar-icon.png"); 
-        this.imgSignPercent= new lively.morphic.Image(new Rectangle((24*12 + 10 + 12*nGapWidth,3,24,24), "images/Percent-icon2.png"); 
+        this.imgSignDollar= new lively.morphic.Image(new Rectangle(24*11 + 10 + 11*nGapWidth,3,24,24), "images/US-dollar-icon.png"); 
+        this.imgSignPercent= new lively.morphic.Image(new Rectangle(24*12 + 10 + 12*nGapWidth,3,24,24), "images/Percent-icon2.png"); 
 
-        this.imgBoarder = new lively.morphic.Image(new Rectangle((24*13 + 10 + 13*nGapWidth,3,24,24), "images/border-2-bottom-icon.png"); 
-        this.imgFilter = new lively.morphic.Image(new Rectangle((24*14 + 10 + 14*nGapWidth,3,24,24), "images/filter-icon.png");   
-*/     
+        this.imgBoarder = new lively.morphic.Image(new Rectangle(24*13 + 10 + 13*nGapWidth,3,24,24), "images/border-2-bottom-icon.png"); 
+        this.imgFilter = new lively.morphic.Image(new Rectangle(24*14 + 10 + 14*nGapWidth,3,24,24), "images/filter-icon.png");   
+    
         
         this.addMorph(this.imgSave);
         this.addMorph(this.imgSaveAs);

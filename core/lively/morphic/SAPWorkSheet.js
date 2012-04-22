@@ -1322,10 +1322,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
 lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
 'default category', {
-    initialize: function($super, arg1, arg2) {
+    initialize: function($super, numCols, numRows) {
         $super();
-        this.nColumn=0; //need to know which cell
-        this.nRow=0;
+        this.numCols = numCols;
+        this.numRows = numRows;
        
     },
     

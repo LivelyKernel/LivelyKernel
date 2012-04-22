@@ -1242,7 +1242,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         //this.imgSave = new lively.morphic.Image();
         //this.imgSave.setImageURL("http://lively-kernel.org/repository/webwerkstatt/users/kimhw/images/Save-icon.png");
         //this.
-        //this.addMorph(this.imgSave);
+        this.addMorph(this.imgSave);
     },
     
    

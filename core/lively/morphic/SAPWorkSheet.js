@@ -1235,7 +1235,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         nWidth = (nWidth==undefined) ? (1200) : (nWidth);
         console.log(nHeight)
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nXpos,nYpos,nWidth,nHeight)));
-        this.initializeMenu();
+        this.initializeImages();
         this.imgSave;
         this.imgSaveAs;
         this.imgCopy;
@@ -1253,7 +1253,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgFilter;
 
 
-    },initializeMenu: function() {
+    },initializeImages: function() {
         var nGapWidth = 5;
         var nGapGroupWidth = 25;
         

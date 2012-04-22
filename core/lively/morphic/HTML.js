@@ -554,9 +554,17 @@ lively.morphic.List.addMethods(
         ctx.shapeNode.appendChild(ctx.listNode);
         this.resizeListHTML(ctx);
     },
-    setClipModeHTML: function(ctx, modeString) {
-        this.setClipModeHTMLForNode(ctx, ctx.listNode, modeString);
+
+    setClipModeHTML: function(ctx, clipMode) {
+        // FIXME duplication wiht super, delay logic
+        // can be extracted
+        if (!ctx.listNode || this.delayedClipMode) {
+            this.delayedClipMode = clipMode;
+            return;
+        }
+        this.setClipModeHTMLForNode(ctx, ctx.listNode, clipMode);
     },
+
     setSizeHTML: function(ctx, size) {
         if (ctx.listNode) ctx.listNode.size = size;
     },
@@ -676,8 +684,7 @@ lively.morphic.Shapes.Shape.addMethods(
         setStrokeOpacity: 'setStrokeOpacityHTML',
         setBorderRadius: 'setBorderRadiusHTML',
         setBorderStyle: 'setBorderStyleHTML',
-        setOpacity: 'setOpacityHTML',
-        setClipMode: 'setClipModeHTML'
+        setOpacity: 'setOpacityHTML'
     },
 },
 'initializing', {

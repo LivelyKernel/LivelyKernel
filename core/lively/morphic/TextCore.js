@@ -207,7 +207,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         enableGrabbing: false,
         enableDropping: false,
         allowInput: true,
-        clipMode: 'auto',
+        clipMode: 'visible',
         fontFamily: 'Helvetica',
         fontSize: 10,
         padding: Rectangle.inset(4, 2)

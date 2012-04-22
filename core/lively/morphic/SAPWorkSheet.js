@@ -1320,5 +1320,17 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
 });
 
+lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
+'default category', {
+    initialize: function($super, arg1, arg2) {
+        $super();
+        this.nColumn=0; //need to know which cell
+        this.nRow=0;
+       
+    },
+    
+
+});
+
 
 }) // end of module

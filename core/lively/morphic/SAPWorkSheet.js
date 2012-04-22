@@ -1236,6 +1236,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         console.log(nHeight)
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nXpos,nYpos,nWidth,nHeight)));
         this.initializeImages();
+        this.initializeEvents();
         this.imgSave;
         this.imgSaveAs;
         this.imgCopy;
@@ -1301,7 +1302,24 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.addMorph(this.imgFilter);
 
     },
+    initializeEvents: function() {
+       
+        connect(this.imgSave , "onMouseDown", this, "imgSaveClick", {});
+        
     
+        
+       
+
+    },
+    imgSaveClick: function() {
+       
+        alert(0)
+        
+    
+        
+       
+
+    },
    
 
 });

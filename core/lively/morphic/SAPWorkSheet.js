@@ -1308,16 +1308,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         
     
         
-       
-
     },
     imgSaveClick: function() {
-       
-        alert(0)
-        
-    
-        
-       
+
+        alert("imgSaveClick")
+
 
     },
    

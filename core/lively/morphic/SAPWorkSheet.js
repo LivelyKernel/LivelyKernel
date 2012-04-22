@@ -1320,22 +1320,5 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
 });
 
-lively.morphic.Morph.subclass('lively.morphic.SAPWorkSheet', {
-'default category', {
-     initialize: function($super, numCols, numRows) {
-        this.grid;
-        this.toolBar;
-        this.initializeLayout();
-
-    },initializeLayout: function() {
-       
-
-
-    },
-    
-   
-   
-
-});
 
 }) // end of module

@@ -1281,7 +1281,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         
         this.addMorph(this.imgSave);
         this.addMorph(this.imgSaveAs);
-/*
+
         this.addMorph(this.imgCopy);
         this.addMorph(this.imgCut);
         this.addMorph(this.imgPaste);
@@ -1298,7 +1298,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.addMorph(this.imgSignPercent);
 
         this.addMorph(this.imgBoarder);
-        this.addMorph(this.imgFilter);*/
+        this.addMorph(this.imgFilter);
 
     },
     

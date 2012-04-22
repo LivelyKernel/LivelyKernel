@@ -930,8 +930,6 @@ handleOnCapture);
         return val === undefined ? true : val;
     },
 
-
-
 },
 'grabbing and dropping', {
     enableGrabbing: function() {
@@ -945,8 +943,6 @@ handleOnCapture);
     disableDropping: function() { this.droppingEnabled = false },
     enableDragging: function() { this.draggingEnabled = true },
     disableDragging: function() { this.draggingEnabled = false },
-
-
 
     dropOnMe: function(evt) {
         if (!this.droppingEnabled || this.eventsAreIgnored) return;
@@ -981,7 +977,6 @@ handleOnCapture);
         return false;
     },
 
-
     manualDropOnMe: function(evt) {
         // this is a workaround. HTML events are not delivered to the required morph
         // under the hand when the hand already carries submorphs that overlap
@@ -993,8 +988,11 @@ handleOnCapture);
         return this.grabbingEnabled && evt.hand.grabMorph(this, evt);
     },
     getGrabShadow: function (local) {
-        var shadow = new lively.morphic.Morph(lively.persistence.Serializer.newMorphicCopy(this.shape));
-        this.submorphs.forEach(function(ea) { shadow.addMorph(ea.getGrabShadow(true)) })
+        var shadow = new lively.morphic.Morph(
+            lively.persistence.Serializer.newMorphicCopy(this.shape));
+        this.submorphs.forEach(function(ea) {
+            var submorphShadow = ea.getGrabShadow(true);
+            submorphShadow && shadow.addMorph(submorphShadow) });
 
         shadow.isGrabShadow = true;
         shadow.applyStyle({

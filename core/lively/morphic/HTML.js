@@ -711,7 +711,7 @@ lively.morphic.Shapes.Shape.addMethods(
         }
     },
     setExtentHTML: function(ctx, value) {
-        if (!ctx.shapeNode) return;
+        if (!ctx.shapeNode) return undefined;
         var padding = this.getPadding(),
             paddingWidth = padding.left() + padding.right(),
             paddingHeight = padding.top() + padding.bottom(),
@@ -722,6 +722,7 @@ lively.morphic.Shapes.Shape.addMethods(
                          .addXY(-2 * borderWidth, -2 * borderWidth)
                          .addXY(-paddingWidth, -paddingHeight);
         ctx.domInterface.setExtent(ctx.shapeNode, realExtent);
+        return realExtent;
     },
     setFillHTML: function(ctx, value) {
         if (!ctx.shapeNode) return;

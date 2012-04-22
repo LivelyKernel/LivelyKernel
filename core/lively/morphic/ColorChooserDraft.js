@@ -59,7 +59,7 @@ colorForPos: function(pos) {
        if (!this.label) {
             this.label = new lively.morphic.Text(new Rectangle(0,0,160,20), "rbg", {fill: Color.white});
             this.addMorph(this.label);
-            this.label.setPosition(pt(0,120))        
+            this.label.setPosition(pt(0,120));
        }
         return this.label
     },
@@ -81,6 +81,7 @@ colorForPos: function(pos) {
             Color.black.mixedWith(columnHue, (y - rh2)/rh2);  // neutral down to darkest
     },
 });
+
 lively.morphic.ColorChooser.subclass('lively.morphic.CrayonColorChooser',
 'settings', {
     colorNames: 'crayons',
@@ -146,7 +147,7 @@ lively.morphic.ColorChooser.subclass('lively.morphic.CustomColorChooser',
             for (var i = 0; i < x; i++) {
                 var idx = j*x+i, // running offset j*x^1 + i*y^0
                     color = this.colors[idx],
-                    r = extent.scaleByPt(pt(i, j)).extent(extent);
+                    r = extent.scaleByPt(pt(i, j)).extent(extent),
                     morph = new lively.morphic.Box(r);
                 morph.applyStyle({fill: color, borderWidth: 0});
                 morph.ignoreEvents();
@@ -189,7 +190,13 @@ new lively.morphic.ColorField().openInWorld(pt(100,100))
 */
 'settings', {
     doNotSerialize: ['colorSwitchers', 'currentColorSwitcher'],
-    style: {enableDragging: true, fill: Color.white, borderWidth: 1, borderColor: Color.black},
+    style: {
+        enableDragging: true,
+        enableGrabbing: false,
+        fill: Color.white,
+        borderWidth: 1,
+        borderColor: Color.black
+    }
 },
 'initializing', {
     initialize: function($super, optBounds) {
@@ -238,11 +245,14 @@ new lively.morphic.ColorField().openInWorld(pt(100,100))
 
 },
 'mouse events', {
+    correctForDragOffset: Functions.False,
+
     onMouseDown: function($super, evt) {
-        if ($super(evt)) return true;
-        if (!evt.isCommandKey() && evt.isLeftMouseButtonDown())
+        if (!evt.isCommandKey() && evt.isLeftMouseButtonDown()) {
             this.showColorChooserAndSwitchers(this.getCurrentColorChooser());
-        return true;
+            return true;
+        }
+        return $super(evt);
     },
 
     onMouseUp: function($super, evt) {

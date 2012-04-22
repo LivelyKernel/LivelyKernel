@@ -1237,9 +1237,44 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nXpos,nYpos,nWidth,nHeight)));
         this.initializeMenu();
         this.imgSave;
+        this.imgSaveAs;
+        this.imgCopy;
+        this.imgCut;
+        this.imgPaste;
+        this.imgClear;
+        this.imgBold;
+        this.imgItalic;
+        this.imgUnderline;
+        this.imgBackGroundColor;
+        this.imgFontColor;
+        this.imgSignDollar;
+        this.imgSignPercent;
+        this.imgBoarder;
+        this.imgFilter;
+
+
     },initializeMenu: function() {
         this.imgSave = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
-       
+        this.imgSaveAs = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
+
+        this.imgCopy= new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
+        this.imgCut= new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
+        this.imgPaste= new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
+        this.imgClear= new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
+
+        this.imgBold= new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
+        this.imgItalic = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
+        this.imgUnderline= new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
+
+        this.imgBackGroundColor= new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
+        this.imgFontColor= new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
+
+        this.imgSignDollar= new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
+        this.imgSignPercent= new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
+
+        this.imgBoarder = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
+        this.imgFilter = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png");        
+
         this.addMorph(this.imgSave);
     },
     

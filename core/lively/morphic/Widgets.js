@@ -1756,17 +1756,20 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph')/*TOD
     },
     showHalos: function($super) {
         // Hide the reframe handle in case of menu reframe
-        this.reframeHandle && this.reframeHandle.remove()
-        $super()
+        if (this.reframeHandle) {
+            this.reframeHandle.remove();
+        }
+        $super();
     },
 
     makeReframeHandle: function() {
-        var handle = Morph.makePolygon([pt(14, 0), pt(14, 14), pt(0, 14)], 0, null, Color.gray);
-        handle.onDragStart = function(evt) {
+        var handle = lively.morphic.Morph.makePolygon(
+            [pt(14, 0), pt(14, 14), pt(0, 14)], 0, null, Color.gray);
+        handle.addScript(function onDragStart(evt) {
             this.dragStartPoint = evt.mousePoint;
             this.originalTargetExtent = this.owner.getExtent();
-        };
-        handle.onDrag = function(evt) {
+        });
+        handle.addScript(function onDrag(evt) {
             var moveDelta = evt.mousePoint.subPt(this.dragStartPoint)
             if (evt.isShiftDown()) {
                 var maxDelta = Math.max(moveDelta.x, moveDelta.y);
@@ -1774,11 +1777,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph')/*TOD
             };
             this.owner.setExtent(this.originalTargetExtent.addPt(moveDelta));
             this.align(this.bounds().bottomRight(), this.owner.getExtent());
-        };
-        handle.onDragEnd = function (evt) {
+        });
+        handle.addScript(function onDragEnd (evt) {
             this.dragStartPoint = null;
             this.originalTargetExtent = null;
-        };
+        });
         return handle;
     },
 

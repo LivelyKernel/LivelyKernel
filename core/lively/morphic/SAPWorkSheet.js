@@ -1236,9 +1236,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         console.log(nHeight)
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nXpos,nYpos,nWidth,nHeight)));
         this.initializeMenu();
+        this.imgSave;
     },initializeMenu: function() {
-
-        
+        this.imgSave = new lively.morphic.Image();
+        this.imgSave.setImageURL("http://lively-kernel.org/repository/webwerkstatt/users/kimhw/images/Save-icon.png");
+        //this.
     },
     
    

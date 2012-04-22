@@ -1326,12 +1326,16 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         $super();
         this.numCols = numCols;
         this.numRows = numRows;
+        this.grid;
+        this.toolBar;
         this.initializeLayout();
        
     },
      initializeLayout: function() {
+        this.grid = new lively.morphic.SAPGrid(10,10);
+        this.grid.name="BPCGrid";
+        this.addMorph(this.grid);
         
-       
     },
 
 });

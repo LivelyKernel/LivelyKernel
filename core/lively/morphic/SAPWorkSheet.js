@@ -1326,9 +1326,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         $super();
         this.numCols = numCols;
         this.numRows = numRows;
+        this.initializeLayout();
        
     },
-    
+     initializeLayout: function() {
+        
+       
+    },
 
 });
 

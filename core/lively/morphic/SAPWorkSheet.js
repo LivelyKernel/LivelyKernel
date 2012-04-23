@@ -848,7 +848,6 @@ console.log('End createLayout =' + elapsed);
         
     },
     addRow: function() {
-    //debugger;
         var row = [];
         for (var i = 0; i < this.numCols; i++) {
             var cell = this.createCell(i, this.numRows, this.hideColHeads ? 0 : 1);
@@ -858,9 +857,14 @@ console.log('End createLayout =' + elapsed);
         this.numRows++;
         this.createLayout();
     },
+    removeRowBetween: function() {
+        
+    },
+    removeColBetween: function() {
+        
+    },
     removeCol: function() {
         var lastColIndex = this.numCols - 1;
-//debugger;
         this.rows.map(function(ea) {
             return ea[lastColIndex];}).
                 forEach(function(ea) {

@@ -39,6 +39,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     initializeScrolls: function() {
 
         var start = new Date().getTime();
+        var nXPos = this.defaultCellWidth * this.numCols;
+        var nYPos = this.defaultCellHeight;
+        var nHeight = this.defaultCellHeight * this.numRows;
       
 
 

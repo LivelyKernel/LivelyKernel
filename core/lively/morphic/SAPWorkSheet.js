@@ -792,15 +792,13 @@ console.log('End createLayout =' + elapsed);
 
             var nOrgRow = nRow  + this.startRow;
             var nOrgCol = nColumn + this.startColumn;
-            var oCell
-            var arrColumns=[];
+            var oCell;
             
             for (var n = 0; n < this.arrData.length; n++) {
                 oCell ={}; 
                 oCell.value = "";
                 oCell.annotation = "";
-                oCell.formula = "";
-                arrColumns.push(oCell); 
+                oCell.formula = ""; 
                 this.arrData[n].splice(nOrgCol,0,oCell)
             }
 

@@ -874,7 +874,9 @@ console.log('End createLayout =' + elapsed);
         var nOrgRow = nRow  + this.startRow;
         var nOrgCol = nColumn + this.startColumn;
         
-        //this.arrData.splice(nOrgRow ,1);
+        for (var n = 0; n < this.arrData.length; n++) {
+            this.arrData[n].splice(nOrgCol,1);
+        }
         this.updateDataModel();
     },
     removeCol: function() {

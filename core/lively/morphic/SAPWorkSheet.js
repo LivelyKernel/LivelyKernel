@@ -39,9 +39,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     initializeScrolls: function() {
 
         var start = new Date().getTime();
-        var nXPos = this.defaultCellWidth * this.numCols;
-        var nYPos = this.defaultCellHeight;
-        var nHeight = this.defaultCellHeight * this.numRows;
+      
+
+
+
 
         this.vScroll = new lively.morphic.Slider(new Rectangle(nXPos ,nYPos, 15,nHeight ), this.defaultMaxRowScrollValue);
         this.addMorph(this.vScroll);
@@ -1338,6 +1339,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.grid.setPosition(pt(0,30));
         this.toolBar= new lively.morphic.SAPGridToolBar(this.grid);
         this.addMorph(this.toolBar);
+
+        var nWidth= this.defaultCellWidth * this.numCols + 50;
+        var nHeight = this.defaultCellHeight * this.numRows + 50;
+        this.setExtent(lively.pt(nWidth,nHeight));
         
     },
 

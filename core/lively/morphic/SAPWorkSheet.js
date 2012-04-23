@@ -1005,20 +1005,23 @@ currently only support
     
     onKeyDown: function($super, evt) {
 
-        console.log("SAPGrid.onKeyDown");
+       
 
         $super(evt);
+         console.log("SAPGrid.onKeyDown");
     },
 
     onKeyPress: function($super,evt) {
-        console.log("SAPGrid.onKeyPress");
+        
          $super(evt);
+        console.log("SAPGrid.onKeyPress");
 
     },
 
     onKeyUp: function($super,evt) {
-        console.log("SAPGrid.onKeyUp");
+       
          $super(evt);
+         console.log("SAPGrid.onKeyUp");
 
     },
 

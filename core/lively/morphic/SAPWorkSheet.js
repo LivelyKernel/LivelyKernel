@@ -868,16 +868,18 @@ console.log('End createLayout =' + elapsed);
         this.updateDataModel();
     },
     removeColBetween: function() {
-        var nRow = this.activeCell.gridCoords.y - (this.hideColHeads ? 0 : 1);
-        var nColumn = this.activeCell.gridCoords.x;
+        if (this.activeCell) {
+            var nRow = this.activeCell.gridCoords.y - (this.hideColHeads ? 0 : 1);
+            var nColumn = this.activeCell.gridCoords.x;
 
-        var nOrgRow = nRow  + this.startRow;
-        var nOrgCol = nColumn + this.startColumn;
+            var nOrgRow = nRow  + this.startRow;
+            var nOrgCol = nColumn + this.startColumn;
         
-        for (var n = 0; n < this.arrData.length; n++) {
-            this.arrData[n].splice(nOrgCol,1);
+            for (var n = 0; n < this.arrData.length; n++) {
+                this.arrData[n].splice(nOrgCol,1);
+            }
+            this.updateDataModel();
         }
-        this.updateDataModel();
     },
     removeCol: function() {
         var lastColIndex = this.numCols - 1;

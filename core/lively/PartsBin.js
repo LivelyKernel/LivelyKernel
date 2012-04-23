@@ -10,7 +10,7 @@ Object.subclass('lively.PartsBin.PartItem',
             this.name = partOrName;
             this.part = null;
         } else {
-            this.name = partOrName.name;
+            this.name = partOrName.name; // TODO here should the metainfo go
             this.part = partOrName;
         }
         this.json = null;

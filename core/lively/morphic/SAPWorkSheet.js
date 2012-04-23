@@ -863,6 +863,9 @@ console.log('End createLayout =' + elapsed);
 
         var nOrgRow = nRow  + this.startRow;
         var nOrgCol = nColumn + this.startColumn;
+
+        
+
     },
     removeColBetween: function() {
         var nRow = this.activeCell.gridCoords.y - (this.hideColHeads ? 0 : 1);

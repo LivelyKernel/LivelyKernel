@@ -858,14 +858,16 @@ console.log('End createLayout =' + elapsed);
         this.createLayout();
     },
     removeRowBetween: function() {
-        var nRow = this.activeCell.gridCoords.y - (this.hideColHeads ? 0 : 1);
-        var nColumn = this.activeCell.gridCoords.x;
+        if (this.activeCell) {
+            var nRow = this.activeCell.gridCoords.y - (this.hideColHeads ? 0 : 1);
+            var nColumn = this.activeCell.gridCoords.x;
 
-        var nOrgRow = nRow  + this.startRow;
-        var nOrgCol = nColumn + this.startColumn;
+            var nOrgRow = nRow  + this.startRow;
+            var nOrgCol = nColumn + this.startColumn;
 
-        this.arrData.splice(nOrgRow ,1);
-        this.updateDataModel();
+            this.arrData.splice(nOrgRow ,1);
+            this.updateDataModel();
+        }
     },
     removeColBetween: function() {
         if (this.activeCell) {

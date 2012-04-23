@@ -805,7 +805,27 @@ console.log('End createLayout =' + elapsed);
      addRowBetween: function() {
         if (this.activeCell) {
             var nRow = this.activeCell.gridCoords.y - (this.hideColHeads ? 0 : 1);
-            var nCol = this.activeCell.gridCoords.x;
+            var nColumn = this.activeCell.gridCoords.x;
+
+            var nOrgRow = nRow  + this.startRow;
+            var nOrgCol = nColumn + this.startColumn;
+            var oCell
+            var arrColumns=[];
+        
+
+            for (nCol = 0; nCol < this.arrData[0].length; nCol++) {
+                oCell ={}; 
+                oCell.value = "";
+                oCell.annotation = "";
+                oCell.formula = "";
+                arrColumns.push(oCell); 
+            }
+            
+            this.arrData.splice(nOrgRow ,0,oCell);
+            
+            
+            
+
             console.log("nRow ,nCol  = " + nRow +"," +  nCol );
         }
         

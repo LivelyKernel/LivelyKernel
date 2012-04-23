@@ -991,6 +991,7 @@ currently only support
               //alert(this.activeCell.isFocused())
          }
         var bFocused = this.activeCell.isFocused();
+        debugger;
 console.log("SAPGrid.onLeftPressed:" + bFocused );
         this.moveActiveCellBy(pt(-1,0));
         evt.stop();

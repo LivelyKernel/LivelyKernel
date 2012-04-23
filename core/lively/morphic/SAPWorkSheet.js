@@ -1343,8 +1343,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.toolBar= new lively.morphic.SAPGridToolBar(this.grid);
         this.addMorph(this.toolBar);
 
-        var nWidth= this.defaultCellWidth * this.numCols + 50;
-        var nHeight = this.defaultCellHeight * this.numRows + 50;
+        var nWidth= this.defaultCellWidth * this.numCols + 300;
+        var nHeight = this.defaultCellHeight * this.numRows + 300;
         this.setExtent(lively.pt(nWidth,nHeight));
         
     },

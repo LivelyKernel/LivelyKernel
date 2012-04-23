@@ -822,11 +822,11 @@ console.log('End createLayout =' + elapsed);
             }
             
             this.arrData.splice(nOrgRow ,0,oCell);
-            
+            this.updateDataModel()
             
             
 
-            console.log("nRow ,nCol  = " + nRow +"," +  nCol );
+          
         }
         
         

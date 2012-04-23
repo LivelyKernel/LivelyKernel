@@ -608,38 +608,6 @@ console.log('End createLayout =' + elapsed);
 //var elapsed = new Date().getTime() - start;
 //console.log('updateDisplay:'  + elapsed/1000);
     },
-/*
-    onKeyDown: function($super, evt) {
-
-    console.log("SAPGrid.onKeyDown");
-        //debugger;
-        if (!this.activeCell) {
-           
-        }else{
-            //alert(this.activeCell.isFocused())
-        }
-        $super(evt);
-    },*/
-/*
-    onKeyPress: function($super,evt) {
-        console.log("SAPGrid.onKeyPress");
-//debugger;
-        if (this.oAnnotation.isVisible()){
-            this.oAnnotation.onKeyPress(evt);
-             evt.stop(); 
-        }else{
-            if (!this.activeCell) {
-                this.at(0,0).activate();
-            }
-            this.activeCell.onKeyPress(evt);
-              evt.stop(); 
-        }
-
-        
-    },*/
-
-
-
     setActiveCellContent: function(aString) {
         if (!this.activeCell) {
             this.at(0,0).activate(); 
@@ -1034,19 +1002,25 @@ currently only support
 
 },
 'Mouse Events', {
-    test: function() { return 'a ' + this.constructor.type },
-    test1: function() {
-        // does the layout class show placeholders when dragging a submorphs?
-        return false;
-    },
-    test2: function(aMorph, anEvent) {
-        
-    },
-    test3: function() {
-       
+    
+    onKeyDown: function($super, evt) {
+
+        console.log("SAPGrid.onKeyDown");
+
+        $super(evt);
     },
 
+    onKeyPress: function($super,evt) {
+        console.log("SAPGrid.onKeyPress");
+         $super(evt);
 
+    },
+
+    onKeyUp: function($super,evt) {
+        console.log("SAPGrid.onKeyUp");
+         $super(evt);
+
+    },
 
 });
 

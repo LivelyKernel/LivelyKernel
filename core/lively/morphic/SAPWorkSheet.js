@@ -802,6 +802,10 @@ console.log('End createLayout =' + elapsed);
         this.numCols++;
         this.createLayout();
     },
+     addRowBetween: function() {
+        
+        
+    },
     addRow: function() {
     //debugger;
         var row = [];

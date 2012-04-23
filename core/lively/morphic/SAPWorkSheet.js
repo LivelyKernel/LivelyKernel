@@ -1028,7 +1028,19 @@ currently only support
         items.push(['- row', this.removeRow.bind(this)]);
         return items;
     },
-
+},
+'Mouse Event', {
+    test: function() { return 'a ' + this.constructor.type },
+    test1: function() {
+        // does the layout class show placeholders when dragging a submorphs?
+        return false;
+    },
+    test2: function(aMorph, anEvent) {
+        
+    },
+    test3: function() {
+       
+    },
 
 
 

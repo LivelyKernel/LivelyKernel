@@ -820,7 +820,6 @@ console.log('End createLayout =' + elapsed);
                 oCell.formula = "";
                 arrColumns.push(oCell); 
             }
-            debugger;
             this.arrData.splice(nOrgRow ,0,arrColumns);
             this.updateDataModel()
             

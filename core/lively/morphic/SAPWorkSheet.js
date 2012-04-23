@@ -1264,7 +1264,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
 
     },initializeImages: function() {
-        var nGapWidth = 5;
+        var nGapWidth = 6;
         var nGapGroupWidth = 25;
         
         this.imgSave = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 

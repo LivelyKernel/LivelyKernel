@@ -1346,7 +1346,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         var nWidth= this.defaultCellWidth * this.numCols + 300;
         var nHeight = this.defaultCellHeight * this.numRows + 300;
         this.setExtent(lively.pt(nWidth,nHeight));
-        
+        this.setFill(Color.rgb(255, 255, 225));
     },
 
 });

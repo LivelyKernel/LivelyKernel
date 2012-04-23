@@ -865,7 +865,7 @@ console.log('End createLayout =' + elapsed);
         var nOrgCol = nColumn + this.startColumn;
 
         this.arrData.splice(nOrgRow ,1);
-
+        this.updateDataModel();
     },
     removeColBetween: function() {
         var nRow = this.activeCell.gridCoords.y - (this.hideColHeads ? 0 : 1);

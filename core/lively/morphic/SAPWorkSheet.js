@@ -799,10 +799,10 @@ console.log('End createLayout =' + elapsed);
                 oCell.value = "";
                 oCell.annotation = "";
                 oCell.formula = ""; 
-                this.arrData[n].splice(nOrgCol,0,oCell)
+                this.arrData[n].splice(nOrgCol,0,oCell);
             }
 
-            this.updateDataModel()
+            this.updateDataModel();
 
         }
     },

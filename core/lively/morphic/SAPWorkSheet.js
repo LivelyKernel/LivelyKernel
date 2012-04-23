@@ -1376,13 +1376,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     },
     initializeEvents: function() {
        
-        connect(this.imgSave , "onMouseDown", this, "imgSaveClick", {});
+        connect(this.imgSave , "onMouseDown", this, "imgSave_Click", {});
         
         connect(this.imgInsertRow, "onMouseDown", this, "imgInsertRow_Click", {});
         connect(this.imgInsertColumn, "onMouseDown", this, "imgInsertColumn_Click", {});
         
     },
-    imgSaveClick: function() {
+    imgSave_Click: function() {
 
         alert(this.grid.numCols )
 

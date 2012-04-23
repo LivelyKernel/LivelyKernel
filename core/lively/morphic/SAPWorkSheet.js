@@ -1029,7 +1029,20 @@ currently only support
         return items;
     },
 },
-'Mouse Event', {
+'Keyboard Events', {
+    testa: function() { return 'a ' + this.constructor.type },
+    testb: function() {
+        // does the layout class show placeholders when dragging a submorphs?
+        return false;
+    },
+    testc: function(aMorph, anEvent) {
+        
+    },
+    testd: function() {
+       
+    },
+},
+'Mouse Events', {
     test: function() { return 'a ' + this.constructor.type },
     test1: function() {
         // does the layout class show placeholders when dragging a submorphs?

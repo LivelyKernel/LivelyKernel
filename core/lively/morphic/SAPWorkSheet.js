@@ -1357,10 +1357,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgInsertRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,3,24,24), "images/table-row-insert-icon.png");
         this.imgInsertRow.setToolTip("Insert Row");
         this.imgInsertColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*16 + 10 + 13*nGapWidth,3,24,24), "images/table-column-insert-icon.png");
-
+        this.imgInsertColumn .setToolTip("Insert Column");
         this.imgRemoveRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*17 + 10 + 13*nGapWidth,3,24,24), "images/table-row-delete-icon.png");
+        this.imgRemoveRow .setToolTip("Delete Row");
         this.imgRemoveColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*18 + 10 + 13*nGapWidth,3,24,24), "images/table-column-delete-icon.png");
-  
+        this.imgRemoveColumn .setToolTip("Delete Column");
     
         this.addMorph(this.imgInsertRow);
         this.addMorph(this.imgRemoveRow);

@@ -660,47 +660,6 @@ console.log('End createLayout =' + elapsed);
 
         
     },*/
-    /*onBackspacePressed: function(evt) {
-        if (!this.activeCell) {
-            this.at(0,0).activate();
-        }
-        this.activeCell.onBackspacePressed(evt);
-        return true;
-    },*/
-    onEnterPressed: function($super, evt) {
-        //Hak March27 2012:  calculate formula
-        if (this.activeCell !=null){
-            var sValue = this.activeCell.textString;
-            console.log("SAPGrid.onEnterPressed sValue=" + sValue );
-            if (sValue .charAt(0)=="="){
-                var nColumn = this.getActiveColIndex();
-                var nRow= this.getActiveRowIndex();
-
-                var nOrgRow = nRow  + this.startRow;
-                var nOrgCol = nColumn+ this.startColumn;
-                
-
-
-                this.arrData[nOrgRow][nOrgCol].formula = sValue; 
- console.log("SAPGrid.onEnterPressed nOrgCol,nOrgRow ,sValue =" + nOrgCol+ ", " + nOrgRow + ", " + sValue);
-//debugger;
-                this.activeCell.textString=this.parseFormula(sValue);
-                //'Formula \n test'
-                this.activeCell.setToolTip('Formula: \n' + sValue);
-                //this.activeCell.cellformula = sValue;
-                
-                this.activeCell.setBorderStyle("dotted");
-                
-            }
-
-        }
-        this.onDownPressed(evt);
-        return true;
-    },
-    onTabPressed: function($super, evt) {
-        this.onRightPressed(evt);
-        return true;
-    },
 
 
 
@@ -1030,17 +989,48 @@ currently only support
     },
 },
 'Keyboard Events', {
-    testa: function() { return 'a ' + this.constructor.type },
-    testb: function() {
-        // does the layout class show placeholders when dragging a submorphs?
-        return false;
+        /*onBackspacePressed: function(evt) {
+        if (!this.activeCell) {
+            this.at(0,0).activate();
+        }
+        this.activeCell.onBackspacePressed(evt);
+        return true;
+    },*/
+    onEnterPressed: function($super, evt) {
+        //Hak March27 2012:  calculate formula
+        if (this.activeCell !=null){
+            var sValue = this.activeCell.textString;
+            console.log("SAPGrid.onEnterPressed sValue=" + sValue );
+            if (sValue .charAt(0)=="="){
+                var nColumn = this.getActiveColIndex();
+                var nRow= this.getActiveRowIndex();
+
+                var nOrgRow = nRow  + this.startRow;
+                var nOrgCol = nColumn+ this.startColumn;
+                
+
+
+                this.arrData[nOrgRow][nOrgCol].formula = sValue; 
+ console.log("SAPGrid.onEnterPressed nOrgCol,nOrgRow ,sValue =" + nOrgCol+ ", " + nOrgRow + ", " + sValue);
+//debugger;
+                this.activeCell.textString=this.parseFormula(sValue);
+                //'Formula \n test'
+                this.activeCell.setToolTip('Formula: \n' + sValue);
+                //this.activeCell.cellformula = sValue;
+                
+                this.activeCell.setBorderStyle("dotted");
+                
+            }
+
+        }
+        this.onDownPressed(evt);
+        return true;
     },
-    testc: function(aMorph, anEvent) {
-        
+    onTabPressed: function($super, evt) {
+        this.onRightPressed(evt);
+        return true;
     },
-    testd: function() {
-       
-    },
+
 },
 'Mouse Events', {
     test: function() { return 'a ' + this.constructor.type },

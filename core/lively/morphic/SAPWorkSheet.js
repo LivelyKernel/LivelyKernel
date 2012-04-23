@@ -803,7 +803,7 @@ console.log('End createLayout =' + elapsed);
         this.createLayout();
     },
      addRowBetween: function() {
-        
+        var nRow = this.activeCell.gridCoords.y - (this.hideColHeads ? 0 : 1);
         
     },
     addRow: function() {

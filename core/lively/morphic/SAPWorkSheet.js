@@ -1004,7 +1004,7 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
         this.moveActiveCellBy(pt(1,0));
         evt.stop();
     },
-        /*
+        
     onKeyDown: function($super, evt) {
         $super(evt);
          console.log("SAPGrid.onKeyDown");
@@ -1020,7 +1020,7 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
          $super(evt);
          console.log("SAPGrid.onKeyUp");
     },
-    */
+    
 
 
 },

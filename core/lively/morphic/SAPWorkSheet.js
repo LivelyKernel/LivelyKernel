@@ -1336,8 +1336,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.grid.name="BPCGrid";
         this.addMorph(this.grid);
         this.grid.setPosition(pt(0,30));
-        this.toolBar= new lively.morphic.SAPGridToolBar();
-         this.addMorph(this.toolBar);
+        //this.toolBar= new lively.morphic.SAPGridToolBar();
+         //this.addMorph(this.toolBar);
         
     },
 

@@ -417,6 +417,7 @@ console.log('End createLayout =' + elapsed);
         if (this.numRows > newY  && this.numCols > newX &&
                 newY >= 0 && newX >= 0) {
             this.at(curX + aPoint.x, curY + aPoint.y).activate();
+            this.at(curX + aPoint.x, curY + aPoint.y).focus();
         }
     },
 

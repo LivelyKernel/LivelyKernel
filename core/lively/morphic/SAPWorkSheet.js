@@ -337,11 +337,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         console.log(this.numCols + "," + this.numRows + "," + head )
         //this is optimize code but if we use this it adds header to rows so it messup
-        //var layouter = new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head);
-        //this.setLayouter(layouter);
+        var layouter = new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head);
+        this.setLayouter(layouter);
         //layouter.rows = this.rows;
 
-	this.setLayouter(new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head));
+	//this.setLayouter(new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head));
 
 
 

@@ -404,30 +404,7 @@ console.log('End createLayout =' + elapsed);
         }
     },
 
-    onUpPressed: function(evt) {
-        this.moveActiveCellBy(pt(0,-1));
-        evt.stop();
-    },
-    onDownPressed: function(evt) {
-        this.moveActiveCellBy(pt(0,1));
-        evt.stop();
-    },
-    onLeftPressed: function(evt) {
-        //testing cell text is focused or not 
-    console.log("SAPGrid.onLeftPressed");
-        if (!this.activeCell) {
-         }else{
-              //alert(this.activeCell.isFocused())
-         }
-        this.moveActiveCellBy(pt(-1,0));
-        evt.stop();
-    },
-    onRightPressed: function(evt) {
-        this.moveActiveCellBy(pt(1,0));
-        evt.stop();
-    },
-
-
+    
     moveActiveCellBy: function(aPoint) {
         if (!this.activeCell) {
             this.at(0,0).activate();
@@ -1030,6 +1007,30 @@ currently only support
         this.onRightPressed(evt);
         return true;
     },
+    onUpPressed: function(evt) {
+        this.moveActiveCellBy(pt(0,-1));
+        evt.stop();
+    },
+    onDownPressed: function(evt) {
+        this.moveActiveCellBy(pt(0,1));
+        evt.stop();
+    },
+    onLeftPressed: function(evt) {
+        //testing cell text is focused or not 
+    console.log("SAPGrid.onLeftPressed");
+        if (!this.activeCell) {
+         }else{
+              //alert(this.activeCell.isFocused())
+         }
+        this.moveActiveCellBy(pt(-1,0));
+        evt.stop();
+    },
+    onRightPressed: function(evt) {
+        this.moveActiveCellBy(pt(1,0));
+        evt.stop();
+    },
+
+
 
 },
 'Mouse Events', {

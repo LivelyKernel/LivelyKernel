@@ -1290,9 +1290,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
 
         this.imgInsertRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,3,24,24), "images/table-row-insert-icon.png");
-        this.imgRemoveRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*16 + 10 + 13*nGapWidth,3,24,24), "images/table-row-delete-icon.png");
-        this.imgInsertColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*17 + 10 + 13*nGapWidth,3,24,24), "images/table-column-insert-icon.png");
-        this.imgRemoveColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*18 + 10 + 13*nGapWidth,3,24,24), "images/table-column-delete-icon.png");
+        this.imgInsertColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*16 + 10 + 13*nGapWidth,3,24,24), "images/table-column-insert-icon.png");
+
+        this.imgRemoveRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*17 + 10 + 13*nGapWidth,3,24,24), "images/table-row-delete-icon.png");
+        this.imgRemoveColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*18 + 10 + 13*nGapWidth,3,24,24), "images/table-column-delete-icon.png");
   
     
         this.addMorph(this.imgInsertRow);

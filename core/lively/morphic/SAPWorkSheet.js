@@ -1009,7 +1009,7 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
 
 },
 'Mouse Events', {
-    /*
+    
     onKeyDown: function($super, evt) {
         $super(evt);
          console.log("SAPGrid.onKeyDown");
@@ -1024,7 +1024,7 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
     onKeyUp: function($super,evt) {
          $super(evt);
          console.log("SAPGrid.onKeyUp");
-    },*/
+    },
 
 });
 

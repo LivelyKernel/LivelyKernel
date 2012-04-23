@@ -1235,7 +1235,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         nWidth = (nWidth==undefined) ? (1200) : (nWidth);
         console.log(nHeight)
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nXpos,nYpos,nWidth,nHeight)));
-        this.grid=OGrid;
+        this.grid=oGrid;
         this.initializeImages();
         this.initializeEvents();
         this.imgSave;

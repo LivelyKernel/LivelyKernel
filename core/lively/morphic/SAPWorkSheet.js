@@ -990,6 +990,8 @@ currently only support
          }else{
               //alert(this.activeCell.isFocused())
          }
+        var bFocused = this.activeCell.isFocused();
+console.log("SAPGrid.onLeftPressed:" + bFocused );
         this.moveActiveCellBy(pt(-1,0));
         evt.stop();
     },

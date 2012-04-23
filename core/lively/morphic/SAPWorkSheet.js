@@ -822,10 +822,7 @@ console.log('End createLayout =' + elapsed);
             }
             this.arrData.splice(nOrgRow ,0,arrColumns);
             this.updateDataModel()
-            
-            
 
-          
         }
         
         

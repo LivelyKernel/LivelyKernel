@@ -1004,12 +1004,7 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
         this.moveActiveCellBy(pt(1,0));
         evt.stop();
     },
-
-
-
-},
-'Mouse Events', {
-    
+        /*
     onKeyDown: function($super, evt) {
         $super(evt);
          console.log("SAPGrid.onKeyDown");
@@ -1025,7 +1020,20 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
          $super(evt);
          console.log("SAPGrid.onKeyUp");
     },
+    */
 
+
+},
+'Mouse Events', {
+    onMouseDown: function($super, evt) {
+        $super(evt);
+         console.log("SAPGrid.onMouseDown");
+    },
+
+    onMouseUp: function($super, evt) {
+        $super(evt);
+         console.log("SAPGrid.onMouseUp");
+    },
 });
 
 

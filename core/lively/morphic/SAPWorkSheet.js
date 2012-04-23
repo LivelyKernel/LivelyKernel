@@ -1354,6 +1354,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     imgInsertRowClick: function() {
 
         alert(this.grid.numCols )
+        this.grid.addRowBetween();
 
 
     },

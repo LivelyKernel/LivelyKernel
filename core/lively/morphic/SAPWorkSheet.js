@@ -1002,28 +1002,22 @@ currently only support
 
 },
 'Mouse Events', {
-    
+    /*
     onKeyDown: function($super, evt) {
-
-       
-
         $super(evt);
          console.log("SAPGrid.onKeyDown");
     },
 
     onKeyPress: function($super,evt) {
-        
          $super(evt);
         console.log("SAPGrid.onKeyPress");
 
     },
 
     onKeyUp: function($super,evt) {
-       
          $super(evt);
          console.log("SAPGrid.onKeyUp");
-
-    },
+    },*/
 
 });
 

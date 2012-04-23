@@ -985,7 +985,7 @@ currently only support
     },
     onLeftPressed: function(evt) {
         //testing cell text is focused or not 
-    console.log("SAPGrid.onLeftPressed");
+    console.log("SAPGrid.onLeftPressed..");
         if (!this.activeCell) {
          }else{
               //alert(this.activeCell.isFocused())

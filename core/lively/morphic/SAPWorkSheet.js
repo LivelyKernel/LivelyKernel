@@ -1389,18 +1389,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     initializeEvents: function() {
        
         connect(this.imgSave , "onMouseDown", this, "imgSave_Click", {});
-        
         connect(this.imgInsertRow, "onMouseDown", this, "imgInsertRow_Click", {});
         connect(this.imgInsertColumn, "onMouseDown", this, "imgInsertColumn_Click", {});
         connect(this.imgRemoveRow, "onMouseDown", this, "imgRemoveRow_Click", {});
         connect(this.imgRemoveColumn, "onMouseDown", this, "imgRemoveColumn_Click", {});
         
-        
     },
     imgSave_Click: function() {
-
         alert(this.grid.numCols )
-
     },
     imgInsertRow_Click: function() {
         this.grid.addRowBetween();
@@ -1409,14 +1405,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.grid.addColBetween();
     },
     imgRemoveRow_Click: function() {
-
-        alert(this.grid.numCols )
-
+        this.grid.removeRowBetween();
     },
     imgRemoveColumn_Click: function() {
-
-        alert(this.grid.numCols )
-
+        this.grid.removeColBetween();
     },
 
 });

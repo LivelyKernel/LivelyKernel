@@ -785,7 +785,29 @@ console.log('End createLayout =' + elapsed);
     getActiveColName: function() {
         return this.colNames[this.getActiveColIndex()];
     },
+    addColBetween: function(colName) {
+        if (this.activeCell) {
+            var nRow = this.activeCell.gridCoords.y - (this.hideColHeads ? 0 : 1);
+            var nColumn = this.activeCell.gridCoords.x;
 
+            var nOrgRow = nRow  + this.startRow;
+            var nOrgCol = nColumn + this.startColumn;
+            var oCell
+            var arrColumns=[];
+            
+            for (var n = 0; n < this.arrData.length; n++) {
+                oCell ={}; 
+                oCell.value = "";
+                oCell.annotation = "";
+                oCell.formula = "";
+                arrColumns.push(oCell); 
+                this.arrData[n].splice(nOrgCol,0,oCell)
+            }
+
+            this.updateDataModel()
+
+        }
+    },
     addCol: function(colName) {
         this.colNames.push(undefined);
         var realColName = (colName && typeof(colName) == 'string') ? colName : undefined;

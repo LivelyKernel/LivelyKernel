@@ -10,7 +10,10 @@ Object.subclass('lively.PartsBin.PartItem',
             this.name = partOrName;
             this.part = null;
         } else {
-            this.name = partOrName.name; // TODO here should the metainfo go
+            if (typeof(partOrName.getPartsBinMetaInfo === 'function'))
+                this.name = partOrName.getPartsBinMetaInfo().partName;
+            else
+                this.name = partOrName.name;
             this.part = partOrName;
         }
         this.json = null;

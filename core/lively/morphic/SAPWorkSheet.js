@@ -1333,7 +1333,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
        
         connect(this.imgSave , "onMouseDown", this, "imgSaveClick", {});
         
-    
+        connect(this.imgInsertRow, "onMouseDown", this, "imgInsertRowClick", {});
         
     },
     imgSaveClick: function() {
@@ -1342,7 +1342,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
 
     },
-   
+    imgInsertRowClick: function() {
+
+        alert(this.grid.numCols )
+
+
+    },
 
 });
 

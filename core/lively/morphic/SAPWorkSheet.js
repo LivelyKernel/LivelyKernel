@@ -1456,13 +1456,17 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         
     },
     imgItalic_Click: function() {
-        alert(this.grid.numCols )
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].emphasizeAll({fontStyle: 'italic'});
+        }
     },
     imgUnderline_Click: function() {
-        alert(this.grid.numCols )
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].emphasizeAll({textDecoration: 'underline'});
+        }
     },
     imgBold_Click: function() {
-         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
             //this.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold',fontStyle: 'normal',textDecoration: 'normal',,color: Color.black});
         }

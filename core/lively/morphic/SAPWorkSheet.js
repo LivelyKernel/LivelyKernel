@@ -1125,8 +1125,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         console.log('SAPGridCell.onMouseDown')
         this.grid.hideAnnotation();
         if (evt.isLeftMouseButtonDown()) {
-             var ctrl = evt.isCtrlDown();
-            debugger;
+            var ctrl = evt.isCtrlDown();
+              
             console.log(ctrl)
             this.activate();
         }

@@ -38,6 +38,17 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeAnnotation();
 
     },
+    removeSelectedCells: function() {
+        
+        for (i= 0; nRow < this.arrSelectedCells.length; i++) {
+           //need to fix here:  if cell has annotation or/and formula.
+            //annotationCell
+            //formulaCell
+            this.arrSelectedCells[i].deactivateCell();
+        }
+        this.arrSelectedCells.lenght=0;
+        this.arrSelectedCells =[];
+    },
     initializeScrolls: function() {
 
         var start = new Date().getTime();

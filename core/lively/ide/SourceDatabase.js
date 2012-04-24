@@ -1,7 +1,4 @@
-var reqs = ['lively.ide.FileParsing'];
-if (!Config.isNewMorphic) reqs.unshift('lively.Tools');
-
-module('lively.ide.SourceDatabase').requires(reqs).toRun(function() {
+module('lively.ide.SourceDatabase').requires('lively.ide.FileParsing').toRun(function() {
 
 // ===========================================================================
 // Keeps track of parsed sources
@@ -28,22 +25,22 @@ Object.subclass('lively.ide.ModuleWrapper',
     },
 
 },
-'accessing', {    
+'accessing', {
     type: function() { return this._type },
     ast: function() { return this._ast },
     moduleName: function() { return this._moduleName },
-    fileURL: function() { 
+    fileURL: function() {
     //    works for core modules only:
-    //    return URL.codeBase.withFilename(this.fileName()) 
+    //    return URL.codeBase.withFilename(this.fileName())
     //    works for non-core modules only:
-    //    return new URL(Config.rootPath).withFilename(this.fileName()); 
+    //    return new URL(Config.rootPath).withFilename(this.fileName());
     //    might work for both, but slower
         return new URL(module(this._moduleName).findUri(this.type()));
     },
     fileName: function() {
         return this.moduleName().replace(/\./g, '/') + '.' + this.type();
     },
-    
+
     getSourceUncached: function() {
         var webR = new WebResource(this.fileURL());
         if (this.forceUncached) webR.forceUncached();
@@ -51,9 +48,9 @@ Object.subclass('lively.ide.ModuleWrapper',
         this.updateFileRevision();
         return this._cachedSource;
     },
-    
+
     setCachedSource: function(source) { this._cachedSource = source },
-    
+
     getSource: function() {
         return this._cachedSource ? this._cachedSource : this.getSourceUncached();
     },
@@ -63,7 +60,7 @@ Object.subclass('lively.ide.ModuleWrapper',
     retrieveSourceAndParse: function(optSourceDB) {
         return this._ast = this.parse(this.getSource(), optSourceDB);
     },
-    
+
     parse: function(source, optSourceDB) {
         if (source === undefined)
             throw dbgOn(new Error('ModuleWrapper ' + this.moduleName() + ' needs source to parse!'));
@@ -74,7 +71,7 @@ Object.subclass('lively.ide.ModuleWrapper',
             root = this.parseOmeta(source);
         } else if (this.type() == 'lkml') {
             root = this.parseLkml(source);
-        } else { 
+        } else {
             throw dbgOn(new Error('Don\'t know how to parse ' + this.type + ' of ' + this.moduleName()))
         }
         root.flattened().forEach(function(ea) { ea.sourceControl = optSourceDB })
@@ -135,22 +132,22 @@ Object.subclass('lively.ide.ModuleWrapper',
     },
 },
 'removing', {
-    
+
     remove: function() {
         new WebResource(this.fileURL()).del();
     },
-    
+
 });
 
 Object.extend(lively.ide.ModuleWrapper, {
-    
+
     forFile: function(fn) {
         var type = fn.substring(fn.lastIndexOf('.') + 1, fn.length);
         var moduleName = fn;
         // FIXME this is WW-specific!
         // TODO Implement reverse module lookup that takes
         //   Config.modulePaths into consideration
-        // FIXME FIXME FIXME 
+        // FIXME FIXME FIXME
                 while (moduleName.substring(0, 3) === '../') {
                     moduleName = moduleName.substring(3);
                 }
@@ -158,7 +155,7 @@ Object.extend(lively.ide.ModuleWrapper, {
         moduleName = moduleName.replace(/\//g, '.');
         return new lively.ide.ModuleWrapper(moduleName, type);
     },
-    
+
 });
 
 Object.subclass('AnotherSourceDatabase', {
@@ -190,20 +187,20 @@ Object.subclass('AnotherSourceDatabase', {
         return Object.values(this.modules)
             .select(function(ea) { return ea instanceof lively.ide.ModuleWrapper });
     },
-    
+
     findModuleWrapperForFileName: function(fileName) {
-        // support for Config.modulePaths == [users/, projects/] 
+        // support for Config.modulePaths == [users/, projects/]
         var m = fileName.match(/\.\.\/([A-Za-z0-9]+\/)(.*)/)
         if (m && Config.modulePaths.include(m[1])) {
             fileName = m[1] + m[2]
         }
         return this.allModules().detect(function(ea) { return ea.fileName() == fileName })
     },
-    
+
     createModuleWrapperForFileName: function(fileName) {
         return lively.ide.ModuleWrapper.forFile(fileName);
     },
-    
+
     addModule: function(fileName, source) {
         var moduleWrapper = this.findModuleWrapperForFileName(fileName);
         if (moduleWrapper) return moduleWrapper;
@@ -238,7 +235,7 @@ Object.subclass('AnotherSourceDatabase', {
             moduleWrapper.retrieveSourceAndParse(this);
         return root;
     },
-    
+
     putSourceCodeFor: function(fileFragment, newFileString) {
         this.putSourceCodeForFile(fileFragment.fileName, newFileString);
     },
@@ -252,7 +249,7 @@ Object.subclass('AnotherSourceDatabase', {
         moduleWrapper.setSource(content, false, true);
         console.log("... " + content.length + " bytes saved.");
     },
-    
+
     getCachedText: function(fileName) { // Return full text of the named file
         var moduleWrapper = this.findModuleWrapperForFileName(fileName);
         if (!moduleWrapper)
@@ -266,7 +263,7 @@ Object.subclass('AnotherSourceDatabase', {
         var roots = Object.values(lively.ide.SourceControl.modules).collect(function(ea) { return ea.ast() });
         var allFragments = roots.inject([], function(all, ea) { return all.concat(ea.flattened().uniq()) });
 
-        // search local code    
+        // search local code
         allFragments = allFragments.concat(ChangeSet.current().flattened());
 
         return allFragments.select(function(ea) {
@@ -282,7 +279,7 @@ Object.subclass('AnotherSourceDatabase', {
         }, this);
         console.log('Altogether: ' + (new Date().getTime()-ms)/1000 + 's');
     },
-    
+
     allFiles: function() {
         if (!this._allFiles)
             this._allFiles = this.interestingLKFileNames(this.codeBaseURL).uniq();
@@ -294,25 +291,25 @@ Object.subclass('AnotherSourceDatabase', {
         if (this.registeredBrowsers.include(browser)) return;
         this.registeredBrowsers.push(browser);
     },
-    
+
     unregisterBrowser: function(browser) {
         this.registeredBrowsers = this.registeredBrowsers.without(browser);
     },
-    
+
     updateBrowsers: function(changedBrowser, changedNode) {
         var msStart = new Date().getTime();
         this.registeredBrowsers.without(changedBrowser).forEach(function(ea) { ea.allChanged(true, changedNode) });
         console.log('updated ' + this.registeredBrowsers.length + ' browsers in ' + (new Date().getTime()-msStart)/1000 + 's')
     },
-    
+
     update: function() {
         this._allFiles = null;
     },
-    
+
     addFile: function(filename) {
         this._allFiles.push(filename);
     },
-    
+
     removeFile: function(fileName) {
         var moduleWrapper = this.findModuleWrapperForFileName(fileName);
         if (!moduleWrapper) {
@@ -326,7 +323,7 @@ Object.subclass('AnotherSourceDatabase', {
         this.codeBaseURL = new URL(newCodeBaseURL.withRelativePartsResolved());
         this._allFiles = new WebResource(newCodeBaseURL).getSubElements().subDocuments.collect(function(ea) { return ea.getName() });
     },
-    
+
     prepareForMockModule: function(fileName, src) { // This is just used for testing!!!
         this.modules[fileName] = lively.ide.ModuleWrapper.forFile(fileName);
         this.modules[fileName].setCachedSource(src);
@@ -366,7 +363,7 @@ AnotherSourceDatabase.addMethods(
             return fullList
         }.bind(this);
         var refs = new ChangeList("References to " + str, null, searchFunc(), str, searchFunc);
-        refs.openIn(lively.morphic.World.current()); 
+        refs.openIn(lively.morphic.World.current());
 
     },
 
@@ -389,7 +386,7 @@ AnotherSourceDatabase.addMethods(
     createSymbolList: function() {
         // is a list of names of classes, proto and static methods, objects, and functions defined
         // in all currently loaded namespaces
-        
+
         var allClasses = Global.classes(true)
         allClasses.length
         var allClassNames = allClasses.collect(function(klass) { return klass.name /*local name*/ })
@@ -419,7 +416,7 @@ AnotherSourceDatabase.addMethods(
     },
 
 });
- 
+
 Object.extend(lively.ide, {
     sourceDB: function() {
         return this.startSourceControl();

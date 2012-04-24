@@ -25,17 +25,14 @@
 /**
  * Main.js.  System startup and demo loading.
  */
-
-var reqs = ["lively.persistence.Serializer", "lively.ChangeSet"];
-if (!Config.isNewMorphic) reqs.push('lively.Core');
-module('lively.Main').requires(reqs).toRun(function() {
+module('lively.Main').requires("lively.persistence.Serializer", "lively.ChangeSet").toRun(function() {
 
 Object.subclass('lively.Main.WorldDataAccessor',
 'initializing', {
     initialize: function(canvas) {
         this.canvas = canvas;
     },
-    modulesBeforeDeserialization: function() { return Config.modulesBeforeDeserialization || [] },
+    modulesBeforeDeserialization: function() { return Config.modulesBeforeDeserialization || [] }
 
 },
 'accessing and creation', {
@@ -46,6 +43,7 @@ Object.subclass('lively.Main.WorldDataAccessor',
     getWorld: function() {  throw new Error('Subclass responsibility') },
     getChangeSet: function() {  throw new Error('Subclass responsibility') },
 });
+
 Object.extend(lively.Main.WorldDataAccessor, {
     forCanvas: function(canvas) {
         var doc = canvas.ownerDocument, changeSet,
@@ -106,6 +104,7 @@ Object.extend(lively.Main.WorldDataAccessor, {
         throw new Error('Cannot access data to load world');
     },
 });
+
 lively.Main.WorldDataAccessor.subclass('lively.Main.XMLWorldData',
 'initializing', {
     initialize: function($super, canvas, worldNode, changeSet) {
@@ -123,6 +122,7 @@ lively.Main.WorldDataAccessor.subclass('lively.Main.XMLWorldData',
     },
     getChangeSet: function() { return this.changeSet },
 });
+
 lively.Main.WorldDataAccessor.subclass('lively.Main.JSONWorldData',
 'initializing', {
     initialize: function($super, canvas, json, changeSet) {
@@ -147,6 +147,7 @@ lively.Main.WorldDataAccessor.subclass('lively.Main.JSONWorldData',
     },
     getChangeSet: function() { return this.changeSet },
 });
+
 lively.Main.WorldDataAccessor.subclass('lively.Main.NewWorldData',
 'accessing and creation', {
     getWorld: function() {

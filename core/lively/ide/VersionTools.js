@@ -1,12 +1,9 @@
-var reqs = Config.isNewMorphic ? [] : ['lively.Widgets']; // FIXME
-
-module('lively.ide.VersionTools').requires(['lively.morphic', 'apps.DateFormat'].concat(reqs)).toRun(function() {
+module('lively.ide.VersionTools').requires('lively.morphic').toRun(function() {
 
 var klass = Global.Widget || lively.morphic.WindowedApp;
-
 klass.subclass('lively.ide.FileVersionViewer',
 'settings', {
-    
+
     viewTitle: "Version Viewer",
     initialViewExtent: pt(450, 250),
 
@@ -49,7 +46,7 @@ klass.subclass('lively.ide.FileVersionViewer',
         m= panel.versionList.innerMorph();
         m.dragEnabled = false;
         m.applyStyle({resizeWidth: true, resizeHeight: true});
-        
+
         this.panel = panel;
         panel.ownerWidget = this;
         return panel;

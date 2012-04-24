@@ -1140,6 +1140,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
             if (evt.isCtrlDown()){
                  this.selectedCell();
             }else{
+                debugger;
                 this.grid.removeSelectedCells();
                 this.activate();
             }

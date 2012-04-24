@@ -1369,6 +1369,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgInsertColumn;
         this.imgRemoveColumn;
 
+        this.imgTextAlignLeft;
+        this.imgTextAlignCenter;
+        this.imgTextAlignRight;
 
     },initializeImages: function() {
         var nGapWidth = 6;

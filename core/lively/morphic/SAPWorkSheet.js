@@ -1473,6 +1473,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
         connect(this.imgSignDollar, "onMouseDown", this, "imgSignDollar_Click", {});
         connect(this.imgSignPercent, "onMouseDown", this, "imgSignPercent_Click", {});
+
+        connect(this.imgTextAlignLeft, "onMouseDown", this, "imgTextAlignLeft_Click", {});
+        connect(this.imgTextAlignCenter, "onMouseDown", this, "imgTextAlignCenter_Click", {});
+        connect(this.imgTextAlignRight, "onMouseDown", this, "imgTextAlignRight_Click", {});
         
     },
     imgTextAlignLeft_Click: function() {

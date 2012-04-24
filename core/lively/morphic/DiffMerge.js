@@ -259,7 +259,7 @@ Object.subclass('AtomicDiff',
     diffAgainst: function(otherDiff) {
         // performs an atomic diff diff (sic!) based on an atomic merge matrix
         if (this.newValue && typeof(this.newValue.equals) == "function") {
-            if (typeOf(otherDiff.newValue) === 'undefined')
+            if (typef(otherDiff.newValue) === 'undefined')
                 return new AtomicDiff(this.type, this.newValue, otherDiff.newValue)
 
             else if (this.newValue.equals(otherDiff.newValue)) return undefined

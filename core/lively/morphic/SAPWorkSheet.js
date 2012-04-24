@@ -1405,7 +1405,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgBoarder = new lively.morphic.Image(new Rectangle(4*nGapGroupWidth + 24*13 + 10 + 13*nGapWidth,3,24,24), "images/border-2-bottom-icon.png"); 
         this.imgFilter = new lively.morphic.Image(new Rectangle(4*nGapGroupWidth + 24*14 + 10 + 14*nGapWidth,3,24,24), "images/filter-icon.png"); 
 
-
         this.imgInsertRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,3,24,24), "images/table-row-insert-icon.png");
         this.imgInsertRow.setToolTip("Insert Row");
         this.imgInsertColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*16 + 10 + 13*nGapWidth,3,24,24), "images/table-column-insert-icon.png");
@@ -1416,11 +1415,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgRemoveColumn .setToolTip("Delete Column");
     
         this.imgTextAlignLeft = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*19 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-left-icon.png");
-        this.imgTextAlignLeft .setToolTip("Align Text Left");
+        this.imgTextAlignLeft.setToolTip("Align Text Left");
         this.imgTextAlignCenter = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*20 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-center-icon.png");
-        this.imgTextAlignLeft .setToolTip("Align Text Center");
+        this.imgTextAlignCenter.setToolTip("Align Text Center");
         this.imgTextAlignRight = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*21 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-right-icon.png");
-        this.imgTextAlignLeft .setToolTip("Align Text Right");
+        this.imgTextAlignRight.setToolTip("Align Text Right");
 
         this.addMorph(this.imgInsertRow);
         this.addMorph(this.imgRemoveRow);

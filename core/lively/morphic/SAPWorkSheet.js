@@ -12,6 +12,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.numRows = numRows;
         this.oAnnotation = null;
         
+        this.arrSelectedCells=[];  //saving selected cells: to support mult select.
+        
          //for smart scroll feature
         this.prviousScrollValue=0;  //saving vertical scroll value
         this.prviousScrollColValue=0; //saving horizontal scroll value

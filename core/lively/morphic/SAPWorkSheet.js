@@ -1062,7 +1062,9 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         }    
         this.grid.activeCell = this;
         this.grid.activeCellContent = this.textString;
-        this.setBorderColor(Color.red);
+        //this.setBorderColor(Color.red);
+        this.setBorderColor(Color.rgb(0,0,0));
+
         this.setBorderWidth(2);
         //this.displayExpression();
     },
@@ -1140,6 +1142,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
             if (evt.isCtrlDown()){
                 this.grid.arrSelectedCells.push(this);
                 this.selectedCell();
+                this.activate();
                 
             }else{
                 this.grid.removeSelectedCells();

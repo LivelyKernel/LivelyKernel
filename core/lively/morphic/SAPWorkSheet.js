@@ -1373,6 +1373,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     },initializeImages: function() {
         var nGapWidth = 6;
         var nGapGroupWidth = 25;
+
+
         
         this.imgSave = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
         this.imgSaveAs = new lively.morphic.Image(new Rectangle(24*1 + 10 + nGapWidth,3,24,24), "images/Save-as-icon.png"); 
@@ -1410,6 +1412,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgRemoveColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*18 + 10 + 13*nGapWidth,3,24,24), "images/table-column-delete-icon.png");
         this.imgRemoveColumn .setToolTip("Delete Column");
     
+
+        //Text-align-center-icon.png      
+        //Text-align-left-icon.png
+        //Text-align-right-icon.png
+
         this.addMorph(this.imgInsertRow);
         this.addMorph(this.imgRemoveRow);
         this.addMorph(this.imgInsertColumn);

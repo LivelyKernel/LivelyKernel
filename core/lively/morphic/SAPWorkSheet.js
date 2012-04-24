@@ -1393,7 +1393,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgFontColor= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*10 + 10 + 10*nGapWidth,3,24,24), "images/Actions-format-text-color-icon.png"); 
 
         this.imgSignDollar= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,3,24,24), "images/US-dollar-icon.png"); 
+        this.imgSignDollar.setToolTip("Number Format: Currency");
         this.imgSignPercent= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*12 + 10 + 12*nGapWidth,3,24,24), "images/Percent-icon2.png"); 
+        this.imgSignPercent.setToolTip("Number Format: Percentage");
 
         this.imgBoarder = new lively.morphic.Image(new Rectangle(4*nGapGroupWidth + 24*13 + 10 + 13*nGapWidth,3,24,24), "images/border-2-bottom-icon.png"); 
         this.imgFilter = new lively.morphic.Image(new Rectangle(4*nGapGroupWidth + 24*14 + 10 + 14*nGapWidth,3,24,24), "images/filter-icon.png"); 

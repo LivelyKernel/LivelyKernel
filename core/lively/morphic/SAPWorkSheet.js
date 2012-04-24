@@ -1116,7 +1116,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         return bResult
     },
     deactivateCell: function() {
-        this.grid.activeCell = null;
+        //this.grid.activeCell = null;
         this.setBorderColor(Color.rgb(177,181,186));
         this.setBorderWidth(1);
         //this.updateEvalExpression();

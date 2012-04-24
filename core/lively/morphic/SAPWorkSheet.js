@@ -1072,7 +1072,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         //this.displayExpression();
     },
     deactivate: function() {
-        debugger;
+        
         console.log("deactivate ")
         if (this.grid.activeCell !== this) {    
             
@@ -1136,7 +1136,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.setBorderWidth(1);
     },
     onMouseDown: function (evt) {
-        console.log('SAPGridCell.onMouseDown')
+        console.log('SAPGridCell.onMouseDown');
+        debugger;
         this.grid.hideAnnotation();
         if (evt.isLeftMouseButtonDown()) {
             var ctrl = evt.isCtrlDown();

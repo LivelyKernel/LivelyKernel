@@ -1056,9 +1056,12 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         //this.cellformula='';
         //this.annotation='';//maybe we need array object to save more than one
     },
-    activate: function() {
+    activate: function(isCtrlDown) {
         if (this.grid.activeCell) {
-            this.grid.activeCell.deactivate();
+            if (!isCtrlDown){
+                this.grid.activeCell.deactivate();
+            }
+            
         }    
         this.grid.activeCell = this;
         this.grid.activeCellContent = this.textString;
@@ -1142,7 +1145,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
             if (evt.isCtrlDown()){
                 this.grid.arrSelectedCells.push(this);
                 this.selectedCell();
-                this.activate();
+                this.activate(true);
                 
             }else{
                 this.grid.removeSelectedCells();

@@ -1138,12 +1138,13 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         if (evt.isLeftMouseButtonDown()) {
             var ctrl = evt.isCtrlDown();
             if (evt.isCtrlDown()){
-                
+                 this.selectedCell();
             }else{
                 this.grid.removeSelectedCells();
+                this.activate();
             }
             
-            this.activate();
+            
         }
     },
     onDoubleClick: function (evt) {

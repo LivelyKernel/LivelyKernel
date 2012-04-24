@@ -1491,7 +1491,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     },
     imgTextAlignRight_Click: function() {
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.grid.arrSelectedCells[i].setAlign('left'); 
+            this.grid.arrSelectedCells[i].setAlign('right'); 
         }
     },
     imgItalic_Click: function() {

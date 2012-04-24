@@ -1475,6 +1475,15 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         connect(this.imgSignPercent, "onMouseDown", this, "imgSignPercent_Click", {});
         
     },
+    imgTextAlignLeft_Click: function() {
+        alert(this.grid.numCols )
+    },
+    imgTextAlignCenter_Click: function() {
+        alert(this.grid.numCols )
+    },
+    imgTextAlignRight_Click: function() {
+        alert(this.grid.numCols )
+    },
     imgItalic_Click: function() {
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({fontStyle: 'italic'});

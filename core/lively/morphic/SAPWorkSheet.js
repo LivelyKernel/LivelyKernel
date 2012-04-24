@@ -1126,8 +1126,12 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.grid.hideAnnotation();
         if (evt.isLeftMouseButtonDown()) {
             var ctrl = evt.isCtrlDown();
-              
-            console.log("ctrl=" + ctrl)
+            if (evt.isCtrlDown()){
+                
+            }else{
+                
+            }
+            
             this.activate();
         }
     },

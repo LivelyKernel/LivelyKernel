@@ -1453,6 +1453,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         connect(this.imgInsertColumn, "onMouseDown", this, "imgInsertColumn_Click", {});
         connect(this.imgRemoveRow, "onMouseDown", this, "imgRemoveRow_Click", {});
         connect(this.imgRemoveColumn, "onMouseDown", this, "imgRemoveColumn_Click", {});
+
+        connect(this.imgSignDollar, "onMouseDown", this, "imgSignDollar_Click", {});
+        connect(this.imgSignPercent, "onMouseDown", this, "imgSignPercent_Click", {});
         
     },
     imgItalic_Click: function() {

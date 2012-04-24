@@ -1416,8 +1416,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgRemoveColumn .setToolTip("Delete Column");
     
         this.imgTextAlignLeft = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*19 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-left-icon.png");
+        this.imgTextAlignLeft .setToolTip("Align Text Left");
         this.imgTextAlignCenter = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*20 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-center-icon.png");
+        this.imgTextAlignLeft .setToolTip("Align Text Center");
         this.imgTextAlignRight = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*21 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-right-icon.png");
+        this.imgTextAlignLeft .setToolTip("Align Text Right");
 
         this.addMorph(this.imgInsertRow);
         this.addMorph(this.imgRemoveRow);

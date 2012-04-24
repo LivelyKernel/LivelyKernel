@@ -1128,6 +1128,10 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.setBorderColor(Color.green);
         this.setBorderWidth(1);
     },
+    selectedCell: function() {
+        this.setBorderColor(Color.rgb(0,0,0));
+        this.setBorderWidth(1);
+    },
     onMouseDown: function (evt) {
         console.log('SAPGridCell.onMouseDown')
         this.grid.hideAnnotation();

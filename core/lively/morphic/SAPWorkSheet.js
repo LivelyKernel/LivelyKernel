@@ -1471,6 +1471,18 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             //this.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold',fontStyle: 'normal',textDecoration: 'normal',,color: Color.black});
         }
     },
+    imgBackGroundColor_Click: function() {
+        alert(this.grid.numCols )
+    },
+    imgFontColor_Click: function() {
+        alert(this.grid.numCols )
+    },
+    imgSignDollar_Click: function() {
+        alert(this.grid.numCols )
+    },
+    imgSignPercent_Click: function() {
+        alert(this.grid.numCols )
+    },
     imgSave_Click: function() {
         alert(this.grid.numCols )
     },

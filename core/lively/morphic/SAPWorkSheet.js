@@ -1081,7 +1081,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.grid.activeCell = null;
         this.setBorderColor(Color.rgb(177,181,186));
         this.setBorderWidth(1);
-        debugger;
+    
         if (this.hasAnnotation()){
 	   this.annotationCell();
 	}
@@ -1116,6 +1116,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         return bResult
     },
     deactivateCell: function() {
+        //removed below April 24
         //this.grid.activeCell = null;
         this.setBorderColor(Color.rgb(177,181,186));
         this.setBorderWidth(1);
@@ -1137,7 +1138,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     },
     onMouseDown: function (evt) {
         console.log('SAPGridCell.onMouseDown');
-        debugger;
+       
         this.grid.hideAnnotation();
         if (evt.isLeftMouseButtonDown()) {
             var ctrl = evt.isCtrlDown();

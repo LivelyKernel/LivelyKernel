@@ -1383,8 +1383,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgClear= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*5 + 10 + 5*nGapWidth,3,24,24), "images/Actions-edit-clear-icon.png"); 
 
         this.imgBold= new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*6 + 10 + 6*nGapWidth,3,24,24), "images/Actions-format-text-bold-icon.png"); 
+        this.imgBold.setToolTip("Bold");
         this.imgItalic = new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*7 + 10 + 7*nGapWidth,3,24,24), "images/Actions-format-text-italic-icon.png"); 
+        this.imgItalic.setToolTip("Italic");
         this.imgUnderline= new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*8 + 10 + 8*nGapWidth,3,24,24), "images/Actions-format-text-underline-icon.png"); 
+        this.imgUnderline.setToolTip("Underline");
 
         this.imgBackGroundColor= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*9 + 10 + 9*nGapWidth,3,24,24), "images/color-fill-icon.png"); 
         this.imgFontColor= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*10 + 10 + 10*nGapWidth,3,24,24), "images/Actions-format-text-color-icon.png"); 

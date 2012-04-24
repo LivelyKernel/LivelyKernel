@@ -1480,13 +1480,19 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         
     },
     imgTextAlignLeft_Click: function() {
-        alert(this.grid.numCols )
+         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].setAlign('left'); 
+        }
     },
     imgTextAlignCenter_Click: function() {
-        alert(this.grid.numCols )
+         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].setAlign('center'); 
+        }
     },
     imgTextAlignRight_Click: function() {
-        alert(this.grid.numCols )
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].setAlign('left'); 
+        }
     },
     imgItalic_Click: function() {
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {

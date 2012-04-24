@@ -1463,7 +1463,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     },
     imgBold_Click: function() {
          for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
+            this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
             //this.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold',fontStyle: 'normal',textDecoration: 'normal',,color: Color.black});
         }
     },

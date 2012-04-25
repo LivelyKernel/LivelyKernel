@@ -1,9 +1,9 @@
 module('lively.morphic.SAPAdditionalWidgets').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles').toRun(function() {
 
-lively.morphic.Text.subclass('lively.morphic.SAPFontPicker',
+lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 'default category', {
-    initialize: function($super, arg1, arg2) {
-        $super(arg1, arg2);
+    initialize: function($super) {
+        $super();
         this.setFill(Color.rgb(223, 227, 232));
         this.setBorderColor(Color.rgb(177,181,186));
     },

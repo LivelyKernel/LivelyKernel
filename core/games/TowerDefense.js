@@ -129,6 +129,8 @@ resetMorphs: function() {
 setPaused: function(paused) {
     this.paused = paused;
 
+    this.resetLastTimestamp();
+    
     this.pauseButton.setLabel(this.paused?"Resume":"Pause");
 },
 startSteppingScripts: function() {
@@ -137,7 +139,6 @@ startSteppingScripts: function() {
 },
 togglePaused: function() {
     this.setPaused(!this.isPaused());
-    this.resetLastTimestamp();
 },
 update: function(delta) {
     alert(delta);

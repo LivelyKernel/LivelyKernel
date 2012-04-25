@@ -19,8 +19,24 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
         this.grid = aGrid;
         this.grid.addMorph(this);
     },
-    availableFonts: function() {
-
+    availableFonts: function(fontNames) {
+        var testText = 'CmmwwmmwwmmwwmmL',
+		parent = document.body,
+		span = XHTMLNS.create('span');
+	span.textContent = testText;
+	span.style.fontSize = '72px';
+	parent.appendChild(span);
+	var defaultWidth = span.offsetWidth, defaultHeight = span.offsetHeight;
+	var availableFonts = fontNames.select(function(fontName) {
+		try {
+			if (Global.getComputedStyle(span).fontFamily == fontName) return true;
+			span.style.fontFamily = fontName;
+			var available = defaultWidth !== span.offsetWidth || defaultHeight !== span.offsetHeight;
+			return available;
+		} catch(e) { return false }
+	})
+	parent.removeChild(span)
+	return availableFonts;
 });
 
 }) // end of module

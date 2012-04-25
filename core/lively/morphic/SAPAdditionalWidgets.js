@@ -33,7 +33,17 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 	}, this);
     },
      selectFont: function(aGrid) {
-        
+        var fontMorphs = this.oList.submorphs, selected;
+	for (var i = 0; i < fontMorphs.length; i++) {
+		if (fontMorphs[i].bounds().containsPoint(pos)) selected = fontMorphs[i];
+		fontMorphs[i].setFill(null);
+	}
+	if (selected) {
+		selected.setFill(Color.yellow);
+		this.selectedFont = selected.textString;
+	} else {
+		this.selectedFont = null;
+	}
     },
     addToGrid: function(aGrid) {
         this.grid = aGrid;

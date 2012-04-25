@@ -163,7 +163,7 @@ update: function(delta) {
 },
 });
 
-Object.subclass('games.TowerDefense.Menu', {
+Morph.subclass('games.TowerDefense.Menu', {
     
 });
 

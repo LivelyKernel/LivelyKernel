@@ -4,7 +4,7 @@ Object.extend(games.TowerDefense, {
     start: function() {
         var towerDefense = new games.TowerDefense.TowerDefense();
         var window = towerDefense.openInWindow();
-        window.setName("TowerDefense");
+        window.name = "TowerDefense";
         return towerDefense;
     }
 });

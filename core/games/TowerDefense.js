@@ -3,9 +3,9 @@ module('games.TowerDefense').requires().toRun(function() {
 Object.extend(games.TowerDefense, {
     start: function() {
         var towerDefense = new games.TowerDefense.TowerDefense();
-        towerDefense.openInWindow();
-        towerDefense.owner.name = "TowerDefense";
-        return towerDefense;
+        var window = new lively.morphic.Window(towerDefense, "TowerDefense");
+        window.open();
+        return window;
     }
 });
 

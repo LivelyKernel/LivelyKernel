@@ -15,6 +15,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
         this.oList.setClipMode("scroll");
         this.oList.disableGrabbing();
         
+//f.oList.setLayouter(new lively.morphic.Layout.VerticalLayout()); 
+
+
         this.addMorph(this.oList);
 
 	this.oList.removeAllMorphs();

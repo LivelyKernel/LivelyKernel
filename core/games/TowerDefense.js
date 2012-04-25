@@ -167,11 +167,11 @@ Morph.subclass('games.TowerDefense.Menu', {
     
 });
 
-Object.subclass('games.TowerDefense.Map', {
+Morph.subclass('games.TowerDefense.Map', {
     
 });
 
-Object.subclass('games.TowerDefense.Tile', {
+Morph.subclass('games.TowerDefense.Tile', {
     
 });
 

@@ -103,7 +103,9 @@ initializeGame: function() {
         s.tileSize*s.yTiles + 2*s.borderWidth + s.menuHeight
     ));
 },
-initializeTowerDefense: function() {
+initialize: function($super) {
+    $super();
+    
     this.reset();
     this.initializeGame();
     this.buildMap();

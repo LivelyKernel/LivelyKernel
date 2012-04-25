@@ -126,6 +126,11 @@ mainIteration: function() {
 resetMorphs: function() {
     this.removeAllMorphs();
 },
+setPaused: function(paused) {
+    this.paused = paused;
+
+    this.pauseButton.setLabel(this.paused?"Resume":"Pause");
+}
 });
 
 Object.subclass('games.TowerDefense.Menu', {

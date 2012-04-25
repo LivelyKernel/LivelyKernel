@@ -14,6 +14,22 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
         this.oList = new lively.morphic.List(new Rectangle(0, 0, 100, 100), []);
         this.oList.disableGrabbing();
         this.addMorph(this.oList);
+
+
+        this.oList.reset();
+	
+	var fonts = this.availableFonts(this.getKnownFonts());
+	var offset = pt(0,0);
+	fonts.forEach(function(font) {
+		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x,20)), font);
+		text.applyStyle({fill: null, borderWidth:0, fontFamily: font, fixedHeight: false, fixedWidth: true, allowInput: false})
+		text.ignoreEvents();
+		this.oList.addMorph(text);
+		text.fit();
+		offset = text.bounds().bottomLeft()
+	}, this);
+
+
         
     },
     addToGrid: function(aGrid) {

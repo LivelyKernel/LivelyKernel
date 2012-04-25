@@ -130,7 +130,11 @@ setPaused: function(paused) {
     this.paused = paused;
 
     this.pauseButton.setLabel(this.paused?"Resume":"Pause");
-}
+},
+startSteppingScripts: function() {
+    this.stopStepping();
+    this.startStepping(50, "mainIteration");
+},
 });
 
 Object.subclass('games.TowerDefense.Menu', {

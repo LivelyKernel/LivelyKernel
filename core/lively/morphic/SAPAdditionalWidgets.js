@@ -19,7 +19,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
         this.grid = aGrid;
         this.grid.addMorph(this);
     },
-    
+    availableFonts: function() {
 
 });
 

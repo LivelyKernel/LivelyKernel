@@ -11,8 +11,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
         this.initializeUI();
     },
     initializeUI: function($super) {
-        this.oList = new lively.morphic.List(new Rectangle(0, 0, 100, 100), ['1', '2', '3']);
-        this.oList.disableGrabbing() 
+        this.oList = new lively.morphic.List(new Rectangle(0, 0, 100, 100), []);
+        this.oList.disableGrabbing();
         this.addMorph(this.oList);
     },
     addToGrid: function(aGrid) {

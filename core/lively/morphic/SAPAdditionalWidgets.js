@@ -32,6 +32,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 		offset = text.bounds().bottomLeft()
 	}, this);
     },
+     selectFont: function(aGrid) {
+        
+    },
     addToGrid: function(aGrid) {
         this.grid = aGrid;
         this.grid.addMorph(this);

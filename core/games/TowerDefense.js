@@ -36,7 +36,7 @@ Object.subclass('games.TowerDefense.TowerDefense', {
             }
         }
     },
-    buildMenu: function() {
+buildMenu: function() {
         var towerDefense = this;
     
     var menuMorph = new Morph();
@@ -81,7 +81,7 @@ Object.subclass('games.TowerDefense.TowerDefense', {
     });
     menuMorph.addMorph(pauseGameButton);
     this.pauseButton = pauseGameButton;
-    },
+},
     
 });
 

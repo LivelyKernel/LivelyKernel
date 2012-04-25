@@ -135,6 +135,10 @@ startSteppingScripts: function() {
     this.stopStepping();
     this.startStepping(50, "mainIteration");
 },
+togglePaused: function() {
+    this.setPaused(!this.isPaused());
+    this.resetLastTimestamp();
+}
 });
 
 Object.subclass('games.TowerDefense.Menu', {

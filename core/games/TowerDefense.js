@@ -82,7 +82,9 @@ buildMenu: function() {
     menuMorph.addMorph(pauseGameButton);
     this.pauseButton = pauseGameButton;
 },
-    
+isPaused: function() {
+    return this.paused;
+}
 });
 
 Object.subclass('games.TowerDefense.Menu', {

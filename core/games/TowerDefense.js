@@ -103,7 +103,9 @@ initializeGame: function() {
         s.tileSize*s.yTiles + 2*s.borderWidth + s.menuHeight
     ));
 },
-initialize: function() {
+initialize: function($super) {
+    $super();
+    
     this.resetMorphs();
     this.initializeGame();
     this.buildMap();

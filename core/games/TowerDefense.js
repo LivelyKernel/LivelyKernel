@@ -114,6 +114,9 @@ initializeGame: function() {
 initialize: function($super) {
     $super();
     
+    this.initializeTowerDefense();
+},
+initializeTowerDefense: function() {
     this.resetMorphs();
     this.initializeGame();
     this.buildMap();

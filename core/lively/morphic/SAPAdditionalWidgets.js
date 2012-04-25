@@ -19,7 +19,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
         this.oList.setClipMode("scroll");
         this.oList.disableGrabbing();
         this.addMorph(this.oList);
-
+        
 	this.oList.removeAllMorphs();
 	var fonts = this.availableFonts(this.getKnownFonts());
 	var offset = pt(0,0);
@@ -31,6 +31,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 		text.fit();
 		offset = text.bounds().bottomLeft()
 	}, this);
+
+        connect(this.oList, "onMouseDown", this, "selectFont", {});
     },
     onSelectFont: function(evt) {
 

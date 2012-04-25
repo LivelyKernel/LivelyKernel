@@ -84,7 +84,26 @@ buildMenu: function() {
 },
 isPaused: function() {
     return this.paused;
-}
+},
+initializeGame: function() {
+    this.settings = {
+        tileSize: 32,
+        xTiles: 15,
+        yTiles: 15,
+        menuHeight: 25,
+        borderWidth: 1
+    };
+    var s = this.settings;
+    
+    this.setFill(Color.white);
+    //this.setBorderColor(Color.black);
+    //this.setBorderWidth(s.borderWidth);
+    this.setExtent(pt(
+        s.tileSize*s.xTiles + 2*s.borderWidth,
+        s.tileSize*s.yTiles + 2*s.borderWidth + s.menuHeight
+    ));
+},
+
 });
 
 Object.subclass('games.TowerDefense.Menu', {

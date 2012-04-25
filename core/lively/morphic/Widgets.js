@@ -819,7 +819,14 @@ lively.morphic.Morph.addMethods(
         }
 
         if (this.reset)
-            items.push(['reset', this.reset.bind(this)])
+            items.push(['reset', this.reset.bind(this)]);
+
+        if (this.owner.owner) { // Is owner owner a Stack?
+            if (this.owner.owner.pageArray) {
+                this.owner.owner.stackMenuItems(this, items)    // move between page and background
+            }
+        }
+
         return items;
     },
     getWindow: function() {

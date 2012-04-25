@@ -1256,7 +1256,12 @@ lively.morphic.World.addMethods(
         });
 
         blockMorph.addMorph(d.panel);
-        d.panel.align(d.panel.bounds().topRight(), pointOfAlign);
+
+        if(activeWindow.targetMorph){
+            d.panel.align(d.panel.bounds().topRight(), pointOfAlign);
+        } else {
+            d.panel.align(d.panel.bounds().center(), pointOfAlign);
+        }
 
         activeWindow.addMorph(blockMorph);
         connect(d.panel, 'remove', blockMorph, 'remove');

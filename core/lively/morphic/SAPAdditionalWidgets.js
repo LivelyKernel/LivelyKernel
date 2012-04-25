@@ -12,7 +12,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
     },
     initializeUI: function($super) {
         this.oList = new lively.morphic.List(new Rectangle(0, 0, 100, 100), ['1', '2', '3']);
-        this.addMorph(oList);
+        this.addMorph(this.oList);
     },
     addToGrid: function(aGrid) {
         this.grid = aGrid;

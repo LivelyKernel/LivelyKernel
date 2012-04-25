@@ -36,6 +36,53 @@ Object.subclass('games.TowerDefense.TowerDefense', {
             }
         }
     },
+    buildMenu: function() {
+        var towerDefense = this;
+    
+    var menuMorph = new Morph();
+    
+    menuMorph.settings = {
+        buttonHeight: 23,
+        buttonWidth: 80,
+        buttonMargin: 1,
+        height: 25
+    };
+    
+    this.addMorph(menuMorph);
+    menuMorph.setPosition(pt(this.settings.borderWidth, this.settings.borderWidth));
+    menuMorph.setExtent(pt(this.settings.tileSize*this.settings.xTiles, this.settings.menuHeight));
+    menuMorph.addScript(function towerDefense() {
+        return this.owner;
+    });
+    this.menu = menuMorph;
+    
+    var newGameButton = new lively.morphic.Button();
+    newGameButton.setPosition(pt(1, 1));
+    newGameButton.setExtent(pt(80, this.settings.menuHeight-2));
+    newGameButton.setLabel("Restart");
+    newGameButton.addScript(function towerDefense() {
+        return this.owner.towerDefense();
+    });
+    newGameButton.addScript(function onMouseUp(evt) {
+        this.towerDefense().initializeTowerDefense();
+    });
+    menuMorph.addMorph(newGameButton);
+    this.newButton = newGameButton;
+    
+    var pauseGameButton = new lively.morphic.Button();
+    pauseGameButton.setPosition(pt(82, 1));
+    pauseGameButton.setExtent(pt(80, this.settings.menuHeight-2));
+    pauseGameButton.setLabel("Pause");
+    pauseGameButton.addScript(function towerDefense() {
+        return this.owner.towerDefense();
+    });
+    pauseGameButton.addScript(function onMouseUp(evt) {
+        this.towerDefense().togglePaused();
+    });
+    menuMorph.addMorph(pauseGameButton);
+    this.pauseButton = pauseGameButton;
+    },
+    
 });
 
 Object.subclass('games.TowerDefense.Menu', {

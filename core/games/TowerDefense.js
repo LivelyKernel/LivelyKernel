@@ -125,6 +125,9 @@ mainIteration: function() {
 
     this.lastTimestamp = newTimestamp;
 },
+resetLastTimestamp: function() {
+    this.lastTimestamp = new Date();
+},
 resetMorphs: function() {
     this.removeAllMorphs();
 },

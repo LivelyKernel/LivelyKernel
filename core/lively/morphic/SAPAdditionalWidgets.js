@@ -20,7 +20,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
         this.oList.disableGrabbing();
         this.addMorph(this.oList);
         
-	this.oList.removeAllMorphs();
+	//this.oList.removeAllMorphs();
 	var fonts = this.availableFonts(this.getKnownFonts());
 	var offset = pt(0,0);
 	fonts.forEach(function(font) {

@@ -1,5 +1,7 @@
 module('games.towerdefense.TowerDefense').requires().toRun(function() {
 
-// Enter your code here
+Object.extend('games.towerDefense.TowerDefense', {
+
+});
 
 }) // end of module

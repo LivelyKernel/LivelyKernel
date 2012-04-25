@@ -18,10 +18,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
         this.oList.setFill(Color.rgb(255, 255, 255));
         this.oList.setClipMode("scroll");
         this.oList.disableGrabbing();
-        
-//f.oList.setLayouter(new lively.morphic.Layout.VerticalLayout()); 
-
-
         this.addMorph(this.oList);
 
 	this.oList.removeAllMorphs();
@@ -35,9 +31,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 		text.fit();
 		offset = text.bounds().bottomLeft()
 	}, this);
-
-
-        
     },
     addToGrid: function(aGrid) {
         this.grid = aGrid;

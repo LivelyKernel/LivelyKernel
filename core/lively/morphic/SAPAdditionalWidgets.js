@@ -37,6 +37,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 	})
 	parent.removeChild(span)
 	return availableFonts;
+    }
 });
 
 }) // end of module

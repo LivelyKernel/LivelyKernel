@@ -1,6 +1,6 @@
 module('games.TowerDefense').requires().toRun(function() {
 
-Object.subclass('games.TowerDefense.TowerDefense', {
+Morph.subclass('games.TowerDefense.TowerDefense', {
 buildMap: function() {
     var mapMorph = new Morph();
     
@@ -104,7 +104,7 @@ initializeGame: function() {
     ));
 },
 initialize: function() {
-    this.reset();
+    this.resetMorphs();
     this.initializeGame();
     this.buildMap();
     this.buildMenu();
@@ -122,6 +122,9 @@ mainIteration: function() {
     this.update(delta / 1000.0);
 
     this.lastTimestamp = newTimestamp;
+},
+resetMorphs: function() {
+    this.removeAllMorphs();
 }
 });
 

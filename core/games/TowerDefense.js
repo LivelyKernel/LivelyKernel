@@ -1,5 +1,13 @@
 module('games.TowerDefense').requires().toRun(function() {
 
+Object.extend(games.TowerDefense, {
+    start: function() {
+        var towerDefense = new games.TowerDefense.TowerDefense();
+        towerDefense.openInWindow();
+        return towerDefense;
+    }
+});
+
 Morph.subclass('games.TowerDefense.TowerDefense', {
 buildMap: function() {
     var mapMorph = new Morph();
@@ -162,4 +170,4 @@ Object.subclass('games.TowerDefense.Tile', {
     
 });
 
-}) // end of module
+}) // end of modulele

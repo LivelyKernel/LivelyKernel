@@ -4,7 +4,6 @@ Object.extend(games.TowerDefense, {
     start: function() {
         var towerDefense = new games.TowerDefense.TowerDefense();
         var window = new lively.morphic.Window(towerDefense, "TowerDefense");
-        window.open();
         return window;
     }
 });

@@ -3,8 +3,8 @@ module('games.TowerDefense').requires().toRun(function() {
 Object.extend(games.TowerDefense, {
     start: function() {
         var towerDefense = new games.TowerDefense.TowerDefense();
-        var window = towerDefense.openInWindow();
-        window.name = "TowerDefense";
+        towerDefense.openInWindow();
+        towerDefense.owner.setName("TowerDefense");
         return towerDefense;
     }
 });

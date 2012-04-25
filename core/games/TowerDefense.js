@@ -125,7 +125,7 @@ mainIteration: function() {
 },
 resetMorphs: function() {
     this.removeAllMorphs();
-}
+},
 });
 
 Object.subclass('games.TowerDefense.Menu', {

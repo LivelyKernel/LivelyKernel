@@ -103,6 +103,15 @@ initializeGame: function() {
         s.tileSize*s.yTiles + 2*s.borderWidth + s.menuHeight
     ));
 },
+initializeTowerDefense: function() {
+    this.reset();
+    this.initializeGame();
+    this.buildMap();
+    this.buildMenu();
+    this.setPaused(true);
+    this.resetLastTimestamp();
+    this.startSteppingScripts();
+},
 
 });
 

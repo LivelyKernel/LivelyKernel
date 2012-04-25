@@ -142,7 +142,7 @@ togglePaused: function() {
 },
 update: function(delta) {
     alert(delta);
-}
+},
 });
 
 Object.subclass('games.TowerDefense.Menu', {

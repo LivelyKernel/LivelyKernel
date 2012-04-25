@@ -7,8 +7,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
         this.setFill(Color.rgb(223, 227, 232));
         this.setBorderColor(Color.rgb(177,181,186));
         this.setExtent(lively.pt(200,500));
+        this.oList;
+        this.initializeUI();
     },
     initializeUI: function($super) {
+        this.oList = new lively.morphic.List(new Rectangle(0, 0, 100, 100), ['1', '2', '3']);
         
     },
     addToGrid: function(aGrid) {

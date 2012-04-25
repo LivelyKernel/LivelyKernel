@@ -138,6 +138,9 @@ startSteppingScripts: function() {
 togglePaused: function() {
     this.setPaused(!this.isPaused());
     this.resetLastTimestamp();
+},
+update: function(delta) {
+    alert(delta);
 }
 });
 

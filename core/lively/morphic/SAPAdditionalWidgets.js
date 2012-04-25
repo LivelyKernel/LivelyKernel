@@ -44,7 +44,7 @@ debugger;
 	var scroll = this.oList.getScroll();
 	this.selectFont(this.localize(evt.getPosition()).addXY(scroll[0], scroll[1]));
     },
-     selectFont: function(aGrid) {
+     selectFont: function(pos) {
         var fontMorphs = this.oList.submorphs, selected;
 	for (var i = 0; i < fontMorphs.length; i++) {
 		if (fontMorphs[i].bounds().containsPoint(pos)) selected = fontMorphs[i];

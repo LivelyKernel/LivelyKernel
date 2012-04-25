@@ -112,7 +112,17 @@ initialize: function() {
     this.resetLastTimestamp();
     this.startSteppingScripts();
 },
+mainIteration: function() {
+    if (this.isPaused()) {
+        return;
+    }
+    var newTimestamp = new Date();
+    var delta = newTimestamp - this.lastTimestamp;
+    
+    this.update(delta / 1000.0);
 
+    this.lastTimestamp = newTimestamp;
+}
 });
 
 Object.subclass('games.TowerDefense.Menu', {

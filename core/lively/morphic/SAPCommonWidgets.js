@@ -30,6 +30,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
         if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) return $super(evt);
         var scroll = this.getScroll();
 	this.selectFont(this.localize(evt.getPosition()).addXY(scroll[0], scroll[1]));
+        debugger;
         if (this.returnCall){
             this.returnCall(this.selectedFont);
         }

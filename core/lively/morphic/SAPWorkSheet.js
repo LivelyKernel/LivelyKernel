@@ -1495,6 +1495,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgRemoveRow.grabbingEnabled = false;
         this.imgInsertColumn.grabbingEnabled = false;
         this.imgRemoveColumn.grabbingEnabled = false;
+        this.imgTextAlignLeft.grabbingEnabled = false;
+        this.imgTextAlignCenter.grabbingEnabled = false;
+        this.imgTextAlignRight.grabbingEnabled = false;
 
 
 

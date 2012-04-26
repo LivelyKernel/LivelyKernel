@@ -1400,8 +1400,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgUnderline= new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*6 + 10 + 6*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-underline-icon.png"); 
         this.imgUnderline.setToolTip("Underline");
 
-        this.imgBackGroundColor= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*9 + 10 + 9*nGapWidth,nSecondLineYPos,24,24), "images/color-fill-icon.png"); 
-        this.imgFontColor= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*10 + 10 + 10*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-color-icon.png"); 
+        this.imgBackGroundColor= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*8 + 10 + 7*nGapWidth,nSecondLineYPos,24,24), "images/color-fill-icon.png"); 
+        this.imgFontColor= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*9 + 10 + 18*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-color-icon.png"); 
 
         this.imgSignDollar= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,3,24,24), "images/US-dollar-icon.png"); 
         this.imgSignDollar.setToolTip("Number Format: Currency");

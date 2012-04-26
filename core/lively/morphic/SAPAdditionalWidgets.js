@@ -8,7 +8,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
         this.setClipMode("scroll");
         this.disableGrabbing();
 
-
         var fonts = this.availableFonts(this.getKnownFonts());
 	var offset = pt(0,0);
 	fonts.forEach(function(font) {

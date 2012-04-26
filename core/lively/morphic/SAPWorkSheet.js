@@ -1372,6 +1372,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgTextAlignLeft;
         this.imgTextAlignCenter;
         this.imgTextAlignRight;
+        this.ddlFontSize;
 
     },initializeImages: function() {
         var nGapWidth = 6;
@@ -1388,7 +1389,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgCut= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,3,24,24), "images/Cut-icon.png"); 
         this.imgCopy= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,nSecondLineYPos,24,24), "images/Actions-edit-copy-icon.png"); 
         
-        this.imgClear= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*5 + 10 + 5*nGapWidth,3,24,24), "images/Actions-edit-clear-icon.png"); 
+        
+        this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(0, 0, 100, 20), ['1', '2', '3']);
+
 
         this.imgBold= new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*6 + 10 + 6*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-bold-icon.png"); 
         this.imgBold.setToolTip("Bold");
@@ -1427,6 +1430,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgTextAlignCenter.setToolTip("Align Text Center");
         this.imgTextAlignRight = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*21 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-right-icon.png");
         this.imgTextAlignRight.setToolTip("Align Text Right");
+
+        this.imgClear= new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*22 + 10 + 14*nGapWidth,3,24,24), "images/Actions-edit-clear-icon.png"); 
+
 
         this.addMorph(this.imgInsertRow);
         this.addMorph(this.imgRemoveRow);

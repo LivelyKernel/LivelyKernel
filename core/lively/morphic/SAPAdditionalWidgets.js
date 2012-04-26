@@ -39,7 +39,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 
     },
    
-    onSelectFont: function(evt) {
+    onSelectFont: function($super,evt) {
 
         //if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) return $super(evt);
         debugger;

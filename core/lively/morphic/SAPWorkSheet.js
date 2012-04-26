@@ -1546,19 +1546,21 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         $super();
         this.numCols = numCols;
         this.numRows = numRows;
+        this.toolBarHeight = 60;
         this.grid;
         this.toolBar;
         this.initializeLayout();
+        
        
     },
      initializeLayout: function() {
         this.grid = new lively.morphic.SAPGrid(this.numCols,this.numRows);
         this.grid.name="BPCGrid";
         this.addMorph(this.grid);
-        this.grid.setPosition(pt(0,30));
+        this.grid.setPosition(pt(0,this.toolBarHeight));
 
         var nToolBarWidth= this.grid.defaultCellWidth * this.grid.numCols;
-        this.toolBar= new lively.morphic.SAPGridToolBar(this.grid,0,0,nToolBarWidth,30);
+        this.toolBar= new lively.morphic.SAPGridToolBar(this.grid,0,0,nToolBarWidth,this.toolBarHeight);
         this.addMorph(this.toolBar);
 
         var nWidth= this.grid.defaultCellWidth * this.grid.numCols + 50;

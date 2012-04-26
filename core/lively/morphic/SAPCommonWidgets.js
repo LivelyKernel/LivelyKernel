@@ -25,7 +25,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
          console.log("SAPGrid.onMouseDown");
         debugger;
         if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) return $super(evt);
-        var scroll = this.oList.getScroll();
+        var scroll = this.getScroll();
 	this.selectFont(this.localize(evt.getPosition()).addXY(scroll[0], scroll[1]));
     },
     selectFont: function(pos) {

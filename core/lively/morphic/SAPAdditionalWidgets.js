@@ -1,5 +1,13 @@
 module('lively.morphic.SAPAdditionalWidgets').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles').toRun(function() {
 
+lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
+'default category', {
+    initialize: function($super) {
+        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,100,100)))
+        this.setFill(Color.red)
+    }
+});
+
 lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 'default category', {
     initialize: function($super) {

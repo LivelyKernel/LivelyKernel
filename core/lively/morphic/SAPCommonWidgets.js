@@ -1,6 +1,6 @@
 module('lively.morphic.SAPCommonWidgets').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles').toRun(function() {
 
-lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
+lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 'default category', {
     initialize: function($super,oReturnCall) {
         this.selectedFont = "";
@@ -217,7 +217,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
 		'Waree'].uniq().sort();
     }
 });
-
+/*
 lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 'default category', {
     initialize: function($super,oReturnCall) {
@@ -235,6 +235,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
     }
     
 });
-
+*/
 
 }) // end of module

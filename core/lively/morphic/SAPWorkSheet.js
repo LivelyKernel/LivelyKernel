@@ -1394,6 +1394,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         
         this.ddlFont = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth, 3, 120, 20), []);
         this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
+        connect(this.ddlFontSize, "onChange", this, "btnStart_Click", {});
+        
+
+
         this.addMorph(this.ddlFont );
         this.addMorph(this.ddlFontSize );
 
@@ -1500,6 +1504,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgTextAlignRight.grabbingEnabled = false;
 
 
+
+    },
+    ddlFontSize_onChange: function(){
+        
+        var nFontsize = this.ddlFontSize.getSelectedItem();
+        console.log(nFontsize);
 
     },
     initializeEvents: function() {

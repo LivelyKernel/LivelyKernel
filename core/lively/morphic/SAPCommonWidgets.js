@@ -9,7 +9,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
         this.applyStyle({borderColor: Color.black, borderWidth: 2, fill: Color.white});
         this.setClipMode({x: 'hidden', y: 'scroll'}); 
         this.disableGrabbing();
-
+        debugger
         var fonts = this.availableFonts(this.getKnownFonts());
 	var offset = pt(0,0);
     

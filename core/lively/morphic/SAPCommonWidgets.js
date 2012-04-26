@@ -47,8 +47,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
 	    selected.setFill(Color.yellow);
 	    this.selectedFont = selected.textString;
             console.log(this.selectedFont)
-	}else{
-	    this.selectedFont = null;
 	}
     },
     availableFonts: function(fontNames) {

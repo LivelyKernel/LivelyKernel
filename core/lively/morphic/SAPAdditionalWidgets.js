@@ -13,7 +13,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
     initializeData: function($super) {
 
         this.oList = lively.morphic.Morph.makeRectangle(new Rectangle(0,0, 200, 500))
-        this.oList.setLayouter(new lively.morphic.Layout.VerticalLayout()); 
+        //this.oList.setLayouter(new lively.morphic.Layout.VerticalLayout()); 
         
 
         //this.oList = new lively.morphic.List(new Rectangle(0, 0, 200, 300), []);

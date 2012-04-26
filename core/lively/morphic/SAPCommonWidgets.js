@@ -223,8 +223,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
 
 lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 'default category', {
-    initialize: function($super) {
+    initialize: function($super,oReturnCall) {
         $super();
+        this.returnCall = oReturnCall;
         this.setFill(Color.rgb(223, 227, 232));
         this.setBorderColor(Color.rgb(177,181,186));
         this.setExtent(lively.pt(200,500));

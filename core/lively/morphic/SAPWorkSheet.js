@@ -1384,7 +1384,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
         
         this.imgSave = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
-        this.imgSave.grabbingEnabled = false;
 
         this.imgSaveAs = new lively.morphic.Image(new Rectangle(24*1 + 10 + nGapWidth,3,24,24), "images/Save-as-icon.png"); 
    
@@ -1474,6 +1473,30 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.addMorph(this.imgTextAlignLeft);
         this.addMorph(this.imgTextAlignCenter);
         this.addMorph(this.imgTextAlignRight);
+
+
+
+        this.imgSave.grabbingEnabled = false;
+        this.imgSaveAs.grabbingEnabled = false;
+        this.imgCopy.grabbingEnabled = false;
+        this.imgCut.grabbingEnabled = false;
+        this.imgPaste.grabbingEnabled = false;
+        this.imgClear.grabbingEnabled = false;
+        this.imgBold.grabbingEnabled = false;
+        this.imgItalic.grabbingEnabled = false;
+        this.imgUnderline.grabbingEnabled = false;
+        this.imgBackGroundColor.grabbingEnabled = false;
+        this.imgFontColor.grabbingEnabled = false;
+        this.imgSignDollar.grabbingEnabled = false;
+        this.imgSignPercent.grabbingEnabled = false;
+        this.imgBoarder.grabbingEnabled = false;
+        this.imgFilter.grabbingEnabled = false;
+        this.imgInsertRow.grabbingEnabled = false;
+        this.imgRemoveRow.grabbingEnabled = false;
+        this.imgInsertColumn.grabbingEnabled = false;
+        this.imgRemoveColumn.grabbingEnabled = false;
+
+
 
     },
     initializeEvents: function() {

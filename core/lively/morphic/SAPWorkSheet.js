@@ -1373,6 +1373,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgTextAlignCenter;
         this.imgTextAlignRight;
         this.ddlFontSize;
+        this.ddlFont;
 
     },initializeImages: function() {
         var nGapWidth = 6;
@@ -1389,9 +1390,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgCut= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,3,24,24), "images/Cut-icon.png"); 
         this.imgCopy= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,nSecondLineYPos,24,24), "images/Actions-edit-copy-icon.png"); 
         
-        
-        this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(0, 0, 100, 20), ['1', '2', '3']);
-
+        this.ddlFont = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth, 3, 110, 20), ['1', '2', '3']);
+        this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['1', '2', '3']);
+        this.addMorph(this.ddlFont );
+        this.addMorph(this.ddlFontSize );
 
         this.imgBold= new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-bold-icon.png"); 
         this.imgBold.setToolTip("Bold");

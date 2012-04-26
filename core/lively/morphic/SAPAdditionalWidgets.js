@@ -31,15 +31,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 		text.fit();
 		offset = text.bounds().bottomLeft()
 	}, this);
-console.log("xxx");
+
         connect(this.oList, "onMouseDown", this, "onSelectFont", {});
     },
     onSelectFont: function(evt) {
-    console.log("onSelectFont");
-    alert(0)
-        //if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) return $super(evt);
-	//var scroll = this.getScroll();
-	//this.owner.selectFont(this.localize(evt.getPosition()).addXY(scroll[0], scroll[1]));
 debugger;
         //if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) return $super(evt);
 	var scroll = this.oList.getScroll();

@@ -1376,6 +1376,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     },initializeImages: function() {
         var nGapWidth = 6;
         var nGapGroupWidth = 25;
+        var nSecondLineYPos = 30;
 
 
         
@@ -1385,7 +1386,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgPaste= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*2 + 10 + 2*nGapWidth,3,24,24), "images/Action-paste-icon.png"); 
        
         this.imgCut= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,3,24,24), "images/Cut-icon.png"); 
-        this.imgCopy= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,30,24,24), "images/Actions-edit-copy-icon.png"); 
+        this.imgCopy= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,nSecondLineYPos,24,24), "images/Actions-edit-copy-icon.png"); 
         
         this.imgClear= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*5 + 10 + 5*nGapWidth,3,24,24), "images/Actions-edit-clear-icon.png"); 
 
@@ -1409,8 +1410,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
         this.imgInsertRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,3,24,24), "images/table-row-insert-icon.png");
         this.imgInsertRow.setToolTip("Insert Row");
+
         this.imgInsertColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*16 + 10 + 13*nGapWidth,3,24,24), "images/table-column-insert-icon.png");
         this.imgInsertColumn .setToolTip("Insert Column");
+        
+
+
         this.imgRemoveRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*17 + 10 + 13*nGapWidth,3,24,24), "images/table-row-delete-icon.png");
         this.imgRemoveRow .setToolTip("Delete Row");
         this.imgRemoveColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*18 + 10 + 13*nGapWidth,3,24,24), "images/table-column-delete-icon.png");

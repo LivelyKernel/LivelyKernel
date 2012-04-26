@@ -11,11 +11,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
         this.setClipMode({x: 'hidden', y: 'scroll'}); 
 
         this.disableGrabbing();
-        this.setLayouter(new lively.morphic.Layout.VerticalLayout()); 
+
         var fonts = this.availableFonts(this.getKnownFonts());
 	var offset = pt(0,0);
 	fonts.forEach(function(font) {
-		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-5,20)), font);
+		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-20,20)), font);
 		text.applyStyle({fill: null, borderWidth:0, fontFamily: font, fixedHeight: false, fixedWidth: true, allowInput: false})
 		text.ignoreEvents();
 		this.addMorph(text);

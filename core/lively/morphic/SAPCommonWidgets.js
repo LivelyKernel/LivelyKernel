@@ -5,7 +5,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
     initialize: function($super) {
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,200,500)))
         this.setFill(Color.rgb(255, 255, 255));
-        this.setClipMode("scroll");
+        //this.setClipMode("scroll");
+
+        this.setClipMode({x: 'hidden', y: 'scroll'}); 
+
         this.disableGrabbing();
 
         var fonts = this.availableFonts(this.getKnownFonts());

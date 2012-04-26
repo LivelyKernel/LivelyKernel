@@ -1382,9 +1382,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgSave = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
         this.imgSaveAs = new lively.morphic.Image(new Rectangle(24*1 + 10 + nGapWidth,3,24,24), "images/Save-as-icon.png"); 
         
-        this.imgPaste= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*2 + 10 + 4*nGapWidth,3,24,24), "images/Action-paste-icon.png"); 
-        this.imgCopy= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 2*nGapWidth,3,24,24), "images/Actions-edit-copy-icon.png"); 
-        this.imgCut= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*4 + 10 + 3*nGapWidth,3,24,24), "images/Cut-icon.png"); 
+        this.imgPaste= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*2 + 10 + 2*nGapWidth,3,24,24), "images/Action-paste-icon.png"); 
+        this.imgCopy= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,3,24,24), "images/Actions-edit-copy-icon.png"); 
+        this.imgCut= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*4 + 10 + 4*nGapWidth,3,24,24), "images/Cut-icon.png"); 
         
         this.imgClear= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*5 + 10 + 5*nGapWidth,3,24,24), "images/Actions-edit-clear-icon.png"); 
 

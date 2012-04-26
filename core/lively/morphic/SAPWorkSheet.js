@@ -1394,7 +1394,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         
         this.ddlFont = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth, 3, 120, 20), []);
         this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
-        connect(this.ddlFontSize, "onChange", this, "btnStart_Click", {});
+        //connection when drop down change for the font size.
+        connect(this.ddlFontSize, "onChange", this, "ddlFontSize_onChange", {});
         
 
 

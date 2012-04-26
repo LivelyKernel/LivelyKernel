@@ -2,8 +2,9 @@ module('lively.morphic.SAPCommonWidgets').requires('lively.morphic.Core', 'livel
 
 lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
 'default category', {
-    initialize: function($super) {
-        this.selectedFont = null;
+    initialize: function($super,oReturnCall) {
+        this.selectedFont = "";
+        this.returnCall = oReturnCall
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,200,500)))
         this.applyStyle({borderColor: Color.black, borderWidth: 2, fill: Color.white});
         this.setClipMode({x: 'hidden', y: 'scroll'}); 
@@ -29,6 +30,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
         if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) return $super(evt);
         var scroll = this.getScroll();
 	this.selectFont(this.localize(evt.getPosition()).addXY(scroll[0], scroll[1]));
+        if (this.returnCall){
+            this.returnCall(this.selectedFont);
+        }
     },
     selectFont: function(pos) {
         var fontMorphs = this.submorphs, selected;

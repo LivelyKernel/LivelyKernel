@@ -25,7 +25,22 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
          console.log("SAPGrid.onMouseDown");
         debugger;
         if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) return $super(evt);
+        var scroll = this.oList.getScroll();
+	this.selectFont(this.localize(evt.getPosition()).addXY(scroll[0], scroll[1]));
+    },
+    selectFont: function(pos) {
         
+        var fontMorphs = this.oList.submorphs, selected;
+	for (var i = 0; i < fontMorphs.length; i++) {
+		if (fontMorphs[i].bounds().containsPoint(pos)) selected = fontMorphs[i];
+		fontMorphs[i].setFill(null);
+	}
+	if (selected) {
+		selected.setFill(Color.yellow);
+		this.selectedFont = selected.textString;
+	} else {
+		this.selectedFont = null;
+	}
     },
     availableFonts: function(fontNames) {
         var testText = 'CmmwwmmwwmmwwmmL',
@@ -219,20 +234,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 	var scroll = this.oList.getScroll();
 	this.selectFont(this.localize(evt.getPosition()).addXY(scroll[0], scroll[1]));
     },
-     selectFont: function(pos) {
-        
-        var fontMorphs = this.oList.submorphs, selected;
-	for (var i = 0; i < fontMorphs.length; i++) {
-		if (fontMorphs[i].bounds().containsPoint(pos)) selected = fontMorphs[i];
-		fontMorphs[i].setFill(null);
-	}
-	if (selected) {
-		selected.setFill(Color.yellow);
-		this.selectedFont = selected.textString;
-	} else {
-		this.selectedFont = null;
-	}
-    },
+     
     addToGrid: function(aGrid) {
         this.grid = aGrid;
         this.grid.addMorph(this);

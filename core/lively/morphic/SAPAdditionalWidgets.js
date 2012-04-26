@@ -34,9 +34,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 
         connect(this.oList, "onMouseDown", this, "onSelectFont", {});
         
-        this.oList.onMouseDown: function(evt) {
-            debugger;
-        }
+    
 
 
     },

@@ -4,7 +4,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
 'default category', {
     initialize: function($super,oReturnCall) {
         this.selectedFont = "";
-        this.returnCall = oReturnCall
+        this.returnCall = oReturnCall()
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,200,500)))
         this.applyStyle({borderColor: Color.black, borderWidth: 2, fill: Color.white});
         this.setClipMode({x: 'hidden', y: 'scroll'}); 

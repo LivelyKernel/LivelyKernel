@@ -233,7 +233,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
         this.initializeData();
     },
     initializeData: function($super) {
-        this.oList = new lively.morphic.SAPFontList();
+        this.oList = new lively.morphic.SAPFontList(this.returnCall);
         this.addMorph(this.oList);
     },
    

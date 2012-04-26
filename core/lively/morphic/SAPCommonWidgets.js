@@ -3,13 +3,10 @@ module('lively.morphic.SAPCommonWidgets').requires('lively.morphic.Core', 'livel
 lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
 'default category', {
     initialize: function($super) {
+        this.selectedFont = null;
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,200,500)))
-        //this.setFill(Color.rgb(255, 255, 255));
         this.applyStyle({borderColor: Color.black, borderWidth: 2, fill: Color.white});
-        //this.setClipMode("scroll");
-
         this.setClipMode({x: 'hidden', y: 'scroll'}); 
-
         this.disableGrabbing();
 
         var fonts = this.availableFonts(this.getKnownFonts());

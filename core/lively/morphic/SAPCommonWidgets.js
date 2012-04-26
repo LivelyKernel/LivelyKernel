@@ -30,7 +30,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
 	this.selectFont(this.localize(evt.getPosition()).addXY(scroll[0], scroll[1]));
     },
     selectFont: function(pos) {
-        debugger;
         var fontMorphs = this.submorphs, selected;
 	for (var i = 0; i < fontMorphs.length; i++) {
 	   if (fontMorphs[i].bounds().containsPoint(pos)) selected = fontMorphs[i];

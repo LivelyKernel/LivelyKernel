@@ -1,10 +1,9 @@
 module('lively.morphic.SAPCommonWidgets').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles').toRun(function() {
 
-
 lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
 'default category', {
     initialize: function($super) {
-        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,100,100)))
+        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,200,500)))
         this.setFill(Color.rgb(255, 255, 255));
         this.setClipMode("scroll");
         this.disableGrabbing();

@@ -11,6 +11,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
 
         var fonts = this.availableFonts(this.getKnownFonts());
 	var offset = pt(0,0);
+        debugger;
 	fonts.forEach(function(font) {
 		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-20,20)), font);
 		text.applyStyle({fill: null, borderWidth:0, fontFamily: font, fixedHeight: false, fixedWidth: true, allowInput: false})

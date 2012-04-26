@@ -39,11 +39,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
 	if (selected) {
             for (var i = 0; i < fontMorphs.length; i++) {
 	       fontMorphs[i].setFill(null);
-	   }
-	   selected.setFill(Color.yellow);
-	   this.selectedFont = selected.textString;
-	} else {
-	   this.selectedFont = null;
+            }
+	    selected.setFill(Color.yellow);
+	    this.selectedFont = selected.textString;
+            console.log(this.selectedFont)
+	}else{
+	    this.selectedFont = null;
 	}
     },
     availableFonts: function(fontNames) {

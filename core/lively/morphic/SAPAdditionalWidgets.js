@@ -24,6 +24,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
     onMouseDown: function($super, evt) {
         $super(evt);
          console.log("SAPGrid.onMouseDown");
+        debugger;
+        if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) return $super(evt);
+        
     },
     availableFonts: function(fontNames) {
         var testText = 'CmmwwmmwwmmwwmmL',
@@ -205,23 +208,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
         this.initializeData();
     },
     initializeData: function($super) {
-       
-
-
         this.oList = new lively.morphic.SAPFontList();
-     
- 
         this.addMorph(this.oList);
-        
-	
-       
-        
-    
-
-
     },
    
-    onSelectFont: function($super,evt) {
+    onSelectFont: function(evt) {
 
         //if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) return $super(evt);
         debugger;

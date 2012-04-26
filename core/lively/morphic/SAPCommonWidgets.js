@@ -32,11 +32,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontList',
     selectFont: function(pos) {
         debugger;
         var fontMorphs = this.submorphs, selected;
-	
+	for (var i = 0; i < fontMorphs.length; i++) {
+	   if (fontMorphs[i].bounds().containsPoint(pos)) selected = fontMorphs[i];
+	}
+
 	if (selected) {
             for (var i = 0; i < fontMorphs.length; i++) {
-		if (fontMorphs[i].bounds().containsPoint(pos)) selected = fontMorphs[i];
-		fontMorphs[i].setFill(null);
+	       fontMorphs[i].setFill(null);
 	   }
 	   selected.setFill(Color.yellow);
 	   this.selectedFont = selected.textString;

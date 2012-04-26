@@ -1508,7 +1508,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
     },
     ddlFontSize_onChange: function(){
-        
+        //this.get("ddltest").setSelectionMatching("b")
         var nFontsize = this.ddlFontSize.getSelectedItem();
         console.log(nFontsize);
 

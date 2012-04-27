@@ -1524,6 +1524,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             this.addMorph(this.fontPicker);
             connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});
         }
+        if (this.fontPicker.isVisible()){
+            this.fontPicker.setVisible(false);
+        }
     
     },
     ddlFontSize_onChange: function(){

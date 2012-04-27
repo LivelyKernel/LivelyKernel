@@ -228,6 +228,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 },
 'styling', {
     applyStyle: function($super, spec) {
+        if (typeof(spec) === 'undefined')
+            return this;
         $super(spec);
         if (spec.fixedWidth !== undefined) {
             this.setFixedWidth(spec.fixedWidth);

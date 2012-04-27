@@ -30,7 +30,7 @@ Object.extend(lively.morphic.Morph, {
         if (title) part.setTitle(title);
         part.openInWorld();
         var m = part;
-        m.align(m.bounds().topCenter().addPt(pt(0,-20)), this.visibleBounds().topCenter());
+        m.align(m.bounds().topCenter().addPt(pt(0,-20)), $world.visibleBounds().topCenter());
     },
 });
 

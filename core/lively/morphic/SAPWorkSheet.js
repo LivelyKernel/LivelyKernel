@@ -26,6 +26,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         this.startColumn = 0;    //org start column
         this.endColumn = numCols;      //org end column
+
+
+        this.selectedColumnHeader=null;
     
         this.vScroll = null;
         this.hScroll = null;

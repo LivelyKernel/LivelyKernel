@@ -1535,6 +1535,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         }
 
     },
+    
+    fontPicker_onBlur: function(){
+       console.log("onBlur")
+
+    },
     initializeEvents: function() {
         connect(this.imgBold, "onMouseDown", this, "imgBold_Click", {});
         connect(this.imgItalic, "onMouseDown", this, "imgItalic_Click", {});
@@ -1555,6 +1560,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
         connect(this.ddlFontSize, "onChange", this, "ddlFontSize_onChange", {});
         connect(this.ddlFont , "onMouseDown", this, "ddlFont_onMouseDown", {});
+
+        connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});
 
     },
     imgTextAlignLeft_Click: function() {

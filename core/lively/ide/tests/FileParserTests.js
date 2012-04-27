@@ -235,7 +235,8 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
             this.assertIdentity(descriptor.stopIndex, src.lastIndexOf(';'));
     },
     testParseFunction3: function() {    // function abc() {...}
-        var src = 'function bar() {\n\n}'
+        var src = 'function bar() {\n\n}';
+this.sut.parserErrors = [];
 this.sut.debugMode = true;
         this.sut.src = src;
         var descriptor = this.sut.callOMeta('functionDef');

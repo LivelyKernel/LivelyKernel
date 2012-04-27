@@ -1395,12 +1395,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.ddlFont = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth, 3, 120, 20), []);
         //this.get("ddltest").updateList(['aa'])
         
-        connect(this.ddlFont , "onMouseDown", this, "ddlFont_onMouseDown", {});
+        
 
         this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
-        //connection when drop down change for the font size.
-        connect(this.ddlFontSize, "onChange", this, "ddlFontSize_onChange", {});
-        
+
+
 
 
         this.addMorph(this.ddlFont );
@@ -1542,6 +1541,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         connect(this.imgTextAlignLeft, "onMouseDown", this, "imgTextAlignLeft_Click", {});
         connect(this.imgTextAlignCenter, "onMouseDown", this, "imgTextAlignCenter_Click", {});
         connect(this.imgTextAlignRight, "onMouseDown", this, "imgTextAlignRight_Click", {});
+
+        connect(this.ddlFontSize, "onChange", this, "ddlFontSize_onChange", {});
+        connect(this.ddlFont , "onMouseDown", this, "ddlFont_onMouseDown", {});
+
     },
     imgTextAlignLeft_Click: function() {
          for (i= 0; i< this.grid.arrSelectedCells.length; i++) {

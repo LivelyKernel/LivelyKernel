@@ -52,6 +52,27 @@ lively.morphic.EventSimulator = {
         targetMorphOrNode.dispatchEvent(evt)
     },
 
+    exampleCmdClick: function() {
+        // here is how to simulate a cmd click on a button
+        btn = this.get('btn')
+        show(btn.innerBounds().center())
+        pos = btn.worldPoint(btn.innerBounds().center())
+
+        keys = {meta: true}
+        lively.morphic.EventSimulator.doMouseEvent({
+            type: 'mousedown',
+            pos: pos,
+            target: btn,
+            keys: keys
+        });
+
+        lively.morphic.EventSimulator.doMouseEvent({
+            type: 'mouseup',
+            pos: pos,
+            target: btn,
+            keys: keys
+        })
+    }
 }
 
 Object.subclass('lively.morphic.EventHandler',

@@ -1539,7 +1539,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     
     fontPicker_onBlur: function(){
        console.log("onBlur");
-        this.fontPicker.setVisible(false);
+       this.fontPicker.setVisible(false);
 
     },
     initializeEvents: function() {

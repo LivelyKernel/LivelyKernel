@@ -2,8 +2,8 @@ module('lively.morphic.SAPCommonWidgets').requires('lively.morphic.Core', 'livel
 
 lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 'default category', {
-    initialize: function($super,oReturnCall) {
-        this.selectedFont = "";
+    initialize: function($super,selectedFont,oReturnCall) {
+        this.selectedFont = selectedFont;
         this.returnCall = oReturnCall
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,200,500)))
         this.applyStyle({borderColor: Color.black, borderWidth: 2, fill: Color.white});

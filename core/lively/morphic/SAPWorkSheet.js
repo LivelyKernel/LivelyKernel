@@ -1561,7 +1561,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         connect(this.ddlFontSize, "onChange", this, "ddlFontSize_onChange", {});
         connect(this.ddlFont , "onMouseDown", this, "ddlFont_onMouseDown", {});
 
-        connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});
+        connect(this.ddlFont , "onBlur", this, "fontPicker_onBlur", {});
 
     },
     imgTextAlignLeft_Click: function() {

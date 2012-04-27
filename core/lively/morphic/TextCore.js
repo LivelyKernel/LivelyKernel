@@ -1984,8 +1984,11 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
 
     menuItemForProto: function(originalObject, proto) {
         var subItems = this.funcSignaturesOf(proto).collect(function(signa) {
-            return this.createSubMenuItemFromSignature(signa);
-        }, this);
+            if (signa.toString().startsWith(startLetters))
+                return this.createSubMenuItemFromSignature(signa)
+        }, this).select(function (ea) {
+            return ea
+        });
         if (subItems.length == 0) return null;
         var name = (originalObject === proto) ? originalObject.toString().truncate(60) :
             proto.constructor.type || proto.constructor.name || '';

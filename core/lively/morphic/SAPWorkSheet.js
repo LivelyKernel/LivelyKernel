@@ -1381,8 +1381,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         var nGapGroupWidth = 25;
         var nSecondLineYPos = 30;
 
-
-        
         this.imgSave = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
 
         this.imgSaveAs = new lively.morphic.Image(new Rectangle(24*1 + 10 + nGapWidth,3,24,24), "images/Save-as-icon.png"); 
@@ -1398,9 +1396,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         
 
         this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
-
-
-
 
         this.addMorph(this.ddlFont );
         this.addMorph(this.ddlFontSize );

@@ -1245,6 +1245,16 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
         this.grid = aGrid;
         this.grid.addMorph(this);
     },
+    onMouseDown: function (evt) {
+        console.log('SAPGridCell.onMouseDown');
+       
+        this.grid.hideAnnotation();
+        if (evt.isLeftMouseButtonDown()) {
+            
+            
+            
+        }
+    },
 
 });
 lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',

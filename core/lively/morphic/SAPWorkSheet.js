@@ -1400,6 +1400,22 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
         this.fontPicker;
 
+/*
+fontWeight: 'bold'
+textDecoration: 'underline'
+fontStyle: 'italic'
+fontSize:12
+fontFamily:sFont
+align: 'left'
+backgroundcolor: ss
+boardercolor: xx
+
+formula:
+notes:
+format: currency & percentage
+*/
+
+
     },initializeImages: function() {
         var nGapWidth = 6;
         var nGapGroupWidth = 25;

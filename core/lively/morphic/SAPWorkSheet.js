@@ -1483,7 +1483,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.addMorph(this.imgTextAlignCenter);
         this.addMorph(this.imgTextAlignRight);
 
-
+        this.ddlFontSize.grabbingEnabled = false;
+        this.ddlFont.grabbingEnabled = false;
 
         this.imgSave.grabbingEnabled = false;
         this.imgSaveAs.grabbingEnabled = false;

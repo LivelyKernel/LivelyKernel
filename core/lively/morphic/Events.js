@@ -16,7 +16,7 @@ lively.morphic.EventSimulator = {
             result = spec.targetNode.dispatchEvent(evt);
         return result;
     },
-    createMouseEvent: function(type, pos, button) {
+    createMouseEvent: function(type, pos, button, keys) {
         // event.initMouseEvent(type, canBubble, cancelable, view,
         // detail, screenX, screenY, clientX, clientY,
         // ctrlKey, altKey, shiftKey, metaKey,
@@ -26,7 +26,7 @@ lively.morphic.EventSimulator = {
         simulatedEvent.initMouseEvent(type, true, true, window, 1,
             0, 0, //pos.x, pos.y+100,
             pos.x - Global.scrollX, pos.y - Global.scrollY,
-            false, false, false, false,
+            keys.ctrlKey || false, keys.altKey || false, keys.shiftKey || false, keys.metaKey || false,
             button || 0/*left*/, null);
         return simulatedEvent;
     },

@@ -1516,17 +1516,22 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         
     },
     ddlFont_onMouseDown: function(){
+        
+        
         if (this.fontPicker){
-            this.fontPicker.setVisible(true);
+            
+            if (this.fontPicker.isVisible()){
+                this.fontPicker.setVisible(false);
+            }else{
+                this.fontPicker.setVisible(true);
+            }
         }else{
             this.fontPicker= new lively.morphic.SAPFontPicker(this.fontPicker_callBack);
             this.fontPicker.setPosition(pt(181,24));
             this.addMorph(this.fontPicker);
             connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});
         }
-        if (this.fontPicker.isVisible()){
-            this.fontPicker.setVisible(false);
-        }
+        
     
     },
     ddlFontSize_onChange: function(){

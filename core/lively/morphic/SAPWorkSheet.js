@@ -1528,7 +1528,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
             }
         }else{
-            this.fontPicker= new lively.morphic.SAPFontPicker(this.fontPicker_callBack);
+            this.fontPicker= new lively.morphic.SAPFontPicker("chasm",this.fontPicker_callBack);
             this.fontPicker.setPosition(pt(181,24));
             this.addMorph(this.fontPicker);
             connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});

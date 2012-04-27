@@ -1994,7 +1994,7 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
             proto.constructor.type || proto.constructor.name || '';
         return [name, subItems];
     },
-    createSubMenuItemFromSignature: function(signature) {
+    createSubMenuItemFromSignature: function(signature, optStartLetters) {
         var textMorph = this.textMorph,
             range = textMorph && textMorph.getSelectionRange();
         var replacer = signature;

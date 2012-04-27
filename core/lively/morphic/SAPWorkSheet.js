@@ -1655,11 +1655,12 @@ format: currency & percentage
         alert(this.grid.numCols )
     },
     imgSignDollar_Click: function() {
-        alert(this.grid.numCols )
+         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+           
+        }
     },
     imgSignPercent_Click: function() {
        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            //this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
            
         }
     },

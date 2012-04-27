@@ -44,11 +44,11 @@ lively.morphic.EventSimulator = {
                 hand.setMouseFocus(targetMorphOrNode);
             }
             targetMorphOrNode.world().rawNode.dispatchEvent(evt);
-            return
+            return;
         }
         if (Config.isNewMorphic && targetMorphOrNode.isMorph) {
-                    targetMorphOrNode = targetMorphOrNode.renderContext().morphNode;
-                }
+            targetMorphOrNode = targetMorphOrNode.renderContext().morphNode;
+        }
         targetMorphOrNode.dispatchEvent(evt)
     },
 

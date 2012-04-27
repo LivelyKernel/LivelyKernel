@@ -22,14 +22,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.startRow = 0;
         this.endRow = 0;
 
-
-
         this.activeCellContent = '';
         this.initializeData();
         this.initializeMorph();
         this.initializeAnnotation();
-
-       
 
     },
     updateRowDisplay: function(evt) {

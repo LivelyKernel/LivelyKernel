@@ -12,7 +12,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
  
         var fonts = this.availableFonts(this.getKnownFonts());
 	var offset = pt(0,0);
-    
+        debugger;
 	fonts.forEach(function(font) {
 		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-25,20)), font);
                 if (font==this.selectedFont){

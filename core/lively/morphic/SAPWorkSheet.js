@@ -1253,7 +1253,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
             debugger;
             var nCol= this.gridCoords.x;
             var nOrgCol = nCol + this.grid.startColumn;
-            console.log("SAPGridColHead.onMouseDown nCol=" + nCol);
+            console.log("SAPGridColHead.onMouseDown nCol:nOrgCol =" + nCol + ":" + nOrgCol );
             
         }
     },

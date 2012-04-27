@@ -37,7 +37,7 @@ lively.morphic.EventSimulator = {
         if (!spec.button) spec.button = 0;
         var targetMorphOrNode = spec.target;
 
-        var evt = this.createMouseEvent(spec.type, spec.pos, spec.button);
+        var evt = this.createMouseEvent(spec.type, spec.pos, spec.button, spec.keys || {});
         if (!Config.isNewMorphic && targetMorphOrNode.isMorph) {
             if (spec.shouldFocus) {
                 var hand = targetMorphOrNode.world().firstHand()

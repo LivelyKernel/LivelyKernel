@@ -234,6 +234,10 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         this.assertIdentity(descriptor.startIndex, 0);
             this.assertIdentity(descriptor.stopIndex, src.lastIndexOf(';'));
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
     testParseExecutedFunction: function() { // (function() {...});
         var src = '(function testModuleLoad() {\n\t\tvar modules = Global.subNamespaces(true);\n\t}).delay(5);';

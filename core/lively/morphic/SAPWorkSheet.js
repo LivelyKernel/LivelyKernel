@@ -1519,7 +1519,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         
         
         if (this.fontPicker){
-            
+            debugger;
             if (this.fontPicker.isVisible()){
                 this.fontPicker.setVisible(false);
             }else{

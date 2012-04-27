@@ -1376,13 +1376,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.ddlFontSize;
         this.ddlFont;
 
+        this.fontPicker;
+
     },initializeImages: function() {
         var nGapWidth = 6;
         var nGapGroupWidth = 25;
         var nSecondLineYPos = 30;
 
-
-        
         this.imgSave = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
 
         this.imgSaveAs = new lively.morphic.Image(new Rectangle(24*1 + 10 + nGapWidth,3,24,24), "images/Save-as-icon.png"); 
@@ -1393,11 +1393,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgCopy= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,nSecondLineYPos,24,24), "images/Actions-edit-copy-icon.png"); 
         
         this.ddlFont = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth, 3, 120, 20), []);
-        this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
-        //connection when drop down change for the font size.
-        connect(this.ddlFontSize, "onChange", this, "ddlFontSize_onChange", {});
+        //this.get("ddltest").updateList(['aa'])
+        
         
 
+        this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
 
         this.addMorph(this.ddlFont );
         this.addMorph(this.ddlFontSize );
@@ -1479,7 +1479,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.addMorph(this.imgTextAlignCenter);
         this.addMorph(this.imgTextAlignRight);
 
-
+        this.ddlFontSize.grabbingEnabled = false;
+        this.ddlFont.grabbingEnabled = false;
 
         this.imgSave.grabbingEnabled = false;
         this.imgSaveAs.grabbingEnabled = false;
@@ -1507,15 +1508,31 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
 
     },
+    fontPicker_callBack: function(sFont){
+        this.owner.fontPicker.setVisible(false);
+        //this.owner.
+    },
+    ddlFont_onMouseDown: function(){
+        if (this.fontPicker){
+            this.fontPicker.setVisible(true);
+        }else{
+            this.fontPicker= new lively.morphic.SAPFontPicker(this.fontPicker_callBack);
+            this.fontPicker.setPosition(pt(181,24));
+            this.addMorph(this.fontPicker);
+        }
+    
+    },
     ddlFontSize_onChange: function(){
         //this.get("ddltest").setSelectionMatching("b")
         var nFontsize = this.ddlFontSize.getSelectedItem();
         console.log(nFontsize);
+        //fontSize: 14
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].emphasizeAll({fontSize:nFontsize });
+        }
 
     },
     initializeEvents: function() {
-        
-
         connect(this.imgBold, "onMouseDown", this, "imgBold_Click", {});
         connect(this.imgItalic, "onMouseDown", this, "imgItalic_Click", {});
         connect(this.imgUnderline, "onMouseDown", this, "imgUnderline_Click", {});
@@ -1532,7 +1549,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         connect(this.imgTextAlignLeft, "onMouseDown", this, "imgTextAlignLeft_Click", {});
         connect(this.imgTextAlignCenter, "onMouseDown", this, "imgTextAlignCenter_Click", {});
         connect(this.imgTextAlignRight, "onMouseDown", this, "imgTextAlignRight_Click", {});
-        
+
+        connect(this.ddlFontSize, "onChange", this, "ddlFontSize_onChange", {});
+        connect(this.ddlFont , "onMouseDown", this, "ddlFont_onMouseDown", {});
+
     },
     imgTextAlignLeft_Click: function() {
          for (i= 0; i< this.grid.arrSelectedCells.length; i++) {

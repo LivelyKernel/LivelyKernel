@@ -1978,6 +1978,7 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
         var items = this.getPrototypeChainOf(obj).collect(function(proto) {
             return this.menuItemForProto(obj, proto, obj['#startLetters']);
         }, this).select(function(ea) { return ea != undefined });
+        delete this['#startLetters'];
         return items;
     },
 

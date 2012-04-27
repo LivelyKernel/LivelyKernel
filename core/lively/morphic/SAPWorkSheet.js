@@ -1243,7 +1243,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
         $super(arg1, arg2);
         this.setFill(Color.rgb(223, 227, 232));
         this.setBorderColor(Color.rgb(177,181,186));
-        this.enableEvents();
+        this.disableEvents();
     },
     addToGrid: function(aGrid) {
         this.grid = aGrid;

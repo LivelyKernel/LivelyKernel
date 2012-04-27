@@ -1257,9 +1257,11 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
             var nCol= this.gridCoords.x;
             var nOrgCol = nCol + this.grid.startColumn;
             this.grid.selectedColumnHeader = this;
-
+            
+            this.grid.removeSelectedCells();
             for (var y = 0; y < this.numRows; y++) {
-                //this.grid.rows[y][nCol];
+                this.grid.rows[y][nCol].selectedCell();
+                this.grid.arrSelectedCells.push(this.grid.rows[y][nCol]);
             }
             
             console.log("SAPGridColHead.onMouseDown nCol:nOrgCol =" + nCol + ":" + nOrgCol );

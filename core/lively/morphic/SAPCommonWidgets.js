@@ -12,13 +12,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
  
         var fonts = this.availableFonts(this.getKnownFonts());
 	var offset = pt(0,0);
-        debugger;
+ 
 	fonts.forEach(function(font) {
 		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-25,20)), font);
+		text.applyStyle({fill: null, borderWidth:0, fontFamily: font, fixedHeight: false, fixedWidth: true, allowInput: false});
                 if (font==this.selectedFont){
                     text.setFill(Color.rgb(240, 171, 0));
                 }
-		text.applyStyle({fill: null, borderWidth:0, fontFamily: font, fixedHeight: false, fixedWidth: true, allowInput: false})
 		text.ignoreEvents();
 		this.addMorph(text);
 		text.fit();

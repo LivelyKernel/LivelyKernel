@@ -1526,8 +1526,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
     },
     initializeEvents: function() {
-        
-
         connect(this.imgBold, "onMouseDown", this, "imgBold_Click", {});
         connect(this.imgItalic, "onMouseDown", this, "imgItalic_Click", {});
         connect(this.imgUnderline, "onMouseDown", this, "imgUnderline_Click", {});
@@ -1544,7 +1542,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         connect(this.imgTextAlignLeft, "onMouseDown", this, "imgTextAlignLeft_Click", {});
         connect(this.imgTextAlignCenter, "onMouseDown", this, "imgTextAlignCenter_Click", {});
         connect(this.imgTextAlignRight, "onMouseDown", this, "imgTextAlignRight_Click", {});
-        
     },
     imgTextAlignLeft_Click: function() {
          for (i= 0; i< this.grid.arrSelectedCells.length; i++) {

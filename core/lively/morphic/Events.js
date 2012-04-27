@@ -26,7 +26,7 @@ lively.morphic.EventSimulator = {
         simulatedEvent.initMouseEvent(type, true, true, window, 1,
             0, 0, //pos.x, pos.y+100,
             pos.x - Global.scrollX, pos.y - Global.scrollY,
-            keys.ctrlKey || false, keys.altKey || false, keys.shiftKey || false, keys.metaKey || false,
+            keys.ctrl || false, keys.alt || false, keys.shift || false, keys.meta || false,
             button || 0/*left*/, null);
         return simulatedEvent;
     },

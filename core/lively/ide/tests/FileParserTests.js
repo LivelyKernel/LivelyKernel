@@ -236,6 +236,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
     },
     testParseFunction3: function() {    // function abc() {...}
         var src = 'function bar() {\n\n}'
+this.sut.debugMode = true;
         this.sut.src = src;
         var descriptor = this.sut.callOMeta('functionDef');
             this.assert(descriptor, 'no descriptor');

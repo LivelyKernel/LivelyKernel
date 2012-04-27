@@ -1252,6 +1252,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
         if (evt.isLeftMouseButtonDown()) {
             debugger;
             var nCol= this.gridCoords.x;
+            var nOrgCol = nCol + this.grid.startColumn;
             console.log("SAPGridColHead.onMouseDown nCol=" + nCol);
             
         }

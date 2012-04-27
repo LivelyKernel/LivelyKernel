@@ -30,11 +30,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
         if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) return $super(evt);
         var scroll = this.getScroll();
 	this.selectFont(this.localize(evt.getPosition()).addXY(scroll[0], scroll[1]));
-        if (this.selectedFont){
-            if (this.returnCall){
-                this.returnCall(this.selectedFont);
-            }
-        }
+       
         
     },
     selectFont: function(pos) {
@@ -49,6 +45,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
             }
 	    selected.setFill(Color.rgb(240, 171, 0));
 	    this.selectedFont = selected.textString;
+             
+            if (this.returnCall){
+                this.returnCall(this.selectedFont);
+            }
+        
             console.log(this.selectedFont)
 	}
     },

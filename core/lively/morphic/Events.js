@@ -52,7 +52,6 @@ lively.morphic.EventSimulator = {
         targetMorphOrNode.dispatchEvent(evt)
     },
 
-
 }
 
 Object.subclass('lively.morphic.EventHandler',

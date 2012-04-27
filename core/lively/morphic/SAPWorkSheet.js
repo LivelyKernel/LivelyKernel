@@ -1376,7 +1376,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.ddlFontSize;
         this.ddlFont;
 
-        this.fontPicker
+        this.fontPicker;
 
     },initializeImages: function() {
         var nGapWidth = 6;
@@ -1511,8 +1511,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     ddlFont_onMouseDown: function(){
         alert(0);
         if (this.fontPicker){
+            this.fontPicker.setVisible(true);
         }else{
             this.fontPicker= new lively.morphic.SAPFontPicker(callBackfn );
+            this.addMorph(this.fontPicker);
         }
     
     },

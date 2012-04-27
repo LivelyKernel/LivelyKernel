@@ -1641,7 +1641,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         alert(this.grid.numCols )
     },
     imgSignPercent_Click: function() {
-        alert(this.grid.numCols )
+       for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            //this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
+           
+        }
     },
     imgSave_Click: function() {
         alert(this.grid.numCols )

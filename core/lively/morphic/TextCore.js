@@ -1982,7 +1982,7 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
         return items;
     },
 
-    menuItemForProto: function(originalObject, proto) {
+    menuItemForProto: function(originalObject, proto, startLetters) {
         var subItems = this.funcSignaturesOf(proto).collect(function(signa) {
             if (signa.toString().startsWith(startLetters))
                 return this.createSubMenuItemFromSignature(signa)

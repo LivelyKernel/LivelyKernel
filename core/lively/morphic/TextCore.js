@@ -1997,12 +1997,17 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
     createSubMenuItemFromSignature: function(signature) {
         var textMorph = this.textMorph,
             range = textMorph && textMorph.getSelectionRange();
+        var replacer = signature;
+        if (typeof(optStartLetters) !== 'undefined')
+            replacer = signature.substring(optStartLetters.size());
+        if (textMorph.getTextString().indexOf('.')<0)
+            replacer = '.'+replacer
         return [signature, function() {
             // FIXME not sure if this has to be delayed
             (function() {
                 textMorph.focus();
                 range && textMorph.setSelectionRange(range[0], range[1]);
-                textMorph.insertAtCursor(signature, true)
+                textMorph.insertAtCursor(replacer, true)
             }).delay(0)
         }]
     },

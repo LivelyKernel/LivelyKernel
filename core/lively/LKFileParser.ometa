@@ -135,7 +135,7 @@ ometa LKFileParser <: Parser {
 	| "var" (space)+ name:fn spaces '=' spaces basicFunction
 	-> fn,
     functionDef =
-	pos:p ( func:fn | '(' func:fn ')' ) somethingRelated ( defEnd | end )
+	pos:p ( func:fn | '(' func:fn ')' ) somethingRelated ( defEnd | spaces )
 	-> { this._fragment(fn, 'functionDef', p, this.pos()-1) },
     
     staticProperty =

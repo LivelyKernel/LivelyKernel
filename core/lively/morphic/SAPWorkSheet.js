@@ -1259,7 +1259,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
             this.grid.selectedColumnHeader = this;
             
             this.grid.removeSelectedCells();
-            for (var y = 0; y < this.numRows; y++) {
+            for (var y = 0; y < this.grid.numRows; y++) {
                 this.grid.rows[y][nCol].selectedCell();
                 this.grid.arrSelectedCells.push(this.grid.rows[y][nCol]);
             }

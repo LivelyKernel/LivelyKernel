@@ -2006,9 +2006,15 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
 
     evalCurrentSelection: function(textMorph) {
         var selection = Strings.removeSurroundingWhitespaces(textMorph.getSelectionOrLineString());
-        if (selection.endsWith('.'))
-            selection = selection.slice(0, selection.length-1);
-        return textMorph.tryBoundEval(selection);
+        var idx = selection.lastIndexOf('.');
+        var startLetters = '';
+        if (idx >= 0) {
+            startLetters = selection.substring(idx+1);
+            selection = selection.slice(0,idx);
+        }
+        var evaled = textMorph.tryBoundEval(selection);
+        evaled['#startLetters'] = startLetters
+        return evaled
     },
 
 });

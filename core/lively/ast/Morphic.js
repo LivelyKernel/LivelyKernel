@@ -29,6 +29,8 @@ Object.extend(lively.morphic.Morph, {
         part.setTopFrame(frame);
         if (title) part.setTitle(title);
         part.openInWorld();
+        var m = part;
+        m.align(m.bounds().topCenter().addPt(pt(0,-20)), this.visibleBounds().topCenter());
     },
 });
 

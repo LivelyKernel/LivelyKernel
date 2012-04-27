@@ -23,7 +23,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 	}, this);
 
     },
-    onMouseDown: function($super, evt) {
+    onBlur: function($super, evt) {
         $super(evt);
          console.log("SAPFontList.onMouseDown");
         

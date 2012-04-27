@@ -1645,7 +1645,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
     },
      onMouseDown: function($super, evt) {
         if (this.toolBar){
-            
+            this.toolBar.fontPicker.setVisible(false);
         }
         $super(evt);
     },

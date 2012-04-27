@@ -1393,6 +1393,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgCopy= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,nSecondLineYPos,24,24), "images/Actions-edit-copy-icon.png"); 
         
         this.ddlFont = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth, 3, 120, 20), []);
+        //this.get("ddltest").updateList(['aa'])
+        
+        connect(this.ddlFont , "onMouseDown", this, "ddlFont_onMouseDown", {});
+
         this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
         //connection when drop down change for the font size.
         connect(this.ddlFontSize, "onChange", this, "ddlFontSize_onChange", {});
@@ -1506,6 +1510,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
 
 
+    },
+    ddlFont_onMouseDown: function(){
+        alert(0)
     },
     ddlFontSize_onChange: function(){
         //this.get("ddltest").setSelectionMatching("b")

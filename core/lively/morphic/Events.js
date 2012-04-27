@@ -54,9 +54,8 @@ lively.morphic.EventSimulator = {
 
     exampleCmdClick: function() {
         // here is how to simulate a cmd click on a button
-        btn = this.get('btn')
-        show(btn.innerBounds().center())
-        pos = btn.worldPoint(btn.innerBounds().center())
+        btn = this.get('btn');
+        pos = btn.worldPoint(btn.innerBounds().center());
 
         keys = {meta: true}
         lively.morphic.EventSimulator.doMouseEvent({

@@ -1643,6 +1643,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.setExtent(lively.pt(nWidth,nHeight));
         //this.setFill(Color.rgb(255, 255, 225));
     },
+     onMouseDown: function($super, evt) {
+        if (this.toolBar){
+            
+        }
+        $super(evt);
+    },
 
 });
 

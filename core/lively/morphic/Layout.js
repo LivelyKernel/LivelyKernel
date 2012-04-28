@@ -863,13 +863,8 @@ Object.subclass('lively.morphic.Layout.ConstraintLayoutInfo',
             this.position.y.value()));
     },
 
-
-
-
-
-
-
 });
+
 lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.TileLayout',
 'default category', {
     initialize: function($super, aContainer) {

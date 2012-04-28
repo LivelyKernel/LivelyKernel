@@ -41,6 +41,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
             ]};
         this.assertNodeMatches(expected, this.world.renderContext().getMorphNode());
     },
+
     test02aUseSVGRenderer: function() {
         var m = new lively.morphic.Morph()
         this.world.addMorph(m);
@@ -86,6 +87,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
         morph2.setPosition(pt(10,10));
         this.assertEquals(pt(0,0), morph2.localize(pt(10,10)));
     },
+
     test04AddMorphBefore: function() {
         var morph1 = new lively.morphic.Morph(),
             morph2 = new lively.morphic.Morph(),
@@ -127,6 +129,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
         morph2.setBounds(new Rectangle(20, 10, 40, 40));
         this.assertEquals(new Rectangle(100, 100, 60, 50), morph1.getBounds());
     },
+
     test07MorphBoundsOnCreation: function() {
         var bounds = new Rectangle(30, 90, 30, 60),
             shape = new lively.morphic.Shapes.Rectangle(bounds);
@@ -134,6 +137,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
         var morph = new lively.morphic.Morph(shape);
         this.assertEquals(bounds, morph.getBounds(), 'morph bounds');
     },
+
     test08aCreateMorphWithLinearGradient: function() {
         var morph = new lively.morphic.Morph();
         this.world.addMorph(morph);
@@ -157,6 +161,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
         }
         this.assertNodeMatches(expected, morph.renderContext().getMorphNode());
     },
+
     test08bCreateMorphWithradialGradient: function() {
         var morph = new lively.morphic.Morph.makeRectangle(0,0,50,50);
         this.world.addMorph(morph);
@@ -180,6 +185,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
         }
         this.assertNodeMatches(expected, morph.renderContext().getMorphNode());
     },
+
     test09BorderColorAndWidth: function() {
         var morph = new lively.morphic.Morph.makeRectangle(0,0,50,50);
         this.world.addMorph(morph);
@@ -200,6 +206,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
         }
         this.assertNodeMatches(expected, morph.renderContext().getMorphNode());
     },
+
     test10BorderRadiusHTML: function() {
         var morph = new lively.morphic.Morph.makeRectangle(0,0,50,50);
         this.world.addMorph(morph);
@@ -220,6 +227,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
         }
         this.assertNodeMatches(expected, morph.renderContext().getMorphNode());
     },
+
     test16MorphsContainingPoint: function() {
         var morph = lively.morphic.Morph.makeRectangle(0, 0, 100, 100),
             submorph = lively.morphic.Morph.makeRectangle(20, 20, 30, 30),
@@ -258,6 +266,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
         this.assertEquals(morph, result[3]);
         this.assertEquals(this.world, result[4]);
     },
+
     test17MorphsContainingPointWithAddMorphFront: function() {
         var morph1 = lively.morphic.Morph.makeRectangle(0, 0, 100, 100),
             morph2 = lively.morphic.Morph.makeRectangle(0, 0, 100, 100);
@@ -274,6 +283,7 @@ this. openMorphsInRealWorld()
         this.assertEquals(morph1, result[0], 'for ' + pt(1,1));
         this.assertEquals(morph2, result[1], 'for ' + pt(1,1));
     },
+
     test18OrderOfMorphsOnScrennAndInSubmorphArrayMatches: function() {
         var morph1 = lively.morphic.Morph.makeRectangle(0, 0, 100, 100),
             morph2 = lively.morphic.Morph.makeRectangle(0, 0, 100, 100);
@@ -284,6 +294,7 @@ this. openMorphsInRealWorld()
         this.assertIdentity(this.world.submorphs[0], morph2, 'morph2 not @0')
         this.assertIdentity(this.world.submorphs[1], morph1, 'morph1 not @1')
     },
+
     test19MorphsContainingPointDosNotIncludeOffsetedOwner: function() {
         var owner = lively.morphic.Morph.makeRectangle(0, 0, 100, 100),
             submorph = lively.morphic.Morph.makeRectangle(110, 10, 90, 90),
@@ -338,6 +349,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CopyMorphTests',
         this.assert(m !== m2, 'copied morph is identical to original morph')
         this.assertEquals(new Rectangle(100, 100, 40, 40), m2.getBounds());
     },
+
     test02ReferencedMorphThatIsNotASubmorphIsNotCopied: function() {
         var m1 = new lively.morphic.Morph(),
             m2 = new lively.morphic.Morph(),
@@ -351,6 +363,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CopyMorphTests',
         this.assert(copy.submorphs[0] !== m2, 'copied submorph is identical to original submorph');
         this.assert(copy.other === m3, 'referenced morph that is not a submorph is not identical')
     },
+
     test02bReferencedMorphThatIsNotASubmorphButIsNotInTheWorldIsCopied: function() {
         var m1 = new lively.morphic.Morph(),
             m2 = new lively.morphic.Morph(),
@@ -371,6 +384,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CopyMorphTests',
         var copy = m.copy();
         this.assert(!copy.owner, 'owner was copied');
     },
+
     test04CopyMorphTreeWithEventHandlers: function() {
         var m1 = new lively.morphic.Morph(),
             m2 = new lively.morphic.Morph(),
@@ -387,6 +401,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CopyMorphTests',
         this.assertEquals(1, copy.submorphs.length);
         this.assertEquals(1, copy.submorphs[0].submorphs.length);
     },
+
     test05CopySetsNewTargetForScripts: function() {
         var m1 = new lively.morphic.Morph();
         m1.startStepping(20, 'rotateBy', 0.1);
@@ -413,6 +428,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
             ]};
         this.assertNodeMatches(expected, m.renderContext().getMorphNode());
     },
+
     test02TextMorphSVG: function() {
         var m = new lively.morphic.Text()
         this.world.addMorph(m);
@@ -426,6 +442,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
             ]};
         this.assertNodeMatches(expected, m.renderContext().getMorphNode());
     },
+
     test03TextStringIsConnectable: function() {
         var m = new lively.morphic.Text()
         this.world.addMorph(m);
@@ -434,6 +451,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         m.setTextString('Foo');
         this.assertEquals('Foo', resultObj.result);
     },
+
     test04GrowToFit: function() {
         var m = new lively.morphic.Text(new Rectangle(0,0, 10, 20));
         this.world.addMorph(m);
@@ -441,6 +459,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         m.applyStyle({fixedWidth: false});
         this.assert(m.getExtent().x > 10, 'did not grow to fit text ' + m.bounds().width);
     },
+
     test04bFitReallyShrinksMorphinHTML: function() {
         var m = new lively.morphic.Text(new Rectangle(0,0, 100, 200));
         this.world.addMorph(m);
@@ -463,6 +482,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         m.setSelectionRange(-99,m.textString.length+10);
         this.assertEquals('123\t567\n9', m.selectionString());
     },
+
     test05bSetSelectionRangeRightToLeft: function() {
         var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20));
         this.world.addMorph(m);
@@ -472,6 +492,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         this.assertEquals('123', m.selectionString());
         this.assertEqualState([3,0], m.getSelectionRange());
     },
+
     test05cCorrectNewlinesInSelection: function() {
         // added 2012-01-06. Firefox Selection>>toString replaces \n with ' '
         var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20));
@@ -491,6 +512,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         m.modifySelectedLines(function(ea) { return '+' + ea });
         this.assertEquals('+This\n+is\n+a\ntest', m.textString);
     },
+
     test07aSplitText: function() {
         var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20));
         this.world.addMorph(m);
@@ -506,6 +528,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         this.assertEquals('This is a ', m.textString, 'former text string not OK');
         this.assert(newText.bounds().top() > m.bounds().bottom(), 'not below old text');
     },
+
     test07bMergeText: function() {
         var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20));
         this.world.addMorph(m);
@@ -519,6 +542,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         this.assertEquals('This is a test', m.textString, 'spittedFrom string');
         this.assertMatches({fontWeight: 'bold'}, m.getEmphasisAt(11))
     },
+
     test08CopyTextWithConnection: function() {
         // issue 285
         var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20), "");
@@ -540,6 +564,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         d = lively.persistence.Serializer.deserialize(s);
         this.assertEquals(d.hiddenTextMorph.textString, 'Hello', 'serialization of removed text should preserve its contents');
     },
+
     test10PasteIntoEmptyTextEnsuresSelection: function() {
         var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20));
         this.world.addMorph(m);
@@ -578,6 +603,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.assertEquals('foo', this.text.textString);
         this.checkDOM([{tagName: 'span', textContent: 'foo'}])
     },
+
     test02MorphHasTextChunkWhenTextStringIsSet: function() {
         this.text.textString = 'foo'
         var chunks = this.text.getTextChunks();
@@ -585,6 +611,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.assertEquals('foo', chunks[0].textString);
         this.checkDOM([{tagName: 'span', textContent: 'foo'}])
     },
+
     test03SplitAndJoinTextChunks: function() {
         this.text.setTextString('eintest');
         var chunk = this.text.firstTextChunk();
@@ -605,6 +632,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.assertEquals('ein', before.textString, 'before string');
         this.assertEquals(2, this.text.getTextChunks().length);
     },
+
     test03bCoalesceChunks: function() {
         this.text.setTextString('test');
         this.text.firstTextChunk().splitAfter(2);
@@ -612,6 +640,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.assertEquals(1, this.text.getTextChunks().length);
         this.checkDOM([{tagName: 'span', textContent: 'test', style: {fontWeight: ''}}])
     },
+
     test03cSplitAtFrontAndBack: function() {
         this.text.setTextString('a');
         var after = this.text.firstTextChunk().splitAfter(1);
@@ -620,6 +649,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.assertEquals('', before.textString, 'splitBefore');
         this.assertEquals(3, this.text.getTextChunks().length);
     },
+
     test03cSplittedChunkGetsStyle: function() {
         this.text.setTextString('abcdef');
         var chunk = this.text.firstTextChunk();
@@ -652,6 +682,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             {tagName: 'span', textContent: 'tes'},
             {tagName: 'span', textContent: 't'}])
     },
+
     test04SliceTextChunksAgain: function() {
         this.text.setTextString('abc');
         var sliced = this.text.sliceTextChunks(1,2);
@@ -666,6 +697,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         chunk.styleText({fontWeight: 'bold'});
         this.checkDOM([{tagName: 'span', style: {fontWeight: 'bold'}}]);
     },
+
     test06MakeTextBold: function() {
         this.text.setTextString('eintest');
         this.text.emphasize({fontWeight: 'bold'}, 0, 3);
@@ -683,6 +715,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.text.emphasize({fontWeight: 'normal'}, 0, 2);
         this.checkDOM([{tagName: 'span', textContent: 'eintest'}])
     },
+
     test08ToggleBoldnessComplete: function() {
         this.text.setTextString('eintest');
         this.text.toggleBoldness(1, 6);
@@ -693,6 +726,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.text.toggleBoldness(1, 6);
         this.checkDOM([{tagName: 'span', textContent: 'eintest'}])
     },
+
     test09ChunksAreSerializable: function() {
         this.text.setTextString('eintest');
         this.text.emphasize({fontWeight: 'bold'}, 0, 3);
@@ -704,6 +738,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             {tagName: 'span', textContent: 'test', style: {fontWeight: ''}}])
 
     },
+
     test10ConvertSelectionRangeForEmphasis: function() {
         // the indexes used by text selection are currently different
         // to those used for emphasizing the text
@@ -721,6 +756,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
                 'sel conversion of ' + selAndEmph.sel);
         }, this)
     },
+
     test11ToggleBoldnessWithChunkWithMultipleTextNodes: function() {
         this.text.setTextString('eintest');
         this.text.setNullSelectionAt(3);
@@ -741,6 +777,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             {tagName: 'span', textContent: 't', childNodes: [{textContent: 't'}]},
         ])
     },
+
     test11FixChunksShouldKeepSlection: function() {
         this.text.setTextString('eintest');
         // add a text outside of chunks manually
@@ -756,12 +793,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.assert(range, 'no selection range after fixChunks!')
         this.assertMatches([2, 5], range) // Inconsistency with selection ranges?
     },
+
     test12GetAndSetSelectionRangeHaveEqualValues: function() {
         this.text.setTextString('eintest');
         this.text.setSelectionRange(1, 6)
         this.assertEquals('intes', this.text.selectionString());
         this.assertMatches([1,6], this.text.getSelectionRange());
     },
+
     test13InsertedTextBetweenChunksIsAssimilated: function() {
         // certain actions like native spell checking can add text and other DOM elements
         // between our chunk elements (spans)
@@ -784,6 +823,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             {tagName: 'span', textContent: 'def'},
         ])
     },
+
     test14GetEmphasisAt: function() {
         // certain actions like native spell checking can add text and other DOM elements
         // between our chunk elements (spans)
@@ -825,6 +865,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.assertEquals(chunks[1], result[0])
         this.assertEquals(0, result[1])
     },
+
     test16AddLink: function() {
         this.text.setTextString('eintest');
         this.text.emphasize({uri: 'http://foo.com'}, 0, 3);
@@ -835,6 +876,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             {tagName: 'span', textContent: 'ein', style: {textDecoration: 'underline'}},
             {tagName: 'span', textContent: 'test', style: {fontWeight: ''}}])
     },
+
     test17AddLinkMakeBoldThenUnbold: function() {
         this.text.setTextString('eintest');
 
@@ -849,6 +891,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             {tagName: 'span', textContent: 'ein'},
             {tagName: 'span', textContent: 'test', style: {textDecoration: 'underline'}}])
     },
+
     test18LinkifiedChunkShouldKeepLinkWhenTextStringChanges: function() {
         this.text.setTextString('foo');
         this.text.emphasize({uri: 'test'}, 0, 3);
@@ -863,6 +906,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             style: {textDecoration: 'underline'}
         }])
     },
+
     test19FixChunksShouldRemoveElements: function() {
         this.text.setTextString('eintest');
 
@@ -880,6 +924,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             },
         ])
     },
+
     test20HandleSplittedSpanNodes: function() {
         // this happens when pasting normal text on windows
         // the span node of a chunk is splitted in two parts and the pasted text
@@ -900,6 +945,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
 
         this.checkDOM([{tagName: 'span', textContent: 'abc'}]);
     },
+
     test21HandleSplittedSpanNodesAndTextAttributes: function() {
         // this happens when pasting normal text on windows
         // the span node of a chunk is splitted in two parts and the pasted text
@@ -928,6 +974,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             {tagName: 'span', textContent: 'abx'},
             {tagName: 'span', textContent: 'c', style: {fontWeight: 'bold'}}]);
     },
+
     test22ReclaimRemovedSpanNodesOnPaste: function() {
         // this happens when pasting normal text on Mac OS after a chunk
         // the span node of the chunk that is pasted into is removed and the chunkNode
@@ -958,6 +1005,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             {tagName: 'span', textContent: 'baz', style: {fontWeight: 'bold'}}]);
 
     },
+
     test23ReclaimRemovedChunkNodeAndReapplyTextAttributes: function() {
         // this happens when pasting normal text on Mac OS in attributed text (e.g. bold)
         // Chrome tries to complete render the span itself, e.g. using <b>
@@ -997,6 +1045,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             {textString: 'c', style: {color: null}},
         ])
     },
+
     richTextPasteData: '<meta charset=\'utf-8\'><span class=\"Apple-style-span\" style=\"border-collapse: separate; color: rgb(0, 0, 0); font-family: Times; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: -webkit-auto; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; -webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; font-size: medium; \"><span class=\"Apple-style-span\" style=\"font-family: Arial, sans-serif; font-size: 19px; white-space: pre-wrap; \"><span style=\"text-decoration: none; \">ein </span><span style=\"text-decoration: none; font-weight: bold; \">test</span></span></span>',
 
     test23aRichTextPaste: function() {
@@ -1009,6 +1058,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.assertEquals('bold', rt.textChunks[1].style.getFontWeight());
 
     },
+
     test24aInsertTextChunks: function() {
         this.text.setTextString('ein');
         this.text.setNullSelectionAt(3);
@@ -1020,6 +1070,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             {tagName: 'span', textContent: 'test'},
         ])
     },
+
     test24bInsertTextChunks: function() {
         this.text.setTextString('eintest');
         this.text.setNullSelectionAt(3);
@@ -1039,6 +1090,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.assertEquals(2, this.text.textChunks.length)
         this.assertIdentity(newChunk[0], this.text.textChunks.last())
     },
+
     test26aUnEmphasize: function() {
         this.text.setTextString('eintest');
         this.text.emphasize({fontWeight: 'bold'}, 0,3)
@@ -1048,6 +1100,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.checkDOM([
             {tagName: 'span', textContent: 'eintest', style: {fontWeight: ''}}])
     },
+
     test26bUnEmphasizePart: function() {
         this.text.setTextString('eintest');
         this.text.emphasize({fontWeight: 'bold'}, 0,3)
@@ -1083,11 +1136,13 @@ lively.morphic.tests.TextMorphRichTextTests.subclass('lively.morphic.tests.RichT
         this.text.setRichText(rt);
         this.assertEquals('test', this.text.textString)
     },
+
     test02GetRichText: function() {
         this.text.textString = 'test';
         var rt = this.text.getRichText();
         this.assertEquals('test', rt.textString)
     },
+
     test03EmphasizeRichText: function() {
         var rt = new lively.morphic.RichText('eintest');
         rt.emphasize({fontWeight: 'bold'}, 0,3);
@@ -1100,6 +1155,7 @@ lively.morphic.tests.TextMorphRichTextTests.subclass('lively.morphic.tests.RichT
             {tagName: 'span', textContent: 'ein', style: {fontWeight: 'bold'}},
             {tagName: 'span', textContent: 'test', style: {fontWeight: ''}}])
     },
+
     test04InsertInText: function() {
         var rt = new lively.morphic.RichText('foo');
         rt.emphasize({fontWeight: 'bold'}, 0,3);
@@ -1115,12 +1171,14 @@ lively.morphic.tests.TextMorphRichTextTests.subclass('lively.morphic.tests.RichT
             {tagName: 'span', textContent: 'foo', style: {fontWeight: 'bold'}},
             {tagName: 'span', textContent: 'test', style: {fontWeight: ''}}])
     },
+
     test05GetRichText: function() {
         this.text.textString = 'test';
         this.text.emphasizeAll({fontWeight: 'bold'});
         var rt = this.text.getRichText();
         this.checkChunks([{textString: 'test', style: {fontWeight: 'bold'}}], rt)
     },
+
     test05bGetRichTextFromTo: function() {
         this.text.textString = 'test';
         this.text.emphasizeAll({fontWeight: 'bold'});
@@ -1128,6 +1186,41 @@ lively.morphic.tests.TextMorphRichTextTests.subclass('lively.morphic.tests.RichT
         this.checkChunks([{textString: 'te', style: {fontWeight: 'bold'}}], this.text)
         this.checkChunks([{textString: 'st', style: {fontWeight: 'bold'}}], rt)
     },
+
+    xtest06Serialization: function() {
+        this.text.textString = 'test';
+        var rt = this.text.getRichText(),
+            copy = lively.persistence.Serializer.newMorphicCopy(rt);
+        this.assertEquals('test', copy.textString);
+    },
+});
+
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.RichText2Tests',
+'testing', {
+
+    test01CreateFromMorph: function() {
+        var m = new lively.morphic.Text(new Rectangle(0,0,100,100), 'eintest');
+        m.emphasize({fontWeight: 'bold'}, 0, 3);
+        var rt = m.getRichText2();
+        this.assertEquals('eintest', rt.textString);
+        var expectedEmphs = [{fontWeight: 'bold'}, {fontWeight: 'bold'}, {fontWeight: 'bold'},
+                            {},{},{},{}];
+        this.assertEqualState(expectedEmphs, rt.getTextEmphasis());
+    },
+
+    test02SetIntoText: function() {
+        var rt = new lively.morphic.RichText2('aab', [{fontWeight: 'bold'},
+                                                      {fontWeight: 'bold'},
+                                                      {}]),
+            m = new lively.morphic.Text(new Rectangle(0,0,100,100));
+        m.setRichText2(rt);
+        this.assertEquals('aab', m.textString);
+        var expectedEmph1 = {fontWeight: 'bold'},
+            expectedEmph2 = {};
+        this.assertEqualState(expectedEmph1, m.getEmphasisAt(0));
+        this.assertEqualState(expectedEmph1, m.getEmphasisAt(1));
+        this.assertEqualState(expectedEmph2, m.getEmphasisAt(2));
+    }
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ButtonMorphTests',
@@ -1147,6 +1240,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ListMorphTests',
         list.updateList(['foo']);
         this.assertEqualState(['foo'], list.itemList);
     },
+
     test02SelectAt: function() {
         var morph = new lively.morphic.List(new Rectangle (0, 0, 100, 100), ['first']);
         this.world.addMorph(morph);
@@ -1156,6 +1250,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ListMorphTests',
         // var morphNode = morph.renderContext().getMorphNode();
         // this.doMouseEvent({type: 'mousedown', pos: pt(10,8), target: morphNode, button: 0});
     },
+
     test03SelectListItem: function() {
         var morph = new lively.morphic.List(new Rectangle (0, 0, 100, 100));
         this.world.addMorph(morph);
@@ -1176,6 +1271,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ListMorphTests',
         // FIXME depends on HTML
         this.assert(list.renderContext().listNode.clientHeight > 0, 'list node height is wrong')
     },
+
     test05ListMorphKeepsSelectionHighlightOnUpdateList: function() {
         var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100));
         this.world.addMorph(list);
@@ -1191,6 +1287,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ListMorphTests',
         this.assertNodeMatches(expected, list.renderContext().subNodes[1]);
         this.assert(list.renderContext().subNodes[1].selected, 'not selected');
     },
+
     test06SetSelectionWithListItems: function() {
         var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100)),
             items = [{isListItem: true, string: 'foo', value: 23}];
@@ -1201,6 +1298,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ListMorphTests',
 
         this.assertEquals(0, list.selectedLineNo);
     },
+
     testAddMorphDuplicatesListsBug: function() {
         var list = new lively.morphic.List(new Rectangle(0,0,100,100), [1,2,3]),
             rect = lively.morphic.Morph.makeRectangle(0,0,100,100);
@@ -1212,6 +1310,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ListMorphTests',
         this.assert(!this.world.submorphs.include(list), 'list in world submorphs')
         this.assert(rect.submorphs.include(list), 'list not in rect submorphs')
     },
+
     testUpdateListOnSelectionHighlightsSelectionCorrectly: function() {
         var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100)),
             items = [1, 2, 3];
@@ -1241,6 +1340,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MultipleSelection
         list.setSelection('2');
         this.assertEqualState(['2'], list.getSelections());
     },
+
     test02TurnOnMultipleSelectionMode: function() {
         var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100), ['1', '2', '3']);
         this.world.addMorph(list)
@@ -1248,6 +1348,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MultipleSelection
         list.setSelections(['1','3'])
         this.assertEqualState(['1', '3'], list.getSelections());
     },
+
     test03SetSelection: function() {
         var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100), ['1', '2', '3']);
         list.enableMultipleSelections();
@@ -1271,6 +1372,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.AppTests',
         dialog.okButton.simulateButtonClick();
         this.assert(answer, 'yes button does not work')
     },
+
     test02PromptDialog: function() {
         var answer = 'nothing',
             dialog = this.world.prompt('Foo?', function(input) { answer = input });
@@ -1343,6 +1445,7 @@ AsyncTestCase.subclass('lively.morphic.tests.SteppingScriptTests',
             this.done();
         }, 40);
     },
+
     test02SuspendAndContinue: function() {
         var n = 0,
             script = lively.morphic.Script.forFunction(function() { n++; });
@@ -1355,6 +1458,7 @@ AsyncTestCase.subclass('lively.morphic.tests.SteppingScriptTests',
             this.done();
         }, 40);
     },
+
     test03MorphStartStepping: function() {
         var m = new lively.morphic.Morph(),
             arg = {callCount: 0};
@@ -1370,6 +1474,7 @@ AsyncTestCase.subclass('lively.morphic.tests.SteppingScriptTests',
             this.done();
         }, 30);
     },
+
     test04ScriptEquals: function() {
         var cb = function() { return 23 },
             script1 = new lively.morphic.FunctionScript(cb);
@@ -1384,6 +1489,7 @@ AsyncTestCase.subclass('lively.morphic.tests.SteppingScriptTests',
 
         this.done()
     },
+
     test05StartSteppingChecksIfScriptIsThere: function() {
         var m = new lively.morphic.Morph();
         m.someFunction = function(arg) { return 33 };
@@ -1396,6 +1502,7 @@ AsyncTestCase.subclass('lively.morphic.tests.SteppingScriptTests',
 
         this.done();
     },
+
     test06FunctionScriptOnce: function() {
         var n = 0, cb = function() { n++; };
         lively.morphic.FunctionScript.once(cb, 10);
@@ -1404,6 +1511,7 @@ AsyncTestCase.subclass('lively.morphic.tests.SteppingScriptTests',
             this.done();
         }, 40);
     },
+
     test07MorphicDelayWorksLikeNormalDelay: function() {
         Global.test07MorphicDelayWorksLikeNormalDelayTriggered = false;
         var f = function() { Global.test07MorphicDelayWorksLikeNormalDelayTriggered = true }
@@ -1444,6 +1552,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HaloTests',
         this.assertIdentity(m1, this.world.currentHaloTarget, 'halo target');
         this.assert(m1.halos.length > 0, 'morph has no halos?');
     },
+
     test02HalosStayInVisibleBounds: function() {
         this.createWorld();
         var m1 = lively.morphic.Morph.makeRectangle(0,0, 100, 100);
@@ -1457,6 +1566,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HaloTests',
             this.assert(this.world.visibleBounds().containsRect(ea.bounds()), 'halo ' + ea + ' not  in visibleBounds')
         }, this)
     },
+
     testChangeExtentOfRectSoThatItFitsInOuter: function() {
         var outer, r, result;
 
@@ -1503,6 +1613,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
         this.doMouseEvent({type: 'mouseover', pos: pt(5,5), target: item.renderContext().getMorphNode()});
         this.assertEquals('bar', menu.subMenu.items[0].string, 'sub menu is wrong')
     },
+
     testTransformMenuBoundsForVisibility: function() {
         var ownerBounds = new Rectangle(0,0, 300, 100),
             menuBounds, result, expected;
@@ -1525,6 +1636,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
         var result = lively.morphic.Menu.prototype.moveBoundsForVisibility(menuBounds, ownerBounds)
         this.assertEquals(expected, result, 3);
     },
+
     testTransformSubMenuBoundsForVisibility: function() {
         var ownerBounds = new Rectangle(0,0, 300, 100),
             mainMenuItemBounds, subMenuBounds, result, expected;
@@ -1561,6 +1673,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
             subMenuBounds, mainMenuItemBounds, ownerBounds);
         this.assertEquals(expected, result, 4);
     },
+
     testTransformMenuBoundsForVisibility: function() {
         var ownerBounds = new Rectangle(0,0, 20, 20),
             menuBounds = new Rectangle(10,10, 30, 30),
@@ -1602,6 +1715,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SelectionTest',
         this.assertEquals(oldMorph1Pos, newMorph1Pos, 'oldMorph1Pos changed')
 
     },
+
     testDropOn: function() {
         LastWorld = this.world;
 

@@ -1642,7 +1642,6 @@ this. textNodeString()
         return rt;
     },
 
-
     getTextStyle: function() {
         alert('getTextStyle not yet implemented'); return;
         // if (!this.textStyle)
@@ -2429,6 +2428,7 @@ Object.subclass('lively.morphic.TextEmphasis',
         return 'TextEmphasis(' + JSON.prettyPrint(props) + ')'
     },
 });
+
 Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
 'settings', {
     isRichText: true,
@@ -2450,7 +2450,7 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     emphasizeRegex: function(re, style) {
         // FIXME duplication with TextMorph
         var m, counter = 0, string = this.textString;
-        while(m = re.exec(string)) {
+        while (m = re.exec(string)) {
             counter++; if (counter > 5000) throw new Error('emphasizeRegex endless loop?');
             var from = m.index, to = m.index + m[0].length;
             var chunks = this.sliceTextChunks(from, to);
@@ -2493,9 +2493,43 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
         return false;
     },
 
-
 });
 
+Object.subclass('lively.morphic.RichText2',
+'intialization / creation', {
+    initialize: function(str, emphs) {
+        this.textString = str || '';
+        this.textEmphasis = emphs || [];
+    },
+
+    getStateFromTextMorph: function(textMorph) {
+        this.textString = textMorph.textString;
+        this.textEmphasis = Array.range(0, this.textString.length).collect(function(i) {
+            return textMorph.getEmphasisAt(i);
+        });
+        return this;
+    },
+
+    applyToTextMorph: function(m) {
+        m.textString = this.textString;
+        this.textEmphasis.forEach(function(emph, i) {
+            m.emphasize(emph, i, i + 1);
+        });
+    }
+},
+'accessing', {
+    getTextEmphasis: function() { return this.textEmphasis; },
+    getTextString: function() { return this.textString; }
+});
+
+lively.morphic.Text.addMethods(
+'rich text 2', {
+    getRichText2: function() {
+        return new lively.morphic.RichText2().getStateFromTextMorph(this);
+    },
+
+    setRichText2: function(rt) { rt.applyToTextMorph(this); }
+})
 
 cop.create('TextDevLayer')
 .refineClass(lively.morphic.Text, {

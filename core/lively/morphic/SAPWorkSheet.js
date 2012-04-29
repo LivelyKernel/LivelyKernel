@@ -1181,6 +1181,13 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         var nOrgRow = nRow + this.grid.startRow;
         var nOrgCol = nCol+ this.grid.startColumn;
 
+        if (this.grid.arrData[nOrgRow][nOrgCol].FontFamily){
+            sFontFamily =this.grid.arrData[nOrgRow][nOrgCol].FontFamily;
+        }
+        if (this.grid.arrData[nOrgRow][nOrgCol].FontSize){
+            sFontSize =this.grid.arrData[nOrgRow][nOrgCol].FontSize;
+        }
+
 
         this.grid.oWorkBook.toolBar.setFontSize(sFontSize); 
 

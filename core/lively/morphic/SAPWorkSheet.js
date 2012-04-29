@@ -1606,7 +1606,7 @@ format: currency & percentage
     },
     setfontFamily: function(sFontFamily){
         if (this.fontPicker){
-            //setDefaultFont
+            this.fontPicker.setDefaultFont(sFontFamily);
         }else{
             this.fontPicker= new lively.morphic.SAPFontPicker(sFontFamily,this.fontPicker_callBack);
             this.fontPicker.setPosition(pt(181,24));

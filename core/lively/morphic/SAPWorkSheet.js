@@ -617,10 +617,20 @@ console.log('End createLayout =' + elapsed);
                 if (this.arrData[nOrgRow][nOrgCol].fontWeight){
                     sFontWeight=this.arrData[nOrgRow][nOrgCol].fontWeight;
                 }
-                
+                if (this.arrData[nOrgRow][nOrgCol].textDecoration){
+                    sTextDecoration=this.arrData[nOrgRow][nOrgCol].textDecoration;
+                }
+                if (this.arrData[nOrgRow][nOrgCol].fontStyle){
+                    sFontStyle=this.arrData[nOrgRow][nOrgCol].fontStyle;
+                }
+                if (this.arrData[nOrgRow][nOrgCol].fontSize){
+                    sFontSize =this.arrData[nOrgRow][nOrgCol].fontSize;
+                }                
+                if (this.arrData[nOrgRow][nOrgCol].fontFamily){
+                    sFontFamily =this.arrData[nOrgRow][nOrgCol].fontFamily;
+                }
 
-
-                // this.at(x,y).emphasizeAll({fontWeight: 'bold',fontStyle: 'normal',textDecoration: 'normal',,color: Color.black});
+                this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
             }
         }
 

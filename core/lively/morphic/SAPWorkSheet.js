@@ -1546,6 +1546,10 @@ format: currency & percentage
         that.ddlFont.updateList([sFont]);
         for (i= 0; i< that.grid.arrSelectedCells.length; i++) {
             that.grid.arrSelectedCells[i].emphasizeAll({fontFamily:sFont});
+            nRow  = that.grid.arrSelectedCells[i].gridCoords.y - (that.grid.hideColHeads ? 0 : 1);
+            nColumn = that.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow  + that.grid.startRow;
+            nOrgCol = nColumn + that.grid.startColumn;
             that.grid.arrSelectedCells[i].fontFamily=sFont; 
         }
         that.fontPicker.setVisible(false);

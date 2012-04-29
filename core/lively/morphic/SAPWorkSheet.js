@@ -1198,7 +1198,9 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.grid.oWorkBook.toolBar.setfontFamily(sFontFamily); 
         this.grid.oWorkBook.toolBar.setFontSize(sFontSize); 
 
-
+        var oSelectedData={};
+        oSelectedData.x=nOrgCol;
+        oSelectedData.y=nOrgCol;
 
         this.grid.hideAnnotation();
         if (evt.isLeftMouseButtonDown()) {
@@ -1206,12 +1208,18 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
             if (evt.isCtrlDown()){
                 
                 this.grid.arrSelectedCells.push(this);
+                this.grid.arrData[nOrgRow][nOrgCol].selected=true;
+                this.grid.arrSelectedData.push(oSelectedData);
+
                 this.selectedCell();
                 this.activate(true);
                 
             }else{
                 this.grid.removeSelectedCells();
                 this.grid.arrSelectedCells.push(this);
+                this.grid.arrData[nOrgRow][nOrgCol].selected=true;
+                this.grid.arrSelectedData.push(oSelectedData);
+
                 this.activate();
             }
             

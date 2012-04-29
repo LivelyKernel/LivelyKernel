@@ -613,6 +613,7 @@ console.log('End createLayout =' + elapsed);
                 var sFontStyle="normal";
                 var sFontSize = "10";
                 var sFontFamily = "Helvetica";
+                var sTextAlign = "";
                 
                 if (this.arrData[nOrgRow][nOrgCol].fontWeight){
                     sFontWeight=this.arrData[nOrgRow][nOrgCol].fontWeight;
@@ -629,8 +630,13 @@ console.log('End createLayout =' + elapsed);
                 if (this.arrData[nOrgRow][nOrgCol].fontFamily){
                     sFontFamily =this.arrData[nOrgRow][nOrgCol].fontFamily;
                 }
+                if (this.arrData[nOrgRow][nOrgCol].textAlign){
+                    sTextAlign =this.arrData[nOrgRow][nOrgCol].textAlign;
+                    this.at(x,y).setAlign(sTextAlign); 
+                }
 
                 this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
+         
             }
         }
 

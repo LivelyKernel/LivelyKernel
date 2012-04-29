@@ -1620,6 +1620,10 @@ format: currency & percentage
 
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].setAlign('center'); 
+ 	    nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow  + this.grid.startRow;
+            nOrgCol = nColumn + this.grid.startColumn;
         }
     },
     imgTextAlignRight_Click: function() {
@@ -1696,7 +1700,10 @@ format: currency & percentage
         var nOrgRow;
         var nOrgCol;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-           
+   	    nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow  + this.grid.startRow;
+            nOrgCol = nColumn + this.grid.startColumn;        
         }
     },
     imgSave_Click: function() {

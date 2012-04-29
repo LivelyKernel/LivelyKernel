@@ -1436,6 +1436,17 @@ textAlign: 'left'
 backgroundcolor: ss
 boardercolor: xx
 
+getFontSize()
+getFontWeight()
+getFontFamily
+getColor
+setColor
+getTextDecoration
+getTextAlignment
+getBackgroundColor
+getItalics
+
+
 formula:
 notes:
 format: currency & percentage

@@ -16,7 +16,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 	fonts.forEach(function(font) {
 		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-25,20)), font);
 		text.applyStyle({fill: null, borderWidth:0, fontFamily: font, fixedHeight: false, fixedWidth: true, allowInput: false});
-                if (font==this.selectedFont){
+                if (font.toUpperCase()==this.selectedFont.toUpperCase()){
                     text.setFill(Color.rgb(240, 171, 0));
                 }
 		text.ignoreEvents();
@@ -29,7 +29,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
     setDefaultFont: function(sFontName) {
         var fontMorphs = this.submorphs, selected;
 	for (var i = 0; i < fontMorphs.length; i++) {
-            if (fontMorphs[i].getTextStyle==sFontName){
+            if (fontMorphs[i].getTextStyle().toUpperCase()==sFontName.toUpperCase()){
                 fontMorphs[i].setFill(Color.rgb(240, 171, 0));
                 break;
             }

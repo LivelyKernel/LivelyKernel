@@ -1423,18 +1423,12 @@ format: currency & percentage
         var nSecondLineYPos = 30;
 
         this.imgSave = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
-
         this.imgSaveAs = new lively.morphic.Image(new Rectangle(24*1 + 10 + nGapWidth,3,24,24), "images/Save-as-icon.png"); 
-   
         this.imgPaste= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*2 + 10 + 2*nGapWidth,3,24,24), "images/Action-paste-icon.png"); 
-       
         this.imgCut= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,3,24,24), "images/Cut-icon.png"); 
         this.imgCopy= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,nSecondLineYPos,24,24), "images/Actions-edit-copy-icon.png"); 
-        
+    
         this.ddlFont = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth, 3, 120, 20), []);
-        //this.get("ddltest").updateList(['aa'])
-        
-        
 
         this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
 
@@ -1465,8 +1459,6 @@ format: currency & percentage
         this.imgInsertColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,nSecondLineYPos,24,24), "images/table-column-insert-icon.png");
         this.imgInsertColumn .setToolTip("Insert Column");
         
-
-
         this.imgRemoveRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,3,24,24), "images/table-row-delete-icon.png");
         this.imgRemoveRow .setToolTip("Delete Row");
         this.imgRemoveColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,nSecondLineYPos,24,24), "images/table-column-delete-icon.png");
@@ -1481,13 +1473,11 @@ format: currency & percentage
 
         this.imgClear= new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*22 + 10 + 14*nGapWidth,3,24,24), "images/Actions-edit-clear-icon.png"); 
 
-
         this.addMorph(this.imgInsertRow);
         this.addMorph(this.imgRemoveRow);
         this.addMorph(this.imgInsertColumn);
         this.addMorph(this.imgRemoveColumn);
 
-        
         this.addMorph(this.imgSave);
         this.addMorph(this.imgSaveAs);
 
@@ -1543,8 +1533,6 @@ format: currency & percentage
         this.imgTextAlignLeft.grabbingEnabled = false;
         this.imgTextAlignCenter.grabbingEnabled = false;
         this.imgTextAlignRight.grabbingEnabled = false;
-
-
 
     },
     fontPicker_callBack: function(sFont){

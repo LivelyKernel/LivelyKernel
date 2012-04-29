@@ -1662,7 +1662,7 @@ format: currency & percentage
             nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
             nOrgRow = nRow  + this.grid.startRow;
             nOrgCol = nColumn + this.grid.startColumn;
-            this.grid.arrSelectedCells[i].textAlign='right';
+            this.grid.arrData[nOrgRow][nOrgCol].textAlign='right';
         }
     },
     imgItalic_Click: function() {
@@ -1692,7 +1692,7 @@ format: currency & percentage
             nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
             nOrgRow = nRow  + this.grid.startRow;
             nOrgCol = nColumn + this.grid.startColumn;
-            this.grid.arrSelectedCells[i].textDecoration="underline";
+            this.grid.arrData[nOrgRow][nOrgCol].textDecoration="underline";
         }
     },
     imgBold_Click: function() {

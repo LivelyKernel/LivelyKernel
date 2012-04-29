@@ -1538,6 +1538,10 @@ format: currency & percentage
 
     },
     fontPicker_callBack: function(sFont){
+        var nRow;
+        var nColumn;
+        var nOrgRow;
+        var nOrgCol;
         var that = this.owner;
         that.ddlFont.updateList([sFont]);
         for (i= 0; i< that.grid.arrSelectedCells.length; i++) {

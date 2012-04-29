@@ -1615,7 +1615,8 @@ format: currency & percentage
             this.addMorph(this.fontPicker);
             connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});
         }
-        this.ddlFont.setList([sFontFamily]);
+   
+        this.ddlFont.setList([this.fontPicker.selectedFont]);
     },    
     fontPicker_callBack: function(sFont){
         var nRow;

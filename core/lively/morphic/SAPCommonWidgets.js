@@ -29,7 +29,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
     setDefaultFont: function(sFontName) {
         var fontMorphs = this.submorphs, selected;
 	for (var i = 0; i < fontMorphs.length; i++) {
-	   debugger;
+            if (fontMorphs[i].getTextStyle==sFontName){
+                fontMorphs[i].setFill(Color.rgb(240, 171, 0));
+                break;
+            }
+	
 	}
     },
     onMouseDown: function($super, evt) {

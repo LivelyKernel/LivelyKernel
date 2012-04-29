@@ -616,7 +616,7 @@ console.log('End createLayout =' + elapsed);
                 var sFontWeight="normal";
                 var sTextDecoration="normal";
                 var sFontStyle="normal";
-                var sFontSize = "10";
+                var sFontSize = this.defalutFontSize;
                 var sFontFamily = this.defaultFontFamily;
                 var sTextAlign = "left";
                 

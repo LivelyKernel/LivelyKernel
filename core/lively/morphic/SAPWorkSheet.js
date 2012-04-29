@@ -1568,8 +1568,10 @@ format: currency & percentage
     ddlFontSize_onChange: function(){
         //this.get("ddltest").setSelectionMatching("b")
         var nFontsize = this.ddlFontSize.getSelectedItem();
-        console.log(nFontsize);
-        //fontSize: 14
+       	var nRow;
+        var nColumn;
+        var nOrgRow;
+        var nOrgCol;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({fontSize:nFontsize });
             nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);

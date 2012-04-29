@@ -608,9 +608,19 @@ console.log('End createLayout =' + elapsed);
                 fontFamily:sFont
                 textAlign: 'left'
                 */
+                var sFontWeight="normal";
+                var sTextDecoration="normal";
+                var sFontStyle="normal";
+                var sFontSize = "10";
+                var sFontFamily = "Helvetica";
+                
                 if (this.arrData[nOrgRow][nOrgCol].fontWeight){
-                    
+                    sFontWeight=this.arrData[nOrgRow][nOrgCol].fontWeight;
                 }
+                
+
+
+                // this.at(x,y).emphasizeAll({fontWeight: 'bold',fontStyle: 'normal',textDecoration: 'normal',,color: Color.black});
             }
         }
 

@@ -1605,7 +1605,6 @@ format: currency & percentage
         this.ddlFontSize.setSelectionMatching(sFontSize);
     },
     setfontFamily: function(sFontFamily){
-        debugger;
         if (this.fontPicker){
             this.fontPicker.setDefaultFont(sFontFamily);
         }else{

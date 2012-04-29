@@ -1200,7 +1200,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
 
         var oSelectedData={};
         oSelectedData.x=nOrgCol;
-        oSelectedData.y=nOrgCol;
+        oSelectedData.y=nOrgRow;
 
         this.grid.hideAnnotation();
         if (evt.isLeftMouseButtonDown()) {

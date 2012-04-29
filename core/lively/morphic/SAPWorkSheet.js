@@ -1634,7 +1634,7 @@ format: currency & percentage
         var nColumn;
         var nOrgRow;
         var nOrgCol;
-debugger;
+
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
             //this.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold',fontStyle: 'normal',textDecoration: 'normal',,color: Color.black});

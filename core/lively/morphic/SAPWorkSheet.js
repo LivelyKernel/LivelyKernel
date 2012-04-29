@@ -27,7 +27,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.startColumn = 0;    //org start column
         this.endColumn = numCols;      //org end column
 
-
         this.selectedColumnHeader=null;
     
         this.vScroll = null;
@@ -1663,6 +1662,7 @@ format: currency & percentage
         var nOrgRow;
         var nOrgCol;
         //getTextDecoration
+        debugger;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({textDecoration: 'underline'});
  	    nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);

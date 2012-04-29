@@ -1577,6 +1577,12 @@ format: currency & percentage
         this.imgTextAlignRight.grabbingEnabled = false;
 
     },
+    setFontSize: function(sFontSize){
+        
+    },
+    setfontFamily: function(sFontFamily){
+        
+    },    
     fontPicker_callBack: function(sFont){
         var nRow;
         var nColumn;

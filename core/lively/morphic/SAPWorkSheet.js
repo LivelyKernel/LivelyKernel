@@ -1578,7 +1578,7 @@ format: currency & percentage
 
     },
     setFontSize: function(sFontSize){
-        
+        vthis.ddlFontSize.setSelectionMatching(sFontSize);
     },
     setfontFamily: function(sFontFamily){
         

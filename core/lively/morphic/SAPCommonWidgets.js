@@ -28,10 +28,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
     },
     //calls from external: to highlight
     setDefaultFont: function(sFontName) {
-        var fontMorphs = this.submorphs, selected;
+        var fontMorphs = this.submorphs;
+        this.selectedFont="";
+        debugger;
 	for (var i = 0; i < fontMorphs.length; i++) {
-            if (fontMorphs[i].getTextStyle().toUpperCase()==sFontName.toUpperCase()){
+            if (fontMorphs[i].getTextString().toUpperCase()==sFontName.toUpperCase()){
                 fontMorphs[i].setFill(Color.rgb(240, 171, 0));
+                this.selectedFont = fontMorphs[i].getTextString();
                 break;
             }
 	

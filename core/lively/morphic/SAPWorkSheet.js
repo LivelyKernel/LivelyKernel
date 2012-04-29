@@ -1550,7 +1550,7 @@ format: currency & percentage
             nColumn = that.grid.arrSelectedCells[i].gridCoords.x;
             nOrgRow = nRow  + that.grid.startRow;
             nOrgCol = nColumn + that.grid.startColumn;
-            that.grid.arrSelectedCells[i].fontFamily=sFont; 
+            that.grid.arrData[nOrgRow][nOrgCol].fontFamily=sFont; 
         }
         that.fontPicker.setVisible(false);
         

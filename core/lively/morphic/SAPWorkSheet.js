@@ -630,7 +630,7 @@ console.log('End createLayout =' + elapsed);
                     sFontFamily =this.arrData[nOrgRow][nOrgCol].fontFamily;
                 }
 
-                this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
+                this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize});
             }
         }
 

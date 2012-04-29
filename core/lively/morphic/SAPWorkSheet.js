@@ -1163,6 +1163,12 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     onMouseDown: function (evt) {
         console.log('SAPGridCell.onMouseDown');
        
+        var sFontFamily = this.getFontFamily();
+        var sFontSize = this.getFontSize();
+
+console.log('sFontFamily =' + sFontFamily );
+console.log('sFontSize =' + sFontSize );
+
         this.grid.hideAnnotation();
         if (evt.isLeftMouseButtonDown()) {
             var ctrl = evt.isCtrlDown();

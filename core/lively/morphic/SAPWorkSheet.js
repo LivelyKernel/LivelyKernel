@@ -1765,7 +1765,7 @@ format: currency & percentage
         var nOrgRow;
         var nOrgCol;
         //getTextDecoration
-        debugger;
+      
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({textDecoration: 'underline'});
  	    nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);

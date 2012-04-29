@@ -17,6 +17,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.oWorkBook = null; //parent morph:  need this to access toolbar object
         
         this.arrSelectedCells=[];  //saving selected cells: to support mult select.
+        this.arrSelectedData=[];
         
          //for smart scroll feature
         this.prviousScrollValue=0;  //saving vertical scroll value

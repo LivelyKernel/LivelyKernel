@@ -1603,8 +1603,12 @@ format: currency & percentage
 
     },
     imgTextAlignLeft_Click: function() {
-        debugger;
-         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+        var nRow;
+        var nColumn;
+        var nOrgRow;
+        var nOrgCol;
+
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].setAlign('left'); 
         }
     },

@@ -1167,15 +1167,15 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     },
     onMouseDown: function (evt) {
         console.log('SAPGridCell.onMouseDown');
+
+        var sFontFamily ="Helvetica";
+        var sFontSize = "10";
+
        /*bug below code always return Helvetica and 10
-        var sFontFamily = this.getFontFamily();
-        var sFontSize = this.getFontSize();
+        sFontFamily = this.getFontFamily();
+        sFontSize = this.getFontSize();
         */
-        debugger;
-        var sFontFamily ="Helvetica"
-        var sFontSize = "10"
-
-
+ 
         var nCol= this.gridCoords.x;
         var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
         
@@ -1189,11 +1189,9 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
             sFontSize =this.grid.arrData[nOrgRow][nOrgCol].fontSize;
         }
 
-
         this.grid.oWorkBook.toolBar.setFontSize(sFontSize); 
 
-console.log('sFontFamily =' + sFontFamily );
-console.log('sFontSize =' + sFontSize );
+
 
         this.grid.hideAnnotation();
         if (evt.isLeftMouseButtonDown()) {

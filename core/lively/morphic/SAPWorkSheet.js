@@ -1623,6 +1623,11 @@ format: currency & percentage
         }
     },
     imgTextAlignRight_Click: function() {
+        var nRow;
+        var nColumn;
+        var nOrgRow;
+        var nOrgCol;
+
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].setAlign('right'); 
         }

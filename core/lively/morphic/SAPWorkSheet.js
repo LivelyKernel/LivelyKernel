@@ -1571,6 +1571,7 @@ format: currency & percentage
         //fontSize: 14
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({fontSize:nFontsize });
+            this.grid.arrSelectedCells[i].fontSize=fontSize:nFontsize; 
         }
 
     },

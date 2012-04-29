@@ -56,7 +56,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         //for data
         for (i= 0; i< this.arrSelectedData.length; i++) {
-               
+            //this.arrSelectedData.x
+            //this.arrSelectedData.y
         }
         this.arrSelectedData.lenght=0;
         this.arrSelectedData=[];

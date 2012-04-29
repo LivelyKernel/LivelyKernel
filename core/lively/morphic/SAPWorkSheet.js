@@ -617,7 +617,7 @@ console.log('End createLayout =' + elapsed);
                 var sTextDecoration="normal";
                 var sFontStyle="normal";
                 var sFontSize = "10";
-                var sFontFamily = "Helvetica";
+                var sFontFamily = this.defaultFontFamily;
                 var sTextAlign = "left";
                 
                 if (this.arrData[nOrgRow][nOrgCol].fontWeight){

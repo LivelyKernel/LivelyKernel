@@ -1171,10 +1171,9 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         var sFontFamily = this.getFontFamily();
         var sFontSize = this.getFontSize();
         */
+        var sFontFamily ="Helvetica"
+        var sFontSize = "10"
 
-
-
-debugger;
         this.grid.oWorkBook.toolBar.setFontSize(sFontSize); 
 
 console.log('sFontFamily =' + sFontFamily );

@@ -1610,6 +1610,7 @@ format: currency & percentage
         }else{
             this.fontPicker= new lively.morphic.SAPFontPicker(sFontFamily,this.fontPicker_callBack);
             this.fontPicker.setPosition(pt(181,24));
+            this.fontPicker.setVisible(false);
             this.addMorph(this.fontPicker);
             connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});
         }

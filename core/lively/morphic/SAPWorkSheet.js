@@ -1545,8 +1545,6 @@ format: currency & percentage
         
     },
     ddlFont_onMouseDown: function(){
-        
-        
         if (this.fontPicker){
             //debugger;
             if (this.fontPicker.isVisible()){
@@ -1554,7 +1552,6 @@ format: currency & percentage
             }else{
                 this.fontPicker.setVisible(true);
                 //this.fontPicker.focus();
-
             }
         }else{
             this.fontPicker= new lively.morphic.SAPFontPicker("courier",this.fontPicker_callBack);

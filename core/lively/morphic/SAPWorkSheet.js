@@ -10,6 +10,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.numCols = numCols;
         this.numRows = numRows;
         this.oAnnotation = null;
+        this.oWorkBook = null; //parent morph.
         
         this.arrSelectedCells=[];  //saving selected cells: to support mult select.
         

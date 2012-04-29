@@ -1627,6 +1627,7 @@ format: currency & percentage
             nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
             nOrgRow = nRow  + this.grid.startRow;
             nOrgCol = nColumn + this.grid.startColumn;
+            this.grid.arrSelectedCells[i].textAlign='center';
         }
     },
     imgTextAlignRight_Click: function() {

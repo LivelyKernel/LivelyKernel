@@ -56,6 +56,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
             console.log(this.selectedFont)
 	}
     },
+    
     availableFonts: function(fontNames) {
         var testText = 'CmmwwmmwwmmwwmmL',
 		parent = document.body,

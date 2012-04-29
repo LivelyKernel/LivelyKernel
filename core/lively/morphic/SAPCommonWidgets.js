@@ -26,6 +26,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 	}, this);
 
     },
+    //calls from external: to highlight
     setDefaultFont: function(sFontName) {
         var fontMorphs = this.submorphs, selected;
 	for (var i = 0; i < fontMorphs.length; i++) {

@@ -1325,12 +1325,18 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
            
             var nCol= this.gridCoords.x;
             var nOrgCol = nCol + this.grid.startColumn;
+            var oSelectedData={};
+            oSelectedData.x=nOrgCol;
+            oSelectedData.y=nOrgCol;
+
             this.grid.selectedColumnHeader = this;
             
             this.grid.removeSelectedCells();
             for (var y = 0; y < this.grid.numRows; y++) {
                 this.grid.rows[y][nCol].selectedCell();
                 this.grid.arrSelectedCells.push(this.grid.rows[y][nCol]);
+                this.grid.arrData[nOrgRow][nOrgCol].selected=true;
+                this.grid.arrSelectedData.push(oSelectedData);
             }
             
             console.log("SAPGridColHead.onMouseDown nCol:nOrgCol =" + nCol + ":" + nOrgCol );

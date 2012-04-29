@@ -1610,6 +1610,10 @@ format: currency & percentage
 
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].setAlign('left'); 
+ 	    nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow  + this.grid.startRow;
+            nOrgCol = nColumn + this.grid.startColumn;
         }
     },
     imgTextAlignCenter_Click: function() {
@@ -1634,6 +1638,10 @@ format: currency & percentage
 
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].setAlign('right'); 
+ 	    nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow  + this.grid.startRow;
+            nOrgCol = nColumn + this.grid.startColumn;
         }
     },
     imgItalic_Click: function() {

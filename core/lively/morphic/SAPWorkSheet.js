@@ -200,7 +200,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     },
     //expand column data when moving scroll
     expandColumns: function(nDataLength) {
-        var start = new Date().getTime();    
+        //var start = new Date().getTime();    
         //debugger;
         var nStartColumn = this.arrData[0].length;
         var nEndColumn =nStartColumn + this.maxEmptyColumntoCreate;
@@ -224,9 +224,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 		}
 	}
 
-        var elapsed = new Date().getTime() - start;
-	elapsed = elapsed/1000;
-	console.log('expandColumns=' + elapsed);
+        //var elapsed = new Date().getTime() - start;
+	//elapsed = elapsed/1000;
+	//console.log('expandColumns=' + elapsed);
     },
     expandRows: function(nDataLength) {
         //create this.maxEmptyRowtoCreate

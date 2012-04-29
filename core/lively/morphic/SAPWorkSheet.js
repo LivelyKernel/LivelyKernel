@@ -601,6 +601,16 @@ console.log('End createLayout =' + elapsed);
                 }
 
                 this.at(x,y).textString = sValue;
+                /*fontWeight: 'bold'
+                textDecoration: 'underline'
+                fontStyle: 'italic'
+                fontSize:12
+                fontFamily:sFont
+                textAlign: 'left'
+                */
+                if (this.arrData[nOrgRow][nOrgCol].fontWeight){
+                    
+                }
             }
         }
 

@@ -6,6 +6,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.defaultCellHeight = 30;
         this.defaultCellWidth = 120;
         this.borderSize = 50;
+
+        this.defalutFontSize=10;
+        this.defaultFontFamily="Helvetica";
+
         this.colNames = new Array(numCols);
         this.numCols = numCols;
         this.numRows = numRows;

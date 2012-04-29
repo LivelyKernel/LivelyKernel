@@ -1684,7 +1684,10 @@ format: currency & percentage
         var nOrgRow;
         var nOrgCol;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-           
+ 	    nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow  + this.grid.startRow;
+            nOrgCol = nColumn + this.grid.startColumn;       
         }
     },
     imgSignPercent_Click: function() {

@@ -1605,7 +1605,13 @@ format: currency & percentage
         this.ddlFontSize.setSelectionMatching(sFontSize);
     },
     setfontFamily: function(sFontFamily){
-        
+        if (this.fontPicker){
+        }else{
+            this.fontPicker= new lively.morphic.SAPFontPicker(sFontSize,this.fontPicker_callBack);
+            this.fontPicker.setPosition(pt(181,24));
+            this.addMorph(this.fontPicker);
+            connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});
+        }
     },    
     fontPicker_callBack: function(sFont){
         var nRow;

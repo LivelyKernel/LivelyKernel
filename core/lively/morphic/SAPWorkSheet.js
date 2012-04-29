@@ -1542,6 +1542,7 @@ format: currency & percentage
         that.ddlFont.updateList([sFont]);
         for (i= 0; i< that.grid.arrSelectedCells.length; i++) {
             that.grid.arrSelectedCells[i].emphasizeAll({fontFamily:sFont});
+            that.grid.arrSelectedCells[i].fontFamily=sFont; 
         }
         that.fontPicker.setVisible(false);
         

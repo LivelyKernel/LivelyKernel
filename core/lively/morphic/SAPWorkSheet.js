@@ -1703,7 +1703,7 @@ format: currency & percentage
 
         //for data
         for (i= 0; i< that.grid.arrSelectedData.length; i++) {
-            that.grid.arrData[that.grid.arrSelectedData[i].y][that.grid.arrSelectedData[i].x].fontFamily='sFont';
+            that.grid.arrData[that.grid.arrSelectedData[i].y][that.grid.arrSelectedData[i].x].fontFamily=sFont;
         }
 
 

@@ -11,8 +11,11 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
     initialize: function($super, numCols, numRows, spec) {
         $super();
         this.hideColHeads = spec && !spec.showColHeads;
+        this.hideRowHeads = spec && !spec.showRowHeads;
         this.colNames = new Array(numCols);
+        this.rowNames = new Array(numRows);
         this.colHeads = [];
+        this.rowHeads = [];
         this.numCols = numCols;
         this.numRows = numRows;
         this.activeCellContent = '';
@@ -34,6 +37,9 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         if (!this.hideColHeads) {
             this.createColHeads();
         }
+        if (!this.hideRowHeads) {
+            this.createRowHeads();
+        }
         this.createCells();
         this.createLayout();
     },
@@ -45,47 +51,76 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         this.rows[0] = this.colHeads;
     },
 
-    createColHead: function(index, title) {
-        var head = new lively.morphic.DataGridColHead();
+    createRowHeads: function() {
+        for (var i = 0; i < this.numRows; i++) {
+            var rowHead = this.createRowHead(i);
+            this.rowHeads.push(rowHead);
+            if (!this.rows[i]) { this.rows[i] = []; }
+            var row = this.rows[i];
+            row[0] = rowHead;
+        }
+    },
+
+    createHead: function(isRow, index, title) {
+        var head = isRow ? new lively.morphic.DataGridRowHead() : new lively.morphic.DataGridColHead();
         head.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         head.addToGrid(this);
-        head.gridCoords = pt(index, 0);
-        head.name = title ? title : '[' + index + ']';
-        head.textString = head.name;
+        head.gridCoords = isRow ? pt(0, index) : pt(index, 0);
+        var name = title;
+        if (!name) {
+            var titleIndex = index;
+            if (isRow && !this.hideColHeads) {
+                titleIndex--;
+            } else if (!isRow && !this.hideRowHeads) {
+                titleIndex--;
+            }
+            name = '[' + titleIndex + ']';
+        }
+        head.textString = head.name = name;
         return head;
+    },
+
+    createColHead: function(index, title) {
+        return this.createHead(false, index, title);
+    },
+
+    createRowHead: function(index, title) {
+        return this.createHead(true, index, title);
     },
 
     createCells: function() {
         var rowOffset = this.hideColHeads ? 0 : 1,
+            colOffset = this.hideRowHeads ? 0 : 1,
             numCellRows = this.numRows - rowOffset,
+            numCellCols = this.numCols - colOffset,
             self = this,
-            cells = lively.morphic.Morph.createN(numCellRows * this.numCols, function() {
+            cells = lively.morphic.Morph.createN(numCellRows * numCellCols, function() {
                 return self.createCellOptimized();
             });
 
         function addCellToRow(row, x, y) {
             var cell = cells.pop();
             cell.addToGrid(self);
-            cell.gridCoords = pt(x, y + rowOffset);
+            cell.gridCoords = pt(x + colOffset, y + rowOffset);
             cell.name = '[' + x + ';' + y + ']';
-            row[x] = cell;
+            row[x + colOffset] = cell;
         }
 
         for (var y = 0; y < numCellRows; y++) {
             var row = new Array(numCellRows);
-            for (var x = 0; x < this.numCols; x++) {
+            for (var x = 0; x < numCellCols; x++) {
                 addCellToRow(row, x, y);
             }
             this.rows[y + rowOffset] = row;
         }
     },
 
-    createCell: function(x, y, headOffset) {
+    createCell: function(x, y, headOffsetX, headOffsetY) {
         var cell = new lively.morphic.DataGridCell();
         cell.doitContext = this;
         cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         cell.addToGrid(this);
-        cell.gridCoords = pt(x, y + headOffset);
+        cell.gridCoords = pt(x + headOffsetX, y + headOffsetY);
         cell.name = '[' + x + ';' + y + ']';
         return cell;
     },
@@ -112,6 +147,7 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
 
     at: function(x, y) {
         if (!this.hideColHeads) y++;
+        if (!this.hideRowHeads) x++;
         return this.rows[y] && this.rows[y][x];
     },
 
@@ -242,6 +278,7 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         if (!this.activeCell) { this.at(0,0).activate(); }
         this.activeCell.textString = aString;
     },
+
     evaluateExpression: function(anExpression) {
         var exprFunc = Strings.format(
             "(function() {\n" +
@@ -254,6 +291,7 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
             return 'ERROR';
         }
     },
+
     setColWidth: function(colIndex, newWidth) {
         for (var i = 0; i < this.rows.length; i++) {
             var curCell = this.rows[i][colIndex];
@@ -327,9 +365,12 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
         if (!this.hideColHeads) {
             var head = this.createColHead(this.numCols, realColName);
             this.colHeads.push(head);
+            this.rows[0].push(head);
         }
-        for (var i = 0; i < this.numRows; i++) {
-            var cell = this.createCell(this.numCols, i, this.hideColHeads ? 0 : 1);
+
+        var numCellRows = this.numRows - (this.hideColHeads ? 0 : 1);
+        for (var i = 0; i < numCellRows; i++) {
+            var cell = this.createCell(this.numCols, i, this.hideRowHeads ? 0 : 1, this.hideColHeads ? 0 : 1);
             this.rows[i].push(cell);
         }
         this.numCols++;
@@ -338,8 +379,15 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
 
     addRow: function() {
         var row = [];
-        for (var i = 0; i < this.numCols; i++) {
-            var cell = this.createCell(i, this.numRows, this.hideColHeads ? 0 : 1);
+        if (!this.hideRowHeads) {
+            var head = this.createRowHead(this.numRows, '[' + this.numRows + ']');
+            this.rowHeads.push(head);
+            row.push(head);
+        }
+
+        var numCellCols = this.numCols - (this.hideRowHeads ? 0 : 1);
+        for (var i = 0; i < numCellCols; i++) {
+            var cell = this.createCell(i, this.numRows, this.hideRowHeads ? 0 : 1, this.hideColHeads ? 0 : 1);
             row.push(cell);
         }
         this.rows.push(row);
@@ -355,11 +403,7 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
             this.rows[i].pop();
         }
         var lastColHead = this.colHeads[lastColIndex];
-        if (lastColHead) {
-            delete lastColHead.gridCoords;
-            lastColHead.remove();
-            this.colHeads.pop();
-        }
+        if (lastColHead) { this.colHeads.pop(); }
         while (this.colNames.length > lastColIndex) {
             this.colNames.pop();
         }
@@ -371,9 +415,10 @@ lively.morphic.Morph.subclass('lively.morphic.DataGrid',
     removeRow: function() {
         var lastRowIndex = this.numRows - 1;
         this.rows[lastRowIndex].forEach(function(ea) {
-            delete ea.gridCoords;
-            ea.remove(); });
+            delete ea.gridCoords; ea.remove(); });
         this.rows.pop();
+        var lastRowHead = this.rowHeads[lastRowIndex];
+        if (lastRowIndex) { this.rowHeads.pop(); }
         this.numRows--;
         this.createLayout();
     },
@@ -397,7 +442,7 @@ lively.morphic.Text.subclass('lively.morphic.DataGridCell',
     gridPos: function() {
         if (!this.gridCoords) throw new Error(this + ' has no grid coordinates');
         if (!this.grid) throw new Error(this + ' has no grid');
-        return this.gridCoords.addXY(0, this.grid.hideColHeads ? 0 : -1);
+        return this.gridCoords.addXY(this.grid.hideRowHeads ? 0 : -1, this.grid.hideColHeads ? 0 : -1);
     }
 },
 'default category', {
@@ -490,10 +535,9 @@ lively.morphic.Text.subclass('lively.morphic.DataGridCell',
 
 });
 
-lively.morphic.DataGridCell.subclass('lively.morphic.DataGridColHead',
+lively.morphic.DataGridCell.subclass('lively.morphic.DataGridHeadCell',
 'settings', {
-    style: { fill: Color.rgb(220, 220, 200) },
-    isColHead: true
+    style: { fill: Color.rgb(220, 220, 200) }
 },
 'default category', {
     addToGrid: function(aGrid) {
@@ -501,6 +545,17 @@ lively.morphic.DataGridCell.subclass('lively.morphic.DataGridColHead',
         this.grid.addMorph(this);
     },
     updateDisplay: Functions.Null
+});
+
+
+lively.morphic.DataGridHeadCell.subclass('lively.morphic.DataGridColHead',
+'settings', {
+    isColHead: true
+});
+
+lively.morphic.DataGridHeadCell.subclass('lively.morphic.DataGridRowHead',
+'settings', {
+    isRowHead: true
 });
 
 

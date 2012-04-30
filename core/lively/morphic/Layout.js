@@ -546,8 +546,7 @@ lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.JournalLayo
         $super(container, submorphs);
         if (this.getEffectiveHeight(container, submorphs) != container.getExtent().y) {
             container.setExtent(
-                pt(container.getExtent().x,
-                this.getEffectiveHeight(container, submorphs)));
+                pt(container.getExtent().x, this.getEffectiveHeight(container, submorphs)));
         }
     },
 
@@ -680,7 +679,7 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.GridLayout',
 
     getColWidth: function(columnIndex) {
         var cellsInCol = this.rows.map(function(ea) { return ea[columnIndex]; });
-        return cellsInCol.reduce(function(s, ea) {return Math.max(ea.getExtent().x, s);}, 0);
+        return cellsInCol.reduce(function(s, ea) { return Math.max(ea.getExtent().x, s); }, 0);
     },
     getRowHeight: function(rowIndex) {
         return this.rows[rowIndex].reduce(function(s, ea) {
@@ -715,10 +714,12 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.GridLayout',
             distanceToTop += this.rowHeights[y];
         }
     },
+
     removeOldPlaceholders: function() {
         this.getContainer().submorphs.forEach(function(ea) {
             ea.isPlaceholder && ea.remove(); });
-    },
+    }
+
 });
 
 lively.morphic.Morph.subclass('lively.morphic.Layout.GridLayoutPlaceholder',
@@ -862,13 +863,8 @@ Object.subclass('lively.morphic.Layout.ConstraintLayoutInfo',
             this.position.y.value()));
     },
 
-
-
-
-
-
-
 });
+
 lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.TileLayout',
 'default category', {
     initialize: function($super, aContainer) {

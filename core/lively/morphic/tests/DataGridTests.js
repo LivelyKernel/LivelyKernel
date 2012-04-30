@@ -208,7 +208,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests.Dat
 
     test01ColHeadsAreCreatedAndAreInGrid: function() {
         this.assert(this.grid.rows[0][0].isColHead, 'not a col head at rows[0][0]');
-        this.assert('[0]', this.grid.rows[0][0].name, 'head name not OK');
+        this.assertEquals('[0]', this.grid.rows[0][0].name, 'head name not OK');
     },
 
     test02COlHeadCountsAsRow: function() {
@@ -231,30 +231,80 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests.Dat
         this.grid.at(4,3).activate();
         this.grid.moveActiveCellBy(pt(0,1));
         this.assertIdentity(this.grid.at(4,3), this.grid.activeCell);
-    },
+    }
 
-    xtest10nameColsAndReturnActiveRow: function() {
-        this.grid.setColNames(['Col1', 'Col2', 'Col3']);
-        this.grid.at(0,0).put('Value1');
-        this.grid.at(1,0).put('Value2');
-        this.grid.at(2,0).put('Value3');
-        this.grid.at(3,0).put('Value4');
-        this.grid.at(0,0).activate();
-        var result = this.grid.getActiveRowObject();
-        this.assertEquals(result['Col1'], 'Value1', 'expected Col1 to be Value1');
-        this.assertEquals(result['Col2'], 'Value2', 'expected Col2 to be Value2');
-        this.assertEquals(result['Col3'], 'Value3', 'expected Col3 to be Value3');
-        // fourth column is not named
-    },
+});
 
-    xtest12setHeadingsForColNames: function() {
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests.DataGridRowHeadTests',
+'running', {
+
+    setUp: function($super) {
+        $super();
+        this.grid = new lively.morphic.DataGrid(5,5, {showColHeads: false, showRowHeads: true});
         this.grid.openInWorld();
-        this.grid.setColNames(['Foo', 'Bar']);
-        this.assertEquals(this.grid.getColHead(0).textString, 'Foo', 'column header not set');
-        this.assertEquals(this.grid.getColHead(1).textString, 'Bar', 'column header not set');
     },
 
+    tearDown: function($super) {
+        $super();
+        this.grid.remove();
+    }
 
+},
+'testing', {
+
+    test01ColHeadsAreCreatedAndAreInGrid: function() {
+        this.assert(this.grid.rows[0][0].isRowHead, 'not a row head at rows[0][0]');
+        this.assertEquals('[0]', this.grid.rows[0][0].name, 'head name not OK');
+    },
+
+    test02Length: function() {
+        this.assert(!this.grid.rows[0][5], 'one column to much');
+    },
+
+    test03RowHeadsDoNotBelongToActiveGrid: function() {
+        this.assertIdentity(this.grid.rows[0][1], this.grid.at(0,0));
+        this.assertEquals('[0;0]', this.grid.rows[0][1].name, 'cell name not OK');
+    },
+
+    test04NewRowHeadIsCreatedOnAddRow: function() {
+        this.grid.addRow();
+        this.assert(this.grid.rows[5][0].isRowHead, 'no rowHead created');
+        this.assertIdentity(this.grid.rows[5][1], this.grid.at(0, 5), 'at not working');
+        this.assert(!this.grid.rows[5][5], 'one col too much!');
+    },
+
+    test05RemoveRow: function() {
+        this.grid.removeRow();
+        this.assert(!this.grid.rows[4], 'row not removed');
+        this.assertEquals(4, this.grid.rowHeads.length, 'row head not removed');
+        this.assertEquals('[3]', this.grid.rowHeads.last().name, 'row head not removed 2');
+    }
+
+});
+
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests.DataGridRowAndColHeadTests',
+'running', {
+
+    setUp: function($super) {
+        $super();
+        this.grid = new lively.morphic.DataGrid(5,5, {showColHeads: true, showRowHeads: true});
+        this.grid.openInWorld();
+    },
+
+    tearDown: function($super) {
+        $super();
+        this.grid.remove();
+    }
+
+},
+'testing', {
+
+    test01ColHeadsAreCreatedAndAreInGrid: function() {
+        this.assert(this.grid.rows[1][0].isRowHead, 'not a row head at rows[1][0]');
+        this.assert(this.grid.rows[0][1].isColHead, 'not a col head at rows[0][1]');
+        this.assertEquals('[0]', this.grid.rows[1][0].name, 'head row name not OK');
+        this.assertEquals('[0]', this.grid.rows[0][1].name, 'head col name not OK');
+    }
 
 });
 

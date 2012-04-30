@@ -1853,15 +1853,16 @@ format: currency & percentage
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
             //this.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold',fontStyle: 'normal',textDecoration: 'normal',,color: Color.black});
-            nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+            /*nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
             nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
             nOrgRow = nRow  + this.grid.startRow;
             nOrgCol = nColumn + this.grid.startColumn;
             this.grid.arrData[nOrgRow][nOrgCol].fontWeight='bold';
-            
+            */
         }
         //for data
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].x][this.grid.arrSelectedData[i].y].fontWeight='bold';
         }
     },
     imgBackGroundColor_Click: function() {

@@ -586,6 +586,7 @@ console.log('End createLayout =' + elapsed);
 //debugger;
 //var start = new Date().getTime();
 
+        //need to reset selected cell for grid display when scrolls
         this.arrSelectedCells.lenght=0;
         this.arrSelectedCells =[];
 

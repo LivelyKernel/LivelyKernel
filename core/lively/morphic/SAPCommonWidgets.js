@@ -34,7 +34,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
             if (fontMorphs[i].getTextString().toUpperCase()==sFontName.toUpperCase()){
                 fontMorphs[i].setFill(Color.rgb(240, 171, 0));
                 this.selectedFont = fontMorphs[i].getTextString();
-                break;
+                //break;
+            }else{
+                fontMorphs[i].setFill(null);
             }
 	
 	}

@@ -1723,17 +1723,12 @@ format: currency & percentage
     ddlFontSize_onChange: function(){
         //this.get("ddltest").setSelectionMatching("b")
         var nFontsize = this.ddlFontSize.getSelectedItem();
-       	var nRow;
-        var nColumn;
-        var nOrgRow;
-        var nOrgCol;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({fontSize:nFontsize });
-            nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
-            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
-            nOrgRow = nRow  + this.grid.startRow;
-            nOrgCol = nColumn + this.grid.startColumn;
-            this.grid.arrData[nOrgRow][nOrgCol].fontSize=nFontsize; 
+        }
+         //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontSize=nFontsize;
         }
 
     },

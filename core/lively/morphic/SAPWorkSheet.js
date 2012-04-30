@@ -613,7 +613,7 @@ console.log('End createLayout =' + elapsed);
 
                 this.at(x,y).textString = sValue;
 
-
+                //selected cell
                 if (this.arrData[nOrgRow][nOrgCol].selected){
                     this.at(x,y).selectedCell();
                     console.log("selected")

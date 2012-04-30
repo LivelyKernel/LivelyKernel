@@ -1862,7 +1862,7 @@ format: currency & percentage
         }
         //for data
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].x][this.grid.arrSelectedData[i].y].fontWeight='bold';
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontWeight='bold';
         }
     },
     imgBackGroundColor_Click: function() {

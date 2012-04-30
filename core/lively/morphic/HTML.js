@@ -183,7 +183,6 @@ lively.morphic.Morph.addMethods(
 
     setClipModeHTMLForNode: function(ctx, node, state) {
         if (!node) { return /*should not happen...*/};
-
         var style = node.style;
         if (typeof state === "string") {
             style.overflowX = state;
@@ -366,7 +365,8 @@ lively.morphic.Text.addMethods(
         setVerticalAlign: 'setVerticalAlignHTML',
         setDisplay: 'setDisplayHTML',
         setWhiteSpaceHandling: 'setWhiteSpaceHandlingHTML',
-        focusMorph: 'focusMorphHTML'
+        focusMorph: 'focusMorphHTML',
+        setInputAllowed: 'setInputAllowedHTML'
     },
 },
 'rendering', {
@@ -380,6 +380,7 @@ lively.morphic.Text.addMethods(
         this.setDisplayHTML(ctx, this.getDisplay());
         this.setTextColorHTML(ctx, this.getTextColor());
         this.setWhiteSpaceHandlingHTML(ctx, this.getWhiteSpaceHandling());
+        this.setInputAllowedHTML(ctx, this.inputAllowed());
         this.fit();
         if (this.textChunks) {
             this.textChunks.forEach(function(chunk) { chunk.addTo(this) }, this)
@@ -477,21 +478,37 @@ lively.morphic.Text.addMethods(
     getWhiteSpaceHandlingHTML: function(ctx) {
         return ctx.textNode ? (ctx.textNode.style.whiteSpace || 'normal') : 'normal';
     },
+    setInputAllowedHTML: function(ctx, bool) {
+        if (ctx.textNode) {
+            ctx.textNode.contenteditable = bool;
+            ctx.textNode.setAttribute('contenteditable', bool);
+        }
+    }
 },
 'event management', {
+    // << ------------------ FIXME
     ignoreTextEventsHTML: function(ctx) {
+        // FIXME this seems totally wrong, "contentEditable"
+        // and has nothing to do with inputs!!!
         if (ctx.textNode)
             ctx.textNode.contentEditable = false;
     },
+
     unignoreTextEventsHTML: function(ctx) {
+        // FIXME this seems totally wrong,
+        // and has nothing to do with inputs!!!
         if (ctx.textNode)
             ctx.textNode.contentEditable = true;
     },
 
     enableTextEventsHTML: function(ctx) {
+        // FIXME this seems totally wrong,
+        // and has nothing to do with inputs!!!
         if (ctx.textNode)
             ctx.textNode.contentEditable = true;
     },
+    // --------------------->> /FIXME
+
     focusHTML: function(ctx) {
         var node = ctx.textNode;
         if (node && !this.isFocused() && node.tabIndex !== undefined) node.focus();
@@ -508,7 +525,6 @@ lively.morphic.Text.addMethods(
 'node creation', {
     createTextNodeHTML: function() {
         var node = XHTMLNS.create('div');
-        node.contentEditable = true;
         node.className = 'visibleSelection';
         node.style.cssText = 'position: absolute;' + // needed for text extent calculation
                              'word-wrap: break-word;';
@@ -555,9 +571,17 @@ lively.morphic.List.addMethods(
         ctx.shapeNode.appendChild(ctx.listNode);
         this.resizeListHTML(ctx);
     },
-    setClipModeHTML: function(ctx, modeString) {
-        this.setClipModeHTMLForNode(ctx, ctx.listNode, modeString);
+
+    setClipModeHTML: function(ctx, clipMode) {
+        // FIXME duplication wiht super, delay logic
+        // can be extracted
+        if (!ctx.listNode || this.delayedClipMode) {
+            this.delayedClipMode = clipMode;
+            return;
+        }
+        this.setClipModeHTMLForNode(ctx, ctx.listNode, clipMode);
     },
+
     setSizeHTML: function(ctx, size) {
         if (ctx.listNode) ctx.listNode.size = size;
     },

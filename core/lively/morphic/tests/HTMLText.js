@@ -31,6 +31,13 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTMLText.TextAttrib
             textContent: 'foo',
             style: {fontWeight: 'bold'}
         }]);
+    },
+
+    test03SetInputAllowedSetsContenteditable: function() {
+        var textNode = this.text.renderContext().textNode;
+        this.assert(textNode.contenteditable, 'contenteditable not enabled by default');
+        this.text.setInputAllowed(false);
+        this.assert(!textNode.contenteditable, 'contenteditable not disabled');
     }
 });
 

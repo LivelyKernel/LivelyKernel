@@ -1602,6 +1602,10 @@ format: currency & percentage
         this.ddlFontSize.grabbingEnabled = false;
         this.ddlFont.grabbingEnabled = false;
 
+
+        var oSubmorphs= this.submorphs
+        debugger;
+
         this.imgSave.grabbingEnabled = false;
         this.imgSaveAs.grabbingEnabled = false;
         this.imgCopy.grabbingEnabled = false;

@@ -1604,11 +1604,11 @@ format: currency & percentage
 
 
         var oSubmorphs= this.submorphs
-        debugger;
+        //debugger;
         for (var i = 0; i < oSubmorphs.length; i++) {
-            if (oSubmorphs[i].shape==lively.morphic.Image){
-                console.log("image")
-            }
+            //if (oSubmorphs[i].shape==lively.morphic.Image){
+            //      console.log("image")
+            //}
         }
 
         this.imgSave.grabbingEnabled = false;

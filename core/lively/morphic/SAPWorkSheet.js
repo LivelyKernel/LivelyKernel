@@ -1515,7 +1515,7 @@ getItalics
 
 formula:
 notes:
-format: currency & percentage & date
+dataformat: currency & percentage & date
 */
 
 

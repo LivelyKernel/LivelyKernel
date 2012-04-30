@@ -190,9 +190,9 @@ lively.morphic.Morph.addMethods(
         pos && this.setPosition(pos);
         return this;
     },
-    openInWindow: function() {
+    openInWindow: function(optPos) {
         lively.morphic.World.current().internalAddWindow(this,
-            this.name, this.getPosition());
+            this.name, optPos || this.getPosition());
         this.applyStyle({resizeWidth: true, resizeHeight: true});
         if (this.partsBinMetaInfo) {
             this.owner.setPartsBinMetaInfo(this.getPartsBinMetaInfo());

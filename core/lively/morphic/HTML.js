@@ -380,6 +380,7 @@ lively.morphic.Text.addMethods(
         this.setDisplayHTML(ctx, this.getDisplay());
         this.setTextColorHTML(ctx, this.getTextColor());
         this.setWhiteSpaceHandlingHTML(ctx, this.getWhiteSpaceHandling());
+        this.setInputAllowedHTML(ctx, this.inputAllowed());
         this.fit();
         if (this.textChunks) {
             this.textChunks.forEach(function(chunk) { chunk.addTo(this) }, this)
@@ -480,6 +481,7 @@ lively.morphic.Text.addMethods(
     setInputAllowedHTML: function(ctx, bool) {
         if (ctx.textNode) {
             ctx.textNode.contenteditable = bool;
+            ctx.textNode.setAttribute('contenteditable', bool);
         }
     }
 },

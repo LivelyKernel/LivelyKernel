@@ -1849,7 +1849,7 @@ format: currency & percentage
         var nColumn;
         var nOrgRow;
         var nOrgCol;
-
+        //for grid
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
             //this.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold',fontStyle: 'normal',textDecoration: 'normal',,color: Color.black});
@@ -1859,6 +1859,9 @@ format: currency & percentage
             nOrgCol = nColumn + this.grid.startColumn;
             this.grid.arrData[nOrgRow][nOrgCol].fontWeight='bold';
             
+        }
+        //for data
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
         }
     },
     imgBackGroundColor_Click: function() {

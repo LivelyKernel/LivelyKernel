@@ -53,7 +53,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.arrSelectedCells.lenght=0;
         this.arrSelectedCells =[];
 
-debugger;
         //for data
         for (i= 0; i< this.arrSelectedData.length; i++) {
             this.arrData[this.arrSelectedData[i].y][this.arrSelectedData[i].x].selected=false;

@@ -1605,6 +1605,11 @@ format: currency & percentage
 
         //var oSubmorphs= this.submorphs
         //debugger;
+        for (var i = 0; i < oSubmorphs.length; i++) {
+            if (oSubmorphs..shape=='Image'){
+                
+            }
+        }
 
         this.imgSave.grabbingEnabled = false;
         this.imgSaveAs.grabbingEnabled = false;

@@ -8,7 +8,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.borderSize = 50;
 
         this.defalutFontSize=10;
-        this.defaultFontFamily="Helvetica";
+        this.defaultFontFamily="helvetica";
 
         this.colNames = new Array(numCols);
         this.numCols = numCols;

@@ -675,12 +675,6 @@ handleOnCapture);
             return false;
         }
 
-        if (evt.isAltDown()) {
-            // "that" construct from Antero Taivalsaari's Lively Qt
-            Global.that = evt.world.clickedOnMorph;
-            alertOK('that = ' + Global.that);
-        }
-
         if (this.isHalo) {
             evt.hand.haloLastClickedOn = this;
         }
@@ -706,10 +700,12 @@ handleOnCapture);
             internalCompleteClick = evt.hand.internalClickedOnMorph === this;
 
         if (true || completeClick) {
+            // delayed so that the event onMouseUp event handlers that
+            // are invoked after this point still have access
             (function() {
                 world.clickedOnMorph = null;
                 evt.world.eventStartPos = null;
-            }).delay(0)
+            }).delay(0);
         }
 
         if (completeClick && this.showsMorphMenu && evt.isRightMouseButtonDown()) {
@@ -1451,7 +1447,7 @@ lively.morphic.World.addMethods(
         this.eventStartPos = evt.getPosition();
 
         // remove the selection when clicking into the world...
-         if(this.selectionMorph && $world.selectionMorph.owner
+         if (this.selectionMorph && $world.selectionMorph.owner
             && (this.morphsContainingPoint(this.eventStartPos).length == 1)) {
             this.resetSelection()
         }
@@ -1459,6 +1455,13 @@ lively.morphic.World.addMethods(
         return false;
     },
     onMouseUp: function(evt) {
+        if (evt.isAltDown()) {
+            // "that" construct from Antero Taivalsaari's Lively Qt
+            Global.that = this.clickedOnMorph;
+            alertOK('that = ' + Global.that);
+            return true;
+        }
+
         evt.hand.removeOpenMenu(evt);
         if (!evt.isCommandKey() && (!this.clickedOnMorph || !this.clickedOnMorph.isHalo)
                                 && !this.ignoreHalos) {

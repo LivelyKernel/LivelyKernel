@@ -1814,17 +1814,13 @@ format: currency & percentage
         }
     },
     imgItalic_Click: function() {
-	var nRow;
-        var nColumn;
-        var nOrgRow;
-        var nOrgCol;        
+     
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({fontStyle: 'italic'});
- 	    nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
-            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
-            nOrgRow = nRow  + this.grid.startRow;
-            nOrgCol = nColumn + this.grid.startColumn;
-            this.grid.arrData[nOrgRow][nOrgCol].fontStyle='italic';
+        }
+        //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontStyle='italic';
         }
     },
     imgUnderline_Click: function() {

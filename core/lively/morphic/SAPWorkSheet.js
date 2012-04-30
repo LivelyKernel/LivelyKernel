@@ -613,6 +613,13 @@ console.log('End createLayout =' + elapsed);
                 }
 
                 this.at(x,y).textString = sValue;
+
+
+                if (this.arrData[nOrgRow][nOrgCol].selected){
+                }
+
+
+
                 /*fontWeight: 'bold'
                 textDecoration: 'underline'
                 fontStyle: 'italic'

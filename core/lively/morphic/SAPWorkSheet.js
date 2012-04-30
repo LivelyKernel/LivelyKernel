@@ -615,6 +615,7 @@ console.log('End createLayout =' + elapsed);
 
 
                 if (this.arrData[nOrgRow][nOrgCol].selected){
+                    this.at(x,y).selectedCell();
                     console.log("selected")
                 }
 

@@ -1625,6 +1625,30 @@ format: currency & percentage
         this.imgTextAlignCenter.grabbingEnabled = false;
         this.imgTextAlignRight.grabbingEnabled = false;
 
+
+        this.imgSave.disableHalos();
+        this.imgSaveAs.disableHalos();
+        this.imgCopy.disableHalos();
+        this.imgCut.disableHalos();
+        this.imgPaste.disableHalos();
+        this.imgClear.disableHalos();
+        this.imgBold.disableHalos();
+        this.imgItalic.disableHalos();
+        this.imgUnderline.disableHalos();
+        this.imgBackGroundColor.disableHalos();
+        this.imgFontColor.disableHalos();
+        this.imgSignDollar.disableHalos();
+        this.imgSignPercent.disableHalos();
+        this.imgBoarder.disableHalos();
+        this.imgFilter.disableHalos();
+        this.imgInsertRow.disableHalos();
+        this.imgRemoveRow.disableHalos();
+        this.imgInsertColumn.disableHalos();
+        this.imgRemoveColumn.disableHalos();
+        this.imgTextAlignLeft.disableHalos();
+        this.imgTextAlignCenter.disableHalos();
+        this.imgTextAlignRight.disableHalos();
+
     },
     setFontSize: function(sFontSize){
         this.ddlFontSize.setSelectionMatching(sFontSize);

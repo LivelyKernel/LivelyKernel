@@ -1603,10 +1603,10 @@ format: currency & percentage
         this.ddlFont.grabbingEnabled = false;
 
 
-        //var oSubmorphs= this.submorphs
-        //debugger;
+        var oSubmorphs= this.submorphs
+        debugger;
         for (var i = 0; i < oSubmorphs.length; i++) {
-            if (oSubmorphs..shape=='Image'){
+            if (oSubmorphs.shape=='Image'){
                 
             }
         }

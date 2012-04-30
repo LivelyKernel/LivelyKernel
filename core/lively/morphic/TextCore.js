@@ -228,14 +228,15 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 },
 'styling', {
     applyStyle: function($super, spec) {
-        if (!spec) return this;
+        if (typeof(spec) === 'undefined')
+            return this;
         $super(spec);
         if (spec.fixedWidth !== undefined) {
             this.setFixedWidth(spec.fixedWidth);
             this.fit();
         }
         if (spec.fixedHeight !== undefined) this.setFixedHeight(spec.fixedHeight);
-        if (spec.allowInput !== undefined) this.setInputAllowed(spec.allowInput);
+        if (spec.allowInput !== undefined) this.allowInput = spec.allowInput;
         if (spec.fontFamily !== undefined) this.setFontFamily(spec.fontFamily);
         if (spec.fontSize !== undefined) this.setFontSize(spec.fontSize);
         if (spec.textColor !== undefined) this.setTextColor(spec.textColor);
@@ -379,12 +380,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     setMinTextWidth: function(value) { this.morphicSetter('MinTextWidth', value) },
     setMinTextHeight: function(value) { this.morphicSetter('MinTextHeight', value) },
     getTextNode: function() { return this.renderContext().textNode },
-
-    inputAllowed: function() { return this.allowInput },
-    setInputAllowed: function(bool) {
-        this.morphicSetter('InputAllowed', bool);
-        return this.allowInput = bool;
-    }
 
 },
 'rendering', {

@@ -551,8 +551,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         this.assert(copy.textString == '', 'copy is broken')
     },
 
-
-
     test09TextStringOfTextOutsideSceneGraphIsSerialized: function() {
         var m = new lively.morphic.Morph(),
             s,
@@ -571,17 +569,19 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         m.textString = '';
         m.onPaste({
             clipboardData: {
-                getData: function(type) {
-                        if (type === "text/plain") {
-                            return "foo";
-                        }
-                        return false;
-                    }
-                },
+                getData: function(type) { return type === "text/plain" ? "foo" : false; }
+            },
             stop: function() {}
-            });
+        });
         this.assertEquals(m.textString, "foo", "string was not pasted into empty text");
     },
+
+    test11SetAllowInput: function() {
+        var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20));
+        this.assert(m.inputAllowed(), 'inputAllows == true is not default');
+        m.setInputAllowed(false);
+        this.assert(!m.inputAllowed(), 'setInputAllowed not working');
+    }
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichTextTests',

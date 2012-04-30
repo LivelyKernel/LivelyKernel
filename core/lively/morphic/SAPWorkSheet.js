@@ -1686,19 +1686,11 @@ format: currency & percentage
         this.ddlFont.setList([this.fontPicker.selectedFont]);
     },    
     fontPicker_callBack: function(sFont){
-        var nRow;
-        var nColumn;
-        var nOrgRow;
-        var nOrgCol;
+       
         var that = this.owner;
         that.ddlFont.updateList([sFont]);
         for (i= 0; i< that.grid.arrSelectedCells.length; i++) {
             that.grid.arrSelectedCells[i].emphasizeAll({fontFamily:sFont});
-            //nRow  = that.grid.arrSelectedCells[i].gridCoords.y - (that.grid.hideColHeads ? 0 : 1);
-            //nColumn = that.grid.arrSelectedCells[i].gridCoords.x;
-            //nOrgRow = nRow  + that.grid.startRow;
-            //nOrgCol = nColumn + that.grid.startColumn;
-            //that.grid.arrData[nOrgRow][nOrgCol].fontFamily=sFont; 
         }
 
         //for data

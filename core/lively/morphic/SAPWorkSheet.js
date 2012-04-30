@@ -1702,8 +1702,8 @@ format: currency & percentage
         }
 
         //for data
-        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontFamily='sFont';
+        for (i= 0; i< that.grid.arrSelectedData.length; i++) {
+            that.grid.arrData[that.grid.arrSelectedData[i].y][that.grid.arrSelectedData[i].x].fontFamily='sFont';
         }
 
 

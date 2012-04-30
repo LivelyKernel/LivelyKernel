@@ -598,13 +598,13 @@ console.log('End createLayout =' + elapsed);
 
                 
                 sValue = this.dataModel[y][x].value.toString();
-
+                //Annotation
                 if (this.arrData[nOrgRow][nOrgCol].annotation){
                     this.at(x,y).annotationCell();
                 }else{
                     this.at(x,y).deactivateCell();
                 }
-                
+                //formula
                 if (this.arrData[nOrgRow][nOrgCol].formula){
                     sValue = this.parseFormula(this.arrData[nOrgRow][nOrgCol].formula);
                     this.at(x,y).formulaCell();
@@ -621,11 +621,10 @@ console.log('End createLayout =' + elapsed);
                 if (this.arrData[nOrgRow][nOrgCol].selected){
                     this.at(x,y).selectedCell();
                     this.arrSelectedCells.push(this.at(x,y));
-                    console.log("selected")
                 }
 
 
-
+                //cell formats
                 /*fontWeight: 'bold'
                 textDecoration: 'underline'
                 fontStyle: 'italic'

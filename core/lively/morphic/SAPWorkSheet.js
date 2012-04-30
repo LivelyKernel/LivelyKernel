@@ -1184,8 +1184,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     onMouseDown: function (evt) {
         console.log('SAPGridCell.onMouseDown');
 
-        var sFontFamily ="Helvetica";
-        var sFontSize = "10";
+        var sFontFamily =this.grid.defaultFontFamily;
+        var sFontSize = this.grid.defalutFontSize;
 
        /*bug below code always return Helvetica and 10
         sFontFamily = this.getFontFamily();

@@ -1661,6 +1661,8 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
         // This will align the buttons and label properly
         this.adjustForNewBounds();
         this.adjustForNewBounds();
+
+        this.disableDropping();
     },
 
 },

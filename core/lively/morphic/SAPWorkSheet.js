@@ -1879,6 +1879,7 @@ dataformat: currency & percentage & date & time
         var nColumn;
         var nOrgRow;
         var nOrgCol;
+        var sValue
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
             nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
@@ -1886,8 +1887,10 @@ dataformat: currency & percentage & date & time
             nOrgCol = nColumn + this.grid.startColumn; 
             this.grid.arrData[nOrgRow][nOrgCol].value;
  	     //this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
-            //oWorkBook.grid.roundtoFixNumber("123456.123456",2,true)
-            this.grid.arrSelectedCells[i].textString=this.grid.arrData[nOrgRow][nOrgCol].value;
+            //this.grid.roundtoFixNumber("123456.123456",2,true)
+            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
+            sValue = this.grid.roundtoFixNumber(sValue ,2,true)
+            this.grid.arrSelectedCells[i].textString=sValue;
         }
          //for data
         var oDataFormat;

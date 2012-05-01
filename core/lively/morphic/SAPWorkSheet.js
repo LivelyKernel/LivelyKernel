@@ -1879,6 +1879,7 @@ dataformat: currency & percentage & date & time
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
  	     //this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
             //oWorkBook.grid.roundtoFixNumber("123456.123456",2,true)
+            this.grid.arrSelectedCells[i].textString="";
         }
          //for data
         var oDataFormat;

@@ -1834,7 +1834,11 @@ dataformat: currency & percentage & date
  	     //this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
         }
          //for data
+        var oDataFormat;
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            oDataFormat = {};
+            oDataFormat.type ="currency";
+            //oDataFormat. 
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat='currency';
         }
     },

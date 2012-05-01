@@ -1891,7 +1891,7 @@ dataformat: currency & percentage & date & time
             //this.grid.arrData[nOrgRow][nOrgCol].value;
  	     //this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
             //this.grid.roundtoFixNumber("123456.123456",2,true)
-            debugger;
+    
             sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
             sValue = this.grid.roundtoFixNumber(sValue ,2,true)
             this.grid.arrSelectedCells[i].textString=sValue;

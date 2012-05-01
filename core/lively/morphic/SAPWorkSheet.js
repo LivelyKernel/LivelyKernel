@@ -1880,7 +1880,7 @@ dataformat: currency & percentage & date & time
         var nOrgRow;
         var nOrgCol;
         var sValue
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+        for (var i= 0; i< this.grid.arrSelectedCells.length; i++) {
             nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
             nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
             nOrgRow = nRow  + this.grid.startRow;

@@ -1831,7 +1831,7 @@ dataformat: currency & percentage & date
     imgSignDollar_Click: function() {
        
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
- 	     
+ 	     //this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
         }
          //for data
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {

@@ -1088,15 +1088,15 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
     },
 },
 'Common Tool', {
-    roundtoFixNumber: function(num, nLength, bAddTousandSeparator) {
+    roundtoFixNumber: function(num, nDecimalPlaces, bAddTousandSeparator) {
         var sResult;
         sResult= num.toString(); //bug when rnum cotains comma
         sResult= sResult.replace(/,/g, "");
 
         if (isNaN(sResult) || sResult== null || sResult== "") {
-            sResult= parseFloat("0").toFixed(nLength);
+            sResult= parseFloat("0").toFixed(nDecimalPlaces);
         } else {
-            sResult= parseFloat(sResult).toFixed(nLength);
+            sResult= parseFloat(sResult).toFixed(nDecimalPlaces);
         }
 
         if (bAddTousandSeparator) {

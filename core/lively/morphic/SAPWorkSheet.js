@@ -1847,7 +1847,7 @@ dataformat: currency & percentage & date & time
             oDataFormat.decimalPlaces = "2";
             oDataFormat.unitOfMeasure = "1";
             oDataFormat.negativeType= "1";
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat='currency';
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
         }
     },
     imgSignPercent_Click: function() {

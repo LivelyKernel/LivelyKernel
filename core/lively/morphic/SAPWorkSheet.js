@@ -1931,7 +1931,7 @@ dataformat: currency & percentage & date & time
             nOrgRow = nRow  + this.grid.startRow;
             nOrgCol = nColumn + this.grid.startColumn; 
             sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-            sValue = this.grid.converttoPercentage(sValue ,0)
+            sValue = this.grid.converttoPercentage(sValue ,2)
             this.grid.arrSelectedCells[i].textString= sValue + "%";
         }
         var oDataFormat;
@@ -1940,7 +1940,7 @@ dataformat: currency & percentage & date & time
             //we need to get from default value...?
             oDataFormat = {};    
             oDataFormat.type ="percentage";
-            oDataFormat.decimalPlaces = 0;
+            oDataFormat.decimalPlaces = 2;
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
         }
 

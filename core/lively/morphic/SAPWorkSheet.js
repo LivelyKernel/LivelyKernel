@@ -1878,11 +1878,12 @@ dataformat: currency & percentage & date & time
        
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
  	     //this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
+            //oWorkBook.grid.roundtoFixNumber("123456.123456",2,true)
         }
          //for data
         var oDataFormat;
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            // - currency: symbol , decimalPlaces ,unitOfMeasure (whole,thousand,million), negativeType (withminus, red, withBracket, redwithBracket) 
+            // - currency: symbol , decimalPlaces ,useThousandSep. unitOfMeasure (whole,thousand,million), negativeType (withminus, red, withBracket, redwithBracket) 
             //we need to get from default value...?
             oDataFormat = {};    
             oDataFormat.type ="currency";

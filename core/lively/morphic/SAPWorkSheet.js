@@ -1092,7 +1092,12 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
         var sResult;
         sResult= num.toString(); //bug when rnum cotains comma
         sResult= sResult.replace(/,/g, "");
-        
+        if (isNaN(sResult) || sResult== null || sResult== "") {
+            sResult= parseFloat("0").toFixed(nDecimalPlaces);
+        } else {
+            sResult= parseFloat(sResult).toFixed(nDecimalPlaces);
+        }
+        return sResult;
     },
     roundtoFixNumber: function(num, nDecimalPlaces, bAddTousandSeparator) {
         var sResult;

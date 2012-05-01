@@ -1909,7 +1909,7 @@ dataformat: currency & percentage & date & time
         }
     },
     imgSignPercent_Click: function() {
-   
+        var i;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
          //this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
         }
@@ -1942,7 +1942,7 @@ dataformat: currency & percentage & date & time
         this.grid.removeColBetween();
     },
 
-});
+});    
 
 lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
 'default category', {

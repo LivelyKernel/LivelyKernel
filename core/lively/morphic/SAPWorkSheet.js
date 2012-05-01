@@ -1820,7 +1820,7 @@ dataformat: currency & percentage & date & time
         }
     },
     imgTextAlignCenter_Click: function() {
-         var i;
+        var i;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].setAlign('center'); 
         }
@@ -1830,7 +1830,7 @@ dataformat: currency & percentage & date & time
         }
     },
     imgTextAlignRight_Click: function() {
-         var i;
+        var i;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].setAlign('right'); 
         }
@@ -1840,7 +1840,7 @@ dataformat: currency & percentage & date & time
         }
     },
     imgItalic_Click: function() {
-         var i;
+        var i;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({fontStyle: 'italic'});
         }
@@ -1860,8 +1860,7 @@ dataformat: currency & percentage & date & time
         }
     },
     imgBold_Click: function() {
-         var i;
-        //for grid
+        var i;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
         }
@@ -1888,10 +1887,6 @@ dataformat: currency & percentage & date & time
             nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
             nOrgRow = nRow  + this.grid.startRow;
             nOrgCol = nColumn + this.grid.startColumn; 
-            //this.grid.arrData[nOrgRow][nOrgCol].value;
- 	     //this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
-            //this.grid.roundtoFixNumber("123456.123456",2,true)
-    
             sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
             sValue = this.grid.roundtoFixNumber(sValue ,2,true)
             this.grid.arrSelectedCells[i].textString= "$" + sValue;

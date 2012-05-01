@@ -1845,9 +1845,9 @@ dataformat: currency & percentage & date & time
             oDataFormat = {};    
             oDataFormat.type ="currency";
             oDataFormat.symbol = "$";
-            oDataFormat.decimalPlaces = "2";
-            oDataFormat.unitOfMeasure = "1";
-            oDataFormat.negativeType= "1";
+            oDataFormat.decimalPlaces = 2;
+            oDataFormat.unitOfMeasure = 1;
+            oDataFormat.negativeType= 1;
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
         }
     },

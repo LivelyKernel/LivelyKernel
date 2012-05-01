@@ -1092,7 +1092,7 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
        
     },
 
-    AddThousandSeparator: function(num, decpointChar, sepChar) {
+    addThousandSeparator: function(num, decpointChar, sepChar) {
        
     },
 });

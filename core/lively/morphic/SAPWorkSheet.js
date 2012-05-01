@@ -1088,6 +1088,7 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
         $super(evt);
          console.log("SAPGrid.onMouseUp");
     },
+
 });
 
 

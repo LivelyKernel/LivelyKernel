@@ -1752,6 +1752,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
         this.expandedTransform    = null;
         this.expandedExtent       = null;
         this.ignoreEventsOnExpand = false;
+        this.disableDropping();
         return this;
     },
 

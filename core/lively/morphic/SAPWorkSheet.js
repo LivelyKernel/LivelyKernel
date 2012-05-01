@@ -1662,11 +1662,11 @@ dataformat: currency & percentage & date & time
 
         var oSubmorphs= this.submorphs
         //debugger;
-        for (var i = 0; i < oSubmorphs.length; i++) {
+        //for (var i = 0; i < oSubmorphs.length; i++) {
             //if (oSubmorphs[i].shape==lively.morphic.Image){
             //      console.log("image")
             //}
-        }
+        //}
 
         this.imgSave.grabbingEnabled = false;
         this.imgSaveAs.grabbingEnabled = false;

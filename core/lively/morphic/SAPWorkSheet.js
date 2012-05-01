@@ -1918,9 +1918,20 @@ dataformat: currency & percentage & date & time
         }
     },
     imgSignPercent_Click: function() {
+        var nRow;
+        var nColumn;
+        var nOrgRow;
+        var nOrgCol;
+        var sValue;
         var i;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-         //this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
+            nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow  + this.grid.startRow;
+            nOrgCol = nColumn + this.grid.startColumn; 
+            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
+            sValue = this.grid.converttoPercentage(sValue ,0)
+            this.grid.arrSelectedCells[i].textString= sValue + "%";
         }
         var oDataFormat;
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {

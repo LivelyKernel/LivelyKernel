@@ -1516,7 +1516,10 @@ getItalics
 formula:
 notes:
 dataformat: currency & percentage & date & time
-    - currency: symbol, Decimal places, negative type (withminus, red, withbraket, redwithbraket) 
+    - currency: symbol, Decimal places, negative type (withminus, red, withBracket, redwithBracket) 
+    - percentage: Decimal places
+    - date: dateformat (~5 types)
+    - time: timeformat (~5 types)
 */
 
 

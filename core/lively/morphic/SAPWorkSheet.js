@@ -1883,13 +1883,14 @@ dataformat: currency & percentage & date & time
          //for data
         var oDataFormat;
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            // - currency: symbol , decimalPlaces ,useThousandSep. unitOfMeasure (whole,thousand,million), negativeType (withminus, red, withBracket, redwithBracket) 
+            // - currency: symbol , decimalPlaces ,useThousandSeparator, unitOfMeasure (whole,thousand,million), negativeType (withminus, red, withBracket, redwithBracket) 
             //we need to get from default value...?
             oDataFormat = {};    
             oDataFormat.type ="currency";
             oDataFormat.symbol = "$";
             oDataFormat.decimalPlaces = 2;
             oDataFormat.unitOfMeasure = 1;
+            oDataFormat.useThousandSeparator = true;
             oDataFormat.negativeType= 1;
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
         }

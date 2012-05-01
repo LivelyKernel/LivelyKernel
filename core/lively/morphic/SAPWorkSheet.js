@@ -1864,14 +1864,11 @@ dataformat: currency & percentage & date & time
         }
         var oDataFormat;
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            // - currency: symbol , decimalPlaces ,unitOfMeasure (whole,thousand,million), negativeType (withminus, red, withBracket, redwithBracket) 
+            // percentage: Decimal places
             //we need to get from default value...?
             oDataFormat = {};    
-            oDataFormat.type ="currency";
-            oDataFormat.symbol = "$";
-            oDataFormat.decimalPlaces = "2";
-            oDataFormat.unitOfMeasure = "1";
-            oDataFormat.negativeType= "1";
+            oDataFormat.type ="percentage";
+            oDataFormat.decimalPlaces = 0;
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
         }
 

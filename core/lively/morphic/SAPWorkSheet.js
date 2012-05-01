@@ -1839,6 +1839,10 @@ dataformat: currency & percentage & date
             nOrgRow = nRow  + this.grid.startRow;
             nOrgCol = nColumn + this.grid.startColumn;       
         }
+         //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat='currency';
+        }
     },
     imgSignPercent_Click: function() {
         var nRow;

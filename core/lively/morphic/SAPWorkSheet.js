@@ -1100,14 +1100,35 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
         }
 
         if (bAddTousandSeparator) {
-            result = this.AddThousandSeparator(result, ".", ",");
+            result = this.addThousandSeparator(result, ".", ",");
         }
 
         return result;
     },
 
     addThousandSeparator: function(num, decpointChar, sepChar) {
-       
+       if (num == null) {
+            return "0";
+        }
+        num = num.toString();
+        var a = num.split(decpointChar);
+        var x = a[0]; // decimal
+        var y = a[1]; // fraction
+        var z = "";
+
+        if (typeof (x) != "undefined") {
+            for (i = x.length - 1; i >= 0; i--)
+                z += x.charAt(i);
+            z = z.replace(/(\d{3})/g, "$1" + sepChar);
+            if (z.slice(-sepChar.length) == sepChar)
+                z = z.slice(0, -sepChar.length);
+            x = "";
+            for (i = z.length - 1; i >= 0; i--)
+                x += z.charAt(i);
+            if (typeof (y) != "undefined" && y.length > 0)
+                x += decpointChar + y;
+        }
+        return x;
     },
 });
 

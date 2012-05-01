@@ -1841,6 +1841,7 @@ dataformat: currency & percentage & date & time
         var oDataFormat;
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
             // - currency: symbol , decimalPlaces ,unitOfMeasure (whole,thousand,million), negativeType (withminus, red, withBracket, redwithBracket) 
+            //we need to get from default value...?
             oDataFormat = {};    
             oDataFormat.type ="currency";
             oDataFormat.symbol = "$";

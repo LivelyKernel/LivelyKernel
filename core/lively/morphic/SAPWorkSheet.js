@@ -1089,7 +1089,21 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
 },
 'Common Tool', {
     roundtoFixNumber: function(rnum, rlength, bAddTousandSeparator) {
-       
+        var result;
+        result = rnum.toString(); //bug when rnum cotains comma
+        result = result.replace(/,/g, "");
+
+        if (isNaN(result) || result == null || result == "") {
+            result = parseFloat("0").toFixed(rlength);
+        } else {
+            result = parseFloat(result).toFixed(rlength);
+        }
+
+        if (bAddTousandSeparator) {
+            result = this.AddThousandSeparator(result, ".", ",");
+        }
+
+        return result;
     },
 
     addThousandSeparator: function(num, decpointChar, sepChar) {

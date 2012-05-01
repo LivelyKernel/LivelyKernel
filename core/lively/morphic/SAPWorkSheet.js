@@ -1008,15 +1008,10 @@ currently only support
             if (sValue .charAt(0)=="="){
                 var nColumn = this.getActiveColIndex();
                 var nRow= this.getActiveRowIndex();
-
                 var nOrgRow = nRow  + this.startRow;
                 var nOrgCol = nColumn+ this.startColumn;
                 
-
-
                 this.arrData[nOrgRow][nOrgCol].formula = sValue; 
- console.log("SAPGrid.onEnterPressed nOrgCol,nOrgRow ,sValue =" + nOrgCol+ ", " + nOrgRow + ", " + sValue);
-//debugger;
                 this.activeCell.textString=this.parseFormula(sValue);
                 //'Formula \n test'
                 this.activeCell.setToolTip('Formula: \n' + sValue);

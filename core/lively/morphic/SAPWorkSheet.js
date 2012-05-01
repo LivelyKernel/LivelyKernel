@@ -658,6 +658,7 @@ console.log('End createLayout =' + elapsed);
                 
                 //this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
                 this.at(x,y).applyStyle({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
+                this.at(x,y).setTextDecoration(sTextDecoration);
                 this.at(x,y).setAlign(sTextAlign); 
             }
         }

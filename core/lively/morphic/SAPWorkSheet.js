@@ -1840,9 +1840,13 @@ dataformat: currency & percentage & date & time
          //for data
         var oDataFormat;
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            oDataFormat = {};
+            // - currency: symbol , decimalPlaces ,unitOfMeasure (whole,thousand,million), negativeType (withminus, red, withBracket, redwithBracket) 
+            oDataFormat = {};    
             oDataFormat.type ="currency";
-            //oDataFormat. 
+            oDataFormat.symbol = "$";
+            oDataFormat.decimalPlaces = "2";
+            oDataFormat.unitOfMeasure = "1";
+            oDataFormat.negativeType= "1";
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat='currency';
         }
     },

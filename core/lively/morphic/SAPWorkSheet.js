@@ -1106,12 +1106,12 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
         return sResult;
     },
 
-    addThousandSeparator: function(num, decpointChar, sepChar) {
+    addThousandSeparator: function(num, sDecpointChar, sSepChar) {
        if (num == null) {
             return "0";
         }
         num = num.toString();
-        var a = num.split(decpointChar);
+        var a = num.split(sDecpointChar);
         var x = a[0]; // decimal
         var y = a[1]; // fraction
         var z = "";
@@ -1119,14 +1119,14 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
         if (typeof (x) != "undefined") {
             for (i = x.length - 1; i >= 0; i--)
                 z += x.charAt(i);
-            z = z.replace(/(\d{3})/g, "$1" + sepChar);
-            if (z.slice(-sepChar.length) == sepChar)
-                z = z.slice(0, -sepChar.length);
+            z = z.replace(/(\d{3})/g, "$1" + sSepChar);
+            if (z.slice(-sSepChar.length) == sSepChar)
+                z = z.slice(0, -sSepChar.length);
             x = "";
             for (i = z.length - 1; i >= 0; i--)
                 x += z.charAt(i);
             if (typeof (y) != "undefined" && y.length > 0)
-                x += decpointChar + y;
+                x += sDecpointChar + y;
         }
         return x;
     },

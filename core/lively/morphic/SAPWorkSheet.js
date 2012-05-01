@@ -1088,14 +1088,12 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
     },
 },
 'Common Tool', {
-    roundtoFixNumber: function($super, evt) {
-        $super(evt);
-         console.log("SAPGrid.onMouseDown");
+    roundtoFixNumber: function(rnum, rlength, bAddTousandSeparator) {
+       
     },
 
-    AddThousandSeparator: function($super, evt) {
-        $super(evt);
-         console.log("SAPGrid.onMouseUp");
+    AddThousandSeparator: function(num, decpointChar, sepChar) {
+       
     },
 });
 

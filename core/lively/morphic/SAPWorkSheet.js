@@ -1088,6 +1088,12 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
     },
 },
 'Common Tool', {
+     converttoPercentage: function(num,nDecimalPlaces){
+        var sResult;
+        sResult= num.toString(); //bug when rnum cotains comma
+        sResult= sResult.replace(/,/g, "");
+        
+    },
     roundtoFixNumber: function(num, nDecimalPlaces, bAddTousandSeparator) {
         var sResult;
         sResult= num.toString(); //bug when rnum cotains comma

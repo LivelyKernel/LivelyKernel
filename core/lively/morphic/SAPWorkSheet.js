@@ -1088,9 +1088,9 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
     },
 },
 'Common Tool', {
-    roundtoFixNumber: function(rnum, rlength, bAddTousandSeparator) {
+    roundtoFixNumber: function(num, rlength, bAddTousandSeparator) {
         var result;
-        result = rnum.toString(); //bug when rnum cotains comma
+        result = num.toString(); //bug when rnum cotains comma
         result = result.replace(/,/g, "");
 
         if (isNaN(result) || result == null || result == "") {

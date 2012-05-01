@@ -1075,8 +1075,6 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
          console.log("SAPGrid.onKeyUp");
     },
     
-
-
 },
 'Mouse Events', {
     onMouseDown: function($super, evt) {
@@ -1088,7 +1086,17 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
         $super(evt);
          console.log("SAPGrid.onMouseUp");
     },
+},
+'Common Tool', {
+    roundtoFixNumber: function($super, evt) {
+        $super(evt);
+         console.log("SAPGrid.onMouseDown");
+    },
 
+    AddThousandSeparator: function($super, evt) {
+        $super(evt);
+         console.log("SAPGrid.onMouseUp");
+    },
 });
 
 

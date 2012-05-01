@@ -1095,6 +1095,7 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
         if (isNaN(sResult) || sResult== null || sResult== "") {
             sResult= parseFloat("0").toFixed(nDecimalPlaces);
         } else {
+            sResult = sResult/100;
             sResult= parseFloat(sResult).toFixed(nDecimalPlaces);
         }
         return sResult;

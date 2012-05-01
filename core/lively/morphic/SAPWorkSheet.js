@@ -656,7 +656,8 @@ console.log('End createLayout =' + elapsed);
                     sTextAlign =this.arrData[nOrgRow][nOrgCol].textAlign;
                 }
                 
-                this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
+                //this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
+                this.at(x,y).applyStyle({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
                 this.at(x,y).setAlign(sTextAlign); 
             }
         }

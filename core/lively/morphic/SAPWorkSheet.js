@@ -1733,7 +1733,7 @@ dataformat: currency & percentage & date & time
         this.ddlFont.setList([this.fontPicker.selectedFont]);
     },    
     fontPicker_callBack: function(sFont){
-       
+        var i;
         var that = this.owner;
         that.ddlFont.updateList([sFont]);
         for (i= 0; i< that.grid.arrSelectedCells.length; i++) {
@@ -1768,7 +1768,7 @@ dataformat: currency & percentage & date & time
     
     },
     ddlFontSize_onChange: function(){
-        //this.get("ddltest").setSelectionMatching("b")
+        var i;
         var nFontsize = this.ddlFontSize.getSelectedItem();
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({fontSize:nFontsize });
@@ -1810,6 +1810,7 @@ dataformat: currency & percentage & date & time
 
     },
     imgTextAlignLeft_Click: function() {
+        var i;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].setAlign('left'); 
         }
@@ -1819,7 +1820,7 @@ dataformat: currency & percentage & date & time
         }
     },
     imgTextAlignCenter_Click: function() {
-
+         var i;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].setAlign('center'); 
         }
@@ -1829,7 +1830,7 @@ dataformat: currency & percentage & date & time
         }
     },
     imgTextAlignRight_Click: function() {
-
+         var i;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].setAlign('right'); 
         }
@@ -1839,7 +1840,7 @@ dataformat: currency & percentage & date & time
         }
     },
     imgItalic_Click: function() {
-     
+         var i;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({fontStyle: 'italic'});
         }
@@ -1849,6 +1850,7 @@ dataformat: currency & percentage & date & time
         }
     },
     imgUnderline_Click: function() {
+        var i;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({textDecoration: 'underline'});
         }
@@ -1858,7 +1860,7 @@ dataformat: currency & percentage & date & time
         }
     },
     imgBold_Click: function() {
-
+         var i;
         //for grid
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});

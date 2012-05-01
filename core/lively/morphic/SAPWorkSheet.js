@@ -1115,7 +1115,7 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
         var x = a[0]; // decimal
         var y = a[1]; // fraction
         var z = "";
-
+        var i;
         if (typeof (x) != "undefined") {
             for (i = x.length - 1; i >= 0; i--)
                 z += x.charAt(i);

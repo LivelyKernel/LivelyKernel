@@ -108,8 +108,8 @@ paths: [],
 initialize: function(description) {
     this.loadFromDescription(description || {});
 },
-addPathDescription: function(description) {
-    this.addPath(new games.TowerDefense.Path(description));
+addPathDescription: function(point, description) {
+    this.addPath(new games.TowerDefense.Path(point, description));
 },
 addPath: function(path) {
     this.paths.push(path);

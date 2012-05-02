@@ -195,7 +195,7 @@ initialize: function($super, description) {
 },
 parse: function(description) {
     for (i=0; i<description.length; ++i) {
-        
+        this.directions.append(this.directionFor(description.charAt(i)));
     }
 },
 });

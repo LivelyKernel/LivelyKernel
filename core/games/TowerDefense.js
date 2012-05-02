@@ -183,6 +183,9 @@ initializeSize: function() {
 loadLevel: function(levelDescription) {
     this.currentDescription = levelDescription;
 },
+tileAt: function(x, y) {
+    return this.map[y*this.settings.yTiles+x];
+},
 });
 
 Object.subclass('games.TowerDefense.LevelDescription', {

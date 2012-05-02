@@ -167,6 +167,9 @@ initialize: function($super, path) {
 update: function(delta) {
     alert(delta);
 },
+moveTo: function(coordinates) {
+    this.setPosition(coordinates.scaleBy(games.TowerDefense.Tile.edgeLength));
+},
 });
 
 Object.subclass('games.TowerDefense.Path', {

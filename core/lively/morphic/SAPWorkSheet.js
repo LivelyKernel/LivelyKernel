@@ -963,6 +963,8 @@ currently only support
         //debugger;
         if (sValue){
         
+        try{
+
             sValue = sValue.toUpperCase();
             if (sValue.substr(0,5)=="=SUM("){
                 arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");
@@ -1009,9 +1011,13 @@ currently only support
                
                 nValue =  parseFloat(this.arrData[oCell.rowIndex][oCell.columnIndex].value);
                 return nValue; 
-	   }		
+	   }	
         }
-    return 255;
+        catch(err){
+
+        }	
+        }
+    return sValue;
     },
     parseformulaCellIndex: function (sValue){
         var oIndex={};

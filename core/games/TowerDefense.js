@@ -210,12 +210,6 @@ Morph.subclass('games.TowerDefense.Tile', {
 edgeLength: function() {
     return TD.Tile.edgeLength;
 },
-map: function() {
-    return this.owner();
-},
-towerDefense: function() {
-    return this.owner.towerDefense();
-},
 });
 
 Object.extend(games.TowerDefense.Tile, {

@@ -1,106 +1,5 @@
 module('games.TowerDefense').requires().toRun(function() {
 
-Object.extend(games.TowerDefense, {
-start: function() {
-    var towerDefense = new games.TowerDefense.TowerDefense();
-    var window = new lively.morphic.Window(towerDefense, "TowerDefense");
-    window.name = "TowerDefense";
-    window.openInWorld();
-    return window;
-}
-});
-
-Morph.subclass('games.TowerDefense.TowerDefense', {
-settings: {
-    borderWidth: 1
-},
-level1: new games.TowerDefense.LevelDescription({
-    name: 'Level 1',
-    paths: [
-        { x: 3, y: 0, description: 'DDDDDRRRRDDLLLDDDDDDD' },
-        { x: 3, y: 0, description: 'DDRRDDDRRDDLLLDDDDDDD' },
-        { x: 0, y: 2, description: 'RRRRRDRRRDDDLDLLLDDDDDDD' }
-    ]
-}),
-buildLevel: function() {
-    this.level = new games.TowerDefense.Level();
-    
-    this.addMorph(this.level);
-    this.level.setPosition(pt(this.settings.borderWidth, this.menu.getExtent().y + this.settings.borderWidth));
-    this.level.loadLevel(this.level1);
-},
-buildMenu: function() {
-    this.menu = new games.TowerDefense.Menu({
-        restart: { name: 'Restart', receiver: this, slot: 'initializeTowerDefense' },
-        pause: { name: 'Paused', receiver: this, slot: 'togglePaused' }
-    });
-    
-    this.addMorph(this.menu);
-    this.menu.setPosition(pt(this.settings.borderWidth, this.settings.borderWidth));
-},
-isPaused: function() {
-    return this.paused;
-},
-initializeColor: function() {
-    this.setFill(Color.white);
-},
-initializeSize: function() {
-    this.setExtent(pt(
-        this.level.getExtent().x + 2*this.settings.borderWidth,
-        this.level.getExtent().y + this.settings.borderWidth + this.menu.getExtent().y
-    ));
-},
-initialize: function($super) {
-    $super();
-    
-    this.initializeTowerDefense();
-},
-initializeTowerDefense: function() {
-    this.resetMorphs();
-    this.initializeColor();
-    this.buildMenu();
-    this.buildLevel();
-    this.initializeSize();
-    this.setPaused(true);
-    this.resetLastTimestamp();
-    this.startSteppingScripts();
-},
-mainIteration: function() {
-    if (this.isPaused()) {
-        return;
-    }
-    var newTimestamp = new Date();
-    var delta = newTimestamp - this.lastTimestamp;
-    
-    this.update(delta / 1000.0);
-
-    this.lastTimestamp = newTimestamp;
-},
-resetLastTimestamp: function() {
-    this.lastTimestamp = new Date();
-},
-resetMorphs: function() {
-    this.removeAllMorphs();
-},
-setPaused: function(paused) {
-    this.paused = paused;
-
-    this.resetLastTimestamp();
-    
-    this.menu.entries.pause.setLabel(this.paused?"Resume":"Pause");
-},
-startSteppingScripts: function() {
-    this.stopStepping();
-    this.startStepping(50, "mainIteration");
-},
-togglePaused: function() {
-    this.setPaused(!this.isPaused());
-},
-update: function(delta) {
-    alert(delta);
-},
-});
-
 Morph.subclass('games.TowerDefense.Menu', {
 settings: {
     height: 25,
@@ -324,6 +223,107 @@ up: new games.TowerDefense.UpDirection(),
 left: new games.TowerDefense.LeftDirection(),
 down: new games.TowerDefense.DownDirection(),
 right: new games.TowerDefense.RightDirection(),
+});
+
+Morph.subclass('games.TowerDefense.TowerDefense', {
+settings: {
+    borderWidth: 1
+},
+level1: new games.TowerDefense.LevelDescription({
+    name: 'Level 1',
+    paths: [
+        { x: 3, y: 0, description: 'DDDDDRRRRDDLLLDDDDDDD' },
+        { x: 3, y: 0, description: 'DDRRDDDRRDDLLLDDDDDDD' },
+        { x: 0, y: 2, description: 'RRRRRDRRRDDDLDLLLDDDDDDD' }
+    ]
+}),
+buildLevel: function() {
+    this.level = new games.TowerDefense.Level();
+    
+    this.addMorph(this.level);
+    this.level.setPosition(pt(this.settings.borderWidth, this.menu.getExtent().y + this.settings.borderWidth));
+    this.level.loadLevel(this.level1);
+},
+buildMenu: function() {
+    this.menu = new games.TowerDefense.Menu({
+        restart: { name: 'Restart', receiver: this, slot: 'initializeTowerDefense' },
+        pause: { name: 'Paused', receiver: this, slot: 'togglePaused' }
+    });
+    
+    this.addMorph(this.menu);
+    this.menu.setPosition(pt(this.settings.borderWidth, this.settings.borderWidth));
+},
+isPaused: function() {
+    return this.paused;
+},
+initializeColor: function() {
+    this.setFill(Color.white);
+},
+initializeSize: function() {
+    this.setExtent(pt(
+        this.level.getExtent().x + 2*this.settings.borderWidth,
+        this.level.getExtent().y + this.settings.borderWidth + this.menu.getExtent().y
+    ));
+},
+initialize: function($super) {
+    $super();
+    
+    this.initializeTowerDefense();
+},
+initializeTowerDefense: function() {
+    this.resetMorphs();
+    this.initializeColor();
+    this.buildMenu();
+    this.buildLevel();
+    this.initializeSize();
+    this.setPaused(true);
+    this.resetLastTimestamp();
+    this.startSteppingScripts();
+},
+mainIteration: function() {
+    if (this.isPaused()) {
+        return;
+    }
+    var newTimestamp = new Date();
+    var delta = newTimestamp - this.lastTimestamp;
+    
+    this.update(delta / 1000.0);
+
+    this.lastTimestamp = newTimestamp;
+},
+resetLastTimestamp: function() {
+    this.lastTimestamp = new Date();
+},
+resetMorphs: function() {
+    this.removeAllMorphs();
+},
+setPaused: function(paused) {
+    this.paused = paused;
+
+    this.resetLastTimestamp();
+    
+    this.menu.entries.pause.setLabel(this.paused?"Resume":"Pause");
+},
+startSteppingScripts: function() {
+    this.stopStepping();
+    this.startStepping(50, "mainIteration");
+},
+togglePaused: function() {
+    this.setPaused(!this.isPaused());
+},
+update: function(delta) {
+    alert(delta);
+},
+});
+
+Object.extend(games.TowerDefense, {
+start: function() {
+    var towerDefense = new games.TowerDefense.TowerDefense();
+    var window = new lively.morphic.Window(towerDefense, "TowerDefense");
+    window.name = "TowerDefense";
+    window.openInWorld();
+    return window;
+}
 });
 
 }); // end of module

@@ -178,7 +178,7 @@ addPathDescription: function(description) {
 addPath: function(path) {
     this.paths.push(path);
 },
-}); 
+});
 
 Morph.subclass('games.TowerDefense.Tile', {
 edgeLength: function() {

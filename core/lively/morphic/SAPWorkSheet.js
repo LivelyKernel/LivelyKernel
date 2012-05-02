@@ -1015,7 +1015,7 @@ currently only support
 	   }	
         }
         catch(err){
-
+            return sOrgValue;
         }	
         }
     return sOrgValue;

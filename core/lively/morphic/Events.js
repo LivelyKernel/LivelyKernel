@@ -1624,7 +1624,11 @@ lively.morphic.World.addMethods(
                 });
             if (mimeType) {
                 var data = evt.dataTransfer.getData(mimeType);
-                this.addTextWindow({content: data, title: 'Dropped'});
+                this.addTextWindow({
+                    content: data,
+                    title: 'Dropped',
+                    position: this.visibleBounds().center()
+                });
             }
         }
         return true;

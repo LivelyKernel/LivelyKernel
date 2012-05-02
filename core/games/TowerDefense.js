@@ -166,6 +166,12 @@ initializeTiles: function() {
         }
     }
 },
+initializeSize: function() {
+    this.setExtent(pt(
+        this.settings.xTiles * games.TowerDefense.Tile.edgeLength,
+        this.settings.yTiles * games.TowerDefense.Tile.edgeLength
+    ));
+}
 });
 
 Morph.subclass('games.TowerDefense.Tile', {

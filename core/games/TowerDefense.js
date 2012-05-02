@@ -227,7 +227,7 @@ left: function() {
     this.appendDirection(TD.Direction.left);
 },
 appendDirection: function(direction) {
-    this.directions.append(direction);
+    this.directions.push(direction);
 },
 });
 

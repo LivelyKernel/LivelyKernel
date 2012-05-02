@@ -15,15 +15,9 @@ settings: {
     borderWidth: 1
 },
 buildMap: function() {
-    var mapMorph = new Morph();
+    this.map = new games.TowerDefense.Map();
     
-    mapMorph.settings = {
-        tileSize: 32,
-        xTiles: 15,
-        yTiles: 15
-    };
-    
-    this.addMorph(mapMorph);
+    this.addMorph(this.map);
     mapMorph.setPosition(pt(this.settings.borderWidth, this.settings.menuHeight + this.settings.borderWidth));
     mapMorph.setExtent(pt(
         this.settings.tileSize*this.settings.xTiles,
@@ -34,7 +28,7 @@ buildMap: function() {
     mapMorph.addScript(function towerDefense() {
         return this.owner;
     });
-    this.map = mapMorph;
+    
     
     for(i=0; i<this.settings.yTiles; ++i) {
         for (j=0; j<this.settings.xTiles; ++j) {

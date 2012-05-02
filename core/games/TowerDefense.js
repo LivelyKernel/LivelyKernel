@@ -97,7 +97,7 @@ loadLevel: function(levelDescription) {
         path.foreachDirection(function(direction) {
             point = direction.apply(point);
             
-            _this.tileAt(point).setFill(this.settings.pathColor);
+            _this.tileAt(point).setFill(_this.settings.pathColor);
         });
     }
 },

@@ -449,7 +449,7 @@ console.log('End createLayout =' + elapsed);
     },
 
     
-    moveActiveCellBy: function(aPoint) {
+    moveActiveCellBy: function(evt,aPoint) {
         if (!this.activeCell) {
             this.at(0,0).activate();
             return;

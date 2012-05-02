@@ -158,6 +158,9 @@ settings: {
 },
 initialize: function($super) {
     $super();
+
+    this.initializeTiles();
+    this.initializeSize();
 },
 towerDefense: function() {
     return this.owner;

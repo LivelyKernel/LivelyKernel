@@ -113,6 +113,9 @@ tileAt: function(point) {
     
     return this.map[point.y*this.settings.yTiles+point.x];
 },
+update: function(delta) {
+    
+},
 });
 
 Object.subclass('games.TowerDefense.LevelDescription', {

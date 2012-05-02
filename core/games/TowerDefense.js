@@ -103,6 +103,10 @@ loadLevel: function(levelDescription) {
     }
 },
 tileAt: function(point) {
+    if (point.x < 0 || point.x >= this.settings.xTiles || point.y < 0 || point.y >= this.settings.yTiles) {
+        return null;
+    }
+    
     return this.map[point.y*this.settings.yTiles+point.x];
 },
 });

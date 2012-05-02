@@ -37,8 +37,8 @@ initializeColor: function() {
 },
 initializeSize: function() {
     this.setExtent(pt(
-        this.map.getExtent().getWidth() + 2*this.settings.borderWidth,
-        this.map.getExtent().getHeight() + this.settings.borderWidth + this.menu.getExtent().getHeight()
+        this.map.getExtent().x + 2*this.settings.borderWidth,
+        this.map.getExtent().y + this.settings.borderWidth + this.menu.getExtent().y
     ));
 },
 initialize: function($super) {

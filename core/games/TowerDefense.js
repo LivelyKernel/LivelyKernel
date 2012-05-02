@@ -145,7 +145,12 @@ edgeLength: 32,
 });
 
 Morph.subclass('games.TowerDefense.Creep', {
-
+initialize: function($super) {
+    $super();
+    
+    this.setFill(Color.rgb(227, 66, 52));
+    this.setShape(new lively.morphic.Shapes.Ellipse(pt(-0.4, -0.4).extent(pt(0.4, 0.4))));
+},
 });
 
 Object.subclass('games.TowerDefense.Path', {

@@ -19,10 +19,6 @@ buildMap: function() {
     
     this.addMorph(this.map);
     this.map.setPosition(pt(this.settings.borderWidth, this.settings.menuHeight + this.settings.borderWidth));
-    this.map.setExtent(pt(
-        this.settings.tileSize*this.settings.xTiles,
-        this.settings.tileSize*this.settings.yTiles
-    ));
 },
 buildMenu: function() {
     this.menu = new games.TowerDefense.Menu({

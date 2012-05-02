@@ -186,9 +186,11 @@ update: function(delta) {
         
 
         if (this.path.length < this.currentPathIndex) {
+            this.currentPathIndex++;
+
             this.step.to = this.path.directions[this.currentPathIndex].apply(this.step.to);
             
-            this.currentPathIndex++;
+            
         } else {
             this.setFill(Color.black);
         }

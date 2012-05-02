@@ -202,7 +202,19 @@ parseChar: function(c) {
     switch (c) {
         case '>':
         case 'R':
-            
+            return TD.Direction.right;
+        break;
+        case 'v':
+        case 'D':
+            return TD.Direction.down;
+        break;
+        case '<':
+        case 'L':
+            return TD.Direction.left;
+        break;
+        case '^':
+        case 'U':
+            return TD.Direction.up;
         break;
     }
 },

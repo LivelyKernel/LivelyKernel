@@ -17,9 +17,9 @@ settings: {
 level1: new TD.LevelDescription({
     name: 'Level 1',
     paths: [
-        { x: 0, y:0 , description: 'DDDDDRRRRDDLLLDDDDDDD' },
-        'DDRRDDDRRDDLLLDDDDDDD',
-        'DDRRDRRRDDDLDLLLDDDDDDD'
+        { x: 0, y: 0, description: 'DDDDDRRRRDDLLLDDDDDDD' },
+        { x: 0, y: 0, description: 'DDRRDDDRRDDLLLDDDDDDD' },
+        { x: 0, y: 0, description: 'DDRRDRRRDDDLDLLLDDDDDDD' }
     ]
 }),
 buildMap: function() {

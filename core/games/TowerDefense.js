@@ -3,7 +3,7 @@ module('games.TowerDefense').requires().toRun(function(TD) {
 Object.extend(games.TowerDefense, {
 start: function() {
     var towerDefense = new TD.TowerDefense();
-    var window = new lively.morphic.Window(towerDefense, "Towerefense");
+    var window = new lively.morphic.Window(towerDefense, "TowerDefense");
     window.name = "TowerDefense";
     window.openInWorld();
     return window;

@@ -23,10 +23,6 @@ buildMap: function() {
         this.settings.tileSize*this.settings.xTiles,
         this.settings.tileSize*this.settings.yTiles
     ));
-    mapMorph.addScript(function towerDefense() {
-        return this.owner;
-    });
-    
     
     for(i=0; i<this.settings.yTiles; ++i) {
         for (j=0; j<this.settings.xTiles; ++j) {

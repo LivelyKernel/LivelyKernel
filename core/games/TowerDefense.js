@@ -187,6 +187,7 @@ edgeLength: 32,
 });
 
 Object.subclass('games.TowerDefense.Way', {
+directions: [],
 initialize: function($super, description) {
     $super();
     

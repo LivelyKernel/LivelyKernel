@@ -176,7 +176,6 @@ initializeSize: function() {
 
 Morph.subclass('games.TowerDefense.Tile', {
 edgeLength: function() {
-    alert(this.constructor);
     return games.TowerDefense.Tile.edgeLength;
 },
 map: function() {

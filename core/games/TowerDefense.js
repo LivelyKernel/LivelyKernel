@@ -115,10 +115,10 @@ towerDefense: function() {
 initializeButtons: function(entries) {
     this.entries = {};
     
-    var lastX = 0;
+    var lastX = this.settings.buttonMargin;
     for (identifier in entries) {
         var button = new lively.morphic.Button();
-        button.setPosition(pt(lastX+this.settings.buttonMargin, this.settings.buttonMargin));
+        button.setPosition(pt(lastX, this.settings.buttonMargin));
         button.setExtent(pt(this.settings.buttonWidth, this.settings.buttonHeight));
         
         

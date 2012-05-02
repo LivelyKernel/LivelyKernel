@@ -161,6 +161,8 @@ initialize: function($super, path) {
     $super();
     
     this.path = path;
+    this.currentCoordinates = this.path.start;
+    this.nextCoordinates = this.path.start;
     this.currentPathIndex = 0;
     this.currentInterpolation = 0;
     this.moveTo(this.position);

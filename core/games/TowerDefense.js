@@ -186,4 +186,8 @@ Object.extend(games.TowerDefense.Tile, {
 edgeLength: 32,
 });
 
+Object.subclass('games.TowerDefense.Way', {
+    
+});
+
 }); // end of module

@@ -192,7 +192,9 @@ successors: [],
 });
 
 Object.subclass('games.TowerDefense.WayTest', {
+testWay: function() {
 
+},
 });
 
 }); // end of module

@@ -18,13 +18,11 @@ buildMap: function() {
     this.map = new games.TowerDefense.Map();
     
     this.addMorph(this.map);
-    mapMorph.setPosition(pt(this.settings.borderWidth, this.settings.menuHeight + this.settings.borderWidth));
-    mapMorph.setExtent(pt(
+    this.map.setPosition(pt(this.settings.borderWidth, this.settings.menuHeight + this.settings.borderWidth));
+    this.map.setExtent(pt(
         this.settings.tileSize*this.settings.xTiles,
         this.settings.tileSize*this.settings.yTiles
     ));
-    //mapMorph.setBorderColor(Color.black);
-    //mapMorph.setBorderWidth(this.settings.borderWidth);
     mapMorph.addScript(function towerDefense() {
         return this.owner;
     });

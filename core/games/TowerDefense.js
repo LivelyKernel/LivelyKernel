@@ -25,7 +25,10 @@ buildMap: function() {
     ));
 },
 buildMenu: function() {
-    this.menu = new games.TowerDefense.Menu();
+    this.menu = new games.TowerDefense.Menu({
+        restart: { name: 'Restart', receiver: this, slot: 'initializeTowerDefense' },
+        pause: { name: 'Paused', receiver: this, slot: 'togglePaused' },
+    });
     
     this.addMorph(this.menu);
     this.menu.setPosition(pt(this.settings.borderWidth, this.settings.borderWidth));

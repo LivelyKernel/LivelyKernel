@@ -201,6 +201,22 @@ Object.subclass('games.TowerDefense.Direction', {
 
 });
 
+TD.Direction.subclass('games.TowerDefense.UpDirection', {
+
+});
+
+TD.Direction.subclass('games.TowerDefense.LeftDirection', {
+
+});
+
+TD.Direction.subclass('games.TowerDefense.DownDirection', {
+
+});
+
+TD.Direction.subclass('games.TowerDefense.RightDirection', {
+
+});
+
 Object.extend(games.TowerDefense.Direction, {
 up: new TD.UpDirection(),
 left: new TD.LeftDirection(),

@@ -23,19 +23,6 @@ buildMap: function() {
         this.settings.tileSize*this.settings.xTiles,
         this.settings.tileSize*this.settings.yTiles
     ));
-    
-    for(i=0; i<this.settings.yTiles; ++i) {
-        for (j=0; j<this.settings.xTiles; ++j) {
-            var tile = new Morph();
-            tile.setExtent(pt(this.settings.tileSize, this.settings.tileSize));
-            tile.setPosition(pt(
-                j*this.settings.tileSize,
-                i*this.settings.tileSize
-            ));
-            tile.setFill((j+i)%2?Color.black:Color.white);
-            this.map.addMorph(tile);
-        }
-    }
 },
 buildMenu: function() {
     this.menu = new games.TowerDefense.Menu();

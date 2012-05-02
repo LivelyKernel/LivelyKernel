@@ -175,7 +175,7 @@ settings: {
 },
 initialize: function($super) {
     $super();
-}, 
+},
 });
 
 Morph.subclass('games.TowerDefense.Tile', {

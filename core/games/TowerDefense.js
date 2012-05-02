@@ -59,32 +59,6 @@ buildMenu: function() {
     menuMorph.setExtent(pt(this.settings.tileSize*this.settings.xTiles, this.settings.menuHeight));
     
     this.menu = menuMorph;
-    
-    var newGameButton = new lively.morphic.Button();
-    newGameButton.setPosition(pt(1, 1));
-    newGameButton.setExtent(pt(80, this.settings.menuHeight-2));
-    newGameButton.setLabel("Restart");
-    newGameButton.addScript(function towerDefense() {
-        return this.owner.towerDefense();
-    });
-    newGameButton.addScript(function onMouseUp(evt) {
-        this.towerDefense().initializeTowerDefense();
-    });
-    menuMorph.addMorph(newGameButton);
-    this.newButton = newGameButton;
-    
-    var pauseGameButton = new lively.morphic.Button();
-    pauseGameButton.setPosition(pt(82, 1));
-    pauseGameButton.setExtent(pt(80, this.settings.menuHeight-2));
-    pauseGameButton.setLabel("Pause");
-    pauseGameButton.addScript(function towerDefense() {
-        return this.owner.towerDefense();
-    });
-    pauseGameButton.addScript(function onMouseUp(evt) {
-        this.towerDefense().togglePaused();
-    });
-    menuMorph.addMorph(pauseGameButton);
-    this.pauseButton = pauseGameButton;
 },
 isPaused: function() {
     return this.paused;

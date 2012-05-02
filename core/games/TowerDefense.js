@@ -103,10 +103,10 @@ settings: {
     buttonWidth: 80,
     buttonMargin: 1
 },
-initialize: function($super) {
+initialize: function($super, entries) {
     $super();
     
-    this.initializeButtons();
+    this.initializeButtons(entries);
     this.initializeSize();
 },
 towerDefense: function() {

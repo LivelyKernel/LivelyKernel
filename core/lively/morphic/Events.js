@@ -1614,7 +1614,7 @@ lively.morphic.World.addMethods(
         // see https://developer.mozilla.org/en/Using_files_from_web_applications
         evt.stop();
         var files = evt.dataTransfer.files;
-        if (files) {
+        if (files && files.length > 0) {
             new lively.FileUploader().handleDroppedFiles(files, evt)
         } else {
             var data = evt.dataTransfer.getData('text/html');

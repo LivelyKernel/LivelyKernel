@@ -56,7 +56,7 @@ buildMenu: function() {
     
     this.addMorph(menuMorph);
     menuMorph.setPosition(pt(this.settings.borderWidth, this.settings.borderWidth));
-    menuMorph.setExtent(pt(this.settings.tileSize*this.settings.xTiles, this.settings.menuHeight));
+    menuMorph.setExtent(pt(this.settings.tileSize*this.settings.xTiles, menuMorph.settings.height));
     
     this.menu = menuMorph;
 },

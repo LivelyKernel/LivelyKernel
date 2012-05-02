@@ -167,7 +167,7 @@ settings: {
     yTiles: 15,
     menuHeight: 25,
     borderWidth: 1
-}
+},
 });
 
 Morph.subclass('games.TowerDefense.Menu', {

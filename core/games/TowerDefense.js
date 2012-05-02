@@ -161,8 +161,8 @@ initialize: function($super, path) {
     $super();
     
     this.path = path;
-    this.currentCoordinates = this.path.start;
-    this.nextCoordinates = this.path.start;
+    this.originCoordinates = this.path.start;
+    this.destinationCoordinates = this.path.start;
     this.currentPathIndex = 0;
     this.currentInterpolation = 0;
     this.moveTo(this.currentCoordinates);
@@ -172,6 +172,15 @@ initialize: function($super, path) {
 },
 update: function(delta) {
     var s = delta * this.settings.velocity;
+    
+    var finalS = this.currentInterpolation + s;
+    var skippedSteps = Math.floor(finalS);
+    this.currentInterpolation = finalS - skippedSteps;
+    
+    for (var i=0; i<skippedSteps; ++i) {
+        this.originCoordinates = this.destinationCoordinates;
+        
+    }
 },
 moveTo: function(coordinates) {
     this.setPosition(coordinates.scaleBy(games.TowerDefense.Tile.edgeLength));

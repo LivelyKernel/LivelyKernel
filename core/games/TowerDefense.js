@@ -112,7 +112,7 @@ loadLevel: function(levelDescription) {
 },
 tileAt: function(point) {
     if (point.x < 0 || point.x >= this.settings.xTiles || point.y < 0 || point.y >= this.settings.yTiles) {
-        return null;
+        throw "Point out of bounds: "+point.toString();
     }
     
     return this.map[point.y*this.settings.yTiles+point.x];

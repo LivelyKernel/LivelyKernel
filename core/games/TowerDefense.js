@@ -208,8 +208,11 @@ getLength: function() {
     return this.directions.length;
 },
 compile: function(description) {
+    var factor = 1;
     for (var i=0; i<description.length; ++i) {
-        this.appendDirection(this.parseChar(description.charAt(i)));
+        var c = description.charAt(i);
+
+        this.appendDirection(this.parseChar(c));
     }
 },
 parseChar: function(c) {

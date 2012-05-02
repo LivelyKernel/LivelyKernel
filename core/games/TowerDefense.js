@@ -203,22 +203,17 @@ parseChar: function(c) {
         case '^':
         case 'U':
             return TD.Direction.up;
-        break;
         case '>':
         case 'R':
             return TD.Direction.right;
-        break;
         case 'v':
         case 'D':
             return TD.Direction.down;
-        break;
         case '<':
         case 'L':
             return TD.Direction.left;
-        break;
         default:
             throw "Character not supported";
-        break;
     }
 },
 });

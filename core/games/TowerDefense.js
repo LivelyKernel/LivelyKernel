@@ -112,7 +112,16 @@ initialize: function($super, entries) {
 towerDefense: function() {
     return this.owner;
 },
-initializeButtons: function() {
+initializeButtons: function(entries) {
+    this.entries = {};
+    
+    var lastX = 0;
+    for (identifier in entries) {
+        var button = new lively.morphic.Button();
+        button.setPosition(pt(lastX+1, 1));
+        button.setExtent(pt(this.settings.buttonWidth, this.settings.height-2));
+    }
+    
     var newGameButton = new lively.morphic.Button();
     newGameButton.setPosition(pt(1, 1));
     newGameButton.setExtent(pt(80, this.settings.height-2));

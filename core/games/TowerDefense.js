@@ -187,7 +187,8 @@ edgeLength: 32,
 });
 
 Object.subclass('games.TowerDefense.Way', {
-    
+successors: [],
+
 });
 
 }); // end of module

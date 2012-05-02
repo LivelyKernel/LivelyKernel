@@ -1047,7 +1047,7 @@ currently only support
     },*/
     onEnterPressed: function($super, evt) {
         //Hak March27 2012:  calculate formula
-        this.applyCellChanges();
+        
         this.onDownPressed(evt);
         return true;
     },

@@ -10,7 +10,7 @@ start: function() {
 }
 });
 
-Morph.subclass(TD.namespaceIdentifier + '.TowerDefense', {
+Morph.subclass('games.TowerDefense.TowerDefense', {
 settings: {
     borderWidth: 1
 },

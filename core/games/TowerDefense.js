@@ -89,8 +89,6 @@ loadLevel: function(levelDescription) {
         var path = levelDescription.paths[i];
         var point = path.start;
         
-        alert(path.getLength());
-        
         var tile = this.tileAt(point);
         if (tile) {
             tile.setFill(Color.red);

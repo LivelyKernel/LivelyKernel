@@ -147,6 +147,7 @@ settings: {
     xTiles: 15,
     yTiles: 15
 },
+map: [],
 currentDescription: null,
 initialize: function($super) {
     $super();
@@ -158,15 +159,17 @@ towerDefense: function() {
     return this.owner;
 },
 initializeMap: function() {
-    for(i=0; i<this.settings.yTiles; ++i) {
-        for (j=0; j<this.settings.xTiles; ++j) {
+    for(y=0; y<this.settings.yTiles; ++y) {
+        for (x=0; x<this.settings.xTiles; ++x) {
             var tile = new TD.Tile();
             tile.setExtent(pt(tile.edgeLength(), tile.edgeLength()));
             tile.setPosition(pt(
-                j*tile.edgeLength(),
-                i*tile.edgeLength()
+                x*tile.edgeLength(),
+                y*tile.edgeLength()
             ));
-            tile.setFill(/*(j+i)%2?Color.black:*/Color.white);
+            tile.setFill(/*(x+y)%2?Color.black:*/Color.white);
+            
+            this.map[y*this.settings.yTiles+x] = tile;
             this.addMorph(tile);
         }
     }

@@ -118,8 +118,12 @@ initializeButtons: function(entries) {
     var lastX = 0;
     for (identifier in entries) {
         var button = new lively.morphic.Button();
-        button.setPosition(pt(lastX+1, 1));
-        button.setExtent(pt(this.settings.buttonWidth, this.settings.height-2));
+        button.setPosition(pt(lastX+this.settings.buttonMargin, this.settings.buttonMargin));
+        button.setExtent(pt(this.settings.buttonWidth, this.settings.buttonHeight));
+        
+        
+        
+        lastX = lastX + this.settings.buttonWidth + this.settings.buttonMargin;
     }
     
     var newGameButton = new lively.morphic.Button();

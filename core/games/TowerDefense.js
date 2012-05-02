@@ -215,12 +215,11 @@ compile: function(description) {
         if (c>='0' && c<='9') {
             factor = factor*10+parseInt(c);
         } else {
-            alert(factor);
             var dir = this.directionForChar(c);
-            for (var j=0; j<factor; ++j) {
+            for (var j=0; j<Math.max(factor,1); ++j) {
                 this.appendDirection(dir);
             }
-            factor = 1;
+            factor = 0;
         }
     }
 }

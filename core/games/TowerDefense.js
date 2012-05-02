@@ -54,6 +54,7 @@ initialize: function($super) {
     $super();
     
     this.map = [];
+    this.creeps = [];
     
     this.initializeMap();
     this.initializeSize();

@@ -215,6 +215,7 @@ compile: function(description) {
             factor = 10*factor+parseInt(c);
         } else {
             var dir = this.directionForChar(c);
+alert(factor);
             for (var j=0; j<factor; ++j) {
                 this.appendDirection(dir);
             }

@@ -173,13 +173,13 @@ initialize: function($super, path) {
     this.setFill(Color.rgb(227, 66, 52));
 },
 update: function(delta) {
-    alert(delta);
-    
     var deltaS = delta * this.settings.velocity;
     
     var s = this.step.interpolationValue + deltaS;
     var skippedSteps = Math.floor(s);
     this.step.interpolationValue = s - skippedSteps;
+
+    alert("From: "+this.step.from.toString()."; To: "+this.step.to.toString()+"; I: "+this.step.interpolationValue);
     
     for (var i=0; i<skippedSteps; ++i) {
         this.step.from = this.step.to;

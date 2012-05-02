@@ -68,7 +68,7 @@ initializeMap: function() {
                 x*tile.edgeLength(),
                 y*tile.edgeLength()
             ));
-            tile.setFill(Color(173, 223, 173));
+            tile.setFill(new Color(173, 223, 173));
             
             this.map[y*this.settings.yTiles+x] = tile;
             this.addMorph(tile);

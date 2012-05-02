@@ -156,10 +156,10 @@ initializeTiles: function() {
     for(i=0; i<this.settings.yTiles; ++i) {
         for (j=0; j<this.settings.xTiles; ++j) {
             var tile = new games.TowerDefense.Tile();
-            tile.setExtent(pt(tile.settings.edgeLength, tile.settings.edgeLength));
+            tile.setExtent(pt(tile.edgeLength(), tile.edgeLength()));
             tile.setPosition(pt(
-                j*tile.settings.edgeLength,
-                i*tile.settings.edgeLength
+                j*tile.edgeLength(),
+                i*tile.edgeLength()
             ));
             tile.setFill((j+i)%2?Color.black:Color.white);
             this.addMorph(tile);

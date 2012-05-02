@@ -84,7 +84,7 @@ loadLevel: function(levelDescription) {
     this.currentDescription = levelDescription;
     
     for (var i=0; i<levelDescription.paths.length; ++i) {
-        if (i!=2){ continue; } 
+        //if (i!=2){ continue; } 
         var path = levelDescription.paths[i];
         var point = path.start;
         

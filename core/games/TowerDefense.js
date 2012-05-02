@@ -128,6 +128,9 @@ initializeButtons: function(entries) {
         lastX = lastX + this.settings.buttonWidth + this.settings.buttonMargin;
     }
 },
+initializeSize: function() {
+    
+},
 });
 
 Morph.subclass('games.TowerDefense.Map', {

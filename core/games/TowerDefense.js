@@ -160,7 +160,9 @@ update: function(delta) {
 Morph.subclass('games.TowerDefense.Menu', {
 settings: {
     height: 25,
-    buttonWidth: 80
+    buttonHeight: 23,
+    buttonWidth: 80,
+    buttonMargin: 1
 },
 initialize: function($super) {
     $super();

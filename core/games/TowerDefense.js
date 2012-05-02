@@ -303,7 +303,7 @@ apply: function(point) {
 games.TowerDefense.Direction.subclass('games.TowerDefense.LeftDirection', {
 apply: function(point) {
     return pt(point.x-1, point.y);
-}
+},
 });
 
 games.TowerDefense.Direction.subclass('games.TowerDefense.DownDirection', {

@@ -170,7 +170,7 @@ initializeSize: function() {
 }
 });
 
-Morph.subclass(TD.namespaceIdentifier + '.Tile', {
+Morph.subclass('games.TowerDefense.Tile', {
 edgeLength: function() {
     return TD.Tile.edgeLength;
 },

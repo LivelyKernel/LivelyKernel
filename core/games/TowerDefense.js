@@ -120,8 +120,7 @@ initializeButtons: function(entries) {
         var button = new lively.morphic.Button();
         button.setPosition(pt(lastX, this.settings.buttonMargin));
         button.setExtent(pt(this.settings.buttonWidth, this.settings.buttonHeight));
-        
-        
+        button.setLabel(entries[identifier].name);        
         
         lastX = lastX + this.settings.buttonWidth + this.settings.buttonMargin;
     }

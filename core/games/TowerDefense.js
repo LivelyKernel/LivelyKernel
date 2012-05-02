@@ -68,7 +68,7 @@ initializeMap: function() {
                 x*tile.edgeLength(),
                 y*tile.edgeLength()
             ));
-            tile.setFill(/*(x+y)%2?Color.black:*/Color.moss);
+            tile.setFill(Color.moss);
             
             this.map[y*this.settings.yTiles+x] = tile;
             this.addMorph(tile);

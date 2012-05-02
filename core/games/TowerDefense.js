@@ -122,9 +122,9 @@ tileAt: function(point) {
 });
 
 Object.subclass('games.TowerDefense.LevelDescription', {
-name: 'Unknown Level',
-paths: [],
 initialize: function(description) {
+    this.name = 'Unknown Level';
+    this.paths = [];
     this.loadFromDescription(description || {});
 },
 addPathDescription: function(point, description) {
@@ -134,7 +134,6 @@ addPath: function(path) {
     this.paths.push(path);
 },
 loadFromDescription: function(description) {
-    this.paths = [];
     this.setName(description.name || 'Unknown Level');
     var paths = description.paths || [];
     for (var i=0; i<paths.length; ++i) {

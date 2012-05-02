@@ -185,7 +185,7 @@ update: function(delta) {
         this.step.from = this.step.to;
         
 
-        if (this.path.length < this.currentPathIndex) {
+        if (this.path.getLength() < this.currentPathIndex) {
             this.step.to = this.path.directions[this.currentPathIndex].apply(this.step.to);
             
             this.currentPathIndex++;

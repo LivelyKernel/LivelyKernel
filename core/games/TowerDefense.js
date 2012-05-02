@@ -281,6 +281,11 @@ left: function() {
 appendDirection: function(direction) {
     this.directions.push(direction);
 },
+foreachDirection: function(callback) {
+    for (i=0; i<this.directions.length; ++i) {
+        callback(this.directions[i]);
+    }
+},
 });
 
 Object.subclass('games.TowerDefense.Direction', {

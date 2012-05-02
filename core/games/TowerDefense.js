@@ -200,6 +200,10 @@ parse: function(description) {
 },
 parseChar: function(c) {
     switch (c) {
+        case '^':
+        case 'U':
+            return TD.Direction.up;
+        break;
         case '>':
         case 'R':
             return TD.Direction.right;
@@ -212,9 +216,8 @@ parseChar: function(c) {
         case 'L':
             return TD.Direction.left;
         break;
-        case '^':
-        case 'U':
-            return TD.Direction.up;
+        default:
+            throw "Character not supported";
         break;
     }
 },

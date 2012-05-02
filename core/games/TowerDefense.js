@@ -161,6 +161,13 @@ togglePaused: function() {
 update: function(delta) {
     alert(delta);
 },
+settings: {
+    tileSize: 32,
+    xTiles: 15,
+    yTiles: 15,
+    menuHeight: 25,
+    borderWidth: 1
+}
 });
 
 Morph.subclass('games.TowerDefense.Menu', {

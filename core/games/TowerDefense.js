@@ -1,8 +1,8 @@
-module('games.TowerDefense').requires().toRun(function(TD) {
+module('games.TowerDefense').requires().toRun(function() {
 
 Object.extend(games.TowerDefense, {
 start: function() {
-    var towerDefense = new TD.TowerDefense();
+    var towerDefense = new games.TowerDefense.TowerDefense();
     var window = new lively.morphic.Window(towerDefense, "TowerDefense");
     window.name = "TowerDefense";
     window.openInWorld();
@@ -14,7 +14,7 @@ Morph.subclass('games.TowerDefense.TowerDefense', {
 settings: {
     borderWidth: 1
 },
-level1: new TD.LevelDescription({
+level1: new games.TowerDefense.LevelDescription({
     name: 'Level 1',
     paths: [
         { x: 3, y: 0, description: 'DDDDDRRRRDDLLLDDDDDDD' },
@@ -23,14 +23,14 @@ level1: new TD.LevelDescription({
     ]
 }),
 buildLevel: function() {
-    this.level = new TD.Level();
+    this.level = new games.TowerDefense.Level();
     
     this.addMorph(this.level);
     this.level.setPosition(pt(this.settings.borderWidth, this.menu.getExtent().y + this.settings.borderWidth));
     this.level.loadLevel(this.level1);
 },
 buildMenu: function() {
-    this.menu = new TD.Menu({
+    this.menu = new games.TowerDefense.Menu({
         restart: { name: 'Restart', receiver: this, slot: 'initializeTowerDefense' },
         pause: { name: 'Paused', receiver: this, slot: 'togglePaused' }
     });
@@ -162,7 +162,7 @@ towerDefense: function() {
 initializeMap: function() {
     for(y=0; y<this.settings.yTiles; ++y) {
         for (x=0; x<this.settings.xTiles; ++x) {
-            var tile = new TD.Tile();
+            var tile = new games.TowerDefense.Tile();
             tile.setExtent(pt(tile.edgeLength(), tile.edgeLength()));
             tile.setPosition(pt(
                 x*tile.edgeLength(),
@@ -177,8 +177,8 @@ initializeMap: function() {
 },
 initializeSize: function() {
     this.setExtent(pt(
-        this.settings.xTiles * TD.Tile.edgeLength,
-        this.settings.yTiles * TD.Tile.edgeLength
+        this.settings.xTiles * games.TowerDefense.Tile.edgeLength,
+        this.settings.yTiles * games.TowerDefense.Tile.edgeLength
     ));
 },
 loadLevel: function(levelDescription) {
@@ -229,7 +229,7 @@ setName: function(name) {
 
 Morph.subclass('games.TowerDefense.Tile', {
 edgeLength: function() {
-    return TD.Tile.edgeLength;
+    return games.TowerDefense.Tile.edgeLength;
 },
 });
 
@@ -253,31 +253,31 @@ parseChar: function(c) {
     switch (c) {
         case '^':
         case 'U':
-            return TD.Direction.up;
+            return games.TowerDefense.Direction.up;
         case '>':
         case 'R':
-            return TD.Direction.right;
+            return games.TowerDefense.Direction.right;
         case 'v':
         case 'D':
-            return TD.Direction.down;
+            return games.TowerDefense.Direction.down;
         case '<':
         case 'L':
-            return TD.Direction.left;
+            return games.TowerDefense.Direction.left;
         default:
             throw "Character not supported";
     }
 },
 up: function() {
-    this.appendDirection(TD.Direction.up);
+    this.appendDirection(games.TowerDefense.Direction.up);
 },
 right: function() {
-    this.appendDirection(TD.Direction.right);
+    this.appendDirection(games.TowerDefense.Direction.right);
 },
 down: function() {
-    this.appendDirection(TD.Direction.down);
+    this.appendDirection(games.TowerDefense.Direction.down);
 },
 left: function() {
-    this.appendDirection(TD.Direction.left);
+    this.appendDirection(games.TowerDefense.Direction.left);
 },
 appendDirection: function(direction) {
     this.directions.push(direction);
@@ -320,10 +320,10 @@ apply: function(point) {
 });
 
 Object.extend(games.TowerDefense.Direction, {
-up: new TD.UpDirection(),
-left: new TD.LeftDirection(),
-down: new TD.DownDirection(),
-right: new TD.RightDirection(),
+up: new games.TowerDefense.UpDirection(),
+left: new games.TowerDefense.LeftDirection(),
+down: new games.TowerDefense.DownDirection(),
+right: new games.TowerDefense.RightDirection(),
 });
 
 }); // end of module

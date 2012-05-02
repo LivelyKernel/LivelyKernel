@@ -192,7 +192,7 @@ update: function(delta) {
         }
     }
     
-    
+    this.moveTo(this.step.from.addPt(this.step.to.subPt(this.step.from).scaleBy(this.step.interpolationValue));
 },
 moveTo: function(coordinates) {
     this.setPosition(coordinates.scaleBy(games.TowerDefense.Tile.edgeLength));

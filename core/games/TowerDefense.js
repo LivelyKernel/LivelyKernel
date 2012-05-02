@@ -208,18 +208,24 @@ getLength: function() {
     return this.directions.length;
 },
 compile: function(description) {
-    var factor = 1;
     for (var i=0; i<description.length; ++i) {
         var c = description.charAt(i);
-        if (c>='0' && c<='9') {
-            factor = 10*factor+parseInt(c);
-        } else {
+        var factor = 0;
+        while (c>='0' && c<='9') {
+            var cc = parseInt(c);
+            i++;
+            c = description.charAt(i);
+            factor = factor*10+cc;
+        }
+        if (factor==0) factor = 1;
+
+
+if (factor>1) alert(factor);        
+
             var dir = this.directionForChar(c);
-alert(factor);
             for (var j=0; j<factor; ++j) {
                 this.appendDirection(dir);
             }
-            factor = 1;
         }
     }
 },

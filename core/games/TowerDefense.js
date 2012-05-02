@@ -152,7 +152,7 @@ Morph.subclass('games.TowerDefense.Creep', {
 initialize: function($super) {
     $super();
     
-    this.setShape(new lively.morphic.Shapes.Ellipse(pt(0, 0).extent(pt(16, 16))));
+    this.setShape(new lively.morphic.Shapes.Ellipse(pt(-12, -12).extent(pt(12, 12))));
     this.setFill(Color.rgb(227, 66, 52));
 },
 });

@@ -191,6 +191,8 @@ update: function(delta) {
             this.setFill(Color.black);
         }
     }
+    
+    
 },
 moveTo: function(coordinates) {
     this.setPosition(coordinates.scaleBy(games.TowerDefense.Tile.edgeLength));

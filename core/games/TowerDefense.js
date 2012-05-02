@@ -98,7 +98,7 @@ loadLevel: function(levelDescription) {
         path.foreachDirection(function(direction) {
             point = direction.apply(point);
             
-            var tile = _this.tileAt(point);
+            tile = _this.tileAt(point);
 
             if (tile) {
                 tile.setFill(Color.black);

@@ -88,13 +88,13 @@ loadLevel: function(levelDescription) {
     this.currentDescription = levelDescription;
     
     for (var i=0; i<levelDescription.paths.length; ++i) {
-        //if (i!=2){ continue; } 
         var path = levelDescription.paths[i];
         var point = path.start;
         
         var creep = new games.TowerDefense.Creep(path);
         creep.setPosition(point.addXY(0.5, 0.5).scaleBy(games.TowerDefense.Tile.edgeLength));
         this.addMorph(creep);
+        this.creeps.push(creep);
         
         this.tileAt(point).setFill(this.settings.pathColor);
         

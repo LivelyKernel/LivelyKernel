@@ -27,7 +27,7 @@ buildLevel: function() {
     
     this.addMorph(this.level);
     this.level.setPosition(pt(this.settings.borderWidth, this.menu.getExtent().y + this.settings.borderWidth));
-    this.level.loadLevelDescription(this.level1);
+    this.level.loadLevel(this.level1);
 },
 buildMenu: function() {
     this.menu = new TD.Menu({

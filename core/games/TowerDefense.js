@@ -169,6 +169,10 @@ settings: {
 });
 
 Morph.subclass('games.TowerDefense.Map', {
+settings: {
+    height: 25,
+    buttonWidth: 80
+}, 
 initialize: function($super) {
     $super();
 }, 

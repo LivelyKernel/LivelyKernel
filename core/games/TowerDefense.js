@@ -46,9 +46,10 @@ initialize: function($super) {
 },
 initializeTowerDefense: function() {
     this.resetMorphs();
-    this.initializeGame();
+    this.initializeColor();
     this.buildMap();
     this.buildMenu();
+    this.initializeSize();
     this.setPaused(true);
     this.resetLastTimestamp();
     this.startSteppingScripts();

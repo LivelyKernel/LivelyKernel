@@ -46,7 +46,7 @@ Morph.subclass('games.TowerDefense.Level', {
 settings: {
     xTiles: 15,
     yTiles: 15,
-    Color.rgb(139, 69, 19)
+    pathColor: Color.rgb(139, 69, 19)
 },
 currentDescription: null,
 initialize: function($super) {

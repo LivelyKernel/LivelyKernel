@@ -15,7 +15,7 @@ settings: {
     borderWidth: 1
 },
 buildMap: function() {
-    this.map = new Map();
+    this.map = new games.TowerDefense.Map();
     
     this.addMorph(this.map);
     this.map.setPosition(pt(this.settings.borderWidth, this.menu.getExtent().y + this.settings.borderWidth));

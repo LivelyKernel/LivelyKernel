@@ -162,7 +162,10 @@ update: function(delta) {
 });
 
 Morph.subclass('games.TowerDefense.Menu', {
-    
+settings: {
+    height: 25,
+    buttonWidth: 80
+},
 });
 
 Morph.subclass('games.TowerDefense.Map', {

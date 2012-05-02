@@ -613,7 +613,7 @@ console.log('End createLayout =' + elapsed);
                     this.at(x,y).setBorderStyle("solid");
                 }
 
-                this.at(x,y).textString = sValue;
+                
 
                 //selected cell
                 if (this.arrData[nOrgRow][nOrgCol].selected){
@@ -626,7 +626,7 @@ console.log('End createLayout =' + elapsed);
                     if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
                         switch(this.arrData[nOrgRow][nOrgCol].dataFormat.type){
                             case "currency":
-                                
+                                sValue = "$" +  this.roundtoFixNumber(sValue ,2,true);
                                 break;
                             case "percentage":
 
@@ -643,7 +643,7 @@ console.log('End createLayout =' + elapsed);
                     }
                 }
 
-
+                this.at(x,y).textString = sValue;
 
 
                 //cell formats

@@ -959,6 +959,7 @@ currently only support
         var nTotal = 0;
         var nAve = 0;
     	var nValue; 
+        var sValue;
         
         //debugger;
         if (sValue){

@@ -1070,6 +1070,8 @@ currently only support
     onDownPressed: function(evt) {
         if (evt.isShiftDown){
             console.log("onDownPressed: ShiftDown")
+        }else{
+            console.log("onDownPressed: ShiftDown no")
         }
         this.moveActiveCellBy(pt(0,1));
         evt.stop();

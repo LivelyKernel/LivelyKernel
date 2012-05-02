@@ -962,7 +962,7 @@ currently only support
         var sValue;
         
         debugger;
-        if (sValue){
+        if (sOrgValue){
         
         try{
 

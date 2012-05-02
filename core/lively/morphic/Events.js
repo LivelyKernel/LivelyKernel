@@ -1618,12 +1618,12 @@ lively.morphic.World.addMethods(
             new lively.FileUploader().handleDroppedFiles(files, evt)
         } else {
             // this needs to be extracted!
-            var mimeTypes = ['text/plain', "text/uri-list", 'text/html', 'text'],
-                mimeType = mimeTypes.detect(function(type) {
+            var supportedTypes = ['text/plain', "text/uri-list", 'text/html', 'text'],
+                type = supportedTypes.detect(function(type) {
                     return evt.dataTransfer.types.include(type);;
                 });
-            if (mimeType) {
-                var data = evt.dataTransfer.getData(mimeType);
+            if (type) {
+                var data = evt.dataTransfer.getData(type);
                 this.addTextWindow({
                     content: data,
                     title: 'Dropped',

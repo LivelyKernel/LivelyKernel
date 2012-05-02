@@ -127,7 +127,7 @@ initializeButtons: function(entries) {
         this.entries[identifier] = button;
         this.entrySize++;
 
-        lastX = lastX + this.settings.buttonWidth + this.settings.buttonMargin;
+        lastX += this.settings.buttonWidth + this.settings.buttonMargin;
     }
 },
 initializeSize: function() {

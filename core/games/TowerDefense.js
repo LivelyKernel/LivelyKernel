@@ -177,7 +177,7 @@ update: function(delta) {
     
     var s = this.step.interpolationValue + deltaS;
     var skippedSteps = Math.floor(s);
-    this.currentInterpolation = s - skippedSteps;
+    this.step.interpolationValue = s - skippedSteps;
     
     for (var i=0; i<skippedSteps; ++i) {
         this.fromCoordinates = this.toCoordinates;

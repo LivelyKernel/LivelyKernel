@@ -159,6 +159,9 @@ initialize: function(start, description) {
     this.start = start;
     this.compile(description);
 },
+getLength: function() {
+    return this.directions.length;
+},
 compile: function(description) {
     for (var i=0; i<description.length; ++i) {
         this.appendDirection(this.parseChar(description.charAt(i)));

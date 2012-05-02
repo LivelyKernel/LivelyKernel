@@ -92,7 +92,7 @@ update: function(delta) {
 },
 });
 
-Morph.subclass(TD.namespaceIdentifier + '.Menu', {
+Morph.subclass('games.TowerDefense.Menu', {
 settings: {
     height: 25,
     buttonHeight: 23,

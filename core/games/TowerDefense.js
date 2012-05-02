@@ -172,6 +172,12 @@ initializeSize: function() {
 
 Object.subclass('games.TowerDefense.LevelDescription', {
 paths: [],
+addPathDescription: function(description) {
+    this.addPath(new Path(description));
+},
+addPath: function(path) {
+    this.paths.push(path);
+},
 }); 
 
 Morph.subclass('games.TowerDefense.Tile', {

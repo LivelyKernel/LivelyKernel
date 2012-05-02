@@ -629,7 +629,7 @@ console.log('End createLayout =' + elapsed);
                                 sValue = "$" +  this.roundtoFixNumber(sValue ,2,true);
                                 break;
                             case "percentage":
-
+                                sValue = this.converttoPercentage(sValue ,2) + "%";
                                 break;
                             case "date":
                                 break;

@@ -50,23 +50,14 @@ buildMap: function() {
     }
 },
 buildMenu: function() {
-        var towerDefense = this;
+    var towerDefense = this;
     
-    var menuMorph = new Morph();
-    
-    menuMorph.settings = {
-        buttonHeight: 23,
-        buttonWidth: 80,
-        buttonMargin: 1,
-        height: 25
-    };
+    var menuMorph = new games.TowerDefense.Menu();
     
     this.addMorph(menuMorph);
     menuMorph.setPosition(pt(this.settings.borderWidth, this.settings.borderWidth));
     menuMorph.setExtent(pt(this.settings.tileSize*this.settings.xTiles, this.settings.menuHeight));
-    menuMorph.addScript(function towerDefense() {
-        return this.owner;
-    });
+    
     this.menu = menuMorph;
     
     var newGameButton = new lively.morphic.Button();

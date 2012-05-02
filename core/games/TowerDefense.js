@@ -190,4 +190,9 @@ Object.subclass('games.TowerDefense.Way', {
 successors: [],
 
 });
+
+Object.subclass('games.TowerDefense.WayTest', {
+
+});
+
 }); // end of module

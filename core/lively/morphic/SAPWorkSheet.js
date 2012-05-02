@@ -1101,13 +1101,13 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
 
     onKeyPress: function($super,evt) {
          $super(evt);
-        console.log("SAPGrid.onKeyPress");
+        //console.log("SAPGrid.onKeyPress");
 
     },
 
     onKeyUp: function($super,evt) {
          $super(evt);
-         console.log("SAPGrid.onKeyUp");
+         //console.log("SAPGrid.onKeyUp");
     },
     
 },

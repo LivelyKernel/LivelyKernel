@@ -142,7 +142,7 @@ initializeSize: function() {
 },
 });
 
-Morph.subclass('games.TowerDefense.Map', {
+Morph.subclass('games.TowerDefense.Level', {
 settings: {
     xTiles: 15,
     yTiles: 15
@@ -151,13 +151,13 @@ currentDescription: null,
 initialize: function($super) {
     $super();
 
-    this.initializeTiles();
+    this.initializeMap();
     this.initializeSize();
 },
 towerDefense: function() {
     return this.owner;
 },
-initializeTiles: function() {
+initializeMap: function() {
     for(i=0; i<this.settings.yTiles; ++i) {
         for (j=0; j<this.settings.xTiles; ++j) {
             var tile = new TD.Tile();

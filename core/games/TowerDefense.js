@@ -197,4 +197,8 @@ parse: function(description) {
 },
 });
 
+Object.subclass('games.TowerDefense.Direction', {
+
+});
+
 }); // end of module

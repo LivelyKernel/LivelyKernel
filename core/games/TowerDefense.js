@@ -254,7 +254,7 @@ level1: function() {
     return new games.TowerDefense.LevelDescription({
         name: 'Level 1',
         paths: [
-            { x: 3, y: 0, description: 'DDDDDRRRRDDLLLDDDDDDD' },
+            //{ x: 3, y: 0, description: 'DDDDDRRRRDDLLLDDDDDDD' },
             { x: 3, y: 0, description: 'DDRRDDDRRDDLLLDDDDDDD' },
             { x: 0, y: 2, description: 'RRRRRDRRRDDDLDLLLDDDDDDD' }
         ]

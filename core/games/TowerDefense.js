@@ -171,7 +171,7 @@ initialize: function($super, path) {
     this.setFill(Color.rgb(227, 66, 52));
 },
 update: function(delta) {
-    alert(delta);
+    var s = delta * this.settings.velocity;
 },
 moveTo: function(coordinates) {
     this.setPosition(coordinates.scaleBy(games.TowerDefense.Tile.edgeLength));

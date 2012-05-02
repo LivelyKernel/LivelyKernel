@@ -14,7 +14,7 @@ Morph.subclass('games.TowerDefense.TowerDefense', {
 settings: {
     borderWidth: 1
 },
-level1: new LevelDescription({
+level1: new TD.LevelDescription({
     name: 'Level 1',
     paths: [
         'DDDDDRRRRDDLLLDDDDDDD',

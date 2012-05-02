@@ -22,11 +22,11 @@ level1: new TD.LevelDescription({
         { x: 0, y: 2, description: 'RRRRRDRRRDDDLDLLLDDDDDDD' }
     ]
 }),
-buildMap: function() {
-    this.map = new TD.Map();
+buildLevel: function() {
+    this.level = new TD.Level();
     
-    this.addMorph(this.map);
-    this.map.setPosition(pt(this.settings.borderWidth, this.menu.getExtent().y + this.settings.borderWidth));
+    this.addMorph(this.level);
+    this.level.setPosition(pt(this.settings.borderWidth, this.menu.getExtent().y + this.settings.borderWidth));
 },
 buildMenu: function() {
     this.menu = new TD.Menu({

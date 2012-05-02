@@ -215,6 +215,7 @@ compile: function(description) {
         if (c>='0' && c<='9') {
             factor = factor*10+parseInt(c);
         } else {
+            if (c==' ') continue;
             var dir = this.directionForChar(c);
             for (var j=0; j<Math.max(factor,1); ++j) {
                 this.appendDirection(dir);
@@ -238,7 +239,7 @@ directionForChar: function(c) {
         case 'L':
             return games.TowerDefense.Direction.left;
         default:
-            return null;
+            throw 'directionForChar: character not supported';
     }
 },
 up: function() {

@@ -190,7 +190,7 @@ Object.extend(games.TowerDefense.Tile, {
 edgeLength: 32,
 });
 
-Object.subclass('games.TowerDefense.Way', {
+Object.subclass('games.TowerDefense.Path', {
 directions: [],
 initialize: function(description) {
     this.compile(description);

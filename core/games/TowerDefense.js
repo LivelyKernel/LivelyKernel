@@ -170,6 +170,10 @@ initializeSize: function() {
 }
 });
 
+Object.subclass('games.TowerDefense.LevelDescription', {
+
+}); 
+
 Morph.subclass('games.TowerDefense.Tile', {
 edgeLength: function() {
     return TD.Tile.edgeLength;

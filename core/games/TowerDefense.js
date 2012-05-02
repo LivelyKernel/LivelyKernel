@@ -50,15 +50,11 @@ buildMap: function() {
     }
 },
 buildMenu: function() {
-    var towerDefense = this;
+    this.menu = new games.TowerDefense.Menu();
     
-    var menuMorph = new games.TowerDefense.Menu();
-    
-    this.addMorph(menuMorph);
-    menuMorph.setPosition(pt(this.settings.borderWidth, this.settings.borderWidth));
-    menuMorph.setExtent(pt(this.settings.tileSize*this.settings.xTiles, menuMorph.settings.height));
-    
-    this.menu = menuMorph;
+    this.addMorph(this.menu);
+    this.menu.setPosition(pt(this.settings.borderWidth, this.settings.borderWidth));
+    this.menu.setExtent(pt(this.settings.tileSize*this.settings.xTiles, this.menu.settings.height));
 },
 isPaused: function() {
     return this.paused;

@@ -160,6 +160,7 @@ start: pt(0, 0),
 directions: [],
 initialize: function(start, description) {
     this.start = start;
+    this.paths = [];
     this.compile(description);
 },
 getLength: function() {

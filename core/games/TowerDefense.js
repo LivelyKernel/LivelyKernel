@@ -198,7 +198,7 @@ loadFromDescription: function(description) {
     this.setName(description.name || 'Unknown Level');
     var paths = description.paths || [];
     for (i=0; i<paths.length; ++i) {
-        this.addPathDescription(paths[i]);
+        this.addPathDescription(pt(paths[i].x, paths[i].y), paths[i].description);
     }
 },
 setName: function(name) {

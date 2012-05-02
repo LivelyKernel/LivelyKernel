@@ -173,6 +173,8 @@ initialize: function($super, path) {
     this.setFill(Color.rgb(227, 66, 52));
 },
 update: function(delta) {
+    alert(delta);
+    
     var deltaS = delta * this.settings.velocity;
     
     var s = this.step.interpolationValue + deltaS;

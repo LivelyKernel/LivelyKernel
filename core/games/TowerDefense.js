@@ -214,7 +214,7 @@ compile: function(description) {
         if (c>='0' && c<='9') {
             factor = 10*factor+parseInt(c);
         } else {
-            var dir = this.parseChar(c);
+            var dir = this.directionForChar(c);
             for (var j=0; j<factor; ++j) {
                 this.appendDirection(dir);
             }

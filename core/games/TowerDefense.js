@@ -165,7 +165,7 @@ initializeTiles: function() {
                 j*tile.edgeLength(),
                 i*tile.edgeLength()
             ));
-            tile.setFill((j+i)%2?Color.black:Color.white);
+            tile.setFill(/*(j+i)%2?Color.black:*/Color.white);
             this.addMorph(tile);
         }
     }

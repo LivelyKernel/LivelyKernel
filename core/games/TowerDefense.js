@@ -133,6 +133,7 @@ addPath: function(path) {
     this.paths.push(path);
 },
 loadFromDescription: function(description) {
+    this.paths = [];
     this.setName(description.name || 'Unknown Level');
     var paths = description.paths || [];
     for (var i=0; i<paths.length; ++i) {

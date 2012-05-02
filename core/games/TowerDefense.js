@@ -162,6 +162,7 @@ initialize: function($super, path) {
     
     this.path = path;
     this.currentPathIndex = 0;
+    this.currentInterpolation = 0;
     this.moveTo(this.position);
     
     this.setShape(new lively.morphic.Shapes.Ellipse(pt(-12, -12).extent(pt(24, 24))));

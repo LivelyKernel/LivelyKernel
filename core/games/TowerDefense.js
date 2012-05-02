@@ -222,7 +222,7 @@ compile: function(description) {
         }
     }
 },
-parseChar: function(c) {
+directionForChar: function(c) {
     switch (c) {
         case '^':
         case 'U':

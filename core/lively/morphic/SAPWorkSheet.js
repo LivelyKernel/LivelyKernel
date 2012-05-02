@@ -1047,26 +1047,7 @@ currently only support
     },*/
     onEnterPressed: function($super, evt) {
         //Hak March27 2012:  calculate formula
-        if (this.activeCell !=null){
-            var sValue = this.activeCell.textString;
-            console.log("SAPGrid.onEnterPressed sValue=" + sValue );
-            if (sValue .charAt(0)=="="){
-                var nColumn = this.getActiveColIndex();
-                var nRow= this.getActiveRowIndex();
-                var nOrgRow = nRow  + this.startRow;
-                var nOrgCol = nColumn+ this.startColumn;
-                
-                this.arrData[nOrgRow][nOrgCol].formula = sValue; 
-                this.activeCell.textString=this.parseFormula(sValue);
-                //'Formula \n test'
-                this.activeCell.setToolTip('Formula: \n' + sValue);
-                //this.activeCell.cellformula = sValue;
-                
-                this.activeCell.setBorderStyle("dotted");
-                
-            }
-
-        }
+        this.applyCellChanges();
         this.onDownPressed(evt);
         return true;
     },

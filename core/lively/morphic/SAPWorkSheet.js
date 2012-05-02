@@ -1064,7 +1064,7 @@ currently only support
         return true;
     },
     onUpPressed: function(evt) {
-        this.moveActiveCellBy(pt(0,-1));
+        this.moveActiveCellBy(evt,pt(0,-1));
         evt.stop();
     },
     onDownPressed: function(evt) {
@@ -1074,16 +1074,16 @@ currently only support
         }else{
             console.log("onDownPressed: no ShiftDown")
         }
-        this.moveActiveCellBy(pt(0,1));
+        this.moveActiveCellBy(evt,pt(0,1));
         evt.stop();
     },
     onLeftPressed: function(evt) {
         
-        this.moveActiveCellBy(pt(-1,0));
+        this.moveActiveCellBy(evt,pt(-1,0));
         evt.stop();
     },
     onRightPressed: function(evt) {
-        this.moveActiveCellBy(pt(1,0));
+        this.moveActiveCellBy(evt,pt(1,0));
         evt.stop();
     },
         

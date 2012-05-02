@@ -109,8 +109,8 @@ initializeGame: function() {
     //this.setBorderColor(Color.black);
     //this.setBorderWidth(s.borderWidth);
     this.setExtent(pt(
-        s.tileSize*s.xTiles + 2*s.borderWidth,
-        s.tileSize*s.yTiles + 2*s.borderWidth + s.menuHeight
+        this.settings.tileSize*this.settings.xTiles + 2*this.settings.borderWidth,
+        this.settings.tileSize*this.settings.yTiles + 2*this.settings.borderWidth + this.settings.menuHeight
     ));
 },
 initialize: function($super) {

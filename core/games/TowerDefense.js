@@ -295,7 +295,9 @@ move: function(point) {
 });
 
 TD.Direction.subclass('games.TowerDefense.UpDirection', {
-
+apply: function(point) {
+    return pt(point.x, point.y-1);
+}
 });
 
 TD.Direction.subclass('games.TowerDefense.LeftDirection', {

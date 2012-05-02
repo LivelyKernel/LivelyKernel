@@ -1617,6 +1617,7 @@ lively.morphic.World.addMethods(
         if (files && files.length > 0) {
             new lively.FileUploader().handleDroppedFiles(files, evt)
         } else {
+debugger
             var data = evt.dataTransfer.getData('text/html');
             this.addTextWindow({content: data, title: 'Dropped'});
         }

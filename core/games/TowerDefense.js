@@ -191,11 +191,11 @@ directions: [],
 initialize: function($super, description) {
     $super();
     
-    this.parse(description);
+    this.compile(description);
 },
-parse: function(description) {
+compile: function(description) {
     for (i=0; i<description.length; ++i) {
-        this.directions.append(this.parseChar(description.charAt(i)));
+        this.appendDirection(this.parseChar(description.charAt(i)));
     }
 },
 parseChar: function(c) {
@@ -215,6 +215,21 @@ parseChar: function(c) {
         default:
             throw "Character not supported";
     }
+},
+up: function() {
+    this.appendDirection(TD.Direction.up);
+},
+right: function() {
+    this.appendDirection(TD.Direction.right);
+},
+down: function() {
+    this.appendDirection(TD.Direction.down);
+},
+left: function() {
+    this.appendDirection(TD.Direction.left);
+},
+appendDirection: function(direction) {
+    this.directions.append(direction);
 },
 });
 

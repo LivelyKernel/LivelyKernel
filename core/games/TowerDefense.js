@@ -312,8 +312,10 @@ apply: function(point) {
 }
 });
 
-TD.Direction.subclass('games.TowerDefense.RightDirection', {
-
+games.TowerDefense.Direction.subclass('games.TowerDefense.RightDirection', {
+apply: function(point) {
+    return pt(point.x+1, point.y);
+},
 });
 
 Object.extend(games.TowerDefense.Direction, {

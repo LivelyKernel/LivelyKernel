@@ -174,7 +174,7 @@ edgeLength: function() {
 },
 });
 
-Object.extent(games.TowerDefense.Tile, {
+Object.extend(games.TowerDefense.Tile, {
 edgeLength: 32,
 });
 

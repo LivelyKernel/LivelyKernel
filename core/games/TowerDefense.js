@@ -14,6 +14,12 @@ Morph.subclass('games.TowerDefense.TowerDefense', {
 settings: {
     borderWidth: 1
 },
+level1: {
+    name: 'Level 1',
+    paths: [
+        ''
+    ]
+},
 buildMap: function() {
     this.map = new TD.Map();
     

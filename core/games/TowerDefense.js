@@ -129,7 +129,10 @@ initializeButtons: function(entries) {
     }
 },
 initializeSize: function() {
-    
+    this.setExtent(pt(
+        this.entrySize * (this.settings.buttonWidth + this.settings.buttonMargin) + this.settings.buttonMargin,
+        this.settings.height
+    ));
 },
 });
 

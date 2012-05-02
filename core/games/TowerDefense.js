@@ -184,10 +184,12 @@ loadLevel: function(levelDescription) {
     this.currentDescription = levelDescription;
     
     for (i=0; i<levelDescription.paths.length; ++i) {
-        path = levelDescription.paths[i];
-        point = path.start;
+        var path = levelDescription.paths[i];
+        var point = path.start;
         
-        
+        path.foreachDirection(function(direction) {
+            point = direction.move(point);
+        });
     }
 },
 tileAt: function(x, y) {

@@ -169,7 +169,9 @@ settings: {
 });
 
 Morph.subclass('games.TowerDefense.Map', {
-    
+initialize: function($super) {
+    $super();
+}, 
 });
 
 Morph.subclass('games.TowerDefense.Tile', {

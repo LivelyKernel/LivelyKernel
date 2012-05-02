@@ -212,7 +212,7 @@ compile: function(description) {
         var c = description.charAt(i);
         var factor = 1;
         if (c>='0' && c<='9') {
-            factor = (factor==1?0:1)*10+parseInt(c);
+            factor = (factor==1?0:factor)*10+parseInt(c);
         } else {
             if (factor!=1) alert(factor);
             var dir = this.directionForChar(c);

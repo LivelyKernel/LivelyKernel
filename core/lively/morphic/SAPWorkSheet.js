@@ -628,7 +628,7 @@ console.log('End createLayout =' + elapsed);
                             case "currency":
                                 
                                 break;
-                            case 2:
+                            case "percentage":
 
                                 break;
                             default:

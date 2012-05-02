@@ -118,28 +118,18 @@ initializeButtons: function(entries) {
     var lastX = this.settings.buttonMargin;
     for (identifier in entries) {
         var button = new lively.morphic.Button();
+        
         button.setPosition(pt(lastX, this.settings.buttonMargin));
         button.setExtent(pt(this.settings.buttonWidth, this.settings.buttonHeight));
-        button.setLabel(entries[identifier].name);        
+        button.setLabel(entries[identifier].name);
         
+        lively.bindings.connect(button, 'fire', entries[identifier].receiver, entries[identifier].slot);
+        
+        this.addMorph(button);
+        this.entries[identifier] = button;
+
         lastX = lastX + this.settings.buttonWidth + this.settings.buttonMargin;
     }
-    
-    var newGameButton = new lively.morphic.Button();
-    newGameButton.setPosition(pt(1, 1));
-    newGameButton.setExtent(pt(80, this.settings.height-2));
-    newGameButton.setLabel("Restart");
-    lively.bindings.connect(newGameButton, 'fire', this, 'restartClicked');
-    menuMorph.addMorph(newGameButton);
-    this.newButton = newGameButton;
-    
-    var pauseGameButton = new lively.morphic.Button();
-    pauseGameButton.setPosition(pt(82, 1));
-    pauseGameButton.setExtent(pt(80, this.settings.height-2));
-    pauseGameButton.setLabel("Pause");
-    lively.bindings.connect(newGameButton, 'fire', this, 'pauseClicked');
-    menuMorph.addMorph(pauseGameButton);
-    this.pauseButton = pauseGameButton;
 },
 pauseClicked: function() {
     return this.pauseCallback();

@@ -134,7 +134,7 @@ initializeSize: function() {
 },
 });
 
-Morph.subclass(TD.namespaceIdentifier + '.Map', {
+Morph.subclass('games.TowerDefense.Map', {
 settings: {
     xTiles: 15,
     yTiles: 15

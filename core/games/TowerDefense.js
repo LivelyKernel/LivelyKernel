@@ -126,6 +126,12 @@ initializeButtons: function() {
     menuMorph.addMorph(pauseGameButton);
     this.pauseButton = pauseGameButton;
 },
+pauseClicked: function() {
+    return this.pauseCallback();
+},
+restartClicked: function() {
+    return this.restartCallback();
+},
 });
 
 Morph.subclass('games.TowerDefense.Map', {

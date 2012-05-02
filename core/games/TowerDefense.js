@@ -109,9 +109,6 @@ initialize: function($super, entries) {
     this.initializeButtons(entries);
     this.initializeSize();
 },
-towerDefense: function() {
-    return this.owner;
-},
 initializeButtons: function(entries) {
     this.entries = {};
     
@@ -130,12 +127,6 @@ initializeButtons: function(entries) {
 
         lastX = lastX + this.settings.buttonWidth + this.settings.buttonMargin;
     }
-},
-pauseClicked: function() {
-    return this.pauseCallback();
-},
-restartClicked: function() {
-    return this.restartCallback();
 },
 });
 

@@ -114,12 +114,7 @@ initializeButtons: function() {
     newGameButton.setPosition(pt(1, 1));
     newGameButton.setExtent(pt(80, this.settings.height-2));
     newGameButton.setLabel("Restart");
-    newGameButton.addScript(function towerDefense() {
-        return this.owner.towerDefense();
-    });
-    newGameButton.addScript(function onMouseUp(evt) {
-        this.towerDefense().initializeTowerDefense();
-    });
+    lively.bindings.connect(newGameButton, 'fire', this, 'restartClicked');
     menuMorph.addMorph(newGameButton);
     this.newButton = newGameButton;
     
@@ -127,12 +122,7 @@ initializeButtons: function() {
     pauseGameButton.setPosition(pt(82, 1));
     pauseGameButton.setExtent(pt(80, this.settings.height-2));
     pauseGameButton.setLabel("Pause");
-    pauseGameButton.addScript(function towerDefense() {
-        return this.owner.towerDefense();
-    });
-    pauseGameButton.addScript(function onMouseUp(evt) {
-        this.towerDefense().togglePaused();
-    });
+    lively.bindings.connect(newGameButton, 'fire', this, 'pauseClicked');
     menuMorph.addMorph(pauseGameButton);
     this.pauseButton = pauseGameButton;
 },

@@ -194,7 +194,9 @@ initialize: function($super, description) {
     this.parse(description);
 },
 parse: function(description) {
-    
+    for (i=0; i<description.length; ++i) {
+        
+    }
 },
 });
 

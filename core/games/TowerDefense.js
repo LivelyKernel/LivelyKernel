@@ -88,8 +88,7 @@ loadLevel: function(levelDescription) {
         var point = path.start;
         
         var tile = this.tileAt(point);
-        alert(tile);
-        if (tile instanceof Morph) {
+        if (tile) {
             tile.setFill(Color.black);
         } else {
             alert(point);
@@ -99,7 +98,13 @@ loadLevel: function(levelDescription) {
         path.foreachDirection(function(direction) {
             point = direction.apply(point);
             
-            _this.tileAt(point).setFill(Color.black);
+            var tile = _this.tileAt(point);
+
+            if (tile) {
+                tile.setFill(Color.black);
+            } else {
+                alert(point);
+            }
         });
     }
 },

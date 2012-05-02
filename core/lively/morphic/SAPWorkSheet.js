@@ -1096,7 +1096,7 @@ console.log("SAPGrid.onLeftPressed:" + bFocused );
         
     onKeyDown: function($super, evt) {
         $super(evt);
-         console.log("SAPGrid.onKeyDown");
+         //console.log("SAPGrid.onKeyDown");
     },
 
     onKeyPress: function($super,evt) {

@@ -49,8 +49,8 @@ initialize: function($super) {
 initializeTowerDefense: function() {
     this.resetMorphs();
     this.initializeColor();
-    this.buildMap();
     this.buildMenu();
+    this.buildMap();
     this.initializeSize();
     this.setPaused(true);
     this.resetLastTimestamp();

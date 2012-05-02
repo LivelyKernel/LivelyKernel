@@ -185,11 +185,11 @@ update: function(delta) {
 
         if (this.path.length < this.currentPathIndex) {
             this.step.to = this.path.directions[this.currentPathIndex].apply(this.step.to);
-        } else {
             
+            this.currentPathIndex++;
+        } else {
+            this.setFill(Color.black);
         }
-        
-        this.currentPathIndex++;
     }
 },
 moveTo: function(coordinates) {

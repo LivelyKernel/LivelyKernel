@@ -92,7 +92,6 @@ loadLevel: function(levelDescription) {
         var point = path.start;
         
         var creep = new games.TowerDefense.Creep(path);
-        creep.moveTo(point);
         this.addMorph(creep);
         this.creeps.push(creep);
         

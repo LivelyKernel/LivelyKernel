@@ -182,6 +182,10 @@ initializeSize: function() {
 },
 loadLevel: function(levelDescription) {
     this.currentDescription = levelDescription;
+    
+    for (i=0; i<levelDescription.paths.length; ++i) {
+        
+    }
 },
 tileAt: function(x, y) {
     return this.map[y*this.settings.yTiles+x];

@@ -116,7 +116,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	   }
            this.dataModel.push(arrColumns);
         }
-        console.log("updateDataModel");
+        //console.log("updateDataModel");
         //debugger;
         this.updateDisplay();
     },
@@ -1077,15 +1077,7 @@ currently only support
         evt.stop();
     },
     onLeftPressed: function(evt) {
-        //testing cell text is focused or not 
-    console.log("SAPGrid.onLeftPressed..");
-        if (!this.activeCell) {
-         }else{
-              //alert(this.activeCell.isFocused())
-         }
-        var bFocused = this.activeCell.isFocused();
-        //debugger;
-console.log("SAPGrid.onLeftPressed:" + bFocused );
+        
         this.moveActiveCellBy(pt(-1,0));
         evt.stop();
     },

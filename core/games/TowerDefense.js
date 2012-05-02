@@ -195,7 +195,15 @@ initialize: function($super, description) {
 },
 parse: function(description) {
     for (i=0; i<description.length; ++i) {
-        this.directions.append(this.directionFor(description.charAt(i)));
+        this.directions.append(this.parseChar(description.charAt(i)));
+    }
+},
+parseChar: function(c) {
+    switch (c) {
+        case '>':
+        case 'R':
+            
+        break;
     }
 },
 });

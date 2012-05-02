@@ -340,7 +340,7 @@ togglePaused: function() {
     this.setPaused(!this.isPaused());
 },
 update: function(delta) {
-    alert(delta);
+    this.level.update(delta);
 },
 });
 

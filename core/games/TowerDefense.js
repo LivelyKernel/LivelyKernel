@@ -157,6 +157,9 @@ settings: {
 },
 initialize: function($super) {
     $super();
+    
+    this.initializeButtons();
+    this.initializeSize();
 },
 towerDefense: function() {
     return this.owner;

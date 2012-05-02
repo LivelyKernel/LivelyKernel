@@ -173,11 +173,11 @@ initialize: function($super, path) {
     this.setFill(Color.rgb(227, 66, 52));
 },
 update: function(delta) {
-    var s = delta * this.settings.velocity;
+    var deltaS = delta * this.settings.velocity;
     
-    var finalS = this.currentInterpolation + s;
-    var skippedSteps = Math.floor(finalS);
-    this.currentInterpolation = finalS - skippedSteps;
+    var s = this.step.interpolationValue + deltaS;
+    var skippedSteps = Math.floor(s);
+    this.currentInterpolation = s - skippedSteps;
     
     for (var i=0; i<skippedSteps; ++i) {
         this.fromCoordinates = this.toCoordinates;

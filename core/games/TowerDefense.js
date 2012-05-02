@@ -191,7 +191,7 @@ loadLevel: function(levelDescription) {
         
         var _this = this;
         path.foreachDirection(function(direction) {
-            point = direction.move(point);
+            point = direction.apply(point);
             
             _this.tileAt(point).setFill(Color.black);
         });

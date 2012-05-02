@@ -180,7 +180,7 @@ update: function(delta) {
     this.step.interpolationValue = s - skippedSteps;
     
     for (var i=0; i<skippedSteps; ++i) {
-        this.fromCoordinates = this.toCoordinates;
+        this.step.from = this.step.to;
         
     }
 },

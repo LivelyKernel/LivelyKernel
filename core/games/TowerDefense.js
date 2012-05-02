@@ -308,7 +308,7 @@ level1: function() {
         name: 'Level 1',
         paths: [
             { x: 0, y: 7, description: 'RRRRRRRRRRRRUUUUULLLLLLLDDDDDDDDDDDD' },
-            { x: 0, y: 9, description: '11R5U7L' },
+            { x: 0, y: 9, description: '11R' },//5U7L
             { x: 14, y: 4, description: 'LLLLLLDDDDDDDDDD' }
         ]
     });

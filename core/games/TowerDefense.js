@@ -179,7 +179,7 @@ update: function(delta) {
     var skippedSteps = Math.floor(s);
     this.step.interpolationValue = s - skippedSteps;
 
-    alert("From: "+this.step.from.toString()."; To: "+this.step.to.toString()+"; I: "+this.step.interpolationValue);
+    alert("From: "+this.step.from.toString()+"; To: "+this.step.to.toString()+"; I: "+this.step.interpolationValue);
     
     for (var i=0; i<skippedSteps; ++i) {
         this.step.from = this.step.to;

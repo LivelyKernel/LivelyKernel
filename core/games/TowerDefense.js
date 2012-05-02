@@ -1,13 +1,13 @@
 module('games.TowerDefense').requires().toRun(function() {
 
 Object.extend(games.TowerDefense, {
-    start: function() {
-        var towerDefense = new games.TowerDefense.TowerDefense();
-        var window = new lively.morphic.Window(towerDefense, "TowerDefense");
-        window.name = "TowerDefense";
-        window.openInWorld();
-        return window;
-    }
+start: function() {
+    var towerDefense = new games.TowerDefense.TowerDefense();
+    var window = new lively.morphic.Window(towerDefense, "Towerefense");
+    window.name = "TowerDefense";
+    window.openInWorld();
+    return window;
+}
 });
 
 Morph.subclass('games.TowerDefense.TowerDefense', {

@@ -114,7 +114,9 @@ tileAt: function(point) {
     return this.map[point.y*this.settings.yTiles+point.x];
 },
 update: function(delta) {
-    
+    for (var i=0; i<this.creeps.length; ++i) {
+        this.creeps[i].update(delta);
+    }
 },
 });
 

@@ -32,11 +32,13 @@ buildMenu: function() {
 isPaused: function() {
     return this.paused;
 },
-initializeGame: function() {
+initializeColor: function() {
     this.setFill(Color.white);
+},
+initializeSize: function() {
     this.setExtent(pt(
-        this.settings.tileSize*this.settings.xTiles + 2*this.settings.borderWidth,
-        this.settings.tileSize*this.settings.yTiles + 2*this.settings.borderWidth + this.settings.menuHeight
+        
+        
     ));
 },
 initialize: function($super) {

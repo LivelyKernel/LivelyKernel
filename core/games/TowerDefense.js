@@ -161,6 +161,9 @@ initialize: function($super) {
     this.setShape(new lively.morphic.Shapes.Ellipse(pt(-12, -12).extent(pt(24, 24))));
     this.setFill(Color.rgb(227, 66, 52));
 },
+update: function(delta) {
+    alert(delta);
+},
 });
 
 Object.subclass('games.TowerDefense.Path', {

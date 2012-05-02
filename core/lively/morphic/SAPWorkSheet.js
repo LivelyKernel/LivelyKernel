@@ -621,6 +621,24 @@ console.log('End createLayout =' + elapsed);
                     this.arrSelectedCells.push(this.at(x,y));
                 }
 
+                //data formats
+                if (this.arrData[nOrgRow][nOrgCol].dataFormat){
+                    if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
+                        switch(this.arrData[nOrgRow][nOrgCol].dataFormat.type){
+                            case "currency":
+                                
+                                break;
+                            case 2:
+
+                                break;
+                            default:
+  
+                            }
+                    }
+                }
+
+
+
 
                 //cell formats
                 /*fontWeight: 'bold'

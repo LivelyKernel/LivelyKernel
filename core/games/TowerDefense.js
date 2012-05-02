@@ -111,6 +111,7 @@ initialize: function($super, entries) {
 },
 initializeButtons: function(entries) {
     this.entries = {};
+    this.entrySize = 0;
     
     var lastX = this.settings.buttonMargin;
     for (identifier in entries) {
@@ -124,6 +125,7 @@ initializeButtons: function(entries) {
         
         this.addMorph(button);
         this.entries[identifier] = button;
+        this.entrySize++;
 
         lastX = lastX + this.settings.buttonWidth + this.settings.buttonMargin;
     }

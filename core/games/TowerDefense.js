@@ -171,6 +171,7 @@ initializeSize: function() {
 });
 
 Object.subclass('games.TowerDefense.LevelDescription', {
+name: 'Unknown Level',
 paths: [],
 initialize: function(description) {
     this.loadFromDescription(description || {});

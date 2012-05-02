@@ -1071,7 +1071,7 @@ currently only support
         if (evt.isShiftDown){
             console.log("onDownPressed: ShiftDown")
         }else{
-            console.log("onDownPressed: ShiftDown no")
+            console.log("onDownPressed: no ShiftDown")
         }
         this.moveActiveCellBy(pt(0,1));
         evt.stop();

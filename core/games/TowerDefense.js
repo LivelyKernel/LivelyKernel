@@ -18,7 +18,7 @@ initializeButtons: function(entries) {
     this.entrySize = 0;
     
     var lastX = this.settings.buttonMargin;
-    for (identifier in entries) {
+    for (var identifier in entries) {
         var button = new lively.morphic.Button();
         
         button.setPosition(pt(lastX, this.settings.buttonMargin));
@@ -59,8 +59,8 @@ towerDefense: function() {
     return this.owner;
 },
 initializeMap: function() {
-    for(y=0; y<this.settings.yTiles; ++y) {
-        for (x=0; x<this.settings.xTiles; ++x) {
+    for (var y=0; y<this.settings.yTiles; ++y) {
+        for (var x=0; x<this.settings.xTiles; ++x) {
             var tile = new games.TowerDefense.Tile();
             tile.setExtent(pt(tile.edgeLength(), tile.edgeLength()));
             tile.setPosition(pt(
@@ -83,7 +83,7 @@ initializeSize: function() {
 loadLevel: function(levelDescription) {
     this.currentDescription = levelDescription;
     
-    for (i=0; i<levelDescription.paths.length; ++i) {
+    for (var i=0; i<levelDescription.paths.length; ++i) {
         var path = levelDescription.paths[i];
         var point = path.start;
         
@@ -117,7 +117,7 @@ addPath: function(path) {
 loadFromDescription: function(description) {
     this.setName(description.name || 'Unknown Level');
     var paths = description.paths || [];
-    for (i=0; i<paths.length; ++i) {
+    for (var i=0; i<paths.length; ++i) {
         this.addPathDescription(pt(paths[i].x, paths[i].y), paths[i].description);
     }
 },
@@ -144,7 +144,7 @@ initialize: function(start, description) {
     this.compile(description);
 },
 compile: function(description) {
-    for (i=0; i<description.length; ++i) {
+    for (var i=0; i<description.length; ++i) {
         this.appendDirection(this.parseChar(description.charAt(i)));
     }
 },
@@ -182,7 +182,7 @@ appendDirection: function(direction) {
     this.directions.push(direction);
 },
 foreachDirection: function(callback) {
-    for (i=0; i<this.directions.length; ++i) {
+    for (var i=0; i<this.directions.length; ++i) {
         callback(this.directions[i]);
     }
 },

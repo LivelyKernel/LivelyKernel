@@ -17,7 +17,7 @@ settings: {
 level1: new TD.LevelDescription({
     name: 'Level 1',
     paths: [
-        'DDDDDRRRRDDLLLDDDDDDD',
+        { x: 0, y:0 , description: 'DDDDDRRRRDDLLLDDDDDDD' },
         'DDRRDDDRRDDLLLDDDDDDD',
         'DDRRDRRRDDDLDLLLDDDDDDD'
     ]

@@ -144,6 +144,10 @@ Object.extend(games.TowerDefense.Tile, {
 edgeLength: 32,
 });
 
+Morph.subclass('games.TowerDefense.Creep', {
+
+});
+
 Object.subclass('games.TowerDefense.Path', {
 initialize: function(start, description) {
     this.start = start || pt(0, 0);

@@ -175,7 +175,10 @@ initializeSize: function() {
         this.settings.xTiles * TD.Tile.edgeLength,
         this.settings.yTiles * TD.Tile.edgeLength
     ));
-}
+},
+loadLevel: function(levelDescription) {
+    
+},
 });
 
 Object.subclass('games.TowerDefense.LevelDescription', {

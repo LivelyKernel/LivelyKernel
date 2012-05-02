@@ -1068,8 +1068,8 @@ currently only support
         evt.stop();
     },
     onDownPressed: function(evt) {
-        debugger;
-        if (evt.isShiftDown){
+   
+        if (evt.isShiftDown()){
             console.log("onDownPressed: ShiftDown")
         }else{
             console.log("onDownPressed: no ShiftDown")

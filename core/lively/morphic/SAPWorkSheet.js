@@ -454,6 +454,7 @@ console.log('End createLayout =' + elapsed);
             this.at(0,0).activate();
             return;
         }
+        this.applyCellChanges();
         var curX = this.getActiveColIndex(),
             curY = this.getActiveRowIndex(),
             newX = curX + aPoint.x,

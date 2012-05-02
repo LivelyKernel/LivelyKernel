@@ -162,7 +162,7 @@ initializeTiles: function() {
                 i*tile.settings.edgeLength
             ));
             tile.setFill((j+i)%2?Color.black:Color.white);
-            this.map.addMorph(tile);
+            this.addMorph(tile);
         }
     }
 },

@@ -18,7 +18,7 @@ buildMap: function() {
     this.map = new games.TowerDefense.Map();
     
     this.addMorph(this.map);
-    this.map.setPosition(pt(this.settings.borderWidth, this.settings.menuHeight + this.settings.borderWidth));
+    this.map.setPosition(pt(this.settings.borderWidth, this.menu.getExtent().y + this.settings.borderWidth));
 },
 buildMenu: function() {
     this.menu = new games.TowerDefense.Menu({

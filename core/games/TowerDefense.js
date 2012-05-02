@@ -223,8 +223,10 @@ edgeLength: 32,
 });
 
 Object.subclass('games.TowerDefense.Path', {
+start: pt(0, 0),
 directions: [],
 initialize: function(start, description) {
+    this.start = start;
     this.compile(description);
 },
 compile: function(description) {

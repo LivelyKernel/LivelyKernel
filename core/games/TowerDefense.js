@@ -165,7 +165,7 @@ initialize: function($super, path) {
     this.nextCoordinates = this.path.start;
     this.currentPathIndex = 0;
     this.currentInterpolation = 0;
-    this.moveTo(this.position);
+    this.moveTo(this.interpolateCoordinates());
     
     this.setShape(new lively.morphic.Shapes.Ellipse(pt(-12, -12).extent(pt(24, 24))));
     this.setFill(Color.rgb(227, 66, 52));

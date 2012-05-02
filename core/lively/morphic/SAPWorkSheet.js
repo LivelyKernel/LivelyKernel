@@ -48,8 +48,23 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     },
     //when focus changed:  formula..etc
     applyCellChanges: function() {
-        
-    }
+        if (this.activeCell !=null){
+            var sValue = this.activeCell.textString;
+            if (sValue .charAt(0)=="="){
+                var nColumn = this.getActiveColIndex();
+                var nRow= this.getActiveRowIndex();
+                var nOrgRow = nRow  + this.startRow;
+                var nOrgCol = nColumn+ this.startColumn;
+                
+                this.arrData[nOrgRow][nOrgCol].formula = sValue; 
+                this.activeCell.textString=this.parseFormula(sValue);
+                this.activeCell.setToolTip('Formula: \n' + sValue);
+                this.activeCell.setBorderStyle("dotted");
+                
+            }
+
+        }
+    },
     removeSelectedCells: function() {
        
         for (i= 0; i< this.arrSelectedCells.length; i++) {

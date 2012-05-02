@@ -12,10 +12,6 @@ Object.extend(games.TowerDefense, {
 
 Morph.subclass('games.TowerDefense.TowerDefense', {
 settings: {
-    tileSize: 32,
-    xTiles: 15,
-    yTiles: 15,
-    menuHeight: 25,
     borderWidth: 1
 },
 buildMap: function() {

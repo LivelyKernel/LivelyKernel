@@ -169,9 +169,13 @@ initializeTiles: function() {
 });
 
 Morph.subclass('games.TowerDefense.Tile', {
-settings: {
-    edgeLength: 32
+edgeLength: function() {
+    return this.class.edgeLength;
 },
+});
+
+Object.extent(games.TowerDefense.Tile, {
+edgeLength: 32,
 });
 
 }); // end of modulee

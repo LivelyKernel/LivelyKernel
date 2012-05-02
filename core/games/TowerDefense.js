@@ -189,10 +189,11 @@ loadLevel: function(levelDescription) {
         
         this.tileAt(point).setFill(Color.black);
         
+        var _this = this;
         path.foreachDirection(function(direction) {
             point = direction.move(point);
             
-            this.tileAt(point).setFill(Color.black);
+            _this.tileAt(point).setFill(Color.black);
         });
     }
 },

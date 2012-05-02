@@ -1735,25 +1735,29 @@ Object.subclass('lively.FileUploader',
 
     openVideo: function(url, mime, pos) {
         // new lively.FileUploader().openVideo('http://lively-kernel.org/repository/webwerkstatt/documentation/videoTutorials/110419_ManipulateMorphs.mov', 'video/mp4')
+        module('lively.morphic.video.Video').load();
+        mime = mime || '';
+        var videoNode;
         if (/*mime.include('webm')*/true) {
-            var videoNode = XHTMLNS.create('video');
+            videoNode = XHTMLNS.create('video');
             videoNode.width = 400;
             videoNode.height = 300;
             videoNode.controls = true;
+            videoNode.preload = true;
             var sourceNode = XHTMLNS.create('source');
             sourceNode.src = url;
             videoNode.appendChild(sourceNode);
 
-            if (mime.include('quicktime')) mime = mime.replace('quicktime', 'mp4');
+            // if (mime.include('quicktime')) mime = mime.replace('quicktime', 'mp4');
 
-            if (mime.include('mp4')) {
-                sourceNode.type = mime + '; codecs="avc1.42E01E, mp4a.40.2"'
-            } else if (mime.include('webm')) {
-                sourceNode.type = mime //+ '; codecs="vp8, vorbis"'
-            } else {
-                sourceNode.type = mime;
-                alert('video with type ' + mime + ' currently not supported');
-            }
+            // if (mime.include('mp4')) {
+            //     sourceNode.type = mime + '; codecs="avc1.42E01E, mp4a.40.2"'
+            // } else if (mime.include('webm')) {
+            //     sourceNode.type = mime //+ '; codecs="vp8, vorbis"'
+            // } else {
+            //     sourceNode.type = mime;
+            //     alert('video with type ' + mime + ' currently not supported');
+            // }
         } else {
             var embedNode = XHTMLNS.create('object');
             embedNode.type = mime;
@@ -1762,7 +1766,7 @@ Object.subclass('lively.FileUploader',
             // embedNode.scale="tofit"
             embedNode.width="400"
             embedNode.height="400"
-            var videoNode = embedNode
+            videoNode = embedNode
             // XHTMLNS.create('object');
             // videoNode.appendChild(embedNode)
         }

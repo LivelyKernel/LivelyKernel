@@ -961,9 +961,9 @@ currently only support
     	var nValue; 
         var sValue;
         
-        //debugger;
-        if (sValue){
         debugger;
+        if (sValue){
+        
         try{
 
             sValue= sOrgValue.toUpperCase();

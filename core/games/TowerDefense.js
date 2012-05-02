@@ -32,7 +32,6 @@ buildMenu: function() {
     
     this.addMorph(this.menu);
     this.menu.setPosition(pt(this.settings.borderWidth, this.settings.borderWidth));
-    this.menu.setExtent(pt(this.settings.tileSize*this.settings.xTiles, this.menu.settings.height));
 },
 isPaused: function() {
     return this.paused;

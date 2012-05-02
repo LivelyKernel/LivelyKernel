@@ -227,7 +227,7 @@ parseChar: function(c) {
         case 'L':
             return games.TowerDefense.Direction.left;
         default:
-            throw "Character not supported";
+            return null;
     }
 },
 up: function() {

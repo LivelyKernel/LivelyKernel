@@ -182,8 +182,9 @@ addPath: function(path) {
     this.paths.push(path);
 },
 loadFromDescription: function(description) {
-    for (pathDescription in description.paths || []) {
-        
+    var paths = description.paths || [];
+    for (i=0; i<paths.length; ++i) {
+        this.addPathDescription(paths[i]);
     }
 },
 });

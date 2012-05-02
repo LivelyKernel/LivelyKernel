@@ -182,7 +182,7 @@ towerDefense: function() {
 },
 });
 
-Object.extend(TD.Tile, {
+Object.extend(games.TowerDefense.Tile, {
 edgeLength: 32,
 });
 

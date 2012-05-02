@@ -82,7 +82,7 @@ setPaused: function(paused) {
 
     this.resetLastTimestamp();
     
-    this.pauseButton.setLabel(this.paused?"Resume":"Pause");
+    this.menu.entries.pause.setLabel(this.paused?"Resume":"Pause");
 },
 startSteppingScripts: function() {
     this.stopStepping();

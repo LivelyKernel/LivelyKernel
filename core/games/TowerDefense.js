@@ -220,14 +220,14 @@ compile: function(description) {
         if (factor==0) factor = 1;
 
 
-if (factor>1) alert(factor);        
+        if (factor>1) alert(factor);        
 
-            var dir = this.directionForChar(c);
-            for (var j=0; j<factor; ++j) {
-                this.appendDirection(dir);
-            }
+        var dir = this.directionForChar(c);
+        for (var j=0; j<factor; ++j) {
+            this.appendDirection(dir);
         }
     }
+}
 },
 directionForChar: function(c) {
     switch (c) {

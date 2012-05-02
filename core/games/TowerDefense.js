@@ -167,6 +167,9 @@ settings: {
 initialize: function($super) {
     $super();
 },
+towerDefense: function() {
+    return this.owner;
+} 
 });
 
 Morph.subclass('games.TowerDefense.Map', {

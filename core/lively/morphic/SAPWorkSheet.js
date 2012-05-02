@@ -46,6 +46,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeAnnotation();
 
     },
+    //when focus changed:  formula..etc
+    applyCellChanges: function() {
+        
+    }
     removeSelectedCells: function() {
        
         for (i= 0; i< this.arrSelectedCells.length; i++) {

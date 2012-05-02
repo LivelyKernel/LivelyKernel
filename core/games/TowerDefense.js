@@ -182,7 +182,9 @@ initialize: function($super) {
 });
 
 Morph.subclass('games.TowerDefense.Tile', {
-    
+settings: {
+    edgeLength: 32
+},
 });
 
 }); // end of modulee

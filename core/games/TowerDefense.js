@@ -47,11 +47,12 @@ settings: {
     xTiles: 15,
     yTiles: 15
 },
-map: [],
 currentDescription: null,
 initialize: function($super) {
     $super();
-
+    
+    this.map = [];
+    
     this.initializeMap();
     this.initializeSize();
 },

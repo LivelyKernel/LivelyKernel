@@ -631,6 +631,12 @@ console.log('End createLayout =' + elapsed);
                             case "percentage":
 
                                 break;
+                            case "date":
+                                break;
+                            case "time":
+                                break;
+                            case "number":
+                                break;
                             default:
   
                             }

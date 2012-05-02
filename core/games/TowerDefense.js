@@ -182,6 +182,14 @@ update: function(delta) {
     for (var i=0; i<skippedSteps; ++i) {
         this.step.from = this.step.to;
         
+
+        if (this.path.length < this.currentPathIndex) {
+            this.step.to = this.path.directions[this.currentPathIndex].apply(this.step.to);
+        } else {
+            
+        }
+        
+        this.currentPathIndex++;
     }
 },
 moveTo: function(coordinates) {

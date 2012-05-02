@@ -173,4 +173,4 @@ Morph.subclass('games.TowerDefense.Tile', {
     
 });
 
-}) // end of modulele
+}); // end of modulee

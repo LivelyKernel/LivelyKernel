@@ -289,7 +289,7 @@ foreachDirection: function(callback) {
 });
 
 Object.subclass('games.TowerDefense.Direction', {
-move: function(point) {
+apply: function(point) {
     throw "subclassResponsibility";
 },
 });

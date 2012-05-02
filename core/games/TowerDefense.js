@@ -173,7 +173,6 @@ initialize: function($super) {
 
 Morph.subclass('games.TowerDefense.Map', {
 settings: {
-    tileSize: 32,
     xTiles: 15,
     yTiles: 15
 },

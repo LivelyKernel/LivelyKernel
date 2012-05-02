@@ -27,7 +27,7 @@ buildMap: function() {
 buildMenu: function() {
     this.menu = new games.TowerDefense.Menu({
         restart: { name: 'Restart', receiver: this, slot: 'initializeTowerDefense' },
-        pause: { name: 'Paused', receiver: this, slot: 'togglePaused' },
+        pause: { name: 'Paused', receiver: this, slot: 'togglePaused' }
     });
     
     this.addMorph(this.menu);

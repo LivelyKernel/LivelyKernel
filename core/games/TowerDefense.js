@@ -211,8 +211,15 @@ compile: function(description) {
     var factor = 1;
     for (var i=0; i<description.length; ++i) {
         var c = description.charAt(i);
-
-        this.appendDirection(this.parseChar(c));
+        if (c>='0' && c<='9') {
+            factor = 10*factor+parseInt(c);
+        } else {
+            var dir = this.parseChar(c);
+            for (var j=0; j<factor; ++j) {
+                this.appendDirection(dir);
+            }
+            factor = 1;
+        }
     }
 },
 parseChar: function(c) {

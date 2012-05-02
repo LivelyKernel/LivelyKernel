@@ -89,24 +89,13 @@ loadLevel: function(levelDescription) {
         var path = levelDescription.paths[i];
         var point = path.start;
         
-        var tile = this.tileAt(point);
-        if (tile) {
-            tile.setFill(Color.red);
-        } else {
-            alert("Outer "+point.toString());
-        }
+        this.tileAt(point).setFill(Color.red);
         
         var _this = this;
         path.foreachDirection(function(direction) {
             point = direction.apply(point);
             
-            tile = _this.tileAt(point);
-
-            if (tile) {
-                tile.setFill(Color.black);
-            } else {
-                alert("Inner "+point.toString());
-            }
+            _this.tileAt(point).setFill(Color.black);
         });
     }
 },

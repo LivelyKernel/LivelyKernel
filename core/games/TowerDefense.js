@@ -147,6 +147,7 @@ settings: {
     xTiles: 15,
     yTiles: 15
 },
+currentDescription: null,
 initialize: function($super) {
     $super();
 

@@ -161,11 +161,13 @@ initialize: function($super, path) {
     $super();
     
     this.path = path;
-    this.originCoordinates = this.path.start;
-    this.destinationCoordinates = this.path.start;
+    this.step = {
+        from: this.path.start,
+        to: this.path.start,
+        interpolationValue: 0
+    };
     this.currentPathIndex = 0;
-    this.currentInterpolation = 0;
-    this.moveTo(this.currentCoordinates);
+    this.moveTo(this.step.from);
     
     this.setShape(new lively.morphic.Shapes.Ellipse(pt(-12, -12).extent(pt(24, 24))));
     this.setFill(Color.rgb(227, 66, 52));
@@ -178,7 +180,7 @@ update: function(delta) {
     this.currentInterpolation = finalS - skippedSteps;
     
     for (var i=0; i<skippedSteps; ++i) {
-        this.originCoordinates = this.destinationCoordinates;
+        this.fromCoordinates = this.toCoordinates;
         
     }
 },

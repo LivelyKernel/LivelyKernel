@@ -17,9 +17,9 @@ settings: {
 level1: {
     name: 'Level 1',
     paths: [
-        'DDDDDRRRRDDLLLD',
-        'DDRRDDDRRDDLLLD',
-        'DDRRDRRRDDDLDLLLD'
+        'DDDDDRRRRDDLLLDDDDDDD',
+        'DDRRDDDRRDDLLLDDDDDDD',
+        'DDRRDRRRDDDLDLLLDDDDDDD'
     ]
 },
 buildMap: function() {

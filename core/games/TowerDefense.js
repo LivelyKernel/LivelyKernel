@@ -177,7 +177,7 @@ initializeSize: function() {
     ));
 },
 loadLevel: function(levelDescription) {
-    
+    this.currentDescription = levelDescription;
 },
 });
 

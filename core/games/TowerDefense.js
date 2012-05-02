@@ -309,7 +309,7 @@ level1: function() {
         name: 'Level 1',
         paths: [
             { x: 0, y: 7, description: '12R5U7L12D' },
-            { x: 14, y: 4, description: '6L10D' }
+            { x: 14, y: 4, description: '6L 10D' }
         ]
     });
 },

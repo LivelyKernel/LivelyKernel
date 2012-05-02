@@ -187,13 +187,17 @@ loadLevel: function(levelDescription) {
         var path = levelDescription.paths[i];
         var point = path.start;
         
+        this.tileAt(point).setFill(Color.black);
+        
         path.foreachDirection(function(direction) {
             point = direction.move(point);
+            
+            this.tileAt(point).setFill(Color.black);
         });
     }
 },
-tileAt: function(x, y) {
-    return this.map[y*this.settings.yTiles+x];
+tileAt: function(point) {
+    return this.map[point.y*this.settings.yTiles+point.x];
 },
 });
 

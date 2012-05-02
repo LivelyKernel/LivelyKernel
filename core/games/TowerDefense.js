@@ -222,7 +222,6 @@ compile: function(description) {
             factor = 0;
         }
     }
-}
 },
 directionForChar: function(c) {
     switch (c) {

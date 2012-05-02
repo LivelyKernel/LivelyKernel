@@ -954,7 +954,7 @@ currently only support
 =SUM(E3:E6)
 =E3
 */
-    parseFormula: function(sValue) {	
+    parseFormula: function(sOrgValue) {	
         var arrValue;
         var nTotal = 0;
         var nAve = 0;
@@ -965,7 +965,7 @@ currently only support
         
         try{
 
-            sValue = sValue.toUpperCase();
+            sValue= sOrgValue.toUpperCase();
             if (sValue.substr(0,5)=="=SUM("){
                 arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");
                 var oStartCell = this.parseformulaCellIndex(arrValue[0]);
@@ -1017,7 +1017,7 @@ currently only support
 
         }	
         }
-    return sValue;
+    return sOrgValue;
     },
     parseformulaCellIndex: function (sValue){
         var oIndex={};

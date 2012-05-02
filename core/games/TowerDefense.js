@@ -58,7 +58,7 @@ initializeTowerDefense: function() {
     this.resetMorphs();
     this.initializeColor();
     this.buildMenu();
-    this.buildMap();
+    this.buildLevel();
     this.initializeSize();
     this.setPaused(true);
     this.resetLastTimestamp();

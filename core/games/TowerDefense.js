@@ -1,8 +1,8 @@
-module('games.TowerDefense').requires().toRun(function() {
+module('games.TowerDefense').requires().toRun(function(TD) {
 
-Object.extend(games.TowerDefense, {
+Object.extend(TD, {
 start: function() {
-    var towerDefense = new games.TowerDefense.TowerDefense();
+    var towerDefense = new TD.TowerDefense();
     var window = new lively.morphic.Window(towerDefense, "Towerefense");
     window.name = "TowerDefense";
     window.openInWorld();
@@ -10,18 +10,18 @@ start: function() {
 }
 });
 
-Morph.subclass('games.TowerDefense.TowerDefense', {
+Morph.subclass(TD.namespaceIdentifier + '.TowerDefense', {
 settings: {
     borderWidth: 1
 },
 buildMap: function() {
-    this.map = new games.TowerDefense.Map();
+    this.map = new TD.Map();
     
     this.addMorph(this.map);
     this.map.setPosition(pt(this.settings.borderWidth, this.menu.getExtent().y + this.settings.borderWidth));
 },
 buildMenu: function() {
-    this.menu = new games.TowerDefense.Menu({
+    this.menu = new TD.Menu({
         restart: { name: 'Restart', receiver: this, slot: 'initializeTowerDefense' },
         pause: { name: 'Paused', receiver: this, slot: 'togglePaused' }
     });
@@ -92,7 +92,7 @@ update: function(delta) {
 },
 });
 
-Morph.subclass('games.TowerDefense.Menu', {
+Morph.subclass(TD.namespaceIdentifier + '.Menu', {
 settings: {
     height: 25,
     buttonHeight: 23,
@@ -134,7 +134,7 @@ initializeSize: function() {
 },
 });
 
-Morph.subclass('games.TowerDefense.Map', {
+Morph.subclass(TD.namespaceIdentifier + '.Map', {
 settings: {
     xTiles: 15,
     yTiles: 15
@@ -151,7 +151,7 @@ towerDefense: function() {
 initializeTiles: function() {
     for(i=0; i<this.settings.yTiles; ++i) {
         for (j=0; j<this.settings.xTiles; ++j) {
-            var tile = new games.TowerDefense.Tile();
+            var tile = new TD.Tile();
             tile.setExtent(pt(tile.edgeLength(), tile.edgeLength()));
             tile.setPosition(pt(
                 j*tile.edgeLength(),
@@ -164,15 +164,15 @@ initializeTiles: function() {
 },
 initializeSize: function() {
     this.setExtent(pt(
-        this.settings.xTiles * games.TowerDefense.Tile.edgeLength,
-        this.settings.yTiles * games.TowerDefense.Tile.edgeLength
+        this.settings.xTiles * TD.Tile.edgeLength,
+        this.settings.yTiles * TD.Tile.edgeLength
     ));
 }
 });
 
-Morph.subclass('games.TowerDefense.Tile', {
+Morph.subclass(TD.namespaceIdentifier + '.Tile', {
 edgeLength: function() {
-    return games.TowerDefense.Tile.edgeLength;
+    return TD.Tile.edgeLength;
 },
 map: function() {
     return this.owner();
@@ -182,8 +182,8 @@ towerDefense: function() {
 },
 });
 
-Object.extend(games.TowerDefense.Tile, {
+Object.extend(TD.Tile, {
 edgeLength: 32,
 });
 
-}); // end of modulee
+}); // end of module

@@ -87,7 +87,12 @@ loadLevel: function(levelDescription) {
         var path = levelDescription.paths[i];
         var point = path.start;
         
-        this.tileAt(point).setFill(Color.black);
+        var tile = this.tileAt(point);
+        if (tile) {
+            tile.setFill(Color.black);
+        } else {
+            alert(point);
+        }
         
         var _this = this;
         path.foreachDirection(function(direction) {

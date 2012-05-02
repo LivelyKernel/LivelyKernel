@@ -155,7 +155,7 @@ edgeLength: 32,
 
 Morph.subclass('games.TowerDefense.Creep', {
 settings: {
-    velocity: 0.3
+    velocity: 0.6
 },
 initialize: function($super, path) {
     $super();

@@ -95,7 +95,7 @@ loadLevel: function(levelDescription) {
         if (tile) {
             tile.setFill(Color.red);
         } else {
-            //alert(point);
+            alert(point);
         }
         
         var _this = this;
@@ -107,7 +107,7 @@ loadLevel: function(levelDescription) {
             if (tile) {
                 tile.setFill(Color.black);
             } else {
-                //alert(point);
+                alert(point);
             }
         });
     }

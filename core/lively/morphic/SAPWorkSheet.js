@@ -461,7 +461,7 @@ console.log('End createLayout =' + elapsed);
             this.arrData[nOrgRow][nOrgCol].selected=true;
             this.arrSelectedData.push(oSelectedData);
             */
-            this.grid.setCellSelection(this,this.activeCell);
+            this.setCellSelection(this,this.activeCell);
 
 
         }else{

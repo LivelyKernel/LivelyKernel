@@ -1123,8 +1123,27 @@ currently only support
     
 },
 'Select cells', {
-    setCellSelection: function(oCell) {
-       
+    setCellSelection: function(oGrid, oCell) {
+        if (oCell){
+            //getting cell coords
+            var nRow = oCell.gridCoords.y - (oGrid.hideColHeads ? 0 : 1);
+            var nColumn = oCell.gridCoords.x;
+            //getting data coords
+            var nOrgRow = nRow  + oGrid.startRow;
+            var nOrgCol = nColumn + oGrid.startColumn;
+
+            var oSelectedData;
+            oSelectedData={};
+            oSelectedData.x = nOrgCol;
+            oSelectedData.y = nOrgRow;
+            
+            oGrid.arrSelectedCells.push(oCell);
+            oGrid.arrData[nOrgRow][nOrgCol].selected=true;
+            oGrid.arrSelectedData.push(oSelectedData);
+
+            oCell.selectedCell();
+        }
+
     },
     getCellSelections: function() {
        

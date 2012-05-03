@@ -474,7 +474,9 @@ console.log('End createLayout =' + elapsed);
             this.at(newX , newY ).activate(evt.isShiftDown());
             this.at(newX , newY ).focus();
             
-            nOrgRow = newY + this.startRow;
+            this.setCellSelection(this,this.at(newX , newY ));
+
+            /*nOrgRow = newY + this.startRow;
             nOrgCol = newX + this.startColumn;
             oSelectedData={};
             oSelectedData.x=nOrgCol;
@@ -483,7 +485,7 @@ console.log('End createLayout =' + elapsed);
             this.arrSelectedCells.push(this.at(newX ,newY));
             this.arrData[nOrgRow][nOrgCol].selected=true;
             this.arrSelectedData.push(oSelectedData);
-            
+            */
 
         }
     },

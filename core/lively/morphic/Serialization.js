@@ -139,6 +139,7 @@ lively.morphic.World.addMethods(
     doNotSerialize: ['revisionOnLoad', 'clickedOnMorph', 'draggedMorph'],
     onrestore: function($super) {
         $super();
+        // this should go into prepareForNewRenderContext / event registration...!
         this.registerForGlobalEvents();
     },
     interactiveSaveWorldAs: function() {

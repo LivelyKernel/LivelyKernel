@@ -1108,17 +1108,20 @@ currently only support
             var nOrgRow = nRow  + oGrid.startRow;
             var nOrgCol = nColumn + oGrid.startColumn;
 
-            var oSelectedData;
-            oSelectedData={};
-            oSelectedData.x = nOrgCol;
-            oSelectedData.y = nOrgRow;
-            
             oGrid.arrSelectedCells.push(oCell);
-            oGrid.arrData[nOrgRow][nOrgCol].selected=true;
-            oGrid.arrSelectedData.push(oSelectedData);
-
+            setDataCellSelection(oGrid,nOrgCol,nOrgRow);
             oCell.selectedCell();
         }
+    },
+    setDataCellSelection: function(oGrid,nCol, nRow) {
+        var oSelectedData;
+        oSelectedData={};
+        oSelectedData.x = nCol;
+        oSelectedData.y = nRow;
+            
+        oGrid.arrData[nRow][nCol].selected=true;
+        oGrid.arrSelectedData.push(oSelectedData);
+
     },
     getCellSelections: function() {
        

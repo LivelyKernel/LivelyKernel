@@ -449,9 +449,9 @@ console.log('End createLayout =' + elapsed);
             curY = this.getActiveRowIndex(),
             newX = curX + aPoint.x,
             newY = curY + aPoint.y;
-        debugger;
+
         if (evt.isShiftDown()){
-            nOrgRow = curY+ this.startRow;
+            /*nOrgRow = curY+ this.startRow;
             nOrgCol = curX + this.startColumn;
             oSelectedData={};
             oSelectedData.x=nOrgCol;
@@ -460,6 +460,10 @@ console.log('End createLayout =' + elapsed);
             this.arrSelectedCells.push(this.activeCell);
             this.arrData[nOrgRow][nOrgCol].selected=true;
             this.arrSelectedData.push(oSelectedData);
+            */
+            this.grid.setCellSelection(this,this.activeCell);
+
+
         }else{
             this.removeSelectedCells();
         }

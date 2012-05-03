@@ -2063,6 +2063,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         
         $super(evt);
     },
+    onMouseWheel: function(evt) {
+        console.log("SAPWorkBook: onMouseWheel");
+        $super(evt);
+    }
 
 });
 

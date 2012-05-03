@@ -1138,6 +1138,14 @@ currently only support
     },
     
 },
+'Select cells', {
+    setCellSelection: function() {
+       
+    },
+    getCellSelections: function() {
+       
+    }
+},
 'Mouse Events', {
     onMouseDown: function($super, evt) {
         $super(evt);

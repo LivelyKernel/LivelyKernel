@@ -65,22 +65,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         }
     },
-    removeSelectedCells: function() {
-       
-        for (i= 0; i< this.arrSelectedCells.length; i++) {
-            this.arrSelectedCells[i].deactivateCell();
-        }
-        this.arrSelectedCells.lenght=0;
-        this.arrSelectedCells =[];
-
-        //for data
-        for (i= 0; i< this.arrSelectedData.length; i++) {
-            this.arrData[this.arrSelectedData[i].y][this.arrSelectedData[i].x].selected=false;
-        }
-        this.arrSelectedData.lenght=0;
-        this.arrSelectedData=[];
-
-    },
     initializeScrolls: function() {
 
         var start = new Date().getTime();
@@ -1144,7 +1128,23 @@ currently only support
     },
     getCellSelections: function() {
        
-    }
+    },
+    removeSelectedCells: function() {
+       
+        for (i= 0; i< this.arrSelectedCells.length; i++) {
+            this.arrSelectedCells[i].deactivateCell();
+        }
+        this.arrSelectedCells.lenght=0;
+        this.arrSelectedCells =[];
+
+        //for data
+        for (i= 0; i< this.arrSelectedData.length; i++) {
+            this.arrData[this.arrSelectedData[i].y][this.arrSelectedData[i].x].selected=false;
+        }
+        this.arrSelectedData.lenght=0;
+        this.arrSelectedData=[];
+
+    },
 },
 'Mouse Events', {
     onMouseDown: function($super, evt) {

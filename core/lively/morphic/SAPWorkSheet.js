@@ -1372,8 +1372,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
                 this.grid.setCellSelection(this.grid,this);
                 this.activate();
             }
-            
-            
         }
     },
     onDoubleClick: function (evt) {

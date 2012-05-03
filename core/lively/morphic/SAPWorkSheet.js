@@ -1143,6 +1143,10 @@ currently only support
     },
 },
 'Mouse Events', {
+    onMouseMove: function($super, evt) {
+        console.log("SAPGrid.onMouseMove");
+        $super(evt);
+    },
     onMouseDown: function($super, evt) {
         $super(evt);
          //console.log("SAPGrid.onMouseDown");

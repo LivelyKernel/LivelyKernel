@@ -467,6 +467,8 @@ console.log('End createLayout =' + elapsed);
             var oSelectedData={};
             oSelectedData.x=nOrgCol;
             oSelectedData.y=nOrgRow;
+
+            this.activeCell.selectedCell();
             this.arrSelectedCells.push(this.activeCell);
             this.arrData[nOrgRow][nOrgCol].selected=true;
             this.arrSelectedData.push(oSelectedData);

@@ -1360,7 +1360,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
                         
                         for (var x = nStartX; x <= nEndX ; x++) {
                             for (var y = nStartY; y <= nEndY ; y++) {
-                                
+                                console.log("x,y: " + x+ "," +y)
                             }
                         }
 

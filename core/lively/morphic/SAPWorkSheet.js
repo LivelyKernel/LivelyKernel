@@ -445,10 +445,10 @@ console.log('End createLayout =' + elapsed);
         }
 
         this.applyCellChanges();
-        var curX = this.getActiveColIndex(),
-            curY = this.getActiveRowIndex(),
-            newX = curX + aPoint.x,
-            newY = curY + aPoint.y;
+        var curX = this.getActiveColIndex();
+        var curY = this.getActiveRowIndex();
+        var newX = curX + aPoint.x;
+        var newY = curY + aPoint.y;
 
         if (evt.isShiftDown()){
             /*nOrgRow = curY+ this.startRow;

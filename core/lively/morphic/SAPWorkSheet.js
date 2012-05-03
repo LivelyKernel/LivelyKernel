@@ -1346,7 +1346,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
                     if (this.grid.activeCell) {
                         var curX = this.grid.getActiveColIndex();
                         var curY = this.grid.getActiveRowIndex();
-                        console.log(curX + "," +curY  )
+                        console.log(curX + "," +curY)
                     }
                 }
                 this.grid.removeSelectedCells();

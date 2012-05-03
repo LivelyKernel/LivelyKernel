@@ -464,6 +464,12 @@ console.log('End createLayout =' + elapsed);
         if (evt.isShiftDown()){
             var nOrgRow = curY+ this.grid.startRow;
             var nOrgCol = curX + this.grid.startColumn;
+            var oSelectedData={};
+            oSelectedData.x=nOrgCol;
+            oSelectedData.y=nOrgRow;
+            //this.grid.arrSelectedCells.push(this);
+            //this.grid.arrData[nOrgRow][nOrgCol].selected=true;
+            //this.grid.arrSelectedData.push(oSelectedData);
             
         }
 

@@ -1102,8 +1102,6 @@ currently only support
         debugger;
         if (oCell){
             //getting cell coords
-
-            
             var nRow = oCell.gridCoords.y - (oGrid.hideColHeads ? 0 : 1);
             var nColumn = oCell.gridCoords.x;
             //getting data coords

@@ -1099,7 +1099,6 @@ currently only support
 },
 'Select cells', {
     setCellSelection: function(oGrid, oCell) {
-        debugger;
         if (oCell){
             //getting cell coords
             var nRow = oCell.gridCoords.y - (oGrid.hideColHeads ? 0 : 1);
@@ -1110,11 +1109,12 @@ currently only support
 
             this.setGridCellSelection(oGrid, oCell)
             this.setDataCellSelection(oGrid,nOrgCol,nOrgRow);
-            oCell.selectedCell();
+            
         }
     },
     setGridCellSelection: function(oGrid, oCell) {
         oGrid.arrSelectedCells.push(oCell);
+        oCell.selectedCell();
     },
     setDataCellSelection: function(oGrid,nCol, nRow) {
         var oSelectedData={};

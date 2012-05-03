@@ -1369,7 +1369,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
 
                 //this.selectedCell();
             
-                this.grid.setCellSelection(this.grid,this)
+                this.grid.setCellSelection(this.grid,this);
 
                 this.activate(true);
                 
@@ -1382,9 +1382,11 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
                     }
                 }
                 this.grid.removeSelectedCells();
-                this.grid.arrSelectedCells.push(this);
-                this.grid.arrData[nOrgRow][nOrgCol].selected=true;
-                this.grid.arrSelectedData.push(oSelectedData);
+                //this.grid.arrSelectedCells.push(this);
+                //this.grid.arrData[nOrgRow][nOrgCol].selected=true;
+                //this.grid.arrSelectedData.push(oSelectedData);
+
+                this.grid.setCellSelection(this.grid,this);
 
                 this.activate();
             }

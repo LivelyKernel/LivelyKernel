@@ -1360,13 +1360,13 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         if (evt.isLeftMouseButtonDown()) {
             var ctrl = evt.isCtrlDown();
             if (evt.isCtrlDown()){
-                this.grid.arrSelectedCells.push(this);
-                this.grid.arrData[nOrgRow][nOrgCol].selected=true;
-                this.grid.arrSelectedData.push(oSelectedData);
+                //this.grid.arrSelectedCells.push(this);
+                //this.grid.arrData[nOrgRow][nOrgCol].selected=true;
+                //this.grid.arrSelectedData.push(oSelectedData);
 
-                this.selectedCell();
-
-                //this.grid.setCellSelection(this.grid,this.cell)
+                //this.selectedCell();
+            
+                this.grid.setCellSelection(this.grid,this.cell)
 
                 this.activate(true);
                 

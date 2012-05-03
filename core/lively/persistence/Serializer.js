@@ -846,6 +846,20 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
     },
 });
 
+ObjectLinearizerPlugin.subclass('lively.persistence.TraitPlugin',
+'plugin interface', {
+    afterDeserializeObj: function(obj) {
+        if (Global.halt) debugger;
+        var traitConfs = lively.Traits.traitConfsOfObject(obj);
+        if (!traitConfs) return;
+        // FIXME move this logic to lively.Traits
+        traitConfs.forEach(function(conf) {
+            var trait = Trait(conf.traitName);
+            trait.applyTo(obj, conf.options);
+        })
+    }
+});
+
 ObjectLinearizerPlugin.subclass('IgnoreFunctionsPlugin',
 'interface', {
     ignoreProp: function(obj, propName, value) {
@@ -1274,6 +1288,7 @@ Object.extend(lively.persistence, {
     pluginsForLively: [
         StoreAndRestorePlugin,
         ClosurePlugin,
+        lively.persistence.TraitPlugin,
         RegExpPlugin,
         IgnoreFunctionsPlugin,
         ClassPlugin,

@@ -1339,7 +1339,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         sFontFamily = this.getFontFamily();
         sFontSize = this.getFontSize();
         */
- 
         var nCol= this.gridCoords.x;
         var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
         
@@ -1354,8 +1353,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         }
         this.grid.oWorkBook.toolBar.setfontFamily(sFontFamily); 
         this.grid.oWorkBook.toolBar.setFontSize(sFontSize); 
-
-       
 
         this.grid.hideAnnotation();
         if (evt.isLeftMouseButtonDown()) {

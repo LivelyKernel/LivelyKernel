@@ -947,27 +947,25 @@ handleOnCapture);
 
 },
 'grabbing and dropping', {
-    enableGrabbing: function() {
-        this.grabbingEnabled = true;
-    },
+    enableGrabbing: function() { this.grabbingEnabled = true; },
     disableGrabbing: function() { this.grabbingEnabled = false },
-
-    enableDropping: function() {
-        this.droppingEnabled = true;
-    },
+    enableDropping: function() { this.droppingEnabled = true; },
     disableDropping: function() { this.droppingEnabled = false },
     enableDragging: function() { this.draggingEnabled = true },
     disableDragging: function() { this.draggingEnabled = false },
 
     dropOnMe: function(evt) {
-        if (!this.droppingEnabled || this.eventsAreIgnored) return;
+        if (!this.droppingEnabled || this.eventsAreIgnored) return false;
         if (evt.hand.submorphs.length == 0) return false;
-        for (var i = 0; i < this.submorphs.length; i++)
+        for (var i = 0; i < this.submorphs.length; i++) {
             if (this.submorphs[i].manualDropOnMe(evt)) return true;
-        if (this.owner != evt.hand)
+        }
+        if (this.owner != evt.hand) {
             return evt.hand.dropContentsOn(this, evt);
+        }
         return false;
     },
+
     dropOn: function(aMorph) {
         var placeholderPosition;
         if (this.placeholder) {
@@ -987,6 +985,7 @@ handleOnCapture);
             layouter.removeAllPlaceholders();
         }
     },
+
     onDropOn: function(aMorph) {
         // called in onDrop after self has been added to aMorph
         return false;
@@ -996,7 +995,6 @@ handleOnCapture);
         // this is a workaround. HTML events are not delivered to the required morph
         // under the hand when the hand already carries submorphs that overlap
         // var localPt = this.localize(evt.getPosition());
-// alert('' + this.getBounds() + ' vs ' + this.localize(evt.getPosition()))
         return this.fullContainsWorldPoint(evt.getPosition()) ? this.dropOnMe(evt) : false;
     },
     grabMe: function(evt) {
@@ -1029,6 +1027,7 @@ handleOnCapture);
 
 },
 'scrolling', {
+    onScroll: function(evt) {},
     getScrollableNode: function(evt) {
         // FIXME HTML specific
         // FIXME pass evt on all calls

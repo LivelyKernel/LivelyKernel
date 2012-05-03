@@ -1442,8 +1442,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
         this.grid.addMorph(this);
     },
     onMouseDown: function (evt) {
-        console.log('SAPGridCell.onMouseDown');
-       
+
         this.grid.hideAnnotation();
         if (evt.isLeftMouseButtonDown()) {
            
@@ -1452,29 +1451,16 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
             var oSelectedData={};
 
             this.grid.selectedColumnHeader = this;
-            
             this.grid.removeSelectedCells();
-
-            //setGridCellSelection: function(oGrid, oCell)
-            //setDataCellSelection: function(oGrid,nCol, nRow)
 
             //for grid selected
             for (var y = 0; y < this.grid.numRows; y++) {
-                //this.grid.rows[y][nCol].selectedCell();
-                //this.grid.arrSelectedCells.push(this.grid.rows[y][nCol]);
                 this.grid.setGridCellSelection(this.grid,this.grid.rows[y][nCol]);
             }
             //for data selected
             for (var y = 0; y < this.grid.arrData.length; y++) {
-                //oSelectedData={};
-                //oSelectedData.x=nOrgCol;
-                //oSelectedData.y=y;
-                //this.grid.arrData[y][nOrgCol].selected=true;
-                //this.grid.arrSelectedData.push(oSelectedData);
                 this.grid.setDataCellSelection(this.grid,nOrgCol,y)
             }
-            
-            console.log("SAPGridColHead.onMouseDown nCol:nOrgCol =" + nCol + ":" + nOrgCol );
             
         }
     },

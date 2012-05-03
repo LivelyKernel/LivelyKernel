@@ -16,7 +16,7 @@ lively.morphic.EventSimulator = {
             result = spec.targetNode.dispatchEvent(evt);
         return result;
     },
-    createMouseEvent: function(type, pos, button) {
+    createMouseEvent: function(type, pos, button, keys) {
         // event.initMouseEvent(type, canBubble, cancelable, view,
         // detail, screenX, screenY, clientX, clientY,
         // ctrlKey, altKey, shiftKey, metaKey,
@@ -26,7 +26,7 @@ lively.morphic.EventSimulator = {
         simulatedEvent.initMouseEvent(type, true, true, window, 1,
             0, 0, //pos.x, pos.y+100,
             pos.x - Global.scrollX, pos.y - Global.scrollY,
-            false, false, false, false,
+            keys.ctrl || false, keys.alt || false, keys.shift || false, keys.meta || false,
             button || 0/*left*/, null);
         return simulatedEvent;
     },
@@ -37,22 +37,41 @@ lively.morphic.EventSimulator = {
         if (!spec.button) spec.button = 0;
         var targetMorphOrNode = spec.target;
 
-        var evt = this.createMouseEvent(spec.type, spec.pos, spec.button);
+        var evt = this.createMouseEvent(spec.type, spec.pos, spec.button, spec.keys || {});
         if (!Config.isNewMorphic && targetMorphOrNode.isMorph) {
             if (spec.shouldFocus) {
                 var hand = targetMorphOrNode.world().firstHand()
                 hand.setMouseFocus(targetMorphOrNode);
             }
             targetMorphOrNode.world().rawNode.dispatchEvent(evt);
-            return
+            return;
         }
         if (Config.isNewMorphic && targetMorphOrNode.isMorph) {
-                    targetMorphOrNode = targetMorphOrNode.renderContext().morphNode;
-                }
+            targetMorphOrNode = targetMorphOrNode.renderContext().morphNode;
+        }
         targetMorphOrNode.dispatchEvent(evt)
     },
 
+    exampleCmdClick: function() {
+        // here is how to simulate a cmd click on a button
+        btn = this.get('btn');
+        pos = btn.worldPoint(btn.innerBounds().center());
 
+        keys = {meta: true}
+        lively.morphic.EventSimulator.doMouseEvent({
+            type: 'mousedown',
+            pos: pos,
+            target: btn,
+            keys: keys
+        });
+
+        lively.morphic.EventSimulator.doMouseEvent({
+            type: 'mouseup',
+            pos: pos,
+            target: btn,
+            keys: keys
+        })
+    }
 }
 
 Object.subclass('lively.morphic.EventHandler',

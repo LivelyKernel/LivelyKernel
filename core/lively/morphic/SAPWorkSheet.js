@@ -490,10 +490,10 @@ console.log('End createLayout =' + elapsed);
             oSelectedData.x=nOrgCol;
             oSelectedData.y=nOrgRow;
             this.activeCell.selectedCell();
-            this.arrSelectedCells.push(this.at(curX + aPoint.x, curY + aPoint.y));
+            this.arrSelectedCells.push(this.at(newX ,newY));
             this.arrData[nOrgRow][nOrgCol].selected=true;
             this.arrSelectedData.push(oSelectedData);
-
+            
 
         }
     },

@@ -1114,14 +1114,11 @@ currently only support
         }
     },
     setDataCellSelection: function(oGrid,nCol, nRow) {
-        var oSelectedData;
-        oSelectedData={};
+        var oSelectedData={};
         oSelectedData.x = nCol;
         oSelectedData.y = nRow;
-            
         oGrid.arrData[nRow][nCol].selected=true;
         oGrid.arrSelectedData.push(oSelectedData);
-
     },
     getCellSelections: function() {
        

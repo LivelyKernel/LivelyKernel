@@ -454,16 +454,20 @@ console.log('End createLayout =' + elapsed);
             this.at(0,0).activate();
             return;
         }
-        
-        if (evt.isShiftDown()){
-            
-        }
 
         this.applyCellChanges();
         var curX = this.getActiveColIndex(),
             curY = this.getActiveRowIndex(),
             newX = curX + aPoint.x,
             newY = curY + aPoint.y;
+            
+        if (evt.isShiftDown()){
+            var nOrgRow = curY+ this.grid.startRow;
+            var nOrgCol = curX + this.grid.startColumn;
+            
+        }
+
+
         if (this.numRows > newY  && this.numCols > newX &&
                 newY >= 0 && newX >= 0) {
             this.at(curX + aPoint.x, curY + aPoint.y).activate();

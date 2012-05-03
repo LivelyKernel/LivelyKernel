@@ -1109,7 +1109,7 @@ currently only support
             var nOrgCol = nColumn + oGrid.startColumn;
 
             oGrid.arrSelectedCells.push(oCell);
-            setDataCellSelection(oGrid,nOrgCol,nOrgRow);
+            this.setDataCellSelection(oGrid,nOrgCol,nOrgRow);
             oCell.selectedCell();
         }
     },

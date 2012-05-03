@@ -761,7 +761,9 @@ lively.morphic.Morph.addMethods(
             'publish', function(evt) {
             self.copyToPartsBinWithUserRequest();
         }])
-        items.push(['open in window', this.openInWindow.bind(this)]);
+        items.push(['open in window', function(evt){
+            self.openInWindow(evt.mousePoint);
+        }]);
 
         // Drilling into scene to addMorph or get a halo
         var morphs = this.world().morphsContainingPoint(this.worldPoint(pt(0,0)))

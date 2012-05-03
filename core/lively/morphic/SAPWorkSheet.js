@@ -435,10 +435,6 @@ console.log('End createLayout =' + elapsed);
     
     moveActiveCellBy: function(evt,aPoint) {
         
-        var nOrgRow;
-        var nOrgCol;
-        var oSelectedData;
-
         if (!this.activeCell) {
             this.at(0,0).activate();
             return;
@@ -451,42 +447,15 @@ console.log('End createLayout =' + elapsed);
         var newY = curY + aPoint.y;
 
         if (evt.isShiftDown()){
-            /*nOrgRow = curY+ this.startRow;
-            nOrgCol = curX + this.startColumn;
-            oSelectedData={};
-            oSelectedData.x=nOrgCol;
-            oSelectedData.y=nOrgRow;
-            this.activeCell.selectedCell();
-            this.arrSelectedCells.push(this.activeCell);
-            this.arrData[nOrgRow][nOrgCol].selected=true;
-            this.arrSelectedData.push(oSelectedData);
-            */
             this.setCellSelection(this,this.activeCell);
-
-
         }else{
             this.removeSelectedCells();
         }
 
-
-        if (this.numRows > newY  && this.numCols > newX &&
-                newY >= 0 && newX >= 0) {
+        if (this.numRows > newY  && this.numCols > newX && newY >= 0 && newX >= 0) {
             this.at(newX , newY ).activate(evt.isShiftDown());
             this.at(newX , newY ).focus();
-            
             this.setCellSelection(this,this.at(newX , newY ));
-
-            /*nOrgRow = newY + this.startRow;
-            nOrgCol = newX + this.startColumn;
-            oSelectedData={};
-            oSelectedData.x=nOrgCol;
-            oSelectedData.y=nOrgRow;
-            this.activeCell.selectedCell();
-            this.arrSelectedCells.push(this.at(newX ,newY));
-            this.arrData[nOrgRow][nOrgCol].selected=true;
-            this.arrSelectedData.push(oSelectedData);
-            */
-
         }
     },
 

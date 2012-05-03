@@ -1144,6 +1144,7 @@ currently only support
 },
 'Mouse Events', {
     onMouseMove: function($super, evt) {
+        debugger;
         console.log("SAPGrid.onMouseMove");
         $super(evt);
     },

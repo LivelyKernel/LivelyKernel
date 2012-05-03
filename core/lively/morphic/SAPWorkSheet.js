@@ -465,7 +465,7 @@ console.log('End createLayout =' + elapsed);
             curY = this.getActiveRowIndex(),
             newX = curX + aPoint.x,
             newY = curY + aPoint.y;
-            
+        debugger;
         if (evt.isShiftDown()){
             nOrgRow = curY+ this.startRow;
             nOrgCol = curX + this.startColumn;

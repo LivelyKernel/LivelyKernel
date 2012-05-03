@@ -1369,7 +1369,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
 
                 //this.selectedCell();
             
-                this.grid.setCellSelection(this.grid,this.cell)
+                this.grid.setCellSelection(this.grid,this)
 
                 this.activate(true);
                 

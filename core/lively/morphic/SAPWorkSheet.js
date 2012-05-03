@@ -1200,9 +1200,9 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         //this.cellformula='';
         //this.annotation='';//maybe we need array object to save more than one
     },
-    activate: function(isCtrlDown) {
+    activate: function(isSelected) {
         if (this.grid.activeCell) {
-            if (!isCtrlDown){
+            if (!isSelected){
                 this.grid.activeCell.deactivate();
             }
             

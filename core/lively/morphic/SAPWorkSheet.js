@@ -1108,10 +1108,14 @@ currently only support
             var nOrgRow = nRow  + oGrid.startRow;
             var nOrgCol = nColumn + oGrid.startColumn;
 
-            oGrid.arrSelectedCells.push(oCell);
+            //oGrid.arrSelectedCells.push(oCell);
+            this.setGridCellSelection(oGrid, oCell)
             this.setDataCellSelection(oGrid,nOrgCol,nOrgRow);
             oCell.selectedCell();
         }
+    },
+    setGridCellSelection: function(oGrid, oCell) {
+        oGrid.arrSelectedCells.push(oCell);
     },
     setDataCellSelection: function(oGrid,nCol, nRow) {
         var oSelectedData={};

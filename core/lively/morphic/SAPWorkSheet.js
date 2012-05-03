@@ -1119,7 +1119,6 @@ currently only support
 
             oCell.selectedCell();
         }
-
     },
     getCellSelections: function() {
        

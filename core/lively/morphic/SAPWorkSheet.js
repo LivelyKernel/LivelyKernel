@@ -471,8 +471,8 @@ console.log('End createLayout =' + elapsed);
 
         if (this.numRows > newY  && this.numCols > newX &&
                 newY >= 0 && newX >= 0) {
-            this.at(curX + aPoint.x, curY + aPoint.y).activate(evt.isShiftDown());
-            this.at(curX + aPoint.x, curY + aPoint.y).focus();
+            this.at(newX , newY ).activate(evt.isShiftDown());
+            this.at(newX , newY ).focus();
             
             nOrgRow = newY + this.startRow;
             nOrgCol = newX + this.startColumn;

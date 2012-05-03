@@ -1338,9 +1338,12 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
             }else{
                 if (evt.isShiftDown()){
                     if (this.grid.activeCell) {
-                        var curX = this.grid.getActiveColIndex();
-                        var curY = this.grid.getActiveRowIndex();
-                        console.log(curX + "," +curY)
+                        var nActiveX = this.grid.getActiveColIndex();
+                        var nActiveY = this.grid.getActiveRowIndex();
+                        var nCurrentX = this.getActiveColIndex();
+                        var nCurrentY = this.getActiveRowIndex();
+                        console.log("Active: " + nActiveX + "," +nActiveY )
+                        console.log("Current: " + nCurrentX+ "," +nCurrentY )
                     }
                 }
                 this.grid.removeSelectedCells();

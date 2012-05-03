@@ -1145,6 +1145,28 @@ currently only support
 'Mouse Events', {
     onMouseMove: function($super, evt) {
         debugger;
+/*
+evt.MOUSEDOWN:1
+clientX:551
+ClientY:359;
+layerX:106
+layerY:50
+offsetX:57
+offSetY:16
+pageX:551
+pageY:359
+
+screenX:496
+screenY:384
+x:551
+y359
+
+
+
+*/
+
+
+
         console.log("SAPGrid.onMouseMove");
         $super(evt);
     },

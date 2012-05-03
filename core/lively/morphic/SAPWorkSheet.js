@@ -1367,7 +1367,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
                     this.grid.removeSelectedCells();
                     this.grid.setCellSelection(this.grid,this);
                 }
-                this.activate();
+                this.activate(evt.isShiftDown());
             }
         }
     },

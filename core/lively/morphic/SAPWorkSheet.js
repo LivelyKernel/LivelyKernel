@@ -1108,7 +1108,6 @@ currently only support
             var nOrgRow = nRow  + oGrid.startRow;
             var nOrgCol = nColumn + oGrid.startColumn;
 
-            //oGrid.arrSelectedCells.push(oCell);
             this.setGridCellSelection(oGrid, oCell)
             this.setDataCellSelection(oGrid,nOrgCol,nOrgRow);
             oCell.selectedCell();

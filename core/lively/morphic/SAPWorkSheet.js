@@ -462,8 +462,8 @@ console.log('End createLayout =' + elapsed);
             newY = curY + aPoint.y;
             
         if (evt.isShiftDown()){
-            var nOrgRow = curY+ this.grid.startRow;
-            var nOrgCol = curX + this.grid.startColumn;
+            var nOrgRow = curY+ this.startRow;
+            var nOrgCol = curX + this.startColumn;
             var oSelectedData={};
             oSelectedData.x=nOrgCol;
             oSelectedData.y=nOrgRow;

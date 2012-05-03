@@ -1343,7 +1343,10 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
                 
             }else{
                 if (evt.isShiftDown()){
-                    
+                    if (this.grid.activeCell) {
+                        var curX = this.grid.getActiveColIndex();
+                        var curY = this.grid.getActiveRowIndex();
+                    }
                 }
                 this.grid.removeSelectedCells();
                 this.grid.arrSelectedCells.push(this);

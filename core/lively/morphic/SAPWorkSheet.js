@@ -1141,13 +1141,16 @@ currently only support
 'Mouse Events', {
     onMouseDown: function($super, evt) {
         $super(evt);
-         console.log("SAPGrid.onMouseDown");
+         //console.log("SAPGrid.onMouseDown");
     },
 
     onMouseUp: function($super, evt) {
         $super(evt);
-         console.log("SAPGrid.onMouseUp");
+         //console.log("SAPGrid.onMouseUp");
     },
+    onMouseWheel: function(evt) {
+        console.log("onMouseWheel");
+    }
 },
 'Common Tool', {
      converttoPercentage: function(num,nDecimalPlaces){

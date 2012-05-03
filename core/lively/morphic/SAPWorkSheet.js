@@ -1123,14 +1123,13 @@ currently only support
     
 },
 'Select cells', {
-    setCellSelection: function() {
+    setCellSelection: function(oCell) {
        
     },
     getCellSelections: function() {
        
     },
     removeSelectedCells: function() {
-       
         for (i= 0; i< this.arrSelectedCells.length; i++) {
             this.arrSelectedCells[i].deactivateCell();
         }

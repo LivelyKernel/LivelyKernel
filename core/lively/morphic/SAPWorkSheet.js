@@ -456,6 +456,7 @@ console.log('End createLayout =' + elapsed);
         }
         
         if (evt.isShiftDown()){
+            
         }
 
         this.applyCellChanges();

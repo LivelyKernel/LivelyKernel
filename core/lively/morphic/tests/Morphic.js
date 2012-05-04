@@ -582,6 +582,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         m.setInputAllowed(false);
         this.assert(!m.inputAllowed(), 'setInputAllowed not working');
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichTextTests',

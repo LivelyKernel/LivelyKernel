@@ -186,6 +186,7 @@ function module(moduleName) {
 
         return {
             toRun: function(code) {
+if (module.namespaceIdentifier.include("SAPWork")) debugger;
                 var debugCode = code;
                 code = code.curry(module); // pass in own module name for nested requirements
                 var codeWrapper = function() { // run code with namespace modules as additional parameters

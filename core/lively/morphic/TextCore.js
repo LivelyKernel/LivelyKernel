@@ -875,8 +875,101 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         fromMorph.setNullSelectionAt(textLength);
         return true;
     },
-    newMethod: function() {
-        // enter comment here
+    autoIndent: function() {
+        var text = this.textString;
+
+    var i = 0;
+    var tokens = {};
+
+    while(text.match(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/)){
+        tokens[i] =  text.match(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/)[2];
+        text = text.replace(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/, "$1\u0007"+i);
+        i++;
+    }    
+
+    while(text.match(/"[^"\n]*"/)){
+        tokens[i] =  text.match(/"[^"]*"/)[0];
+        text = text.replace(/"[^"]*"/, "\u0007"+i);
+        i++;
+    }
+    while(text.match(/'[^'\n]*'/)){
+        tokens[i] =  text.match(/'[^']*'/)[0];
+        text =  text.replace(/'[^']*'/, "\u0007"+i);
+        i++;
+    }
+
+    while(text.match(/\/\/[^\n]*\n/)){
+        tokens[i] = text.match(/\/\/[^\n]*\n/)[0];
+        text =  text.replace(/\/\/[^\n]*\n/, "\u0007"+i);
+        i++;
+    }
+
+    while(text.match(/\/\*(.|\n)*?\*\//)){
+        tokens[i] = text.match(/\/\*(.|\n)*?\*\//)[0];
+        text = text.replace(/\/\*(.|\n)*?\*\//, "\u0007"+i);
+        i++;
+    }
+
+    text = text.replace(/ *\n/g, "\n");
+    text = text.replace(/ *(.*[^ ]) *\n/g, "$1\n");
+
+    var formatted = '';
+    var lines = text.split('\n');
+    var indent = 0;
+    var lastCount = 0;
+
+    for (var i=0; i < lines.length; i++) {
+        var ln = lines[i];
+
+        var brackets = [
+            ["(",")"],
+            ["[","]"],
+            ["{","}"]
+        ];
+
+        var counts= [
+            [0,0],
+            [0,0],
+            [0,0]
+        ];
+
+        for(var j = 0; j < ln.length; j++){
+            for(var b = 0; b < brackets.length; b++){
+                if(ln[j] === brackets[b][0]){
+                    counts[b][0]++;
+                } else if(ln[j] === brackets[b][1]){
+                    if(counts[b][0] > 0){
+                        counts[b][0]--;
+                    } else {
+                        counts[b][1]++;
+                    }
+                }
+            }
+        }
+
+        counts = counts.reduce(function(ea1, ea2){
+            return [ea1[0] + ea2[0], ea1[1] + ea2[1]];
+        });
+
+        indent += lastCount - counts[1];
+        lastCount = Math.max(0, counts[0]);
+
+        var padding = '';
+        for (var j = 0; j < indent; j++) {
+            padding += '    ';
+        }
+
+        formatted += padding + ln + '\n';
+    }
+    
+    text = formatted;
+
+    while(i > 0){
+        i--;
+        text= text.replace(new RegExp("\u0007"+i),tokens[i]);
+    }
+
+    this.textString = text;
     },
 
 

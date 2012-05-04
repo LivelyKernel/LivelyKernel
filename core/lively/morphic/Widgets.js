@@ -1084,6 +1084,7 @@ lively.morphic.World.addMethods(
             menuItems = worldRequirements.collect(function(name) {
                 return [name, ['remove', removeRequirement.curry(name)]];
             });
+        items.push(['requirements', menuItems]);
 
         // method tracing items
         function disableGlobalTracing() {

@@ -1,4 +1,4 @@
-module('lively.morphic.SAPWorkSheet').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles','lively.persistence.MassMorphCreation','lively.morphic.SAPCommonWidgets').toRun(function() {
+module('lively.morphic.SAPWorkSheet').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles','users.robertkrahn.MassMorphCreation','lively.morphic.SAPCommonWidgets').toRun(function() {
 lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 'initialization', {
     initialize: function($super, numCols, numRows) {
@@ -673,10 +673,7 @@ console.log('End createLayout =' + elapsed);
                 var sFontSize = this.defalutFontSize;
                 var sFontFamily = this.defaultFontFamily;
                 var sTextAlign = "left";
-                var oFill = null;
-                var oTextColor = null;
-                var oBorderColor = null;
-
+                
                 if (this.arrData[nOrgRow][nOrgCol].fontWeight){
                     sFontWeight=this.arrData[nOrgRow][nOrgCol].fontWeight;
                 }
@@ -695,42 +692,9 @@ console.log('End createLayout =' + elapsed);
                 if (this.arrData[nOrgRow][nOrgCol].textAlign){
                     sTextAlign =this.arrData[nOrgRow][nOrgCol].textAlign;
                 }
-                
-
-/*
-                this.arrData[nOrgRow][nOrgCol].fill = "Color.rgb(220,220,220)";
-                if (this.arrData[nOrgRow][nOrgCol].fill){
-                    oFill = eval(this.arrData[nOrgRow][nOrgCol].fill);
-                }
-                if (this.arrData[nOrgRow][nOrgCol].textColor){
-                    oTextColor = eval(this.arrData[nOrgRow][nOrgCol].textColor);
-                }
-                if (this.arrData[nOrgRow][nOrgCol].borderColor){
-                    borderColor= eval(this.arrData[nOrgRow][nOrgCol].borderColor);
-                }
-                */
-//fill: ss
-//borderColor: xx
-//textColor: 
-//oColor = eval('Color.rgb(220,220,220)')
-//oText.applyStyle({borderColor: oColor ,textColor: oColor,fill:null});
-
-                //var oFill = null;
-                //var oTextColor = null;
-                //var oBorderColor = null;
-
-                //bug in applystyle textDecoration and fontStyle do not work
-                //this.at(x,y).emphasizeAll({fontStyle: sFontStyle,textDecoration: sTextDecoration});
+                //bug in applystyle textDecoration does not work
                 this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
-                /*this.at(x,y).applyStyle({fontWeight: sFontWeight,
-                                         fontStyle: sFontStyle,
-                                         textDecoration: sTextDecoration,
-                                         fontSize:sFontSize,
-                                         fontFamily:sFontFamily,
-                                         borderColor:oBorderColor ,
-                                         textColor:oTextColor ,
-                                         fill:oFill });
-                */
+                //this.at(x,y).applyStyle({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
                 //this.at(x,y).setTextDecoration(sTextDecoration);
                 this.at(x,y).setAlign(sTextAlign); 
             }
@@ -741,7 +705,7 @@ console.log('End createLayout =' + elapsed);
         }
 //var elapsed = new Date().getTime() - start;
 //console.log('updateDisplay:'  + elapsed/1000);
-    },this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
+    },
     setActiveCellContent: function(aString) {
         if (!this.activeCell) {
             this.at(0,0).activate(); 
@@ -1690,9 +1654,8 @@ fontStyle: 'italic'
 fontSize:12
 fontFamily:sFont
 textAlign: 'left'
-fill: ss
-borderColor: xx
-textColor: 
+backgroundcolor: ss
+boardercolor: xx
 
 getFontSize()
 getFontWeight()
@@ -2129,6 +2092,25 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
 
         var nWidth= this.grid.defaultCellWidth * this.grid.numCols + 50;
         var nHeight = this.grid.defaultCellHeight * this.grid.numRows + 50;
+        this.setExtent(lively.pt(nWidth,nHeight));
+        //this.setFill(Color.rgb(255, 255, 225));
+    },
+     onMouseDown: function($super, evt) {
+        
+        $super(evt);
+    },
+    onScroll: function(evt) {
+        console.log("SAPWorkBook: onScroll");
+    },
+    onMouseWheel: function($super,evt) {
+        console.log("SAPWorkBook: onMouseWheel");
+        $super(evt);
+    }
+
+});
+
+
+}) // end of moduleHeight * this.grid.numRows + 50;
         this.setExtent(lively.pt(nWidth,nHeight));
         //this.setFill(Color.rgb(255, 255, 225));
     },

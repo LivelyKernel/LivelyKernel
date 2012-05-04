@@ -154,9 +154,9 @@ function __oldNamespace(spec, context) {
 
 function module(moduleName) {
 
-if (moduleName.include("SAPWork")) debugger;
-
     moduleName = LivelyMigrationSupport.fixModuleName(moduleName);
+
+if (moduleName.include("SAPWork")) debugger;
 
     function isNamespaceAwareModule(moduleName) {
         return moduleName && !moduleName.endsWith('.js');

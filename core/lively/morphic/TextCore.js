@@ -898,9 +898,9 @@ autoIndent: function() {
         i++;
     }
 
-    while(text.match(/\/\/[^\n]*\n/)){
-        tokens[i] = text.match(/\/\/[^\n]*\n/)[0];
-        text =  text.replace(/\/\/[^\n]*\n/, "\u0007"+i);
+    while(text.match(/(\/\/[^\n]*)\n/)){
+        tokens[i] = text.match(/(\/\/[^\n]*)\n/)[1];
+        text =  text.replace(/(\/\/[^\n]*)\n/, "\u0007"+i+"\n");
         i++;
     }
 

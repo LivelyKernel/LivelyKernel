@@ -673,8 +673,10 @@ console.log('End createLayout =' + elapsed);
                 var sFontSize = this.defalutFontSize;
                 var sFontFamily = this.defaultFontFamily;
                 var sTextAlign = "left";
-                var sFill = null;
-                
+                var oFill = null;
+                var oTextColor = null;
+                var oBorderColor = null;
+
                 if (this.arrData[nOrgRow][nOrgCol].fontWeight){
                     sFontWeight=this.arrData[nOrgRow][nOrgCol].fontWeight;
                 }
@@ -693,8 +695,18 @@ console.log('End createLayout =' + elapsed);
                 if (this.arrData[nOrgRow][nOrgCol].textAlign){
                     sTextAlign =this.arrData[nOrgRow][nOrgCol].textAlign;
                 }
+                
+
+
+                this.arrData[nOrgRow][nOrgCol].fill = "Color.rgb(220,220,220)";
                 if (this.arrData[nOrgRow][nOrgCol].fill){
-                    sFill = eval(this.arrData[nOrgRow][nOrgCol].fill);
+                    oFill = eval(this.arrData[nOrgRow][nOrgCol].fill);
+                }
+                if (this.arrData[nOrgRow][nOrgCol].textColor){
+                    oTextColor = eval(this.arrData[nOrgRow][nOrgCol].textColor);
+                }
+                if (this.arrData[nOrgRow][nOrgCol].borderColor){
+                    borderColor= eval(this.arrData[nOrgRow][nOrgCol].borderColor);
                 }
                 
 //fill: ss
@@ -703,6 +715,9 @@ console.log('End createLayout =' + elapsed);
 //oColor = eval('Color.rgb(220,220,220)')
 //oText.applyStyle({borderColor: oColor ,textColor: oColor,fill:null});
 
+                //var oFill = null;
+                //var oTextColor = null;
+                //var oBorderColor = null;
 
                 //bug in applystyle textDecoration does not work
                 this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});

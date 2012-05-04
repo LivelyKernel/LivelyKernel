@@ -1082,7 +1082,7 @@ lively.morphic.World.addMethods(
                 alertOK(name + ' is not loaded at startup anymore');
             },
             menuItems = worldRequirements.collect(function(name) {
-                return [name, ['remove', removeRequirement.curry(name)]];
+                return [name, [['remove', removeRequirement.curry(name)]]];
             });
         items.push(['requirements', menuItems]);
 

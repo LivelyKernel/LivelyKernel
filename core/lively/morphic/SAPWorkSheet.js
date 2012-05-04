@@ -673,6 +673,7 @@ console.log('End createLayout =' + elapsed);
                 var sFontSize = this.defalutFontSize;
                 var sFontFamily = this.defaultFontFamily;
                 var sTextAlign = "left";
+                var sFill = null;
                 
                 if (this.arrData[nOrgRow][nOrgCol].fontWeight){
                     sFontWeight=this.arrData[nOrgRow][nOrgCol].fontWeight;
@@ -691,6 +692,9 @@ console.log('End createLayout =' + elapsed);
                 }
                 if (this.arrData[nOrgRow][nOrgCol].textAlign){
                     sTextAlign =this.arrData[nOrgRow][nOrgCol].textAlign;
+                }
+                if (this.arrData[nOrgRow][nOrgCol].fill){
+                    sFill = eval(this.arrData[nOrgRow][nOrgCol].fill);
                 }
                 
 //fill: ss

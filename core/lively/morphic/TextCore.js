@@ -576,6 +576,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                 case "b": { this.doBrowseClass(); return true; }
                 case "s": { this.convertTabsToSpaces(); return true; }
                 case "u": { this.unEmphasizeSelection(); return true; }
+                case "x": { this.doAutoIndent(); return true;}
                 case "5": { this.emphasizeSelection({color: Color.black}); return true; }
                 case "6": { this.emphasizeSelection({color: Color.red}); return true; }
                 case "7": { this.emphasizeSelection({color: Color.green}); return true; }

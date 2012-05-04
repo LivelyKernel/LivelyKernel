@@ -161,9 +161,11 @@ function __oldNamespace(spec, context) {
 				ea.uri(), ea.pendingRequirementNames());
 			console.warn(msg); 
 
-                        ea.pendingRequirements = [];
-                        ea.load();
-                        testModuleLoad.delay(6);
+                        if (Config.ignoreMissingModules || document.URL.indexOf('ignoreMissingModules=true') >= 0) {
+                            ea.pendingRequirements = [];
+                            ea.load();
+                            testModuleLoad.delay(6);
+                        }
 		 });
     console.log('Module load check done. ' + modules.length + ' modules loaded.');
 }).delay(10);

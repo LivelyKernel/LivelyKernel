@@ -881,12 +881,14 @@ autoIndent: function() {
     var i = 0;
     var tokens = {};
 
+    //strip out regexes
     while(text.match(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/)){
         tokens[i] =  text.match(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/)[2];
         text = text.replace(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/, "$1\u0007"+i);
         i++;
     }    
 
+    //strip out strings
     while(text.match(/"[^"\n]*"/)){
         tokens[i] =  text.match(/"[^"]*"/)[0];
         text = text.replace(/"[^"]*"/, "\u0007"+i);
@@ -898,18 +900,21 @@ autoIndent: function() {
         i++;
     }
 
+    //strip out comments(one lined)
     while(text.match(/(\/\/[^\n]*)\n/)){
         tokens[i] = text.match(/(\/\/[^\n]*)\n/)[1];
         text =  text.replace(/(\/\/[^\n]*)\n/, "\u0007"+i+"\n");
         i++;
     }
 
+    //strip out comments(block)
     while(text.match(/\/\*(.|\n)*?\*\//)){
         tokens[i] = text.match(/\/\*(.|\n)*?\*\//)[0];
         text = text.replace(/\/\*(.|\n)*?\*\//, "\u0007"+i);
         i++;
     }
 
+    //strip out leading and trailing whitespace
     text = text.replace(/ *\n/g, "\n");
     text = text.replace(/ *(.*[^ ]) *\n/g, "$1\n");
 
@@ -964,6 +969,7 @@ autoIndent: function() {
     
     text = formatted;
 
+    //put strings, regexes and comments back in
     while(i > 0){
         i--;
         text= text.replace(new RegExp("\u0007"+i),tokens[i]);

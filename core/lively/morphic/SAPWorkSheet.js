@@ -46,21 +46,24 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeAnnotation();
 
     },
-    removeSelectedCells: function() {
-       
-        for (i= 0; i< this.arrSelectedCells.length; i++) {
-            this.arrSelectedCells[i].deactivateCell();
-        }
-        this.arrSelectedCells.lenght=0;
-        this.arrSelectedCells =[];
+    //when focus changed:  formula..etc
+    applyCellChanges: function() {
+        if (this.activeCell !=null){
+            var sValue = this.activeCell.textString;
+            if (sValue .charAt(0)=="="){
+                var nColumn = this.getActiveColIndex();
+                var nRow= this.getActiveRowIndex();
+                var nOrgRow = nRow  + this.startRow;
+                var nOrgCol = nColumn+ this.startColumn;
+                
+                this.arrData[nOrgRow][nOrgCol].formula = sValue; 
+                this.activeCell.textString=this.parseFormula(sValue);
+                this.activeCell.setToolTip('Formula: \n' + sValue);
+                this.activeCell.setBorderStyle("dotted");
+                
+            }
 
-        //for data
-        for (i= 0; i< this.arrSelectedData.length; i++) {
-            this.arrData[this.arrSelectedData[i].y][this.arrSelectedData[i].x].selected=false;
         }
-        this.arrSelectedData.lenght=0;
-        this.arrSelectedData=[];
-
     },
     initializeScrolls: function() {
 
@@ -97,7 +100,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	   }
            this.dataModel.push(arrColumns);
         }
-        console.log("updateDataModel");
+        //console.log("updateDataModel");
         //debugger;
         this.updateDisplay();
     },
@@ -430,19 +433,29 @@ console.log('End createLayout =' + elapsed);
     },
 
     
-    moveActiveCellBy: function(aPoint) {
+    moveActiveCellBy: function(evt,aPoint) {
+        
         if (!this.activeCell) {
             this.at(0,0).activate();
             return;
         }
-        var curX = this.getActiveColIndex(),
-            curY = this.getActiveRowIndex(),
-            newX = curX + aPoint.x,
-            newY = curY + aPoint.y;
-        if (this.numRows > newY  && this.numCols > newX &&
-                newY >= 0 && newX >= 0) {
-            this.at(curX + aPoint.x, curY + aPoint.y).activate();
-            this.at(curX + aPoint.x, curY + aPoint.y).focus();
+
+        this.applyCellChanges();
+        var curX = this.getActiveColIndex();
+        var curY = this.getActiveRowIndex();
+        var newX = curX + aPoint.x;
+        var newY = curY + aPoint.y;
+
+        if (evt.isShiftDown()){
+            this.setCellSelection(this,this.activeCell);
+        }else{
+            this.removeSelectedCells();
+        }
+
+        if (this.numRows > newY  && this.numCols > newX && newY >= 0 && newX >= 0) {
+            this.at(newX , newY ).activate(evt.isShiftDown());
+            this.at(newX , newY ).focus();
+            this.setCellSelection(this,this.at(newX , newY ));
         }
     },
 
@@ -613,13 +626,37 @@ console.log('End createLayout =' + elapsed);
                     this.at(x,y).setBorderStyle("solid");
                 }
 
-                this.at(x,y).textString = sValue;
+                
 
                 //selected cell
                 if (this.arrData[nOrgRow][nOrgCol].selected){
                     this.at(x,y).selectedCell();
                     this.arrSelectedCells.push(this.at(x,y));
                 }
+
+                //data formats
+                if (this.arrData[nOrgRow][nOrgCol].dataFormat){
+                    if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
+                        switch(this.arrData[nOrgRow][nOrgCol].dataFormat.type){
+                            case "currency":
+                                sValue = "$" +  this.roundtoFixNumber(sValue ,2,true);
+                                break;
+                            case "percentage":
+                                sValue = this.converttoPercentage(sValue ,2) + "%";
+                                break;
+                            case "date":
+                                break;
+                            case "time":
+                                break;
+                            case "number":
+                                break;
+                            default:
+  
+                            }
+                    }
+                }
+
+                this.at(x,y).textString = sValue;
 
 
                 //cell formats
@@ -910,16 +947,19 @@ currently only support
 =SUM(E3:E6)
 =E3
 */
-    parseFormula: function(sValue) {	
+    parseFormula: function(sOrgValue) {	
         var arrValue;
         var nTotal = 0;
         var nAve = 0;
     	var nValue; 
+        var sValue;
         
         //debugger;
-        if (sValue){
+        if (sOrgValue){
         
-            sValue = sValue.toUpperCase();
+        try{
+
+            sValue= sOrgValue.toUpperCase();
             if (sValue.substr(0,5)=="=SUM("){
                 arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");
                 var oStartCell = this.parseformulaCellIndex(arrValue[0]);
@@ -965,9 +1005,13 @@ currently only support
                
                 nValue =  parseFloat(this.arrData[oCell.rowIndex][oCell.columnIndex].value);
                 return nValue; 
-	   }		
+	   }	
         }
-    return 255;
+        catch(err){
+            return sOrgValue;
+        }	
+        }
+    return sOrgValue;
     },
     parseformulaCellIndex: function (sValue){
         var oIndex={};
@@ -1004,26 +1048,7 @@ currently only support
     },*/
     onEnterPressed: function($super, evt) {
         //Hak March27 2012:  calculate formula
-        if (this.activeCell !=null){
-            var sValue = this.activeCell.textString;
-            console.log("SAPGrid.onEnterPressed sValue=" + sValue );
-            if (sValue .charAt(0)=="="){
-                var nColumn = this.getActiveColIndex();
-                var nRow= this.getActiveRowIndex();
-                var nOrgRow = nRow  + this.startRow;
-                var nOrgCol = nColumn+ this.startColumn;
-                
-                this.arrData[nOrgRow][nOrgCol].formula = sValue; 
-                this.activeCell.textString=this.parseFormula(sValue);
-                //'Formula \n test'
-                this.activeCell.setToolTip('Formula: \n' + sValue);
-                //this.activeCell.cellformula = sValue;
-                
-                this.activeCell.setBorderStyle("dotted");
-                
-            }
-
-        }
+        
         this.onDownPressed(evt);
         return true;
     },
@@ -1032,58 +1057,131 @@ currently only support
         return true;
     },
     onUpPressed: function(evt) {
-        this.moveActiveCellBy(pt(0,-1));
+        this.moveActiveCellBy(evt,pt(0,-1));
         evt.stop();
     },
     onDownPressed: function(evt) {
-        this.moveActiveCellBy(pt(0,1));
+   
+        if (evt.isShiftDown()){
+            console.log("onDownPressed: ShiftDown")
+        }else{
+            console.log("onDownPressed: no ShiftDown")
+        }
+        this.moveActiveCellBy(evt,pt(0,1));
         evt.stop();
     },
     onLeftPressed: function(evt) {
-        //testing cell text is focused or not 
-    console.log("SAPGrid.onLeftPressed..");
-        if (!this.activeCell) {
-         }else{
-              //alert(this.activeCell.isFocused())
-         }
-        var bFocused = this.activeCell.isFocused();
-        //debugger;
-console.log("SAPGrid.onLeftPressed:" + bFocused );
-        this.moveActiveCellBy(pt(-1,0));
+        
+        this.moveActiveCellBy(evt,pt(-1,0));
         evt.stop();
     },
     onRightPressed: function(evt) {
-        this.moveActiveCellBy(pt(1,0));
+        this.moveActiveCellBy(evt,pt(1,0));
         evt.stop();
     },
         
     onKeyDown: function($super, evt) {
         $super(evt);
-         console.log("SAPGrid.onKeyDown");
+         //console.log("SAPGrid.onKeyDown");
     },
 
     onKeyPress: function($super,evt) {
          $super(evt);
-        console.log("SAPGrid.onKeyPress");
+        //console.log("SAPGrid.onKeyPress");
 
     },
 
     onKeyUp: function($super,evt) {
          $super(evt);
-         console.log("SAPGrid.onKeyUp");
+         //console.log("SAPGrid.onKeyUp");
     },
     
 },
+'Select cells', {
+    setCellSelection: function(oGrid, oCell) {
+        if (oCell){
+            //getting cell coords
+            var nRow = oCell.gridCoords.y - (oGrid.hideColHeads ? 0 : 1);
+            var nColumn = oCell.gridCoords.x;
+            //getting data coords
+            var nOrgRow = nRow  + oGrid.startRow;
+            var nOrgCol = nColumn + oGrid.startColumn;
+
+            this.setGridCellSelection(oGrid, oCell)
+            this.setDataCellSelection(oGrid,nOrgCol,nOrgRow);
+            
+        }
+    },
+    setGridCellSelection: function(oGrid, oCell) {
+        oGrid.arrSelectedCells.push(oCell);
+        oCell.selectedCell();
+    },
+    setDataCellSelection: function(oGrid,nCol, nRow) {
+        var oSelectedData={};
+        oSelectedData.x = nCol;
+        oSelectedData.y = nRow;
+        oGrid.arrData[nRow][nCol].selected=true;
+        oGrid.arrSelectedData.push(oSelectedData);
+    },
+    getCellSelections: function() {
+       
+    },
+    removeSelectedCells: function() {
+        for (i= 0; i< this.arrSelectedCells.length; i++) {
+            this.arrSelectedCells[i].deactivateCell();
+        }
+        this.arrSelectedCells.lenght=0;
+        this.arrSelectedCells =[];
+
+        //for data
+        for (i= 0; i< this.arrSelectedData.length; i++) {
+            this.arrData[this.arrSelectedData[i].y][this.arrSelectedData[i].x].selected=false;
+        }
+        this.arrSelectedData.lenght=0;
+        this.arrSelectedData=[];
+
+    },
+},
 'Mouse Events', {
+    onMouseMove: function($super, evt) {
+        debugger;
+/*
+evt.MOUSEDOWN:1
+clientX:551
+ClientY:359;
+layerX:106
+layerY:50
+offsetX:57
+offSetY:16
+pageX:551
+pageY:359
+
+screenX:496
+screenY:384
+x:551
+y359
+
+
+
+*/
+
+
+
+        console.log("SAPGrid.onMouseMove");
+        $super(evt);
+    },
     onMouseDown: function($super, evt) {
         $super(evt);
-         console.log("SAPGrid.onMouseDown");
+         //console.log("SAPGrid.onMouseDown");
     },
 
     onMouseUp: function($super, evt) {
         $super(evt);
-         console.log("SAPGrid.onMouseUp");
+         //console.log("SAPGrid.onMouseUp");
     },
+    onMouseWheel: function(evt) {
+        console.log("onMouseWheel");
+    }
 },
 'Common Tool', {
      converttoPercentage: function(num,nDecimalPlaces){
@@ -1153,9 +1251,9 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         //this.cellformula='';
         //this.annotation='';//maybe we need array object to save more than one
     },
-    activate: function(isCtrlDown) {
+    activate: function(isSelected) {
         if (this.grid.activeCell) {
-            if (!isCtrlDown){
+            if (!isSelected){
                 this.grid.activeCell.deactivate();
             }
             
@@ -1243,7 +1341,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         sFontFamily = this.getFontFamily();
         sFontSize = this.getFontSize();
         */
- 
         var nCol= this.gridCoords.x;
         var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
         
@@ -1259,32 +1356,46 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.grid.oWorkBook.toolBar.setfontFamily(sFontFamily); 
         this.grid.oWorkBook.toolBar.setFontSize(sFontSize); 
 
-        var oSelectedData={};
-        oSelectedData.x=nOrgCol;
-        oSelectedData.y=nOrgRow;
-
         this.grid.hideAnnotation();
         if (evt.isLeftMouseButtonDown()) {
             var ctrl = evt.isCtrlDown();
             if (evt.isCtrlDown()){
-                
-                this.grid.arrSelectedCells.push(this);
-                this.grid.arrData[nOrgRow][nOrgCol].selected=true;
-                this.grid.arrSelectedData.push(oSelectedData);
-
-                this.selectedCell();
+                this.grid.setCellSelection(this.grid,this);
                 this.activate(true);
-                
             }else{
-                this.grid.removeSelectedCells();
-                this.grid.arrSelectedCells.push(this);
-                this.grid.arrData[nOrgRow][nOrgCol].selected=true;
-                this.grid.arrSelectedData.push(oSelectedData);
-
-                this.activate();
+                if (evt.isShiftDown()){
+                    if (this.grid.activeCell) {
+                        var nActiveX = this.grid.getActiveColIndex();
+                        var nActiveY = this.grid.getActiveRowIndex();
+                        console.log("Active: " + nActiveX + "," +nActiveY )
+                        console.log("Current: " + nCol+ "," +nRow )
+                        var nStartX,nStartY,nEndX,nEndY;
+                        if (nActiveX > nCol){
+                            nStartX=nCol;
+                            nEndX = nActiveX; 
+                        }else{
+                            nStartX=nActiveX;
+                            nEndX = nCol; 
+                        }
+                        if (nActiveY > nRow ){
+                            nStartY = nRow ;
+                            nEndY = nActiveY;
+                        }else{
+                            nStartY = nActiveY;
+                            nEndY = nRow ;
+                        }
+                        for (var x = nStartX; x <= nEndX ; x++) {
+                            for (var y = nStartY; y <= nEndY ; y++) {
+                                this.grid.setCellSelection(this.grid,this.grid.at(x,y));
+                            }
+                        }
+                    }
+                }else{    
+                    this.grid.removeSelectedCells();
+                    this.grid.setCellSelection(this.grid,this);
+                }
+                this.activate(evt.isShiftDown());
             }
-            
-            
         }
     },
     onDoubleClick: function (evt) {
@@ -1380,8 +1491,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
         this.grid.addMorph(this);
     },
     onMouseDown: function (evt) {
-        console.log('SAPGridCell.onMouseDown');
-       
+
         this.grid.hideAnnotation();
         if (evt.isLeftMouseButtonDown()) {
            
@@ -1390,23 +1500,16 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
             var oSelectedData={};
 
             this.grid.selectedColumnHeader = this;
-            
             this.grid.removeSelectedCells();
+
             //for grid selected
             for (var y = 0; y < this.grid.numRows; y++) {
-                this.grid.rows[y][nCol].selectedCell();
-                this.grid.arrSelectedCells.push(this.grid.rows[y][nCol]);
+                this.grid.setGridCellSelection(this.grid,this.grid.rows[y][nCol]);
             }
             //for data selected
             for (var y = 0; y < this.grid.arrData.length; y++) {
-                oSelectedData={};
-                oSelectedData.x=nOrgCol;
-                oSelectedData.y=y;
-                this.grid.arrData[y][nOrgCol].selected=true;
-                this.grid.arrSelectedData.push(oSelectedData);
+                this.grid.setDataCellSelection(this.grid,nOrgCol,y)
             }
-            
-            console.log("SAPGridColHead.onMouseDown nCol:nOrgCol =" + nCol + ":" + nOrgCol );
             
         }
     },
@@ -1996,6 +2099,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         
         $super(evt);
     },
+    onScroll: function(evt) {
+        console.log("SAPWorkBook: onScroll");
+    },
+    onMouseWheel: function($super,evt) {
+        console.log("SAPWorkBook: onMouseWheel");
+        $super(evt);
+    }
 
 });
 

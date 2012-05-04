@@ -2039,6 +2039,11 @@ this. textNodeString()
     hasSelection: function() {
         return this.domSelection() !== null;
     },
+},
+'JavaScript support', {
+    varDeclCleaner: function() {
+        // for usage with #modifyLines
+    }
 });
 
 

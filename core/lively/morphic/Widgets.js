@@ -1073,6 +1073,18 @@ lively.morphic.World.addMethods(
                     world.addTextWindow(printer.toString());
                 })}]];
 
+        // world requirements
+        var changeSet = this.getChangeSet()
+            worldRequirementsChange = changeSet.getWorldRequirementsList(),
+            worldRequirements = worldRequirementsChange.evaluate(),
+            removeRequirement = function(name) {
+                changeSet.removeWorldRequirement(name);
+                alertOK(name + ' is not loaded at startup anymore');
+            },
+            menuItems = worldRequirements.collect(function(name) {
+                return [name, ['remove', removeRequirement.curry(name)]];
+            });
+
         // method tracing items
         function disableGlobalTracing() {
             // FIXME better to move this functionality into lively.Tracing
@@ -1130,18 +1142,6 @@ lively.morphic.World.addMethods(
                 });
             }]);
         }
-
-        var changeSet = this.getChangeSet()
-            worldRequirementsChange = changeSet.getWorldRequirementsList(),
-            worldRequirements = worldRequirementsChange.evaluate(),
-            removeRequirement = function(name) {
-                changeSet.removeWorldRequirement(name);
-                alertOK(name + ' is not loaded at startup anymore');
-            },
-            menuItems = worldRequirements.collect(function(name) {
-                return [name, ['remove', removeRequirement.curry(name)]];
-            });
-        
 
         return items;
     },

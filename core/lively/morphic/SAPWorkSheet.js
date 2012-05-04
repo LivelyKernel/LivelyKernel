@@ -720,8 +720,17 @@ console.log('End createLayout =' + elapsed);
                 //var oBorderColor = null;
 
                 //bug in applystyle textDecoration and fontStyle do not work
-                this.at(x,y).emphasizeAll({fontStyle: sFontStyle,textDecoration: sTextDecoration});
-                this.at(x,y).applyStyle({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily,borderColor:oBorderColor ,textColor:oTextColor ,fill:oFill });
+                //this.at(x,y).emphasizeAll({fontStyle: sFontStyle,textDecoration: sTextDecoration});
+                this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
+                /*this.at(x,y).applyStyle({fontWeight: sFontWeight,
+                                         fontStyle: sFontStyle,
+                                         textDecoration: sTextDecoration,
+                                         fontSize:sFontSize,
+                                         fontFamily:sFontFamily,
+                                         borderColor:oBorderColor ,
+                                         textColor:oTextColor ,
+                                         fill:oFill });
+                */
                 //this.at(x,y).setTextDecoration(sTextDecoration);
                 this.at(x,y).setAlign(sTextAlign); 
             }
@@ -732,7 +741,7 @@ console.log('End createLayout =' + elapsed);
         }
 //var elapsed = new Date().getTime() - start;
 //console.log('updateDisplay:'  + elapsed/1000);
-    },
+    },this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
     setActiveCellContent: function(aString) {
         if (!this.activeCell) {
             this.at(0,0).activate(); 

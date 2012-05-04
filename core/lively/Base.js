@@ -152,6 +152,18 @@ function __oldNamespace(spec, context) {
 }
 
 
+(function testModuleLoad() {
+    var modules = Global.subNamespaces(true).select(function(ea) { return ea.wasDefined });
+    modules
+        .select(function(ea) { return ea.hasPendingRequirements() })
+        .forEach(function(ea) {
+			var msg = Strings.format('%s has unloaded requirements: %s',
+				ea.uri(), ea.pendingRequirementNames());
+			console.warn(msg); 
+		 });
+    console.log('Module load check done. ' + modules.length + ' modules loaded.');
+}).delay(10);
+
 function module(moduleName) {
 
     moduleName = LivelyMigrationSupport.fixModuleName(moduleName);

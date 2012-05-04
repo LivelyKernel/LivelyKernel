@@ -697,7 +697,7 @@ console.log('End createLayout =' + elapsed);
                 }
                 
 
-
+/*
                 this.arrData[nOrgRow][nOrgCol].fill = "Color.rgb(220,220,220)";
                 if (this.arrData[nOrgRow][nOrgCol].fill){
                     oFill = eval(this.arrData[nOrgRow][nOrgCol].fill);
@@ -708,7 +708,7 @@ console.log('End createLayout =' + elapsed);
                 if (this.arrData[nOrgRow][nOrgCol].borderColor){
                     borderColor= eval(this.arrData[nOrgRow][nOrgCol].borderColor);
                 }
-                
+                */
 //fill: ss
 //borderColor: xx
 //textColor: 
@@ -741,7 +741,7 @@ console.log('End createLayout =' + elapsed);
         }
 //var elapsed = new Date().getTime() - start;
 //console.log('updateDisplay:'  + elapsed/1000);
-    },this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
+    },this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
     setActiveCellContent: function(aString) {
         if (!this.activeCell) {
             this.at(0,0).activate(); 

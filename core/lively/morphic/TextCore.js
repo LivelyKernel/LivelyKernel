@@ -2043,6 +2043,12 @@ this. textNodeString()
 'JavaScript support', {
     varDeclCleaner: function() {
         // for usage with #modifyLines
+        var cancel = false, indent = 0;
+        return function cleanLine(line, idx, lines) {
+            if (idx === 0 && !line.include('var')) cancel = true;
+            if (cancel) return line;
+            
+        }
     }
 });
 

@@ -1130,6 +1130,10 @@ lively.morphic.World.addMethods(
                 });
             }]);
         }
+
+        var worldRquirementsChange = this.getChangeSet().getWorldRequirementsList(),
+            worldRquirements = worldRquirementsChange.evaluate();
+    
         return items;
     },
 

@@ -831,7 +831,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         // the selection grows/shrinks with the modifications
         var lines = this.selectionString().split('\n')
         for (var i = 0; i < lines.length; i++) {
-            lines[i] = modifyFunc(lines[i], i);
+            lines[i] = modifyFunc(lines[i], i, lines);
         }
         var replacement = lines.join('\n');
         this.insertAtCursor(replacement, true, true);

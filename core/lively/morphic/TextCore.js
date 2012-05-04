@@ -875,6 +875,10 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         fromMorph.setNullSelectionAt(textLength);
         return true;
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
 },
 'keyboard event reaction', {

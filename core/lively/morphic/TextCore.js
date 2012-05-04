@@ -2051,6 +2051,7 @@ this. textNodeString()
                 if (!varMatch) { cancel = true; } else { indent = varMatch[1].length; }
             }
             if (cancel) return line;
+            line = line.replace(varRegexp, '\2,');
             return line;
         }
     }

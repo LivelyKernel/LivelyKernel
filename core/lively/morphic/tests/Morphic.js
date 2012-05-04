@@ -582,8 +582,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         m.setInputAllowed(false);
         this.assert(!m.inputAllowed(), 'setInputAllowed not working');
     },
-    newMethod: function() {
-        // enter comment here
+    test12CleanVarDeclaration: function() {
+        
     },
 
 });

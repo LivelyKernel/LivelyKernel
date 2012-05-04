@@ -153,6 +153,7 @@ function __oldNamespace(spec, context) {
 
 
 function module(moduleName) {
+if (moduleName.include("SAPWork")) debugger;
     moduleName = LivelyMigrationSupport.fixModuleName(moduleName);
 
     function isNamespaceAwareModule(moduleName) {

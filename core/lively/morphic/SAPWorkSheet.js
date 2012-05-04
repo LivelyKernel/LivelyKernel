@@ -2076,8 +2076,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.grid;
         this.toolBar;
         this.initializeLayout();
-        
-       
     },
      initializeLayout: function() {
         this.grid = new lively.morphic.SAPGrid(this.numCols,this.numRows);

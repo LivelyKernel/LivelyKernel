@@ -181,8 +181,6 @@ function module(moduleName) {
         for (var i = 0; i < preReqModuleNames.length; i++) {
             var name = LivelyMigrationSupport.fixModuleName(preReqModuleNames[i]),
                  reqModule = createNamespaceModule(name);
-if (name.include("SAPWork")) debugger;
-
             module.addRequiredModule(reqModule);
             requiredModules.push(reqModule);
         }

@@ -875,7 +875,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         fromMorph.setNullSelectionAt(textLength);
         return true;
     },
-autoIndent: function() {
+doAutoIndent: function() {
     var text = this.textString;
 
     var i = 0;

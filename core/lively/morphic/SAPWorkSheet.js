@@ -1,6 +1,6 @@
 module('lively.morphic.SAPWorkSheet').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles','users.robertkrahn.MassMorphCreation','lively.morphic.SAPCommonWidgets').toRun(function() {
 lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
-'initialization', {
+'initialization', { 
     initialize: function($super, numCols, numRows) {
         $super();
         this.disableHalos();

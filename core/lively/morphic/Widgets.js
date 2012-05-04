@@ -133,10 +133,9 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
 'initializing', {
     doNotSerialize: ['isLoaded'],
     initialize: function($super, bounds, url, useNativeExtent) {
-        var imageShape = this.createImageShape(bounds.extent().extentAsRectangle());
+        var imageShape = this.createImageShape(bounds.extent().extentAsRectangle(), url);
         $super(imageShape);
         this.setPosition(bounds.topLeft());
-        this.setImageURL(url);
         if (useNativeExtent) {
             connect(imageShape, 'isLoaded', this, 'setNativeExtent',
                     {removeAfterUpdate: true});

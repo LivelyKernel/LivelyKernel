@@ -1660,8 +1660,8 @@ fontStyle: 'italic'
 fontSize:12
 fontFamily:sFont
 textAlign: 'left'
-backgroundcolor: ss
-boardercolor: xx
+fill: ss
+borderColor: xx
 textColor: 
 
 getFontSize()

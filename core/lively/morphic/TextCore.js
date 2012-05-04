@@ -2049,7 +2049,7 @@ this. textNodeString()
             var varMatch = line.match(varRegexp);
             if (idx === 0 && !varMatch) cancel = true;
             if (cancel) return line;
-            
+            return line;
         }
     }
 });

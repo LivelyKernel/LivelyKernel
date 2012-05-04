@@ -2043,9 +2043,11 @@ this. textNodeString()
 'JavaScript support', {
     varDeclCleaner: function() {
         // for usage with #modifyLines
-        var cancel = false, indent = 0;
+        var cancel = false, indent = 0,
+            varRegexp(/(\s*)var\s(.*)/);
         return function cleanLine(line, idx, lines) {
-            if (idx === 0 && !line.include('var')) cancel = true;
+            var varMatch = line.match(varRegexp);
+            if (idx === 0 && !varMatch) cancel = true;
             if (cancel) return line;
             
         }

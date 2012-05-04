@@ -2058,22 +2058,6 @@ this. textNodeString()
             return line;
         }
     }
-{
-        // for usage with #modifyLines
-        var cancel = false, indent = 0,
-            varRegexp = /(\s*)var\s(.*)/;
-        return function cleanLine(line, idx, lines) {
-            var varMatch = line.match(varRegexp);
-            if (idx === 0) {
-                if (!varMatch) {
-                    cancel = true;
-                } else {
-
-                }
-            if (cancel) return line;
-            return line;
-        }
-    }
 });
 
 

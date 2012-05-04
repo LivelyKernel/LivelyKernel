@@ -1960,7 +1960,6 @@ dataformat: currency & percentage & date & time
     imgRemoveColumn_Click: function() {
         this.grid.removeColBetween();
     },
-
 });    
 
 lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',

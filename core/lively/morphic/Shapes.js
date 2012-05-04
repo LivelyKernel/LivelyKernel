@@ -114,6 +114,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Image',
     initialize: function($super, bounds) {
         $super(bounds);
         this.isLoaded = false; // will be set to true as soon as image is really loaded
+        if (url) this.setImageURL(url);
     },
 },
 'accessing', {

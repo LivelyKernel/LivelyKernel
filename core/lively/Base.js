@@ -160,6 +160,9 @@ function __oldNamespace(spec, context) {
 			var msg = Strings.format('%s has unloaded requirements: %s',
 				ea.uri(), ea.pendingRequirementNames());
 			console.warn(msg); 
+
+                        ea.pendingRequirements = [];
+                        ea.load();
 		 });
     console.log('Module load check done. ' + modules.length + ' modules loaded.');
 }).delay(10);

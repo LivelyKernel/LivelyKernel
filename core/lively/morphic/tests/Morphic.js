@@ -583,6 +583,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         this.assert(!m.inputAllowed(), 'setInputAllowed not working');
     },
     test12CleanVarDeclaration: function() {
+        var text = new lively.morphic.Text(),
+            cleaner = text.varDeclCleaner(),
+            lines = ['    var x = this.text();', 'var bla = this.bar.foo()'],
+            epxected = ['    var x = this.text(),', '        bla = this.bar.foo();'],
+            result = [cleaner(lines[0], 0, lines), cleaner(lines[1], 1, lines)];
+        
         
     },
 

@@ -2043,8 +2043,8 @@ this. textNodeString()
 'JavaScript support', {
     varDeclCleaner: function() {
         // for usage with #modifyLines
-        var cancel = false, indent = 0;
-            // varRegexp(/(\s*)var\s(.*)/);
+        var cancel = false, indent = 0,
+            varRegexp = /(\s*)var\s(.*)/;
         return function cleanLine(line, idx, lines) {
             var varMatch = line.match(varRegexp);
             if (idx === 0 && !varMatch) cancel = true;

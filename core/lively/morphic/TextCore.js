@@ -875,8 +875,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         fromMorph.setNullSelectionAt(textLength);
         return true;
     },
-    autoIndent: function() {
-        var text = this.textString;
+autoIndent: function() {
+    var text = this.textString;
 
     var i = 0;
     var tokens = {};
@@ -970,7 +970,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     }
 
     this.textString = text;
-    },
+},
 
 
 },

@@ -931,9 +931,7 @@ Namespace.addMethods(
             this.loadRequirementsFirst();
             return;
         }
-var onLoad = null;
-if (name.include("SAPWork")) onLoad = function() { debugger };
-        JSLoader.loadJs(this.uri(), onLoad, this.constructor.loadSync);
+        JSLoader.loadJs(this.uri(), null, this.constructor.loadSync);
         if (loadSync) this.constructor.loadSync = prevWasSync;
     },
 

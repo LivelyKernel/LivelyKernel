@@ -1,3 +1,4 @@
+module('lively.morphic.SAPWorkSheet').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles','users.robertkrahn.MassMorphCreation','lively.morphic.SAPCommonWidgets').toRun(function() {
 lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 'initialization', {
     initialize: function($super, numCols, numRows) {
@@ -45,24 +46,21 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeAnnotation();
 
     },
-    //when focus changed:  formula..etc
-    applyCellChanges: function() {
-        if (this.activeCell !=null){
-            var sValue = this.activeCell.textString;
-            if (sValue .charAt(0)=="="){
-                var nColumn = this.getActiveColIndex();
-                var nRow= this.getActiveRowIndex();
-                var nOrgRow = nRow  + this.startRow;
-                var nOrgCol = nColumn+ this.startColumn;
-                
-                this.arrData[nOrgRow][nOrgCol].formula = sValue; 
-                this.activeCell.textString=this.parseFormula(sValue);
-                this.activeCell.setToolTip('Formula: \n' + sValue);
-                this.activeCell.setBorderStyle("dotted");
-                
-            }
-
+    removeSelectedCells: function() {
+       
+        for (i= 0; i< this.arrSelectedCells.length; i++) {
+            this.arrSelectedCells[i].deactivateCell();
         }
+        this.arrSelectedCells.lenght=0;
+        this.arrSelectedCells =[];
+
+        //for data
+        for (i= 0; i< this.arrSelectedData.length; i++) {
+            this.arrData[this.arrSelectedData[i].y][this.arrSelectedData[i].x].selected=false;
+        }
+        this.arrSelectedData.lenght=0;
+        this.arrSelectedData=[];
+
     },
     initializeScrolls: function() {
 
@@ -99,7 +97,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	   }
            this.dataModel.push(arrColumns);
         }
-        //console.log("updateDataModel");
+        console.log("updateDataModel");
         //debugger;
         this.updateDisplay();
     },
@@ -432,54 +430,19 @@ console.log('End createLayout =' + elapsed);
     },
 
     
-    moveActiveCellBy: function(evt,aPoint) {
-        
-        var nOrgRow;
-        var nOrgCol;
-        var oSelectedData;
-
+    moveActiveCellBy: function(aPoint) {
         if (!this.activeCell) {
             this.at(0,0).activate();
             return;
         }
-
-        this.applyCellChanges();
         var curX = this.getActiveColIndex(),
             curY = this.getActiveRowIndex(),
             newX = curX + aPoint.x,
             newY = curY + aPoint.y;
-        debugger;
-        if (evt.isShiftDown()){
-            nOrgRow = curY+ this.startRow;
-            nOrgCol = curX + this.startColumn;
-            oSelectedData={};
-            oSelectedData.x=nOrgCol;
-            oSelectedData.y=nOrgRow;
-            this.activeCell.selectedCell();
-            this.arrSelectedCells.push(this.activeCell);
-            this.arrData[nOrgRow][nOrgCol].selected=true;
-            this.arrSelectedData.push(oSelectedData);
-        }else{
-            this.removeSelectedCells();
-        }
-
-
         if (this.numRows > newY  && this.numCols > newX &&
                 newY >= 0 && newX >= 0) {
-            this.at(curX + aPoint.x, curY + aPoint.y).activate(evt.isShiftDown());
+            this.at(curX + aPoint.x, curY + aPoint.y).activate();
             this.at(curX + aPoint.x, curY + aPoint.y).focus();
-            
-            nOrgRow = newY + this.startRow;
-            nOrgCol = newX + this.startColumn;
-            oSelectedData={};
-            oSelectedData.x=nOrgCol;
-            oSelectedData.y=nOrgRow;
-            this.activeCell.selectedCell();
-            this.arrSelectedCells.push(this.at(newX ,newY));
-            this.arrData[nOrgRow][nOrgCol].selected=true;
-            this.arrSelectedData.push(oSelectedData);
-            
-
         }
     },
 
@@ -650,37 +613,13 @@ console.log('End createLayout =' + elapsed);
                     this.at(x,y).setBorderStyle("solid");
                 }
 
-                
+                this.at(x,y).textString = sValue;
 
                 //selected cell
                 if (this.arrData[nOrgRow][nOrgCol].selected){
                     this.at(x,y).selectedCell();
                     this.arrSelectedCells.push(this.at(x,y));
                 }
-
-                //data formats
-                if (this.arrData[nOrgRow][nOrgCol].dataFormat){
-                    if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
-                        switch(this.arrData[nOrgRow][nOrgCol].dataFormat.type){
-                            case "currency":
-                                sValue = "$" +  this.roundtoFixNumber(sValue ,2,true);
-                                break;
-                            case "percentage":
-                                sValue = this.converttoPercentage(sValue ,2) + "%";
-                                break;
-                            case "date":
-                                break;
-                            case "time":
-                                break;
-                            case "number":
-                                break;
-                            default:
-  
-                            }
-                    }
-                }
-
-                this.at(x,y).textString = sValue;
 
 
                 //cell formats
@@ -971,19 +910,16 @@ currently only support
 =SUM(E3:E6)
 =E3
 */
-    parseFormula: function(sOrgValue) {	
+    parseFormula: function(sValue) {	
         var arrValue;
         var nTotal = 0;
         var nAve = 0;
     	var nValue; 
-        var sValue;
         
         //debugger;
-        if (sOrgValue){
+        if (sValue){
         
-        try{
-
-            sValue= sOrgValue.toUpperCase();
+            sValue = sValue.toUpperCase();
             if (sValue.substr(0,5)=="=SUM("){
                 arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");
                 var oStartCell = this.parseformulaCellIndex(arrValue[0]);
@@ -1029,13 +965,9 @@ currently only support
                
                 nValue =  parseFloat(this.arrData[oCell.rowIndex][oCell.columnIndex].value);
                 return nValue; 
-	   }	
+	   }		
         }
-        catch(err){
-            return sOrgValue;
-        }	
-        }
-    return sOrgValue;
+    return 255;
     },
     parseformulaCellIndex: function (sValue){
         var oIndex={};
@@ -1072,7 +1004,26 @@ currently only support
     },*/
     onEnterPressed: function($super, evt) {
         //Hak March27 2012:  calculate formula
-        
+        if (this.activeCell !=null){
+            var sValue = this.activeCell.textString;
+            console.log("SAPGrid.onEnterPressed sValue=" + sValue );
+            if (sValue .charAt(0)=="="){
+                var nColumn = this.getActiveColIndex();
+                var nRow= this.getActiveRowIndex();
+                var nOrgRow = nRow  + this.startRow;
+                var nOrgCol = nColumn+ this.startColumn;
+                
+                this.arrData[nOrgRow][nOrgCol].formula = sValue; 
+                this.activeCell.textString=this.parseFormula(sValue);
+                //'Formula \n test'
+                this.activeCell.setToolTip('Formula: \n' + sValue);
+                //this.activeCell.cellformula = sValue;
+                
+                this.activeCell.setBorderStyle("dotted");
+                
+            }
+
+        }
         this.onDownPressed(evt);
         return true;
     },
@@ -1081,82 +1032,58 @@ currently only support
         return true;
     },
     onUpPressed: function(evt) {
-        this.moveActiveCellBy(evt,pt(0,-1));
+        this.moveActiveCellBy(pt(0,-1));
         evt.stop();
     },
     onDownPressed: function(evt) {
-   
-        if (evt.isShiftDown()){
-            console.log("onDownPressed: ShiftDown")
-        }else{
-            console.log("onDownPressed: no ShiftDown")
-        }
-        this.moveActiveCellBy(evt,pt(0,1));
+        this.moveActiveCellBy(pt(0,1));
         evt.stop();
     },
     onLeftPressed: function(evt) {
-        
-        this.moveActiveCellBy(evt,pt(-1,0));
+        //testing cell text is focused or not 
+    console.log("SAPGrid.onLeftPressed..");
+        if (!this.activeCell) {
+         }else{
+              //alert(this.activeCell.isFocused())
+         }
+        var bFocused = this.activeCell.isFocused();
+        //debugger;
+console.log("SAPGrid.onLeftPressed:" + bFocused );
+        this.moveActiveCellBy(pt(-1,0));
         evt.stop();
     },
     onRightPressed: function(evt) {
-        this.moveActiveCellBy(evt,pt(1,0));
+        this.moveActiveCellBy(pt(1,0));
         evt.stop();
     },
         
     onKeyDown: function($super, evt) {
         $super(evt);
-         //console.log("SAPGrid.onKeyDown");
+         console.log("SAPGrid.onKeyDown");
     },
 
     onKeyPress: function($super,evt) {
          $super(evt);
-        //console.log("SAPGrid.onKeyPress");
+        console.log("SAPGrid.onKeyPress");
 
     },
 
     onKeyUp: function($super,evt) {
          $super(evt);
-         //console.log("SAPGrid.onKeyUp");
+         console.log("SAPGrid.onKeyUp");
     },
     
-},
-'Select cells', {
-    setCellSelection: function() {
-       
-    },
-    getCellSelections: function() {
-       
-    },
-    removeSelectedCells: function() {
-        for (i= 0; i< this.arrSelectedCells.length; i++) {
-            this.arrSelectedCells[i].deactivateCell();
-        }
-        this.arrSelectedCells.lenght=0;
-        this.arrSelectedCells =[];
-
-        //for data
-        for (i= 0; i< this.arrSelectedData.length; i++) {
-            this.arrData[this.arrSelectedData[i].y][this.arrSelectedData[i].x].selected=false;
-        }
-        this.arrSelectedData.lenght=0;
-        this.arrSelectedData=[];
-
-    },
 },
 'Mouse Events', {
     onMouseDown: function($super, evt) {
         $super(evt);
-         //console.log("SAPGrid.onMouseDown");
+         console.log("SAPGrid.onMouseDown");
     },
 
     onMouseUp: function($super, evt) {
         $super(evt);
-         //console.log("SAPGrid.onMouseUp");
+         console.log("SAPGrid.onMouseUp");
     },
-    onMouseWheel: function(evt) {
-        console.log("onMouseWheel");
-    }
 },
 'Common Tool', {
      converttoPercentage: function(num,nDecimalPlaces){
@@ -1213,7 +1140,867 @@ currently only support
         }
         return x;
     },
-});Height * this.grid.numRows + 50;
+});
+
+
+lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
+'default category', {
+    addToGrid: function(aGrid) {
+        this.grid = aGrid;
+        this.grid.addMorph(this);
+        this.setBorderColor(Color.rgb(177,181,186));
+        this.setFill(Color.rgb(255, 2550, 255));
+        //this.cellformula='';
+        //this.annotation='';//maybe we need array object to save more than one
+    },
+    activate: function(isCtrlDown) {
+        if (this.grid.activeCell) {
+            if (!isCtrlDown){
+                this.grid.activeCell.deactivate();
+            }
+            
+        }    
+        this.grid.activeCell = this;
+        this.grid.activeCellContent = this.textString;
+        //this.setBorderColor(Color.red);
+        this.setBorderColor(Color.rgb(0,0,0));
+
+        this.setBorderWidth(2);
+        //this.displayExpression();
+    },
+    deactivate: function() {
+        
+        console.log("deactivate ")
+        if (this.grid.activeCell !== this) {    
+            
+            return;
+        }
+        this.grid.activeCell = null;
+        this.setBorderColor(Color.rgb(177,181,186));
+        this.setBorderWidth(1);
+    
+        if (this.hasAnnotation()){
+	   this.annotationCell();
+	}
+        if (this.hasFormula()){
+	   this.formulaCell();
+	}
+    },
+    hasAnnotation: function() {
+        var bResult = false;
+        var nCol= this.gridCoords.x;
+        var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+        
+        var nOrgRow = nRow + this.grid.startRow;
+        var nOrgCol = nCol+ this.grid.startColumn;
+
+
+        if (this.grid.arrData[nOrgRow][nOrgCol].annotation){
+            bResult = true;
+        }
+        return bResult
+    },
+    hasFormula: function() {
+        var bResult = false;
+        var nCol= this.gridCoords.x;
+        var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+        var nOrgRow = nRow + this.grid.startRow;
+        var nOrgCol = nCol+ this.grid.startColumn;
+
+        if (this.grid.arrData[nOrgRow][nOrgCol].formula){
+            bResult = true;
+        }
+        return bResult
+    },
+    deactivateCell: function() {
+        //removed below April 24
+        //this.grid.activeCell = null;
+        this.setBorderColor(Color.rgb(177,181,186));
+        this.setBorderWidth(1);
+        //this.updateEvalExpression();
+        //this.updateDisplay();
+        //this.grid.recalculateRowsFirst();
+    },
+    annotationCell: function() {
+        this.setBorderColor(Color.orange);
+        this.setBorderWidth(1);
+    },
+    formulaCell: function() {
+        this.setBorderColor(Color.green);
+        this.setBorderWidth(1);
+    },
+    selectedCell: function() {
+        this.setBorderColor(Color.rgb(0,0,0));
+        this.setBorderWidth(1);
+    },
+    onMouseDown: function (evt) {
+        console.log('SAPGridCell.onMouseDown');
+
+        var sFontFamily =this.grid.defaultFontFamily;
+        var sFontSize = this.grid.defalutFontSize;
+
+       /*bug below code always return Helvetica and 10
+        sFontFamily = this.getFontFamily();
+        sFontSize = this.getFontSize();
+        */
+ 
+        var nCol= this.gridCoords.x;
+        var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+        
+        var nOrgRow = nRow + this.grid.startRow;
+        var nOrgCol = nCol+ this.grid.startColumn;
+
+        if (this.grid.arrData[nOrgRow][nOrgCol].fontFamily){
+            sFontFamily =this.grid.arrData[nOrgRow][nOrgCol].fontFamily;
+        }
+        if (this.grid.arrData[nOrgRow][nOrgCol].fontSize){
+            sFontSize =this.grid.arrData[nOrgRow][nOrgCol].fontSize;
+        }
+        this.grid.oWorkBook.toolBar.setfontFamily(sFontFamily); 
+        this.grid.oWorkBook.toolBar.setFontSize(sFontSize); 
+
+        var oSelectedData={};
+        oSelectedData.x=nOrgCol;
+        oSelectedData.y=nOrgRow;
+
+        this.grid.hideAnnotation();
+        if (evt.isLeftMouseButtonDown()) {
+            var ctrl = evt.isCtrlDown();
+            if (evt.isCtrlDown()){
+                
+                this.grid.arrSelectedCells.push(this);
+                this.grid.arrData[nOrgRow][nOrgCol].selected=true;
+                this.grid.arrSelectedData.push(oSelectedData);
+
+                this.selectedCell();
+                this.activate(true);
+                
+            }else{
+                this.grid.removeSelectedCells();
+                this.grid.arrSelectedCells.push(this);
+                this.grid.arrData[nOrgRow][nOrgCol].selected=true;
+                this.grid.arrSelectedData.push(oSelectedData);
+
+                this.activate();
+            }
+            
+            
+        }
+    },
+    onDoubleClick: function (evt) {
+        //if (this.annotation){
+            var nCol= this.gridCoords.x;
+            var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+            
+            console.log("onDoubleClick [" + nCol + ", "+ nRow + "]");
+	    this.grid.showAnnotation(nCol,nRow);
+	//}
+    },
+
+    put: function(aValue) {
+        // TODO: check if aValue starts with =, then evaluate it or not
+        debugger;
+        this.textString = aValue;
+    },
+    onKeyUp: function($super, evt) {
+
+        console.log("SAPGridCell.onKeyUp: "  + this.textString);
+        var nCol= this.gridCoords.x;
+        var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+        nRow  = nRow  + this.grid.startRow;
+        nCol = nCol + this.grid.startColumn;
+        
+        this.grid.arrData[nRow][nCol].value=this.textString;
+
+        $super(evt);
+    },
+    /*onKeyPress: function($super, evt) {
+        console.log("SAPGridCell.onKeyPress: " + this.textString );  
+        $super(evt);
+         
+        //this.textString += String.fromCharCode(evt.getKeyCode());
+    },*/
+    /*
+    onBackspacePressed: function($super, evt) {
+        $super(evt);
+        if (!this.textString) {
+            evt.stop(); 
+            return true; 
+        }
+        this.textString = this.textString.substring(0, this.textString.length-1);
+        evt.stop();
+    },*/
+    initialize: function($super, arg) {
+        $super(arg);
+        this.evalExpression = undefined;
+        this.disableHalos();
+        //this.cellformula='';
+        //this.annotation='';//maybe we need array object to save more than one
+    },
+    updateDisplay: function() {
+        if (this.evalExpression !== undefined) {
+            this.textString = this.grid.evaluateExpression(this.evalExpression);
+        }
+    },
+    updateEvalExpression: function() {
+        if (this.textString.substring(0,1) === '=') {
+            this.evalExpression = this.textString.substring(1);
+            //this.textString = this.grid.evaluateExpression(this.textString.substring(1));
+        } else {
+            this.evalExpression = undefined;
+        }
+    },
+
+    displayExpression: function() {
+        if (this.evalExpression !== undefined) {
+            this.textString = '=' + this.evalExpression;
+        }
+    },
+    getContent: function() {
+        var content = this.textString,
+            floatValue = parseFloat(content);
+        if (isNaN(floatValue)) {
+            return content;
+        }
+        return floatValue;
+    },
+});
+lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
+'default category', {
+    initialize: function($super, arg1, arg2) {
+        $super(arg1, arg2);
+        this.disableHalos();
+        this.setFill(Color.rgb(223, 227, 232));
+        this.setBorderColor(Color.rgb(177,181,186));
+        this.renderContext().textNode.setAttribute('contenteditable', false);
+        //this.disableEvents();
+    },
+    addToGrid: function(aGrid) {
+        this.grid = aGrid;
+        this.grid.addMorph(this);
+    },
+    onMouseDown: function (evt) {
+        console.log('SAPGridCell.onMouseDown');
+       
+        this.grid.hideAnnotation();
+        if (evt.isLeftMouseButtonDown()) {
+           
+            var nCol= this.gridCoords.x;
+            var nOrgCol = nCol + this.grid.startColumn;
+            var oSelectedData={};
+
+            this.grid.selectedColumnHeader = this;
+            
+            this.grid.removeSelectedCells();
+            //for grid selected
+            for (var y = 0; y < this.grid.numRows; y++) {
+                this.grid.rows[y][nCol].selectedCell();
+                this.grid.arrSelectedCells.push(this.grid.rows[y][nCol]);
+            }
+            //for data selected
+            for (var y = 0; y < this.grid.arrData.length; y++) {
+                oSelectedData={};
+                oSelectedData.x=nOrgCol;
+                oSelectedData.y=y;
+                this.grid.arrData[y][nOrgCol].selected=true;
+                this.grid.arrSelectedData.push(oSelectedData);
+            }
+            
+            console.log("SAPGridColHead.onMouseDown nCol:nOrgCol =" + nCol + ":" + nOrgCol );
+            
+        }
+    },
+
+});
+lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
+'default category', {
+    initialize: function($super, arg1, arg2) {
+        $super(arg1, arg2);
+        this.nColumn=0; //need to know which cell
+        this.nRow=0;
+        this.setFill(Color.rgb(255, 255, 225));
+        this.setBorderColor(Color.rgb(0,0,0));
+    },
+    addToGrid: function(aGrid) {
+        this.grid = aGrid;
+        this.grid.addMorph(this);
+    },
+    onKeyUp: function($super, evt) {
+       
+        $super(evt);
+        //Saving annotation
+        var nOrgRow = this.nRow+ this.grid.startRow;
+        var nOrgCol = this.nColumn+ this.grid.startColumn;
+
+console.log("SAPGridAnnotation.onKeyUp: org col/row " + nOrgCol +"," + nOrgRow);
+
+        this.grid.setAnnotation(nOrgCol ,nOrgRow,this.textString);
+
+        //this.textString += String.fromCharCode(evt.getKeyCode());
+    },
+    /*onKeyPress: function($super, evt) {
+       console.log("SAPGridAnnotation.onKeyPress");
+        $super(evt);
+        alert(this.textString);
+        //this.textString += String.fromCharCode(evt.getKeyCode());
+    },*/
+    /*onBackspacePressed: function($super, evt) {
+        $super(evt);
+        if (!this.textString) {
+            evt.stop(); 
+            return true; 
+        }
+        this.textString = this.textString.substring(0, this.textString.length-1);
+        evt.stop();
+    },
+    onMouseDown: function (evt) {
+    //debugger;
+        if (evt.isLeftMouseButtonDown()) {
+            this.displayExpression();
+        }
+    },
+    displayExpression: function() {
+        if (this.evalExpression !== undefined) {
+            this.textString = '=' + this.evalExpression;
+        }
+    },
+
+    put: function(aValue) {
+        console.log("Annotation.put")
+        this.textString = aValue;
+    },
+    */
+
+});
+
+
+lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
+'settings', {
+    style: {
+        enableGrabbing: false,
+        enableDropping: false,
+        borderColor: Color.neutral.lightGray,
+        borderWidth: 1,
+        borderRadius: 5,
+        padding: Rectangle.inset(0,3),
+        fill: new lively.morphic.LinearGradient(
+            [{offset: 0, color: Color.gray.mixedWith(Color.white, 0.2)},
+            {offset: 0.4, color: Color.gray.mixedWith(Color.white, 0.9)},
+            {offset: 0.6, color: Color.gray.mixedWith(Color.white, 0.9)},
+            {offset: 1, color: Color.gray.mixedWith(Color.white, 0.3)}],
+            "NorthSouth")
+    },
+    labelStyle: {
+        borderWidth: 0,
+        fill: null,
+        padding: Rectangle.inset(0,3),
+        fontSize: 10,
+        align: 'center',
+        fixedWidth: true,
+        fixedHeight: true,
+        textColor: Color.black
+    }
+},
+'default category', {
+    initialize: function($super,oGrid, nXpos, nYpos,nWidth,nHeight) {
+        //Rectangle(xPos,yPox,width,height)
+        nXpos = (nXpos==undefined) ? (0) : (nXpos);
+        nYpos = (nWidth==undefined) ? (0) : (nYpos);
+        nHeight = (nHeight==undefined) ? (30) : (nHeight);
+        nWidth = (nWidth==undefined) ? (1200) : (nWidth);
+        console.log(nHeight)
+        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nXpos,nYpos,nWidth,nHeight)));
+        this.grid=oGrid;
+        this.initializeImages();
+        this.initializeEvents();
+        this.imgSave;
+        this.imgSaveAs;
+        this.imgCopy;
+        this.imgCut;
+        this.imgPaste;
+        this.imgClear;
+        this.imgBold;
+        this.imgItalic;
+        this.imgUnderline;
+        this.imgBackGroundColor;
+        this.imgFontColor;
+        this.imgSignDollar;
+        this.imgSignPercent;
+        this.imgBoarder;
+        this.imgFilter;
+        this.imgInsertRow;
+        this.imgRemoveRow;
+        this.imgInsertColumn;
+        this.imgRemoveColumn;
+
+        this.imgTextAlignLeft;
+        this.imgTextAlignCenter;
+        this.imgTextAlignRight;
+        this.ddlFontSize;
+        this.ddlFont;
+
+        this.fontPicker;
+
+/*
+
+
+
+fontWeight: 'bold'
+textDecoration: 'underline'
+fontStyle: 'italic'
+fontSize:12
+fontFamily:sFont
+textAlign: 'left'
+backgroundcolor: ss
+boardercolor: xx
+
+getFontSize()
+getFontWeight()
+getFontFamily
+getColor
+setColor
+getTextDecoration
+getTextAlignment
+getBackgroundColor
+getItalics
+
+
+formula:
+notes:
+dataformat: currency & percentage & date & time
+    - currency: symbol , decimalPlaces ,useThousandSeparator, unitOfMeasure (whole,thousand,million), negativeType (withminus, red, withBracket, redwithBracket) 
+    - percentage: Decimal places
+    - date: dateformat (~5 types)
+    - time: timeformat (~5 types)
+*/
+
+
+    },initializeImages: function() {
+        var nGapWidth = 6;
+        var nGapGroupWidth = 25;
+        var nSecondLineYPos = 30;
+
+        this.imgSave = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
+        this.imgSaveAs = new lively.morphic.Image(new Rectangle(24*1 + 10 + nGapWidth,3,24,24), "images/Save-as-icon.png"); 
+        this.imgPaste= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*2 + 10 + 2*nGapWidth,3,24,24), "images/Action-paste-icon.png"); 
+        this.imgCut= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,3,24,24), "images/Cut-icon.png"); 
+        this.imgCopy= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,nSecondLineYPos,24,24), "images/Actions-edit-copy-icon.png"); 
+    
+        this.ddlFont = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth, 3, 120, 20), []);
+
+        this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
+
+        this.addMorph(this.ddlFont );
+        this.addMorph(this.ddlFontSize );
+
+        this.imgBold= new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-bold-icon.png"); 
+        this.imgBold.setToolTip("Bold");
+        this.imgItalic = new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*5 + 10 + 5*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-italic-icon.png"); 
+        this.imgItalic.setToolTip("Italic");
+        this.imgUnderline= new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*6 + 10 + 6*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-underline-icon.png"); 
+        this.imgUnderline.setToolTip("Underline");
+
+        this.imgBackGroundColor= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*8 + 10 + 7*nGapWidth,nSecondLineYPos,24,24), "images/color-fill-icon.png"); 
+        this.imgFontColor= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*9 + 10 + 8*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-color-icon.png"); 
+
+        this.imgSignDollar= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,3,24,24), "images/US-dollar-icon.png"); 
+        this.imgSignDollar.setToolTip("Number Format: Currency");
+        this.imgSignPercent= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*12 + 10 + 12*nGapWidth,3,24,24), "images/Percent-icon2.png"); 
+        this.imgSignPercent.setToolTip("Number Format: Percentage");
+
+        this.imgBoarder = new lively.morphic.Image(new Rectangle(4*nGapGroupWidth + 24*13 + 10 + 13*nGapWidth,3,24,24), "images/border-2-bottom-icon.png"); 
+        this.imgFilter = new lively.morphic.Image(new Rectangle(4*nGapGroupWidth + 24*14 + 10 + 14*nGapWidth,3,24,24), "images/filter-icon.png"); 
+
+        this.imgInsertRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,3,24,24), "images/table-row-insert-icon.png");
+        this.imgInsertRow.setToolTip("Insert Row");
+
+        this.imgInsertColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,nSecondLineYPos,24,24), "images/table-column-insert-icon.png");
+        this.imgInsertColumn .setToolTip("Insert Column");
+        
+        this.imgRemoveRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,3,24,24), "images/table-row-delete-icon.png");
+        this.imgRemoveRow .setToolTip("Delete Row");
+        this.imgRemoveColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,nSecondLineYPos,24,24), "images/table-column-delete-icon.png");
+        this.imgRemoveColumn .setToolTip("Delete Column");
+    
+        this.imgTextAlignLeft = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*19 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-left-icon.png");
+        this.imgTextAlignLeft.setToolTip("Align Text Left");
+        this.imgTextAlignCenter = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*20 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-center-icon.png");
+        this.imgTextAlignCenter.setToolTip("Align Text Center");
+        this.imgTextAlignRight = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*21 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-right-icon.png");
+        this.imgTextAlignRight.setToolTip("Align Text Right");
+
+        this.imgClear= new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*22 + 10 + 14*nGapWidth,3,24,24), "images/Actions-edit-clear-icon.png"); 
+
+        this.addMorph(this.imgInsertRow);
+        this.addMorph(this.imgRemoveRow);
+        this.addMorph(this.imgInsertColumn);
+        this.addMorph(this.imgRemoveColumn);
+
+        this.addMorph(this.imgSave);
+        this.addMorph(this.imgSaveAs);
+
+        this.addMorph(this.imgCopy);
+        this.addMorph(this.imgCut);
+        this.addMorph(this.imgPaste);
+        this.addMorph(this.imgClear);
+ 
+        this.addMorph(this.imgBold);
+        this.addMorph(this.imgItalic );
+        this.addMorph(this.imgUnderline);
+   
+        this.addMorph(this.imgBackGroundColor);
+        this.addMorph(this.imgFontColor);
+
+        this.addMorph(this.imgSignDollar);
+        this.addMorph(this.imgSignPercent);
+
+        this.addMorph(this.imgBoarder);
+        this.addMorph(this.imgFilter);
+
+        this.addMorph(this.imgInsertRow);
+        this.addMorph(this.imgRemoveRow);
+        this.addMorph(this.imgInsertColumn);
+        this.addMorph(this.imgRemoveColumn);
+
+        this.addMorph(this.imgTextAlignLeft);
+        this.addMorph(this.imgTextAlignCenter);
+        this.addMorph(this.imgTextAlignRight);
+
+        this.ddlFontSize.grabbingEnabled = false;
+        this.ddlFont.grabbingEnabled = false;
+
+
+        var oSubmorphs= this.submorphs
+        //debugger;
+        //for (var i = 0; i < oSubmorphs.length; i++) {
+            //if (oSubmorphs[i].shape==lively.morphic.Image){
+            //      console.log("image")
+            //}
+        //}
+
+        this.imgSave.grabbingEnabled = false;
+        this.imgSaveAs.grabbingEnabled = false;
+        this.imgCopy.grabbingEnabled = false;
+        this.imgCut.grabbingEnabled = false;
+        this.imgPaste.grabbingEnabled = false;
+        this.imgClear.grabbingEnabled = false;
+        this.imgBold.grabbingEnabled = false;
+        this.imgItalic.grabbingEnabled = false;
+        this.imgUnderline.grabbingEnabled = false;
+        this.imgBackGroundColor.grabbingEnabled = false;
+        this.imgFontColor.grabbingEnabled = false;
+        this.imgSignDollar.grabbingEnabled = false;
+        this.imgSignPercent.grabbingEnabled = false;
+        this.imgBoarder.grabbingEnabled = false;
+        this.imgFilter.grabbingEnabled = false;
+        this.imgInsertRow.grabbingEnabled = false;
+        this.imgRemoveRow.grabbingEnabled = false;
+        this.imgInsertColumn.grabbingEnabled = false;
+        this.imgRemoveColumn.grabbingEnabled = false;
+        this.imgTextAlignLeft.grabbingEnabled = false;
+        this.imgTextAlignCenter.grabbingEnabled = false;
+        this.imgTextAlignRight.grabbingEnabled = false;
+
+
+        this.imgSave.disableHalos();
+        this.imgSaveAs.disableHalos();
+        this.imgCopy.disableHalos();
+        this.imgCut.disableHalos();
+        this.imgPaste.disableHalos();
+        this.imgClear.disableHalos();
+        this.imgBold.disableHalos();
+        this.imgItalic.disableHalos();
+        this.imgUnderline.disableHalos();
+        this.imgBackGroundColor.disableHalos();
+        this.imgFontColor.disableHalos();
+        this.imgSignDollar.disableHalos();
+        this.imgSignPercent.disableHalos();
+        this.imgBoarder.disableHalos();
+        this.imgFilter.disableHalos();
+        this.imgInsertRow.disableHalos();
+        this.imgRemoveRow.disableHalos();
+        this.imgInsertColumn.disableHalos();
+        this.imgRemoveColumn.disableHalos();
+        this.imgTextAlignLeft.disableHalos();
+        this.imgTextAlignCenter.disableHalos();
+        this.imgTextAlignRight.disableHalos();
+
+    },
+    setFontSize: function(sFontSize){
+        this.ddlFontSize.setSelectionMatching(sFontSize);
+    },
+    setfontFamily: function(sFontFamily){
+        if (this.fontPicker){
+            this.fontPicker.setDefaultFont(sFontFamily);
+        }else{
+            this.fontPicker= new lively.morphic.SAPFontPicker(sFontFamily,this.fontPicker_callBack);
+            this.fontPicker.setPosition(pt(181,24));
+            this.fontPicker.setVisible(false);
+            this.addMorph(this.fontPicker);
+            connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});
+        }
+   
+        this.ddlFont.setList([this.fontPicker.selectedFont]);
+    },    
+    fontPicker_callBack: function(sFont){
+        var i;
+        var that = this.owner;
+        that.ddlFont.updateList([sFont]);
+        for (i= 0; i< that.grid.arrSelectedCells.length; i++) {
+            that.grid.arrSelectedCells[i].emphasizeAll({fontFamily:sFont});
+        }
+
+        //for data
+        for (i= 0; i< that.grid.arrSelectedData.length; i++) {
+            that.grid.arrData[that.grid.arrSelectedData[i].y][that.grid.arrSelectedData[i].x].fontFamily=sFont;
+        }
+
+
+        that.fontPicker.setVisible(false);
+        
+    },
+    ddlFont_onMouseDown: function(){
+        if (this.fontPicker){
+            //debugger;
+            if (this.fontPicker.isVisible()){
+                this.fontPicker.setVisible(false);
+            }else{
+                this.fontPicker.setVisible(true);
+                //this.fontPicker.focus();
+            }
+        }else{
+            this.fontPicker= new lively.morphic.SAPFontPicker("courier",this.fontPicker_callBack);
+            this.fontPicker.setPosition(pt(181,24));
+            this.addMorph(this.fontPicker);
+            connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});
+        }
+        
+    
+    },
+    ddlFontSize_onChange: function(){
+        var i;
+        var nFontsize = this.ddlFontSize.getSelectedItem();
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].emphasizeAll({fontSize:nFontsize });
+        }
+         //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontSize=nFontsize;
+        }
+
+    },
+    
+    fontPicker_onBlur: function(){
+       console.log("onBlur");
+       this.fontPicker.setVisible(false);
+
+    },
+    initializeEvents: function() {
+        connect(this.imgBold, "onMouseDown", this, "imgBold_Click", {});
+        connect(this.imgItalic, "onMouseDown", this, "imgItalic_Click", {});
+        connect(this.imgUnderline, "onMouseDown", this, "imgUnderline_Click", {});
+    
+        connect(this.imgSave , "onMouseDown", this, "imgSave_Click", {});
+        connect(this.imgInsertRow, "onMouseDown", this, "imgInsertRow_Click", {});
+        connect(this.imgInsertColumn, "onMouseDown", this, "imgInsertColumn_Click", {});
+        connect(this.imgRemoveRow, "onMouseDown", this, "imgRemoveRow_Click", {});
+        connect(this.imgRemoveColumn, "onMouseDown", this, "imgRemoveColumn_Click", {});
+
+        connect(this.imgSignDollar, "onMouseDown", this, "imgSignDollar_Click", {});
+        connect(this.imgSignPercent, "onMouseDown", this, "imgSignPercent_Click", {});
+
+        connect(this.imgTextAlignLeft, "onMouseDown", this, "imgTextAlignLeft_Click", {});
+        connect(this.imgTextAlignCenter, "onMouseDown", this, "imgTextAlignCenter_Click", {});
+        connect(this.imgTextAlignRight, "onMouseDown", this, "imgTextAlignRight_Click", {});
+
+        connect(this.ddlFontSize, "onChange", this, "ddlFontSize_onChange", {});
+        connect(this.ddlFont , "onMouseDown", this, "ddlFont_onMouseDown", {});
+
+        
+
+    },
+    imgTextAlignLeft_Click: function() {
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].setAlign('left'); 
+        }
+        //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textAlign='left';
+        }
+    },
+    imgTextAlignCenter_Click: function() {
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].setAlign('center'); 
+        }
+        //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textAlign='center';
+        }
+    },
+    imgTextAlignRight_Click: function() {
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].setAlign('right'); 
+        }
+        //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textAlign='right';
+        }
+    },
+    imgItalic_Click: function() {
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].emphasizeAll({fontStyle: 'italic'});
+        }
+        //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontStyle='italic';
+        }
+    },
+    imgUnderline_Click: function() {
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].emphasizeAll({textDecoration: 'underline'});
+        }
+         //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textDecoration='underline';
+        }
+    },
+    imgBold_Click: function() {
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
+        }
+        //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontWeight='bold';
+        }
+    },
+    imgBackGroundColor_Click: function() {
+        alert(this.grid.numCols )
+    },
+    imgFontColor_Click: function() {
+        alert(this.grid.numCols )
+    },
+    imgSignDollar_Click: function() {
+        var nRow;
+        var nColumn;
+        var nOrgRow;
+        var nOrgCol;
+        var sValue;
+         var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow  + this.grid.startRow;
+            nOrgCol = nColumn + this.grid.startColumn; 
+            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
+            sValue = this.grid.roundtoFixNumber(sValue ,2,true)
+            this.grid.arrSelectedCells[i].textString= "$" + sValue;
+        }
+         //for data
+        var oDataFormat;
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            // - currency: symbol , decimalPlaces ,useThousandSeparator, unitOfMeasure (whole,thousand,million), negativeType (withminus, red, withBracket, redwithBracket) 
+            //we need to get from default value...?
+            oDataFormat = {};    
+            oDataFormat.type ="currency";
+            oDataFormat.symbol = "$";
+            oDataFormat.decimalPlaces = 2;
+            oDataFormat.unitOfMeasure = 1;
+            oDataFormat.useThousandSeparator = true;
+            oDataFormat.negativeType= 1;
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
+        }
+    },
+    imgSignPercent_Click: function() {
+        var nRow;
+        var nColumn;
+        var nOrgRow;
+        var nOrgCol;
+        var sValue;
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow  + this.grid.startRow;
+            nOrgCol = nColumn + this.grid.startColumn; 
+            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
+            sValue = this.grid.converttoPercentage(sValue ,2)
+            this.grid.arrSelectedCells[i].textString= sValue + "%";
+        }
+        var oDataFormat;
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            // percentage: Decimal places
+            //we need to get from default value...?
+            oDataFormat = {};    
+            oDataFormat.type ="percentage";
+            oDataFormat.decimalPlaces = 2;
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
+        }
+
+
+
+    },
+    imgSave_Click: function() {
+        alert(this.grid.numCols )
+    },
+    imgInsertRow_Click: function() {
+        this.grid.addRowBetween();
+    },
+    imgInsertColumn_Click: function() {
+        this.grid.addColBetween();
+    },
+    imgRemoveRow_Click: function() {
+        this.grid.removeRowBetween();
+    },
+    imgRemoveColumn_Click: function() {
+        this.grid.removeColBetween();
+    },
+
+});    
+
+lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
+'default category', {
+    initialize: function($super, numCols, numRows) {
+        $super();
+        this.numCols = numCols;
+        this.numRows = numRows;
+        this.toolBarHeight = 60;
+        this.grid;
+        this.toolBar;
+        this.initializeLayout();
+        
+       
+    },
+     initializeLayout: function() {
+        this.grid = new lively.morphic.SAPGrid(this.numCols,this.numRows);
+        this.grid.name="BPCGrid";
+        this.grid.oWorkBook = this;
+        this.addMorph(this.grid);
+        this.grid.setPosition(pt(0,this.toolBarHeight+2));
+
+        var nToolBarWidth= this.grid.defaultCellWidth * this.grid.numCols;
+        this.toolBar= new lively.morphic.SAPGridToolBar(this.grid,0,0,nToolBarWidth,this.toolBarHeight);
+        this.addMorph(this.toolBar);
+
+        var nWidth= this.grid.defaultCellWidth * this.grid.numCols + 50;
+        var nHeight = this.grid.defaultCellHeight * this.grid.numRows + 50;
+        this.setExtent(lively.pt(nWidth,nHeight));
+        //this.setFill(Color.rgb(255, 255, 225));
+    },
+     onMouseDown: function($super, evt) {
+        
+        $super(evt);
+    },
+
+});
+
+
+}) // end of moduleHeight * this.grid.numRows + 50;
         this.setExtent(lively.pt(nWidth,nHeight));
         //this.setFill(Color.rgb(255, 255, 225));
     },

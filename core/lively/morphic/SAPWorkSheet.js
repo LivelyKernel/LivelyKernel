@@ -693,7 +693,9 @@ console.log('End createLayout =' + elapsed);
                     sTextAlign =this.arrData[nOrgRow][nOrgCol].textAlign;
                 }
                 
-
+//fill: ss
+//borderColor: xx
+//textColor: 
 //oColor = eval('Color.rgb(220,220,220)')
 //oText.applyStyle({borderColor: oColor ,textColor: oColor,fill:null});
 

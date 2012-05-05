@@ -673,6 +673,9 @@ console.log('End createLayout =' + elapsed);
                 var sFontSize = this.defalutFontSize;
                 var sFontFamily = this.defaultFontFamily;
                 var sTextAlign = "left";
+                var oBorderColor=null;
+                var oFill = null;
+                var oTextColor=null;
                 
                 if (this.arrData[nOrgRow][nOrgCol].fontWeight){
                     sFontWeight=this.arrData[nOrgRow][nOrgCol].fontWeight;
@@ -692,8 +695,19 @@ console.log('End createLayout =' + elapsed);
                 if (this.arrData[nOrgRow][nOrgCol].textAlign){
                     sTextAlign =this.arrData[nOrgRow][nOrgCol].textAlign;
                 }
-                //bug in applystyle textDecoration & fontStyle do not work
 
+                //borderColor: Color.red, fill: null,textColor: Color.red
+                if (this.arrData[nOrgRow][nOrgCol].borderColor){
+                    oBorderColor=eval(this.arrData[nOrgRow][nOrgCol].textAlign);
+                }                
+                if (this.arrData[nOrgRow][nOrgCol].fill){
+                    oFill =eval(this.arrData[nOrgRow][nOrgCol].fill);
+                } 
+                if (this.arrData[nOrgRow][nOrgCol].textColor){
+                    oTextColor=eval(this.arrData[nOrgRow][nOrgCol].textColor);
+                } 
+
+                //bug in applystyle textDecoration & fontStyle do not work
                 this.at(x,y).applyStyle({fontWeight: sFontWeight,fontSize:sFontSize,fontFamily:sFontFamily});
                 this.at(x,y).emphasizeAll({fontStyle: sFontStyle,textDecoration: sTextDecoration});
                 

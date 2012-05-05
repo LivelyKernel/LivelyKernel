@@ -696,9 +696,6 @@ console.log('End createLayout =' + elapsed);
                     sTextAlign =this.arrData[nOrgRow][nOrgCol].textAlign;
                 }
 
-                //borderColor: Color.red, fill: null,textColor: Color.red
-                debugger;
-                this.arrData[nOrgRow][nOrgCol].fill='Color.rgb(102,102,102)';
                 if (this.arrData[nOrgRow][nOrgCol].borderColor){
                     oBorderColor=eval(this.arrData[nOrgRow][nOrgCol].borderColor);
                 }                
@@ -716,11 +713,6 @@ console.log('End createLayout =' + elapsed);
                 if (oBorderColor){
                     this.at(x,y).applyStyle({borderColor: oBorderColor});
                 }
-                
-                //this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
-                //this.at(x,y).applyStyle({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
-                //this.at(x,y).applyStyle({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
-                //this.at(x,y).setTextDecoration(sTextDecoration);
                 this.at(x,y).setAlign(sTextAlign); 
             }
         }

@@ -693,7 +693,10 @@ console.log('End createLayout =' + elapsed);
                     sTextAlign =this.arrData[nOrgRow][nOrgCol].textAlign;
                 }
                 //bug in applystyle textDecoration & fontStyle do not work
-                this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
+
+                this.at(x,y).applyStyle({fontWeight: sFontWeight,fontSize:sFontSize,fontFamily:sFontFamily});
+                this.at(x,y).emphasizeAll({fontStyle: sFontStyle,textDecoration: sTextDecoration});
+                
                 //this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
                 //this.at(x,y).applyStyle({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
                 //this.at(x,y).applyStyle({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});

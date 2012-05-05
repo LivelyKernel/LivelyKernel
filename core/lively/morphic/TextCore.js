@@ -2048,7 +2048,7 @@ this. textNodeString()
         return function cleanLine(line, idx, lines) {
             var varMatch = line.match(varRegexp);
             if (idx === 0) {
-                if (!varMatch) {
+                if (!varMatch || !varMatch[1]) {
                     cancel = true;
                 } else {
                     indent = varMatch[1].length;

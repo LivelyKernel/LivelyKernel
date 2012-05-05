@@ -1165,7 +1165,7 @@ currently only support
 },
 'Mouse Events', {
     onMouseMove: function($super, evt) {
-        debugger;
+        
 /*
 evt.MOUSEDOWN:1
 clientX:551
@@ -1181,13 +1181,7 @@ screenX:496
 screenY:384
 x:551
 y359
-
-
-
 */
-
-
-
         console.log("SAPGrid.onMouseMove");
         $super(evt);
     },

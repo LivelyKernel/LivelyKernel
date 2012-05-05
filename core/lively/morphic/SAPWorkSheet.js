@@ -1459,7 +1459,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     initialize: function($super, arg) {
         $super(arg);
         this.evalExpression = undefined;
-        //this.disableHalos();
+        this.disableHalos();
         //this.cellformula='';
         //this.annotation='';//maybe we need array object to save more than one
     },

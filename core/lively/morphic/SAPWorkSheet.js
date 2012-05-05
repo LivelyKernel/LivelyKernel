@@ -697,7 +697,8 @@ console.log('End createLayout =' + elapsed);
                 }
 
                 //borderColor: Color.red, fill: null,textColor: Color.red
-                this.arrData[nOrgRow][nOrgCol].borderColor='Color.rgb(102,102,102)';
+                debugger;
+                this.arrData[nOrgRow][nOrgCol].fill='Color.rgb(102,102,102)';
                 if (this.arrData[nOrgRow][nOrgCol].borderColor){
                     oBorderColor=eval(this.arrData[nOrgRow][nOrgCol].textAlign);
                 }                

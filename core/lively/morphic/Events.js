@@ -1027,6 +1027,7 @@ handleOnCapture);
 
 },
 'scrolling', {
+    onScroll: function(evt) {},
     getScrollableNode: function(evt) {
         // FIXME HTML specific
         // FIXME pass evt on all calls

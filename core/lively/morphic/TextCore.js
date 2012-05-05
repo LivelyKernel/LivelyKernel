@@ -2043,6 +2043,7 @@ this. textNodeString()
 'JavaScript support', {
     varDeclCleaner: function() {
         // for usage with #modifyLines
+        // turns "var foo;\nvar bar;" into "var foo,\n    bar;"
         var cancel = false, indent = '', tab = this.tab,
             varRegexp = /(\s*)var\s+([^;]+)(;?)(\s*)/;
         return function cleanLine(line, idx, lines) {

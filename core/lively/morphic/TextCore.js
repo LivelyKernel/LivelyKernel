@@ -2054,7 +2054,7 @@ this. textNodeString()
                     indent = varMatch[1].length;
                     line = line.replace(varRegexp, '$1var $2,');
                 }
-            } else {
+            } else if (varMatch) {
                 line = line.replace(varRegexp, '$2,');
             }
             if (cancel) return line;

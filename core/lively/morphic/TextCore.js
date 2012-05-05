@@ -978,6 +978,10 @@ doAutoIndent: function() {
 
     this.textString = text;
 },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
 
 },

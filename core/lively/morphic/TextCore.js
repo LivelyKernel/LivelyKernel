@@ -978,7 +978,7 @@ doAutoIndent: function() {
 
     this.textString = text;
 },
-    newMethod: function() {
+    doVarDeclClean: function() {
         // enter comment here
     },
 

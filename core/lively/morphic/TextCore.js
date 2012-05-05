@@ -2044,11 +2044,11 @@ this. textNodeString()
     varDeclCleaner: function() {
         // for usage with #modifyLines
         var cancel = false, indent = 0,
-            varRegexp = /(\s*)var\s+([^;]+)(;?)(\s*)/g;
+            varRegexp = /(\s*)var\s+([^;]+)(;?)(\s*)/;
         return function cleanLine(line, idx, lines) {
             var varMatch = line.match(varRegexp);
             if (idx === 0) {
-                if (!varMatch || !varMatch[1]) {
+                if (!varMatch) {
                     cancel = true;
                 } else {
                     indent = varMatch[1].length;

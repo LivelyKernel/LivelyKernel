@@ -710,7 +710,7 @@ console.log('End createLayout =' + elapsed);
                 } 
                 //oText.applyStyle({borderColor: Color.red, fill: null,textColor: Color.red});
                 //bug in applystyle textDecoration & fontStyle do not work
-                this.at(x,y).applyStyle({fontWeight: sFontWeight,fontSize:sFontSize,fontFamily:sFontFamily,borderColor: oBorderColor, fill: oFill,textColor: oTextColor});
+                this.at(x,y).applyStyle({fontWeight: sFontWeight,fontSize:sFontSize,fontFamily:sFontFamily});
                 this.at(x,y).emphasizeAll({fontStyle: sFontStyle,textDecoration: sTextDecoration});
                 
                 //this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});

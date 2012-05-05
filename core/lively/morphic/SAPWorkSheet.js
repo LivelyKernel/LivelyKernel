@@ -711,7 +711,7 @@ console.log('End createLayout =' + elapsed);
                 //oText.applyStyle({borderColor: oBorderColor, fill: oFill ,textColor: oTextColor});
                 //bug in applystyle textDecoration & fontStyle do not work
                 //borderColor does not take null value.
-                this.at(x,y).applyStyle({fontWeight: sFontWeight,fontSize:sFontSize,fontFamily:sFontFamily});
+                this.at(x,y).applyStyle({fontWeight: sFontWeight,fontSize:sFontSize,fontFamily:sFontFamily,fill: oFill ,textColor: oTextColor});
                 this.at(x,y).emphasizeAll({fontStyle: sFontStyle,textDecoration: sTextDecoration});
                 if (oBorderColor){
                     this.at(x,y).applyStyle({borderColor: oBorderColor});

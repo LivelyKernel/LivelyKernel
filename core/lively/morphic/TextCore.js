@@ -2043,7 +2043,7 @@ this. textNodeString()
 'JavaScript support', {
     varDeclCleaner: function() {
         // for usage with #modifyLines
-        var cancel = false, indent = '',
+        var cancel = false, indent = '', tab = this.tab,
             varRegexp = /(\s*)var\s+([^;]+)(;?)(\s*)/;
         return function cleanLine(line, idx, lines) {
             var varMatch = line.match(varRegexp),
@@ -2051,7 +2051,7 @@ this. textNodeString()
             if (idx === 0 && !varMatch) cancel = true;
             if (!varMatch || cancel) return line;
             if (idx === 0) {
-                indent = varMatch[1];
+                indent = varMatch[1] + tab;
                 return line.replace(varRegexp, '$1var $2,');
             }
             if (!last) return line.replace(varRegexp, indent + '$2,');

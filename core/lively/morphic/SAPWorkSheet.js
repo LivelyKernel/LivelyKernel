@@ -666,6 +666,9 @@ console.log('End createLayout =' + elapsed);
                 fontSize:12
                 fontFamily:sFont
                 textAlign: 'left'
+                borderColor: 
+                textColor:
+                fill
                 */
                 var sFontWeight="normal";
                 var sTextDecoration="normal";

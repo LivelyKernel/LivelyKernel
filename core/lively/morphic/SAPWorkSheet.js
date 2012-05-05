@@ -708,10 +708,14 @@ console.log('End createLayout =' + elapsed);
                 if (this.arrData[nOrgRow][nOrgCol].textColor){
                     oTextColor=eval(this.arrData[nOrgRow][nOrgCol].textColor);
                 } 
-                //oText.applyStyle({borderColor: Color.red, fill: null,textColor: Color.red});
+                //oText.applyStyle({borderColor: oBorderColor, fill: oFill ,textColor: oTextColor});
                 //bug in applystyle textDecoration & fontStyle do not work
+                //borderColor does not take null value.
                 this.at(x,y).applyStyle({fontWeight: sFontWeight,fontSize:sFontSize,fontFamily:sFontFamily});
                 this.at(x,y).emphasizeAll({fontStyle: sFontStyle,textDecoration: sTextDecoration});
+                if (oBorderColor){
+                    this.at(x,y).applyStyle({borderColor: oBorderColor});
+                }
                 
                 //this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});
                 //this.at(x,y).applyStyle({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration,fontSize:sFontSize,fontFamily:sFontFamily});

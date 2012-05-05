@@ -979,7 +979,7 @@ doAutoIndent: function() {
     this.textString = text;
 },
     doVarDeclClean: function() {
-        return this.modifySelectedLines(this.varDeclCleaner());
+        this.modifySelectedLines(this.varDeclCleaner());
     },
 
 

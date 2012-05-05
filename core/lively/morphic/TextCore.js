@@ -2835,6 +2835,7 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
                 var specialKey = specialKeyMatch[1];
                 switch(specialKey) {
                     case 'ctrl': spec.ctrl = true; return;
+                    case 'cmd': spec.cmd = true; return;
                     default: throw new Error('Cannot recognize ' + keyString);
                 }
             }

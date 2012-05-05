@@ -700,7 +700,7 @@ console.log('End createLayout =' + elapsed);
                 debugger;
                 this.arrData[nOrgRow][nOrgCol].fill='Color.rgb(102,102,102)';
                 if (this.arrData[nOrgRow][nOrgCol].borderColor){
-                    oBorderColor=eval(this.arrData[nOrgRow][nOrgCol].textAlign);
+                    oBorderColor=eval(this.arrData[nOrgRow][nOrgCol].borderColor);
                 }                
                 if (this.arrData[nOrgRow][nOrgCol].fill){
                     oFill =eval(this.arrData[nOrgRow][nOrgCol].fill);

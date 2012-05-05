@@ -2046,19 +2046,16 @@ this. textNodeString()
         var cancel = false, indent = 0,
             varRegexp = /(\s*)var\s+([^;]+)(;?)(\s*)/;
         return function cleanLine(line, idx, lines) {
-            var varMatch = line.match(varRegexp);
+            var varMatch = line.match(varRegexp),
+                last = idx === lines.length - 1;
+            if (idx === 0 && !varMatch) cancel = true;
+            if (!varMatch || cancel) return line;
             if (idx === 0) {
-                if (!varMatch) {
-                    cancel = true;
-                } else {
-                    indent = varMatch[1].length;
-                    line = line.replace(varRegexp, '$1var $2,');
-                }
-            } else if (!cancel && varMatch) {
-                line = line.replace(varRegexp, '$2,');
+                indent = varMatch[1].length;
+                return line.replace(varRegexp, '$1var $2,');
             }
-            if (cancel) return line;
-            return line;
+            if (!last) return line.replace(varRegexp, '$2,');
+            return line.replace(varRegexp, '$2;');
         }
     }
 });

@@ -1,8 +1,6 @@
-module('lively.morphic.Connectors').requires('lively.morphic.AdditionalMorphs', 'lively.bindings.GeometryBindings').toRun(function() {
+module('lively.morphic.Connectors').requires('lively.morphic.AdditionalMorphs', 'lively.bindings.GeometryBindings', 'lively.LayerableMorphs').toRun(function() {
 
 // also includes visual bindings stuff...
-// this should be extracted...!
-module('lively.LayerableMorphs').load(true)
 
 lively.morphic.Morph.addMethods(
 'serialization', {

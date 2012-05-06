@@ -1000,6 +1000,8 @@ Object.extend(Namespace, {
     namespaceStack: [Global],
     current: function() { return this.namespaceStack.last() },
     topologicalSortLoadedModules: function() {
+        if (Config.standAlone) {
+        }
         // get currently loaded modules that really are js files
         var modules = Global.subNamespaces(true)
                 .reject(function(ea) { return ea.isAnonymous(); })

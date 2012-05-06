@@ -1,4 +1,4 @@
-module('lively.morphic.DiffMerge').requires().toRun(function() {
+module('lively.morphic.DiffMerge').requires('lively.morphic.Core').toRun(function() {
 
 lively.morphic.Morph.addMethods(
 'diffing', {

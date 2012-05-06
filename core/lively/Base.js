@@ -1003,7 +1003,7 @@ Object.extend(Namespace, {
         if (Config.standAlone) {
             var scripIds = [];
             $('body script').each(function() { scripIds.push($(this).attr('id')) });
-            return scripIds;
+            return scripIds.collect(function(id) { return module(id); });
         }
 
         // get currently loaded modules that really are js files

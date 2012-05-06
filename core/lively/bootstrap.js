@@ -559,8 +559,6 @@ var LivelyLoader = {
 
         LoadingScreen.add();
         this.bootstrapNewMorphicWorld(function() {
-            // FIXME
-            Config.modulesOnWorldLoad = [];
             self.loadMain(document.body, startupFunc);
         });
         return true;

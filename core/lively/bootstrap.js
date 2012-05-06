@@ -394,8 +394,9 @@ var LivelyLoader = {
     })(),
 
     rootPath: (function findRootPath() {
-        if (window.Config && Config.rootPath !== undefined)
+        if (window.Config && Config.rootPath !== undefined) {
             return Config.rootPath;
+        }
 
         var bootstrapFileName = 'bootstrap.js',
             scripts = JSLoader.getScripts(),

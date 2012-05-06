@@ -1001,7 +1001,11 @@ Object.extend(Namespace, {
     current: function() { return this.namespaceStack.last() },
     topologicalSortLoadedModules: function() {
         if (Config.standAlone) {
+            var scripIds = [];
+            $('body script').each(function() { scripIds.push($(this).attr('id')) });
+            return scripIds;
         }
+
         // get currently loaded modules that really are js files
         var modules = Global.subNamespaces(true)
                 .reject(function(ea) { return ea.isAnonymous(); })

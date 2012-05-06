@@ -100,6 +100,7 @@ if (Config) { ExistingConfig = Config; }
 var Config = {
 
     _options: {},
+    trackUsage: true,
 
     addOption: function(name, value, docString, type, group) {
         if (name === '_options') {
@@ -130,7 +131,45 @@ var Config = {
     }
 }
 
-debugger
+if (Config.trackUsage) {
+    Object.extend(Config, {
+
+        usage: {},
+
+        allOptionNames: function() { return Properties.own(this._options) },
+
+        usedOptions: function() {
+            var used = []
+            Properties.forEachOwn(this.usage, function(name, usageStats) {
+                if (usageStats.read || usageStats.write) used.push(name);
+            })
+            return used;
+        },
+
+        unusedOptions: function() {
+            return this.allOptionNames().withoutAll(this.usedOptions());
+        },
+
+        addOption: function(name, value, docString, type, group) {
+            if (name === '_options') { throw new Error('Cannot set Config._options! Reserved!'); }
+            this._options[name] = {doc: docString, type: type}
+            var internalName = '__' + name,
+                usageStats = {read: 0, write: 0},
+                self = this;
+            this.usage[name] = usageStats;
+            this[internalName] = value;
+            this.__defineGetter__(name, function() {
+                usageStats.read++;
+                return self[internalName];
+            });
+            this.__defineSetter__(name, function(value) {
+                usageStats.write++;
+                return self[internalName] = value;
+            });
+        }
+    });
+}
+
 Config.addOptions(
     'lively.Network', [
         ["proxyURL", null, "URL that acts as a proxy for network operations"]

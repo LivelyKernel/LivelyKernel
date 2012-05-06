@@ -43,7 +43,7 @@ Object.subclass('lively.persistence.StandAlonePackaging.Helper',
 
     addConfig: function(doc) {
         // TODO: make generic to include all original configs
-        var configStr = 'Config = {standAlone: true, codeBase: "", rootPath: "../"';
+        var configStr = 'Config = {standAlone: true, codeBase: ""';
         if (Config.isNewMorphic)
             configStr += ', isNewMorphic: true';
         this.addScriptTagTo(

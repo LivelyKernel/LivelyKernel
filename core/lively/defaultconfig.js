@@ -137,33 +137,49 @@ if (Config.trackUsage) {
         usage: {},
 
         allOptionNames: function() { return Properties.own(this._options) },
+        usedOptionNames: function() { return Properties.own(this.usedOptions()) },
+        unusedOptionNames: function() {
+            return this.allOptionNames().withoutAll(this.usedOptionNames());
+        },
 
         usedOptions: function() {
-            var used = []
+            function printUsed() {
+                return "Config usage:\n" + Properties.own(used).collect(function(name) {
+                    var usageStats = used[name],
+                        readString = usageStats.read.join('\n\n'),
+                        writeString = usageStats.write.join('\n\n');
+                    return Strings.format('%s:\nread:\n%s\n\nwrite:\n%s',
+                                          name, readString, writeString);
+                }).join('\n= = = = =\n');
+            }
+            var used = { toString: printUsed }
             Properties.forEachOwn(this.usage, function(name, usageStats) {
-                if (usageStats.read || usageStats.write) used.push(name);
+                if (usageStats.read.length > 0 || usageStats.write.length > 0) {
+                    used[name] = usageStats;
+                };
             })
             return used;
         },
 
-        unusedOptions: function() {
-            return this.allOptionNames().withoutAll(this.usedOptions());
-        },
 
         addOption: function(name, value, docString, type, group) {
             if (name === '_options') { throw new Error('Cannot set Config._options! Reserved!'); }
             this._options[name] = {doc: docString, type: type}
             var internalName = '__' + name,
-                usageStats = {read: 0, write: 0},
+                usageStats = {read: [], write: []},
                 self = this;
             this.usage[name] = usageStats;
             this[internalName] = value;
             this.__defineGetter__(name, function() {
-                usageStats.read++;
+                var stack;
+                try { throw new Error() } catch(e) { stack = e.stack }
+                usageStats.read.push(stack);
                 return self[internalName];
             });
             this.__defineSetter__(name, function(value) {
-                usageStats.write++;
+                var stack;
+                try { throw new Error() } catch(e) { stack = e.stack }
+                usageStats.write.push(stack);
                 return self[internalName] = value;
             });
         }

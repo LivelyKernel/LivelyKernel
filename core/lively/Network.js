@@ -304,7 +304,14 @@ Object.extend(URL, {
         }
         return url.withRelativePartsResolved();
     })(),
-    root: new URL(Config.rootPath),
+    root: (function setURLRootPath() {
+        var url;
+        try { url = new URL(Config.rootPath) } catch(e) {
+            console.warn('Cannot correctly set URL.rootPath because of ' + e);
+            url = new URL(document.URL).getDirectory();
+        }
+        return url.withRelativePartsResolved();
+    })(),
 })
 
 Object.extend(URL, {

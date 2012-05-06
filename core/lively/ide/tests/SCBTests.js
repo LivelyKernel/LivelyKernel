@@ -98,24 +98,23 @@ TestCase.subclass('lively.ide.tests.SCBTests.SystemBrowserTests', {
 lively.ide.tests.SCBTests.SystemBrowserTests.subclass('lively.ide.tests.SCBTests.BrowserNodeTest',
 'running', {
 	  createBrowser: function() {
-		    // FIXME
 		    return new lively.ide.SystemBrowser();
 	  },
 
 	  buildTestSource: function() {
 		    // create and parse the source into filefragments
-		    var src = "\n\Object.subclass('Foo',\n\
-'catA', {\n\
-m1: function() { return 23 },\n\
-m2: function() {},\n\
-},\n\
-'catB', {\n\
-m3: function() { return 42},\n\
-});\n\
-\n\
-Foo.addMethods('catC',{\n\
-m4: function() {},\n\
-});";
+		    var src = "\n\Object.subclass('Foo',\n"
+                + "'catA', {\n"
+                + "    m1: function() { return 23 },\n"
+                + "    m2: function() {},\n"
+                + "},\n"
+                + "'catB', {\n"
+                + "    m3: function() { return 42},\n"
+                + "});\n"
+                + "\n"
+                + "Foo.addMethods('catC',{\n"
+                + "    m4: function() {},\n"
+                + "});";
 
 		    this.db = new AnotherSourceDatabase();
 		    var rootFragment = this.db.prepareForMockModule('dummySource.js', src);
@@ -182,6 +181,7 @@ m4: function() {},\n\
 			      this.assertEquals(42, new klass().m(), 'klass not did not evaluate');
 		    }.bind(this))
 	  },
+
 	  testCopFragmentMethodEvaluate: function() {
 		    this.browser.buildView();
 		    this.buildCopTestSource();
@@ -196,7 +196,7 @@ m4: function() {},\n\
 		    }.bind(this))
 	  },
 
-    	  testCreateCategoriesFromClassDef: function() {
+    testCreateCategoriesFromClassDef: function() {
 		    this.buildTestSource();
 		    var browser = this.browser;
 
@@ -216,10 +216,10 @@ m4: function() {},\n\
 		    var methodNodes = classNode.childNodes()[1].childNodes()
 		        this.assertEquals('m1', methodNodes[0].getName());
 		        this.assertEquals('m2', methodNodes[1].getName());
-
 	  },
+
 	  testCreateCategoriesFromAddMethodDef: function() {
-		        this.buildTestSource();
+		    this.buildTestSource();
 		    var browser = this.browser;
 		    // browser.buildView()
 
@@ -237,7 +237,6 @@ m4: function() {},\n\
 
 		    var methodNodes = addMethodNode.childNodes()[1].childNodes()
 		    this.assertEquals('m4', methodNodes[0].getName());
-
 	  },
 
 	  testAddClassCommand: function() {
@@ -305,18 +304,89 @@ m4: function() {},\n\
 		    this.assertEquals(browser.nodesInPane('Pane4').length, 3);
 		    this.assertIdentity(this.m1, browser.nodesInPane('Pane4')[0].target);
 	  },
+
 	  testBrowserKnowsCurrentModule: function() {
 		    if (Global.Foo) Foo.remove();
 		    this.buildTestSource();
 		    this.browser.buildView()
 		    this.browser.selectNodeNamed('dummySource.js');
-		        this.browser.selectNodeNamed('Foo');
+		    this.browser.selectNodeNamed('Foo');
 		    var n  = this.browser.selectedNode();
 		    n.evalSource(n.sourceString());
 		    this.assert(Global.Foo, 'Class Foo could not be evaled');
 		    this.assertIdentity(Foo.sourceModule, module('dummySource'));
 	  },
 
+    testNextNode: function() {
+		    this.buildTestSource();
+		    this.browser.buildView();
+        this.browser.inPaneSelectNodeNamed('Pane1', 'dummySource.js');
+		    this.browser.inPaneSelectNodeNamed('Pane2', 'Foo');
+		    this.browser.inPaneSelectNodeNamed('Pane4', 'm2');
+        var node = this.browser.selectedNode();
+        this.assertIdentity(this.m3, node.nextNode().target);
+	  }
+
+});
+
+TestCase.subclass('lively.ide.tests.SCBTests.AddMethodCommand',
+'running', {
+    setUp: function($super) {
+        $super();
+        var browser = {},
+            cmd = new lively.ide.AddMethodToFileFragmentCommand(browser);
+        this.sut = cmd;
+
+        // nodes
+        var prevNode = {target: {}},
+            newNode = {};
+        this.mock(prevNode.target, 'addSibling', function(src) { return newNode });
+        this.mock(prevNode.target, 'getSourceCode', function() { return '' });
+        this.mock(prevNode.target, 'putSourceCode', function(str) { });
+        this.mock(prevNode, 'nextNode', function() { return this._nextNode });
+        this.prevNode = prevNode;
+        this.newNode = newNode;
+
+        // browser methods
+        this.mock(browser, 'allChanged');
+        this.mock(browser, 'selectStringInSourcePane');
+        this.mock(browser, 'selectNodeMatching');
+    }
+},
+'testing', {
+    testAddCommaToPrecedingNodeSource: function() {
+        var prevSource = "foo: 3",
+            newSource,
+            expectedNewSource = prevSource + ',';
+        this.mock(this.prevNode.target, 'getSourceCode', function() { return prevSource });
+        this.mock(this.prevNode.target, 'putSourceCode', function(str) { newSource = str });
+        this.sut.interactiveAddTo(this.prevNode);
+        this.assertEquals(expectedNewSource, newSource, 'no , added');
+    },
+
+    testAddNoCommaIfCommaAlreadyExisting: function() {
+        var prevSource = "foo: 3,",
+            called;
+        this.mock(this.prevNode.target, 'getSourceCode', function() { return prevSource });
+        this.mock(this.prevNode.target, 'putSourceCode', function(str) { called = true });
+        this.sut.interactiveAddTo(this.prevNode);
+        this.assert(!called, 'putSourceCode called');
+    },
+
+    testAddCommaToNewSourceWhenNextNodeExists: function() {
+        var newSrc;
+        this.prevNode._nextNode = {};
+        this.mock(this.prevNode.target, 'addSibling', function(src) { newSrc = src; });
+        this.sut.interactiveAddTo(this.prevNode);
+        this.assert(newSrc.endsWith(','), 'no , added to new source ' + newSrc);
+    },
+
+    testAddNoCommaWhenNoNextNodeExists: function() {
+        var newSrc;
+        this.mock(this.prevNode.target, 'addSibling', function(src) { newSrc = src; });
+        this.sut.interactiveAddTo(this.prevNode);
+        this.assert(!newSrc.endsWith(','), ', added to new source ' + newSrc);
+    }
 });
 
 TestCase.subclass('lively.tests.ToolsTests.LivelyIdeBrowse',

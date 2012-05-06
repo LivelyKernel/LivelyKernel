@@ -8,7 +8,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.AllModulesLoadCommand', {
 
     asString: function() { return 'Load all' },
 
-    trigger: function() { 
+    trigger: function() {
         var srcCtrl = lively.ide.SourceControl;
         var browser = this.browser;
         var progressBar = lively.morphic.World.current().addProgressBar();
@@ -17,12 +17,12 @@ lively.ide.BrowserCommand.subclass('lively.ide.AllModulesLoadCommand', {
             progressBar,
             function(ea) { srcCtrl.addModule(ea) },
             Functions.K, // label func
-            function() { progressBar.remove(); browser.allChanged() }); 
+            function() { progressBar.remove(); browser.allChanged() });
     },
 });
 
 lively.ide.BrowserCommand.subclass('lively.ide.ShowLineNumbersCommand', {
-    
+
     isActive: Functions.True,
 
     wantsButton: Functions.True,
@@ -169,7 +169,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.AddNewFileCommand', {
     },
     createNamespaceDir: function(url) {
         new WebResource(url).create();
-        return url.filename(); 
+        return url.filename();
     },
 
     createFileOrDir: function(input) {
@@ -199,11 +199,11 @@ lively.ide.BrowserCommand.subclass('lively.ide.AddNewFileCommand', {
     trigger: function() {
         var command = this, browser = this.browser;
         browser.ensureSourceNotAccidentlyDeleted(function() {
-            command.world().prompt('Enter filename (something like foo or foo.js or foo.ometa or foo/)', 
+            command.world().prompt('Enter filename (something like foo or foo.js or foo.ometa or foo/)',
                 command.createFileOrDir.bind(command));
         });
     },
-    
+
 });
 
 lively.ide.BrowserCommand.subclass('lively.ide.BrowseWorldCommand', {
@@ -260,7 +260,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.SaveChangesCommand', {
         if (!(b instanceof lively.ide.LocalCodeBrowser)) {
             console.log('Save changes not yet implemented for ' + b);
             return;
-        }    
+        }
         if (!b.worldProxy) {
             w.setStatusMessage('Browser has no WorldProxy -- cannot save!', Color.red, 5);
             return;
@@ -400,38 +400,49 @@ lively.ide.BrowserCommand.subclass('lively.ide.ClassHierarchyViewCommand', {
 
 });
 
-lively.ide.BrowserCommand.subclass('lively.ide.AddToFileFragmentCommand', {
-
+lively.ide.BrowserCommand.subclass('lively.ide.AddToFileFragmentCommand',
+'doc', {
     documentation: 'Abstract command. It\'s subclasses are supposed to add some kind of source code to another parsed source entity',
-
+},
+'properties', {
     wantsMenu: Functions.True,
-
     menuName: null,
     targetPane: null,
     nodeType: 'not specified',
-    tab: Config.isNewMorphic ? lively.morphic.Text.prototype.tab : '\t',
+    tab: lively.morphic.Text.prototype.tab,
+},
+'testing', {
 
     isActive: function(pane) {
-        return pane == this.targetPane && this.findSiblingNode() != null;
-    },
+        return pane == this.targetPane && !!this.findSiblingNode();
+    }
 
+},
+'nodes', {
     findSiblingNode: function() {
-        var isValid = function(node) {
-            return node && node[this.nodeType] && node.target;
-        }.bind(this);
-        var b = this.browser, node = b.selectedNode();
+        var nodeType = this.nodeType,
+            b = this.browser,
+            node = b.selectedNode(),
+            isValid = function(node) { return node && node[nodeType] && node.target };
         if (isValid(node)) return node;
         node = b.selectionInPane(this.targetPane);
         if (isValid(node)) return node;
-        return b.nodesInPane(this.targetPane).reverse().detect(function(node) { return isValid(node) });
+        return b.nodesInPane(this.targetPane)
+                   .reverse()
+                   .detect(function(node) { return isValid(node) });
     },
+
+    selectStringInSourcePane: function(string) { this.browser.selectStringInSourcePane(string) }
+},
+'command actions', {
 
     trigger: function() {
         var siblingNode = this.findSiblingNode(), self = this;
         return [[this.menuName, function() {
             console.log('Doing a ' + self.menuName + ' after ' + siblingNode.asString());
-            self.browser.ensureSourceNotAccidentlyDeleted(function() { self.interactiveAddTo(siblingNode) });    
-        }]]
+            self.browser.ensureSourceNotAccidentlyDeleted(
+                function() { self.interactiveAddTo(siblingNode) });
+        }]];
     },
 
     interactiveAddTo: function(siblingNode) {
@@ -441,23 +452,24 @@ lively.ide.BrowserCommand.subclass('lively.ide.AddToFileFragmentCommand', {
     createSource: function(methodName) {
         throw new Error('Subclass responsibility');
     },
+
     createAndAddSource: function(/*siblingNode and other args*/) {
-        var args = $A(arguments),
+        var args = Array.from(arguments),
             siblingNode = args.shift(),
-            src = this.createSource.apply(this,args),
+            src = this.createSource.apply(this, args),
             newTarget = siblingNode.target.addSibling(src);
         this.browser.allChanged();
-        if (!newTarget) {
-            console.warn('Cannot select new browser item that was added with ' + this.menuName)
-            return
+        if (newTarget) {
+            this.browser.selectNodeMatching(function(node) {
+                return node && node.target === newTarget });
+        } else {
+            console.warn('Cannot select new browser item that was added with ' + this.menuName);
         }
-        this.browser.selectNodeMatching(function(node) { return node && node.target == newTarget });
-    },
-    selectStringInSourcePane: function(string) { this.browser.selectStringInSourcePane(string) },
+    }
+
 });
 
 lively.ide.AddToFileFragmentCommand.subclass('lively.ide.AddClassToFileFragmentCommand', {
-
     menuName: 'add class',
     targetPane: 'Pane2',
     nodeType: 'isClassNode',
@@ -514,25 +526,35 @@ lively.ide.AddToFileFragmentCommand.subclass('lively.ide.AddLayerToFileFragmentC
 
 });
 
-lively.ide.AddToFileFragmentCommand.subclass('lively.ide.AddMethodToFileFragmentCommand', {
-
+lively.ide.AddToFileFragmentCommand.subclass('lively.ide.AddMethodToFileFragmentCommand',
+'properties', {
     menuName: 'add method',
     targetPane: 'Pane4',
-    nodeType: 'isMemberNode',
-
+    nodeType: 'isMemberNode'
+},
+'command actions', {
     interactiveAddTo: function(siblingNode) {
-        var w = this.world(), b = this.browser, self = this;
-        var methodName = "newMethod";
-        self.createAndAddSource(siblingNode, methodName);
+        var b = this.browser,
+            methodName = "newMethod";
+        this.ensureSourceHasComma(siblingNode);
+        var needsComma = !!siblingNode.nextNode();
+        this.createAndAddSource(siblingNode, methodName, needsComma);
         this.selectStringInSourcePane(methodName);
-        LastFragment  = this;
-        LastSubling = siblingNode;
     },
 
-    createSource: function(methodName) {
-        var comment = this.tab + this.tab + '// enter comment here'
-        return Strings.format('%s: function() {\n%s\n%s},', this.tab+methodName, comment, this.tab);
+    ensureSourceHasComma: function(node) {
+        var src = node.target.getSourceCode();
+        if (/,\s*$/.test(src)) return;
+        src = src.replace(/(\s*)$/, ',$1');
+        node.target.putSourceCode(src);
     },
+
+    createSource: function(methodName, needsComma) {
+        var comment = this.tab + this.tab + '// enter comment here'
+        return Strings.format('%s: function() {\n%s\n%s}%s',
+                              this.tab + methodName, comment, this.tab,
+                              needsComma ? ',' : '');
+    }
 });
 
 lively.ide.BrowserCommand.subclass('lively.ide.RunTestMethodCommand', {
@@ -564,7 +586,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.RunTestMethodCommand', {
         test.runTest(testSelector);
         var failures = test.result.failureList();
         if (failures.length == 0) {
-            var msg = klass.name + '>>' + testSelector + ' succeeded'; 
+            var msg = klass.name + '>>' + testSelector + ' succeeded';
             lively.morphic.World.current().setStatusMessage(msg, Color.green, 3);
         } else {
             // lively.morphic.World.current().setStatusMessage(failures[0], Color.red, 6);

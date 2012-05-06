@@ -375,6 +375,7 @@ Object.subclass('TestCase',
 },
 'mocks', {
     mock: function(obj, selector, spyFunc) {
+        spyFunc = spyFunc || Functions.Null;
         var orig = obj[selector],
             own = obj.hasOwnProperty(selector),
             spy = {

@@ -158,13 +158,14 @@ Object.subclass('lively.morphic.MagnetSet',
     },
 });
 
+require('lively.LayerableMorphs').toRun(function() {
+
 cop.create('ConnectorLayer')
 .refineClass(lively.morphic.World, {
     getMagnets: function() {
         return []
     },
 })
-
 .refineClass(lively.morphic.PathVertexControlPointHalo, {
     onDragStart: function(evt) {
         // alertOK('onDragStart')
@@ -241,6 +242,8 @@ cop.create('lively.morphic.VisualBindingsLayer')
     },
 })
 .beGlobal();
+
+});  // end of require LayerableMorphs
 
 lively.morphic.Morph.addMethods(
 'visual connectors', {

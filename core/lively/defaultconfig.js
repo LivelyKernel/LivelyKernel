@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2006-2009 Sun Microsystems, Inc. 
+ * Copyright (c) 2006-2009 Sun Microsystems, Inc.
+ * Copyright (c) 2008-2011 Hasso Plattner Institute
+ * Copyright (c) 2008-2012 Robert Krahn
  *
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,25 +35,25 @@ var UserAgent = (function() {
 
     var webKitVersion = (function() {
         if (!window.navigator) return 0;
-        var match = navigator.userAgent.match(/.*AppleWebKit\/(\d+).*/) 
+        var match = navigator.userAgent.match(/.*AppleWebKit\/(\d+).*/);
         return match ? parseInt(match[1]) : 0;
     })();
 
-    var isRhino = !window.navigator || window.navigator.userAgent.indexOf("Rhino") > -1;
-    var isMozilla = window.navigator && window.navigator.userAgent.indexOf("Mozilla") > -1;
-    var isChrome = window.navigator && window.navigator.userAgent.indexOf("Chrome") > -1;
-    var isOpera = window.navigator && window.navigator.userAgent.indexOf("Opera") > -1;
-    var isIE = window.navigator && window.navigator.userAgent.indexOf("MSIE") > -1;
-    var fireFoxVersion = window.navigator && window.navigator.userAgent.split("Firefox/")[1]; // may be undefined
-    if (fireFoxVersion == null)
-    fireFoxVersion = window.navigator && window.navigator.userAgent.split("Minefield/")[1];
+    var isRhino = !window.navigator || window.navigator.userAgent.indexOf("Rhino") > -1,
+        isMozilla = window.navigator && window.navigator.userAgent.indexOf("Mozilla") > -1,
+        isChrome = window.navigator && window.navigator.userAgent.indexOf("Chrome") > -1,
+        isOpera = window.navigator && window.navigator.userAgent.indexOf("Opera") > -1,
+        isIE = window.navigator && window.navigator.userAgent.indexOf("MSIE") > -1,
+        fireFoxVersion = window.navigator &&
+            (window.navigator.userAgent.split("Firefox/")[1] ||
+             window.navigator.userAgent.split("Minefield/")[1]); // nightly
 
     // Determines User Agent capabilities
     return {
         // Newer versions of WebKit implement proper SVGTransform API, with
         // potentially better performance. Scratch that, lets make it more
         // predictable:
-        usableTransformAPI: (webKitVersion < 0), //webKitVersion >= 525,
+        usableTransformAPI: webKitVersion < 0, //webKitVersion >= 525,
         usableDropShadow: webKitVersion >= 525,
         canExtendBrowserObjects: !isRhino, // Error, document
         usableOwnerSVGElement: !isRhino && !isMozilla,
@@ -75,7 +77,7 @@ var UserAgent = (function() {
 
         isIE: isIE,
 
-        fireFoxVersion: fireFoxVersion ? fireFoxVersion.split('.') : null, 
+        fireFoxVersion: fireFoxVersion ? fireFoxVersion.split('.') : null,
 
         isWindows: window.navigator && window.navigator.platform == "Win32",
 
@@ -89,125 +91,120 @@ var UserAgent = (function() {
 })();
 
 //--------------------------
-// Determine runtime behavior based on UA capabilities and user choices (override in localconfig.js)
-//--------------------------
-if (Config) {
-    var ExistingConfig = Config;
+// Determine runtime behavior based on UA capabilities and user choices
+// (can be overriden in localconfig.js)
+// --------------------------
+var ExistingConfig;
+if (Config) { ExistingConfig = Config; }
+
+var Config = {
+
+    _options: {},
+
+    addOption: function(name, value, docString, type, group) {
+        if (name === '_options') {
+            throw new Error('Cannot set Config._options! Reserved!');
+        }
+        this[name] = value;
+        this._options[name] = {doc: docString, type: type}
+    },
+
+    addOptions: function(/*group - options pairs*/) {
+        // - group is a string that should map to a lively namespace
+        // - options are an array of arrays
+        //   each sub array should at least have
+        //   [0] option name
+        //   [1] option value
+        //   optional:
+        //   [2] docString
+        //   [3] type
+        var args = Array.from(arguments);
+        for (var i = 0; i < args.length; i += 2) {
+            var group = args[i],
+                options = args[i+1];
+            options.forEach(function(optionSpec) {
+                optionSpec[4] = group;
+                Config.addOption.apply(Config, optionSpec);
+            }, this);
+        }
+    }
 }
-var Config = {}
 
-Object.extend(Config, {
+debugger
+Config.addOptions(
+    'lively.Network', [
+        ["proxyURL", null, "URL that acts as a proxy for network operations"]
+    ],
+    'lively.morphic.Main', [
+        ["createNewWorld", false, "if createNewWorld is true then a new WorldMorph is build while loading instead of deserializing one"]
+    ],
+    'lively.morphic.Examples', [
+        ["skipMostExamples", false, "Quickly enable/disable most demos"],
+        ["skipAllExamples", false],
+        ["showGridDemo", false],
+        ["showCurveExample", false],
+        ["showThumbnail", false, "Additional demo configuration options"],
+        ["showNetworkExamples", UserAgent.usableXmlHttpRequest, "Enables/disables network-dependent demos"]
+    ],
+    'lively.morphic.Events', [
+        ["useMetaAsCommand", false, "Use the meta modifier (maps to Command on the Mac) instead of alt"],
+        ["showGrabHalo", false, "enable grab halo (alternative to shadow) on objects in the hand."]
+    ],
+    'lively.morphic.Debugging', [
+        ["ignoreAdvice", UserAgent.isRhino, "Ignore function logging through the prototype.js wrap mechanism rhino will give more useful exception info"],
+        ["showLivelyConsole", false, "Open up our console"]
+    ],
+    'lively.morphic.Text', [
+        ["fontMetricsFromHTML", UserAgent.usableHTMLEnvironment, "Derive font metrics from (X)HTML"],
+        ["fontMetricsFromSVG", false, "Derive font metrics from SVG"],
+        ["fakeFontMetrics", !UserAgent.usableHTMLEnvironment, "Try to make up font metrics entirely (can be overriden to use the native SVG API, which rarely works)"]
+    ],
+    'lively.morphic', [
+        ['shiftDragForDup', true, 'Allows easy object duplication using the Shift key'],
+        ["usePieMenus", UserAgent.isTouch],
+        ["suppressBalloonHelp", true],
+        ["useTransformAPI", (!UserAgent.isOpera) && UserAgent.usableTransformAPI, "Use the browser's affine transforms"],
+        ["useGetTransformToElement", !(UserAgent.isOpera || UserAgent.isIE || UserAgent.fireFoxVersion && (UserAgent.fireFoxVersion[0] == '2' || UserAgent.fireFoxVersion[0] == '3')), "Firefox, Opera and IE have known problems with getTransformToElement, detect it"],
 
-    // Allows easy object duplication using the Shift key
-    shiftDragForDup: true,
-    
-    // URL that acts as a proxy for network operations 
-    proxyURL: null,
+        ["useDropShadow", UserAgent.usableDropShadow, "Enable drop shadows for objects (does not work well in most browsers)"],
 
-    // if createNewWorld is true then a new WorldMorph is build while loading
-    // instead of deserializing one
-    createNewWorld: false,
+        ["suspendScriptsOnWorldExit", true, "We haven't decided on the behavior yet, but let's be brave! This option suspends all the scripts in a world as soon as the user moves to another world.  This should really be a world-specific option."],
 
-    // Quickly enable/disable most demos
-    skipMostExamples: false,
-    skipAllExamples:  false,
-    showCurveExample: false,
-    showGridDemo: false,
-    
-    // Additional demo configuration options 
-    showThumbnail: false,
-    suppressBalloonHelp: true,
-    usePieMenus: UserAgent.isTouch,
-    
-    // Enables/disables network-dependent demos
-    showNetworkExamples: UserAgent.usableXmlHttpRequest,
+        ["nullMoveAfterTicks", false, "For the engine/piano demo (and any other simulation interacting with unmoving mouse) it is necessary to generate a mouseMove event after each tick set this true in localconfig if you need this behavior"],
 
-    // Ignore function logging through the prototype.js wrap mechanism
-    // rhino will give more useful exception info 
-    ignoreAdvice: UserAgent.isRhino,
+        ["suppressWebStoreCaching", false, "Disable caching of webstore requests"],
 
-    // Derive font metrics from (X)HTML
-    fontMetricsFromHTML: UserAgent.usableHTMLEnvironment,
+        ["showMostTyping", true, "Defeat bundled type-in for better response in short strings"],
 
-    // Derive font metrics from SVG
-    fontMetricsFromSVG: false,
+        ["showAllTyping", true, "Defeat all bundled type-in for testing"],  // Until we're confident
 
-    // Try to make up font metrics entirely (can be overriden to use the native SVG API, which rarely works)
-    fakeFontMetrics: !UserAgent.usableHTMLEnvironment,
 
-    // Use the browser's affine transforms
-    useTransformAPI: (!UserAgent.isOpera) && UserAgent.usableTransformAPI, 
+        ["askBeforeQuit", true, "Confirm system shutdown from the user"],
 
-    // Firefox, Opera and IE have known problems with getTransformToElement, detect it
-    useGetTransformToElement: !(UserAgent.isOpera || UserAgent.isIE ||
-    UserAgent.fireFoxVersion && (UserAgent.fireFoxVersion[0] == '2' || UserAgent.fireFoxVersion[0] == '3')),
+        ["debugExtras", false, "Enable advanced debugging options"],
 
-    // Enable drop shadows for objects (does not work well in most browsers)
-    useDropShadow: UserAgent.usableDropShadow,
+        ["useShadowMorphs", true],
 
-    // We haven't decided on the behavior yet, but let's be brave!
-    // This option suspends all the scripts in a world as soon as
-    // the user moves to another world.  This should really be a
-    // world-specific option.
-    suspendScriptsOnWorldExit: true,
+        ["loadSerializedSubworlds", false, "load serialized worlds instead of building them from Javascript"],
 
-    // For the engine/piano demo (and any other simulation interacting with unmoving mouse)
-    // it is necessary to generate a mouseMove event after each tick
-    // set this true in localconfig if you need this behavior 
-    nullMoveAfterTicks: false,
+        ["personalServerPort", 8081, "where the local web server runs"],
 
-    // Open up our console
-    showLivelyConsole: false,
+        ["mainDelay", 0.05, "the delay set on the main() function"],
 
-    // Disable caching of webstore requests
-    suppressWebStoreCaching: false,
+        ["useStyling", false, "whether the .style property should be used"],
 
-    // Defeat bundled type-in for better response in short strings
-    showMostTyping: true,
+        ["verboseImport", false],
 
-    // Defeat all bundled type-in for testing
-    showAllTyping: true,  // Until we're confident
+        ["selfConnect", false, "some widgets self connect to a private model on startup, but it doesn't seem necessary, turn on to override"],
 
-    // Use the meta modifier (maps to Command on the Mac) instead of alt
-    useMetaAsCommand: false,
+        ["suppressClipboardHack", false],
 
-    // Confirm system shutdown from the user
-    askBeforeQuit: true,
-    
-    // Enable advanced debugging options
-    debugExtras: false,
+        ["suppressDefaultMouseBehavior", UserAgent.canExtendBrowserObjects, "e.g. don't open standard Brwser menu on right"],
 
-    // enable grab halo (alternative to shadow) on objects in the hand.
-    showGrabHalo: false,
-    useShadowMorphs: true,
+        ["resizeScreenToWorldBounds", false],
 
-    // load serialized worlds instead of building them from Javascript
-    loadSerializedSubworlds: false,  //*** temporary avoidance of a failure
-
-    // where the local web server runs
-    // FIXME: parse /trunk/source/server/brazil.config to figure out the port?
-    personalServerPort: 8081,
-
-    // the delay set on the main() function
-    mainDelay: 0.05,
-
-    // whether the .style property should be used
-    useStyling: false,
-
-    verboseImport: false,
-
-    // some widgets self connect to a private model on startup, but it doesn't
-    // seem necessary, turn on to override
-    selfConnect: false,
-    suppressClipboardHack: false,
-
-    // e.g. don't open standard Brwser menu on right
-    suppressDefaultMouseBehavior: UserAgent.canExtendBrowserObjects,
-
-    resizeScreenToWorldBounds: false,
-
-    changeLocationOnSaveWorldAs: false,
-});
+        ["changeLocationOnSaveWorldAs", false]
+]);
 
 // These various overrides of the above have been moved here from main.js
 //    so that they can be overridden in localconfig.js

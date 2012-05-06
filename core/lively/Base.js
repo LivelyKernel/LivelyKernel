@@ -1001,8 +1001,10 @@ Object.extend(Namespace, {
     current: function() { return this.namespaceStack.last() },
     topologicalSortLoadedModules: function() {
         // get currently loaded modules that really are js files
-        var modules = Global.subNamespaces(true).select(function(ea) {
-            return ea.isLoaded() && new WebResource(ea.uri()).exists() });
+        var modules = Global.subNamespaces(true)
+                .reject(function(ea) { return ea.isAnonymous(); })
+                .select(function(ea) {
+                    return ea.isLoaded() && new WebResource(ea.uri()).exists() });
 
         // topological sort modules according to their requirements
         var sortedModules = [], i = 0;

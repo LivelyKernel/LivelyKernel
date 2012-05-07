@@ -11,7 +11,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     },
      initializeLayout: function() {
         //var oTextCategory = new lively.morphic.Text(new Rectangle(0,0, 100, 30), 'Category');
-        var oTextCategory =new lively.morphic.TextChunk('Category')
+        var oTextCategory =new lively.morphic.Text(pt(0,0),'Category')
         this.lstCategory = new lively.morphic.List(new Rectangle(0, 30, 130, 200), ['Number', 'Currency', 'Percentage','Data','Time']);
         this.lstCategory.disableGrabbing();
         this.addMorph(oTextCategory );

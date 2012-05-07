@@ -759,7 +759,8 @@ lively.morphic.Shapes.Shape.addMethods(
         else {
             if (fill === null)
                 alpha = 0;
-            alpha = fill.a
+            else
+                alpha = fill.a
         }
         return this.setBorderHTML(ctx, this.getBorderWidth(), fill, alpha)
     },

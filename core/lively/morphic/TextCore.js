@@ -468,6 +468,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         var shortCutResults = this.shortcutHandlers.invoke('invoke', evt, this);
         if (shortCutResults.include(true)) {
+            alert(shortCutResults);
             evt.stop();
             return true;
         }

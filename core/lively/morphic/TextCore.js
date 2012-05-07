@@ -2866,12 +2866,12 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
         // rk 12-01-12: OK, this is a very simple version, just for what I need right now
         var bindings = this.bindings();
         for (var i = 0; i < bindings.length; i++) {
-debugger;
             var b = bindings[i],
                 specialKeysMatch = (evt.isCtrlDown()   == b.evtSpec.ctrl) &&
                                    (evt.isShiftDown()  == b.evtSpec.shift) &&
                                    (evt.isCommandKey() == b.evtSpec.cmd),
                 charKeyMatches   = (evt.charCode || evt.keyCode) === b.evtSpec.charCode;
+if (charKeyMatches) debugger;
 // alert(evt.isCommandKey() + 'vs' + b.evtSpec.cmd);
 // alert('specialKeysMatch' + specialKeysMatch + ' ' + charKeyMatches);
             if (!specialKeysMatch || !charKeyMatches) continue;

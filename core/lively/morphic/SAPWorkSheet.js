@@ -1671,6 +1671,9 @@ fontFamily:sFont
 textAlign: 'left'
 backgroundcolor: ss
 boardercolor: xx
+formula: xx
+value: yy
+
 
 getFontSize()
 getFontWeight()

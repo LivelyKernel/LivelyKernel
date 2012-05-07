@@ -360,6 +360,9 @@ lively.morphic.Text.addMethods(
         setFontFamily: 'setFontFamilyHTML',
         setFontSize: 'setFontSizeHTML',
         setTextColor: 'setTextColorHTML',
+        setFontWeight: 'setFontWeightHTML',
+        setFontStyle: 'setFontStyleHTML',
+        setTextDecoration: 'setTextDecorationHTML',
         setPadding: 'setPaddingHTML',
         setAlign: 'setAlignHTML',
         setVerticalAlign: 'setVerticalAlignHTML',
@@ -414,39 +417,32 @@ lively.morphic.Text.addMethods(
             pt(ctx.textNode.scrollWidth, ctx.textNode.scrollHeight) : this.getExtent();
     },
     setTextExtentHTML: function(ctx, value) {
-        if (ctx.textNode)
-            ctx.domInterface.setExtent(ctx.textNode, value);
+        if (ctx.textNode) ctx.domInterface.setExtent(ctx.textNode, value);
     },
 
     setMaxTextWidthHTML: function(ctx, value) {
-        if (ctx.textNode)
-            ctx.domInterface.setMaxWidth(ctx.textNode, value);
+        if (ctx.textNode) ctx.domInterface.setMaxWidth(ctx.textNode, value);
     },
     setMaxTextHeightHTML: function(ctx, value) {
-        if (ctx.textNode)
-            ctx.domInterface.setMaxHeight(ctx.textNode, value);
+        if (ctx.textNode) ctx.domInterface.setMaxHeight(ctx.textNode, value);
     },
     setMinTextHeightHTML: function(ctx, value) {
-        if (ctx.textNode)
-            ctx.domInterface.setMinHeight(ctx.textNode, value);
+        if (ctx.textNode) ctx.domInterface.setMinHeight(ctx.textNode, value);
     },
     setMinTextWidthHTML: function(ctx, value) {
-        if (ctx.textNode)
-            ctx.domInterface.setMinWidth(ctx.textNode, value);
+        if (ctx.textNode) ctx.domInterface.setMinWidth(ctx.textNode, value);
     },
     getTextStringHTML: function(ctx) {
         //return ctx.textNode ? ctx.textNode.textContent : ''
         return this.getTextChunks().reduce(function (s, ea) {
-                return s + ea.textString;
-            }, '');
+            return s + ea.textString;
+        }, '');
     },
     setFontSizeHTML: function(ctx, size) {
-        if (ctx.textNode)
-            ctx.textNode.style.fontSize = size + 'pt'
+        if (ctx.textNode) ctx.textNode.style.fontSize = size + 'pt'
     },
     setFontFamilyHTML: function(ctx, fontName) {
-        if (ctx.textNode)
-            ctx.textNode.style.fontFamily = fontName
+        if (ctx.textNode) ctx.textNode.style.fontFamily = fontName;
     },
     setTextColorHTML: function(ctx, color) {
         if (ctx.textNode) {
@@ -454,6 +450,17 @@ lively.morphic.Text.addMethods(
             ctx.textNode.style.color = color
         }
     },
+
+    setFontWeightHTML: function(ctx, value) {
+        if (ctx.textNode) ctx.textNode.style.fontWeight = value;
+    },
+    setFontStyleHTML: function(ctx, value) {
+        if (ctx.textNode) ctx.textNode.style.fontStyle = value;
+    },
+    setTextDecorationHTML: function(ctx, value) {
+        if (ctx.textNode) ctx.textNode.style.textDecoration = value;
+    },
+
     setPaddingHTML: function(ctx, r) {
         // TODO Deprecated, to be removed
         console.warn('lively.morphic.Text>>setPaddingHTML should not be called anymore!!!')
@@ -754,7 +761,7 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     setBorderColorHTML: function(ctx, fill) {
         var alpha;
-        if (this.getStrokeOpacity() != 1) 
+        if (this.getStrokeOpacity() != 1)
             alpha = this.getStrokeOpacity();
         else {
             if (fill === null)

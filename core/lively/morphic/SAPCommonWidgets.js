@@ -8,6 +8,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.toolBar;
         this.initializeLayout();
         this.lstCategory = null;
+        this.ddlDecimalPlaces = null;
+        this.
     },
      initializeLayout: function() {
   
@@ -16,8 +18,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oTextCategory.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
         this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, 130, 200), ['Number', 'Currency', 'Percentage','Data','Time']);
         this.lstCategory.disableGrabbing();
+
+        this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(0, 25, 25, 50), ['0', '1', '2','3','4']);
+
+
+
         this.addMorph(oTextCategory );
         this.addMorph(this.lstCategory);
+        this.addMorph(this.ddlDecimalPlaces );
     }
 });
 

@@ -14,9 +14,9 @@ klass.subclass('lively.ide.FileVersionViewer',
         var panel = PanelMorph.makePanedPanel(extent, [
             ['urlPane', newTextPane, new Rectangle(0, 0, 1, 0.1)],
             ['versionList', newDragnDropListPane, new Rectangle(0, 0.1, 1, 0.8)],
-            ['revertButton', ButtonMorph, new Rectangle(0, 0.9, 0.33, 0.1)],
-            ['openButton', ButtonMorph, new Rectangle(0.33, 0.9, 0.33, 0.1)],
-            ['visitButton', ButtonMorph, new Rectangle(0.66, 0.9, 0.34, 0.1)],
+            ['revertButton', lively.morphic.Button, new Rectangle(0, 0.9, 0.33, 0.1)],
+            ['openButton', lively.morphic.Button, new Rectangle(0.33, 0.9, 0.33, 0.1)],
+            ['visitButton', lively.morphic.Button, new Rectangle(0.66, 0.9, 0.34, 0.1)],
         ]);
 
         var m;

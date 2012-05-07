@@ -20,7 +20,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.lstCategory.disableGrabbing();
 
         //this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(0, 25, 37, 23), ['0', '1', '2','3','4','5','6','7','8']);
-        this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(0, 25, 37, 23), [{'0','one'}, {'0','two'}]);
+        this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(0, 25, 37, 23), [['0','one'], ['0','two']]);
         this.ddlCurrencySymbol = new lively.morphic.DropDownList(new Rectangle(0, 25, 37, 23), ['$', '£', '€','¥','4','5','6','7','8']);
 
 

@@ -11,7 +11,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     },
      initializeLayout: function() {
         //var oTextCategory = new lively.morphic.Text(new Rectangle(0,0, 100, 30), 'Category');
-        this.appleStyle({fill:Color.white});
+        this.setFill(Color.rgb(255,255,255));
         var oTextCategory =new lively.morphic.Text(pt(0,0).extent(pt(100,30)),'Category');
         oTextCategory.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
         this.lstCategory = new lively.morphic.List(new Rectangle(0, 30, 130, 200), ['Number', 'Currency', 'Percentage','Data','Time']);

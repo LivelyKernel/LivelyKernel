@@ -757,7 +757,7 @@ lively.morphic.Shapes.Shape.addMethods(
         if (this.getStrokeOpacity() != 1) 
             alpha = this.getStrokeOpacity();
         else
-            alpha = fill.a
+            alpha = fill.a || 0
         return this.setBorderHTML(ctx, this.getBorderWidth(), fill, alpha)
     },
     setBorderStyleHTML: function(ctx, value) {

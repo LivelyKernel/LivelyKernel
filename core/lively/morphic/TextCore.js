@@ -2871,7 +2871,7 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
                                     (evt.isShiftDown() == b.evtSpec.shift) &&
                                     (evt.isCommandKey() == b.evtSpec.cmd),
                 charKeyMatches = (evt.charCode || evt.keyCode) === b.evtSpec.charCode;
-alert(evt.charCode);
+alert(evt.keyCode);
             if (!specialKeysMatch || !charKeyMatches) continue;
             return b.handler.call(this, target, b);
         };

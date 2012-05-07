@@ -42,7 +42,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.FileVersionViewer',
         m.plugTo(this, {fire: '->visitVersion'});
         m.applyStyle({moveVertical: true, moveHorizontal: true});
 
-        m= panel.versionList.innerMorph();
+        m = panel.versionList.innerMorph();
         m.dragEnabled = false;
         m.applyStyle({resizeWidth: true, resizeHeight: true});
 

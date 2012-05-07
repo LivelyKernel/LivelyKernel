@@ -10,8 +10,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.lstCategory = null;
     },
      initializeLayout: function() {
-        this.lstCategory = new lively.morphic.List(new Rectangle(0, 0, 130, 200), ['Number', 'Currency', 'Percentage','Data','Time']);
+        var oTextCategory = new lively.morphic.Text(new Rectangle(0,0, 100, 30), 'Category');
+        this.lstCategory = new lively.morphic.List(new Rectangle(0, 30, 130, 200), ['Number', 'Currency', 'Percentage','Data','Time']);
         this.lstCategory.disableGrabbing();
+        this.addMorph(this.oTextCategory );
         this.addMorph(this.lstCategory);
     }
 });

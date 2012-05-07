@@ -238,6 +238,9 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (spec.fontFamily !== undefined) this.setFontFamily(spec.fontFamily);
         if (spec.fontSize !== undefined) this.setFontSize(spec.fontSize);
         if (spec.textColor !== undefined) this.setTextColor(spec.textColor);
+        if (spec.fontWeight !== undefined) this.setFontWeight(spec.fontWeight);
+        if (spec.fontStyle !== undefined) this.setFontStyle(spec.fontStyle);
+        if (spec.textDecoration !== undefined) this.setTextDecoration(spec.textDecoration);
         if (spec.padding !== undefined) this.setPadding(spec.padding);
         if (spec.align !== undefined) this.setAlign(spec.align);
         if (spec.verticalAlign !== undefined) this.setVerticalAlign(spec.verticalAlign);
@@ -349,6 +352,12 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     getFontSize: function() { return this.morphicGetter('FontSize') },
     setFontFamily: function(fontName) { return this.morphicSetter('FontFamily', fontName) },
     getFontFamily: function() { return this.morphicGetter('FontFamily') },
+    setFontWeight: function(fontName) { return this.morphicSetter('FontWeight', fontName) },
+    getFontWeight: function() { return this.morphicGetter('FontWeight') },
+    setFontStyle: function(fontName) { return this.morphicSetter('FontStyle', fontName) },
+    getFontStyle: function() { return this.morphicGetter('FontStyle') },
+    setTextDecoration: function(fontName) { return this.morphicSetter('TextDecoration', fontName) },
+    getTextDecoration: function() { return this.morphicGetter('TextDecoration') },
 
     setPadding: function(rect) {
         this.shape.setPadding(rect);

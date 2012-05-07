@@ -20,7 +20,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.FileVersionViewer',
 
         var m;
 
-        panel.applyStyle({adjustForNewBounds: true, resizeWidth: true, resizeHeight: true})
+        panel.applyStyle({adjustForNewBounds: true, resizeWidth: true, resizeHeight: true, fill: Color.gray});
 
         m = panel.urlPane.innerMorph();
         m.noEval = true;

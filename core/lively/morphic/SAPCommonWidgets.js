@@ -1,5 +1,18 @@
 module('lively.morphic.SAPCommonWidgets').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles').toRun(function() {
 
+lively.morphic.Morph.subclass('lively.morphic.SAPFormatSelector',
+'default category', {
+    initialize: function($super) {
+        $super();
+        this.grid;
+        this.toolBar;
+        this.initializeLayout();
+    },
+     initializeLayout: function() {
+        
+    }
+});
+
 lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 'default category', {
     initialize: function($super,selectedFont,oReturnCall) {

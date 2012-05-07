@@ -1,7 +1,6 @@
 module('lively.ide.VersionTools').requires('lively.morphic').toRun(function() {
 
-var klass = Global.Widget || lively.morphic.WindowedApp;
-klass.subclass('lively.ide.FileVersionViewer',
+lively.morphic.WindowedApp.subclass('lively.ide.FileVersionViewer',
 'settings', {
 
     viewTitle: "Version Viewer",

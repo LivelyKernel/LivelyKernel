@@ -3,7 +3,7 @@ module('lively.morphic.SAPCommonWidgets').requires('lively.morphic.Core', 'livel
 lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatSetter',
 'default category', {
     initialize: function($super) {
-        $super();
+        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,500,500)));
         this.grid;
         this.toolBar;
         this.initializeLayout();

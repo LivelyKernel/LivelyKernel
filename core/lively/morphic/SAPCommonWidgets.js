@@ -7,8 +7,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatSetter',
         this.grid;
         this.toolBar;
         this.initializeLayout();
+        this.lstCategory = null;
     },
      initializeLayout: function() {
+        this.lstCategory = new lively.morphic.List(new Rectangle(0, 0, 100, 100), ['Number', 'Currency', 'Percentage','Data','Time']);
         
     }
 });

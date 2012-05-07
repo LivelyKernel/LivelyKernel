@@ -2867,10 +2867,10 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
         var bindings = this.bindings();
         for (var i = 0; i < bindings.length; i++) {
             var b = bindings[i],
-                specialKeysMatch = (evt.isCtrlDown() == b.evtSpec.ctrl) &&
-                                    (evt.isShiftDown() == b.evtSpec.shift) &&
-                                    (evt.isCommandKey() == b.evtSpec.cmd),
-                charKeyMatches = (evt.charCode || evt.keyCode) === b.evtSpec.charCode;
+                specialKeysMatch = (evt.isCtrlDown()   == b.evtSpec.ctrl) &&
+                                   (evt.isShiftDown()  == b.evtSpec.shift) &&
+                                   (evt.isCommandKey() == b.evtSpec.cmd),
+                charKeyMatches   = (evt.charCode || evt.keyCode) === b.evtSpec.charCode;
 // alert(evt.keyCode + 'vs' + b.evtSpec.charCode);
 // alert('specialKeysMatch' + specialKeysMatch + ' ' + charKeyMatches);
             if (!specialKeysMatch || !charKeyMatches) continue;

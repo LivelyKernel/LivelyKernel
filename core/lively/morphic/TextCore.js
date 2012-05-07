@@ -2863,6 +2863,7 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
 },
 'event processing', {
     invoke: function(evt, target) {
+debugger;
         // rk 12-01-12: OK, this is a very simple version, just for what I need right now
         var bindings = this.bindings();
         for (var i = 0; i < bindings.length; i++) {

@@ -2872,7 +2872,7 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
                                     (evt.isCommandKey() == b.evtSpec.cmd),
                 charKeyMatches = (evt.charCode || evt.keyCode) === b.evtSpec.charCode;
 // alert(evt.keyCode + 'vs' + b.evtSpec.charCode);
-
+alert('specialKeysMatch' + specialKeysMatch + ' ' + charKeyMatches);
             if (!specialKeysMatch || !charKeyMatches) continue;
             return b.handler.call(this, target, b);
         };

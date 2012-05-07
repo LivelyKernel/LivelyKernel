@@ -10,7 +10,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.lstCategory = null;
     },
      initializeLayout: function() {
-        this.lstCategory = new lively.morphic.List(new Rectangle(0, 0, 100, 100), ['Number', 'Currency', 'Percentage','Data','Time']);
+        this.lstCategory = new lively.morphic.List(new Rectangle(0, 0, 200, 400), ['Number', 'Currency', 'Percentage','Data','Time']);
         this.lstCategory.disableGrabbing();
         this.addMorph(this.lstCategory);
     }

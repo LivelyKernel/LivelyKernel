@@ -26,7 +26,7 @@ klass.subclass('lively.ide.FileVersionViewer',
         m = panel.urlPane.innerMorph();
         m.noEval = true;
         m.plugTo(this, {savedTextString: '->setTarget'});
-        m.applyStyle({resizeWidth: true, resizeHeight: false, fixedHeight: true, clipMode: 'hidden', allowInput: true});
+        m.applyStyle({resizeWidth: true, resizeHeight: false, fixedHeight: true, clipMode: 'hidden', allowInput: true, fontSize: 9});
 
         m = panel.revertButton;
         m.setLabel('revert');

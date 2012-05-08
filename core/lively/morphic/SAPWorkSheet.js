@@ -1289,8 +1289,6 @@ y359
     },
     cleanUpValue: function (sValue) {
         if (sValue) {
-            sValue = "";
-        } else {
             if (sValue.indexOf(" ") != -1)
                 sValue = this.substituteStr(sValue, " ", "");
             if (sValue.indexOf(",") != -1)
@@ -1301,6 +1299,8 @@ y359
 
             if (sValue.indexOf("$") != -1)
                 sValue = this.substituteStr(sValue, "$", "");
+        }else{
+            sValue = "";
         }
         return sValue
     },

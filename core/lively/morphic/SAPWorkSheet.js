@@ -1289,6 +1289,7 @@ y359
     },
     cleanUpValue: function (sValue) {
         debugger;
+        sValue = sValue.toString();
         if (sValue) {
             if (sValue.indexOf(" ") != -1)
                 sValue = this.substituteStr(sValue, " ", "");

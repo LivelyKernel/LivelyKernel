@@ -1489,15 +1489,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.textString = aValue;
     },
     onKeyUp: function($super, evt) {
-
-        /*console.log("SAPGridCell.onKeyUp: "  + this.textString);
-        var nCol= this.gridCoords.x;
-        var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
-        nRow  = nRow  + this.grid.startRow;
-        nCol = nCol + this.grid.startColumn;
-        
-        this.grid.arrData[nRow][nCol].value=this.textString;
-        */
         $super(evt);
     },
     /*onKeyPress: function($super, evt) {

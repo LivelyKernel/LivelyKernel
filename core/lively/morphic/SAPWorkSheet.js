@@ -2107,7 +2107,9 @@ dataformat: currency & percentage & date & time
             nOrgRow = nRow  + this.grid.startRow;
             nOrgCol = nColumn + this.grid.startColumn; 
             sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-            sValue = this.grid.roundtoFixNumber(sValue ,2,true)
+            sValue = this.grid.applyDataFormates(sValue ,"currency");
+            
+
             this.grid.arrSelectedCells[i].textString= "$" + sValue;
         }
          //for data

@@ -1499,7 +1499,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         var nOrgRow = nRow + this.grid.startRow;
         var nOrgCol = nCol+ this.grid.startColumn;
         var sValue = this.textString;
-        
+        debugger;
         console.log("before: " + sValue )
         this.grid.arrData[nRow][nCol].value=sValue ;
         if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat){

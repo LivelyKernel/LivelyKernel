@@ -47,7 +47,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
     },
     getAlignforValueType: function(sValue) {
-        
+        var sAlign="right";
+        var sNewvalue = sValue;
+        sNewvalue = this.cleanUpValue(sValue);
+        if (isNaN(sNewvalue)) {
+            sAlign="left";
+        }
+        return sAlign;
     },
     //when focus changed:  formula..etc
     applyCellChanges: function() {

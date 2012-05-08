@@ -566,7 +566,6 @@ console.log('End createLayout =' + elapsed);
             nEndColumn  = this.arrData[0].length;
             for (var nCol = this.numCols; nCol < nEndColumn ; nCol++) {
                 this.colNames.push(this.getColumnName(nCol + 1));
-                //this.colNames.push('Col' + nCol);
             }
         }
     

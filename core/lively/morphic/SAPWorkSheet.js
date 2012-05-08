@@ -1274,8 +1274,6 @@ y359
             if (sValue.indexOf("$") != -1)
                 sValue = this.substituteStr(sValue, "$", "");
         }
-
-
         return sValue
     },
 });

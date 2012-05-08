@@ -615,7 +615,7 @@ console.log('End createLayout =' + elapsed);
 
 
     updateDisplay: function() {
-
+/*this get called when scroll is moving*/
         var nOrgRow;
         var nOrgCol;
         var sValue;
@@ -659,9 +659,10 @@ console.log('End createLayout =' + elapsed);
                 //data formats
                 if (this.arrData[nOrgRow][nOrgCol].dataFormat){
                     debugger;
-                    sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat );
+                   
                     if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
-                        switch(this.arrData[nOrgRow][nOrgCol].dataFormat.type){
+                         sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat.type);
+                        /*switch(this.arrData[nOrgRow][nOrgCol].dataFormat.type){
                             case "currency":
                                 sValue = "$" +  this.roundtoFixNumber(sValue ,2,true);
                                 break;
@@ -676,7 +677,7 @@ console.log('End createLayout =' + elapsed);
                                 break;
                             default:
   
-                            }
+                            }*/
                     }
                 }
 

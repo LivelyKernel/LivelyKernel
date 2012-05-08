@@ -1447,7 +1447,21 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
 	//}
     },
     onBlur: function($super,evt) {
-        console.log(this.textString)
+        console.log("onBlur: " + this.textString);
+        var nCol= this.gridCoords.x;
+        var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+        
+        var nOrgRow = nRow + this.grid.startRow;
+        var nOrgCol = nCol+ this.grid.startColumn;
+        var sValue = this.textString;
+
+        if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat){
+            if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type){
+                sValue= this.applyDataFormates(sValue,this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type);
+            }
+        }
+        console.log("onBlur: " + sValue );
+
         $super(evt);
     },
     put: function(aValue) {

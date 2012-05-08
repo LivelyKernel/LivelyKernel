@@ -648,8 +648,6 @@ console.log('End createLayout =' + elapsed);
                     this.at(x,y).setBorderStyle("solid");
                 }
 
-                
-
                 //selected cell
                 if (this.arrData[nOrgRow][nOrgCol].selected){
                     this.at(x,y).selectedCell();
@@ -658,26 +656,8 @@ console.log('End createLayout =' + elapsed);
 
                 //data formats
                 if (this.arrData[nOrgRow][nOrgCol].dataFormat){
-                    debugger;
-                   
                     if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
                          sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat.type);
-                        /*switch(this.arrData[nOrgRow][nOrgCol].dataFormat.type){
-                            case "currency":
-                                sValue = "$" +  this.roundtoFixNumber(sValue ,2,true);
-                                break;
-                            case "percentage":
-                                sValue = this.converttoPercentage(sValue ,2) + "%";
-                                break;
-                            case "date":
-                                break;
-                            case "time":
-                                break;
-                            case "number":
-                                break;
-                            default:
-  
-                            }*/
                     }
                 }
 

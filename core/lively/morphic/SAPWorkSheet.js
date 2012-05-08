@@ -1189,7 +1189,7 @@ screenY:384
 x:551
 y359
 */
-        console.log("SAPGrid.onMouseMove");
+        //console.log("SAPGrid.onMouseMove");
         $super(evt);
     },
     onMouseDown: function($super, evt) {

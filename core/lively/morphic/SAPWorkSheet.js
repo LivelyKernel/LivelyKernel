@@ -1457,7 +1457,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
 
         if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat){
             if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type){
-                sValue= this.applyDataFormates(sValue,this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type);
+                sValue= this.grid.applyDataFormates(sValue,this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type);
             }
         }
         console.log("onBlur: " + sValue );

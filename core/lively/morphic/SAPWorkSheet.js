@@ -1474,7 +1474,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         var sValue = this.textString;
         
         console.log("before: " + sValue )
-       // this.grid.arrData[nRow][nCol].value=sValue ;
+        //this.grid.arrData[nRow][nCol].value=sValue ;
         if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat){
             if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type){
                 sValue= this.grid.applyDataFormates(sValue,this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type);

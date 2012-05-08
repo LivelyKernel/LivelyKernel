@@ -1277,6 +1277,24 @@ y359
         }
         return sValue
     },
+     substituteStr: function (Target, OldVal, NewVal) {
+        OldLength = OldVal.length;
+        NewLength = NewVal.length;
+
+        TargetX = Target.toUpperCase();
+        OldVal2 = OldVal.toUpperCase();
+
+        nSubstz = TargetX.indexOf(OldVal2);
+        while (nSubstz > -1) {
+            LeftStr = "" + Target.substring(0, nSubstz);
+            RightStr = "" + Target.substring(nSubstz + OldLength);
+            Target = LeftStr + NewVal + RightStr;
+            nSubstz = RightStr.indexOf(OldVal);
+            if (nSubstz > -1)
+                nSubstz = nSubstz + LeftStr.length + NewVal.length;
+        }
+        return Target;
+    },
 });
 
 

@@ -46,7 +46,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeAnnotation();
 
     },
-    applyAlignforValueType: function(sValue) {
+    getAlignforValueType: function(sValue) {
         
     },
     //when focus changed:  formula..etc

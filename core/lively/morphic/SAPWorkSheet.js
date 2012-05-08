@@ -1258,6 +1258,26 @@ y359
         }
         return x;
     },
+    cleanUpValue: function (sValue) {
+        if (sValue == null) {
+            sValue = "";
+        } else {
+            if (sValue.indexOf(" ") != -1)
+                sValue = this.substituteStr(sValue, " ", "");
+
+            if (sValue.indexOf(",") != -1)
+                sValue = this.substituteStr(sValue, ",", "");
+
+            if (sValue.indexOf("%") != -1)
+                sValue = this.substituteStr(sValue, "%", "");
+
+            if (sValue.indexOf("$") != -1)
+                sValue = this.substituteStr(sValue, "$", "");
+        }
+
+
+        return sValue
+    },
 });
 
 

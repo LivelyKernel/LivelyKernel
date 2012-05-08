@@ -705,7 +705,7 @@ console.log('End createLayout =' + elapsed);
                 var oFill = null;
                 var oTextColor=null;
 
-                sTextAlign = this.getAlignforValueType(sValue)
+                //sTextAlign = this.getAlignforValueType(sValue)
                 
                 if (this.arrData[nOrgRow][nOrgCol].fontWeight){
                     sFontWeight=this.arrData[nOrgRow][nOrgCol].fontWeight;

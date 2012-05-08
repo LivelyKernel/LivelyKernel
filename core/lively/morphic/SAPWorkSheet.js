@@ -1466,22 +1466,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     },
     onBlur: function($super,evt) {
         //$super(evt);
-        var nCol= this.gridCoords.x;
-        var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
-        
-        var nOrgRow = nRow + this.grid.startRow;
-        var nOrgCol = nCol+ this.grid.startColumn;
-        var sValue = this.textString;
-        
-        console.log("before: " + sValue )
-        //this.grid.arrData[nRow][nCol].value=sValue ;
-        if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat){
-            if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type){
-                sValue= this.grid.applyDataFormates(sValue,this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type);
-            }
-        }
-        console.log("after: " +sValue )
-        this.textString = sValue ;
+       
  
 
         
@@ -1493,12 +1478,22 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     },
     onKeyUp: function($super, evt) {
         console.log("SAPGridCell.onKeyUp: "  + this.textString);
-        var nCol= this.gridCoords.x;
+         var nCol= this.gridCoords.x;
         var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
-        nRow  = nRow  + this.grid.startRow;
-        nCol = nCol + this.grid.startColumn;
         
-        this.grid.arrData[nRow][nCol].value=this.textString;
+        var nOrgRow = nRow + this.grid.startRow;
+        var nOrgCol = nCol+ this.grid.startColumn;
+        var sValue = this.textString;
+        
+        console.log("before: " + sValue )
+        this.grid.arrData[nRow][nCol].value=sValue ;
+        if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat){
+            if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type){
+                sValue= this.grid.applyDataFormates(sValue,this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type);
+            }
+        }
+        console.log("after: " +sValue )
+        this.textString = sValue ;
 
         $super(evt);
     },

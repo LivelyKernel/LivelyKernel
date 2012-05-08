@@ -658,7 +658,7 @@ console.log('End createLayout =' + elapsed);
 
                 //data formats
                 if (this.arrData[nOrgRow][nOrgCol].dataFormat){
-                    //sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat )
+                    sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat )
                     if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
                         switch(this.arrData[nOrgRow][nOrgCol].dataFormat.type){
                             case "currency":

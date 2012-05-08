@@ -29,6 +29,10 @@ Object.subclass("Point",
 
         return new lively.Point(this.x + p.x, this.y + p.y);
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
     
     addXY: function(dx, dy) {
         return new lively.Point(this.x + dx, this.y + dy);

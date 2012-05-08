@@ -66,7 +66,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
     },
     applyDataFormates: function(sValue,sFormatType) {
-
+            debugger;
             switch(sFormatType){
                 case "currency":
                     sValue = "$" +  this.roundtoFixNumber(sValue ,2,true);

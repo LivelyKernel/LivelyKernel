@@ -2110,7 +2110,6 @@ dataformat: currency & percentage & date & time
             sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
             sValue = this.grid.applyDataFormates(sValue ,"currency");
             
-
             this.grid.arrSelectedCells[i].textString= sValue;
         }
          //for data

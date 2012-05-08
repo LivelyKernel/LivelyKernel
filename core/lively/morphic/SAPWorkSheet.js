@@ -2113,8 +2113,9 @@ dataformat: currency & percentage & date & time
             oDataFormat.decimalPlaces = 2;
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
         }
+        this.focus();
         //if (this.grid.activeCell) {
-        //      this.grid.activeCell.focus();
+        //      
         //}
 
 

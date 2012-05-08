@@ -1264,7 +1264,6 @@ y359
         } else {
             if (sValue.indexOf(" ") != -1)
                 sValue = this.substituteStr(sValue, " ", "");
-
             if (sValue.indexOf(",") != -1)
                 sValue = this.substituteStr(sValue, ",", "");
 

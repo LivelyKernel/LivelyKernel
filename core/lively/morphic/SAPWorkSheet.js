@@ -2140,7 +2140,6 @@ dataformat: currency & percentage & date & time
             nOrgRow = nRow  + this.grid.startRow;
             nOrgCol = nColumn + this.grid.startColumn; 
             sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
             sValue = this.grid.converttoPercentage(sValue ,2)
             this.grid.arrSelectedCells[i].textString= sValue + "%";
         }

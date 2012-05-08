@@ -66,7 +66,26 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
     },
     applyDataFormates: function(sValue,sFormatType) {
-        
+
+            switch(sFormatType){
+                case "currency":
+                    sValue = "$" +  this.roundtoFixNumber(sValue ,2,true);
+                    break;
+                case "percentage":
+                    sValue = this.converttoPercentage(sValue ,2) + "%";
+                    break;
+                case "date":
+                    break;
+                case "time":
+                    break;
+                case "number":
+                    break;
+                    default:
+
+                }
+
+        return sValue
+
     },
     initializeScrolls: function() {
 

@@ -1472,7 +1472,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         var nOrgRow = nRow + this.grid.startRow;
         var nOrgCol = nCol+ this.grid.startColumn;
         var sValue = this.textString;
-
+        this.grid.arrData[nRow][nCol].value=sValue ;
         if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat){
             if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type){
                 sValue= this.grid.applyDataFormates(sValue,this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type);
@@ -1490,14 +1490,14 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     },
     onKeyUp: function($super, evt) {
 
-        console.log("SAPGridCell.onKeyUp: "  + this.textString);
+        /*console.log("SAPGridCell.onKeyUp: "  + this.textString);
         var nCol= this.gridCoords.x;
         var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
         nRow  = nRow  + this.grid.startRow;
         nCol = nCol + this.grid.startColumn;
         
         this.grid.arrData[nRow][nCol].value=this.textString;
-
+        */
         $super(evt);
     },
     /*onKeyPress: function($super, evt) {

@@ -1389,7 +1389,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.setBorderWidth(1);
     },
     onMouseDown: function (evt) {
-        console.log('SAPGridCell.onMouseDown');
+        //console.log('SAPGridCell.onMouseDown');
 
         var sFontFamily =this.grid.defaultFontFamily;
         var sFontSize = this.grid.defalutFontSize;
@@ -1465,7 +1465,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
 	//}
     },
     onBlur: function($super,evt) {
-        console.log("onBlur: " + this.textString);
+
         var nCol= this.gridCoords.x;
         var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
         
@@ -1478,7 +1478,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
                 sValue= this.grid.applyDataFormates(sValue,this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type);
             }
         }
-        console.log("onBlur: " + sValue );
+        this.textString = sValue ;
+ 
 
         $super(evt);
     },

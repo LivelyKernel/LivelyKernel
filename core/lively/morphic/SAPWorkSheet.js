@@ -2101,6 +2101,7 @@ dataformat: currency & percentage & date & time
         var nOrgCol;
         var sValue;
          var i;
+        debugger;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
             nColumn = this.grid.arrSelectedCells[i].gridCoords.x;

@@ -65,7 +65,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         }
     },
-    applyDataFormates: function() {
+    applyDataFormates: function(sValue,sFormatType) {
         
     },
     initializeScrolls: function() {

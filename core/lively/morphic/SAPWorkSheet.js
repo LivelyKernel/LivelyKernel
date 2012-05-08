@@ -406,6 +406,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         head.gridCoords = pt(index, 0);
         head.name = title ? title : 'Col' + index;
         head.textString = head.name;
+        head.setAlign('center'); 
         return head;
     },
 

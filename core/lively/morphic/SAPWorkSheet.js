@@ -89,10 +89,16 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                     if (sValue){
                         if (sValue.charAt(sValue.length-1)=="%"){
                             sValue = this.cleanUpValue(sValue);
-                            sValue = this.roundtoFixNumber(sValue ,2,false) + "%";
+                            if (!isNaN(sValue)){
+                                sValue = this.roundtoFixNumber(sValue ,2,false) + "%";
+                            }
+                            
                         }else{
                             sValue = this.cleanUpValue(sValue);
-                            sValue = this.converttoPercentage(sValue ,2) + "%";
+                            if (!isNaN(sValue)){
+                                sValue = this.converttoPercentage(sValue ,2) + "%";
+                            }
+                            
                         }
                     }
                     

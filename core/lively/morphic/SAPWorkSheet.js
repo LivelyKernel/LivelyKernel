@@ -73,9 +73,17 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                     sValue = "$" +  this.roundtoFixNumber(sValue ,2,true);
                     break;
                 case "percentage":
+                    if (sValue){
+                        if (sValue.charAt(sValue.length-1))=="%"){
+                            sValue = this.cleanUpValue(sValue);
+                            sValue = this.roundtoFixNumber(sValue ,2,false) + "%";
+                        }else{
+                            sValue = this.cleanUpValue(sValue);
+                            sValue = this.converttoPercentage(sValue ,2) + "%";
+                        }
+                    }
                     
-                    sValue = this.cleanUpValue(sValue);
-                    sValue = this.converttoPercentage(sValue ,2) + "%";
+                    
                     break;
                 case "date":
                     break;

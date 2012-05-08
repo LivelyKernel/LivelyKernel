@@ -102,7 +102,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                         }
                     }
                     
-                    
+                
                     break;
                 case "date":
                     break;

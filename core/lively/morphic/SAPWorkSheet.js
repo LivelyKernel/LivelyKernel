@@ -66,13 +66,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
     },
     applyDataFormates: function(sValue,sFormatType) {
-        
+            sValue = $.trim(sValue)
             switch(sFormatType){
                 case "currency":
                     sValue = this.cleanUpValue(sValue);
                     sValue = "$" +  this.roundtoFixNumber(sValue ,2,true);
                     break;
                 case "percentage":
+                    
                     sValue = this.cleanUpValue(sValue);
                     sValue = this.converttoPercentage(sValue ,2) + "%";
                     break;

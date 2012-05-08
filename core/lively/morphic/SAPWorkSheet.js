@@ -704,7 +704,7 @@ console.log('End createLayout =' + elapsed);
                 var oBorderColor=null;
                 var oFill = null;
                 var oTextColor=null;
-
+                //if value is number then should return right
                 sTextAlign = this.getAlignforValueType(sValue)
                 
                 if (this.arrData[nOrgRow][nOrgCol].fontWeight){

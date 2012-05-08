@@ -1389,7 +1389,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.setBorderWidth(1);
     },
     onMouseDown: function (evt) {
-        //console.log('SAPGridCell.onMouseDown');
+        console.log('SAPGridCell.onMouseDown');
 
         var sFontFamily =this.grid.defaultFontFamily;
         var sFontSize = this.grid.defalutFontSize;

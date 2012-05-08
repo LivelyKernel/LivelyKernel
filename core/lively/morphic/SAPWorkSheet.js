@@ -1465,7 +1465,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
 	//}
     },
     onBlur: function($super,evt) {
-        $super(evt);
+        //$super(evt);
         var nCol= this.gridCoords.x;
         var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
         

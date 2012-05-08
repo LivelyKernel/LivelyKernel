@@ -46,6 +46,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeAnnotation();
 
     },
+    applyAlignforValueType: function(oCell) {
+        
+    },
     //when focus changed:  formula..etc
     applyCellChanges: function() {
         if (this.activeCell !=null){

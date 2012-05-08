@@ -658,8 +658,8 @@ console.log('End createLayout =' + elapsed);
 
                 //data formats
                 if (this.arrData[nOrgRow][nOrgCol].dataFormat){
-                    sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat )
-                    /*if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
+                    //sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat )
+                    if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
                         switch(this.arrData[nOrgRow][nOrgCol].dataFormat.type){
                             case "currency":
                                 sValue = "$" +  this.roundtoFixNumber(sValue ,2,true);
@@ -676,7 +676,7 @@ console.log('End createLayout =' + elapsed);
                             default:
   
                             }
-                    }*/
+                    }
                 }
 
                 this.at(x,y).textString = sValue;

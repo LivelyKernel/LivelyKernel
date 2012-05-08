@@ -1466,19 +1466,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     },
     onBlur: function($super,evt) {
         //$super(evt);
-       
- 
-
-        
-    },
-    put: function(aValue) {
-        // TODO: check if aValue starts with =, then evaluate it or not
-        debugger;
-        this.textString = aValue;
-    },
-    onKeyUp: function($super, evt) {
-        console.log("SAPGridCell.onKeyUp: "  + this.textString);
-         var nCol= this.gridCoords.x;
+        var nCol= this.gridCoords.x;
         var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
         
         var nOrgRow = nRow + this.grid.startRow;
@@ -1494,6 +1482,18 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         }
         console.log("after: " +sValue )
         this.textString = sValue ;
+ 
+
+        
+    },
+    put: function(aValue) {
+        // TODO: check if aValue starts with =, then evaluate it or not
+        debugger;
+        this.textString = aValue;
+    },
+    onKeyUp: function($super, evt) {
+        console.log("SAPGridCell.onKeyUp: "  + this.textString);
+        
 
         $super(evt);
     },

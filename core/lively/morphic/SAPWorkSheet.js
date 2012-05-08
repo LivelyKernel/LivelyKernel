@@ -1465,7 +1465,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
 	//}
     },
     onBlur: function($super,evt) {
-
+        $super(evt);
         var nCol= this.gridCoords.x;
         var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
         
@@ -1481,7 +1481,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.textString = sValue ;
  
 
-        //$super(evt);
+        
     },
     put: function(aValue) {
         // TODO: check if aValue starts with =, then evaluate it or not

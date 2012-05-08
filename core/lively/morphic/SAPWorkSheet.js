@@ -1427,7 +1427,10 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
 	    this.grid.showAnnotation(nCol,nRow);
 	//}
     },
-
+    onBlur: function($super,evt) {
+        console.log(this.textString)
+        $super(evt);
+    },
     put: function(aValue) {
         // TODO: check if aValue starts with =, then evaluate it or not
         debugger;

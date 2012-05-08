@@ -79,7 +79,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             switch(sFormatType){
                 case "currency":
                     sValue = this.cleanUpValue(sValue);
-                    sValue = "$" +  this.roundtoFixNumber(sValue ,2,true);
+                    if (!isNaN(sResult)){
+                        sValue = "$" +  this.roundtoFixNumber(sValue ,2,true); 
+                    }
+                    
                     break;
                 case "percentage":
                     if (sValue){

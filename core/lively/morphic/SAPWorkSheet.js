@@ -1243,32 +1243,27 @@ y359
     }
 },
 'Common Tool', {
-
     getColumnNumber: function(sColumnName) {
-            var nColumnNumber = 0;
-            var nPow = 1;
-
-            for (var i = sColumnName.length - 1; i >= 0; i--) {
-                nColumnNumber += (sColumnName.charCodeAt(i) - "A".charCodeAt(0) + 1) * nPow;
-                nPow = nPow * 26;
-            }
-
-            return nColumnNumber;
-        },
-    getColumnName: function(nColumnNumber) {
-            var nDividend = nColumnNumber;
-            var sColumnName = "";
-            var nMod;
-            while (nDividend>0)
-            {
-                nMod = (nDividend - 1) % 26;
-                sColumnName = String.fromCharCode(65 + nMod) + sColumnName;
-                nDividend = parseInt((nDividend - nMod) / 26);
-            }
-            return sColumnName
+        var nColumnNumber = 0;
+        var nPow = 1;
+        for (var i = sColumnName.length - 1; i >= 0; i--) {
+            nColumnNumber += (sColumnName.charCodeAt(i) - "A".charCodeAt(0) + 1) * nPow;
+            nPow = nPow * 26;
+        }
+        return nColumnNumber;
     },
-
-     converttoPercentage: function(num,nDecimalPlaces){
+    getColumnName: function(nColumnNumber) {
+        var nDividend = nColumnNumber;
+        var sColumnName = "";
+        var nMod;
+        while (nDividend>0){
+            nMod = (nDividend - 1) % 26;
+            sColumnName = String.fromCharCode(65 + nMod) + sColumnName;
+            nDividend = parseInt((nDividend - nMod) / 26);
+        }
+        return sColumnName
+    },
+    converttoPercentage: function(num,nDecimalPlaces){
         var sResult;
         sResult= num.toString(); //bug when rnum cotains comma
         sResult= sResult.replace(/,/g, "");

@@ -2134,14 +2134,16 @@ dataformat: currency & percentage & date & time
         var nOrgCol;
         var sValue;
         var i;
+        debugger;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
             nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
             nOrgRow = nRow  + this.grid.startRow;
             nOrgCol = nColumn + this.grid.startColumn; 
             sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-            sValue = this.grid.converttoPercentage(sValue ,2)
-            this.grid.arrSelectedCells[i].textString= sValue + "%";
+            //sValue = this.grid.converttoPercentage(sValue ,2)
+            sValue = this.grid.applyDataFormates(sValue ,"percentage");
+            this.grid.arrSelectedCells[i].textString= sValue;
         }
         var oDataFormat;
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {

@@ -1288,6 +1288,7 @@ y359
         return x;
     },
     cleanUpValue: function (sValue) {
+        debugger;
         if (sValue) {
             if (sValue.indexOf(" ") != -1)
                 sValue = this.substituteStr(sValue, " ", "");

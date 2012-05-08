@@ -1288,7 +1288,7 @@ y359
         return x;
     },
     cleanUpValue: function (sValue) {
-        if (sValue == null) {
+        if (sValue) {
             sValue = "";
         } else {
             if (sValue.indexOf(" ") != -1)

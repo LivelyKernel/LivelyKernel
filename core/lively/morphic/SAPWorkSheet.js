@@ -389,7 +389,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     createColHeads: function() {
         this.colHeads = [];
         for (var i = 0; i < this.numCols; i++) {
-            this.colNames[i]='Col' + i;
+            //this.colNames[i]='Col' + i;
+
+            this.colNames[i]=this.getColumnName(i);
+
             var head = this.createColHead(i,this.colNames[i]);
             this.colHeads.push(head);
         }

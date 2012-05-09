@@ -74,23 +74,24 @@ var JSLoader = {
             console.log('script ' + url + ' already loaded or loading');
             return null;
         }
+        // it's called loadJs, not loadCSS !!!
         var css = this.isCSS(url);
 
         // adapt URL
         var exactUrl = url;
-        if ((exactUrl.indexOf('!svn') <= 0) && !okToUseCache)
+        if ((exactUrl.indexOf('!svn') <= 0) && !okToUseCache) {
             exactUrl = this.makeUncached(exactUrl, cacheQuery);
+        }
 
         // create and configure script tag
         var parentNode = this.findParentScriptNode(),
             xmlNamespace = parentNode.namespaceURI,
             el;
 
-        if (css){
+        if (css) {
             el = document.createElementNS(xmlNamespace, 'link');
             el.setAttributeNS(null, "rel", "stylesheet");
             el.setAttributeNS(null, "type", "text/css");
-
         } else { //assuming js
             el = document.createElementNS(xmlNamespace, 'script');
             el.setAttributeNS(null, 'type', 'text/ecmascript');
@@ -124,7 +125,7 @@ var JSLoader = {
             script.setAttributeNS(this.XLINKNamespace, 'href', url);
         } else if (this.isCSS(url)) {
             script.setAttribute("href",url);
-            if (typeof onLoadCb === 'function') onLoadCb();
+            if (typeof onLoadCb === 'function') onLoadCb(); // huh?
         } else {
             script.setAttributeNS(null, 'src', url);
         }
@@ -247,7 +248,7 @@ var JSLoader = {
         do {
             urlString = result;
             result = urlString.replace(/\/[^\/]+\/\.\./, '');
-        } while(result != urlString);
+        } while (result != urlString);
         // foo//bar --> foo/bar
         result = result.replace(/([^:])[\/]+/g, '$1/');
         // foo/./bar --> foo/bar
@@ -277,9 +278,11 @@ var JSLoader = {
 
     makeAbsolute: function(urlString) {
         urlString = this.removeQueries(urlString);
-        if (urlString.match(/^http/))
-            return this.resolveURLString(urlString);
-        return this.resolveURLString(this.currentDir() + urlString);
+        if (!urlString.match(/^http/)) {
+            // make absolute
+            urlString = this.currentDir() + urlString;
+        }
+        return this.resolveURLString(urlString);
     },
 
     makeUncached: function(urlString, cacheQuery) {
@@ -342,17 +345,6 @@ var JSLoader = {
 
     getSyncStatus: function(url, forceUncached) {
         return this.getSyncReq(url, forceUncached).status;
-    },
-
-    DEPRECATED$findParentScriptNode: function() {
-        // FIXME Assumption that first def node has scripts
-        var node = document.getElementsByTagName("defs")[0] || this.getScripts()[0].parentElement;
-        // FIXME this is  a fix for a strange problem with HTML serialization
-        var scripts = this.getScripts();
-        if (scripts[0].src && scripts[0].src.endsWith('bootstrap.js'))
-            node = scripts[0].parentNode;
-        if (!node) throw(dbgOn(new Error('Cannot load script, don\'t know where to append it')));
-        return node;
     },
 
     isCSS: function(url){

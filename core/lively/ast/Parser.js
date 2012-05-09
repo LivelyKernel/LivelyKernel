@@ -1196,15 +1196,13 @@ lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
                    "eval", "window", "document", "Node",
                    "HTMLCanvasElement", "Image"],
     newScope: function(optParentScope) {
-        var globals = this.knownGlobals;
-        return {
-            boundVars: [],
-            unboundVars: [],
-            getUnboundVars: function() {
-                var knownVars = this.boundVars.concat(globals);
-                return this.unboundVars.withoutAll(knownVars).uniq();
-            },
-        }
+        var s = {
+            defs: [],
+            uses: [],
+            scopes: []
+        };
+        if (optParentScope) optParentScope.scopes.push(s);
+        return s;
   },
 },
 'analyzing', {

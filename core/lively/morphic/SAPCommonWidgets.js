@@ -10,11 +10,43 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.ddlDecimalPlaces = null;
         this.ddlCurrencySymbol = null;
         this.arrCurrency=[];
+        this.arrCurrencyItems=[];
         this.buildCurrencyList();
         this.initializeLayout();
     },
     buildCurrencyList: function() {
-        
+        this.arrCurrency=[];
+        var oCurrency={};
+        oCurrency.ISO = "USD";
+        oCurrency.symbol="$";
+        oCurrency.name = "United States Dollar";
+        oCurrency.bFront=true;
+        this.arrCurrency.push(oCurrency);
+
+        oCurrency.ISO = "EUR";
+        oCurrency.symbol="€";
+        oCurrency.name = "Euro";
+        oCurrency.bFront=true;
+        this.arrCurrency.push(oCurrency);
+
+        oCurrency.ISO = "JPY";
+        oCurrency.symbol="¥";
+        oCurrency.name = "Japan, Yen";
+        oCurrency.bFront=true;
+        this.arrCurrency.push(oCurrency);
+
+        oCurrency.ISO = "GBP";
+        oCurrency.symbol="£";
+        oCurrency.name = "Britain (United Kingdom), Pounds";
+        oCurrency.bFront=true;
+        this.arrCurrency.push(oCurrency);
+
+        oCurrency.ISO = "AUD";
+        oCurrency.symbol="$";
+        oCurrency.name = "Australia, Dollars";
+        oCurrency.bFront=true;
+        this.arrCurrency.push(oCurrency);
+
     },
     initializeLayout: function() {
   

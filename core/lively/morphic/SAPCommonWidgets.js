@@ -10,44 +10,47 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.ddlDecimalPlaces = null;
         this.ddlCurrencySymbol = null;
         this.arrCurrency=[];
-        this.arrCurrencyItems=[];
         this.buildCurrencyList();
         this.initializeLayout();
     },
     buildCurrencyList: function() {
         this.arrCurrency=[];
         var oCurrency={};
-        oCurrency.ISO = "USD";
+        
+        oCurrency.value= "USD";
         oCurrency.symbol="$";
-        oCurrency.name = "United States Dollar";
+        oCurrency.string= "United States Dollar";
         oCurrency.bFront=true;
+        oCurrency.isListItem=true;
         this.arrCurrency.push(oCurrency);
 
-        oCurrency.ISO = "EUR";
+        oCurrency.value= "EUR";
         oCurrency.symbol="€";
-        oCurrency.name = "Euro";
+        oCurrency.string= "Euro";
         oCurrency.bFront=true;
         this.arrCurrency.push(oCurrency);
 
-        oCurrency.ISO = "JPY";
+        oCurrency.value = "JPY";
         oCurrency.symbol="¥";
-        oCurrency.name = "Japan, Yen";
+        oCurrency.string= "Japan, Yen";
         oCurrency.bFront=true;
+        oCurrency.isListItem=true;
         this.arrCurrency.push(oCurrency);
 
-        oCurrency.ISO = "GBP";
+        oCurrency.value= "GBP";
         oCurrency.symbol="£";
-        oCurrency.name = "Britain (United Kingdom), Pounds";
+        oCurrency.string= "Britain (United Kingdom), Pounds";
         oCurrency.bFront=true;
+        oCurrency.isListItem=true;
         this.arrCurrency.push(oCurrency);
 
-        oCurrency.ISO = "AUD";
+        oCurrency.value= "AUD";
         oCurrency.symbol="$";
-        oCurrency.name = "Australia, Dollars";
+        oCurrency.string = "Australia, Dollars";
         oCurrency.bFront=true;
+        oCurrency.isListItem=true;
         this.arrCurrency.push(oCurrency);
 
-        // items = [{isListItem: true, string: 'foo', value: 23}];
         
 
     },

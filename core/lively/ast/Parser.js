@@ -1206,9 +1206,7 @@ lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
   },
 },
 'analyzing', {
-    findUnboundVariableNames: function(func) {
-        return this.findUnboundVariableNamesInAST(func.ast());
-    },
+
     analyze: function(ast) {
         this.unboundVariables = [];
         this.topLevelVarDeclarations = [];

@@ -655,7 +655,7 @@ console.log('End createLayout =' + elapsed);
         var nOrgCol;
         var sValue;
 //debugger;
-//var start = new Date().getTime();
+var start = new Date().getTime();
 
         //need to reset selected cell for grid display when scrolls
         this.arrSelectedCells.lenght=0;
@@ -773,8 +773,8 @@ console.log('End createLayout =' + elapsed);
         if (this.activeCell) {
             this.activeCellContent = this.activeCell.getContent();
         }
-//var elapsed = new Date().getTime() - start;
-//console.log('updateDisplay:'  + elapsed/1000);
+var elapsed = new Date().getTime() - start;
+console.log('updateDisplay:'  + elapsed/1000);
     },
     setActiveCellContent: function(aString) {
         if (!this.activeCell) {

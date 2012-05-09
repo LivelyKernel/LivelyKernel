@@ -110,10 +110,24 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
         
         
     },
-    initializeData: function($super) {
-        this.oList = new lively.morphic.SAPFontList(this.returnCall);
-        this.addMorph(this.oList);
-    }
+    selectItem: function(pos) {
+        var fontMorphs = this.submorphs, selected;
+	for (var i = 0; i < fontMorphs.length; i++) {
+	   if (fontMorphs[i].bounds().containsPoint(pos)) selected = fontMorphs[i];
+	}
+
+	if (selected) {
+            for (var i = 0; i < fontMorphs.length; i++) {
+	       fontMorphs[i].setFill(null);
+            }
+	    selected.setFill(Color.rgb(240, 171, 0));
+	    this.selectedFont = selected.textString;
+             
+            if (this.returnCall){
+                this.returnCall(this.selectedFont);
+            }
+	}
+    },
     
 });
 lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',

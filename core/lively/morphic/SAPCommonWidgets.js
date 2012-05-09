@@ -58,16 +58,16 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
   
         this.setFill(Color.rgb(255,255,255));
    
-        var txtCategory=new lively.morphic.Text(new Rectangle(10,400, 100, 25),'Category:');
+        var txtCategory=new lively.morphic.Text(new Rectangle(120,400, 100, 25),'Category:');
         txtCategory.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
         
-        var txtDecimalPlaces=new lively.morphic.Text(new Rectangle(10,300, 120, 25),'Decimal Places:');
+        var txtDecimalPlaces=new lively.morphic.Text(new Rectangle(120,30, 120, 25),'Decimal Places:');
         txtDecimalPlaces.applyStyle({borderWidth: 0, fill: null});
         
-        var txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(100,200, 135, 25),'Negative numbers:');
+        var txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(120,200, 135, 25),'Negative numbers:');
         txtNegatvieNumbers.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
 
-         var txtSymbol=new lively.morphic.Text(new Rectangle(100,400, 100, 25),'Symbol:');
+         var txtSymbol=new lively.morphic.Text(new Rectangle(120,400, 100, 25),'Symbol:');
         txtSymbol.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
 
         this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, 130, 200), ['Number', 'Currency', 'Percentage','Data','Time']);

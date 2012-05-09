@@ -67,6 +67,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         var txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(10,200, 135, 25),'Negative numbers:');
         txtNegatvieNumbers.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
 
+         var txtSymbol=new lively.morphic.Text(new Rectangle(10,400, 100, 25),'Symbol:');
+        txtSymbol.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
 
         this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, 130, 200), ['Number', 'Currency', 'Percentage','Data','Time']);
         this.lstCategory.disableGrabbing();

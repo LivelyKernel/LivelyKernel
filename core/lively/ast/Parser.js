@@ -1211,12 +1211,10 @@ lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
     findUnboundVariableNames: function(func) {
         return this.findUnboundVariableNamesInAST(func.ast());
     },
-    findUnboundVariableNamesInAST: function(ast) {
-        this.currentScope = this.newScope();
-        this.scopes = [this.newScope()];
+    analyze: function(ast) {
+        this.unboundVariables = [];
+        this.topLevelVarDeclarations = [];
         this.visit(ast);
-        // FIXME unbound vars with nested scopes!
-        return this.scopes.last().getUnboundVars();
     },
     findTopLevelVarDeclarationsInAST: function(ast) {
         this.topLevel = true;

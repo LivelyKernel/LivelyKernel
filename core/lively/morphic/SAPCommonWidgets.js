@@ -13,6 +13,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtDecimalPlaces = null;
         this.txtSymbol = null;
         this.txtType = null;
+        this.chkUseThousand=null;
         this.txtNegatvieNumbers
         this.arrCurrency=[];
         this.buildCurrencyList();
@@ -55,9 +56,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oCurrency.bFront=true;
         oCurrency.isListItem=true;
         this.arrCurrency.push(oCurrency);
-
-     
-
     },
     initializeLayout: function() {
         var nX = 150;
@@ -80,6 +78,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         
         this.txtSymbol=new lively.morphic.Text(new Rectangle(nX ,nY+nHeight+nGap, 100, nHeight),'Symbol:');
         this.txtSymbol.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
+        this.chkUseThousand= new lively.morphic.CheckBox();
+        this.chkUseThousan.setPosition(pt(nX,nY+nHeight+nGap));
+
+
 
         this.ddlCurrencySymbol = new lively.morphic.DropDownList(new Rectangle(nX+nXGap, nY+nHeight+nGap, 200, 23), this.arrCurrency);
 

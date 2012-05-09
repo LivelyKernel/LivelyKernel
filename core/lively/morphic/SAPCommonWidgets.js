@@ -86,18 +86,19 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 });
 lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 'default category', {
-    initialize: function($super,arrData,oReturnCall,nWidth,nHeight) {
+    initialize: function($super,nSelectedValue,arrData,oReturnCall,nWidth,nHeight) {
        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,nWidth,nHeight)));
         this.returnCall = oReturnCall;
+        this.selectedValue = nSelectedValue;
         this.arrData = arrData;
         var offset = pt(0,0);
 
-        fonts.forEach(function(arrData) {
-		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-25,20)));
-		text.applyStyle({fill: null, borderWidth:0, fontFamily: font, fixedHeight: false, fixedWidth: true, allowInput: false});
-                //if (font.toUpperCase()==this.selectedFont.toUpperCase()){
-                  //  text.setFill(Color.rgb(240, 171, 0));
-                //}
+        arrData.forEach(function(item) {
+		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-25,20)), item.string);
+		text.applyStyle({fill: null, borderWidth:0, fixedHeight: false, fixedWidth: true, allowInput: false});
+                if (item.value.toUpperCase()==this.selectedValue.toUpperCase()){
+                    text.setFill(Color.rgb(240, 171, 0));
+                }
 		text.ignoreEvents();
 		this.addMorph(text);
 		text.fit();

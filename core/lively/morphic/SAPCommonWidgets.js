@@ -86,14 +86,25 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 });
 lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 'default category', {
-    initialize: function($super,arrData,oReturnCall,nWidth,nheight) {
-        $super();
+    initialize: function($super,arrData,oReturnCall,nWidth,nHeight) {
+       $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,nWidth,nHeight)));
         this.returnCall = oReturnCall;
-        this.setFill(Color.rgb(223, 227, 232));
-        this.setBorderColor(Color.rgb(177,181,186));
-        this.setExtent(lively.pt(200,500));
-        this.oList;
-        this.initializeData();
+        this.arrData = arrData;
+        var offset = pt(0,0);
+
+        fonts.forEach(function(arrData) {
+		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-25,20)));
+		text.applyStyle({fill: null, borderWidth:0, fontFamily: font, fixedHeight: false, fixedWidth: true, allowInput: false});
+                //if (font.toUpperCase()==this.selectedFont.toUpperCase()){
+                  //  text.setFill(Color.rgb(240, 171, 0));
+                //}
+		text.ignoreEvents();
+		this.addMorph(text);
+		text.fit();
+		offset = text.bounds().bottomLeft()
+	}, this);
+        
+        
     },
     initializeData: function($super) {
         this.oList = new lively.morphic.SAPFontList(this.returnCall);
@@ -105,8 +116,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 'default category', {
     initialize: function($super,selectedFont,oReturnCall) {
         this.selectedFont = selectedFont;
-        this.returnCall = oReturnCall
-        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,200,500)))
+        this.returnCall = oReturnCall;
+        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,200,500)));
         this.applyStyle({borderColor: Color.black, borderWidth: 2, fill: Color.white});
         this.setClipMode({x: 'hidden', y: 'scroll'}); 
         this.disableGrabbing();

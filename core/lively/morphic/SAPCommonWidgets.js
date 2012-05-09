@@ -58,6 +58,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         var nX = 150;
         var nY = 25;
         var nGap = 5;
+        var nXGap = 150;
         var nHeight=25;
         this.setFill(Color.rgb(255,255,255));
    
@@ -66,9 +67,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         
         var txtDecimalPlaces=new lively.morphic.Text(new Rectangle(nX ,nY, 120, nHeight),'Decimal Places:');
         txtDecimalPlaces.applyStyle({borderWidth: 0, fill: null});
+
+        this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(nX+nXGap, nY, 37, 23), ['0', '1', '2','3','4','5','6','7','8']);
         
         var txtSymbol=new lively.morphic.Text(new Rectangle(nX ,nY+nHeight+nGap, 100, nHeight),'Symbol:');
         txtSymbol.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
+
+        this.ddlCurrencySymbol = new lively.morphic.DropDownList(new Rectangle(nX+nXGap, nY+nHeight+nGap, 200, 23), this.arrCurrency);
 
         var txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(nX ,nY+2*nHeight+2*nGap, 135, nHeight),'Negative numbers:');
         txtNegatvieNumbers.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
@@ -78,9 +83,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, nX-20 , 200), ['Number', 'Currency', 'Percentage','Data','Time']);
         this.lstCategory.disableGrabbing();
 
-        this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(0, 25, 37, 23), ['0', '1', '2','3','4','5','6','7','8']);
+        
         //this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(0, 25, 37, 23), [{isListItem: true,string:"1",value:'one'}]);
-        this.ddlCurrencySymbol = new lively.morphic.DropDownList(new Rectangle(0, 50, 200, 23), this.arrCurrency);
+        
 
 
         this.addMorph(txtCategory);

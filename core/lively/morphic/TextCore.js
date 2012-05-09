@@ -2710,16 +2710,22 @@ Object.extend(lively.morphic.HTMLParser, {
         // now parse html using iFrame and return the childNodes
         var iframe = XHTMLNS.create('iframe');
         iframe.setAttribute('src', "about:blank");
-        document.getElementsByTagName('body')[0].appendChild(iframe);
-        var iframeBody = iframe.contentWindow.document.body;
-        iframeBody.innerHTML = html;
+        var body = document.getElementsByTagName('body')[0];
+        body.appendChild(iframe);
 
-        // now gather the nodes that we have parsed and return them in an array
-        var nodes = [];
-        for (var i = 0; i < iframeBody.childNodes.length; i++) {
-            nodes.push(iframeBody.childNodes[i].cloneNode(true));
+        try {
+            var iframeBody = iframe.contentWindow.document.body;
+            iframeBody.innerHTML = html;
+
+            // now gather the nodes that we have parsed and return them in an array
+            var nodes = [];
+            for (var i = 0; i < iframeBody.childNodes.length; i++) {
+                nodes.push(iframeBody.childNodes[i].cloneNode(true));
+            }
+            return nodes;
+        } finally {
+            body.removeChild(iframe);
         }
-        return nodes;
     },
 
     sourceToNode: function(data) {

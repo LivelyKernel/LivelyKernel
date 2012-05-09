@@ -1195,17 +1195,7 @@ lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
                    "Object", "Function", "String", "Date", "Math", "parseFloat", "isNaN",
                    "eval", "window", "document", "Node",
                    "HTMLCanvasElement", "Image"],
-    newScope: function(optParentScope) {
-        var globals = this.knownGlobals;
-        return {
-            boundVars: [],
-            unboundVars: [],
-            getUnboundVars: function() {
-                var knownVars = this.boundVars.concat(globals);
-                return this.unboundVars.withoutAll(knownVars).uniq();
-            },
-        }
-  },
+
 },
 'analyzing', {
     findUnboundVariableNames: function(func) {

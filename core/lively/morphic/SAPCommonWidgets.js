@@ -94,7 +94,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         //this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(0, 25, 37, 23), [{isListItem: true,string:"1",value:'one'}]);
         
 
-
+        this.addMorph(this.txtType);
         this.addMorph(this.txtCategory);
         this.addMorph(this.txtSymbol);
         this.addMorph(this.txtDecimalPlaces);

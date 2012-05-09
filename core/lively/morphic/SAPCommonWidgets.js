@@ -66,23 +66,26 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         var nHeight=25;
         this.setFill(Color.rgb(255,255,255));
         
-        
+                
+        this.txtDecimalPlaces
+        this.txtSymbol
+        this.txtNegatvieNumbers
    
-        var txtCategory=new lively.morphic.Text(new Rectangle(0 ,0, 100, nHeight),'Category:');
-        txtCategory.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
+        this.txtCategory=new lively.morphic.Text(new Rectangle(0 ,0, 100, nHeight),'Category:');
+        this.txtCategory.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
         
-        var txtDecimalPlaces=new lively.morphic.Text(new Rectangle(nX ,nY, 120, nHeight),'Decimal Places:');
-        txtDecimalPlaces.applyStyle({borderWidth: 0, fill: null});
+        this.txtDecimalPlaces=new lively.morphic.Text(new Rectangle(nX ,nY, 120, nHeight),'Decimal Places:');
+        this.txtDecimalPlaces.applyStyle({borderWidth: 0, fill: null});
 
         this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(nX+nXGap, nY, 37, 23), ['0', '1', '2','3','4','5','6','7','8']);
         
-        var txtSymbol=new lively.morphic.Text(new Rectangle(nX ,nY+nHeight+nGap, 100, nHeight),'Symbol:');
-        txtSymbol.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
+        this.txtSymbol=new lively.morphic.Text(new Rectangle(nX ,nY+nHeight+nGap, 100, nHeight),'Symbol:');
+        this.txtSymbol.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
 
         this.ddlCurrencySymbol = new lively.morphic.DropDownList(new Rectangle(nX+nXGap, nY+nHeight+nGap, 200, 23), this.arrCurrency);
 
-        var txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(nX ,nY+2*nHeight+2*nGap, 135, nHeight),'Negative numbers:');
-        txtNegatvieNumbers.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
+        this.txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(nX ,nY+2*nHeight+2*nGap, 135, nHeight),'Negative numbers:');
+        this.txtNegatvieNumbers.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
 
        
 
@@ -94,10 +97,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         
 
 
-        this.addMorph(txtCategory);
-        this.addMorph(txtSymbol);
-        this.addMorph(txtDecimalPlaces);
-        this.addMorph(txtNegatvieNumbers);
+        this.addMorph(this.txtCategory);
+        this.addMorph(this.txtSymbol);
+        this.addMorph(this.txtDecimalPlaces);
+        this.addMorph(this.txtNegatvieNumbers);
         this.addMorph(this.lstCategory);
         this.addMorph(this.ddlDecimalPlaces );
         this.addMorph(this.ddlCurrencySymbol );

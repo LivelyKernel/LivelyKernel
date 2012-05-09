@@ -57,7 +57,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     initializeLayout: function() {
         var nX = 150;
         var nY = 25;
-        var nGap = 10;
+        var nGap = 5;
         var nHeight=25;
         this.setFill(Color.rgb(255,255,255));
    
@@ -70,7 +70,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         var txtSymbol=new lively.morphic.Text(new Rectangle(nX ,nY+nHeight+nGap, 100, nHeight),'Symbol:');
         txtSymbol.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
 
-        var txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(nX ,200, 135, nHeight),'Negative numbers:');
+        var txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(nX ,nY+2*nHeight+2*nGap, 135, nHeight),'Negative numbers:');
         txtNegatvieNumbers.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
 
        

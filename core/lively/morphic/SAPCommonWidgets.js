@@ -51,7 +51,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oCurrency.isListItem=true;
         this.arrCurrency.push(oCurrency);
 
-        
+        debugger;
 
     },
     initializeLayout: function() {

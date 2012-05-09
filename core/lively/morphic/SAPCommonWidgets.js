@@ -6,12 +6,17 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,500,500)));
         this.grid;
         this.toolBar;
-        this.initializeLayout();
         this.lstCategory = null;
         this.ddlDecimalPlaces = null;
         this.ddlCurrencySymbol = null;
+        this.arrCurrency=[];
+        this.buildCurrencyList();
+        this.initializeLayout();
     },
-     initializeLayout: function() {
+    buildCurrencyList: function() {
+        
+    },
+    initializeLayout: function() {
   
         this.setFill(Color.rgb(255,255,255));
         var oTextCategory =new lively.morphic.Text(pt(0,0).extent(pt(100,25)),'Category');

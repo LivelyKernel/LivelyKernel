@@ -55,13 +55,15 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
     },
     initializeLayout: function() {
-        var nX = 160;
+        var nX = 150;
+        var nY = 25;
+        var nGap = 10;
         this.setFill(Color.rgb(255,255,255));
    
-        var txtCategory=new lively.morphic.Text(new Rectangle(nX ,400, 100, 25),'Category:');
+        var txtCategory=new lively.morphic.Text(new Rectangle(0 ,0, 100, 25),'Category:');
         txtCategory.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
         
-        var txtDecimalPlaces=new lively.morphic.Text(new Rectangle(nX ,30, 120, 25),'Decimal Places:');
+        var txtDecimalPlaces=new lively.morphic.Text(new Rectangle(nX ,nY, 120, 25),'Decimal Places:');
         txtDecimalPlaces.applyStyle({borderWidth: 0, fill: null});
         
         var txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(nX ,200, 135, 25),'Negative numbers:');

@@ -1291,7 +1291,7 @@ Object.extend(lively.ast.VariableAnalyzer, {
     findTopLevelVarDeclarationsIn: function(source) {
         var analyzer = new this();
         analyzer.analyze(ast);
-        return analyzer.topLevelVarDeclarations();
+        return analyzer.topLevelVarDeclarations;
     }
 });
 

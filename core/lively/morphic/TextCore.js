@@ -2699,6 +2699,29 @@ cop.create('TextDevLayer')
 Object.subclass('lively.morphic.HTMLParser');
 
 Object.extend(lively.morphic.HTMLParser, {
+
+    parseInIFrame: function(html) {
+        // parsing HTML in an iFrame is necessary when we are in an XHTML
+        // document but need to embed HTML that is not valid XML.
+
+        // strip out the meta tag if existing:
+        html = html.replace(/<meta[^>]+>/, '');
+
+        // now parse html using iFrame and return the childNodes
+        var iframe = XHTMLNS.create('iframe');
+        iframe.setAttribute('src', "about:blank");
+        document.getElementsByTagName('body')[0].appendChild(iframe);
+        var iframeBody = iframe.contentWindow.document.body;
+        iframeBody.innerHTML = html;
+
+        // now gather the nodes that we have parsed and return them in an array
+        var nodes = [];
+        for (var i = 0; i < iframeBody.childNodes.length; i++) {
+            nodes.push(iframeBody.childNodes[i].cloneNode(true));
+        }
+        return nodes;
+    },
+
     sourceToNode: function(data) {
         // creates DOM node from a snipped of HTML
         if (data.startsWith('<meta charset')) {

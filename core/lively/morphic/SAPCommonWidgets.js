@@ -75,7 +75,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
        
 
-        this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, 130, 200), ['Number', 'Currency', 'Percentage','Data','Time']);
+        this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, nX-20 , 200), ['Number', 'Currency', 'Percentage','Data','Time']);
         this.lstCategory.disableGrabbing();
 
         this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(0, 25, 37, 23), ['0', '1', '2','3','4','5','6','7','8']);

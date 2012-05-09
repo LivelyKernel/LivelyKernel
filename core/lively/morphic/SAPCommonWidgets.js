@@ -15,6 +15,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtType = null;
         this.chkUseThousand=null;
         this.txtNegatvieNumbers
+        this.txtUseThousand=null;
         this.arrCurrency=[];
         this.buildCurrencyList();
         this.initializeLayout();
@@ -76,12 +77,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
         this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(nX+nXGap, nY, 37, 23), ['0', '1', '2','3','4','5','6','7','8']);
         
-        this.txtSymbol=new lively.morphic.Text(new Rectangle(nX ,nY+nHeight+nGap, 100, nHeight),'Symbol:');
+        this.txtSymbol = new lively.morphic.Text(new Rectangle(nX ,nY+nHeight+nGap, 100, nHeight),'Symbol:');
         this.txtSymbol.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
         this.chkUseThousand = new lively.morphic.CheckBox();
         this.chkUseThousand.setPosition(pt(nX,nY+nHeight+nGap));
-
-
+        this.txtUseThousand = new lively.morphic.Text(new Rectangle(nX ,nY+nHeight+nGap, 150, nHeight),'Use 1000 Separator(,)');
+        this.txtUseThousand.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
 
         this.ddlCurrencySymbol = new lively.morphic.DropDownList(new Rectangle(nX+nXGap, nY+nHeight+nGap, 200, 23), this.arrCurrency);
 
@@ -97,6 +98,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         //this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(0, 25, 37, 23), [{isListItem: true,string:"1",value:'one'}]);
         
 
+        this.addMorph(this.txtUseThousand);
         this.addMorph(this.chkUseThousand);
         this.addMorph(this.txtType);
         this.addMorph(this.txtCategory);

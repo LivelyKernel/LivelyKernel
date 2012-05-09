@@ -1195,16 +1195,32 @@ lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
                    "Object", "Function", "String", "Date", "Math", "parseFloat", "isNaN",
                    "eval", "window", "document", "Node",
                    "HTMLCanvasElement", "Image"],
-
+    newScope: function(optParentScope) {
+        var globals = this.knownGlobals;
+        return {
+            boundVars: [],
+            unboundVars: [],
+            getUnboundVars: function() {
+                var knownVars = this.boundVars.concat(globals);
+                return this.unboundVars.withoutAll(knownVars).uniq();
+            },
+        }
+  },
 },
 'analyzing', {
-
+    findUnboundVariableNames: function(func) {
+        return this.findUnboundVariableNamesInAST(func.ast());
+    },
     analyze: function(ast) {
         this.unboundVariables = [];
         this.topLevelVarDeclarations = [];
         this.visit(ast);
     },
-
+    findTopLevelVarDeclarationsInAST: function(ast) {
+        this.topLevel = true;
+        this.findUnboundVariableNamesInAST(ast);
+        return this.scopes.last().boundVars;
+    },
 },
 'visiting', {
     visitVariable: function(node) {
@@ -1275,7 +1291,7 @@ Object.extend(lively.ast.VariableAnalyzer, {
     findTopLevelVarDeclarationsIn: function(source) {
         var analyzer = new this();
         analyzer.analyze(ast);
-        return analyzer.topLevelVarDeclarations;
+        return analyzer.topLevelVarDeclarations();
     }
 });
 

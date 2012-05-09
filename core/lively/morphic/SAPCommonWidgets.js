@@ -23,27 +23,27 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oCurrency.bFront=true;
         oCurrency.isListItem=true;
         this.arrCurrency.push(oCurrency);
-
+        oCurrency={};
         oCurrency.value= "EUR";
         oCurrency.symbol="€";
         oCurrency.string= "Euro";
         oCurrency.bFront=true;
         this.arrCurrency.push(oCurrency);
-
+        oCurrency={};
         oCurrency.value = "JPY";
         oCurrency.symbol="¥";
         oCurrency.string= "Japan, Yen";
         oCurrency.bFront=true;
         oCurrency.isListItem=true;
         this.arrCurrency.push(oCurrency);
-
+        oCurrency={};
         oCurrency.value= "GBP";
         oCurrency.symbol="£";
         oCurrency.string= "Britain (United Kingdom), Pounds";
         oCurrency.bFront=true;
         oCurrency.isListItem=true;
         this.arrCurrency.push(oCurrency);
-
+        oCurrency={};
         oCurrency.value= "AUD";
         oCurrency.symbol="$";
         oCurrency.string = "Australia, Dollars";
@@ -51,7 +51,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oCurrency.isListItem=true;
         this.arrCurrency.push(oCurrency);
 
-        debugger;
+     
 
     },
     initializeLayout: function() {

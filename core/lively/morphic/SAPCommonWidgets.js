@@ -86,7 +86,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 });
 lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 'default category', {
-    initialize: function($super,nSelectedValue,arrData,oReturnCall,nWidth,nHeight) {
+    initialize: function($super,nWidth,nHeight,nSelectedValue,arrData,oReturnCall) {
        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,nWidth,nHeight)));
         this.returnCall = oReturnCall;
         this.selectedValue = nSelectedValue;

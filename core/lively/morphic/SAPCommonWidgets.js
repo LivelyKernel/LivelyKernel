@@ -84,7 +84,23 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.addMorph(this.ddlCurrencySymbol );
     }
 });
-
+lively.morphic.Morph.subclass('lively.morphic.SAPListView',
+'default category', {
+    initialize: function($super,arrData,oReturnCall,nWidth,nheight) {
+        $super();
+        this.returnCall = oReturnCall;
+        this.setFill(Color.rgb(223, 227, 232));
+        this.setBorderColor(Color.rgb(177,181,186));
+        this.setExtent(lively.pt(200,500));
+        this.oList;
+        this.initializeData();
+    },
+    initializeData: function($super) {
+        this.oList = new lively.morphic.SAPFontList(this.returnCall);
+        this.addMorph(this.oList);
+    }
+    
+});
 lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 'default category', {
     initialize: function($super,selectedFont,oReturnCall) {

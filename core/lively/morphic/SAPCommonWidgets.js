@@ -109,8 +109,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 		text.fit();
 		offset = text.bounds().bottomLeft()
 	}, this);
-        
-        
     },
 //calls from external: to highlight
     setDefaultItem: function(sItemValue) {

@@ -9,9 +9,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.lstCategory = null;
         this.ddlDecimalPlaces = null;
         this.ddlCurrencySymbol = null;
-        this.txtCategory
-        this.txtDecimalPlaces
-        this.txtSymbol
+        this.txtCategory = null;
+        this.txtDecimalPlaces = null;
+        this.txtSymbol = null;
+        this.txtType = null;
         this.txtNegatvieNumbers
         this.arrCurrency=[];
         this.buildCurrencyList();
@@ -71,6 +72,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         
         this.txtDecimalPlaces=new lively.morphic.Text(new Rectangle(nX ,nY, 120, nHeight),'Decimal Places:');
         this.txtDecimalPlaces.applyStyle({borderWidth: 0, fill: null});
+        this.txtType=new lively.morphic.Text(new Rectangle(nX ,nY, 120, nHeight),'Type:');
+        this.txtType.applyStyle({borderWidth: 0, fill: null});
 
         this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(nX+nXGap, nY, 37, 23), ['0', '1', '2','3','4','5','6','7','8']);
         

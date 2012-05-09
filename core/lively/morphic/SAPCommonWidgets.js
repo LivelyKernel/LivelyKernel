@@ -118,7 +118,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
         this.selectedItem=null;
         this.selectedValue="";
 	for (var i = 0; i < oSubMorphs.length; i++) {
-            if (oSubMorphs[i].getTextString().toUpperCase()==sFontName.toUpperCase()){
+            if (oSubMorphs[i].item.value.toUpperCase()==sItemValue.toUpperCase()){
                 oSubMorphs[i].setFill(Color.rgb(240, 171, 0));
                 this.selectedItem = oSubMorphs[i].item;
                 this.selectedValue = this.selectedItem.value

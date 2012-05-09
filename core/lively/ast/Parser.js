@@ -1284,7 +1284,8 @@ Object.extend(lively.ast.VariableAnalyzer, {
     },
     findUnboundVariableNamesInAST: function(ast) {
         var analyzer = new this();
-        return analyzer.findUnboundVariableNamesInAST(ast);
+        analyzer.analyze(ast);
+        return analyzer.unboundVariableNames();
     },
     findUnboundVariableNamesIn: function(source) {
         return this.findUnboundVariableNamesInAST(this.parse(source));

@@ -5,43 +5,50 @@ module('lively.ide.SourceDatabase').requires('lively.ide.FileParsing').toRun(fun
 // ===========================================================================
 Object.subclass('lively.ide.ModuleWrapper',
 'documentation', {
-    documentation: 'Compatibility layer around normal modules for SourceCodeDatabase and other tools. Will probably merged with normal modules in the future.',
+    documentation: 'Compatibility layer around normal modules for SourceCodeDatabase and other tools. Will probably merged with normal modules in the future.'
 },
 'settings', {
     forceUncached: true,
     doNotSerialize: ['_cachedSource'],
+    isModuleWrapper: true
 },
 'initialization', {
 
-    initialize: function(moduleName, type) {
-        if (!moduleName || !type)
+    initialize: function(moduleName, type, source, isVirtual) {
+        if (!moduleName || !type) {
             throw new Error('Cannot create ModuleWrapper without moduleName or type!');
-        if (!['js', 'ometa', 'lkml', 'st'].include(type))
+        }
+        if (!['js', 'ometa', 'lkml', 'st'].include(type)) {
             throw new Error('Unknown type ' + type + ' for ModuleWrapper ' + moduleName);
+        }
         this._moduleName = moduleName;
         this._type = type; // can be js, ometa, lkml, st
         this._ast = null;
-        this._cachedSource = null;
-    },
+        this._cachedSource = source || null;
+        this._isVirtual = isVirtual; // isVirtual means that there is no file for this module
+    }
 
 },
 'accessing', {
     type: function() { return this._type },
     ast: function() { return this._ast },
+    isVirtual: function() { return this._isVirtual },
     moduleName: function() { return this._moduleName },
     fileURL: function() {
-    //    works for core modules only:
-    //    return URL.codeBase.withFilename(this.fileName())
-    //    works for non-core modules only:
-    //    return new URL(Config.rootPath).withFilename(this.fileName());
-    //    might work for both, but slower
+        //    works for core modules only:
+        //    return URL.codeBase.withFilename(this.fileName())
+        //    works for non-core modules only:
+        //    return new URL(Config.rootPath).withFilename(this.fileName());
+        //    might work for both, but slower
         return new URL(module(this._moduleName).findUri(this.type()));
     },
+
     fileName: function() {
         return this.moduleName().replace(/\./g, '/') + '.' + this.type();
     },
 
     getSourceUncached: function() {
+        if (this.isVirtual()) return this._cachedSource;
         var webR = new WebResource(this.fileURL());
         if (this.forceUncached) webR.forceUncached();
         this._cachedSource = webR.get().content || '';
@@ -53,7 +60,7 @@ Object.subclass('lively.ide.ModuleWrapper',
 
     getSource: function() {
         return this._cachedSource ? this._cachedSource : this.getSourceUncached();
-    },
+    }
 },
 'parsing', {
 
@@ -61,100 +68,114 @@ Object.subclass('lively.ide.ModuleWrapper',
         return this._ast = this.parse(this.getSource(), optSourceDB);
     },
 
+    parserMethodMapping: {
+        js: 'parseJs',
+        ometa: 'parseOmeta',
+        lkml: 'parseLkml'
+    },
+
     parse: function(source, optSourceDB) {
-        if (source === undefined)
+        if (source === undefined) {
             throw dbgOn(new Error('ModuleWrapper ' + this.moduleName() + ' needs source to parse!'));
-        var root;
-        if (this.type() == 'js') {
-            root = this.parseJs(source);
-        } else if (this.type() == 'ometa') {
-            root = this.parseOmeta(source);
-        } else if (this.type() == 'lkml') {
-            root = this.parseLkml(source);
-        } else {
-            throw dbgOn(new Error('Don\'t know how to parse ' + this.type + ' of ' + this.moduleName()))
         }
-        root.flattened().forEach(function(ea) { ea.sourceControl = optSourceDB })
+        var parseMethodSelector = this.parserMethodMapping[this.type()];
+        if (!parseMethodSelector) {
+            throw dbgOn(new Error('Don\'t know how to parse ' + this.type() + ' of ' + this.moduleName()))
+        }
+        var root = this[parseMethodSelector](source);
+        root.flattened().forEach(function(ea) { ea.sourceControl = optSourceDB });
         return root;
     },
 
     parseJs: function(source) {
-        var fileFragments = new JsParser().parseSource(source, {fileName: this.fileName()});
-        var root;
-        var firstRealFragment = fileFragments.detect(function(ea) { return ea.type !== 'comment' });
-        if (firstRealFragment && firstRealFragment.type === 'moduleDef')
+        var fileFragments = new JsParser().parseSource(source, {fileName: this.fileName()}),
+            root,
+            firstRealFragment = fileFragments.detect(function(ea) { return ea.type !== 'comment' });
+        if (firstRealFragment && firstRealFragment.type === 'moduleDef') {
             root = firstRealFragment;
-        else
+        } else {
             root = new lively.ide.FileFragment(
                 this.fileName(), 'completeFileDef', 0, source ? source.length-1 : 0,
                 this.fileName(), fileFragments, this);
+        }
         return root;
     },
 
     parseOmeta: function(source) {
-        var fileFragments = new OMetaParser().parseSource(source, {fileName: this.fileName()});
-        var root = new lively.ide.FileFragment(
-            this.fileName(), 'ometaGrammar', 0, source.length-1, this.fileName(), fileFragments, this);
+        var fileFragments = new OMetaParser().parseSource(source, {fileName: this.fileName()}),
+            root = new lively.ide.FileFragment(
+                this.fileName(), 'ometaGrammar', 0, source.length-1, this.fileName(), fileFragments, this);
         return root;
     },
 
     parseLkml: function(source) {
         return ChangeSet.fromFile(this.fileName(), source);
-    },
+    }
 },
 'saving', {
     setSource: function(source, beSync, checkForOverwrites) {
         this.setCachedSource(source);
+        if (this.isVirtual()) return;
 
         var webR = new WebResource(this.fileURL());
         connect(webR, 'status', this, 'handleSaveStatus');
         webR.beAsync().put(source, null, checkForOverwrites ? this.revisionOnLoad : null);
     },
+
     handleSaveStatus: function(status) {
         if (!status.isDone()) return;
         if (status.code() === 412) {
             this.askToOverwrite(status.url);
             return;
         }
-        if (status.isSuccess())
+        if (status.isSuccess()) {
             this.updateFileRevision();
+        }
     },
+
     askToOverwrite: function(url) {
         var world = lively.morphic.World.current();
         world.confirm(String(url) + ' was changed since loading it. Overwrite?',
-            function(input) { if (input) this.setSource(this.getSource(), false, false) }.bind(this))
+            function(input) { if (input) this.setSource(this.getSource(), false, false) }.bind(this));
     },
 
     updateFileRevision: function() {
+        if (this.isVirtual()) return;
         var webR = new WebResource(this.fileURL());
         connect(webR, 'headRevision', this, 'revisionOnLoad');
         webR.beAsync().getHeadRevision();
-    },
+    }
 },
 'removing', {
 
     remove: function() {
+        if (this.isVirtual()) return;
         new WebResource(this.fileURL()).del();
-    },
+    }
 
 });
 
 Object.extend(lively.ide.ModuleWrapper, {
 
     forFile: function(fn) {
-        var type = fn.substring(fn.lastIndexOf('.') + 1, fn.length);
-        var moduleName = fn;
+        var type = fn.substring(fn.lastIndexOf('.') + 1, fn.length),
+            moduleName = fn;
         // FIXME this is WW-specific!
         // TODO Implement reverse module lookup that takes
         //   Config.modulePaths into consideration
         // FIXME FIXME FIXME
-                while (moduleName.substring(0, 3) === '../') {
-                    moduleName = moduleName.substring(3);
-                }
+        while (moduleName.substring(0, 3) === '../') {
+            moduleName = moduleName.substring(3);
+        }
         moduleName = moduleName.substring(0, moduleName.lastIndexOf('.'));
         moduleName = moduleName.replace(/\//g, '.');
         return new lively.ide.ModuleWrapper(moduleName, type);
     },
+
+    forNonFile: function(src, type) {
+        var moduleName = "virtual-module.x" + Strings.newUUID();
+        return new lively.ide.ModuleWrapper(moduleName, type, src, true);
+    }
 
 });
 

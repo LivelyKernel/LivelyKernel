@@ -416,4 +416,20 @@ TestCase.subclass('lively.tests.ToolsTests.LivelyIdeBrowse',
 
 });
 
+TestCase.subclass('lively.ide.tests.ModuleWrapper',
+'testing', {
+
+    testCreateForNonSource: function() {
+        var src = 'var x = 3',
+            sut = lively.ide.ModuleWrapper.forNonFile(src, 'js');
+        this.assertEquals(src, sut.getSource());
+        this.assertEquals(src, sut.getSourceUncached());
+        this.assertEquals('js', sut.type());
+        var otherSrc = 'Foo + 3 + 2;';
+        sut.setSource(otherSrc);
+        this.assertEquals(otherSrc, sut.getSource());
+    }
+
+});
+
 });

@@ -78,8 +78,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         
         this.txtSymbol=new lively.morphic.Text(new Rectangle(nX ,nY+nHeight+nGap, 100, nHeight),'Symbol:');
         this.txtSymbol.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
-        this.chkUseThousand= new lively.morphic.CheckBox();
-        this.chkUseThousan.setPosition(pt(nX,nY+nHeight+nGap));
+        this.chkUseThousand = new lively.morphic.CheckBox();
+        this.chkUseThousand.setPosition(pt(nX,nY+nHeight+nGap));
 
 
 
@@ -97,6 +97,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         //this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(0, 25, 37, 23), [{isListItem: true,string:"1",value:'one'}]);
         
 
+        this.addMorph(this.chkUseThousand);
         this.addMorph(this.txtType);
         this.addMorph(this.txtCategory);
         this.addMorph(this.txtSymbol);

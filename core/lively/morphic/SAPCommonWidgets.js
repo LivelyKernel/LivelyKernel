@@ -47,6 +47,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oCurrency.bFront=true;
         this.arrCurrency.push(oCurrency);
 
+        // items = [{isListItem: true, string: 'foo', value: 23}];
+        
+
     },
     initializeLayout: function() {
   

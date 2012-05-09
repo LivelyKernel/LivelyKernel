@@ -92,8 +92,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
         this.selectedValue = nSelectedValue;
         this.arrData = arrData;
         var offset = pt(0,0);
-
-        arrData.forEach(function(item) {
+        debugger;
+        this.arrData.forEach(function(item) {
 		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-25,20)), item.string);
 		text.applyStyle({fill: null, borderWidth:0, fixedHeight: false, fixedWidth: true, allowInput: false});
                 if (item.value.toUpperCase()==this.selectedValue.toUpperCase()){

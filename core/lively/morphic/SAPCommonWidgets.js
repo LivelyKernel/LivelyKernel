@@ -74,6 +74,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtDecimalPlaces.applyStyle({borderWidth: 0, fill: null});
         this.txtType=new lively.morphic.Text(new Rectangle(nX ,nY, 120, nHeight),'Type:');
         this.txtType.applyStyle({borderWidth: 0, fill: null});
+        this.txtType.setVisible(true)
 
         this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(nX+nXGap, nY, 37, 23), ['0', '1', '2','3','4','5','6','7','8']);
         

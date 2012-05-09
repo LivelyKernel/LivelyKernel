@@ -64,12 +64,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
         this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(0, 25, 37, 23), ['0', '1', '2','3','4','5','6','7','8']);
         //this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(0, 25, 37, 23), [{isListItem: true,string:"1",value:'one'}]);
-        this.ddlCurrencySymbol = new lively.morphic.DropDownList(new Rectangle(0, 25, 37, 23), ['$', '£', '€','¥','4','5','6','7','8']);
+        this.ddlCurrencySymbol = new lively.morphic.DropDownList(new Rectangle(0, 25, 37, 23), this.arrCurrency);
 
 
         this.addMorph(oTextCategory );
         this.addMorph(this.lstCategory);
         this.addMorph(this.ddlDecimalPlaces );
+        this.addMorph(this.ddlCurrencySymbol );
     }
 });
 

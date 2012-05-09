@@ -57,8 +57,16 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     initializeLayout: function() {
   
         this.setFill(Color.rgb(255,255,255));
-        var oTextCategory =new lively.morphic.Text(pt(0,0).extent(pt(100,25)),'Category');
-        oTextCategory.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
+        var txtCategory=new lively.morphic.Text(pt(0,0).extent(pt(100,25)),'Category:');
+        txtCategory.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
+        
+        var txtDecimalPlaces=new lively.morphic.Text(pt(0,0).extent(pt(100,25)),'Decimal Places:');
+        txtDecimalPlaces.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
+        
+        var txtNegatvieNumbers=new lively.morphic.Text(pt(0,0).extent(pt(100,25)),'Negative numbers:');
+        txtNegatvieNumbers.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
+
+
         this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, 130, 200), ['Number', 'Currency', 'Percentage','Data','Time']);
         this.lstCategory.disableGrabbing();
 
@@ -67,7 +75,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.ddlCurrencySymbol = new lively.morphic.DropDownList(new Rectangle(0, 50, 200, 23), this.arrCurrency);
 
 
-        this.addMorph(oTextCategory );
+        this.addMorph(txtCategory);
+        this.addMorph(txtDecimalPlaces);
+        this.addMorph(txtNegatvieNumbers);
         this.addMorph(this.lstCategory);
         this.addMorph(this.ddlDecimalPlaces );
         this.addMorph(this.ddlCurrencySymbol );

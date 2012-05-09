@@ -110,6 +110,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
         
         
     },
+    onMouseDown: function($super, evt) {
+        $super(evt);
+        if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) return $super(evt);
+        var scroll = this.getScroll();
+	this.selectFont(this.localize(evt.getPosition()).addXY(scroll[0], scroll[1]));
+    },
     selectItem: function(pos) {
         var fontMorphs = this.submorphs, selected;
 	for (var i = 0; i < fontMorphs.length; i++) {

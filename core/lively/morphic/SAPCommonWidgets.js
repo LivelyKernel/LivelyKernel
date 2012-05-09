@@ -64,7 +64,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         var txtDecimalPlaces=new lively.morphic.Text(new Rectangle(10,300, 120, 25),'Decimal Places:');
         txtDecimalPlaces.applyStyle({borderWidth: 0, fill: null});
         
-        var txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(10,200, 120, 25),'Negative numbers:');
+        var txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(10,200, 135, 25),'Negative numbers:');
         txtNegatvieNumbers.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
 
 

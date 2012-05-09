@@ -93,6 +93,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
         this.disableGrabbing();
         this.returnCall = oReturnCall;
         this.selectedValue = nSelectedValue;
+        this.selectedItem=null;
         this.arrData = arrData;
         var offset = pt(0,0);
         debugger;
@@ -128,10 +129,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 	       fontMorphs[i].setFill(null);
             }
 	    selected.setFill(Color.rgb(240, 171, 0));
-	    this.selectedFont = selected.textString;
+	    this.selectedItem= selected;
              
             if (this.returnCall){
-                this.returnCall(this.selectedFont);
+                this.returnCall(this.selectedItem);
             }
 	}
     },

@@ -79,6 +79,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
 
         this.addMorph(txtCategory);
+        this.addMorph(txtSymbol);
         this.addMorph(txtDecimalPlaces);
         this.addMorph(txtNegatvieNumbers);
         this.addMorph(this.lstCategory);

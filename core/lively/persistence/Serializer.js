@@ -849,7 +849,6 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
 ObjectLinearizerPlugin.subclass('lively.persistence.TraitPlugin',
 'plugin interface', {
     afterDeserializeObj: function(obj) {
-        if (Global.halt) debugger;
         var traitConfs = lively.Traits.traitConfsOfObject(obj);
         if (!traitConfs) return;
         // FIXME move this logic to lively.Traits

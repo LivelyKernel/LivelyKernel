@@ -169,30 +169,34 @@ Object.subclass('AnotherSourceDatabase', {
     },
 
     ensureRealModuleName: function(moduleName) { // for migration to new module names
-        if (moduleName.endsWith('.js'))
+        if (moduleName.endsWith('.js')) {
             throw dbgOn(new Error('Old module name usage: ' + moduleName));
+        }
     },
 
     rootFragmentForModule: function(fileName) {
-        if (!Object.isString(fileName))
+        if (!Object.isString(fileName)) {
             throw dbgOn(new Error('Don\'t know what to do with ' + fileName));
-        var moduleWrapper = this.findModuleWrapperForFileName(fileName);
-        var root = moduleWrapper && moduleWrapper.ast();
+        }
+        var moduleWrapper = this.findModuleWrapperForFileName(fileName),
+            root = moduleWrapper && moduleWrapper.ast();
         // if (!root)
         //     throw dbgOn(new Error('Cannot find parsed source for ' + fileName));
         return root;
     },
 
     allModules: function() {
-        return Object.values(this.modules)
-            .select(function(ea) { return ea instanceof lively.ide.ModuleWrapper });
+        return Object.values(this.modules).select(function(ea) {
+            return ea.isModuleWrapper;
+        });
     },
 
     findModuleWrapperForFileName: function(fileName) {
         // support for Config.modulePaths == [users/, projects/]
-        var m = fileName.match(/\.\.\/([A-Za-z0-9]+\/)(.*)/)
+        // FIXME this is a hack
+        var m = fileName.match(/\.\.\/([A-Za-z0-9]+\/)(.*)/);
         if (m && Config.modulePaths.include(m[1])) {
-            fileName = m[1] + m[2]
+            fileName = m[1] + m[2];
         }
         return this.allModules().detect(function(ea) { return ea.fileName() == fileName })
     },
@@ -204,7 +208,7 @@ Object.subclass('AnotherSourceDatabase', {
     addModule: function(fileName, source) {
         var moduleWrapper = this.findModuleWrapperForFileName(fileName);
         if (moduleWrapper) return moduleWrapper;
-        var moduleWrapper = this.createModuleWrapperForFileName(fileName);
+        moduleWrapper = this.createModuleWrapperForFileName(fileName);
         if (source) moduleWrapper.setCachedSource(source);
         moduleWrapper.retrieveSourceAndParse(this);
         return this.modules[fileName] = moduleWrapper;
@@ -216,9 +220,10 @@ Object.subclass('AnotherSourceDatabase', {
     },
 
     reparseModule: function(fileName, readAgain) {
-        if (readAgain)
+        if (readAgain) {
             delete this.modules[fileName];
-        var moduleWrapper = this.findModuleWrapperForFileName(fileName)
+        }
+        var moduleWrapper = this.findModuleWrapperForFileName(fileName);
         if (moduleWrapper) {
             moduleWrapper.retrieveSourceAndParse(this);
             return moduleWrapper;
@@ -228,8 +233,9 @@ Object.subclass('AnotherSourceDatabase', {
 
     parseCompleteFile: function(fileName, newFileString) {
         var moduleWrapper = this.findModuleWrapperForFileName(fileName)
-        if (!moduleWrapper)
+        if (!moduleWrapper) {
             throw dbgOn(new Error('Cannot parse for ' + fileName + ' because module is not in SourceControl'));
+        }
         var root = newFileString ?
             moduleWrapper.parse(newFileString, this) :
             moduleWrapper.retrieveSourceAndParse(this);
@@ -241,9 +247,11 @@ Object.subclass('AnotherSourceDatabase', {
     },
 
     putSourceCodeForFile: function(fileName, content) {
-        if (!fileName)
-            throw dbgOn(new Error('No filename when tryinh to put source'));
-        var moduleWrapper = this.findModuleWrapperForFileName(fileName) || this.createModuleWrapperForFileName(fileName);
+        if (!fileName) {
+            throw dbgOn(new Error('No filename when trying to put source'));
+        }
+        var moduleWrapper = this.findModuleWrapperForFileName(fileName)
+                         || this.createModuleWrapperForFileName(fileName);
         content = content.replace(/\r/gi, '\n');  // change all CRs to LFs
         console.log("Saving " + fileName + "...");
         moduleWrapper.setSource(content, false, true);
@@ -252,22 +260,24 @@ Object.subclass('AnotherSourceDatabase', {
 
     getCachedText: function(fileName) { // Return full text of the named file
         var moduleWrapper = this.findModuleWrapperForFileName(fileName);
-        if (!moduleWrapper)
-            // throw dbgOn(new Error('Cannot retrieve source code for ' + fileName + ' because module is not in SourceControl'));
+        if (!moduleWrapper) {
+            // throw dbgOn(new Error('Cannot retrieve source code for '
+            //                      + fileName + ' because module is not in SourceControl'));
             return '';
+        }
         return moduleWrapper.getSource();
     },
 
     searchFor: function(str) {
         // search modules
-        var roots = Object.values(lively.ide.SourceControl.modules).collect(function(ea) { return ea.ast() });
-        var allFragments = roots.inject([], function(all, ea) { return all.concat(ea.flattened().uniq()) });
+        var roots = Object.values(lively.ide.SourceControl.modules).collect(function(ea) { return ea.ast() }),
+            allFragments = roots.inject([], function(all, ea) { return all.concat(ea.flattened().uniq()) });
 
         // search local code
         allFragments = allFragments.concat(ChangeSet.current().flattened());
 
         return allFragments.select(function(ea) {
-            return ea.getSourceCodeWithoutSubElements().include(str)
+            return ea.getSourceCodeWithoutSubElements().include(str);
         });
 
     },
@@ -275,14 +285,13 @@ Object.subclass('AnotherSourceDatabase', {
     scanLKFiles: function(beSync) {
         var ms = new Date().getTime();
         this.interestingLKFileNames(URL.codeBase.withFilename('lively/')).forEach(function(fileName) {
-            this.addModule(fileName, fileString);
+            this.addModule(fileName);
         }, this);
         console.log('Altogether: ' + (new Date().getTime()-ms)/1000 + 's');
     },
 
     allFiles: function() {
-        if (!this._allFiles)
-            this._allFiles = this.interestingLKFileNames(this.codeBaseURL).uniq();
+        this._allFiles = this._allFiles || this.interestingLKFileNames(this.codeBaseURL).uniq();
         return this._allFiles;
     },
 
@@ -321,32 +330,45 @@ Object.subclass('AnotherSourceDatabase', {
 
     switchCodeBase: function(newCodeBaseURL) {
         this.codeBaseURL = new URL(newCodeBaseURL.withRelativePartsResolved());
-        this._allFiles = new WebResource(newCodeBaseURL).getSubElements().subDocuments.collect(function(ea) { return ea.getName() });
+        try {
+            this._allFiles = new WebResource(newCodeBaseURL).getSubElements().subDocuments.collect(function(ea) { return ea.getName() });
+        } catch(e) {
+            alert('Cannot switch to ' + newCodeBaseURL + ' because of ' + e);
+            this._allFiles = [];
+        }
     },
 
     prepareForMockModule: function(fileName, src) { // This is just used for testing!!!
+        // DEPRECATED!
         this.modules[fileName] = lively.ide.ModuleWrapper.forFile(fileName);
         this.modules[fileName].setCachedSource(src);
         this.putSourceCodeFor = function(fileFragment, newFileString) {
-            this.modules[fileName].setCachedSource(newFileString)
+            this.modules[fileName].setCachedSource(newFileString);
         }.bind(this);
         var root = this.reparseModule(fileName).ast();
         root.flattened().forEach(function(ea) { ea.sourceControl = this }, this);
-        return root
+        return root;
     },
+
     interestingLKFileNames: function(url) {
-        var webR = new WebResource(url).beSync(),
-            fileURLs = webR.getSubElements().subDocuments.collect(function(ea) { return ea.getURL() }),
-            fileNames = fileURLs.collect(function(ea) { return ea.relativePathFrom(URL.codeBase) }),
-            acceptedFileNames = /.*\.(st|js|lkml|ometa)/,
-            rejects = ['JSON.js'];
+        try {
+            var webR = new WebResource(url).beSync(),
+                fileURLs = webR.getSubElements().subDocuments.collect(function(ea) { return ea.getURL() }),
+                fileNames = fileURLs.collect(function(ea) { return ea.relativePathFrom(URL.codeBase) }),
+                acceptedFileNames = /.*\.(st|js|lkml|ometa)/,
+                rejects = ['JSON.js'];
 
-        fileNames = fileNames
-            .select(function(ea) { return acceptedFileNames.test(ea) })
-            .reject(function(ea) { return rejects.include(ea) })
-            .uniq();
+            fileNames = fileNames
+                        .select(function(ea) { return acceptedFileNames.test(ea) })
+                        .reject(function(ea) { return rejects.include(ea) })
+                        .uniq();
 
-        return fileNames;
+            return fileNames;
+        } catch(e) {
+            console.error('interestingLKFileNames: ' + e);
+            return [];
+        }
+
     },
 
 });
@@ -360,7 +382,7 @@ AnotherSourceDatabase.addMethods(
                 lively.morphic.World.current().notify(fullList.length.toString() + " references abbreviated to 300.");
                 fullList = fullList.slice(0,299);
             }
-            return fullList
+            return fullList;
         }.bind(this);
         var refs = new ChangeList("References to " + str, null, searchFunc(), str, searchFunc);
         refs.openIn(lively.morphic.World.current());
@@ -378,21 +400,21 @@ AnotherSourceDatabase.addMethods(
 
     getViewTitle: function() {
         return "Source Control for " + this.fileName;
-    },
+    }
 });
 
 AnotherSourceDatabase.addMethods(
 'code completion support', {
     createSymbolList: function() {
+        // FIXME this needs cleanup!!!
+
         // is a list of names of classes, proto and static methods, objects, and functions defined
         // in all currently loaded namespaces
 
-        var allClasses = Global.classes(true)
-        allClasses.length
-        var allClassNames = allClasses.collect(function(klass) { return klass.name /*local name*/ })
-
-        var namespaces = [Global].concat(Global.subNamespaces(true))
-        var namespaceNames = namespaces.pluck('namespaceIdentifier')
+        var allClasses = Global.classes(true),
+            allClassNames = allClasses.collect(function(klass) { return klass.name /*local name*/ }),
+            namespaces = [Global].concat(Global.subNamespaces(true)),
+            namespaceNames = namespaces.pluck('namespaceIdentifier');
 
         // both proto and static
         var allMethodNames = allClasses
@@ -413,7 +435,7 @@ AnotherSourceDatabase.addMethods(
         var symbolList = allClassNames.concat(namespaceNames).concat(allMethodNames).concat(functionAndObjectNames);
 
         return symbolList;
-    },
+    }
 
 });
 
@@ -421,13 +443,11 @@ Object.extend(lively.ide, {
     sourceDB: function() {
         return this.startSourceControl();
     },
+
     startSourceControl: function() {
         // creates or fetches
-        if (lively.ide.SourceControl instanceof AnotherSourceDatabase)
-            return lively.ide.SourceControl;
-        lively.ide.SourceControl = new AnotherSourceDatabase();
-        return lively.ide.SourceControl;
-    },
+        return lively.ide.SourceControl = lively.ide.SourceControl || new AnotherSourceDatabase();
+    }
 });
 
 }) // end of module

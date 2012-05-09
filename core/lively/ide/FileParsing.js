@@ -161,38 +161,41 @@ Object.subclass('lively.ide.FileFragment',
 },
 'writeing', {
     putSourceCode: function(newString) {
-        if (!this.fileName) throw dbgOn(new Error('No filename for descriptor ' + this.name));
-
         var newMe = this.reparseAndCheck(newString);
         if (!newMe) return null;
 
         var newFileString = this.buildNewFileString(newString);
-        this.getSourceControl().putSourceCodeFor(this, newFileString);
-
+        if (!this.fileName) {
+            console.warn('No filename for descriptor ' + this.name);
+        } else {
+            this.getSourceControl().putSourceCodeFor(this, newFileString);
+        }
         this.updateIndices(newString, newMe);
         return newMe;
     },
 
     buildNewFileString: function(newString) {
-        var fileString = this.getFileString();
-        var beforeString = fileString.substring(0, this.startIndex);
-        var afterString = fileString.substring(this.stopIndex+1);
-        var newFileString = beforeString.concat(newString, afterString);
+        var fileString    = this.getFileString(),
+            beforeString  = fileString.substring(0, this.startIndex),
+            afterString   = fileString.substring(this.stopIndex+1),
+            newFileString = beforeString.concat(newString, afterString);
         return newFileString;
-    },
+    }
 },
 'parsing', {
     reparse: function(newSource) {
         var newFileString = this.buildNewFileString(newSource);
         newFileString = newFileString.slice(0,this.startIndex + newSource.length)
 
-        if (this.type === 'moduleDef' || this.type === 'completeFileDef' || this.type === 'ometaGrammar')
+        if (this.type === 'moduleDef'
+          || this.type === 'completeFileDef'
+          || this.type === 'ometaGrammar') {
             return this.sourceControl.parseCompleteFile(this.fileName, newFileString);
+        }
 
         // FIXME time to cleanup!!!
-        var parser = (this.type === 'ometaDef' || this.type === 'ometaRuleDef') ?
-        new OMetaParser() :
-        new JsParser();
+        var isOMetaSource = this.type === 'ometaDef' || this.type === 'ometaRuleDef',
+            parser =  isOMetaSource ? new OMetaParser() : new JsParser();
 
         parser.debugMode = this.debugMode;
         parser.ptr = this.startIndex;
@@ -201,8 +204,11 @@ Object.subclass('lively.ide.FileFragment',
         parser.fileName = this.fileName;
 
         var newFragment = parser.parseWithOMeta(this.type);
-        if (newFragment)
-            newFragment.flattened().forEach(function(ea) { ea.sourceControl = this.sourceControl }, this);
+        if (newFragment) {
+            newFragment.flattened().forEach(function(ea) {
+                ea.sourceControl = this.sourceControl }, this);
+        }
+
         return newFragment;
     },
 
@@ -254,7 +260,7 @@ Object.subclass('lively.ide.FileFragment',
         this.stopLineNumber = undefined;
 
         // update fragments which follow after this or where this is a part of
-        this.fragmentsOfOwnFile().each(function(ea) {
+        this.fragmentsOfOwnFile().forEach(function(ea) {
             if (ea.stopIndex < prevStop) return;
             ea.stopIndex += delta;
             if (ea.startIndex <= prevStop) return;
@@ -265,7 +271,7 @@ Object.subclass('lively.ide.FileFragment',
 
         this.name = newMe.name; // for renaming
         this._subElements = newMe.subElements();
-    },
+    }
 },
 'consistency', {
     checkConsistency: function() {
@@ -459,7 +465,7 @@ Object.subclass('CodeParser', {
         this.changeList = [];
 
         this.ptr = (config && config.ptr) || 0;
-        this.fileName = (config && config.fileName) || null;
+        this.fileName = (config && config.fileName) || null; //"no-file-" + Strings.newUUID();
     },
 
     callOMeta: function(rule, src) {
@@ -487,17 +493,19 @@ Object.subclass('CodeParser', {
             descr;
         if (hint) descr = this.callOMeta(hint, partToParse);
 
-        if (!descr || descr.isError)
+        if (!descr || descr.isError) {
             this.ometaRules
                 .without(hint)
                 .detect(function(rule) {
                     descr = this.callOMeta(rule, partToParse);
                     return descr && !descr.isError
                 }, this);
+        }
 
         if (descr === undefined) {
             throw dbgOn(new Error('Could not parse src at ' + this.ptr));
         }
+
         if (descr.stopIndex === undefined) {
             throw dbgOn(new Error('Parse result has an error '
                                  + JSON.serialize(descr)
@@ -564,6 +572,7 @@ Object.subclass('CodeParser', {
 
     parseNonFile: function(source) {
         var result = this.parseSource(source).first();
+        // lively.ide.startSourceControl().addNonFile();
         this.doForAllDescriptors(result, function(d) { d._fallbackSrc = source });
         return result;
     },
@@ -656,11 +665,10 @@ Object.subclass('CodeParser', {
 
      /* loading */
     sourceFromUrl: function(url) {
-        var scrCtrl = lively.ide.startSourceControl();
-        return scrCtrl.getCachedText(url.filename());
+        return lively.ide.startSourceControl().getCachedText(url.filename());
     },
 
-    //FIXME cleanup
+    // FIXME cleanup
     parseFileFromUrl: function(url) {
         var src = this.sourceFromUrl(url),
             result = this.parseSource(src),

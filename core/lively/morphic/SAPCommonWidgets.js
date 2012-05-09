@@ -119,14 +119,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 	this.selectItem(this.localize(evt.getPosition()).addXY(scroll[0], scroll[1]));
     },
     selectItem: function(pos) {
-        var fontMorphs = this.submorphs, selected;
-	for (var i = 0; i < fontMorphs.length; i++) {
-	   if (fontMorphs[i].bounds().containsPoint(pos)) selected = fontMorphs[i];
+        var oSubMorphs = this.submorphs, selected;
+	for (var i = 0; i < oSubMorphs.length; i++) {
+	   if (oSubMorphs[i].bounds().containsPoint(pos)) selected = oSubMorphs[i];
 	}
 
 	if (selected) {
-            for (var i = 0; i < fontMorphs.length; i++) {
-	       fontMorphs[i].setFill(null);
+            for (var i = 0; i < oSubMorphs.length; i++) {
+	       oSubMorphs[i].setFill(null);
             }
 	    selected.setFill(Color.rgb(240, 171, 0));
 	    this.selectedItem= selected;

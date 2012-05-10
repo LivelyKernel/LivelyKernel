@@ -20,6 +20,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.buildCurrencyList();
         this.initializeLayout();
     },
+    setCategory: function(sCategory){
+        this.lstCategory.setSelectionMatching(sCategory);
+    }
     buildCurrencyList: function() {
         this.arrCurrency=[];
         var oCurrency={};

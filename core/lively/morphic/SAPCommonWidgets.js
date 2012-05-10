@@ -248,6 +248,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
         this.selectedValue = nSelectedValue;
         this.selectedItem=null;
         this.arrData = arrData;
+        this.setList();
         var offset = pt(0,0);
         debugger;
         this.arrData.forEach(function(item) {
@@ -264,7 +265,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 		offset = text.bounds().bottomLeft();
 	}, this);
     },
-//calls from external: to highlight
     setDefaultItem: function(sItemValue) {
         var oSubMorphs = this.submorphs;
         this.selectedItem=null;

@@ -303,8 +303,9 @@ Object.extend(Function.prototype, {
                 this.addCategorizedMethods(category, args[i] instanceof Function ? (args[i])() : args[i]);
             }
         }
-        for (var i = 0; i < traits.length; i++)
+        for (i = 0; i < traits.length; i++) {
             traits[i].applyTo(this);
+        }
     },
 
     addCategorizedMethods: function(categoryName, source) {
@@ -452,9 +453,11 @@ Object.extend(Function.prototype, {
     },
 
     categoryNameFor: function(propName) {
-        for (var categoryName in this.categories)
-            if (this.categories[categoryName].include(propName))
+        for (var categoryName in this.categories) {
+            if (this.categories[categoryName].include(propName)) {
                 return categoryName;
+            }
+        }
         return null;
     },
     remove: function() {
@@ -527,40 +530,39 @@ var Class = {
     },
 
     isValidIdentifier: function(str) {
-        return (/^(?:[a-zA-Z_][\w\-]*[.])*[a-zA-Z_][\w\-]*$/).test(str);
+        return /^(?:[a-zA-Z_][\w\-]*[.])*[a-zA-Z_][\w\-]*$/.test(str);
     },
 
     isClass: function Class$isClass(object) {
-        if(object === Object
-            || object === Array
-            || object === Function
-            || object === String
-            || object === Number) {
-                return true;
+        if (object === Object
+          || object === Array
+          || object === Function
+          || object === String
+          || object === Number) {
+            return true;
         }
         return (object instanceof Function) && (object.superclass !== undefined);
     },
 
     className: function Class$className(cl) {
-        if(cl === Object) return "Object"
-        if(cl === Array) return "Array"
-        if(cl === Function) return "Function"
-        if(cl === String) return "String"
-        if(cl === Number) return "Number"
+        if (cl === Object) return "Object"
+        if (cl === Array) return "Array"
+        if (cl === Function) return "Function"
+        if (cl === String) return "String"
+        if (cl === Number) return "Number"
         return cl.type;
     },
 
     forName: function forName(name) {
         // lookup the class object given the qualified name
-        var ns = Class.namespaceFor(name);
-        var shortName = Class.unqualifiedNameFor(name);
+        var ns = Class.namespaceFor(name),
+            shortName = Class.unqualifiedNameFor(name);
         return ns[shortName];
     },
 
-    deleteObjectNamed: function Class$delteObjectNamed(name) {
+    deleteObjectNamed: function Class$deleteObjectNamed(name) {
         var ns = Class.namespaceFor(name),
             shortName = Class.unqualifiedNameFor(name);
-        if (!ns[shortName]) return;
         delete ns[shortName];
     },
 
@@ -984,6 +986,7 @@ Object.extend(Namespace, {
         // get currently loaded modules that really are js files
         var modules = Global.subNamespaces(true).select(function(ea) {
             return ea.isLoaded() && new WebResource(ea.uri()).exists() });
+
 
         // topological sort modules according to their requirements
         var sortedModules = [], i = 0;

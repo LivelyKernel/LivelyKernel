@@ -1220,7 +1220,9 @@ lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
 },
 'visiting', {
     visitVariable: function(node) {
-        this.current.uses.pushIfNotIncluded(node);
+        if (!this.knownGlobals.include(node.name)) {
+            this.current.uses.push(node);
+        }
     },
     visitVarDeclaration: function(node) {
         this.scopes.last().boundVars.pushIfNotIncluded(node.name);

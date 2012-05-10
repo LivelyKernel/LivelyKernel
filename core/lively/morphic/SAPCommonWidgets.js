@@ -106,7 +106,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
             });
         };
-    };()
+    };()}
 ,
     lstCategory_onChange: function() {
         var sValue = this.lstCategory.getSelectedItem();

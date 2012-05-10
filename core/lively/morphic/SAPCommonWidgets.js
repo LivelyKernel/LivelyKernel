@@ -72,7 +72,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
             case "Time":
                 this.txtType.setVisible(true);
                 this.lstDataTime.setVisible(true);
-                this.lstDataTime.updateList(0,this.arrDateFormat);
+                this.lstDataTime.updateList(0,this.arrTimeFormat);
                 break;
             case "Percentage":
                 this.ddlDecimalPlaces.setVisible(true);
@@ -225,9 +225,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
 
 var dNow = new Date();
-//alert(now.format("m/dd/yy"));
-//alert(dateFormat(now, "dddd, mmmm dS, yyyy, h:MM:ss TT"));
-
         oItem={};
         oItem.value= "mm/dd/yyyy";
         oItem.string= dateFormat("mm/dd/yyyy");
@@ -272,10 +269,59 @@ var dNow = new Date();
 
         oItem={};
         oItem.value= "m/d/yy h:M TT";
-        oItem.string= dateFormat("m/d/yy h:M TT");
+        oItem.string= dateFormat("m/d/yy h:M TT") +" (12-hour clock);
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
+
+        oItem={};
+        oItem.value= "m/d/yy H:M";
+        oItem.string= dateFormat("m/d/yy H:M") +" (22-hour clock);
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrDateFormat.push(oItem);
+//Time
+        oItem={};
+        oItem.value= "h:M TT";
+        oItem.string= dateFormat("h:M TT")+" (12-hour clock)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrTimeFormat.push(oItem);
+
+        oItem={};
+        oItem.value= "H:M";
+        oItem.string= dateFormat("H:M") + " (24-hour clock)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrTimeFormat.push(oItem);
+
+        oItem={};
+        oItem.value= "h:M:s TT";
+        oItem.string= dateFormat("h:M:s TT")+" (12-hour clock)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrTimeFormat.push(oItem);
+
+        oItem={};
+        oItem.value= "H:M:s";
+        oItem.string= dateFormat("h:M:s") + " (24-hour clock)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrTimeFormat.push(oItem);
+
+        oItem={};
+        oItem.value= "m/d/yy h:M TT";
+        oItem.string= dateFormat("m/d/yy h:M TT") +" (12-hour clock);
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrTimeFormat.push(oItem);
+
+        oItem={};
+        oItem.value= "m/d/yy H:M";
+        oItem.string= dateFormat("m/d/yy H:M") +" (22-hour clock);
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrTimeFormat.push(oItem);
 
 
     },

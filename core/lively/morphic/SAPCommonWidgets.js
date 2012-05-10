@@ -140,35 +140,28 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.arrCurrency.push(oItem);
 
 
-        oItem={}
+        oItem={};
         oItem.value= 0;
         oItem.string= "-$1,234.10";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrNegativeNumber.push(oItem);
 
-        oItem={}
+        oItem={};
         oItem.value= 1;
         oItem.string= "$1,234.10";
         oItem.isListItem=true;
         oItem.textColor=Color.red;
         this.arrNegativeNumber.push(oItem);
 
-        oItem={}
-        oItem.value= 2;
-        oItem.string= "$1,234.10";
-        oItem.isListItem=true;
-        oItem.textColor=Color.red;
-        this.arrNegativeNumber.push(oItem);
-
-        oItem={}
+        oItem={};
         oItem.value= 2;
         oItem.string= "($1,234.10)";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrNegativeNumber.push(oItem);
 
-        oItem={}
+        oItem={};
         oItem.value= 4;
         oItem.string= "($1,234.10)";
         oItem.isListItem=true;

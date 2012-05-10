@@ -1225,7 +1225,7 @@ lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
         }
     },
     visitVarDeclaration: function(node) {
-        this.scopes.last().boundVars.pushIfNotIncluded(node.name);
+        this.current.defs.push(node);
         this.visitParts(node, ['val']);
     },
     visitParts: function(node, parts) {

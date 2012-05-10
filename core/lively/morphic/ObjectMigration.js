@@ -136,31 +136,6 @@ if (false && LivelyMigrationSupport.documentMigrationLevel < 5) {
     }).beGlobal();
 };
 
-if (LivelyMigrationSupport.documentMigrationLevel < 6) {
-    /// fixes the issue that after ignore events label was still shown
-    // cop.create('DocumentMigrationLevel6Layer')
-    // .refineClass(RealTrait, {
-        // onrestore: function() {
-            // debugger;
-            // cop.proceed();
-        // },
-    // }).beGlobal();
-
-ObjectLinearizerPlugin.subclass('lively.persistence.TraitPlugin',
-'plugin interface', {
-    afterDeserializeObj: function(obj) {
-        var traitConfs = lively.Traits.traitConfsOfObject(obj);
-        if (!traitConfs) return;
-        // FIXME move this logic to lively.Traits
-        Object.isArray(traitConfs) && traitConfs.forEach(function(conf) {
-            var trait = Trait(conf.traitName);
-            trait.applyTo(obj, conf.options);
-        })
-    }
-});
-
-};
-
 if (Config.enableShapeGetterAndSetterRefactoringLayer) {
     // this layer will make shapes compatible that stored their properties
     // manually the new scheme for shapes is the same as for morphs, e.g.:

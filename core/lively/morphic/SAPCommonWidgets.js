@@ -160,9 +160,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         connect(this.lstCategory, "onDownPressed", this, "lstCategory_onChange", {});
 
         this.lstCategory.addScript(function onDownPressed(evt) {
-                $super(evt);
-                alert(0)
-                return true;
+      
             }).tag([]);
 
 

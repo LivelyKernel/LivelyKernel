@@ -904,6 +904,18 @@ Namespace.addMethods(
                 this.logError('runOnloadCallbacks: ' + cb.name + ': ' + e);
                 throw e
             }
+        };
+    },{
+        if (!this.callbacks) return;
+        if (!this.executedCallbacks) 
+            this.executedCallbacks = []; // remember callbacks for debugging
+        var cb;
+        while (cb = this.callbacks.shift()) {
+            this.executedCallbacks.push(cb)
+            try {cb()} catch(e) {
+                this.logError('runOnloadCallbacks: ' + cb.name + ': ' + e);
+                throw e
+            }
         ;
     },
 

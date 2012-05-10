@@ -260,7 +260,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-25,20)), item.string);
                 text.item = item;
 		text.applyStyle({fill: null,textColor:item.textColor, borderWidth:0, fixedHeight: false, fixedWidth: true, allowInput: false});
-                if (item.value.toUpperCase()==this.selectedValue.toUpperCase()){
+                if (item.value.toString().toUpperCase()==this.selectedValue.toUpperCase()){
                     this.selectedItem = text;
                     text.setFill(Color.rgb(240, 171, 0));
                 }

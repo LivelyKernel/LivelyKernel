@@ -24,7 +24,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.initializeLayout();
     },//lstCategory_onChange
     lstCategory_onChange: function() {
-        alert(0)
+        var sValue = this.ddlCurrencySymbol.getSelectedItem();
+        debugger;
         //this.lstCategory.setSelection(nIndex);
     },
     ddlCurrencySymbol_onChange: function(){

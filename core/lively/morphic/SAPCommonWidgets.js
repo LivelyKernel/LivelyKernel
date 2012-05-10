@@ -219,11 +219,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oItem.textColor=Color.red;
         this.arrNegativeCurrencyNumber.push(oItem);
 
-
         this.arrDateFormat=[];
         this.arrTimeFormat=[];
 
-
+//Date
 var dNow = new Date();
         oItem={};
         oItem.value= "mm/dd/yyyy";
@@ -322,7 +321,6 @@ var dNow = new Date();
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrTimeFormat.push(oItem);
-
 
     },
     initializeLayout: function() {

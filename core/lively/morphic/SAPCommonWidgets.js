@@ -157,7 +157,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.addMorph(this.ddlDecimalPlaces );
         this.addMorph(this.ddlCurrencySymbol );
 
-        connect(this.lstCategory , "onChange", this, "lstCategory_onChange", {});
+        connect(this.lstCategory , "onSelectionChange", this, "lstCategory_onChange", {});
         connect(this.ddlCurrencySymbol, "onChange", this, "lstCategory_onChange", {});
 
     }

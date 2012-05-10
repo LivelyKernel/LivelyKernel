@@ -25,7 +25,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.initializeLayout();
     },//lstCategory_onChange
     lstCategory_onChange: function() {
-        var sValue = this.lstCategory.getSelectedItem();
+        var nValue = this.lstCategory.getSelectedItem();
+        this.selectedCategory = nValue ;
         debugger;
         //this.lstCategory.setSelection(nIndex);
     },

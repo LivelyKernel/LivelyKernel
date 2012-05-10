@@ -28,11 +28,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         var sValue = this.lstCategory.getSelectedItem();
         this.selectedCategory = sValue;
 
-        
-        this.lstCategory.setVisible(false);
         this.ddlDecimalPlaces.setVisible(false);
         this.ddlCurrencySymbol.setVisible(false);
-        this.txtCategory.setVisible(false);
         this.txtDecimalPlaces.setVisible(false);
         this.txtSymbol.setVisible(false);
         this.txtType.setVisible(false);
@@ -146,9 +143,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         var nGap = 5;
         var nXGap = 150;
         var nHeight=25;
-
-        
-
 
         this.setFill(Color.rgb(255,255,255));
    

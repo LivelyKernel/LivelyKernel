@@ -98,7 +98,7 @@ var JSLoader = {
         }
 
         parentNode.appendChild(el);
-        el.setAttributeNS(null, 'id', url);
+        el.setAttributeNS(null,  'src',  url);
 
         return loadSync ?
             this.loadSync(exactUrl, onLoadCb, el) :
@@ -1190,23 +1190,23 @@ var LivelyMigrationSupport = {
 };
 
 function startWorld(startupFunc) {
+	  LivelyMigrationSupport.setDocumentMigrationLevel(document);
     LivelyLoader.addPatches();
 
     window.addEventListener('DOMContentLoaded', function() {
-        LivelyMigrationSupport.setDocumentMigrationLevel(document);
         if (EmbededLoader.embedLively() ||
             LivelyLoader.startCanvasWorld() ||
             LivelyLoader.startWorld() ||
             LivelyLoader.startNewMorphicWorld(startupFunc) ||
             LivelyLoader.startHeadless()) return;
-        console.warn("Lively was not able to start");
+        console.warn('couldn\'t strt Lively');
     }, true);
 
     window.addEventListener('beforeunload', function(evt) {
         if (window.Config && window.Config.askBeforeQuit) {
             var msg = "Lively Kernel data may be lost if not saved.";
-            evt.returnValue = msg;
-            return msg;
+	          evt.returnValue = msg;
+	          return msg;
         } else {
             return undefined;
         }

@@ -1213,11 +1213,7 @@ lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
         this.visit(ast);
         // this.createChains();
     },
-    findTopLevelVarDeclarationsInAST: function(ast) {
-        this.topLevel = true;
-        this.findUnboundVariableNamesInAST(ast);
-        return this.scopes.last().boundVars;
-    },
+
 },
 'visiting', {
     visitVariable: function(node) {

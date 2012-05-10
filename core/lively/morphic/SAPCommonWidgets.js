@@ -17,6 +17,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtNegatvieNumbers
         this.txtUseThousand=null;
         this.arrCurrency=[];
+        this.arrCategory=[];
         this.buildListItems();
         this.initializeLayout();
     },
@@ -25,6 +26,38 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     },
     buildListItems: function() {
         this.arrCurrency=[];
+        this.arrCategory=[];
+        //'Number', 'Currency', 'Percentage','Date','Time'
+        var oItem={};
+        oItem.value= "0";
+        oItem.string= "Number";
+        oItem.isListItem=true;
+        this.arrCategory.push(oItem);
+
+        oItem={};
+        oItem.value= "1";
+        oItem.string= "Currency";
+        oItem.isListItem=true;
+        this.arrCategory.push(oItem);
+
+        oItem={};
+        oItem.value= "3";
+        oItem.string= "Date";
+        oItem.isListItem=true;
+        this.arrCategory.push(oItem);
+
+        oItem={};
+        oItem.value= "4";
+        oItem.string= "Time";
+        oItem.isListItem=true;
+        this.arrCategory.push(oItem);
+
+        oItem={};
+        oItem.value= "2";
+        oItem.string= "Percentage";
+        oItem.isListItem=true;
+        this.arrCategory.push(oItem);
+
         var oCurrency={};
         
         oCurrency.value= "USD";
@@ -60,6 +93,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oCurrency.bFront=true;
         oCurrency.isListItem=true;
         this.arrCurrency.push(oCurrency);
+
+        
+
+
     },
     initializeLayout: function() {
         var nX = 150;
@@ -94,7 +131,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
            
 
-        this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, nX-20 , 200), ['Number', 'Currency', 'Percentage','Data','Time']);
+        this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, nX-20 , 200), this.arrCategory);
 
 
 

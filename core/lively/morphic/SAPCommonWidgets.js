@@ -230,8 +230,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtType.applyStyle({borderWidth: 0, fill: null});
         this.txtType.setVisible(false);
 
-        this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(nX+nXGap, nY, 37, 23), ['0', '1', '2','3','4','5','6','7','8']);
-        this.ddlDecimalPlaces .setSelection(this.selectedDecimalPlaces);
+        this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(nX+nXGap, nY, 37, 23), [0, 1, 2,3,4,5,6,7,8]);
+        this.ddlDecimalPlaces.setSelection(this.selectedDecimalPlaces);
         
         this.txtSymbol = new lively.morphic.Text(new Rectangle(nX ,nY+nHeight+nGap, 100, nHeight),'Symbol:');
         this.txtSymbol.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});

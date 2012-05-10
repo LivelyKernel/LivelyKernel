@@ -50,7 +50,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 this.txtUseThousand.setVisible(true);
                 this.txtNegatvieNumbers.setVisible(true);
                 this.lstNegativeNumber.setVisible(true);
-                //updateList
+                this.lstNegativeNumber.updateList(0,this.arrNegativeNumber);
                 break;
             case "Currency":  
                 this.ddlDecimalPlaces.setVisible(true);
@@ -59,6 +59,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 this.ddlCurrencySymbol.setVisible(true);
                 this.txtNegatvieNumbers.setVisible(true);
                 this.lstNegativeNumber.setVisible(true);
+                this.lstNegativeNumber.updateList(0,this.arrNegativeCurrencyNumber);
                 break;
             case "Date":
                 this.txtType.setVisible(true);

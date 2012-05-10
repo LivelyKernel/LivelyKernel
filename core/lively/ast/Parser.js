@@ -1195,16 +1195,17 @@ lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
                    "Object", "Function", "String", "Date", "Math", "parseFloat", "isNaN",
                    "eval", "window", "document", "Node",
                    "HTMLCanvasElement", "Image"],
-    newScope: function(optParentScope) {
+    newScope: function() {
         var s = {
             defs: [],
             uses: [],
             scopes: []
         };
-        if (optParentScope) {
-            optParentScope.scopes.push(s);
-            s.parent = optParentScope;
+        if (this.current) {
+            this.current.scopes.push(s);
+            s.parent = this.current;
         }
+        this.current = s;
         return s;
     },
 },

@@ -224,7 +224,7 @@ var dNow = new Date();
 
         oItem={};
         oItem.value= "mm/dd/yyyy";
-        oItem.string= dNow.format("mm/dd/yyyy");
+        oItem.string= dateFormat("mm/dd/yyyy");
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);

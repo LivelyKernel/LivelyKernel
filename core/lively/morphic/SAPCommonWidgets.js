@@ -174,8 +174,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(nX ,nY+2*nHeight+2*nGap, 135, nHeight),'Negative numbers:');
         this.txtNegatvieNumbers.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
 
-           
-
         this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, nX-20 , 200), this.arrCategory);
         this.lstCategory.setSelection(this.selectedCategory);
         this.lstCategory.setSelection(0);
@@ -199,10 +197,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.addMorph(this.ddlCurrencySymbol );
 
         connect(this.lstCategory, "selection", this, "lstCategory_onChange", {});
-
-       
-
-
         connect(this.ddlCurrencySymbol, "onChange", this, "ddlCurrencySymbol_onChange", {});
 
     }

@@ -618,8 +618,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPFontPicker',
 });
 */
 
-}) // end of moduleodule('lively.morphic.SAPCommonWidgets').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles').toRun(function() {
-
+}) // end of module
 lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 'default category', {
     initialize: function($super) {

@@ -1208,9 +1208,10 @@ lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
 'analyzing', {
 
     analyze: function(ast) {
-        this.unboundVariables = [];
-        this.topLevelVarDeclarations = [];
+        this.root = this.newScope();
+        this.current = this.root;
         this.visit(ast);
+        // this.createChains();
     },
     findTopLevelVarDeclarationsInAST: function(ast) {
         this.topLevel = true;

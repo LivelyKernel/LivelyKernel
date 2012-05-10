@@ -42,10 +42,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtNegatvieNumbers.setVisible(false);
         this.txtUseThousand.setVisible(false);
         this.lstNegativeNumber.setVisible(false);
-var now = new Date();
 
-alert(now.format("m/dd/yy"));
-alert(dateFormat(now, "dddd, mmmm dS, yyyy, h:MM:ss TT"));
         switch(this.selectedCategory){
             case "Number": 
                 this.ddlDecimalPlaces.setVisible(true);
@@ -220,26 +217,31 @@ alert(dateFormat(now, "dddd, mmmm dS, yyyy, h:MM:ss TT"));
         this.arrDateFormat=[];
         this.arrTimeFormat=[];
 
-        /*oItem={};
+
+var dNow = new Date();
+//alert(now.format("m/dd/yy"));
+//alert(dateFormat(now, "dddd, mmmm dS, yyyy, h:MM:ss TT"));
+
+        oItem={};
         oItem.value= "mm/dd/yyyy";
-        oItem.string= now.format("mm/dd/yyyy");
+        oItem.string= dNow.format("mm/dd/yyyy");
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
 
         oItem={};
         oItem.value= "dddd, mmmm dd, yyyy";
-        oItem.string= dateFormat(now, "dddd, mmmm dd, yyyy");
+        oItem.string= dateFormat(dNow, "dddd, mmmm dd, yyyy");
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
 
         oItem={};
         oItem.value= "mm/dd";
-        oItem.string= now.format("mm/dd");
+        oItem.string= dNow.format("mm/dd");
         oItem.isListItem=true;
         oItem.textColor=Color.black;
-        this.arrDateFormat.push(oItem);*/
+        this.arrDateFormat.push(oItem);
 
     },
     initializeLayout: function() {

@@ -269,14 +269,14 @@ var dNow = new Date();
 
         oItem={};
         oItem.value= "m/d/yy h:M TT";
-        oItem.string= dateFormat("m/d/yy h:M TT") +" (12-hour clock);
+        oItem.string= dateFormat("m/d/yy h:M TT") +" (12-hour clock)";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
 
         oItem={};
         oItem.value= "m/d/yy H:M";
-        oItem.string= dateFormat("m/d/yy H:M") +" (22-hour clock);
+        oItem.string= dateFormat("m/d/yy H:M") +" (22-hour clock)";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
@@ -318,7 +318,7 @@ var dNow = new Date();
 
         oItem={};
         oItem.value= "m/d/yy H:M";
-        oItem.string= dateFormat("m/d/yy H:M") +" (22-hour clock);
+        oItem.string= dateFormat("m/d/yy H:M") +" (22-hour clock)";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrTimeFormat.push(oItem);

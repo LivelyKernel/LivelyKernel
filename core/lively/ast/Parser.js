@@ -1201,7 +1201,10 @@ lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
             uses: [],
             scopes: []
         };
-        if (optParentScope) optParentScope.scopes.push(s);
+        if (optParentScope) {
+            optParentScope.scopes.push(s);
+            s.parent = optParentScope;
+        }
         return s;
   },
 },

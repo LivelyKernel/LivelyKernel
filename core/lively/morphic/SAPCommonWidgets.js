@@ -38,23 +38,33 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.chkUseThousand.setVisible(false);
         this.txtNegatvieNumbers.setVisible(false);
         this.txtUseThousand.setVisible(false);
+        this.lstNegativePlaces.setVisible(false);
 
 
         switch(this.selectedCategory){
             case "Number": 
-  
+                this.ddlDecimalPlaces.setVisible(true);
+                this.txtDecimalPlaces.setVisible(true);
+                this.chkUseThousand.setVisible(true);
+                this.txtUseThousand.setVisible(true);
+                this.lstNegativePlaces.setVisible(true);
                 break;
             case "Currency":  
-  
+                this.ddlDecimalPlaces.setVisible(true);
+                this.txtDecimalPlaces.setVisible(true);
+                this.txtSymbol.setVisible(true);
+                this.ddlCurrencySymbol.setVisible(true);
+                this.lstNegativePlaces.setVisible(true);
                 break;
             case "Date":
-    
+                this.txtType.setVisible(true);
                 break;
             case "Time":
   
                 break;
             case "Percentage":
-  
+                this.ddlDecimalPlaces.setVisible(true);
+                this.txtDecimalPlaces.setVisible(true);
                 break;
             default:
     

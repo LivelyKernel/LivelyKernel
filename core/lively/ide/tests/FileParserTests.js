@@ -1338,6 +1338,17 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
 		    this.assertEquals(fileFragment.charsUpToLine(5), 110, "wrong...")
 	  },
 
+    testReindexTakesWhitespaceIntoAccount: function() {
+        var ff = this.db.addVirtualModule(null, 'var x = {\nx: 3,\n}').ast(),
+            objectDef = ff.subElements()[0], // "objectDef: x (0-16 in , starting at line 1, 1 subElements)"
+            propDef = objectDef.subElements()[0], // "propertyDef: x (10-14 in , starting at line 2, 0 subElements)"
+            newSrc = 'x: 3,\n\n',
+            newPropDef = propDef.putSourceCode(newSrc);
+
+        this.assertEquals('x: 3,', newPropDef.getSourceCode(), 'setup failed, new code not truncate');
+        this.assertEquals('var x = {\nx: 3,\n\n}', objectDef.getSourceCode(), 'object def wrong');
+    }
+
 });
 
 lively.ide.tests.FileParserTests.FileFragmentTest.subclass('lively.ide.tests.FileParserTests.FileFragmentNodeTests', {

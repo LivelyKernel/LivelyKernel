@@ -309,7 +309,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
     setList: function() {
         var offset = pt(0,0);
         this.arrData.forEach(function(item) {
-		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-21,20)), item.string);
+		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-20,20)), item.string);
                 text.item = item;
 		text.applyStyle({fill: null,textColor:item.textColor, borderWidth:0, fixedHeight: false, fixedWidth: true, allowInput: false});
                 if (item.value.toString().toUpperCase()==this.selectedValue.toString().toUpperCase()){

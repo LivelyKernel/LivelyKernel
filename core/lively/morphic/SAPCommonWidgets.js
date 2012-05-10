@@ -21,39 +21,39 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.buildListItems();
         this.initializeLayout();
     },
-    setCategory: function() {
-        //this.ddlFontSize.setSelectionMatching(sFontSize);
+    setCategory: function(nIndex) {
+        this.lstCategory.setSelection(nIndex);
     },
     buildListItems: function() {
         this.arrCurrency=[];
         this.arrCategory=[];
         //'Number', 'Currency', 'Percentage','Date','Time'
         var oItem={};
-        oItem.value= "0";
+        oItem.value= 0;
         oItem.string= "Number";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);
 
         oItem={};
-        oItem.value= "1";
+        oItem.value= 1;
         oItem.string= "Currency";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);
 
         oItem={};
-        oItem.value= "3";
+        oItem.value= 2;
         oItem.string= "Date";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);
 
         oItem={};
-        oItem.value= "4";
+        oItem.value= 3;
         oItem.string= "Time";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);
 
         oItem={};
-        oItem.value= "2";
+        oItem.value= 4;
         oItem.string= "Percentage";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);

@@ -325,7 +325,7 @@ var dNow = new Date();
         this.lstNegativeNumber= new lively.morphic.SAPListView(351,125,0,this.arrNegativeNumber);
         this.lstNegativeNumber.setPosition(pt(nX, nY+3*nHeight+2*nGap));
 
-        this.lstDataTime= new lively.morphic.SAPListView(351,125,0,this.arrDateFormat);
+        this.lstDataTime= new lively.morphic.SAPListView(351,300,0,this.arrDateFormat);
         this.lstDataTime.setPosition(pt(nX, nY+nHeight+nGap));
         
 

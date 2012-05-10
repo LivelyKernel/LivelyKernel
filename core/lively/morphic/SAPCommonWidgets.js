@@ -66,13 +66,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 break;
             case "Date":
                 this.txtType.setVisible(true);
-                this.lstDataTime.setVisible(true);
-                this.lstDataTime.updateList(0,this.arrDateFormat);
+                //this.lstDataTime.setVisible(true);
+                //this.lstDataTime.updateList(0,this.arrDateFormat);
                 break;
             case "Time":
                 this.txtType.setVisible(true);
-                this.lstDataTime.setVisible(true);
-                this.lstDataTime.updateList(0,this.arrTimeFormat);
+                //this.lstDataTime.setVisible(true);
+                //this.lstDataTime.updateList(0,this.arrTimeFormat);
                 break;
             case "Percentage":
                 this.ddlDecimalPlaces.setVisible(true);
@@ -221,7 +221,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
         this.arrDateFormat=[];
         this.arrTimeFormat=[];
-
+/*
 //Date
 var dNow = new Date();
         oItem={};
@@ -265,7 +265,7 @@ var dNow = new Date();
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
-/*
+
         oItem={};
         oItem.value= "m/d/yy h:M TT";
         oItem.string= dateFormat("m/d/yy h:M TT") +" (12-hour clock)";

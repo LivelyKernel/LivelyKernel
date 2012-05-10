@@ -185,7 +185,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     initializeLayout: function() {
         var nX = 150;
         var nY = 25;
-        var nGap = 5;
+        var nGap = 1;
         var nXGap = 150;
         var nHeight=25;
 

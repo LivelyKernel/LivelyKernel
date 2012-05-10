@@ -249,21 +249,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
         this.selectedItem=null;
         this.arrData = arrData;
         this.setList();
-        var offset = pt(0,0);
-        debugger;
-        this.arrData.forEach(function(item) {
-		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-25,20)), item.string);
-                text.item = item;
-		text.applyStyle({fill: null,textColor:item.textColor, borderWidth:0, fixedHeight: false, fixedWidth: true, allowInput: false});
-                if (item.value.toString().toUpperCase()==this.selectedValue.toString().toUpperCase()){
-                    this.selectedItem = text;
-                    text.setFill(Color.rgb(240, 171, 0));
-                }
-		text.ignoreEvents();
-		this.addMorph(text);
-		text.fit();
-		offset = text.bounds().bottomLeft();
-	}, this);
+        
     },
     setDefaultItem: function(sItemValue) {
         var oSubMorphs = this.submorphs;
@@ -281,7 +267,20 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 	}
     },
     setList: function() {
-        
+        var offset = pt(0,0);
+        this.arrData.forEach(function(item) {
+		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-25,20)), item.string);
+                text.item = item;
+		text.applyStyle({fill: null,textColor:item.textColor, borderWidth:0, fixedHeight: false, fixedWidth: true, allowInput: false});
+                if (item.value.toString().toUpperCase()==this.selectedValue.toString().toUpperCase()){
+                    this.selectedItem = text;
+                    text.setFill(Color.rgb(240, 171, 0));
+                }
+		text.ignoreEvents();
+		this.addMorph(text);
+		text.fit();
+		offset = text.bounds().bottomLeft();
+	}, this);
     },
     updateList: function(nSelectedValue,arrData) {
         

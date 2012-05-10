@@ -267,7 +267,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 		text.ignoreEvents();
 		this.addMorph(text);
 		text.fit();
-		offset = text.bounds().bottomLeft()
+		offset = text.bounds().bottomLeft();
 	}, this);
     },
 //calls from external: to highlight
@@ -276,7 +276,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
         this.selectedItem=null;
         this.selectedValue="";
 	for (var i = 0; i < oSubMorphs.length; i++) {
-            if (oSubMorphs[i].item.value.toUpperCase()==sItemValue.toUpperCase()){
+            if (oSubMorphs[i].item.value.toString().toUpperCase()==sItemValue.toUpperCase()){
                 oSubMorphs[i].setFill(Color.rgb(240, 171, 0));
                 this.selectedItem = oSubMorphs[i];
                 this.selectedValue = this.selectedItem.item.value;

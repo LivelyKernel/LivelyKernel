@@ -21,7 +21,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.initializeLayout();
     },
     setCategory: function() {
-        
+        //this.ddlFontSize.setSelectionMatching(sFontSize);
     },
     buildCurrencyList: function() {
         this.arrCurrency=[];

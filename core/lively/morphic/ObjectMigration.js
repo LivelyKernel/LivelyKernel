@@ -79,6 +79,7 @@ Migration Level History:
 3 - [NOT YET WORKING] CSS text attribute white-space should be set to pre-line instead of pre-wrap to support text-align justify
 4 - ???
 5 - ???
+6 - traitConf is now a real object
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 if (false && LivelyMigrationSupport.documentMigrationLevel < 1) {

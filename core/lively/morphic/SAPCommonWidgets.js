@@ -21,6 +21,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtUseThousand=null;
         this.arrCurrency=[];
         this.arrCategory=[];
+        this.arrNegativeNumber=[];
         this.buildListItems();
         this.initializeLayout();
     },
@@ -69,6 +70,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     buildListItems: function() {
         this.arrCurrency=[];
         this.arrCategory=[];
+        this.arrNegativeNumber=[];
         //'Number', 'Currency', 'Percentage','Date','Time'
         var oItem={};
         oItem.value= "Number";
@@ -135,6 +137,43 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oItem.bFront=true;
         oItem.isListItem=true;
         this.arrCurrency.push(oItem);
+
+
+        oItem={}
+        oItem.value= 0;
+        oItem.string= "-$1,234.10";
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrNegativeNumber.push(oItem);
+
+        oItem={}
+        oItem.value= 1;
+        oItem.string= "$1,234.10";
+        oItem.isListItem=true;
+        oItem.textColor=Color.red;
+        this.arrNegativeNumber.push(oItem);
+
+        oItem={}
+        oItem.value= 2;
+        oItem.string= "$1,234.10";
+        oItem.isListItem=true;
+        oItem.textColor=Color.red;
+        this.arrNegativeNumber.push(oItem);
+
+        oItem={}
+        oItem.value= 2;
+        oItem.string= "($1,234.10)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrNegativeNumber.push(oItem);
+
+        oItem={}
+        oItem.value= 4;
+        oItem.string= "($1,234.10)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.red;
+        this.arrNegativeNumber.push(oItem);
+
 
     },
     initializeLayout: function() {

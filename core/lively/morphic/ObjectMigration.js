@@ -135,7 +135,7 @@ if (false && LivelyMigrationSupport.documentMigrationLevel < 5) {
         },
     }).beGlobal();
 };
-
+debugger
 if (LivelyMigrationSupport.documentMigrationLevel < 6) {
     /// fixes the issue that after ignore events label was still shown
     cop.create('DocumentMigrationLevel6Layer')

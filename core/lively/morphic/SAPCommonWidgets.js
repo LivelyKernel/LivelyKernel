@@ -283,7 +283,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 	}, this);
     },
     updateList: function(nSelectedValue,arrData) {
-        
+        this.removeAllMorphs();
+        this.arrData=arrData;
+        this.setList();
     },
     onMouseDown: function($super, evt) {
         $super(evt);

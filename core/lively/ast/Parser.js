@@ -1206,7 +1206,7 @@ lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
             s.parent = optParentScope;
         }
         return s;
-  },
+    },
 },
 'analyzing', {
 

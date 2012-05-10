@@ -421,7 +421,7 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
 
     testCreateForNonSource: function() {
         var src = 'var x = 3',
-            sut = lively.ide.ModuleWrapper.forNonFile(src, 'js');
+            sut = new AnotherSourceDatabase().addVirtualModule(null, src, 'js');
         this.assertEquals(src, sut.getSource());
         this.assertEquals(src, sut.getSourceUncached());
         this.assertEquals('js', sut.type());

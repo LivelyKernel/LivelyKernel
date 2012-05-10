@@ -157,7 +157,7 @@ Object.subclass('lively.ide.ModuleWrapper',
 
 Object.extend(lively.ide.ModuleWrapper, {
 
-    forFile: function(fn) {
+    forFile: function(fn, isVirtual) {
         var type = fn.substring(fn.lastIndexOf('.') + 1, fn.length),
             moduleName = fn;
         // FIXME this is WW-specific!
@@ -169,13 +169,10 @@ Object.extend(lively.ide.ModuleWrapper, {
         }
         moduleName = moduleName.substring(0, moduleName.lastIndexOf('.'));
         moduleName = moduleName.replace(/\//g, '.');
-        return new lively.ide.ModuleWrapper(moduleName, type);
+        return new lively.ide.ModuleWrapper(moduleName, type, null, isVirtual);
     },
 
-    forNonFile: function(src, type) {
-        var moduleName = "virtual-module.x" + Strings.newUUID();
-        return new lively.ide.ModuleWrapper(moduleName, type, src, true);
-    }
+    newVirtualModuleId: function() { return "virtual-module.x" + Strings.newUUID() }
 
 });
 
@@ -222,22 +219,27 @@ Object.subclass('AnotherSourceDatabase', {
         return this.allModules().detect(function(ea) { return ea.fileName() == fileName })
     },
 
-    createModuleWrapperForFileName: function(fileName) {
-        return lively.ide.ModuleWrapper.forFile(fileName);
+    createModuleWrapperForFileName: function(fileName, isVirtual) {
+        return lively.ide.ModuleWrapper.forFile(fileName, isVirtual);
     },
 
-    addModule: function(fileName, source) {
+    addVirtualModule: function(moduleId, source, type) {
+        moduleId = moduleId || lively.ide.ModuleWrapper.newVirtualModuleId();
+        return this.addModuleWithId(moduleId, source, type, true);
+    },
+
+    addModule: function(fileName, source, isVirtual) {
         var moduleWrapper = this.findModuleWrapperForFileName(fileName);
         if (moduleWrapper) return moduleWrapper;
-        moduleWrapper = this.createModuleWrapperForFileName(fileName);
+        moduleWrapper = this.createModuleWrapperForFileName(fileName, isVirtual);
         if (source) moduleWrapper.setCachedSource(source);
         moduleWrapper.retrieveSourceAndParse(this);
         return this.modules[fileName] = moduleWrapper;
     },
 
-    addModuleWithId: function(moduleId) {
-        var fileName = module(moduleId).relativePath();
-        return this.addModule(fileName);
+    addModuleWithId: function(moduleId, source, type, isVirtual) {
+        var fileName = module(moduleId).relativePath(type);
+        return this.addModule(fileName, source, isVirtual);
     },
 
     reparseModule: function(fileName, readAgain) {

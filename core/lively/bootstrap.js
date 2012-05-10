@@ -1190,10 +1190,10 @@ var LivelyMigrationSupport = {
 };
 
 function startWorld(startupFunc) {
-	  LivelyMigrationSupport.setDocumentMigrationLevel(document);
     LivelyLoader.addPatches();
 
     window.addEventListener('DOMContentLoaded', function() {
+        LivelyMigrationSupport.setDocumentMigrationLevel(document);
         if (EmbededLoader.embedLively() ||
             LivelyLoader.startCanvasWorld() ||
             LivelyLoader.startWorld() ||
@@ -1205,8 +1205,8 @@ function startWorld(startupFunc) {
     window.addEventListener('beforeunload', function(evt) {
         if (window.Config && window.Config.askBeforeQuit) {
             var msg = "Lively Kernel data may be lost if not saved.";
-	          evt.returnValue = msg;
-	          return msg;
+            evt.returnValue = msg;
+            return msg;
         } else {
             return undefined;
         }

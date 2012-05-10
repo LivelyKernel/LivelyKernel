@@ -265,7 +265,7 @@ var dNow = new Date();
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
-
+/*
         oItem={};
         oItem.value= "m/d/yy h:M TT";
         oItem.string= dateFormat("m/d/yy h:M TT") +" (12-hour clock)";
@@ -321,7 +321,7 @@ var dNow = new Date();
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrTimeFormat.push(oItem);
-
+*/
     },
     initializeLayout: function() {
         var nX = 150;

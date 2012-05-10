@@ -27,8 +27,16 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     lstCategory_onChange: function() {
         var nValue = this.lstCategory.getSelectedItem();
         this.selectedCategory = nValue ;
-        debugger;
-        //this.lstCategory.setSelection(nIndex);
+        switch(this.selectedCategory){
+            case 1:
+  
+                break;
+            case 2:
+    
+                break;
+            default:
+    
+        }
     },
     ddlCurrencySymbol_onChange: function(){
         var sValue = this.ddlCurrencySymbol.getSelectedItem();

@@ -280,7 +280,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 	
 	}
     },
-    setList: function(nSelectedValue,arrData) {
+    setList: function(arrData) {
         
     },
     updateList: function(nSelectedValue,arrData) {

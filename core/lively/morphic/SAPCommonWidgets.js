@@ -23,10 +23,15 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.arrCategory=[];
         this.buildListItems();
         this.initializeLayout();
-    },//lstCategory_onChange
+    },
     lstCategory_onChange: function() {
         var sValue = this.lstCategory.getSelectedItem();
         this.selectedCategory = sValue;
+
+        
+
+
+
         switch(this.selectedCategory){
             case "Number": 
   

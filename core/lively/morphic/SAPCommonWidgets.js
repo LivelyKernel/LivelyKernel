@@ -222,7 +222,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         var nHeight=25;
 
         this.setFill(Color.rgb(255,255,255));
-   
         this.txtCategory=new lively.morphic.Text(new Rectangle(0 ,0, 100, nHeight),'Category:');
         this.txtCategory.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
         

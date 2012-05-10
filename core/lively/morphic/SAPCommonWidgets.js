@@ -260,7 +260,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 		var text = new lively.morphic.Text(offset.extent(pt(this.getExtent().x-25,20)), item.string);
                 text.item = item;
 		text.applyStyle({fill: null,textColor:item.textColor, borderWidth:0, fixedHeight: false, fixedWidth: true, allowInput: false});
-                if (item.value.toString().toUpperCase()==this.selectedValue.toUpperCase()){
+                if (item.value.toString().toUpperCase()==this.selectedValue.toString().toUpperCase()){
                     this.selectedItem = text;
                     text.setFill(Color.rgb(240, 171, 0));
                 }
@@ -276,7 +276,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
         this.selectedItem=null;
         this.selectedValue="";
 	for (var i = 0; i < oSubMorphs.length; i++) {
-            if (oSubMorphs[i].item.value.toString().toUpperCase()==sItemValue.toUpperCase()){
+            if (oSubMorphs[i].item.value.toString().toUpperCase()==sItemValue.toString().toUpperCase()){
                 oSubMorphs[i].setFill(Color.rgb(240, 171, 0));
                 this.selectedItem = oSubMorphs[i];
                 this.selectedValue = this.selectedItem.item.value;

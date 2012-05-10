@@ -136,7 +136,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
            
 
         this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, nX-20 , 200), this.arrCategory);
-        connect(this.lstCategory , "onChange", this, "lstCategory_onChange", {});
+        
         this.lstCategory.setSelection(0);
 
 
@@ -156,6 +156,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.addMorph(this.lstCategory);
         this.addMorph(this.ddlDecimalPlaces );
         this.addMorph(this.ddlCurrencySymbol );
+
+        connect(this.lstCategory , "onChange", this, "lstCategory_onChange", {});
+
     }
 });
 lively.morphic.Morph.subclass('lively.morphic.SAPListView',

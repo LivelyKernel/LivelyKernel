@@ -831,17 +831,17 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
     func: {
         className: 'Function', rules: [':pos', ':args', 'trans:body'],
         debugging: {
-            printConstruction: function() { return this.printConstructorCall(this.pos, this.args.collect(function(ea) { return '"' + ea + '"' }), this.body) },
+            printConstruction: function() { return this.printConstructorCall(this.pos, this.args.collect(function(ea) { return '"' + ea.name + '"' }), this.body) },
             toString: function() {
                 return Strings.format(
                     '%s(function(%s) %s)',
-                    this.constructor.name, this.args.join(','), this.body)
+                    this.constructor.name, this.argNames().join(','), this.body)
             },
         },
         conversion: {
             asJS: function(depth) {
                 return Strings.format('function%s(%s) {\n%s\n}',
-                                      this.name ? ' ' + this.name : '',this.args.join(','),
+                                      this.name ? ' ' + this.name : '',this.argNames().join(','),
                                       this.indent(depth+1) + this.body.asJS(depth+1));
             },
         },

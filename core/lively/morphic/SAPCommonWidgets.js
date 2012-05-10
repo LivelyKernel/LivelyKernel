@@ -254,7 +254,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
         this.lstCategory.disableGrabbing();
 
-        this.lstNegativePlaces= new lively.morphic.SAPListView(351,116,0,this.arrNegativeNumber);
+        this.lstNegativePlaces= new lively.morphic.SAPListView(351,125,0,this.arrNegativeNumber);
         this.lstNegativePlaces.setPosition(pt(nX, nY+3*nHeight+2*nGap));
 
         

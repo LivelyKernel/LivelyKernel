@@ -52,14 +52,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oItem.isListItem=true;
         this.arrCategory.push(oItem);
 
-        /Currency Symbol
+        //Currency Symbol
         oItem={};
         oItem.value= "2";
         oItem.string= "Percentage";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);
 
-var oCurrency={};
+        var oCurrency={};
         oCurrency.value= "USD";
         oCurrency.symbol="$";
         oCurrency.string= "United States Dollar";

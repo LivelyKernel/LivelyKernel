@@ -268,6 +268,13 @@ var dNow = new Date();
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
 
+        oItem={};
+        oItem.value= "m/d/yy h:M TT";
+        oItem.string= dateFormat("m/d/yy h:M TT");
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrDateFormat.push(oItem);
+
 
     },
     initializeLayout: function() {

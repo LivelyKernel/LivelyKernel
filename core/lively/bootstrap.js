@@ -98,7 +98,7 @@ var JSLoader = {
         }
 
         parentNode.appendChild(el);
-        el.setAttributeNS(null,  'src',  url);
+        el.setAttributeNS(null, 'src', url);
 
         return loadSync ?
             this.loadSync(exactUrl, onLoadCb, el) :

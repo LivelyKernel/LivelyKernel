@@ -213,6 +213,72 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oItem.isListItem=true;
         oItem.textColor=Color.red;
         this.arrNegativeCurrencyNumber.push(oItem);
+
+
+         oItem={};
+        oItem.value= 4;
+        oItem.string= "($1,234.10)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.red;
+        this.arrNegativeCurrencyNumber.push(oItem);
+ oItem={};
+        oItem.value= 4;
+        oItem.string= "($1,234.10)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.red;
+        this.arrNegativeCurrencyNumber.push(oItem);
+ oItem={};
+        oItem.value= 4;
+        oItem.string= "($1,234.10)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.red;
+        this.arrNegativeCurrencyNumber.push(oItem);
+ oItem={};
+        oItem.value= 4;
+        oItem.string= "($1,234.10)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.red;
+        this.arrNegativeCurrencyNumber.push(oItem);
+ oItem={};
+        oItem.value= 4;
+        oItem.string= "($1,234.10)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.red;
+        this.arrNegativeCurrencyNumber.push(oItem);
+ oItem={};
+        oItem.value= 4;
+        oItem.string= "($1,234.10)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.red;
+        this.arrNegativeCurrencyNumber.push(oItem);
+ oItem={};
+        oItem.value= 4;
+        oItem.string= "($1,234.10)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.red;
+        this.arrNegativeCurrencyNumber.push(oItem);
+ oItem={};
+        oItem.value= 4;
+        oItem.string= "($1,234.10)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.red;
+        this.arrNegativeCurrencyNumber.push(oItem);
+ oItem={};
+        oItem.value= 4;
+        oItem.string= "($1,234.10)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.red;
+        this.arrNegativeCurrencyNumber.push(oItem);
+ oItem={};
+        oItem.value= 4;
+        oItem.string= "($1,234.10)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.red;
+        this.arrNegativeCurrencyNumber.push(oItem);
+
+
+
+
     },
     initializeLayout: function() {
         var nX = 150;

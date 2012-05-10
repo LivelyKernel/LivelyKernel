@@ -11,7 +11,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.toolBar;
         this.lstCategory = null;
         this.lstNegativeNumber=null;
-        this.lstDataTime=null;
         this.ddlDecimalPlaces = null;
         this.ddlCurrencySymbol = null;
         this.txtCategory = null;
@@ -43,7 +42,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtNegatvieNumbers.setVisible(false);
         this.txtUseThousand.setVisible(false);
         this.lstNegativeNumber.setVisible(false);
-        this.lstDataTime.setVisible(false);
+
 
         switch(this.selectedCategory){
             case "Number": 
@@ -66,13 +65,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 break;
             case "Date":
                 this.txtType.setVisible(true);
-                this.lstDataTime.setVisible(true);
-                this.lstDataTime.updateList(0,this.arrDateFormat);
                 break;
             case "Time":
-                this.txtType.setVisible(true);
-                this.lstDataTime.setVisible(true);
-                this.lstDataTime.updateList(0,this.arrTimeFormat);
+  
                 break;
             case "Percentage":
                 this.ddlDecimalPlaces.setVisible(true);
@@ -218,110 +213,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oItem.isListItem=true;
         oItem.textColor=Color.red;
         this.arrNegativeCurrencyNumber.push(oItem);
-
-        this.arrDateFormat=[];
-        this.arrTimeFormat=[];
-
-//Date
-var dNow = new Date();
-        oItem={};
-        oItem.value= "mm/dd/yyyy";
-        oItem.string= dateFormat("mm/dd/yyyy");
-        oItem.isListItem=true;
-        oItem.textColor=Color.black;
-        this.arrDateFormat.push(oItem);
-
-        oItem={};
-        oItem.value= "dddd, mmmm dd, yyyy";
-        oItem.string= dateFormat(dNow, "dddd, mmmm dd, yyyy");
-        oItem.isListItem=true;
-        oItem.textColor=Color.black;
-        this.arrDateFormat.push(oItem);
-
-        oItem={};
-        oItem.value= "mm/dd";
-        oItem.string= dNow.format("mm/dd");
-        oItem.isListItem=true;
-        oItem.textColor=Color.black;
-        this.arrDateFormat.push(oItem);
-
-        oItem={};
-        oItem.value= "mm/dd/yy";
-        oItem.string= dateFormat("mm/dd/yy");
-        oItem.isListItem=true;
-        oItem.textColor=Color.black;
-        this.arrDateFormat.push(oItem);
-
-        oItem={};
-        oItem.value= "dd-mmm";
-        oItem.string= dateFormat("dd-mmm");
-        oItem.isListItem=true;
-        oItem.textColor=Color.black;
-        this.arrDateFormat.push(oItem);
-
-        oItem={};
-        oItem.value= "dd-mmm-yy";
-        oItem.string= dateFormat("dd-mmm-yy");
-        oItem.isListItem=true;
-        oItem.textColor=Color.black;
-        this.arrDateFormat.push(oItem);
-
-        oItem={};
-        oItem.value= "m/d/yy h:M TT";
-        oItem.string= dateFormat("m/d/yy h:M TT") +" (12-hour clock)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.black;
-        this.arrDateFormat.push(oItem);
-
-        oItem={};
-        oItem.value= "m/d/yy H:M";
-        oItem.string= dateFormat("m/d/yy H:M") +" (22-hour clock)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.black;
-        this.arrDateFormat.push(oItem);
-//Time
-        oItem={};
-        oItem.value= "h:M TT";
-        oItem.string= dateFormat("h:M TT")+" (12-hour clock)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.black;
-        this.arrTimeFormat.push(oItem);
-
-        oItem={};
-        oItem.value= "H:M";
-        oItem.string= dateFormat("H:M") + " (24-hour clock)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.black;
-        this.arrTimeFormat.push(oItem);
-
-        oItem={};
-        oItem.value= "h:M:s TT";
-        oItem.string= dateFormat("h:M:s TT")+" (12-hour clock)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.black;
-        this.arrTimeFormat.push(oItem);
-
-        oItem={};
-        oItem.value= "H:M:s";
-        oItem.string= dateFormat("h:M:s") + " (24-hour clock)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.black;
-        this.arrTimeFormat.push(oItem);
-
-        oItem={};
-        oItem.value= "m/d/yy h:M TT";
-        oItem.string= dateFormat("m/d/yy h:M TT") +" (12-hour clock)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.black;
-        this.arrTimeFormat.push(oItem);
-
-        oItem={};
-        oItem.value= "m/d/yy H:M";
-        oItem.string= dateFormat("m/d/yy H:M") +" (22-hour clock)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.black;
-        this.arrTimeFormat.push(oItem);
-
     },
     initializeLayout: function() {
         var nX = 150;
@@ -370,9 +261,7 @@ var dNow = new Date();
         this.lstNegativeNumber= new lively.morphic.SAPListView(351,125,0,this.arrNegativeNumber);
         this.lstNegativeNumber.setPosition(pt(nX, nY+3*nHeight+2*nGap));
 
-        this.lstDataTime= new lively.morphic.SAPListView(351,175,0,this.arrDateFormat);
-        this.lstDataTime.setPosition(pt(nX, nY+nHeight+nGap));
-        this.lstDataTime.setVisible(false);
+        
 
         this.addMorph(this.txtUseThousand);
         this.addMorph(this.chkUseThousand);
@@ -385,7 +274,6 @@ var dNow = new Date();
         this.addMorph(this.ddlDecimalPlaces );
         this.addMorph(this.ddlCurrencySymbol );
         this.addMorph(this.lstNegativeNumber);
-        this.addMorph(this.lstDataTime);
         
 
         connect(this.lstCategory, "selection", this, "lstCategory_onChange", {});

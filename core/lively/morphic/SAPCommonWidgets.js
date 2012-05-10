@@ -280,6 +280,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 	
 	}
     },
+    redefineList: function(nSelectedValue,arrData) {
+        
+    },
     onMouseDown: function($super, evt) {
         $super(evt);
         if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) return $super(evt);

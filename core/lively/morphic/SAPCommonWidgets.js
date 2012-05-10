@@ -11,6 +11,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.toolBar;
         this.lstCategory = null;
         this.lstNegativeNumber=null;
+        this.lstDataTime=null;
         this.ddlDecimalPlaces = null;
         this.ddlCurrencySymbol = null;
         this.txtCategory = null;

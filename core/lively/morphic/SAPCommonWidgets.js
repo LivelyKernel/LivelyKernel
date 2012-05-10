@@ -42,8 +42,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtNegatvieNumbers.setVisible(false);
         this.txtUseThousand.setVisible(false);
         this.lstNegativeNumber.setVisible(false);
+var now = new Date();
 
-
+alert(now.format("m/dd/yy"));
+alert(dateFormat(now, "dddd, mmmm dS, yyyy, h:MM:ss TT"));
         switch(this.selectedCategory){
             case "Number": 
                 this.ddlDecimalPlaces.setVisible(true);

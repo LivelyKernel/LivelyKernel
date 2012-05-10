@@ -52,6 +52,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oItem.isListItem=true;
         this.arrCategory.push(oItem);
 
+        /Currency Symbol
         oItem={};
         oItem.value= "2";
         oItem.string= "Percentage";
@@ -92,9 +93,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oItem.bFront=true;
         oItem.isListItem=true;
         this.arrCurrency.push(oItem);
-
-        
-
 
     },
     initializeLayout: function() {

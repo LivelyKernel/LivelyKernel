@@ -17,13 +17,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtNegatvieNumbers
         this.txtUseThousand=null;
         this.arrCurrency=[];
-        this.buildCurrencyList();
+        this.buildListItems();
         this.initializeLayout();
     },
     setCategory: function() {
         //this.ddlFontSize.setSelectionMatching(sFontSize);
     },
-    buildCurrencyList: function() {
+    buildListItems: function() {
         this.arrCurrency=[];
         var oCurrency={};
         
@@ -92,9 +92,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(nX ,nY+2*nHeight+2*nGap, 135, nHeight),'Negative numbers:');
         this.txtNegatvieNumbers.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
 
-       
+           
 
         this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, nX-20 , 200), ['Number', 'Currency', 'Percentage','Data','Time']);
+
+
+
         this.lstCategory.disableGrabbing();
 
         

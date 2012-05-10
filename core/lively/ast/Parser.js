@@ -1212,6 +1212,7 @@ lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
 'analyzing', {
 
     analyze: function(ast) {
+        this.current = null;
         this.root = this.newScope();
         this.visit(ast);
         // this.createChains();

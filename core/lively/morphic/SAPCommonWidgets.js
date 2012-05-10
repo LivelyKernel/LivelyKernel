@@ -23,6 +23,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.arrCurrency=[];
         this.arrCategory=[];
         this.arrNegativeNumber=[];
+        this.arrNegativeCurrencyNumber=[];
         this.buildListItems();
         this.initializeLayout();
     },
@@ -151,36 +152,63 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oItem.isListItem=true;
         this.arrCurrency.push(oItem);
 
-
+        //for number
         oItem={};
         oItem.value= 0;
-        oItem.string= "-$1,234.10";
+        oItem.string= "-1,234.10";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrNegativeNumber.push(oItem);
 
         oItem={};
         oItem.value= 1;
-        oItem.string= "$1,234.10";
+        oItem.string= "1,234.10";
         oItem.isListItem=true;
         oItem.textColor=Color.red;
         this.arrNegativeNumber.push(oItem);
 
         oItem={};
         oItem.value= 2;
-        oItem.string= "($1,234.10)";
+        oItem.string= "(1,234.10)";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrNegativeNumber.push(oItem);
 
         oItem={};
         oItem.value= 4;
-        oItem.string= "($1,234.10)";
+        oItem.string= "(1,234.10)";
         oItem.isListItem=true;
         oItem.textColor=Color.red;
         this.arrNegativeNumber.push(oItem);
 
+        //for currency
+        oItem={};
+        oItem.value= 0;
+        oItem.string= "-$1,234.10";
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrNegativeCurrencyNumber.push(oItem);
 
+        oItem={};
+        oItem.value= 1;
+        oItem.string= "$1,234.10";
+        oItem.isListItem=true;
+        oItem.textColor=Color.red;
+        this.arrNegativeCurrencyNumber.push(oItem);
+
+        oItem={};
+        oItem.value= 2;
+        oItem.string= "($1,234.10)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrNegativeCurrencyNumber.push(oItem);
+
+        oItem={};
+        oItem.value= 4;
+        oItem.string= "($1,234.10)";
+        oItem.isListItem=true;
+        oItem.textColor=Color.red;
+        this.arrNegativeCurrencyNumber.push(oItem);
     },
     initializeLayout: function() {
         var nX = 150;

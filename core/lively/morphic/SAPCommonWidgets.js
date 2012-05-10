@@ -20,6 +20,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.arrCategory=[];
         this.buildListItems();
         this.initializeLayout();
+    },//lstCategory_onChange
+    lstCategory_onChange: function() {
+        alert(0)
+        //this.lstCategory.setSelection(nIndex);
     },
     setCategory: function(nIndex) {
         this.lstCategory.setSelection(nIndex);
@@ -132,6 +136,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
            
 
         this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, nX-20 , 200), this.arrCategory);
+        connect(this.lstCategory , "onChange", this, "lstCategory_onChange", {});
         this.lstCategory.setSelection(0);
 
 

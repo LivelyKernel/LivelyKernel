@@ -215,69 +215,29 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.arrNegativeCurrencyNumber.push(oItem);
 
 
-         oItem={};
-        oItem.value= 4;
-        oItem.string= "($1,234.10)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.red;
-        this.arrNegativeCurrencyNumber.push(oItem);
- oItem={};
-        oItem.value= 4;
-        oItem.string= "($1,234.10)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.red;
-        this.arrNegativeCurrencyNumber.push(oItem);
- oItem={};
-        oItem.value= 4;
-        oItem.string= "($1,234.10)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.red;
-        this.arrNegativeCurrencyNumber.push(oItem);
- oItem={};
-        oItem.value= 4;
-        oItem.string= "($1,234.10)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.red;
-        this.arrNegativeCurrencyNumber.push(oItem);
- oItem={};
-        oItem.value= 4;
-        oItem.string= "($1,234.10)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.red;
-        this.arrNegativeCurrencyNumber.push(oItem);
- oItem={};
-        oItem.value= 4;
-        oItem.string= "($1,234.10)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.red;
-        this.arrNegativeCurrencyNumber.push(oItem);
- oItem={};
-        oItem.value= 4;
-        oItem.string= "($1,234.10)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.red;
-        this.arrNegativeCurrencyNumber.push(oItem);
- oItem={};
-        oItem.value= 4;
-        oItem.string= "($1,234.10)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.red;
-        this.arrNegativeCurrencyNumber.push(oItem);
- oItem={};
-        oItem.value= 4;
-        oItem.string= "($1,234.10)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.red;
-        this.arrNegativeCurrencyNumber.push(oItem);
- oItem={};
-        oItem.value= 4;
-        oItem.string= "($1,234.10)";
-        oItem.isListItem=true;
-        oItem.textColor=Color.red;
-        this.arrNegativeCurrencyNumber.push(oItem);
+        this.arrDateFormat=[];
+        this.arrTimeFormat=[];
 
+        /*oItem={};
+        oItem.value= "mm/dd/yyyy";
+        oItem.string= now.format("mm/dd/yyyy");
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrDateFormat.push(oItem);
 
+        oItem={};
+        oItem.value= "dddd, mmmm dd, yyyy";
+        oItem.string= dateFormat(now, "dddd, mmmm dd, yyyy");
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrDateFormat.push(oItem);
 
+        oItem={};
+        oItem.value= "mm/dd";
+        oItem.string= now.format("mm/dd");
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrDateFormat.push(oItem);*/
 
     },
     initializeLayout: function() {

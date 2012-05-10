@@ -24,6 +24,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.arrCategory=[];
         this.arrNegativeNumber=[];
         this.arrNegativeCurrencyNumber=[];
+        this.arrDateFormat=[];
+        this.arrTimeFormat=[];
         this.buildListItems();
         this.initializeLayout();
     },

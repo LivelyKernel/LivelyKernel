@@ -135,16 +135,30 @@ if (false && LivelyMigrationSupport.documentMigrationLevel < 5) {
         },
     }).beGlobal();
 };
-debugger
+
 if (LivelyMigrationSupport.documentMigrationLevel < 6) {
     /// fixes the issue that after ignore events label was still shown
-    cop.create('DocumentMigrationLevel6Layer')
-    .refineClass(RealTrait, {
-        onrestore: function() {
-            debugger;
-            cop.proceed();
-        },
-    }).beGlobal();
+    // cop.create('DocumentMigrationLevel6Layer')
+    // .refineClass(RealTrait, {
+        // onrestore: function() {
+            // debugger;
+            // cop.proceed();
+        // },
+    // }).beGlobal();
+debugger
+ObjectLinearizerPlugin.subclass('lively.persistence.TraitPlugin',
+'plugin interface', {
+    afterDeserializeObj: function(obj) {
+        var traitConfs = lively.Traits.traitConfsOfObject(obj);
+        if (!traitConfs) return;
+        // FIXME move this logic to lively.Traits
+        traitConfs.forEach(function(conf) {
+            var trait = Trait(conf.traitName);
+            trait.applyTo(obj, conf.options);
+        })
+    }
+});
+
 };
 
 if (Config.enableShapeGetterAndSetterRefactoringLayer) {

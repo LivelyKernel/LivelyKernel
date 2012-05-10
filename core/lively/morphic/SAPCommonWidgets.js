@@ -10,7 +10,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.grid;
         this.toolBar;
         this.lstCategory = null;
-        this.lstNegativePlaces=null;
+        this.lstNegativeNumber=null;
         this.ddlDecimalPlaces = null;
         this.ddlCurrencySymbol = null;
         this.txtCategory = null;
@@ -39,7 +39,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.chkUseThousand.setVisible(false);
         this.txtNegatvieNumbers.setVisible(false);
         this.txtUseThousand.setVisible(false);
-        this.lstNegativePlaces.setVisible(false);
+        this.lstNegativeNumber.setVisible(false);
 
 
         switch(this.selectedCategory){
@@ -49,7 +49,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 this.chkUseThousand.setVisible(true);
                 this.txtUseThousand.setVisible(true);
                 this.txtNegatvieNumbers.setVisible(true);
-                this.lstNegativePlaces.setVisible(true);
+                this.lstNegativeNumber.setVisible(true);
+                //updateList
                 break;
             case "Currency":  
                 this.ddlDecimalPlaces.setVisible(true);
@@ -57,7 +58,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 this.txtSymbol.setVisible(true);
                 this.ddlCurrencySymbol.setVisible(true);
                 this.txtNegatvieNumbers.setVisible(true);
-                this.lstNegativePlaces.setVisible(true);
+                this.lstNegativeNumber.setVisible(true);
                 break;
             case "Date":
                 this.txtType.setVisible(true);
@@ -254,8 +255,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
         this.lstCategory.disableGrabbing();
 
-        this.lstNegativePlaces= new lively.morphic.SAPListView(351,125,0,this.arrNegativeNumber);
-        this.lstNegativePlaces.setPosition(pt(nX, nY+3*nHeight+2*nGap));
+        this.lstNegativeNumber= new lively.morphic.SAPListView(351,125,0,this.arrNegativeNumber);
+        this.lstNegativeNumber.setPosition(pt(nX, nY+3*nHeight+2*nGap));
 
         
 
@@ -269,7 +270,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.addMorph(this.lstCategory);
         this.addMorph(this.ddlDecimalPlaces );
         this.addMorph(this.ddlCurrencySymbol );
-        this.addMorph(this.lstNegativePlaces);
+        this.addMorph(this.lstNegativeNumber);
         
 
         connect(this.lstCategory, "selection", this, "lstCategory_onChange", {});

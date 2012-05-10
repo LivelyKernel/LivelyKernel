@@ -29,7 +29,16 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.selectedCategory = sValue;
 
         
-
+        this.lstCategory.setVisible(false);
+        this.ddlDecimalPlaces.setVisible(false);
+        this.ddlCurrencySymbol.setVisible(false);
+        this.txtCategory.setVisible(false);
+        this.txtDecimalPlaces.setVisible(false);
+        this.txtSymbol.setVisible(false);
+        this.txtType.setVisible(false);
+        this.chkUseThousand.setVisible(false);
+        this.txtNegatvieNumbers.setVisible(false);
+        this.txtUseThousand.setVisible(false);
 
 
         switch(this.selectedCategory){

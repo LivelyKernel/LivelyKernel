@@ -43,6 +43,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtNegatvieNumbers.setVisible(false);
         this.txtUseThousand.setVisible(false);
         this.lstNegativeNumber.setVisible(false);
+        this.lstDataTime.setVisible(false);
 
         switch(this.selectedCategory){
             case "Number": 
@@ -65,13 +66,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 break;
             case "Date":
                 this.txtType.setVisible(true);
-                this.lstNegativeNumber.setVisible(true);
-                this.lstNegativeNumber.updateList(0,this.arrDateFormat);
+                this.lstDataTime.setVisible(true);
+                this.lstDataTime.updateList(0,this.arrDateFormat);
                 break;
             case "Time":
                 this.txtType.setVisible(true);
-                this.lstNegativeNumber.setVisible(true);
-                this.lstNegativeNumber.updateList(0,this.arrDateFormat);
+                this.lstDataTime.setVisible(true);
+                this.lstDataTime.updateList(0,this.arrDateFormat);
                 break;
             case "Percentage":
                 this.ddlDecimalPlaces.setVisible(true);
@@ -327,7 +328,7 @@ var dNow = new Date();
 
         this.lstDataTime= new lively.morphic.SAPListView(351,175,0,this.arrDateFormat);
         this.lstDataTime.setPosition(pt(nX, nY+nHeight+nGap));
-        
+        this.lstDataTime.setVisible(false);
 
         this.addMorph(this.txtUseThousand);
         this.addMorph(this.chkUseThousand);

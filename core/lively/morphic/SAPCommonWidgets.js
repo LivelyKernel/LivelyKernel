@@ -243,6 +243,28 @@ var dNow = new Date();
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
 
+        oItem={};
+        oItem.value= "mm/dd/yy";
+        oItem.string= dateFormat("mm/dd/yy");
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrDateFormat.push(oItem);
+
+        oItem={};
+        oItem.value= "dd-mmm";
+        oItem.string= dateFormat("dd-mmm");
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrDateFormat.push(oItem);
+
+        oItem={};
+        oItem.value= "dd-mmm-yy";
+        oItem.string= dateFormat("dd-mmm-yy");
+        oItem.isListItem=true;
+        oItem.textColor=Color.black;
+        this.arrDateFormat.push(oItem);
+
+
     },
     initializeLayout: function() {
         var nX = 150;

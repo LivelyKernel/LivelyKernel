@@ -165,7 +165,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
        
 
 
-        connect(this.ddlCurrencySymbol, "onChange", this, "lstCategory_onChange", {});
+        connect(this.ddlCurrencySymbol, "onChange", this, "ddlCurrencySymbol_onChange", {});
 
     }
 });

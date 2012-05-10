@@ -852,7 +852,7 @@ ObjectLinearizerPlugin.subclass('lively.persistence.TraitPlugin',
         var traitConfs = lively.Traits.traitConfsOfObject(obj);
         if (!traitConfs) return;
         // FIXME move this logic to lively.Traits
-        traitConfs.forEach(function(conf) {
+        Object.isArray(traitConfs) && traitConfs.forEach(function(conf) {
             var trait = Trait(conf.traitName);
             trait.applyTo(obj, conf.options);
         })

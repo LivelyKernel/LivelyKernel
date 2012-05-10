@@ -4,7 +4,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 'default category', {
     initialize: function($super) {
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,500,500)));
-        this.selectedCategory = 0;
+        this.selectedCategory = "Number";
         this.selectedSymbol="USD";
         this.selectedDecimalPlaces = 2;
         this.grid;
@@ -25,14 +25,23 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.initializeLayout();
     },//lstCategory_onChange
     lstCategory_onChange: function() {
-        var nValue = this.lstCategory.getSelectedItem();
-        this.selectedCategory = nValue ;
+        var sValue = this.lstCategory.getSelectedItem();
+        this.selectedCategory = sValue;
         switch(this.selectedCategory){
-            case 1:
+            case "Number": 
   
                 break;
-            case 2:
+            case "Currency":  
+  
+                break;
+            case "Date":
     
+                break;
+            case "Time":
+  
+                break;
+            case "Percentage":
+  
                 break;
             default:
     
@@ -51,31 +60,31 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.arrCategory=[];
         //'Number', 'Currency', 'Percentage','Date','Time'
         var oItem={};
-        oItem.value= 0;
+        oItem.value= "Number";
         oItem.string= "Number";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);
 
         oItem={};
-        oItem.value= 1;
+        oItem.value= "Currency";
         oItem.string= "Currency";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);
 
         oItem={};
-        oItem.value= 2;
+        oItem.value= "Date";
         oItem.string= "Date";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);
 
         oItem={};
-        oItem.value= 3;
+        oItem.value= "Time";
         oItem.string= "Time";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);
 
         oItem={};
-        oItem.value= 4;
+        oItem.value= "Percentage";
         oItem.string= "Percentage";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);

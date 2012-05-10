@@ -158,10 +158,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.addMorph(this.ddlCurrencySymbol );
 
         connect(this.lstCategory, "onDownPressed", this, "lstCategory_onChange", {});
-
-        this.lstCategory.addScript(function onDownPressed(evt) {
-      
-            }).tag([]);
+this.lstCategory.addScript(function onDownPressed(evt) {
+                $super(evt);
+                alert(0)
+                return true;
+            })
+       
 
 
         connect(this.ddlCurrencySymbol, "onChange", this, "lstCategory_onChange", {});

@@ -935,17 +935,17 @@ lively.ast.Node.subclass('lively.ast.Function',
 	},
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.args.collect(function(ea) { return '"' + ea + '"' }), this.body) },
+	printConstruction: function () { return this.printConstructorCall(this.pos, this.args.collect(function(ea) { return '"' + ea.name + '"' }), this.body) },
 	toString: function () {
                 return Strings.format(
                     '%s(function(%s) %s)',
-                    this.constructor.name, this.args.join(','), this.body)
+                    this.constructor.name, this.argNames().join(','), this.body)
             },
 },
 'conversion', {
 	asJS: function (depth) {
                 return Strings.format('function%s(%s) {\n%s\n}',
-                                      this.name ? ' ' + this.name : '',this.args.join(','),
+                                      this.name ? ' ' + this.name : '',this.argNames().join(','),
                                       this.indent(depth+1) + this.body.asJS(depth+1));
             },
 },
@@ -953,6 +953,7 @@ lively.ast.Node.subclass('lively.ast.Function',
 	setName: function (name) { this.name = name },
 	getName: function () { return this.name },
 	parentFunction: function () { return this },
+	argNames: function () { return this.args.collect(function(a){ return a.name }); },
 	statements: function () { return this.body.children },
 },'visiting', {
 	accept: function(visitor) {

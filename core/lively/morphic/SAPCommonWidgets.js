@@ -4,6 +4,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 'default category', {
     initialize: function($super) {
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,500,500)));
+        this.selectedSymbol="";
         this.grid;
         this.toolBar;
         this.lstCategory = null;
@@ -26,7 +27,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         //this.lstCategory.setSelection(nIndex);
     },
     ddlCurrencySymbol_onChange: function(){
-        var oItem = this.ddlCurrencySymbol.getSelectedItem();
+        var sValue = this.ddlCurrencySymbol.getSelectedItem();
+        his.selectedSymbol = sValue;
         debugger;
     },
     setCategory: function(nIndex) {

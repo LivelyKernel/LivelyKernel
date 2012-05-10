@@ -132,6 +132,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         var nGap = 5;
         var nXGap = 150;
         var nHeight=25;
+
+        
+
+
         this.setFill(Color.rgb(255,255,255));
    
         this.txtCategory=new lively.morphic.Text(new Rectangle(0 ,0, 100, nHeight),'Category:');

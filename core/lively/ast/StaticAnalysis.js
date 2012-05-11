@@ -21,7 +21,7 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
     },
 
     globalVariables: function() {
-        return this.root.allGlobalUses();
+        return this.root.allGlobalUses().concat(this.root.allGlobalDefs());
     },
 
 },

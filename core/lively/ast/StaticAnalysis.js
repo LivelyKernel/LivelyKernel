@@ -136,7 +136,7 @@ Object.subclass('lively.ast.VariableAnalyzer',
         return analyzer.globalVariables();
     },
     findGlobalVariablesIn: function(source) {
-        return this.findUnboundVariableNamesInAST(this.parse(source));
+        return this.findGlobalVariablesInAST(this.parse(source));
     },
 });
 

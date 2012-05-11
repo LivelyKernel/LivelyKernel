@@ -47,7 +47,7 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
             }
         });
     },
-    visitSequence: function(node) { node.children.invoke('accept', this) },
+    visitSequence: function(node) { this.visitParts(node, "children*") },
     visitArrayLiteral: function(node) { node.elements.invoke('accept', this) },
     visitObjectLiteral: function(node) { node.properties.invoke('accept', this) },
     visitCond: function(node) { this.visitParts(node, ['condExpr', 'trueExpr', 'falseExpr']) },

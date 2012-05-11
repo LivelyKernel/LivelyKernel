@@ -91,7 +91,7 @@ try =
 	:pos trans:trySeq :errName trans:catchSeq trans:finallySeq
 	-> { new lively.ast.TryCatchFinally(pos, trySeq, errName, catchSeq, finallySeq) },
 func =
-	:pos trans*:args trans:body
+	:pos trans:args trans:body
 	-> { new lively.ast.Function(pos, args, body) },
 json =
 	:pos trans*:properties

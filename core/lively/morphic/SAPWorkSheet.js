@@ -2073,15 +2073,14 @@ dataformat: currency & percentage & date & time
     },
     imgFormatCell_Click: function() {
         //alert(0)
-        debugger;
-        if (this.grid.oWorkBook.dataFormatter){
-        }else{
-            this.grid.oWorkBook.dataFormatter = new lively.morphic.SAPCellFormatter();
-            this.grid.oWorkBook.dataFormatter.grid=this.grid;
-            this.grid.oWorkBook.addMorph(this.grid.oWorkBook.dataFormatter);
-            this.grid.oWorkBook.dataFormatter.openInWindow(pt(300,300));
-            this.grid.oWorkBook.dataFormatter.owner.setTitle("Format Cells");
-        }
+         var oDataForma.dataFormatter = new lively.morphic.SAPCellFormatter();
+        oDataForma.dataFormatter.grid=this.grid;
+        oDataForma.addMorph(this.grid.oWorkBook.dataFormatter);
+        oDataForma.dataFormatter.openInWindow(pt(300,300));
+        oDataForma.dataFormatter.owner.setTitle("Format Cells");
+
+
+       
         
         
         //oCellFormetter.openInWorld();

@@ -65,13 +65,9 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
     visitThrow: function(node) { this.visitParts(node, ['expr']) },
     visitTryCatchFinally: function(node) { this.visitParts(node, ['trySeq', 'catchSeq', 'finallySeq']) },
     visitFunction: function(node) {
-        if (this.topLevel) return;
         var funcScope = this.newScope();
-        funcScope.boundVars.pushAll(node.args);
-        this.scopes.push(funcScope);
         this.visitParts(node, ['body']);
-        this.scopes.pop();
-        this.scopes.last().unboundVars.pushAll(funcScope.getUnboundVars());
+        this.current = this.current.parent;
     },
     visitObjProperty: function(node) { this.visitParts(node, ['property']) },
     visitSwitch: function(node) { this.visitParts(node, ['expr']) },

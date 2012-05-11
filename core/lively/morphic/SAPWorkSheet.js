@@ -2076,22 +2076,16 @@ dataformat: currency & percentage & date & time
           
         debugger;
         if (this.oDataFormat){
-            if (this.oDataFormatOwner){
+            if (this.oDataFormat.owner.isShutdown()){
+               alert("bring it to the world")
             }
         }else{
             this.oDataFormat= new lively.morphic.SAPCellFormatter();
             this.oDataFormat.grid=this.grid;
             this.oDataFormat.openInWindow(pt(300,300));
             this.oDataFormat.owner.setTitle("Format Cells");
-
-            this.oDataFormatOwner = this.oDataFormat.owner;
-            
-
         }
         
-
-
-       
     },
     imgTextAlignLeft_Click: function() {
         var i;

@@ -120,7 +120,7 @@ Object.subclass('lively.ast.DFAScope',
             return this.parent.lookup_decl(name);
         }
         return chain;
-    }
+    },
     lookup_def: function(name) {
         var chain = this.definition(name);
         if (!chain && this.parent) {

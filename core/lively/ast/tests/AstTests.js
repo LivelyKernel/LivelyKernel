@@ -767,7 +767,7 @@ TestCase.subclass('lively.ast.tests.AstTests.VariableAnalyzerTest',
             ["Foo = false;", [["Foo", 0, 3]]],
             ["function() { function() { Foo = 3 }}", [["Foo", 25, 29]]],
             ["function(arg) { return arg + 1 }", []],
-            ["function() { function(arg) {}; return arg }", [['arg', 38, 41]]]
+            ["function() { function(arg) {}; return arg }", [['arg', 37, 41]]]
         ];
 
         for (var i = 0; i < codeAndExpected.length; i++) {

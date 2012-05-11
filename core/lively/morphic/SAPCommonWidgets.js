@@ -84,7 +84,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtUseThousand.setVisible(false);
         this.lstNegativeNumber.setVisible(false);
         this.lstDataTime.setVisible(false);
-debugger;
         switch(this.selectedCategory){
             case "number": 
                 this.ddlDecimalPlaces.setVisible(true);
@@ -150,7 +149,7 @@ debugger;
         this.txtType.setVisible(false);
 
         this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(nX+nXGap, nY, 37, 23), [0, 1, 2,3,4,5,6,7,8]);
-        this.ddlDecimalPlaces.setSelection(this.selectedDecimalPlaces);
+        //this.ddlDecimalPlaces.setSelection(this.selectedDecimalPlaces);
         
         this.txtSymbol = new lively.morphic.Text(new Rectangle(nX ,nY+nHeight+nGap, 100, nHeight),'Symbol:');
         this.txtSymbol.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
@@ -164,16 +163,14 @@ debugger;
         this.txtUseThousand.setVisible(false);
 
         this.ddlCurrencySymbol = new lively.morphic.DropDownList(new Rectangle(nX+nXGap, nY+nHeight+nGap, 200, 23), this.arrCurrency);
-        this.ddlCurrencySymbol.setSelection(this.selectedSymbol);
+        //this.ddlCurrencySymbol.setSelection(this.selectedSymbol);
 
         this.txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(nX ,nY+2*nHeight+2*nGap, 135, nHeight),'Negative numbers:');
         this.txtNegatvieNumbers.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
 
         this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, nX-20 , 200), this.arrCategory);
-        this.lstCategory.setSelection(this.selectedCategory);
-        //this.lstCategory.setSelection(0);
-
-
+        //this.lstCategory.setSelection(this.selectedCategory);
+        
         this.lstCategory.disableGrabbing();
 
         this.lstNegativeNumber= new lively.morphic.SAPListView(351,125,0,this.arrNegativeNumber);

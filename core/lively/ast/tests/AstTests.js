@@ -735,17 +735,17 @@ TestCase.subclass('lively.ast.tests.AstTests.ContinuationTest',
 
 TestCase.subclass('lively.ast.tests.AstTests.UnboundVariableAnalyzerTest',
 'assertion', {
-    assertVarsFound: function(expected, actualVarNames) {
-        this.assertEquals(expected[1].length, actualVarNames.length,
+    assertVarsFound: function(code, expected, actualVarNames) {
+        this.assertEquals(expected.length, actualVarNames.length,
                           'did not found correct number of variables: ' +
-                          expected[1] + ' vs ' + actualVarNames +
-                          ' code: ' + expected[0]);
-        for (var i = 0; i < expected[1].length; i++) {
-            var expectedVarName = expected[1][i],
+                          expected + ' vs ' + actualVarNames +
+                          ' code: ' + code);
+        for (var i = 0; i < expected.length; i++) {
+            var expectedVarName = expected[i],
                 actualVarName = actualVarNames[i];
             this.assertEquals(expectedVarName, actualVarName,
                              expectedVarName + " (expected) does not match " +
-                              actualVarName + ' code: ' + expected[0]);
+                              actualVarName + ' code: ' + code);
         }
     },
 },

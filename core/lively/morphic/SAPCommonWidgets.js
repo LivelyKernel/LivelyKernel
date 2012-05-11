@@ -4,6 +4,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 'default category', {
     initialize: function($super) {
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,500,500)));
+        this.oOkCallBack=null;
         this.selectedCategory = "number";      //default
         this.selectedSymbol="USD";             //default
         this.selectedDecimalPlaces = 2;        //default
@@ -171,7 +172,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         var nGap = 1;
         var nXGap = 150;
         var nHeight=25;
-                    this.setExtent(lively.pt(525,265));
+        this.setExtent(lively.pt(525,265));
         this.setFill(Color.rgb(255,255,255));
    
         this.txtCategory=new lively.morphic.Text(new Rectangle(nXstart,0, 100, nHeight),'Category:');
@@ -238,6 +239,15 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
         this.updateSelections();
 
+    },
+    btnOk_Click: function() {
+        if (this.oOkCallBack){
+            
+        }
+    },
+    btnCancel_Click: function() {
+        
+        this.setVisible(false);
     },
     buildListItems: function() {
   

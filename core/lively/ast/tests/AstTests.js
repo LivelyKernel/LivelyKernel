@@ -775,13 +775,7 @@ TestCase.subclass('lively.ast.tests.AstTests.UnboundVariableAnalyzerTest',
             this.assertVarsFound(codeAndExpected[i], result);
         }
     },
-    testFindTopLevelVarDeclarations: function() {
-        var src = "Foo = 3;\n"
-                  + "var Bar = 99;\n"
-                  + "function baz() { var x = 3; return x }",
-            result = lively.ast.VariableAnalyzer.findTopLevelVarDeclarationsIn(src);
-        this.assertEqualState(['Bar', 'baz'], result);
-    },
+
 });
 
 TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',

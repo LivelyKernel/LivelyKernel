@@ -120,8 +120,13 @@ Object.subclass('lively.ast.DFAScope',
             this.global_uses.push(varnode);
         }
     }
-    newMethod: function() {
-        // enter comment here
+        allGlobalUses: function() {
+        var res = [];
+        res.concat(this.global_uses);
+        this.scopes.each(function(s) {
+            res.concat(s.allGlobalUses()); 
+        });
+        return res;
     },
 });
 Object.subclass('lively.ast.VariableAnalyzer',

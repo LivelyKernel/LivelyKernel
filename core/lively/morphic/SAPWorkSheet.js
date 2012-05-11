@@ -2079,7 +2079,7 @@ dataformat: currency & percentage & date & time
             if (this.oDataFormat.owner.isShutdown()){
                alert("bring it to the world")
                 //this.oDataFormat.owner.setVisible(true);
-                this.oDataFormat.openInWindow(pt(300,300));
+                this.oDataFormat.owner.openInWorld();
             }
         }else{
             this.oDataFormat= new lively.morphic.SAPCellFormatter();

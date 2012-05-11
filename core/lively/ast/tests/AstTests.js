@@ -148,7 +148,7 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
             r = this.parseJS(src),
             expected = {
                 isFunction: true,
-                args: ['a'],
+                args: [{name: 'a'}],
                 body: {
                     isSequence: true,
                     children: [{

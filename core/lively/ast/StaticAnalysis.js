@@ -88,26 +88,4 @@ Object.subclass('MyClass',
     m1: function() {},
 });
 
-Object.extend(lively.ast.VariableAnalyzer, {
-    parse: function(source) {
-        var ast = lively.ast.Parser.parse(source, 'topLevel');
-        if (!ast || Object.isString(ast)) {
-          throw new Error("cannot parse " + source);
-        }
-        return ast;
-    },
-    findUnboundVariableNamesInAST: function(ast) {
-        var analyzer = new this();
-        analyzer.analyze(ast);
-        return analyzer.unboundVariables;
-    },
-    findUnboundVariableNamesIn: function(source) {
-        return this.findUnboundVariableNamesInAST(this.parse(source));
-    },
-    findTopLevelVarDeclarationsIn: function(source) {
-        var analyzer = new this();
-        analyzer.analyze(ast);
-        return analyzer.topLevelVarDeclarations();
-    }
-});
 }) // end of module

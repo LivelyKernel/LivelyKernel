@@ -1273,10 +1273,6 @@ lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
     visitCase: function(node) { this.visitParts(node, ['condExpr', 'thenExpr']) },
     visitDefault: function(node) { this.visitParts(node, ['defaultExpr']) },
 });
-Object.subclass('MyClass',
-'default category', {
-    m1: function() {},
-});
 
 
 }) // end of module

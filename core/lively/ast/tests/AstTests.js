@@ -757,7 +757,7 @@ TestCase.subclass('lively.ast.tests.AstTests.UnboundVariableAnalyzerTest',
 'testing', {
     test01FindFreeVariable: function() {
         var f = function() { var x = 3; return x + y },
-            result = new lively.ast.VariableAnalyzer().findUnboundVariableNames(f);
+            result = new lively.ast.VariableAnalyzer().findGlobalVariables(f);
         this.assertEqualState(f, [['y', 35, 36]], result);
     },
     testFindSimpleGlobalRead: function() {

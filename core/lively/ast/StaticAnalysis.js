@@ -85,7 +85,12 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
 });
 Object.subclass('lively.ast.DFAScope',
 'initializing', {
-    initialize: function() {},
+    initialize: function() {
+        this.mapping = {};
+        this.def_uses = {};
+        this.global_uses = [];
+        this.scopes = [];
+    },
 });
 Object.subclass('lively.ast.VariableAnalyzer',
 'helping', {

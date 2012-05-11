@@ -37,17 +37,30 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     setSelections: function(oDataFormat) {
     //calls from external to set default UI set
     /*
-            oDataFormat = {};    
+     
             oDataFormat.type ="currency";
             oDataFormat.symbol = "$";
+            oDataFormat.decimalPlaces = 2;
+            oDataFormat.unitOfMeasure = 1;
+            oDataFormat.negativeType= 1;
+
+    
+            oDataFormat.type ="percentage";
+            oDataFormat.decimalPlaces = 2;
+
+            oDataFormat.type ="number";
             oDataFormat.decimalPlaces = 2;
             oDataFormat.unitOfMeasure = 1;
             oDataFormat.useThousandSeparator = true;
             oDataFormat.negativeType= 1;
 
-            oDataFormat = {};    
-            oDataFormat.type ="percentage";
-            oDataFormat.decimalPlaces = 2;
+            oDataFormat.type ="date";
+            oDataFormat.dateFormat= 2;
+
+            oDataFormat.type ="time";
+            oDataFormat.timeformat= 2;
+
+            
     */
         if (oDataFormat){
             this.selectedCategory = oDataFormat.type;

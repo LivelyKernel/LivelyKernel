@@ -215,8 +215,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.lstDataTime.setPosition(pt(nXstart + nX, nY+nHeight+nGap));
         this.lstDataTime.setVisible(false);
 
-        this.btnOk = new lively.morphic.Button(new Rectangle(nXstart + nX + 351 ,230,100,20), 'Ok');
-        this.btnCancel = new lively.morphic.Button(new Rectangle(nXstart + nX +351+ 100,230,100,20), 'Cancel');
+        this.btnOk = new lively.morphic.Button(new Rectangle(nXstart + nX + 150 ,230,100,20), 'Ok');
+        this.btnCancel = new lively.morphic.Button(new Rectangle(nXstart + nX +150+ 100,230,100,20), 'Cancel');
 
         this.addMorph(this.txtUseThousand);
         this.addMorph(this.chkUseThousand);

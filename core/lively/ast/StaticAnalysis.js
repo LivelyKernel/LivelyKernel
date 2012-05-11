@@ -104,7 +104,7 @@ Object.subclass('lively.ast.DFAScope',
         for (var i = this.def_uses.length - 1; i >= 0; i--) {
             var def = this.def_uses[i][0];
             if (def.name == name && def.isVarDeclaration) return this.def_uses[i];
-        });
+        }
         return null;
     },
     definition: function(name) {

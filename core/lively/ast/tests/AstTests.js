@@ -733,7 +733,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ContinuationTest',
     },
 });
 
-TestCase.subclass('lively.ast.tests.AstTests.UnboundVariableAnalyzerTest',
+TestCase.subclass('lively.ast.tests.AstTests.VariableAnalyzerTest',
 'assertion', {
     assertVarsFound: function(code, expected, actual) {
         this.assertEquals(expected.length, actual.length,

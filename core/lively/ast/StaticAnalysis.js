@@ -41,7 +41,7 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
         var that = this;
         parts.each(function(p) {
             if (p.endsWith("*")) {
-                node[p].each(function(pi) { pi.accept(that); });
+                node[p].invoke('accept', that);
             } else {
                 node[p].accept(that);
             }

@@ -2080,9 +2080,6 @@ dataformat: currency & percentage & date & time
 
 
        
-        
-        
-        //oCellFormetter.openInWorld();
     },
     imgTextAlignLeft_Click: function() {
         var i;

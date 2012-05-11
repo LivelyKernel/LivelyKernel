@@ -1,6 +1,5 @@
 module('lively.ast.StaticAnalysis').requires('lively.ast.Parser').toRun(function() {
 
-
 lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
 'analyzing helper', {
     knownGlobals: ["true", "false", "null", "undefined",

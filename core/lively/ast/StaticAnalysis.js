@@ -90,7 +90,13 @@ Object.subclass('lively.ast.DFAScope',
         this.def_uses = {};
         this.global_uses = [];
         this.scopes = [];
+        this.parent = null;
     },
+},
+'acessing', {
+    newScope: function() {
+
+    }
 });
 Object.subclass('lively.ast.VariableAnalyzer',
 'helping', {

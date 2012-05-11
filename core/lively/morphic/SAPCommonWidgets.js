@@ -79,6 +79,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         
     },
     updateSelections: function() {
+        this.lstCategory.setSelection(this.selectedCategory);
+        
         this.ddlDecimalPlaces.setVisible(false);
         this.ddlCurrencySymbol.setVisible(false);
         this.txtDecimalPlaces.setVisible(false);

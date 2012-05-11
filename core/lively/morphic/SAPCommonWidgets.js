@@ -40,8 +40,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
      
             oDataFormat.type ="currency";
             oDataFormat.symbol = "$";
-            oDataFormat.decimalPlaces = 2;
-            oDataFormat.unitOfMeasure = 1;
+            //oDataFormat.decimalPlaces = 2;
+            //oDataFormat.unitOfMeasure = 1;
             oDataFormat.negativeType= 1;
 
     
@@ -55,10 +55,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
             oDataFormat.negativeType= 1;
 
             oDataFormat.type ="date";
-            oDataFormat.dateFormat= 2;
+            oDataFormat.dateFormat= "mm/dd/yyyy";
 
             oDataFormat.type ="time";
-            oDataFormat.timeformat= 2;
+            oDataFormat.timeformat= "h:M TT";
 
             
     */
@@ -66,21 +66,28 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
             this.selectedCategory = oDataFormat.type;
             switch(this.selectedCategory){
                 case "number":
-                    
+                    this.selectedDecimalPlaces = oDataFormat.decimalPlaces;
+                    this.selectedNegativeNumber = oDataFormat.negativeType;
+                    this.selectedUseThousand = oDataFormat.useThousandSeparator;
                     break;
                 case "currency":
+                    this.selectedDecimalPlaces = oDataFormat.decimalPlaces;
+                    this.selectedSymbol = oDataFormat.symbol;
+                    this.selectedNegativeNumber = oDataFormat.negativeType;
                     break;
                 case "date":
+                    this.selectedDateFormat = oDataFormat.dateFormat;
                     break;
                 case "time":
+                    this.selectedTimeFormat = oDataFormat.timeformat;
                     break;
                 case "Percentage":
+                    this.selectedDecimalPlaces = oDataFormat.decimalPlaces;
                     break;
                 default:
             }
-
-            
         }
+        this.updateSelections();
         
     },
     lstCategory_onChange: function() {
@@ -94,7 +101,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     updateSelections: function() {
 
         this.lstCategory.setSelection(this.selectedCategory);
-        
         this.ddlDecimalPlaces.setVisible(false);
         this.ddlCurrencySymbol.setVisible(false);
         this.txtDecimalPlaces.setVisible(false);

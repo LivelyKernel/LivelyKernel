@@ -1,7 +1,7 @@
 module('lively.ast.StaticAnalysis').requires('lively.ast.Parser').toRun(function() {
 
 
-lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
+lively.ast.Visitor.subclass('lively.ast.StaticAnalysis.DFAVisitor',
 'analyzing helper', {
     knownGlobals: ["true", "false", "null", "undefined",
                    "Object", "Function", "String", "Date", "Math", "parseFloat", "isNaN",

@@ -396,13 +396,13 @@ var dNow = new Date();
 });
 lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 'default category', {
-    initialize: function($super,nWidth,nHeight,nSelectedValue,arrData,oReturnCall) {
+    initialize: function($super,nWidth,nHeight,selectedValue,arrData,oReturnCall) {
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,nWidth,nHeight)));
         this.applyStyle({borderColor: Color.black, borderWidth: 2, fill: Color.white});
         this.setClipMode({x: 'hidden', y: 'scroll'}); 
         this.disableGrabbing();
         this.returnCall = oReturnCall;
-        this.selectedValue = nSelectedValue;
+        this.selectedValue = selectedValue;
         this.selectedItem=null;
         this.arrData = arrData;
         this.setList();
@@ -439,7 +439,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
 		offset = text.bounds().bottomLeft();
 	}, this);
     },
-    updateList: function(nSelectedValue,arrData) {
+    updateList: function(selectedValue,arrData) {
+        this.selectedValue = selectedValue;
         this.removeAllMorphs();
         this.arrData=arrData;
         this.setList();

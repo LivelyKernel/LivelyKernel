@@ -941,14 +941,15 @@ lively.ast.Function.addMethods('accessing', {
     },
     apply: function(thisObj, argValues, callerFrame) {
         var mapping = Object.extend({}, this.getRealFunction().getVarMapping());
+        var argNames = this.argNames();
         if (this.getRealFunction().isWrapper) {
             var vm = this.getRealFunction().getVarMapping();
-            if (vm["$super"] && this.args[0] == "$super") {
+            if (vm["$super"] && argNames[0] == "$super") {
                 argValues.unshift(vm["$super"]);
             }
         }
-        for (var i = 0; i < this.args.length; i++)
-            mapping[this.args[i]] = argValues[i];
+        for (var i = 0; i < argNames.length; i++)
+            mapping[argNames[i]] = argValues[i];
         var newFrame = this.lexicalScope.newScope(mapping);
         newFrame.setThis(thisObj);
         newFrame.setFuncAst(this);

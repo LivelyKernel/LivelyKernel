@@ -2072,11 +2072,11 @@ dataformat: currency & percentage & date & time
 
     },
     imgFormatCell_Click: function() {
-        alert(0)
+        //alert(0)
        
         this.grid.oWorkBook.dataFormatter = new lively.morphic.SAPCellFormatter();
-        
-        oCellFormetter.openInWorld();
+        this.grid.oWorkBook.addMorph(this.grid);
+        //oCellFormetter.openInWorld();
     },
     imgTextAlignLeft_Click: function() {
         var i;

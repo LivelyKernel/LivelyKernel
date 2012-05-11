@@ -940,6 +940,7 @@ lively.ast.Function.addMethods('accessing', {
         return lively.ast.getInterpreter().runWithFrame(this.body, frame);
     },
     apply: function(thisObj, argValues, callerFrame) {
+        debugger;
         var mapping = Object.extend({}, this.getRealFunction().getVarMapping());
         var argNames = this.argNames();
         if (this.getRealFunction().isWrapper) {

@@ -86,7 +86,6 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
 Object.subclass('lively.ast.DFAScope',
 'initializing', {
     initialize: function() {
-        this.mapping = {};
         this.def_uses = [];
         this.global_uses = [];
         this.global_defs = [];
@@ -101,20 +100,35 @@ Object.subclass('lively.ast.DFAScope',
         s.parent = this;
         return s;
     },
-    define: function(varnode) {
-        var chain = [varnode];
-        this.def_uses.push(chain);
-        this.mapping[varnode.name] = chain;
+    declaration: function(name) {
+        this.def_uses.each(function(chain) {
+            if (chain[0].name == name) return chain[0];
+        });
+        return null;
     },
-    lookup: function(name) {
+    lookup_decl: function(name) {
+        var decl = this.declaration[name];
+        if (!chain && this.parent) {
+            return this.parent.lookup(name);
+        }
+        return chain;
+    }
+    lookup_def: function(name) {
         var chain = this.mapping[name];
         if (!chain && this.parent) {
             return this.parent.lookup(name);
         }
         return chain;
     },
+    define: function(varnode) {
+        if (!varnode.isVarDeclaration) {
+            var decl = this.lookup_decl(varnode.name);
+            if (!decl) this.global_defs.push(varnode);
+        }
+        this.def_uses.push([varnode]);
+    },
     use: function(varnode) {
-        var chain = this.lookup(varnode.name);
+        var chain = this.lookup_def(varnode.name);
         if (chain) {
             chain.push(varnode);
         } else {

@@ -9,7 +9,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.selectedDecimalPlaces = 2;        //default
         this.selectedUseThousand = true;       //default
         this.selectedDateFormat = "mm/dd/yyyy";//default
-        this.selectedTimeFormat = "h:M TT";//default
+        this.selectedTimeFormat = "h:M TT";    //default
+        this.selectedNegativeNumber = 0        //default:  blackwith-(0),readwith-(1),blackwithBracket(2),redwithbracket(3)
         this.grid;
         this.toolBar;
         this.lstCategory = null;
@@ -92,7 +93,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 this.txtUseThousand.setVisible(true);
                 this.txtNegatvieNumbers.setVisible(true);
                 this.lstNegativeNumber.setVisible(true);
-                this.lstNegativeNumber.updateList(0,this.arrNegativeNumber);
+                this.lstNegativeNumber.updateList(this.selectedNegativeNumber,this.arrNegativeNumber);
                 break;
             case "currency":  
                 this.ddlDecimalPlaces.setVisible(true);
@@ -101,17 +102,17 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 this.ddlCurrencySymbol.setVisible(true);
                 this.txtNegatvieNumbers.setVisible(true);
                 this.lstNegativeNumber.setVisible(true);
-                this.lstNegativeNumber.updateList(0,this.arrNegativeCurrencyNumber);
+                this.lstNegativeNumber.updateList(this.selectedNegativeNumber,this.arrNegativeCurrencyNumber);
                 break;
             case "date":
                 this.txtType.setVisible(true);
                 this.lstDataTime.setVisible(true);
-                this.lstDataTime.updateList("mm/dd/yyyy",this.arrDateFormat);
+                this.lstDataTime.updateList(this.selectedDateFormat,this.arrDateFormat);
                 break;
             case "time":
                 this.txtType.setVisible(true);
                 this.lstDataTime.setVisible(true);
-                this.lstDataTime.updateList("h:M TT",this.arrTimeFormat);
+                this.lstDataTime.updateList(this.selectedTimeFormat,this.arrTimeFormat);
                 break;
             case "Percentage":
                 this.ddlDecimalPlaces.setVisible(true);

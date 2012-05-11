@@ -931,6 +931,7 @@ lively.ast.Node.subclass('lively.ast.Function',
 		this.pos = pos;
 		this.args = args;
 		this.body = body;
+		args.forEach(function(node) { node.setParent(this) }, this);
 		body.setParent(this);
 	},
 },

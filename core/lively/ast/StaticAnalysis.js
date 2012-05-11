@@ -7,18 +7,9 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
                    "eval", "window", "document", "Node",
                    "HTMLCanvasElement", "Image"],
     newScope: function() {
-        var s = {
-            mapping: {},
-            def_uses: {},
-            global_uses: [],
-            scopes: []
-        };
-        if (this.current) {
-            this.current.scopes.push(s);
-            s.parent = this.current;
-        }
-        this.current = s;
-        return s;
+        this.current = this.current
+            ? this.current.newScope()
+            : new lively.ast.DFAScope();
     },
 },
 'analyzing', {

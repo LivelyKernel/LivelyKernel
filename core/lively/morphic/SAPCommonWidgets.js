@@ -90,6 +90,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 this.ddlDecimalPlaces.setVisible(true);
                 this.txtDecimalPlaces.setVisible(true);
                 this.chkUseThousand.setVisible(true);
+                this.chkUseThousand.setChecked(this.selectedUseThousand);
                 this.txtUseThousand.setVisible(true);
                 this.txtNegatvieNumbers.setVisible(true);
                 this.lstNegativeNumber.setVisible(true);
@@ -198,6 +199,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
         connect(this.lstCategory, "selection", this, "lstCategory_onChange", {});
         connect(this.ddlCurrencySymbol, "onChange", this, "ddlCurrencySymbol_onChange", {});
+        
+        this.lstCategory_onChange();
 
     },
     buildListItems: function() {

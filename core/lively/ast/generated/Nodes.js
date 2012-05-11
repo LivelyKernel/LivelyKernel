@@ -927,11 +927,11 @@ lively.ast.Node.subclass('lively.ast.Function',
 	isFunction: true,
 },
 'initializing', {
-	initialize: function($super, pos, args, body) {
+	initialize: function($super, pos, body, args) {
 		this.pos = pos;
-		this.args = args;
 		this.body = body;
-		args.setParent(this);
+		this.args = args;
+		args.forEach(function(node) { node.setParent(this) }, this);
 		body.setParent(this);
 	},
 },

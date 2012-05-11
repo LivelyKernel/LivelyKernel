@@ -120,6 +120,9 @@ Object.subclass('lively.ast.DFAScope',
             this.global_uses.push(varnode);
         }
     }
+    newMethod: function() {
+        // enter comment here
+    },
 });
 Object.subclass('lively.ast.VariableAnalyzer',
 'helping', {

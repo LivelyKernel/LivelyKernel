@@ -240,7 +240,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
     },
     buildListItems: function() {
-        debugger;
+  
         this.arrCurrency=[];
         this.arrCategory=[];
         this.arrNegativeNumber=[];

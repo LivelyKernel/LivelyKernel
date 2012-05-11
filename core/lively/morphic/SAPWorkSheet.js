@@ -1951,6 +1951,7 @@ dataformat: currency & percentage & date & time
         this.imgTextAlignLeft.grabbingEnabled = false;
         this.imgTextAlignCenter.grabbingEnabled = false;
         this.imgTextAlignRight.grabbingEnabled = false;
+        this.imgFormatCell.grabbingEnabled = false;
 
 
         this.imgSave.disableHalos();
@@ -1975,7 +1976,7 @@ dataformat: currency & percentage & date & time
         this.imgTextAlignLeft.disableHalos();
         this.imgTextAlignCenter.disableHalos();
         this.imgTextAlignRight.disableHalos();
-
+        this.imgFormatCell.disableHalos();
     },
     setFontSize: function(sFontSize){
         this.ddlFontSize.setSelectionMatching(sFontSize);

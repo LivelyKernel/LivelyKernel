@@ -83,9 +83,9 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
     visitCase: function(node) { this.visitParts(node, ['condExpr', 'thenExpr']) },
     visitDefault: function(node) { this.visitParts(node, ['defaultExpr']) },
 });
-Object.subclass('MyClass',
-'default category', {
-    m1: function() {},
+Object.subclass('lively.ast.DFAScope',
+'initializing', {
+    initialize: function() {},
 });
 Object.subclass('lively.ast.VariableAnalyzer',
 'helping', {

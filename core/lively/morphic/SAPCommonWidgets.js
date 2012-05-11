@@ -74,7 +74,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         var sValue = this.lstCategory.getSelectedItem();
         if (sValue){
             this.selectedCategory = sValue;
-            this.updateSelections()
+            this.updateSelections();
         }
         
     },
@@ -199,11 +199,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.addMorph(this.lstNegativeNumber);
         this.addMorph(this.lstDataTime);
         
-
         connect(this.lstCategory, "selection", this, "lstCategory_onChange", {});
         connect(this.ddlCurrencySymbol, "onChange", this, "ddlCurrencySymbol_onChange", {});
 
-        this.lstCategory_onChange();
+        this.updateSelections();
 
     },
     buildListItems: function() {

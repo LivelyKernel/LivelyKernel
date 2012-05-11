@@ -1775,7 +1775,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgRemoveRow;
         this.imgInsertColumn;
         this.imgRemoveColumn;
-
+        this.imgFormatCell;
         this.imgTextAlignLeft;
         this.imgTextAlignCenter;
         this.imgTextAlignRight;
@@ -1854,6 +1854,9 @@ dataformat: currency & percentage & date & time
         this.imgSignPercent= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*12 + 10 + 12*nGapWidth,3,24,24), "images/Percent-icon2.png"); 
         this.imgSignPercent.setToolTip("Number Format: Percentage");
 
+        this.imgFormatCell= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,nSecondLineYPos,24,24), "images/rick-text-format-icon.png"); 
+
+
         this.imgBoarder = new lively.morphic.Image(new Rectangle(4*nGapGroupWidth + 24*13 + 10 + 13*nGapWidth,3,24,24), "images/border-2-bottom-icon.png"); 
         this.imgFilter = new lively.morphic.Image(new Rectangle(4*nGapGroupWidth + 24*14 + 10 + 14*nGapWidth,3,24,24), "images/filter-icon.png"); 
 
@@ -1899,6 +1902,8 @@ dataformat: currency & percentage & date & time
 
         this.addMorph(this.imgSignDollar);
         this.addMorph(this.imgSignPercent);
+        this.addMorph(this.imgFormatCell);
+
 
         this.addMorph(this.imgBoarder);
         this.addMorph(this.imgFilter);

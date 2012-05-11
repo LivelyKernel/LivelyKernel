@@ -7,7 +7,7 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
                    "eval", "window", "document", "Node",
                    "HTMLCanvasElement", "Image"],
     newScope: function() {
-        this.current = this.current
+        return this.current = this.current
             ? this.current.newScope()
             : new lively.ast.DFAScope();
     },
@@ -26,7 +26,11 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
     visitVariable: function(node) {
         if (this.knownGlobals.include(node.name)) return;
         if (node._parent.isFunction) {
-            this.current.def_uses.push(node);
+            this.current.define(node);
+        } else if (node._parent.isSet) {
+            this.current.define(node);
+        } else {
+            this.current.use(node);
         }
     },
     visitVarDeclaration: function(node) {

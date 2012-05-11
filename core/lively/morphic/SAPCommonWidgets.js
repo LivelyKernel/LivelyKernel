@@ -188,7 +188,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtSymbol.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
         this.chkUseThousand = new lively.morphic.CheckBox();
         this.chkUseThousand.setChecked(this.selectedUseThousand);
-        this.chkUseThousand.setPosition(pt(nX,nY+nHeight+nGap));
+        this.chkUseThousand.setPosition(pt(nXstart + nX,nY+nHeight+nGap));
         this.chkUseThousand.setVisible(false);
 
         this.txtUseThousand = new lively.morphic.Text(new Rectangle(nXstart + nX+30 ,nY+nHeight+nGap, 150, nHeight),'Use 1000 Separator(,)');

@@ -67,12 +67,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
             case "Date":
                 this.txtType.setVisible(true);
                 this.lstDataTime.setVisible(true);
-                this.lstDataTime.updateList(0,this.arrDateFormat);
+                this.lstDataTime.updateList("mm/dd/yyyy",this.arrDateFormat);
                 break;
             case "Time":
                 this.txtType.setVisible(true);
                 this.lstDataTime.setVisible(true);
-                this.lstDataTime.updateList(0,this.arrTimeFormat);
+                this.lstDataTime.updateList("h:M TT",this.arrTimeFormat);
                 break;
             case "Percentage":
                 this.ddlDecimalPlaces.setVisible(true);

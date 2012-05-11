@@ -25,6 +25,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.chkUseThousand=null;
         this.txtNegatvieNumbers
         this.txtUseThousand=null;
+        this.btnOk=null;
+        this.btnCancel=null;
         this.arrCurrency=[];
         this.arrCategory=[];
         this.arrNegativeNumber=[];
@@ -213,6 +215,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.lstDataTime.setPosition(pt(nXstart + nX, nY+nHeight+nGap));
         this.lstDataTime.setVisible(false);
 
+        this.btnOk = new lively.morphic.Button(new Rectangle(nXstart + nX + 351 ,230,100,20), 'Ok');
+        this.btnCancel = new lively.morphic.Button(new Rectangle(nXstart + nX +351+ 100,230,100,20), 'Cancel');
+
         this.addMorph(this.txtUseThousand);
         this.addMorph(this.chkUseThousand);
         this.addMorph(this.txtType);
@@ -225,6 +230,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.addMorph(this.ddlCurrencySymbol );
         this.addMorph(this.lstNegativeNumber);
         this.addMorph(this.lstDataTime);
+        this.addMorph(this.btnOk);
+        this.addMorph(this.btnCancel);
         
         connect(this.lstCategory, "selection", this, "lstCategory_onChange", {});
         connect(this.ddlCurrencySymbol, "onChange", this, "ddlCurrencySymbol_onChange", {});

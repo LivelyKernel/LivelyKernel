@@ -32,7 +32,36 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     },
     setSelections: function(oDataFormat) {
     //calls from external to set default 
+    /*
+            oDataFormat = {};    
+            oDataFormat.type ="currency";
+            oDataFormat.symbol = "$";
+            oDataFormat.decimalPlaces = 2;
+            oDataFormat.unitOfMeasure = 1;
+            oDataFormat.useThousandSeparator = true;
+            oDataFormat.negativeType= 1;
+
+            oDataFormat = {};    
+            oDataFormat.type ="percentage";
+            oDataFormat.decimalPlaces = 2;
+    */
         if (oDataFormat){
+            this.selectedCategory = oDataFormat.type;
+            switch(this.selectedCategory){
+                case "number":
+                    
+                    break;
+                case "currency":
+                    break;
+                case "date":
+                    break;
+                case "time":
+                    break;
+                case "Percentage":
+                    break;
+                default:
+            }
+
             
         }
         
@@ -53,7 +82,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.lstDataTime.setVisible(false);
 
         switch(this.selectedCategory){
-            case "Number": 
+            case "number": 
                 this.ddlDecimalPlaces.setVisible(true);
                 this.txtDecimalPlaces.setVisible(true);
                 this.chkUseThousand.setVisible(true);
@@ -62,7 +91,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 this.lstNegativeNumber.setVisible(true);
                 this.lstNegativeNumber.updateList(0,this.arrNegativeNumber);
                 break;
-            case "Currency":  
+            case "currency":  
                 this.ddlDecimalPlaces.setVisible(true);
                 this.txtDecimalPlaces.setVisible(true);
                 this.txtSymbol.setVisible(true);
@@ -71,12 +100,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 this.lstNegativeNumber.setVisible(true);
                 this.lstNegativeNumber.updateList(0,this.arrNegativeCurrencyNumber);
                 break;
-            case "Date":
+            case "date":
                 this.txtType.setVisible(true);
                 this.lstDataTime.setVisible(true);
                 this.lstDataTime.updateList("mm/dd/yyyy",this.arrDateFormat);
                 break;
-            case "Time":
+            case "time":
                 this.txtType.setVisible(true);
                 this.lstDataTime.setVisible(true);
                 this.lstDataTime.updateList("h:M TT",this.arrTimeFormat);
@@ -103,25 +132,25 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.arrNegativeNumber=[];
         //'Number', 'Currency', 'Percentage','Date','Time'
         var oItem={};
-        oItem.value= "Number";
+        oItem.value= "number";
         oItem.string= "Number";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);
 
         oItem={};
-        oItem.value= "Currency";
+        oItem.value= "currency";
         oItem.string= "Currency";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);
 
         oItem={};
-        oItem.value= "Date";
+        oItem.value= "date";
         oItem.string= "Date";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);
 
         oItem={};
-        oItem.value= "Time";
+        oItem.value= "time";
         oItem.string= "Time";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);

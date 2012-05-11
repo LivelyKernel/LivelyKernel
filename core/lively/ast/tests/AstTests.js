@@ -766,7 +766,7 @@ TestCase.subclass('lively.ast.tests.AstTests.UnboundVariableAnalyzerTest',
         ];
 
         for (var i = 0; i < codeAndExpected.length; i++) {
-            var result = lively.ast.VariableAnalyzer.findUnboundVariableNamesIn(codeAndExpected[i][0]);
+            var result = new lively.ast.VariableAnalyzer().findUnboundVariableNamesIn(codeAndExpected[i][0]);
             this.assertVarsFound(codeAndExpected[i], result);
         }
     },

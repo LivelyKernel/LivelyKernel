@@ -30,6 +30,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.buildListItems();
         this.initializeLayout();
     },
+    setSelections: function() {
+    //calls from external to set default 
+    
+        
+    },
     lstCategory_onChange: function() {
         var sValue = this.lstCategory.getSelectedItem();
         this.selectedCategory = sValue;

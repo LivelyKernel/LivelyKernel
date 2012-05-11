@@ -72,8 +72,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     },
     lstCategory_onChange: function() {
         var sValue = this.lstCategory.getSelectedItem();
-        this.selectedCategory = sValue;
-
+        if (sValue){
+            this.selectedCategory = sValue;
+            this.updateSelections()
+        }
+        
+    },
+    updateSelections: function() {
         this.ddlDecimalPlaces.setVisible(false);
         this.ddlCurrencySymbol.setVisible(false);
         this.txtDecimalPlaces.setVisible(false);
@@ -84,7 +89,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtUseThousand.setVisible(false);
         this.lstNegativeNumber.setVisible(false);
         this.lstDataTime.setVisible(false);
-debugger;
+
         switch(this.selectedCategory){
             case "number": 
                 this.ddlDecimalPlaces.setVisible(true);
@@ -197,7 +202,7 @@ debugger;
 
         connect(this.lstCategory, "selection", this, "lstCategory_onChange", {});
         connect(this.ddlCurrencySymbol, "onChange", this, "ddlCurrencySymbol_onChange", {});
-        debugger;
+
         this.lstCategory_onChange();
 
     },

@@ -124,7 +124,7 @@ Object.subclass('lively.ast.DFAScope',
     lookup_def: function(name) {
         var chain = this.definition(name);
         if (!chain && this.parent) {
-            return this.parent.lookup(name);
+            return this.parent.lookup_def(name);
         }
         return chain;
     },

@@ -89,6 +89,7 @@ Object.subclass('lively.ast.DFAScope',
         this.mapping = {};
         this.def_uses = [];
         this.global_uses = [];
+        this.global_defs = [];
         this.scopes = [];
         this.parent = null;
     },
@@ -119,12 +120,20 @@ Object.subclass('lively.ast.DFAScope',
         } else {
             this.global_uses.push(varnode);
         }
-    }
-        allGlobalUses: function() {
+    },
+    allGlobalUses: function() {
         var res = [];
         res.concat(this.global_uses);
         this.scopes.each(function(s) {
             res.concat(s.allGlobalUses()); 
+        });
+        return res;
+    },
+    allGlobalDefs: function() {
+        var res = [];
+        res.concat(this.global_defs);
+        this.scopes.each(function(s) {
+            res.concat(s.allGlobalDefs()); 
         });
         return res;
     },

@@ -275,7 +275,7 @@ var dNow = new Date();
 
         oItem={};
         oItem.value= "m/d/yy H:M";
-        oItem.string= dateFormat("m/d/yy H:M") +" (22-hour clock)";
+        oItem.string= dateFormat("m/d/yy H:M") +" (24-hour clock)";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
@@ -317,7 +317,7 @@ var dNow = new Date();
 
         oItem={};
         oItem.value= "m/d/yy H:M";
-        oItem.string= dateFormat("m/d/yy H:M") +" (22-hour clock)";
+        oItem.string= dateFormat("m/d/yy H:M") +" (24-hour clock)";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrTimeFormat.push(oItem);

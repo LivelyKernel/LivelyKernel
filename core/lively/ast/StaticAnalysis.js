@@ -102,7 +102,7 @@ Object.subclass('lively.ast.VariableAnalyzer',
         return ast;
     },
     findUnboundVariableNamesInAST: function(ast) {
-        var analyzer = new this();
+        var analyzer = new lively.ast.DFAVisitor();
         analyzer.analyze(ast);
         return analyzer.unboundVariables;
     },
@@ -110,7 +110,7 @@ Object.subclass('lively.ast.VariableAnalyzer',
         return this.findUnboundVariableNamesInAST(this.parse(source));
     },
     findTopLevelVarDeclarationsIn: function(source) {
-        var analyzer = new this();
+        var analyzer = new lively.ast.DFAVisitor();
         analyzer.analyze(ast);
         return analyzer.topLevelVarDeclarations();
     }

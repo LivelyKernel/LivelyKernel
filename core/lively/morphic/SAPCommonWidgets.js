@@ -400,84 +400,84 @@ var dNow = new Date();
 
         oItem={};
         oItem.value= "mm/dd";
-        oItem.string= dNow.format("mm/dd");
+        oItem.string= Global.dateFormat(dNow,"mm/dd");
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
 
         oItem={};
         oItem.value= "mm/dd/yy";
-        oItem.string= dateFormat("mm/dd/yy");
+        oItem.string= Global.dateFormat(dNow,"mm/dd/yy");
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
 
         oItem={};
         oItem.value= "dd-mmm";
-        oItem.string= dateFormat("dd-mmm");
+        oItem.string= Global.dateFormat(dNow,"dd-mmm");
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
 
         oItem={};
         oItem.value= "dd-mmm-yy";
-        oItem.string= dateFormat("dd-mmm-yy");
+        oItem.string= Global.dateFormat(dNow,"dd-mmm-yy");
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
 
         oItem={};
         oItem.value= "m/d/yy h:M TT";
-        oItem.string= dateFormat("m/d/yy h:M TT") +" (12-hour clock)";
+        oItem.string= Global.dateFormat(dNow,"m/d/yy h:M TT") +" (12-hour clock)";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
 
         oItem={};
         oItem.value= "m/d/yy H:M";
-        oItem.string= dateFormat("m/d/yy H:M") +" (24-hour clock)";
+        oItem.string= Global.dateFormat(dNow,"m/d/yy H:M") +" (24-hour clock)";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
 //Time
         oItem={};
         oItem.value= "h:M TT";
-        oItem.string= dateFormat("h:M TT")+" (12-hour clock)";
+        oItem.string= Global.dateFormat(dNow,"h:M TT")+" (12-hour clock)";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrTimeFormat.push(oItem);
 
         oItem={};
         oItem.value= "H:M";
-        oItem.string= dateFormat("H:M") + " (24-hour clock)";
+        oItem.string= Global.dateFormat(dNow,"H:M") + " (24-hour clock)";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrTimeFormat.push(oItem);
 
         oItem={};
         oItem.value= "h:M:s TT";
-        oItem.string= dateFormat("h:M:s TT")+" (12-hour clock)";
+        oItem.string= Global.dateFormat(dNow,"h:M:s TT")+" (12-hour clock)";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrTimeFormat.push(oItem);
 
         oItem={};
         oItem.value= "H:M:s";
-        oItem.string= dateFormat("h:M:s") + " (24-hour clock)";
+        oItem.string= Global.dateFormat(dNow,"h:M:s") + " (24-hour clock)";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrTimeFormat.push(oItem);
 
         oItem={};
         oItem.value= "m/d/yy h:M TT";
-        oItem.string= dateFormat("m/d/yy h:M TT") +" (12-hour clock)";
+        oItem.string= Global.dateFormat(dNow,"m/d/yy h:M TT") +" (12-hour clock)";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrTimeFormat.push(oItem);
 
         oItem={};
         oItem.value= "m/d/yy H:M";
-        oItem.string= dateFormat("m/d/yy H:M") +" (24-hour clock)";
+        oItem.string= Global.dateFormat(dNow,"m/d/yy H:M") +" (24-hour clock)";
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrTimeFormat.push(oItem);

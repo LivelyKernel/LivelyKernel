@@ -762,16 +762,16 @@ TestCase.subclass('lively.ast.tests.AstTests.UnboundVariableAnalyzerTest',
     },
     testFindSimpleGlobalRead: function() {
         var codeAndExpected = [
-            ["Foo.bar()", ["Foo"]],
-            ["var Foo = x(); Foo.bar()", ["x"]],
-            ["Foo = false;", ["Foo"]],
-            ["function() { function() { Foo = 3 }}", ["Foo"]],
+            ["Foo.bar()", [["Foo", 1, 3]]],
+            ["var Foo = x(); Foo.bar()", [["x", 10, 11]]],
+            ["Foo = false;", [["Foo", 1, 3]]],
+            ["function() { function() { Foo = 3 }}", [["Foo", 26, 29]]],
             ["function(arg) { return arg + 1 }", []],
-            ["function() { function(arg) {}; return arg }", ['arg']]
+            ["function() { function(arg) {}; return arg }", [['arg', 38, 41]]]
         ];
 
         for (var i = 0; i < codeAndExpected.length; i++) {
-            var result = new lively.ast.VariableAnalyzer().findUnboundVariableNamesIn(codeAndExpected[i][0]);
+            var result = new lively.ast.VariableAnalyzer().findGlobalVariablesIn(codeAndExpected[i][0]);
             this.assertVarsFound(codeAndExpected[i], result);
         }
     },

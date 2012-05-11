@@ -171,7 +171,7 @@ debugger;
 
         this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, nX-20 , 200), this.arrCategory);
         this.lstCategory.setSelection(this.selectedCategory);
-        this.lstCategory.setSelection(0);
+        //this.lstCategory.setSelection(0);
 
 
         this.lstCategory.disableGrabbing();

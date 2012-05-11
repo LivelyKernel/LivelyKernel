@@ -2077,7 +2077,7 @@ dataformat: currency & percentage & date & time
         debugger;
         if (this.oDataFormat){
             if (this.oDataFormat.owner.isShutdown()){
-               alert("bring it to the world")
+               //alert("bring it to the world")
                     //this.oDataFormat.owner.setVisible(true);
             this.oDataFormat.owner.state =null;        
             this.oDataFormat.owner.openInWorld();

@@ -350,7 +350,7 @@ var dNow = new Date();
         this.chkUseThousand.setPosition(pt(nX,nY+nHeight+nGap));
         this.chkUseThousand.setVisible(false);
 
-        this.txtUseThousand = new lively.morphic.Text(new Rectangle(nX+50 ,nY+nHeight+nGap, 150, nHeight),'Use 1000 Separator(,)');
+        this.txtUseThousand = new lively.morphic.Text(new Rectangle(nX+30 ,nY+nHeight+nGap, 150, nHeight),'Use 1000 Separator(,)');
         this.txtUseThousand.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
         this.txtUseThousand.setVisible(false);
 

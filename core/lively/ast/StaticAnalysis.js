@@ -21,7 +21,7 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
     },
 
     globalVariables: function() {
-        return this.root.allGlobalUses().concat(this.root.allGlobalDefs());
+        return this.root.allGlobalUses().pushAll(this.root.allGlobalDefs());
     },
 
 },
@@ -145,17 +145,17 @@ Object.subclass('lively.ast.DFAScope',
     },
     allGlobalUses: function() {
         var res = [];
-        res.concat(this.global_uses);
+        res.pushAll(this.global_uses);
         this.scopes.each(function(s) {
-            res.concat(s.allGlobalUses()); 
+            res.pushAll(s.allGlobalUses()); 
         });
         return res;
     },
     allGlobalDefs: function() {
         var res = [];
-        res.concat(this.global_defs);
+        res.pushAll(this.global_defs);
         this.scopes.each(function(s) {
-            res.concat(s.allGlobalDefs()); 
+            res.pushAll(s.allGlobalDefs()); 
         });
         return res;
     },

@@ -93,7 +93,7 @@ Object.subclass('lively.ast.DFAScope',
         this.parent = null;
     },
 },
-'acessing', {
+'accessing', {
     newScope: function() {
         var s = new lively.ast.DFAScope();
         this.scopes.push(s);

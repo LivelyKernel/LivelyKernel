@@ -99,6 +99,26 @@ Object.subclass('lively.ast.DFAScope',
         this.scopes.push(s);
         s.parent = this;
         return s;
+    },
+    define: function(varnode) {
+        var chain = [varnode];
+        this.def_uses.push(chain);
+        this.mapping[varnode.name] = chain;
+    },
+    lookup: function(name) {
+        var chain = this.mapping[name];
+        if (!chain && this.parent) {
+            return this.parent.lookup(name);
+        }
+        return chain;
+    },
+    use: function(varnode) {
+        var chain = this.lookup(varnode.name);
+        if (chain) {
+            chain.push(varnode);
+        } else {
+            this.global_uses.push(varnode);
+        }
     }
 });
 Object.subclass('lively.ast.VariableAnalyzer',

@@ -46,10 +46,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeAnnotation();
         $.getScript("../../core/lively/date.format.js")
             .done(function(script, textStatus) {
-            console.log( textStatus );
+            console.log( "success loading date.format.js");
             })
             .fail(function(jqxhr, settings, exception) {
-                $( "div.log" ).text( "Triggered ajaxError handler." );
+                console.log("error loading date.format.js");
         }); 
 
     },

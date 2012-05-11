@@ -772,7 +772,7 @@ TestCase.subclass('lively.ast.tests.AstTests.VariableAnalyzerTest',
 
         for (var i = 0; i < codeAndExpected.length; i++) {
             var result = new lively.ast.VariableAnalyzer().findGlobalVariablesIn(codeAndExpected[i][0]);
-            this.assertVarsFound(codeAndExpected[i], result);
+            this.assertVarsFound(codeAndExpected[i][0], codeAndExpected[i][1], result);
         }
     },
 

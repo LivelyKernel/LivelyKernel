@@ -1783,6 +1783,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.ddlFont;
 
         this.fontPicker;
+        this.oDataFormat = null;
 
 /*
 

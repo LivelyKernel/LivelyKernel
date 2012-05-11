@@ -34,7 +34,7 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
         }
     },
     visitVarDeclaration: function(node) {
-        this.current.defs.push(node);
+        this.current.define(node);
         this.visitParts(node, ['val']);
     },
     visitParts: function(node, parts) {

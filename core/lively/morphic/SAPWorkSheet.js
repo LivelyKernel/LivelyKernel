@@ -2236,6 +2236,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.toolBarHeight = 60;
         this.grid;
         this.toolBar;
+        this.dataFormatter;
         this.initializeLayout();
     },
      initializeLayout: function() {

@@ -149,7 +149,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         oItem={};
         oItem.value= "GBP";
         oItem.symbol="&#163";
-        oItem.string= "Britain (United Kingdom), Pounds (&#163)";
+        oItem.string= "Britain (United Kingdom), Pounds (&pound;)";
         oItem.bFront=true;
         oItem.isListItem=true;
         this.arrCurrency.push(oItem);

@@ -130,19 +130,14 @@ Object.subclass('lively.ast.VariableAnalyzer',
         }
         return ast;
     },
-    findUnboundVariableNamesInAST: function(ast) {
+    findGlobalVariablesInAST: function(ast) {
         var analyzer = new lively.ast.DFAVisitor();
         analyzer.analyze(ast);
         return analyzer.globalVariables();
     },
-    findUnboundVariableNamesIn: function(source) {
+    findGlobalVariablesIn: function(source) {
         return this.findUnboundVariableNamesInAST(this.parse(source));
     },
-    findTopLevelVarDeclarationsIn: function(source) {
-        var analyzer = new lively.ast.DFAVisitor();
-        analyzer.analyze(ast);
-        return analyzer.topLevelVarDeclarations();
-    }
 });
 
 }) // end of module

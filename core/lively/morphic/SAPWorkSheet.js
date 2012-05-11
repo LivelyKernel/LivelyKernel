@@ -2073,6 +2073,7 @@ dataformat: currency & percentage & date & time
     },
     imgFormatCell_Click: function() {
         //alert(0)
+        debugger;
         if (this.grid.oWorkBook.dataFormatter){
         }else{
             this.grid.oWorkBook.dataFormatter = new lively.morphic.SAPCellFormatter();

@@ -101,20 +101,28 @@ Object.subclass('lively.ast.DFAScope',
         return s;
     },
     declaration: function(name) {
-        this.def_uses.each(function(chain) {
-            if (chain[0].name == name) return chain[0];
+        for (var i = this.def_uses.length - 1; i >= 0; i--) {
+            var def = this.def_uses[i][0];
+            if (def.name == name && def.isVarDeclaration) return this.def_uses[i];
+        });
+        return null;
+    },
+    definition: function(name) {
+        for (var i = this.def_uses.length - 1; i >= 0; i--) {
+            var def = this.def_uses[i][0];
+            if (def.name == name) return this.def_uses[i];
         });
         return null;
     },
     lookup_decl: function(name) {
-        var decl = this.declaration[name];
+        var chain = this.declaration(name);
         if (!chain && this.parent) {
-            return this.parent.lookup(name);
+            return this.parent.lookup_decl(name);
         }
         return chain;
     }
     lookup_def: function(name) {
-        var chain = this.mapping[name];
+        var chain = this.definition(name);
         if (!chain && this.parent) {
             return this.parent.lookup(name);
         }

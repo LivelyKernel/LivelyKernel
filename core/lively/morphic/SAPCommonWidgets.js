@@ -4,9 +4,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 'default category', {
     initialize: function($super) {
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,500,500)));
-        this.selectedCategory = "number";
-        this.selectedSymbol="USD";
-        this.selectedDecimalPlaces = 2;
+        this.selectedCategory = "number";      //default
+        this.selectedSymbol="USD";             //default
+        this.selectedDecimalPlaces = 2;        //default
+        this.selectedUseThousand = true;       //default
         this.grid;
         this.toolBar;
         this.lstCategory = null;
@@ -31,7 +32,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.initializeLayout();
     },
     setSelections: function(oDataFormat) {
-    //calls from external to set default 
+    //calls from external to set default UI set
     /*
             oDataFormat = {};    
             oDataFormat.type ="currency";

@@ -20,6 +20,10 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
         this.visit(ast);
     },
 
+    globalVariables: function() {
+        return this.root.global_uses;
+    },
+
 },
 'visiting', {
     visitVariable: function(node) {

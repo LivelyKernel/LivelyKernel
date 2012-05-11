@@ -2067,9 +2067,12 @@ dataformat: currency & percentage & date & time
 
         connect(this.ddlFontSize, "onChange", this, "ddlFontSize_onChange", {});
         connect(this.ddlFont , "onMouseDown", this, "ddlFont_onMouseDown", {});
-
+        connect(this.imgFormatCell, "onMouseDown", this, "imgFormatCell_Click", {});
         
 
+    },
+    imgFormatCell_Click: function() {
+        alert(0)
     },
     imgTextAlignLeft_Click: function() {
         var i;

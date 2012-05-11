@@ -96,6 +96,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         switch(this.selectedCategory){
             case "number": 
                 this.ddlDecimalPlaces.setVisible(true);
+                this.ddlDecimalPlaces.setSelection(this.selectedDecimalPlaces);
                 this.txtDecimalPlaces.setVisible(true);
                 this.chkUseThousand.setVisible(true);
                 this.chkUseThousand.setChecked(this.selectedUseThousand);
@@ -106,6 +107,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 break;
             case "currency":  
                 this.ddlDecimalPlaces.setVisible(true);
+                this.ddlDecimalPlaces.setSelection(this.selectedDecimalPlaces);
                 this.txtDecimalPlaces.setVisible(true);
                 this.txtSymbol.setVisible(true);
                 this.ddlCurrencySymbol.setVisible(true);
@@ -125,6 +127,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 break;
             case "percentage":
                 this.ddlDecimalPlaces.setVisible(true);
+                this.ddlDecimalPlaces.setSelection(this.selectedDecimalPlaces);
                 this.txtDecimalPlaces.setVisible(true);
                 break;
             default:

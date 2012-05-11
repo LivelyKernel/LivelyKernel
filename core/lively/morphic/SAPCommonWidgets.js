@@ -233,7 +233,7 @@ debugger;
         this.arrCategory.push(oItem);
 
         oItem={};
-        oItem.value= "Percentage";
+        oItem.value= "percentage";
         oItem.string= "Percentage";
         oItem.isListItem=true;
         this.arrCategory.push(oItem);

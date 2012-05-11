@@ -2073,8 +2073,9 @@ dataformat: currency & percentage & date & time
     },
     imgFormatCell_Click: function() {
         alert(0)
-        //this.grid.oWorkBook
-        var oCellFormetter= new lively.morphic.SAPCellFormatter();
+       
+        this.grid.oWorkBook.dataFormatter = new lively.morphic.SAPCellFormatter();
+        
         oCellFormetter.openInWorld();
     },
     imgTextAlignLeft_Click: function() {

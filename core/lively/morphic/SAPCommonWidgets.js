@@ -162,6 +162,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.lstCategory.setSelection(nIndex);
     },
     initializeLayout: function() {
+        var nXstart = 10;
+        var nYStart = 10;
         var nX = 150;
         var nY = 25;
         var nGap = 1;
@@ -170,45 +172,45 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
         this.setFill(Color.rgb(255,255,255));
    
-        this.txtCategory=new lively.morphic.Text(new Rectangle(0 ,0, 100, nHeight),'Category:');
+        this.txtCategory=new lively.morphic.Text(new Rectangle(nXstart,0, 100, nHeight),'Category:');
         this.txtCategory.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
         
-        this.txtDecimalPlaces=new lively.morphic.Text(new Rectangle(nX ,nY, 120, nHeight),'Decimal Places:');
+        this.txtDecimalPlaces=new lively.morphic.Text(new Rectangle(nXstart + nX,nY, 120, nHeight),'Decimal Places:');
         this.txtDecimalPlaces.applyStyle({borderWidth: 0, fill: null});
-        this.txtType=new lively.morphic.Text(new Rectangle(nX ,nY, 120, nHeight),'Type:');
+        this.txtType=new lively.morphic.Text(new Rectangle(nXstart + nX ,nY, 120, nHeight),'Type:');
         this.txtType.applyStyle({borderWidth: 0, fill: null});
         this.txtType.setVisible(false);
 
-        this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(nX+nXGap, nY, 37, 23), [0, 1, 2,3,4,5,6,7,8]);
+        this.ddlDecimalPlaces = new lively.morphic.DropDownList(new Rectangle(nXstart + nX+nXGap, nY, 37, 23), [0, 1, 2,3,4,5,6,7,8]);
         //this.ddlDecimalPlaces.setSelection(this.selectedDecimalPlaces);
         
-        this.txtSymbol = new lively.morphic.Text(new Rectangle(nX ,nY+nHeight+nGap, 100, nHeight),'Symbol:');
+        this.txtSymbol = new lively.morphic.Text(new Rectangle(nXstart + nX ,nY+nHeight+nGap, 100, nHeight),'Symbol:');
         this.txtSymbol.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
         this.chkUseThousand = new lively.morphic.CheckBox();
         this.chkUseThousand.setChecked(this.selectedUseThousand);
         this.chkUseThousand.setPosition(pt(nX,nY+nHeight+nGap));
         this.chkUseThousand.setVisible(false);
 
-        this.txtUseThousand = new lively.morphic.Text(new Rectangle(nX+30 ,nY+nHeight+nGap, 150, nHeight),'Use 1000 Separator(,)');
+        this.txtUseThousand = new lively.morphic.Text(new Rectangle(nXstart + nX+30 ,nY+nHeight+nGap, 150, nHeight),'Use 1000 Separator(,)');
         this.txtUseThousand.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
         this.txtUseThousand.setVisible(false);
 
-        this.ddlCurrencySymbol = new lively.morphic.DropDownList(new Rectangle(nX+nXGap, nY+nHeight+nGap, 200, 23), this.arrCurrency);
+        this.ddlCurrencySymbol = new lively.morphic.DropDownList(new Rectangle(nXstart + nX+nXGap, nY+nHeight+nGap, 200, 23), this.arrCurrency);
         //this.ddlCurrencySymbol.setSelection(this.selectedSymbol);
 
-        this.txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(nX ,nY+2*nHeight+2*nGap, 135, nHeight),'Negative numbers:');
+        this.txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(nXstart + nX ,nY+2*nHeight+2*nGap, 135, nHeight),'Negative numbers:');
         this.txtNegatvieNumbers.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
 
-        this.lstCategory = new lively.morphic.List(new Rectangle(0, 25, nX-20 , 200), this.arrCategory);
+        this.lstCategory = new lively.morphic.List(new Rectangle(nXstart, 25, nX-20 , 200), this.arrCategory);
         //this.lstCategory.setSelection(this.selectedCategory);
         
         this.lstCategory.disableGrabbing();
 
         this.lstNegativeNumber= new lively.morphic.SAPListView(351,125,0,this.arrNegativeNumber);
-        this.lstNegativeNumber.setPosition(pt(nX, nY+3*nHeight+2*nGap));
+        this.lstNegativeNumber.setPosition(pt(nXstart + nX, nY+3*nHeight+2*nGap));
 
         this.lstDataTime= new lively.morphic.SAPListView(351,175,0,this.arrDateFormat);
-        this.lstDataTime.setPosition(pt(nX, nY+nHeight+nGap));
+        this.lstDataTime.setPosition(pt(nXstart + nX, nY+nHeight+nGap));
         this.lstDataTime.setVisible(false);
 
         this.addMorph(this.txtUseThousand);

@@ -74,7 +74,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
             this.thisObj : (this.containingScope && this.containingScope.getThis());
     },
     setArguments: function(argValues) {
-        var argNames = this.getFuncAst().args;
+        var argNames = this.getFuncAst().argNames();
         for (var i = 0; i < argNames.length; i++)
             this.addToMapping(argNames[i], argValues[i]);
         return this.arguments = argValues;

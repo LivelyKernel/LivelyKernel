@@ -38,8 +38,14 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
         this.visitParts(node, ['val']);
     },
     visitParts: function(node, parts) {
-        for (var i = 0; i < parts.length; i++)
-            node[parts[i]].accept(this)
+        var that = this;
+        parts.each(function(p) {
+            if (p.endsWith("*")) {
+                node[p].each(function(pi) { pi.accept(that); });
+            } else {
+                node[p].accept(that);
+            }
+        });
     },
     visitSequence: function(node) { node.children.invoke('accept', this) },
     visitArrayLiteral: function(node) { node.elements.invoke('accept', this) },

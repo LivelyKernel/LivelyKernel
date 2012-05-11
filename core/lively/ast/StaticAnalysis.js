@@ -18,7 +18,6 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
         this.current = null;
         this.root = this.newScope();
         this.visit(ast);
-        // this.createChains();
     },
 
 },

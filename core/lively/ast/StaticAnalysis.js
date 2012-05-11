@@ -87,7 +87,7 @@ Object.subclass('lively.ast.DFAScope',
 'initializing', {
     initialize: function() {
         this.mapping = {};
-        this.def_uses = {};
+        this.def_uses = [];
         this.global_uses = [];
         this.scopes = [];
         this.parent = null;

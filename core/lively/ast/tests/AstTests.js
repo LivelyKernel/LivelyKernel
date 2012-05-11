@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.ast.tests.AstTests').requires('lively.ast.Parser', 'lively.ast.StackReification', 'lively.TestFramework').toRun(function() {
+module('lively.ast.tests.AstTests').requires('lively.ast.Parser', 'lively.ast.StackReification', 'lively.TestFramework', 'lively.ast.StaticAnalysis').toRun(function() {
 
 TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
 'running', {

@@ -2074,10 +2074,9 @@ dataformat: currency & percentage & date & time
     imgFormatCell_Click: function() {
         //alert(0)
          var oDataForma= new lively.morphic.SAPCellFormatter();
-        oDataForma.dataFormatter.grid=this.grid;
-        oDataForma.addMorph(this.grid.oWorkBook.dataFormatter);
-        oDataForma.dataFormatter.openInWindow(pt(300,300));
-        oDataForma.dataFormatter.owner.setTitle("Format Cells");
+        oDataForma.grid=this.grid;
+        oDataForma.openInWindow(pt(300,300));
+        oDataForma.owner.setTitle("Format Cells");
 
 
        

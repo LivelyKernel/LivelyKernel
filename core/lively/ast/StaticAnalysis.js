@@ -93,6 +93,11 @@ Object.subclass('lively.ast.DFAScope',
         this.parent = null;
     },
 },
+'helping', {
+    isDeclaration: function(node) {
+        return node.isVarDeclaration || node._parent.isFunction;
+    },
+},
 'accessing', {
     newScope: function() {
         var s = new lively.ast.DFAScope();
@@ -103,8 +108,7 @@ Object.subclass('lively.ast.DFAScope',
     declaration: function(name) {
         for (var i = this.def_uses.length - 1; i >= 0; i--) {
             var def = this.def_uses[i][0];
-            var isDecl = def.isVarDeclaration || def._parent.isFunction;
-            if (def.name == name && isDecl) return this.def_uses[i];
+            if (def.name == name && this.isDeclaration(def)) return this.def_uses[i];
         }
         return null;
     },
@@ -130,7 +134,7 @@ Object.subclass('lively.ast.DFAScope',
         return chain;
     },
     define: function(varnode) {
-        if (!varnode.isVarDeclaration) {
+        if (!this.isDeclaration(varnode)) {
             var decl = this.lookup_decl(varnode.name);
             if (!decl) this.global_defs.push(varnode);
         }

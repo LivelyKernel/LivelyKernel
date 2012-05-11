@@ -1198,8 +1198,8 @@ lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
                    "HTMLCanvasElement", "Image"],
     newScope: function() {
         var s = {
-            defs: [],
-            uses: [],
+            def_uses: {},
+            global_uses: [],
             scopes: []
         };
         if (this.current) {

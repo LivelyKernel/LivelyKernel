@@ -384,6 +384,7 @@ var dNow = new Date();
         this.txtSymbol = new lively.morphic.Text(new Rectangle(nX ,nY+nHeight+nGap, 100, nHeight),'Symbol:');
         this.txtSymbol.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
         this.chkUseThousand = new lively.morphic.CheckBox();
+        this.chkUseThousand.setChecked(this.selectedUseThousand);
         this.chkUseThousand.setPosition(pt(nX,nY+nHeight+nGap));
         this.chkUseThousand.setVisible(false);
 

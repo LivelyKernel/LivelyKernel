@@ -386,14 +386,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 var dNow = new Date();
         oItem={};
         oItem.value= "mm/dd/yyyy";
-        oItem.string= dateFormat("mm/dd/yyyy");
+        oItem.string= Global.dateFormat("mm/dd/yyyy");
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);
 
         oItem={};
         oItem.value= "dddd, mmmm dd, yyyy";
-        oItem.string= dateFormat(dNow, "dddd, mmmm dd, yyyy");
+        oItem.string= Global.dateFormat(dNow, "dddd, mmmm dd, yyyy");
         oItem.isListItem=true;
         oItem.textColor=Color.black;
         this.arrDateFormat.push(oItem);

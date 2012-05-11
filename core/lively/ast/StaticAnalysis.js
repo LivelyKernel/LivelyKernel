@@ -95,7 +95,10 @@ Object.subclass('lively.ast.DFAScope',
 },
 'acessing', {
     newScope: function() {
-
+        var s = new lively.ast.DFAScope();
+        this.scopes.push(s);
+        s.parent = this;
+        return s;
     }
 });
 Object.subclass('lively.ast.VariableAnalyzer',

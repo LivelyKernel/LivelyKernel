@@ -543,6 +543,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
         this.setList();
         
     },
+    getSelectedItem: function(sItemValue) {
+        return this.selectedItem;
+    },
     setDefaultItem: function(sItemValue) {
         var oSubMorphs = this.submorphs;
         this.selectedItem=null;

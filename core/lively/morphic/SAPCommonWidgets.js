@@ -244,7 +244,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         connect(this.lstCategory, "selection", this, "lstCategory_onChange", {});
         connect(this.ddlCurrencySymbol, "onChange", this, "ddlCurrencySymbol_onChange", {});
         connect(this.ddlDecimalPlaces, "onChange", this, "ddlDecimalPlaces_onChange", {});
-        connect(this.lstNegativeNumber, "selection", this, "lstNegativeNumber_onChange", {});
+        //connect(this.lstNegativeNumber, "selection", this, "lstNegativeNumber_onChange", {});
         connect(this.lstNegativeNumber, "selectedValue", this, "lstNegativeNumber_onChange", {});
         //this.selectedValue
         //this.ddlDecimalPlaces

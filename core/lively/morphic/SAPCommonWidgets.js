@@ -102,7 +102,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     lstNegativeNumber_onChange: function(oItem) {
         debugger;
         if (oItem){
-            var sValue = oItem.value;
+            var sValue = oItem.item.value;
             if (sValue){
                 this.selectedNegativeNumber = sValue;
             }      
@@ -111,7 +111,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     lstDataTime_onChange: function(oItem) {
         debugger;
         if (oItem){
-            var sValue = oItem.value;
+            var sValue = oItem.item.value;
             if (sValue){
                 if (this.selectedCategory=="date"){
                     this.selectedDateFormat = sValue;

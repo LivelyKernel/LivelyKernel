@@ -44,13 +44,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeMorph();
         this.initializeScrolls();
         this.initializeAnnotation();
-        $.getScript("../../core/lively/date.format.js")
+        /*$.getScript("../../core/lively/date.format.js")
             .done(function(script, textStatus) {
             console.log( "success loading date.format.js");
             })
             .fail(function(jqxhr, settings, exception) {
                 console.log("error loading date.format.js");
-        }); 
+        });*/ 
 
     },
     getAlignforValueType: function(sValue) {

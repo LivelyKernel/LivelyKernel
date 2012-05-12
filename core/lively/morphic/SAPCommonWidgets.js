@@ -245,7 +245,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         if (this.oOkCallBack){
             
         }
-        that.owner.remove();
+        this.owner.remove();
     },
     btnCancel_Click: function() {
         debugger;
@@ -383,7 +383,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
         this.arrDateFormat=[];
         this.arrTimeFormat=[];
-
+debugger;
 //Date
 var dNow = new Date();
         oItem={};

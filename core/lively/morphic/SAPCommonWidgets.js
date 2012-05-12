@@ -244,10 +244,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         if (this.oOkCallBack){
             
         }
+        that.owner.remove();
     },
     btnCancel_Click: function() {
-        
-        this.setVisible(false);
+        that.owner.remove();
     },
     buildListItems: function() {
   

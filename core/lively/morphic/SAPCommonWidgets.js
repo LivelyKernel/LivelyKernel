@@ -243,7 +243,34 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     },
     btnOk_Click: function() {
         if (this.oOkCallBack){
-            this.oOkCallBack();
+            var oDataFormat={};
+            
+            oDataFormat.type = this.selectedCategory;
+
+            switch(this.selectedCategory){
+                case "number":
+                    oDataFormat.decimalPlaces = this.selectedDecimalPlaces;
+                    oDataFormat.negativeType = this.selectedNegativeNumber;
+                    oDataFormat.useThousandSeparator = this.selectedUseThousand;
+                    break;
+                case "currency":
+                    oDataFormat.decimalPlaces = this.selectedDecimalPlaces;
+                    oDataFormat.symbol = this.selectedSymbol;
+                    oDataFormat.negativeType = this.selectedNegativeNumber;
+                    break;
+                case "date":
+                    oDataFormat.dateFormat = this.selectedDateFormat;
+                    break;
+                case "time":
+                    oDataFormat.timeformat = this.selectedTimeFormat;
+                    break;
+                case "Percentage":
+                    oDataFormat.decimalPlaces = this.selectedDecimalPlaces;
+                    break;
+                default:
+                    oDataFormat=null;
+            }
+            this.oOkCallBack(oDataFormat);
         }
         this.owner.state = 'shutdown';
         this.owner.remove();

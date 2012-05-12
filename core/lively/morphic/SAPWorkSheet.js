@@ -82,6 +82,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         }
     },
+    setDataFormates: function() {
+        
+    },
     applyDataFormates: function(sValue,sFormatType) {
             sValue = $.trim(sValue)
             switch(sFormatType){

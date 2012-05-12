@@ -89,6 +89,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var nOrgCol;
         var sValue;
         var i;
+        debugger;
         if (oDataFormat){
             switch(oDataFormat.type){
                 case "currency":

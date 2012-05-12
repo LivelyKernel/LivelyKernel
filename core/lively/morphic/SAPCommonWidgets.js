@@ -246,7 +246,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
             var oDataFormat={};
             
             oDataFormat.type = this.selectedCategory;
-
+            debugger;
             switch(this.selectedCategory){
                 case "number":
                     oDataFormat.decimalPlaces = this.selectedDecimalPlaces;

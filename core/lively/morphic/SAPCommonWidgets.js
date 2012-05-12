@@ -403,7 +403,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.arrNegativeNumber.push(oItem);
 
         oItem={};
-        oItem.value= 4;
+        oItem.value= 3;
         oItem.string= "(1,234.10)";
         oItem.isListItem=true;
         oItem.textColor=Color.red;
@@ -432,7 +432,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.arrNegativeCurrencyNumber.push(oItem);
 
         oItem={};
-        oItem.value= 4;
+        oItem.value= 3;
         oItem.string= "($1,234.10)";
         oItem.isListItem=true;
         oItem.textColor=Color.red;

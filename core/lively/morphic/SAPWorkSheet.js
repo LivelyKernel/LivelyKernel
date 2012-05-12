@@ -2087,7 +2087,7 @@ dataformat: currency & percentage & date & time
         }else{
             this.oDataFormat= new lively.morphic.SAPCellFormatter();
             this.oDataFormat.grid=this.grid;
-            this.oDataFormat.oOkCallBack = this.grid.setDataFormates;
+            this.oDataFormat.oOkCallBack = this.setDataFormates;
             this.oDataFormat.openInWindow(pt(300,300));
             this.oDataFormat.owner.setTitle("Format Cells");
         }
@@ -2240,7 +2240,39 @@ dataformat: currency & percentage & date & time
     imgRemoveColumn_Click: function() {
         this.grid.removeColBetween();
     },
-
+    setDataFormates: function(oDataFormat) {
+        var nRow;
+        var nColumn;
+        var nOrgRow;
+        var nOrgCol;
+        var sValue;
+        var i;
+        debugger;
+        if (oDataFormat){
+            switch(oDataFormat.type){
+                case "currency":
+                    for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+                        nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+                        nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+                        nOrgRow = nRow  + this.grid.startRow;
+                        nOrgCol = nColumn + this.grid.startColumn; 
+                        sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
+                        sValue = this.grid.applyDataFormates(sValue ,"currency");
+                        this.grid.arrSelectedCells[i].textString= sValue;
+                    }
+                    break;
+                case "percentage":
+                    break;
+                case "date":
+                    break;
+                case "time":
+                    break;
+                case "number":
+                    break;
+                default:
+            }
+        }
+    },
 });    
 
 lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',

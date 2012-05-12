@@ -44,9 +44,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeMorph();
         this.initializeScrolls();
         this.initializeAnnotation();
-        //http://lively-kernel.org/repository/webwerkstatt/core/lively/lang/
-        //http://lively-kernel.org/repository/webwerkstatt/core/lib/date.format.js
-        $.getScript("../../core/lib/date.format.js")
+       
+        $.getScript("../../core/lively/date.format.js")
             .done(function(script, textStatus) {
             console.log( "success loading date.format.js");
             })

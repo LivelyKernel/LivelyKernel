@@ -99,8 +99,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
             this.updateSelections();
         }
     },
-    lstNegativeNumber_onChange: function() {
-        var sValue = this.lstNegativeNumber.getSelectedItem();
+    lstNegativeNumber_onChange: function(eval) {
+        debugger;
+        var sValue //= this.lstNegativeNumber.getSelectedItem();
         if (sValue){
             this.selectedNegativeNumber = sValue;
         }      
@@ -245,7 +246,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         connect(this.ddlCurrencySymbol, "onChange", this, "ddlCurrencySymbol_onChange", {});
         connect(this.ddlDecimalPlaces, "onChange", this, "ddlDecimalPlaces_onChange", {});
         //connect(this.lstNegativeNumber, "selection", this, "lstNegativeNumber_onChange", {});
-        //connect(this.lstNegativeNumber, "selectedValue", this, "lstNegativeNumber_onChange", {});
+        connect(this.lstNegativeNumber, "selectedValue ", this, "lstNegativeNumber_onChange", {});
         //this.selectedValue
         //this.ddlDecimalPlaces
 
@@ -425,7 +426,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
         this.arrDateFormat=[];
         this.arrTimeFormat=[];
-debugger;
+
 //Date
 var dNow = new Date();
         oItem={};
@@ -588,6 +589,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPListView',
         if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) return $super(evt);
         var scroll = this.getScroll();
 	this.selectItem(this.localize(evt.getPosition()).addXY(scroll[0], scroll[1]));
+        //return this.selectedItem
     },
     selectItem: function(pos) {
         var oSubMorphs = this.submorphs, selected;

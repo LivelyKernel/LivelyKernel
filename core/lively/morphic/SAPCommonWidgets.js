@@ -107,6 +107,19 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
             }      
         }
     },
+    lstDataTime_onChange: function(oItem) {
+        if (oItem){
+            var sValue = oItem.value;
+            if (sValue){
+                if (this.selectedCategory=="date"){
+                    this.selectedDateFormat = sValue;
+                }else{
+                    this.selectedTimeFormat = sValue;
+                }
+                
+            }      
+        }
+    },
     updateSelections: function() {
 
         this.lstCategory.setSelection(this.selectedCategory);
@@ -208,14 +221,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtUseThousand.setVisible(false);
 
         this.ddlCurrencySymbol = new lively.morphic.DropDownList(new Rectangle(nXstart + nX+nXGap, nY+nHeight+nGap, 200, 23), this.arrCurrency);
-        //this.ddlCurrencySymbol.setSelection(this.selectedSymbol);
 
         this.txtNegatvieNumbers=new lively.morphic.Text(new Rectangle(nXstart + nX ,nY+2*nHeight+2*nGap, 135, nHeight),'Negative numbers:');
         this.txtNegatvieNumbers.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
 
         this.lstCategory = new lively.morphic.List(new Rectangle(nXstart, 25, nX-20 , 200), this.arrCategory);
- 
-        
         this.lstCategory.disableGrabbing();
 
         this.lstNegativeNumber= new lively.morphic.SAPListView(351,125,0,this.arrNegativeNumber);
@@ -248,6 +258,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         connect(this.ddlDecimalPlaces, "onChange", this, "ddlDecimalPlaces_onChange", {});
         connect(this.lstNegativeNumber, "selection", this, "lstNegativeNumber_onChange", {});
         connect(this.lstNegativeNumber, "onMouseDown", this, "lstNegativeNumber_onChange", {});
+        connect(this.lstDataTime, "onMouseDown", this, "lstDataTime_onChange", {});
         //this.selectedValue
         //this.ddlDecimalPlaces
 

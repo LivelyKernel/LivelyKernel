@@ -252,15 +252,19 @@ Object.subclass('lively.ide.FileFragment',
     updateIndices: function(newSource, newMe) {
         this.checkConsistency();
 
-        var prevStop = this.stopIndex,
-            newStop  = newMe.stopIndex,
-            delta    = newStop - prevStop;
+        var prevStop   = this.stopIndex,
+            newStop    = newMe.stopIndex,
+            newStopSrc = newMe.startIndex + newSource.length - 1,
+            delta      = newStopSrc - prevStop;
 
-        var newStopSrc = newMe.startIndex + newSource.length,
-            deltaSrc = newStopSrc - prevStop;
-
+        // note that the parsed stop index can be different from the end of the
+        // new source because the code might have trailing whitespaces that
+        // don't get included in that fragment. For the index update of the
+        // other fragments in the file, we need to use the index of the real
+        // source code, "this" however should get the syntacticaly correct
+        // stopIndex
         if (newStopSrc !== newStop) {
-            // throw new Error('parsed fragment was shortened ' + newStopSrc + ' !== ' + newStop);
+            console.warn('parsed fragment was shortened ' + newStopSrc + ' !== ' + newStop);
         }
 
         this.stopIndex       = newStop;    // self

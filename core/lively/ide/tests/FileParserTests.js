@@ -1011,6 +1011,8 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
 			      'ClassA.subclass(\'ClassB\', {\n\tm2: function(a) { 3 },\nm3: function(b) { 4 }\n});\n' +
 			      '}); // end of module';
 		    this.root = this.db.prepareForMockModule('foo.js', this.src);
+        this.oldDB = lively.ide.SourceControl;
+        lively.ide.SourceControl = this.db;
 	  },
 
 	  setUpAlternateSource: function() {
@@ -1040,6 +1042,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
 	  tearDown: function($super) {
 		    $super();
 		    lively.morphic.World.prototype.alert = this.oldAlert;
+        lively.ide.SourceControl = this.oldDB;
 	  },
 
 	  fragmentNamed: function(name, optFilter) {
@@ -1339,14 +1342,20 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
 	  },
 
     testReindexTakesWhitespaceIntoAccount: function() {
-        var ff = this.db.addVirtualModule(null, 'var x = {\nx: 3,\n}').ast(),
-            objectDef = ff.subElements()[0], // "objectDef: x (0-16 in , starting at line 1, 1 subElements)"
-            propDef = objectDef.subElements()[0], // "propertyDef: x (10-14 in , starting at line 2, 0 subElements)"
-            newSrc = 'x: 3,\n\n',
+        // FIXME no mock logic, we have virtual modules now:
+        delete this.db.putSourceCodeFor;
+        var ff         = this.db.addVirtualModule(null, 'var x = {\nx: 3,\n}').ast(),
+            // "objectDef: x (0-16 in , starting at line 1, 1 subElements)"
+            objectDef  = ff.subElements()[0],
+            // "propertyDef: x (10-14 in , starting at line 2, 0 subElements)"
+            propDef    = objectDef.subElements()[0],
+            newSrc     = 'x: 4,\n\n',
             newPropDef = propDef.putSourceCode(newSrc);
 
-        this.assertEquals('x: 3,', newPropDef.getSourceCode(), 'setup failed, new code not truncate');
-        this.assertEquals('var x = {\nx: 3,\n\n}', objectDef.getSourceCode(), 'object def wrong');
+        this.assertEquals('x: 4,', newPropDef.getSourceCode(),
+                          'setup failed, new code not ok');
+        this.assertEquals('var x = {\nx: 4,\n\n\n}', objectDef.getSourceCode(),
+                          'object def wrong');
     }
 
 });

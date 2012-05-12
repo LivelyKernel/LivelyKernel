@@ -100,6 +100,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         }
     },
     lstNegativeNumber_onChange: function(oItem) {
+        debugger;
         if (oItem){
             var sValue = oItem.value;
             if (sValue){
@@ -108,6 +109,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         }
     },
     lstDataTime_onChange: function(oItem) {
+        debugger;
         if (oItem){
             var sValue = oItem.value;
             if (sValue){

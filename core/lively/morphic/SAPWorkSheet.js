@@ -82,8 +82,20 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         }
     },
-    setDataFormates: function() {
-        
+    setDataFormates: function(oDataFormat) {
+        switch(sFormatType){
+            case "currency":
+	       break;
+            case "percentage":
+                break;
+            case "date":
+                break;
+            case "time":
+                break;
+            case "number":
+                break;
+            default:
+        }
     },
     applyDataFormates: function(sValue,sFormatType) {
             sValue = $.trim(sValue)

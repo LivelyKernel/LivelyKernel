@@ -241,6 +241,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
     },
     btnOk_Click: function() {
+        debugger;
         if (this.oOkCallBack){
             
         }

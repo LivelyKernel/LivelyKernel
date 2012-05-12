@@ -92,7 +92,16 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         if (oDataFormat){
             switch(oDataFormat.type){
                 case "currency":
-	           break;
+                    for (i= 0; i< this.arrSelectedCells.length; i++) {
+                        nRow  = this.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+                        nColumn = this.arrSelectedCells[i].gridCoords.x;
+                        nOrgRow = nRow  + this.startRow;
+                        nOrgCol = nColumn + this.startColumn; 
+                        sValue = this.arrData[nOrgRow][nOrgCol].value;
+                        sValue = this.applyDataFormates(sValue ,"currency");
+                        this.arrSelectedCells[i].textString= sValue;
+                    }
+                    break;
                 case "percentage":
                     break;
                 case "date":

@@ -99,12 +99,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
             this.updateSelections();
         }
     },
-    lstNegativeNumber_onChange: function(eval) {
-        debugger;
-        var sValue //= this.lstNegativeNumber.getSelectedItem();
-        if (sValue){
-            this.selectedNegativeNumber = sValue;
-        }      
+    lstNegativeNumber_onChange: function(oItem) {
+        if (oItem){
+            var sValue = oItem.value;
+            if (sValue){
+                this.selectedNegativeNumber = sValue;
+            }      
+        }
     },
     updateSelections: function() {
 

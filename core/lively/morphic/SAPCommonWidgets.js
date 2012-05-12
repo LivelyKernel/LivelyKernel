@@ -236,7 +236,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         
         connect(this.lstCategory, "selection", this, "lstCategory_onChange", {});
         connect(this.ddlCurrencySymbol, "onChange", this, "ddlCurrencySymbol_onChange", {});
-
+        connect(this.btnOk , "fire", this, "btnOk_Click", {});
+        connect(this.btnCancel , "fire", this, "btnCancel_Click", {});
         this.updateSelections();
 
     },

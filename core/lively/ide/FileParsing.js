@@ -29,9 +29,11 @@ Object.subclass('lively.ide.FileFragment',
 },
 'accessing', {
     subElements: function(depth) {
-        if (!depth || depth === 1)
-            return this._subElements;
-        return this._subElements.inject(this._subElements, function(all, ea) { return all.concat(ea.subElements(depth-1)) });
+        return !depth || depth === 1 ?
+            this._subElements :
+            this._subElements.inject(this._subElements, function(all, ea) {
+                return all.concat(ea.subElements(depth-1));
+            });
     },
 
     fragmentsOfOwnFile: function() {
@@ -247,17 +249,23 @@ Object.subclass('lively.ide.FileFragment',
         return newMe;
     },
 
-
     updateIndices: function(newSource, newMe) {
         this.checkConsistency();
 
         var prevStop = this.stopIndex,
-            newStop = newMe.stopIndex,
-            delta = newStop - prevStop;
+            newStop  = newMe.stopIndex,
+            delta    = newStop - prevStop;
 
-        this.stopIndex = newStop;    // self
+        var newStopSrc = newMe.startIndex + newSource.length,
+            deltaSrc = newStopSrc - prevStop;
+
+        if (newStopSrc !== newStop) {
+            // throw new Error('parsed fragment was shortened ' + newStopSrc + ' !== ' + newStop);
+        }
+
+        this.stopIndex       = newStop;    // self
         this.startLineNumber = undefined;
-        this.stopLineNumber = undefined;
+        this.stopLineNumber  = undefined;
 
         // update fragments which follow after this or where this is a part of
         this.fragmentsOfOwnFile().forEach(function(ea) {
@@ -282,7 +290,7 @@ Object.subclass('lively.ide.FileFragment',
                 throw new Error('Malformed fragment: ' + ea.name + ' ' + ea.type);
             }
         }, this);
-    },
+    }
 },
 'removing', {
     remove: function() {

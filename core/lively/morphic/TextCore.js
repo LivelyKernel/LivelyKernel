@@ -228,6 +228,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 },
 'styling', {
     applyStyle: function($super, spec) {
+        if (!spec) return this;
         $super(spec);
         if (spec.fixedWidth !== undefined) {
             this.setFixedWidth(spec.fixedWidth);
@@ -839,7 +840,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         // the selection grows/shrinks with the modifications
         var lines = this.selectionString().split('\n')
         for (var i = 0; i < lines.length; i++) {
-            lines[i] = modifyFunc(lines[i], i);
+            lines[i] = modifyFunc(lines[i], i, lines);
         }
         var replacement = lines.join('\n');
         this.insertAtCursor(replacement, true, true);
@@ -2050,6 +2051,26 @@ this. textNodeString()
     hasSelection: function() {
         return this.domSelection() !== null;
     },
+},
+'JavaScript support', {
+    varDeclCleaner: function() {
+        // for usage with #modifyLines
+        // turns "var foo;\nvar bar;" into "var foo,\n    bar;"
+        var cancel = false, indent = '', tab = this.tab,
+            varRegexp = /(\s*)var\s+([^;]+)(;?)(\s*)/;
+        return function cleanLine(line, idx, lines) {
+            var varMatch = line.match(varRegexp),
+                last = idx === lines.length - 1;
+            if (idx === 0 && !varMatch) cancel = true;
+            if (!varMatch || cancel) return line;
+            if (idx === 0) {
+                indent = varMatch[1] + tab;
+                return line.replace(varRegexp, '$1var $2,');
+            }
+            if (!last) return line.replace(varRegexp, indent + '$2,');
+            return line.replace(varRegexp, indent + '$2;');
+        }
+    }
 });
 
 

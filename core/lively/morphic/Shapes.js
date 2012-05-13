@@ -111,9 +111,12 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Ellipse');
 
 lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Image',
 'initializing', {
-    initialize: function($super, bounds) {
+    initialize: function($super, bounds, url) {
         $super(bounds);
         this.isLoaded = false; // will be set to true as soon as image is really loaded
+        if (url) {
+            this.setImageURL(url);
+        }
     },
 },
 'accessing', {

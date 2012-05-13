@@ -133,10 +133,9 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
 'initializing', {
     doNotSerialize: ['isLoaded'],
     initialize: function($super, bounds, url, useNativeExtent) {
-        var imageShape = this.createImageShape(bounds.extent().extentAsRectangle());
+        var imageShape = this.createImageShape(bounds.extent().extentAsRectangle(), url);
         $super(imageShape);
         this.setPosition(bounds.topLeft());
-        this.setImageURL(url);
         if (useNativeExtent) {
             connect(imageShape, 'isLoaded', this, 'setNativeExtent',
                     {removeAfterUpdate: true});
@@ -212,14 +211,12 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
         return result && result.stdout ? result.stdout : '';
     },
 });
-
 Object.extend(lively.morphic.Image, {
     fromURL: function(url, optBounds) {
         var bounds = optBounds || new Rectangle(0,0, 100, 100);
         return new lively.morphic.Image(bounds, url, optBounds == undefined)
     },
 });
-
 lively.morphic.Morph.subclass('lively.morphic.CheckBox',
 'properties', {
     connections: {
@@ -325,6 +322,7 @@ lively.morphic.Box.subclass('lively.morphic.ProgressBar',
         this.labelBlack.setBounds(this.innerBounds());
         this.labelBlack.fit();
     },
+
 
 },
 'accessing', {

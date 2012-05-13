@@ -658,7 +658,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
 
     testFindCurrentPartVersion: function() {
-        var m1 = Morph.makeRectangle(0,0,100,100);
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m1.getPartsBinMetaInfo().revisionOnLoad = 2;
         m1.getPartItem = function () {
             return {part: this,
@@ -758,8 +758,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assert(!m8.submorphs[0].findSiblingInRelative(m7, m4), 'Wrong submorph sibling with grand parent')
     },
 
-
-
 },
 'diffing', {
     testCopy: function() {
@@ -771,12 +769,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m1.addMorph(m2);
-        //simulate copyToPartsBin
+        // simulate copyToPartsBin
         var pbv = m1.copy();
-        //simulate copyFromPartsBin
+        // simulate copyFromPartsBin
         var m3 = pbv.copy();
         var m4 = m3.copy();
-        //this.assert(!m4.diffTo(m3), "found changes, but there weren't some") //required in three way diff, therefore staying
+        // this.assert(!m4.diffTo(m3), "found changes, but there weren't some")
+        // required in three way diff, therefore staying
         var m5 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m4.addMorph(m5)
 
@@ -823,10 +822,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assert(!a.equals(c),'the vectors should not have been the same');
         this.assert(!a.equals(d),'the colors should not have been the same');
     },
+
     testMorphEquals: function() {
-        var m1 = $world.loadPartItem("Rectangle", "PartsBin/Basic");
-        var m2 = $world.loadPartItem("Rectangle", "PartsBin/Basic")
-        var m3 = m1.copy();
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100),
+            m2 = m1.copy();
+        this.assert(m1.equals(m2), "Morphs are not equal after copying");
+    },
+
+    testMorphEqualsWithPartsBinMorphs: function() {
+        if (Config.serverInvokedTest) return; // Not yet PB access
+        var m1 = $world.loadPartItem("Rectangle", "PartsBin/Basic"),
+            m2 = $world.loadPartItem("Rectangle", "PartsBin/Basic"),
+            m3 = m1.copy();
         this.assert(m1.equals(m2), "Morphs that were both loaded from the same part are not equal");
         this.assert(m1.equals(m3), "Morphs are not equal after copying");
     },

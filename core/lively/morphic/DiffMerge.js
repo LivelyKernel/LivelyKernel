@@ -75,24 +75,27 @@ lively.morphic.Morph.addMethods(
 
         return diff;
     },
-    parsePropertiesOfDiffTo: function (otherMorph, diff, blacklist) {
+
+    parsePropertiesOfDiffTo: function(otherMorph, diff, blacklist) {
         var self = this;
-        Functions.all(this).withoutAll(blacklist).forEach(function (ea) {
-            if (!ea.startsWith("get") || !otherMorph[ea] || !self["set" + ea.substring(3)]) return false;
+
+        // whoooohaaa, this assumes quite a lot about "get" and "set" methods
+        // is this really a good idea?
+        Functions.all(this).withoutAll(blacklist).forEach(function(sel) {
+            if (!sel.startsWith("get") || !otherMorph[sel] || !self["set" + sel.substring(3)]) return;
             try {
-                if (self[ea]().equals && !self[ea]().equals(otherMorph[ea]())) {
-                    diff[ea.substring(3)] = new AtomicDiff("property", self[ea](), otherMorph[ea]());
-                } else {
-                    if (self[ea]() != otherMorph[ea]()) {
-                        diff[ea.substring(3)] = new AtomicDiff("property", self[ea](), otherMorph[ea]());
-                    }
+                var myProp = self[sel](),
+                    otherProp = otherMorph[sel](),
+                    // consider using Objects.equal here
+                    areEqual = myProp.equals ? myProp.equals(otherProp) : myProp == otherProp;
+                if (!areEqual) {
+                    var propName = sel.substring(3); // remove "get"
+                    diff[propName] = new AtomicDiff("property", myProp, otherProp);
                 }
-            } catch (ex) {
-                return false;
-            }
-            return false;
+            } catch (ex) { return; }
         });
     },
+
     parseScriptsOfDiffTo: function (otherMorph, diff) {
         var self = this;
         Functions.own(self).each(function (ea) {

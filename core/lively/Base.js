@@ -152,7 +152,27 @@ function __oldNamespace(spec, context) {
 }
 
 
+(function testModuleLoad() {
+    var modules = Global.subNamespaces(true).select(function(ea) { return ea.wasDefined });
+    modules
+    .select(function(ea) { return ea.hasPendingRequirements() })
+    .forEach(function(ea) {
+			  var msg = Strings.format('%s has unloaded requirements: %s',
+				                         ea.uri(), ea.pendingRequirementNames());
+			  console.warn(msg);
+
+        // FIXME use proper Config-URL-parsing
+        if (Config.ignoreMissingModules || document.URL.indexOf('ignoreMissingModules=true') >= 0) {
+            ea.pendingRequirements = [];
+            ea.load();
+            testModuleLoad.delay(6);
+        }
+		});
+    console.log('Module load check done. ' + modules.length + ' modules loaded.');
+}).delay(10);
+
 function module(moduleName) {
+
     moduleName = LivelyMigrationSupport.fixModuleName(moduleName);
 
     function isNamespaceAwareModule(moduleName) {

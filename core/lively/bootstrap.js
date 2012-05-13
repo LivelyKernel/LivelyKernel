@@ -386,8 +386,17 @@ var LivelyLoader = {
     })(),
 
     rootPath: (function findRootPath() {
-        if (window.Config && Config.rootPath !== undefined)
+
+        if (window.Config && Config.rootPath !== undefined) {
             return Config.rootPath;
+        }
+
+        if (window.Config && Config.standAlone) {
+            // copied from Config.getDocumentDirectory,
+            // Config not yet available...
+            var url = document.URL;
+            return url.substring(0, url.lastIndexOf('/') + 1);
+        }
 
         var bootstrapFileName = 'bootstrap.js',
             scripts = JSLoader.getScripts(),

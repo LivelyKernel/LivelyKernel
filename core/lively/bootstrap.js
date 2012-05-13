@@ -1180,8 +1180,9 @@ var LivelyMigrationSupport = {
     // module renaming
     fixModuleName: function(name) {
         if (/^Global\./.test(name)) name = name.substring(7/*Global.*/);
-        for (var oldName in this.moduleRenameDict)
-            if (oldName === name) return this.moduleRenameDict[oldName]
+        for (var oldName in this.moduleRenameDict) {
+            if (oldName === name) return this.moduleRenameDict[oldName];
+        }
         return name;
     },
     addModuleRename: function(oldName, newName, migrationLevel) {

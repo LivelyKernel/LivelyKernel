@@ -2820,16 +2820,13 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
         return this._bindings;
     },
     parseShortcut: function(string) {
-        var spec = {};
-        var keys = string.split('+');
+        var spec = {ctrl: false, cmd: false},
+            keys = string.split('+');
         keys.forEach(function(keyString) {
             var specialKeyMatch = keyString.match(/<(.*)>/);
             if (specialKeyMatch) {
-                var specialKey = specialKeyMatch[1];
-                switch(specialKey) {
-                    case 'ctrl': spec.ctrl = true; return;
-                    default: throw new Error('Cannot recognize ' + keyString);
-                }
+                spec[specialKeyMatch[1]] = true;
+                return;
             }
             if (keyString.length === 1) {
                 var shiftKey = keyString === keyString.toUpperCase();
@@ -2850,9 +2847,10 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
         var bindings = this.bindings();
         for (var i = 0; i < bindings.length; i++) {
             var b = bindings[i],
-                specialKeysMatch = (evt.isCtrlDown() == b.evtSpec.ctrl) &&
-                                    (evt.isShiftDown() == b.evtSpec.shift),
-                charKeyMatches = (evt.charCode || evt.keyCode) === b.evtSpec.charCode;
+                specialKeysMatch = (evt.isCtrlDown()   == b.evtSpec.ctrl) &&
+                                   (evt.isShiftDown()  == b.evtSpec.shift) &&
+                                   (evt.isCommandKey() == b.evtSpec.cmd),
+                charKeyMatches   = (evt.charCode || evt.keyCode) === b.evtSpec.charCode;
             if (!specialKeysMatch || !charKeyMatches) continue;
             return b.handler.call(this, target, b);
         };

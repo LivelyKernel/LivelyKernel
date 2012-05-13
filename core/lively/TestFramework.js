@@ -85,18 +85,18 @@ Object.subclass('TestCase',
 },
 'running', {
     runAll: function(statusUpdateFunc) {
-        var tests = this.createTests();
-        tests.forEach(function(test) {
-            test.statusUpdateFunc = statusUpdateFunc;
-            test.runTest();
-        });
+        var tests = this.createTests(),
+            time = Functions.timeToRun(function() {
+                tests.forEach(function(test) {
+                    test.statusUpdateFunc = statusUpdateFunc;
+                    test.runTest();
+                })
+            })
+        this.result.setTimeToRun(this.name(), time);
         return this.result;
     },
     runAllThenDo: function(statusUpdateFunc, whenDoneFunc) {
-        var time = Functions.timeToRun(function() {
-            this.runAll(statusUpdateFunc);
-        }.bind(this))
-        this.result.setTimeToRun(this.name(), time);
+        this.runAll(statusUpdateFunc);
         whenDoneFunc();
     },
     setUp: function() {},
@@ -462,11 +462,7 @@ TestCase.subclass('AsyncTestCase', {
         return tests;
     },
     runAllThenDo: function(statusUpdateFunc, whenDoneFunc) {
-        var start = new Date();
-        this.runAll(statusUpdateFunc, function() {
-            this.result.setTimeToRun(this.name(), new Date() - start);
-            whenDoneFunc && whenDoneFunc();
-        }.bind(this));
+        this.runAll(statusUpdateFunc, whenDoneFunc);
     },
     runAndDoWhenDone: function(/*optTestSelector, whenDoneFunc*/) {
         var args            = Array.from(arguments),

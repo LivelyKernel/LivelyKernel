@@ -41,7 +41,7 @@ Object.subclass('AttributeConnection',
 			this.removeAfterUpdate = spec.removeAfterUpdate;
 			// when converter function references objects from its environment we can't
 			// serialize it. To fail as early as possible we will serialize the converter
-			// already here 
+			// already here
 			this.converter = null;
 			this.converterString = spec.converter ? spec.converter.toString() : null;
 			this.updater = null;
@@ -161,12 +161,13 @@ Object.subclass('AttributeConnection',
 		var connection = this, updater = this.getUpdater(), converter = this.getConverter(),
 			target = this.targetObj, propName = this.targetMethodName;
 		if (!target || !propName) {
-			var msg = 'Cannot update ' + this.toString(newValue) + ' because of no target (' + 
+			var msg = 'Cannot update ' + this.toString(newValue) + ' because of no target (' +
 					target + ') or targetProp (' + propName+') ';
-			if (this.isWeakConnection) 
-                            this.disconnect()
-                        console.error(msg);
-                        
+			if (this.isWeakConnection) {
+        this.disconnect();
+      }
+      console.error(msg);
+
 			// alert(msg);
 			return null;
 		}
@@ -207,7 +208,7 @@ Object.subclass('AttributeConnection',
 'private helper', {
 
 	addSourceObjGetterAndSetter: function(existingGetter, existingSetter) {
-		if ((existingGetter && existingGetter.isAttributeConnectionGetter) || 
+		if ((existingGetter && existingGetter.isAttributeConnectionGetter) ||
 			(existingSetter && existingSetter.isAttributeConnectionSetter))
 				return;
 
@@ -220,7 +221,7 @@ Object.subclass('AttributeConnection',
 
 		if (sourceObj[newAttrName])
 			console.warn('newAttrName ' + newAttrName + ' already exists. Are there already other connections?');
-			
+
 		// add new attr to the serialization ignore list
 		if (!sourceObj.hasOwnProperty('doNotSerialize'))
 			sourceObj.doNotSerialize = [];
@@ -229,8 +230,8 @@ Object.subclass('AttributeConnection',
 		if (!sourceObj.hasOwnProperty('doNotCopyProperties'))
 			sourceObj.doNotCopyProperties = [];
 		sourceObj.doNotCopyProperties.pushIfNotIncluded(newAttrName);
-		
-		
+
+
 		if (existingGetter)
 			sourceObj.__defineGetter__(newAttrName, existingGetter);
 		if (existingSetter)
@@ -295,7 +296,7 @@ Object.subclass('AttributeConnection',
         var realAttrName = this.sourceAttrName,
             helperAttrName = this.privateAttrName(realAttrName),
             srcObj = this.sourceObj;
-        
+
         if(srcObj.__lookupGetter__(realAttrName)) {
             delete srcObj[realAttrName];
             srcObj[realAttrName] = srcObj[helperAttrName];
@@ -457,13 +458,13 @@ spec can be: {removeAfterUpdate: Boolean, converter: Function, updater: Function
 		var result = connection.connect();
                  if (typeof sourceObj['onConnect'] == 'function') {
                     sourceObj.onConnect(attrName, targetObj, targetMethodName)
-                }; 
+                };
                 return result;
 	},
-	
+
 	disconnect: function(sourceObj, attrName, targetObj, targetMethodName) {
 		if (!sourceObj.attributeConnections) return;
- 
+
 		sourceObj.attributeConnections.select(function(con) {
 			return 	con.getSourceAttrName() == attrName &&
 					con.getTargetObj() === targetObj &&
@@ -474,13 +475,13 @@ spec can be: {removeAfterUpdate: Boolean, converter: Function, updater: Function
                     sourceObj.onDisconnect(attrName, targetObj, targetMethodName);
                 };
 	},
-	
+
 	disconnectAll: function(sourceObj) {
 		if (!sourceObj.attributeConnections) return;
 		while (sourceObj.attributeConnections.length > 0)
 			sourceObj.attributeConnections[0].disconnect();
 	},
-	
+
 	signal: function(sourceObj, attrName, newVal) {
 		if (!sourceObj.attributeConnections) return;
 		var oldVal = sourceObj[attrName];
@@ -526,5 +527,5 @@ Object.extend(Global, {
 	signal: lively.bindings.signal,
 	updateAttributeConnection: lively.bindings.signal
 });
-	
+
 }); // end of module

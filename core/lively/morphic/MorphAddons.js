@@ -190,9 +190,9 @@ lively.morphic.Morph.addMethods(
         pos && this.setPosition(pos);
         return this;
     },
-    openInWindow: function() {
+    openInWindow: function(optPos) {
         lively.morphic.World.current().internalAddWindow(this,
-            this.name, this.getPosition());
+            this.name, optPos || this.getPosition());
         this.applyStyle({resizeWidth: true, resizeHeight: true});
         if (this.partsBinMetaInfo) {
             this.owner.setPartsBinMetaInfo(this.getPartsBinMetaInfo());
@@ -703,7 +703,7 @@ Object.extend(lively.morphic.Panel, {
                 paneRect = extent.extentAsRectangle().scaleByRect(relativeRect),
                 // fix for mixed class vs. function initialization bug
                 pane = Class.isClass(paneConstructor) ?
-                    new paneConstructor(new lively.morphic.Shapes.Rectangle()) :
+                    new paneConstructor() :
                     pane = paneConstructor(paneRect);
             pane.setBounds(paneRect);
             panel[paneName] = panel.addMorph(pane)

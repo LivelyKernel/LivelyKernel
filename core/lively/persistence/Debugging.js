@@ -27,49 +27,50 @@ ObjectGraphLinearizer.addMethods(
 'debugging', {
     serializedPropertiesOfId: function(id) {
         // return property names of obj behind id
-        return Properties.all(this.getRegisteredObjectFromId(id))
+        return Properties.all(this.getRegisteredObjectFromId(id));
     },
     referencesAndClassNamesOfId: function(id) {
         // given an id, the regObj behind it is taken and for all its references a list is assembled
         // [id:ClassName]
         return this.referencesOfId(id).collect(function(id) {
-            return id + ':' + this.classNameOfId(id)
-        }, this)
+            return id + ':' + this.classNameOfId(id);
+        }, this);
     },
+
     classNameOfId: function(id) {
         var refRegisteredObj = this.getRegisteredObjectFromId(id);
         return refRegisteredObj[ClassPlugin.prototype.classNameProperty] || 'no class name found!';
     },
 
-    referencesOfId: function(id) {
+    referencesOfId: function(id, withPath) {
         // all the ids an regObj (given by id) points to
-        var registeredObj = this.getRegisteredObjectFromId(id), result = []
+        var registeredObj = this.getRegisteredObjectFromId(id), result = [];
         Properties.forEachOwn(registeredObj, function(key, value) {
             if (Object.isArray(value)) {
-                result = result.concat(this.referencesInArray(value));
+                result = result.concat(this.referencesInArray(value, withPath && key));
                 return
             };
             if (!value || !this.isReference(value)) return;
-            var refRegisteredObj = this.getRegisteredObjectFromId(value.id)
-            result.push(value.id);
+            var refRegisteredObj = this.getRegisteredObjectFromId(value.id);
+            result.push(withPath ? {key: key, id: value.id} : value.id);
         }, this);
         return result;
     },
-    referencesInArray: function(arr) {
+
+    referencesInArray: function(arr, optPath) {
         // helper for referencesOfId
         var result = [];
-        arr.forEach(function(value) {
+        arr.forEach(function(value, idx) {
             if (Object.isArray(value)) {
-                result = result.concat(this.referencesInArray(value));
-                return
+                result = result.concat(this.referencesInArray(value, optPath + '[' + idx + ']'));
+                return;
             };
             if (!value || !this.isReference(value)) return;
-            var refRegisteredObj = this.getRegisteredObjectFromId(value.id)
-            result.push(value.id);
+            var refRegisteredObj = this.getRegisteredObjectFromId(value.id);
+            result.push(optPath ? {key: optPath + '[' + idx + ']', id: value.id} : value.id);
         }, this)
-        return result
+        return result;
     },
-
 
     idsFromObjectThatReferenceId: function(wantedId) {
         // all ids from regObj pointing to wantedId
@@ -85,6 +86,7 @@ ObjectGraphLinearizer.addMethods(
         }, this)
         return result;
     },
+
     objectsReferencingId: function(id) {
         // get the regObjs for ids
         return this
@@ -100,10 +102,21 @@ ObjectGraphLinearizer.addMethods(
         //        browsers.push(id)
         // })
         Properties.all(jso || this.registry).forEach(function(id) {
-            func(this.getRegisteredObjectFromId(id), id)
+            func(this.getRegisteredObjectFromId(id), id);
         }, this);
     },
-    findIdReferencePathFromToId: function(fromId, toId, showClassNames) {
+
+    findIdReferencePathFromToId: function(fromId, toId, options) {
+        // prints path:
+        //   serializer.findIdReferencePathFromToId(0, 10);
+        // prints ids, classNames, property names:
+        //   s.findIdReferencePathFromToId(0, 5, {showPath: false, showPropNames: true});
+        options = options || {};
+        var showPath = options.showPath === undefined ?  true : options.showPath,
+            showClassNames = options.showClassNames || !showPath,
+            showPropNames = options.showPropNames || showPath,
+            hideId = options.hideId || showPath;
+
         // how can one get from obj behind fromId to obj behind toId
         // returns an array of ids
         // serializer.findIdReferencePathFromToId(0, 1548)
@@ -118,28 +131,46 @@ ObjectGraphLinearizer.addMethods(
             if (visited[fromId]) return;
             visited[fromId] = true;
             stack.push(fromId);
-            var refIds = s.referencesOfId(fromId);
-            for (var  i = 0; i < refIds.length; i++)
-                pathFromIdToId(refIds[i], toId, depth + 1);
+            var refs = s.referencesOfId(fromId);
+            for (var  i = 0; i < refs.length; i++) {
+                pathFromIdToId(refs[i], toId, depth + 1);
+            }
             stack.pop();
         }
-        pathFromIdToId(fromId, toId, 0)
+        pathFromIdToId(fromId, toId, 0);
 
-        if (showClassNames)
-            return found.collect(function(id) {
-                return id + ':' + s.getRegisteredObjectFromId(id)[ClassPlugin.prototype.classNameProperty];
-            });
+        if (!showClassNames && !showPropNames) return found;
 
-        return found
+        var result = [];
+        for (var i = 0; i < found.length - 1; i++) {
+            var currId = found[i],
+                nextId = found[i+1],
+                strings = [];
+            if (!hideId) strings.push(currId);
+            if (showClassNames) {
+                strings.push(s.getRegisteredObjectFromId(currId)[ClassPlugin.prototype.classNameProperty]);
+            }
+            if (showPropNames) {
+                var ref = s.referencesOfId(currId, true).detect(function(ea) { return ea.id === nextId; })
+                strings.push(ref.key);
+            }
+            result.push(strings.join(':'));
+        }
+        if (showPath) {
+            result = '.' + result.join('.');
+        }
+        return result;
+
     },
+
     findNamedReferencePathFromToId: function(fromId, toId) {
         var ids = this.findIdReferencePathFromToId(fromId, toId),
             path = [];
         for (var i = 0; i < ids.length; i++) {
-            var obj = this.getRegisteredObjectFromId(path[i])
-            path.push(this.propertyOfIdRefId(obj, path[i+1]))
+            var obj = this.getRegisteredObjectFromId(path[i]);
+            path.push(this.propertyOfIdRefId(obj, path[i+1]));
         }
-        return path
+        return path;
     },
 
     showPosOfId: function(id) {
@@ -150,33 +181,35 @@ ObjectGraphLinearizer.addMethods(
         }
         var posObj = this.getRegisteredObjectFromId(o.id),
             pos = pt(posObj.x, posObj.y);
-        Global.showPt(pos, 3)
+        Global.showPt(pos, 3);
     },
+
     inlineForDebug: function(root) {
         root = root || 0;
-var count = 0;
-        var serializer = this;
+        var count = 0,
+            serializer = this;
+
         function inlineId(id) {
-count++;
-if (count > 1000) throw new Error('endless recursion?')
+            count++;
+            if (count > 1000) throw new Error('endless recursion?')
             var registeredObj = serializer.getRegisteredObjectFromId(id);
             if (registeredObj.wasInlined) return registeredObj;
             registeredObj.wasInlined = true;
-            for (var key in registeredObj)
+            for (var key in registeredObj) {
                 registeredObj[key] = patchObj(registeredObj[key]);
+            }
             return registeredObj;
         };
 
         function patchObj(obj) {
-            if (serializer.isReference(obj))
-                return inlineId(obj.id)
-            if (Object.isArray(obj))
-                return obj.collect(function(item, idx) { return patchObj(item) })
-            return obj;        
+            if (serializer.isReference(obj)) return inlineId(obj.id);
+            if (Object.isArray(obj)) return obj.collect(function(item, idx) { return patchObj(item) });
+            return obj;
         };
 
         return inlineId(root);
     },
+
     propertyOfIdRefId: function(obj, idOfRef) {
         // var obj = this.getRegisteredObjectFromId(idOfObj);
         var result = Properties.all(obj).detect(function(ea) {
@@ -184,16 +217,14 @@ if (count > 1000) throw new Error('endless recursion?')
         if (!result) {
             Properties.all(obj).forEach(function(arrName) {
                 var arr = obj[arrName];
-                if (!Object.isArray(arr)) return false;
+                if (!Object.isArray(arr)) return;
                 var item = arr.detect(function(item) {
                     return obj[item] && obj[item].__isSmartRef__ && obj[item].id === idOfRef });
                 if (item) result = arrName + '[' + arr.indexOf(item) + ']';
             });
         }
         return result || '???';
-    },
-
-
+    }
 
 });
 
@@ -201,9 +232,9 @@ Object.subclass('lively.persistence.Debugging.Helper',
 'object sizes', {
     listObjectsOfWorld: function(url) {
         var doc = new WebResource(url).beSync().get().contentDocument;
-        if (!doc) { alert('Could not get ' + url); return };
+        if (!doc) { alert('Could not get ' + url); return null };
         var worldMetaElement = doc.getElementById(lively.persistence.Serializer.jsonWorldId);
-        if (!worldMetaElement) { alert('Could not get json from ' + url); return };
+        if (!worldMetaElement) { alert('Could not get json from ' + url); return null };
         var jso = JSON.parse(worldMetaElement.textContent);
 
         var printer = this.listObjects(jso.registry);
@@ -223,20 +254,20 @@ Object.subclass('lively.persistence.Debugging.Helper',
             },
             toString: function() {
                 return Strings.format('all: %s (%s - %s per obj)',
-                                Numbers.humanReadableByteSize(bytesAltogether), objCount,
-                                Numbers.humanReadableByteSize(bytesAltogether / objCount))  +
+                                      Numbers.humanReadableByteSize(bytesAltogether), objCount,
+                                      Numbers.humanReadableByteSize(bytesAltogether / objCount))  +
                     '\nclasses:\n' + this.sortedEntries().collect(function(tuple) {
-                            return Strings.format('%s: %s (%s - %s per obj)',
-                                tuple.name, Numbers.humanReadableByteSize(tuple.bytes), tuple.count,
-                                Numbers.humanReadableByteSize(tuple.bytes / tuple.count))
+                        return Strings.format('%s: %s (%s - %s per obj)',
+                                              tuple.name, Numbers.humanReadableByteSize(tuple.bytes), tuple.count,
+                                              Numbers.humanReadableByteSize(tuple.bytes / tuple.count));
 
-                        }, this).join('\n')
+                    }, this).join('\n')
             },
             biggestObjectsOfType: function(typeString) {
                 return this[typeString].objects
                     .collect(function(ea) { return JSON.stringify(ea) })
                     .sortBy(function(ea) { return ea.length }).reverse()
-                    .collect(function(ea) { return JSON.parse(ea) })
+                    .collect(function(ea) { return JSON.parse(ea) });
             },
             toCSV: function() {
                 var lines = ['type,size,size in bytes,count,size per object,size perobject in bytes'];
@@ -250,20 +281,21 @@ Object.subclass('lively.persistence.Debugging.Helper',
 
         ObjectGraphLinearizer.allRegisteredObjectsDo(linearizerRegistry, function(key, value) {
             var className = value[ClassPlugin.prototype.classNameProperty] || 'plain object';
-            if (!classes[className])
+            if (!classes[className]) {
                 classes[className] = {
                     count: 0,
                     bytes: 0,
                     name: className,
                     objects: []
                 };
-            classes[className].count++
+            }
+            classes[className].count++;
             classes[className].bytes += JSON.stringify(value).length;
             classes[className].objects.push(value);
         });
 
         return classes;
-    },
+    }
 },
 'filtering', {
     getObjectsByType: function(linearizerRegistry, typeString) {
@@ -273,7 +305,7 @@ Object.subclass('lively.persistence.Debugging.Helper',
             if (className === typeString) result.push(value);
         });
         return result;
-    },
+    }
 });
 
 Object.extend(lively.persistence.Debugging.Helper, {
@@ -286,20 +318,21 @@ Object.extend(lively.persistence.Debugging.Helper, {
         if (jso.registry) jso = jso.registry;
         var result = new this().listObjects(jso);
         Global.worldSerializationDebuggingObjects = result;
-        return result
+        return result;
     },
     prettyPrintJSON: function(json) { return JSON.prettyPrint(json) },
     getObjectsByType: function(jso, typeString) {
         return new this().getObjectsByType(jso.registry, typeString);
     },
     inlineRegistry: function(json) {
-        var jso = JSON.parse(json);
+        var jso = JSON.parse(json),
             serializer = ObjectGraphLinearizer.forLively();
-        serializer.registry = serializer.createRealRegistry(jso.registry);;
+        serializer.registry = serializer.createRealRegistry(jso.registry);
         return serializer.inlineForDebug(jso.id);
-    },
+    }
 
 });
+
 Object.subclass('README'
 /*
 s = lively.persistence.Serializer.serialize(obj)
@@ -320,10 +353,10 @@ serializer.objectsDo(function(obj, id) {
 })
 
 objs
-serializer.showPosOfId(77)
-serializer.referencesAndClassNamesOfId(216)
-serializer.findIdReferencePathFromToId(0, 216) // [0, 77, 197, 198, 199, 215]
-serializer.classNameOfId(77)
+serializer.showPosOfId(77);
+serializer.findIdReferencePathFromToId(0, 216);
+serializer.referencesAndClassNamesOfId(216);
+serializer.classNameOfId(77);
 */
 );
 

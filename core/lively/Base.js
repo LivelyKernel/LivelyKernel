@@ -181,7 +181,7 @@ function module(moduleName) {
 
     function convertUrlToNSIdentifier(url) {
         var result = url;
-        result = result.replace(/\//, '.');
+        result = result.replace(/\//g, '.');
         // get rid of '.js'
         if (result.endsWith('.js')) result = result.substring(0, result.lastIndexOf('.'));
         return result;

@@ -1,4 +1,4 @@
-module('lively.persistence.MassMorphCreation').requires('lively.persistence.Serializer').toRun(function() {
+module('lively.persistence.MassMorphCreation').requires('lively.persistence.Serializer', 'lively.morphic.Core').toRun(function() {
 
 Object.extend(lively.persistence, {
     OptimizedMorphCreator: {

@@ -584,6 +584,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                 case "b": { this.doBrowseClass(); return true; }
                 case "s": { this.convertTabsToSpaces(); return true; }
                 case "u": { this.unEmphasizeSelection(); return true; }
+                case "x": { this.doAutoIndent(); return true;}
                 case "5": { this.emphasizeSelection({color: Color.black}); return true; }
                 case "6": { this.emphasizeSelection({color: Color.red}); return true; }
                 case "7": { this.emphasizeSelection({color: Color.green}); return true; }
@@ -882,6 +883,112 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         this.remove();
         fromMorph.setNullSelectionAt(textLength);
         return true;
+    },
+    doAutoIndent: function() {
+        var text = this.textString;
+
+        var i = 0;
+        var tokens = {};
+
+        //strip out regexes
+        while(text.match(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/)){
+            tokens[i] =  text.match(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/)[2];
+            text = text.replace(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/, "$1\u0007"+i);
+            i++;
+        }
+
+        //strip out strings
+        while(text.match(/"[^"\n]*"/)){
+            tokens[i] =  text.match(/"[^"]*"/)[0];
+            text = text.replace(/"[^"]*"/, "\u0007"+i);
+            i++;
+        }
+        while(text.match(/'[^'\n]*'/)){
+            tokens[i] =  text.match(/'[^']*'/)[0];
+            text =  text.replace(/'[^']*'/, "\u0007"+i);
+            i++;
+        }
+
+        //strip out comments(one lined)
+        while(text.match(/(\/\/[^\n]*)\n/)){
+            tokens[i] = text.match(/(\/\/[^\n]*)\n/)[1];
+            text =  text.replace(/(\/\/[^\n]*)\n/, "\u0007"+i+"\n");
+            i++;
+        }
+
+        //strip out comments(block)
+        while(text.match(/\/\*(.|\n)*?\*\//)){
+            tokens[i] = text.match(/\/\*(.|\n)*?\*\//)[0];
+            text = text.replace(/\/\*(.|\n)*?\*\//, "\u0007"+i);
+            i++;
+        }
+
+        //strip out leading and trailing whitespace
+        text = text.replace(/ *\n/g, "\n");
+        text = text.replace(/ *(.*[^ ]) *\n/g, "$1\n");
+
+        var formatted = '';
+        var lines = text.split('\n');
+        var indent = 0;
+        var lastCount = 0;
+
+        for (var i=0; i < lines.length; i++) {
+            var ln = lines[i];
+
+            var brackets = [
+                ["(",")"],
+                ["[","]"],
+                ["{","}"]
+            ];
+
+            var counts= [
+                [0,0],
+                [0,0],
+                [0,0]
+            ];
+
+            for(var j = 0; j < ln.length; j++){
+                for(var b = 0; b < brackets.length; b++){
+                    if(ln[j] === brackets[b][0]){
+                        counts[b][0]++;
+                    } else if(ln[j] === brackets[b][1]){
+                        if(counts[b][0] > 0){
+                            counts[b][0]--;
+                        } else {
+                            counts[b][1]++;
+                        }
+                    }
+                }
+            }
+
+            counts = counts.reduce(function(ea1, ea2){
+                return [ea1[0] + ea2[0], ea1[1] + ea2[1]];
+            });
+
+            indent += lastCount - counts[1];
+            lastCount = Math.max(0, counts[0]);
+
+            var padding = '';
+            for (var j = 0; j < indent; j++) {
+                padding += '    ';
+            }
+
+            formatted += padding + ln + '\n';
+        }
+
+        text = formatted;
+
+        //put strings, regexes and comments back in
+        while(i > 0){
+            i--;
+            text= text.replace(new RegExp("\u0007"+i),tokens[i]);
+        }
+
+        this.textString = text;
+    },
+
+    doVarDeclClean: function() {
+        this.modifySelectedLines(this.varDeclCleaner());
     },
 
 },

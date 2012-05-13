@@ -2118,29 +2118,37 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
 
     getListForProtocolOf: function(obj) {
         var items = this.getPrototypeChainOf(obj).collect(function(proto) {
-            return this.menuItemForProto(obj, proto);
+            return this.menuItemForProto(obj, proto, obj['#startLetters']);
         }, this).select(function(ea) { return ea != undefined });
+        delete this['#startLetters'];
         return items;
     },
 
-    menuItemForProto: function(originalObject, proto) {
+    menuItemForProto: function(originalObject, proto, startLetters) {
         var subItems = this.funcSignaturesOf(proto).collect(function(signa) {
-            return this.createSubMenuItemFromSignature(signa);
-        }, this);
+            return signa.toString().startsWith(startLetters) && this.createSubMenuItemFromSignature(signa, startLetters);
+        }, this).select(function (ea) { return ea });
         if (subItems.length == 0) return null;
         var name = (originalObject === proto) ? originalObject.toString().truncate(60) :
             proto.constructor.type || proto.constructor.name || '';
         return [name, subItems];
     },
-    createSubMenuItemFromSignature: function(signature) {
+    createSubMenuItemFromSignature: function(signature, optStartLetters) {
         var textMorph = this.textMorph,
             range = textMorph && textMorph.getSelectionRange();
+        var replacer = signature;
+        if (typeof(optStartLetters) !== 'undefined') {
+            replacer = signature.substring(optStartLetters.size());
+        }
+        if (textMorph.getTextString().indexOf('.') < 0) {
+            replacer = '.' + replacer;
+        }
         return [signature, function() {
             // FIXME not sure if this has to be delayed
             (function() {
                 textMorph.focus();
                 range && textMorph.setSelectionRange(range[0], range[1]);
-                textMorph.insertAtCursor(signature, true)
+                textMorph.insertAtCursor(replacer, true);
             }).delay(0)
         }]
     },
@@ -2148,9 +2156,15 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
 
     evalCurrentSelection: function(textMorph) {
         var selection = Strings.removeSurroundingWhitespaces(textMorph.getSelectionOrLineString());
-        if (selection.endsWith('.'))
-            selection = selection.slice(0, selection.length-1);
-        return textMorph.tryBoundEval(selection);
+        var idx = selection.lastIndexOf('.');
+        var startLetters = '';
+        if (idx >= 0) {
+            startLetters = selection.substring(idx+1);
+            selection = selection.slice(0,idx);
+        }
+        var evaled = textMorph.tryBoundEval(selection);
+        evaled['#startLetters'] = startLetters;
+        return evaled;
     },
 
 });

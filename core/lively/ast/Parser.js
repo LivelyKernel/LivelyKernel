@@ -829,19 +829,19 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
     },
 
     func: {
-        className: 'Function', rules: [':pos', ':args', 'trans:body'],
+        className: 'Function', rules: [':pos', 'trans:body', 'trans*:args'],
         debugging: {
-            printConstruction: function() { return this.printConstructorCall(this.pos, this.args.collect(function(ea) { return '"' + ea + '"' }), this.body) },
+            printConstruction: function() { return this.printConstructorCall(this.pos, this.args.collect(function(ea) { return '"' + ea.name + '"' }), this.body) },
             toString: function() {
                 return Strings.format(
                     '%s(function(%s) %s)',
-                    this.constructor.name, this.args.join(','), this.body)
+                    this.constructor.name, this.argNames().join(','), this.body)
             },
         },
         conversion: {
             asJS: function(depth) {
                 return Strings.format('function%s(%s) {\n%s\n}',
-                                      this.name ? ' ' + this.name : '',this.args.join(','),
+                                      this.name ? ' ' + this.name : '',this.argNames().join(','),
                                       this.indent(depth+1) + this.body.asJS(depth+1));
             },
         },
@@ -849,6 +849,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
             setName: function(name) { this.name = name },
             getName: function() { return this.name },
             parentFunction: function() { return this },
+            argNames: function() { return this.args.collect(function(a){ return a.name }); },
             statements: function() { return this.body.children },
         },
     },
@@ -1189,109 +1190,6 @@ Function.addMethods(
     },
 });
 
-lively.ast.Visitor.subclass('lively.ast.VariableAnalyzer',
-'analyzing helper', {
-    knownGlobals: ["true", "false", "null", "undefined",
-                   "Object", "Function", "String", "Date", "Math", "parseFloat", "isNaN",
-                   "eval", "window", "document", "Node",
-                   "HTMLCanvasElement", "Image"],
-    newScope: function(optParentScope) {
-        var globals = this.knownGlobals;
-        return {
-            boundVars: [],
-            unboundVars: [],
-            getUnboundVars: function() {
-                var knownVars = this.boundVars.concat(globals);
-                return this.unboundVars.withoutAll(knownVars).uniq();
-            },
-        }
-  },
-},
-'analyzing', {
-    findUnboundVariableNames: function(func) {
-        return this.findUnboundVariableNamesInAST(func.ast());
-    },
-    findUnboundVariableNamesInAST: function(ast) {
-        this.currentScope = this.newScope();
-        this.scopes = [this.newScope()];
-        this.visit(ast);
-        // FIXME unbound vars with nested scopes!
-        return this.scopes.last().getUnboundVars();
-    },
-    findTopLevelVarDeclarationsInAST: function(ast) {
-        this.topLevel = true;
-        this.findUnboundVariableNamesInAST(ast);
-        return this.scopes.last().boundVars;
-    },
-},
-'visiting', {
-    visitVariable: function(node) {
-        this.scopes.last().unboundVars.pushIfNotIncluded(node.name);
-    },
-    visitVarDeclaration: function(node) {
-        this.scopes.last().boundVars.pushIfNotIncluded(node.name);
-        this.visitParts(node, ['val']);
-    },
-    visitParts: function(node, parts) {
-        for (var i = 0; i < parts.length; i++)
-            node[parts[i]].accept(this)
-    },
-    visitSequence: function(node) { node.children.invoke('accept', this) },
-    visitArrayLiteral: function(node) { node.elements.invoke('accept', this) },
-    visitObjectLiteral: function(node) { node.properties.invoke('accept', this) },
-    visitCond: function(node) { this.visitParts(node, ['condExpr', 'trueExpr', 'falseExpr']) },
-    visitIf: function(node) { this.visitCond(node) },
-    visitWhile: function(node) { this.visitParts(node, ['condExpr', 'body']) },
-    visitDoWhile: function(node) { this.visitParts(node, ['body', 'condExpr']) },
-    visitFor: function(node) { this.visitParts(node, ['init', 'condExpr', 'upd', 'body']) },
-    visitForIn: function(node) { this.visitParts(node, ['name', 'obj', 'body']) },
-    visitSet: function(node) { this.visitParts(node, ['left', 'right']) },
-    visitModifyingSet: function(node) { this.visitParts(node, ['left', 'right']) },
-    visitBinaryOp: function(node) { this.visitParts(node, ['left', 'right']) },
-    visitUnaryOp: function(node) { this.visitParts(node, ['expr']) },
-    visitPreOp: function(node) { this.visitParts(node, ['expr']) },
-    visitPostOp: function(node) { this.visitParts(node, ['expr']) },
-    visitGetSlot: function(node) { this.visitParts(node, ['slotName', 'obj']) },
-    visitReturn: function(node) { this.visitParts(node, ['expr']) },
-    visitWith: function(node) { this.visitParts(node, ['obj', 'body']) },
-    visitSend: function(node) { this.visitParts(node, ['recv']) },
-    visitCall: function(node) { this.visitParts(node, ['fn']) },
-    visitNew: function(node) { this.visitParts(node, ['clsExpr']) },
-    visitThrow: function(node) { this.visitParts(node, ['expr']) },
-    visitTryCatchFinally: function(node) { this.visitParts(node, ['trySeq', 'catchSeq', 'finallySeq']) },
-    visitFunction: function(node) {
-        if (this.topLevel) return;
-        var funcScope = this.newScope();
-        funcScope.boundVars.pushAll(node.args);
-        this.scopes.push(funcScope);
-        this.visitParts(node, ['body']);
-        this.scopes.pop();
-        this.scopes.last().unboundVars.pushAll(funcScope.getUnboundVars());
-    },
-    visitObjProperty: function(node) { this.visitParts(node, ['property']) },
-    visitSwitch: function(node) { this.visitParts(node, ['expr']) },
-    visitCase: function(node) { this.visitParts(node, ['condExpr', 'thenExpr']) },
-    visitDefault: function(node) { this.visitParts(node, ['defaultExpr']) },
-});
 
-Object.extend(lively.ast.VariableAnalyzer, {
-    parse: function(source) {
-        var ast = lively.ast.Parser.parse(source, 'topLevel');
-        if (!ast || Object.isString(ast)) {
-          throw new Error("cannot parse " + source);
-        }
-        return ast;
-    },
-    findUnboundVariableNamesInAST: function(ast) {
-        var analyzer = new this();
-        return analyzer.findUnboundVariableNamesInAST(ast);
-    },
-    findUnboundVariableNamesIn: function(source) {
-        return this.findUnboundVariableNamesInAST(this.parse(source));
-    },
-    findTopLevelVarDeclarationsIn: function(source) {
-        return new this().findTopLevelVarDeclarationsInAST(this.parse(source));
-    }
-});
 
 }) // end of module

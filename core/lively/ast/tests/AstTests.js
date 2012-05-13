@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.ast.tests.AstTests').requires('lively.ast.Parser', 'lively.ast.StackReification', 'lively.TestFramework').toRun(function() {
+module('lively.ast.tests.AstTests').requires('lively.ast.Parser', 'lively.ast.StackReification', 'lively.TestFramework', 'lively.ast.StaticAnalysis').toRun(function() {
 
 TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
 'running', {
@@ -148,7 +148,7 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
             r = this.parseJS(src),
             expected = {
                 isFunction: true,
-                args: ['a'],
+                args: [{name: 'a'}],
                 body: {
                     isSequence: true,
                     children: [{
@@ -733,50 +733,49 @@ TestCase.subclass('lively.ast.tests.AstTests.ContinuationTest',
     },
 });
 
-TestCase.subclass('lively.ast.tests.AstTests.UnboundVariableAnalyzerTest',
+TestCase.subclass('lively.ast.tests.AstTests.VariableAnalyzerTest',
 'assertion', {
-    assertVarsFound: function(expected, actualVarNames) {
-        this.assertEquals(expected[1].length, actualVarNames.length,
+    assertVarsFound: function(code, expected, actual) {
+        this.assertEquals(expected.length, actual.length,
                           'did not found correct number of variables: ' +
-                          expected[1] + ' vs ' + actualVarNames +
-                          ' code: ' + expected[0]);
-        for (var i = 0; i < expected[1].length; i++) {
-            var expectedVarName = expected[1][i],
-                actualVarName = actualVarNames[i];
+                          expected + ' vs ' + actual +
+                          ' code: ' + code);
+        for (var i = 0; i < expected.length; i++) {
+            var expectedVarName = expected[i][0],
+                actualVarName = actual[i].name;
             this.assertEquals(expectedVarName, actualVarName,
                              expectedVarName + " (expected) does not match " +
-                              actualVarName + ' code: ' + expected[0]);
+                              actualVarName + ' code: ' + code);
+            var expectedPosition = expected[i][1] + "-" + expected[i][2],
+                actualPosition = actual[i].position();
+            this.assertEquals(expectedPosition, actualPosition,
+                             expectedPosition + " (expected) does not match " +
+                              actualPosition + ' code: ' + code);
         }
     },
 },
 'testing', {
     test01FindFreeVariable: function() {
         var f = function() { var x = 3; return x + y },
-            result = new lively.ast.VariableAnalyzer().findUnboundVariableNames(f);
-        this.assertEqualState(['y'], result);
+            result = new lively.ast.VariableAnalyzer().findGlobalVariablesIn(String(f));
+        this.assertVarsFound(f, [['y', 35, 37]], result);
     },
     testFindSimpleGlobalRead: function() {
         var codeAndExpected = [
-            ["Foo.bar()", ["Foo"]],
-            ["var Foo = x(); Foo.bar()", ["x"]],
-            ["Foo = false;", ["Foo"]],
-            ["function() { function() { Foo = 3 }}", ["Foo"]],
+            ["Foo.bar()", [["Foo", 0, 3]]],
+            ["var Foo = x(); Foo.bar()", [["x", 9, 11]]],
+            ["Foo = false;", [["Foo", 0, 3]]],
+            ["function() { function() { Foo = 3 }}", [["Foo", 25, 29]]],
             ["function(arg) { return arg + 1 }", []],
-            ["function() { function(arg) {}; return arg }", ['arg']]
+            ["function() { function(arg) {}; return arg }", [['arg', 37, 41]]]
         ];
 
         for (var i = 0; i < codeAndExpected.length; i++) {
-            var result = lively.ast.VariableAnalyzer.findUnboundVariableNamesIn(codeAndExpected[i][0]);
-            this.assertVarsFound(codeAndExpected[i], result);
+            var result = new lively.ast.VariableAnalyzer().findGlobalVariablesIn(codeAndExpected[i][0]);
+            this.assertVarsFound(codeAndExpected[i][0], codeAndExpected[i][1], result);
         }
     },
-    testFindTopLevelVarDeclarations: function() {
-        var src = "Foo = 3;\n"
-                  + "var Bar = 99;\n"
-                  + "function baz() { var x = 3; return x }",
-            result = lively.ast.VariableAnalyzer.findTopLevelVarDeclarationsIn(src);
-        this.assertEqualState(['Bar', 'baz'], result);
-    },
+
 });
 
 TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',

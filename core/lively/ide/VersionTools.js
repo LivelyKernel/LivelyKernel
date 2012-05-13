@@ -1,7 +1,6 @@
 module('lively.ide.VersionTools').requires('lively.morphic').toRun(function() {
 
-var klass = Global.Widget || lively.morphic.WindowedApp;
-klass.subclass('lively.ide.FileVersionViewer',
+lively.morphic.WindowedApp.subclass('lively.ide.FileVersionViewer',
 'settings', {
 
     viewTitle: "Version Viewer",
@@ -14,19 +13,19 @@ klass.subclass('lively.ide.FileVersionViewer',
         var panel = PanelMorph.makePanedPanel(extent, [
             ['urlPane', newTextPane, new Rectangle(0, 0, 1, 0.1)],
             ['versionList', newDragnDropListPane, new Rectangle(0, 0.1, 1, 0.8)],
-            ['revertButton', ButtonMorph, new Rectangle(0, 0.9, 0.33, 0.1)],
-            ['openButton', ButtonMorph, new Rectangle(0.33, 0.9, 0.33, 0.1)],
-            ['visitButton', ButtonMorph, new Rectangle(0.66, 0.9, 0.34, 0.1)],
+            ['revertButton', lively.morphic.Button, new Rectangle(0, 0.9, 0.33, 0.1)],
+            ['openButton', lively.morphic.Button, new Rectangle(0.33, 0.9, 0.33, 0.1)],
+            ['visitButton', lively.morphic.Button, new Rectangle(0.66, 0.9, 0.34, 0.1)],
         ]);
 
         var m;
 
-        panel.applyStyle({adjustForNewBounds: true, resizeWidth: true, resizeHeight: true})
+        panel.applyStyle({adjustForNewBounds: true, resizeWidth: true, resizeHeight: true, fill: Color.gray});
 
         m = panel.urlPane.innerMorph();
         m.noEval = true;
         m.plugTo(this, {savedTextString: '->setTarget'});
-        m.applyStyle({resizeWidth: true, resizeHeight: false, fixedHeight: true, clipMode: 'hidden', allowInput: true});
+        m.applyStyle({resizeWidth: true, resizeHeight: false, fixedHeight: true, clipMode: 'hidden', allowInput: true, fontSize: 9});
 
         m = panel.revertButton;
         m.setLabel('revert');
@@ -43,7 +42,7 @@ klass.subclass('lively.ide.FileVersionViewer',
         m.plugTo(this, {fire: '->visitVersion'});
         m.applyStyle({moveVertical: true, moveHorizontal: true});
 
-        m= panel.versionList.innerMorph();
+        m = panel.versionList.innerMorph();
         m.dragEnabled = false;
         m.applyStyle({resizeWidth: true, resizeHeight: true});
 

@@ -29,6 +29,8 @@ Object.extend(lively.morphic.Morph, {
         part.setTopFrame(frame);
         if (title) part.setTitle(title);
         part.openInWorld();
+        var m = part;
+        m.align(m.bounds().topCenter().addPt(pt(0,-20)), $world.visibleBounds().topCenter());
     },
 });
 
@@ -113,6 +115,12 @@ Object.extend(lively.Tracing, {
             lively.Tracing.setCurrentContext(null);
         }).delay(0.2);
     },
+});
+cop.create('DeepInterpretationLayer')
+.refineClass(lively.ast.FunctionCaller, {
+    shouldInterpret: function(frame, func) {
+        return !this.isNative(func);
+    }
 });
 
 

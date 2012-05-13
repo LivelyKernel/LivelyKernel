@@ -228,6 +228,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 },
 'styling', {
     applyStyle: function($super, spec) {
+        if (!spec) return this;
         $super(spec);
         if (spec.fixedWidth !== undefined) {
             this.setFixedWidth(spec.fixedWidth);
@@ -584,6 +585,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                 case "b": { this.doBrowseClass(); return true; }
                 case "s": { this.convertTabsToSpaces(); return true; }
                 case "u": { this.unEmphasizeSelection(); return true; }
+                case "x": { this.doAutoIndent(); return true;}
                 case "5": { this.emphasizeSelection({color: Color.black}); return true; }
                 case "6": { this.emphasizeSelection({color: Color.red}); return true; }
                 case "7": { this.emphasizeSelection({color: Color.green}); return true; }
@@ -838,7 +840,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         // the selection grows/shrinks with the modifications
         var lines = this.selectionString().split('\n')
         for (var i = 0; i < lines.length; i++) {
-            lines[i] = modifyFunc(lines[i], i);
+            lines[i] = modifyFunc(lines[i], i, lines);
         }
         var replacement = lines.join('\n');
         this.insertAtCursor(replacement, true, true);
@@ -882,6 +884,112 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         this.remove();
         fromMorph.setNullSelectionAt(textLength);
         return true;
+    },
+    doAutoIndent: function() {
+        var text = this.textString;
+
+        var i = 0;
+        var tokens = {};
+
+        //strip out regexes
+        while(text.match(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/)){
+            tokens[i] =  text.match(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/)[2];
+            text = text.replace(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/, "$1\u0007"+i);
+            i++;
+        }
+
+        //strip out strings
+        while(text.match(/"[^"\n]*"/)){
+            tokens[i] =  text.match(/"[^"]*"/)[0];
+            text = text.replace(/"[^"]*"/, "\u0007"+i);
+            i++;
+        }
+        while(text.match(/'[^'\n]*'/)){
+            tokens[i] =  text.match(/'[^']*'/)[0];
+            text =  text.replace(/'[^']*'/, "\u0007"+i);
+            i++;
+        }
+
+        //strip out comments(one lined)
+        while(text.match(/(\/\/[^\n]*)\n/)){
+            tokens[i] = text.match(/(\/\/[^\n]*)\n/)[1];
+            text =  text.replace(/(\/\/[^\n]*)\n/, "\u0007"+i+"\n");
+            i++;
+        }
+
+        //strip out comments(block)
+        while(text.match(/\/\*(.|\n)*?\*\//)){
+            tokens[i] = text.match(/\/\*(.|\n)*?\*\//)[0];
+            text = text.replace(/\/\*(.|\n)*?\*\//, "\u0007"+i);
+            i++;
+        }
+
+        //strip out leading and trailing whitespace
+        text = text.replace(/ *\n/g, "\n");
+        text = text.replace(/ *(.*[^ ]) *\n/g, "$1\n");
+
+        var formatted = '';
+        var lines = text.split('\n');
+        var indent = 0;
+        var lastCount = 0;
+
+        for (var i=0; i < lines.length; i++) {
+            var ln = lines[i];
+
+            var brackets = [
+                ["(",")"],
+                ["[","]"],
+                ["{","}"]
+            ];
+
+            var counts= [
+                [0,0],
+                [0,0],
+                [0,0]
+            ];
+
+            for(var j = 0; j < ln.length; j++){
+                for(var b = 0; b < brackets.length; b++){
+                    if(ln[j] === brackets[b][0]){
+                        counts[b][0]++;
+                    } else if(ln[j] === brackets[b][1]){
+                        if(counts[b][0] > 0){
+                            counts[b][0]--;
+                        } else {
+                            counts[b][1]++;
+                        }
+                    }
+                }
+            }
+
+            counts = counts.reduce(function(ea1, ea2){
+                return [ea1[0] + ea2[0], ea1[1] + ea2[1]];
+            });
+
+            indent += lastCount - counts[1];
+            lastCount = Math.max(0, counts[0]);
+
+            var padding = '';
+            for (var j = 0; j < indent; j++) {
+                padding += '    ';
+            }
+
+            formatted += padding + ln + '\n';
+        }
+
+        text = formatted;
+
+        //put strings, regexes and comments back in
+        while(i > 0){
+            i--;
+            text= text.replace(new RegExp("\u0007"+i),tokens[i]);
+        }
+
+        this.textString = text;
+    },
+
+    doVarDeclClean: function() {
+        this.modifySelectedLines(this.varDeclCleaner());
     },
 
 },
@@ -1943,6 +2051,26 @@ this. textNodeString()
     hasSelection: function() {
         return this.domSelection() !== null;
     },
+},
+'JavaScript support', {
+    varDeclCleaner: function() {
+        // for usage with #modifyLines
+        // turns "var foo;\nvar bar;" into "var foo,\n    bar;"
+        var cancel = false, indent = '', tab = this.tab,
+            varRegexp = /(\s*)var\s+([^;]+)(;?)(\s*)/;
+        return function cleanLine(line, idx, lines) {
+            var varMatch = line.match(varRegexp),
+                last = idx === lines.length - 1;
+            if (idx === 0 && !varMatch) cancel = true;
+            if (!varMatch || cancel) return line;
+            if (idx === 0) {
+                indent = varMatch[1] + tab;
+                return line.replace(varRegexp, '$1var $2,');
+            }
+            if (!last) return line.replace(varRegexp, indent + '$2,');
+            return line.replace(varRegexp, indent + '$2;');
+        }
+    }
 });
 
 
@@ -1990,29 +2118,37 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
 
     getListForProtocolOf: function(obj) {
         var items = this.getPrototypeChainOf(obj).collect(function(proto) {
-            return this.menuItemForProto(obj, proto);
+            return this.menuItemForProto(obj, proto, obj['#startLetters']);
         }, this).select(function(ea) { return ea != undefined });
+        delete this['#startLetters'];
         return items;
     },
 
-    menuItemForProto: function(originalObject, proto) {
+    menuItemForProto: function(originalObject, proto, startLetters) {
         var subItems = this.funcSignaturesOf(proto).collect(function(signa) {
-            return this.createSubMenuItemFromSignature(signa);
-        }, this);
+            return signa.toString().startsWith(startLetters) && this.createSubMenuItemFromSignature(signa, startLetters);
+        }, this).select(function (ea) { return ea });
         if (subItems.length == 0) return null;
         var name = (originalObject === proto) ? originalObject.toString().truncate(60) :
             proto.constructor.type || proto.constructor.name || '';
         return [name, subItems];
     },
-    createSubMenuItemFromSignature: function(signature) {
+    createSubMenuItemFromSignature: function(signature, optStartLetters) {
         var textMorph = this.textMorph,
             range = textMorph && textMorph.getSelectionRange();
+        var replacer = signature;
+        if (typeof(optStartLetters) !== 'undefined') {
+            replacer = signature.substring(optStartLetters.size());
+        }
+        if (textMorph.getTextString().indexOf('.') < 0) {
+            replacer = '.' + replacer;
+        }
         return [signature, function() {
             // FIXME not sure if this has to be delayed
             (function() {
                 textMorph.focus();
                 range && textMorph.setSelectionRange(range[0], range[1]);
-                textMorph.insertAtCursor(signature, true)
+                textMorph.insertAtCursor(replacer, true);
             }).delay(0)
         }]
     },
@@ -2020,9 +2156,15 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
 
     evalCurrentSelection: function(textMorph) {
         var selection = Strings.removeSurroundingWhitespaces(textMorph.getSelectionOrLineString());
-        if (selection.endsWith('.'))
-            selection = selection.slice(0, selection.length-1);
-        return textMorph.tryBoundEval(selection);
+        var idx = selection.lastIndexOf('.');
+        var startLetters = '';
+        if (idx >= 0) {
+            startLetters = selection.substring(idx+1);
+            selection = selection.slice(0,idx);
+        }
+        var evaled = textMorph.tryBoundEval(selection);
+        evaled['#startLetters'] = startLetters;
+        return evaled;
     },
 
 });
@@ -2555,6 +2697,35 @@ cop.create('TextDevLayer')
 Object.subclass('lively.morphic.HTMLParser');
 
 Object.extend(lively.morphic.HTMLParser, {
+
+    parseInIFrame: function(html) {
+        // parsing HTML in an iFrame is necessary when we are in an XHTML
+        // document but need to embed HTML that is not valid XML.
+
+        // strip out the meta tag if existing:
+        html = html.replace(/<meta[^>]+>/, '');
+
+        // now parse html using iFrame and return the childNodes
+        var iframe = XHTMLNS.create('iframe');
+        iframe.setAttribute('src', "about:blank");
+        var body = document.getElementsByTagName('body')[0];
+        body.appendChild(iframe);
+
+        try {
+            var iframeBody = iframe.contentWindow.document.body;
+            iframeBody.innerHTML = html;
+
+            // now gather the nodes that we have parsed and return them in an array
+            var nodes = [];
+            for (var i = 0; i < iframeBody.childNodes.length; i++) {
+                nodes.push(iframeBody.childNodes[i].cloneNode(true));
+            }
+            return nodes;
+        } finally {
+            body.removeChild(iframe);
+        }
+    },
+
     sourceToNode: function(data) {
         // creates DOM node from a snipped of HTML
         if (data.startsWith('<meta charset')) {
@@ -2692,16 +2863,13 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
         return this._bindings;
     },
     parseShortcut: function(string) {
-        var spec = {};
-        var keys = string.split('+');
+        var spec = {ctrl: false, cmd: false},
+            keys = string.split('+');
         keys.forEach(function(keyString) {
             var specialKeyMatch = keyString.match(/<(.*)>/);
             if (specialKeyMatch) {
-                var specialKey = specialKeyMatch[1];
-                switch(specialKey) {
-                    case 'ctrl': spec.ctrl = true; return;
-                    default: throw new Error('Cannot recognize ' + keyString);
-                }
+                spec[specialKeyMatch[1]] = true;
+                return;
             }
             if (keyString.length === 1) {
                 var shiftKey = keyString === keyString.toUpperCase();
@@ -2722,9 +2890,10 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
         var bindings = this.bindings();
         for (var i = 0; i < bindings.length; i++) {
             var b = bindings[i],
-                specialKeysMatch = (evt.isCtrlDown() == b.evtSpec.ctrl) &&
-                                    (evt.isShiftDown() == b.evtSpec.shift),
-                charKeyMatches = (evt.charCode || evt.keyCode) === b.evtSpec.charCode;
+                specialKeysMatch = (evt.isCtrlDown()   == b.evtSpec.ctrl) &&
+                                   (evt.isShiftDown()  == b.evtSpec.shift) &&
+                                   (evt.isCommandKey() == b.evtSpec.cmd),
+                charKeyMatches   = (evt.charCode || evt.keyCode) === b.evtSpec.charCode;
             if (!specialKeysMatch || !charKeyMatches) continue;
             return b.handler.call(this, target, b);
         };

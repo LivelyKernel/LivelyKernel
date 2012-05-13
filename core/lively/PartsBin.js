@@ -10,7 +10,9 @@ Object.subclass('lively.PartsBin.PartItem',
             this.name = partOrName;
             this.part = null;
         } else {
-            this.name = partOrName.name;
+            this.name = Object.isFunction(partOrName.getPartsBinMetaInfo) ?
+                this.name = partOrName.getPartsBinMetaInfo().partName :
+                this.name = partOrName.name;
             this.part = partOrName;
         }
         this.json = null;
@@ -48,7 +50,7 @@ Object.subclass('lively.PartsBin.PartItem',
     },
 
     setPartFromJSON: function(json, metaInfo, rev) {
-        var part = this.deserializePart(json, metaInfo);    
+        var part = this.deserializePart(json, metaInfo);
         part.partsBinMetaInfo.revisionOnLoad = rev;
         this.setPart(part);
     },
@@ -89,8 +91,8 @@ Object.subclass('lively.PartsBin.PartItem',
 },
 'serialization', {
     getSerializer: function() {
-        return Config.isNewMorphic ? 
-            ObjectGraphLinearizer.forNewLivelyCopy() : 
+        return Config.isNewMorphic ?
+            ObjectGraphLinearizer.forNewLivelyCopy() :
             ObjectGraphLinearizer.forLivelyCopy();
     },
     deserializePart: function(json, optMetaInfo) {
@@ -154,12 +156,12 @@ Object.subclass('lively.PartsBin.PartItem',
             json = serializer.serialize(part);
             htmlLogo = part.asHTMLLogo();
         } catch(e){
-            throw e 
+            throw e
         } finally {
             part.setPosition(oldPos);
-            // for fixing the bug that parts are shown in the world 
+            // for fixing the bug that parts are shown in the world
             // origin after copying them to the partsbin
-            if (part.owner) part.owner.addMorph(part); 
+            if (part.owner) part.owner.addMorph(part);
         }
         return {
             json: json,
@@ -167,15 +169,14 @@ Object.subclass('lively.PartsBin.PartItem',
             metaInfo: this.serializeMetaInfo(part.getPartsBinMetaInfo())
         };
     },
+
     serializeMetaInfo: function(metaInfo) {
         try {
-            var metaInfoJSON = this.getSerializer().serialize(metaInfo);
-        } catch(e){
-            throw e 
+            return this.getSerializer().serialize(metaInfo);
+        } catch(e) {
+            throw e;
         }
-        return metaInfoJSON;
-    },
-
+    }
 
 },
 'upload and download', {
@@ -232,7 +233,7 @@ Object.subclass('lively.PartsBin.PartItem',
         }
         connect(this, 'json', loadTrigger, 'jsonLoaded', {removeAfterUpdate: true});
         connect(this, 'loadedMetaInfo', loadTrigger, 'metaInfoLoaded', {removeAfterUpdate: true});
-        
+
         this.load(isAsync, rev);
         this.loadPartMetaInfo(isAsync, rev)
 
@@ -242,14 +243,14 @@ Object.subclass('lively.PartsBin.PartItem',
 
     loadPartVersions: function(isAsync) {
         var webR = new WebResource(this.getFileURL());
-        if (isAsync) webR.beAsync();        
+        if (isAsync) webR.beAsync();
         connect(webR, 'versions', this, 'partVersions');
         webR.getVersions();
         return this;
     },
     loadPartMetaInfo: function(isAsync, rev) {
         var webR = new WebResource(this.getMetaInfoURL());
-        if (isAsync) webR.beAsync();        
+        if (isAsync) webR.beAsync();
         connect(webR, 'content', this, 'loadedMetaInfo', {updater: function($upd, json) {
             if (!this.sourceObj.status.isSuccess()) return $upd(null);
             if (!this.sourceObj.status.isDone()) return;
@@ -277,7 +278,7 @@ Object.subclass('lively.PartsBin.PartItem',
     del: function() {
         this.getPartsSpace().removePartItemNamed(this.name);
         new WebResource(this.getLogoURL()).beAsync().del();
-        new WebResource(this.getHTMLLogoURL()).beAsync().del();    
+        new WebResource(this.getHTMLLogoURL()).beAsync().del();
         new WebResource(this.getFileURL()).beAsync().del();
         new WebResource(this.getMetaInfoURL()).beAsync().del();
     },
@@ -290,7 +291,7 @@ Object.subclass('lively.PartsBin.PartItem',
         this.part.getPartsBinMetaInfo().setPartsSpace(this.getPartsSpace());
         var name = this.part.name,
             serialized = this.serializePart(this.part);
-        
+
         var webR = new WebResource(this.getFileURL())
             .beAsync()
             .createProgressBar('Uploading ' + name);
@@ -360,7 +361,7 @@ Object.subclass('lively.PartsBin.PartItem',
 
     askToOverwrite: function(url) {
         var self = this;
-        $world.confirm(String(url) + ' was changed since loading it. Overwrite?', 
+        $world.confirm(String(url) + ' was changed since loading it. Overwrite?',
             function (answer) {
                 answer && self.uploadPart()
             })
@@ -512,8 +513,8 @@ Object.extend(lively.PartsBin, {
     },
     partsSpaceWithURL: function(url) {
         var rootPath = new URL(Config.rootPath),
-            name = url.isIn(rootPath) ? 
-                url.relativePathFrom(rootPath) : 
+            name = url.isIn(rootPath) ?
+                url.relativePathFrom(rootPath) :
                 url.toString();
         return this.partsSpaceNamed(name);
     },
@@ -554,7 +555,7 @@ Object.extend(lively.PartsBin, {
 
 });
 
-Trait('lively.PartsBin.PartTrait', { 
+Trait('lively.PartsBin.PartTrait', {
     copyToPartsBin: function(optPartsSpaceNamed) {
         if (!this.name) {
             alert('cannot copy to partsBin without a name');
@@ -567,7 +568,7 @@ Trait('lively.PartsBin.PartTrait', {
         if (optPartsSpaceNamed && Object.isString(optPartsSpaceNamed))
             this.getPartsBinMetaInfo().setPartsSpaceName(optPartsSpaceNamed);
 
-        if (this.getPartsBinMetaInfo().partsSpaceName &&         
+        if (this.getPartsBinMetaInfo().partsSpaceName &&
             !this.getPartsBinMetaInfo().partsSpaceName.startsWith("PartsBin")) {
                 alertOK("resetting partsSpaceName of " + this)
                 delete this.getPartsBinMetaInfo().partsSpaceName
@@ -575,7 +576,7 @@ Trait('lively.PartsBin.PartTrait', {
 
         this.getPartsBinMetaInfo().migrationLevel = LivelyMigrationSupport.migrationLevel;
         this.getPartsBinMetaInfo().partName = this.name;
-        
+
         this.getPartItem().uploadPart(true);
     },
     copyToPartsBinWithUserRequest: function() {
@@ -586,7 +587,7 @@ Trait('lively.PartsBin.PartTrait', {
         // FIXME this code was not yet refactored to work with the new PartsSpace/PartItem model
         var userName = lively.LocalStorage.get('UserName');
         if (!userName) throw Error('Cannot copyToMyPartsBin without userName')
-    
+
         var userDir = URL.codeBase.withFilename(userName + '/MyPartsBin/');
         var wr = new WebResource(userDir);
         if (!wr.exists()) {
@@ -663,7 +664,7 @@ Trait('lively.PartsBin.PartTrait', {
         '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
         '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" '+
         'xmlns:ev="http://www.w3.org/2001/xml-events" version="1.1" baseProfile="full" >\n' +
-            Exporter.stringify(logoMorph.rawNode) + 
+            Exporter.stringify(logoMorph.rawNode) +
         '</svg>';
     },
     asHTMLLogo: function() {

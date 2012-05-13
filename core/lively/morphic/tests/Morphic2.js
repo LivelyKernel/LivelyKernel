@@ -620,12 +620,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.jQueryTests', {
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
-'running', {
-    // FIXME Astrid, can you make these tests work for the core system two?
-    // might require some test fixture creation but it would definitely beworth it!
-    // Great to see the progress with morph diffing :)
-    shouldRun: !Config.serverInvokedTest
-},
 'inheritance', {
     testFindById: function() {
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
@@ -642,43 +636,68 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
 
     testFindParentPartVersion: function() {
-        // this.setupMorphs();
+        var getPartItemFactory = function () {
+            return {part: this,
+                    loadPart: function () {
+                        return {part: this,
+                                loadPart: function () {
+                                    return this;
+                                }.bind(this)}
+                    }.bind(this)}
+        };
+
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100)
+        m1.getPartsBinMetaInfo().revisionOnLoad = 2;
+        m1.getPartItem = getPartItemFactory;
 
         this.assertEquals(m1.findParentPartVersion().getPartsBinMetaInfo().revisionOnLoad, m1.getPartsBinMetaInfo().revisionOnLoad, 'Revision number of current revision was wrong.')
-        var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100)
+
         this.assert(!m2.findParentPartVersion().getPartsBinMetaInfo().revisionOnLoad, "Should't have found a match");
     },
 
 
     testFindCurrentPartVersion: function() {
-        var m1 = $world.loadPartItem('Rectangle', '/PartsBin/Basic');
-        this.assertEquals(m1.getPartsBinMetaInfo().revisionOnLoad, m1.findCurrentPartVersion().getPartsBinMetaInfo().revisionOnLoad, 'Wrong revision number')
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        m1.getPartsBinMetaInfo().revisionOnLoad = 2;
+        m1.getPartItem = function () {
+            return {part: this,
+                    loadPart: function () {
+                        return {part: this,
+                                loadPart: function () {
+                                    return this;
+                                }.bind(this)}
+                    }.bind(this)}
+        };
+        this.assertEquals(m1.getPartsBinMetaInfo().revisionOnLoad,
+            m1.findCurrentPartVersion().getPartsBinMetaInfo().revisionOnLoad,
+            'Wrong revision number')
     },
 
     testFindDerivationParent: function() {
-        var m1 = $world.loadPartItem("Rectangle", "/PartsBin/Basic/")
-        var m2 = m1.copy();
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100)
+        m1.derivationIds = [1];
+        var m2 = m1.copy().copy(); // copyToPartsBin simulated
 
         this.assert(m2.findDerivationParent(m1), "No parent found.")
         this.assert(m2.findDerivationParent(m1) === m1, "Wrong parent found 1.")
 
-        var m3 = $world.loadPartItem("Rectangle", "/PartsBin/Basic/")
-        var m6 = $world.loadPartItem("Rectangle", "/PartsBin/Basic/")
+        var m3 = lively.morphic.Morph.makeRectangle(0,0,100,100)
+        m3.derivationIds = [1];
+        var m6 = lively.morphic.Morph.makeRectangle(0,0,100,100)
+        m6.derivationIds = [1];
+
         m1.addMorph(m3);
         m3.addMorph(m6);
-        //simulate copyToPartsBin
-        var m4 = m1.copy();
-        //simulate copyFromPartsBin
-        var m5 = m4.copy();
-        console.log(m5.copy())
+        var m4 = m1.copy()
+        var m5 = m4.copy(); //simulate copyToPartsBin
+
         this.assert(m5.submorphs[0].findDerivationParent(m4) === m4.submorphs[0], "Wrong parent found 2.")
-        this.assert(m5.submorphs[0].submorphs[0].findDerivationParent(m4) === m4.submorphs[0].submorphs[0], "Wrong parent found 2.")
+        this.assert(m5.submorphs[0].submorphs[0].findDerivationParent(m4) === m4.submorphs[0].submorphs[0], "Wrong parent found 3.")
     },
     testFindDerivationSibling: function() {
-        var m1 = $world.loadPartItem("Rectangle", "/PartsBin/Basic");
-        var m2 = $world.loadPartItem("Rectangle", "/PartsBin/Basic");
-
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m1.addMorph(m2);
         //simulate copyToPartsBin
         var m3 = m1.copy();
@@ -691,7 +710,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
 
     testIsDirectDescendentOf: function() {
-        var m1 = $world.loadPartItem("Rectangle", "/PartsBin/Basic");
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        m1.derivationIds = [1];
         var m2 = m1.copy();
         this.assert(m2.isDirectDescendentOf(m1), 'found m2 not as descendent');
         var m3 = m1.copy();
@@ -702,46 +722,40 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
     },
 
     testExistsAlreadyIn: function(parent) {
-        var m1 = $world.loadPartItem("Rectangle", "/PartsBin/Basic");
-        var m2 = $world.loadPartItem("Rectangle", "/PartsBin/Basic");
+        // todo: only the existment property of direct descendents is tested! Find out, what the other UseCase is, and test it.
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m1.addMorph(m2)
-        //simulate copyToPartsBin
-        var m3 = m1.copy();
-        //simulate copyFromPartsBin
-        var m4 = m3.copy();
-        this.assert(m4.existsAlreadyIn(m3), "Should exist 1")
-        this.assert(m4.submorphs[0].existsAlreadyIn(m3), "should exist 2");
-        var m5 = m4.copy()
-        this.assert(m5.submorphs[0].existsAlreadyIn(m3), "should exist 3");
+        var pbv = m1.copy();
+        var m4 = pbv.copy(); // simulate copyToPartsBin
+
+        m4.isDirectDescendentOf = function () {return true};
+        m4.submorphs[0].isDirectDescendentOf = function () {return true};
+
+        this.assert(m4.existsAlreadyIn(pbv), "Should exist in first generation")
+        this.assert(m4.submorphs[0].existsAlreadyIn(pbv), "submorph should exist in first generation");
+        var m5 = m4.copy().copy(); // simulate copyToPartsBin
+        m5.submorphs[0].isDirectDescendentOf = function () {return true};
+        this.assert(m5.submorphs[0].existsAlreadyIn(pbv), "should exist in second generation");
     },
 
     testFindSiblingInRelative: function() {
-        var m1 = $world.loadPartItem("Rectangle", "/PartsBin/Basic");
-        var m2 = $world.loadPartItem("Rectangle", "/PartsBin/Basic");
-        // simulate copyToPartsBin
-        var m3 = m1.copy();
-        // simulate copyFromPartsBin
-        var m4 = m3.copy();
-        m4.addMorph(m2)
-        // simulate copyToPartsBin
-        var m5 = m4.copy();
-        // simulate copyFromPartsBin
-        var m6 = m5.copy();
-        var m7 = m5.copy();
-        this.assertEquals(m6.findSiblingInRelative(m7, m5), m7, 'Wrong sibling with real parent')
-        this.assertEquals(m6.submorphs[0].findSiblingInRelative(m7, m5), m7.submorphs[0], 'Wrong submorphs sibling with real parent')
-        this.assertEquals(m6.findSiblingInRelative(m7, m3), m7, 'Wrong sibling with grand parent')
-        this.assert(!m6.submorphs[0].findSiblingInRelative(m7, m3), 'Wrong submorph sibling with grand parent')
-    },
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        m1.derivationIds = [1]
+        var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        m2.derivationIds = [1]
 
-    testFindCommonParentPartVersion: function() {
-        var m1 = $world.loadPartItem("Rectangle", "/PartsBin/Basic");
-        var m2 = $world.loadPartItem("Rectangle", "/PartsBin/Basic");
-        this.assert(m1.findCommonParentPartVersion(m2).getPartsBinMetaInfo().revisionOnLoad == m1.getPartsBinMetaInfo().revisionOnLoad, 'wrong version 1')
-        var m3 = m1.copy();
-        this.assert(m3.findCommonParentPartVersion(m2).getPartsBinMetaInfo().revisionOnLoad == m1.getPartsBinMetaInfo().revisionOnLoad, 'wrong version 2')
-        var m4 = m2.copy();
-        this.assert(m3.findCommonParentPartVersion(m4).getPartsBinMetaInfo().revisionOnLoad == m1.getPartsBinMetaInfo().revisionOnLoad, 'wrong version 3')
+        var m4 = m1.copy().copy(); // simulate copyToPartsBin
+        m4.addMorph(m2)
+        var m6 = m4.copy().copy(); // simulate copyToPartsBin
+        var m7 = m4.copy().copy(); // simulate copyToPartsBin
+        var m8 = m6.copy().copy(); // simulate copyToPartsBin
+        m7.submorphs[0].remove()
+
+        this.assertEquals(m6.findSiblingInRelative(m7, m4), m7, 'Wrong sibling with real parent');
+        this.assertEquals(m6.submorphs[0].findSiblingInRelative(m7, m4), m7.submorphs[0], 'Wrong submorphs sibling with real parent')
+        this.assertEquals(m8.findSiblingInRelative(m7, m4), m7, 'Wrong sibling with grand parent')
+        this.assert(!m8.submorphs[0].findSiblingInRelative(m7, m4), 'Wrong submorph sibling with grand parent')
     },
 
 },
@@ -752,16 +766,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
             this.assert(m2.derivationIds, "No derivationsIds Array")
     },
     testDiffTo: function() {
-        var m1 = $world.loadPartItem("Rectangle", "/PartsBin/Basic")
-        var m2 = $world.loadPartItem("Rectangle", "/PartsBin/Basic")
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m1.addMorph(m2);
-        //simulate copyToPartsBin
+        // simulate copyToPartsBin
         var pbv = m1.copy();
-        //simulate copyFromPartsBin
+        // simulate copyFromPartsBin
         var m3 = pbv.copy();
         var m4 = m3.copy();
-        //this.assert(!m4.diffTo(m3), "found changes, but there weren't some") //required in three way diff, therefore staying
-        var m5 = $world.loadPartItem("Rectangle", "/PartsBin/Basic")
+        // this.assert(!m4.diffTo(m3), "found changes, but there weren't some")
+        // required in three way diff, therefore staying
+        var m5 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m4.addMorph(m5)
 
         //added morphs
@@ -776,8 +791,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assertEquals(m6.diffTo(m4)[m6.id].removed[m5.id], m5, "wrong removal found");
 
         //modified morphs
-        m6.submorphs[0].setFill(Color.red);
-        this.assert(m6.diffTo(m4)[m6.submorphs[0].id].modified['Fill'], "no removal found")
+        m6.setFill(Global.Color.red);
+        this.assert(m6.diffTo(m4)[m6.id].modified['Fill'], "no removal found")
 
         //submorphsModified
         this.assert(m4.diffTo(m3)[m4.id].submorphsModified.length >= 0, 'submorphs were not modified')
@@ -807,10 +822,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assert(!a.equals(c),'the vectors should not have been the same');
         this.assert(!a.equals(d),'the colors should not have been the same');
     },
+
     testMorphEquals: function() {
-        var m1 = $world.loadPartItem("Rectangle", "PartsBin/Basic");
-        var m2 = $world.loadPartItem("Rectangle", "PartsBin/Basic")
-        var m3 = m1.copy();
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100),
+            m2 = m1.copy();
+        this.assert(m1.equals(m2), "Morphs are not equal after copying");
+    },
+
+    testMorphEqualsWithPartsBinMorphs: function() {
+        if (Config.serverInvokedTest) return; // Not yet PB access
+        var m1 = $world.loadPartItem("Rectangle", "PartsBin/Basic"),
+            m2 = $world.loadPartItem("Rectangle", "PartsBin/Basic"),
+            m3 = m1.copy();
         this.assert(m1.equals(m2), "Morphs that were both loaded from the same part are not equal");
         this.assert(m1.equals(m3), "Morphs are not equal after copying");
     },

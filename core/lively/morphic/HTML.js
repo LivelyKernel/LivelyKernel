@@ -184,6 +184,7 @@ lively.morphic.Morph.addMethods(
     setClipModeHTMLForNode: function(ctx, node, state) {
         if (!node) { return /*should not happen...*/};
         var style = node.style;
+        if (!style) return;
         if (typeof state === "string") {
             style.overflowX = state;
             style.overflowY = state;
@@ -760,7 +761,13 @@ lively.morphic.Shapes.Shape.addMethods(
         ctx.domInterface.setFill(ctx.shapeNode, value, this.getBounds());
     },
     setBorderColorHTML: function(ctx, fill) {
-        return this.setBorderHTML(ctx, this.getBorderWidth(), fill, this.getStrokeOpacity())
+        var alpha;
+        if (this.getStrokeOpacity() != 1) {
+            alpha = this.getStrokeOpacity();
+        } else {
+            alpha = fill === null ? 0 : fill.a;
+        }
+        return this.setBorderHTML(ctx, this.getBorderWidth(), fill, alpha)
     },
     setBorderStyleHTML: function(ctx, value) {
         if (ctx.shapeNode) ctx.shapeNode.style.borderStyle = value;

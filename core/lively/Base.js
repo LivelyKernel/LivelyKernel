@@ -152,7 +152,27 @@ function __oldNamespace(spec, context) {
 }
 
 
+(function testModuleLoad() {
+    var modules = Global.subNamespaces(true).select(function(ea) { return ea.wasDefined });
+    modules
+    .select(function(ea) { return ea.hasPendingRequirements() })
+    .forEach(function(ea) {
+			  var msg = Strings.format('%s has unloaded requirements: %s',
+				                         ea.uri(), ea.pendingRequirementNames());
+			  console.warn(msg);
+
+        // FIXME use proper Config-URL-parsing
+        if (Config.ignoreMissingModules || document.URL.indexOf('ignoreMissingModules=true') >= 0) {
+            ea.pendingRequirements = [];
+            ea.load();
+            testModuleLoad.delay(6);
+        }
+		});
+    console.log('Module load check done. ' + modules.length + ' modules loaded.');
+}).delay(10);
+
 function module(moduleName) {
+
     moduleName = LivelyMigrationSupport.fixModuleName(moduleName);
 
     function isNamespaceAwareModule(moduleName) {
@@ -161,7 +181,7 @@ function module(moduleName) {
 
     function convertUrlToNSIdentifier(url) {
         var result = url;
-        result = result.replace(/\//, '.');
+        result = result.replace(/\//g, '.');
         // get rid of '.js'
         if (result.endsWith('.js')) result = result.substring(0, result.lastIndexOf('.'));
         return result;
@@ -983,10 +1003,20 @@ Object.extend(Namespace, {
     namespaceStack: [Global],
     current: function() { return this.namespaceStack.last() },
     topologicalSortLoadedModules: function() {
-        // get currently loaded modules that really are js files
-        var modules = Global.subNamespaces(true).select(function(ea) {
-            return ea.isLoaded() && new WebResource(ea.uri()).exists() });
+        if (Config.standAlone) {
+            var scripIds = [];
+            $('body script').each(function() { scripIds.push($(this).attr('id')) });
+            return scripIds.collect(function(id) {
+                var name = id.replace(/^..\//, '');
+                return module(name);
+            });
+        }
 
+        // get currently loaded modules that really are js files
+        var modules = Global.subNamespaces(true)
+                .reject(function(ea) { return ea.isAnonymous(); })
+                .select(function(ea) {
+                    return ea.isLoaded() && new WebResource(ea.uri()).exists() });
 
         // topological sort modules according to their requirements
         var sortedModules = [], i = 0;

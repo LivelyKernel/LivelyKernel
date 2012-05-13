@@ -386,8 +386,17 @@ var LivelyLoader = {
     })(),
 
     rootPath: (function findRootPath() {
-        if (window.Config && Config.rootPath !== undefined)
+
+        if (window.Config && Config.rootPath !== undefined) {
             return Config.rootPath;
+        }
+
+        if (window.Config && Config.standAlone) {
+            // copied from Config.getDocumentDirectory,
+            // Config not yet available...
+            var url = document.URL;
+            return url.substring(0, url.lastIndexOf('/') + 1);
+        }
 
         var bootstrapFileName = 'bootstrap.js',
             scripts = JSLoader.getScripts(),
@@ -1171,8 +1180,9 @@ var LivelyMigrationSupport = {
     // module renaming
     fixModuleName: function(name) {
         if (/^Global\./.test(name)) name = name.substring(7/*Global.*/);
-        for (var oldName in this.moduleRenameDict)
-            if (oldName === name) return this.moduleRenameDict[oldName]
+        for (var oldName in this.moduleRenameDict) {
+            if (oldName === name) return this.moduleRenameDict[oldName];
+        }
         return name;
     },
     addModuleRename: function(oldName, newName, migrationLevel) {
@@ -1181,10 +1191,10 @@ var LivelyMigrationSupport = {
 };
 
 function startWorld(startupFunc) {
-	  LivelyMigrationSupport.setDocumentMigrationLevel(document);
     LivelyLoader.addPatches();
 
     window.addEventListener('DOMContentLoaded', function() {
+        LivelyMigrationSupport.setDocumentMigrationLevel(document);
         if (EmbededLoader.embedLively() ||
             LivelyLoader.startCanvasWorld() ||
             LivelyLoader.startWorld() ||
@@ -1196,8 +1206,8 @@ function startWorld(startupFunc) {
     window.addEventListener('beforeunload', function(evt) {
         if (window.Config && window.Config.askBeforeQuit) {
             var msg = "Lively Kernel data may be lost if not saved.";
-	          evt.returnValue = msg;
-	          return msg;
+            evt.returnValue = msg;
+            return msg;
         } else {
             return undefined;
         }

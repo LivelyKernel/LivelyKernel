@@ -133,10 +133,9 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
 'initializing', {
     doNotSerialize: ['isLoaded'],
     initialize: function($super, bounds, url, useNativeExtent) {
-        var imageShape = this.createImageShape(bounds.extent().extentAsRectangle());
+        var imageShape = this.createImageShape(bounds.extent().extentAsRectangle(), url);
         $super(imageShape);
         this.setPosition(bounds.topLeft());
-        this.setImageURL(url);
         if (useNativeExtent) {
             connect(imageShape, 'isLoaded', this, 'setNativeExtent',
                     {removeAfterUpdate: true});
@@ -212,14 +211,12 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
         return result && result.stdout ? result.stdout : '';
     },
 });
-
 Object.extend(lively.morphic.Image, {
     fromURL: function(url, optBounds) {
         var bounds = optBounds || new Rectangle(0,0, 100, 100);
         return new lively.morphic.Image(bounds, url, optBounds == undefined)
     },
 });
-
 lively.morphic.Morph.subclass('lively.morphic.CheckBox',
 'properties', {
     connections: {
@@ -325,6 +322,7 @@ lively.morphic.Box.subclass('lively.morphic.ProgressBar',
         this.labelBlack.setBounds(this.innerBounds());
         this.labelBlack.fit();
     },
+
 
 },
 'accessing', {
@@ -761,7 +759,9 @@ lively.morphic.Morph.addMethods(
             'publish', function(evt) {
             self.copyToPartsBinWithUserRequest();
         }])
-        items.push(['open in window', this.openInWindow.bind(this)]);
+        items.push(['open in window', function(evt){
+            self.openInWindow(evt.mousePoint);
+        }]);
 
         // Drilling into scene to addMorph or get a halo
         var morphs = this.world().morphsContainingPoint(this.worldPoint(pt(0,0)))
@@ -818,8 +818,10 @@ lively.morphic.Morph.addMethods(
         }])
         }
 
-        if (this.reset)
-            items.push(['reset', this.reset.bind(this)])
+        if (this.reset) {
+            items.push(['reset', this.reset.bind(this)]);
+        }
+
         return items;
     },
     getWindow: function() {
@@ -1062,6 +1064,19 @@ lively.morphic.World.addMethods(
                     world.addTextWindow(printer.toString());
                 })}]];
 
+        // world requirements
+        var changeSet = this.getChangeSet()
+            worldRequirementsChange = changeSet.getWorldRequirementsList(),
+            worldRequirements = worldRequirementsChange.evaluate(),
+            removeRequirement = function(name) {
+                changeSet.removeWorldRequirement(name);
+                alertOK(name + ' is not loaded at startup anymore');
+            },
+            menuItems = worldRequirements.collect(function(name) {
+                return [name, [['remove', removeRequirement.curry(name)]]];
+            });
+        items.push(['requirements', menuItems]);
+
         // method tracing items
         function disableGlobalTracing() {
             // FIXME better to move this functionality into lively.Tracing
@@ -1253,7 +1268,12 @@ lively.morphic.World.addMethods(
         });
 
         blockMorph.addMorph(d.panel);
-        d.panel.align(d.panel.bounds().topRight(), pointOfAlign);
+
+        if (activeWindow.targetMorph) {
+            d.panel.align(d.panel.bounds().topRight(), pointOfAlign);
+        } else {
+            d.panel.align(d.panel.bounds().center(), pointOfAlign);
+        }
 
         activeWindow.addMorph(blockMorph);
         connect(d.panel, 'remove', blockMorph, 'remove');
@@ -1647,6 +1667,8 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
         // This will align the buttons and label properly
         this.adjustForNewBounds();
         this.adjustForNewBounds();
+
+        this.disableDropping();
     },
 
 },
@@ -1736,6 +1758,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph')/*TOD
         this.expandedTransform    = null;
         this.expandedExtent       = null;
         this.ignoreEventsOnExpand = false;
+        this.disableDropping();
         return this;
     },
 
@@ -2061,8 +2084,9 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
         (function fit() {
             this.label.fit();
             var labelWidth = this.label.getExtent().x, panelExtent = this.panel.getExtent();
-            if (labelWidth > panelExtent.x)
-            this.panel.setExtent(panelExtent.withX(labelWidth))
+            if (labelWidth > panelExtent.x) {
+                this.panel.setExtent(panelExtent.withX(labelWidth));
+            }
         }).bind(this).delay(0);
         this.label.disableDragging();
         this.label.disableGrabbing();

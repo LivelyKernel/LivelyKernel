@@ -1,8 +1,6 @@
-module('lively.morphic.Connectors').requires('lively.morphic.AdditionalMorphs', 'lively.bindings.GeometryBindings').toRun(function() {
+module('lively.morphic.Connectors').requires('lively.morphic.AdditionalMorphs', 'lively.bindings.GeometryBindings', 'lively.morphic.Serialization').toRun(function() {
 
 // also includes visual bindings stuff...
-// this should be extracted...!
-module('lively.LayerableMorphs').load(true)
 
 lively.morphic.Morph.addMethods(
 'serialization', {
@@ -160,13 +158,14 @@ Object.subclass('lively.morphic.MagnetSet',
     },
 });
 
+require('lively.LayerableMorphs').toRun(function() {
+
 cop.create('ConnectorLayer')
 .refineClass(lively.morphic.World, {
     getMagnets: function() {
         return []
     },
 })
-
 .refineClass(lively.morphic.PathVertexControlPointHalo, {
     onDragStart: function(evt) {
         // alertOK('onDragStart')
@@ -243,6 +242,49 @@ cop.create('lively.morphic.VisualBindingsLayer')
     },
 })
 .beGlobal();
+
+ConnectorLayer.beGlobal();
+
+cop.create('NoMagnetsLayer')
+.refineClass(lively.morphic.Morph, {
+    getMagnets: function() {return []},
+})
+.refineClass(lively.morphic.Text, {
+    getMagnets: function() {return []},
+})
+.refineClass(lively.morphic.Halo, {
+    getMagnets: function() {return []},
+})
+.refineClass(lively.morphic.HandMorph, {
+    getMagnets: function() {return []},
+})
+
+
+lively.morphic.HandMorph.addMethods({
+    withLayers: [NoMagnetsLayer]
+});
+lively.morphic.Halo.addMethods({
+    withLayers: [NoMagnetsLayer]
+});
+lively.morphic.Window.addMethods({
+    // withLayers: [NoMagnetsLayer]
+});
+cop.create('ConnectorLayer').refineClass(lively.morphic.Path, {
+    onMouseUp: function(evt) {
+        var result
+        withoutLayers([ConnectorLayer], function() {
+            result = cop.proceed(evt);
+        })
+        if (evt.isCommandKey() || evt.isRightMouseButtonDown())
+            return result;
+
+        this.showControlPointsHalos()
+
+        return true
+    },
+}).beGlobal();
+
+});  // end of require LayerableMorphs
 
 lively.morphic.Morph.addMethods(
 'visual connectors', {
@@ -354,9 +396,7 @@ lively.morphic.Path.addMethods(
     getMagnets: function() {
         return [ ]
     },
-})
-
-ConnectorLayer.beGlobal();
+});
 
 lively.morphic.ControlPoint.addMethods({
    alignToMagnet: function() {
@@ -409,7 +449,7 @@ Object.extend(lively.bindings, {
             'Editor for ' + con.targetObj.name + ' -> ' + con.sourceObj.name :
             'Editor for converter function';
         var window = $world.addFramedMorph(editor, title)
-        return window 
+        return window
     },
     showConnection: function(con) {
         var source = con.sourceObj,
@@ -549,46 +589,6 @@ lively.morphic.Box.subclass('lively.morph.ConnectionBuilder',
     },
 
 });
-
-
-cop.create('NoMagnetsLayer')
-.refineClass(lively.morphic.Morph, {
-    getMagnets: function() {return []},
-})
-.refineClass(lively.morphic.Text, {
-    getMagnets: function() {return []},
-})
-.refineClass(lively.morphic.Halo, {
-    getMagnets: function() {return []},
-})
-.refineClass(lively.morphic.HandMorph, {
-    getMagnets: function() {return []},
-})
-
-
-lively.morphic.HandMorph.addMethods({
-    withLayers: [NoMagnetsLayer]
-});
-lively.morphic.Halo.addMethods({
-    withLayers: [NoMagnetsLayer]
-});
-lively.morphic.Window.addMethods({
-    // withLayers: [NoMagnetsLayer]
-});
-cop.create('ConnectorLayer').refineClass(lively.morphic.Path, {
-    onMouseUp: function(evt) {
-        var result
-        withoutLayers([ConnectorLayer], function() {
-            result = cop.proceed(evt);
-        })
-        if (evt.isCommandKey() || evt.isRightMouseButtonDown())
-            return result;
-
-        this.showControlPointsHalos()
-
-        return true
-    },
-}).beGlobal();
 
 lively.morphic.Path.addMethods({
     showControlPointsHalos: function() {

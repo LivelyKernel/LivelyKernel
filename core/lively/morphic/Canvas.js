@@ -137,7 +137,7 @@ lively.morphic.Morph.addMethods(
         this.getShape().renderCANVAS(ctx);
 
         this.drawSubmorphsOnCANVAS(ctx);
-        
+
         graphicContext.restore();
     },
     drawSubmorphsOnCANVAS: function(ctx) {

@@ -16,7 +16,7 @@ lively.morphic.Morph.addMethods(
     diffTo: function(parent) {
         // returns a list of changes between the morph and parent, including its submorphs.
         if (parent == undefined) return undefined;
-        var self = this, 
+        var self = this,
             diffList = new DiffList(),
             foundMorphs = [],
             diff = new Diff();
@@ -24,7 +24,7 @@ lively.morphic.Morph.addMethods(
         // Limitation: Cannot find morphs that changed their owner
         this.submorphs.each(function (ea) {
             var myParent = ea.findDerivationParent(parent);
-            
+
             if (myParent) {
                 diffList.mixWith(ea.diffTo(myParent));
                 foundMorphs.push(myParent.id);
@@ -59,14 +59,14 @@ lively.morphic.Morph.addMethods(
 
         var myDiffList = this.diffTo(parent),
             siblingDiffList = sibling.diffTo(parent);
-        
+
         resultList = myDiffList.diffAgainst(siblingDiffList);
-        
+
         return resultList;
 
     },
     parseDiffTo: function(otherMorph, optBlackList) {
-        var blacklist = ["getTextChunks", "getShape", "getPartsBinMetaInfo", "getTransform", "getRichText"]; 
+        var blacklist = ["getTextChunks", "getShape", "getPartsBinMetaInfo", "getTransform", "getRichText"];
         if(optBlackList) blacklist = blacklist.concat(optBlackList);
         var diff = {};
 
@@ -77,26 +77,21 @@ lively.morphic.Morph.addMethods(
     },
     parsePropertiesOfDiffTo: function (otherMorph, diff, blacklist) {
         var self = this;
-
-        Functions.all(this).withoutAll(blacklist).each(function (ea) {
-            if ( ea.startsWith("get") && otherMorph[ea] && self["set"+ea.substring(3)]) {
-                try {
-                    if (self[ea]().equals) {
-                        if(!self[ea]().equals(otherMorph[ea]())) {
-                            diff[ea.substring(3)] = new AtomicDiff("property", self[ea](), otherMorph[ea]())
-                        }
-                    }
-                    else {
-                        if (self[ea]() != otherMorph[ea]()) {
-                            diff[ea.substring(3)] = new AtomicDiff("property", self[ea](), otherMorph[ea]());
-                        }
+        Functions.all(this).withoutAll(blacklist).forEach(function (ea) {
+            if (!ea.startsWith("get") || !otherMorph[ea] || !self["set" + ea.substring(3)]) return false;
+            try {
+                if (self[ea]().equals && !self[ea]().equals(otherMorph[ea]())) {
+                    diff[ea.substring(3)] = new AtomicDiff("property", self[ea](), otherMorph[ea]());
+                } else {
+                    if (self[ea]() != otherMorph[ea]()) {
+                        diff[ea.substring(3)] = new AtomicDiff("property", self[ea](), otherMorph[ea]());
                     }
                 }
-                catch (ex) {
-                    return false
-                }
+            } catch (ex) {
+                return false;
             }
-        })
+            return false;
+        });
     },
     parseScriptsOfDiffTo: function (otherMorph, diff) {
         var self = this;
@@ -104,9 +99,9 @@ lively.morphic.Morph.addMethods(
             if (otherMorph[ea]) {
                 if (self[ea].toString() != otherMorph[ea].toString())
                     diff[ea] = new AtomicDiff("script", self[ea].toString(), otherMorph[ea].toString())
+            } else {
+                diff[ea] = new AtomicDiff("script", self[ea].toString());
             }
-            else 
-                diff[ea] = new AtomicDiff("script", self[ea].toString())
         })
 
         Functions.own(otherMorph).each(function (ea) {
@@ -218,7 +213,7 @@ lively.morphic.Morph.addMethods(
 
         var parentPendent = this.findDerivationParent(parent);
         if (parentPendent.derivationIds.intersect(this.derivationIds) == this.findParentPartVersion().derivationIds) return false;
-        else return parentPendent || false;     
+        else return parentPendent || false;
     },
     findCommonParentPartVersion: function(sibling) {
         //returns the youngest PartVersion the morph has in common with the sibling given
@@ -250,8 +245,8 @@ Object.subclass('AtomicDiff',
 'initializing', {
     initialize: function(type, newValue, oldValue) {
         this.type = type || undefined;
-        this.newValue = (typeof(newValue) === 'undefined')? undefined : newValue; 
-        this.oldValue = (typeof(oldValue) === 'undefined')? undefined : oldValue; 
+        this.newValue = (newValue === undefined) ? undefined : newValue;
+        this.oldValue = (oldValue === undefined) ? undefined : oldValue;
         return this;
     },
 },
@@ -263,17 +258,17 @@ Object.subclass('AtomicDiff',
             else {
                 return new AtomicDiff(this.type, this.newValue, otherDiff.newValue)
             }
-        }
-        else {
+        } else {
             if (this.type == 'script') {
-                if (this.newValue.toString() == otherDiff.newValue.toString()) return undefined
-                else { 
+                if (this.newValue.toString() == otherDiff.newValue.toString()) {
+                    return undefined;
+                } else {
                     return new AtomicDiff(this.type, this.newValue, otherDiff.newValue)
                 }
-            }
-            else {
-                if (this.newValue == otherDiff.newValue) return undefined
-                else { 
+            } else {
+                if (this.newValue == otherDiff.newValue) {
+                    return undefined;
+                } else {
                     return new AtomicDiff(this.type, this.newValue, otherDiff.newValue)
                 }
             }
@@ -295,9 +290,9 @@ Object.subclass('Diff',
 'diffing', {
     diffAgainst: function(otherDiff, modifiedList, addedList, removedList, optGiven) {
         // returns a diff between diffs based on a merge matrix.
-        var diffModified = this.diffModified(otherDiff);
-        var diffRemoved = otherDiff.diffRemoved(modifiedList, removedList)
-        var given = optGiven || {added:{}, removed:{}, updated:{}, conflicted:{}}
+        var diffModified = this.diffModified(otherDiff),
+            diffRemoved = otherDiff.diffRemoved(modifiedList, removedList),
+            given = optGiven || {added:{}, removed:{}, updated:{}, conflicted:{}};
 
         var result = {
             added: this.joinDiffs(otherDiff.added, given.added),
@@ -305,38 +300,31 @@ Object.subclass('Diff',
             updated: this.joinDiffs(diffModified.updated, given.updated),
             conflicted: this.joinDiffs(diffRemoved.conflicted, diffModified.conflicted, given.conflicted)
         }
-        if (Properties.own(result.added).length>0 
-            || Properties.own(result.removed).length>0
-            || Properties.own(result.updated).length>0
-            || Properties.own(result.conflicted).length>0) return result;
+        if (Properties.own(result.added).length > 0
+          || Properties.own(result.removed).length > 0
+          || Properties.own(result.updated).length > 0
+          || Properties.own(result.conflicted).length > 0) return result;
         return undefined
     },
     diffAdded: function(otherDiff) {
         // joins two lists of morphs that were added.
         // Extendable: can get a lookup to see whether a morph was just moved
-        var added = {},
-            self = this;
+        var added = {}, self = this;
 
-        Properties.own(self.added).each(function (ea) {
-            added[ea] = self.added[ea];
-        })
-        Properties.own(otherDiff.added).each(function (ea) {
-            added[ea] = otherDiff.added[ea];
-        })
+        Properties.own(self.added).each(function (ea) { added[ea] = self.added[ea]; })
+        Properties.own(otherDiff.added).each(function (ea) { added[ea] = otherDiff.added[ea]; })
         return added;
     },
     diffRemoved: function(modifiedList, removedList) {
         // merges two lists of morphs that were removed.
         // Extendable: can get a lookup to see whether a morph was just moved
-        var result = {removed: {}, conflicted: {}},
-            self = this;
+        var result = {removed: {}, conflicted: {}}, self = this;
         Properties.own(self.removed).each(function (ea) {
-            if (removedList[ea]) {}
-            else if (modifiedList[ea]) {
+            if (removedList[ea]) {
+            } else if (modifiedList[ea]) {
                 result.conflicted[ea] = result.conflicted[ea] || [];
                 result.conflicted[ea].push(new AtomicDiff("removed", "submorph", {}, self.removed[ea]))
-            }
-            else {
+            } else {
                 result.removed[ea] = self.removed[ea]
             }
         })
@@ -376,8 +364,8 @@ Object.subclass('Diff',
     isEmpty: function() {
         // determines whether the diff contains changes
         var self = this;
-        if (Properties.own(self.added).length > 0 
-            || Properties.own(self.removed).length > 0 
+        if (Properties.own(self.added).length > 0
+            || Properties.own(self.removed).length > 0
             || Properties.own(self.modified).length > 0
             || self.submorphsModified.length > 0) {
             return false
@@ -414,12 +402,14 @@ Object.subclass('DiffList',
 
     diffAgainst: function(otherList) {
         // diffs two diffLists
-        // Returns a diff with added & removed morphs and properties that were updated in the otherList or are conflicted, for each entry in the list. 
+        // Returns a diff with added & removed morphs and properties that were
+        // updated in the otherList or are conflicted, for each entry in the
+        // list.
         var self = this,
             modified = this.collectModified(),
             removed = this.collectRemoved(),
             added = this.collectAdded(),
-            result = new DiffList(); 
+            result = new DiffList();
 
         Properties.own(otherList).each(function (ea) {
             var against = new Diff(),
@@ -442,7 +432,7 @@ Object.subclass('DiffList',
                 })
                 result[curId] = result[curId] || {"added": {}, "removed": {}, "updated": {}, "conflicted": {}};
                 result[curId].conflicted[ea] = new AtomicDiff("submorph", {}, self[parId].removed[otherList[ea].matchingId])
-            } 
+            }
         })
         return result
     },

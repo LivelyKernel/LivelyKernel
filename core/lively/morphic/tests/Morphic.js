@@ -581,7 +581,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         this.assert(m.inputAllowed(), 'inputAllows == true is not default');
         m.setInputAllowed(false);
         this.assert(!m.inputAllowed(), 'setInputAllowed not working');
-    }
+    },
+    test12CleanVarDeclaration: function() {
+        var text = new lively.morphic.Text(),
+            cleaner = text.varDeclCleaner(),
+            lines = ['    var x = this.text();', 'var bla = this.bar.foo()'],
+            expected = ['    var x = this.text(),', '        bla = this.bar.foo();'],
+            result = [cleaner(lines[0], 0, lines), cleaner(lines[1], 1, lines)];
+        this.assertEqualState(expected, result);
+
+    },
+
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichTextTests',

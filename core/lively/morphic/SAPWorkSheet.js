@@ -1355,17 +1355,16 @@ y359
         }
         return sResult;
     },
-    roundtoFixNumber: function(sValue, nDecimalPlaces,sSymbol,bAddTousandSeparator, sThousandChar, sDecimalChar) {
-// function roundtoFixNumber(sValue, sSymbol,nDecimalPlaces, bAddTousandSeparator, bBracketType, sThousandChar, sDecimalChar) {
+    roundtoFixNumber: function(sValue, nDecimalPlaces,sSymbol,bAddTousandSeparator,bBracketType, sThousandChar, sDecimalChar) {
         var negative;
         sValue= sValue.toString(); //bug when sValue cotains comma
         sValue= sValue.replace(/,/g, "");
 
 	nDecimalPlaces = !isNaN(nDecimalPlaces = Math.abs(nDecimalPlaces)) ? nDecimalPlaces : 2;
 	if (bAddTousandSeparator){
-		sThousandChar = sThousandChar || ",";
+	   sThousandChar = sThousandChar || ",";
 	}else{
-		sThousandChar="";
+	   sThousandChar="";
 	}
         sDecimalChar = sDecimalChar || ".";
         var sLeft = "";

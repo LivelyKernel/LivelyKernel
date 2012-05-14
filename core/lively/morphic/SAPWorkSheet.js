@@ -1656,6 +1656,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
               
                 //we need better solution: such as two different value, one for display and other for saving in value
                 if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat.negativeType){
+                    debugger;
                     if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==1 || this.grid.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==3){
                         if (sValue.charAt(0)=="("){
                             oTextColor=Color.red;

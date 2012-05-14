@@ -739,6 +739,7 @@ var start = new Date().getTime();
                 nOrgRow = y  + this.startRow;
                 nOrgCol = x + this.startColumn;
                 sValue = this.dataModel[y][x].value.toString();
+                nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
                 //Annotation
                 if (this.arrData[nOrgRow][nOrgCol].annotation){
                     this.at(x,y).annotationCell();
@@ -770,7 +771,6 @@ var start = new Date().getTime();
                         debugger;
                         if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType){
                             if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==1 || this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==3){
-                                nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
                                 if (!isNaN(nValue)){ 
                                     if (nValue < 0){
                                         bRedFont=true;

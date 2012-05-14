@@ -769,7 +769,9 @@ var start = new Date().getTime();
                         //negative number & currency
                         debugger;
                         if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType){
-                            //nValue = 
+                            
+                            nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
+                            
                             if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==1 || this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==3){
                                bRedFont=true;
                             }

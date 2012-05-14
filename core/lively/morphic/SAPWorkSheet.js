@@ -1647,7 +1647,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         var nOrgCol = nCol+ this.grid.startColumn;
         var sValue = this.textString;
         debugger;
-        //console.log("before: " + sValue )
+        console.log("before: " + sValue )
         this.grid.arrData[nRow][nCol].value=sValue ;
         if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat){
             if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type){
@@ -1655,7 +1655,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
                  this.textString = sValue ;
             }
         }
-        //console.log("after: " +sValue )
+        console.log("after: " +sValue )
        
  
 

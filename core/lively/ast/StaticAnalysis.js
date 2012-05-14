@@ -184,6 +184,13 @@ Object.subclass('lively.ast.VariableAnalyzer',
     },
 });
 cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
+    highlightGlobals: function(ast) {
+        var analyzer = new lively.ast.VariableAnalyzer();
+        var globals = analyzer.findGlobalVariablesInAST(ast);
+        globals.each((function(g) {
+            this.emphasize({color: Color.web.red}, g.pos[0], g.pos[1]);
+        }).bind(this));
+    },
     applyHighlighterRules: function() {
         cop.proceed();
         try {

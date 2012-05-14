@@ -2285,13 +2285,13 @@ dataformat: currency & percentage & date & time
                         nOrgCol = nColumn + this.grid.startColumn; 
                         sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
 
-                        oDataFormat = {};    
+                        /*oDataFormat = {};    
                         oDataFormat.type ="currency";
                         oDataFormat.symbol = "$";
                         oDataFormat.decimalPlaces = 2;
                         oDataFormat.unitOfMeasure = 1;
                         oDataFormat.useThousandSeparator = true;
-                        oDataFormat.negativeType= 1;
+                        oDataFormat.negativeType= 1;*/
                         sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
                         this.grid.arrSelectedCells[i].textString= sValue;
                     }
@@ -2300,13 +2300,13 @@ dataformat: currency & percentage & date & time
                     for (i= 0; i< this.grid.arrSelectedData.length; i++) {
                         // - currency: symbol , decimalPlaces ,useThousandSeparator, unitOfMeasure (whole,thousand,million), negativeType (withminus, red, withBracket, redwithBracket) 
                         //we need to get from default value...?
-                        oDataFormat = {};    
+                        /*oDataFormat = {};    
                         oDataFormat.type ="currency";
                         oDataFormat.symbol = "$";
                         oDataFormat.decimalPlaces = 2;
                         oDataFormat.unitOfMeasure = 1;
                         oDataFormat.useThousandSeparator = true;
-                        oDataFormat.negativeType= 1;
+                        oDataFormat.negativeType= 1;*/
                         this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
                     }
                     break;

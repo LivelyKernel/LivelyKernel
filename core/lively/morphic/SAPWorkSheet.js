@@ -2274,7 +2274,6 @@ dataformat: currency & percentage & date & time
         var nOrgCol;
         var sValue;
         var i;
-        debugger;
         if (oDataFormat){
             switch(oDataFormat.type){
                 case "currency":
@@ -2284,29 +2283,12 @@ dataformat: currency & percentage & date & time
                         nOrgRow = nRow  + this.grid.startRow;
                         nOrgCol = nColumn + this.grid.startColumn; 
                         sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-
-                        /*oDataFormat = {};    
-                        oDataFormat.type ="currency";
-                        oDataFormat.symbol = "$";
-                        oDataFormat.decimalPlaces = 2;
-                        oDataFormat.unitOfMeasure = 1;
-                        oDataFormat.useThousandSeparator = true;
-                        oDataFormat.negativeType= 1;*/
                         sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
                         this.grid.arrSelectedCells[i].textString= sValue;
                     }
                      //for data
                     var oDataFormat;
                     for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-                        // - currency: symbol , decimalPlaces ,useThousandSeparator, unitOfMeasure (whole,thousand,million), negativeType (withminus, red, withBracket, redwithBracket) 
-                        //we need to get from default value...?
-                        /*oDataFormat = {};    
-                        oDataFormat.type ="currency";
-                        oDataFormat.symbol = "$";
-                        oDataFormat.decimalPlaces = 2;
-                        oDataFormat.unitOfMeasure = 1;
-                        oDataFormat.useThousandSeparator = true;
-                        oDataFormat.negativeType= 1;*/
                         this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
                     }
                     break;

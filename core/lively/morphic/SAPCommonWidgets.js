@@ -289,7 +289,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
                 case "time":
                     oDataFormat.timeformat = this.selectedTimeFormat;
                     break;
-                case "Percentage":
+                case "percentage":
                     oDataFormat.decimalPlaces = this.selectedDecimalPlaces;
                     break;
                 default:

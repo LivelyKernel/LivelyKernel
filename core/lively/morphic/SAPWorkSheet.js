@@ -127,11 +127,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                             if (!isNaN(sValue)){
                                 sValue = this.converttoPercentage(sValue ,2) + "%";
                             }
-                            
                         }
                     }
-                    
-                
                     break;
                 case "date":
                     break;

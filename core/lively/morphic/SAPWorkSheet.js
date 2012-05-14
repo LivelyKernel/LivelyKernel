@@ -126,14 +126,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                                 if (sValue < 0){
                                     sValue =sValue .replace(/-/gi, "");
                                     sValue =this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
-                                    sValue = "(" + sValue  + ")";
+                                    sValue = "(" + sSymbol + sValue  + ")";
                                 }else{
-                                    sValue =this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
+                                    sValue =sSymbol  + this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
                                 }
                             }else{
-                                sValue =this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
+                                sValue = sSymbol + this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
                             }
-                            sValue = sSymbol + sValue; 
                         }
                        
                     }

@@ -144,7 +144,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 case "time":
                     break;
                 case "number":
-                    sValue = sSymbol +  this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
+                    debugger;
+                    sValue = this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
                     if (oDataFormat.negativeType==2 || oDataFormat.negativeType==3){
                         sValue = "(" + sValue  + ")";
                     }

@@ -196,7 +196,7 @@ stmt =
 		| "continue" sc pos:p2						-> [#continue, [p1, p2]]
 		| "throw" spacesNoNl expr:e sc pos:p2		-> [#throw, [p1, p2], e]
 		| "try" block:t
-			( "catch" "(" "name":e ")" block | empty pos:p -> [#get, [p,p], 'undefined'] ):c
+			( "catch" "(" formal:e ")" block | empty pos:p -> [#get, [p,p], 'undefined'] ):c
 			( "finally" block | empty pos:p -> [#get, [p,p], 'undefined'] ):f sc pos:p2
 			-> [#try, [p1, p2], t, e, c, f]
 		| "return" ( expr | empty pos:p -> [#get, [p,p], 'undefined'] ):e sc pos:p2 -> [#return, [p1, p2], e]

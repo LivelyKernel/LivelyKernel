@@ -2330,13 +2330,13 @@ dataformat: currency & percentage & date & time
                 sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
                 this.grid.arrSelectedCells[i].textString= sValue;
                 if (oDataFormat.type=="currency" || oDataFormat.type=="number"){
-                    nValue = nValue.replace(/[^0-9\.\-]+/g,"");
+                    //nValue = nValue.replace(/[^0-9\.\-]+/g,"");
                     
-                    if (!isNaN(nValue )){
+                    //if (!isNaN(nValue )){
                         if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
                             this.grid.arrSelectedCells[i].applyStyle({textColor: Color.red});
                         }
-                    }
+                    //}
                     
                 }
             }

@@ -136,12 +136,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                         if (sValue.charAt(sValue.length-1)=="%"){
                             sValue = this.cleanUpValue(sValue);
                             if (!isNaN(sValue)){
-                                sValue = this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,false) + "%";
+                                sValue = this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,"",false) + "%";
                             }
                         }else{
                             sValue = this.cleanUpValue(sValue);
                             if (!isNaN(sValue)){
-                                sValue = this.converttoPercentage(sValue ,oDataFormat.decimalPlaces) + "%";
+                                sValue = this.converttoPercentage(sValue ,oDataFormat.decimalPlaces,"",) + "%";
                             }
                         }
                     }
@@ -169,12 +169,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                     break;
                 case "number":
                     debugger;
-                    //sValue  = sValue.replace(/[^0-9\.\-]+/g,"");
-                    nValue = sValue; 
-                    sValue = this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,oDataFormat.useThousandSeparator); 
-                    if (oDataFormat.negativeType==2 || oDataFormat.negativeType==3){
-                        sValue = "(" + sValue  + ")";
-                    }
+                    sValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
+                    sValue = this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,sSymbol,oDataFormat.useThousandSeparator,false);
                     break;
                     default:
 

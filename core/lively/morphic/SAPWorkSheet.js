@@ -87,7 +87,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             switch(oDataFormat.type){
                 case "currency":
                     debugger;
-                    sValue = this.cleanUpValue(sValue);
+                    //sValue = this.cleanUpValue(sValue);
                     sValue  = sValue.replace(/[^0-9\.]+/g,"");
 
                     if (!isNaN(sValue)){

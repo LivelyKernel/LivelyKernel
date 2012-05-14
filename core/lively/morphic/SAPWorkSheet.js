@@ -2229,11 +2229,6 @@ dataformat: currency & percentage & date & time
             oDataFormat.decimalPlaces = 2;
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
         }
-        //this.focus();
-        //if (this.grid.activeCell) {
-        //      
-        //}
-
 
     },
     imgSave_Click: function() {
@@ -2268,7 +2263,15 @@ dataformat: currency & percentage & date & time
                         nOrgRow = nRow  + this.grid.startRow;
                         nOrgCol = nColumn + this.grid.startColumn; 
                         sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-                        sValue = this.grid.applyDataFormates(sValue ,"currency");
+
+                        oDataFormat = {};    
+                        oDataFormat.type ="currency";
+                        oDataFormat.symbol = "$";
+                        oDataFormat.decimalPlaces = 2;
+                        oDataFormat.unitOfMeasure = 1;
+                        oDataFormat.useThousandSeparator = true;
+                        oDataFormat.negativeType= 1;
+                        sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
                         this.grid.arrSelectedCells[i].textString= sValue;
                     }
                      //for data

@@ -175,6 +175,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     
         }
     },
+    chkUseThousand_onClick: function(){
+        alert(0)
+        this.selectedUseThousand = this.chkUseThousand.isChecked()
+    },
     ddlCurrencySymbol_onChange: function(){
         var sValue = this.ddlCurrencySymbol.getSelectedItem();
         this.selectedSymbol = sValue;
@@ -258,6 +262,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         connect(this.lstNegativeNumber, "selection", this, "lstNegativeNumber_onChange", {});
         connect(this.lstNegativeNumber, "onMouseDown", this, "lstNegativeNumber_onChange", {});
         connect(this.lstDataTime, "onMouseDown", this, "lstDataTime_onChange", {});
+        connect(this.chkUseThousand, "onClick", this, "chkUseThousand_onClick", {});
+
+
         //this.selectedValue
         //this.ddlDecimalPlaces
 

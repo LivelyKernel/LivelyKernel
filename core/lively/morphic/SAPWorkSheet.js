@@ -140,6 +140,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                     }
                     break;
                 case "date":
+                    //format('yy-mm-dd');
                     break;
                 case "time":
                     break;

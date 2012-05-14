@@ -131,7 +131,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                             if (!isNaN(sValue)){
                                 sValue = this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,false) + "%";
                             }
-                            
                         }else{
                             sValue = this.cleanUpValue(sValue);
                             if (!isNaN(sValue)){
@@ -146,10 +145,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                             dValue = new Date(sValue);
                             sValue = dValue.format(oDataFormat.dateFormat).toString();
                         }catch(err){
-                             console.log("Error applyDataFormates: not a dateformat" + sValue);
+                             console.log("Error applyDataFormates: not a dateformat.  " + sValue);
                         }
-                        
-
                     }
                     
                     break;
@@ -159,12 +156,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                             dValue = new Date(sValue);
                             sValue = dValue.format(oDataFormat.timeformat).toString();
                         }catch(err){
-                             console.log("Error applyDataFormates: not a dateformat" + sValue);
+                             console.log("Error applyDataFormates: not a dateformat.  " + sValue);
                         }
-
-
-
-
                     }
                     break;
                 case "number":

@@ -885,10 +885,10 @@ lively.ast.Node.subclass('lively.ast.TryCatchFinally',
 	isTryCatchFinally: true,
 },
 'initializing', {
-	initialize: function($super, pos, trySeq, errName, catchSeq, finallySeq) {
+	initialize: function($super, pos, trySeq, err, catchSeq, finallySeq) {
 		this.pos = pos;
 		this.trySeq = trySeq;
-		this.errName = errName;
+		this.err = err;
 		this.catchSeq = catchSeq;
 		this.finallySeq = finallySeq;
 		trySeq.setParent(this);
@@ -897,7 +897,7 @@ lively.ast.Node.subclass('lively.ast.TryCatchFinally',
 	},
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.trySeq, '"'+this.errName+'"', this.catchSeq, this.finallySeq) },
+	printConstruction: function () { return this.printConstructorCall(this.pos, this.trySeq, '"'+this.err.name+'"', this.catchSeq, this.finallySeq) },
 	toString: function () {
                 return Strings.format(
                     '%s(%s %s %s)',
@@ -910,7 +910,7 @@ lively.ast.Node.subclass('lively.ast.TryCatchFinally',
                     indent = this.indent(depth),
                 str = 'try {\n' + indent + this.trySeq.asJS(depth) + '\n' + baseIndent + '}';
                 if (!this.isUndefined(this.catchSeq))
-                    str += ' catch(' + this.errName + ') {\n' +
+                    str += ' catch(' + this.err.name + ') {\n' +
                     indent + this.catchSeq.asJS(depth) + '\n' + baseIndent + '}';
                 if (!this.isUndefined(this.finallySeq))
                     str += ' finally {\n' + indent + this.finallySeq.asJS(depth) + '\n' + baseIndent + '}';

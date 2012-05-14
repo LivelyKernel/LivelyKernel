@@ -130,18 +130,10 @@ lively.morphic.Text.addMethods(
             scroll = this.getScroll();
         if (false) {
             this.emphasize({color: Color.black, fontWeight: 'normal'}, from, to);
-            for (var ruleName in highlighterRules) {
-                if (!highlighterRules.hasOwnProperty(ruleName)) continue;
-                var rule = highlighterRules[ruleName];
-                this.emphasizeRegex(rule.match, rule.style)
-            }
+            this.applyHighlighterRules(this, highlighterRules);
         } else {
             var rt = new lively.morphic.RichText(this.textString);
-            for (var ruleName in highlighterRules) {
-                if (!highlighterRules.hasOwnProperty(ruleName)) continue;
-                var rule = highlighterRules[ruleName];
-                rt.emphasizeRegex(rule.match, rule.style)
-            }
+            this.applyHighlighterRules(rt, highlighterRules);
             this.setRichText(rt)
         }
         selRange && this.setSelectionRange(selRange[0], selRange[1]);

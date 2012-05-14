@@ -2298,6 +2298,9 @@ dataformat: currency & percentage & date & time
                         sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
                         sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
                         this.grid.arrSelectedCells[i].textString= sValue;
+                        if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
+                               bRedFont=true;
+                        }
                     }
                      //for data
                     var oDataFormat;

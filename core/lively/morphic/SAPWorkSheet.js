@@ -123,7 +123,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                         debugger;
                         if (!isNaN(nValue)){
                              if (oDataFormat.negativeType==2 || oDataFormat.negativeType==3){
-                                sValue = "(" + sValue  + ")";
+                                if (nValue < 0){
+                                    sValue = "(" + sValue  + ")";
+                                }
                              }
                         }
                        

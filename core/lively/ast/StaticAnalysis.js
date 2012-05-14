@@ -217,5 +217,4 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
         }
     },
 });
-
-}) // end of module
+})

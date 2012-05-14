@@ -142,6 +142,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                     break;
                 case "date":
                     if (sValue){
+                        console.log(sValue)
                         dValue = new Date(sValue);
                         sValue = dValue.format(oDataFormat.dateFormat).toString();
                     }

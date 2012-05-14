@@ -141,6 +141,7 @@ Object.subclass('lively.ast.DFAScope',
         return chain;
     },
     define: function(varnode) {
+        debugger;
         if (!this.isDeclaration(varnode)) {
             var decl = this.lookup_decl(varnode.name);
             if (!decl) this.global_defs.push(varnode);

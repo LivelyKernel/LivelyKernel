@@ -720,6 +720,7 @@ var start = new Date().getTime();
                 }
 
                 //data formats
+                bRedFont=false;
                 if (this.arrData[nOrgRow][nOrgCol].dataFormat){
                     if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
                          sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat);

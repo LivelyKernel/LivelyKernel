@@ -119,14 +119,21 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                             default:
                                 sSymbol="$";
                         }
-                        sValue = sSymbol +  this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
+                        
                         debugger;
-                        if (!isNaN(nValue)){
-                             if (oDataFormat.negativeType==2 || oDataFormat.negativeType==3){
-                                if (nValue < 0){
+                        if (!isNaN(sValue)){
+                            if (oDataFormat.negativeType==2 || oDataFormat.negativeType==3){
+                                if (sValue < 0){
+                                    sValue =sValue .replace(/-/gi, "");
+                                    sValue =this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
                                     sValue = "(" + sValue  + ")";
+                                }else{
+                                    sValue =this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
                                 }
-                             }
+                            }else{
+                                sValue =this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
+                            }
+                            sValue = sSymbol + sValue; 
                         }
                        
                     }

@@ -763,19 +763,21 @@ var start = new Date().getTime();
 
                 //data formats
                 bRedFont=false;
+
                 if (this.arrData[nOrgRow][nOrgCol].dataFormat){
                     if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
                          sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat);
-                        //negative number & currency
-                        debugger;
                         if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType){
-                            
-                            nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
-                            
                             if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==1 || this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==3){
-                               bRedFont=true;
+                                nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
+                                if (!isNaN(nValue)){ 
+                                    if (nValue < 0){
+                                        bRedFont=true;
+                                    }
+                                }
                             }
                         }
+                        
                     }
                 }
 

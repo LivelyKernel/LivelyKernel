@@ -1647,6 +1647,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         var nOrgCol = nCol+ this.grid.startColumn;
         var sValue = this.textString;
         var nValue  = sValue;
+        var bRedFont= false;
+        var oTextColor=null;
         debugger;
         console.log("before: " + sValue )
         this.grid.arrData[nRow][nCol].value=sValue ;
@@ -1658,16 +1660,20 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
                 if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat.negativeType){
                     if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==1 || this.grid.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==3){
                         if (sValue.charAt(0)=="("){
+                            bRedFont=true;
                             sValue = "-" + sValue.replace(/\(/g, "").replace(/\)/g,"");
                         }
                     }
                 }
 
 
-
+                
 
                 sValue= this.grid.applyDataFormates(sValue,this.grid.arrData[nOrgRow][nOrgCol].dataFormat);
                 this.textString = sValue ;
+                if (bRedFont){
+                    //oTextColor=Color.red;
+                }
             }
         }
         console.log("after: " +sValue )

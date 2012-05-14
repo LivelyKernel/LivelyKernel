@@ -124,7 +124,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                         if (!isNaN(sValue)){
                             if (oDataFormat.negativeType==2 || oDataFormat.negativeType==3){
                                 if (sValue < 0){
-                                    sValue =sValue .replace(/-/gi, "");
+                                    sValue =sValue.replace(/-/gi, "");
                                     sValue =this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
                                     sValue = "(" + sSymbol + sValue  + ")";
                                 }else{

@@ -2312,6 +2312,7 @@ dataformat: currency & percentage & date & time
         var nOrgCol;
         var sValue;
         var i;
+        var nValue;//to check number
          debugger;
         if (oDataFormat){
            
@@ -2321,12 +2322,17 @@ dataformat: currency & percentage & date & time
                 nOrgRow = nRow  + this.grid.startRow;
                 nOrgCol = nColumn + this.grid.startColumn; 
                 sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
+                nValue = sValue;
                 sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
                 this.grid.arrSelectedCells[i].textString= sValue;
                 if (oDataFormat.type=="currency" || oDataFormat.type=="number"){
-                    if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
-                        this.grid.arrSelectedCells[i].applyStyle({textColor: Color.red});
+                    nValue = nValue.replace(/[^0-9\.]+/g,"");
+                    if (!isNaN(nValue )){
+                        if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
+                            this.grid.arrSelectedCells[i].applyStyle({textColor: Color.red});
+                        }
                     }
+                    
                 }
             }
             for (i= 0; i< this.grid.arrSelectedData.length; i++) {

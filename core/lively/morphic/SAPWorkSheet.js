@@ -54,13 +54,19 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         });
 
     },
-    getAlignforValueType: function(sValue) {
+    getAlignforValueType: function(oDataFormat,sValue) {
         var sAlign="right";
         var sNewvalue = sValue;
         sNewvalue = this.cleanUpValue(sValue);
         if (isNaN(sNewvalue)) {
             sAlign="left";
         }
+        if (oDataFormat){
+            if (oDataFormat.type=="currency" || oDataFormat.type=="number" || oDataFormat.type=="percentage"){
+                sAlign="right";
+            }
+        } 
+
         return sAlign;
     },
     //when focus changed:  formula..etc

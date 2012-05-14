@@ -1660,6 +1660,12 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
                         if (sValue.charAt(0)=="("){
                             oTextColor=Color.red;
                             sValue = "-" + sValue.replace(/\(/g, "").replace(/\)/g,"");
+                        }else{
+                            if (!isNaN(sValue)){
+                                if (sValue <0){
+                                    oTextColor=Color.red;
+                                }
+                            }
                         }
                     }
                 }

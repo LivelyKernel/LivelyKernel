@@ -100,7 +100,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         }
     },
     lstNegativeNumber_onChange: function(oItem) {
-        debugger;
         if (oItem){
             var sValue = oItem.item.value;
             if (sValue){
@@ -109,7 +108,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         }
     },
     lstDataTime_onChange: function(oItem) {
-        debugger;
         if (oItem){
             var sValue = oItem.item.value;
             if (sValue){
@@ -180,7 +178,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     ddlCurrencySymbol_onChange: function(){
         var sValue = this.ddlCurrencySymbol.getSelectedItem();
         this.selectedSymbol = sValue;
-        debugger;
     },
     ddlDecimalPlaces_onChange: function(){
         var sValue = this.ddlDecimalPlaces.getSelectedItem();
@@ -273,7 +270,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     btnOk_Click: function() {
         if (this.oOkCallBack){
             var oDataFormat={};
-            debugger;
             oDataFormat.type = this.selectedCategory;
 
             switch(this.selectedCategory){

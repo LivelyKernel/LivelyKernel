@@ -134,7 +134,7 @@ lively.morphic.Text.addMethods(
         } else {
             var rt = new lively.morphic.RichText(this.textString);
             this.applyHighlighterRules(rt, highlighterRules);
-            this.setRichText(rt)
+            this.setRichText(rt);
         }
         selRange && this.setSelectionRange(selRange[0], selRange[1]);
         scroll && this.setScroll(scroll[0], scroll[1]);

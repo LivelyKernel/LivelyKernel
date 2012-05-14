@@ -89,10 +89,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
     },
     applyDataFormates: function(sValue,oDataFormat) {
-            sValue = $.trim(sValue)
+
+            var dValue;
+            sValue = $.trim(sValue);
             switch(oDataFormat.type){
                 case "currency":
-                   
                     //sValue = this.cleanUpValue(sValue);
                     sValue  = sValue.replace(/[^0-9\.]+/g,"");
                     var sSymbol="";
@@ -140,14 +141,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                     }
                     break;
                 case "date":
-                    //format('yy-mm-dd');
-                    debugger;
-                    var dValue = new Date(sValue);
-
+                    dValue = new Date(sValue);
                     sValue = dValue.format(oDataFormat.dateFormat).toString();
                     break;
                 case "time":
-                    sValue = sValue.toString().format(oDataFormat.dateFormat);
+                    dValue = new Date(sValue);
+                    sValue = dValue.format(oDataFormat.timeformat).toString();
                     break;
                 case "number":
                     debugger;

@@ -723,8 +723,11 @@ var start = new Date().getTime();
                 if (this.arrData[nOrgRow][nOrgCol].dataFormat){
                     if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
                          sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat);
+                        //negative number & currency
                         if (this.arrData[nOrgRow][nOrgCol].negativeType){
-                            
+                            if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
+                               bRedFont=true;
+                            }
                         }
                     }
                 }
@@ -788,7 +791,10 @@ var start = new Date().getTime();
                 
                 //this.at(x,y).applyStyle({fontSize:sFontSize,fontFamily:sFontFamily,fill: oFill ,textColor: oTextColor});
                 //this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});  
-
+                
+                if (bRedFont){
+                    oTextColor=Color.red;
+                }
                 this.at(x,y).applyStyle({fontSize:sFontSize,fontFamily:sFontFamily,
                                         fill: oFill ,textColor: oTextColor,
                                         fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});

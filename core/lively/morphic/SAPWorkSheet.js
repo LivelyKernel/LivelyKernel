@@ -162,6 +162,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                     break;
                 case "number":
                     debugger;
+                    sValue  = sValue.replace(/[^0-9\.]+/g,"");
                     sValue = this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,oDataFormat.useThousandSeparator); 
                     if (oDataFormat.negativeType==2 || oDataFormat.negativeType==3){
                         sValue = "(" + sValue  + ")";

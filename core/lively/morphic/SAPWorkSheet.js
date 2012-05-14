@@ -128,13 +128,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                         if (sValue.charAt(sValue.length-1)=="%"){
                             sValue = this.cleanUpValue(sValue);
                             if (!isNaN(sValue)){
-                                sValue = this.roundtoFixNumber(sValue ,2,false) + "%";
+                                sValue = this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,false) + "%";
                             }
                             
                         }else{
                             sValue = this.cleanUpValue(sValue);
                             if (!isNaN(sValue)){
-                                sValue = this.converttoPercentage(sValue ,2) + "%";
+                                sValue = this.converttoPercentage(sValue ,oDataFormat.decimalPlaces) + "%";
                             }
                         }
                     }

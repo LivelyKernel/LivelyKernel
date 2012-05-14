@@ -703,7 +703,7 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
         try {
             result = this.visit(node.trySeq);
         } catch(e) {
-            frame.addToMapping(node.errName, e);
+            frame.addToMapping(node.err.name, e);
             result = this.visit(node.catchSeq);
         } finally {
             if (node.finallySeq.isVariable && node.finallySeq.name == 'undefined') {

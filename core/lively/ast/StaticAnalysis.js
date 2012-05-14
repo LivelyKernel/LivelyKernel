@@ -28,6 +28,7 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
 },
 'visiting', {
     visitVariable: function(node) {
+        debugger;
         if (this.knownGlobals.include(node.name)) return;
         if (this.current.isDeclaration(node)) {
             this.current.define(node);

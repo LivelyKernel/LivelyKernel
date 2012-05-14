@@ -727,7 +727,7 @@ var start = new Date().getTime();
                         debugger;
                         if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType){
                         
-                            if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
+                            if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==1 || this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==3){
                                bRedFont=true;
                             }
                         }

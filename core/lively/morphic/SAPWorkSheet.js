@@ -2299,7 +2299,7 @@ dataformat: currency & percentage & date & time
                         sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
                         this.grid.arrSelectedCells[i].textString= sValue;
                         if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
-                               bRedFont=true;
+                               this.grid.arrSelectedCells[i].applyStyle({textColor: oTextColor});
                         }
                     }
                      //for data

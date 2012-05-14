@@ -47,20 +47,16 @@ Object.extend(LivelyJSParser, {
 Object.extend(lively.ast.Parser, {
     jsParser: LivelyJSParser,
     astTranslator: JSTranslator,
-    basicParse: function(source, rule, errorHandler) {
+    basicParse: function(source, rule) {
         // first call the LKJSParser. this will result in a synbolic AST tree.
         // translate this into real AST objects using JSTranslator
-        if (!errorHandler) {
-            errorHandler = function() {
-                alert(OMetaSupport.handleErrorDebug.apply(OMetaSupport, arguments))
-            };
-        }
+        var errorHandler = function() { throw $A(arguments) };
         var intermediate = OMetaSupport.matchAllWithGrammar(this.jsParser, rule, source, errorHandler);
         if (!intermediate || Object.isString(intermediate))
-            throw new Error('Could not parse JS source code: ' + intermediate);
+            throw [source, rule, 'Could not parse JS source code', 0, intermediate];
         var ast = OMetaSupport.matchWithGrammar(this.astTranslator, 'trans', intermediate);
         if (!ast || Object.isString(ast))
-            throw new Error('Could not translate symbolic AST tree: ' + ast);
+            throw [source, rule, 'Could not translate symbolic AST tree', 0, intermediate, ast];
         return ast;
     },
 

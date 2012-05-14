@@ -765,7 +765,7 @@ var start = new Date().getTime();
                 var oFill = null;
                 var oTextColor=null;
                 //if value is number then should return right
-                sTextAlign = this.getAlignforValueType(sValue)
+                sTextAlign = this.getAlignforValueType(this.arrData[nOrgRow][nOrgCol].dataFormat,sValue)
                 
                 if (this.arrData[nOrgRow][nOrgCol].fontWeight){
                     sFontWeight=this.arrData[nOrgRow][nOrgCol].fontWeight;

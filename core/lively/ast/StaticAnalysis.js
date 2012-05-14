@@ -75,7 +75,6 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
     visitThrow: function(node) { this.visitParts(node, ['expr']) },
     visitTryCatchFinally: function(node) {
         this.visitParts(node, ['trySeq']);
-        debugger;
         this.current = this.newScope();
         this.visitParts(node, ['err', 'catchSeq']);
         this.current = this.current.parent;

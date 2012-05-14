@@ -804,7 +804,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
     },
 
     'try': {
-        className: 'TryCatchFinally', rules: [':pos', 'trans:trySeq', ':err', 'trans:catchSeq', 'trans:finallySeq'],
+        className: 'TryCatchFinally', rules: [':pos', 'trans:trySeq', 'trans:err', 'trans:catchSeq', 'trans:finallySeq'],
         debugging: {
             printConstruction: function() { return this.printConstructorCall(this.pos, this.trySeq, '"'+this.err.name+'"', this.catchSeq, this.finallySeq) },
             toString: function() {

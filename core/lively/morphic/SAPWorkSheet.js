@@ -2355,64 +2355,28 @@ dataformat: currency & percentage & date & time
         var nValue;//to check number
          debugger;
         if (oDataFormat){
-           
             for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
                 nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
                 nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
                 nOrgRow = nRow  + this.grid.startRow;
                 nOrgCol = nColumn + this.grid.startColumn; 
                 sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-                nValue = sValue;
-                debugger;
+                nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
                 sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
                 this.grid.arrSelectedCells[i].textString= sValue;
                 if (oDataFormat.type=="currency" || oDataFormat.type=="number"){
-                    //nValue = nValue.replace(/[^0-9\.\-]+/g,"");
-                    
-                    //if (!isNaN(nValue )){
-                        if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
-                            this.grid.arrSelectedCells[i].applyStyle({textColor: Color.red});
+                    if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
+                        if (!isNaN(nValue )){
+                            if (nValue <0){
+                                this.grid.arrSelectedCells[i].applyStyle({textColor: Color.red});
+                            }                        }
                         }
-                    //}
-                    
+                    }
                 }
             }
             for (i= 0; i< this.grid.arrSelectedData.length; i++) {
                 this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
             }
-/*
-            switch(oDataFormat.type){
-                case "currency":
-                    for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-                        nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
-                        nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
-                        nOrgRow = nRow  + this.grid.startRow;
-                        nOrgCol = nColumn + this.grid.startColumn; 
-                        sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-                        sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
-                        this.grid.arrSelectedCells[i].textString= sValue;
-                        if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
-                               this.grid.arrSelectedCells[i].applyStyle({textColor: Color.red});
-                        }
-                    }
-                     //for data
-                    var oDataFormat;
-                    for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-                        this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
-                    }
-                    break;
-                case "percentage":
-                    
-                    break;
-                case "date":
-                    break;
-                case "time":
-                    break;
-                case "number":
-                    break;
-                default:
-            }
-*/
         }
     },
 });    

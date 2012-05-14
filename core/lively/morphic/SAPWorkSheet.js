@@ -110,7 +110,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                             default:
                                 sSymbol="$";
                         }
-                        sValue = sSymbol +  this.roundtoFixNumber(sValue ,2,true); 
+                        sValue = sSymbol +  this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
                     }
                     
                     break;

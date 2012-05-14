@@ -88,7 +88,7 @@ throw =
 	:pos trans:expr
 	-> { new lively.ast.Throw(pos, expr) },
 try =
-	:pos trans:trySeq :err trans:catchSeq trans:finallySeq
+	:pos trans:trySeq trans:err trans:catchSeq trans:finallySeq
 	-> { new lively.ast.TryCatchFinally(pos, trySeq, err, catchSeq, finallySeq) },
 func =
 	:pos trans:body trans*:args

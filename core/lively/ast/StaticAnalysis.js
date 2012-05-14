@@ -5,7 +5,8 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
     knownGlobals: ["true", "false", "null", "undefined",
                    "Object", "Function", "String", "Date", "Math", "parseFloat", "isNaN",
                    "eval", "window", "document", "Node",
-                   "HTMLCanvasElement", "Image"],
+                   "HTMLCanvasElement", "Image",
+                   "lively", "pt", "rect", "rgb"],
     newScope: function() {
         return this.current = this.current
             ? this.current.newScope()

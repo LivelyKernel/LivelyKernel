@@ -2369,7 +2369,7 @@ dataformat: currency & percentage & date & time
                         if (!isNaN(nValue )){
                             if (nValue <0){
                                 this.grid.arrSelectedCells[i].applyStyle({textColor: Color.red});
-                            }                        }
+                            }
                         }
                     }
                 }
@@ -2378,7 +2378,7 @@ dataformat: currency & percentage & date & time
                 this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
             }
         }
-    },
+    },},
 });    
 
 lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',

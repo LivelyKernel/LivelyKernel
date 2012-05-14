@@ -176,7 +176,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         }
     },
     chkUseThousand_onClick: function(){
-        alert(0)
         this.selectedUseThousand = this.chkUseThousand.isChecked()
     },
     ddlCurrencySymbol_onChange: function(){

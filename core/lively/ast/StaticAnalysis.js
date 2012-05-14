@@ -191,9 +191,8 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
             this.emphasize({color: Color.web.red}, g.pos[0], g.pos[1]);
         }).bind(this));
     },
-    applyHighlighterRules: function() {
-        debugger;
-        cop.proceed();
+    applyHighlighterRules: function(target, highlighterRules) {
+        cop.proceed(target, highlighterRules);
         try {
             var ast = lively.ast.Parser.parse(this.textString);
             this.highlightGlobals(ast);

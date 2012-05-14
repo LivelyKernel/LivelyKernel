@@ -192,6 +192,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
         }).bind(this));
     },
     applyHighlighterRules: function() {
+        debugger;
         cop.proceed();
         try {
             var ast = lively.ast.Parser.parse(this.textString);

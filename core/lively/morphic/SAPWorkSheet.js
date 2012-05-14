@@ -92,13 +92,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
             var dValue;
             var nValue;
+            var bBracket = false;   //negative number type
+            var sSymbol="";      //currency symbol
             sValue = $.trim(sValue);
             switch(oDataFormat.type){
                 case "currency":
-                    //sValue = this.cleanUpValue(sValue);
                     sValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
-                    nValue = sValue;  
-                    var sSymbol="";
                     if (!isNaN(sValue)){
                         switch(oDataFormat.symbol){
                             case "USD":
@@ -123,18 +122,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                         debugger;
                         if (!isNaN(sValue)){
                             if (oDataFormat.negativeType==2 || oDataFormat.negativeType==3){
-                                if (sValue < 0){
-                                    sValue =sValue.replace(/-/gi, "");
-                                    sValue =this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
-                                    sValue = "(" + sSymbol + sValue  + ")";
-                                }else{
-                                    sValue =sSymbol  + this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
-                                }
+                                bBracket = true;
                             }else{
-                                sValue = sSymbol + this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
+                                bBracket = false;
                             }
+                            sValue = sSymbol + this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true);
                         }
-                       
                     }
                     
                     break;

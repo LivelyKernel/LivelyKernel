@@ -1366,22 +1366,23 @@ y359
         }
         return sResult;
     },
-    roundtoFixNumber: function(num, nDecimalPlaces, bAddTousandSeparator) {
-        var sResult;
-        sResult= num.toString(); //bug when rnum cotains comma
-        sResult= sResult.replace(/,/g, "");
+    roundtoFixNumber: function(sValue, nDecimalPlaces,bAddTousandSeparator, sThousandChar, sDecimalChar) {
+        sValue= sValue.toString(); //bug when sValue cotains comma
+        sValue= sValue.replace(/,/g, "");
 
-        if (isNaN(sResult) || sResult== null || sResult== "") {
-            sResult= parseFloat("0").toFixed(nDecimalPlaces);
-        } else {
-            sResult= parseFloat(sResult).toFixed(nDecimalPlaces);
-        }
+	nDecimalPlaces = !isNaN(nDecimalPlaces = Math.abs(nDecimalPlaces)) ? nDecimalPlaces : 2;
+	if (bAddTousandSeparator){
+		sThousandChar = sThousandChar || ",";
+	}else{
+		sThousandChar="";
+	}
+	sDecimalChar = sDecimalChar || ".";
+	var negative = sValue < 0 ? "-" : "",
+	    i = parseInt(sValue = Math.abs(+sValue || 0).toFixed(nDecimalPlaces), 10) + "",
+	    j = (j = i.length) > 3 ? j % 3 : 0;
 
-        if (bAddTousandSeparator) {
-            sResult= this.addThousandSeparator(sResult, ".", ",");
-        }
+	return negative + (j ? i.substr(0, j) + sThousandChar : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + sThousandChar) + (nDecimalPlaces ? sDecimalChar + Math.abs(sValue - i).toFixed(nDecimalPlaces).slice(2) : "");
 
-        return sResult;
     },
 
     addThousandSeparator: function(num, sDecpointChar, sSepChar) {

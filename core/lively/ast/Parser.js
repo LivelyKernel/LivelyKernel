@@ -804,9 +804,9 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
     },
 
     'try': {
-        className: 'TryCatchFinally', rules: [':pos', 'trans:trySeq', ':errName', 'trans:catchSeq', 'trans:finallySeq'],
+        className: 'TryCatchFinally', rules: [':pos', 'trans:trySeq', ':err', 'trans:catchSeq', 'trans:finallySeq'],
         debugging: {
-            printConstruction: function() { return this.printConstructorCall(this.pos, this.trySeq, '"'+this.errName+'"', this.catchSeq, this.finallySeq) },
+            printConstruction: function() { return this.printConstructorCall(this.pos, this.trySeq, '"'+this.err.name+'"', this.catchSeq, this.finallySeq) },
             toString: function() {
                 return Strings.format(
                     '%s(%s %s %s)',
@@ -819,7 +819,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
                     indent = this.indent(depth),
                 str = 'try {\n' + indent + this.trySeq.asJS(depth) + '\n' + baseIndent + '}';
                 if (!this.isUndefined(this.catchSeq))
-                    str += ' catch(' + this.errName + ') {\n' +
+                    str += ' catch(' + this.err.name + ') {\n' +
                     indent + this.catchSeq.asJS(depth) + '\n' + baseIndent + '}';
                 if (!this.isUndefined(this.finallySeq))
                     str += ' finally {\n' + indent + this.finallySeq.asJS(depth) + '\n' + baseIndent + '}';

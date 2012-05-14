@@ -725,7 +725,7 @@ var start = new Date().getTime();
                          sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat);
                         //negative number & currency
                         debugger;
-                        if (this.arrData[nOrgRow][nOrgCol].negativeType){
+                        if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType){
                         
                             if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
                                bRedFont=true;

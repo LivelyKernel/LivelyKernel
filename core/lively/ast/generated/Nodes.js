@@ -892,6 +892,7 @@ lively.ast.Node.subclass('lively.ast.TryCatchFinally',
 		this.catchSeq = catchSeq;
 		this.finallySeq = finallySeq;
 		trySeq.setParent(this);
+		err.setParent(this);
 		catchSeq.setParent(this);
 		finallySeq.setParent(this);
 	},

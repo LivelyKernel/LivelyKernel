@@ -1367,8 +1367,9 @@ y359
         return sResult;
     },
     roundtoFixNumber: function(sValue, nDecimalPlaces,bAddTousandSeparator, sThousandChar, sDecimalChar) {
-        sValue= sValue.toString(); //bug when sValue cotains comma
-        sValue= sValue.replace(/,/g, "");
+    var negative;
+    sValue= sValue.toString(); //bug when sValue cotains comma
+    sValue= sValue.replace(/,/g, "");
 
 	nDecimalPlaces = !isNaN(nDecimalPlaces = Math.abs(nDecimalPlaces)) ? nDecimalPlaces : 2;
 	if (bAddTousandSeparator){
@@ -1376,12 +1377,26 @@ y359
 	}else{
 		sThousandChar="";
 	}
-	sDecimalChar = sDecimalChar || ".";
-	var negative = sValue < 0 ? "-" : "",
-	    i = parseInt(sValue = Math.abs(+sValue || 0).toFixed(nDecimalPlaces), 10) + "",
+    sDecimalChar = sDecimalChar || ".";
+    var sLeft = "";
+    var sRight = "";
+    if (bBracketType) {
+        if (sValue < 0) {
+            sLeft = "(";
+            sRight = ")";
+        }
+    } else {
+        if (sValue < 0) {
+            sLeft = "-";
+            sRight = "";
+        }
+    }
+    
+	var i = parseInt(sValue = Math.abs(+sValue || 0).toFixed(nDecimalPlaces), 10) + "",
 	    j = (j = i.length) > 3 ? j % 3 : 0;
+	sValue = sLeft + (j ? i.substr(0, j) + sThousandChar : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + sThousandChar) + (nDecimalPlaces ? sDecimalChar + Math.abs(sValue - i).toFixed(nDecimalPlaces).slice(2) : "") + sRight;
 
-	return negative + (j ? i.substr(0, j) + sThousandChar : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + sThousandChar) + (nDecimalPlaces ? sDecimalChar + Math.abs(sValue - i).toFixed(nDecimalPlaces).slice(2) : "");
+	return sValue
 
     },
 

@@ -2173,7 +2173,18 @@ dataformat: currency & percentage & date & time
             nOrgRow = nRow  + this.grid.startRow;
             nOrgCol = nColumn + this.grid.startColumn; 
             sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-            sValue = this.grid.applyDataFormates(sValue ,"currency");
+
+            
+            oDataFormat = {};    
+            oDataFormat.type ="currency";
+            oDataFormat.symbol = "$";
+            oDataFormat.decimalPlaces = 2;
+            oDataFormat.unitOfMeasure = 1;
+            oDataFormat.useThousandSeparator = true;
+            oDataFormat.negativeType= 0;
+
+
+            sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
             
             this.grid.arrSelectedCells[i].textString= sValue;
         }

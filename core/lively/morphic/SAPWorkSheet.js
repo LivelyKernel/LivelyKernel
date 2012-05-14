@@ -120,9 +120,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                                 sSymbol="$";
                         }
                         sValue = sSymbol +  this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
-                        if (oDataFormat.negativeType==2 || oDataFormat.negativeType==3){
-                            sValue = "(" + sValue  + ")";
+                        if (!isNaN(nValue)){
+                             if (oDataFormat.negativeType==2 || oDataFormat.negativeType==3){
+                                sValue = "(" + sValue  + ")";
+                             }
                         }
+                       
                     }
                     
                     break;

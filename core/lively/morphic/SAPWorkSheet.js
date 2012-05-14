@@ -126,7 +126,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                             }else{
                                 bBracket = false;
                             }
-                            sValue = sSymbol + this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true);
+                            sValue = sSymbol + this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,sSymbol,true,bBracket);
                         }
                     }
                     

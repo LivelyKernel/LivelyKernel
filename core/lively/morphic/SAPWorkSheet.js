@@ -735,6 +735,7 @@ var start = new Date().getTime();
 
         for (var y = 0; y < this.dataModel.length && y < this.numRows; y++) {
             for (var x = 0; x < this.dataModel[y].length && x < this.numCols; x++) {
+                bRedFont=false;
                 nOrgRow = y  + this.startRow;
                 nOrgCol = x + this.startColumn;
                 sValue = this.dataModel[y][x].value.toString();
@@ -761,12 +762,11 @@ var start = new Date().getTime();
                     this.arrSelectedCells.push(this.at(x,y));
                 }
 
-                //data formats
-                bRedFont=false;
-
+                //DATA formats
                 if (this.arrData[nOrgRow][nOrgCol].dataFormat){
                     if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
-                         sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat);
+                        sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat);
+                        //for negateive number for currency & number
                         if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType){
                             if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==1 || this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==3){
                                 nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");

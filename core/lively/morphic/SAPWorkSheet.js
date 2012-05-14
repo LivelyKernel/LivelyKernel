@@ -1651,6 +1651,11 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         this.grid.arrData[nRow][nCol].value=sValue ;
         if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat){
             if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type){
+              
+                if (sValue .charAt(0)=="("){
+                }
+
+
                 sValue= this.grid.applyDataFormates(sValue,this.grid.arrData[nOrgRow][nOrgCol].dataFormat);
                  this.textString = sValue ;
             }

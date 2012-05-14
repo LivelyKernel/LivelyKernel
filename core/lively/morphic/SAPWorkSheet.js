@@ -142,16 +142,29 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                     break;
                 case "date":
                     if (sValue){
-                        console.log(sValue)
-                        dValue = new Date(sValue);
-                        sValue = dValue.format(oDataFormat.dateFormat).toString();
+                        try{
+                            dValue = new Date(sValue);
+                            sValue = dValue.format(oDataFormat.dateFormat).toString();
+                        }catch(err){
+                             console.log("Error applyDataFormates: not a dateformat" + sValue);
+                        }
+                        
+
                     }
                     
                     break;
                 case "time":
                     if (sValue){
-                        dValue = new Date(sValue);
-                        sValue = dValue.format(oDataFormat.timeformat).toString();
+                        try{
+                            dValue = new Date(sValue);
+                            sValue = dValue.format(oDataFormat.timeformat).toString();
+                        }catch(err){
+                             console.log("Error applyDataFormates: not a dateformat" + sValue);
+                        }
+
+
+
+
                     }
                     break;
                 case "number":

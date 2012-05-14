@@ -118,7 +118,13 @@ lively.morphic.Text.addMethods(
         this.lastSyntaxHighlightTime = currentMs;
         this.highlightSyntaxFromTo(0, length, SyntaxHighlighter.JavaScriptRules);
     },
-
+    applyHighlighterRules: function(target, highlighterRules) {
+        for (var ruleName in highlighterRules) {
+            if (!highlighterRules.hasOwnProperty(ruleName)) continue;
+            var rule = highlighterRules[ruleName];
+            target.emphasizeRegex(rule.match, rule.style)
+        }
+    },
     highlightSyntaxFromTo: function(from, to, highlighterRules) {
         var selRange = this.getSelectionRange(),
             scroll = this.getScroll();

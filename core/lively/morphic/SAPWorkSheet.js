@@ -1356,6 +1356,7 @@ y359
         return sResult;
     },
     roundtoFixNumber: function(sValue, nDecimalPlaces,sSymbol,bAddTousandSeparator, sThousandChar, sDecimalChar) {
+// function roundtoFixNumber(sValue, sSymbol,nDecimalPlaces, bAddTousandSeparator, bBracketType, sThousandChar, sDecimalChar) {
         var negative;
         sValue= sValue.toString(); //bug when sValue cotains comma
         sValue= sValue.replace(/,/g, "");

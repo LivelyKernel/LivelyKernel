@@ -141,10 +141,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                     break;
                 case "date":
                     //format('yy-mm-dd');
-                    sValue = sValue.format(oDataFormat.dateFormat);
+                    sValue = sValue.toString().format(oDataFormat.dateFormat);
                     break;
                 case "time":
-                    sValue = sValue.format(oDataFormat.dateFormat);
+                    sValue = sValue.toString().format(oDataFormat.dateFormat);
                     break;
                 case "number":
                     debugger;

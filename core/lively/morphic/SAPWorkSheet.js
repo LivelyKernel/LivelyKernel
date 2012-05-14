@@ -126,7 +126,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                             }else{
                                 bBracket = false;
                             }
-                            sValue = sSymbol + this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,sSymbol,true,bBracket);
+                            sValue = this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,sSymbol,true,bBracket);
                         }
                     }
                     
@@ -141,7 +141,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                         }else{
                             sValue = this.cleanUpValue(sValue);
                             if (!isNaN(sValue)){
-                                sValue = this.converttoPercentage(sValue ,oDataFormat.decimalPlaces,"",) + "%";
+                                sValue = this.converttoPercentage(sValue ,oDataFormat.decimalPlaces,"") + "%";
                             }
                         }
                     }

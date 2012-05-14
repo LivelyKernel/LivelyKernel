@@ -89,9 +89,28 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                     debugger;
                     //sValue = this.cleanUpValue(sValue);
                     sValue  = sValue.replace(/[^0-9\.]+/g,"");
-
+                    var sSymbol="";
                     if (!isNaN(sValue)){
-                        sValue = "$" +  this.roundtoFixNumber(sValue ,2,true); 
+                        switch(oDataFormat.symbol){
+                            case "USD":
+                                sSymbol="$";
+                                break;
+                            case "EUR":
+                                sSymbol="€";
+                                break;
+                            case "JPY":
+                                sSymbol="¥";
+                                break;
+                            case "GBP":
+                                sSymbol="£";
+                                break;
+                            case "AUD":
+                                sSymbol="$";
+                                break;
+                            default:
+                                sSymbol="$";
+                        }
+                        sValue = sSymbol +  this.roundtoFixNumber(sValue ,2,true); 
                     }
                     
                     break;

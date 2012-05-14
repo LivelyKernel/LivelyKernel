@@ -170,7 +170,15 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 case "number":
                     debugger;
                     sValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
-                    sValue = this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,sSymbol,oDataFormat.useThousandSeparator,false);
+                    if (!isNaN(sValue)){
+                        if (oDataFormat.negativeType==2 || oDataFormat.negativeType==3){
+                            bBracket = true;
+                        }else{
+                            bBracket = false;
+                        }
+                        sValue = this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,"",true,bBracket);
+                    }
+                    
                     break;
                     default:
 

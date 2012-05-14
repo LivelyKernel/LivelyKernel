@@ -82,9 +82,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         }
     },
-    applyDataFormates: function(sValue,sFormatType) {
+    applyDataFormates: function(sValue,oDataFormat) {
             sValue = $.trim(sValue)
-            switch(sFormatType){
+            switch(oDataFormat.type){
                 case "currency":
                     debugger;
                     sValue = this.cleanUpValue(sValue);

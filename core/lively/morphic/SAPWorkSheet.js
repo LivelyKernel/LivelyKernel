@@ -1381,10 +1381,16 @@ y359
             if (sValue < 0) {
                 sLeft = "(" + sSymbol;
                 sRight = ")";
+            }else{
+                sLeft = sSymbol;
+                sRight = "";
             }
         } else {
             if (sValue < 0) {
                 sLeft = "-" + sSymbol;
+                sRight = "";
+            }else{
+                sLeft = sSymbol;
                 sRight = "";
             }
         }

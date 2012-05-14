@@ -683,6 +683,7 @@ console.log('End createLayout =' + elapsed);
         var nOrgRow;
         var nOrgCol;
         var sValue;
+        var bRedFont=false;  //for negative number & currency
 //debugger;
 var start = new Date().getTime();
 
@@ -722,6 +723,9 @@ var start = new Date().getTime();
                 if (this.arrData[nOrgRow][nOrgCol].dataFormat){
                     if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
                          sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat);
+                        if (this.arrData[nOrgRow][nOrgCol].negativeType){
+                            
+                        }
                     }
                 }
 

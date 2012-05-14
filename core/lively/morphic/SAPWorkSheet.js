@@ -767,6 +767,7 @@ var start = new Date().getTime();
                     if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
                         sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat);
                         //for negateive number for currency & number
+                        debugger;
                         if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType){
                             if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==1 || this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==3){
                                 nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");

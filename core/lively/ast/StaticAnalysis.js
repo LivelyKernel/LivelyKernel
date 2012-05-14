@@ -148,11 +148,11 @@ Object.subclass('lively.ast.DFAScope',
         this.def_uses.push([varnode]);
     },
     use: function(varnode) {
-        debugger;
         var chain = this.lookup_def(varnode.name);
         if (chain) {
             chain.push(varnode);
-        } else {
+        }
+        if (!this.lookup_decl(varnode.name)) {
             this.global_uses.push(varnode);
         }
     },

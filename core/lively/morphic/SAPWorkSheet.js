@@ -92,7 +92,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             sValue = $.trim(sValue)
             switch(oDataFormat.type){
                 case "currency":
-                    debugger;
+                   
                     //sValue = this.cleanUpValue(sValue);
                     sValue  = sValue.replace(/[^0-9\.]+/g,"");
                     var sSymbol="";
@@ -144,6 +144,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 case "time":
                     break;
                 case "number":
+                    sValue = sSymbol +  this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,true); 
+                    if (oDataFormat.negativeType==2 || oDataFormat.negativeType==3){
+                        sValue = "(" + sValue  + ")";
+                    }
                     break;
                     default:
 

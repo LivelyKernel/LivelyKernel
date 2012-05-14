@@ -183,11 +183,20 @@ Object.subclass('lively.ast.VariableAnalyzer',
         return this.findGlobalVariablesInAST(this.parse(source));
     },
 });
-cop.create('MyLayer').refineClass(MyClass, {
-    methodName: function(arg1) {
-        var result = cop.proceed(arg1);
-        return result
-undefined},
+cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
+    applyHighlighterRules: function() {
+        cop.proceed();
+        try {
+            var ast = lively.ast.Parser.parse(this.textString);
+            this.highlightGlobals(ast);
+            if (this.isError) {
+                this.isError = false;
+                this.setFill(Color.rgb(243,243,243));
+            }
+        } catch (e) {
+            this.highlightError(e);
+        }
+    },
 });
 
 }) // end of module

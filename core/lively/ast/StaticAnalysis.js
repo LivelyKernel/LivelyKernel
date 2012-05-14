@@ -96,7 +96,7 @@ Object.subclass('lively.ast.DFAScope',
 },
 'helping', {
     isDeclaration: function(node) {
-        return node.isVarDeclaration || node._parent.isFunction;
+        return node.isVarDeclaration || node._parent.isFunction || node._parent.isTry;
     },
 },
 'accessing', {

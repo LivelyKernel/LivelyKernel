@@ -2535,7 +2535,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
     }
 
 });
-lively.morphic.SAPGridCell.subclass('lively.morphic.SAPGridHeadCell',
+lively.morphic.Text.subclass('lively.morphic.SAPGridHeadCell',
 'settings', {
     style: { fill: Color.rgb(223, 227, 232) }
 

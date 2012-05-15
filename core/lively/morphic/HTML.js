@@ -1054,5 +1054,8 @@ lively.morphic.Shapes.Path.addMethods(
 Object.extend(lively.morphic.HTML, {
     CSS: {}
 });
+Object.extend(SomeObject, {
+    m1: function() {},
+});
 
 }) // end of module

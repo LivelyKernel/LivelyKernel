@@ -504,6 +504,15 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.rows[0] = this.colHeads;
 
     },
+    createRowHeads: function() {
+        for (var i = 0; i < this.numRows; i++) {
+            var rowHead = this.createRowHead(i);
+            this.rowHeads.push(rowHead);
+            if (!this.rows[i]) { this.rows[i] = []; }
+            var row = this.rows[i];
+            row[0] = rowHead;
+        }
+    },
     createHead: function(isRow, index, title) {
         var head = isRow ? new lively.morphic.DataGridRowHead() : new lively.morphic.DataGridColHead();
         head.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
@@ -524,18 +533,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     },
     createColHead: function(index, title) {
         return this.createHead(false, index, title);
-        /*
-        var head = new lively.morphic.SAPGridColHead();
-        head.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
-        head.addToGrid(this);
-        head.gridCoords = pt(index, 0);
-        head.name = title ? title : 'Col' + index;
-        head.textString = head.name;
-        head.setAlign('center'); 
-        return head;
-        */
     },
-
+    createRowHead: function(index, title) {
+        return this.createHead(true, index, title);
+    },
 
     createLayout: function() {
         var layouter = new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows);
@@ -594,8 +595,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             }
         }
     },
-
-    
     moveActiveCellBy: function(evt,aPoint) {
         
         if (!this.activeCell) {
@@ -945,8 +944,6 @@ console.log('updateDisplay:'  + elapsed/1000);
         return this.colHeads[anInteger];
     },
 
-
-
     recalculateRowsFirst: function() {
         this.rows.forEach(function (row) {
             row.forEach(function (col) {
@@ -1233,14 +1230,8 @@ currently only support
         return items;
     },
 },
+
 'Keyboard Events', {
-        /*onBackspacePressed: function(evt) {
-        if (!this.activeCell) {
-            this.at(0,0).activate();
-        }
-        this.activeCell.onBackspacePressed(evt);
-        return true;
-    },*/
     onEnterPressed: function($super, evt) {
         //Hak March27 2012:  calculate formula
         
@@ -1781,6 +1772,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         return floatValue;
     },
 });
+
+/*
 lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
 'default category', {
     initialize: function($super, arg1, arg2) {
@@ -1820,6 +1813,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridColHead',
     },
 
 });
+*/
 lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
 'default category', {
     initialize: function($super, arg1, arg2) {
@@ -2483,6 +2477,25 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
     }
 
 });
+lively.morphic.DataGridCell.subclass('lively.morphic.SAPGridHeadCell',
+'settings', {
+    style: { fill: Color.rgb(220, 220, 200) }
+},
+'default category', {
+    addToGrid: function(aGrid) {
+        this.grid = aGrid;
+        this.grid.addMorph(this);
+    },
+    updateDisplay: Functions.Null
+});
+lively.morphic.DataGridHeadCell.subclass('lively.morphic.SAPGridColHead',
+'settings', {
+    isColHead: true
+});
 
+lively.morphic.DataGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
+'settings', {
+    isRowHead: true
+});
 
 }) // end of module

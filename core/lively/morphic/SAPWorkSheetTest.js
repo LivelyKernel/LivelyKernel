@@ -505,6 +505,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
     },
     createColHead: function(index, title) {
+        return this.createHead(false, index, title);
+        /*
         var head = new lively.morphic.SAPGridColHead();
         head.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         head.addToGrid(this);
@@ -513,6 +515,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         head.textString = head.name;
         head.setAlign('center'); 
         return head;
+        */
     },
 
 

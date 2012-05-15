@@ -785,7 +785,7 @@ lively.morphic.Morph.addMethods(
         }
 
         if (steppingItems.length != 0) {
-            items.push(["stepping", steppingItems],
+            items.push(["stepping", steppingItems]),
         }
          if (this.attributeConnections && this.attributeConnections.length > 0) {
             items.push(["connections", this.attributeConnections

@@ -1337,7 +1337,6 @@ currently only support
 
             this.setGridCellSelection(oGrid, oCell)
             this.setDataCellSelection(oGrid,nOrgCol,nOrgRow);
-            
         }
     },
     setGridCellSelection: function(oGrid, oCell) {

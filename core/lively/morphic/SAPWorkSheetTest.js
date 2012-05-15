@@ -521,7 +521,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     },
     createHead: function(isRow, index, title) {
         var head = isRow ? new lively.morphic.SAPGridRowHead() : new lively.morphic.SAPGridColHead();
-        
+        debugger;
         head.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         head.addToGrid(this);
         head.gridCoords = isRow ? pt(0, index) : pt(index, 0);
@@ -2540,7 +2540,7 @@ lively.morphic.DataGridCell.subclass('lively.morphic.SAPGridHeadCell',
     },
     updateDisplay: Functions.Null
 });
-lively.morphic.DataGridHeadCell.subclass('lively.morphic.SAPGridColHead',
+lively.morphic.SAPGridCell.subclass('lively.morphic.SAPGridColHead',
 'settings', {
     isColHead: true
 });

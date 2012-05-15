@@ -100,6 +100,15 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.Fill',
             tagName: 'div',
             childNodes: [{tagName: 'div', style: {background: 'red'}}]
         }, this.morph);
+    },
+
+    test02CSSFillResetsPreviousFill: function() {
+        this.morph.setFill(Color.green);
+        this.morph.setFill(new lively.morphic.CSS.Fill('red'));
+        this.assertDOMState({
+            tagName: 'div',
+            childNodes: [{tagName: 'div', style: {backgroundColor: 'red', background: 'red'}}]
+        }, this.morph);
     }
 });
 

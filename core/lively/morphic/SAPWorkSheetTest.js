@@ -1323,7 +1323,7 @@ currently only support
     setCellSelection: function(oGrid, oCell) {
         if (oCell){
             //getting cell coords
-            var nRow = oCell.gridCoords.y - (oGrid.hideColHeads ? 0 : 1);
+            var nRow = oCell.gridCoords.y;
             var nColumn = oCell.gridCoords.x;
             //getting data coords
             var nOrgRow = nRow  + oGrid.startRow;

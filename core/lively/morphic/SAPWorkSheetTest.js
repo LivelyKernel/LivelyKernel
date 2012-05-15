@@ -1,8 +1,10 @@
 module('lively.morphic.SAPWorkSheetTest').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles','lively.persistence.MassMorphCreation','lively.morphic.SAPCommonWidgets').toRun(function() {
 lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 'initialization', { 
-    initialize: function($super, numCols, numRows) {
+    initialize: function($super, numCols, numRows,spec) {
         $super();
+        this.hideColHeads = spec && !spec.showColHeads;
+        this.hideRowHeads = spec && !spec.showRowHeads;
         this.disableHalos();
         this.defaultCellHeight = 30;
         this.defaultCellWidth = 120;

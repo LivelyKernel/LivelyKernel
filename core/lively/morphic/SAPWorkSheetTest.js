@@ -1591,7 +1591,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     hasAnnotation: function() {
         var bResult = false;
         var nCol= this.gridCoords.x;
-        var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+        var nRow = this.gridCoords.y;
         
         var nOrgRow = nRow + this.grid.startRow;
         var nOrgCol = nCol+ this.grid.startColumn;
@@ -1605,7 +1605,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     hasFormula: function() {
         var bResult = false;
         var nCol= this.gridCoords.x;
-        var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+        var nRow = this.gridCoords.y;
         var nOrgRow = nRow + this.grid.startRow;
         var nOrgCol = nCol+ this.grid.startColumn;
 
@@ -1716,7 +1716,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     onBlur: function($super,evt) {
         //$super(evt);
         var nCol= this.gridCoords.x;
-        var nRow = this.gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+        var nRow = this.gridCoords.y;
         
         var nOrgRow = nRow + this.grid.startRow;
         var nOrgCol = nCol+ this.grid.startColumn;

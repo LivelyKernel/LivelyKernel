@@ -169,7 +169,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
         if (this.isHTML(node)) {
             if (fill == null) fill = Color.rgba(0,0,0,0);
             if (fill.isGradient) { this.setHTMLGradient(node, fill, shapeBounds); return };
-            if (fill.isCSSFill) { this.setHTMLGradient(node, fill, shapeBounds); return };
+            if (fill.isCSSFill) { fill.applyToNode(node); return };
             if (fill instanceof Color) {
                 node.style.background = fill.toRGBAString()
                 return;

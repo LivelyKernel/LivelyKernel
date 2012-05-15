@@ -1054,9 +1054,6 @@ lively.morphic.Shapes.Path.addMethods(
 Object.extend(lively.morphic, {
     CSS: {}
 });
-Object.extend(SomeObject, {
-    m1: function() {},
-});
 Object.subclass('lively.morphic.CSS.Fill',
 'default category', {
     m1: function() {},

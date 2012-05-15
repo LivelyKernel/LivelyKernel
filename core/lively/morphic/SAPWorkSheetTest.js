@@ -504,6 +504,24 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.rows[0] = this.colHeads;
 
     },
+    createHead: function(isRow, index, title) {
+        var head = isRow ? new lively.morphic.DataGridRowHead() : new lively.morphic.DataGridColHead();
+        head.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
+        head.addToGrid(this);
+        head.gridCoords = isRow ? pt(0, index) : pt(index, 0);
+        var name = title;
+        if (!name) {
+            var titleIndex = index;
+            if (isRow && !this.hideColHeads) {
+                titleIndex--;
+            } else if (!isRow && !this.hideRowHeads) {
+                titleIndex--;
+            }
+            name = '[' + titleIndex + ']';
+        }
+        head.textString = head.name = name;
+        return head;
+    },
     createColHead: function(index, title) {
         return this.createHead(false, index, title);
         /*

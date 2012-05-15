@@ -475,15 +475,22 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         return cell;
     },
-    createCell: function(x, y, headOffset) {
-
+    createCell: function(x, y, headOffsetX, headOffsetY) {
         var cell = new lively.morphic.SAPGridCell();
+        cell.doitContext = this;
+        cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
+        cell.addToGrid(this);
+        cell.gridCoords = pt(x + headOffsetX, y + headOffsetY);
+        cell.name = '[' + x + ';' + y + ']';
+        return cell;
+        /*var cell = new lively.morphic.SAPGridCell();
         cell.doitContext = this;
         cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         cell.addToGrid(this);
         cell.gridCoords = pt(x, y + headOffset);
         cell.name = '[' + x + ';' + y + ']';
         return cell;
+        */
     },
 
     createColHeads: function() {

@@ -1051,5 +1051,8 @@ lively.morphic.Shapes.Path.addMethods(
         return pathNode && lively.Point.ensure(pathNode.getPointAtLength(totalLength));
     },
 });
+Object.extend(SomeObject, {
+    m1: function() {},
+});
 
 }) // end of module

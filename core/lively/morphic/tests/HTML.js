@@ -92,9 +92,15 @@ AsyncTestCase.subclass('lively.morphic.tests.HTML.ClipModeAsyncRenderingTest',
     }
 
 });
-Object.subclass('MyClass',
-'default category', {
-    m1: function() {},
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.Fill',
+'testing', {
+    test01SetCSSFill: function() {
+        this.morph.setClipMode('hidden');
+        this.assertDOMState({
+            tagName: 'div',
+            childNodes: [{tagName: 'div', style: {overflow: 'hidden'}}]
+        }, this.morph);
+    }
 });
 
 });

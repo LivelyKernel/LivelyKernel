@@ -12,7 +12,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.disableHalos();
         this.defaultCellHeight = 30;
         this.defaultCellWidth = 120;
-        this.defaultRowHeaderWidth = 50;
+        this.defaultRowHeaderWidth = 80;
         this.borderSize = 50;
 
         this.defalutFontSize=10;

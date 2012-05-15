@@ -780,7 +780,7 @@ lively.morphic.Morph.addMethods(
         if (this.startSteppingScripts) {
             steppingItems.push(["start stepping", function(){self.startSteppingScripts()}])
         } 
-        if (this.scripts) {
+        if (this.scripts.length != 0) {
             steppingItems.push(["stop stepping", function(){self.stopStepping()}])
         }
         if (steppingItems.length != 0) {

@@ -562,9 +562,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         return this.rows[y] && this.rows[y][x];
     },
     atPut: function(x, y, value) {
-        //debugger;
         console.log("SAPGrid.atPut: x=" + x + ", y=" + y + ", value=" + value );
-        this.rows[y][x].textString = value;
+        this.at(x,y).put(value);
     },
     clear: function() {
         for (var y = 0; y < this.numRows; y++) {

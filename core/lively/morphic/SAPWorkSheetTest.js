@@ -1328,6 +1328,7 @@ currently only support
 'Select cells', {
     setCellSelection: function(oGrid, oCell) {
         if (oCell){
+            debugger;
             //getting cell coords
             var nRow = oCell.gridCoords.y;
             var nColumn = oCell.gridCoords.x;

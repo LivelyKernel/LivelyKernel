@@ -5,6 +5,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         $super();
         this.hideColHeads = spec && !spec.showColHeads;
         this.hideRowHeads = spec && !spec.showRowHeads;
+        this.colHeads = [];
+        this.rowHeads = [];
+
         this.disableHalos();
         this.defaultCellHeight = 30;
         this.defaultCellWidth = 120;

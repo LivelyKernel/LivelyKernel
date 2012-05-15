@@ -534,7 +534,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }else{
             head = new lively.morphic.SAPGridColHead();
             head.setAlign('center');
-            nWidth = this.defaultCellWidth/2;
+            nWidth = 30;
         }
 
         head.setExtent(pt(nWidth , this.defaultCellHeight));

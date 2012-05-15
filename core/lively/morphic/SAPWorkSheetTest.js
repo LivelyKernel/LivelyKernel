@@ -609,17 +609,17 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
 debugger;
         this.applyCellChanges();
-        var activePos = this.activeCell.gridPos();
+        //var activePos = this.activeCell.gridPos();
         
-        //var curX = this.getActiveColIndex();
-        //var curY = this.getActiveRowIndex();
+        var curX = this.gridCoords.x;
+        var curY = this.gridCoords.y;
 
-        var newX = activePos.x + aPoint.x;
-        var newY = activePos.y + aPoint.y;
+        var newX = curX  + aPoint.x;
+        var newY = curY + aPoint.y;
 
-        
-        var newPos = activePos.addPt(aPoint);
-        var nextCell = this.at(newPos.x, newPos.y);
+       
+       //var newPos = activePos.addPt(aPoint);
+        //var nextCell = this.at(newX,newY );
 
         if (evt.isShiftDown()){
             this.setCellSelection(this,this.activeCell);

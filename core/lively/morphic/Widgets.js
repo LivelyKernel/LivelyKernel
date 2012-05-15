@@ -775,8 +775,8 @@ lively.morphic.Morph.addMethods(
         items.push(["get halo on...", morphs.collect(function(ea) {
                 return [ea, function(evt) { ea.toggleHalos(evt)}]
         })])
-        items.push(["Stepping", [["Start Stepping", self.startSteppingScripts()],
-                                ["Stop Stepping", self.stopStepping()]]])
+        items.push(["Stepping", [["Start Stepping", function(){self.startSteppingScripts()}],
+                                ["Stop Stepping", function(){self.stopStepping()}]]])
          if (this.attributeConnections && this.attributeConnections.length > 0) {
             items.push(["connections", this.attributeConnections
                 .reject(function(ea) { return ea.dependedBy}) // Meta connection

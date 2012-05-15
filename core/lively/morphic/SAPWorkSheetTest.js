@@ -505,8 +505,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     },
 
     createColHeads: function() {
+        var sName="";
         for (var i = 0; i < this.numCols; i++) {
-            this.colHeads.push(this.createColHead(i));
+            sName = this.getColumnName(i+1);
+            this.colHeads.push(this.createColHead(i,sName ));
         }
         this.rows[0] = this.colHeads;
 
@@ -2546,7 +2548,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
     isColHead: true
 });
 
-lively.morphic.SAPGridCell.subclass('lively.morphic.SAPGridRowHead',
+lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
 'settings', {
     isRowHead: true
 });

@@ -2571,7 +2571,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
             this.grid.removeSelectedCells();
 
             //for grid selected
-            for (var y = 0; y < this.grid.numRows; y++) {
+            for (var 1 = 0; y < this.grid.numRows; y++) {
                 this.grid.setGridCellSelection(this.grid,this.grid.rows[y][nCol]);
             }
             //for data selected

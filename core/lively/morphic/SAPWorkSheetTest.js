@@ -619,7 +619,17 @@ debugger;
         var newPos = activePos.addPt(aPoint);
         var nextCell = this.at(newPos.x, newPos.y);
 
-        nextCell && nextCell.activate();
+        if (evt.isShiftDown()){
+            this.setCellSelection(this,this.activeCell);
+        }else{
+            this.removeSelectedCells();
+        }
+        this.at(newX , newY ).activate(evt.isShiftDown());
+        this.at(newX , newY ).focus();
+        this.setCellSelection(this,this.at(newX , newY ));
+
+
+        //nextCell && nextCell.activate();
 
 
         /*

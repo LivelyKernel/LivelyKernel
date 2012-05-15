@@ -217,10 +217,18 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
         }
     },
 });
-cop.create('MyLayer').refineClass(MyClass, {
-    methodName: function(arg1) {
-        var result = cop.proceed(arg1);
-        return result
-undefined},
+cop.create('SystemCodeEditorHighlighting').refineClass(lively.ide.BasicBrowser, {
+    onSourceStringUpdate: function(methodString, source) {
+        var node = this.selectedNode();
+        var textMorph = this.panel.sourcePane.innerMorph();
+        if (node.isClassNode || node.isModuleNode) {
+            textMorph.advancedHighlighting = true;
+        } else if (node.isClassNode || node.isModuleNode) {
+            textMorph.advancedHighlighting = "member";
+        } else {
+            textMorph.advancedHighlingting = false;
+        }
+        cop.proceed(methodString, source);
+    },
 });
 })

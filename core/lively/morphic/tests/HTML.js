@@ -92,5 +92,9 @@ AsyncTestCase.subclass('lively.morphic.tests.HTML.ClipModeAsyncRenderingTest',
     }
 
 });
+Object.subclass('MyClass',
+'default category', {
+    m1: function() {},
+});
 
 });

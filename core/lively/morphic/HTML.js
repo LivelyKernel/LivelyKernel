@@ -1057,7 +1057,7 @@ Object.extend(lively.morphic.HTML, {
 Object.extend(SomeObject, {
     m1: function() {},
 });
-Object.subclass('MyClass',
+Object.subclass('lively.morphic.CSS.Fill',
 'default category', {
     m1: function() {},
 });

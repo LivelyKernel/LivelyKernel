@@ -531,7 +531,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         head.addToGrid(this);
         head.gridCoords = isRow ? pt(0, index) : pt(index, 0);
         var name = title;
-        if (!name) {
+        /*if (!name) {
             var titleIndex = index;
             if (isRow && !this.hideColHeads) {
                 titleIndex--;
@@ -539,7 +539,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 titleIndex--;
             }
             name = '[' + titleIndex + ']';
-        }
+        }*/
         head.textString = head.name = name;
         return head;
     },

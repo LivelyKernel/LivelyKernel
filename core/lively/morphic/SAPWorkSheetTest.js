@@ -82,8 +82,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             if (sValue .charAt(0)=="="){
                 var nColumn = this.getActiveColIndex();
                 var nRow= this.getActiveRowIndex();
-                var nOrgRow = nRow  + this.startRow;
-                var nOrgCol = nColumn+ this.startColumn;
+                var nOrgRow = nRow - 1  + this.startRow;
+                var nOrgCol = nColumn - 1+ this.startColumn;
                 
                 this.arrData[nOrgRow][nOrgCol].formula = sValue; 
                 this.activeCell.textString=this.parseFormula(sValue);

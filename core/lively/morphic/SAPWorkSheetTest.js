@@ -526,15 +526,18 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     },
     createHead: function(isRow, index, title) {
         var head;
+        var nWidth;
         if (isRow){
             head = new lively.morphic.SAPGridRowHead();
             head.setAlign('right');
+            nWidth = this.defaultCellWidth;
         }else{
             head = new lively.morphic.SAPGridColHead();
             head.setAlign('center');
+            nWidth = this.defaultCellWidth/2;
         }
 
-        head.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
+        head.setExtent(pt(nWidth , this.defaultCellHeight));
         head.addToGrid(this);
         head.gridCoords = isRow ? pt(0, index) : pt(index, 0);
         head.textString = head.name = title;

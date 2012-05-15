@@ -1051,7 +1051,7 @@ lively.morphic.Shapes.Path.addMethods(
         return pathNode && lively.Point.ensure(pathNode.getPointAtLength(totalLength));
     },
 });
-Object.extend(lively.morphic.HTML, {
+Object.extend(lively.morphic, {
     CSS: {}
 });
 Object.extend(SomeObject, {

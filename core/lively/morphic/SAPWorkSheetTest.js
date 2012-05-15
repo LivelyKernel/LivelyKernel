@@ -328,6 +328,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.numCols * this.defaultCellWidth  + 2 * this.borderSize,
             this.numRows * this.defaultCellHeight + 2 * this.borderSize));
         this.setFill(Color.rgb(255,255,255));
+        debugger;
         if (!this.hideColHeads) {
             this.createColHeads();
         }

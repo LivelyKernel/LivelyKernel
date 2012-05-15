@@ -517,30 +517,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
 
     createLayout: function() {
-               var start = new Date().getTime();
-        var head = this.hideColHeads ? 0 : 1;
-
-        //debugger;
-
-        console.log(this.numCols + "," + this.numRows + "," + head )
-        
-        var layouter = new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head);
-        layouter.defaultRowHeight = this.defaultCellHeight;
-        layouter.defaultColWidth = this.defaultCellWidth;
-        this.setLayouter(layouter);
-        //this is optimize code but if we use this it adds header to rows so it messup
-        //layouter.rows = this.rows;
-
-	//this.setLayouter(new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows + head));
-
-
-
+        var layouter = new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows);
+        layouter.rows = this.rows;
         this.applyLayout();
-        
-        
-var elapsed = new Date().getTime() - start;
-elapsed = elapsed/1000;
-console.log('End createLayout =' + elapsed);
     },
     setAnnotation: function(nColumn,nRow,sText) {
         //this.at(nColumn,nRow).annotation = sText;

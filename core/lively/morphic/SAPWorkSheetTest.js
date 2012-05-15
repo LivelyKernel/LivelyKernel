@@ -3,8 +3,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 'initialization', { 
     initialize: function($super, numCols, numRows,bHideColHeader,bHideRowHeader) {
         $super();
-        this.hideColHeads = bHideColHeader && bHideColHeader;
-        this.hideRowHeads = bHideRowHeader && bHideRowHeader;
+        this.hideColHeads = bHideColHeader ? bHideColHeader:false;
+        this.hideRowHeads = bHideRowHeader ? bHideRowHeader:false;
         this.colHeads = [];
         this.rowHeads = [];
 

@@ -514,7 +514,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
     },
     createHead: function(isRow, index, title) {
-        var head = isRow ? new lively.morphic.DataGridRowHead() : new lively.morphic.DataGridColHead();
+        var head = isRow ? new lively.morphic.SAPGridRowHead() : new lively.morphic.SAPGridColHead();
         head.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         head.addToGrid(this);
         head.gridCoords = isRow ? pt(0, index) : pt(index, 0);

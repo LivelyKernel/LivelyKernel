@@ -1055,8 +1055,18 @@ Object.extend(lively.morphic, {
     CSS: {}
 });
 Object.subclass('lively.morphic.CSS.Fill',
-'default category', {
-    m1: function() {},
+'initializing', {
+    initialize: function(cssBackgroundString) {
+        this.cssBackgroundString = cssBackgroundString || "";
+    },
+},
+'rendering', {
+    applyToNode: function(node) {
+        lively.$(node).css({
+            backgroundColor: '',
+            background: this.cssBackgroundString
+        });
+    }
 });
 
 }) // end of module

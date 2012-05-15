@@ -605,6 +605,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.at(0,0).activate();
             return;
         }
+debugger;
+        var activePos = this.activeCell.gridPos(),
+            newPos = activePos.addPt(aPoint),
+            nextCell = this.at(newPos.x, newPos.y);
+        nextCell && nextCell.activate();
+
+
+        /*
 
         this.applyCellChanges();
         var curX = this.getActiveColIndex();
@@ -623,6 +631,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.at(newX , newY ).focus();
             this.setCellSelection(this,this.at(newX , newY ));
         }
+        */
     },
 
     setAnnotationData: function(arrNotes) {

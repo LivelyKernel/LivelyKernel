@@ -775,12 +775,17 @@ lively.morphic.Morph.addMethods(
         items.push(["get halo on...", morphs.collect(function(ea) {
                 return [ea, function(evt) { ea.toggleHalos(evt)}]
         })])
+        var steppingItems = [];
+        
         if (this.startSteppingScripts) {
-        items.push(["stepping", [["start stepping", function(){self.startSteppingScripts()}],
-                                ["stop stepping", function(){self.stopStepping()}]]])
-        } else {
-        items.push(["stepping", [["stop stepping", function(){self.stopStepping()}]]])
+            steppingItems.push(["start stepping", function(){self.startSteppingScripts()}])
+        } 
+        if (this.scripts)
+            steppingItems.push(["stop stepping", function(){self.stopStepping()}])
         }
+        if (steppingItems.length != 0) 
+            items.push(["stepping", steppingItems])
+        } 
          if (this.attributeConnections && this.attributeConnections.length > 0) {
             items.push(["connections", this.attributeConnections
                 .reject(function(ea) { return ea.dependedBy}) // Meta connection

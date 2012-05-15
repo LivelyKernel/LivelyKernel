@@ -196,9 +196,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     initializeScrolls: function() {
 
         var start = new Date().getTime();
-        var nXPos = this.defaultCellWidth * (this.numCols-1);
+        var nXPos = this.defaultCellWidth * (this.numCols-1) + this.defaultRowHeaderWidth;
         var nYPos = this.defaultCellHeight;
-        var nHeight = this.defaultCellHeight * this.numRows;
+        var nHeight = this.defaultCellHeight * (this.numRows-1);
       
         this.vScroll = new lively.morphic.Slider(new Rectangle(nXPos ,nYPos, 15,nHeight ), this.defaultMaxRowScrollValue);
         this.addMorph(this.vScroll);

@@ -323,19 +323,23 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	console.log('End initializeData '  + elapsed);
     },
     initializeMorph: function() {
-        var start = new Date().getTime();    
-        this.setExtent(pt(
+        //var start = new Date().getTime();  
+         this.setExtent(pt(
             this.numCols * this.defaultCellWidth  + 2 * this.borderSize,
             this.numRows * this.defaultCellHeight + 2 * this.borderSize));
         this.setFill(Color.rgb(255,255,255));
         if (!this.hideColHeads) {
             this.createColHeads();
         }
+        if (!this.hideRowHeads) {
+            this.createRowHeads();
+        }
         this.createCells();
         this.createLayout();
-        var elapsed = new Date().getTime() - start;
-	elapsed = elapsed/1000;
-	console.log('End initializeMorph=' + elapsed);
+
+        //var elapsed = new Date().getTime() - start;
+	//elapsed = elapsed/1000;
+	//console.log('End initializeMorph=' + elapsed);
     },
     //expand column data when moving scroll
     expandColumns: function(nDataLength) {

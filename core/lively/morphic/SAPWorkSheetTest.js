@@ -2559,9 +2559,25 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
 'default category', {
     onMouseDown: function (evt) {
         this.grid.hideAnnotation();
+        if (evt.isLeftMouseButtonDown()) {
+           
+            var nCol= this.gridCoords.x;
+            var nOrgCol = nCol + this.grid.startColumn;
+            var oSelectedData={};
 
-        //this.grid = aGrid;
-        //this.grid.addMorph(this);
+            this.grid.selectedColumnHeader = this;
+            this.grid.removeSelectedCells();
+
+            //for grid selected
+            for (var y = 0; y < this.grid.numRows; y++) {
+                this.grid.setGridCellSelection(this.grid,this.grid.rows[y][nCol]);
+            }
+            //for data selected
+            for (var y = 0; y < this.grid.arrData.length; y++) {
+                this.grid.setDataCellSelection(this.grid,nOrgCol,y)
+            }
+            
+        }
     }
 });
 

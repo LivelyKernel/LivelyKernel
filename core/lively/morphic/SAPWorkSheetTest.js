@@ -1237,7 +1237,7 @@ currently only support
 	   }else{  //copying other cell
                 var oCell = this.parseformulaCellIndex(sValue.replace(/=/g, ""));
                
-                nValue =  parseFloat(this.arrData[oCell.rowIndex][oCell.columnIndex].value);
+                nValue =  this.arrData[oCell.rowIndex][oCell.columnIndex].value;
                 return nValue; 
 	   }	
         }

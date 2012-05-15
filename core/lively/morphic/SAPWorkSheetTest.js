@@ -530,17 +530,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         head.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         head.addToGrid(this);
         head.gridCoords = isRow ? pt(0, index) : pt(index, 0);
-        var name = title;
-        /*if (!name) {
-            var titleIndex = index;
-            if (isRow && !this.hideColHeads) {
-                titleIndex--;
-            } else if (!isRow && !this.hideRowHeads) {
-                titleIndex--;
-            }
-            name = '[' + titleIndex + ']';
-        }*/
-        head.textString = head.name = name;
+        head.textString = head.name = title;
         return head;
     },
     createColHead: function(index, title) {

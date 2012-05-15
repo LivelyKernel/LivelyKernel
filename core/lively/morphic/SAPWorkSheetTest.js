@@ -2558,7 +2558,8 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
 },
 'default category', {
     onMouseDown: function (evt) {
-        alert(0)
+        this.grid.hideAnnotation();
+
         //this.grid = aGrid;
         //this.grid.addMorph(this);
     }

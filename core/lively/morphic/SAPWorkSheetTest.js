@@ -2528,9 +2528,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
 lively.morphic.DataGridCell.subclass('lively.morphic.SAPGridHeadCell',
 'settings', {
     style: { fill: Color.rgb(220, 220, 200) }
+
 },
 'default category', {
     addToGrid: function(aGrid) {
+        this.setFill(Color.rgb(223, 227, 232));
+        this.setBorderColor(Color.rgb(177,181,186));
         this.grid = aGrid;
         this.grid.addMorph(this);
     },

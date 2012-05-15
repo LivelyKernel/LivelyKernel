@@ -1055,6 +1055,9 @@ Object.extend(lively.morphic, {
     CSS: {}
 });
 Object.subclass('lively.morphic.CSS.Fill',
+'settings', {
+    isCSSFill: true
+},
 'initializing', {
     initialize: function(cssBackgroundString) {
         this.cssBackgroundString = cssBackgroundString || "";

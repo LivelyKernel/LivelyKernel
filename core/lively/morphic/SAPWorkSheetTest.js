@@ -802,7 +802,7 @@ debugger;
         var sValue;
         var nValue;
         var bRedFont=false;  //for negative number & currency
-//debugger;
+debugger;
 var start = new Date().getTime();
 
         //need to reset selected cell for grid display when scrolls

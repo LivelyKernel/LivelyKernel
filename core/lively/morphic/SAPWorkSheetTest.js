@@ -1333,8 +1333,8 @@ currently only support
             var nRow = oCell.gridCoords.y;
             var nColumn = oCell.gridCoords.x;
             //getting data coords
-            var nOrgRow = nRow  + oGrid.startRow;
-            var nOrgCol = nColumn + oGrid.startColumn;
+            var nOrgRow = nRow-1  + oGrid.startRow;
+            var nOrgCol = nColumn-1 + oGrid.startColumn;
 
             this.setGridCellSelection(oGrid, oCell)
             this.setDataCellSelection(oGrid,nOrgCol,nOrgRow);

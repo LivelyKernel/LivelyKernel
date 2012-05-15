@@ -518,6 +518,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var sName="";
         for (var i = 0; i < this.numRows; i++) {
             sName = i==0 ? "" :  i.toString();
+            sName =(i+5000).toString();
+
             var rowHead = this.createRowHead(i,sName);
             this.rowHeads.push(rowHead);
             if (!this.rows[i]) { this.rows[i] = []; }

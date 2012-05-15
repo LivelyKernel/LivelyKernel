@@ -1066,7 +1066,6 @@ Object.subclass('lively.morphic.CSS.Fill',
 'rendering', {
     applyToNode: function(node) {
         lively.$(node).css({
-            backgroundColor: '',
             background: this.cssBackgroundString
         });
     }

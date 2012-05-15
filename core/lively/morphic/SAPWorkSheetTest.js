@@ -1513,6 +1513,16 @@ y359
 
 
 lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
+'settings', {
+    isCell: true
+},
+'accessing', {
+    gridPos: function() {
+        if (!this.gridCoords) throw new Error(this + ' has no grid coordinates');
+        if (!this.grid) throw new Error(this + ' has no grid');
+        return this.gridCoords.addXY(this.grid.hideRowHeads ? 0 : -1, this.grid.hideColHeads ? 0 : -1);
+    }
+},
 'default category', {
     addToGrid: function(aGrid) {
         this.grid = aGrid;

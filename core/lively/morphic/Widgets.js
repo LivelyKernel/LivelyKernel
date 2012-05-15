@@ -1172,8 +1172,8 @@ lively.morphic.World.addMethods(
                 ['Text Editor', function() { new lively.morphic.TextEditor().openIn(world) }]
             ]],
             ['Stepping', [
-                ['start stepping', function() { world.submorphs.invoke('startSteppingScripts')}],
-                ['stop stepping', function() {world.submorphs.invoke('stopStepping')}],
+                ['start stepping',  function() { world.submorphs.each(function(ea) {ea.startSteppingScripts && ea.startSteppingScripts()}}],
+                ['stop stepping', function() { world.submorphs.each(function(ea) {ea.stopStepping && ea.stopStepping()}}],
             ]],            
             ['Preferences', [
                 ['set username', this.askForUserName.bind(this)],

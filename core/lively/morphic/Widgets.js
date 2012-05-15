@@ -1171,6 +1171,10 @@ lively.morphic.World.addMethods(
                 ['Method Finder', this.openMethodFinder.bind(this)],
                 ['Text Editor', function() { new lively.morphic.TextEditor().openIn(world) }]
             ]],
+            ['Stepping', [
+                ['Start Stepping', this.submorphs.invoke('startSteppingScripts').bind(this)],
+                ['Stop Stepping', this.submorphs.invoke('stopStepping').bind(this)]
+            ]],
             ['Preferences', [
                 ['set username', this.askForUserName.bind(this)],
                 ['set extent', this.askForNewWorldExtent.bind(this)],

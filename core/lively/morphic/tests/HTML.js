@@ -95,10 +95,10 @@ AsyncTestCase.subclass('lively.morphic.tests.HTML.ClipModeAsyncRenderingTest',
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.Fill',
 'testing', {
     test01SetCSSFill: function() {
-        this.morph.setClipMode('hidden');
+        this.morph.setFill(new lively.morphic.CSS.Fill('red'));
         this.assertDOMState({
             tagName: 'div',
-            childNodes: [{tagName: 'div', style: {overflow: 'hidden'}}]
+            childNodes: [{tagName: 'div', style: {background: 'red'}}]
         }, this.morph);
     }
 });

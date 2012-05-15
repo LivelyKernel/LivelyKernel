@@ -418,10 +418,36 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	}
     },
     createCells: function() {
-        var headOffset = this.hideColHeads ? 0 : 1;
-
         var start = new Date().getTime();
 
+        var rowOffset = this.hideColHeads ? 0 : 1,
+            colOffset = this.hideRowHeads ? 0 : 1,
+            numCellRows = this.numRows - rowOffset,
+            numCellCols = this.numCols - colOffset,
+            self = this,
+            cells = lively.morphic.Morph.createN(numCellRows * numCellCols, function() {
+                return self.createCellOptimized();
+            });
+
+        
+        function addCellToRow(row, x, y) {
+            var cell = cells.pop();
+            cell.addToGrid(self);
+            cell.gridCoords = pt(x + colOffset, y + rowOffset);
+            cell.name = '[' + x + ';' + y + ']';
+            row[x + colOffset] = cell;
+        }
+
+        for (var y = 0; y < numCellRows; y++) {
+            var row = new Array(numCellRows);
+            for (var x = 0; x < numCellCols; x++) {
+                addCellToRow(row, x, y);
+            }
+            this.rows[y + rowOffset] = row;
+        }
+
+/*
+        var headOffset = this.hideColHeads ? 0 : 1;
         var self = this,
             cells = lively.morphic.Morph.createN(this.numRows * this.numCols, function() {
                 return self.createCellOptimized();
@@ -438,7 +464,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             }
             this.rows.push(row);
         }
-
+*/
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
 	console.log('End createCells =' + elapsed);

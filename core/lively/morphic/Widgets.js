@@ -775,7 +775,7 @@ lively.morphic.Morph.addMethods(
         items.push(["get halo on...", morphs.collect(function(ea) {
                 return [ea, function(evt) { ea.toggleHalos(evt)}]
         })])
-        item.push(["Stepping", [["Start Stepping", self.startSteppingScripts()],
+        items.push(["Stepping", [["Start Stepping", self.startSteppingScripts()],
                                 ["Stop Stepping", self.stopStepping()]]])
          if (this.attributeConnections && this.attributeConnections.length > 0) {
             items.push(["connections", this.attributeConnections

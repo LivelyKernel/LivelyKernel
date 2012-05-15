@@ -521,7 +521,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             var rowHead = this.createRowHead(i,sName);
             this.rowHeads.push(rowHead);
             if (!this.rows[i]) { this.rows[i] = []; }
-            var row = this.rows[i];
+            var row = this.rows[i]*1000;
             row[0] = rowHead;
         }
     },

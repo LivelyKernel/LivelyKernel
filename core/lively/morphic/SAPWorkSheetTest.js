@@ -814,29 +814,31 @@ var start = new Date().getTime();
                 bRedFont=false;
                 nOrgRow = y  + this.startRow;
                 nOrgCol = x + this.startColumn;
+
+
                 sValue = this.dataModel[y][x].value.toString();
                 nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
                 //Annotation
                 if (this.arrData[nOrgRow][nOrgCol].annotation){
-                    this.at(x,y).annotationCell();
+                    this.at(x+1,y+1).annotationCell();
                 }else{
-                    this.at(x,y).deactivateCell();
+                    this.at(x+1,y+1).deactivateCell();
                 }
                 //formula
                 if (this.arrData[nOrgRow][nOrgCol].formula){
                     sValue = this.parseFormula(this.arrData[nOrgRow][nOrgCol].formula);
-                    this.at(x,y).formulaCell();
-                    this.at(x,y).setToolTip('Formula: \n' + this.arrData[nOrgRow][nOrgCol].formula);
-                    this.at(x,y).setBorderStyle("dotted");
+                    this.at(x+1,y+1).formulaCell();
+                    this.at(x+1,y+1).setToolTip('Formula: \n' + this.arrData[nOrgRow][nOrgCol].formula);
+                    this.at(x+1,y+1).setBorderStyle("dotted");
                 }else{
-                    this.at(x,y).setToolTip("");
-                    this.at(x,y).setBorderStyle("solid");
+                    this.at(x+1,y+1).setToolTip("");
+                    this.at(x+1,y+1).setBorderStyle("solid");
                 }
 
                 //selected cell
                 if (this.arrData[nOrgRow][nOrgCol].selected){
-                    this.at(x,y).selectedCell();
-                    this.arrSelectedCells.push(this.at(x,y));
+                    this.at(x+1,y+1).selectedCell();
+                    this.arrSelectedCells.push(this.at(x+1,y+1));
                 }
 
                 //DATA formats
@@ -858,7 +860,7 @@ var start = new Date().getTime();
                     }
                 }
 
-                this.at(x,y).textString = sValue;
+                this.at(x+1,y+1).textString = sValue;
 
 
                 //cell formats
@@ -925,13 +927,13 @@ var start = new Date().getTime();
                                         fill: oFill ,textColor: oTextColor,
                                         fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
                 //bug in applystyle textDecoration & fontStyle & fontWeight do not work.. if this is fixed then remove below line
-                this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
+                this.at(x+1,y+1).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
   
                 //borderColor does not take null value.
                 if (oBorderColor){
-                    this.at(x,y).applyStyle({borderColor: oBorderColor});
+                    this.at(x+1,y+1).applyStyle({borderColor: oBorderColor});
                 }
-                this.at(x,y).setAlign(sTextAlign); 
+                this.at(x+1,y+1).setAlign(sTextAlign); 
             }
         }
 

@@ -808,7 +808,7 @@ var start = new Date().getTime();
         //need to reset selected cell for grid display when scrolls
         this.arrSelectedCells.lenght=0;
         this.arrSelectedCells =[];
-        for (var y = 0; y < this.dataModel.length y++) {
+        for (var y = 0; y < this.dataModel.length; y++) {
         //for (var y = 0; y < this.dataModel.length && y < this.numRows; y++) {
             for (var x = 0; x < this.dataModel[y].length; x++) {
             //for (var x = 0; x < this.dataModel[y].length && x < this.numCols; x++) {

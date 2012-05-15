@@ -443,8 +443,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             cell.addToGrid(self);
             //cell.gridCoords = pt(x , y );
             cell.gridCoords = pt(x + colOffset, y + rowOffset);
-            cell.name = '[' + x + colOffset + ';' + y + rowOffset + ']';
-            cell.textString = '[' + x + colOffset + ';' + y + rowOffset + ']';
+            cell.name = '[' + (x + colOffset) + ';' + (y + rowOffset) + ']';
+            cell.textString = '[' + (x + colOffset) + ';' + (y + rowOffset) + ']';
             row[x + colOffset] = cell;
         }
 

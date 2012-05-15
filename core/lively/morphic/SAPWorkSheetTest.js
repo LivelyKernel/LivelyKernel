@@ -1,10 +1,10 @@
 module('lively.morphic.SAPWorkSheetTest').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles','lively.persistence.MassMorphCreation','lively.morphic.SAPCommonWidgets').toRun(function() {
 lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 'initialization', { 
-    initialize: function($super, numCols, numRows,spec) {
+    initialize: function($super, numCols, numRows,bHideColHeader,bHideRowHeader) {
         $super();
-        this.hideColHeads = spec && !spec.showColHeads;
-        this.hideRowHeads = spec && !spec.showRowHeads;
+        this.hideColHeads = bHideColHeader && bHideColHeader;
+        this.hideRowHeads = bHideRowHeader && bHideRowHeader;
         this.colHeads = [];
         this.rowHeads = [];
 

@@ -2496,8 +2496,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         $super();
         this.numCols = numCols;
         this.numRows = numRows;
-        this.hideColHeads = bHideColHeader && bHideColHeader;
-        this.hideRowHeads = bHideRowHeader && bHideRowHeader;
+        // b = r==0 ? "small" : "big";
+        this.hideColHeads = bHideColHeader ? bHideColHeader:false;
+        this.hideRowHeads = bHideRowHeader ? bHideRowHeader:false;
         this.toolBarHeight = 60;
         this.grid;
         this.toolBar;

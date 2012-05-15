@@ -1000,7 +1000,8 @@ console.log('updateDisplay:'  + elapsed/1000);
         return result;
     },
     getActiveRowIndex: function() {
-        return this.activeCell.gridCoords.y - (this.hideColHeads ? 0 : 1);
+        //return this.activeCell.gridCoords.y - (this.hideColHeads ? 0 : 1);
+        return this.activeCell.gridCoords.y;
     },
     getActiveColIndex: function() {
         return this.activeCell.gridCoords.x;

@@ -780,10 +780,67 @@ lively.morphic.Morph.addMethods(
         if (this.startSteppingScripts) {
             steppingItems.push(["start stepping", function(){self.startSteppingScripts()}])
         } 
-        if (this.scripts)
+        if (this.scripts) {
             steppingItems.push(["stop stepping", function(){self.stopStepping()}])
         }
-        if (steppingItems.length != 0) 
+        if (steppingItems.length != 0) {
+            items.push(["stepping", steppingItems])
+        } 
+         if (this.attributeConnections && this.attributeConnections.length > 0) {
+            items.push(["connections", this.attributeConnections
+                .reject(function(ea) { return ea.dependedBy}) // Meta connection
+                .reject(function(ea) { return ea.targetMethodName == 'alignToMagnet'}) // Meta connection
+                .collect(function(ea) {
+                    var s = ea.sourceAttrName + " -> " + ea.targetObj  + "." + ea.targetMethodName
+                    return [s, [
+                        ["disconnect", function() {
+                            alertOK("disconnecting " + ea)
+                            ea.disconnect()}],
+                        ["edit converter", function() {
+                            var window = lively.bindings.editConnection(ea);
+                        }],
+                        ["show", function() {
+                            lively.bindings.showConnection(ea);
+                        }],
+                        ["hide", function() {
+                            if (ea.visualConnector) ea.visualConnector.remove();
+                        }],
+                    ]]
+                })])
+        }
+
+        if (this.grabbingEnabled || this.grabbingEnabled == undefined) {
+            items.push(["disable grabbing", this.disableGrabbing.bind(this)])
+        } else {
+            items.push(["enable grabbing", this.enableGrabbing.bind(this)])
+        }
+
+        if (this.submorphs.length > 0) {
+            if (this.isLocked()) {
+                items.push(["unlock parts", this.unlock.bind(this)])
+            } else {
+                items.push(["lock parts", this.lock.bind(this)])
+            }
+        }
+
+        if (false) {
+        items.push(["enable internal selections", function() {
+            Trait('SelectionMorphTrait').applyTo(self, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
+            self.enableDragging();
+        }])
+        }
+
+        if (this.reset)
+            items.push(['reset', this.reset.bind(this)]);
+
+        if (this.owner.owner) { // Is owner owner a Stack?
+            if (this.owner.owner.pageArray) {
+                this.owner.owner.stackMenuItems(this, items)    // move between page and background
+            }
+        }
+
+        return items;
+    },if (steppingItems.length != 0) 
             items.push(["stepping", steppingItems])
         } 
          if (this.attributeConnections && this.attributeConnections.length > 0) {

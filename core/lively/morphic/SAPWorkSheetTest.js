@@ -2526,7 +2526,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
     }
 
 });
-lively.morphic.DataGridCell.subclass('lively.morphic.SAPGridHeadCell',
+lively.morphic.SAPGridCell.subclass('lively.morphic.SAPGridHeadCell',
 'settings', {
     style: { fill: Color.rgb(223, 227, 232) }
 
@@ -2545,7 +2545,7 @@ lively.morphic.SAPGridCell.subclass('lively.morphic.SAPGridColHead',
     isColHead: true
 });
 
-lively.morphic.DataGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
+lively.morphic.SAPGridCell.subclass('lively.morphic.SAPGridRowHead',
 'settings', {
     isRowHead: true
 });

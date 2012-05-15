@@ -1689,6 +1689,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
                             nStartY = nActiveY;
                             nEndY = nRow ;
                         }
+                        debugger;
                         for (var x = nStartX; x <= nEndX ; x++) {
                             for (var y = nStartY; y <= nEndY ; y++) {
                                 this.grid.setCellSelection(this.grid,this.grid.at(x,y));

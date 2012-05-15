@@ -199,21 +199,29 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
             target.emphasize({color: Color.web.red}, g.pos[0], g.pos[1]);
         });
     },
+    showError: function(startIndex) {
+        if (!this.isError) {
+            this.isError = true;
+            this.setFill(Color.rgb(255,243,243));
+        }
+        target.emphasize({color: Color.web.red}, startIndex, this.textString.length);
+    },
+    hideError: function() {
+        if (this.isError) {
+            this.isError = false;
+            this.setFill(Color.rgb(243,243,243));
+        }
+    },
     applyHighlighterRules: function(target, highlighterRules) {
         cop.proceed(target, highlighterRules);
+        if (this.specialHighlighting = "none") return this.hideError();
         try {
-            var ast = lively.ast.Parser.parse(this.textString);
+            var rule = this.specialHighlighting ? this.specialHighlighting : 'topLevel';
+            var ast = lively.ast.Parser.parse(this.textString, rule);
             this.highlightGlobals(target, ast);
-            if (this.isError) {
-                this.isError = false;
-                this.setFill(Color.rgb(243,243,243));
-            }
+            this.hideError();
         } catch (e) {
-            if (!this.isError) {
-                this.isError = true;
-                this.setFill(Color.rgb(255,243,243));
-            }
-            target.emphasize({color: Color.web.red}, e[3], this.textString.length);
+            this.showError(e[3]);
         }
     },
 });

@@ -1342,6 +1342,7 @@ currently only support
         }
     },
     setGridCellSelection: function(oGrid, oCell) {
+        debugger;
         oGrid.arrSelectedCells.push(oCell);
         oCell.selectedCell();
     },

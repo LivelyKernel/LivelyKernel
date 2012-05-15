@@ -1704,6 +1704,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
                         }
                     }
                 }else{    
+                    debugger;
                     this.grid.removeSelectedCells();
                     this.grid.setCellSelection(this.grid,this);
                 }

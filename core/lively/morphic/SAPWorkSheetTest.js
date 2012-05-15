@@ -2555,6 +2555,13 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridHeadCell',
 lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
 'settings', {
     isColHead: true
+},
+'default category', {
+    onMouseDown: function (evt) {
+        alert(0)
+        //this.grid = aGrid;
+        //this.grid.addMorph(this);
+    }
 });
 
 lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',

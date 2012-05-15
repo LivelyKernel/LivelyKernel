@@ -2541,7 +2541,7 @@ lively.morphic.SAPGridCell.subclass('lively.morphic.SAPGridHeadCell',
     },
     updateDisplay: Functions.Null
 });
-lively.morphic.SAPGridCell.subclass('lively.morphic.SAPGridColHead',
+lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
 'settings', {
     isColHead: true
 });

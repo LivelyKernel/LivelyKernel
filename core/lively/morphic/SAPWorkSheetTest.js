@@ -917,13 +917,13 @@ var start = new Date().getTime();
                 //oText.applyStyle({borderColor: oBorderColor, fill: oFill ,textColor: oTextColor});
                 //bug in applystyle textDecoration & fontStyle & fontWeight do not work
                 
-                //this.at(x,y).applyStyle({fontSize:sFontSize,fontFamily:sFontFamily,fill: oFill ,textColor: oTextColor});
-                //this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});  
+                //this.at(x+1,y+1).applyStyle({fontSize:sFontSize,fontFamily:sFontFamily,fill: oFill ,textColor: oTextColor});
+                //this.at(x+1,y+1).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});  
                 
                 if (bRedFont){
                     oTextColor=Color.red;
                 }
-                this.at(x,y).applyStyle({fontSize:sFontSize,fontFamily:sFontFamily,
+                this.at(x+1,y+1).applyStyle({fontSize:sFontSize,fontFamily:sFontFamily,
                                         fill: oFill ,textColor: oTextColor,
                                         fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
                 //bug in applystyle textDecoration & fontStyle & fontWeight do not work.. if this is fixed then remove below line

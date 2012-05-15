@@ -611,8 +611,8 @@ debugger;
         this.applyCellChanges();
         //var activePos = this.activeCell.gridPos();
         
-        var curX = this.gridCoords.x;
-        var curY = this.gridCoords.y;
+        var curX = this.activeCell.gridCoords.x;
+        var curY = this.activeCell.gridCoords.y;
 
         var newX = curX  + aPoint.x;
         var newY = curY + aPoint.y;

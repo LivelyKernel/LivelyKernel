@@ -2502,7 +2502,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.grid;
         this.toolBar;
         this.dataFormatter;
-        console.log(bHideRowHeader );
+        console.log(this.hideColHeads);
+        console.log(this.hideRowHeads);
         this.initializeLayout();
     },
      initializeLayout: function() {

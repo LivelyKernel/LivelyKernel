@@ -236,6 +236,7 @@ lively.morphic.World.addMethods(
         if (status.isSuccess()) {
             this.tryToGetWorldRevision(); // update the rev used for overwrite check
             this.savedWorldAsURL =  status.url;
+            lively.bindings.signal(this, 'savingDone', status.url);
         } else {
             this.alert('Problem saving ' + status.url + ': ' + status)
         }

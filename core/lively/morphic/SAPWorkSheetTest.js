@@ -2492,10 +2492,12 @@ dataformat: currency & percentage & date & time
 
 lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
 'default category', {
-    initialize: function($super, numCols, numRows) {
+    initialize: function($super, numCols, numRows,bHideColHeader,bHideRowHeader) {
         $super();
         this.numCols = numCols;
         this.numRows = numRows;
+        this.hideColHeads = bHideColHeader && bHideColHeader;
+        this.hideRowHeads = bHideRowHeader && bHideRowHeader;
         this.toolBarHeight = 60;
         this.grid;
         this.toolBar;

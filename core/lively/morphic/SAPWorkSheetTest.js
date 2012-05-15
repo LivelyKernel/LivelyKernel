@@ -557,7 +557,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     },
 
     at: function(x, y) {
-        return this.rows[y][x];
+        if (!this.hideColHeads) y++;
+        if (!this.hideRowHeads) x++;
+        return this.rows[y] && this.rows[y][x];
     },
     atPut: function(x, y, value) {
         //debugger;

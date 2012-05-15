@@ -2530,14 +2530,10 @@ lively.morphic.SAPGridCell.subclass('lively.morphic.SAPGridHeadCell',
     initialize: function($super, arg1, arg2) {
         $super(arg1, arg2);
         this.disableHalos();
-        //this.setFill(Color.rgb(223, 227, 232));
         this.setBorderColor(Color.rgb(177,181,186));
         this.renderContext().textNode.setAttribute('contenteditable', false);
-        //this.disableEvents();
     },
     addToGrid: function(aGrid) {
-        //this.setFill(Color.rgb(223, 227, 232));
-        this.setBorderColor(Color.rgb(177,181,186));
         this.grid = aGrid;
         this.grid.addMorph(this);
     },

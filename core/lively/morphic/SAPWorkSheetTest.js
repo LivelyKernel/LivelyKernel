@@ -1645,7 +1645,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         sFontFamily = this.getFontFamily();
         sFontSize = this.getFontSize();
         */
-debugger;
+//debugger;
         var nCol= this.gridCoords.x;
         var nRow = this.gridCoords.y;
         

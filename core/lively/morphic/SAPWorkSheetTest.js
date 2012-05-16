@@ -1267,16 +1267,9 @@ currently only support
     getCellIndex: function (sValue){
         var oIndex={};
 	var sRow = sValue.replace(/[A-Za-z]/g,'');
-	var sCol = sValue.replace(sRow,'');
-	var instruct = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-	var sNewCol = '';
+        var sCol = this.getColumnNumber(sValue.replace(sRow,''));
 		
-	for (var i=0; i<sCol.length; i++) {
-	   var n = instruct.indexOf(sCol[i]);
-	   if (n == -1) { sNewCol += sCol[i]; } else { sNewCol += n.toString(); }
-	}
-		
-	oIndex.x = sNewCol;
+	oIndex.x = sCol ;
 	oIndex.y = sRow;
 	return oIndex;
     },

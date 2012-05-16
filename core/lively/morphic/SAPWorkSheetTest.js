@@ -1295,6 +1295,15 @@ currently only support
 	oIndex.y = sRow;
 	return oIndex;
     },
+    getCellDataIndex: function (sValue){
+        var oIndex={};
+	var sRow = sValue.replace(/[A-Za-z]/g,'');
+        var sCol = this.getColumnNumber(sValue.replace(sRow,''));
+		
+	oIndex.x = sCol-1 ;
+	oIndex.y = parseInt(sRow)-1;
+	return oIndex;
+    },
     morphMenuItems: function ($super) {
         var items = $super();
         items.push(['+ column', this.addCol.bind(this)]);

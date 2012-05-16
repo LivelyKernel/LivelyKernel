@@ -214,7 +214,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
     },
     applyHighlighterRules: function(target, highlighterRules) {
         cop.proceed(target, highlighterRules);
-        if (this.specialHighlighting = "none") return this.hideError();
+        if (this.specialHighlighting == "none") return this.hideError();
         try {
             var rule = this.specialHighlighting ? this.specialHighlighting : 'topLevel';
             var ast = lively.ast.Parser.parse(this.textString, rule);

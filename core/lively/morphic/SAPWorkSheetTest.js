@@ -1196,8 +1196,8 @@ currently only support
             sValue= sOrgValue.toUpperCase();
             if (sValue.substr(0,5)=="=SUM("){
                 arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");
-                var oStartCell = this.getCellIndex(arrValue[0]);
-                var oEndCell = this.getCellIndex(arrValue[1]);
+                var oStartCell = this.getCellDataIndex(arrValue[0]);
+                var oEndCell = this.getCellDataIndex(arrValue[1]);
                 
                 var nStartX,nStartY,nEndX,nEndY;
                 if (oStartCell.x  > oEndCell.x ){
@@ -1257,7 +1257,6 @@ currently only support
                 }
                 return nAve;	
 	   }else{  //copying other cell
-                //var oCell = this.parseformulaCellIndex(sValue.replace(/=/g, ""));
                 var oCell = this.getCellDataIndex(sValue.replace(/=/g, ""));
                
                 nValue =  this.arrData[oCell.y][oCell.x].value;

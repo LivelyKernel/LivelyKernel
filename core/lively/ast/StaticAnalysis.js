@@ -192,12 +192,14 @@ Object.subclass('lively.ast.VariableAnalyzer',
     },
 });
 cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
-    errorStyle: {backgroundColor: Color.web.salmon.lighter()},
+    errorStyle: function() {
+        return { backgroundColor: Color.web.salmon.lighter() };
+    },
     highlightGlobals: function(target, ast) {
         var analyzer = new lively.ast.VariableAnalyzer();
         var globals = analyzer.findGlobalVariablesInAST(ast);
         globals.each(function(g) {
-            target.emphasize(this.errorStyle, g.pos[0], g.pos[1]);
+            target.emphasize(this.errorStyle(), g.pos[0], g.pos[1]);
         });
     },
     applyHighlighterRules: function(target, highlighterRules) {
@@ -208,7 +210,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
             var ast = lively.ast.Parser.parse(this.textString, rule);
             this.highlightGlobals(target, ast);
         } catch (e) {
-            target.emphasize(this.errorStyle, e[3], this.textString.length);
+            target.emphasize(this.errorStyle(), e[3], this.textString.length);
         }
     },
 });

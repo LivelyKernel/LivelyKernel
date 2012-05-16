@@ -150,14 +150,17 @@ lively.morphic.Morph.addMethods(
             self = this;
 
         scope.withAllSubmorphsDo(function (ea) {
-            var tempCommonIds = self.derivationIds.intersect(ea.derivationIds);
-            if (tempCommonIds.equals(ea.derivationIds)
-                //&& tempCommonIds.length <= self.derivationIds.length
-                && tempCommonIds.length > commonIds.length) {
-                commonIds = tempCommonIds;
-                result = ea;
-            }
-        })
+            var idsShouldContain = ea.derivationIds.concat([ea.id]);
+            // var tempCommonIds = self.derivationIds.intersect(ea.derivationIds);
+            // if (tempCommonIds.equals(ea.derivationIds)
+                // && tempCommonIds.length <= self.derivationIds.length
+                // && tempCommonIds.length > commonIds.length) {
+                // commonIds = tempCommonIds;
+                // result = ea;
+            // }
+            if (self.derivationIds.intersect(idsShouldContain).length == idsShouldContain.length)
+                result = ea
+         })
 
         return result;
     },

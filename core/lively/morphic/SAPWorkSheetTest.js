@@ -2340,19 +2340,20 @@ dataformat: currency & percentage & date & time
 
     },
     imgFormatCell_Click: function() {
-          
+        var nX = this.grid.oWorkBook.getPosition().x +  100;
+        var nY = this.grid.oWorkBook.getPosition().y +  100;
+
         if (this.oDataFormat){
             if (this.oDataFormat.owner.isShutdown()){
                 this.oDataFormat.owner.state =null;        
-                this.oDataFormat.owner.openInWorld();
+                this.oDataFormat.owner.openInWorld(pt(nX ,nY ));
             }
         }else{
             this.oDataFormat= new lively.morphic.SAPCellFormatter();
             this.oDataFormat.grid=this.grid;
             this.oDataFormat.oOkCallBack = this.setDataFormates;
             debugger;
-            var nX = this.grid.oWorkBook.getPosition().x +  300;
-            var nY = this.grid.oWorkBook.getPosition().y +  300;
+            
             this.oDataFormat.openInWindow(pt(nX ,nY ));
             this.oDataFormat.owner.setTitle("Format Cells");
         }

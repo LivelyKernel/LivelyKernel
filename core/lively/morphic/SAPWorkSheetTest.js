@@ -2607,7 +2607,6 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
             var oSelectedData={};
             var nColLength = this.grid.arrData.length >0 ? this.grid.arrData[0].length : 0;
 
-            alert(nColLength)
             if (nOrgRow == -1){  //select all when click on left top corner
                 for (var y = 1; y < this.grid.numRows; y++) {
                     for (var x = 1; x < this.grid.numCols; x++) {

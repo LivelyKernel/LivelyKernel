@@ -6,6 +6,7 @@ module('lively.morphic.Chris').requires().toRun(function() {
         }
         alertMe: function(){
             alert('hello world');
+            alert(this.getTextString());
         }
     });
 

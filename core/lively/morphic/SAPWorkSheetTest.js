@@ -1258,9 +1258,9 @@ currently only support
                 return nAve;	
 	   }else{  //copying other cell
                 //var oCell = this.parseformulaCellIndex(sValue.replace(/=/g, ""));
-                var oCell = this.getCellIndex(sValue.replace(/=/g, ""));
+                var oCell = this.getCellDataIndex(sValue.replace(/=/g, ""));
                
-                nValue =  this.arrData[oCell.y-1][oCell.x-1].value;
+                nValue =  this.arrData[oCell.y][oCell.x].value;
                 return nValue; 
 	   }	
         }

@@ -5,7 +5,7 @@ module('lively.morphic.Chris').requires().toRun(function() {
         },
         alertMe: function(text){
             debugger;
-            alert(text + ' I Should See This');
+            alert(text + ' I Should See This xxx');
         }
     });    
 

@@ -31,7 +31,7 @@
  *  to be overridden.
  */
 
-var UserAgent = (function() {
+(function setupUserAgent(Global) {
 
     var webKitVersion = (function() {
         if (!window.navigator) return 0;
@@ -45,11 +45,10 @@ var UserAgent = (function() {
         isOpera = window.navigator && window.navigator.userAgent.indexOf("Opera") > -1,
         isIE = window.navigator && window.navigator.userAgent.indexOf("MSIE") > -1,
         fireFoxVersion = window.navigator &&
-            (window.navigator.userAgent.split("Firefox/")[1] ||
-             window.navigator.userAgent.split("Minefield/")[1]); // nightly
+        (window.navigator.userAgent.split("Firefox/")[1] ||
+         window.navigator.userAgent.split("Minefield/")[1]); // nightly
 
-    // Determines User Agent capabilities
-    return {
+    Global.UserAgent = {
         // Newer versions of WebKit implement proper SVGTransform API, with
         // potentially better performance. Scratch that, lets make it more
         // predictable:
@@ -87,21 +86,22 @@ var UserAgent = (function() {
 
         touchIsMouse: false
 
-    };
+    }
 
-})();
+})(window);
+
 
 //--------------------------
 // Determine runtime behavior based on UA capabilities and user choices
 // (can be overriden in localconfig.js)
 // --------------------------
-var ExistingConfig;
-if (Config) { ExistingConfig = Config; }
+(function savePreBootstrapConfig(Global) {
+    Global.ExistingConfig = Global.Config;
+})(window);
 
 var Config = {
 
     _options: {},
-    trackUsage: true,
 
     addOption: function(name, value, docString, group, type) {
         if (name === '_options') {
@@ -114,6 +114,10 @@ var Config = {
             default: value,
             group: group
         }
+    },
+
+    hasOption: function(name) {
+        return !!this._options[name];
     },
 
     addOptions: function(/*group - options pairs*/) {
@@ -167,6 +171,19 @@ var Config = {
         return arr.push(value);
     },
 
+    allOptionNames: function() {
+        return Properties.own(this)
+               .pushAll(Properties.own(this._options))
+               .uniq()
+               .withoutAll(['_options', 'usage'])
+               .reject(function(ea) { return ea.startsWith('__') });
+    },
+
+    manualOptionNames: function() {
+        return this.allOptionNames()
+           .withoutAll(Properties.own(this._options));
+    },
+
     toString: function() {
         // gather all groups
         var groups = {}, groupNames = [], config = this;
@@ -194,9 +211,13 @@ var Config = {
         return 'lively.Config:\n  [' + groupStrings.join(',\n\n  ') + ']';
     }
 
-}
+};
 
-if (Config.trackUsage) {
+(function setupConfigTracking() {
+
+    Config.addOption('trackUsage', true, 'to inspect what was read / wrote from / to the Config object', 'lively.Config');
+
+    if (!Config.trackUsage) return;
 
     /*
      * Usage tracking for cleanup.
@@ -210,23 +231,10 @@ if (Config.trackUsage) {
 
         usage: {},
 
-        allOptionNames: function() {
-             return Properties.own(this)
-                    .pushAll(Properties.own(this._options))
-                    .uniq()
-                    .withoutAll(['_options', 'usage'])
-                    .reject(function(ea) { return ea.startsWith('__') });
-        },
-
         usedOptionNames: function() { return Properties.own(this.usedOptions()) },
 
         unusedOptionNames: function() {
             return this.allOptionNames().withoutAll(this.usedOptionNames());
-        },
-
-        manualOptionNamess: function() {
-             return this.allOptionNames()
-                    .withoutAll(Properties.own(this._options));
         },
 
         usedOptions: function() {
@@ -260,14 +268,16 @@ if (Config.trackUsage) {
                         this.usage[name] = usageStats;
                         this[internalName] = value;
                         this.__defineGetter__(name, function() {
-                            var stack;
+                            var stack = "no stack obtained";
                             try { throw new Error() } catch(e) { stack = e.stack }
+                            stack = stack.replace('Error\n', '');
                             usageStats.read.push(stack);
                             return self[internalName];
                         });
                         this.__defineSetter__(name, function(value) {
-                            var stack;
+                            var stack = "no stack obtained";
                             try { throw new Error() } catch(e) { stack = e.stack }
+                            stack = stack.replace('Error\n', '');
                             usageStats.write.push(stack);
                             return self[internalName] = value;
                         });
@@ -275,11 +285,20 @@ if (Config.trackUsage) {
         })()
 
     });
-}
+
+})();
+
+(function addConfigOptions() {
 
 Config.addOptions(
+    "cop", [
+        ["copDynamicInlining", false, "Dynamically compile layered methods for improving their execution performance ."],
+        ['ignoredepricatedProceed', true]
+    ],
+
     'lively.Network', [
-        ["proxyURL", null, "URL that acts as a proxy for network operations"]
+        ["proxyURL", null, "URL that acts as a proxy for network operations"],
+        ["rootPath", null, "URL that points at the base directory of the current Lively installation"]
     ],
 
     'server.nodejs', [
@@ -299,16 +318,13 @@ Config.addOptions(
 
     'lively.bindings', [
         ["selfConnect", false, "DEPRECATED! some widgets self connect to a private model on startup, but it doesn't seem necessary, turn on to override"],
-        ["debugConnect", false, "for triggering a breakpoint when an connect update throws an error"],
-        ["visualConnectEnabled", false]
-    ],
-
-    "cop", [
-        ["copDynamicInlining", false]
+        ["debugConnect", false, "For triggering a breakpoint when an connect update throws an error"],
+        ["visualConnectEnabled", false, "Show data-flow arrows when doing a connect using the UI."]
     ],
 
     'lively.morphic', [
-        ['shiftDragForDup', true, 'Allows easy object duplication using the Shift key'],
+        ['isNewMorphic', true, 'Deprecated option, defaults to true. Used in 2011 when Lively2 was being developed.'],
+        ['shiftDragForDup', true, 'Allows easy object duplication using the Shift key.'],
         ["usePieMenus", UserAgent.isTouch],
         ["suppressBalloonHelp", true],
         ["useTransformAPI", (!UserAgent.isOpera) && UserAgent.usableTransformAPI, "Use the browser's affine transforms"],
@@ -418,6 +434,10 @@ Config.addOptions(
         ["showTextSamples", true],
         ["showSystemBrowser", false],
 
+        ["showInnerWorld", true/*!Config.skipMostExamples*/],
+        ["showSlideWorld", true/*!Config.skipMostExamples*/],
+        ["showDeveloperWorld", true/*!Config.skipMostExamples*/],
+
         ["showClipMorph", function() { return !Config.skipMostExamples}],
         ["show3DLogo", function() { return !Config.skipMostExamples}],
         ["showAsteroids", function() { return !Config.skipMostExamples && !UserAgent.isTouch}],
@@ -430,12 +450,6 @@ Config.addOptions(
         ["showSquiggle", function() { return !Config.skipMostExamples}],
         ["showWebStore", function() { return !Config.skipMostExamples || Config.browserAnyway}],
         ["showVideo", function() { return !Config.skipMostExamples && !UserAgent.isTouch}]
-    ],
-
-    "lively.morphic.Examples.Worlds", [
-        ["showInnerWorld", true/*!Config.skipMostExamples*/],
-        ["showSlideWorld", true/*!Config.skipMostExamples*/],
-        ["showDeveloperWorld", true/*!Config.skipMostExamples*/]
     ],
 
     'lively.morphic.Events', [
@@ -465,4 +479,24 @@ Config.addOptions(
     ]
 );
 
-if (ExistingConfig) Object.extend(Config, ExistingConfig);
+})();
+
+
+(function addOptionsFromPreBootstrapConfig(Global) {
+
+    var ExistingConfig = Global.ExistingConfig;
+
+    if (!ExistingConfig) return;
+
+    for (var name in ExistingConfig) {
+        var value = ExistingConfig[name];
+        if (Config.hasOption(name)) {
+            Config.set(name, value)
+        } else {
+            Config.addOption(name, value, null, 'pre-bootstrap config option');
+        }
+    }
+
+    delete Global.ExistingConfig;
+
+})(window);

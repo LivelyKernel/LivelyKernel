@@ -195,7 +195,7 @@ Strings = {
     },
 
     print: function(obj) {
-        if (obj.constructor === Array) {
+        if (obj && obj.constructor && obj.constructor === Array) {
             return '[' + obj.map(function(ea) { return Strings.print(ea) }) + ']';
         }
         if (typeof obj !== "string") {

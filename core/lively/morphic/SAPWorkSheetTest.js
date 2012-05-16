@@ -2600,21 +2600,21 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
     onMouseDown: function (evt) {
         this.grid.hideAnnotation();
         if (evt.isLeftMouseButtonDown()) {
-           debugger;
+
             var nRow= this.gridCoords.y;
             var nOrgRow = nRow-1 + this.grid.startRow;
             var oSelectedData={};
 
-            this.grid.selectedColumnHeader = this;
+            //this.grid.selectedColumnHeader = this;
             this.grid.removeSelectedCells();
 
             //for grid selected
-            for (var y = 1; y < this.grid.numRows; y++) {
-                this.grid.setGridCellSelection(this.grid,this.grid.rows[y][nCol]);
+            for (var x = 1; x < this.grid.numCols; y++) {
+                this.grid.setGridCellSelection(this.grid,this.grid.rows[nRow][x]);
             }
             //for data selected
-            for (var y = 0; y < this.grid.arrData.length; y++) {
-                this.grid.setDataCellSelection(this.grid,nOrgCol,y)
+            for (var x = 0; x < this.grid.arrData[0].length; y++) {
+                this.grid.setDataCellSelection(this.grid,nRow,x)
             }
             
         }

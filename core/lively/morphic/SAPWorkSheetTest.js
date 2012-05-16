@@ -1260,7 +1260,7 @@ currently only support
                 //var oCell = this.parseformulaCellIndex(sValue.replace(/=/g, ""));
                 var oCell = this.getCellIndex(sValue.replace(/=/g, ""));
                
-                nValue =  this.arrData[oCell.y][oCell.x].value;
+                nValue =  this.arrData[oCell.y-1][oCell.x-1].value;
                 return nValue; 
 	   }	
         }

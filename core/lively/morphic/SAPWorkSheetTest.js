@@ -1102,7 +1102,7 @@ console.log('updateDisplay:'  + elapsed/1000);
     },
     removeRowBetween: function() {
         if (this.activeCell) {
-            var nRow = this.activeCell.gridCoords.y - (this.hideColHeads ? 0 : 1);
+            var nRow = this.activeCell.gridCoords.y;
             var nColumn = this.activeCell.gridCoords.x;
 
             var nOrgRow = nRow -1 + this.startRow;

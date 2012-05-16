@@ -1138,7 +1138,9 @@ lively.morphic.World.addMethods(
             ['Preferences', [
                 ['set username', this.askForUserName.bind(this)],
                 ['set extent', this.askForNewWorldExtent.bind(this)],
-                ['set background color', this.askForNewBackgroundColor.bind(this)]],
+                ['set background color', this.askForNewBackgroundColor.bind(this)],
+                ['show lively.Config', function() {
+                    world.addTextWindow({title: 'lively.Config', content: lively.Config.inspect() }); }]]
             ],
             ['Debugging', this.debuggingMenuItems(world)],
             ['Wiki', [
@@ -2932,7 +2934,7 @@ Object.extend(Array.prototype, {
         return this.collect(function(ea) {
             return {isListItem: true, string: ea.toString(), value: ea};
         });
-    },
+    }
 })
 
 }) // end of module

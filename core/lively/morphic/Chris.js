@@ -1,6 +1,6 @@
 module('lively.morphic.Chris').requires().toRun(function() {
 
-    lively.morphic.Morph.subclass('lively.morphic.Chris', 'events', {
+    lively.morphic.Morph.subclass('lively.morphic.Chrisbutton', 'events', {
         initialize: function($super){
             $super();
         },

@@ -192,25 +192,13 @@ Object.subclass('lively.ast.VariableAnalyzer',
     },
 });
 cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
+    errorStyle: {backgroundColor: Color.web.salmon.lighter()},
     highlightGlobals: function(target, ast) {
         var analyzer = new lively.ast.VariableAnalyzer();
         var globals = analyzer.findGlobalVariablesInAST(ast);
         globals.each(function(g) {
-            target.emphasize({color: Color.web.red}, g.pos[0], g.pos[1]);
+            target.emphasize(this.errorStyle, g.pos[0], g.pos[1]);
         });
-    },
-    showError: function(target, startIndex) {
-        if (!this.isError) {
-            this.isError = true;
-            this.setFill(Color.rgb(255,243,243));
-        }
-        target.emphasize({color: Color.web.red}, startIndex, this.textString.length);
-    },
-    hideError: function() {
-        if (this.isError) {
-            this.isError = false;
-            this.setFill(Color.rgb(243,243,243));
-        }
     },
     applyHighlighterRules: function(target, highlighterRules) {
         cop.proceed(target, highlighterRules);
@@ -219,9 +207,8 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
             var rule = this.specialHighlighting ? this.specialHighlighting : 'topLevel';
             var ast = lively.ast.Parser.parse(this.textString, rule);
             this.highlightGlobals(target, ast);
-            this.hideError();
         } catch (e) {
-            this.showError(target, e[3]);
+            target.emphasize(this.errorStyle, e[3], this.textString.length);
         }
     },
 });

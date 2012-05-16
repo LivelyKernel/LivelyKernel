@@ -4,8 +4,8 @@ module('lively.morphic.Chris').requires().toRun(function() {
         initialize: function($super){
             $super();
         },
-        alertMe: function(){
-            alert('hello world');
+        alertMe: function(text){
+            alert(text);
         }
     });    
 

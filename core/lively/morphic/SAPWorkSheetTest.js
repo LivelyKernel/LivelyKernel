@@ -2609,15 +2609,15 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
             var nColLength = this.grid.arrData.length >0 ? this.grid.arrData[0].length : 0;
 
             alert(nColLength)
-            if (nOrgRow == -1){
+            if (nOrgRow == -1){  //select all when click on left top corner
                 for (var y = 1; y < this.grid.numRows; y++) {
                     for (var x = 1; x < this.grid.numCols; x++) {
                         this.grid.setGridCellSelection(this.grid,this.grid.rows[y][x]);
                     }
                 }
                 for (var y = 0; y < this.grid.arrData.length; y++) {
-                    for (var x = 0; x < this.grid.arrData[0].length; x++) {
-                        //this.grid.setDataCellSelection(this.grid,x,nOrgRow )
+                    for (var x = 0; x < nColLength ; x++) {
+                        /this.grid.setDataCellSelection(this.grid,x,y);
                     }
                 }
                 
@@ -2630,7 +2630,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
                     this.grid.setGridCellSelection(this.grid,this.grid.rows[nRow][x]);
                 }
                 //for data selected
-                for (var x = 0; x < this.grid.arrData[0].length; x++) {
+                for (var x = 0; x < nColLength; x++) {
                     this.grid.setDataCellSelection(this.grid,x,nOrgRow )
                 }
             }

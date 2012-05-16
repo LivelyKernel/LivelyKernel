@@ -290,7 +290,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 this.expandRows();
             }
             //Row name
-            for (var nRow= this.startRow ; nCol < this.endRow ; nRow++) {
+            for (var nRow= this.startRow ; nRow< this.endRow ; nRow++) {
                 this.rowHeads [nRow-this.startRow].textString = nCol.toString();
             }
 

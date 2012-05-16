@@ -2615,7 +2615,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
             }
             //for data selected
             for (var x = 0; x < this.grid.arrData[0].length; x++) {
-                this.grid.setDataCellSelection(this.grid,nRow,x)
+                this.grid.setDataCellSelection(this.grid,x,nRow)
             }
             
         }

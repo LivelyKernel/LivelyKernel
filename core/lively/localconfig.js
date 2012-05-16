@@ -7,7 +7,7 @@ var host = document.location.host,
 Config.set('proxyURL', protocol + '//' + host + '/proxy');
 
 Config.set("wikiRepoUrl", protocol + '//' + host + (url.include('swa/research') ?
-                                               wwPath + '/swa/research' : wwPath));
+                                                    wwPath + '/swa/research' : wwPath));
 
 Config.set("debugExtras", false);
 
@@ -30,3 +30,5 @@ Config.set("ignoreAdvice", false);
 Config.set("loadUserConfig", true);
 
 Config.add("modulePaths", 'apps');
+
+Config.urlQueryOverride();

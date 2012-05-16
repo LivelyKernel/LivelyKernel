@@ -141,6 +141,16 @@ var Config = {
         }
     },
 
+    urlQueryOverride: function() {
+        var queries = document.URL.toString().toQueryParams();
+        for (var name in queries) {
+            if (!Config.hasOption(name)) continue;
+            var value = queries[name];
+            if (Config.get(name) === value) continue;
+            console.log('Overriding Config.' + name + ' with ' + value);
+            Config.set(name, value);
+        }
+    },
 
     loadUserConfigModule: function() {
         if (!Config.get("loadUserConfig")) return;

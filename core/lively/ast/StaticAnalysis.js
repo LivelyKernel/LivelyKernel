@@ -196,7 +196,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
         var analyzer = new lively.ast.VariableAnalyzer();
         var globals = analyzer.findGlobalVariablesInAST(ast);
         globals.each(function(g) {
-            target.emphasize(this.errorStyle(), g.pos[0], g.pos[1]);
+            target.emphasize(AdvancedSyntaxHighlighting.errorStyle, g.pos[0], g.pos[1]);
         });
     },
     applyHighlighterRules: function(target, highlighterRules) {
@@ -207,7 +207,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
             var ast = lively.ast.Parser.parse(this.textString, rule);
             this.highlightGlobals(target, ast);
         } catch (e) {
-            target.emphasize(this.errorStyle(), e[3], this.textString.length);
+            target.emphasize(AdvancedSyntaxHighlighting.errorStyle, e[3], this.textString.length);
         }
     },
 });

@@ -4,7 +4,7 @@ module('lively.morphic.Chris').requires().toRun(function() {
             $super();
         },
         alertMe: function(text){
-            alert(text + ' I Should See This  xxxx');
+            alert(text + ' I Should See This');
         }
     });    
 

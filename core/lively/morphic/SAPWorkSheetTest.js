@@ -1116,8 +1116,8 @@ console.log('updateDisplay:'  + elapsed/1000);
             var nRow = this.activeCell.gridCoords.y - (this.hideColHeads ? 0 : 1);
             var nColumn = this.activeCell.gridCoords.x;
 
-            var nOrgRow = nRow  + this.startRow;
-            var nOrgCol = nColumn + this.startColumn;
+            var nOrgRow = nRow -1 + this.startRow;
+            var nOrgCol = nColumn-1 + this.startColumn;
         
             for (var n = 0; n < this.arrData.length; n++) {
                 this.arrData[n].splice(nOrgCol,1);

@@ -1114,11 +1114,8 @@ console.log('updateDisplay:'  + elapsed/1000);
     },
     removeColBetween: function() {
         if (this.activeCell) {
-            var nRow = this.activeCell.gridCoords.y;
             var nColumn = this.activeCell.gridCoords.x;
-
-            var nOrgRow = nRow -1 + this.startRow;
-            var nOrgCol = nColumn-1 + this.startColumn;
+            var nOrgCol = nColumn - 1 + this.startColumn;
         
             for (var n = 0; n < this.arrData.length; n++) {
                 this.arrData[n].splice(nOrgCol,1);

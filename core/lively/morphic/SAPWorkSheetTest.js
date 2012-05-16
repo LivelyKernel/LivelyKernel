@@ -1188,7 +1188,7 @@ currently only support
         var nAve = 0;
     	var nValue; 
         var sValue;
-        
+        var nStartX,nStartY,nEndX,nEndY;
         if (sOrgValue){
         
         try{
@@ -1199,7 +1199,7 @@ currently only support
                 var oStartCell = this.getCellDataIndex(arrValue[0]);
                 var oEndCell = this.getCellDataIndex(arrValue[1]);
                 
-                var nStartX,nStartY,nEndX,nEndY;
+                
                 if (oStartCell.x  > oEndCell.x ){
                     nStartX=oEndCell.x;
                     nEndX = oStartCell.x; 
@@ -1221,27 +1221,38 @@ currently only support
 		        nTotal  +=nValue;
                     }
                 }
-	      
-                /*if (oStartCell.columnIndex==oEndCell.columnIndex){
-                    for (var nRow = oStartCell.rowIndex; nRow <= oEndCell.rowIndex; nRow ++) {
-                        
-                        nValue = parseFloat(this.arrData[nRow][oStartCell.columnIndex].value);
-                        //nValue = parseFloat(this.at(oStartCell.columnIndex,nRow).textString);
-		        if (isNaN(nValue)) {nValue=0}
-		        nTotal  +=nValue;
-		    }
-	       }else{//summing horizontally
-                    for (var nCol = oStartCell.columnIndex; nCol <= oEndCell.columnIndex; nCol ++) {
-						
-		      }
-                }*/
                 return nTotal;  
             }else if(sValue.substr(0,9)=="=AVERAGE("){
                 arrValue= sValue.replace(/=AVERAGE\(/g, "").replace(/\)/g,"").split(":");
-                var oStartCell = this.parseformulaCellIndex(arrValue[0]);
-                var oEndCell = this.parseformulaCellIndex(arrValue[1]);
+                var oStartCell = this.getCellDataIndex(arrValue[0]);
+                var oEndCell = this.getCellDataIndex(arrValue[1]);
                 var nCount=0;
-                if (oStartCell.columnIndex==oEndCell.columnIndex){
+
+                if (oStartCell.x  > oEndCell.x ){
+                    nStartX=oEndCell.x;
+                    nEndX = oStartCell.x; 
+                }else{
+                    nStartX=oStartCell.x;
+                    nEndX = oEndCell.x; 
+                }
+                if (oStartCell.y> oEndCell.y){
+                    nStartY = oEndCell.y;
+                    nEndY = oStartCell.y;
+                }else{
+                    nStartY = oStartCell.y;
+                    nEndY = oEndCell.y;
+                }
+                for (var x = nStartX; x <= nEndX ; x++) {
+                    for (var y = nStartY; y <= nEndY ; y++) {
+                        nValue = parseFloat(this.arrData[y][x].value);
+		        if (isNaN(nValue)) {nValue=0}
+		        nTotal  +=nValue;
+                        nCount +=1;
+                    }
+                }
+                nAve = parseInt(nTotal/nCount)
+                return nAve;	
+                /*if (oStartCell.columnIndex==oEndCell.columnIndex){
                     for (var nRow = oStartCell.rowIndex; nRow <= oEndCell.rowIndex; nRow ++) {
                         
                         nValue = parseFloat(this.arrData[nRow][oStartCell.columnIndex].value);
@@ -1254,7 +1265,7 @@ currently only support
                     for (var nCol = oStartCell.columnIndex; nCol <= oEndCell.columnIndex; nCol ++) {
 						
 		      }
-                }
+                }*/
                 return nAve;	
 	   }else{  //copying other cell
                 var oCell = this.getCellDataIndex(sValue.replace(/=/g, ""));

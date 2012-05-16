@@ -209,7 +209,9 @@ var Config = {
            .withoutAll(Properties.own(this._options));
     },
 
-    toString: function() {
+    toString: function() { return 'lively.Config' },
+
+    inspect: function() {
         // gather all groups
         var groups = {}, groupNames = [], config = this;
 
@@ -234,84 +236,80 @@ var Config = {
         });
 
         return 'lively.Config:\n  [' + groupStrings.join(',\n\n  ') + ']';
+    },
+
+    enableTracking: function() {
+        var config = this;
+
+        /*
+         * Usage tracking for cleanup.
+         * Config.unusedOptionNames() to find out never used options
+         * Config.usedOptionNames() to find out where options are read/write
+         * Config.manualOptionNames() to find out what options are assigned inline
+         *   without using #addOption.
+         */
+
+        Object.extend(config, {
+
+            usage: {},
+
+            usedOptionNames: function() { return Properties.own(this.usedOptions()) },
+
+            unusedOptionNames: function() {
+                return this.allOptionNames().withoutAll(this.usedOptionNames());
+            },
+
+            usedOptions: function() {
+                function printUsed() {
+                    return "Config usage:\n" + Properties.own(used).collect(function(name) {
+                        var usageStats = used[name],
+                        readString = usageStats.read.join('\n\n'),
+                        writeString = usageStats.write.join('\n\n');
+                        return Strings.format('%s:\nread:\n%s\n\nwrite:\n%s',
+                                              name, readString, writeString);
+                    }).join('\n= = = = =\n');
+                }
+                var used = { toString: printUsed }
+                Properties.forEachOwn(this.usage, function(name, usageStats) {
+                    if (usageStats.read.length > 0 || usageStats.write.length > 0) {
+                        used[name] = usageStats;
+                    };
+                })
+                return used;
+            },
+
+            addOption: (function() {
+                var proceed = config.addOption;
+
+                return function(name, value, docString, group, type) {
+                    proceed.apply(this, arguments);
+
+                    var internalName = '__' + name,
+                        usageStats = {read: [], write: []},
+                    self = this;
+                    this.usage[name] = usageStats;
+                    this[internalName] = value;
+                    this.__defineGetter__(name, function() {
+                        var stack = "no stack obtained";
+                        try { throw new Error() } catch(e) { stack = e.stack }
+                        stack = stack.replace('Error\n', '');
+                        usageStats.read.push(stack);
+                        return self[internalName];
+                    });
+                    this.__defineSetter__(name, function(value) {
+                        var stack = "no stack obtained";
+                        try { throw new Error() } catch(e) { stack = e.stack }
+                        stack = stack.replace('Error\n', '');
+                        usageStats.write.push(stack);
+                        return self[internalName] = value;
+                    });
+                }
+            })()
+
+        });
     }
 
 };
-
-(function setupConfigTracking(Config) {
-
-    Config.addOption('trackUsage', false, 'to inspect what was read / wrote from / to the Config object', 'lively.Config');
-
-    if (!Config.trackUsage) return;
-
-    /*
-     * Usage tracking for cleanup.
-     * Config.unusedOptionNames() to find out never used options
-     * Config.usedOptionNames() to find out where options are read/write
-     * Config.manualOptionNames() to find out what options are assigned inline
-     *   without using #addOption.
-     */
-
-    Object.extend(Config, {
-
-        usage: {},
-
-        usedOptionNames: function() { return Properties.own(this.usedOptions()) },
-
-        unusedOptionNames: function() {
-            return this.allOptionNames().withoutAll(this.usedOptionNames());
-        },
-
-        usedOptions: function() {
-            function printUsed() {
-                return "Config usage:\n" + Properties.own(used).collect(function(name) {
-                    var usageStats = used[name],
-                        readString = usageStats.read.join('\n\n'),
-                        writeString = usageStats.write.join('\n\n');
-                    return Strings.format('%s:\nread:\n%s\n\nwrite:\n%s',
-                                          name, readString, writeString);
-                }).join('\n= = = = =\n');
-            }
-            var used = { toString: printUsed }
-            Properties.forEachOwn(this.usage, function(name, usageStats) {
-                if (usageStats.read.length > 0 || usageStats.write.length > 0) {
-                    used[name] = usageStats;
-                };
-            })
-            return used;
-        },
-
-        addOption: (function() {
-                    var proceed = Config.addOption;
-
-                    return function(name, value, docString, group, type) {
-                        proceed.apply(this, arguments);
-
-                        var internalName = '__' + name,
-                            usageStats = {read: [], write: []},
-                            self = this;
-                        this.usage[name] = usageStats;
-                        this[internalName] = value;
-                        this.__defineGetter__(name, function() {
-                            var stack = "no stack obtained";
-                            try { throw new Error() } catch(e) { stack = e.stack }
-                            stack = stack.replace('Error\n', '');
-                            usageStats.read.push(stack);
-                            return self[internalName];
-                        });
-                        this.__defineSetter__(name, function(value) {
-                            var stack = "no stack obtained";
-                            try { throw new Error() } catch(e) { stack = e.stack }
-                            stack = stack.replace('Error\n', '');
-                            usageStats.write.push(stack);
-                            return self[internalName] = value;
-                        });
-                    }
-        })()
-
-    });
-
-})(Config);
 
 (function addConfigOptions(Config, UserAgent, ExistingConfig) {
 
@@ -319,6 +317,10 @@ Config.addOptions(
     "cop", [
         ["copDynamicInlining", false, "Dynamically compile layered methods for improving their execution performance ."],
         ['ignoredepricatedProceed', true]
+    ],
+
+    'lively.Config', [
+        ['trackUsage', false, 'to inspect how and where the Config was accessed and modified']
     ],
 
     'lively.Network', [
@@ -530,3 +532,9 @@ Config.addOptions(
     var lively = Global.lively = Global.lively || {};
     lively.Config = Global.Config;
 })(window);
+
+(function setupTracking() {
+    if (lively.Config.get('trackUsage')) {
+        lively.Config.enableTracking();
+    }
+})();

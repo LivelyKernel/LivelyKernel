@@ -2350,6 +2350,7 @@ dataformat: currency & percentage & date & time
             this.oDataFormat= new lively.morphic.SAPCellFormatter();
             this.oDataFormat.grid=this.grid;
             this.oDataFormat.oOkCallBack = this.setDataFormates;
+            //var nX = 
             this.oDataFormat.openInWindow(pt(300,300));
             this.oDataFormat.owner.setTitle("Format Cells");
         }

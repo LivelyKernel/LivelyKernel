@@ -1103,11 +1103,8 @@ console.log('updateDisplay:'  + elapsed/1000);
     removeRowBetween: function() {
         if (this.activeCell) {
             var nRow = this.activeCell.gridCoords.y;
-            var nColumn = this.activeCell.gridCoords.x;
-
             var nOrgRow = nRow -1 + this.startRow;
-            var nOrgCol = nColumn -1 + this.startColumn;
-
+ 
             this.arrData.splice(nOrgRow ,1);
             this.updateDataModel();
         }

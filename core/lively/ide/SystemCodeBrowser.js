@@ -169,6 +169,7 @@ Object.extend(lively.ide, {
         }
 
         return promise;
-    },
+    }
 });
+
 }) // end of module

@@ -192,9 +192,6 @@ Object.subclass('lively.ast.VariableAnalyzer',
     },
 });
 cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
-    errorStyle: function() {
-        return { backgroundColor: Color.web.salmon.lighter() };
-    },
     highlightGlobals: function(target, ast) {
         var analyzer = new lively.ast.VariableAnalyzer();
         var globals = analyzer.findGlobalVariablesInAST(ast);

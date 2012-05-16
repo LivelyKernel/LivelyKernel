@@ -2605,19 +2605,20 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
             var nRow= this.gridCoords.y;
             var nOrgRow = nRow-1 + this.grid.startRow;
             var oSelectedData={};
-            alert(nOrgRow )
-            this.grid.selectedRowHeader= this;
-            this.grid.removeSelectedCells();
+    
+            if (nOrgRow >-1){
+                this.grid.selectedRowHeader= this;
+                this.grid.removeSelectedCells();
 
-            //for grid selected
-            for (var x = 1; x < this.grid.numCols; x++) {
-                this.grid.setGridCellSelection(this.grid,this.grid.rows[nRow][x]);
+                //for grid selected
+                for (var x = 1; x < this.grid.numCols; x++) {
+                    this.grid.setGridCellSelection(this.grid,this.grid.rows[nRow][x]);
+                }
+                //for data selected
+                for (var x = 0; x < this.grid.arrData[0].length; x++) {
+                    this.grid.setDataCellSelection(this.grid,x,nOrgRow )
+                }
             }
-            //for data selected
-            for (var x = 0; x < this.grid.arrData[0].length; x++) {
-                this.grid.setDataCellSelection(this.grid,x,nOrgRow )
-            }
-            
         }
     }
 });

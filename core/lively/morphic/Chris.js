@@ -3,9 +3,8 @@ module('lively.morphic.Chris').requires().toRun(function() {
         initialize: function($super){
             $super();
         },
-        alertMe: function(text ){
-            debugger;
-            alert(text + ' hello goodbyse ');
+        alertMe: function(text){
+            alert(text);
         }
     });    
 

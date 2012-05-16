@@ -2605,7 +2605,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
             var nRow= this.gridCoords.y;
             var nOrgRow = nRow-1 + this.grid.startRow;
             var oSelectedData={};
-
+            alert(nOrgRow )
             this.grid.selectedRowHeader= this;
             this.grid.removeSelectedCells();
 

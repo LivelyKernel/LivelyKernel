@@ -213,6 +213,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
 });
 Object.extend(AdvancedSyntaxHighlighting, {
     errorStyle: { backgroundColor: Color.web.salmon.lighter() }
+    globalStyle: { color: Color.red }
 });
 cop.create('SystemCodeEditorHighlighting').refineClass(lively.ide.BasicBrowser, {
     onSourceStringUpdate: function(methodString, source) {

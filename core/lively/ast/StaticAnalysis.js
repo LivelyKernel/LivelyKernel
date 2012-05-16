@@ -211,6 +211,9 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
         }
     },
 });
+Object.extend(SomeObject, {
+    m1: function() {},
+});
 cop.create('SystemCodeEditorHighlighting').refineClass(lively.ide.BasicBrowser, {
     onSourceStringUpdate: function(methodString, source) {
         var node = this.selectedNode();

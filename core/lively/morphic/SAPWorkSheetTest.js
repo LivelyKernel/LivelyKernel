@@ -289,6 +289,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             if (this.endRow> this.arrData.length){
                 this.expandRows();
             }
+            //column name
+            for (var nRow= this.startRow ; nCol < this.endRow ; nRow++) {
+                //this.colHeads[nCol-this.startColumn].textString = this.getColumnName(nCol);
+            }
+
             this.updateDataModel();
 
             //if scroll reached end we need to increase??

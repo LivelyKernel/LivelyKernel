@@ -933,7 +933,7 @@ var start = new Date().getTime();
                                         fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
                 //bug in applystyle textDecoration & fontStyle & fontWeight do not work.. if this is fixed then remove below line
                 this.at(x+1,y+1).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
-  
+                this.at(x+1,y+1).setTextDecoration(sTextDecoration);
                 //borderColor does not take null value.
                 if (oBorderColor){
                     this.at(x+1,y+1).applyStyle({borderColor: oBorderColor});

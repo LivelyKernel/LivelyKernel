@@ -141,11 +141,17 @@ var Config = {
         }
     },
 
-    // helper methods
-    getDocumentDirectory: function() {
-        // used in various places
-        var url = document.URL;
-        return url.substring(0, url.lastIndexOf('/') + 1);
+
+    loadUserConfigModule: function() {
+        if (!Config.get("loadUserConfig")) return;
+        if (!lively.LocalStorage.isAvailable()) {
+            console.warn('cannot load user config because cannot access localStorage!')
+            return;
+        }
+        var userName = lively.LocalStorage.get('UserName');
+        if (!userName || userName === "undefined") return;
+        var fileName = LivelyLoader.codeBase + '../users/' + userName + "/config.js";
+        JSLoader.loadJs(fileName, function() { Config.urlQueryOverride(); });
     },
 
     set: function(name, value) {
@@ -171,6 +177,14 @@ var Config = {
         return arr.push(value);
     },
 
+    // helper methods
+    getDocumentDirectory: function() {
+        // used in various places
+        var url = document.URL;
+        return url.substring(0, url.lastIndexOf('/') + 1);
+    },
+
+    // debugging
     allOptionNames: function() {
         return Properties.own(this)
                .pushAll(Properties.own(this._options))

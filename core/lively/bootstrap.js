@@ -501,7 +501,7 @@ var LivelyLoader = {
     // ------- load world ---------------
     //
     loadMain: function(canvas, startupFunc) {
-        LivelyLoader.loadUserConfig();
+        Config.loadUserConfigModule();
         require('lively.bindings', 'lively.Main').toRun(function() {
             var loader = lively.Main.getLoader(canvas);
             lively.bindings.connect(loader, 'finishLoading', LoadingScreen, 'remove');
@@ -601,7 +601,7 @@ var LivelyLoader = {
             'lively/Base.js',
             'lively/lang/Closure.js',   // FIXME: require module instead
             'lively/lang/UUID.js',       // FIXME: require module instead
-            'lively/LocalStorage.js',      // FIXME: require module instead
+            'lively/LocalStorage.js'      // FIXME: require module instead
         ];
         JSLoader.resolveAndLoadAll(codeBase, modules, thenDoFunc);
     },
@@ -632,20 +632,7 @@ var LivelyLoader = {
             thenDoFunc);
     },
 
-    loadUserConfig: function() {
-        if (!Config.loadUserConfig) return;
-        if (!lively.LocalStorage.isAvailable()) {
-            console.warn('cannot load user config because cannot access localStorage!')
-            return;
-        }
-        var userName = lively.LocalStorage.get('UserName');
-        if (!userName || userName === "undefined") return;
-        var fileName = LivelyLoader.codeBase + '../users/' + userName + "/config.js";
-        JSLoader.loadJs(fileName);
-    },
-
     addPatches: function() {
-
         var isIE = window.navigator && window.navigator.userAgent.indexOf("MSIE") > -1;
         if (isIE) {
             // enable IE9 mode

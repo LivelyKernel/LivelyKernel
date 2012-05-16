@@ -723,9 +723,9 @@ debugger;
         
 
         //saving only visible row/column to dataModel
-        for (nRow = 0; nRow < this.numRows; nRow++) {
+        for (nRow = 0; nRow < this.numRows-1; nRow++) {
             arrColumns=[];
-            for (nCol = 0; nCol < this.numCols; nCol++) {
+            for (nCol = 0; nCol < this.numCols-1; nCol++) {
                 arrColumns[nCol] = this.arrData[nRow][nCol];
 	    }
             this.dataModel.push(arrColumns);

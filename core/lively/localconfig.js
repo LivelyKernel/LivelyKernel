@@ -16,8 +16,6 @@ Config.set("confirmNavigation", false);
 
 Config.set("showNetworkExamples", true);
 
-Config.set("testInRealWorld", true);
-
 Config.set("resizeScreenToWorldBounds", true);
 
 Config.set("disableScriptCaching", true);
@@ -30,7 +28,5 @@ Config.set("disableNoConsoleWarning", true);
 Config.set("ignoreAdvice", false);
 
 Config.set("loadUserConfig", true);
-
-Config.set("ChromeSVGRenderingHotfix", true);
 
 Config.add("modulePaths", 'apps');

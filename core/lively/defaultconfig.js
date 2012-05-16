@@ -84,6 +84,7 @@ var UserAgent = (function() {
         isLinux: window.navigator && window.navigator.platform.startsWith("Linux"),
 
         isTouch: window.navigator && (window.navigator.platform == "iPhone" || window.navigator.platform == "iPad" || window.navigator.platform == "iPod"),
+
         touchIsMouse: false
 
     };
@@ -102,12 +103,17 @@ var Config = {
     _options: {},
     trackUsage: true,
 
-    addOption: function(name, value, docString, type, group) {
+    addOption: function(name, value, docString, group, type) {
         if (name === '_options') {
             throw new Error('Cannot set Config._options! Reserved!');
         }
         this[name] = value;
-        this._options[name] = {doc: docString, type: type, default: value}
+        this._options[name] = {
+            doc: docString,
+            type: type,
+            default: value,
+            group: group
+        }
     },
 
     addOptions: function(/*group - options pairs*/) {
@@ -124,7 +130,8 @@ var Config = {
             var group = args[i],
                 options = args[i+1];
             options.forEach(function(optionSpec) {
-                optionSpec[4] = group;
+                optionSpec[4] = optionSpec[3]; // type, optional
+                optionSpec[3] = group;
                 Config.addOption.apply(Config, optionSpec);
             }, this);
         }
@@ -144,11 +151,12 @@ var Config = {
         return this[name] = value;
     },
 
-    get: function(name) {
-        if (!this._options[name]) {
+    get: function(name, ignoreIfUndefinedOption) {
+        if (!ignoreIfUndefinedOption && !this._options[name]) {
             throw new Error('Trying to get unknown option Config.' + name);
         }
-        return this[name];
+        var value = this[name];
+        return typeof value === "function" ? value() : value;
     },
 
     add: function(name, value) {
@@ -157,7 +165,35 @@ var Config = {
             throw new Error('Trying to add to a non-array Config.' + name);
         }
         return arr.push(value);
+    },
+
+    toString: function() {
+        // gather all groups
+        var groups = {}, groupNames = [], config = this;
+
+        config.allOptionNames().forEach(function(name) {
+            var option = config._options[name],
+                groupName = (option && option.group) || '- undefined group -',
+                group = groups[groupName] = groups[groupName] || [],
+                groupItem = [name, config.get(name, true)];
+            if (option && option.doc) groupItem.push(option.doc);
+            groupItem = groupItem.collect(function(ea) { return Strings.print(ea) });
+            group.push(groupItem);
+            groupNames.pushIfNotIncluded(groupName);
+        });
+
+        // print each group
+        var groupStrings = groupNames.sort().collect(function(groupName) {
+            var group = groups[groupName],
+                options = group.sortBy(function(option) { return option[0] }),
+                optionsString = options.collect(function(option) {
+                    return '[' + option.join(', ') + ']' }).join(",\n    ");
+            return Strings.print(groupName) + ", [\n    " + optionsString + ']';
+        });
+
+        return 'lively.Config:\n  [' + groupStrings.join(',\n\n  ') + ']';
     }
+
 }
 
 if (Config.trackUsage) {
@@ -166,7 +202,7 @@ if (Config.trackUsage) {
      * Usage tracking for cleanup.
      * Config.unusedOptionNames() to find out never used options
      * Config.usedOptionNames() to find out where options are read/write
-     * Config.manualOptions() to find out what options are assigned inline
+     * Config.manualOptionNames() to find out what options are assigned inline
      *   without using #addOption.
      */
 
@@ -174,16 +210,23 @@ if (Config.trackUsage) {
 
         usage: {},
 
-        allOptionNames: function() { return Properties.own(this._options) },
+        allOptionNames: function() {
+             return Properties.own(this)
+                    .pushAll(Properties.own(this._options))
+                    .uniq()
+                    .withoutAll(['_options', 'usage'])
+                    .reject(function(ea) { return ea.startsWith('__') });
+        },
+
         usedOptionNames: function() { return Properties.own(this.usedOptions()) },
+
         unusedOptionNames: function() {
             return this.allOptionNames().withoutAll(this.usedOptionNames());
         },
-        manualOptions: function() {
-             return Properties.own(this)
-                    .withoutAll(Properties.own(this._options))
-                    .withoutAll(['_options', 'trackUsage', 'usage'])
-                    .reject(function(ea) { return ea.startsWith('__') });
+
+        manualOptionNamess: function() {
+             return this.allOptionNames()
+                    .withoutAll(Properties.own(this._options));
         },
 
         usedOptions: function() {
@@ -205,28 +248,32 @@ if (Config.trackUsage) {
             return used;
         },
 
+        addOption: (function() {
+                    var proceed = Config.addOption;
 
-        addOption: function(name, value, docString, type, group) {
-            if (name === '_options') { throw new Error('Cannot set Config._options! Reserved!'); }
-            this._options[name] = {doc: docString, type: type}
-            var internalName = '__' + name,
-                usageStats = {read: [], write: []},
-                self = this;
-            this.usage[name] = usageStats;
-            this[internalName] = value;
-            this.__defineGetter__(name, function() {
-                var stack;
-                try { throw new Error() } catch(e) { stack = e.stack }
-                usageStats.read.push(stack);
-                return self[internalName];
-            });
-            this.__defineSetter__(name, function(value) {
-                var stack;
-                try { throw new Error() } catch(e) { stack = e.stack }
-                usageStats.write.push(stack);
-                return self[internalName] = value;
-            });
-        }
+                    return function(name, value, docString, group, type) {
+                        proceed.apply(this, arguments);
+
+                        var internalName = '__' + name,
+                            usageStats = {read: [], write: []},
+                            self = this;
+                        this.usage[name] = usageStats;
+                        this[internalName] = value;
+                        this.__defineGetter__(name, function() {
+                            var stack;
+                            try { throw new Error() } catch(e) { stack = e.stack }
+                            usageStats.read.push(stack);
+                            return self[internalName];
+                        });
+                        this.__defineSetter__(name, function(value) {
+                            var stack;
+                            try { throw new Error() } catch(e) { stack = e.stack }
+                            usageStats.write.push(stack);
+                            return self[internalName] = value;
+                        });
+                    }
+        })()
+
     });
 }
 
@@ -319,6 +366,7 @@ Config.addOptions(
         ["codeBase", Config.codeBase && Config.codeBase != '' ? Config.codeBase : Config.getDocumentDirectory()],
         ["showModuleDefStack", true, "so modules know where they were required from"],
         ["loadUserConfig", false, "for sth like jens/config.js, used in lively.bootstrap"],
+        ["modulePaths", [], "root URLs of module lookup"],
 
         ["disableScriptCaching", false],
         ["defaultDisplayTheme", 'lively'],

@@ -252,8 +252,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 this.expandColumns(this.endColumn);
             }
             debugger;
+            var sColname="";
             for (var nCol = this.startColumn; nCol < this.endColumn; nCol++) {
-                this.colHeads[nCol-this.startColumn].textString = this.colNames[nCol];
+                sColname = this.getColumnName(nCol + 1)
+                this.colHeads[nCol-this.startColumn].textString = sColname ;
             }
             
             this.updateDataModel();

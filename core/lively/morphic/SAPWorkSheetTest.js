@@ -2343,6 +2343,7 @@ dataformat: currency & percentage & date & time
             this.grid.arrSelectedCells[i].emphasizeAll({fontStyle: 'italic'});
         }
         //for data
+        debugger;
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontStyle='italic';
         }

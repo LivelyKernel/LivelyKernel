@@ -1276,8 +1276,8 @@ currently only support
 	   if (n == -1) { sNewCol += sCol[i]; } else { sNewCol += n.toString(); }
 	}
 		
-	oIndex.columnIndex = sNewCol;
-	oIndex.rowIndex = sRow;
+	oIndex.x = sNewCol;
+	oIndex.y = sRow;
 	return oIndex;
     },
     morphMenuItems: function ($super) {

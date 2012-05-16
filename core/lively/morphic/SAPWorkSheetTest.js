@@ -272,7 +272,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     //fires when vertical scroll moves
     updateRowDisplay: function(evt) {
        //debugger;
-        
         this.hideAnnotation();
         if (isNaN(evt)){
             console.log("updateRowDisplay: NaN= " + evt);
@@ -291,7 +290,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             }
             //Row name
             for (var nRow= this.startRow ; nRow< this.endRow ; nRow++) {
-                this.rowHeads [nRow-this.startRow].textString = nCol.toString();
+                this.rowHeads [nRow-this.startRow].textString = nRow.toString();
             }
 
             this.updateDataModel();

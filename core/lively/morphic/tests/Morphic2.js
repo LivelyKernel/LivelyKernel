@@ -699,12 +699,15 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m1.addMorph(m2);
+        var m6 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        m2.addMorph(m6);
         //simulate copyToPartsBin
         var m3 = m1.copy();
         //simulate copyFromPartsBin
         var m4 = m3.copy();
         var m5 = m3.copy();
         this.assertEquals(m5.submorphs[0].findDerivationSibling(m4), m4.submorphs[0], 'wrong derivation sibling')
+        this.assertEquals(m5.submorphs[0].submorphs[0].findDerivationSibling(m4), m4.submorphs[0], 'wrong sub sub morph');
     },
 
 

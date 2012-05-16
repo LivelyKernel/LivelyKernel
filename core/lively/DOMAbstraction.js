@@ -382,9 +382,7 @@ Copier.subclass('Importer', {
             return null;
         }
         var doc = webRes.contentDocument;
-        console.log("problems to parse  " + URL.source);
-        if (!doc)
-            return null;
+        if (!doc) return null;
         // FIX for IE9+
         if (doc.documentElement == null) {
              doc = new ActiveXObject('MSXML2.DOMDocument.6.0');

@@ -4,31 +4,31 @@ var host = document.location.host,
     wwPath = "/repository/webwerkstatt";
 
 
-Config.set('proxyURL', protocol + '//' + host + '/proxy');
+lively.Config.set('proxyURL', protocol + '//' + host + '/proxy');
 
-Config.set("wikiRepoUrl", protocol + '//' + host + (url.include('swa/research') ?
+lively.Config.set("wikiRepoUrl", protocol + '//' + host + (url.include('swa/research') ?
                                                     wwPath + '/swa/research' : wwPath));
 
-Config.set("debugExtras", false);
+lively.Config.set("debugExtras", false);
 
-Config.set("askBeforeQuit", true);
-Config.set("confirmNavigation", false);
+lively.Config.set("askBeforeQuit", true);
+lively.Config.set("confirmNavigation", false);
 
-Config.set("showNetworkExamples", true);
+lively.Config.set("showNetworkExamples", true);
 
-Config.set("resizeScreenToWorldBounds", true);
+lively.Config.set("resizeScreenToWorldBounds", true);
 
-Config.set("disableScriptCaching", true);
+lively.Config.set("disableScriptCaching", true);
 
 // 'primitive', 'turquoise', 'hpi', 'lively'
-Config.set("defaultDisplayTheme", 'hpi');
+lively.Config.set("defaultDisplayTheme", 'hpi');
 
-Config.set("disableNoConsoleWarning", true);
+lively.Config.set("disableNoConsoleWarning", true);
 
-Config.set("ignoreAdvice", false);
+lively.Config.set("ignoreAdvice", false);
 
-Config.set("loadUserConfig", true);
+lively.Config.set("loadUserConfig", true);
 
-Config.add("modulePaths", 'apps');
+lively.Config.add("modulePaths", 'apps');
 
-Config.urlQueryOverride();
+lively.Config.urlQueryOverride();

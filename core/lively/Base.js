@@ -162,7 +162,7 @@ function __oldNamespace(spec, context) {
 			  console.warn(msg);
 
         // FIXME use proper Config-URL-parsing
-        if (Config.ignoreMissingModules || document.URL.indexOf('ignoreMissingModules=true') >= 0) {
+        if (lively.Config.ignoreMissingModules || document.URL.indexOf('ignoreMissingModules=true') >= 0) {
             ea.pendingRequirements = [];
             ea.load();
             testModuleLoad.delay(6);
@@ -237,7 +237,7 @@ function require(/*requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/
         args = $A(arguments);
     require.counter !== undefined ? require.counter++ : require.counter = 0;
     var m = module(getUniqueName()).beAnonymous();
-    if (Config.showModuleDefStack)
+    if (lively.Config.showModuleDefStack)
         try { throw new Error() } catch(e) { m.defStack = e.stack }
     return m.requires(Object.isArray(args[0]) ? args[0] : args);
 };
@@ -777,13 +777,13 @@ Namespace.addMethods(
             relativePath += fileExtension;
         }
         var uri = '';
-        Config.modulePaths.forEach(function(ea) {
+        lively.Config.modulePaths.forEach(function(ea) {
             if (relativePath.substring(0, ea.length) == ea) {
-                uri = Config.rootPath + relativePath;
+                uri = lively.Config.rootPath + relativePath;
             }
         });
         if (uri == '') {
-            uri = Config.codeBase + relativePath;
+            uri = lively.Config.codeBase + relativePath;
         }
         return uri;
     },
@@ -800,8 +800,8 @@ Namespace.addMethods(
             } else
                 throw dbgOn(new Error('unknown namespaceIdentifier'));
 
-            // FIXME: extract to Config.codeBaseDB
-            url = Config.couchDBURL + '/' + this.fromDB + '/_design/raw_data/_list/javascript/for-module?module=' + id;
+            // FIXME: extract to lively.Config.codeBaseDB
+            url = lively.Config.couchDBURL + '/' + this.fromDB + '/_design/raw_data/_list/javascript/for-module?module=' + id;
             this.__cachedUri = url;
             return url;
         } else {
@@ -812,7 +812,7 @@ Namespace.addMethods(
             } else {
                 if (id.startsWith('Global.')) namespacePrefix = 'Global.';
                 else throw dbgOn(new Error('unknown namespaceIdentifier'));
-                url = Config.codeBase + this.namespaceIdentifier.substr(namespacePrefix.length).replace(/\./g, '/');
+                url = lively.Config.codeBase + this.namespaceIdentifier.substr(namespacePrefix.length).replace(/\./g, '/');
             }
 
             this.__cachedUri = url;
@@ -1003,7 +1003,7 @@ Object.extend(Namespace, {
     namespaceStack: [Global],
     current: function() { return this.namespaceStack.last() },
     topologicalSortLoadedModules: function() {
-        if (Config.standAlone) {
+        if (lively.Config.standAlone) {
             var scripIds = [];
             $('body script').each(function() { scripIds.push($(this).attr('id')) });
             return scripIds.collect(function(id) {
@@ -1057,10 +1057,11 @@ Object.extend(Namespace, {
         urls = manual.concat(urls);
         return urls;
     },
+
     bootstrapModulesString: function() {
         var urls = this.bootstrapModules();
         return '[\'' + urls.join('\', \'') + '\']';
-    },
+    }
 });
 
 (function createLivelyNamespace(Global) {

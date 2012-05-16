@@ -129,51 +129,52 @@ var Config = {
         //   optional:
         //   [2] docString
         //   [3] type
-        var args = Array.from(arguments);
+        var config = this, args = Array.from(arguments);
         for (var i = 0; i < args.length; i += 2) {
             var group = args[i],
                 options = args[i+1];
             options.forEach(function(optionSpec) {
                 optionSpec[4] = optionSpec[3]; // type, optional
                 optionSpec[3] = group;
-                Config.addOption.apply(Config, optionSpec);
-            }, this);
+                config.addOption.apply(config, optionSpec);
+            });
         }
     },
 
     urlQueryOverride: function() {
         var queries = document.URL.toString().toQueryParams();
         for (var name in queries) {
-            if (!Config.hasOption(name)) continue;
+            if (!this.hasOption(name)) continue;
             var value = queries[name];
-            if (Config.get(name) === value) continue;
-            console.log('Overriding Config.' + name + ' with ' + value);
-            Config.set(name, value);
+            if (this.get(name) === value) continue;
+            console.log('Overriding lively.Config.' + name + ' with ' + value);
+            this.set(name, value);
         }
     },
 
     loadUserConfigModule: function() {
-        if (!Config.get("loadUserConfig")) return;
+        if (!this.get("loadUserConfig")) return;
         if (!lively.LocalStorage.isAvailable()) {
             console.warn('cannot load user config because cannot access localStorage!')
             return;
         }
         var userName = lively.LocalStorage.get('UserName');
         if (!userName || userName === "undefined") return;
-        var fileName = LivelyLoader.codeBase + '../users/' + userName + "/config.js";
-        JSLoader.loadJs(fileName, function() { Config.urlQueryOverride(); });
+        var fileName = LivelyLoader.codeBase + '../users/' + userName + "/config.js",
+            config = this;
+        JSLoader.loadJs(fileName, function() { config.urlQueryOverride(); });
     },
 
     set: function(name, value) {
         if (!this._options[name]) {
-            throw new Error('Trying to set unknown option Config.' + name);
+            throw new Error('Trying to set unknown option lively.Config.' + name);
         }
         return this[name] = value;
     },
 
     get: function(name, ignoreIfUndefinedOption) {
         if (!ignoreIfUndefinedOption && !this._options[name]) {
-            throw new Error('Trying to get unknown option Config.' + name);
+            throw new Error('Trying to get unknown option lively.Config.' + name);
         }
         var value = this[name];
         return typeof value === "function" ? value() : value;
@@ -182,7 +183,7 @@ var Config = {
     add: function(name, value) {
         var arr = this.get(name);
         if (!Object.isArray(arr)) {
-            throw new Error('Trying to add to a non-array Config.' + name);
+            throw new Error('Trying to add to a non-array lively.Config.' + name);
         }
         return arr.push(value);
     },
@@ -237,7 +238,7 @@ var Config = {
 
 };
 
-(function setupConfigTracking() {
+(function setupConfigTracking(Config) {
 
     Config.addOption('trackUsage', false, 'to inspect what was read / wrote from / to the Config object', 'lively.Config');
 
@@ -310,9 +311,9 @@ var Config = {
 
     });
 
-})();
+})(Config);
 
-(function addConfigOptions() {
+(function addConfigOptions(Config, UserAgent, ExistingConfig) {
 
 Config.addOptions(
     "cop", [
@@ -503,7 +504,7 @@ Config.addOptions(
     ]
 );
 
-})();
+})(Config, UserAgent, ExistingConfig);
 
 
 (function addOptionsFromPreBootstrapConfig(Global) {
@@ -523,4 +524,9 @@ Config.addOptions(
 
     delete Global.ExistingConfig;
 
+})(window);
+
+(function addConfigToLivelyNS(Global) {
+    var lively = Global.lively = Global.lively || {};
+    lively.Config = Global.Config;
 })(window);

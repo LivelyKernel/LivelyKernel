@@ -1735,8 +1735,12 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         var nValue  = sValue;
         var oTextColor=null;
         //debugger;
-        console.log("before: " + sValue )
+        console.log("before: " + sValue );
+
+
         this.grid.arrData[nRow][nCol].value=sValue ;
+
+
         if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat){
             if (this.grid.arrData[nOrgRow][nOrgCol].dataFormat.type){
               

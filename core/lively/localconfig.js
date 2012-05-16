@@ -1,42 +1,34 @@
-Config.proxyURL = document.location.protocol + '//' + document.location.host + '/proxy';
-
-Config.wikiRepoUrl = document.location.protocol + '//' + document.location.host +
-	(document.URL.include('swa/research') ?
-		'/repository/webwerkstatt/swa/research' :
-		'/repository/webwerkstatt');
-
-Config.debugExtras = false;
-
-Config.showFabrikWeatherWidgetExample = false;
-
-Config.askBeforeQuit = true;
-
-Config.modulesOnWorldLoad = Config.modulesOnWorldLoad.concat(["lively.Graffle", "lively.Undo", "lively.ide.AutoCompletion", "lively.ide.SyntaxHighlighting", 'lively.Scripting'])
-Config.showNetworkExamples = true
+var host = document.location.host,
+    protocol = document.location.protocol,
+    url = document.location.toString(),
+    wwPath = "/repository/webwerkstatt";
 
 
-if (!Config.isNewMorphic) {
-	Config.modulesOnWorldLoad.push('lively.deprecated.Helper')
-}
+Config.set('proxyURL', protocol + '//' + host + '/proxy');
 
-Config.testInRealWorld = true
+Config.set("wikiRepoUrl", protocol + '//' + host + (url.include('swa/research') ?
+                                                    wwPath + '/swa/research' : wwPath));
 
-Config.confirmNavigation = false; 
+Config.set("debugExtras", false);
 
-Config.resizeScreenToWorldBounds = true;
- 
-Config.disableScriptCaching = true;
+Config.set("askBeforeQuit", true);
+Config.set("confirmNavigation", false);
 
-Config.silentFailOnWrapperClassNotFound = true;
+Config.set("showNetworkExamples", true);
 
-Config.defaultDisplayTheme = 'hpi' // 'primitive', 'turquoise', 'hpi', 'lively'
+Config.set("resizeScreenToWorldBounds", true);
 
-Config.disableNoConsoleWarning = true;
+Config.set("disableScriptCaching", true);
 
-Config.ignoreAdvice = false;
+// 'primitive', 'turquoise', 'hpi', 'lively'
+Config.set("defaultDisplayTheme", 'hpi');
 
-Config.loadUserConfig = true;
-Config.ChromeSVGRenderingHotfix = true;
+Config.set("disableNoConsoleWarning", true);
 
-Config.modulePaths.push('apps')
+Config.set("ignoreAdvice", false);
 
+Config.set("loadUserConfig", true);
+
+Config.add("modulePaths", 'apps');
+
+Config.urlQueryOverride();

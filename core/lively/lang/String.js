@@ -11,7 +11,7 @@ Object.extend(String.prototype, {
       return this == '';
     },
 
-    
+
     blank: function() {
       return /^\s*$/.test(this);
     },
@@ -194,8 +194,14 @@ Strings = {
         return removeLeadingWhitespace(removeTrailingWhitespace(str));
     },
 
-    print: function(str) {
-        var result = str;
+    print: function(obj) {
+        if (obj && obj.constructor && obj.constructor === Array) {
+            return '[' + obj.map(function(ea) { return Strings.print(ea) }) + ']';
+        }
+        if (typeof obj !== "string") {
+            return String(obj);
+        }
+        var result = String(obj);
         result = result.replace(/\n/g, '\\n\\\n')
         result = result.replace(/("|')/g, '\\$1')
         result = '\'' + result + '\'';

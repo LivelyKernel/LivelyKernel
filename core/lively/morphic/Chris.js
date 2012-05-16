@@ -5,7 +5,7 @@ module('lively.morphic.Chris').requires().toRun(function() {
         },
         alertMe: function(text){
             debugger;
-            alert(text + 'you and me');
+            alert(text + 'yyyy');
         }
     });    
 

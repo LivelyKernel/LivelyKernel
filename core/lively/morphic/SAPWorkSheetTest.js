@@ -600,8 +600,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.at(x,y).put(value);
     },
     clear: function() {
-        for (var y = 0; y < this.numRows; y++) {
-            for (var x = 0; x < this.numCols; x++) {
+        for (var y = 1; y < this.numRows; y++) {
+            for (var x = 1; x < this.numCols; x++) {
                 this.rows[y][x].textString = '';
                 this.rows[y][x].evalExpression = undefined;
             }

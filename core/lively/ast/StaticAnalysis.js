@@ -199,7 +199,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
             target.emphasize({color: Color.web.red}, g.pos[0], g.pos[1]);
         });
     },
-    showError: function(startIndex) {
+    showError: function(target, startIndex) {
         if (!this.isError) {
             this.isError = true;
             this.setFill(Color.rgb(255,243,243));
@@ -221,7 +221,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
             this.highlightGlobals(target, ast);
             this.hideError();
         } catch (e) {
-            this.showError(e[3]);
+            this.showError(target, e[3]);
         }
     },
 });

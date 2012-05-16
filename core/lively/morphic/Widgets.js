@@ -1154,14 +1154,16 @@ lively.morphic.World.addMethods(
                 });
             }]);
         }
-        if (Global.AdvancedSyntaxHighlighting && AdvancedSyntaxHighlighting .isGlobal()) {
+        if (Global.AdvancedSyntaxHighlighting && AdvancedSyntaxHighlighting.isGlobal()) {
             items.push(['[X] Advanced Syntax Highlighting', function() {
-                AdvancedSyntaxHighlighting.beNotGlobal()
+                SystemCodeEditorHighlighting.beNotGlobal();
+                AdvancedSyntaxHighlighting.beNotGlobal();
             }]);
         } else {
             items.push(['[  ] Advanced Syntax Highlighting', function() {
                 require('lively.ast.StaticAnalysis').toRun(function() {
-                    AdvancedSyntaxHighlighting.beGlobal()
+                    AdvancedSyntaxHighlighting.beGlobal();
+                    SystemCodeEditorHighlighting.beGlobal();
                 });
             }]);
         }

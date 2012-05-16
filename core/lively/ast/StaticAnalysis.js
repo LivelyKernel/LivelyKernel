@@ -228,13 +228,15 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
 cop.create('SystemCodeEditorHighlighting').refineClass(lively.ide.BasicBrowser, {
     onSourceStringUpdate: function(methodString, source) {
         var node = this.selectedNode();
-        var textMorph = this.panel.sourcePane.innerMorph();
-        if (node.isClassNode || node.isModuleNode) {
-            textMorph.specialHighlighting = null;
-        } else if (node.isMemberNode) {
-            textMorph.specialHighlighting = "memberFragment";
-        } else {
-            textMorph.specialHighlighting = "none";
+        if (node) {
+            var textMorph = this.panel.sourcePane.innerMorph();
+            if (node.isClassNode || node.isModuleNode) {
+                textMorph.specialHighlighting = null;
+            } else if (node.isMemberNode) {
+                textMorph.specialHighlighting = "memberFragment";
+            } else {
+                textMorph.specialHighlighting = "none";
+            }
         }
         cop.proceed(methodString, source);
     },

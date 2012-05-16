@@ -5,7 +5,6 @@ module('lively.morphic.Chris').requires().toRun(function() {
             $super();
         },
         alertMe: function(text){
-debugger;
             alert(text);
         }
     });    

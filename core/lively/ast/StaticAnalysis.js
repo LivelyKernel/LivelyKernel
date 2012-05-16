@@ -222,7 +222,7 @@ cop.create('SystemCodeEditorHighlighting').refineClass(lively.ide.BasicBrowser, 
             var textMorph = this.panel.sourcePane.innerMorph();
             if (node.isClassNode || node.isModuleNode) {
                 textMorph.specialHighlighting = null;
-            } else if (node.isMemberNode) {
+            } else if (node.isMemberNode || node.isCategoryNode) {
                 textMorph.specialHighlighting = "memberFragment";
             } else {
                 textMorph.specialHighlighting = "none";

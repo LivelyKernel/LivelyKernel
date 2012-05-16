@@ -1189,11 +1189,10 @@ currently only support
     	var nValue; 
         var sValue;
         
-        //debugger;
         if (sOrgValue){
         
         try{
-
+            debugger;
             sValue= sOrgValue.toUpperCase();
             if (sValue.substr(0,5)=="=SUM("){
                 arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");

@@ -205,6 +205,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
         try {
             var rule = this.specialHighlighting ? this.specialHighlighting : 'topLevel';
             var ast = lively.ast.Parser.parse(this.textString, rule);
+            if (rule = "categoryFragment") alert("ast");
             this.parseErrors = null;
             this.highlightGlobals(target, ast);
         } catch (e) {

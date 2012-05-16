@@ -2351,8 +2351,8 @@ dataformat: currency & percentage & date & time
             this.oDataFormat.grid=this.grid;
             this.oDataFormat.oOkCallBack = this.setDataFormates;
             debugger;
-            var nX = this.grid.oWorkBook.getExtent().x +  300;
-            var nY = this.grid.oWorkBook.getExtent().y +  300;
+            var nX = this.grid.oWorkBook.getPosition().x +  300;
+            var nY = this.grid.oWorkBook.getPosition().y +  300;
             this.oDataFormat.openInWindow(pt(nX ,nY ));
             this.oDataFormat.owner.setTitle("Format Cells");
         }

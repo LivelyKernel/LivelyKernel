@@ -539,6 +539,8 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CategorizedClassFragmentNode', 
 });
 
 lively.ide.MultiFileFragmentsNode.subclass('lively.ide.MethodCategoryFragmentNode', {
+ 
+    isCategoryNode: true,
 
     getName: function() { return this.target.getName() },
 

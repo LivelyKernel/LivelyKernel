@@ -239,7 +239,7 @@ var Config = {
 
 (function setupConfigTracking() {
 
-    Config.addOption('trackUsage', true, 'to inspect what was read / wrote from / to the Config object', 'lively.Config');
+    Config.addOption('trackUsage', false, 'to inspect what was read / wrote from / to the Config object', 'lively.Config');
 
     if (!Config.trackUsage) return;
 

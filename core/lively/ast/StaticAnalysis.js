@@ -196,7 +196,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
         var analyzer = new lively.ast.VariableAnalyzer();
         var globals = analyzer.findGlobalVariablesInAST(ast);
         globals.each(function(g) {
-            target.emphasize(AdvancedSyntaxHighlighting.errorStyle, g.pos[0], g.pos[1]);
+            target.emphasize(AdvancedSyntaxHighlighting.globalStyle, g.pos[0], g.pos[1]);
         });
     },
     applyHighlighterRules: function(target, highlighterRules) {

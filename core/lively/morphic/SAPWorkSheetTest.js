@@ -1214,7 +1214,13 @@ currently only support
                     nStartY = oStartCell.y;
                     nEndY = oEndCell.y;
                 }
-
+                for (var x = nStartX; x <= nEndX ; x++) {
+                    for (var y = nStartY; y <= nEndY ; y++) {
+                        nValue = parseFloat(this.arrData[y][x].value);
+		        if (isNaN(nValue)) {nValue=0}
+		        nTotal  +=nValue;
+                    }
+                }
 	      
                 /*if (oStartCell.columnIndex==oEndCell.columnIndex){
                     for (var nRow = oStartCell.rowIndex; nRow <= oEndCell.rowIndex; nRow ++) {
@@ -1251,9 +1257,10 @@ currently only support
                 }
                 return nAve;	
 	   }else{  //copying other cell
-                var oCell = this.parseformulaCellIndex(sValue.replace(/=/g, ""));
+                //var oCell = this.parseformulaCellIndex(sValue.replace(/=/g, ""));
+                var oCell = this.getCellIndex(sValue.replace(/=/g, ""));
                
-                nValue =  this.arrData[oCell.rowIndex][oCell.columnIndex].value;
+                nValue =  this.arrData[oCell.y][oCell.x].value;
                 return nValue; 
 	   }	
         }

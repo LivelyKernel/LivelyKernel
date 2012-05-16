@@ -2340,7 +2340,7 @@ dataformat: currency & percentage & date & time
 
     },
     imgFormatCell_Click: function() {
-        var nX = this.grid.oWorkBook.getPosition().x +  200;
+        var nX = this.grid.oWorkBook.getPosition().x +  250;
         var nY = this.grid.oWorkBook.getPosition().y +  130;
 
         if (this.oDataFormat){

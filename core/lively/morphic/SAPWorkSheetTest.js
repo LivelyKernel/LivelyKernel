@@ -1102,7 +1102,8 @@ console.log('updateDisplay:'  + elapsed/1000);
     },
     removeRowBetween: function() {
         if (this.activeCell) {
-            
+            debugger;
+            this.grid.removeSelectedCells();
             var nRow = this.activeCell.gridCoords.y;
             var nOrgRow = nRow -1 + this.startRow;
  

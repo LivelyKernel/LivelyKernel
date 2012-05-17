@@ -1939,8 +1939,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
        
         $super(evt);
         //Saving annotation
-        var nOrgRow = this.nRow+ this.grid.startRow;
-        var nOrgCol = this.nColumn+ this.grid.startColumn;
+        var nOrgRow = this.nRow+1+ this.grid.startRow;
+        var nOrgCol = this.nColumn+1+ this.grid.startColumn;
 
 console.log("SAPGridAnnotation.onKeyUp: org col/row " + nOrgCol +"," + nOrgRow);
 

@@ -7,7 +7,7 @@ module('lively.morphic.Chris').requires().toRun(function() {
             //alert(email);
             //alert(password);
             
-            $morph('Rectangle1').applyStyle({ display:'none' });
+            $morph('Rectangle1').applyStyle({ opacity: 1});
         }
     });    
 

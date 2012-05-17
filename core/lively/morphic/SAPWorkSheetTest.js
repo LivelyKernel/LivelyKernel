@@ -2323,7 +2323,11 @@ dataformat: currency & percentage & date & time
         }
     },
     imgClear_Click: function() {
-        
+        if (this.oClearMenu){
+            
+        }else{
+            this.oClearMenu.openInWorld()
+        }
     },
     imgTextAlignCenter_Click: function() {
         var i;

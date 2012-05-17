@@ -442,7 +442,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 return self.createCellOptimized();
             });
 
-        debugger;
         function addCellToRow(row, x, y) {
             var cell = cells.pop();
             cell.addToGrid(self);

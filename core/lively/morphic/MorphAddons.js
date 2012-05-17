@@ -668,7 +668,6 @@ lively.morphic.World.addMethods(
         module('lively.ide.BrowserCommands').load(true);
         var createModuleCommand = new lively.ide.AddNewFileCommand();
         createModuleCommand.createModuleFile(userConfigURL);
-        new WebResource(userDir).ensureExistance();
         return userConfigURL;
     },
     showUserConfig: function() {

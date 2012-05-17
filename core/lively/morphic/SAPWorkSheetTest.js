@@ -2366,6 +2366,11 @@ dataformat: currency & percentage & date & time
 	    oItem.onClickCallback=null;
 	    oItem.onMouseOverCallback=null;
 	    arrItems.push(oItem);
+            arrItems=[];
+arrItems= [
+	['foo', function() { alert('first') }],
+	['bar', function() { alert('second') }]
+];
             this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld(), null, arrItems);
         }
     },

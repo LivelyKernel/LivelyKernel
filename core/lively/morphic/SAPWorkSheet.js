@@ -1471,6 +1471,16 @@ y359
     },
 },
 'Evaluation', {
+    evaluateExpression: function(anExpression) {
+        try {
+            return (eval("(function() { \
+                var that = this; \
+                var cell = function(x,y) {return that.at(x,y).getContent();}; \
+                return " + anExpression + ";})").bind(this)) ();
+        } catch (e) {
+            return 'ERROR';
+        }
+    },
 });
 
 

@@ -2327,52 +2327,12 @@ dataformat: currency & percentage & date & time
         }else{
             //'Clear All','Clear Formats','Clear Contents','Clear Comments'
 	    var arrItems=[];
-	    oItem = {};
-	    oItem.isMenuItem=true;
-	    oItem.isMenuItem=true;
-	    oItem.string="Clear All";
-	    oItem.value="Clear All";
-	    oItem.idx=1;
-	    oItem.onClickCallback=null;
-	    oItem.onMouseOverCallback=null;
-	    arrItems.push(oItem);
-
-            oItem = {}
-	    oItem.isMenuItem=true;
-	    oItem.isMenuItem=true;
-	    oItem.string="Clear Formats";
-	    oItem.value="Clear Formats";
-	    oItem.idx=2;
-	    oItem.onClickCallback=null;
-	    oItem.onMouseOverCallback=null;
-	    arrItems.push(oItem);
-
-	    oItem = {};
-	    oItem.isMenuItem=true;
-	    oItem.isMenuItem=true;
-	    oItem.string="Clear Contents";
-	    oItem.value="Clear Contents";
-	    oItem.idx=3;
-	    oItem.onClickCallback=null;
-	    oItem.onMouseOverCallback=null;
-	    arrItems.push(oItem);
-
-            oItem = {};
-            oItem.isMenuItem=true;
-	    oItem.isMenuItem=true;
-	    oItem.string="Clear Comments";
-	    oItem.value="Clear Comments";
-	    oItem.idx=4;
-	    oItem.onClickCallback=null;
-	    oItem.onMouseOverCallback=null;
-	    arrItems.push(oItem);
-            arrItems=[];
-arrItems= [
-	['Clear All', function() { alert('first') }],
-	['Clear Formats', function() { alert('second') }],
-        ['Clear Contents', function() { alert('3rd') }],
-        ['Clear Comments', function() { alert('4th') }]
-];
+            arrItems= [
+            	['Clear All', function() { alert('first') }],
+            	['Clear Formats', function() { alert('second') }],
+                ['Clear Contents', function() { alert('3rd') }],
+                ['Clear Comments', function() { alert('4th') }]
+            ];
             this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld(), null, arrItems);
         }
     },

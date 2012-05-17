@@ -2487,11 +2487,13 @@ dataformat: currency & percentage & date & time
                 nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
                 sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
                 this.grid.arrSelectedCells[i].textString= sValue;
-                if (oDataFormat.type=="currency" || oDataFormat.type=="number"){
-                    if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
-                        if (!isNaN(nValue )){
-                            if (nValue <0){
-                                this.grid.arrSelectedCells[i].applyStyle({textColor: Color.red});
+                if (oDataFormat){
+                    if (oDataFormat.type=="currency" || oDataFormat.type=="number"){
+                        if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
+                            if (!isNaN(nValue )){
+                                if (nValue <0){
+                                    this.grid.arrSelectedCells[i].applyStyle({textColor: Color.red});
+                                }
                             }
                         }
                     }

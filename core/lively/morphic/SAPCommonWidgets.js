@@ -265,6 +265,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
             oDataFormat.type = this.selectedCategory;
 
             switch(this.selectedCategory){
+                case "general":
+                    oDataFormat=null;
+                    break;
                 case "number":
                     oDataFormat.decimalPlaces = this.selectedDecimalPlaces;
                     oDataFormat.negativeType = this.selectedNegativeNumber;

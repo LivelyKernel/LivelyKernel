@@ -233,13 +233,14 @@ cop.create('SystemCodeEditorHighlighting').refineClass(lively.ide.BasicBrowser, 
     }
 }).refineClass(lively.ide.FileFragment, {
     reparse: function(newSource) {
-        try {
-            var rule = this.specialHighlighting ? this.specialHighlighting : 'topLevel';
-            var ast = lively.ast.Parser.parse(newSource, rule);
-        } catch (e) {
-            OMetaSupport.handleErrorDebug(e[0], e[1], e[2], e[3]/*src, rule, msg, idx*/);
-            return {startIndex: e[3]};
-        }
+        inspect([this.type, newSource]);
+        //try {
+        //    var rule = this.specialHighlighting ? this.specialHighlighting : 'topLevel';
+        //    var ast = lively.ast.Parser.parse(newSource, rule);
+        //} catch (e) {
+        //    OMetaSupport.handleErrorDebug(e[0], e[1], e[2], e[3]/*src, rule, msg, idx*/);
+        //    return {startIndex: e[3]};
+        //}
         var newFragment = cop.proceed(newSource);
         return newFragment;
     }

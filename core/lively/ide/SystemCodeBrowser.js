@@ -132,13 +132,17 @@ Object.extend(lively.ide.SystemBrowser, {
 
 Object.extend(lively.ide, {
     browse: function(objectName, methodName, moduleNameOrSpec) {
-        // Browse a method in a object (class, layer, etc)
-        // See MethodFinder for original implementation
-        // Example:
-        // objectName = "lively.morphic.Morph"
-        // methodName = "onMouseDown"
-        // moduleNameOrSpec = "lively.morphic.Events"
-        //    || {name: "lively.ast.LivelyJSParser", type: 'ometa'};
+        // args can be:
+        // 1. objectName, methodName, moduleNameOrSpec
+        //   Browse a method in a object (class, layer, etc)
+        //   See MethodFinder for original implementation
+        //   Example:
+        //   objectName = "lively.morphic.Morph"
+        //   methodName = "onMouseDown"
+        //   moduleNameOrSpec = "lively.morphic.Events"
+        //     || {name: "lively.ast.LivelyJSParser", type: 'ometa'};
+        // 2. URL (URL object or string)
+        // 3. path (String) relative to URL.root
 
         var promise = {}, moduleName, moduleType;
         if (Object.isString(moduleNameOrSpec)) {

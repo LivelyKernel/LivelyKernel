@@ -1469,6 +1469,8 @@ y359
         }
         return Target;
     },
+},
+'Select cells', {
 });
 
 

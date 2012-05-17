@@ -175,7 +175,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.setExtent(lively.pt(525,265));
         this.setFill(Color.rgb(255,255,255));
 
-        this.txtGeneralInfo = new lively.morphic.Text(new Rectangle(nXstart,0, 100, nHeight),'General format cells have no specific format.');
+        this.txtGeneralInfo = new lively.morphic.Text(new Rectangle(nXstart,0, 300, nHeight),'General format cells have no specific format.');
         this.txtGeneralInfo.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
 
         this.txtCategory=new lively.morphic.Text(new Rectangle(nXstart,0, 100, nHeight),'Category:');
@@ -232,6 +232,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.addMorph(this.lstDataTime);
         this.addMorph(this.btnOk);
         this.addMorph(this.btnCancel);
+        this.addMorph(this.txtGeneralInfo);
+       
+
+
         
         connect(this.lstCategory, "selection", this, "lstCategory_onChange", {});
         connect(this.ddlCurrencySymbol, "onChange", this, "ddlCurrencySymbol_onChange", {});

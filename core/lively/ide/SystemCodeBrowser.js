@@ -170,7 +170,7 @@ Object.extend(lively.ide, {
 
         return promise;
     },
-    newMethod: function() {
+    browseURL: function(url) {
         // enter comment here
     },
 

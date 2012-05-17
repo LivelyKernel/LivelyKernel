@@ -5,7 +5,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
     initialize: function($super) {
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,500,500)));
         this.oOkCallBack=null;
-        this.selectedCategory = "number";      //default
+        this.selectedCategory = "general";      //default
         this.selectedSymbol="USD";             //default
         this.selectedDecimalPlaces = 2;        //default
         this.selectedUseThousand = true;       //default

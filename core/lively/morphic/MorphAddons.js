@@ -659,8 +659,9 @@ lively.morphic.World.addMethods(
         return userDir;
     },
     ensureUserConfig: function(optUserName) {
-        var userDirURL = this.ensureUserDir(optUserName),
-            userConfigURL = userDirURL.withFilename('config.js');
+        var userDirURL = this.ensureUserDir(optUserName);
+        if (!userDirURL) return;
+        var userConfigURL = userDirURL.withFilename('config.js');
         if (userConfigURL.asWebResource().exists()) {
             return userConfigURL;
         }

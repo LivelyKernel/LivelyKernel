@@ -148,7 +148,7 @@ Object.extend(lively.ide, {
         if (args.length === 1) { // url or path
             var url = args[0].toString().startsWith('http:') ?
                 new URL(args[0]) : URL.root.withFilename(args[0]);
-            this.browsURL(url);
+            this.browseURL(url);
         } else {
             var objectName = args[0],
                 methodName = args[1],

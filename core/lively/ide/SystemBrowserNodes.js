@@ -533,9 +533,8 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CategorizedClassFragmentNode', 
         var paneName = this.browser.paneNameOfNode(this),
             idx = Number(paneName[paneName.length-1]),
             nextPane = 'Pane' + (idx + 1);
-        setTimeout((function(){
-            this.browser.inPaneSelectNodeNamed(nextPane, '-- all --')
-        }).bind(this), 1);
+        this.browser.inPaneSelectNodeNamed(nextPane, '-- all --');
+        this.panel.sourcePane.innerMorph().highlightJavaScriptSyntax();
     },
 
 });

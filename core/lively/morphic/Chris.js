@@ -1,11 +1,10 @@
 module('lively.morphic.Chris').requires().toRun(function() {
-    lively.morphic.Morph.subclass('lively.morphic.Chrisbutton', 'events', {
+    lively.morphic.Morph.subclass('lively.morphic.labbook', 'events', {
         initialize: function($super){
             $super();
         },
-        alertMe: function(text){
+        login: function(email, password){
 
-            alert(text);
         }
     });    
 

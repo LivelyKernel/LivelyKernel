@@ -645,8 +645,11 @@ lively.morphic.World.addMethods(
         new WebResource(userDir).ensureExistance();
         return userDir;
     },
-    newMethod: function() {
-        // enter comment here
+    ensureUserConfig: function(optUserName) {
+        var userDir = this.ensureUserDir(optUserName);
+
+        new WebResource(userDir).ensureExistance();
+        return userDir;
     },
 
     isGrabbable: function(evt) {

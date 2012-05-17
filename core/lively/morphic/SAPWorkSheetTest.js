@@ -1997,7 +1997,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.ddlFontSize;
         this.ddlFont;
         this.fontPicker;
-        this.oClearMenu;
+        this.oClearMenu=null;
         this.oDataFormat = null;
         this.initializeImages();
         this.initializeEvents();

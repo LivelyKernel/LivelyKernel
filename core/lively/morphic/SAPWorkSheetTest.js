@@ -2602,6 +2602,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
 },
 'default category', {
     onMouseDown: function (evt) {
+        console.log("onMouseDown");
         this.grid.hideAnnotation();
         if (evt.isLeftMouseButtonDown()) {
             var nRow= this.gridCoords.y;

@@ -219,20 +219,29 @@ Object.extend(AdvancedSyntaxHighlighting, {
 });
 cop.create('SystemCodeEditorHighlighting').refineClass(lively.ide.BasicBrowser, {
     onSourceStringUpdate: function(methodString, source) {
-        var node = this.selectedNode();debugger;
-        if (node) {
-            var textMorph = this.panel.sourcePane.innerMorph();
-            if (node.isClassNode || node.isModuleNode) {
-                textMorph.specialHighlighting = null;
-            } else if (node.isMemberNode) {
-                textMorph.specialHighlighting = "memberFragment";
-            } else if (node.isCategoryNode) {
-                textMorph.specialHighlighting = "categoryFragment";
-            } else {
-                textMorph.specialHighlighting = "none";
-            }
-        }
+        var node = this.selectedNode();
+        var textMorph = this.panel.sourcePane.innerMorph();
+        textMorph.specialHighlighting = node ? node.specialHighlighting() : "none";
         cop.proceed(methodString, source);
     },
+}).refineClass(lively.ide.BrowserNode, {
+    specialHighlighting: function() {
+        if (this.isClassNode || this.isModuleNode) return "topLevel";
+        if (this.isMemberNode) return "memberFragment";
+        if (this.isCategoryNode) return "categoryFragment";
+        return "none";
+    }
+}).refineClass(lively.ide.FileFragment, {
+    reparse: function(newSource) {
+        try {
+            var rule = this.specialHighlighting ? this.specialHighlighting : 'topLevel';
+            var ast = lively.ast.Parser.parse(newSource, rule);
+        } catch (e) {
+            OMetaSupport.handleErrorDebug(e[0], e[1], e[2], e[3]/*src, rule, msg, idx*/);
+            return null;
+        }
+        var newFragment = cop.proceed(newSource);
+        return newFragment;
+    }
 });
 })

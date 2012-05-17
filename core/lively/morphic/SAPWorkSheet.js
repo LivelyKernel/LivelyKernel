@@ -911,13 +911,7 @@ console.log('updateDisplay:'  + elapsed/1000);
 
 
 
-    recalculateRowsFirst: function() {
-        this.rows.forEach(function (row) {
-            row.forEach(function (col) {
-                col.updateDisplay();
-            });
-        });
-    },
+
     getActiveRowObject: function() {
         var activeRow = this.getActiveRow(),
             result = {};

@@ -638,9 +638,7 @@ lively.morphic.World.addMethods(
         var webR = new WebResource(Config.userNameURL).get();
         return webR.status.isSuccess() ? webR.content.replace(/\n|\"/g, '') : null;
     },
-    newMethod: function() {
-        // enter comment here
-    },
+
     ensureUserDir: function(optUserName) {
         optUserName = optUserName || this.getUserName();
         var userDir = new URL(Config.rootPath).withFilename('users/').withFilename(optUserName + '/');

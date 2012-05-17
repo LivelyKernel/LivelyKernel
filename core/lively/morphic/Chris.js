@@ -7,7 +7,7 @@ module('lively.morphic.Chris').requires().toRun(function() {
             alert(email);
             alert(password);
             
-            $morph('Rectangle1').applyStyle({ fill: '#FF0000' });
+            $morph('Rectangle1').applyStyle({ fill: 'red' });
         }
     });    
 

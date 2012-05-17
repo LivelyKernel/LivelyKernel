@@ -220,7 +220,7 @@ Object.extend(AdvancedSyntaxHighlighting, {
 });
 cop.create('SystemCodeEditorHighlighting').refineClass(lively.ide.BasicBrowser, {
     onSourceStringUpdate: function(methodString, source) {
-        var node = this.selectedNode();
+        var node = this.selectedNode();debugger;
         if (node) {
             var textMorph = this.panel.sourcePane.innerMorph();
             if (node.isClassNode || node.isModuleNode) {

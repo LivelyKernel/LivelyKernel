@@ -131,7 +131,7 @@ Object.extend(lively.ide.SystemBrowser, {
 });
 
 Object.extend(lively.ide, {
-    browse: function(objectName, methodName, moduleNameOrSpec) {
+    browse: function(/*args*/) {
         // args can be:
         // 1. objectName, methodName, moduleNameOrSpec
         //   Browse a method in a object (class, layer, etc)
@@ -144,35 +144,46 @@ Object.extend(lively.ide, {
         // 2. URL (URL object or string)
         // 3. path (String) relative to URL.root
 
-        var promise = {}, moduleName, moduleType;
-        if (Object.isString(moduleNameOrSpec)) {
-            moduleName = moduleNameOrSpec;
-        } else if (moduleNameOrSpec.name) {
-            moduleName = moduleNameOrSpec.name;
-            moduleType = moduleNameOrSpec.type || moduleType;
-        }
-
-        if (objectName) {
-            objectName = objectName.replace(/^Global\./,"");
-        }
-
-        var relative = module(moduleName).relativePath(moduleType),
-            moduleNode = lively.ide.startSourceControl().addModule(relative),
-            rootNode = moduleNode.ast(),
-            fileFragments = rootNode.subElements(10).select(function(ea) {
-                var path = ea.getOwnerNamePath();
-                return path.include(objectName) && (!methodName || path.include(methodName));
-            });
-
-        if (fileFragments.length > 0) {
-            return fileFragments[0].browseIt()
+        var args = Array.from(arguments);
+        if (args.length === 1) { // url or path
+            var url = args[0].toString().startsWith('http:') ?
+                new URL(args[0]) : URL.root.withFilename(args[0]);
+            this.browsURL(url);
         } else {
-            alert("could not browse " + methodName + " in " + objectName);
-            rootNode.browseIt();
-            return false;
-        }
+            var objectName = args[0],
+                methodName = args[1],
+                moduleNameOrSpec = args[2];
 
-        return promise;
+            var promise = {}, moduleName, moduleType;
+            if (Object.isString(moduleNameOrSpec)) {
+                moduleName = moduleNameOrSpec;
+            } else if (moduleNameOrSpec.name) {
+                moduleName = moduleNameOrSpec.name;
+                moduleType = moduleNameOrSpec.type || moduleType;
+            }
+
+            if (objectName) {
+                objectName = objectName.replace(/^Global\./,"");
+            }
+
+            var relative = module(moduleName).relativePath(moduleType),
+                moduleNode = lively.ide.startSourceControl().addModule(relative),
+                rootNode = moduleNode.ast(),
+                fileFragments = rootNode.subElements(10).select(function(ea) {
+                    var path = ea.getOwnerNamePath();
+                    return path.include(objectName) && (!methodName || path.include(methodName));
+                });
+
+            if (fileFragments.length > 0) {
+                return fileFragments[0].browseIt()
+            } else {
+                alert("could not browse " + methodName + " in " + objectName);
+                rootNode.browseIt();
+                return false;
+            }
+
+            return promise;
+        }
     },
     browseURL: function(url) {
         var browser = this.openSystemCodeBrowser();

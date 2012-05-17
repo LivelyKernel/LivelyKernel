@@ -224,15 +224,14 @@ cop.create('SystemCodeEditorHighlighting').refineClass(lively.ide.BasicBrowser, 
         textMorph.specialHighlighting = node ? node.target.specialHighlighting() : "none";
         cop.proceed(methodString, source);
     },
-}).refineClass(lively.ide.BrowserNode, {
+}).refineClass(lively.ide.FileFragment, {
     specialHighlighting: function() {
         if (["klassDef", "objectDef", "klassExtensionDef", "moduleDef"].include(this.type))
             return "topLevel";
         if (this.type == "propertyDef") return "memberFragment";
         if (this.type == "categoryDef") return "categoryFragment";
         return "none";
-    }
-}).refineClass(lively.ide.FileFragment, {
+    },
     reparse: function(newSource) {
         try {
             var ast = lively.ast.Parser.parse(newSource, this.specialHighlighting());

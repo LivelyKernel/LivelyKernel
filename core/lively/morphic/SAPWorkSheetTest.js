@@ -2366,7 +2366,7 @@ dataformat: currency & percentage & date & time
 	    oItem.onClickCallback=null;
 	    oItem.onMouseOverCallback=null;
 	    arrItems.push(oItem);
-            this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld(), '    Clear    ', arrItems);
+            this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld(), null, arrItems);
         }
     },
     imgTextAlignCenter_Click: function() {

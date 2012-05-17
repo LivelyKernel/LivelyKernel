@@ -221,7 +221,7 @@ cop.create('SystemCodeEditorHighlighting').refineClass(lively.ide.BasicBrowser, 
     onSourceStringUpdate: function(methodString, source) {
         var node = this.selectedNode();
         var textMorph = this.panel.sourcePane.innerMorph();
-        if (node && node.specialHighlighting) {
+        if (node && node.target.specialHighlighting) {
             textMorph.specialHighlighting = node.target.specialHighlighting();
         } else {
             textMorph.specialHighlighting = "none";

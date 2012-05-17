@@ -2611,6 +2611,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
 
             if (nOrgRow == -1){  //select all when click on left top corner
                 debugger;
+                console.log("start");
                 for (var y = 1; y < this.grid.numRows; y++) {
                     for (var x = 1; x < this.grid.numCols; x++) {
                         this.grid.setGridCellSelection(this.grid,this.grid.rows[y][x]);

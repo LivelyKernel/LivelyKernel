@@ -23,6 +23,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtDecimalPlaces = null;
         this.txtSymbol = null;
         this.txtType = null;
+        this.txtGeneralInfo=null;
         this.chkUseThousand=null;
         this.txtNegatvieNumbers
         this.txtUseThousand=null;

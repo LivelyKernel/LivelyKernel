@@ -105,7 +105,7 @@ if (!Config.isNewMorphic) return;
 
 lively.morphic.Text.addMethods(
 'syntax highlighting', {
-    syntaxHighlightingCharLimit: 4000,
+    syntaxHighlightingCharLimit: 8000,
     highlightJavaScriptSyntax: function() {
         // FIXME use defaultconfig
         if (URL.source && URL.source.toString().include('disableSyntaxHighlighting=true')) return;

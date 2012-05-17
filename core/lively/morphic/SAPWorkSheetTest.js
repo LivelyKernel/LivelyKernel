@@ -2498,7 +2498,7 @@ dataformat: currency & percentage & date & time
                             }
                         }
                     }
-                }else{
+                }else{ //case when general is selected
                     this.grid.arrSelectedCells[i].textString= sValue;
                 }
             }

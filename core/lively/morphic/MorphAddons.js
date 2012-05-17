@@ -640,8 +640,8 @@ lively.morphic.World.addMethods(
     },
 
     ensureUserDir: function(optUserName) {
-        optUserName = optUserName || this.getUserName();
-        var userDir = new URL(Config.rootPath).withFilename('users/').withFilename(optUserName + '/');
+        var username = optUserName || this.getUserName(),
+            userDir = URL.root.withFilename('users/' + username + '/');
         new WebResource(userDir).ensureExistance();
         return userDir;
     },

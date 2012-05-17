@@ -1963,7 +1963,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 },
 'default category', {
     initialize: function($super,oGrid, nXpos, nYpos,nWidth,nHeight) {
-        //Rectangle(xPos,yPox,width,height)
         nXpos = (nXpos==undefined) ? (0) : (nXpos);
         nYpos = (nWidth==undefined) ? (0) : (nYpos);
         nHeight = (nHeight==undefined) ? (30) : (nHeight);

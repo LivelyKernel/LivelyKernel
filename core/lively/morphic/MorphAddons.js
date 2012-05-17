@@ -638,7 +638,7 @@ lively.morphic.World.addMethods(
         var webR = new WebResource(Config.userNameURL).get();
         return webR.status.isSuccess() ? webR.content.replace(/\n|\"/g, '') : null;
     },
-    newMethod: function() {
+    askToRegisterAnAccount: function() {
         var msg = 'Cannot retrieve your user name. Register an account now?';
         $world.confirm(msg, function(response) {
             if (response) {

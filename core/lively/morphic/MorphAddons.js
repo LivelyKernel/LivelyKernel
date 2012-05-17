@@ -671,8 +671,11 @@ lively.morphic.World.addMethods(
         new WebResource(userDir).ensureExistance();
         return userConfigURL;
     },
-    newMethod: function() {
-        // enter comment here
+    showUserConfig: function() {
+        var url = this.ensureUserConfig()
+        require('lively.ide').toRun(function() {
+            lively.ide.browseURL(url);
+        });
     },
 
 

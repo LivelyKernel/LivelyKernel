@@ -2323,6 +2323,8 @@ dataformat: currency & percentage & date & time
     imgClear_Click: function() {
         debugger;
         if (this.oClearMenu){
+            this.oClearMenu.openInWorld();
+        }else{
             //'Clear All','Clear Formats','Clear Contents','Clear Comments'
 	    var arrItems=[];
 	    oItem = {};
@@ -2365,9 +2367,6 @@ dataformat: currency & percentage & date & time
 	    oItem.onMouseOverCallback=null;
 	    arrItems.push(oItem);
             this.oClearMenu= lively.morphic.Menu.openAt(pt(820,120), '    Clear    ', arrItems);
-
-        }else{
-            this.oClearMenu.openInWorld()
         }
     },
     imgTextAlignCenter_Click: function() {

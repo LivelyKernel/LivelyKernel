@@ -642,7 +642,7 @@ lively.morphic.World.addMethods(
     ensureUserDir: function(optUserName) {
         var username = optUserName || this.getUserName();
         if (!username) {
-            $world.confirm('Cannot retrieve your user name.\nPlease register for account.');
+            $world.confirm('Cannot retrieve your user name. Please register for account.');
             return null;
         }
         var userDir = URL.root.withFilename('users/' + username + '/');

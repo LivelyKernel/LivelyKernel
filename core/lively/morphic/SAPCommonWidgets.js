@@ -108,8 +108,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.txtUseThousand.setVisible(false);
         this.lstNegativeNumber.setVisible(false);
         this.lstDataTime.setVisible(false);
+        this.txtGeneralInfo.setVisible(false);
 
         switch(this.selectedCategory){
+            case "general":
+                this.txtGeneralInfo.setVisible(true);
+                break;
             case "number": 
                 this.ddlDecimalPlaces.setVisible(true);
                 this.ddlDecimalPlaces.setSelection(this.selectedDecimalPlaces);

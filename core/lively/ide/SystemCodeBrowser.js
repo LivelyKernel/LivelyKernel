@@ -172,11 +172,7 @@ Object.extend(lively.ide, {
     },
     browseURL: function(url) {
         var browser = this.openSystemCodeBrowser();
-
-        // set the correct path
-        var m = this.fileName.match(/(.*\/)(.+)/)
-        var pathName = m[1];    
-        browser.setTargetURL(URL.codeBase.withFilename(pathName))
+        browser.setTargetURL(url);
     },
     openSystemCodeBrowser: function() {
         var browser = new lively.ide.SystemBrowser();

@@ -571,9 +571,9 @@ debugger;
 
  showAnnotation: function(nColumn,nRow) {
         
-        var nOrgRow = nRow  + this.startRow;
-        var nOrgCol = nColumn + this.startColumn;
-        //var sAnnotation = this.at(nColumn,nRow).annotation;
+        var nOrgRow = nRow-1  + this.startRow;
+        var nOrgCol = nColumn-1 + this.startColumn;
+
         sAnnotation  = this.arrData[nOrgRow][nOrgCol].annotation
 
 

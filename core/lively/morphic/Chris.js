@@ -4,8 +4,8 @@ module('lively.morphic.Chris').requires().toRun(function() {
             $super();
         },
         login: function(email, password){
-            alert(email);
-            alert(password);
+            //alert(email);
+            //alert(password);
             
             $morph('Rectangle1').applyStyle({ fill: Color.random() });
         }

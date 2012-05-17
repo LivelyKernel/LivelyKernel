@@ -227,6 +227,7 @@ Object.subclass('lively.Main.Loader',
     browserSpecificFixes: function() {
         if (Global.navigator.appName == 'Opera') window.onresize();
         // selection style of morphs/texts/lists etc.
+        if (UserAgent.fireFoxVersion) return;
         var cssDef = ':focus {outline:none;}\n.visibleSelection:focus {';
         if (UserAgent.webKitVersion) {
             cssDef += '  outline: 2px auto -webkit-focus-ring-color;';

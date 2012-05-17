@@ -274,16 +274,25 @@ lively.morphic.Morph.subclass('lively.morphic.PasswordInput',
     createShape: function() {
         var node = XHTMLNS.create('input');
         node.type = 'password';
-        node.setAttribute('class', 'visibleSelection');
+        node.className = 'visibleSelection';
         return new lively.morphic.Shapes.External(node);
     },
 },
 'accessing', {
     set value(string) {
-        return this.renderContext().shapeNode.value = string;
+        // FIXME move to lively.morphic.HTML
+        var inputNode = this.renderContext().shapeNode;
+        if (inputNode) {
+            inputNode.value = string;
+        }
+
+        lively.bindings.signal(this, 'value', string);
+        return string;
     },
     get value() {
-        return this.renderContext().shapeNode.value;
+        // FIXME move to lively.morphic.HTML
+        var inputNode = this.renderContext().shapeNode;
+        return inputNode ? inputNode.value : '';
     }
 });
 

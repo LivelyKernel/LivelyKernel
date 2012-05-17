@@ -673,7 +673,7 @@ lively.morphic.World.addMethods(
     showUserConfig: function() {
         var url = this.ensureUserConfig()
         require('lively.ide').toRun(function() {
-            lively.ide.browseURL(url);
+            lively.ide.browse(url);
         });
     },
 

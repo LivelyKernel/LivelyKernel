@@ -2481,8 +2481,8 @@ dataformat: currency & percentage & date & time
             for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
                 nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
                 nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
-                nOrgRow = nRow  + this.grid.startRow;
-                nOrgCol = nColumn + this.grid.startColumn; 
+                nOrgRow = nRow-1  + this.grid.startRow;
+                nOrgCol = nColumn-1 + this.grid.startColumn; 
                 sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
                 nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
 

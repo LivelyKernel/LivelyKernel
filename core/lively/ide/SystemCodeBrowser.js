@@ -178,8 +178,10 @@ Object.extend(lively.ide, {
         var pathName = m[1];    
         browser.setTargetURL(URL.codeBase.withFilename(pathName))
     },
-    newMethod: function() {
-        // enter comment here
+    openSystemCodeBrowser: function() {
+        var browser = new lively.ide.SystemBrowser();
+        browser.openIn(lively.morphic.World.current());
+        return browser;
     },
 
 

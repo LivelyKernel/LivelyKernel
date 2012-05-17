@@ -96,7 +96,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
     },
     applyDataFormates: function(sValue,oDataFormat) {
-
             var dValue;
             var nValue;
             var bBracket = false;   //negative number type
@@ -125,8 +124,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                             default:
                                 sSymbol="$";
                         }
-                        
-                        debugger;
                         if (!isNaN(sValue)){
                             if (oDataFormat.negativeType==2 || oDataFormat.negativeType==3){
                                 bBracket = true;
@@ -136,7 +133,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                             sValue = this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,sSymbol,true,bBracket);
                         }
                     }
-                    
                     break;
                 case "percentage":
                     if (sValue){

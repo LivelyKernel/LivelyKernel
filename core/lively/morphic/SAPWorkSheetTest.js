@@ -1936,50 +1936,12 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         this.grid.addMorph(this);
     },
     onKeyUp: function($super, evt) {
-       
         $super(evt);
         //Saving annotation
         var nOrgRow = this.nRow+1+ this.grid.startRow;
         var nOrgCol = this.nColumn+1+ this.grid.startColumn;
-
-console.log("SAPGridAnnotation.onKeyUp: org col/row " + nOrgCol +"," + nOrgRow);
-
         this.grid.setAnnotation(nOrgCol ,nOrgRow,this.textString);
-
-        //this.textString += String.fromCharCode(evt.getKeyCode());
-    },
-    /*onKeyPress: function($super, evt) {
-       console.log("SAPGridAnnotation.onKeyPress");
-        $super(evt);
-        alert(this.textString);
-        //this.textString += String.fromCharCode(evt.getKeyCode());
-    },*/
-    /*onBackspacePressed: function($super, evt) {
-        $super(evt);
-        if (!this.textString) {
-            evt.stop(); 
-            return true; 
-        }
-        this.textString = this.textString.substring(0, this.textString.length-1);
-        evt.stop();
-    },
-    onMouseDown: function (evt) {
-    //debugger;
-        if (evt.isLeftMouseButtonDown()) {
-            this.displayExpression();
-        }
-    },
-    displayExpression: function() {
-        if (this.evalExpression !== undefined) {
-            this.textString = '=' + this.evalExpression;
-        }
-    },
-
-    put: function(aValue) {
-        console.log("Annotation.put")
-        this.textString = aValue;
-    },
-    */
+    }
 
 });
 

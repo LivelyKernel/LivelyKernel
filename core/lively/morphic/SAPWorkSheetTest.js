@@ -2323,7 +2323,7 @@ dataformat: currency & percentage & date & time
     imgClear_Click: function() {
         debugger;
         if (this.oClearMenu){
-            this.oClearMenu.openInWorld(this.imgClear.getPositionInWorld());
+            this.oClearMenu.openInWorld(this.imgClear.getPositionInWorld().addXY(2, 2));
         }else{
             //'Clear All','Clear Formats','Clear Contents','Clear Comments'
 	    var arrItems=[];
@@ -2333,7 +2333,7 @@ dataformat: currency & percentage & date & time
                 ['Clear Contents', function() { alert('3rd') }],
                 ['Clear Comments', function() { alert('4th') }]
             ];
-            this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld(), null, arrItems);
+            this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(2, 2), null, arrItems);
         }
     },
     imgTextAlignCenter_Click: function() {

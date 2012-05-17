@@ -2323,7 +2323,7 @@ dataformat: currency & percentage & date & time
     imgClear_Click: function() {
         debugger;
         if (this.oClearMenu){
-            this.oClearMenu.openInWorld();
+            this.oClearMenu.openInWorld(this.imgClear.getPositionInWorld());
         }else{
             //'Clear All','Clear Formats','Clear Contents','Clear Comments'
 	    var arrItems=[];

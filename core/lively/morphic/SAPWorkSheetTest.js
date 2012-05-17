@@ -2322,6 +2322,9 @@ dataformat: currency & percentage & date & time
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textAlign='left';
         }
     },
+    imgClear_Click: function() {
+        
+    },
     imgTextAlignCenter_Click: function() {
         var i;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {

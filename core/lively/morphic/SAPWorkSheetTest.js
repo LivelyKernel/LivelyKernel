@@ -2479,7 +2479,7 @@ dataformat: currency & percentage & date & time
          debugger;
         //if (oDataFormat){
             for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-                nRow  = this.grid.arrSelectedCells[i].gridCoords.y - (this.grid.hideColHeads ? 0 : 1);
+                nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
                 nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
                 nOrgRow = nRow-1  + this.grid.startRow;
                 nOrgCol = nColumn-1 + this.grid.startColumn; 

@@ -623,7 +623,8 @@ Widget.subclass('lively.ide.BasicBrowser',
 
         //this.setSourceString(src);
         var text = this.panel.sourcePane.innerMorph();
-        text.setTextString(src.toString())
+        text.setTextString(src.toString());
+        text.highlightJavaScriptSyntax();
         this.panel.sourcePane.setVerticalScrollPosition(sourcePos);
         // text.changed()
         text.showChangeClue(); // FIXME

@@ -646,10 +646,16 @@ lively.morphic.World.addMethods(
         return userDir;
     },
     ensureUserConfig: function(optUserName) {
-        var userDir = this.ensureUserDir(optUserName);
-
+        var userDirURL = this.ensureUserDir(optUserName),
+            userConfigURL = userDirURL.withFilename('config.js');
+        if (userConfigURL.asWebResource().exists()) {
+            return userConfigURL;
+        }
+        module('lively.ide.BrowserCommands').load(true);
+        var createModuleCommand = new lively.ide.AddNewFileCommand();
+        createModuleCommand.createModuleFile(userConfigURL);
         new WebResource(userDir).ensureExistance();
-        return userDir;
+        return userConfigURL;
     },
 
     isGrabbable: function(evt) {

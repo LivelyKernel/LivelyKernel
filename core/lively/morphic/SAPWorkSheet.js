@@ -1481,6 +1481,13 @@ y359
             return 'ERROR';
         }
     },
+    recalculateRowsFirst: function() {
+        this.rows.forEach(function (row) {
+            row.forEach(function (col) {
+                col.updateDisplay();
+            });
+        });
+    },
 });
 
 

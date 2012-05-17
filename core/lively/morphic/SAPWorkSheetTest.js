@@ -2297,11 +2297,13 @@ dataformat: currency & percentage & date & time
         var nY = this.grid.oWorkBook.getPosition().y +  130;
 
         if (this.oDataFormat){
+            console.log("oDataFormat exist")
             if (this.oDataFormat.owner.isShutdown()){
                 this.oDataFormat.owner.state =null;        
                 this.oDataFormat.owner.openInWorld(pt(nX ,nY ));
             }
         }else{
+            console.log("oDataFormat not exist")
             this.oDataFormat= new lively.morphic.SAPCellFormatter();
             this.oDataFormat.grid=this.grid;
             this.oDataFormat.oOkCallBack = this.setDataFormates;

@@ -6,6 +6,8 @@ module('lively.morphic.Chris').requires().toRun(function() {
         login: function(email, password){
             alert(email);
             alert(password);
+            
+            this.get('Rectangle1').applyStyle({ fill: '#FF0000' });
         }
     });    
 

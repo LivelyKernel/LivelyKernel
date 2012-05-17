@@ -170,5 +170,9 @@ Object.extend(lively.ide, {
 
         return promise;
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 });
 }) // end of module

@@ -537,7 +537,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CategorizedClassFragmentNode', 
         var sourcePane = this.browser.panel.sourcePane;
         setTimeout(function() {
             sourcePane.innerMorph().highlightJavaScriptSyntax();
-        }, 10);
+        }, 100);
     },
 
 });

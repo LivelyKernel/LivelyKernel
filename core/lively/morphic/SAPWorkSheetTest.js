@@ -2368,8 +2368,10 @@ dataformat: currency & percentage & date & time
 	    arrItems.push(oItem);
             arrItems=[];
 arrItems= [
-	['foo', function() { alert('first') }],
-	['bar', function() { alert('second') }]
+	['Clear All', function() { alert('first') }],
+	['Clear Formats', function() { alert('second') }],
+        ['Clear Contents', function() { alert('3rd') }],
+        ['Clear Comments', function() { alert('4th') }]
 ];
             this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld(), null, arrItems);
         }

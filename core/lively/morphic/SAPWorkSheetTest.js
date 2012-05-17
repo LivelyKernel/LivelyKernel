@@ -563,7 +563,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         var nOrgRow = nRow;
         var nOrgCol = nColumn;
-
+debugger;
         this.arrData[nOrgRow][nOrgCol].annotation = sText;
 
         

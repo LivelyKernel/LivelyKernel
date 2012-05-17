@@ -174,9 +174,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         var nHeight=25;
         this.setExtent(lively.pt(525,265));
         this.setFill(Color.rgb(255,255,255));
-   
+
+        this.txtGeneralInfo = new lively.morphic.Text(new Rectangle(nXstart,0, 100, nHeight),'General format cells have no specific format.');
+        this.txtCategory.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
+
         this.txtCategory=new lively.morphic.Text(new Rectangle(nXstart,0, 100, nHeight),'Category:');
-        this.txtCategory.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null})
+        this.txtCategory.applyStyle({borderWidth: 0, strokeOpacity: 0, fill: null});
         
         this.txtDecimalPlaces=new lively.morphic.Text(new Rectangle(nXstart + nX,nY, 120, nHeight),'Decimal Places:');
         this.txtDecimalPlaces.applyStyle({borderWidth: 0, fill: null});

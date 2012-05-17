@@ -228,7 +228,10 @@ Object.subclass('lively.Main.Loader',
         if (Global.navigator.appName == 'Opera') window.onresize();
         // selection style of morphs/texts/lists etc.
         XHTMLNS.addCSSDef(':focus {outline:none;}\n'
-                        + '.visibleSelection:focus { outline: 2px auto -webkit-focus-ring-color; }');
+                        + '.visibleSelection:focus { '
+                        + '  outline: 2px auto blue;'
+                        + '  outline: 2px auto -webkit-focus-ring-color;'
+                        + '}');
     },
 
     canvasHeightPatch: function(canvas) {

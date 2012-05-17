@@ -1968,11 +1968,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         nYpos = (nWidth==undefined) ? (0) : (nYpos);
         nHeight = (nHeight==undefined) ? (30) : (nHeight);
         nWidth = (nWidth==undefined) ? (1200) : (nWidth);
-        console.log(nHeight)
+   
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nXpos,nYpos,nWidth,nHeight)));
         this.grid=oGrid;
-        this.initializeImages();
-        this.initializeEvents();
+
         this.imgSave;
         this.imgSaveAs;
         this.imgCopy;
@@ -1998,9 +1997,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.imgTextAlignRight;
         this.ddlFontSize;
         this.ddlFont;
-
         this.fontPicker;
+        this.oClearMenu;
+
         this.oDataFormat = null;
+        this.initializeImages();
+        this.initializeEvents();
 
 /*
 
@@ -2602,23 +2604,20 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
 },
 'default category', {
     onMouseDown: function (evt) {
-        console.log("onMouseDown");
+ 
         this.grid.hideAnnotation();
         if (evt.isLeftMouseButtonDown()) {
             var nRow= this.gridCoords.y;
             var nOrgRow = nRow-1 + this.grid.startRow;
             var oSelectedData={};
             var nColLength = this.grid.arrData.length >0 ? this.grid.arrData[0].length : 0;
-debugger;
-            if (nOrgRow == -1){  //select all when click on left top corner
-                debugger;
-                console.log("start");
-                for (var y = 1; y < this.grid.numRows; y++) {
+
+            if (nRow== 0){  //select all when click on left top corner
+               for (var y = 1; y < this.grid.numRows; y++) {
                     for (var x = 1; x < this.grid.numCols; x++) {
                         this.grid.setGridCellSelection(this.grid,this.grid.rows[y][x]);
                     }
                 }
-                console.log("done")
                 for (var y = 0; y < this.grid.arrData.length; y++) {
                     for (var x = 0; x < nColLength ; x++) {
                         this.grid.setDataCellSelection(this.grid,x,y);
@@ -2627,7 +2626,6 @@ debugger;
             }else{
                 this.grid.selectedRowHeader= this;
                 this.grid.removeSelectedCells();
-
                 //for grid selected
                 for (var x = 1; x < this.grid.numCols; x++) {
                     this.grid.setGridCellSelection(this.grid,this.grid.rows[nRow][x]);

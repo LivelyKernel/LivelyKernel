@@ -1940,6 +1940,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridAnnotation',
         //Saving annotation
         var nOrgRow = this.nRow+1+ this.grid.startRow;
         var nOrgCol = this.nColumn+1+ this.grid.startColumn;
+        console.log("nOrgRow =" +nOrgRow +", nOrgCol =" + nOrgCol   )    
         this.grid.setAnnotation(nOrgCol ,nOrgRow,this.textString);
     }
 

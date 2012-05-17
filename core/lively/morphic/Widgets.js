@@ -994,10 +994,13 @@ lively.morphic.World.addMethods(
         });
         return browser;
     },
-    browseCode: function(objectName, methodName, sourceModuleName) {
+    browseCode: function(/*args*/) {
         // find code and browse it
+        // args can be objectName, methodName, sourceModuleName
+        // see lively.ide.browse for more options
+        var args = Array.from(arguments);
         require('lively.ide.SystemCodeBrowser').toRun(function() {
-           lively.ide.browse(objectName, methodName, sourceModuleName)
+           lively.ide.browse.apply(lively.ide, args);
         });
     },
 

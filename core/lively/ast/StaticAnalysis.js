@@ -234,7 +234,7 @@ cop.create('SystemCodeEditorHighlighting').refineClass(lively.ide.BasicBrowser, 
     },
     reparse: function(newSource) {
         try {
-            var ast = lively.ast.Parser.parse(newSource, this.specialHighlighting());
+            lively.ast.Parser.parse(newSource, this.specialHighlighting());
         } catch (e) {
             OMetaSupport.handleErrorDebug(e[0], e[1], e[2], e[3]/*src, rule, msg, idx*/);
             return {startIndex: e[3]};

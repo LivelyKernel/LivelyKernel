@@ -266,6 +266,10 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
         this.setChecked(this.isChecked());
     },
 });
+Object.subclass('MyClass',
+'default category', {
+    m1: function() {},
+});
 
 lively.morphic.Box.subclass('lively.morphic.ProgressBar',
 'settings', {

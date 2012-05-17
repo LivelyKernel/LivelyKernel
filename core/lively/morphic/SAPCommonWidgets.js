@@ -317,6 +317,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
         this.arrNegativeNumber=[];
         //'Number', 'Currency', 'Percentage','Date','Time'
         var oItem={};
+        oItem.value= "general";
+        oItem.string= "General";
+        oItem.isListItem=true;
+        this.arrCategory.push(oItem);
+        var oItem={};
         oItem.value= "number";
         oItem.string= "Number";
         oItem.isListItem=true;

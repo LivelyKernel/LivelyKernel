@@ -176,6 +176,9 @@ Object.extend(lively.ide, {
             var dir = url.getDirectory(),
                 fileName = url.filename();
             browser.setTargetURL(dir);
+            browser.selectNodeMatching(function(node) {
+                return node && node.url && node.url().filename() == fileName;
+            })
         } else {
             browser.setTargetURL(url);
         }

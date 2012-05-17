@@ -172,7 +172,14 @@ Object.extend(lively.ide, {
     },
     browseURL: function(url) {
         var browser = this.openSystemCodeBrowser();
-        browser.setTargetURL(url);
+        if (url.isLeaf()) {
+            var dir = url.getDirectory(),
+                fileName = url.filename();
+            browser.setTargetURL(dir);
+        } else {
+            browser.setTargetURL(url);
+        }
+        
     },
     openSystemCodeBrowser: function() {
         var browser = new lively.ide.SystemBrowser();

@@ -171,7 +171,12 @@ Object.extend(lively.ide, {
         return promise;
     },
     browseURL: function(url) {
-        // enter comment here
+        var browser = this.openSystemCodeBrowser();
+
+        // set the correct path
+        var m = this.fileName.match(/(.*\/)(.+)/)
+        var pathName = m[1];    
+        browser.setTargetURL(URL.codeBase.withFilename(pathName))
     },
 
 });

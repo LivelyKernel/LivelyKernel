@@ -1653,8 +1653,8 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         var bResult = false;
         var nCol= this.gridCoords.x;
         var nRow = this.gridCoords.y;
-        var nOrgRow = nRow + this.grid.startRow;
-        var nOrgCol = nCol+ this.grid.startColumn;
+        var nOrgRow = nRow-1 + this.grid.startRow;
+        var nOrgCol = nCol-1+ this.grid.startColumn;
 
         if (this.grid.arrData[nOrgRow][nOrgCol].formula){
             bResult = true;

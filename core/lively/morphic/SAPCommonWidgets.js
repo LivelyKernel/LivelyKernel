@@ -447,7 +447,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPCellFormatter',
 
         this.arrDateFormat=[];
         this.arrTimeFormat=[];
-
 //Date
 var dNow = new Date();
 //dNow.format("mm/dd/yyyy").toString();

@@ -2609,7 +2609,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
             var nOrgRow = nRow-1 + this.grid.startRow;
             var oSelectedData={};
             var nColLength = this.grid.arrData.length >0 ? this.grid.arrData[0].length : 0;
-
+debugger;
             if (nOrgRow == -1){  //select all when click on left top corner
                 debugger;
                 console.log("start");

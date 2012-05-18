@@ -1998,6 +1998,39 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     },
 },
 'do', {
+    setFontSize: function(sFontSize){
+        this.ddlFontSize.setSelectionMatching(sFontSize);
+    },
+    setfontFamily: function(sFontFamily){
+        if (this.fontPicker){
+            this.fontPicker.setDefaultFont(sFontFamily);
+        }else{
+            this.fontPicker= new lively.morphic.SAPFontPicker(sFontFamily,this.fontPicker_callBack);
+            this.fontPicker.setPosition(pt(181,24));
+            this.fontPicker.setVisible(false);
+            this.addMorph(this.fontPicker);
+            connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});
+        }
+   
+        this.ddlFont.setList([this.fontPicker.selectedFont]);
+    },    
+    fontPicker_callBack: function(sFont){
+        var i;
+        var that = this.owner;
+        that.ddlFont.updateList([sFont]);
+        for (i= 0; i< that.grid.arrSelectedCells.length; i++) {
+            that.grid.arrSelectedCells[i].emphasizeAll({fontFamily:sFont});
+        }
+
+        //for data
+        for (i= 0; i< that.grid.arrSelectedData.length; i++) {
+            that.grid.arrData[that.grid.arrSelectedData[i].y][that.grid.arrSelectedData[i].x].fontFamily=sFont;
+        }
+
+
+        that.fontPicker.setVisible(false);
+        
+    },
     clearCell: function(bClearFormats,bClearContents,bClearComments,bClearFormula,bClearStyle) {
         /*['Clear All', this.onMenuClick_ClearAll],
         ['Clear Formats', this.onMenuClick_ClearFormats],
@@ -2519,39 +2552,6 @@ dataformat: currency & percentage & date & time
         this.imgTextAlignCenter.disableHalos();
         this.imgTextAlignRight.disableHalos();
         this.imgFormatCell.disableHalos();
-    },
-    setFontSize: function(sFontSize){
-        this.ddlFontSize.setSelectionMatching(sFontSize);
-    },
-    setfontFamily: function(sFontFamily){
-        if (this.fontPicker){
-            this.fontPicker.setDefaultFont(sFontFamily);
-        }else{
-            this.fontPicker= new lively.morphic.SAPFontPicker(sFontFamily,this.fontPicker_callBack);
-            this.fontPicker.setPosition(pt(181,24));
-            this.fontPicker.setVisible(false);
-            this.addMorph(this.fontPicker);
-            connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});
-        }
-   
-        this.ddlFont.setList([this.fontPicker.selectedFont]);
-    },    
-    fontPicker_callBack: function(sFont){
-        var i;
-        var that = this.owner;
-        that.ddlFont.updateList([sFont]);
-        for (i= 0; i< that.grid.arrSelectedCells.length; i++) {
-            that.grid.arrSelectedCells[i].emphasizeAll({fontFamily:sFont});
-        }
-
-        //for data
-        for (i= 0; i< that.grid.arrSelectedData.length; i++) {
-            that.grid.arrData[that.grid.arrSelectedData[i].y][that.grid.arrSelectedData[i].x].fontFamily=sFont;
-        }
-
-
-        that.fontPicker.setVisible(false);
-        
     },
     initializeEvents: function() {
         connect(this.imgBold, "onMouseDown", this, "imgBold_Click", {});

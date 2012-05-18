@@ -2338,32 +2338,33 @@ dataformat: currency & percentage & date & time
         }else{
             //'Clear All','Clear Formats','Clear Contents','Clear Comments'
 	    var arrItems=[];
-      
+      /*
             oItem = {}
             oItem.isMenuItem=true;
             oItem.string="Clear All";
-            //oItem.value="Clear All";
             oItem.onClickCallback=this.onMenuClick_ClearAll;
-            //oItem.onMouseOverCallback=null;
             arrItems.push(oItem);
              
             oItem = {}
             oItem.isMenuItem=true;
             oItem.string="Clear Contents";
-            //oItem.value="Clear Contents";
             oItem.onClickCallback=this.onMenuClick_ClearAll;
-            //oItem.onMouseOverCallback=null;
             arrItems.push(oItem);
 
+            oItem = {}
+            oItem.isMenuItem=true;
+            oItem.string="Clear Contents";
+            oItem.onClickCallback=this.onMenuClick_ClearAll;
+            arrItems.push(oItem);
+*/
 
-
-            /*
+            
             arrItems= [
             	['Clear All', function() { this.onMenuClick_ClearAll() }],
-            	['Clear Formats', 'this.onMenuClick_ClearFormats'],
+            	['Clear Formats', this.onMenuClick_ClearFormats],
                 ['Clear Contents', function() { alert('3rd') }],
                 ['Clear Comments', function() { alert('4th') }]
-            ];*/
+            ];
             this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
         }
     },

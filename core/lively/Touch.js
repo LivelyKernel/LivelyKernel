@@ -2524,4 +2524,67 @@ lively.morphic.World.addMethods(
 
     },
 });
+cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
+    morphMenuItems: function() {
+        var a = cop.proceed();
+        var self = this;
+        if( this != $world) {
+            if(this.isFixed) {
+                a.push(["set unfixed", function() {
+                    self.setFixed(false);
+                }]);
+            } else {
+                a.push(["set fixed", function() {
+                    self.setFixed(true);
+                }]);
+            }
+
+            a.push(["tools", [  ['inspect', function() {
+                                    $world.openInspectorFor(self)
+                                }],
+                                ['edit', function() {
+                                    $world.openObjectEditorFor(self)
+                                }],
+                                ['style', 
+                                [ ['Fill', function() {
+                                    $world.openColorStylerFor(self);
+                                }],
+                                ['Border', function() {
+                                $world.openBorderStylerFor(self);}],
+                                ['Layout', function() {
+                                $world.openLayoutStylerFor(self);}]
+                                ]
+                                ]
+                            ]    
+                    ])
+        }
+        return a;
+    },
+}).refineClass(lively.morphic.World, {
+    openColorStylerFor: function(target){
+        if(!this.colorStyler) {
+            this.colorStyler = this.openPartItem('ColorChooser', 'PartsBin/BP2012');
+        } else {
+            this.addMorph(this.colorStyler)
+        }
+        target.showHalos()
+
+    },
+    openBorderStylerFor: function(target){
+        if(!this.borderStyler) {
+            this.borderStyler = this.openPartItem('BorderStyler', 'PartsBin/BP2012');
+        } else {
+            this.addMorph(this.borderStyler)
+        }
+        target.showHalos()
+},
+    openLayoutStylerFor: function(target){
+        if(!this.layoutStyler) {
+            this.layoutStyler = this.openPartItem('LayoutStyler', 'PartsBin/BP2012');
+        } else {
+            this.addMorph(this.layoutStyler)
+        }
+        target.showHalos()
+},}).beGlobal()
+
 }) // end of module

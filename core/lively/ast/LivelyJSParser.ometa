@@ -155,8 +155,8 @@ jsonBinding =
 	pos:p1 jsonPropName:n ":" exprPart:v pos:p2
 	-> [#binding, [p1, p2], n, v],
 jsonPropName = "name" | "number" | "string",
-memberFragment = spacesNoNl jsonBinding:jb (',' | empty) end -> jb,
-categoryFragment = spacesNoNl pos:p1 listOf(#exprPart, ','):es ("," | empty) pos:p2 end -> [#arr, [p1, p2]].concat(es),
+memberFragment = spaces jsonBinding:jb (',' | empty) spaces end -> jb,
+categoryFragment = spaces pos:p1 listOf(#exprPart, ','):es ("," | empty) pos:p2 spaces end -> [#arr, [p1, p2]].concat(es),
 formal = spaces pos:p1 "name":n pos:p2 -> [#get, [p1, p2], n],
 funcRest =
 	pos: p1 "(" listOf(#formal, ','):args ")" "{" srcElems:body "}" pos:p2

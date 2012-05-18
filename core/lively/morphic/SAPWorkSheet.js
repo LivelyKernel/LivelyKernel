@@ -2046,15 +2046,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 debugger;
         //Grid
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
-            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
-            nOrgRow = nRow-1  + this.grid.startRow;
-            nOrgCol = nColumn-1 + this.grid.startColumn; 
             
             sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
             nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
             if (bClearStyle){
-                
                 this.grid.arrSelectedCells[i].applyStyle({fontSize:10,
 							fontFamily:"helvetica",
                                                         fill: null,textColor: null,
@@ -2069,20 +2064,18 @@ debugger;
 							textDecoration: "normal"});
             }
             if (bClearContents){
-                this.grid.arrData[nOrgRow][nOrgCol].value="";
                 this.grid.arrSelectedCells[i].textString="";
             }
             if (bClearComments){
                 this.grid.arrData[nOrgRow][nOrgCol].annotation="";
             }
             if (bClearFormats){
-                this.grid.arrData[nOrgRow][nOrgCol].dataFormat=null;
+                
                 if (bClearContents){
                     
                 }
             }
             if (bClearFormula){
-                this.grid.arrData[nOrgRow][nOrgCol].formula="";
                 if (bClearContents){
                     
                 }
@@ -2093,22 +2086,24 @@ debugger;
             if (bClearStyle){
             }
             if (bClearContents){
-                this.grid.arrData[nOrgRow][nOrgCol].value="";
+                this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].value="";
             }
             if (bClearComments){
-                this.grid.arrData[nOrgRow][nOrgCol].annotation="";
+                this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].annotation="";
             }
             if (bClearFormats){
-                this.grid.arrData[nOrgRow][nOrgCol].dataFormat=null;
+                
                 if (bClearContents){
                     
                 }
+                this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=null;
             }
             if (bClearFormula){
-                this.grid.arrData[nOrgRow][nOrgCol].formula="";
+                
                 if (bClearContents){
                     
                 }
+                this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].formula="";
             }    
         }
 

@@ -2481,13 +2481,45 @@ dataformat: currency & percentage & date & time
 
         connect(this.imgClear, "onMouseDown", this, "imgClear_Click", {});
     },
-    clearCell: function(bClearFormats,bClearContents,ClearComments) {
+    clearCell: function(bClearFormats,bClearContents,bClearComments,bClearFormula) {
         /*['Clear All', this.onMenuClick_ClearAll],
         ['Clear Formats', this.onMenuClick_ClearFormats],
         ['Clear Contents', this.onMenuClick_ClearContents],
         ['Clear Comments', this.onMenuClick_ClearComments]];
         */
-        
+        var nRow;
+        var nColumn;
+        var nOrgRow;
+        var nOrgCol;
+        var sValue;
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow-1  + this.grid.startRow;
+            nOrgCol = nColumn-1 + this.grid.startColumn; 
+            
+            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
+            nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
+            if (bClearContents){
+                this.grid.arrData[nOrgRow][nOrgCol].value="";
+            }
+            if (bClearComments){
+                this.arrData[nOrgRow][nOrgCol].annotation="";
+            }
+            if (bClearFormats){
+                if (bClearContents){
+                    
+                }
+            }
+            if (bClearFormula){
+                if (bClearContents){
+                    
+                }
+            }
+        }
+
+
     },
     setDataFormates: function(oDataFormat) {
         var nRow;

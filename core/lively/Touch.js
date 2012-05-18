@@ -1870,5 +1870,618 @@ SelectionMode.beGlobal = function(){
   $world.ensureSelectionMorph();
   return this;
 };
+lively.morphic.Box.subclass('lively.morphic.TouchList',
+'initializing', {
+    initialize: function($super, bounds, optItems) {
+        $super(bounds);
+        this.itemList = [];
+        this.selection = null;
+        this.selectedLineNo = -1;
 
+        this.createList();
+        this.disableSelection();
+
+        this.reset();
+        //if (optItems) this.updateList(optItems);
+    },
+    createList: function() {
+        // enter comment here
+        this.setExtent(pt(348,281));
+        this.addMorph(this.createSubmenuContainer());
+    },
+    createSubmenuContainer: function() {
+        var container = new lively.morphic.Box(rect(0,0,10,10));
+        container.setExtent(pt(348,281));
+        container.name = "SubmenuContainer";
+        container.addMorph(this.createListItemContainer());
+        return container;
+    },
+    createListItemContainer: function() {
+        var container = new lively.morphic.ListItemContainer(rect(0,0,10,10));
+        container.setExtent(pt(348.0,41.9));
+        return container;
+        
+    },
+    reset: function() {
+        this.disableDropping();
+        this.submorphs.invoke('disableDropping');
+        this.setup([]);
+    },
+    setup: function(itemList) {
+    this.selection = null;
+    this.selectedLineNo = -1;
+    this.selectedMorph = null;
+    this.setClipMode("hidden");
+    this.titleStack = [];
+    this.containerStack = [];
+    var container = this.getCurrentContainer();
+    this.get("SubmenuContainer").removeAllMorphs();
+    this.get("SubmenuContainer").addMorph(container);
+    this.currentContainer = container;
+    this.get("SubmenuContainer").setPosition(pt(0,0));
+    this.submenusDisabled = false;
+    //world menu entries
+    this.createMenuItems(itemList);
+    },
+
+
+
+
+
+},
+'list interface', {
+    addItem: function(item) {
+        var newMorph = this.createListItem(item);
+        this.getCurrentContainer().addItem(newMorph);
+    },
+    updateSelection: function(newSelectedMorph) {
+    var hasText = true;
+    if(this.selectedMorph) {
+        hasText = this.selectedMorph.submorphs[0];
+        this.selectedMorph.setFill(
+            new lively.morphic.LinearGradient(
+            [
+                {offset: 0, color: Color.rgb(253,253,253)},
+                {offset: 1, color: Color.rgb(238,238,238)}
+            ],
+            'northSouth'
+            )
+        );
+        if(hasText) {        this.selectedMorph.submorphs[0].setTextColor(Color.rgb(47,47,47));
+        }
+    }
+    hasText = newSelectedMorph.submorphs[0];
+
+    
+    if(hasText) {
+        this.selection = newSelectedMorph.item.value;
+        if (this.selection[1] instanceof Array && !this.submenusDisabled) {
+            this.openSubMenu(this.selection);
+            return;
+        }
+        
+    } else {
+        this.selection = null;
+    }
+    this.selectedLineNo = newSelectedMorph.index;
+    this.selectedMorph = newSelectedMorph;
+    
+    this.selectedMorph.setFill(
+new lively.morphic.LinearGradient(
+        [
+            {offset: 0, color: Color.rgb(47,47,47)},
+            {offset:0.5,color: Color.rgb(21,21,21)},
+            {offset: 1, color: Color.rgb(0,0,0)}
+        ],
+        'northSouth'
+    ));
+    
+    if(hasText) {
+        this.selectedMorph.submorphs[0].setTextColor(Color.rgb(222,222,222));
+    }
+    },
+    openSubMenu: function(selection) {
+        (function () {
+            this.titleStack.push(this.title);
+            this.containerStack.push(this.getCurrentContainer());
+            this.title = selection[0];
+
+            var offset = this.getExtent().x * this.getLevel();
+
+            var container;
+            if(this.nextContainer){
+                container = this.nextContainer;
+                delete this.nextContainer;
+            } else {
+                container = this.createContainer();
+            }
+            container.setPosition(pt(offset, 0));
+            this.get("SubmenuContainer").addMorph(container);
+    
+            this.currentContainer = container;
+            this.addMenuItems(selection[1]);
+
+            var that = this;
+            this.get("SubmenuContainer").setPositionAnimated(pt(-offset, 0), 500, function(){
+                that.nextContainer = that.createContainer();
+            });
+
+        }).bind(this).delay(0);
+    },
+    openSuperMenu: function() {
+    if(this.getLevel() <= 0) {
+        return;
+    }
+    this.title = this.titleStack.pop();
+    
+    var offset = this.getExtent().x * this.getLevel();
+
+    var that = this;
+    var callbackFct = function() {
+        that.getCurrentContainer().remove();
+        that.currentContainer = that.containerStack.pop();
+    };
+    this.get("SubmenuContainer").setPositionAnimated(pt(-offset, 0), 500, callbackFct);
+    },
+    updateList: function(items) {
+    this.selection = null;
+    this.selectedLineNo = -1;
+    this.selectedMorph = null;
+    this.setClipMode("hidden");
+    this.titleStack = [];
+    this.containerStack = [];
+    var container = this.getCurrentContainer();
+    this.get("SubmenuContainer").removeAllMorphs();
+    this.get("SubmenuContainer").addMorph(container);
+    this.currentContainer = container;
+    this.get("SubmenuContainer").setPosition(pt(0,0));
+    //world menu entries
+    this.removeAllMenuItems();
+    this.submenusDisabled = true;
+    var that = this;
+    items.forEach(function (item) {
+        that.addItem({string: item, value: item, isListItem: true});
+    });
+    },
+
+
+
+
+},
+'events', {
+    onTouchStart: function(evt) {
+        this.getCurrentContainer().onTouchStart(evt);
+    },
+    onTouchMove: function(evt) {
+        this.getCurrentContainer().onTouchMove(evt);
+    },
+    onTouchEnd: function(evt) {
+        this.getCurrentContainer().onTouchEnd(evt);
+    },
+
+
+},
+'private functions', {
+    getCurrentContainer: function() {
+    if(!this.currentContainer){
+        this.currentContainer = this.get("SubmenuContainer").submorphs[0];
+    }
+    return this.currentContainer;
+    },
+    createMenuItems: function(items) {
+    this.removeAllMenuItems();
+    this.addMenuItems(items);
+    },
+    addMenuItems: function(items) {
+    var that = this;
+    items.forEach(function (item) {
+        if(typeof item === "string") {
+            that.addItem({string: item, value: item, isListItem: true});
+        } else {
+            that.addItem({string: item[0], value: item, isListItem: true});
+        }
+        
+    });
+    },
+
+    removeAllMenuItems: function() {
+    this.getCurrentContainer().removeAllMenuItems();
+    while(this.containerStack.length > 0){
+        this.getCurrentContainer().remove();
+        this.currentContainer = containerStack.pop();
+        this.currentContainer.removeAllMenuItems();
+    }
+    this.containerPrototype = this.createContainerPrototype();
+    this.nextContainer = this.createContainer();
+    this.titleStack = [];
+    this.containerStack = [];
+    },
+    createContainerPrototype: function() {
+    var container = this.getCurrentContainer().copy();
+    container.removeAllMenuItems();
+    return container;
+    },
+    createContainer: function() {
+    var container = this.containerPrototype.copy();
+    container.removeAllMenuItems();
+    return container;
+    },
+    createListItem: function(item) {
+    //TODO: It should take texts as well as objects to provide list interface compatability
+    var textString = item.string;
+    var part = new lively.morphic.ListItem(window.rect(0,0,10,10));
+    part.disableSelection();
+    part.name = "MenuItem_" + textString;
+    part.item = item;
+
+    part.applyStyle({
+        extent: pt(this.getExtent().x,44),
+        fill: new lively.morphic.LinearGradient(
+            [
+                {offset: 0, color: Color.rgb(253,253,253)},
+                {offset: 1, color: Color.rgb(238,238,238)}
+            ],
+            'northSouth'
+        ),
+        resizeWidth: true,
+        borderColor: Color.rgb(138,138,138),
+        borderWidth: 1
+    });
+
+    var text = new TextMorph(new Rectangle(0,0,this.getExtent().x,44));
+    text.applyStyle({fill: null, borderWidth: 0, borderColor: null});
+    text.setFontSize(14);
+    text.setTextColor(Color.rgb(47,47,47));
+    text.setFontFamily("Helvetica, Arial, sans-serif");
+    
+    text.setPosition(pt(10,10));
+    text.textString = textString;
+
+    text.emphasizeAll({fontWeight: 'bold'});
+    text.disableHalos();
+    text.disableSelection();
+    text.ignoreEvents();
+    part.addMorph(text);
+
+    if (item.value[1] instanceof Array && !this.submenusDisabled) {
+        var rect = new Rectangle(0,0, 15, 15),
+        icon = new lively.morphic.Image(rect, "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/ipadMenu/submenu.png", false);
+    var xPos = part.getExtent().subPt(icon.getExtent().scaleBy(1.5)).x,
+        yPos = part.getExtent().subPt(icon.getExtent()).scaleBy(0.5).y;
+    
+        icon.setPosition(pt(xPos,yPos))
+        icon.disableHalos();
+        icon.disableSelection();
+        icon.ignoreEvents();
+        part.addMorph(icon)
+    }
+
+    return part;
+    },
+    getLevel: function() {
+        return this.titleStack.length;
+    },
+
+
+
+
+
+
+});
+lively.morphic.Box.subclass('lively.morphic.ListItemContainer',
+'default category', {
+    isInBounds: function() {
+        var yPos = Math.min(0,Math.max(-this.maxScroll, this.getPosition().y));
+        var delta = this.getPosition().y-yPos;
+
+        return Math.abs(delta)<=0.02;
+    },
+    onTouchEnd: function(evt) {
+    var lastUpdate = new Date().valueOf();
+    this.isTouched = false;
+    var that = this;
+    if(!this.isInBounds()) {
+        this.velocity = 0;
+        var yPos = Math.min(0,Math.max(-this.maxScroll, this.getPosition().y));
+        this.setPositionAnimated(pt(this.getPosition().x,yPos),500)
+    }
+    },
+    onTouchMove: function(evt) {
+    evt.stop();
+
+    var touch = evt.touches[0];
+    
+    if(touch && touch.originalDragOffset) {
+        var x = this.getPosition().x;
+
+        var delta = (touch.clientY - touch.originalDragOffset) / this.owner.owner.owner.getScale();
+        //this.setPosition(pt(x,touch.originalMenuOffset+delta));
+        this.setPositionAnimated(pt(x,touch.originalMenuOffset+delta),0);
+        if(!this.isInBounds()) {
+            var yPos = Math.min(0,Math.max(-this.maxScroll, this.getPosition().y));
+            delta = this.getPosition().y-yPos;
+            //this.moveBy(pt(0,-delta/2));
+            this.moveByAnimated(pt(0,-delta/2),0)
+        }
+
+        var positionDelta = touch.lastTouch - touch.clientY;
+        var now = new Date().valueOf();
+        var timeDelta = now - touch.lastUpdate;
+
+        timeDelta = Math.max(1, timeDelta);
+
+        touch.lastTouch = touch.clientY;
+        touch.lastUpdate = now;
+        
+        this.velocity = positionDelta*(-10 / timeDelta);
+    }
+    return true;
+
+    },
+    onTouchStart: function(evt) {
+    evt.stop();
+
+    var touch = evt.touches[0];
+
+    if(touch) {
+        touch.originalDragOffset = touch.clientY;
+        touch.originalMenuOffset = this.getPosition().y;
+
+        var heightMenu = this.itemList.length * 43;
+        var heightContainer = this.owner.getExtent().y;
+        this.maxScroll = heightMenu - heightContainer;
+
+        this.isTouched = true;
+        this.velocity = 0;
+        touch.lastTouch = touch.clientY;
+        touch.lastUpdate = new Date().valueOf();
+    }
+    return true;
+    },
+    stayInBounds: function() {
+        var yPos = Math.min(0,Math.max(-this.maxScroll, this.getPosition().y));
+    var delta = this.getPosition().y-yPos;
+
+    if(this.velocity*delta > 0) {
+        // out of bounds and velocity is in wrong direction
+        this.velocity -= delta/15;
+    } else if(delta !== 0) {
+        this.velocity = -delta/15;
+    }
+    },
+    initialize: function($super, bounds) {
+        $super(bounds);
+        this.itemList = [];
+    },
+    removeAllMenuItems: function() {
+    this.itemList = [];
+    this.setPosition(pt(0,0));
+    //TODO: invoke remove on submorphs.copy instead?
+    this.submorphs.invoke("remove");
+    },
+    addItem: function(morph) {
+    morph.disableDropping();
+    this.itemList = this.itemList || [];
+    morph.setPosition(pt(0,this.itemList.length*43));
+    this.itemList.push(morph);
+    this.addMorph(morph);
+    },
+
+
+
+
+
+
+
+});
+lively.morphic.Box.subclass('lively.morphic.ListItem',
+'default category', {
+    initialize: function($super, bounds) {
+        $super(bounds);
+    },
+    onTouchStart: function(evt) {
+    var touch = evt.touches[0];
+
+    this.clickPosition = pt(touch.clientX,touch.clientY);
+    this.lastClickPos = this.clickPosition;
+
+    return false;
+    },
+    onTouchMove: function(evt) {
+    var touch = evt.touches[0];
+    
+    this.lastClickPos = pt(touch.clientX,touch.clientY);
+
+    return false;
+    },
+    onTouchEnd: function(evt) {
+    var deltaPt = this.lastClickPos.subPt(this.clickPosition);
+    var delta = deltaPt.x*deltaPt.x + deltaPt.y*deltaPt.y;
+    if(delta<25) {
+        //TODO: find a better way to find the related listMorph
+        var listMorph = this.owner.owner.owner;
+
+        if(listMorph && listMorph.updateSelection) {
+            listMorph.updateSelection(this);
+        }
+    }
+    return false;
+    },
+
+
+
+});
+
+cop.create('worldMenu').refineClass(lively.morphic.World, {
+    onrestore: function(){
+        cop.proceed();
+        connect(lively.morphic.World, "currentWorld", this, "loadTouchMenu");
+    },
+    loadTouchMenu: function() {
+        this.touchMenuPrototype = this.loadPartItem("TouchMenu", "PartsBin/iPadWidgets");
+    },
+    showTouchMenuAt: function (pos, fixed) {
+        var touchMenu = this.touchMenuPrototype;
+
+        var pagePosition = pos;
+        var screenPos = pagePosition.subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel());
+
+        touchMenu.setPosition(pos);
+        if(screenPos.y > document.documentElement.clientHeight / 2) {
+            touchMenu.moveBy(pt(0, -(touchMenu.getExtent().y + 1 * touchMenu.get("Triangle").getExtent().y)).scaleBy(1 / $world.getZoomLevel()));
+            touchMenu.movePointerToBottom();
+        } else {
+            touchMenu.movePointerToTop();
+        }
+
+        if(screenPos.x < touchMenu.getExtent().x / 2) {
+            touchMenu.moveBy(pt(touchMenu.getExtent().x / 2 - screenPos.x, 0).scaleBy(1 / $world.getZoomLevel()));
+            touchMenu.get("Triangle").moveBy(pt(- touchMenu.getExtent().x / 2 + screenPos.x,0));
+        }
+        if(screenPos.x > document.documentElement.clientWidth - touchMenu.getExtent().x / 2) {
+            var delta = document.documentElement.clientWidth - screenPos.x;
+            touchMenu.moveBy(pt( -touchMenu.getExtent().x / 2 + delta, 0).scaleBy(1 / $world.getZoomLevel()));
+            touchMenu.get("Triangle").moveBy(pt(+touchMenu.getExtent().x/2-delta,0));
+        }
+
+
+        this.addBlockerWith(touchMenu);
+        if(fixed) {
+            touchMenu.setFixed(true, true);    
+        }
+        return touchMenu;
+    },
+    addBlockerWith: function(menu) {
+        var blocker = Morph.makeRectangle(rect(0,0,10,10));
+        blocker.setExtent(this.getExtent());
+        blocker.setPosition(pt(0,0));
+        blocker.disableDropping();
+        blocker.disableSelection();
+        blocker.applyStyle({
+            fill: null,
+            opacity: 1,
+        });
+        menu.pinned = false;
+        menu.get('PinButton').inactiveBackground();
+        blocker.addMorph(menu);
+        blocker.touchMenu = menu;
+        blocker.addScript(function remove(optRemoveMenu) {
+            if (optRemoveMenu) {
+                this.touchMenu.removeFixed();
+            } else {
+                this.touchMenu = undefined;
+            }
+            $super();
+        });
+        connect(blocker, "onTap", blocker, "remove");
+        connect(blocker, "onClick", blocker, "remove");
+        connect(menu, "remove", blocker, "remove", {removeAfterUpdate: true});
+        
+        this.addMorph(blocker);
+    },
+
+    onHold: function(touch) {
+        var items = this.morphMenuItems();
+        var that = this;
+        items[0][1] = function () {
+            var loadingMorph = that.loadingMorph.copy();
+            loadingMorph.loadPartByName("PartsBinBrowser", "PartsBin/iPadWidgets", true);
+        }
+        var menu = this.showTouchMenuAt(touch.pageStart, true);
+        menu.targetMorph = this;
+        menu.setup(items);
+    },
+    addTextWindow: function (spec) {
+        // FIXME: typecheck the spec
+        if (Object.isString(spec.valueOf())) spec = {content: spec}; // convenience
+        var extent = spec.extent || pt(500, 200),
+            wrapper = lively.PartsBin.getPart("Rectangle", "PartsBin/Basic"),
+            textMorph = new lively.morphic.Text(extent.extentAsRectangle(), spec.content || ""),
+            doitButton = lively.PartsBin.getPart("DoitButton", "PartsBin/iPadWidgets"),
+            doAllButton = lively.PartsBin.getPart("DoAllButton", "PartsBin/iPadWidgets"),
+            saveButton = lively.PartsBin.getPart("SaveButton", "PartsBin/iPadWidgets"),
+            printButton = lively.PartsBin.getPart("PrintButton", "PartsBin/iPadWidgets");
+        wrapper.setExtent(extent.addXY(0, 24));
+        wrapper.addMorph(doitButton);
+        wrapper.addMorph(doAllButton);
+        wrapper.addMorph(saveButton);
+        wrapper.addMorph(printButton);
+        wrapper.addMorph(textMorph);
+        doitButton.moveBy(pt(2, 2));
+        doAllButton.moveBy(pt(doAllButton.getExtent().x+2*2, 2));
+        saveButton.moveBy(pt(2*saveButton.getExtent().x+3*2, 2));
+        printButton.moveBy(pt(3*saveButton.getExtent().x+4*2, 2));
+        doitButton.textMorph = textMorph;
+        doAllButton.textMorph = textMorph;
+        saveButton.textMorph = textMorph;
+        printButton.textMorph = textMorph;
+        textMorph.moveBy(pt(0, 35));
+        pane = this.internalAddWindow(wrapper, spec.title, spec.position);
+        wrapper.applyStyle({
+            fill: Color.rgb(255,255,255),
+            adjustForNewBounds: true,
+            resizeWidth: true, resizeHeight: true
+        });
+        textMorph.applyStyle({
+            clipMode: 'auto',
+            fixedWidth: true, fixedHeight: true,
+            resizeWidth: true, resizeHeight: true,
+            syntaxHighlighting: spec.syntaxHighlighting});
+        return textMorph;
+    },
+    morphMenuDefaultPartsItems: function() {
+        var items = [],
+            partNames = ["Rectangle", "Ellipse", "Image", "Text", 'Line'].sort();
+
+        items.pushAll(partNames.collect(function(ea) { return [ea, function(evt, menuMorph) {
+            var partSpaceName = 'PartsBin/Basic',
+                part = lively.PartsBin.getPart(ea, partSpaceName);
+            if (!part) {
+                return;
+            }
+            if(UserAgent.isTouch) {
+                part.openInWorld();
+                //part.align(part.bounds().topLeft(), menuMorph.bounds().topRight());
+                part.align(part.bounds().center(), $world.visibleBounds().center());
+                $world.setEditMode(true);
+                part.select();
+            } else {
+                lively.morphic.World.current().firstHand().grabMorph(part);
+            }
+            
+        }]}));
+
+
+        partNames = ["List", "Slider", "ScriptableButton", "Button"].sort()
+        items.pushAll(partNames.collect(function(ea) { return [ea, function(evt, menuMorph) {
+            var partSpaceName = 'PartsBin/Inputs',
+                part = lively.PartsBin.getPart(ea, partSpaceName);
+            if (!part) {
+                return;
+            }
+            if(UserAgent.isTouch) {
+                part.openInWorld();
+                part.align(part.bounds().topLeft(), menuMorph.bounds().topRight());
+                $world.setEditMode(true);
+                part.showHalos();
+            } else {
+                lively.morphic.World.current().firstHand().grabMorph(part);
+            }
+        }]}));
+
+        return items;
+    },
+
+
+}).refineClass(lively.morphic.Morph, {
+    openMorphMenuAt: function(pos, itemFilter) {
+        if (!(itemFilter instanceof Function)) {
+            itemFilter = function (items) { return items }
+        }
+        var menu = $world.showTouchMenuAt(pos, true);
+        menu.targetMorph = this;
+        menu.setup(itemFilter(this.morphMenuItems()));
+        return menu
+    },
+}).beGlobal();
 }) // end of module

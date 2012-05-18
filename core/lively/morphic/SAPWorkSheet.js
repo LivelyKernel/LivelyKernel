@@ -2343,14 +2343,14 @@ dataformat: currency & percentage & date & time
         this.imgRemoveColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,nSecondLineYPos,24,24), "images/table-column-delete-icon.png");
         this.imgRemoveColumn .setToolTip("Delete Column");
     
-        this.imgTextAlignLeft = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*19 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-left-icon.png");
+        this.imgTextAlignLeft = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*17 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-left-icon.png");
         this.imgTextAlignLeft.setToolTip("Align Text Left");
-        this.imgTextAlignCenter = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*20 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-center-icon.png");
+        this.imgTextAlignCenter = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*18 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-center-icon.png");
         this.imgTextAlignCenter.setToolTip("Align Text Center");
-        this.imgTextAlignRight = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*21 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-right-icon.png");
+        this.imgTextAlignRight = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*19 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-right-icon.png");
         this.imgTextAlignRight.setToolTip("Align Text Right");
 
-        this.imgClear= new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*22 + 10 + 14*nGapWidth,3,24,24), "images/Actions-edit-clear-icon.png"); 
+        this.imgClear= new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*17 + 10 + 14*nGapWidth,nSecondLineYPos,24,24), "images/Actions-edit-clear-icon.png"); 
 
         this.addMorph(this.imgInsertRow);
         this.addMorph(this.imgRemoveRow);

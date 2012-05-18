@@ -2073,7 +2073,6 @@ debugger;
                 this.grid.arrData[nOrgRow][nOrgCol].annotation="";
             }
             if (bClearFormats){
-                
                 if (bClearContents){
                     
                 }

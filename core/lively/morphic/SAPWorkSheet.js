@@ -1868,6 +1868,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         }
     },
     updateEvalExpression: function() {
+        console.log("updateEvalExpression")
         if (this.textString.substring(0,1) === '=') {
             this.evalExpression = this.textString.substring(1);
             //this.textString = this.grid.evaluateExpression(this.textString.substring(1));

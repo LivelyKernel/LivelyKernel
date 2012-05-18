@@ -1073,6 +1073,11 @@ Object.extend(Color, {
         return new Color(r/255, g/255, b/255);
     },
 
+    rgbHex: function(str) {
+        var c = this.parseHex(str);
+        return new Color(c[0],c[1],c[2]);
+    },
+
     rgba: function(r, g, b, a) {
         return new Color(r/255, g/255, b/255, a);
     },

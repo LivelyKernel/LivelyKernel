@@ -1716,4 +1716,159 @@ morphMenuDefaultPartsItems: function () {
     })
 .beGlobal();
 
+cop.create('DoubleTapSelection').refineClass(lively.morphic.Button,{
+    onDoubleTap: function(){
+        this.select();
+    },
+}).refineClass(lively.morphic.Text,{
+    onDoubleTap: function(evt){
+        this.select();
+        evt.stop();
+    },
+    appendTextHTML: function(ctx) {
+        if (!ctx.morphNode) throw dbgOn(new Error('appendText: no morphNode!'))
+        if (!ctx.shapeNode) throw dbgOn(new Error('appendText: no shapeNode!'))
+        if (!ctx.textNode) throw dbgOn(new Error('appendText: no textNode!'))
+
+        ctx.shapeNode.insertBefore(ctx.textNode, ctx.shapeNode.firstChild); // instead of appendChild
+    }
+}).refineClass(lively.morphic.Morph,{
+    tapped: function(evt) {
+        var doubleTapTimeout = 250,
+            that = this;
+            
+        if (this.lastTap && new Date() - this.lastTap <= doubleTapTimeout) {
+            if (typeof this.onDoubleTap === "function") {
+                this.lastTap.event.doNotTap = true;
+                this.lastTap = false;
+                this.onDoubleTap(evt);
+            }
+
+        } else {
+            if (typeof this.onTap === "function") {
+                window.setTimeout(function () {
+                    if (that.lastTap && !that.lastTap.event.doNotTap) {
+                        that.onTap(evt);
+                    }
+                }, doubleTapTimeout);
+            }
+            this.lastTap = new Date();
+            this.lastTap.event = evt;
+        }
+    },
+
+
+});
+
+cop.create('TouchAndHoldSelection').refineClass(lively.morphic.Button,{
+    onHold: function(){
+        this.select();
+    },
+}).refineClass(lively.morphic.Text,{
+    onHold: function(){
+        this.select();
+    },
+    appendTextHTML: function(ctx) {
+        if (!ctx.morphNode) throw dbgOn(new Error('appendText: no morphNode!'))
+        if (!ctx.shapeNode) throw dbgOn(new Error('appendText: no shapeNode!'))
+        if (!ctx.textNode) throw dbgOn(new Error('appendText: no textNode!'))
+
+        ctx.shapeNode.insertBefore(ctx.textNode, ctx.shapeNode.firstChild); // instead of appendChild
+    }
+});
+cop.create('SelectionMode').refineClass(lively.morphic.World, {
+    ensureSelectionMorph: function() {
+        if(!this.selectionModeButton){
+            this.selectionModeButton = new lively.morphic.Button(rect(0,0,44,44));
+            this.selectionModeButton.setExtent(pt(100,84));
+            this.selectionModeButton.setLabel("activate selection mode");
+
+            this.selectionModeButton.label.beLabel({
+                textColor: Color.white,
+                emphasize: {textShadow: null}
+            });
+            this.selectionModeButton.lighterFill = new lively.morphic.LinearGradient(
+                [
+                    {offset: 0, color: Color.rgb(49,79,255)},
+                    {offset: 0.59, color: Color.rgb(53,83,255)},
+                    {offset: 0.63, color: Color.rgb(79,105,255)},
+                    {offset: 1, color: Color.rgb(112,134,255)}
+                ],
+                'southNorth'
+            );
+            this.selectionModeButton.normalFill = new lively.morphic.LinearGradient(
+                [
+                    {offset: 0, color: Color.rgb(0,0,0)},
+                    {offset: 0.59, color: Color.rgb(59,59,59)},
+                    {offset: 0.63, color: Color.rgb(86,86,86)},
+                    {offset: 1, color: Color.rgb(139,139,139)}
+                ],
+                'southNorth'
+            );
+            this.selectionModeButton.setFill(this.selectionModeButton.normalFill);
+            this.selectionModeButton.onTouchStart = function(){};
+            this.selectionModeButton.onTouchEnd = function(){};
+            this.selectionModeButton.onTap = function(){
+                this.toggle();
+            };
+            this.selectionModeButton.toggle = function(){
+                this.isActivated = !this.isActivated;
+                if(this.isActivated){
+                    this.setFill(this.lighterFill);
+                    $world.activateSelection();
+                } else {
+                    this.setFill(this.normalFill);
+                    $world.deactivateSelection();
+                }
+            }
+        }
+        this.addMorph(this.selectionModeButton);
+
+        this.selectionModeButton.setFixed(true);
+        this.selectionModeButton.fixedScale = 1;
+        this.selectionModeButton.fixedPosition = pt(0,0);
+    },
+    deactivateSelection: function() {
+        $world.select();
+        this.selectionActivated = false;
+    },
+    activateSelection: function() {
+        this.selectionActivated = true;
+    },
+
+
+}).refineClass(lively.morphic.Morph, {
+    onTap: function(evt){
+        if(this.world().selectionActivated){
+            this.select();
+            evt.stop();
+        } else {
+            return cop.proceed(evt);
+        }
+    }
+}).refineClass(lively.morphic.Button, {
+    onTap: function(evt){
+        if(this.world().selectionActivated){
+            this.select();
+            evt.stop();
+        } else {
+            return cop.proceed(evt);
+        }
+    }
+}).refineClass(lively.morphic.Text, {
+    onTap: function(evt){
+        if(this.world().selectionActivated){
+            this.select();
+            evt.stop();
+        } else {
+            return cop.proceed(evt);
+        }
+    }
+});
+SelectionMode.beGlobal = function(){
+  cop.enableLayer(this);
+  $world.ensureSelectionMorph();
+  return this;
+};
+
 }) // end of module

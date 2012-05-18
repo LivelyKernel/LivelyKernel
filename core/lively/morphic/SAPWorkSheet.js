@@ -2422,64 +2422,71 @@ dataformat: currency & percentage & date & time
 */
 
 
-    },initializeImages: function() {
-        var nGapWidth = 6;
-        var nGapGroupWidth = 25;
-        var nSecondLineYPos = 30;
+    },
 
-        this.imgSave = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
-        this.imgSaveAs = new lively.morphic.Image(new Rectangle(24*1 + 10 + nGapWidth,3,24,24), "images/Save-as-icon.png"); 
-        this.imgPaste= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*2 + 10 + 2*nGapWidth,3,24,24), "images/Action-paste-icon.png"); 
-        this.imgCut= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,3,24,24), "images/Cut-icon.png"); 
-        this.imgCopy= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,nSecondLineYPos,24,24), "images/Actions-edit-copy-icon.png"); 
-    
-        this.ddlFont = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth, 3, 120, 20), []);
+    initializeImages: function() {
+        var nGapWidth = 6,
+            nGapGroupWidth = 25,
+            nSecondLineYPos = 30;
 
-        this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
+        function img(x, y, w, h, path) {
+            var url = URL.root.withFilename("users/kimhw/").withFilename(path);
+            return new lively.morphic.Image(new Rectangle(x,y,w,h), url);
+        }
+
+        this.imgSave            = img(10,3,24,24, "images/Save-icon.png");
+        this.imgSaveAs          = img(24*1 + 10 + nGapWidth,3,24,24, "images/Save-as-icon.png");
+        this.imgPaste           = img(nGapGroupWidth + 24*2 + 10 + 2*nGapWidth,3,24,24, "images/Action-paste-icon.png");
+        this.imgCut             = img(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,3,24,24, "images/Cut-icon.png");
+        this.imgCopy            = img(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,nSecondLineYPos,24,24, "images/Actions-edit-copy-icon.png");
+
+        this.ddlFont            = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth, 3, 120, 20), []);
+
+        this.ddlFontSize        = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
 
         this.addMorph(this.ddlFont );
         this.addMorph(this.ddlFontSize );
 
-        this.imgBold= new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-bold-icon.png"); 
+        this.imgBold            = img(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth,nSecondLineYPos,24,24, "images/Actions-format-text-bold-icon.png");
         this.imgBold.setToolTip("Bold");
-        this.imgItalic = new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*5 + 10 + 5*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-italic-icon.png"); 
+        this.imgItalic          = img(2*nGapGroupWidth + 24*5 + 10 + 5*nGapWidth,nSecondLineYPos,24,24, "images/Actions-format-text-italic-icon.png");
         this.imgItalic.setToolTip("Italic");
-        this.imgUnderline= new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*6 + 10 + 6*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-underline-icon.png"); 
+        this.imgUnderline       = img(2*nGapGroupWidth + 24*6 + 10 + 6*nGapWidth,nSecondLineYPos,24,24, "images/Actions-format-text-underline-icon.png");
         this.imgUnderline.setToolTip("Underline");
 
-        this.imgBackGroundColor= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*8 + 10 + 7*nGapWidth,nSecondLineYPos,24,24), "images/color-fill-icon.png"); 
-        this.imgFontColor= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*9 + 10 + 8*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-color-icon.png"); 
+        this.imgBackGroundColor = img(3*nGapGroupWidth + 24*8 + 10 + 7*nGapWidth,nSecondLineYPos,24,24, "images/color-fill-icon.png");
+        this.imgFontColor       = img(3*nGapGroupWidth + 24*9 + 10 + 8*nGapWidth,nSecondLineYPos,24,24, "images/Actions-format-text-color-icon.png");
 
-        this.imgSignDollar= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,3,24,24), "images/US-dollar-icon.png"); 
+        this.imgSignDollar      = img(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,3,24,24, "images/US-dollar-icon.png");
         this.imgSignDollar.setToolTip("Number Format: Currency");
-        this.imgSignPercent= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*12 + 10 + 12*nGapWidth,3,24,24), "images/Percent-icon2.png"); 
+        this.imgSignPercent     = img(3*nGapGroupWidth + 24*12 + 10 + 12*nGapWidth,3,24,24, "images/Percent-icon2.png");
         this.imgSignPercent.setToolTip("Number Format: Percentage");
 
-        this.imgFormatCell= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,nSecondLineYPos,24,24), "images/rick-text-format-icon.png"); 
+        this.imgFormatCell      = img(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,nSecondLineYPos,24,24, "images/rick-text-format-icon.png");
 
 
-        this.imgBoarder = new lively.morphic.Image(new Rectangle(4*nGapGroupWidth + 24*13 + 10 + 13*nGapWidth,3,24,24), "images/border-2-bottom-icon.png"); 
-        this.imgFilter = new lively.morphic.Image(new Rectangle(4*nGapGroupWidth + 24*14 + 10 + 14*nGapWidth,3,24,24), "images/filter-icon.png"); 
+        this.imgBoarder         = img(4*nGapGroupWidth + 24*13 + 10 + 13*nGapWidth,3,24,24, "images/border-2-bottom-icon.png");
+        this.imgFilter          = img(4*nGapGroupWidth + 24*14 + 10 + 14*nGapWidth,3,24,24, "images/filter-icon.png");
 
-        this.imgInsertRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,3,24,24), "images/table-row-insert-icon.png");
+        this.imgInsertRow       = img(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,3,24,24, "images/table-row-insert-icon.png");
         this.imgInsertRow.setToolTip("Insert Row");
 
-        this.imgInsertColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,nSecondLineYPos,24,24), "images/table-column-insert-icon.png");
+        this.imgInsertColumn    = img(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,nSecondLineYPos,24,24, "images/table-column-insert-icon.png");
         this.imgInsertColumn .setToolTip("Insert Column");
-        
-        this.imgRemoveRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,3,24,24), "images/table-row-delete-icon.png");
+
+        this.imgRemoveRow       = img(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,3,24,24, "images/table-row-delete-icon.png");
         this.imgRemoveRow .setToolTip("Delete Row");
-        this.imgRemoveColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,nSecondLineYPos,24,24), "images/table-column-delete-icon.png");
+        this.imgRemoveColumn    = img(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,nSecondLineYPos,24,24, "images/table-column-delete-icon.png");
         this.imgRemoveColumn .setToolTip("Delete Column");
-    
-        this.imgTextAlignLeft = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*17 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-left-icon.png");
+
+        this.imgTextAlignLeft   = img(6*nGapGroupWidth + 25*17 + 10 + 13*nGapWidth,3,24,24, "images/Text-align-left-icon.png");
         this.imgTextAlignLeft.setToolTip("Align Text Left");
-        this.imgTextAlignCenter = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*18 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-center-icon.png");
+        this.imgTextAlignCenter = img(6*nGapGroupWidth + 25*18 + 10 + 13*nGapWidth,3,24,24, "images/Text-align-center-icon.png");
         this.imgTextAlignCenter.setToolTip("Align Text Center");
-        this.imgTextAlignRight = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*19 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-right-icon.png");
+        this.imgTextAlignRight  = img(6*nGapGroupWidth + 25*19 + 10 + 13*nGapWidth,3,24,24, "images/Text-align-right-icon.png");
         this.imgTextAlignRight.setToolTip("Align Text Right");
 
-        this.imgClear= new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*17 + 10 + 14*nGapWidth,nSecondLineYPos,24,24), "images/Actions-edit-clear-icon.png"); 
+        this.imgClear           = img(6*nGapGroupWidth + 25*17 + 10 + 14*nGapWidth,nSecondLineYPos,24,24, "images/Actions-edit-clear-icon.png");
 
         this.addMorph(this.imgInsertRow);
         this.addMorph(this.imgRemoveRow);
@@ -2493,11 +2500,11 @@ dataformat: currency & percentage & date & time
         this.addMorph(this.imgCut);
         this.addMorph(this.imgPaste);
         this.addMorph(this.imgClear);
- 
+
         this.addMorph(this.imgBold);
         this.addMorph(this.imgItalic );
         this.addMorph(this.imgUnderline);
-   
+
         this.addMorph(this.imgBackGroundColor);
         this.addMorph(this.imgFontColor);
 
@@ -2569,6 +2576,7 @@ dataformat: currency & percentage & date & time
         this.imgTextAlignRight.disableHalos();
         this.imgFormatCell.disableHalos();
     },
+
     initializeEvents: function() {
         connect(this.imgBold, "onMouseDown", this, "imgBold_Click", {});
         connect(this.imgItalic, "onMouseDown", this, "imgItalic_Click", {});

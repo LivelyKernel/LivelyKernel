@@ -2074,7 +2074,7 @@ debugger;
             }
             if (bClearFormats){
                 if (!bClearContents){
-                    
+                    this.grid.arrSelectedCells[i].textString = sValue;
                 }
             }
             if (bClearFormula){

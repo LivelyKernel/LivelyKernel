@@ -2288,9 +2288,6 @@ dataformat: currency & percentage & date & time
         connect(this.imgFormatCell, "onMouseDown", this, "imgFormatCell_Click", {});
 
         connect(this.imgClear, "onMouseDown", this, "imgClear_Click", {});
-//imgClear
-        
-
     },
     imgFormatCell_Click: function() {
         var nX = this.grid.oWorkBook.getPosition().x +  250;

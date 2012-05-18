@@ -2360,10 +2360,10 @@ dataformat: currency & percentage & date & time
 
             
             arrItems= [
-            	['Clear All', function() { this.onMenuClick_ClearAll() }],
+            	['Clear All', this.onMenuClick_ClearAll],
             	['Clear Formats', this.onMenuClick_ClearFormats],
-                ['Clear Contents', function() { alert('3rd') }],
-                ['Clear Comments', function() { alert('4th') }]
+                ['Clear Contents', this.onMenuClick_ClearContents],
+                ['Clear Comments', this.onMenuClick_ClearComments]
             ];
             this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
         }

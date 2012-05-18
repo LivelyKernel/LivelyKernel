@@ -1965,7 +1965,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     onMenuClick_ClearAll: function(evt) {
        alert(1)
     },
-    onMenuClick_ClearFormats: function() {
+    onMenuClick_ClearFormats: function(evt) {
        alert(2)
     },
     onMenuClick_ClearContents: function(evt) {

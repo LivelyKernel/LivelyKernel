@@ -2073,7 +2073,7 @@ debugger;
                 this.grid.arrSelectedCells[i].deactivateCell();
             }
             if (bClearFormats){
-                if (bClearContents){
+                if (!bClearContents){
                     
                 }
             }

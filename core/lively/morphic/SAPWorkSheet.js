@@ -2083,6 +2083,7 @@ debugger;
             }
             if (bClearFormula){
                 this.grid.arrSelectedCells[i].textString="";
+                //this.grid.arrData[nOrgRow][nOrgCol]
                 this.grid.arrSelectedCells[i].deactivateCell();
             }    
         }

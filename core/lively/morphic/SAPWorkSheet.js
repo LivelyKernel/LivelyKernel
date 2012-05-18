@@ -2535,36 +2535,35 @@ dataformat: currency & percentage & date & time
         var sValue;
         var i;
         var nValue;//to check number
-         debugger;
-        //if (oDataFormat){
-            for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-                nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
-                nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
-                nOrgRow = nRow-1  + this.grid.startRow;
-                nOrgCol = nColumn-1 + this.grid.startColumn; 
-                sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-                nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
 
-                if (oDataFormat){
-                    sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
-                    this.grid.arrSelectedCells[i].textString= sValue;
-                    if (oDataFormat.type=="currency" || oDataFormat.type=="number"){
-                        if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
-                            if (!isNaN(nValue )){
-                                if (nValue <0){
-                                    this.grid.arrSelectedCells[i].applyStyle({textColor: Color.red});
-                                }
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow-1  + this.grid.startRow;
+            nOrgCol = nColumn-1 + this.grid.startColumn; 
+            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
+            nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
+
+            if (oDataFormat){
+                sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
+                this.grid.arrSelectedCells[i].textString= sValue;
+                if (oDataFormat.type=="currency" || oDataFormat.type=="number"){
+                    if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
+                        if (!isNaN(nValue )){
+                            if (nValue <0){
+                                this.grid.arrSelectedCells[i].applyStyle({textColor: Color.red});
                             }
                         }
                     }
-                }else{ //case when general is selected
-                    this.grid.arrSelectedCells[i].textString= sValue;
                 }
+            }else{ //case when general is selected
+                this.grid.arrSelectedCells[i].textString= sValue;
             }
-            for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-                this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
-            }
-        //}
+        }
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
+        }
+     
     }
 });    
 

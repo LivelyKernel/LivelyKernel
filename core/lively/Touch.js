@@ -1372,6 +1372,13 @@ lively.morphic.World.addMethods(
     getCurrentZoom: function() {
         return this.getZoomLevel();
     },
+getZoomLevel: function() {
+        if(!this.zoomLevel){
+            this.zoomLevel = this.calculateCurrentZoom();
+        }
+        return this.zoomLevel;
+    },
+
 
 });
 

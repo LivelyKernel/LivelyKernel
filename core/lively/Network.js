@@ -512,7 +512,7 @@ View.subclass('NetRequest', {
                 this.setResponseText(this.getResponseText());
             }    
             if (this.transport.responseXML !== undefined){
-                alert("xml: " + this.getResponseXML();
+                alert("xml: " + this.getResponseXML());
                 this.setResponseXML(this.getResponseXML());
             }
             if (this.transport.getAllResponseHeaders() !== undefined)

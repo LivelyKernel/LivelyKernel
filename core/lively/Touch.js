@@ -1072,6 +1072,14 @@ setFixed: function(fixed, fixedPosition) {
         this.setFixed(false)
         this.remove()
     },
+},
+"tooling", {
+beNotTool: function () {
+            this.removeWithLayer(ToolMorphLayer);
+        },
+        beTool: function () {
+            this.setWithLayers([ToolMorphLayer]);
+        },
 }
 );
 lively.morphic.Morph.subclass('lively.morphic.ResizeCorner',

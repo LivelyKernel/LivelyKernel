@@ -2153,6 +2153,7 @@ debugger;
 'Clear Menu Events', {
     onMenuClick_ClearAll: function(evt) {
         debugger;
+        this.parent.clearCell(true,true,true,true,true);
         //this.clearCell(true,true,true,true,true);
     },
     onMenuClick_ClearFormats: function(evt) {

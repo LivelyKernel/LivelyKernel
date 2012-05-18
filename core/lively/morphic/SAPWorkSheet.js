@@ -1997,7 +1997,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
     },
 },
-'do', {
+'Other methods', {
     setFontSize: function(sFontSize){
         this.ddlFontSize.setSelectionMatching(sFontSize);
     },

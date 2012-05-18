@@ -1961,6 +1961,20 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         textColor: Color.black
     }
 },
+'Clear Menu Events', {
+    onMenuClick_ClearAll: function() {
+       
+    },
+    onMenuClick_ClearFormats: function() {
+       
+    },
+    onMenuClick_ClearContents: function() {
+        
+    },
+    onMenuClick_ClearComments: function() {
+        
+    },
+},
 'default category', {
     initialize: function($super,oGrid, nXpos, nYpos,nWidth,nHeight) {
         nXpos = (nXpos==undefined) ? (0) : (nXpos);

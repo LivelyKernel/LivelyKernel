@@ -124,7 +124,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
     test09ParseMemberFragment: function() {
         var src1 = 'method: 23',
             src2 = 'method: 23,',
-            expected = ["binding", [0, 10], "method", ["number", [7, 10]]],
+            expected = ["binding", [0, 10], "method", ["number", [8, 10]]],
             result1 = this.parseJS(src1, 'memberFragment'),
             result2 = this.parseJS(src2, 'memberFragment');
         this.assertMatches(expected, result1);

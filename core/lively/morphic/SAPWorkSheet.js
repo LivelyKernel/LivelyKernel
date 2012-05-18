@@ -2043,6 +2043,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         var nOrgCol;
         var sValue;
         var i;
+
+        //Grid
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
             nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
@@ -2071,8 +2073,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
                 if (bClearContents){
                     
                 }
-            }
+            }    
         }
+        //Data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            
+        }
+
+
     },
     setDataFormates: function(oDataFormat) {
         var nRow;

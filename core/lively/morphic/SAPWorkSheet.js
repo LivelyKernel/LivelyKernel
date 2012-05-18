@@ -1408,8 +1408,8 @@ currently only support
             nCol= this.arrSelectedCells[i].x;
             nRow = this.arrSelectedCells[i].y;
         
-            nOrgRow = nRow -1 + this.grid.startRow;
-            nOrgCol = nCol -1 + this.grid.startColumn;  
+            nOrgRow = nRow -1 + this.startRow;
+            nOrgCol = nCol -1 + this.startColumn;  
 
             this.arrSelectedCells[i].deactivateCell();
         }

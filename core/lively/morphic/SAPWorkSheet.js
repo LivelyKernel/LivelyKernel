@@ -2106,7 +2106,7 @@ debugger;
                 if (bClearContents){
                     
                 }
-                this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].formula="";
+                //this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].formula="";
             }    
         }
 

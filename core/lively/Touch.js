@@ -3780,4 +3780,134 @@ lively.morphic.Morph.addMethods(
     }
 );
 
+cop.create('ToolMorphLayer').refineClass(lively.morphic.Morph, {
+    onMouseDown: function (evt) {
+        cop.proceed(evt);
+
+        if (!evt.isRightMouseButtonDown()){
+            $world.ignoreHalos = true;
+        }
+    },
+    onMouseUp: function (evt) {
+        cop.proceed(evt);
+        if (this.owner == $world) window.setTimeout(function () {$world.ignoreHalos = false}, 0);
+    },
+}).refineClass(lively.morphic.Slider, {
+    onMouseDown: function (evt) {
+        cop.proceed(evt);
+
+        if (!evt.isRightMouseButtonDown()){
+            $world.ignoreHalos = true;
+        }
+    },
+}).refineClass(lively.morphic.SliderKnob, {
+    onMouseDown: function (evt) {
+        cop.proceed(evt);
+
+        if (!evt.isRightMouseButtonDown()){
+            $world.ignoreHalos = true;
+        }
+    },
+}).refineClass(lively.morphic.Window, {
+    collapse: function () {
+        if (this.isCollapsed()) return;
+        this.expandedTransform = this.getTransform();
+
+        this.targetMorph.onWindowCollapse && this.targetMorph.onWindowCollapse();
+        this.targetMorph.remove();
+        this.helperMorphs = this.submorphs.withoutAll([this.targetMorph, this.titleBar]);
+        this.helperMorphs.invoke('remove');
+        if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(true);
+        var finCollapse = function () {
+            this.state = 'collapsed';  // Set it now so setExtent works right
+            if (this.collapsedTransform) this.setTransform(this.collapsedTransform);
+            if (this.collapsedExtent) this.setExtent(this.collapsedExtent);
+            if (this.collapsedPosition) this.setPosition(this.collapsedPosition);
+            this.shape.setBounds(this.titleBar.bounds());
+        }.bind(this);
+        /*if (this.collapsedPosition && this.collapsedPosition.dist(this.getPosition()) > 100)
+            this.animatedInterpolateTo(this.collapsedPosition, 5, 50, finCollapse);
+        else */finCollapse();
+        this.owner.dispatchNotify && this.owner.dispatchNotify("collapse", this);
+    },
+    expand: function () {
+        if (!this.isCollapsed()) return;
+        this.collapsedTransform = this.getTransform();
+        this.collapsedExtent = this.innerBounds().extent();
+        this.collapsedPosition = this.getPosition();
+        var finExpand = function () {
+            this.state = 'expanded';
+            if (this.expandedTransform)
+                this.setTransform(this.expandedTransform);
+            if (this.expandedExtent) {
+                this.setExtent(this.expandedExtent);
+            }
+            if (this.expandedPosition) {
+                this.setPosition(this.expandedPosition);
+            }
+
+            this.addMorph(this.targetMorph);
+
+            this.helperMorphs.forEach(function(ea) {
+                this.addMorph(ea)
+            }, this);
+
+            // Bring this window forward if it wasn't already
+            this.owner && this.owner.addMorphFront(this);
+            this.targetMorph.onWindowExpand && this.targetMorph.onWindowExpand();
+        }.bind(this);
+        /*if (this.expandedPosition && this.expandedPosition.dist(this.getPosition()) > 100)
+            this.animatedInterpolateTo(this.expandedPosition, 5, 50, finExpand);
+        else*/ finExpand();
+        if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(false);
+        this.owner.dispatchNotify && this.owner.dispatchNotify("expand", this);
+    },
+    onMouseUp: function() {
+        // enter comment here
+    },
+    onMouseDown: function() {
+    },
+
+})
+
+
+lively.morphic.Box.subclass('ToolContainer',
+'initializing', {
+    initialize: function($super, arguments) {
+        $super(arguments);
+        this.layout = {
+            adjustForNewBounds: true,
+            layouter: new lively.morphic.Layout.VerticalLayout(this),
+        };
+        this.initStyle();
+        this.beTool();
+        this.setupDefault();
+    },
+    initStyle: function() {
+        this.setFill(Color.white);
+    },
+    setupDefault: function() {
+        // temp method
+        var a = $world.openPartItem("Explorer", "/PartsBin/Tools/")
+        var b = $world.openPartItem("Explorer", "/PartsBin/Tools/")
+        //a.collapesedExtent = a.innerBounds().extent();
+        //b.collapesedExtent = b.innerBounds().extent();
+        //a.collapse();
+        //b.collapse();
+        //a.setExtent(a.collapsedExtent)
+        //b.setExtent(b.collapsedExtent)
+        a.setTitle("1");
+        b.setTitle("2");
+        this.addMorph(a);
+        this.addMorph(b);
+    },
+
+
+},
+'notification dispatching', {
+    dispatchNotify: function (type, window) {
+        this.adjustForNewBounds();
+    },
+});
+
 }) // end of module

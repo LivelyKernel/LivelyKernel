@@ -803,7 +803,146 @@ lively.morphic.Morph.addMethods(
 
 
 
-});
+},"PieMenu", {
+            showPieMenu: function(position){
+                if(this.showsPie || !this.world() || this.pieDisabled){
+                    return;
+                }
+                
+                if(this.showTimeout){
+                    window.clearTimeout(this.showTimeout);
+                    delete this.showTimeout;
+                }
+                
+                this.showsPie = true;
+                //this.halos = this.getHalos();
+                var pieMenu = this.world().showPieFor(this, this.pieItems);
+                console.log("pie menu bounds: "+pieMenu.bounds());
+                console.log("position: "+position);
+                pieMenu.align(pieMenu.bounds().center(), position);
+            },
+        
+            getPieItemClasses: function() {
+                return [
+                    lively.morphic.DragPieItem,
+                    lively.morphic.ScalePieItem,
+                    lively.morphic.RotatePieItem,
+                    lively.morphic.ConnectPieItem,
+                    lively.morphic.GrabPieItem,
+                    lively.morphic.CopyPieItem,
+                    lively.morphic.MenuPieItem,
+                    lively.morphic.ClosePieItem
+                ];
+            },
+            getPieItems: function() {
+                return this.getPieItemClasses().map(function(ea) { return new ea(this) }, this)
+            },
+    removePieMenu: function() {
+        this.showsPie = false;
+        $world.pieMenu && $world.pieMenu.remove()
+    },
+    doPieBehavior: function(evt) {
+        var newPos = pt( this.pieTouch.screenX, this.pieTouch.screenY);
+        var delta = newPos.subPt(this.pieTouch.screenStart);
+
+        var item = this.getPieItemAtDirection(delta);
+
+        if (delta.r() > 80) {
+            this.activatePieItem(item, evt);
+        } else if (delta.r() > 40 && this.enteredItem !== item) {
+            if (this.enteredItem) {
+                this.enteredItem.leave();
+            }
+            item.enter();
+            this.enteredItem = item;
+        } else if(delta.r() <= 40 && this.enteredItem) {
+            this.enteredItem.leave();
+            this.enteredItem = null;
+        }
+    },
+
+    pieStart: function(evt) {
+        if(evt.changedTouches.length === 1){
+            this.pieItems = this.getPieItems();
+            this.pieTouch = evt.changedTouches[0];
+            this.pieTouch.screenStart = pt(this.pieTouch.screenX, this.pieTouch.screenY);
+            this.pieTouch.pageStart = pt(this.pieTouch.pageX, this.pieTouch.pageY);
+
+            this.activatedPieItem = null;
+
+            var clientPos = pt(this.pieTouch.pageX, this.pieTouch.pageY);
+            this.showTimeout = window.setTimeout(this.showPieMenu.bind(this, clientPos), 750);
+
+            evt.preventDefault();
+            return true;
+        }
+    },
+    pieMove: function(evt) {
+        if(this.pieTouch){
+            var pagePos = pt(this.pieTouch.pageX, this.pieTouch.pageY);
+            evt.getPosition = function(){return pagePos};
+
+            if(this.activatedPieItem){
+                this.activatedPieItem.move(evt);
+            } else {
+                this.doPieBehavior(evt);
+            }
+            evt.preventDefault();
+            return true;
+        }
+    },
+    pieEnd: function(evt) {
+
+        if (evt.touches.length === 0) {
+            // this branch is executed, when the last finger left the screen
+            $world.setPieMode($world.pieButtonActive);
+        }
+
+        //TODO: pieTouch in touches?
+        if(this.pieTouch){
+            
+
+            if(this.showTimeout){
+                window.clearTimeout(this.showTimeout);
+                delete this.showTimeout;
+            }else{
+                this.removePieMenu();
+            }
+            if(this.activatedPieItem){
+                this.activatedPieItem.end(evt);
+                this.activatedPieItem = null;
+            }
+
+            delete this.pieTouch;
+
+            evt.stop();
+            return true;
+        }
+    },
+    getPieItemAtDirection: function(direction) {
+        var angle = Math.atan2(direction.y, direction.x);
+        angle += Math.PI/8;
+        while(angle < 0){
+            angle += 2 * Math.PI;
+        }
+        angle *= 4 / Math.PI;
+        angle %= 8;
+        angle = Math.floor(angle);
+        return this.pieItems[angle];
+    },
+
+    activatePieItem: function(item, evt) {
+        if(this.showTimeout){
+            window.clearTimeout(this.showTimeout);
+            delete this.showTimeout;
+        } else {
+            this.removePieMenu();
+        }
+
+        this.activatedPieItem = item;
+        item.activate(evt);
+    },
+        });
 lively.morphic.Morph.subclass('lively.morphic.ResizeCorner',
 'default category', {
     initialize: function($super, initialBounds) {

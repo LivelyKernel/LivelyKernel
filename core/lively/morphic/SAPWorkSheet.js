@@ -2509,14 +2509,16 @@ dataformat: currency & percentage & date & time
                 this.grid.arrData[nOrgRow][nOrgCol].value="";
             }
             if (bClearComments){
-                this.arrData[nOrgRow][nOrgCol].annotation="";
+                this.grid.arrData[nOrgRow][nOrgCol].annotation="";
             }
             if (bClearFormats){
+                this.grid.arrData[nOrgRow][nOrgCol].dataFormat=null;
                 if (bClearContents){
                     
                 }
             }
             if (bClearFormula){
+                this.grid.arrData[nOrgRow][nOrgCol].formula="";
                 if (bClearContents){
                     
                 }

@@ -2217,6 +2217,14 @@ debugger;
                 ['Clear Comments', this.onMenuClick_ClearComments]];
             //this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
            
+            arrItems=[]
+            oItem = {}
+            oItem.isMenuItem=true;
+            oItem.string="";
+            oItem.value="";
+            oItem.onClickCallback=this.onMenuClick_ClearMenuHide;
+            oItem.parent = this;
+            arrItems.push(oItem);
 
             arrItems=[]
             oItem = {}

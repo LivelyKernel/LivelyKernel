@@ -140,7 +140,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
         this.assertMatches(expected, result1);
         this.assertMatches(expected, result2);
     },
-    test11ParseName: function() {
+    test11ParseVarDecl: function() {
         var src = 'var /*bla*/s = 23;',
             expected = ["begin", [3, 17], ["var", [3, 17], "s", ["number", [15, 17], 23]]],
             result = this.parseJS(src, 'stmt');

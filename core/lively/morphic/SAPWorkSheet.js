@@ -2524,8 +2524,6 @@ dataformat: currency & percentage & date & time
                 }
             }
         }
-
-
     },
     setDataFormates: function(oDataFormat) {
         var nRow;

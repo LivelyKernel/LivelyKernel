@@ -2339,8 +2339,8 @@ dataformat: currency & percentage & date & time
             //'Clear All','Clear Formats','Clear Contents','Clear Comments'
 	    var arrItems=[];
             arrItems= [
-            	['Clear All', function() { alert('first') }],
-            	['Clear Formats', function() { alert('second') }],
+            	['Clear All', function() { this.onMenuClick_ClearAll() }],
+            	['Clear Formats', this.onMenuClick_ClearFormats()],
                 ['Clear Contents', function() { alert('3rd') }],
                 ['Clear Comments', function() { alert('4th') }]
             ];

@@ -2060,7 +2060,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
                 ['Clear Contents', this.onMenuClick_ClearContents],
                 //['Clear Formulas', this.onMenuClick_ClearFormulas],
                 ['Clear Comments', this.onMenuClick_ClearComments]];
-            this.oClearMenu= lively.morphic.Menu.openAt(this.this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
+            this.oClearMenu= lively.morphic.Menu.openAt(this,this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
         }
     },
     imgTextAlignCenter_Click: function() {

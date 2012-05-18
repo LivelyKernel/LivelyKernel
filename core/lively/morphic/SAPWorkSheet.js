@@ -2216,7 +2216,7 @@ debugger;
             this.oClearMenu.addScript(function onMouseOut(evt) {
                 $super(evt);
                 this.remove();
-                console.log("onBlur")
+                console.log("onMouseOut")
                 return true;
             })
 

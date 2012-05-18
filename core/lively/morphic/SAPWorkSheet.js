@@ -2336,35 +2336,11 @@ dataformat: currency & percentage & date & time
         if (this.oClearMenu){
             this.oClearMenu.openInWorld(this.imgClear.getPositionInWorld().addXY(7, 7));
         }else{
-            //'Clear All','Clear Formats','Clear Contents','Clear Comments'
-	    var arrItems=[];
-      /*
-            oItem = {}
-            oItem.isMenuItem=true;
-            oItem.string="Clear All";
-            oItem.onClickCallback=this.onMenuClick_ClearAll;
-            arrItems.push(oItem);
-             
-            oItem = {}
-            oItem.isMenuItem=true;
-            oItem.string="Clear Contents";
-            oItem.onClickCallback=this.onMenuClick_ClearAll;
-            arrItems.push(oItem);
-
-            oItem = {}
-            oItem.isMenuItem=true;
-            oItem.string="Clear Contents";
-            oItem.onClickCallback=this.onMenuClick_ClearAll;
-            arrItems.push(oItem);
-*/
-
-            
-            arrItems= [
+            var arrItems= [
             	['Clear All', this.onMenuClick_ClearAll],
             	['Clear Formats', this.onMenuClick_ClearFormats],
                 ['Clear Contents', this.onMenuClick_ClearContents],
-                ['Clear Comments', this.onMenuClick_ClearComments]
-            ];
+                ['Clear Comments', this.onMenuClick_ClearComments]];
             this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
         }
     },

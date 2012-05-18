@@ -2409,6 +2409,7 @@ debugger;
         this.imgTextAlignCenter;
         this.imgTextAlignRight;
         this.ddlFontSize;
+        this.ddlClear;
         this.ddlFont;
         this.fontPicker;
         this.oClearMenu=null;

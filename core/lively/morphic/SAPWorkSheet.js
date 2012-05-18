@@ -1998,7 +1998,84 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     },
 },
 'do', {
-    
+    clearCell: function(bClearFormats,bClearContents,bClearComments,bClearFormula,bClearStyle) {
+        /*['Clear All', this.onMenuClick_ClearAll],
+        ['Clear Formats', this.onMenuClick_ClearFormats],
+        ['Clear Contents', this.onMenuClick_ClearContents],
+        ['Clear Comments', this.onMenuClick_ClearComments]];
+        */
+        var nRow;
+        var nColumn;
+        var nOrgRow;
+        var nOrgCol;
+        var sValue;
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow-1  + this.grid.startRow;
+            nOrgCol = nColumn-1 + this.grid.startColumn; 
+            
+            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
+            nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
+            if (bClearContents){
+                this.grid.arrData[nOrgRow][nOrgCol].value="";
+            }
+            if (bClearComments){
+                this.grid.arrData[nOrgRow][nOrgCol].annotation="";
+            }
+            if (bClearFormats){
+                this.grid.arrData[nOrgRow][nOrgCol].dataFormat=null;
+                if (bClearContents){
+                    
+                }
+            }
+            if (bClearFormula){
+                this.grid.arrData[nOrgRow][nOrgCol].formula="";
+                if (bClearContents){
+                    
+                }
+            }
+        }
+    },
+    setDataFormates: function(oDataFormat) {
+        var nRow;
+        var nColumn;
+        var nOrgRow;
+        var nOrgCol;
+        var sValue;
+        var i;
+        var nValue;//to check number
+
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow-1  + this.grid.startRow;
+            nOrgCol = nColumn-1 + this.grid.startColumn; 
+            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
+            nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
+
+            if (oDataFormat){
+                sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
+                this.grid.arrSelectedCells[i].textString= sValue;
+                if (oDataFormat.type=="currency" || oDataFormat.type=="number"){
+                    if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
+                        if (!isNaN(nValue )){
+                            if (nValue <0){
+                                this.grid.arrSelectedCells[i].applyStyle({textColor: Color.red});
+                            }
+                        }
+                    }
+                }
+            }else{ //case when general is selected
+                this.grid.arrSelectedCells[i].textString= sValue;
+            }
+        }
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
+        }
+     
+    }
 },
 'Clear Menu Events', {
     onMenuClick_ClearAll: function(evt) {
@@ -2499,85 +2576,8 @@ dataformat: currency & percentage & date & time
         connect(this.imgFormatCell, "onMouseDown", this, "imgFormatCell_Click", {});
 
         connect(this.imgClear, "onMouseDown", this, "imgClear_Click", {});
-    },
-    clearCell: function(bClearFormats,bClearContents,bClearComments,bClearFormula,bClearStyle) {
-        /*['Clear All', this.onMenuClick_ClearAll],
-        ['Clear Formats', this.onMenuClick_ClearFormats],
-        ['Clear Contents', this.onMenuClick_ClearContents],
-        ['Clear Comments', this.onMenuClick_ClearComments]];
-        */
-        var nRow;
-        var nColumn;
-        var nOrgRow;
-        var nOrgCol;
-        var sValue;
-        var i;
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
-            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
-            nOrgRow = nRow-1  + this.grid.startRow;
-            nOrgCol = nColumn-1 + this.grid.startColumn; 
-            
-            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-            nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
-            if (bClearContents){
-                this.grid.arrData[nOrgRow][nOrgCol].value="";
-            }
-            if (bClearComments){
-                this.grid.arrData[nOrgRow][nOrgCol].annotation="";
-            }
-            if (bClearFormats){
-                this.grid.arrData[nOrgRow][nOrgCol].dataFormat=null;
-                if (bClearContents){
-                    
-                }
-            }
-            if (bClearFormula){
-                this.grid.arrData[nOrgRow][nOrgCol].formula="";
-                if (bClearContents){
-                    
-                }
-            }
-        }
-    },
-    setDataFormates: function(oDataFormat) {
-        var nRow;
-        var nColumn;
-        var nOrgRow;
-        var nOrgCol;
-        var sValue;
-        var i;
-        var nValue;//to check number
-
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
-            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
-            nOrgRow = nRow-1  + this.grid.startRow;
-            nOrgCol = nColumn-1 + this.grid.startColumn; 
-            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-            nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
-
-            if (oDataFormat){
-                sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
-                this.grid.arrSelectedCells[i].textString= sValue;
-                if (oDataFormat.type=="currency" || oDataFormat.type=="number"){
-                    if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
-                        if (!isNaN(nValue )){
-                            if (nValue <0){
-                                this.grid.arrSelectedCells[i].applyStyle({textColor: Color.red});
-                            }
-                        }
-                    }
-                }
-            }else{ //case when general is selected
-                this.grid.arrSelectedCells[i].textString= sValue;
-            }
-        }
-        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
-        }
-     
     }
+
 });    
 
 lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',

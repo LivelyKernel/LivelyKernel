@@ -1396,6 +1396,9 @@ currently only support
                .select(function(cell) { return cell && cell.getContent });
     },
     removeSelectedCells: function() {
+
+        //need to consider cell is formula and annotation cell.
+
         for (var i= 0; i< this.arrSelectedCells.length; i++) {
             this.arrSelectedCells[i].deactivateCell();
         }

@@ -78,9 +78,9 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
         var src1 = '5 & 3', // = 1
             src2 = '5 | 3', // = 7
             src3 = '5 ^ 3', // = 6
-            expected1 = ['binop', [0, 5], '&', ['number', [0, 1], '5'], ['number', [3, 5], 3]],
-            expected2 = ['binop', [0, 5], '|', ['number', [0, 1], '5'], ['number', [3, 5], 3]],
-            expected3 = ['binop', [0, 5], '^', ['number', [0, 1], '5'], ['number', [3, 5], 3]],
+            expected1 = ['binop', [0, 5], '&', ['number', [0, 1], '5'], ['number', [4, 5], 3]],
+            expected2 = ['binop', [0, 5], '|', ['number', [0, 1], '5'], ['number', [4, 5], 3]],
+            expected3 = ['binop', [0, 5], '^', ['number', [0, 1], '5'], ['number', [4, 5], 3]],
             result;
 
         result = this.parseJS(src1, 'expr');

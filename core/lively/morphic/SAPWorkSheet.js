@@ -2517,7 +2517,7 @@ dataformat: currency & percentage & date & time
         this.ddlClear = new lively.morphic.DropDownList(
                         new Rectangle(6*nGapGroupWidth + 25*17 + 10 + 14*nGapWidth,nSecondLineYPos,100, 20), 
                         ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
-        this.addMorph(this.ddlClear);
+        //this.addMorph(this.ddlClear);
         this.addMorph(this.imgInsertRow);
         this.addMorph(this.imgRemoveRow);
         this.addMorph(this.imgInsertColumn);

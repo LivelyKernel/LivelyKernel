@@ -1360,6 +1360,9 @@ lively.morphic.World.addMethods(
 
 
     },
+},
+"zooming", {
+
 });
 
 

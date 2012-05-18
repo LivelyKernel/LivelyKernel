@@ -2009,6 +2009,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     },
     onMenuClick_ClearComments: function(evt) {
         alert(4)
+    },
+    onMenuClick_ClearFormulas: function(evt) {
+        alert(5)
     }
 },
 'Image Click Events', {

@@ -144,7 +144,7 @@ primExpr =
 		| "function" ("name" | empty) funcRest
 		| "[" listOf(#exprPart, ','):es ("," | empty) "]"	pos:p2	-> [#arr, [p1, p2]].concat(es)
 		| "/" (escapeChar | ~'\/' char)*:e "/" letter*:f pos:p2	-> [#regex, [p1, p2], e.join(''), f.join('')]
-	 ):ex -> ex
+	 )
 	| json,
 
 json =
@@ -173,7 +173,7 @@ block =
 	-> ss,
 stmt =
 	block
-	| pos:p1 (
+	| spaces pos:p1 (
 		"var" bindingList:bs sc pos:p2	-> bs
 		| "if" "(" expr:c ")" stmt:t
 			( "else" stmt

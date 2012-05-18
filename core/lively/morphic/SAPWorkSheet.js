@@ -1402,9 +1402,9 @@ currently only support
         var nOrgCol;
           debugger;
         for (var i= 0; i< this.arrSelectedCells.length; i++) {
-            nCol= this.arrSelectedCells[i].x;
-            nRow = this.arrSelectedCells[i].y;
-        
+            nRow  = this.arrSelectedCells[i].gridCoords.y;             
+            nCol= this.arrSelectedCells[i].gridCoords.x;
+            
             nOrgRow = nRow -1 + this.startRow;
             nOrgCol = nCol -1 + this.startColumn; 
             /*if (this.arrData[nOrgRow][nOrgCol].formula){

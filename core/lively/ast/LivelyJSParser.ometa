@@ -135,7 +135,7 @@ memberExpr =
 	| primExpr,
 primExpr =
 	"(" expr:e ")" -> e
-	| pos:p1 (
+	| spaces pos:p1 (
 		"this" pos:p2											-> [#this, [p1, p2]]
 		| "new" pos:p3 memberExpr:e (args | empty -> []):as pos:p2	-> [#new, [p1, p2], [#call, [p3, p2], e].concat(as)]
 		| "name":n pos:p2										-> [#get, [p1, p2], n]

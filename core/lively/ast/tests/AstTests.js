@@ -117,7 +117,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
             expected = ["forIn",
                         [0, 22],
                         ["get", [5, 9], "name"],
-                        ["get", [12, 16], "obj"]],
+                        ["get", [13, 16], "obj"]],
             result = this.parseJS(src, 'stmt');
         this.assertMatches(expected, result);
     },

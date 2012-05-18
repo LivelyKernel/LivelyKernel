@@ -1400,14 +1400,14 @@ currently only support
         var nRow;
         var nOrgRow;
         var nOrgCol;
-      
+          debugger;
         for (var i= 0; i< this.arrSelectedCells.length; i++) {
             nCol= this.arrSelectedCells[i].x;
             nRow = this.arrSelectedCells[i].y;
         
-            /*nOrgRow = nRow -1 + this.startRow;
+            nOrgRow = nRow -1 + this.startRow;
             nOrgCol = nCol -1 + this.startColumn; 
-            if (this.arrData[nOrgRow][nOrgCol].formula){
+            /*if (this.arrData[nOrgRow][nOrgCol].formula){
                 this.arrSelectedCells[i].formulaCell();
             }else if (this.arrData[nOrgRow][nOrgCol].annotation){
                 this.arrSelectedCells[i].annotationCell();

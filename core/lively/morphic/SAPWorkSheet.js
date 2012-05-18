@@ -1973,7 +1973,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     },
     onMenuClick_ClearComments: function(evt) {
         alert(4)
-    },
+    }
 },
 'default category', {
     initialize: function($super,oGrid, nXpos, nYpos,nWidth,nHeight) {

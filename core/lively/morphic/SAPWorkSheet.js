@@ -1410,7 +1410,7 @@ currently only support
         
             nOrgRow = nRow -1 + this.startRow;
             nOrgCol = nCol -1 + this.startColumn;  
-
+            
             this.arrSelectedCells[i].deactivateCell();
         }
         this.arrSelectedCells.lenght=0;

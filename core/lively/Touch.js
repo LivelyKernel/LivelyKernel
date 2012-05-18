@@ -1555,64 +1555,6 @@ cop.create("GestureEvents").refineClass(lively.morphic.Morph, {
             evt.stop();
         }
     },
-    setFixed: function(fixed, fixedPosition) {
-
-        if(fixed && this.owner !== $world) {
-            return;
-        }
-
-        this.isFixed = fixed;
-        if(fixed) {
-            this.fixedScale = this.getScale() * $world.getZoomLevel();
-            this.fixedPosition = this.getPosition().subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel());
-
-            connect($world, "zoomLevel", this, "updateZoomScale");
-            connect($world, "emulatedScrolling", this, "toggleScrolling");
-            connect($world, "zoomingInProgress", this, "toggleScrolling");
-            if(!fixedPosition) {
-                connect($world, "scrollOffset", this, "updateScrollPosition");
-            }
-        } else {
-            disconnect($world, "zoomLevel", this, "updateZoomScale");
-            disconnect($world, "scrollOffset", this, "updateScrollPosition");
-            disconnect($world, "emulatedScrolling", this, "toggleScrolling");
-            disconnect($world, "zoomingInProgress", this, "toggleScrolling");
-        }
-        
-
-    },
-    setFixedPosition: function(position) {
-        this.fixedPosition = position/*.subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel())*/;
-        this.updateScrollPosition($world.scrollOffset);
-    },
-    getFixedPosition: function() {
-        return this.fixedPosition;//.scaleBy(1/$world.getZoomLevel());
-    },
-
-
-    toggleScrolling: function(isScrolling) {
-        if(!this.isFixed) return
-        if(isScrolling) {
-            this.remove();
-        } else {
-            $world.addMorph(this);
-        }
-    },
-
-    updateScrollPosition: function(newPosition) {
-        this.setPosition(this.fixedPosition.scaleBy(1/$world.zoomLevel).addPt(newPosition));
-    },
-
-    updateZoomScale: function(newZoom) {
-        if(this.fixedScale) {
-            
-            this.setScale(this.fixedScale/newZoom);
-        }
-    },
-    removeFixed: function() {
-        this.setFixed(false)
-        this.remove()
-    },
 }).refineClass(lively.morphic.AbstractDialog, {
      buildPanel: function (bounds) {
         var out = cop.proceed(bounds);

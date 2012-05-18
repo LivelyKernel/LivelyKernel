@@ -2080,7 +2080,7 @@ debugger;
             }
             if (bClearFormula){
                 if (bClearContents){
-                    
+                    this.grid.arrSelectedCells[i].textString="";
                 }
             }    
         }
@@ -2106,7 +2106,8 @@ debugger;
                 if (bClearContents){
                     
                 }
-                //this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].formula="";
+                this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].value="";
+                this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].formula="";
             }    
         }
 

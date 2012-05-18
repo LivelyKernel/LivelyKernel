@@ -2209,9 +2209,19 @@ debugger;
                 ['Clear Contents', this.onMenuClick_ClearContents],
                 //['Clear Formulas', this.onMenuClick_ClearFormulas],
                 ['Clear Comments', this.onMenuClick_ClearComments]];
-            this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
-            //this.oClearMenu= new lively.morphic.Menu(null, arrItems);
-            //this.oClearMenu.openIn(this,this.imgClear.getPosition().addXY(7, 7),false);
+            //this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
+           
+            
+            this.oClearMenu= new lively.morphic.Menu(null, arrItems);
+            this.oClearMenu.addScript(function onMouseOut(evt) {
+                $super(evt);
+                console.log("mouseout")
+                return true;
+            })
+
+
+
+            this.oClearMenu.openIn(this,this.imgClear.getPosition().addXY(7, 7),false);
             
 
 

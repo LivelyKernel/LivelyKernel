@@ -1362,7 +1362,13 @@ lively.morphic.World.addMethods(
     },
 },
 "zooming", {
-    test: function(){}
+    calculateCurrentZoom: function() {
+        if(UserAgent.isTouch) {
+            return document.documentElement.clientWidth / window.innerWidth;
+        }  else {
+            return window.outerWidth / window.innerWidth;
+        }
+    },
 });
 
 

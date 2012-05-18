@@ -1406,9 +1406,16 @@ currently only support
             nRow = this.arrSelectedCells[i].y;
         
             nOrgRow = nRow -1 + this.startRow;
-            nOrgCol = nCol -1 + this.startColumn;  
+            nOrgCol = nCol -1 + this.startColumn; 
+            if (this.arrData[nOrgRow][nOrgCol].formula){
+                this.arrSelectedCells[i].formulaCell();
+            }else if (this.arrData[nOrgRow][nOrgCol].annotation){
+                this.arrSelectedCells[i].annotationCell();
+            }else{
+                this.arrSelectedCells[i].deactivateCell();
+            }
             
-            this.arrSelectedCells[i].deactivateCell();
+            
         }
         this.arrSelectedCells.lenght=0;
         this.arrSelectedCells =[];

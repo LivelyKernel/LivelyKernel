@@ -133,7 +133,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
     test10ParseCategoryFragment: function() {
         var src1 = '"accessing", { method: 23 }',
             src2 = '"accessing", { method: 23 },',
-            expected = [["string", [1, 9], "accessing"],
+            expected = ["accessing",
                      ["binding", [10, 20], "method", ["number", [17, 20]]]],
             result1 = this.parseJS(src1, 'categoryFragment'),
             result2 = this.parseJS(src2, 'categoryFragment');

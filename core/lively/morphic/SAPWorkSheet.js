@@ -2153,7 +2153,7 @@ debugger;
 'Clear Menu Events', {
     onMenuClick_ClearMenuHide: function(evt) {
         debugger;
-       //this.parent
+       this.parent.oClearMenu.remove();
     },
     onMenuClick_ClearAll: function(evt) {
         debugger;

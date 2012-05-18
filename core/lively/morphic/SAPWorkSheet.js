@@ -1396,17 +1396,20 @@ currently only support
                .select(function(cell) { return cell && cell.getContent });
     },
     removeSelectedCells: function() {
+    /*remove selected cells when user change the selection*/
         var nCol;
         var nRow;
         var nOrgRow;
         var nOrgCol;
-          debugger;
+        
         for (var i= 0; i< this.arrSelectedCells.length; i++) {
             nRow  = this.arrSelectedCells[i].gridCoords.y;             
             nCol= this.arrSelectedCells[i].gridCoords.x;
             
             nOrgRow = nRow -1 + this.startRow;
             nOrgCol = nCol -1 + this.startColumn; 
+
+            //if cell contains annotation or formula should change back to their style
             if (this.arrData[nOrgRow][nOrgCol].formula){
                 this.arrSelectedCells[i].formulaCell();
             }else if (this.arrData[nOrgRow][nOrgCol].annotation){
@@ -1414,8 +1417,6 @@ currently only support
             }else{
                 this.arrSelectedCells[i].deactivateCell();
             }
-            this.arrSelectedCells[i].deactivateCell();
-            
         }
         this.arrSelectedCells.lenght=0;
         this.arrSelectedCells =[];

@@ -3908,7 +3908,6 @@ cop.create('ToolWorld').refineClass(lively.morphic.Morph, {
             this.removeWithLayer(ToolMorphLayer);
         },
         beTool: function () {
-            module('projects.BP2012.ToolMorph').load(true)
             this.setWithLayers([ToolMorphLayer]);
         },
 

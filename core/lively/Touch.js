@@ -1,7 +1,7 @@
-module('lively.Touch').requires('lively.TestFramework').toRun(function() {
+module('lively.Touch').requires('lively.TestFramework').toRun(function () {
 
   cop.create('TouchEvents').refineClass(lively.morphic.Morph, {
-    registerForTouchEvents:function (handleOnCapture) {
+    registerForTouchEvents: function (handleOnCapture) {
       if (!UserAgent.isTouch) {
         return;
       }

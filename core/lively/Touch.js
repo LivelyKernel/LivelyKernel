@@ -1546,9 +1546,7 @@ cop.create("GestureEvents").refineClass(lively.morphic.Morph, {
         }
     },
     onGestureChange: function(evt) {
-        if(!this.pieMode){
 
-        }
     },
     onGestureEnd: function(evt) {
         if(!this.pieMode){

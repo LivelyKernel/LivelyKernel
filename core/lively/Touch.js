@@ -1577,24 +1577,8 @@ cop.create("GestureEvents").refineClass(lively.morphic.Morph, {
             }, 1);
         }
     },
-    calculateCurrentZoom: function() {
-        if(UserAgent.isTouch) {
-            return document.documentElement.clientWidth / window.innerWidth;
-        }  else {
-            return window.outerWidth / window.innerWidth;
-        }
-    },
     onWindowScroll: function(evt) {
         $world.scrollOffset = pt(window.pageXOffset,window.pageYOffset);
-    },
-    getZoomLevel: function() {
-        if(!this.zoomLevel){
-            this.zoomLevel = this.calculateCurrentZoom();
-        }
-        return this.zoomLevel;
-    },
-    getCurrentZoom: function() {
-        return this.getZoomLevel();
     },
 
     onLoad: function() {

@@ -803,7 +803,8 @@ lively.morphic.Morph.addMethods(
 
 
 
-},"PieMenu", {
+},
+"PieMenu", {
             showPieMenu: function(position){
                 if(this.showsPie || !this.world() || this.pieDisabled){
                     return;

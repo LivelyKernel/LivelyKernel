@@ -2070,7 +2070,7 @@ debugger;
                 this.grid.arrSelectedCells[i].textString="";
             }
             if (bClearComments){
-                this.grid.arrData[nOrgRow][nOrgCol].annotation="";
+                this.grid.arrSelectedCells[i].deactivateCell();
             }
             if (bClearFormats){
                 if (bClearContents){

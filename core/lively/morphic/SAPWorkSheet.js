@@ -2226,7 +2226,32 @@ debugger;
             oItem.parent = this;
             arrItems.push(oItem);
 
+            arrItems=[]
+            oItem = {}
+            oItem.isMenuItem=true;
+            oItem.string="Clear Formats";
+            oItem.value="Clear All";
+            oItem.onClickCallback=this.onMenuClick_ClearFormats;
+            oItem.parent = this;
+            arrItems.push(oItem);
 
+            arrItems=[]
+            oItem = {}
+            oItem.isMenuItem=true;
+            oItem.string="Clear Contents";
+            oItem.value="Clear All";
+            oItem.onClickCallback=this.onMenuClick_ClearContents;
+            oItem.parent = this;
+            arrItems.push(oItem);
+
+            arrItems=[]
+            oItem = {}
+            oItem.isMenuItem=true;
+            oItem.string="Clear Comments";
+            oItem.value="Clear All";
+            oItem.onClickCallback=this.onMenuClick_ClearComments;
+            oItem.parent = this;
+            arrItems.push(oItem);
             
             this.oClearMenu= new lively.morphic.Menu(null, arrItems);
             this.oClearMenu.addScript(function onMouseOut(evt) {

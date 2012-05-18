@@ -807,17 +807,18 @@ var start = new Date().getTime();
                 nOrgRow = y  + this.startRow;
                 nOrgCol = x + this.startColumn;
 
-                var data = this.dataModel[y] && this.dataModel[y][x];
+                var data = this.dataModel[y] && this.dataModel[y][x],
+                    arrData = this.arrData[nOrgRow] && this.arrData[nOrgRow][nOrgCol];
                 sValue = data && data.value ? data.value.toString() : "";
                 nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
                 //Annotation
-                if (this.arrData[nOrgRow][nOrgCol].annotation){
+                if (arrData && arrData.annotation){
                     this.at(x+1,y+1).annotationCell();
                 }else{
                     this.at(x+1,y+1).deactivateCell();
                 }
                 //formula
-                if (this.arrData[nOrgRow][nOrgCol].formula){
+                if (arrData && arrData.formula){
                     sValue = this.parseFormula(this.arrData[nOrgRow][nOrgCol].formula);
                     this.at(x+1,y+1).formulaCell();
                     this.at(x+1,y+1).setToolTip('Formula: \n' + this.arrData[nOrgRow][nOrgCol].formula);
@@ -828,15 +829,15 @@ var start = new Date().getTime();
                 }
 
                 //selected cell
-                if (this.arrData[nOrgRow][nOrgCol].selected){
+                if (arrData && arrData.selected){
                     this.at(x+1,y+1).selectedCell();
                     this.arrSelectedCells.push(this.at(x+1,y+1));
                 }
 
                 //DATA formats
-                if (this.arrData[nOrgRow][nOrgCol].dataFormat){
-                    if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
-                        sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat);
+                if (arrData && arrData.dataFormat){
+                    if (arrData.dataFormat.type){
+                        sValue= this.applyDataFormates(sValue, arrData.dataFormat);
                         //for negateive number for currency & number
                         debugger;
                         if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType){
@@ -876,12 +877,12 @@ var start = new Date().getTime();
                 var oFill = null;
                 var oTextColor=null;
                 //if value is number then should return right
-                sTextAlign = this.getAlignforValueType(this.arrData[nOrgRow][nOrgCol].dataFormat,sValue)
+                sTextAlign = this.getAlignforValueType(arrData && arrData.dataFormat,sValue)
                 
-                if (this.arrData[nOrgRow][nOrgCol].fontWeight){
+                if (arrData && arrData.fontWeight){
                     sFontWeight=this.arrData[nOrgRow][nOrgCol].fontWeight;
                 }
-                if (this.arrData[nOrgRow][nOrgCol].textDecoration){
+                if (arrData && arrData.textDecoration){
                     sTextDecoration=this.arrData[nOrgRow][nOrgCol].textDecoration;
                 }
                 if (this.arrData[nOrgRow][nOrgCol].fontStyle){

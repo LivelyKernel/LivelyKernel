@@ -1975,6 +1975,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         alert(4)
     }
 },
+'Image Click Events', {
+    
+},
 'default category', {
     initialize: function($super,oGrid, nXpos, nYpos,nWidth,nHeight) {
         nXpos = (nXpos==undefined) ? (0) : (nXpos);

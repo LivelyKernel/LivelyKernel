@@ -2078,9 +2078,8 @@ debugger;
                 }
             }
             if (bClearFormula){
-                if (bClearContents){
-                    this.grid.arrSelectedCells[i].textString="";
-                }
+                this.grid.arrSelectedCells[i].textString="";
+                this.grid.arrSelectedCells[i].deactivateCell();
             }    
         }
         //Data

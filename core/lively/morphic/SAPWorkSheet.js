@@ -2005,7 +2005,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
        alert(2)
     },
     onMenuClick_ClearContents: function(evt) {
-        alert(3)
+        //this.clearCell(bClearFormats,bClearContents,bClearComments,bClearFormula)
+       this.clearCell(false,true,false,false);
     },
     onMenuClick_ClearComments: function(evt) {
        //this.clearCell(bClearFormats,bClearContents,bClearComments,bClearFormula)

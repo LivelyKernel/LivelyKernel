@@ -2151,6 +2151,10 @@ debugger;
     }
 },
 'Clear Menu Events', {
+    onMenuClick_ClearMenuHide: function(evt) {
+        debugger;
+       //this.parent
+    },
     onMenuClick_ClearAll: function(evt) {
         debugger;
         this.parent.clearCell(true,true,true,true,true);

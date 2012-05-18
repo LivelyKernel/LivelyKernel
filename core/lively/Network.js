@@ -1614,7 +1614,7 @@ Object.subclass('WebResource',
     },
 
     pvtProcessPropfindForSubElements: function(doc) {
-        alert(doc.ownerDocument);
+        alert(doc.documentElement);
         if (!this.status.isSuccess())
             throw new Error('Cannot access subElements of ' + this.getURL());
         var davNs = this.ensureDavXmlNs(doc);

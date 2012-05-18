@@ -220,7 +220,7 @@ lively.morphic.World.addMethods(
         if(!Config.forceSyncSaving) { webR = webR.beAsync(); }
         var start = new Date().getTime();
 		if (this.getUserName) this.getUserName(); // cgi saves user in localStorage
-        // webR.setRequestHeaders({"Cache-Control": "no-cache"});
+        webR.setRequestHeaders({"Cache-Control": "no-cache"});
         webR.put(doc, null, checkForOverwrites ? this.revisionOnLoad : null);
         Config.lastSaveTransferTime = new Date().getTime() - start;
     },

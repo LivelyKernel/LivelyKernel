@@ -818,9 +818,9 @@ var start = new Date().getTime();
                 }
                 //formula
                 if (this.arrData[nOrgRow][nOrgCol].formula){
-                    sValue = this.parseFormula(this.arrData[nOrgRow][nOrgCol].formula);
+                    sValue = this.parseFormula(arrData.formula);
                     this.at(x+1,y+1).formulaCell();
-                    this.at(x+1,y+1).setToolTip('Formula: \n' + this.arrData[nOrgRow][nOrgCol].formula);
+                    this.at(x+1,y+1).setToolTip('Formula: \n' + arrData.formula);
                     this.at(x+1,y+1).setBorderStyle("dotted");
                 }else{
                     this.at(x+1,y+1).setToolTip("");
@@ -838,9 +838,8 @@ var start = new Date().getTime();
                     if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
                         sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat);
                         //for negateive number for currency & number
-                        debugger;
-                        if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType){
-                            if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==1 || this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==3){
+                        if (arrData.dataFormat.negativeType){
+                            if (arrData.dataFormat.negativeType==1 || arrData.dataFormat.negativeType==3){
                                 if (!isNaN(nValue)){ 
                                     if (nValue < 0){
                                         bRedFont=true;
@@ -879,32 +878,32 @@ var start = new Date().getTime();
                 sTextAlign = this.getAlignforValueType(this.arrData[nOrgRow][nOrgCol].dataFormat,sValue)
                 
                 if (this.arrData[nOrgRow][nOrgCol].fontWeight){
-                    sFontWeight=this.arrData[nOrgRow][nOrgCol].fontWeight;
+                    sFontWeight=arrData.fontWeight;
                 }
                 if (this.arrData[nOrgRow][nOrgCol].textDecoration){
-                    sTextDecoration=this.arrData[nOrgRow][nOrgCol].textDecoration;
+                    sTextDecoration=arrData.textDecoration;
                 }
-                if (this.arrData[nOrgRow][nOrgCol].fontStyle){
-                    sFontStyle=this.arrData[nOrgRow][nOrgCol].fontStyle;
+                if (arrData && arrData.fontStyle){
+                    sFontStyle=arrData.fontStyle;
                 }
-                if (this.arrData[nOrgRow][nOrgCol].fontSize){
-                    sFontSize =this.arrData[nOrgRow][nOrgCol].fontSize;
+                if (arrData && arrData.fontSize){
+                    sFontSize =arrData.fontSize;
                 }                
-                if (this.arrData[nOrgRow][nOrgCol].fontFamily){
-                    sFontFamily =this.arrData[nOrgRow][nOrgCol].fontFamily;
+                if (arrData && arrData.fontFamily){
+                    sFontFamily =arrData.fontFamily;
                 }
-                if (this.arrData[nOrgRow][nOrgCol].textAlign){
-                    sTextAlign =this.arrData[nOrgRow][nOrgCol].textAlign;
+                if (arrData && arrData.textAlign){
+                    sTextAlign =arrData.textAlign;
                 }
 
-                if (this.arrData[nOrgRow][nOrgCol].borderColor){
-                    oBorderColor=eval(this.arrData[nOrgRow][nOrgCol].borderColor);
+                if (arrData && arrData.borderColor){
+                    oBorderColor=eval(arrData.borderColor);
                 }                
-                if (this.arrData[nOrgRow][nOrgCol].fill){
-                    oFill =eval(this.arrData[nOrgRow][nOrgCol].fill);
+                if (arrData && arrData.fill){
+                    oFill =eval(arrData.fill);
                 } 
-                if (this.arrData[nOrgRow][nOrgCol].textColor){
-                    oTextColor=eval(this.arrData[nOrgRow][nOrgCol].textColor);
+                if (arrData && arrData.textColor){
+                    oTextColor=eval(arrData.textColor);
                 } 
                 //oText.applyStyle({borderColor: oBorderColor, fill: oFill ,textColor: oTextColor});
                 //bug in applystyle textDecoration & fontStyle & fontWeight do not work

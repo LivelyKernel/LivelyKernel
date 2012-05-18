@@ -2054,7 +2054,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
             nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
             if (bClearStyle){
-
+                this.grid.arrSelectedCells[i].applyStyle({fontSize:10,
+							fontFamily:"helvetica",
+                                                        fill: null,textColor: null,
+                                                        fontWeight: "normal",
+							fontStyle: "normal",
+							textDecoration: "normal"});
             }
             if (bClearContents){
                 this.grid.arrData[nOrgRow][nOrgCol].value="";

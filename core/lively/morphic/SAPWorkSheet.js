@@ -2014,7 +2014,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
        this.clearCell(false,false,true,false);
     },
     onMenuClick_ClearFormulas: function(evt) {
-        alert(5)
+        //this.clearCell(bClearFormats,bClearContents,bClearComments,bClearFormula)
+       this.clearCell(false,false,false,true);
+
     }
 },
 'Image Click Events', {

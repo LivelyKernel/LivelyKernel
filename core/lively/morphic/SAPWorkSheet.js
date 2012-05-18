@@ -1976,7 +1976,192 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     }
 },
 'Image Click Events', {
-    
+    imgFormatCell_Click: function() {
+        var nX = this.grid.oWorkBook.getPosition().x +  250;
+        var nY = this.grid.oWorkBook.getPosition().y +  130;
+
+        if (this.oDataFormat){
+            if (this.oDataFormat.owner.isShutdown()){
+                this.oDataFormat.owner.state =null;        
+                this.oDataFormat.owner.openInWorld(pt(nX ,nY ));
+            }
+        }else{
+            this.oDataFormat= new lively.morphic.SAPCellFormatter();
+            this.oDataFormat.grid=this.grid;
+            this.oDataFormat.oOkCallBack = this.setDataFormates;
+            this.oDataFormat.openInWindow(pt(nX ,nY ));
+            this.oDataFormat.owner.setTitle("Format Cells");
+        }
+        
+    },
+    imgTextAlignLeft_Click: function() {
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].setAlign('left'); 
+        }
+        //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textAlign='left';
+        }
+    },
+    imgClear_Click: function() {
+        debugger;
+        if (this.oClearMenu){
+            this.oClearMenu.openInWorld(this.imgClear.getPositionInWorld().addXY(7, 7));
+        }else{
+            var arrItems= [
+            	['Clear All', this.onMenuClick_ClearAll],
+            	['Clear Formats', this.onMenuClick_ClearFormats],
+                ['Clear Contents', this.onMenuClick_ClearContents],
+                ['Clear Comments', this.onMenuClick_ClearComments]];
+            this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
+        }
+    },
+    imgTextAlignCenter_Click: function() {
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].setAlign('center'); 
+        }
+        //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textAlign='center';
+        }
+    },
+    imgTextAlignRight_Click: function() {
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].setAlign('right'); 
+        }
+        //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textAlign='right';
+        }
+    },
+    imgItalic_Click: function() {
+        debugger;
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].emphasizeAll({fontStyle: 'italic'});
+        }
+        //for data
+        
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontStyle='italic';
+        }
+    },
+    imgUnderline_Click: function() {
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].emphasizeAll({textDecoration: 'underline'});
+        }
+         //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textDecoration='underline';
+        }
+    },
+    imgBold_Click: function() {
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
+        }
+        //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontWeight='bold';
+        }
+    },
+    imgBackGroundColor_Click: function() {
+        alert(this.grid.numCols )
+    },
+    imgFontColor_Click: function() {
+        alert(this.grid.numCols )
+    },
+    imgSignDollar_Click: function() {
+        var nRow;
+        var nColumn;
+        var nOrgRow;
+        var nOrgCol;
+        var sValue;
+         var i;
+        debugger;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow - 1  + this.grid.startRow;
+            nOrgCol = nColumn - 1 + this.grid.startColumn; 
+            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
+
+            
+            oDataFormat = {};    
+            oDataFormat.type ="currency";
+            oDataFormat.symbol = "$";
+            oDataFormat.decimalPlaces = 2;
+            oDataFormat.unitOfMeasure = 1;
+            oDataFormat.useThousandSeparator = true;
+            oDataFormat.negativeType= 0;
+
+
+            sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
+            
+            this.grid.arrSelectedCells[i].textString= sValue;
+        }
+         //for data
+        var oDataFormat;
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            // - currency: symbol , decimalPlaces ,useThousandSeparator, unitOfMeasure (whole,thousand,million), negativeType (withminus, red, withBracket, redwithBracket) 
+            //we need to get from default value...?
+            oDataFormat = {};    
+            oDataFormat.type ="currency";
+            oDataFormat.symbol = "$";
+            oDataFormat.decimalPlaces = 2;
+            oDataFormat.unitOfMeasure = 1;
+            oDataFormat.useThousandSeparator = true;
+            oDataFormat.negativeType= 1;
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
+        }
+    },
+    imgSignPercent_Click: function() {
+        var nRow;
+        var nColumn;
+        var nOrgRow;
+        var nOrgCol;
+        var sValue;
+        var i;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow -1  + this.grid.startRow;
+            nOrgCol = nColumn -1 + this.grid.startColumn; 
+            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
+            oDataFormat = {};    
+            oDataFormat.type ="percentage";
+            oDataFormat.decimalPlaces = 2;
+            sValue = this.grid.applyDataFormates(sValue ,oDataFormat );
+            this.grid.arrSelectedCells[i].textString= sValue;
+        }
+        var oDataFormat;
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            oDataFormat = {};    
+            oDataFormat.type ="percentage";
+            oDataFormat.decimalPlaces = 2;
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
+        }
+
+    },
+    imgSave_Click: function() {
+        alert(this.grid.numCols )
+    },
+    imgInsertRow_Click: function() {
+        this.grid.addRowBetween();
+    },
+    imgInsertColumn_Click: function() {
+        this.grid.addColBetween();
+    },
+    imgRemoveRow_Click: function() {
+        this.grid.removeRowBetween();
+    },
+    imgRemoveColumn_Click: function() {
+        this.grid.removeColBetween();
+    },
 },
 'default category', {
     initialize: function($super,oGrid, nXpos, nYpos,nWidth,nHeight) {
@@ -2306,192 +2491,6 @@ dataformat: currency & percentage & date & time
 
         connect(this.imgClear, "onMouseDown", this, "imgClear_Click", {});
     },
-    imgFormatCell_Click: function() {
-        var nX = this.grid.oWorkBook.getPosition().x +  250;
-        var nY = this.grid.oWorkBook.getPosition().y +  130;
-
-        if (this.oDataFormat){
-            if (this.oDataFormat.owner.isShutdown()){
-                this.oDataFormat.owner.state =null;        
-                this.oDataFormat.owner.openInWorld(pt(nX ,nY ));
-            }
-        }else{
-            this.oDataFormat= new lively.morphic.SAPCellFormatter();
-            this.oDataFormat.grid=this.grid;
-            this.oDataFormat.oOkCallBack = this.setDataFormates;
-            this.oDataFormat.openInWindow(pt(nX ,nY ));
-            this.oDataFormat.owner.setTitle("Format Cells");
-        }
-        
-    },
-    imgTextAlignLeft_Click: function() {
-        var i;
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.grid.arrSelectedCells[i].setAlign('left'); 
-        }
-        //for data
-        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textAlign='left';
-        }
-    },
-    imgClear_Click: function() {
-        debugger;
-        if (this.oClearMenu){
-            this.oClearMenu.openInWorld(this.imgClear.getPositionInWorld().addXY(7, 7));
-        }else{
-            var arrItems= [
-            	['Clear All', this.onMenuClick_ClearAll],
-            	['Clear Formats', this.onMenuClick_ClearFormats],
-                ['Clear Contents', this.onMenuClick_ClearContents],
-                ['Clear Comments', this.onMenuClick_ClearComments]];
-            this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
-        }
-    },
-    imgTextAlignCenter_Click: function() {
-        var i;
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.grid.arrSelectedCells[i].setAlign('center'); 
-        }
-        //for data
-        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textAlign='center';
-        }
-    },
-    imgTextAlignRight_Click: function() {
-        var i;
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.grid.arrSelectedCells[i].setAlign('right'); 
-        }
-        //for data
-        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textAlign='right';
-        }
-    },
-    imgItalic_Click: function() {
-        debugger;
-        var i;
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.grid.arrSelectedCells[i].emphasizeAll({fontStyle: 'italic'});
-        }
-        //for data
-        
-        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontStyle='italic';
-        }
-    },
-    imgUnderline_Click: function() {
-        var i;
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.grid.arrSelectedCells[i].emphasizeAll({textDecoration: 'underline'});
-        }
-         //for data
-        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textDecoration='underline';
-        }
-    },
-    imgBold_Click: function() {
-        var i;
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
-        }
-        //for data
-        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontWeight='bold';
-        }
-    },
-    imgBackGroundColor_Click: function() {
-        alert(this.grid.numCols )
-    },
-    imgFontColor_Click: function() {
-        alert(this.grid.numCols )
-    },
-    imgSignDollar_Click: function() {
-        var nRow;
-        var nColumn;
-        var nOrgRow;
-        var nOrgCol;
-        var sValue;
-         var i;
-        debugger;
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
-            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
-            nOrgRow = nRow - 1  + this.grid.startRow;
-            nOrgCol = nColumn - 1 + this.grid.startColumn; 
-            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-
-            
-            oDataFormat = {};    
-            oDataFormat.type ="currency";
-            oDataFormat.symbol = "$";
-            oDataFormat.decimalPlaces = 2;
-            oDataFormat.unitOfMeasure = 1;
-            oDataFormat.useThousandSeparator = true;
-            oDataFormat.negativeType= 0;
-
-
-            sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
-            
-            this.grid.arrSelectedCells[i].textString= sValue;
-        }
-         //for data
-        var oDataFormat;
-        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            // - currency: symbol , decimalPlaces ,useThousandSeparator, unitOfMeasure (whole,thousand,million), negativeType (withminus, red, withBracket, redwithBracket) 
-            //we need to get from default value...?
-            oDataFormat = {};    
-            oDataFormat.type ="currency";
-            oDataFormat.symbol = "$";
-            oDataFormat.decimalPlaces = 2;
-            oDataFormat.unitOfMeasure = 1;
-            oDataFormat.useThousandSeparator = true;
-            oDataFormat.negativeType= 1;
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
-        }
-    },
-    imgSignPercent_Click: function() {
-        var nRow;
-        var nColumn;
-        var nOrgRow;
-        var nOrgCol;
-        var sValue;
-        var i;
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
-            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
-            nOrgRow = nRow -1  + this.grid.startRow;
-            nOrgCol = nColumn -1 + this.grid.startColumn; 
-            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-            oDataFormat = {};    
-            oDataFormat.type ="percentage";
-            oDataFormat.decimalPlaces = 2;
-            sValue = this.grid.applyDataFormates(sValue ,oDataFormat );
-            this.grid.arrSelectedCells[i].textString= sValue;
-        }
-        var oDataFormat;
-        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            oDataFormat = {};    
-            oDataFormat.type ="percentage";
-            oDataFormat.decimalPlaces = 2;
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
-        }
-
-    },
-    imgSave_Click: function() {
-        alert(this.grid.numCols )
-    },
-    imgInsertRow_Click: function() {
-        this.grid.addRowBetween();
-    },
-    imgInsertColumn_Click: function() {
-        this.grid.addColBetween();
-    },
-    imgRemoveRow_Click: function() {
-        this.grid.removeRowBetween();
-    },
-    imgRemoveColumn_Click: function() {
-        this.grid.removeColBetween();
-    },
     setDataFormates: function(oDataFormat) {
         var nRow;
         var nColumn;
@@ -2530,7 +2529,7 @@ dataformat: currency & percentage & date & time
                 this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
             }
         //}
-    },
+    }
 });    
 
 lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',

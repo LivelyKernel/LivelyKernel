@@ -2497,7 +2497,7 @@ dataformat: currency & percentage & date & time
 
         connect(this.imgClear, "onMouseDown", this, "imgClear_Click", {});
     },
-    clearCell: function(bClearFormats,bClearContents,bClearComments,bClearFormula) {
+    clearCell: function(bClearFormats,bClearContents,bClearComments,bClearFormula,bClearStyle) {
         /*['Clear All', this.onMenuClick_ClearAll],
         ['Clear Formats', this.onMenuClick_ClearFormats],
         ['Clear Contents', this.onMenuClick_ClearContents],

@@ -1563,7 +1563,6 @@ cop.create("GestureEvents").refineClass(lively.morphic.Morph, {
         }  else {
             return window.outerWidth / window.innerWidth;
         }
-
     },
     onWindowScroll: function(evt) {
         $world.scrollOffset = pt(window.pageXOffset,window.pageYOffset);

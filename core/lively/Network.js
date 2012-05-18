@@ -509,7 +509,7 @@ View.subclass('NetRequest', {
         if (this.getReadyState() === this.Done) {
             this.setStatus(this.getStatus());
             if (this.transport.responseText !== undefined){
-                alert("text undefined");
+                alert("text" + this.transport.responseText);
                 this.setResponseText(this.getResponseText());
             }    
             if (this.transport.responseXML !== undefined){

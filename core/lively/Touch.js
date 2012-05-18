@@ -3910,4 +3910,17 @@ lively.morphic.Box.subclass('ToolContainer',
     },
 });
 
+cop.create('ToolWorld').refineClass(lively.morphic.Morph, {
+        beNotTool: function () {
+            this.removeWithLayer(ToolMorphLayer);
+        },
+        beTool: function () {
+            module('projects.BP2012.ToolMorph').load(true)
+            this.setWithLayers([ToolMorphLayer]);
+        },
+
+
+
+    }).beGlobal()
+
 }) // end of module

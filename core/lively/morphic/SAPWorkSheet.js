@@ -2469,6 +2469,8 @@ dataformat: currency & percentage & date & time
 
         this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
 
+        
+
         this.addMorph(this.ddlFont );
         this.addMorph(this.ddlFontSize );
 
@@ -2511,8 +2513,11 @@ dataformat: currency & percentage & date & time
         this.imgTextAlignRight = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*19 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-right-icon.png");
         this.imgTextAlignRight.setToolTip("Align Text Right");
 
-        this.imgClear= new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*17 + 10 + 14*nGapWidth,nSecondLineYPos,24,24), "images/Actions-edit-clear-icon.png"); 
-
+        this.imgClear = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*17 + 10 + 14*nGapWidth,nSecondLineYPos,24,24), "images/Actions-edit-clear-icon.png"); 
+        this.ddlClear = new lively.morphic.DropDownList(
+                        new Rectangle(6*nGapGroupWidth + 25*17 + 10 + 14*nGapWidth,nSecondLineYPos,100, 20), 
+                        ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
+        this.addMorph(this.ddlClear);
         this.addMorph(this.imgInsertRow);
         this.addMorph(this.imgRemoveRow);
         this.addMorph(this.imgInsertColumn);

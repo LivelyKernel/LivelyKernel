@@ -2587,4 +2587,1125 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
         target.showHalos()
 },}).beGlobal()
 
+
+    lively.morphic.Morph.addMethods(
+        "PieMenu", {
+            showPieMenu: function(position){
+                if(this.showsPie || !this.world() || this.pieDisabled){
+                    return;
+                }
+                
+                if(this.showTimeout){
+                    window.clearTimeout(this.showTimeout);
+                    delete this.showTimeout;
+                }
+                
+                this.showsPie = true;
+                //this.halos = this.getHalos();
+                var pieMenu = this.world().showPieFor(this, this.pieItems);
+                console.log("pie menu bounds: "+pieMenu.bounds());
+                console.log("position: "+position);
+                pieMenu.align(pieMenu.bounds().center(), position);
+            },
+        
+            getPieItemClasses: function() {
+                return [
+                    lively.morphic.DragPieItem,
+                    lively.morphic.ScalePieItem,
+                    lively.morphic.RotatePieItem,
+                    lively.morphic.ConnectPieItem,
+                    lively.morphic.GrabPieItem,
+                    lively.morphic.CopyPieItem,
+                    lively.morphic.MenuPieItem,
+                    lively.morphic.ClosePieItem
+                ];
+            },
+            getPieItems: function() {
+                return this.getPieItemClasses().map(function(ea) { return new ea(this) }, this)
+            },
+    removePieMenu: function() {
+        this.showsPie = false;
+        $world.pieMenu && $world.pieMenu.remove()
+    },
+    doPieBehavior: function(evt) {
+        var newPos = pt( this.pieTouch.screenX, this.pieTouch.screenY);
+        var delta = newPos.subPt(this.pieTouch.screenStart);
+
+        var item = this.getPieItemAtDirection(delta);
+
+        if (delta.r() > 80) {
+            this.activatePieItem(item, evt);
+        } else if (delta.r() > 40 && this.enteredItem !== item) {
+            if (this.enteredItem) {
+                this.enteredItem.leave();
+            }
+            item.enter();
+            this.enteredItem = item;
+        } else if(delta.r() <= 40 && this.enteredItem) {
+            this.enteredItem.leave();
+            this.enteredItem = null;
+        }
+    },
+
+    pieStart: function(evt) {
+        if(evt.changedTouches.length === 1){
+            this.pieItems = this.getPieItems();
+            this.pieTouch = evt.changedTouches[0];
+            this.pieTouch.screenStart = pt(this.pieTouch.screenX, this.pieTouch.screenY);
+            this.pieTouch.pageStart = pt(this.pieTouch.pageX, this.pieTouch.pageY);
+
+            this.activatedPieItem = null;
+
+            var clientPos = pt(this.pieTouch.pageX, this.pieTouch.pageY);
+            this.showTimeout = window.setTimeout(this.showPieMenu.bind(this, clientPos), 750);
+
+            evt.preventDefault();
+            return true;
+        }
+    },
+    pieMove: function(evt) {
+        if(this.pieTouch){
+            var pagePos = pt(this.pieTouch.pageX, this.pieTouch.pageY);
+            evt.getPosition = function(){return pagePos};
+
+            if(this.activatedPieItem){
+                this.activatedPieItem.move(evt);
+            } else {
+                this.doPieBehavior(evt);
+            }
+            evt.preventDefault();
+            return true;
+        }
+    },
+    pieEnd: function(evt) {
+
+        if (evt.touches.length === 0) {
+            // this branch is executed, when the last finger left the screen
+            $world.setPieMode($world.pieButtonActive);
+        }
+
+        //TODO: pieTouch in touches?
+        if(this.pieTouch){
+            
+
+            if(this.showTimeout){
+                window.clearTimeout(this.showTimeout);
+                delete this.showTimeout;
+            }else{
+                this.removePieMenu();
+            }
+            if(this.activatedPieItem){
+                this.activatedPieItem.end(evt);
+                this.activatedPieItem = null;
+            }
+
+            delete this.pieTouch;
+
+            evt.stop();
+            return true;
+        }
+    },
+    getPieItemAtDirection: function(direction) {
+        var angle = Math.atan2(direction.y, direction.x);
+        angle += Math.PI/8;
+        while(angle < 0){
+            angle += 2 * Math.PI;
+        }
+        angle *= 4 / Math.PI;
+        angle %= 8;
+        angle = Math.floor(angle);
+        return this.pieItems[angle];
+    },
+
+    activatePieItem: function(item, evt) {
+        if(this.showTimeout){
+            window.clearTimeout(this.showTimeout);
+            delete this.showTimeout;
+        } else {
+            this.removePieMenu();
+        }
+
+        this.activatedPieItem = item;
+        item.activate(evt);
+    },
+        }
+    );
+
+    lively.morphic.World.addMethods(
+        "PieMenu", {
+            showPieFor: function(morph, pieItems){
+                this.currentPieTarget && this.currentPieTarget.removePieMenu();
+                this.currentPieTarget = morph;
+                this.pieMenu = new lively.morphic.PieMenu(pieItems);
+                this.addMorph(this.pieMenu);
+                
+                this.pieMenu.submorphs.each(function(ea) {
+                    ea = ea.submorphs[0];
+                    if(ea.labelMorph) {
+                        ea.labelMorph.bringToFront();
+                        ea.labelMorph.align(ea.labelMorph.bounds().center(), ea.innerBounds().center());
+                    }
+                });
+                
+                return this.pieMenu;
+            },
+        
+            removePie: function() {
+                if (this.currentPieTarget) {
+                    this.currentPieTarget.removePieMenu();
+                    delete this.currentPieTarget;
+                }
+            },
+    onTap: function($super, evt) {
+        $super(evt);
+        if (this.currentHaloTarget) {
+            this.currentHaloTarget.removeHalos() 
+        }
+
+        this.removePie();
+        this.worldMenuMorph && this.worldMenuMorph.remove();
+    },
+    setPieMode: function(mode) {
+        this.pieMode = mode;
+    },
+    setPieButtonActive: function(bool) {
+        this.pieButtonActive = bool;
+    },
+
+            getPieItemClasses: function() {
+                return [
+                    lively.morphic.PieItem,
+                    lively.morphic.PieItem,
+                    lively.morphic.PieItem,
+                    lively.morphic.ConnectPieItem,
+                    lively.morphic.PieItem,
+                    lively.morphic.PieItem,
+                    lively.morphic.MenuPieItem,
+                    lively.morphic.PieItem
+                ];
+            },
+
+
+
+        }
+);
+lively.morphic.Morph.subclass('lively.morphic.PieMenu',
+'inizialization', {
+    initialize: function($super, halos) {
+        // Creates a PieMenu with x sectors.
+        $super();
+        var n = halos.length,
+            i = 0,
+            alpha = Math.PI / n,
+            innerRadius= 75,
+            outerRadius= 150; 
+
+        this.setupStyle(outerRadius);  
+
+        for(i=0; i<n; i++) {
+            var a = (2*i - 1) * alpha,
+                x1 = outerRadius + outerRadius * Math.cos(a),
+                y1 = outerRadius + outerRadius * Math.sin(a),
+                x2 = outerRadius + innerRadius * Math.cos(a),
+                y2 = outerRadius + innerRadius * Math.sin(a),
+                x4 = outerRadius + outerRadius * Math.cos(a+2*alpha),
+                y4 = outerRadius + outerRadius * Math.sin(a+2*alpha),
+                x3 = outerRadius + innerRadius * Math.cos(a+2*alpha),
+                y3 = outerRadius + innerRadius * Math.sin(a+2*alpha);
+
+            var v = [
+                pt(x1,y1),
+                pt(x2,y2),
+                new lively.morphic.Shapes.ArcTo(true, x3, y3, innerRadius, innerRadius, 0, 0, 1),
+                pt(x4,y4),
+                pt(x1,y1)
+            ]
+            var color = halos[i].getFill() === null ? null : halos[i].getFill();
+            var p = Morph.makePolygon(v, 1, Color.rgb(66,66,66), color);
+            p.setOrigin(pt(0,0));
+            p.addMorph(halos[i]);
+            halos[i].setBorderWidth(0);
+            halos[i].setOpacity(1);
+            halos[i].moveBy(p.getExtent().scaleBy(0.5));
+            this.addMorph(p);
+            connect(halos[i].shape, "_Fill", p, "setFill"); 
+
+        }
+
+        this.configureSubmorphs();
+        return this;
+    },
+    setupStyle: function(radius) {
+        this.setExtent(pt(2*radius,2*radius))
+        this.setFill(null);
+        this.setBorderWidth(0);
+        this.setScale(1/$world.getZoomLevel());
+    },
+    configureSubmorphs: function() {
+        //this.lock();
+        this.submorphs.each(function (ea) {
+            ea.disableHalos();
+        }) 
+    },
+
+
+});
+lively.morphic.Morph.subclass('lively.morphic.PieItem',
+    'initializing', {
+        initialize: function($super, targetMorph) {
+            $super();
+            this.targetMorph = targetMorph;
+            this.createLabel();
+            this.createIcon();
+            this.alignIcon();
+        },
+    createIcon: function() {
+        var iconUrl = this.getIcon();
+        if (!iconUrl || iconUrl == '') return null;
+        if (this.labelMorph) this.labelMorph.remove();
+        var rect = new Rectangle(0,0, this.iconExtent && this.iconExtent.x || 45, this.iconExtent && this.iconExtent.y || 45);
+        this.labelMorph = new lively.morphic.Image(rect, iconUrl, false)
+        this.addMorph(this.labelMorph);
+        return this.labelMorph;
+},
+    alignIcon: function() {
+        if(this.iconOffset)
+            this.moveBy(this.iconOffset)
+    },
+
+
+        createLabel: function() {
+            var text = this.getLabelText();
+            if (!text || text == '') return null;
+            if (this.labelMorph) this.labelMorph.remove();
+            this.labelMorph = new lively.morphic.Text(new Rectangle(0,0, 0, 0), text).beLabel({
+                align: 'center',
+                fixedWidth: false,
+                fixedHeight: false,
+                textColor: Color.black,
+                fontSize: 18
+            });
+            this.addMorph(this.labelMorph);
+            return this.labelMorph;
+        },
+    },
+    'accessing', {
+        getLabelText: function(){
+            return this.labelText;
+        },
+    getIcon: function() {
+        return this.iconUrl;
+    },
+
+    },
+    'settings', {
+        labelText: "",
+    setInfo: function(textStr) {
+        if(!this.infoMorph) {
+            this.createInfoMorph();
+        }
+        this.infoMorph.setTextString(textStr);
+        this.infoMorph.fit();
+    },
+    alignInfo: function() {
+        if(!this.infoMorph) {
+            this.createInfoMorph();
+        }
+
+        this.infoMorph.align(
+            this.infoMorph.bounds().bottomLeft(),
+            this.targetMorph.owner.worldPoint(this.targetMorph.bounds().topLeft())
+        );
+    },
+
+    createInfoMorph: function() {
+        this.infoMorph = new lively.morphic.Text(new Rectangle(0,0,500,30),"");
+        this.infoMorph.beLabel({fontSize: 14, fill: Color.rgba(255,255,255,0.7)});
+        this.infoMorph.setScale(1/$world.getZoomLevel());
+
+        $world.addMorph(this.infoMorph);
+    },
+
+
+        isPieItem: true,
+        style: {
+            fill: Color.rgb(131,111,255),
+        },
+    newMethod: function() {
+        // enter comment here
+    },
+
+    leave: function() {
+        var color = this.originalColor;
+        this.setFill(color);
+    },
+
+},
+    'pieItemActions', {
+        activate: function(evt){
+
+        },
+    enter: function() {
+        this.originalColor = this.getFill();
+        var color = this.getFill().lighter();
+        this.setFill(color);
+    },
+
+    move: function(evt) {
+        
+    },
+    end: function(event) {
+        
+        if(this.infoMorph) {
+            this.infoMorph.remove();
+            this.infoMorph = null;
+        }
+
+    },
+
+
+    }
+);
+lively.morphic.PieItem.subclass('lively.morphic.ClosePieItem',
+    'settings', {
+
+        labelText: 'X'
+
+    },
+    'pieItemActions', {
+        activate: function(evt) {
+            if(this.targetMorph.setFixed) {
+                this.targetMorph.setFixed(false);
+            }
+            this.targetMorph.deselect();
+            this.targetMorph.remove();
+        },
+    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/remove.png",
+    iconOffset: pt(-3,10),
+
+
+
+
+    }
+);
+lively.morphic.PieItem.subclass('lively.morphic.MenuPieItem',
+    'settings', {
+
+        labelText: 'M'
+
+    },
+    'pieItemActions', {
+        activate: function(evt) {
+            this.targetMorph.showMorphMenu(evt);
+        },
+    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/menu.png",
+
+    }
+);
+lively.morphic.PieItem.subclass('lively.morphic.CopyPieItem',
+    'settings', {
+
+    iconExtent: pt(42,42),
+
+    iconOffset: pt(11,11),
+
+        labelText: 'C'
+
+    },
+    'pieItemActions', {
+        activate: function(evt) {
+            
+            try {
+                this.copiedTarget = this.targetMorph.copy();
+            } catch(e) {
+                alert("could not copy morph: " + this.targetMorph)
+                return;
+            }; 
+
+            this.copiedTarget.setTransform(this.targetMorph.getGlobalTransform());
+            var delta = this.targetMorph.pieTouch.pageStart.subPt(evt.getPosition());
+
+            evt.hand.setPosition(evt.getPosition().addPt(delta));
+            this.targetMorph.world().addMorph(this.copiedTarget)
+            this.copiedTarget.align(
+                this.copiedTarget.worldPoint(pt(0,0)),
+                this.targetMorph.worldPoint(pt(0,0)))
+
+            evt.hand.grabMorph(this.copiedTarget, evt);
+
+            this.targetMorph.selectionMorph.setVisible(false);
+            $world.startFollowingHand();
+            
+        },
+        move: function(evt) {
+            evt.hand.setPosition(evt.getPosition());
+        },
+    end: function(evt) {
+        if(this.copiedTarget){
+            evt.world.dispatchDrop(evt);
+            this.copiedTarget.deselect();
+            this.copiedTarget.select();
+        }
+        $world.stopFollowingHand();
+    },
+    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/copy.png",
+
+
+
+    }
+);
+lively.morphic.PieItem.subclass('lively.morphic.GrabPieItem',
+    'settings', {
+
+    iconOffset: pt(3,0),
+    iconExtent: pt(55,55),
+
+
+        labelText: 'G'
+
+    },
+    'pieItemActions', {
+        activate: function(evt) {
+            var delta = this.targetMorph.pieTouch.pageStart.subPt(evt.getPosition());
+            evt.hand.setPosition(evt.getPosition().addPt(delta));
+            evt.hand.grabMorph(this.targetMorph, evt);
+            $world.startFollowingHand();
+            this.targetMorph.selectionMorph.setVisible(false);
+        },
+        move: function(evt) {
+            evt.hand.setPosition(evt.getPosition());
+        },
+    end: function(evt) {
+        this.targetMorph.deselect();
+        evt.world.dispatchDrop(evt);
+        this.targetMorph.select();
+        $world.stopFollowingHand();
+    },
+    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/grab.png",
+
+
+
+    }
+);
+lively.morphic.PieItem.subclass('lively.morphic.DragPieItem',
+    'settings', {
+
+        labelText: 'D'
+
+    },
+    'pieItemActions', {
+        activate: function(evt) {
+            
+            //TODO: rather use startpoint of the gesture?
+            this.eventStart = evt.getPosition();
+            this.targetStart = this.targetMorph.getPosition();
+            $world.startFollowingHand();
+        },
+        move: function(evt) {
+            evt.hand.setPosition(evt.getPosition());
+            if(this.eventStart){
+                var delta = evt.getPosition().subPt(this.eventStart),
+                    transform = this.targetMorph.owner.getGlobalTransform().inverse();
+
+                delta = transform.transformDirection(delta);
+                this.targetMorph.setPosition(this.targetStart.addPt(delta));
+
+                this.setInfo("pos: " + this.targetMorph.getPosition());
+                this.alignInfo();
+            }
+        },
+    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/drag.png",
+    iconOffset: pt(4,0),
+    end: function($super) {
+        $super();
+        $world.stopFollowingHand();
+    },
+
+
+
+
+    }
+);
+lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
+    'settings', {
+
+    iconOffset: pt(9,-6),
+
+        labelText: 'N'
+
+    },
+    'pieItemActions', {
+        activate: function(evt) {
+            this.source = this.targetMorph;
+            this.arrow = new lively.morphic.Path([
+                this.source.pieTouch.pageStart,
+                evt.getPosition()
+            ]);
+
+            this.arrow.makeArrowHead();
+            this.arrow.setFill(Color.black);
+            this.arrow.setBorderWidth(5)
+
+            $world.addMorph(this.arrow);
+            this.ensureMarkerMorph();
+            this.handleHighlightAtPosition(evt.getPosition());
+            $world.startFollowingHand();
+        },
+    ensureMarkerMorph: function() {
+        if(!$world.markerMorph) {
+            var m = new lively.morphic.Box(rect(0,0,10,10));
+            m.setExtent(pt(100,100));
+            m.setPosition(pt(0,0));
+            m.applyStyle({
+                fill: null,
+                borderColor: Color.rgb(255,143,0),
+                borderStyle: "dashed",
+                borderWidth: 3.664    
+            });
+            m.openInWorld();
+            $world.markerMorph = m;
+            $world.markerMorph.setVisible(false);
+
+            // I don't need this, but "Highlighting.js" does. So if I am responsible for loading
+            // the marker morph, I have to make sure they can use it too.
+            $world.markerMorph.isMarkerMorph = true;
+        }
+    },
+
+        move: function(evt) {
+            this.arrow.getControlPoints().last().setPos(evt.getPosition());
+            this.handleHighlightAtPosition(evt.getPosition());
+        },
+    handleHighlightAtPosition: function(position) {
+        var target = this.findTarget(position);
+
+        if(target !== this.currentTarget) {
+            this.removeHighlight(this.currentTarget);
+            this.setHighlight(target);
+            this.currentTarget = target;
+        }
+    },
+    setHighlight: function(morph) {
+        if($world.markerMorph) {
+            $world.markerMorph.setBounds(morph.globalBounds());
+            $world.markerMorph.setVisible(true);
+            $world.markerMorph.bringToFront();
+        }
+    },
+
+    removeHighlight: function(morph) {
+        //TODO: remove the marker morph from the actual morph. Right now the world only has one
+        // marker morph, so I just make it invisible
+        if($world.markerMorph) {
+            $world.markerMorph.setVisible(false);
+        }
+    },
+
+    findTarget: function(positionInWorld) {
+        // finds the morph, which should be highlighted by the marker morph
+        var allMorphsAtPosition = $world.morphsContainingPoint(positionInWorld);
+
+        var blackList = [$world.firstHand(), $world.markerMorph, this.arrow];
+        
+        for(var i = 0; i < allMorphsAtPosition.length; i++) {
+            if (!blackList.include(allMorphsAtPosition[i])) {
+                return allMorphsAtPosition[i];
+            }
+        }
+        
+    },
+    end: function() {
+        $world.markerMorph.setVisible(false);
+        this.arrow.remove();
+
+        this.showRectOnTopOfPage();
+        $world.stopFollowingHand();
+    },
+    showRectOnTopOfPage: function() {
+        var morph = Morph.makeRectangle(0,0,980,50);
+        morph.disableSelection();
+        var that = this;
+        morph.name = "ConnectionDialog";
+        morph.applyStyle({
+            extent: pt(980,42),
+            fill: new lively.morphic.LinearGradient(
+            [
+                {offset: 0, color: Color.rgb(253,253,253)},
+                {offset: 1, color: Color.rgb(223,223,223)}
+            ], 'northSouth'),
+            borderColor: Color.black
+        });
+        
+        var text = new TextMorph(new Rectangle(0,0,100,10));
+        text.applyStyle({
+            fill: null,
+            borderWidth: 0,
+            fontSize: 14,
+            textColor: Color.rgb(47,47,47),
+            fontFamily: "Helvetica, Arial, sans-serif"
+        });
+        text.setPosition(pt(10,10));
+        text.textString = "connecting ";
+        morph.addMorph(text);
+
+        var sourceDropDown = this.createPossibleSourcesList(this.source.pieTouch.pageStart);
+        morph.addMorph(sourceDropDown);
+        sourceDropDown.setPosition(pt(145,10));
+
+        var sourceList = this.createDropDownSenderList(this.source);
+        morph.addMorph(sourceList);
+        sourceList.setPosition(pt(255,10));
+        
+        connect(sourceDropDown, "selectedLineNo", sourceList, "updateProperties", {converter: function(value){
+            return this.sourceObj.realObjects[value];
+        }});
+
+        var targetText = text.copy();
+        targetText.textString = "to";
+        targetText.setPosition(pt(375,10));
+        morph.addMorph(targetText);
+
+        var targetDropDown = this.createPossibleSourcesList(pt(this.source.pieTouch.pageX, this.source.pieTouch.pageY));
+        morph.addMorph(targetDropDown);
+        targetDropDown.setPosition(pt(515,10));
+
+        var targetList = this.createDropDownReceiverList(this.currentTarget);
+        morph.addMorph(targetList);
+        targetList.setPosition(pt(625,10));
+        
+        //connect(targetDropDown, "selection", targetList, "updateProperties");
+        connect(targetDropDown, "selectedLineNo", targetList, "updateProperties", {converter: function(value){
+            return this.sourceObj.realObjects[value];
+        }});
+
+        var okBtn = new lively.morphic.Button(new Rectangle(0, 0, 75, 25));
+        okBtn.onclick = function(evt) {
+            morph.setFixed(false);
+            connect(sourceDropDown.realObjects[sourceDropDown.selectedLineNo],
+                    sourceList.selection,
+                    targetDropDown.realObjects[targetDropDown.selectedLineNo],
+                    targetList.selection);
+            morph.remove();
+        };
+        connect(okBtn, "fire", okBtn, "onclick", {removeAfterUpdate: true});
+        morph.addMorph(okBtn);
+        okBtn.setPosition(pt(750,10));
+        okBtn.setLabel("OK");
+        okBtn.onrestore();
+        
+
+        var cancelBtn = okBtn.copy();
+        cancelBtn.onclick = function(evt) {
+            morph.setFixed(false);
+            morph.remove();
+        };
+        connect(cancelBtn, "fire", cancelBtn, "onclick", {removeAfterUpdate: true});
+        cancelBtn.setLabel("Cancel");
+        cancelBtn.setPosition(pt(850,10));
+        cancelBtn.label.beLabel(this.labelStyle);
+        morph.addMorph(cancelBtn);
+
+        morph.setPosition(pt(window.pageXOffset, window.pageYOffset));
+        morph.setScale(1/$world.getZoomLevel());
+        morph.openInWorld();
+        morph.setFixed(true);
+    },
+    createDropDownReceiverList: function(target) {
+        //var receiverList = $world.openPartItem("DropDownList", "PartsBin/Inputs");
+        var receiverList = new lively.morphic.DropDownList(rect(0,0,10,10));
+        receiverList.setExtent(lively.pt(107.0,25.0));
+
+        receiverList.updateSelection = function(selectionString) {
+            if(selectionString === "enter name...") {
+                $world.prompt('Enter name of connection point', function(input) {
+                    if (!input) return;
+                    receiverList.addItem(input);
+                    receiverList.selectAt(receiverList.itemList.length-1);
+                });
+            }
+        };
+
+        receiverList.updateProperties = function(target) {
+            var that = this,
+                properties = Properties.own(target.getTargetConnectionPoints()),
+                menu = [];
+
+            // Properties
+            var propMenu = ["Properties"];
+            properties.forEach(function(propName) {
+                propMenu.push(propName);
+            });
+            menu.push(propMenu);
+    
+            //Scripts
+            var scriptMenuItems = ["Scripts"];
+            Functions.own(target).forEach(function(scriptName) {
+                scriptMenuItems.push(scriptName);
+            });
+            menu.push(scriptMenuItems);
+
+            menu.push(["custom", "enter name..."]);
+    
+            this.updateList(menu, true);
+            receiverList.selection = receiverList.selection || propMenu[1];
+        };
+
+        receiverList.updateProperties(target);
+
+        receiverList.disableSelection();
+        
+        connect(receiverList, "selection", receiverList, "updateSelection");
+
+        return receiverList;
+    },
+    createPossibleSourcesList: function(position) {
+        var list = new lively.morphic.DropDownList(rect(0,0,10,10));
+        list.setExtent(lively.pt(107.0,25.0));
+        list.selectedLineNo = 0;
+        console.log($world.markerMorph);
+        var that = this;
+        var realObjects = [];
+        list.updateList(
+            $world.morphsContainingPoint(position).reject(function(a){
+                return a === $world.markerMorph || a === that.targetMorph.selectionMorph;
+            }).collect(function(a){
+                realObjects.push(a);
+                return a.getName() || a.toString();
+            }));
+        list.disableSelection();
+        list.realObjects = realObjects;
+
+        return list;
+    },
+
+
+
+
+    createDropDownSenderList: function(source) {
+        var senderList = new lively.morphic.DropDownList(rect(0,0,10,10));
+        senderList.setExtent(lively.pt(107.0,25.0));
+        var connectionNames = Properties.own(source.getConnectionPoints());
+
+        senderList.disableSelection();
+        senderList.selection = connectionNames[0];
+        senderList.updateList(connectionNames, true);
+        senderList.updateProperties = function(target) {
+            this.updateList(Properties.own(target.getConnectionPoints()));
+        }
+        return senderList;    
+},
+
+
+    connectFrom: function(source, sourceProperty) {
+        console.log("connect from " + source + "::" + sourceProperty);
+        this.connectSource = source;
+        this.connectSourceProperty = sourceProperty;
+        this.doConnect();
+    },
+    connectTo: function(target, targetProperty) {
+        console.log("connect to " + target+ "::" + targetProperty);
+        this.connectTarget = target;
+        this.connectTargetProperty = targetProperty;
+        this.doConnect();
+    },
+    doConnect: function() {
+        console.log(this.connectSource);
+        console.log(this.connectSourceProperty);
+        console.log(this.connectTarget);
+        console.log(this.connectTargetProperty);
+        
+        if(     this.connectSource &&
+                this.connectSourceProperty &&
+                this.connectTarget &&
+                this.connectTargetProperty){
+            connect(    this.connectSource,
+                        this.connectSourceProperty,
+                        this.connectTarget,
+                        this.connectTargetProperty);
+            this.senderList.remove();
+            this.receiverList.remove();
+        }
+    },
+    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/connect.png",
+
+
+
+
+
+
+
+
+
+
+    }
+);
+lively.morphic.PieItem.subclass('lively.morphic.RotatePieItem',
+    'settings', {
+
+        labelText: 'T'
+
+    },
+    'pieItemActions', {
+        activate: function(evt) {
+            this.arrow = new lively.morphic.Path([
+                this.targetMorph.getGlobalTransform().transformPoint(pt(0,0)),
+                evt.getPosition()
+            ]);
+
+            this.arrow.setBorderColor(Color.red);
+            this.arrow.setBorderWidth(1)
+
+            $world.addMorph(this.arrow);
+
+
+            //origin of targetMorph in world coordinates
+            this.globalPosition = this.targetMorph.getGlobalTransform().transformPoint(pt(0,0));
+
+            var startPosition = evt.getPosition();
+            this.startRotation = this.targetMorph.getRotation();
+
+            var startOffset = startPosition.subPt(this.globalPosition);
+            this.startTheta = startOffset.theta();
+        },
+        move: function(evt) {
+            
+            this.arrow.getControlPoints().last().setPos(evt.getPosition());
+
+            var offset = evt.getPosition().subPt(this.globalPosition);
+            var angle = offset.theta() - this.startTheta;
+            var rot = this.startRotation + angle;
+            rot = rot.toDegrees().detent(10, 45);
+            this.targetMorph.setRotation(rot.toRadians());
+
+            this.setInfo(rot.toPrecision(5) + ' degrees');
+            this.alignInfo();
+        },
+    end: function($super) {
+        $super();
+        this.arrow.remove();
+    },
+    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/rotate.png",
+
+    }
+);
+
+lively.morphic.PieItem.subclass('lively.morphic.ScalePieItem',
+    'settings', {
+
+        labelText: 'F'
+    },
+
+    'pieItemActions', {
+        activate: function(evt) {
+            this.arrow = new lively.morphic.Path([
+                this.targetMorph.getGlobalTransform().transformPoint(pt(0,0)),
+                evt.getPosition()
+            ]);
+
+            this.arrow.setBorderColor(Color.red);
+            this.arrow.setBorderWidth(1)
+
+            $world.addMorph(this.arrow);
+
+
+            //origin of targetMorph in world coordinates
+            this.globalPosition = this.targetMorph.getGlobalTransform().transformPoint(pt(0,0));
+
+            var startPosition = evt.getPosition();
+            this.startScale = this.targetMorph.getScale();
+
+            var startOffset = startPosition.subPt(this.globalPosition);
+            this.startDist = startOffset.r();
+        },
+        move: function(evt) {
+            
+            this.arrow.getControlPoints().last().setPos(evt.getPosition());
+
+            var offset = evt.getPosition().subPt(this.globalPosition).r();
+            var newScale = (this.startScale * offset / Math.max(this.startDist, 40));
+            newScale = newScale.detent(0.1, 0.5);
+/*
+            var angle = offset.theta() - this.startTheta;
+            var rot = this.startRotation + angle;
+            rot = rot.toDegrees().detent(10, 45);
+            this.targetMorph.setRotation(rot.toRadians());
+*/
+            this.targetMorph.setScale(newScale);
+            this.setInfo("scale: " + newScale.toPrecision(5));
+            this.alignInfo();
+        },
+        end: function($super) {
+            $super();
+            this.arrow.remove();
+        },
+        iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/scale.png",
+    iconOffset: pt(-8,-8),
+
+    }
+);
+lively.morphic.PieItem.subclass('lively.morphic.ResizePieItem',
+    'settings', {
+
+        labelText: 'R'
+
+    },
+    'pieItemActions', {
+        activate: function(evt) {
+            this.startPosition = evt.getPosition();
+            this.startExtent = this.targetMorph.getExtent();     
+        },
+        move: function(evt) {
+            var delta = evt.getPosition().subPt(this.startPosition);
+            var newExtent = this.startExtent.addPt(delta);
+            this.targetMorph.setExtent(newExtent);
+            this.setInfo("extent: " + newExtent);
+            this.alignInfo();
+        },
+    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/rotate.png",
+
+
+    }
+);
+
+lively.morphic.Path.addMethods(
+    "SVGArrows", {
+        makeArrowHead: function(){
+            
+            var defs = this.getDefs();
+
+            var marker;
+
+            for(var node = defs.firstChild; node; node = node.nextSibling){
+                if(node.getAttribute("id") === "ArrowHead"){
+                    marker = node;
+                    break;
+                }
+            }
+
+            if(!marker){
+                marker = NodeFactory.createNS(Namespace.SVG, "marker");
+                marker.setAttribute("id", "ArrowHead");
+                marker.setAttribute("viewBox", "0 0 10 10");
+                marker.setAttribute("refX", "10");
+                marker.setAttribute("refY", "5");
+                marker.setAttribute("markerUnits", "userSpaceOnUse");
+                marker.setAttribute("markerWidth", "20");
+                marker.setAttribute("markerHeight", "15");
+                marker.setAttribute("orient", "auto");
+
+                var triangle = NodeFactory.createNS(Namespace.SVG, "path");
+                triangle.setAttribute("d", "M 0 0 L 10 5 L 0 10 z")
+
+                marker.appendChild(triangle);
+
+                defs.appendChild(marker);
+            }
+
+            for(var node = this.renderContext().svgNode.firstChild; node; node = node.nextSibling){
+                if(node.tagName === "path"){
+                   node.setAttribute("marker-end","url(#ArrowHead)"); 
+                }
+            }
+        },
+    
+        getDefs: function() {
+        var defs = this.renderContext().svgNode.getElementsByTagName("def");
+        if(defs.length >= 1){
+            return defs.item(0);
+        } else {
+            defs = NodeFactory.createNS(Namespace.SVG, "defs");
+            this.renderContext().svgNode.insertBefore(defs, this.renderContext().svgNode.firstChild);
+            return defs;
+        }
+    },
+})
+
+cop.create('PieMenu').refineClass(lively.morphic.Morph, {
+    onTouchStartAction: function (evt) {
+        if($world.pieMode){
+            return this.pieStart(evt);
+        } else {
+            cop.proceed(evt);
+        }
+    },
+    onTouchMoveAction: function (evt) {
+        if($world.pieMode){
+            //console.log("doing piemove");
+            return this.pieMove(evt);
+        } else {
+            cop.proceed(evt);
+        }
+    },
+    onTouchEndAction: function (evt) {
+        if($world.pieMode){
+            return this.pieEnd(evt);
+        } else {
+            cop.proceed(evt);
+        }
+    },
+
+    onTap: function(evt) {
+        var out = cop.proceed(evt);
+        $world.removePie();
+        return out;
+    },
+
+}).refineClass(lively.morphic.List, {
+    updateList: function(items, useOwnImplementation) {
+        if(!useOwnImplementation) {
+            cop.proceed(items);
+        } else {
+
+        items = items || [];
+        //this.itemList = items;
+        var that = this;
+        this.itemList = [];
+        var mapToItemList = function(array) {
+            for(var i=0; i < array.length; i++) {
+                if(array[i].constructor === Array) {
+                    mapToItemList(array[i].slice(1));
+                } else {
+                    that.itemList.push(array[i]);
+                }
+            }
+        }
+        mapToItemList(items);
+
+        this.renderContextDispatch('updateListContent', items);
+        }
+    },
+    
+    updateListContentHTML: function(ctx, itemStrings) {
+        //cop.proceed(ctx,itemStrings);
+        //return;
+        if (!itemStrings) itemStrings = [];
+        var scroll = this.getScroll();
+        if(!ctx || !ctx.subNodes) return;
+        if (ctx.subNodes.length > 0) this.removeListContentHTML(ctx);
+        var extent = this.getExtent();
+
+        //console.log(itemStrings);
+        this.makeList(ctx, ctx.listNode, itemStrings);
+        globCtx = ctx;
+        this.resizeListHTML(ctx);
+        this.selectAllAtHTML(ctx, [this.selectedLineNo]);
+    },
+    makeList: function(ctx, activeNode, items) {
+        for (var i = 0; i < items.length; i++) {
+            if(items[i].constructor === Array) {
+                var optGroup = XHTMLNS.create('optgroup');
+                optGroup.label = items[i][0];
+                activeNode.appendChild(optGroup);
+                this.makeList(ctx, optGroup, items[i].slice(1));
+            } else {
+                var option = XHTMLNS.create('option');
+                option.textContent = items[i].string || String(items[i]);
+                activeNode.appendChild(option);
+                ctx.subNodes.push(option);
+            }
+        }
+    },
+
+}).beGlobal();
+
 }) // end of module

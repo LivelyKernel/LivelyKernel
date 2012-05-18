@@ -808,7 +808,7 @@ var start = new Date().getTime();
                 nOrgCol = x + this.startColumn;
 
 
-                sValue = this.dataModel[y][x].value.toString();
+                sValue = String(this.dataModel[y][x].value);
                 nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
                 //Annotation
                 if (this.arrData[nOrgRow][nOrgCol].annotation){

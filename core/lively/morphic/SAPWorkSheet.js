@@ -2339,7 +2339,7 @@ dataformat: currency & percentage & date & time
             //'Clear All','Clear Formats','Clear Contents','Clear Comments'
 	    var arrItems=[];
       
-            oItem = {}
+            /*oItem = {}
             oItem.isMenuItem=true;
             oItem.isMenuItem=true;
             oItem.string="Clear All";
@@ -2359,15 +2359,15 @@ dataformat: currency & percentage & date & time
             oItem.onMouseOverCallback=null;
             arrItems.push(oItem);
 
+*/
 
 
-
-            /*arrItems= [
+            arrItems= [
             	['Clear All', function() { this.onMenuClick_ClearAll() }],
-            	['Clear Formats', this.onMenuClick_ClearFormats()],
+            	['Clear Formats', "this.onMenuClick_ClearFormats"],
                 ['Clear Contents', function() { alert('3rd') }],
                 ['Clear Comments', function() { alert('4th') }]
-            ];*/
+            ];
             this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
         }
     },

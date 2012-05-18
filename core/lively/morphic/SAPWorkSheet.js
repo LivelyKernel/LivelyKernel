@@ -2074,7 +2074,11 @@ debugger;
                 this.grid.arrSelectedCells[i].textString="";
             }
             if (bClearComments){
-                this.grid.arrSelectedCells[i].deactivateCell();
+                if (this.grid.arrData[nOrgRow][nOrgCol].formula && !bClearFormula){
+                    this.grid.arrSelectedCells[i].formulaCell();
+                }else{
+                    this.grid.arrSelectedCells[i].deactivateCell();
+                }
             }
             if (bClearFormats){
                 if (!bClearContents){

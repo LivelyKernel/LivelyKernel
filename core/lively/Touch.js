@@ -1334,5 +1334,386 @@ cop.create("GestureEvents").refineClass(lively.morphic.Morph, {
     },
 }).beGlobal()
 
+cop.create("IPadThemeLayer").refineClass(lively.morphic.World, {
+
+morphMenuDefaultPartsItems: function () {
+        var items = [],
+            partNames = ["Rectangle", "Ellipse", "Image", "Text", 'Line'].sort();
+
+        items.pushAll(partNames.collect(function(ea) { return [ea, function() {
+            var partSpaceName = 'PartsBin/Basic',
+                part = lively.PartsBin.getPart(ea, partSpaceName);
+			      if (!part) return;
+            lively.morphic.World.current().firstHand().grabMorph(part);
+        }]}))
+    
+        items.pushAll(["TextField", "Button"].collect(function(ea) { return [ea, function() {
+            var partSpaceName = 'PartsBin/iPadWidgets',
+                part = lively.PartsBin.getPart(ea, partSpaceName);
+			      if (!part) return;
+            lively.morphic.World.current().firstHand().grabMorph(part);
+        }]}))
+
+        partNames = ["List", "Slider", "ScriptableButton"].sort()
+        items.pushAll(partNames.collect(function(ea) { return [ea, function() {
+            var partSpaceName = 'PartsBin/Inputs',
+                part = lively.PartsBin.getPart(ea, partSpaceName);
+			      if (!part) return;
+            lively.morphic.World.current().firstHand().grabMorph(part);
+        }]}))
+
+        return items;
+    },
+    openObjectEditor: function() {
+        return this.openPartItem('ObjectEditor', 'PartsBin/iPadWidgets');
+    },
+    openPartsBin: function (evt) {
+        return this.openPartItem('PartsBinBrowser', 'PartsBin/iPadWidgets');
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+    }).refineClass(lively.morphic.Slider, {
+        onrestore: function () {
+            cop.proceed();
+            this.beIPadSlider.bind(this).delay(0);
+        },
+    beIPadSlider: function() {
+        if (this.owner) {
+        if (this.vertical()) {
+                this.setExtent(pt(7, this.getExtent().y));
+            }
+            else {
+                this.setExtent(pt(this.getExtent().x, 7));
+            };
+            this.adjustSliderParts();
+            this.setBorderWidth(1);
+            this.setBorderColor(Color.rgb(95,94,95));
+            this.adjustSliderParts();
+            this.setKnobFill();
+
+            this.enlargeMorph()
+    }
+    },
+      enlargeMorph: function() {
+        if (this.sliderKnob.isEnlarged()) {
+            return    
+        }
+        var largeSliderKnob = this.sliderKnob.copy()
+
+        this.sliderKnob.addMorph(largeSliderKnob)
+        largeSliderKnob.setScale(largeSliderKnob.getScale()*2) // define min/max size 
+        largeSliderKnob.ignoreEvents()
+        largeSliderKnob.disableSelection()
+        largeSliderKnob.setFill(null)
+
+        //largeSliderKnob.setFill(Color.rgba(200,200,200,0.3))
+        largeSliderKnob.setBorderWidth(0)
+        largeSliderKnob.setPosition(largeSliderKnob.getExtent().scaleBy(-0.5))
+        this.sliderKnob.setOrigin(this.sliderKnob.bounds().topLeft().subPt(this.sliderKnob.getPosition()))
+        this.disableSelection();
+},
+
+
+
+
+        updateFill: function(value) {
+            if(this.inverted && this.inverted())
+                var value = 1 - value;
+            var align = this.vertical() ? 'northSouth' : 'eastWest';
+            var bgStyle = new lively.morphic.LinearGradient(
+                [
+                    {offset: 0, color: Color.rgb(53,83,255)},
+                    {offset: value, color: Color.rgb(53,83,255)},
+                    {offset: Math.min(1,value+0.01), color: Color.white}                
+                ],
+                align
+            );
+            this.setFill(bgStyle);
+        },
+        setKnobFill: function() {
+            var knobStyle= new lively.morphic.LinearGradient(
+                [
+                    {offset: 0, color: Color.darkGray.mixedWith(Color.white, 0.5)},
+                    {offset: 0.3, color: Color.lightGray},
+                    {offset: 1, color: Color.white}
+                ]
+            )
+            this.sliderKnob.setFill(knobStyle);
+        },
+    adjustSliderParts: function() {
+            if (!this.sliderKnob) return;
+            // This method adjusts the slider for changes in value as well as geometry
+            var val = this.getScaledValue();
+            var bnds = this.shape.bounds();
+            var knobMult = this.knobRatio || 3
+            var ext = this.getSliderExtent(); 
+            if (this.vertical()) { // more vertical...
+                var offset = 0 - (this.sliderKnob.bounds().width / 2) + (this.getExtent().x / 2);
+                this.sliderKnob.setPosition(pt(offset,this.sliderKnob.getPosition().y));
+                var size = this.getExtent().x * knobMult;
+                this.sliderKnob.setExtent(pt(size, size));
+                var elevPix = Math.max(ext*bnds.height, this.mss); // thickness of elevator in pixels
+                var topLeft = pt(this.sliderKnob.getPosition().x - this.sliderKnob.getOrigin().x, (bnds.height - elevPix)*val);
+            } else { // more horizontal...
+                var offset = 0 - (this.sliderKnob.bounds().height / 2) + (this.getExtent().y / 2);
+                this.sliderKnob.setPosition(pt(this.sliderKnob.getPosition().x, offset));
+                var size = this.getExtent().y * knobMult; 
+                this.sliderKnob.setExtent(pt(size,size));
+                var elevPix = Math.max(ext*bnds.width, this.mss); // thickness of elevator in pixels
+                var topLeft = pt((bnds.width - elevPix)*val, this.sliderKnob.getPosition().y - this.sliderKnob.getOrigin().y);
+            };
+                
+            this.sliderKnob.setPosition(topLeft.addPt(this.sliderKnob.getOrigin()));
+            this.sliderKnob.setBorderRadius(13);
+            this.sliderKnob.draggableWithoutHalo = true;
+            this.updateFill(val);
+        },
+    setKnobRatio: function(num) {
+        this.knobRatio = num;
+    },
+    getSliderExtent: function() {
+    if (this.vertical()) 
+        return (this.sliderKnob.getExtent().y)/(this.getExtent().y)
+    else 
+        return (this.sliderKnob.getExtent().x)/(this.getExtent().x)
+    },
+
+
+    }).refineClass(lively.morphic.Text, {
+    beTextField: function() {
+        this.shape.setPadding(pt(10,10).extent(pt(0,0)));
+        this.setBorderRadius(13);
+        this.setFill(Color.white)
+        this.setBorderWidth(1);
+        this.setBorderColor(Color.gray.mixedWith(Color.darkGray, 0.1))
+    },
+    beLabel: function(customStyle) {
+        this.isLabel = true;
+        var labelStyle = {
+            fill: null,
+            borderWidth: 0,
+            fixedWidth: true,
+            fixedHeight: true,
+            allowInput: false,
+            clipMode: 'hidden',
+            handStyle: 'default',
+        };
+        this.shape.setPadding(pt(0,0).extent(pt(0,0)));
+        this.setBorderRadius(0);
+        if (customStyle) labelStyle = Object.merge([labelStyle, customStyle]);
+        this.applyStyle(labelStyle);
+        this.disableEvents();
+        return this;
+    },
+
+
+
+    }).refineClass(lively.morphic.Button, {
+        onrestore: function () {
+            cop.proceed();
+            this.beIPadButton();
+        },
+    initialize: function(bounds, labelString) {
+        cop.proceed(bounds, labelString);
+        this.beIPadButton(labelString);
+    },
+
+        setExtent: function(value) {
+            var min = this.getMinExtent();
+            value.maxPt(min,value);
+            this.priorExtent = this.getExtent();
+            this.shape.setExtent(value);
+            if (this.layout){
+                if (this.layout.adjustForNewBounds || this.layout.layouter) {
+                    this.adjustForNewBounds();
+                };
+            };
+            if (this.owner) {
+                if (typeof this.owner['submorphResized'] == 'function') {
+                    this.owner.submorphResized(this);
+                };
+            };
+            if (this.label) {
+                this.label.setExtent(value);
+            };
+            this.label && this.label.growOrShrinkToFit();
+            this.adjustForNewBounds();
+            return value;
+        },
+    beToolbarButton: function(labelString, optFontSize) {
+        // enter comment here
+        this.setExtent(pt(44,44))
+        var fontSize = 16
+        this.normalFill = null;
+        this.lighterFill = Color.rgba(255,255,255,0.3);
+        this.setFill(null);
+        this.label.setFontSize(fontSize);
+        this.setLabel(labelString);
+        this.label.growOrShrinkToFit();
+        this.adjustForNewBounds();
+        this.label.setTextColor(Color.gray.mixedWith(Color.black, 0.7))
+        this.setBorderRadius(3)
+        this.setBorderWidth(0)
+        this.label.emphasizeAll({fontWeight: "bold"})
+        this.centerLabel();
+        return this;
+    },
+
+
+    beIPadButton: function() {
+        this.setBorderRadius(13);
+        this.setBorderWidth(1);
+        this.setBorderColor(Color.darkGray);
+        this.setFill(Color.white);
+        this.normalFill = Color.white;
+        this.lighterFill = this.normalFill.mixedWith(Color.darkGray, 0.5);
+        this.label.setBorderWidth(0);
+        this.label.setTextColor(Color.rgb(53,83,255).mixedWith(Color.black, 0.5));
+        this.label.setPadding(pt(0,0).extent(pt(0,0)));
+        this.centerLabel();
+    },
+    onTouchStart: function (evt) {
+        // to react on touches with color changes
+        var color = this.lighterFill || this.getFill();
+        this.setFill(color);
+        return cop.proceed(evt);
+    },
+    onTouchEnd: function (evt) {
+        // see on touch start
+        var color = this.normalFill || this.getFill();
+        this.setFill(color);
+        return cop.proceed(evt);
+    },
+    centerLabel: function() {
+        this.label.layout = this.label.layout || {};
+        this.layout = this.layout || {};
+        this.layout.adjustForNewBounds = true;
+        this.label.layout.centeredVertical = true;
+        this.label.layout.centeredHorizontal = true;
+        this.adjustForNewBounds();
+
+    },
+
+
+
+
+
+
+
+
+
+
+
+    }).refineClass(lively.morphic.TitleBar, {
+        onrestore: function () {
+            cop.proceed();
+            this.beTaskBar.bind(this).delay(0);
+        },
+    beTaskBar: function() {
+        this.applyTaskBarStyle();
+        this.adjustForNewBounds();
+        this.draggableWithoutHalo = true;
+        this.windowMorph.targetMorph.align(this.windowMorph.targetMorph.getBounds().topLeft(), this.getBounds().bottomLeft())
+        this.windowMorph.targetMorph.setExtent(pt(this.windowMorph.getExtent().x, this.windowMorph.getExtent().y-this.getExtent().y))
+    },
+    applyTaskBarStyle: function() {
+        var barHeight = 44;
+        var that = this;
+        this.setExtent(pt(this.getExtent().x, barHeight));
+        this.setBorderWidth(0);
+        this.windowMorph.setBorderWidth(0);
+        this.submorphs.each(function (ea) {
+            if (ea.constructor === lively.morphic.Button){
+                if (ea.beToolbarButton && ea.label && ea.label.getTextString) {
+                    ea.beToolbarButton(ea.label.getTextString());
+                    if (!(ea === that.closeButton 
+                            || ea === that.menuButton
+                            || ea === that.collapseButton)) {
+                        ea.setPosition(pt(barHeight*ea.orderInTaskBar, ea.getPosition().y));
+                    }
+                }
+            }
+        })
+        this.closeButton.beToolbarButton("X");
+        this.closeButton.setPosition(pt(this.getExtent().x-this.closeButton.getExtent().x,0));
+        this.collapseButton.beToolbarButton("-");
+        this.collapseButton.setPosition(pt(
+            this.closeButton.getPosition().x-this.collapseButton.getExtent().x,0)
+        );
+        this.menuButton.beToolbarButton("M");
+        this.menuButton.setPosition(pt(0,0))
+        this.applyStyle({borderRadius: "3px 3px 0px 0px",});
+        this.label.emphasizeAll({fontWeight: "bold",});
+      },
+
+    centerLabel: function() {
+        this.label.fixedWidth = false;
+        if (this.label.layout) {
+            this.label.layout.resizeWidth = false;
+            this.label.layout.centeredVertical = true;
+        }
+        this.label.growOrShrinkToFit();
+    },
+
+    adjustForNewBounds: function() {
+        cop.proceed();
+        this.menuButton.setPosition(pt(0,0));
+        this.closeButton.setPosition(pt(this.getExtent().x-this.closeButton.getExtent().x,0))
+        this.collapseButton.setPosition(pt(this.closeButton.getPosition().x-this.collapseButton.getExtent().x,0))
+    },
+
+    initialize: function(headline, windowWidth, windowMorph, optSuppressControls) {
+        cop.proceed(headline, windowWidth, windowMorph, optSuppressControls);
+        this.beTaskBar.bind(this).delay(0);
+    },
+
+
+
+    }).refineClass(lively.morphic.Menu, {
+        openAt: function(pos, title, items) {
+            $world.loadWorldMenu();
+        },
+    }).refineClass(lively.morphic.SliderKnob, {
+        onDrag: function(evt) {
+        // the hitpoint is the offset that make the slider move smooth
+        if (!this.hitPoint) return; // we were not clicked on...
+
+        // Compute the value from a new mouse point, and emit it
+        var delta = evt.getPosition().subPt(this.hitPoint),
+            p = this.bounds().topLeft().addPt(delta).subPt(this.getOrigin()),
+            bnds = this.slider.innerBounds(),
+            ext = this.slider.getSliderExtent();
+
+        this.hitPoint = evt.getPosition()
+        if (this.slider.vertical()) {
+            // thickness of elevator in pixels
+            var elevPix = Math.max(ext*bnds.height,this.slider.mss),
+                newValue = p.y / (bnds.height-elevPix);
+        } else {
+            // thickness of elevator in pixels
+            var elevPix = Math.max(ext*bnds.width,this.slider.mss),
+                newValue =  p.x / (bnds.width-elevPix);
+        }
+
+        if (isNaN(newValue)) newValue = 0;
+        this.slider.setScaledValue(this.slider.clipValue(newValue));
+    },
+    isEnlarged: function() {
+        return this.submorphs.length != 0
+    },
+
+    })
+.beGlobal();
 
 }) // end of module

@@ -2062,7 +2062,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
                 ['Clear Comments', this.onMenuClick_ClearComments]];
             //this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
             this.oClearMenu= new lively.morphic.Menu(null, arrItems);
-            this.oClearMenu.openIn(this,this.imgClear.getPosition().addXY(7, 7),true);
+            this.oClearMenu.openIn(this.grid.oWorkBook,this.imgClear.getPosition().addXY(7, 7),true);
             
 
 

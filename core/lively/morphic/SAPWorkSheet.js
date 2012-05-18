@@ -2227,7 +2227,6 @@ debugger;
             oItem.parent = this;
             arrItems.push(oItem);
 
-            arrItems=[]
             oItem = {}
             oItem.isMenuItem=true;
             oItem.string="Clear Formats";
@@ -2236,7 +2235,6 @@ debugger;
             oItem.parent = this;
             arrItems.push(oItem);
 
-            arrItems=[]
             oItem = {}
             oItem.isMenuItem=true;
             oItem.string="Clear Contents";
@@ -2245,7 +2243,6 @@ debugger;
             oItem.parent = this;
             arrItems.push(oItem);
 
-            arrItems=[]
             oItem = {}
             oItem.isMenuItem=true;
             oItem.string="Clear Comments";

@@ -1997,7 +1997,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
     },
 },
-'initialize', {
+'do', {
     
 },
 'Clear Menu Events', {

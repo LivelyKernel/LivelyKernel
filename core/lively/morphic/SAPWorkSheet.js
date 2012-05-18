@@ -1997,6 +1997,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
     },
 },
+'initialize', {
+    
+},
 'Clear Menu Events', {
     onMenuClick_ClearAll: function(evt) {
         //this.clearCell(true,true,true,true,true);

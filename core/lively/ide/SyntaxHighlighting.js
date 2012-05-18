@@ -116,6 +116,8 @@ lively.morphic.Text.addMethods(
         var currentMs = Date.now();
         if (this.lastSyntaxHighlightTime && (currentMs-this.lastSyntaxHighlightTime < 300)) return;
         this.lastSyntaxHighlightTime = currentMs;
+        if (this.textString == this.lastSyntaxHighlightString) return;
+        this.lastSyntaxHighlightString = this.textString;
         this.highlightSyntaxFromTo(0, length, SyntaxHighlighter.JavaScriptRules);
     },
     applyHighlighterRules: function(target, highlighterRules) {

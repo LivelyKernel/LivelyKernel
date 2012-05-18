@@ -2102,10 +2102,6 @@ debugger;
                 this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=null;
             }
             if (bClearFormula){
-                
-                if (bClearContents){
-                    
-                }
                 this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].value="";
                 this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].formula="";
             }    

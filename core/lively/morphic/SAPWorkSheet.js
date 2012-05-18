@@ -2166,7 +2166,7 @@ debugger;
     },
     onMenuClick_ClearContents: function(evt) {
         //this.clearCell(bClearFormats,bClearContents,bClearComments,bClearFormula)
-       this.clearCell(false,true,false,false,false);
+       this.parent.clearCell(false,true,false,false,false);
     },
     onMenuClick_ClearComments: function($super,evt) {
        //this.clearCell(bClearFormats,bClearContents,bClearComments,bClearFormula)

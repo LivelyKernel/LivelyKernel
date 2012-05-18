@@ -1421,7 +1421,7 @@ currently only support
         this.arrSelectedCells.lenght=0;
         this.arrSelectedCells =[];
 
-        //for data
+        //for data:  removing data
         for (i= 0; i< this.arrSelectedData.length; i++) {
             this.arrData[this.arrSelectedData[i].y][this.arrSelectedData[i].x].selected=false;
         }

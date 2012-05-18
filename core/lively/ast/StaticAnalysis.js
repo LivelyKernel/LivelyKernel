@@ -236,7 +236,7 @@ cop.create('SystemCodeEditorHighlighting').refineClass(lively.ide.BasicBrowser, 
         if (this.type == "categoryDef") return "categoryFragment";
         return "none";
     },
-    reparse: function(newSource) {
+    reparseAndCheck: function(newSource) {
         try {
             lively.ast.Parser.parse(newSource, this.specialHighlighting());
         } catch (e) {

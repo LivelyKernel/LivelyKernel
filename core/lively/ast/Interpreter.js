@@ -280,7 +280,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
         text.setTextString(this.getFuncSource());
         text.highlightJavaScriptSyntax();
         if (this.pc !== null) {
-            var style = { backgroundColor: Color.green.lighter() };
+            var style = { backgroundColor: Color.rgb(191,191,243) };
             text.emphasize(style, this.pc.pos[0], this.pc.pos[1]);
         }
     },

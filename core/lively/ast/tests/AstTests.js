@@ -789,7 +789,7 @@ TestCase.subclass('lively.ast.tests.AstTests.VariableAnalyzerTest',
     test01FindFreeVariable: function() {
         var f = function() { var x = 3; return x + y },
             result = new lively.ast.VariableAnalyzer().findGlobalVariablesIn(String(f));
-        this.assertVarsFound(f, [['y', 35, 37]], result);
+        this.assertVarsFound(f, [['y', 36, 37]], result);
     },
     testFindSimpleGlobalRead: function() {
         var codeAndExpected = [

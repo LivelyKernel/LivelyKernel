@@ -718,7 +718,7 @@ debugger;
         for (nRow = 0; nRow < this.numRows-1; nRow++) {
             arrColumns=[];
             for (nCol = 0; nCol < this.numCols-1; nCol++) {
-                arrColumns[nCol] = this.arrData[nRow] && this.arrData[nRow][nCol];
+                arrColumns[nCol] = this.arrData[nRow][nCol];
 	    }
             this.dataModel.push(arrColumns);
 	}
@@ -807,18 +807,17 @@ var start = new Date().getTime();
                 nOrgRow = y  + this.startRow;
                 nOrgCol = x + this.startColumn;
 
-                var data = this.dataModel[y] && this.dataModel[y][x],
-                    arrData = this.arrData[nOrgRow] && this.arrData[nOrgRow][nOrgCol];
-                sValue = data && data.value ? data.value.toString() : "";
+
+                sValue = this.dataModel[y][x].value.toString();
                 nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
                 //Annotation
-                if (arrData && arrData.annotation){
+                if (this.arrData[nOrgRow][nOrgCol].annotation){
                     this.at(x+1,y+1).annotationCell();
                 }else{
                     this.at(x+1,y+1).deactivateCell();
                 }
                 //formula
-                if (arrData && arrData.formula){
+                if (this.arrData[nOrgRow][nOrgCol].formula){
                     sValue = this.parseFormula(this.arrData[nOrgRow][nOrgCol].formula);
                     this.at(x+1,y+1).formulaCell();
                     this.at(x+1,y+1).setToolTip('Formula: \n' + this.arrData[nOrgRow][nOrgCol].formula);
@@ -829,15 +828,15 @@ var start = new Date().getTime();
                 }
 
                 //selected cell
-                if (arrData && arrData.selected){
+                if (this.arrData[nOrgRow][nOrgCol].selected){
                     this.at(x+1,y+1).selectedCell();
                     this.arrSelectedCells.push(this.at(x+1,y+1));
                 }
 
                 //DATA formats
-                if (arrData && arrData.dataFormat){
-                    if (arrData.dataFormat.type){
-                        sValue= this.applyDataFormates(sValue, arrData.dataFormat);
+                if (this.arrData[nOrgRow][nOrgCol].dataFormat){
+                    if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
+                        sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat);
                         //for negateive number for currency & number
                         debugger;
                         if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType){
@@ -877,12 +876,12 @@ var start = new Date().getTime();
                 var oFill = null;
                 var oTextColor=null;
                 //if value is number then should return right
-                sTextAlign = this.getAlignforValueType(arrData && arrData.dataFormat,sValue)
+                sTextAlign = this.getAlignforValueType(this.arrData[nOrgRow][nOrgCol].dataFormat,sValue)
                 
-                if (arrData && arrData.fontWeight){
+                if (this.arrData[nOrgRow][nOrgCol].fontWeight){
                     sFontWeight=this.arrData[nOrgRow][nOrgCol].fontWeight;
                 }
-                if (arrData && arrData.textDecoration){
+                if (this.arrData[nOrgRow][nOrgCol].textDecoration){
                     sTextDecoration=this.arrData[nOrgRow][nOrgCol].textDecoration;
                 }
                 if (this.arrData[nOrgRow][nOrgCol].fontStyle){
@@ -2044,7 +2043,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         var nOrgCol;
         var sValue;
         var i;
-
+debugger;
         //Grid
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
@@ -2423,71 +2422,64 @@ dataformat: currency & percentage & date & time
 */
 
 
-    },
+    },initializeImages: function() {
+        var nGapWidth = 6;
+        var nGapGroupWidth = 25;
+        var nSecondLineYPos = 30;
 
-    initializeImages: function() {
-        var nGapWidth = 6,
-            nGapGroupWidth = 25,
-            nSecondLineYPos = 30;
+        this.imgSave = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
+        this.imgSaveAs = new lively.morphic.Image(new Rectangle(24*1 + 10 + nGapWidth,3,24,24), "images/Save-as-icon.png"); 
+        this.imgPaste= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*2 + 10 + 2*nGapWidth,3,24,24), "images/Action-paste-icon.png"); 
+        this.imgCut= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,3,24,24), "images/Cut-icon.png"); 
+        this.imgCopy= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,nSecondLineYPos,24,24), "images/Actions-edit-copy-icon.png"); 
+    
+        this.ddlFont = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth, 3, 120, 20), []);
 
-        function img(x, y, w, h, path) {
-            var url = URL.root.withFilename("users/kimhw/").withFilename(path);
-            return new lively.morphic.Image(new Rectangle(x,y,w,h), url);
-        }
-
-        this.imgSave            = img(10,3,24,24, "images/Save-icon.png");
-        this.imgSaveAs          = img(24*1 + 10 + nGapWidth,3,24,24, "images/Save-as-icon.png");
-        this.imgPaste           = img(nGapGroupWidth + 24*2 + 10 + 2*nGapWidth,3,24,24, "images/Action-paste-icon.png");
-        this.imgCut             = img(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,3,24,24, "images/Cut-icon.png");
-        this.imgCopy            = img(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,nSecondLineYPos,24,24, "images/Actions-edit-copy-icon.png");
-
-        this.ddlFont            = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth, 3, 120, 20), []);
-
-        this.ddlFontSize        = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
+        this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
 
         this.addMorph(this.ddlFont );
         this.addMorph(this.ddlFontSize );
 
-        this.imgBold            = img(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth,nSecondLineYPos,24,24, "images/Actions-format-text-bold-icon.png");
+        this.imgBold= new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-bold-icon.png"); 
         this.imgBold.setToolTip("Bold");
-        this.imgItalic          = img(2*nGapGroupWidth + 24*5 + 10 + 5*nGapWidth,nSecondLineYPos,24,24, "images/Actions-format-text-italic-icon.png");
+        this.imgItalic = new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*5 + 10 + 5*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-italic-icon.png"); 
         this.imgItalic.setToolTip("Italic");
-        this.imgUnderline       = img(2*nGapGroupWidth + 24*6 + 10 + 6*nGapWidth,nSecondLineYPos,24,24, "images/Actions-format-text-underline-icon.png");
+        this.imgUnderline= new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*6 + 10 + 6*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-underline-icon.png"); 
         this.imgUnderline.setToolTip("Underline");
 
-        this.imgBackGroundColor = img(3*nGapGroupWidth + 24*8 + 10 + 7*nGapWidth,nSecondLineYPos,24,24, "images/color-fill-icon.png");
-        this.imgFontColor       = img(3*nGapGroupWidth + 24*9 + 10 + 8*nGapWidth,nSecondLineYPos,24,24, "images/Actions-format-text-color-icon.png");
+        this.imgBackGroundColor= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*8 + 10 + 7*nGapWidth,nSecondLineYPos,24,24), "images/color-fill-icon.png"); 
+        this.imgFontColor= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*9 + 10 + 8*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-color-icon.png"); 
 
-        this.imgSignDollar      = img(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,3,24,24, "images/US-dollar-icon.png");
+        this.imgSignDollar= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,3,24,24), "images/US-dollar-icon.png"); 
         this.imgSignDollar.setToolTip("Number Format: Currency");
-        this.imgSignPercent     = img(3*nGapGroupWidth + 24*12 + 10 + 12*nGapWidth,3,24,24, "images/Percent-icon2.png");
+        this.imgSignPercent= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*12 + 10 + 12*nGapWidth,3,24,24), "images/Percent-icon2.png"); 
         this.imgSignPercent.setToolTip("Number Format: Percentage");
 
-        this.imgFormatCell      = img(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,nSecondLineYPos,24,24, "images/rick-text-format-icon.png");
+        this.imgFormatCell= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,nSecondLineYPos,24,24), "images/rick-text-format-icon.png"); 
 
 
-        this.imgBoarder         = img(4*nGapGroupWidth + 24*13 + 10 + 13*nGapWidth,3,24,24, "images/border-2-bottom-icon.png");
-        this.imgFilter          = img(4*nGapGroupWidth + 24*14 + 10 + 14*nGapWidth,3,24,24, "images/filter-icon.png");
+        this.imgBoarder = new lively.morphic.Image(new Rectangle(4*nGapGroupWidth + 24*13 + 10 + 13*nGapWidth,3,24,24), "images/border-2-bottom-icon.png"); 
+        this.imgFilter = new lively.morphic.Image(new Rectangle(4*nGapGroupWidth + 24*14 + 10 + 14*nGapWidth,3,24,24), "images/filter-icon.png"); 
 
-        this.imgInsertRow       = img(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,3,24,24, "images/table-row-insert-icon.png");
+        this.imgInsertRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,3,24,24), "images/table-row-insert-icon.png");
         this.imgInsertRow.setToolTip("Insert Row");
 
-        this.imgInsertColumn    = img(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,nSecondLineYPos,24,24, "images/table-column-insert-icon.png");
+        this.imgInsertColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,nSecondLineYPos,24,24), "images/table-column-insert-icon.png");
         this.imgInsertColumn .setToolTip("Insert Column");
-
-        this.imgRemoveRow       = img(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,3,24,24, "images/table-row-delete-icon.png");
+        
+        this.imgRemoveRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,3,24,24), "images/table-row-delete-icon.png");
         this.imgRemoveRow .setToolTip("Delete Row");
-        this.imgRemoveColumn    = img(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,nSecondLineYPos,24,24, "images/table-column-delete-icon.png");
+        this.imgRemoveColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,nSecondLineYPos,24,24), "images/table-column-delete-icon.png");
         this.imgRemoveColumn .setToolTip("Delete Column");
-
-        this.imgTextAlignLeft   = img(6*nGapGroupWidth + 25*17 + 10 + 13*nGapWidth,3,24,24, "images/Text-align-left-icon.png");
+    
+        this.imgTextAlignLeft = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*17 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-left-icon.png");
         this.imgTextAlignLeft.setToolTip("Align Text Left");
-        this.imgTextAlignCenter = img(6*nGapGroupWidth + 25*18 + 10 + 13*nGapWidth,3,24,24, "images/Text-align-center-icon.png");
+        this.imgTextAlignCenter = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*18 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-center-icon.png");
         this.imgTextAlignCenter.setToolTip("Align Text Center");
-        this.imgTextAlignRight  = img(6*nGapGroupWidth + 25*19 + 10 + 13*nGapWidth,3,24,24, "images/Text-align-right-icon.png");
+        this.imgTextAlignRight = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*19 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-right-icon.png");
         this.imgTextAlignRight.setToolTip("Align Text Right");
 
-        this.imgClear           = img(6*nGapGroupWidth + 25*17 + 10 + 14*nGapWidth,nSecondLineYPos,24,24, "images/Actions-edit-clear-icon.png");
+        this.imgClear= new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*17 + 10 + 14*nGapWidth,nSecondLineYPos,24,24), "images/Actions-edit-clear-icon.png"); 
 
         this.addMorph(this.imgInsertRow);
         this.addMorph(this.imgRemoveRow);
@@ -2501,11 +2493,11 @@ dataformat: currency & percentage & date & time
         this.addMorph(this.imgCut);
         this.addMorph(this.imgPaste);
         this.addMorph(this.imgClear);
-
+ 
         this.addMorph(this.imgBold);
         this.addMorph(this.imgItalic );
         this.addMorph(this.imgUnderline);
-
+   
         this.addMorph(this.imgBackGroundColor);
         this.addMorph(this.imgFontColor);
 
@@ -2577,7 +2569,6 @@ dataformat: currency & percentage & date & time
         this.imgTextAlignRight.disableHalos();
         this.imgFormatCell.disableHalos();
     },
-
     initializeEvents: function() {
         connect(this.imgBold, "onMouseDown", this, "imgBold_Click", {});
         connect(this.imgItalic, "onMouseDown", this, "imgItalic_Click", {});

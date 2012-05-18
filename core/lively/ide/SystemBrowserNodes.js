@@ -537,7 +537,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CategorizedClassFragmentNode', 
         setTimeout((function() {
             //FIXME: dirty hack to get syntax highlighting when selecting classes
             this.browser.panel.sourcePane.innerMorph().highlightJavaScriptSyntax();
-        }).bind(this), 400);
+        }).bind(this), 100);
     },
 
 });

@@ -2213,10 +2213,10 @@ debugger;
            
             
             this.oClearMenu= new lively.morphic.Menu(null, arrItems);
-            this.oClearMenu.addScript(function onMouseOut(evt) {
+            this.oClearMenu.addScript(function onBlur(evt) {
                 $super(evt);
                 this.remove();
-                console.log("mouseout")
+                console.log("onBlur")
                 return true;
             })
 

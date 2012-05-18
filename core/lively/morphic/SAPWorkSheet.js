@@ -2152,13 +2152,10 @@ debugger;
 },
 'Clear Menu Events', {
     onMenuClick_ClearMenuHide: function(evt) {
-        debugger;
        this.parent.oClearMenu.remove();
     },
     onMenuClick_ClearAll: function(evt) {
-        debugger;
         this.parent.clearCell(true,true,true,true,true);
-        //this.clearCell(true,true,true,true,true);
     },
     onMenuClick_ClearFormats: function(evt) {
        //this.clearCell(bClearFormats,bClearContents,bClearComments,bClearFormula,bClearStyle)
@@ -2169,13 +2166,9 @@ debugger;
        this.parent.clearCell(false,true,false,false,false);
     },
     onMenuClick_ClearComments: function($super,evt) {
-       //this.clearCell(bClearFormats,bClearContents,bClearComments,bClearFormula)
-        debugger;
-  
        this.parent.clearCell(false,false,true,false,false);
     },
     onMenuClick_ClearFormulas: function(evt) {
-        //this.clearCell(bClearFormats,bClearContents,bClearComments,bClearFormula)
        this.parent.clearCell(false,false,false,true,false);
     }
 },

@@ -2199,7 +2199,7 @@ debugger;
         }
     },
     imgClear_Click: function() {
-        debugger;
+       
         if (this.oClearMenu){
             this.oClearMenu.openInWorld(this.imgClear.getPositionInWorld().addXY(7, 7));
         }else{

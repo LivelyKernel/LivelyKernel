@@ -718,7 +718,7 @@ debugger;
         for (nRow = 0; nRow < this.numRows-1; nRow++) {
             arrColumns=[];
             for (nCol = 0; nCol < this.numCols-1; nCol++) {
-                arrColumns[nCol] = this.arrData[nRow][nCol];
+                arrColumns[nCol] = this.arrData[nRow] && this.arrData[nRow][nCol];
 	    }
             this.dataModel.push(arrColumns);
 	}

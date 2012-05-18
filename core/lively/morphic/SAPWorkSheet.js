@@ -2083,7 +2083,7 @@ debugger;
             }
             if (bClearFormula){
                 this.grid.arrSelectedCells[i].textString="";
-                if (this.grid.arrData[nOrgRow][nOrgCol].annotation){
+                if (this.grid.arrData[nOrgRow][nOrgCol].annotation && !bClearComments){
                     this.grid.arrSelectedCells[i].annotationCell();
                 }else{
                     this.grid.arrSelectedCells[i].deactivateCell();

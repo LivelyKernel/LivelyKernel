@@ -1362,7 +1362,7 @@ lively.morphic.World.addMethods(
     },
 },
 "zooming", {
-
+    test: function(){}
 });
 
 

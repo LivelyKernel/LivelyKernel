@@ -2161,7 +2161,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     },
     imgRemoveColumn_Click: function() {
         this.grid.removeColBetween();
-    },
+    }
 },
 'default category', {
     initialize: function($super,oGrid, nXpos, nYpos,nWidth,nHeight) {
@@ -2340,15 +2340,6 @@ dataformat: currency & percentage & date & time
         this.ddlFontSize.grabbingEnabled = false;
         this.ddlFont.grabbingEnabled = false;
 
-
-        var oSubmorphs= this.submorphs
-        //debugger;
-        //for (var i = 0; i < oSubmorphs.length; i++) {
-            //if (oSubmorphs[i].shape==lively.morphic.Image){
-            //      console.log("image")
-            //}
-        //}
-
         this.imgSave.grabbingEnabled = false;
         this.imgSaveAs.grabbingEnabled = false;
         this.imgCopy.grabbingEnabled = false;
@@ -2372,7 +2363,6 @@ dataformat: currency & percentage & date & time
         this.imgTextAlignCenter.grabbingEnabled = false;
         this.imgTextAlignRight.grabbingEnabled = false;
         this.imgFormatCell.grabbingEnabled = false;
-
 
         this.imgSave.disableHalos();
         this.imgSaveAs.disableHalos();

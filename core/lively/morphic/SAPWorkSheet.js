@@ -1398,8 +1398,19 @@ currently only support
     removeSelectedCells: function() {
 
         //need to consider cell is formula and annotation cell.
-
+        var nCol;
+        var nRow;
+        
+        var nOrgRow;
+        var nOrgCol;
+      
         for (var i= 0; i< this.arrSelectedCells.length; i++) {
+            nCol= this.arrSelectedCells[i].x;
+            nRow = this.arrSelectedCells[i].y;
+        
+            nOrgRow = nRow -1 + this.grid.startRow;
+            nOrgCol = nCol -1 + this.grid.startColumn;  
+
             this.arrSelectedCells[i].deactivateCell();
         }
         this.arrSelectedCells.lenght=0;

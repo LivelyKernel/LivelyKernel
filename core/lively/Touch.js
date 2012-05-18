@@ -1369,6 +1369,10 @@ lively.morphic.World.addMethods(
             return window.outerWidth / window.innerWidth;
         }
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 });
 
 

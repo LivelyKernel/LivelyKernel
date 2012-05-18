@@ -2224,7 +2224,7 @@ debugger;
             arrItems=[]
             oItem = {}
             oItem.isMenuItem=true;
-            oItem.string="";
+            oItem.string="  ";
             oItem.value="";
             oItem.onClickCallback=this.onMenuClick_ClearMenuHide;
             oItem.parent = this;

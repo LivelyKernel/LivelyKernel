@@ -2694,45 +2694,6 @@ cop.create('worldMenu').refineClass(lively.morphic.World, {
     },
 }).beGlobal();
 
-lively.morphic.World.addMethods(
-"scrolling", {
-    startFollowingHand: function() {
-        connect(this.firstHand(), "position", this, "followHand");
-    },
-    stopFollowingHand: function() {
-        disconnect(this.firstHand(), "position", this, "followHand");
-    },
-
-
-    followHand: function(val) {
-        var handPosition = val.subPt(pt(
-                document.body.scrollLeft, 
-                document.body.scrollTop)
-            ).scaleBy(
-                $world.getZoomLevel()
-            ),
-            x = handPosition.x,
-            y = handPosition.y,
-            scrollThreshold = 50;
-
-        console.log(handPosition.toString());
-
-        if(x < scrollThreshold ){
-            window.scrollBy(x-scrollThreshold , 0);
-        }
-        if(x > document.documentElement.clientWidth - scrollThreshold ){
-            window.scrollBy(x + scrollThreshold - document.documentElement.clientWidth, 0);
-        }
-        if(y < scrollThreshold ){
-            window.scrollBy(0, y-scrollThreshold );
-        }
-        if(y > document.documentElement.clientHeight - scrollThreshold ){
-            window.scrollBy(0, y + scrollThreshold - document.documentElement.clientHeight);
-        }
-
-
-    },
-});
 cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
     morphMenuItems: function() {
         var a = cop.proceed();

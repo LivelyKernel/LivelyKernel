@@ -1961,6 +1961,42 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         textColor: Color.black
     }
 },
+'DropDown Events', {
+    ddlFont_onMouseDown: function(){
+        if (this.fontPicker){
+            //debugger;
+            if (this.fontPicker.isVisible()){
+                this.fontPicker.setVisible(false);
+            }else{
+                this.fontPicker.setVisible(true);
+                //this.fontPicker.focus();
+            }
+        }else{
+            this.fontPicker= new lively.morphic.SAPFontPicker("courier",this.fontPicker_callBack);
+            this.fontPicker.setPosition(pt(181,24));
+            this.addMorph(this.fontPicker);
+            connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});
+        }
+    },
+    ddlFontSize_onChange: function(){
+        var i;
+        var nFontsize = this.ddlFontSize.getSelectedItem();
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.arrSelectedCells[i].emphasizeAll({fontSize:nFontsize });
+        }
+         //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontSize=nFontsize;
+        }
+
+    },
+    
+    fontPicker_onBlur: function(){
+       console.log("onBlur");
+       this.fontPicker.setVisible(false);
+
+    },
+},
 'Clear Menu Events', {
     onMenuClick_ClearAll: function(evt) {
        alert(1)
@@ -2420,42 +2456,6 @@ dataformat: currency & percentage & date & time
 
         that.fontPicker.setVisible(false);
         
-    },
-    ddlFont_onMouseDown: function(){
-        if (this.fontPicker){
-            //debugger;
-            if (this.fontPicker.isVisible()){
-                this.fontPicker.setVisible(false);
-            }else{
-                this.fontPicker.setVisible(true);
-                //this.fontPicker.focus();
-            }
-        }else{
-            this.fontPicker= new lively.morphic.SAPFontPicker("courier",this.fontPicker_callBack);
-            this.fontPicker.setPosition(pt(181,24));
-            this.addMorph(this.fontPicker);
-            connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});
-        }
-        
-    
-    },
-    ddlFontSize_onChange: function(){
-        var i;
-        var nFontsize = this.ddlFontSize.getSelectedItem();
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.grid.arrSelectedCells[i].emphasizeAll({fontSize:nFontsize });
-        }
-         //for data
-        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontSize=nFontsize;
-        }
-
-    },
-    
-    fontPicker_onBlur: function(){
-       console.log("onBlur");
-       this.fontPicker.setVisible(false);
-
     },
     initializeEvents: function() {
         connect(this.imgBold, "onMouseDown", this, "imgBold_Click", {});

@@ -505,6 +505,7 @@ View.subclass('NetRequest', {
                 this._streamContentLength = allContent.length;
             }
         }
+
         if (this.getReadyState() === this.Done) {
             this.setStatus(this.getStatus());
             if (this.transport.responseText !== undefined){

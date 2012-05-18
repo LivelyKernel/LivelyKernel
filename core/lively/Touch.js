@@ -1130,4 +1130,209 @@ lively.morphic.Button.addMethods("TapEvents", {
 });
 
 
+cop.create("GestureEvents").refineClass(lively.morphic.Morph, {
+    onGestureChange: function (evt) {
+        if(this.areEventsIgnoredOrDisabled()){
+            return false;
+        }
+        if (this.halosTemporaryInvisible) {
+            this.setScale(evt.scale*this.originalScale);
+            this.setRotation(this.originalRotation+evt.rotation/180*Math.PI);
+            evt.stop()
+        };
+        if ($world.isInEditMode()) $world.setEditMode(false) 
+    },
+    onGestureStart: function(evt) {
+        if(this.areEventsIgnoredOrDisabled()){
+            return false;
+        }
+        if (this.showsHalos) {
+            this.removeHalos();
+            this.halosTemporaryInvisible = true
+            this.setOrigin(this.getExtent().scaleBy(0.5));
+            this.originalScale = this.getScale();
+            this.originalRotation = this.getRotation();
+            this.lastRotation = 0;
+            evt.stop()
+        };
+    },
+    onGestureEnd: function(evt) {
+        if (this.areEventsIgnoredOrDisabled()){
+            return false;
+        }
+        if (this != this.world() && this.halosTemporaryInvisible) {
+            if (this.halosTemporaryInvisible) {
+                this.showHalos();
+                this.halosTemporaryInvisible = false
+            }
+            this.setOrigin(this.getExtent().scaleBy(0.5));
+            this.originalScale = this.getScale();
+            this.originalRotation = this.getRotation();
+            evt.stop();
+        }
+    },
+    setFixed: function(fixed, fixedPosition) {
+
+        if(fixed && this.owner !== $world) {
+            return;
+        }
+
+        this.isFixed = fixed;
+        if(fixed) {
+            this.fixedScale = this.getScale() * $world.getZoomLevel();
+            this.fixedPosition = this.getPosition().subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel());
+
+            connect($world, "zoomLevel", this, "updateZoomScale");
+            connect($world, "emulatedScrolling", this, "toggleScrolling");
+            connect($world, "zoomingInProgress", this, "toggleScrolling");
+            if(!fixedPosition) {
+                connect($world, "scrollOffset", this, "updateScrollPosition");
+            }
+        } else {
+            disconnect($world, "zoomLevel", this, "updateZoomScale");
+            disconnect($world, "scrollOffset", this, "updateScrollPosition");
+            disconnect($world, "emulatedScrolling", this, "toggleScrolling");
+            disconnect($world, "zoomingInProgress", this, "toggleScrolling");
+        }
+        
+
+    },
+    setFixedPosition: function(position) {
+        this.fixedPosition = position/*.subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel())*/;
+        this.updateScrollPosition($world.scrollOffset);
+    },
+    getFixedPosition: function() {
+        return this.fixedPosition;//.scaleBy(1/$world.getZoomLevel());
+    },
+
+
+    toggleScrolling: function(isScrolling) {
+        if(!this.isFixed) return
+        if(isScrolling) {
+            this.remove();
+        } else {
+            $world.addMorph(this);
+        }
+    },
+
+    updateScrollPosition: function(newPosition) {
+        this.setPosition(this.fixedPosition.scaleBy(1/$world.zoomLevel).addPt(newPosition));
+    },
+
+    updateZoomScale: function(newZoom) {
+        if(this.fixedScale) {
+            
+            this.setScale(this.fixedScale/newZoom);
+        }
+    },
+    removeFixed: function() {
+        this.setFixed(false)
+        this.remove()
+    },
+}).refineClass(lively.morphic.AbstractDialog, {
+     buildPanel: function (bounds) {
+        var out = cop.proceed(bounds);
+        this.panel.setScale(1.5/$world.getZoomLevel());
+    },
+}).refineClass(lively.morphic.World, {
+    onGestureStart:function (evt) {
+        if(!this.pieMode){
+            cop.proceed(evt);
+            this.zoomingInProgress = true;
+            this._emulatedScrollingTemporarilyDisabled = true;
+        }
+    },
+    onGestureChange: function(evt) {
+        if(!this.pieMode){
+
+        }
+    },
+    onGestureEnd: function(evt) {
+        if(!this.pieMode){
+            window.setTimeout( function() { 
+                $world.zoomLevel = $world.calculateCurrentZoom(); 
+                $world.onWindowScroll();
+                $world.zoomingInProgress = false;
+            }, 1);
+        }
+    },
+    calculateCurrentZoom: function() {
+        if(UserAgent.isTouch) {
+            return document.documentElement.clientWidth / window.innerWidth;
+        }  else {
+            return window.outerWidth / window.innerWidth;
+        }
+
+    },
+    onWindowScroll: function(evt) {
+        $world.scrollOffset = pt(window.pageXOffset,window.pageYOffset);
+    },
+    getZoomLevel: function() {
+        if(!this.zoomLevel){
+            this.zoomLevel = this.calculateCurrentZoom();
+        }
+        return this.zoomLevel;
+    },
+    getCurrentZoom: function() {
+        return this.getZoomLevel();
+    },
+
+    onLoad: function() {
+        this.zoomLevel = this.calculateCurrentZoom();
+        this.onWindowScroll();
+        cop.proceed();
+    },
+    openDialog: function(dialog) {
+        return cop.proceed(dialog);
+    },
+    addStatusMessageMorph: function(morph, delay) {
+        morph.setScale(1/this.getZoomLevel());
+        if (!this.statusMessages) this.statusMessages = [];
+        morph.isEpiMorph = true;
+        this.addMorph(morph);
+        morph.addScript(function onMouseUp(evt) {
+            this.stayOpen = true;
+            return $super(evt);
+        })
+        morph.addScript(function remove() {
+            var world = this.world();
+            if (world.statusMessages)
+                world.statusMessages = world.statusMessages.without(this);
+            return $super();
+        })
+        morph.align(morph.bounds().topRight(), this.visibleBounds().topRight());
+        this.statusMessages.invoke('moveBy', pt(0, morph.getExtent().y / this.getZoomLevel()));
+        this.statusMessages.push(morph);
+
+        if (delay) {
+            (function removeMsgMorph() {
+                if (!morph.stayOpen) morph.remove()
+            }).delay(delay);
+        }
+
+        return morph;
+    },
+    registerForGlobalEvents: function() {
+        // enter comment here
+        var self = this;
+        document.body.onorientationchange = function (evt) {
+            lively.morphic.EventHandler.prototype.patchEvent(evt);
+            self.onOrientationChange(evt);
+        }
+        return cop.proceed();
+    },
+    onOrientationChange: function(evt) {
+        this.zoomLevel = this.calculateCurrentZoom();
+        this.onWindowScroll();
+    },
+
+}).refineClass(lively.morphic.BoundsHalo, {
+    initialize: function (targetMorph) {
+        cop.proceed(targetMorph);
+        this.unregisterFromGestureEvents();
+        this.disableEvents();
+    },
+}).beGlobal()
+
+
 }) // end of module

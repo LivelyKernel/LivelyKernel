@@ -1730,11 +1730,12 @@ morphMenuDefaultPartsItems: function () {
         updateFill: function(value) {
             if(this.inverted && this.inverted())
                 var value = 1 - value;
+            var color = this.iPadColor || Color.rgb(53,83,255);
             var align = this.vertical() ? 'northSouth' : 'eastWest';
             var bgStyle = new lively.morphic.LinearGradient(
                 [
-                    {offset: 0, color: Color.rgb(53,83,255)},
-                    {offset: value, color: Color.rgb(53,83,255)},
+                    {offset: 0, color: color},
+                    {offset: value, color: color},
                     {offset: Math.min(1,value+0.01), color: Color.white}                
                 ],
                 align

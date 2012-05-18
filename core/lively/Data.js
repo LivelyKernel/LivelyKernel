@@ -68,7 +68,8 @@ Object.subclass('XPathEmulator', {
 				var serializer = new XMLSerializer();
 				this.xmlDom.loadXML(serializer.serializeToString(node));
 			} else {
-				this.xmlDom.loadXML(node.ownerDocument.documentElement.outerHTML);
+				alert(node.ownerDocument);
+                                this.xmlDom.loadXML(node.ownerDocument.documentElement.outerHTML);
 				queryObj = this.xmlDom.selectSingleNode('//*[@id="' + node.id + '"]');
 			}
 		}

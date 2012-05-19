@@ -108,7 +108,11 @@ lively.morphic.WindowedApp.subclass('lively.ide.FileVersionViewer',
         this.fetchSelectedVersionAndDo(function(resForGet) {
             var resForPut = new WebResource(this.url).beAsync(); // using two to know when status of put
             lively.bindings.connect(resForGet, 'content', resForPut, 'put');
-            lively.bindings.connect(resForPut, 'status', this, 'revertDone');
+            lively.bindings.connect(resForPut, 'status', this, 'revertDone', {updater:
+                function($upd, status) {
+                    inspect(status);
+                    $upd(status);
+                }});
         });
     },
     revertDone: function (status) {

@@ -23,20 +23,20 @@ lively.ide.BrowserNode.subclass('lively.ide.SourceControlNode', {
             // can happen when browser in a serialized world that
             // is moved tries to relativize a URL
             this.statusMessage('Cannot get files for code browser with url '
-                + url + ' error ' + e, Color.red, 6)
+                + url + ' error ' + e, Color.red, 6);
             this.allFiles = [];
         }
 
         this.parentNamespacePath = url.withFilename('../');
         this.subNamespacePaths = this.pathsToSubNamespaces(url);
     },
+
     pathsToSubNamespaces: function(url) {
         var webR = webR = new WebResource(url).beSync(),
-            dirs = webR.getSubElements().subCollections;
+            dirs = webR.getSubElements().subCollections,
             paths = dirs.collect(function(ea) { return ea.getURL() });
         return paths;
     },
-
 
     childNodes: function() {
         // js files + OMeta files (.txt) + lkml files + ChangeSet current
@@ -65,13 +65,14 @@ lively.ide.BrowserNode.subclass('lively.ide.SourceControlNode', {
         moduleNodes = moduleNodes.sortBy(function(node) { return node.asString().toLowerCase() });
 
         // namespace nodes
-        for (var i = 0; i < this.subNamespacePaths.length; i++) {
+        for (i = 0; i < this.subNamespacePaths.length; i++) {
             var relativePath = this.subNamespacePaths[i];
             nsNodes.push(new lively.ide.NamespaceNode(relativePath, b, this));
         }
         nsNodes = nsNodes.sortBy(function(node) { return node.asString() });
-        if (this.parentNamespacePath)
+        if (this.parentNamespacePath) {
             nsNodes.push(new lively.ide.NamespaceNode(this.parentNamespacePath, b, this));
+        }
 
         // add local changes
         var nodes = nsNodes;
@@ -242,26 +243,27 @@ lively.ide.FileFragmentNode.subclass('lively.ide.MultiFileFragmentsNode', {
 
 lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // should be module file node
 'testing', {
-    isModuleNode: true,
+    isModuleNode: true
 },
 'settings', {
-    maxStringLength: 10000,
+    maxStringLength: 10000
 },
 'initializing', {
     initialize: function($super, target, browser, parent, moduleName) {
         $super(target, browser, parent);
         this.moduleName = moduleName;
         this.showAll = false;
-    },
+    }
 },
 'accssing', {
     childNodes: function() {
-        var acceptedTypes = ['klassDef', 'klassExtensionDef', 'functionDef', 'objectDef', 'copDef', 'traitDef', /*'propertyDef'*/];
-        var browser = this.browser;
-        var completeFileFragment = this.target;
+        var acceptedTypes = ['klassDef', 'klassExtensionDef', 'functionDef', 'objectDef',
+                             'copDef', 'traitDef' /*,'propertyDef'*/],
+            browser = this.browser,
+            completeFileFragment = this.target;
         if (!completeFileFragment) return [];
 
-        var typeToClass = function(type) {
+        function typeToClass(type) {
             if (type === 'klassDef' || type === 'klassExtensionDef')
                 return lively.ide.CategorizedClassFragmentNode;
             if (type === 'functionDef')
@@ -275,7 +277,6 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
         return this.target.subElements(2)
             .select(function(ea) { return acceptedTypes.include(ea.type) })
             .collect(function(ff) { return new (typeToClass(ff.type))(ff, browser) });
-
     },
 
     sourceString: function($super) {
@@ -286,6 +287,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
     },
 },
 'conversion', {
+
     asString: function() {
         var name = this.moduleName;
         name = name.substring(name.lastIndexOf('/') + 1, name.length);
@@ -293,13 +295,14 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
         if (!this.showLines()) return name;
         return name + ' (' + this.target.startLine() + '-' + this.target.stopLine() + ')';
     },
+
     url: function() {
         return URL.codeBase.withFilename(this.moduleName);
     },
+
     realModuleName: function() {
         return this.url().asModuleName();
-    },
-
+    }
 
 },
 'loading', {
@@ -308,10 +311,11 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
         this.target = lively.ide.SourceControl.addModule(this.moduleName).ast();
         this.signalChange();
     },
+
     reparse: function() {
          this.getSourceControl().reparseModule(this.moduleName, true);
          this.signalChange();
-    },
+    }
 },
 'consistency', {
     checkForRedundantClassDefinitions: function() {
@@ -516,9 +520,10 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CategorizedClassFragmentNode', 
             return false;
         if (this.target.subElements().length == 0) {
             this.statusMessage('FIXME: adding nodes to empty classes!', Color.red);
-            return
+            return false;
         }
-        this.statusMessage('Adding ' + nodeDroppedOntoMe.asString() + ' to ' + this.asString() + ' and removing original', Color.green);
+        this.statusMessage('Adding ' + nodeDroppedOntoMe.asString() +
+                           ' to ' + this.asString() + ' and removing original', Color.green);
         var source = nodeDroppedOntoMe.target.getSourceCode();
         nodeDroppedOntoMe.target.remove();
         this.target.subElements().last().addSibling(source);
@@ -527,11 +532,12 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CategorizedClassFragmentNode', 
     },
 
     evalSource: function(newSource) {
-            if (!this.browser.evaluate) return false;
+        if (!this.browser.evaluate) return false;
+        var currentModule, moduleName = this.browser.currentModuleName;
+        if (moduleName && !moduleName.include('undefined')) {
+            currentModule = module(moduleName);
+        };
         try {
-            var currentModule, moduleName = this.browser.currentModuleName;
-            if (moduleName && !moduleName.include('undefined'))
-                currentModule = module(moduleName);
             currentModule && currentModule.activate();
             eval(newSource);
         } catch (er) {

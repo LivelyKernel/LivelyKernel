@@ -3,7 +3,7 @@ module('lively.ide.FileParsing').requires('lively.Ometa', 'lively.LKFileParser')
 // ===========================================================================
 // FileFragments, another SourceCodeDescriptor
 // ===========================================================================
-Object.subclass('lively.ide.FileFragment', 
+Object.subclass('lively.ide.FileFragment',
 'initializing', {
     initialize: function(name, type, startIndex, stopIndex, fileName, subElems, srcCtrl) {
         this.name = name;
@@ -29,9 +29,11 @@ Object.subclass('lively.ide.FileFragment',
 },
 'accessing', {
     subElements: function(depth) {
-        if (!depth || depth === 1)
-            return this._subElements; 
-        return this._subElements.inject(this._subElements, function(all, ea) { return all.concat(ea.subElements(depth-1)) });
+        return !depth || depth === 1 ?
+            this._subElements :
+            this._subElements.inject(this._subElements, function(all, ea) {
+                return all.concat(ea.subElements(depth-1));
+            });
     },
 
     fragmentsOfOwnFile: function() {
@@ -48,7 +50,7 @@ Object.subclass('lively.ide.FileFragment',
         var moduleWrapper = this.getSourceControl().findModuleWrapperForFileName(this.fileName)
         if (!moduleWrapper)
             throw new Error('SourceControl doesn\'t have my module: ' + this.fileName)
-            
+
         return moduleWrapper.ast().flattened().detect(function(ea) {
             return ea.subElements().any(function(subElem) { return self.eq(subElem) });
         });
@@ -103,7 +105,7 @@ Object.subclass('lively.ide.FileFragment',
     },
 
     startLine: function() {
-        if (this.startLineNumber === undefined) 
+        if (this.startLineNumber === undefined)
             this.startLineNumber = JsParser.prototype.findLineNo(this.getFileString().split(/[\n\r]/), this.startIndex);
         return this.startLineNumber
     },
@@ -161,38 +163,41 @@ Object.subclass('lively.ide.FileFragment',
 },
 'writeing', {
     putSourceCode: function(newString) {
-        if (!this.fileName) throw dbgOn(new Error('No filename for descriptor ' + this.name));
-
         var newMe = this.reparseAndCheck(newString);
         if (!newMe) return null;
 
         var newFileString = this.buildNewFileString(newString);
-        this.getSourceControl().putSourceCodeFor(this, newFileString);
-
+        if (!this.fileName) {
+            console.warn('No filename for descriptor ' + this.name);
+        } else {
+            this.getSourceControl().putSourceCodeFor(this, newFileString);
+        }
         this.updateIndices(newString, newMe);
         return newMe;
     },
 
     buildNewFileString: function(newString) {
-        var fileString = this.getFileString();
-        var beforeString = fileString.substring(0, this.startIndex);
-        var afterString = fileString.substring(this.stopIndex+1);
-        var newFileString = beforeString.concat(newString, afterString);
+        var fileString    = this.getFileString(),
+            beforeString  = fileString.substring(0, this.startIndex),
+            afterString   = fileString.substring(this.stopIndex+1),
+            newFileString = beforeString.concat(newString, afterString);
         return newFileString;
-    },
+    }
 },
 'parsing', {
     reparse: function(newSource) {
         var newFileString = this.buildNewFileString(newSource);
         newFileString = newFileString.slice(0,this.startIndex + newSource.length)
 
-        if (this.type === 'moduleDef' || this.type === 'completeFileDef' || this.type === 'ometaGrammar')
+        if (this.type === 'moduleDef'
+          || this.type === 'completeFileDef'
+          || this.type === 'ometaGrammar') {
             return this.sourceControl.parseCompleteFile(this.fileName, newFileString);
+        }
 
         // FIXME time to cleanup!!!
-        var parser = (this.type === 'ometaDef' || this.type === 'ometaRuleDef') ?
-        new OMetaParser() :
-        new JsParser();
+        var isOMetaSource = this.type === 'ometaDef' || this.type === 'ometaRuleDef',
+            parser =  isOMetaSource ? new OMetaParser() : new JsParser();
 
         parser.debugMode = this.debugMode;
         parser.ptr = this.startIndex;
@@ -201,8 +206,11 @@ Object.subclass('lively.ide.FileFragment',
         parser.fileName = this.fileName;
 
         var newFragment = parser.parseWithOMeta(this.type);
-        if (newFragment)
-            newFragment.flattened().forEach(function(ea) { ea.sourceControl = this.sourceControl }, this);
+        if (newFragment) {
+            newFragment.flattened().forEach(function(ea) {
+                ea.sourceControl = this.sourceControl }, this);
+        }
+
         return newFragment;
     },
 
@@ -211,16 +219,24 @@ Object.subclass('lively.ide.FileFragment',
 
         if (!newMe) dbgOn(true);
 
-        if (newMe && this.startIndex !== newMe.startIndex)
-            throw dbgOn(new Error("Inconsistency when reparsing fragment " + this.name + ' ' + this.type));
+        if (newMe && this.startIndex !== newMe.startIndex) {
+            throw dbgOn(
+                new Error("Inconsistency when reparsing fragment " + this.name + ' ' + this.type))
+        };
         if (newMe && (this.type == 'completeFileDef' || this.type == 'moduleDef')
-            && (newMe.type == 'completeFileDef' || newMe.type == 'moduleDef')) {
-                this.type = newMe.type; // Exception to the not-change-type-rule -- better impl via subclassing
+                  && (newMe.type == 'completeFileDef' || newMe.type == 'moduleDef')) {
+            // Exception to the not-change-type-rule -- better impl via subclassing
+            this.type = newMe.type;
         }
         if (!newMe || newMe.type !== this.type) {
-            newMe.flattened().forEach(function(ea) { ea.sourceControl = this.sourceControl }, this);
-            var msg = Strings.format('Error occured during parsing.\n%s (%s) was parsed as %s. End line: %s.\nChanges are NOT saved.\nRemove the error and try again.',
-            this.name, this.type, newMe.type, newMe.stopLine());
+            newMe.flattened().forEach(function(ea) {
+                ea.sourceControl = this.sourceControl;
+            }, this);
+            var msg = Strings.format('Error occured during parsing.\n'
+                                     + '%s (%s) was parsed as %s. '
+                                     + 'End line: %s.\nChanges are NOT saved.\n'
+                                     + 'Remove the error and try again.',
+                                     this.name, this.type, newMe.type, newMe.stopLine());
             console.warn(msg);
             lively.morphic.World.current().alert(msg);
             return null;
@@ -233,20 +249,30 @@ Object.subclass('lively.ide.FileFragment',
         return newMe;
     },
 
-
     updateIndices: function(newSource, newMe) {
         this.checkConsistency();
 
-        var prevStop = this.stopIndex;
-        var newStop = newMe.stopIndex;
-        var delta = newStop - prevStop;
+        var prevStop   = this.stopIndex,
+            newStop    = newMe.stopIndex,
+            newStopSrc = newMe.startIndex + newSource.length - 1,
+            delta      = newStopSrc - prevStop;
 
-        this.stopIndex = newStop;    // self
+        // note that the parsed stop index can be different from the end of the
+        // new source because the code might have trailing whitespaces that
+        // don't get included in that fragment. For the index update of the
+        // other fragments in the file, we need to use the index of the real
+        // source code, "this" however should get the syntacticaly correct
+        // stopIndex
+        if (newStopSrc !== newStop) {
+            console.warn('parsed fragment was shortened ' + newStopSrc + ' !== ' + newStop);
+        }
+
+        this.stopIndex       = newStop;    // self
         this.startLineNumber = undefined;
-        this.stopLineNumber = undefined;
+        this.stopLineNumber  = undefined;
 
         // update fragments which follow after this or where this is a part of
-        this.fragmentsOfOwnFile().each(function(ea) {
+        this.fragmentsOfOwnFile().forEach(function(ea) {
             if (ea.stopIndex < prevStop) return;
             ea.stopIndex += delta;
             if (ea.startIndex <= prevStop) return;
@@ -257,17 +283,18 @@ Object.subclass('lively.ide.FileFragment',
 
         this.name = newMe.name; // for renaming
         this._subElements = newMe.subElements();
-    },
+    }
 },
 'consistency', {
     checkConsistency: function() {
         this.fragmentsOfOwnFile().forEach(function(ea) { // Just a quick check if fragments are ok...
             if (this.flattened().any(function(ea) {return ea.eq(this)}, this)) return;
             if ((this.startIndex < ea.startIndex && ea.startIndex < this.stopIndex)
-                || (this.startIndex < ea.stopIndex && ea.stopIndex < this.stopIndex))
-            throw new Error('Malformed fragment: ' + ea.name + ' ' + ea.type);
+              || (this.startIndex < ea.stopIndex && ea.stopIndex < this.stopIndex)) {
+                throw new Error('Malformed fragment: ' + ea.name + ' ' + ea.type);
+            }
         }, this);
-    },
+    }
 },
 'removing', {
     remove: function() {
@@ -281,26 +308,25 @@ Object.subclass('lively.ide.FileFragment',
 'moving', {
     moveTo: function(index) {
         console.log('Moving from ' + this.startIndex + ' to ' + index)
-        var mySrc = this.getSourceCode();
-        var myOwner = this.findOwnerFragment();
-        step1 = myOwner.sourceCodeWithout(this);
+        var mySrc = this.getSourceCode(),
+            myOwner = this.findOwnerFragment(),
+            step1 = myOwner.sourceCodeWithout(this);
         myOwner = myOwner.putSourceCode(step1);
         //-------
-        if (index > this.startIndex)
-            index -= mySrc.length;
+        if (index > this.startIndex) index -= mySrc.length;
         this.startIndex = index; this.stopIndex = index + mySrc.length - 1;
         //-------
         var target = myOwner.fragmentsOfOwnFile().detect(function(ea) {
-            return ea.startIndex <= index && ea.stopIndex >= index });
-        var targetSrc = target.getSourceCode();
-        var local = index - target.startIndex;
-        step2 = targetSrc.slice(0,local) + mySrc + targetSrc.slice(local, targetSrc.length);
+                return ea.startIndex <= index && ea.stopIndex >= index }),
+            targetSrc = target.getSourceCode(),
+            local = index - target.startIndex,
+            step2 = targetSrc.slice(0,local) + mySrc + targetSrc.slice(local, targetSrc.length);
         target.putSourceCode(step2);
         return this;
     },
 },
 'testing', {
-    
+
     isStatic: function() { // makes only sense for propertyDefs
         return this._isStatic; // FIXME
     },
@@ -327,7 +353,7 @@ Object.subclass('lively.ide.FileFragment',
 
         // set the correct path
         var m = this.fileName.match(/(.*\/)(.+)/)
-        var pathName = m[1];    
+        var pathName = m[1];
         browser.setTargetURL(URL.codeBase.withFilename(pathName))
 
         this.basicBrowseIt(browser);
@@ -336,8 +362,7 @@ Object.subclass('lively.ide.FileFragment',
     basicBrowseIt: function(browser) {
         // FIXME ... subclassing
 
-        var logicalPath = [];
-        var ff = this;
+        var logicalPath = [], ff = this;
         while (ff) {
             logicalPath.unshift(ff);
             if (ff.category)
@@ -353,16 +378,14 @@ Object.subclass('lively.ide.FileFragment',
 
 
     addSibling: function(newSrc) {
-        if (!this.getSourceCode().endsWith('\n'))
-            newSrc = '\n' + newSrc;
-        if (!newSrc.endsWith('\n'))
-            newSrc += '\n';
-        var owner = this.findOwnerFragment();
-        var ownerSrc = owner.getSourceCode();
-        var stopIndexInOwner = this.stopIndex - owner.startIndex;
-        var newOwnerSrc = ownerSrc.slice(0, stopIndexInOwner+1) + newSrc + ownerSrc.slice(stopIndexInOwner+1);
-        var newOwner = owner.putSourceCode(newOwnerSrc);
-        var sibling = newOwner.subElements().detect(function(ea) { return ea.startIndex > this.stopIndex }, this);
+        if (!this.getSourceCode().endsWith('\n')) newSrc = '\n' + newSrc;
+        if (!newSrc.endsWith('\n')) newSrc += '\n';
+        var owner = this.findOwnerFragment(),
+            ownerSrc = owner.getSourceCode(),
+            stopIndexInOwner = this.stopIndex - owner.startIndex,
+            newOwnerSrc = ownerSrc.slice(0, stopIndexInOwner+1) + newSrc + ownerSrc.slice(stopIndexInOwner+1),
+            newOwner = owner.putSourceCode(newOwnerSrc),
+            sibling = newOwner.subElements().detect(function(ea) { return ea.startIndex > this.stopIndex }, this);
         return sibling;
     },
 },
@@ -370,43 +393,43 @@ Object.subclass('lively.ide.FileFragment',
 'line position', {
 
     charsUpToLineInString: function(string, line) {
-        var lines = string.split('\n')
-        var result = 0;
-        for(var i=0; (i < line) && (i < lines.length); i++) {
-            result = result + lines[i].length + 1
+        var lines = string.split('\n'),
+            result = 0;
+        for(var i = 0; (i < line) && (i < lines.length); i++) {
+            result = result + lines[i].length + 1;
         };
         return result
     },
     charsUpToLine: function(line) {
-        var string = this.getSourceCode(); 
+        var string = this.getSourceCode();
         return  this.charsUpToLineInString(string, line - this.startLine())
     },
 
 
 },'change compatibility', {
 
-    getName: function() {
-        return this.name;
-    },
+    getName: function() { return this.name },
 
     asChange: function() {
         // FIXMEEEEE!!! subclassing! Unified hierarchy
         var change;
-        console.log(Strings.format('Converting %s (%s) to change', this.type, this.getSourceCode()));
+        console.log(Strings.format('Converting %s (%s) to change',
+                                   this.type, this.getSourceCode()));
         if (this.type === 'klassDef') {
             change = ClassChange.create(this.getName(), this.superclassName);
             this.subElements().forEach(function(ea) { change.addSubElement(ea.asChange()) });
         } else if (this.type === 'propertyDef' && !this.isStatic()) {
             var src = this.getSourceCode().match(/[a-zA-Z0-9]+:\s+((\s|.)*)/)[1];
-            if (src.endsWith(','))
-                src = src.substr(0,src.length-1);
-            change = ProtoChange.create(this.getName(), src, this.className, this.category && this.category.name);
+            if (src.endsWith(',')) src = src.substr(0,src.length-1);
+            change = ProtoChange.create(
+                this.getName(), src, this.className, this.category && this.category.name);
         }
         if (change) return change;
         throw dbgOn(new Error(this.type + ' is not yet supported to be converted to a Change'));
     },
 
-    saveAsChange: function(newSrc) { // similar to putSourceCode but creates change instead of modifying src
+    saveAsChange: function(newSrc) {
+        // similar to putSourceCode but creates change instead of modifying src
         var newMe = this.reparseAndCheck(newSrc);
         if (!newMe) return null;
         return newMe.asChange();
@@ -452,45 +475,55 @@ Object.subclass('CodeParser', {
         this.src = src;
         this.lines = src.split(/[\n\r]/);
         this.changeList = [];
-        
+
         this.ptr = (config && config.ptr) || 0;
-        this.fileName = (config && config.fileName) || null;
+        this.fileName = (config && config.fileName) || null; //"no-file-" + Strings.newUUID();
     },
 
     callOMeta: function(rule, src) {
-        if (!this.ometaParser) throw dbgOn(new Error('No OMeta parser for parsing file sources!'));
-        var errorDescr;
-        var errorHandler = function(src, rule, grammarInstance, errorIndex) {
-        var restLength = src.length - this.ptr
-        errorDescr = new lively.ide.ParseErrorFileFragment(src, null, 'errorDef', 0, restLength-1);
-        if (this.debugMode) {
-            var msg = OMetaSupport.handleErrorDebug(src, rule, grammarInstance, errorIndex);
-            errorDescr.parseError = msg;
-            this.parserErrors.push(errorDescr);
+        if (!this.ometaParser) {
+            throw dbgOn(new Error('No OMeta parser for parsing file sources!'));
         }
-    }.bind(this);
-        var result = OMetaSupport.matchAllWithGrammar(this.ometaParser, rule, src || this.src, errorHandler);
-    return result ? result : errorDescr;
+        var errorDescr, self = this;
+        function errorHandler(src, rule, grammarInstance, errorIndex) {
+            var restLength = src.length - self.ptr
+            errorDescr = new lively.ide.ParseErrorFileFragment(
+                src, null, 'errorDef', 0, restLength-1);
+            if (self.debugMode) {
+                var msg = OMetaSupport.handleErrorDebug(src, rule, grammarInstance, errorIndex);
+                errorDescr.parseError = msg;
+                self.parserErrors.push(errorDescr);
+            }
+        }
+        var result = OMetaSupport.matchAllWithGrammar(
+            this.ometaParser, rule, src || this.src, errorHandler);
+        return result ? result : errorDescr;
     },
 
     parseWithOMeta: function(hint) {
-        var partToParse = this.src.substring(this.ptr, this.src.length);
-        var descr;
+        var partToParse = this.src.substring(this.ptr, this.src.length),
+            descr;
         if (hint) descr = this.callOMeta(hint, partToParse);
 
-        if (!descr || descr.isError)
+        if (!descr || descr.isError) {
             this.ometaRules
                 .without(hint)
                 .detect(function(rule) {
                     descr = this.callOMeta(rule, partToParse);
                     return descr && !descr.isError
                 }, this);
-        
-        if (descr === undefined)
+        }
+
+        if (descr === undefined) {
             throw dbgOn(new Error('Could not parse src at ' + this.ptr));
-        if (descr.stopIndex === undefined)
-            throw dbgOn(new Error('Parse result has an error ' + JSON.serialize(descr) + 'ptr:' + this.ptr));
-            
+        }
+
+        if (descr.stopIndex === undefined) {
+            throw dbgOn(new Error('Parse result has an error '
+                                 + JSON.serialize(descr)
+                                 + 'ptr:' + this.ptr))
+        };
+
         var tmpPtr = this.ptr;
         this.ptr += descr.stopIndex + 1;
         this.fixIndicesAndMore(descr, tmpPtr);
@@ -500,20 +533,19 @@ Object.subclass('CodeParser', {
     parseSource: function(src, optConfig /* FIXME */) {
         if (!src) return [];
         // this is the main parse loop
-        var msParseStart;
-        var msStart = new Date().getTime();
+        var msParseStart, msStart = new Date().getTime();
         this.overheadTime = 0;
-        
+
         this.prepareParsing(src, optConfig);
         var descr;
-    this.parserErrors = [];
-        
+        this.parserErrors = [];
+
         while (this.ptr < this.src.length) {
             if (this.debugMode) msParseStart = new Date().getTime();
-            
+
             this.currentLine = this.lines[this.currentLineNo()-1];
             var tmpPtr = this.ptr;
- 
+
             descr = this.parseNextPart();
             dbgOn(!descr);
 
@@ -535,29 +567,35 @@ Object.subclass('CodeParser', {
             var msg = 'The following parser errors occured. Please note that not all of them are real errors. If you know that the source code should be a class definition look at the output of klassDef and look for "<--Error-->" to get a hint what to fix in order to parse the code.\n\n';
             msg += this.parserErrors.pluck('parseError').join('\n\n----------------------\n');
 
-            lively.morphic.World.current().addTextWindow({title: 'Parsing errors', content: msg})            
+            lively.morphic.World.current().addTextWindow({title: 'Parsing errors', content: msg})
         }
 
-        if (this.specialDescr && this.specialDescr.length > 0 &&  (!this.specialDescr.last().subElements().last().isError || !this.changeList.last().isError))
+        if (this.specialDescr && this.specialDescr.length > 0
+                              && (!this.specialDescr.last().subElements().last().isError
+                                || !this.changeList.last().isError)) {
             console.warn('Couldn\'t find end of ' + this.specialDescr.last().type);
             //throw dbgOn(new Error('Couldn\'t find end of ' + specialDescr.last().type));
-        
+        }
+
         console.log('Finished parsing in ' + (new Date().getTime()-msStart)/1000 + ' s');
- 
+
         return this.changeList;
     },
-parseNonFile: function(source) {
-    var result = this.parseSource(source).first();
-    this.doForAllDescriptors(result, function(d) { d._fallbackSrc = source });
-    return result;
-},
 
+    parseNonFile: function(source) {
+        var result = this.parseSource(source).first();
+        // lively.ide.startSourceControl().addNonFile();
+        this.doForAllDescriptors(result, function(d) { d._fallbackSrc = source });
+        return result;
+    },
 
     couldNotGoForward: function(descr, specialDescr) {
         console.warn('Could not go forward before line ' + this.findLineNo(this.lines, this.ptr));
-        var    errorDescr = new lively.ide.ParseErrorFileFragment(this.src, null, 'errorDef', this.ptr, this.src.length-1, this.fileName),
+        var errorDescr = new lively.ide.ParseErrorFileFragment(
+                this.src, null, 'errorDef', this.ptr, this.src.length-1, this.fileName),
             lastAdded = this.changeList.last(),
-            responsible = lastAdded.flattened().detect(function(ea) { return ea.subElements(1) && ea.subElements(1).include(descr) });
+            responsible = lastAdded.flattened().detect(function(ea) {
+                return ea.subElements(1) && ea.subElements(1).include(descr) });
         if (responsible) {
           responsible._subElements.pop();
           responsible._subElements.push(errorDescr);
@@ -575,38 +613,35 @@ parseNonFile: function(source) {
     currentLineNo: function() {
         return this.findLineNo(this.lines, this.ptr);
     },
-    
+
     findLineNo: function(lines, ptr) {
          // var ms = new Date().getTime();
         // what a mess, i want ordinary non local returns!
         ptr += 1;
         try {
-        lines.inject(0, function(charsUntilNow, line, i) {
-            charsUntilNow += line.length + 1;
-            if (ptr <= charsUntilNow) throw {_theLineNo: i+1};
-            return charsUntilNow;
-        });
+            lines.inject(0, function(charsUntilNow, line, i) {
+                charsUntilNow += line.length + 1;
+                if (ptr <= charsUntilNow) throw { _theLineNo: i+1 };
+                return charsUntilNow;
+            });
         } catch(e) {
             // this.overheadTime += new Date().getTime() - ms;
-            
             if (e._theLineNo !== undefined) return e._theLineNo;
             throw e
         }
-        
         // this.overheadTime += new Date().getTime() - ms;
-        
         return null
     },
-    
+
     ptrOfLine: function(lines, lineNo) {
         lineNo = lineNo - 1; // zero index
         var ptr = 0;
         try {
             lines.inject(0, function(charsUntilNow, line, i) {
-            if (lineNo === i) throw {_ptr: charsUntilNow};
-            charsUntilNow += line.length + 1;            
-            return charsUntilNow;
-        });
+                if (lineNo === i) throw {_ptr: charsUntilNow};
+                charsUntilNow += line.length + 1;
+                return charsUntilNow;
+            });
         } catch(e) {
             if (e._ptr !== undefined) return e._ptr;
             throw e
@@ -620,7 +655,7 @@ parseNonFile: function(source) {
         if (!descr.subElements()) return;
         descr.subElements().forEach(function(ea) { this.doForAllDescriptors(ea, action) }, this);
     },
-    
+
     fixIndicesAndMore: function(descr, startPos) {
         // var ms = new Date().getTime();
         // ----------
@@ -642,71 +677,72 @@ parseNonFile: function(source) {
 
      /* loading */
     sourceFromUrl: function(url) {
-        var scrCtrl = lively.ide.startSourceControl();
-        return scrCtrl.getCachedText(url.filename());        
+        return lively.ide.startSourceControl().getCachedText(url.filename());
     },
-    
-    //FIXME cleanup
+
+    // FIXME cleanup
     parseFileFromUrl: function(url) {
-        var src = this.sourceFromUrl(url);
-        var result = this.parseSource(src);
-        
-        var flattened = [];
+        var src = this.sourceFromUrl(url),
+            result = this.parseSource(src),
+            flattened = [];
         result.forEach(function(ea) {
             this.doForAllDescriptors(ea, function(d) { flattened.push(d) });
         }, this);
-        
         flattened.forEach(function(ea) {
             ea.fileName = url.filename();
         });
-        
         return flattened;
-    },
+    }
 
 });
 
 CodeParser.subclass('JsParser', {
-    
+
     debugMode: false,
 
     ometaRules: [/*'blankLine',*/ 'comment',
                'klassDef', 'objectDef', 'klassExtensionDef', 'traitDef', 'copDef', 'propertyDef',
                'functionDef', 'categoryDef', 'unknown'],
-    
+
     parseClass: function() {
         return this.callOMeta("klassDef");
     },
-    
+
     parseModuleBegin: function() {
-        var match = this.currentLine.match(/^\s*module\([\'\"](.*)[\'\"]\)\.requires\(.*toRun\(.*$/);
+        var moduleBeginRegex = /^\s*module\([\'\"](.*)[\'\"]\)\.requires\(.*toRun\(.*$/,
+            match = this.currentLine.match(moduleBeginRegex);
         if (!match) return null;
-    if (this.debugMode)
-        console.log('Found module start in line ' +  this.currentLineNo());
-        var descr = new lively.ide.FileFragment(match[1], 'moduleDef', this.ptr, null, this.fileName);
+        if (this.debugMode) {
+            console.log('Found module start in line ' +  this.currentLineNo());
+        }
+        var descr = new lively.ide.FileFragment(
+            match[1], 'moduleDef', this.ptr, null, this.fileName);
         this.ptr += match[0].length + 1;
         return descr;
     },
-    
+
     parseUsingBegin: function() {
         var match = this.currentLine.match(/^\s*using\((.*)\)\.run\(.*$/);
         if (!match) return null;
-    if (this.debugMode)
-        console.log('Found using start in line ' +  this.currentLineNo());
-        var descr = new lively.ide.FileFragment(match[1], 'usingDef', this.ptr, null, this.fileName);
+        if (this.debugMode) {
+            console.log('Found using start in line ' +  this.currentLineNo());
+        }
+        var descr = new lively.ide.FileFragment(
+            match[1], 'usingDef', this.ptr, null, this.fileName);
         this.ptr += match[0].length + 1;
         return descr;
     },
-    
+
     parseModuleOrUsingEnd: function(specialDescr) {
         if (!specialDescr) return null;
         var match = this.currentLine.match(/^\s*\}.*?\)[\;]?.*$/);
         if (!match) return null;
-    if (this.debugMode) {
-        if (specialDescr.type === 'moduleDef')
+        if (this.debugMode) {
+            if (specialDescr.type === 'moduleDef')
             console.log('Found module end in line ' +  this.currentLineNo());
-        if (specialDescr.type === 'usingDef')
+            if (specialDescr.type === 'usingDef')
             console.log('Found using end in line ' +  this.currentLineNo());
-    }
+        }
         specialDescr.stopIndex = this.ptr + match[0].length - 1;
         this.ptr = specialDescr.stopIndex + 1;
         // FIXME hack
@@ -737,10 +773,13 @@ CodeParser.subclass('JsParser', {
     parseNextPart: function() {
         var descr;
         if (!this.specialDescriptors) this.specialDescriptors = [];
-        
+
         if (descr = this.parseUsingBegin() || this.parseModuleBegin()) { // FIXME nested module/using
-            if (this.specialDescriptors.length > 0) this.specialDescriptors.last().subElements().push(descr);
-            else this.changeList.push(descr);
+            if (this.specialDescriptors.length > 0) {
+                this.specialDescriptors.last().subElements().push(descr);
+            } else {
+                this.changeList.push(descr)
+            };
             this.specialDescriptors.push(descr)
             return descr;
         };
@@ -751,23 +790,26 @@ CodeParser.subclass('JsParser', {
         };
 
         if (descr = this.parseWithOMeta(this.giveHint())) {
-            if (this.specialDescriptors.length > 0) this.specialDescriptors.last().subElements().push(descr);
-            else this.changeList.push(descr);
+            if (this.specialDescriptors.length > 0) {
+                this.specialDescriptors.last().subElements().push(descr);
+            } else {
+                this.changeList.push(descr);
+            }
             return descr;
         }
-        
+
         throw new Error('Could not parse ' + this.currentLine + ' ...');
     }
-    
+
 });
- 
+
 Object.extend(JsParser, {
 
     parseAndShowFileFromURL: function(url) {
         var chgList = new JsParser().parseFileFromUrl(new URL(url));
-        new ChangeList(fileName, null, chgList).openIn(lively.morphic.World.current()); 
+        new ChangeList(fileName, null, chgList).openIn(lively.morphic.World.current());
     }
-    
+
 });
 
 CodeParser.subclass('OMetaParser', {
@@ -778,12 +820,10 @@ CodeParser.subclass('OMetaParser', {
 
     parseNextPart: function() {
         var descr = this.parseWithOMeta(this.giveHint());
-        if (descr)
-            return this.changeList.push(descr);
+        if (descr) return this.changeList.push(descr);
         throw new Error('Could not parse ' + this.currentLine + ' ...');
     }
-    
-    
+
 });
 
 }) // end of module

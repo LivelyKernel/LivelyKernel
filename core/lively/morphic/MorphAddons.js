@@ -89,89 +89,12 @@ Object.extend(lively.morphic, {
 });
 
 Object.extend(Global, {
-
-    show: function(obj) {
-        if (!obj) return;
-        if (Object.isArray(obj)) obj.forEach(function(ea) { show(ea) })
-        else if (obj instanceof lively.Point) newShowPt(obj)
-        else if (obj instanceof Rectangle) newShowRect(obj)
-        else if (obj.isMorph) return newShowMorph(obj)
-    },
-
-    newShowPt: function (/*pos or x,y, duration, extent*/) {
-        var args = $A(arguments);
-        // pos either specified using point object or two numbers
-        var pos = args[0].constructor == lively.Point ? args.shift() : pt(args.shift(), args.shift()),
-            duration = args.shift(),
-            extent = args.shift() || pt(12,12);
-
-        var b = new lively.morphic.Morph();
-
-        b.ignoreEvents();
-        b.disableEvents();
-        b.setOpacity(0.5)
-        b.setBounds(extent.extentAsRectangle());
-        b.align(b.getCenter(), pos);
-        b.setFill(Color.red);
-
-        newShowThenHide(b, duration);
-        return b;
-    },
-
-    newShowRect: function (rect, duration) {
-        var b = new lively.morphic.Morph();
-        b.isEpiMorph = true;
-        b.setBounds(rect);
-        b.applyStyle({fill: null, borderWidth: 2, borderColor: Color.red})
-        newShowThenHide(b, duration);
-        return b
-    },
-
-    newShowMorph: function (morph) {
-        newShowRect(morph.getGlobalTransform().transformRectToRect(morph.getShape().getBounds()))
-    },
-
-    newShowThenHide: function (morph, duration) {
-        var w = Global.world || lively.morphic.World.current();
-        if (!w) { alert("no world"); return }
-        duration = duration || 3;
-        w.addMorph(morph);
-        if (duration) // FIXME use scheduler
-            (function() { morph.remove() }).delay(duration);
-    },
-
-    alertDbg: function(msg) {
-        if (Global.lively.morphic.World) alert(msg)
-    },
-
-    alert: function(msg, delay) {
-        var world = (Global.lively.morphic.World && lively.morphic.World.current()) ||
-            (Global.lively && lively.morphic && lively.morphic.World.current())
-        if (world) world.alert(String(msg), delay);
-        else console.log('ALERT: ' + msg);
-    },
-
-    alertOK: function (msg, delay) {
-        var world = (Global.lively.morphic.World && lively.morphic.World.current()) ||
-            (Global.lively && lively.morphic && lively.morphic.World.current());
-        if (world) world.setStatusMessage(String(msg), Color.green, delay || 5);
-        else console.log(msg);
-    },
-
-    inspect: function(obj) {
-        if (Global.lively && lively.morphic && lively.morphic.World.current())
-            return lively.morphic.World.current().openInspectorFor(obj);
-    },
-    edit: function(obj) {
-        if (Global.lively && lively.morphic && lively.morphic.World.current())
-            return lively.morphic.World.current().openObjectEditorFor(obj);
-    },
-    showCallStack: function() {
-        var stack = 'no stack';
-        try { throw new Error() } catch(e) { if (e.stack) stack = e.stack }
-        alert(stack)
-    },
-
+    show:     lively.morphic.show,
+    alertDbg: lively.morphic.alertDbg,
+    alert:    lively.morphic.alert,
+    alertOK:  lively.morphic.alertOK,
+    inspect:  lively.morphic.inspect,
+    edit:     lively.morphic.edit
 });
 
 lively.morphic.Morph.addMethods(

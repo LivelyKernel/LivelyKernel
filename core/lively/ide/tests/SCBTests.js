@@ -345,5 +345,9 @@ TestCase.subclass('lively.tests.ToolsTests.LivelyIdeBrowse',
     }
 
 });
+Object.subclass('MyClass',
+'default category', {
+    m1: function() {},
+});
 
 });

@@ -20,7 +20,7 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
         this.assertRaises(function() {
             lively.Module.findAllInThenDo(url, function() {});
         }, /foo is not a directory/, 'no error on non-dir URL');
-    }
+    },
 
 });
 

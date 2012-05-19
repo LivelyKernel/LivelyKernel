@@ -171,9 +171,9 @@ Object.extend(Global, {
 		return b
 	},
 
-	showMorph: function(morph) {
-		showRect(morph.getGlobalTransform().transformRectToRect(morph.shape.bounds()))
-	},
+    showMorph: function(morph) {
+        showRect(morph.getGlobalTransform().transformRectToRect(morph.shape.bounds()))
+    },
 
 	showConnection: function(c, duration) {
 		var m1 = c.getSourceObj();

@@ -59,8 +59,7 @@ Object.extend(lively.morphic, {
     },
 
     alert: function(msg, delay) {
-        var world = (Global.lively.morphic.World && lively.morphic.World.current()) ||
-            (Global.lively && lively.morphic && lively.morphic.World.current())
+        var world = Global.lively && lively.morphic && lively.morphic.World.current();
         if (world) world.alert(String(msg), delay);
         else console.log('ALERT: ' + msg);
     },

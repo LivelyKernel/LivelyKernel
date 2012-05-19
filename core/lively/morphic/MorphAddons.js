@@ -1,5 +1,9 @@
 module('lively.morphic.MorphAddons').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.morphic.Widgets', 'lively.morphic.Styles').toRun(function() {
 
+Object.extend(lively.morphic, {
+
+});
+
 Object.extend(Global, {
 
     show: function(obj) {

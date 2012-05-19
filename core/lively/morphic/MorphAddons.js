@@ -49,8 +49,9 @@ Object.extend(lively.morphic, {
         if (!w) { alert("no world"); return }
         duration = duration || 3;
         w.addMorph(morph);
-        if (duration) // FIXME use scheduler
+        if (duration) { // FIXME use scheduler
             (function() { morph.remove() }).delay(duration);
+        }
     },
 
     alertDbg: function(msg) {

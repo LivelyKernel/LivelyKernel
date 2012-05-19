@@ -4,10 +4,10 @@ Object.extend(lively.morphic, {
 
     show: function(obj) {
         if (!obj) return;
-        if (Object.isArray(obj)) obj.forEach(function(ea) { show(ea) })
-        else if (obj instanceof lively.Point) newShowPt(obj)
-        else if (obj instanceof Rectangle) newShowRect(obj)
-        else if (obj.isMorph) return newShowMorph(obj)
+        if (Object.isArray(obj)) obj.forEach(function(ea) { lively.morphic.show(ea) });
+        else if (obj instanceof lively.Point) lively.morphic.newShowPt(obj);
+        else if (obj instanceof Rectangle) lively.morphic.newShowRect(obj);
+        else if (obj.isMorph) return lively.morphic.newShowMorph(obj);
     },
 
     newShowPt: function (/*pos or x,y, duration, extent*/) {

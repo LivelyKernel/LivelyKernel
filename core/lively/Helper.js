@@ -232,13 +232,12 @@ Object.extend(Global, {
         for (var i = 0; i < obj.attributeConnections.length; i++)
             showConnection(obj.attributeConnections[i]);
     },
+
     hideAllConnections: function(morph) {
         morph.withAllSubmorphsDo(function() {
             if (this.isConnectionVisualization) this.remove();
         });
     },
-
-
 
 });
 

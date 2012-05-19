@@ -40,7 +40,8 @@ Object.extend(lively.morphic, {
     },
 
     newShowMorph: function (morph) {
-        newShowRect(morph.getGlobalTransform().transformRectToRect(morph.getShape().getBounds()))
+        lively.morphic.newShowRect(
+            morph.getGlobalTransform().transformRectToRect(morph.getShape().getBounds()))
     },
 
     newShowThenHide: function (morph, duration) {

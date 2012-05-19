@@ -27,7 +27,7 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
             uri = m.uri(),
             expected = URL.root.withFilename('users/robertkrahn/foo.js').toString();
         this.assertEquals(expected, m.uri());
-    }
+    },
 
 
 });

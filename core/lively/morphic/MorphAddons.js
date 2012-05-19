@@ -26,7 +26,7 @@ Object.extend(lively.morphic, {
         b.align(b.getCenter(), pos);
         b.setFill(Color.red);
 
-        newShowThenHide(b, duration);
+        lively.morphic.newShowThenHide(b, duration);
         return b;
     },
 
@@ -35,7 +35,7 @@ Object.extend(lively.morphic, {
         b.isEpiMorph = true;
         b.setBounds(rect);
         b.applyStyle({fill: null, borderWidth: 2, borderColor: Color.red})
-        newShowThenHide(b, duration);
+        lively.morphic.newShowThenHide(b, duration);
         return b
     },
 

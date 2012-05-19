@@ -381,12 +381,11 @@ Widget.subclass('lively.ide.BasicBrowser',
         return this.allPaneNames.collect(function(ea) { return this.nodesInPane(ea) }, this).flatten();
     },
 
-    siblingsFor: function(node) {
+    nodesInSamePaneAs: function(node) {
         var siblings = this.allPaneNames
-        .collect(function(ea) { return this.nodesInPane(ea) }, this)
-        .detect(function(ea) { return ea.include(node) });
-        if (!siblings) return [];
-        return siblings.without(node);
+                       .collect(function(ea) { return this.nodesInPane(ea) }, this)
+                       .detect(function(ea) { return ea.include(node) });
+        return siblings || [];
     },
 
     nodesInPane: function(paneName) { // panes have listItems, no nodes
@@ -810,10 +809,14 @@ Object.subclass('lively.ide.BrowserNode',
     },
 },
 'accessing', {
-    siblingNodes: function() { return this.browser.siblingsFor(this) },
+    siblingNodes: function() { return this.browser.nodesInSamePaneAs(this).without(this) },
+    nextNode: function() {
+        var nodes = this.browser.nodesInSamePaneAs(this);
+        return nodes[nodes.indexOf(this) + 1];
+    },
     parent: function() { return this.parent },
     childNodes: function() { return [] },
-    sourceString: function() { return this.browser.emptyText },
+    sourceString: function() { return this.browser.emptyText }
 },
 'conversion', {
     asString: function() { return 'no name for node of type ' + this.constructor.type },

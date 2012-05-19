@@ -440,6 +440,10 @@ lively.morphic.Morph.addMethods(
         return res;
     },
 
+},
+'interaction', {
+    show: function() { lively.morphic.show(this) },
+    edit: function() { lively.morphic.edit(this) }
 });
 
 lively.morphic.Morph.addMethods(

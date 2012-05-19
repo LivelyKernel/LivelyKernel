@@ -2,6 +2,7 @@ module('lively.morphic.Widgets').requires('lively.morphic.Core', 'lively.morphic
 
 lively.morphic.Morph.subclass('lively.morphic.Button',
 'settings', {
+    isButton: true,
     style: {
         enableGrabbing: false,
         enableDropping: false,

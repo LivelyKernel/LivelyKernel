@@ -83,7 +83,7 @@ Object.extend(lively.morphic, {
     showCallStack: function() {
         var stack = 'no stack';
         try { throw new Error() } catch(e) { if (e.stack) stack = e.stack }
-        lively.morphic.alert(stack)
+        lively.morphic.alert(stack);
     },
 
 });

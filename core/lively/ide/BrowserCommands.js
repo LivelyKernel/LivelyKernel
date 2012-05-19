@@ -609,9 +609,9 @@ lively.ide.BrowserCommand.subclass('lively.ide.OpenDiffViewerCommand', {
         return [['diff versions', this.diffVersions.bind(this)]]
     },
     diffVersions: function() {
-        var url = URL.codeBase.withFilename(this.browser.selectedNode().moduleName);
-        var differ = lively.PartsBin.getPart('VersionDiffer', 'PartsBin/NewWorld');
-        var pos = this.world().visibleBounds().center()
+        var url = URL.codeBase.withFilename(this.browser.selectedNode().moduleName),
+            differ = lively.PartsBin.getPart('VersionDiffer', 'PartsBin/NewWorld'),
+            pos = this.world().visibleBounds().center()
         differ.openInWorld();
         differ.align(differ.bounds().center(), pos)
         differ.targetMorph.setURL(url);

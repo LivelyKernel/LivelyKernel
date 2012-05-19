@@ -28,6 +28,10 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
             expected = URL.root.withFilename('users/robertkrahn/foo.js').toString();
         this.assertEquals(expected, m.uri());
     },
+    newMethod: function() {
+        // enter comment here
+    }
+
 
 
 });

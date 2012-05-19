@@ -617,7 +617,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.OpenDiffViewerCommand', {
         }
         var m = module(moduleName),
             url = m.uri(),
-            differ = lively.PartsBin.getPart('VersionDiffer', 'PartsBin/NewWorld'),
+            differ = lively.PartsBin.getPart('VersionDiffer', 'PartsBin/Tools'),
             pos = this.world().visibleBounds().center()
         differ.openInWorld();
         differ.align(differ.bounds().center(), pos)

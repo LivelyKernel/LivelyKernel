@@ -26,8 +26,8 @@
 module('lively.Helper').requires('lively.LogHelper').toRun(function() {
 
 Object.extend(Global, {
-	// DEPRECATED!!!
-	range: Array.range,
+    // DEPRECATED!!!
+    range: Array.range,
 });
 
 Object.extend(Global, {

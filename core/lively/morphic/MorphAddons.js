@@ -439,7 +439,6 @@ lively.morphic.Morph.addMethods(
         });
         return res;
     },
-
 },
 'interaction', {
     show: function() { lively.morphic.show(this) },

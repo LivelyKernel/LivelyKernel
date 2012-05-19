@@ -136,107 +136,107 @@ Object.subclass('lively.Helper.XMLConverter', {
 });
 
 Object.extend(Global, {
-	showThenHide: function(morph, duration) {
-		duration = duration || 3;
-		morph.openInWorld();
-		if (duration) // FIXME use scheduler
-			(function() { morph.remove() }).delay(duration);
-	},
+    showThenHide: function(morph, duration) {
+        duration = duration || 3;
+        morph.openInWorld();
+        if (duration) // FIXME use scheduler
+            (function() { morph.remove() }).delay(duration);
+    },
 
-	// highlight some point on the screen
-	showPt: function(/*pos or x,y, duration, extent*/) {
-		var args = $A(arguments);
-		// pos either specified using point object or two numbers
-		var pos = args[0].constructor == lively.Point ?
-			args.shift() :
-			pt(args.shift(), args.shift());
-		var duration = args.shift();
-		var extent = args.shift() || pt(12,12);
-		
-		
-		var b = new BoxMorph(extent.extentAsRectangle());
-		b.align(b.getCenter(), pos);
-		b.applyStyle({fill: Color.red});
-		b.ignoreEvents();
-		
-		showThenHide(b, duration);
-		return b;
-	},
-	
-	showRect: function(rect, duration) {
-		var b = new BoxMorph(rect);
-		b.applyStyle({borderColor: Color.red, borderWidth: 2, fill: null});
-		b.ignoreEvents();
-		showThenHide(b, duration);
-		return b
-	},
+    // highlight some point on the screen
+    showPt: function(/*pos or x,y, duration, extent*/) {
+        var args = $A(arguments);
+        // pos either specified using point object or two numbers
+        var pos = args[0].constructor == lively.Point ?
+            args.shift() :
+            pt(args.shift(), args.shift());
+        var duration = args.shift();
+        var extent = args.shift() || pt(12,12);
+        
+        
+        var b = new BoxMorph(extent.extentAsRectangle());
+        b.align(b.getCenter(), pos);
+        b.applyStyle({fill: Color.red});
+        b.ignoreEvents();
+        
+        showThenHide(b, duration);
+        return b;
+    },
+    
+    showRect: function(rect, duration) {
+        var b = new BoxMorph(rect);
+        b.applyStyle({borderColor: Color.red, borderWidth: 2, fill: null});
+        b.ignoreEvents();
+        showThenHide(b, duration);
+        return b
+    },
 
     showMorph: function(morph) {
         showRect(morph.getGlobalTransform().transformRectToRect(morph.shape.bounds()))
     },
 
-	showConnection: function(c, duration) {
-		var m1 = c.getSourceObj();
-		var m2 = c.getTargetObj();
+    showConnection: function(c, duration) {
+        var m1 = c.getSourceObj();
+        var m2 = c.getTargetObj();
 
-		if (m1.isConnectionVisualization || m2.isConnectionVisualization) return; // don't show yourself...
-		if (!(m1 instanceof Morph)) return;
-		if (!(m2 instanceof Morph)) return;
+        if (m1.isConnectionVisualization || m2.isConnectionVisualization) return; // don't show yourself...
+        if (!(m1 instanceof Morph)) return;
+        if (!(m2 instanceof Morph)) return;
 
-		var morph  = Morph.makeConnector(pt(100,100), pt(200,200));
-		morph.isConnectionVisualization = true;
+        var morph  = Morph.makeConnector(pt(100,100), pt(200,200));
+        morph.isConnectionVisualization = true;
 
-		if (duration) showThenHide(morph, duration);
-		else morph.openInWorld();
-		
-		morph.setBorderWidth(2);
-		morph.setBorderColor(Color.red);
-		morph.arrowHead.head.setFill(Color.red);
-		morph.arrowHead.head.setBorderColor(Color.red);
+        if (duration) showThenHide(morph, duration);
+        else morph.openInWorld();
+        
+        morph.setBorderWidth(2);
+        morph.setBorderColor(Color.red);
+        morph.arrowHead.head.setFill(Color.red);
+        morph.arrowHead.head.setBorderColor(Color.red);
 
-		var labelStyle = {fill: Color.white, textColor: Color.red};
+        var labelStyle = {fill: Color.white, textColor: Color.red};
 
-		morph.connectMorphs(m1, m2)
-		var startLabel = new lively.morphic.Text(new Rectangle(0,0, 100,30), c.getSourceAttrName()).beLabel();
-		startLabel.applyStyle(labelStyle);
-		morph.addMorph(startLabel);
-		morph.startLabel = startLabel;
+        morph.connectMorphs(m1, m2)
+        var startLabel = new lively.morphic.Text(new Rectangle(0,0, 100,30), c.getSourceAttrName()).beLabel();
+        startLabel.applyStyle(labelStyle);
+        morph.addMorph(startLabel);
+        morph.startLabel = startLabel;
 
-		var endLabel = new lively.morphic.Text(new Rectangle(0,0, 100,30), c.getTargetMethodName()).beLabel();
-		endLabel.applyStyle(labelStyle);
-		morph.addMorph(endLabel);
-		morph.endLabel = endLabel;
+        var endLabel = new lively.morphic.Text(new Rectangle(0,0, 100,30), c.getTargetMethodName()).beLabel();
+        endLabel.applyStyle(labelStyle);
+        morph.addMorph(endLabel);
+        morph.endLabel = endLabel;
 
-		if (c.converterString) {
-			var middleLabel = new lively.morphic.Text(new Rectangle(0,0, 100,30), c.converterString).beLabel();
-			middleLabel.applyStyle(labelStyle);
-			morph.addMorph(middleLabel);
-			morph.middleLabel = middleLabel;
-		}
-		
-		morph.addScript(function updateLabelPositions() {
-			this.startLabel.setPosition(this.getStartPos());
-			this.endLabel.setPosition(this.getEndPos());
-			if (this.middleLabel)	this.middleLabel.setPosition(this.getRelativePoint(0.5));
-		});
+        if (c.converterString) {
+            var middleLabel = new lively.morphic.Text(new Rectangle(0,0, 100,30), c.converterString).beLabel();
+            middleLabel.applyStyle(labelStyle);
+            morph.addMorph(middleLabel);
+            morph.middleLabel = middleLabel;
+        }
+        
+        morph.addScript(function updateLabelPositions() {
+            this.startLabel.setPosition(this.getStartPos());
+            this.endLabel.setPosition(this.getEndPos());
+            if (this.middleLabel)    this.middleLabel.setPosition(this.getRelativePoint(0.5));
+        });
 
-		connect(morph, 'geometryChanged', morph, 'updateLabelPositions');
-		
-		morph.toggleLineStyle();	
+        connect(morph, 'geometryChanged', morph, 'updateLabelPositions');
+        
+        morph.toggleLineStyle();    
 
-		return morph
-	},
+        return morph
+    },
 
-	showConnections: function(obj) {
-		if (!obj.attributeConnections) return;
-		for (var i = 0; i < obj.attributeConnections.length; i++)
-			showConnection(obj.attributeConnections[i]);
-	},
-	hideAllConnections: function(morph) {
-		morph.withAllSubmorphsDo(function() {
-			if (this.isConnectionVisualization) this.remove();
-		});
-	},
+    showConnections: function(obj) {
+        if (!obj.attributeConnections) return;
+        for (var i = 0; i < obj.attributeConnections.length; i++)
+            showConnection(obj.attributeConnections[i]);
+    },
+    hideAllConnections: function(morph) {
+        morph.withAllSubmorphsDo(function() {
+            if (this.isConnectionVisualization) this.remove();
+        });
+    },
 
 
 

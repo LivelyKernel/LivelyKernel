@@ -373,7 +373,7 @@ Object.subclass('TestCase',
         return func.asScriptOf(this, optName);
     }
 },
-'mocks', {
+'spies', {
     mock: function(obj, selector, spyFunc) {
         // DEPERECATED, use #spy
         return this.spy(obj, selector, spyFunc);

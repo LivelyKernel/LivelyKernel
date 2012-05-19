@@ -1,6 +1,7 @@
 module('lively.morphic.MorphAddons').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.morphic.Widgets', 'lively.morphic.Styles').toRun(function() {
 
 Object.extend(Global, {
+
     show: function(obj) {
         if (!obj) return;
         if (Object.isArray(obj)) obj.forEach(function(ea) { show(ea) })
@@ -8,6 +9,7 @@ Object.extend(Global, {
         else if (obj instanceof Rectangle) newShowRect(obj)
         else if (obj.isMorph) return newShowMorph(obj)
     },
+
     newShowPt: function (/*pos or x,y, duration, extent*/) {
         var args = $A(arguments);
         // pos either specified using point object or two numbers
@@ -27,6 +29,7 @@ Object.extend(Global, {
         newShowThenHide(b, duration);
         return b;
     },
+
     newShowRect: function (rect, duration) {
         var b = new lively.morphic.Morph();
         b.isEpiMorph = true;
@@ -35,9 +38,11 @@ Object.extend(Global, {
         newShowThenHide(b, duration);
         return b
     },
+
     newShowMorph: function (morph) {
         newShowRect(morph.getGlobalTransform().transformRectToRect(morph.getShape().getBounds()))
     },
+
     newShowThenHide: function (morph, duration) {
         var w = Global.world || lively.morphic.World.current();
         if (!w) { alert("no world"); return }
@@ -46,24 +51,28 @@ Object.extend(Global, {
         if (duration) // FIXME use scheduler
             (function() { morph.remove() }).delay(duration);
     },
+
     alertDbg: function(msg) {
         if (Global.lively.morphic.World) alert(msg)
     },
+
     alert: function(msg, delay) {
         var world = (Global.lively.morphic.World && lively.morphic.World.current()) ||
             (Global.lively && lively.morphic && lively.morphic.World.current())
         if (world) world.alert(String(msg), delay);
         else console.log('ALERT: ' + msg);
     },
+
     alertOK: function (msg, delay) {
         var world = (Global.lively.morphic.World && lively.morphic.World.current()) ||
             (Global.lively && lively.morphic && lively.morphic.World.current());
         if (world) world.setStatusMessage(String(msg), Color.green, delay || 5);
         else console.log(msg);
     },
+
     inspect: function(obj) {
         if (Global.lively && lively.morphic && lively.morphic.World.current())
-			return lively.morphic.World.current().openInspectorFor(obj);
+            return lively.morphic.World.current().openInspectorFor(obj);
     },
     edit: function(obj) {
         if (Global.lively && lively.morphic && lively.morphic.World.current())

@@ -426,7 +426,7 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
 
     tearDown: function($super) {
         $super();
-        delete lively.ide.sourceDB()['from/modulewrapper/test.js'];
+        // delete lively.ide.sourceDB()['from/modulewrapper/test.js'];
         ModuleWrapperDevLayer.beNotGlobal();
     },
 },

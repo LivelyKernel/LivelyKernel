@@ -444,7 +444,7 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
     testPipelineSetSourceRequests: function() {
         var called = 0, reqRevs = [];
         this.spyInClass(WebResource, 'put', function(source, mimeType, reqRev) {
-            called++; reqRevs.psuh(reqRev) });
+            called++; reqRevs.push(reqRev) });
         var moduleWrapper = lively.ide.sourceDB().addModule('from/modulewrapper/test.js', 'code');
         moduleWrapper.revisionOnLoad = 1;
         moduleWrapper.setSource('code2', false, true);

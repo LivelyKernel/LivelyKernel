@@ -450,7 +450,7 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
         moduleWrapper.setSource('code2', false, true);
         moduleWrapper.setSource('code3',false, true);
         this.assertEquals(1, called);
-        this.assertMatches([1], reqRevs);
+        this.assertEquals([1], reqRevs);
     }
 
 

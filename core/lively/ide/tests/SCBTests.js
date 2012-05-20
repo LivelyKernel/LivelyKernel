@@ -446,7 +446,7 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
         this.spyInClass(WebResource, 'put', function(source, mimeType, reqRev) {
             called++; reqRevs.psuh(reqRev) });
         var moduleWrapper = lively.ide.sourceDB().addModule('from/modulewrapper/test.js', 'code');
-        revisionOnLoad.revisionOnLoad = 1;
+        moduleWrapper.revisionOnLoad = 1;
         moduleWrapper.setSource('code2', false, true);
         moduleWrapper.setSource('code3',false, true);
         this.assertEquals(1, called);

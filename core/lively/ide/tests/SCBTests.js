@@ -417,6 +417,18 @@ TestCase.subclass('lively.tests.ToolsTests.LivelyIdeBrowse',
 });
 
 TestCase.subclass('lively.ide.tests.ModuleWrapper',
+'running', {
+
+    setUp: function($super) {
+        $super();
+        ModuleWrapperDevLayer.beGlobal();
+    },
+
+    tearDown: function($super) {
+        $super();
+        ModuleWrapperDevLayer.beNotGlobal();
+    },
+},
 'testing', {
 
     testCreateForNonSource: function() {

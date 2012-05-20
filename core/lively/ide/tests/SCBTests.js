@@ -432,7 +432,7 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
     testPipelineSetSourceRequests: function() {
         var called = 0;
         this.spyInClass(WebResource, 'put', function() { called++ });
-        var moduleWrapper = lively.ide.sourceDB().addModule('from.modulewrapper.test', 'code');
+        var moduleWrapper = lively.ide.sourceDB().addModule('from/modulewrapper/test.js', 'code');
         moduleWrapper.setSource('code2');
         moduleWrapper.setSource('code3');
         this.assertEquals(1, called);

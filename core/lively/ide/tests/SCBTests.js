@@ -429,6 +429,10 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
         sut.setSource(otherSrc);
         this.assertEquals(otherSrc, sut.getSource());
     },
+    testPipelineSetSourceRequests: function() {
+
+    }
+
 
 });
 

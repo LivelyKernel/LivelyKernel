@@ -428,7 +428,7 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
         var otherSrc = 'Foo + 3 + 2;';
         sut.setSource(otherSrc);
         this.assertEquals(otherSrc, sut.getSource());
-    }
+    },
 
 });
 

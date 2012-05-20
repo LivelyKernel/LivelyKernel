@@ -440,7 +440,7 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
         this.assertEquals('js', sut.type());
         var otherSrc = 'Foo + 3 + 2;';
         sut.setSource(otherSrc);
-        this.assertEqualMatches(otherSrc, sut.getSource());
+        this.assertMatches(otherSrc, sut.getSource());
     },
     testPipelineSetSourceRequests: function() {
         var called = 0, reqRevs = [];

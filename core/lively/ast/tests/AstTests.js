@@ -1340,8 +1340,9 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         this.assertStep(frame,{a:1});
         this.assertStep(frame,{a:1});
         this.assertStep(frame,{a:0});
+        this.assertStep(frame,{a:0});
         this.assertStep(frame,{a:0,b:2});
-        //this.assertEquals(frame.resume(),2);
+        this.assertEquals(frame.resume(),2);
     }
 });
 

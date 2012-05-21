@@ -1736,6 +1736,7 @@ morphMenuDefaultPartsItems: function () {
         largeSliderKnob.setBorderWidth(0)
         largeSliderKnob.setPosition(largeSliderKnob.getExtent().scaleBy(-0.5))
         this.sliderKnob.setOrigin(this.sliderKnob.bounds().topLeft().subPt(this.sliderKnob.getPosition()))
+        this.disableSelection();
 },
 
 
@@ -1756,11 +1757,7 @@ morphMenuDefaultPartsItems: function () {
             );
             this.setFill(bgStyle);
         },
-    onDoubleTap: function(){
-        this.select();
-    },
-onTap
-setKnobFill: function() {
+        setKnobFill: function() {
             var knobStyle= new lively.morphic.LinearGradient(
                 [
                     {offset: 0, color: Color.darkGray.mixedWith(Color.white, 0.5)},

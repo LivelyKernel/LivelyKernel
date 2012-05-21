@@ -149,7 +149,7 @@ lively.ast.Node.addMethods(
     isAfter: function(other) {
         var that = this, first = null;
         this.parentFunction().body.withAllChildNodesDo(function(node) {
-            if (node.isFor || node.isForIn || node.isWhile || node.isDoWhile) return false;
+            //if (node.isFor || node.isForIn || node.isWhile || node.isDoWhile) return false;
             if (!first) {
                 if (node === that) first = that;
                 if (node === other) first = other;

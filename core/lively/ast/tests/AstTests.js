@@ -1384,7 +1384,7 @@ TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
     },
     testPostOpStatements: function() {
         var src = "i++;a++";
-        var ast = lively.ast.Parser.parse(src);
+        var ast = lively.ast.Parser.parse(src, "topLevel");
         this.assert(ast.children[0].isPostOp);
         this.assert(ast.children[0].nextStatement().isPostOp);
         this.assert(ast.children[0].expr.nextStatement().isPostOp);

@@ -267,6 +267,23 @@ lively.ast.Node.subclass('lively.ast.DoWhile',
                     'do {%s} while (%s);',
                     this.body.asJS(depth), this.condExpr.asJS(depth));
             },
+},
+'stepping', {
+	firstStatement: function () {
+                return this.body.firstStatement();
+            },
+	nextStatement: function ($super, node) {
+                if (node === this.condExpr) {
+                    return this.body;
+                } else if (node === this.body) {
+                    return this.condExpr;
+                } else {
+                    return $super(this);
+                }
+            },
+	isComposite: function () {
+                return true;
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitDoWhile(this);

@@ -132,7 +132,7 @@ Object.subclass('lively.ide.ModuleWrapper',
     setSource: function(source, beSync, checkForOverwrites) {
         this.setCachedSource(source);
         if (this.isVirtual()) return;
-
+debugger
         if (this.networkRequestInProgress) {
             this.queueSetSource(source, beSync, checkForOverwrites);
             return;

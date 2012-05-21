@@ -1718,6 +1718,7 @@ morphMenuDefaultPartsItems: function () {
             this.setKnobFill();
 
             this.enlargeMorph()
+            this.sliderKnob.disableSelection()
     }
     },
       enlargeMorph: function() {

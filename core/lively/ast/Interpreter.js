@@ -421,6 +421,7 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     },
     visitFor: function(node) {
         var frame = this.currentFrame, result;
+        debugger;
         this.visit(node.init);
         while (this.visit(node.condExpr)) {
             result = this.visit(node.body);

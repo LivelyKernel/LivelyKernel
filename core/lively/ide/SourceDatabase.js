@@ -113,38 +113,70 @@ Object.subclass('lively.ide.ModuleWrapper',
     }
 },
 'saving', {
+
+    queueSetSource: function(source, beSync, checkForOverwrites) {
+        if (!this.queuedRequests) this.queuedRequests = [];
+        this.queuedRequests.push(this.setSource.curry(source, beSync, checkForOverwrites));
+    },
+
+    removeQueuedRequests: function() {
+        this.queuedRequests = [];
+    },
+
+    runQueuedRequest: function() {
+        if (this.queuedRequests && this.queuedRequests.length > 0) {
+            this.queuedRequests.shift().call(this);
+        }
+    },
+
     setSource: function(source, beSync, checkForOverwrites) {
         this.setCachedSource(source);
         if (this.isVirtual()) return;
 
+        if (this.networkRequestInProgress) {
+            this.queueSetSource(source, beSync, checkForOverwrites);
+            return;
+        }
+
         var webR = new WebResource(this.fileURL());
-        connect(webR, 'status', this, 'handleSaveStatus');
+        this.networkRequestInProgress = true;
+        lively.bindings.connect(webR, 'status', this, 'handleSaveStatus');
         webR.beAsync().put(source, null, checkForOverwrites ? this.revisionOnLoad : null);
     },
 
     handleSaveStatus: function(status) {
         if (!status.isDone()) return;
+        this.networkRequestInProgress = false;
         if (status.code() === 412) {
             this.askToOverwrite(status.url);
-            return;
-        }
-        if (status.isSuccess()) {
-            this.updateFileRevision();
+        } else if (status.isSuccess()) {
+            this.updateFileRevision(true);
+            this.runQueuedRequest();
         }
     },
 
-    askToOverwrite: function(url) {
-        var world = lively.morphic.World.current();
-        world.confirm(String(url) + ' was changed since loading it. Overwrite?',
-            function(input) { if (input) this.setSource(this.getSource(), false, false) }.bind(this));
-    },
-
-    updateFileRevision: function() {
+    updateFileRevision: function(beSync) {
         if (this.isVirtual()) return;
         var webR = new WebResource(this.fileURL());
         connect(webR, 'headRevision', this, 'revisionOnLoad');
-        webR.beAsync().getHeadRevision();
+        if (!beSync) webR.beAsync();
+        webR.getHeadRevision();
+    },
+
+    askToOverwrite: function(url) {
+        var world = lively.morphic.World.current(),
+            moduleWrapper = this;
+        world.confirm(
+            String(url) + ' was changed since loading it. Overwrite?',
+            function(input) {
+                moduleWrapper.removeQueuedRequests();
+                if (input) {
+                    moduleWrapper.updateFileRevision(true);
+                    moduleWrapper.setSource(moduleWrapper.getSource(), false, true);
+                }
+            });
     }
+
 },
 'removing', {
 
@@ -472,5 +504,6 @@ Object.extend(lively.ide, {
         return lively.ide.SourceControl = lively.ide.SourceControl || new AnotherSourceDatabase();
     }
 });
+
 
 }) // end of module

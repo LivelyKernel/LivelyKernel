@@ -254,18 +254,12 @@ lively.ast.Node.addMethods(
 
 },
 'stepping', {
-
     firstStatement: function() {
         return this;
     },
-
     nextStatement: function(node) {
         var stmt = this.getParent().nextStatement(this);
         return stmt ? stmt.firstStatement() : null;
-    },
-
-    parentComposite: function() {
-        return this.isComposite() ? this : this.getParent().parentComposite();
     },
     isComposite: function() {
         return false;

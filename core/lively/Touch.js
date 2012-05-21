@@ -1736,7 +1736,6 @@ morphMenuDefaultPartsItems: function () {
         largeSliderKnob.setBorderWidth(0)
         largeSliderKnob.setPosition(largeSliderKnob.getExtent().scaleBy(-0.5))
         this.sliderKnob.setOrigin(this.sliderKnob.bounds().topLeft().subPt(this.sliderKnob.getPosition()))
-        this.disableSelection();
 },
 
 
@@ -1804,7 +1803,12 @@ morphMenuDefaultPartsItems: function () {
     else 
         return (this.sliderKnob.getExtent().x)/(this.getExtent().x)
     },
-
+    onDoubleTap: function(){
+        this.select();
+    },
+    onTap: function(){
+        return;
+    },
 
     }).refineClass(lively.morphic.Text, {
     beTextField: function() {

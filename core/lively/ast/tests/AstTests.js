@@ -1379,8 +1379,8 @@ TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
         var node = ast.firstStatement().nextStatement(); //var i=1
         var set = node._parent._parent.body.children[0];
         var decl = ast.body.children[3].children[0];
-        debugger;
         this.assert(decl.isVarDeclaration);
+        this.assert(decl.isAfter(set));
     },
 });
 

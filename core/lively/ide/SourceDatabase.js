@@ -150,7 +150,7 @@ Object.subclass('lively.ide.ModuleWrapper',
         if (status.code() === 412) {
             this.askToOverwrite(status.url);
         } else if (status.isSuccess()) {
-            this.updateFileRevision();
+            this.updateFileRevision(true);
             this.runQueuedRequest();
         }
     },

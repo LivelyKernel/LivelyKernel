@@ -1380,6 +1380,7 @@ TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
         var set = node._parent._parent.body.children[0];
         var decl = ast.body.children[3].children[0];
         this.assert(decl.isVarDeclaration);
+        debugger;
         this.assert(decl.isAfter(set), "declaration should be after set");
     },
 });

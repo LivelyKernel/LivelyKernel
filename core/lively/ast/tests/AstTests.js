@@ -1373,8 +1373,8 @@ TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
         node = node.nextStatement(); //i<4
         this.assert(node.isBinaryOp);
     },
-    newMethod: function() {
-        // enter comment here
+    testWhileLoop: function() {
+        
     },
 
     testForLoopIsAfter: function() {

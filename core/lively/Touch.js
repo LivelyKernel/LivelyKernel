@@ -1736,15 +1736,8 @@ morphMenuDefaultPartsItems: function () {
         largeSliderKnob.setBorderWidth(0)
         largeSliderKnob.setPosition(largeSliderKnob.getExtent().scaleBy(-0.5))
         this.sliderKnob.setOrigin(this.sliderKnob.bounds().topLeft().subPt(this.sliderKnob.getPosition()))
+        this.disableSelection();
 },
-    newMethod: function() 
-    newMethod: function() {
-        // enter comment here
-    },
-{
-        // enter comment here,
-    },
-
 
 
 

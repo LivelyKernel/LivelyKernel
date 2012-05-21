@@ -586,10 +586,10 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                 case "s": { this.convertTabsToSpaces(); return true; }
                 case "u": { this.unEmphasizeSelection(); return true; }
                 case "x": { this.doAutoIndent(); return true;}
-                case "5": { this.emphasizeSelection({color: Color.black}); return true; }
-                case "6": { this.emphasizeSelection({color: Color.red}); return true; }
-                case "7": { this.emphasizeSelection({color: Color.green}); return true; }
-                case "8": { this.emphasizeSelection({color: Color.blue}); return true; }
+                case "5": { this.emphasizeSelection({color: Config.userColor1 || Color.black}); return true; }
+                case "6": { this.emphasizeSelection({color: Config.userColor2 || Color.red}); return true; }
+                case "7": { this.emphasizeSelection({color: Config.userColor3 ||  Color.green}); return true; }
+                case "8": { this.emphasizeSelection({color: Config.userColor4 || Color.blue}); return true; }
 
             }
         }

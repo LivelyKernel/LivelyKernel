@@ -373,8 +373,12 @@ Object.subclass('TestCase',
         return func.asScriptOf(this, optName);
     }
 },
-'mocks', {
+'spies', {
     mock: function(obj, selector, spyFunc) {
+        // DEPERECATED, use #spy
+        return this.spy(obj, selector, spyFunc);
+    },
+    spy: function(obj, selector, spyFunc) {
         spyFunc = spyFunc || Functions.Null;
         var orig = obj[selector],
             own = obj.hasOwnProperty(selector),
@@ -393,18 +397,28 @@ Object.subclass('TestCase',
                     return this;
                 }
             };
-        this.mocked = this.mocked || [];
-        this.mocked.push(spy);
+        this.spies = this.spies || [];
+        this.spies.push(spy);
         return spy.install();
     },
 
     mockClass: function(klass, selector, mockFunc) {
-        return this.mock(klass.prototype, selector, mockFunc);
+        // DEPERECATED, use #spyInClass
+        return this.spyInClass(klass, selector, mockFunc);
+    },
+
+    spyInClass: function(klass, selector, mockFunc) {
+        return this.spy(klass.prototype, selector, mockFunc);
     },
 
     uninstallMocks: function() {
-        if (!this.mocked) return;
-        this.mocked.invoke('uninstall');
+        // DEPERECATED, use #uninstallSpies
+        return this.uninstallSpies();
+    },
+
+    uninstallSpies: function() {
+        if (!this.spies) return;
+        this.spies.invoke('uninstall');
     }
 });
 

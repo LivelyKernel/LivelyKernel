@@ -275,7 +275,17 @@ TestCase.subclass('lively.tests.TestFrameworkTests.MockTest',
         test.runTest('testWithMockInstall');
         this.assert(mockWasCalled, 'mock was not called');
         this.assert(origWasCalled, 'orig was not called');
+    },
+
+    testThisInSpyIsBoundToSpiedObject: function() {
+        var obj = {x: 3, foo: function() { }},
+            foundX,
+            spyFunc = function() { foundX = this.x };
+        this.test.mock(obj, 'foo', spyFunc);
+        obj.foo();
+        this.assertEquals(3, foundX, 'x not x of obj');
     }
+
 });
 
 /**

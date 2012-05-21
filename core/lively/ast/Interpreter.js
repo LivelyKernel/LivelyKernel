@@ -231,6 +231,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
     isBreakingAt: function(node) {
         if (this.bp === null) return false;
         if (this.bp === node) return true;
+        if (this.bp == node.nextStatement()) return false;
         return node.isAfter(this.bp);
     },
     setPC: function(node) {

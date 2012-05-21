@@ -1335,7 +1335,6 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
     testDoWhileLoop: function() {
         var frame = this.assertBreaksWhenInterpretated(this.examples.dowhileloop);
         this.assertStep(frame,{a:3});
-        this.assertStep(frame,{a:3});
         this.assertStep(frame,{a:2});
         this.assertStep(frame,{a:2});
         this.assertStep(frame,{a:1});

@@ -472,9 +472,9 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
     },
 
     'for': {
-        className: 'For', rules: [':pos', 'trans:init', 'trans:condExpr', 'trans:upd', 'trans:body'],
+        className: 'For', rules: [':pos', 'trans:init', 'trans:condExpr', 'trans:body', 'trans:upd'],
         debugging: {
-            printConstruction: function() { return this.printConstructorCall(this.pos, this.init, this.condExpr, this.upd, this.body) },
+            printConstruction: function() { return this.printConstructorCall(this.pos, this.init, this.condExpr, this.body, this.upd) },
             toString: function() { return Strings.format(
                 '%s(%s;%s;%s do %s)',
                 this.constructor.name, this.init, this.condExpr, this.upd, this.body) },

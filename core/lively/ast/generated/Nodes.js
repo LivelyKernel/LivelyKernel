@@ -219,6 +219,23 @@ lively.ast.Node.subclass('lively.ast.While',
                     'while (%s) {%s}',
                     this.condExpr.asJS(depth), this.body.asJS(depth));
             },
+},
+'stepping', {
+	firstStatement: function () {
+                return this.condExpr.firstStatement();
+            },
+	nextStatement: function ($super, node) {
+                if (node === this.condExpr) {
+                    return this.body;
+                } else if (node === this.body) {
+                    return this.condExpr;
+                } else {
+                    return $super(this);
+                }
+            },
+	isComposite: function () {
+                return true;
+            },
 },'visiting', {
 	accept: function(visitor) {
 		return visitor.visitWhile(this);

@@ -221,7 +221,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
             this.setStatus(OMetaSupport.handleErrorDebug(e[0], e[1], e[2], e[3]);
             return null;
         }
-        return cop.proceed(target, highlighterRules);
+        return cop.proceed(str);
     },
 });
 Object.extend(AdvancedSyntaxHighlighting, {

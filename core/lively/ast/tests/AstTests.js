@@ -1330,8 +1330,19 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         this.assertStep(frame,{a:1});
         this.assertStep(frame,{a:1,b:5});
         this.assertEquals(frame.resume(),5);
+    },
+    testDoWhileLoop: function() {
+        var frame = this.assertBreaksWhenInterpretated(this.examples.dowhileloop);
+        this.assertStep(frame,{a:3});
+        this.assertStep(frame,{a:3});
+        this.assertStep(frame,{a:2});
+        this.assertStep(frame,{a:2});
+        this.assertStep(frame,{a:1});
+        this.assertStep(frame,{a:1});
+        this.assertStep(frame,{a:0});
+        this.assertStep(frame,{a:0,b:2});
+        this.assertEquals(frame.resume(),2);
     }
-
 });
 
 TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',

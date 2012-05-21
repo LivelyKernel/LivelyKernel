@@ -1382,10 +1382,13 @@ TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
         this.assert(decl.isVarDeclaration);
         this.assert(decl.isAfter(set), "declaration should be after set");
     },
-    newMethod: function() {
-        // enter comment here
+    testPostOpStatements: function() {
+        var src = "i++;a++";
+        var ast = lively.ast.Parser.parse(src);
+        this.assert(ast.children[0].isPostOp);
+        this.assert(ast.children[0].nextStatement().isPostOp);
+        this.assert(ast.children[0].expr.nextStatement().isPostOp);
     }
-
 });
 
 }) // end of module

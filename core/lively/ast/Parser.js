@@ -480,6 +480,23 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
                     this.body.asJS(depth), this.condExpr.asJS(depth));
             },
         },
+        stepping: {
+            firstStatement: function() {
+                return this.body.firstStatement();
+            },
+            nextStatement: function($super, node) {
+                if (node === this.condExpr) {
+                    return this.body;
+                } else if (node === this.body) {
+                    return this.condExpr;
+                } else {
+                    return $super(this);
+                }
+            },
+            isComposite: function() {
+                return true;
+            }
+        },
     },
 
     'for': {

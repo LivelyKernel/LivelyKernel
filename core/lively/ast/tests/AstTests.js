@@ -989,6 +989,7 @@ Object.subclass('lively.ast.tests.AstTests.Examples',
     },
     dowhileloop: function() {
         var a = 3;
+        debugger;
         do {
             a--;
         } while (a > 0);

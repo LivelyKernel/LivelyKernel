@@ -159,7 +159,7 @@ Object.subclass('lively.ide.ModuleWrapper',
         if (this.isVirtual()) return;
         var webR = new WebResource(this.fileURL());
         connect(webR, 'headRevision', this, 'revisionOnLoad');
-        if (!beSync) webR.beAsync()
+        if (!beSync) webR.beAsync();
         webR.getHeadRevision();
     },
 

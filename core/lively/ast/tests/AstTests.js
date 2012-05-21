@@ -987,6 +987,10 @@ Object.subclass('lively.ast.tests.AstTests.Examples',
         var b = a + 4;
         return b;
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
     restart: function() {
         var i = 0;
         i++;

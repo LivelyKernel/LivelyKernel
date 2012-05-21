@@ -22,8 +22,8 @@ doWhile =
 	:pos trans:body trans:condExpr
 	-> { new lively.ast.DoWhile(pos, body, condExpr) },
 for =
-	:pos trans:init trans:condExpr trans:upd trans:body
-	-> { new lively.ast.For(pos, init, condExpr, upd, body) },
+	:pos trans:init trans:condExpr trans:body trans:upd
+	-> { new lively.ast.For(pos, init, condExpr, body, upd) },
 forIn =
 	:pos trans:name trans:obj trans:body
 	-> { new lively.ast.ForIn(pos, name, obj, body) },

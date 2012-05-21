@@ -1758,7 +1758,9 @@ morphMenuDefaultPartsItems: function () {
         },
     onDoubleTap: function(){
         this.select();
-    },setKnobFill: function() {
+    },
+onTap
+setKnobFill: function() {
             var knobStyle= new lively.morphic.LinearGradient(
                 [
                     {offset: 0, color: Color.darkGray.mixedWith(Color.white, 0.5)},

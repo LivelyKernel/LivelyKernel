@@ -1698,7 +1698,7 @@ morphMenuDefaultPartsItems: function () {
 
 
 
-    }).refineClass(lively.morphic.Slider, {
+    })(lively.morphic.Slider, {
         onrestore: function () {
             cop.proceed();
             this.beIPadSlider.bind(this).delay(0);
@@ -1737,12 +1737,8 @@ morphMenuDefaultPartsItems: function () {
         largeSliderKnob.setPosition(largeSliderKnob.getExtent().scaleBy(-0.5))
         this.sliderKnob.setOrigin(this.sliderKnob.bounds().topLeft().subPt(this.sliderKnob.getPosition()))
 },
-    newMethod: function() 
-    newMethod: function() {
-        // enter comment here
-    },
-{
-        // enter comment here,
+    onDoubleTap: function(){
+        this.select();
     },
 
 

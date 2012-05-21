@@ -984,7 +984,7 @@ Object.subclass('lively.ast.tests.AstTests.Examples',
         while (a > 1) {
             a--;
         }
-        var b = i + 4;
+        var b = a + 4;
         return b;
     },
     restart: function() {

@@ -1408,7 +1408,18 @@ TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
         node = node.nextStatement(); //i>1
         this.assert(node.isBinaryOp);
     },
-
+    testDoWhileLoop: function() {
+        var fun = function() {var a=3;do{a--}while(a>0);var b=2};
+        var ast = fun.ast();
+        var node = ast.firstStatement(); //var a=3
+        this.assert(node.isVarDeclaration);
+        node = node.nextStatement(); //a--
+        this.assert(node.isPostOp);
+        node = node.nextStatement(); //a>0
+        this.assert(node.isBinaryOp);
+        node = node.nextStatement(); //a--
+        this.assert(node.isPostOp);
+    },
     testForLoopIsAfter: function() {
         var fun = function() {var a=0;for(var i=1;i<4;i++){a=i};var b;};
         var ast = fun.ast();

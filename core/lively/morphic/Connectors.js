@@ -540,7 +540,7 @@ lively.morphic.Box.subclass('lively.morph.ConnectionBuilder',
             items = [];
         items.push(this.underMorphMenu(pos, builder.sourceMorph));
         items.pushAll(this.propertiesMenuForTarget(target));
-        newShowMorph(target);
+        show(target);
         lively.morphic.Menu.openAtHand('Connect to ' + (target.name || target), items)
     },
     underMorphMenu: function(position, sourceMorph, sourceAttribute) {

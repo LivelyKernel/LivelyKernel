@@ -1757,6 +1757,10 @@ morphMenuDefaultPartsItems: function () {
             );
             this.setFill(bgStyle);
         },
+    newMethod: function() {
+        // enter comment here
+    }
+
         setKnobFill: function() {
             var knobStyle= new lively.morphic.LinearGradient(
                 [

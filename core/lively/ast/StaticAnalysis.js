@@ -216,9 +216,9 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
         if (this.specialHighlighting == "none") return cop.proceed(str);
         try {
             var rule = this.specialHighlighting ? this.specialHighlighting : 'topLevel';
-            var ast = lively.ast.Parser.parse(this.textString, rule);
+            lively.ast.Parser.parse(str, rule);
         } catch (e) {
-            this.setStatus(OMetaSupport.handleErrorDebug(e[0], e[1], e[2], e[3]);
+            this.setStatus(OMetaSupport.handleErrorDebug(e[0], e[1], e[2], e[3]));
             return null;
         }
         return cop.proceed(str);

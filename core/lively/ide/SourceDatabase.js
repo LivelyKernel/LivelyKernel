@@ -155,11 +155,12 @@ Object.subclass('lively.ide.ModuleWrapper',
         }
     },
 
-    updateFileRevision: function() {
+    updateFileRevision: function(beSync) {
         if (this.isVirtual()) return;
         var webR = new WebResource(this.fileURL());
         connect(webR, 'headRevision', this, 'revisionOnLoad');
-        webR.beAsync().getHeadRevision();
+        if (!beSync) webR.beAsync()
+        webR.getHeadRevision();
     },
 
     askToOverwrite: function(url) {

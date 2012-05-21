@@ -185,7 +185,7 @@ stmt =
 			( "var" bindingList | expr | empty pos:p -> [#get, [p, p], 'undefined'] ):i
 			";" ( expr | empty pos:p -> [#get, [p, p], 'true'] ):c
 			";" ( expr | empty pos:p -> [#get, [p, p], 'undefined'] ):u
-			")" stmt:s pos:p2						-> [#for, [p1, p2], i, c, u, s]
+			")" stmt:s pos:p2						-> [#for, [p1, p2], i, c, s, u]
 		| "for" "("
 			( pos:p3 ( "var" "name":n pos:p4 -> [#var, [p3, p4], n, [#get, [p3, p3], 'undefined']] ) | "name":n pos:p4 -> [#get, [p3, p4], n] ):v
 			"in" expr:e ")" stmt:s pos:p2			-> [#forIn, [p1, p2], v, e, s]

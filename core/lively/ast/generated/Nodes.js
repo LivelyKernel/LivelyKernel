@@ -261,20 +261,20 @@ lively.ast.Node.subclass('lively.ast.For',
 	isFor: true,
 },
 'initializing', {
-	initialize: function($super, pos, init, condExpr, upd, body) {
+	initialize: function($super, pos, init, condExpr, body, upd) {
 		this.pos = pos;
 		this.init = init;
 		this.condExpr = condExpr;
-		this.upd = upd;
 		this.body = body;
+		this.upd = upd;
 		init.setParent(this);
 		condExpr.setParent(this);
-		upd.setParent(this);
 		body.setParent(this);
+		upd.setParent(this);
 	},
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.init, this.condExpr, this.upd, this.body) },
+	printConstruction: function () { return this.printConstructorCall(this.pos, this.init, this.condExpr, this.body, this.upd) },
 	toString: function () { return Strings.format(
                 '%s(%s;%s;%s do %s)',
                 this.constructor.name, this.init, this.condExpr, this.upd, this.body) },

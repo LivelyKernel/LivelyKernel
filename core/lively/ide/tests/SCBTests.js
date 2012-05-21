@@ -421,14 +421,46 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
 
     setUp: function($super) {
         $super();
-        ModuleWrapperDevLayer.beGlobal();
     },
 
     tearDown: function($super) {
         $super();
         delete lively.ide.sourceDB().modules['from/modulewrapper/test.js'];
-        ModuleWrapperDevLayer.beNotGlobal();
-    },
+    }
+
+},
+'helper', {
+    prepareForSetSource: function() {
+        var webRInspector = {
+            getHeadRevCallCount: 0,
+            putCallCount: 0,
+            putReqRevs: [],
+            lastPutWebR: null,
+            lastPutSource: null,
+            currentRev: 1,
+            triggerDoneState: function(code) {
+                this.lastPutWebR.status = {
+                    isDone: Functions.True,
+                    isSuccess: function() { return code < 400 },
+                    code: function() { return code }
+                };
+            }
+        }
+
+        this.spyInClass(WebResource, 'put', function(source, mimeType, reqRev) {
+            webRInspector.putCallCount++;
+            webRInspector.lastPutWebR = this;
+            webRInspector.putReqRevs.push(reqRev)
+            webRInspector.lastPutSource = source;
+        });
+
+        this.spyInClass(WebResource, 'getHeadRevision', function() {
+            webRInspector.getHeadRevCallCount++;
+            this.headRevision = ++webRInspector.currentRev;
+        });
+
+        return webRInspector;
+    }
 },
 'testing', {
 
@@ -442,18 +474,75 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
         sut.setSource(otherSrc);
         this.assertEquals(otherSrc, sut.getSource());
     },
-    testPipelineSetSourceRequests: function() {
-        var called = 0, reqRevs = [];
-        this.spyInClass(WebResource, 'put', function(source, mimeType, reqRev) {
-            called++; reqRevs.push(reqRev) });
-        var moduleWrapper = lively.ide.sourceDB().addModule('from/modulewrapper/test.js', 'code');
-        moduleWrapper.revisionOnLoad = 1;
-        moduleWrapper.setSource('code2', false, true);
-        moduleWrapper.setSource('code3',false, true);
-        this.assertEquals(1, called);
-        this.assertEqualState([1], reqRevs);
-    }
 
+    testPipelineSetSourceRequests: function() {
+        var webRInspector = this.prepareForSetSource(),
+            moduleWrapper = lively.ide.sourceDB().addModule('from/modulewrapper/test.js', 'code');
+
+        moduleWrapper.revisionOnLoad = webRInspector.currentRev; // 1
+
+        // two request but the second doesn't run
+        moduleWrapper.setSource('code2', false, true);
+        moduleWrapper.setSource('code3', false, true);
+        this.assertEquals(1, webRInspector.putCallCount, 'double setSource results in two puts');
+        this.assertEquals(webRInspector.lastPutSource, 'code2', 'content for first request not ok');
+        this.assertMatches([1], webRInspector.putReqRevs, 'required rev of first PUT not OK');
+
+        // answer the first one
+        webRInspector.triggerDoneState(204);
+
+        this.assertEquals(2, webRInspector.putCallCount, 'no second put after responding to first');
+        this.assertEquals(webRInspector.lastPutSource, 'code3', 'content for second request not ok');
+        this.assertMatches([1, 2], webRInspector.putReqRevs, 'required rev of second PUT not OK');
+    },
+
+    testCancelQueuedRequestsWhenOverwriteDenied: function() {
+        var webRInspector = this.prepareForSetSource(),
+            moduleWrapper = lively.ide.sourceDB().addModule('from/modulewrapper/test.js', 'code');
+
+        moduleWrapper.revisionOnLoad = webRInspector.currentRev; // 1
+
+        // two request but the second doesn't run
+        moduleWrapper.setSource('code2', false, true);
+        moduleWrapper.setSource('code3', false, true);
+
+        this.spyInClass(lively.morphic.World, 'confirm', function(q, cb) { cb(false); });
+        webRInspector.triggerDoneState(412);
+
+        this.assertEquals(1, webRInspector.putCallCount, 'second put after responding to first');
+        this.assertEquals(webRInspector.lastPutSource, 'code2', 'content not ok');
+        this.assertMatches([1], webRInspector.putReqRevs, 'required rev of second PUT not OK');
+        this.assertEquals(0, moduleWrapper.queuedRequests.length, 'queuedRequests not cleared');
+    },
+
+    testRunQueuedSetSourceAfterOverwriteConfirm: function() {
+        var webRInspector = this.prepareForSetSource(),
+            moduleWrapper = lively.ide.sourceDB().addModule('from/modulewrapper/test.js', 'code');
+
+        moduleWrapper.revisionOnLoad = webRInspector.currentRev; // 1
+
+        // two request but the second doesn't run
+        moduleWrapper.setSource('code2', false, true);
+        moduleWrapper.setSource('code3', false, true);
+
+        this.assertEquals(1, webRInspector.putCallCount, 'second put after responding to first');
+        this.assertEquals(webRInspector.lastPutSource, 'code2', 'content not ok');
+        this.assertMatches([1], webRInspector.putReqRevs, 'required rev of first PUT not OK');
+
+        // first setSource done:
+        this.spyInClass(lively.morphic.World, 'confirm', function(q, cb) { cb(true); });
+        webRInspector.triggerDoneState(412);
+
+        this.assertEquals(2, webRInspector.putCallCount, 'no second put after confirming overwrite');
+        // the retried setSource call should directly use new source:
+        this.assertEquals(webRInspector.lastPutSource, 'code3', 'content of retried setSource not ok');
+        this.assertMatches([1, 2], webRInspector.putReqRevs, 'required rev of first PUT not OK');
+
+        // overwrite done and there shouldn't the queued request should be gone
+        webRInspector.triggerDoneState(204);
+        this.assertEquals(2, webRInspector.putCallCount, 'there was yet another put');
+        this.assertEquals(0, moduleWrapper.queuedRequests.length, 'queuedRequests not empty');
+    }
 
 });
 

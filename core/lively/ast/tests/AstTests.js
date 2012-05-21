@@ -1309,6 +1309,10 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         });
         this.assertEquals(frame.mapping.i, 3);
     },
+    newMethod: function() {
+        // enter comment here
+    }
+
 });
 
 TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',

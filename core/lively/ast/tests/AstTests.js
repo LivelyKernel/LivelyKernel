@@ -1374,11 +1374,12 @@ TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
         this.assert(node.isBinaryOp);
     },
     testForLoopIsAfter: function() {
-        var fun = function() {var a=0;for(var i=1;i<4;i++){a=i}};
+        var fun = function() {var a=0;for(var i=1;i<4;i++){a=i};var b;};
         var ast = fun.ast();
         var node = ast.firstStatement().nextStatement(); //var i=1
-        debugger;
-        var set = node._parent.body;
+        var set = node._parent._parent.body.children[0];
+        var decl = ast.body.children[2];
+        this.assert(decl.isVarDeclaration);
     },
 });
 

@@ -260,8 +260,12 @@ lively.ast.Node.addMethods(
     },
 
     nextStatement: function(node) {
-        var stmt = this.getParent().parentComposite().nextStatement(this)
-        return stmt ? stmt.firstStatement() : null;
+        if (this.getParent().isComposite()) {
+            var stmt = this.parentComposite().nextStatement(this);
+            return stmt ? stmt.firstStatement() : null;
+        } else {
+            return this.getParent().nextStatement();
+        }
     },
 
     parentComposite: function() {

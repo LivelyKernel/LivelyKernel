@@ -987,8 +987,13 @@ Object.subclass('lively.ast.tests.AstTests.Examples',
         var b = a + 4;
         return b;
     },
-    newMethod: function() {
-        // enter comment here
+    dowhileloop: function() {
+        var a = 3;
+        do {
+            a--;
+        } while (a > 0);
+        var b = a + 2;
+        return b;
     },
 
     restart: function() {

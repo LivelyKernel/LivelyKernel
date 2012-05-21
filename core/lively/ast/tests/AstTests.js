@@ -978,6 +978,15 @@ Object.subclass('lively.ast.tests.AstTests.Examples',
         var b = 2;
         return a;
     },
+    whileloop: function(i) {
+        var a = 4;
+        debugger;
+        while (a > 1) {
+            a--;
+        }
+        var b = i + 4;
+        return b;
+    },
     restart: function() {
         var i = 0;
         i++;

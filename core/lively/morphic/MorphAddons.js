@@ -597,7 +597,11 @@ lively.morphic.World.addMethods(
             btn.align(btn.bounds().topRight(), closeBtn.bounds().topLeft().addPt(pt(-5,0)));
             connect(btn, 'fire', btn, 'callbackFunc')
         }
-        console.error(msg);
+        if (color == Color.red) {
+            console.error(msg);
+        } else {
+            console.log(msg);
+        }
         return this.addStatusMessageMorph(msgMorph, delay || 5);
     },
 

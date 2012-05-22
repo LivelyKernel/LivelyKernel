@@ -19,6 +19,7 @@ var isFireBug = isFirefox && window.console && window.console.firebug !== undefi
     if (isFireBug) return;
 
     var consumers = platformConsole.consumers = [];
+    platformConsole.wasWrapped = false;
 
     function addWrappers() {
         if (platformConsole.wasWrapped) return;

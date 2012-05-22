@@ -4,6 +4,7 @@ module('lively.morphic.Chris').requires().toRun(function() {
             $super();
             this.password = new lively.morphic.PasswordInput().openInWorld();
             this.password.setName('txtPassword');
+            debugger;
             $morph('PasswordContainer').addMorph(this.password);
         },
         login: function(email, password){

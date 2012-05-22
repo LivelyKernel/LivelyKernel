@@ -1423,7 +1423,7 @@ lively.morphic.World.addMethods(
             case "s": { this.saveWorld(); return true; }
             case "b": {this.openSystemBrowser(evt); return true; }
             case "k": { this.openWorkspace(evt); return true; }
-            case "p": { this.openObjectEditor(evt); return true; }
+            case "o": { this.openObjectEditor(evt); return true; }
             case "p": { this.openPartsBin(evt); return true; }
         }
 

@@ -227,6 +227,11 @@ lively.morphic.Morph.addMethods(
         if (ctxt.morphNode)
             ctxt.morphNode.setAttribute('title', string)
     },
+
+    setShapeClassNameHTML: function(ctx, className){
+        ctx.shapeNode.className = className;
+    }
+
 },
 'rendering', {
     renderWithHTML: function() {

@@ -255,7 +255,7 @@ lively.morphic.Morph.addMethods(
         if (UserAgent.fireFoxVersion)
             ctx.morphNode['-moz-user-modify'] = 'read-only'
 
-        console.log(ctx.getShapeNode());
+        //console.log(ctx.getShapeNode());
     
         //this.setShapeClassNameHTML(ctx, this.constructor.name);
     },

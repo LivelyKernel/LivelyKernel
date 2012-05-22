@@ -508,13 +508,12 @@ View.subclass('NetRequest', {
 
         if (this.getReadyState() === this.Done) {
             this.setStatus(this.getStatus());
-            if (this.transport.responseText !== undefined){
+            if (this.transport.responseText !== undefined)
                 this.setResponseText(this.getResponseText());
-            }    
-            if (this.transport.responseXML !== undefined){
-               // alert("xml: " + this.transport.responseXML);
+               
+            if (this.transport.responseXML !== undefined)
                 this.setResponseXML(this.getResponseXML());
-            }
+            
             if (this.transport.getAllResponseHeaders() !== undefined)
                 this.setResponseHeaders(this.getResponseHeaders());
             this.disconnectModel(); // autodisconnect?

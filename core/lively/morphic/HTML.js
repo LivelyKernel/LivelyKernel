@@ -734,7 +734,8 @@ lively.morphic.Shapes.Shape.addMethods(
         this.setBorderWidthHTML(ctx, this.getBorderWidth()); // The other border props are initialized there as well
         this.setBorderStyleHTML(ctx, this.getBorderStyle());
         this.setPaddingHTML(ctx, this.getPadding()); // also sets extent
-        console.log(this.styleClassName);
+
+        //console.log(this.styleClassName);
         this.styleClassName && this.setClassNameHTML(ctx, this.styleClassName);
   
         if (UserAgent.fireFoxVersion)

@@ -315,7 +315,9 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
         throw new Error('Cannot set MinWidth for node ' + node);
     },
 
-
+    setClassName: function(node, value) {
+        node.className = value;
+    }
 
 
     setHTMLBorderRadiusPoint: function(node, radiusPt) {

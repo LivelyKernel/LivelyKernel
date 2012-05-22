@@ -225,10 +225,6 @@ lively.morphic.Morph.addMethods(
     setToolTipHTML: function(ctxt, string) {
         if (ctxt.morphNode)
             ctxt.morphNode.setAttribute('title', string)
-    },
-
-    setShapeClassNameHTML: function(ctx, className){
-        ctx.shapeNode.className = className;
     }
 
 },

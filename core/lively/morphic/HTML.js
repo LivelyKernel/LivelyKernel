@@ -321,10 +321,13 @@ lively.morphic.Morph.addMethods(
         var node = ctx.morphNode;
         if (node && this.isFocused()) node.blur();
     },
-    setFocusableHTML: function(ctx, bool) {
+    setFocusableHTML: function(ctx, boolOrIndex) {
         if (!ctx.morphNode) return;
-        if (bool) ctx.morphNode.tabIndex = -1;
-        else delete ctx.morphNode.tabIndex
+        if (typeof boolOrIndex === "boolean") {
+            ctx.morphNode.tabIndex = -1;
+        } else if (typeof boolOrIndex === "number") {
+            ctx.morphNode.tabIndex = boolOrIndex;
+        } else delete ctx.morphNode.tabIndex
     },
 });
 

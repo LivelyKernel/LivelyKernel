@@ -2854,7 +2854,7 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
     },
     openBorderStylerFor: function(target){
         if(!this.borderStyler) {
-            this.borderStyler = this.openPartItem('BorderStyler', 'PartsBin/BP2012');
+            this.borderStyler = this.openPartItem('BorderStyler', 'PartsBin/iPadWidgets');
         } else {
             this.addMorph(this.borderStyler)
         }

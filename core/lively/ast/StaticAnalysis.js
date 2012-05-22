@@ -1,4 +1,4 @@
-module('lively.ast.StaticAnalysis').requires('lively.ast.Parser', 'lively.ide.BrowserFramework').toRun(function() {
+module('lively.ast.StaticAnalysis').requires('lively.ast.Parser', 'lively.ide.BrowserFramework', 'lively.ide.FileParsing').toRun(function() {
 
 lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
 'analyzing helper', {

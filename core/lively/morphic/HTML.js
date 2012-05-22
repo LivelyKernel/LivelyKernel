@@ -284,12 +284,13 @@ lively.morphic.Morph.addMethods(
             }
         }
 
-        console.log(ctx.shapeNode);
+
 
         var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
         this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode, ctx.shapeNode);
 
         this.getShape().renderUsing(ctx);
+        console.log(ctx.shapeNode);
     },
     insertMorphNodeInHTML: function(ctx, morphNode, parentNode, optAfterNode) {
         if (!optAfterNode || !$A(parentNode.childNodes).include(optAfterNode)) {

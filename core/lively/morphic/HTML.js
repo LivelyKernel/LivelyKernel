@@ -826,6 +826,12 @@ lively.morphic.Shapes.Shape.addMethods(
         ctx.shapeNode.style.padding = s;
         return r;
     },
+    
+    setClassHTML: function(ctx, value) {
+        ctx.shapeNode.className = value;
+    },
+
+
 });
 
 lively.morphic.Shapes.Rectangle.addMethods(

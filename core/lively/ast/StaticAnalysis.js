@@ -224,12 +224,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
         }
         return cop.proceed(str);
     },
-});
-Object.extend(AdvancedSyntaxHighlighting, {
-    errorStyle: { backgroundColor: Color.web.salmon.lighter() },
-    globalStyle: { color: Color.red }
-});
-cop.create('SystemCodeEditorHighlighting').refineClass(lively.ide.BasicBrowser, {
+}).refineClass(lively.ide.BasicBrowser, {
     onSourceStringUpdate: function(methodString, source) {
         var node = this.selectedNode();
         var textMorph = this.panel.sourcePane.innerMorph();
@@ -258,4 +253,7 @@ cop.create('SystemCodeEditorHighlighting').refineClass(lively.ide.BasicBrowser, 
         return newFragment;
     }
 });
-})
+Object.extend(AdvancedSyntaxHighlighting, {
+    errorStyle: { backgroundColor: Color.web.salmon.lighter() },
+    globalStyle: { color: Color.red }
+});

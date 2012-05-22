@@ -254,8 +254,9 @@ lively.morphic.Morph.addMethods(
         tooltip && this.setToolTipHTML(ctx, tooltip);
         if (UserAgent.fireFoxVersion)
             ctx.morphNode['-moz-user-modify'] = 'read-only'
-
-        console.log(this.constructor.name);
+    
+        this.setShapeClassNameHTML(ctx, this.constructor.name);
+        console.log();
     },
     appendHTML: function(ctx, optMorphAfter) {
         if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));

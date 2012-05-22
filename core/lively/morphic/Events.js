@@ -938,7 +938,7 @@ handleOnCapture);
     isFocused: function() { return lively.morphic.Morph.prototype._focusedMorph === this },
     focus: function() { return this.renderContextDispatch('focus') },
     blur: function() { return this.renderContextDispatch('blur') },
-    enableFocus: function() { return this.morphicSetter('Focusable', true) },
+    enableFocus: function(optTabIndex) { return this.morphicSetter('Focusable', optTabIndex || true) },
     disableFocus: function() { return this.morphicSetter('Focusable', false) },
     isFocusable: function() {
         var val = this.morphicGetter('Focusable');

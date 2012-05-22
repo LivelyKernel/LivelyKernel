@@ -936,7 +936,7 @@ lively.morphic.World.addMethods(
         return part;
     },
     openPartsBin: function(evt) {
-        return this.openPartItem('PartsBinBrowser', 'PartsBin/Tools');
+        return this.openPartItem('ObjectEditor', 'PartsBin/Tools');
     },
     openObjectEditor: function(evt) {
         return this.openPartItem('PartsBinBrowser', 'PartsBin/Tools');

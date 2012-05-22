@@ -284,6 +284,8 @@ lively.morphic.Morph.addMethods(
             }
         }
 
+        console.log(ctx.shapeNode);
+
         var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
         this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode, ctx.shapeNode);
 

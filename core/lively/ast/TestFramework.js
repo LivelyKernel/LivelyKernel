@@ -8,7 +8,6 @@ cop.create('DebugTestsLayer')
         var runTearDown = true;
         try {
             this.setUp();
-            console.log("so");
             this[this.currentSelector].forInterpretation().call(this);
             this.addAndSignalSuccess();
         } catch (e) {

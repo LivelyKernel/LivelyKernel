@@ -9,7 +9,7 @@ module('lively.morphic.Chris').requires().toRun(function() {
             //alert(email);
             //alert(password);
             this.password = new lively.morphic.PasswordInput().openInWorld();
-            $morph('PasswordContainer').addMorph(this.password);
+            //$morph('PasswordContainer').addMorph(this.password);
             $morph('Rectangle1').applyStyle({ opacity: .20});
         }
     });    

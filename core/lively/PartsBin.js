@@ -137,7 +137,7 @@ Object.subclass('lively.PartsBin.PartItem',
     runAfterDeserializationHooks: function(part) {
         if (part.findAndSetUniqueName)
             part.findAndSetUniqueName();
-
+        debugger;
         if (part.onLoadFromPartsBin)
             part.onLoadFromPartsBin();
     },

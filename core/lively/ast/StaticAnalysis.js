@@ -1,4 +1,4 @@
-module('lively.ast.StaticAnalysis').requires('lively.ast.Parser').toRun(function() {
+module('lively.ast.StaticAnalysis').requires('lively.ast.Parser', 'lively.morphic.TextCore').toRun(function() {
 
 lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
 'analyzing helper', {

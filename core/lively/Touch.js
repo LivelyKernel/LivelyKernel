@@ -2862,7 +2862,7 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
 },
     openLayoutStylerFor: function(target){
         if(!this.layoutStyler) {
-            this.layoutStyler = this.openPartItem('LayoutStyler', 'PartsBin/BP2012');
+            this.layoutStyler = this.openPartItem('LayoutStyler', 'PartsBin/iPadWidgets');
         } else {
             this.addMorph(this.layoutStyler)
         }

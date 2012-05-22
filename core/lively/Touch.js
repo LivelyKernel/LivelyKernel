@@ -2845,7 +2845,7 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
 }).refineClass(lively.morphic.World, {
     openColorStylerFor: function(target){
         if(!this.colorStyler) {
-            this.colorStyler = this.openPartItem('ColorChooser', 'PartsBin/BP2012');
+            this.colorStyler = this.openPartItem('ColorChooser', 'PartsBin/iPadWidgets');
         } else {
             this.addMorph(this.colorStyler)
         }

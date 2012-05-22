@@ -141,8 +141,7 @@ lively.morphic.Morph.addMethods(
         setToolTip: 'setToolTipHTML',
         focus: 'focusHTML',
         blur: 'blurHTML',
-        setFocusable: 'setFocusableHTML',
-        setShapeClassName: 'setShapeClassNameHTML'
+        setFocusable: 'setFocusableHTML'
     },
 },
 'udpating', {
@@ -255,9 +254,7 @@ lively.morphic.Morph.addMethods(
         if (UserAgent.fireFoxVersion)
             ctx.morphNode['-moz-user-modify'] = 'read-only'
 
-        //console.log(this);
-    
-        //this.setShapeClassNameHTML(ctx, this.constructor.name);
+
     },
     appendHTML: function(ctx, optMorphAfter) {
         if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
@@ -290,7 +287,7 @@ lively.morphic.Morph.addMethods(
         this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode, ctx.shapeNode);
 
         this.getShape().renderUsing(ctx);
-        console.log(ctx.shapeNode);
+
     },
     insertMorphNodeInHTML: function(ctx, morphNode, parentNode, optAfterNode) {
         if (!optAfterNode || !$A(parentNode.childNodes).include(optAfterNode)) {

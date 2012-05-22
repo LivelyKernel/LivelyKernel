@@ -22,7 +22,6 @@ var isFireBug = isFirefox && window.console && window.console.firebug !== undefi
 
     function addWrappers() {
         if (platformConsole.wasWrapped) return;
-        platformConsole.wasWrapped = true;
 
         var props = [];
         for (var name in platformConsole) props.push(name);
@@ -41,10 +40,10 @@ var isFireBug = isFirefox && window.console && window.console.firebug !== undefi
                 };
             })(props[i]);
         }
+        platformConsole.wasWrapped = true;
     }
 
     function removeWrappers() {
-        platformConsole.wasWrapped = false;
         for (var name in platformConsole) {
             if (name[0] !== '$') continue;
             platformConsole[name.substring(1, name.length)] = platformConsole[name];

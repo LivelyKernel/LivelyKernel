@@ -150,6 +150,7 @@ lively.morphic.Morph.addMethods(
             self = this;
 
         scope.withAllSubmorphsDo(function (ea) {
+            if (!ea.derivationIds) return;
             var idsShouldContain = ea.derivationIds.concat([ea.id]);
             // var tempCommonIds = self.derivationIds.intersect(ea.derivationIds);
             // if (tempCommonIds.equals(ea.derivationIds)

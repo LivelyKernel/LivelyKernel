@@ -192,7 +192,6 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
                     }]
                 },
             };
-        console.log(r.toString());
         this.assertMatches(expected, r.children[0]);
     },
     test03TryCatch: function() {

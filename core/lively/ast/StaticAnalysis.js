@@ -219,7 +219,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
             lively.ast.Parser.parse(str, rule);
         } catch (e) {
             var st = this.setStatus || this.displayStatus;
-            if (st) st.call(this, OMetaSupport.handleErrorDebug(e[0], e[1], e[2], e[3]));
+            if (st) st.apply(this, OMetaSupport.handleErrorDebug(e[0], e[1], e[2], e[3]));
             return null;
         }
         return cop.proceed(str);

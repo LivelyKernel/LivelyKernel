@@ -17,6 +17,7 @@ Object.subclass('lively.morphic.Morph',
         this.submorphs = [];
         this.scripts = [];
         this.shape = shape || this.defaultShape();
+        console.log(this.constructor.name);
         this.setNewId();
         this.prepareForNewRenderContext(this.defaultRenderContext());
         this.applyStyle(this.getStyle());

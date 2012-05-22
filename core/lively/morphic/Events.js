@@ -942,7 +942,7 @@ handleOnCapture);
     disableFocus: function() { return this.morphicSetter('Focusable', false) },
     isFocusable: function() {
         var val = this.morphicGetter('Focusable');
-        return val === undefined ? true : val;
+        return val === undefined || val >= 0 ? true : val;
     },
 
 },

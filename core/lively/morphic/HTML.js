@@ -712,7 +712,8 @@ lively.morphic.Shapes.Shape.addMethods(
         setStrokeOpacity: 'setStrokeOpacityHTML',
         setBorderRadius: 'setBorderRadiusHTML',
         setBorderStyle: 'setBorderStyleHTML',
-        setOpacity: 'setOpacityHTML'
+        setOpacity: 'setOpacityHTML',
+        setClassName: 'setClassNameHTML',
     },
 },
 'initializing', {
@@ -827,7 +828,7 @@ lively.morphic.Shapes.Shape.addMethods(
         return r;
     },
     
-    setClassHTML: function(ctx, value) {
+    setClassNameHTML: function(ctx, value) {
         ctx.shapeNode.className = value;
     },
 

@@ -75,7 +75,7 @@ Object.subclass('lively.morphic.Shapes.Shape',
     },
 
     setStyleClass: function(value) {
-        console.log("Setting style class to "+value);
+       
         return this.shapeSetter('StyleClass', value);
     },
     getStyleClass: function() {
@@ -83,6 +83,7 @@ Object.subclass('lively.morphic.Shapes.Shape',
     },
 
     setStyleId: function(value) {
+         console.log("Setting style id to "+value);
         return this.shapeSetter('StyleId', value);
     },
     getStyleId: function() {

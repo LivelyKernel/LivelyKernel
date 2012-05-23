@@ -61,6 +61,42 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         });
 
     },
+    newConnectionForCells: function(name, cells){
+        var connection = {
+            cells: cells,
+            grid: this,
+            name: name
+        };
+        (function update() {
+            var values = this.cells.invoke('getContent');
+            lively.bindings.signal(this.grid, this.name, values);
+        }).asScriptOf(connection);
+        cells.forEach(function (cell) {
+            connect(cell, 'textString', connection, 'update');
+        });
+        
+    },
+    newConnectionPointFromSelectedCells: function(){
+        var cells = this.getCellSelections(),
+        grid = this;
+        if (!cells || cells.length === 0) {
+            alert('No cells selected!');
+            return;
+        }
+        this.world().prompt('Name for connection point?', function (name) {
+            if (!name) {
+                alert('aborting...');
+                return;
+            }
+            if (!grid.hasOwnProperty('connections')) {
+                grid.connections = {};
+            }
+            grid.connections[name] = grid.newConnectionForCells(name, cells);
+            cells.forEach(function (cell) {
+                show(cell)
+            });
+        });
+    },
     getAlignforValueType: function(oDataFormat,sValue) {
         var sAlign="right";
         var sNewvalue = sValue;

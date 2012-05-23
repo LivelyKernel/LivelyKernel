@@ -30,6 +30,7 @@ Object.subclass('lively.morphic.Morph',
         //
         this.applyStyle(this.getStyle());
         this.setNodeClass(this.getNodeClass());
+        this.setNodeIf(this.id);
     },
     setNewId: function(optId) {
         if (this.derivationIds == undefined) this.derivationIds = [];

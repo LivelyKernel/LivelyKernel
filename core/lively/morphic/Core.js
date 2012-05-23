@@ -27,8 +27,9 @@ Object.subclass('lively.morphic.Morph',
         this.prepareForNewRenderContext(this.defaultRenderContext());
         
         //this.setStyleClass("morph-class");
-        //this.setStyleId(this.id);
+        //
         this.applyStyle(this.getStyle());
+        this.setNodeId(this.id);
     },
     setNewId: function(optId) {
         if (this.derivationIds == undefined) this.derivationIds = [];

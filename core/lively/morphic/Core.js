@@ -23,7 +23,7 @@ Object.subclass('lively.morphic.Morph',
         //this.shape.styleClassName=this.constructor.name;
         //this.shape.styleId = this.id;
         //console.log("Shape Style ID: " + this.shape.styleId);
-        this.setStyleClass(["morph-class"]);
+        this.setStyleClass("morph-class");
         this.setStyleId(this.id);
 
         this.prepareForNewRenderContext(this.defaultRenderContext());

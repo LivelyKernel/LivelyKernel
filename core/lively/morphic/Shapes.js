@@ -78,6 +78,7 @@ Object.subclass('lively.morphic.Shapes.Shape',
         return this.shapeSetter('StyleClass', value);
     },
     getStyleClass: function() {
+        console.log("Trying to get Style Class");
         return this.shapeGetter('StyleClass') || [];
     },
 

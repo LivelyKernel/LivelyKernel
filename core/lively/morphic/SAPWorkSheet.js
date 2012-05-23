@@ -59,7 +59,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             .fail(function(jqxhr, settings, exception) {
                 console.log("error loading date.format.js");
         });
-
     },
     newConnectionForCells: function(name, cells){
         var connection = {

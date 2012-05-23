@@ -190,13 +190,17 @@ Object.subclass('lively.morphic.Morph',
 
     setNodeClass: function(value) {
         //console.log("Core.js, Morph, setNodeClass(): Setting style class to "+value);
-        
+        var a = [];
         if (value instanceof Array) {
-            return this.shape.setNodeClass(value);
+            a = value;
         }
         else {
-            return this.shape.setNodeClass(value.split(/[\s,]+/));
+            a = value.split(/[\s,]+/);
         }
+        a.each(function(item){item = item.toLowerCase();});
+        var cCls = this.constructor.name;
+        
+        return this.shape.setNodeClass(a);
     },
     getNodeClass: function() {
         return this.shape.getNodeClass();

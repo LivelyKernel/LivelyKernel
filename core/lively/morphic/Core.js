@@ -17,8 +17,12 @@ Object.subclass('lively.morphic.Morph',
         this.submorphs = [];
         this.scripts = [];
         this.shape = shape || this.defaultShape();
-        this.shape.styleClassName=this.constructor.name;
+        
         this.setNewId();
+
+        this.shape.styleClassName=this.constructor.name;
+        this.shape.styleId = this.id;
+
         this.prepareForNewRenderContext(this.defaultRenderContext());
         this.applyStyle(this.getStyle());
     },

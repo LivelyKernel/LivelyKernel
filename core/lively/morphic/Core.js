@@ -190,7 +190,7 @@ Object.subclass('lively.morphic.Morph',
 
     getStyleClass: function() {
         return this.shape.getStyleClass();
-    }
+    },
 
     setVertices: function(v) { this.shape.setVertices(v) },
 

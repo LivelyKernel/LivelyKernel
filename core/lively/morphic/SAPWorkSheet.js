@@ -72,6 +72,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             console.log("onMouseWheelhandle:" + this.prviousScrollValue);
             var nNewValue = this.prviousScrollValue-delta;
             if (nNewValue >0){
+                this.vScroll.setValue(nNewValue);
                 this.updateRowDisplay(this.prviousScrollValue-delta)
                 console.log("onMouseWheelhandle after:" + this.prviousScrollValue-delta);
             }

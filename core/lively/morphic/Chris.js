@@ -4,7 +4,7 @@ module('lively.morphic.Chris').requires().toRun(function() {
             $super();
         },
         login: function(email, password){
-            alert(email);
+            alert(email); 
             alert(password);
             $morph('Rectangle1').applyStyle({ opacity: .20});
         }

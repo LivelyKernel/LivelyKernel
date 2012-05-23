@@ -1074,6 +1074,9 @@ lively.morphic.World.addMethods(
         } finally {
             Config.rootPath = oldRootPath
         }
+    },
+    openSystemConsole: function() {
+        return this.openPartItem('SystemConsole', 'PartsBin/Tools');
     }
 },
 'menu', {

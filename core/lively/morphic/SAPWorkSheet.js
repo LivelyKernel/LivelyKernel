@@ -62,7 +62,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
     },
     onMouseWheelhandle: function(delta){
-        //delta return number of moved by scroll if negative then scrolling down
+        /* delta is positive if wheel was scrolled up,
+        * and negative, if wheel was scrolled down.
+        */
         console.log(delta);
         
     },

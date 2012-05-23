@@ -73,6 +73,15 @@ Object.subclass('lively.morphic.Shapes.Shape',
     getPadding: function() {
         return this.shapeGetter('Padding') || this.setPadding(new Rectangle(0,0,0,0));
     },
+
+    setStyleClass: function(value) {
+        return this.shapeSetter('StyleClass', value);
+    },
+
+    getStyleClass: function() {
+        return this.shapeGetter('StyleClass') || [];
+    },
+
 },
 'comparing', {
     equals: function (otherShape) {

@@ -1135,6 +1135,7 @@ lively.morphic.TabStrategyAbstract.subclass('lively.morphic.TabStrategyBottom',
     adjustTabBar: function(aTabBar) {
         aTabBar.setPosition(pt(0, aTabBar.getTabContainer().getTabPaneExtent().y));
         aTabBar.setRotation(0);
+        aTabBar.layout = {adjustForNewBounds: true, resizeWidth: true};
         aTabBar.setExtent(pt(aTabBar.getExtent().x, aTabBar.getDefaultHeight()));
     },
 

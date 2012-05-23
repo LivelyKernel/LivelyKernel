@@ -46,6 +46,21 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeAnnotation();
 
     },
+    newConnectionForCells: function(name, cells){
+        var connection = {
+            cells: cells,
+            grid: this,
+            name: name
+        };
+        (function update() {
+            var values = this.cells.invoke('getContent');
+            lively.bindings.signal(this.grid, this.name, values);
+        }).asScriptOf(connection);
+        cells.forEach(function (cell) {
+            connect(cell, 'textString', connection, 'update');
+        });
+        
+    },
     newConnectionPointFromSelectedCells: function(){
         var cells = this.getCellSelections(),
         grid = this;

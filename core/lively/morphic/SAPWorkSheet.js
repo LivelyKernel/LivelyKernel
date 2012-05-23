@@ -62,6 +62,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
     },
     onMouseWheelEntry: function(evt) {
+        debugger;
         console.log("onMouseWheelEntry");
     },
     onMouseWheel: function(evt) {

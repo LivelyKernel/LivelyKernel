@@ -46,6 +46,27 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeAnnotation();
 
     },
+    newConnectionPointFromSelectedCells: function(){
+        var cells = this.getCellSelections(),
+        grid = this;
+        if (!cells || cells.length === 0) {
+            alert('No cells selected!');
+            return;
+        }
+        this.world().prompt('Name for connection point?', function (name) {
+            if (!name) {
+                alert('aborting...');
+                return;
+            }
+            if (!grid.hasOwnProperty('connections')) {
+                grid.connections = {};
+            }
+            grid.connections[name] = grid.newConnectionForCells(name, cells);
+            cells.forEach(function (cell) {
+                show(cell)
+            });
+        });
+    },
     removeSelectedCells: function() {
        
         for (i= 0; i< this.arrSelectedCells.length; i++) {

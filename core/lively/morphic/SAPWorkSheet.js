@@ -65,7 +65,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         console.log(delta)
     },
     onMouseWheelEntry: function(evt) {
-        debugger;
+        //debugger;
         console.log("onMouseWheelEntry");
         var delta = 0;
         if (!event) /* For IE. */

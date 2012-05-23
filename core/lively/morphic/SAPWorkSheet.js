@@ -65,6 +65,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         /* delta is positive if wheel was scrolled up,
         * and negative, if wheel was scrolled down.
         */
+        debugger;
         console.log(delta);
         
     },

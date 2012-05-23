@@ -736,8 +736,8 @@ lively.morphic.Shapes.Shape.addMethods(
         this.setBorderStyleHTML(ctx, this.getBorderStyle());
         this.setPaddingHTML(ctx, this.getPadding()); // also sets extent
 
-        //this.setStyleClassHTML(ctx, this.getStyleClass());
-        //this.setStyleIdHTML(ctx, this.getStyleId());
+        this.setStyleClassHTML(ctx, this.getStyleClass());
+        this.setStyleIdHTML(ctx, this.getStyleId());
 
 
         //console.log(this.styleClassName);

@@ -61,6 +61,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         });
 
     },
+    onMouseWheelEntry: function(evt) {
+        console.log("onMouseWheelEntry");
+    },
     onMouseWheel: function(evt) {
         console.log("onMouseWheel");
     },

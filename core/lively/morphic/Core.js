@@ -193,6 +193,7 @@ Object.subclass('lively.morphic.Morph',
         return this.shape.getStyleClass();
     },
     setStyleId: function(value) {
+        console.log("Core.js, Morph, setStyleId(): Setting style id to "+value);
         return this.shape.setStyleId(value);
     },
     getStyleId: function() {

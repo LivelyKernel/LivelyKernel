@@ -29,7 +29,7 @@ Object.subclass('lively.morphic.Morph',
         //this.setStyleClass("morph-class");
         //
         this.applyStyle(this.getStyle());
-        this.setNodeId(this.id);
+        this.setNodeClass(this.getNodeClass());
     },
     setNewId: function(optId) {
         if (this.derivationIds == undefined) this.derivationIds = [];

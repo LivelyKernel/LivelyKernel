@@ -69,8 +69,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         console.log(delta);
         
         if (this.vScroll){
-            var nVScrollValue = this.vScroll.getValue();
-            console.log(nVScrollValue );
+            console.log("onMouseWheelhandle:" + this.prviousScrollValue);
+             this.updateRowDisplay(this.prviousScrollValue+delta)
+            console.log("onMouseWheelhandle after:" + this.prviousScrollValue+delta);
         }
         
     },

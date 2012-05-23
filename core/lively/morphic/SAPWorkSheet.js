@@ -62,7 +62,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
     },
     onMouseWheel: function(evt) {
-        console.log("onMouseWheel")
+        console.log("onMouseWheel");
     },
     newConnectionForCells: function(name, cells){
         var connection = {

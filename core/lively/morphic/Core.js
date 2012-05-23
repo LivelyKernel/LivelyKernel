@@ -187,19 +187,20 @@ Object.subclass('lively.morphic.Morph',
     getOpacity: function() { return this.shape.getOpacity() },
     setOpacity: function(o) { return this.shape.setOpacity(o) },
     
-    setStyleClass: function(value) {
-        console.log("Core.js, Morph, setStyleClass(): Setting style class to "+value);
-        return this.shape.setStyleClass(value);
+
+    setNodeClass: function(value) {
+        console.log("Core.js, Morph, setNodeClass(): Setting style class to "+value);
+        return this.shape.setNodeClass(value);
     },
-    getStyleClass: function() {
-        return this.shape.getStyleClass();
+    getNodeClass: function() {
+        return this.shape.getNodeClass();
     },
-    setStyleId: function(value) {
-        console.log("Core.js, Morph, setStyleId(): Setting style id to "+value);
-        return this.shape.setStyleId(value);
+    setNodeId: function(value) {
+        console.log("Core.js, Morph, setNodeId(): Setting style id to "+value);
+        return this.shape.setNodeId(value);
     },
-    getStyleId: function() {
-        return this.shape.getStyleId();
+    getNodeId: function() {
+        return this.shape.getNodeId();
     },
 
     setVertices: function(v) { this.shape.setVertices(v) },

@@ -539,6 +539,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
         this.setExtent(newExtent);
         this.setBorderWidth(1);
         this.setBorderColor(Color.gray);
+        this.layout = {adjustForNewBounds: true};
         tabBarStrategy.applyTo(this);
     },
 

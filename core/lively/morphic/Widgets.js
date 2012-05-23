@@ -1216,7 +1216,8 @@ lively.morphic.World.addMethods(
                 ['Object Editor', this.openObjectEditor.bind(this)],
                 ['Test Runner', this.openTestRunner.bind(this)],
                 ['Method Finder', this.openMethodFinder.bind(this)],
-                ['Text Editor', function() { new lively.morphic.TextEditor().openIn(world) }]
+                ['Text Editor', function() { new lively.morphic.TextEditor().openIn(world) }],
+                ['System Console', this.openSystemConsole.bind(this)]
             ]],
             ['Stepping', [
                 ['start stepping',  function() { world.submorphs.each(

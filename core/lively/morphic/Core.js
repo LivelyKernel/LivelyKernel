@@ -197,9 +197,11 @@ Object.subclass('lively.morphic.Morph',
         else {
             a = value.split(/[\s,]+/);
         }
-        a.each(function(item){item = item.toLowerCase();});
-        var cCls = this.constructor.name;
         
+        a.unshift(this.constructor.name);
+        
+        a.each(function(item){item = item.toLowerCase();});
+        a = a.uniq();
         return this.shape.setNodeClass(a);
     },
     getNodeClass: function() {

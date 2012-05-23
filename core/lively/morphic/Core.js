@@ -188,6 +188,7 @@ Object.subclass('lively.morphic.Morph',
     setOpacity: function(o) { return this.shape.setOpacity(o) },
     
     setStyleClass: function(value) {
+        console.log("Core.js, Morph, setStyleClass(): Setting style class to "+value);
         return this.shape.setStyleClass(value);
     },
     getStyleClass: function() {

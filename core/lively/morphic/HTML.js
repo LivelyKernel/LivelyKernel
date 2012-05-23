@@ -248,7 +248,7 @@ lively.morphic.Morph.addMethods(
         var tooltip = this.morphicGetter('ToolTip');
         tooltip && this.setToolTipHTML(ctx, tooltip);
 
-        this.setNodeId(this.id);
+        
         
         if (UserAgent.fireFoxVersion)
             ctx.morphNode['-moz-user-modify'] = 'read-only'

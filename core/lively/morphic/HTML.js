@@ -843,11 +843,11 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     
     setStyleClassHTML: function(ctx, value) {
-        console.log("Setting shape class to "+value);
+        //console.log("Setting shape class to "+value);
         ctx.shapeNode.className = value;
     },
     setStyleIdHTML: function(ctx, value) {
-        console.log("Setting shape id to "+value);
+        //console.log("Setting shape id to "+value);
         ctx.shapeNode.id = value;
     },    
 

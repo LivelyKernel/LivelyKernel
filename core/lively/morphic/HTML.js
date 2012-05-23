@@ -847,7 +847,7 @@ lively.morphic.Shapes.Shape.addMethods(
         ctx.shapeNode.className = value;
     },
     setStyleIdHTML: function(ctx, value) {
-        console.log("Ok, got it, setting shape HTML id to "+value);
+        console.log("HTML.js, setStyleIdHTML(): Ok, got it, setting shape HTML id to "+value);
         ctx.shapeNode.id = value;
     },    
 

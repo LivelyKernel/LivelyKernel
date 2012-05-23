@@ -22,7 +22,7 @@ Object.subclass('lively.morphic.Morph',
 
         this.shape.styleClassName=this.constructor.name;
         this.shape.styleId = this.id;
-
+        console.log("Shaepe Style ID: " + this.id;
         this.prepareForNewRenderContext(this.defaultRenderContext());
         this.applyStyle(this.getStyle());
     },

@@ -934,7 +934,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         this.setBorderWidth(1);
         this.setBorderColor(Color.gray);
         this.setExtent(extent);
-
+        this.layout = {adjustForNewBounds: true, resizeWidth: true, resizeHeight: true};
         this.draggingEnabled = this.grabbingEnabled = false;
 
     },

@@ -198,7 +198,7 @@ Object.subclass('lively.morphic.Morph',
         return this.shape.getNodeClass();
     },
     setNodeId: function(value) {
-        console.log("Core.js, Morph, setNodeId(): Setting style id to "+value);
+        //console.log("Core.js, Morph, setNodeId(): Setting style id to "+value);
         return this.shape.setNodeId(value);
     },
     getNodeId: function() {

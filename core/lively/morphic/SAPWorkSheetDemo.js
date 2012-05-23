@@ -991,6 +991,7 @@ currently only support
         items.push(['- column', this.removeCol.bind(this)]);
         items.push(['+ row', this.addRow.bind(this)]);
         items.push(['- row', this.removeRow.bind(this)]);
+        items.push(['add selected cells to connection points', this.newConnectionPointFromSelectedCells.bind(this)]);
         return items;
     },
 },

@@ -199,10 +199,10 @@ Object.subclass('lively.morphic.Morph',
         }
         
         a.unshift(this.constructor.name);
-        
-        a.each(function(item){item = item.toLowerCase();});
-        a = a.uniq();
-        return this.shape.setNodeClass(a);
+        var result = [];
+        a.each(function(item){result.push( item.toLowerCase());});
+        result = result.uniq();
+        return this.shape.setNodeClass(result);
     },
     getNodeClass: function() {
         return this.shape.getNodeClass();

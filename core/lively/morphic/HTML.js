@@ -719,8 +719,8 @@ lively.morphic.Shapes.Shape.addMethods(
         setBorderRadius: 'setBorderRadiusHTML',
         setBorderStyle: 'setBorderStyleHTML',
         setOpacity: 'setOpacityHTML',
-        setStyleClass: 'setStyleClassHTML',
-        setStyleId: 'setStyleIdHTML',
+        setNodeClass: 'setNodeClassHTML',
+        setNodeId: 'setNodeIdHTML',
     },
 },
 'initializing', {
@@ -843,11 +843,11 @@ lively.morphic.Shapes.Shape.addMethods(
         return r;
     },
     
-    setStyleClassHTML: function(ctx, value) {
+    setNodeClassHTML: function(ctx, value) {
         //console.log("Ok, got it, setting shape HTML class to "+value);
         ctx.shapeNode.className = value;
     },
-    setStyleIdHTML: function(ctx, value) {
+    setNodeIdHTML: function(ctx, value) {
         console.log("HTML.js, setStyleIdHTML(): Ok, got it, setting shape HTML id to "+value);
         ctx.shapeNode.id = value;
     },    

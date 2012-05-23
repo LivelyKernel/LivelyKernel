@@ -183,7 +183,10 @@ Object.subclass('lively.morphic.Morph',
 
     getOpacity: function() { return this.shape.getOpacity() },
     setOpacity: function(o) { return this.shape.setOpacity(o) },
-
+    
+    setStyleClass: function(value) {
+        this.shape.setStyleClass(value);
+    },
 
     setVertices: function(v) { this.shape.setVertices(v) },
 

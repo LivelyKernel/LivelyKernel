@@ -209,7 +209,7 @@ Object.subclass('lively.morphic.Morph',
     },
     setNodeId: function() {
         //console.log("Core.js, Morph, setNodeId(): Setting style id to "+value);
-        return this.shape.setNodeId("morph"-this.id.toLowerCase());
+        return this.shape.setNodeId("morph-"+this.id.toLowerCase());
     },
     getNodeId: function() {
         return this.shape.getNodeId();

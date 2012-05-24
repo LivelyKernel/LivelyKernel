@@ -1482,7 +1482,6 @@ y359
     },
     onMouseDown: function($super, evt) {
         $super(evt);
-         //console.log("SAPGrid.onMouseDown");
     },
 
     onMouseUp: function($super, evt) {

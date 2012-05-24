@@ -258,8 +258,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         if (this.owner && this.owner.isInLayoutCycle) return;
 
-        var textExtent = this.getTextExtent(),
-            scrollbarExtent = this.getScrollBarExtent(),
+        var scrollbarExtent = this.getScrollBarExtent(),
             borderWidth = this.getBorderWidth(),
             padding = this.getPadding() || new Rectangle(0,0,0,0),
             width = null,
@@ -279,6 +278,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         }
 
         if (this.fixedHeight) {
+            var textExtent = this.getTextExtent();
             height = Math.max(value, textExtent.y); // FIXME shouldn't that be value.y? (max width ever used??)
             if (this.showsHorizontalScrollBar())
                 height -= scrollbarExtent.y;

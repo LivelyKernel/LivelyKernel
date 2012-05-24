@@ -2519,7 +2519,7 @@ dataformat: currency & percentage & date & time
         this.imgTextAlignRight  = img(6*nGapGroupWidth + 25*19 + 10 + 13*nGapWidth,3,24,24, "images/Text-align-right-icon.png");
         this.imgTextAlignRight.setToolTip("Align Text Right");
 
-        this.imgClear           = img(6*nGapGroupWidth + 25*17 + 10 + 14*nGapWidth,nSecondLineYPos,24,24, "images/Actions-edit-clear-icon.png");
+        this.imgClear           = img(6*nGapGroupWidth + 25*17 + 10 + 13*nGapWidth,nSecondLineYPos,24,24, "images/Actions-edit-clear-icon.png");
         this.imgFill           = img(6*nGapGroupWidth + 25*18 + 10 + 13*nGapWidth,nSecondLineYPos,24,24, "images/fill.png");
 
 

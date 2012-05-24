@@ -1052,6 +1052,7 @@ handleOnCapture);
     },
     correctForDragOffset: function(evt) {
         // do I respond to onSelectStart in a meaningful way?
+        if (this.dragTriggerDistance === 0) return false;
         if (this.getWindow()) return false;
         if (this.lockOwner() && this.isLocked()) return false;
         return true;

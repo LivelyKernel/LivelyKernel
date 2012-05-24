@@ -1331,8 +1331,6 @@ currently only support
 
     onKeyPress: function($super,evt) {
          $super(evt);
-        //console.log("SAPGrid.onKeyPress");
-
     },
 
     onKeyUp: function($super,evt) {

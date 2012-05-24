@@ -619,19 +619,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.at(0,0).activate();
             return;
         }
-debugger;
         this.applyCellChanges();
-        //var activePos = this.activeCell.gridPos();
         
         var curX = this.activeCell.gridCoords.x;
         var curY = this.activeCell.gridCoords.y;
 
         var newX = curX  + aPoint.x;
         var newY = curY + aPoint.y;
-
-       
-       //var newPos = activePos.addPt(aPoint);
-        //var nextCell = this.at(newX,newY );
 
         if (evt.isShiftDown()){
             this.setCellSelection(this,this.activeCell);
@@ -642,30 +636,6 @@ debugger;
         this.at(newX , newY ).focus();
         this.setCellSelection(this,this.at(newX , newY ));
 
-
-        //nextCell && nextCell.activate();
-
-
-        /*
-
-        this.applyCellChanges();
-        var curX = this.getActiveColIndex();
-        var curY = this.getActiveRowIndex();
-        var newX = curX + aPoint.x;
-        var newY = curY + aPoint.y;
-
-        if (evt.isShiftDown()){
-            this.setCellSelection(this,this.activeCell);
-        }else{
-            this.removeSelectedCells();
-        }
-
-        if (this.numRows > newY  && this.numCols > newX && newY >= 0 && newX >= 0) {
-            this.at(newX , newY ).activate(evt.isShiftDown());
-            this.at(newX , newY ).focus();
-            this.setCellSelection(this,this.at(newX , newY ));
-        }
-        */
     },
 
     setAnnotationData: function(arrNotes) {

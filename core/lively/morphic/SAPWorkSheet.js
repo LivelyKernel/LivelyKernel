@@ -2110,6 +2110,23 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
        this.parent.clearCell(false,false,false,true,false);
     }
 },
+'Fill Menu Events', {
+    onMenuClick_FillMenuHide: function(evt) {
+       this.parent.oFillMenu.remove();
+    },
+    onMenuClick_Up: function(evt) {
+       
+    },
+    onMenuClick_Down: function(evt) {
+      
+    },
+    onMenuClick_Right: function(evt) {
+       
+    },
+    onMenuClick_Left: function($super,evt) {
+      
+    }
+},
 'Image Click Events', {
     imgFormatCell_Click: function() {
         var nX = this.grid.oWorkBook.getPosition().x +  250;

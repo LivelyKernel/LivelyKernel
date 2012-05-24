@@ -2127,16 +2127,16 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
        this.parent.oFillMenu.remove();
     },
     onMenuClick_Up: function(evt) {
-       
+       this.parent.fillUp();
     },
     onMenuClick_Down: function(evt) {
-      
+      this.parent.fillDown();
     },
     onMenuClick_Right: function(evt) {
-       
+       this.parent.fillRight();
     },
     onMenuClick_Left: function($super,evt) {
-      
+      this.parent.fillLeft();
     }
 },
 'Image Click Events', {

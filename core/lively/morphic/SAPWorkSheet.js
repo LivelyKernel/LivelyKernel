@@ -2460,7 +2460,11 @@ dataformat: currency & percentage & date & time
 
         function img(x, y, w, h, path) {
             var url = URL.root.withFilename("users/kimhw/").withFilename(path);
-            return new lively.morphic.Image(new Rectangle(x,y,w,h), url);
+            var oImg = new lively.morphic.Image(new Rectangle(x,y,w,h), url);
+            oImg.grabbingEnabled = false;
+            oImg.disableHalos();
+            return oImg;
+            //return new lively.morphic.Image(new Rectangle(x,y,w,h), url);
         }
 
         this.imgSave            = img(10,3,24,24, "images/Save-icon.png");
@@ -2559,7 +2563,7 @@ dataformat: currency & percentage & date & time
 
         this.ddlFontSize.grabbingEnabled = false;
         this.ddlFont.grabbingEnabled = false;
-
+        /*
         this.imgSave.grabbingEnabled = false;
         this.imgSaveAs.grabbingEnabled = false;
         this.imgCopy.grabbingEnabled = false;
@@ -2607,6 +2611,7 @@ dataformat: currency & percentage & date & time
         this.imgTextAlignCenter.disableHalos();
         this.imgTextAlignRight.disableHalos();
         this.imgFormatCell.disableHalos();
+*/
     },
 
     initializeEvents: function() {

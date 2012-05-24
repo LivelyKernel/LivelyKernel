@@ -1978,18 +1978,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         
     },
     clearCell: function(bClearFormats,bClearContents,bClearComments,bClearFormula,bClearStyle) {
-        /*['Clear All', this.onMenuClick_ClearAll],
-        ['Clear Formats', this.onMenuClick_ClearFormats],
-        ['Clear Contents', this.onMenuClick_ClearContents],
-        ['Clear Comments', this.onMenuClick_ClearComments]];
-        */
         var nRow;
         var nColumn;
         var nOrgRow;
         var nOrgCol;
         var sValue;
         var i;
-debugger;
+
         //Grid
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
@@ -2034,7 +2029,6 @@ debugger;
                 }else{
                     this.grid.arrSelectedCells[i].deactivateCell();
                 }
-                
             }    
         }
         //Data
@@ -2048,10 +2042,6 @@ debugger;
                 this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].annotation="";
             }
             if (bClearFormats){
-                
-                if (bClearContents){
-                    
-                }
                 this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=null;
             }
             if (bClearFormula){
@@ -2059,8 +2049,6 @@ debugger;
                 this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].formula="";
             }    
         }
-
-
     },
     setDataFormates: function(oDataFormat) {
         var nRow;
@@ -2098,7 +2086,6 @@ debugger;
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
         }
-     
     }
 },
 'Clear Menu Events', {
@@ -2140,7 +2127,6 @@ debugger;
             this.oDataFormat.openInWindow(pt(nX ,nY ));
             this.oDataFormat.owner.setTitle("Format Cells");
         }
-        
     },
     imgTextAlignLeft_Click: function() {
         var i;
@@ -2213,17 +2199,7 @@ debugger;
                 console.log("onMouseOut")
                 return true;
             })
-
-           
-
-
-
-
             this.oClearMenu.openIn(this,this.imgClear.getPosition().addXY(7, 7),false);
-            
-
-
-
         }
     },
     imgTextAlignCenter_Click: function() {
@@ -2355,6 +2331,9 @@ debugger;
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
         }
 
+    },
+    imgFill_Click: function() {
+        alert(this.grid.numCols )
     },
     imgSave_Click: function() {
         alert(this.grid.numCols )

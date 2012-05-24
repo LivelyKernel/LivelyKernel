@@ -1945,7 +1945,16 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 },
 'Other methods', {
     fillDown: function(){
+        var i;
+        //need to get hightest y axis
         
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+           
+        }
+        //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            
+        }
     },
     fillUp: function(){
        

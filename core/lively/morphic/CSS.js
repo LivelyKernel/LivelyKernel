@@ -1,5 +1,13 @@
-module('lively.morphic.CSS').requires().toRun(function() {
+module('lively.morphic.CSS').requires('lively.morphic.Core').toRun(function() {
 
-// Enter your code here
+lively.morphic.Morph.addMethods(
+    'css', {
+        applyStyleSheet: function(cssStyles) { 
+
+        }
+
+    }
+
+)
 
 }) // end of module

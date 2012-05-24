@@ -1327,7 +1327,6 @@ currently only support
         
     onKeyDown: function($super, evt) {
         $super(evt);
-         //console.log("SAPGrid.onKeyDown");
     },
 
     onKeyPress: function($super,evt) {

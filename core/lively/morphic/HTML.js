@@ -648,7 +648,9 @@ lively.morphic.List.addMethods(
         return idx;
     },
     deselectNodesHTML: function(ctx) {
-        ctx.subNodes.forEach(function(ea) { ea.selected = false })
+        if (ctx.subNodes) {
+            ctx.subNodes.forEach(function(ea) { ea.selected = false })
+        }
     },
 },
 'drop down support HTML', {

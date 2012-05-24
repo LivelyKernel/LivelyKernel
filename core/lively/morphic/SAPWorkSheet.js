@@ -2388,6 +2388,7 @@ debugger;
         this.imgCut;
         this.imgPaste;
         this.imgClear;
+        this.imgFill;
         this.imgBold;
         this.imgItalic;
         this.imgUnderline;

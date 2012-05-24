@@ -4,10 +4,9 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
         'stylesheets', {
             applyStyleSheet: function(style) {
 
-
-                morph.setNodeId();
-                morphId = morph.getNodeId();
-        
+                this.setNodeId();
+                var morphId = this.getNodeId();
+                
                 var specificCss = "#"+morphId+" { "+cssCode+" }";
                 var styleTagId = "style-"+morphId;
         
@@ -29,7 +28,8 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
                     newStyleNode.appendChild(newStyleContent);
                 }
                 head.appendChild(newStyleNode);
-
+                
+                this.styleSheet = style;
 
             }
         }

@@ -1945,7 +1945,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 },
 'Other methods', {
     fillDown: function(){
-       
+        
     },
     fillUp: function(){
        

@@ -3,7 +3,7 @@ module('lively.ide.SyntaxHighlighting').requires(['lively.morphic', 'lively.ide.
 Object.subclass("SyntaxHighlighter", {
 
 });
-debugger;
+
 Object.extend(SyntaxHighlighter, {
     JavaScriptRules: {
         // based on http://code.google.com/p/jquery-chili-js/ regex and colors

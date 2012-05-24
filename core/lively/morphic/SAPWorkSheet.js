@@ -1300,8 +1300,6 @@ currently only support
 
 'Keyboard Events', {
     onEnterPressed: function($super, evt) {
-        //Hak March27 2012:  calculate formula
-        
         this.onDownPressed(evt);
         return true;
     },

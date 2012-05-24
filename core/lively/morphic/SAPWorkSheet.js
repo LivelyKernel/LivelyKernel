@@ -2390,6 +2390,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         this.ddlFont;
         this.fontPicker;
         this.oClearMenu=null;
+        this.oFillMenu = null;
         this.oDataFormat = null;
         this.initializeImages();
         this.initializeEvents();

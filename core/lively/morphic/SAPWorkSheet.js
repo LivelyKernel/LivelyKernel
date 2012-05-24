@@ -2333,7 +2333,60 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
     },
     imgFill_Click: function() {
-        alert(this.grid.numCols )
+        if (this.oFillMenu){
+            this.oFillMenu.openInWorld(this.imgFill.getPositionInWorld().addXY(7, 7));
+        }else{
+            var arrItems= [
+            	['Clear All', this.onMenuClick_ClearAll],
+            	['Clear Formats', this.onMenuClick_ClearFormats],
+                ['Clear Contents', this.onMenuClick_ClearContents],
+                ['Clear Comments', this.onMenuClick_ClearComments]];
+        
+            arrItems=[]
+            oItem = {}
+            oItem.isMenuItem=true;
+            oItem.string="";
+            oItem.value="";
+            oItem.onClickCallback=this.onMenuClick_ClearMenuHide;
+            oItem.parent = this;
+            arrItems.push(oItem);
+
+            oItem = {}
+            oItem.isMenuItem=true;
+            oItem.string="Down";
+            oItem.value="Down";
+            oItem.onClickCallback=this.onMenuClick_ClearAll;
+            oItem.parent = this;
+            arrItems.push(oItem);
+
+            oItem = {}
+            oItem.isMenuItem=true;
+            oItem.string="Right";
+            oItem.value="Right";
+            oItem.onClickCallback=this.onMenuClick_ClearFormats;
+            oItem.parent = this;
+            arrItems.push(oItem);
+
+            oItem = {}
+            oItem.isMenuItem=true;
+            oItem.string="Up";
+            oItem.value="Up";
+            oItem.onClickCallback=this.onMenuClick_ClearContents;
+            oItem.parent = this;
+            arrItems.push(oItem);
+
+            oItem = {}
+            oItem.isMenuItem=true;
+            oItem.string="Left";
+            oItem.value="Left";
+            oItem.onClickCallback=this.onMenuClick_ClearComments;
+            oItem.parent = this;
+            arrItems.push(oItem);
+            
+            this.oFillMenu= new lively.morphic.Menu(null, arrItems);
+            
+            this.oFillMenu.openIn(this,this.imgFill.getPosition().addXY(7, 7),false);
+        }
     },
     imgSave_Click: function() {
         alert(this.grid.numCols )

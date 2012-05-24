@@ -19,7 +19,7 @@ Object.subclass('lively.morphic.Morph',
         this.shape = shape || this.defaultShape();
         
         this.setNewId();
-        console.log("Initializing morph "+this.id);
+        //console.log("Initializing morph "+this.id);
         //this.shape.styleClassName=this.constructor.name;
         //this.shape.styleId = this.id;
         //console.log("Shape Style ID: " + this.shape.styleId);

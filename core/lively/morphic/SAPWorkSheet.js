@@ -1944,6 +1944,18 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     },
 },
 'Other methods', {
+    fillDown: function(){
+       
+    },
+    fillUp: function(){
+       
+    },
+    fillRight: function(){
+       
+    },
+    fillLeft: function(){
+       
+    },
     setFontSize: function(sFontSize){
         this.ddlFontSize.setSelectionMatching(sFontSize);
     },

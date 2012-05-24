@@ -2358,7 +2358,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             oItem.isMenuItem=true;
             oItem.string="";
             oItem.value="";
-            oItem.onClickCallback=this.onMenuClick_ClearMenuHide;
+            oItem.onClickCallback=this.onMenuClick_FillMenuHide;
             oItem.parent = this;
             arrItems.push(oItem);
 
@@ -2366,7 +2366,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             oItem.isMenuItem=true;
             oItem.string="Down";
             oItem.value="Down";
-            oItem.onClickCallback=this.onMenuClick_ClearAll;
+            oItem.onClickCallback=this.onMenuClick_Down;
             oItem.parent = this;
             arrItems.push(oItem);
 
@@ -2374,7 +2374,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             oItem.isMenuItem=true;
             oItem.string="Right";
             oItem.value="Right";
-            oItem.onClickCallback=this.onMenuClick_ClearFormats;
+            oItem.onClickCallback=this.onMenuClick_Right;
             oItem.parent = this;
             arrItems.push(oItem);
 
@@ -2382,7 +2382,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             oItem.isMenuItem=true;
             oItem.string="Up";
             oItem.value="Up";
-            oItem.onClickCallback=this.onMenuClick_ClearContents;
+            oItem.onClickCallback=this.onMenuClick_Up;
             oItem.parent = this;
             arrItems.push(oItem);
 
@@ -2390,7 +2390,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             oItem.isMenuItem=true;
             oItem.string="Left";
             oItem.value="Left";
-            oItem.onClickCallback=this.onMenuClick_ClearComments;
+            oItem.onClickCallback=this.onMenuClick_Left;
             oItem.parent = this;
             arrItems.push(oItem);
             

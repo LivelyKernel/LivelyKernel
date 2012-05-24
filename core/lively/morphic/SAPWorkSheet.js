@@ -1468,7 +1468,6 @@ currently only support
 
     onMouseUp: function($super, evt) {
         $super(evt);
-         //console.log("SAPGrid.onMouseUp");
     },
     onMouseWheel: function(evt) {
         console.log("onMouseWheel");

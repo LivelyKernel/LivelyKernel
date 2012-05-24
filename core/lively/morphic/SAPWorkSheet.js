@@ -2666,20 +2666,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         var nWidth= this.grid.defaultCellWidth * this.grid.numCols + 50;
         var nHeight = this.grid.defaultCellHeight * this.grid.numRows + 50;
         this.setExtent(lively.pt(nWidth,nHeight));
-        //this.setFill(Color.rgb(255, 255, 225));
-    },
-     onMouseDown: function($super, evt) {
-        
-        $super(evt);
-    },
-    onScroll: function(evt) {
-        console.log("SAPWorkBook: onScroll");
-    },
-    onMouseWheel: function($super,evt) {
-        console.log("SAPWorkBook: onMouseWheel");
-        $super(evt);
     }
-
 });
 lively.morphic.Text.subclass('lively.morphic.SAPGridHeadCell',
 'settings', {

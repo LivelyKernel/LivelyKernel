@@ -348,17 +348,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.oAnnotation.setVisible(false);
     },
     initializeData: function() {
-        var start = new Date().getTime();
         this.rows = [];
         this.dataModel = [];
         this.addScript(function renderFunction(value) { return value; });
-        
         this.createEmptyCells();
-
-
-        var elapsed = new Date().getTime() - start;
-	elapsed = elapsed/1000;
-	console.log('End initializeData '  + elapsed);
     },
     initializeMorph: function() {
         //var start = new Date().getTime();  

@@ -226,8 +226,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
     },
     initializeScrolls: function() {
-
-        var start = new Date().getTime();
         var nXPos = this.defaultCellWidth * (this.numCols-1) + this.defaultRowHeaderWidth;
         var nYPos = this.defaultCellHeight;
         var nHeight = this.defaultCellHeight * (this.numRows-1);
@@ -240,9 +238,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         connect(this.vScroll, "value", this, "updateRowDisplay", {});
         connect(this.hScroll , "value", this, "updateColumnDisplay", {});
-        var elapsed = new Date().getTime() - start;
-	elapsed = elapsed/1000;
-	console.log('End initializeScrolls=' + elapsed);
     },
     getLayoutableSubmorphs: function() {
         return this.submorphs;

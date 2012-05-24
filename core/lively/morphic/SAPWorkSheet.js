@@ -1314,12 +1314,6 @@ currently only support
         evt.stop();
     },
     onDownPressed: function(evt) {
-   
-        if (evt.isShiftDown()){
-            console.log("onDownPressed: ShiftDown")
-        }else{
-            console.log("onDownPressed: no ShiftDown")
-        }
         this.moveActiveCellBy(evt,pt(0,1));
         evt.stop();
     },

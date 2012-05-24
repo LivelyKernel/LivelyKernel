@@ -353,11 +353,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.addScript(function renderFunction(value) { return value; });
         this.createEmptyCells();
     },
-    initializeMorph: function() {
-        //var start = new Date().getTime();  
-         this.setExtent(pt(
-            this.numCols * this.defaultCellWidth  + 2 * this.borderSize,
-            this.numRows * this.defaultCellHeight + 2 * this.borderSize));
+    initializeMorph: function() { 
+        this.setExtent(pt(
+        this.numCols * this.defaultCellWidth  + 2 * this.borderSize,
+        this.numRows * this.defaultCellHeight + 2 * this.borderSize));
         this.setFill(Color.rgb(255,255,255));
         if (!this.hideColHeads) {
             this.createColHeads();
@@ -367,10 +366,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
         this.createCells();
         this.createLayout();
-
-        //var elapsed = new Date().getTime() - start;
-	//elapsed = elapsed/1000;
-	//console.log('End initializeMorph=' + elapsed);
     },
     //expand column data when moving scroll
     expandColumns: function(nDataLength) {

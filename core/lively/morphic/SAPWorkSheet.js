@@ -2252,13 +2252,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         }
     },
     imgItalic_Click: function() {
-        debugger;
         var i;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.arrSelectedCells[i].emphasizeAll({fontStyle: 'italic'});
         }
         //for data
-        
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontStyle='italic';
         }

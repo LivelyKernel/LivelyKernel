@@ -2,7 +2,7 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
 
     lively.morphic.Morph.addMethods(
         'stylesheets', {
-            applyCSS: function() {
+            applyStyleSheet: function() {
                 var cssCode = this.get("CSSSource").textString;
                 var morphName = this.get("MorphName").textString;
     

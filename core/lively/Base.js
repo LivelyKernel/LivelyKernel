@@ -592,7 +592,11 @@ var Class = {
 
     namespaceFor: function Class$namespaceFor(className) {
         // get the namespace object given the qualified name
-        var lastDot = className.lastIndexOf('.');
+        if (className) {
+            var lastDot = className.lastIndexOf('.');
+        } else {
+            var lastDot = -1;
+        }
         if (lastDot < 0) return Global;
         else return namespace(className.substring(0, lastDot));
     },

@@ -10,24 +10,11 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
 		var specificCss = "#"+morphId+" { "+style+" }";
 		var styleTagId = "style-"+morphId;
 
-		var styleNode = document.getElementById(styleTagId);
-		console.log(styleNode);
-		if(styleNode) {
-			styleNode.parentNode.removeChild(styleNode);
-		}
-
-		var head = document.head;
-		var newStyleNode = document.createElement('style');
-		newStyleNode.type = 'text/css';
-		newStyleNode.id = styleTagId;
-		var newStyleContent = document.createTextNode(specificCss);
-		if (newStyleNode.styleSheet) {
-			newStyleNode.styleSheet.cssText = newStyleContent.nodeValue;
-		}
-		else {
-			newStyleNode.appendChild(newStyleContent);
-		}
-		head.appendChild(newStyleNode);
+		var css = $('#' + styleTagId);
+		css.remove();
+		css = $('<style type="text/css" id="' + styleTagId + '"></style>');
+		css.text(specificCss);
+		css.appendTo(document.head);
 		this.styleSheet = style;
 	   }
         }

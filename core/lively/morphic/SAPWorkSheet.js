@@ -341,15 +341,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
     },
     initializeAnnotation: function() {
-        var start = new Date().getTime();
         this.oAnnotation= new lively.morphic.SAPGridAnnotation();
         this.oAnnotation.doitContext = this;
         this.oAnnotation.setExtent(lively.pt(200,100));
         this.oAnnotation.addToGrid(this);
         this.oAnnotation.setVisible(false);
-        var elapsed = new Date().getTime() - start;
-	elapsed = elapsed/1000;
-	console.log('End initializeAnnotation=' + elapsed);
     },
     initializeData: function() {
         var start = new Date().getTime();

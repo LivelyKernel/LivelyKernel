@@ -216,16 +216,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                         }
                         sValue = this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,"",true,bBracket);
                     }
-                    
                     break;
                     default:
-
                 }
-
         return sValue
-
     },
     initializeScrolls: function() {
+    /*Creating vertical & horizontal slider for scrolls*/
         var nXPos = this.defaultCellWidth * (this.numCols-1) + this.defaultRowHeaderWidth;
         var nYPos = this.defaultCellHeight;
         var nHeight = this.defaultCellHeight * (this.numRows-1);
@@ -243,11 +240,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         return this.submorphs;
     },
     updateDataModel: function() {
+        /*we might not need this:  we can display cell directly from arrData... */
         this.clear();
         this.dataModel = [];
         var nRow;
         var nCol;
         var arrColumns=[];
+
         for (nRow = this.startRow; nRow < this.endRow-1; nRow++) {
             arrColumns=[];
             for (nCol = this.startColumn; nCol < this.endColumn-1; nCol++) {
@@ -255,8 +254,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	   }
            this.dataModel.push(arrColumns);
         }
-        //console.log("updateDataModel");
-        //debugger;
         this.updateDisplay();
     },
     //fires when horizontal scroll moves
@@ -290,9 +287,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 this.hScroll.valueScale = nScrollValue + 50;
                 this.hScroll.setValue(nScrollValue + 45);
                 this.updateColumnDisplay(nScrollValue + 45);
-                
-            }
-            
+            } 
         }
         
     },
@@ -317,9 +312,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             }
             //Row name
             for (var nRow= this.startRow+1 ; nRow< this.endRow ; nRow++) {
-                
-                    this.rowHeads [nRow-this.startRow].textString = nRow.toString();
-               
+                this.rowHeads [nRow-this.startRow].textString = nRow.toString();
             }
 
             this.updateDataModel();
@@ -331,11 +324,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                this.vScroll.setValue(nScrollValue + 45);
                this.updateRowDisplay(nScrollValue + 45);
             }
-            
         }
-
     },
     initializeAnnotation: function() {
+        /*Creating annotation*/
         this.oAnnotation= new lively.morphic.SAPGridAnnotation();
         this.oAnnotation.doitContext = this;
         this.oAnnotation.setExtent(lively.pt(200,100));
@@ -345,6 +337,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     initializeData: function() {
         this.rows = [];
         this.dataModel = [];
+        //we don't need this
         this.addScript(function renderFunction(value) { return value; });
         this.createEmptyCells();
     },
@@ -364,6 +357,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     },
     //expand column data when moving scroll
     expandColumns: function(nDataLength) {
+        /**/
         //var start = new Date().getTime();    
         debugger;
         var nStartColumn = this.arrData[0].length;

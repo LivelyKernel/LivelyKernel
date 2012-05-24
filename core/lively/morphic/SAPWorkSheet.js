@@ -2520,10 +2520,9 @@ dataformat: currency & percentage & date & time
         this.imgTextAlignRight.setToolTip("Align Text Right");
 
         this.imgClear           = img(6*nGapGroupWidth + 25*17 + 10 + 14*nGapWidth,nSecondLineYPos,24,24, "images/Actions-edit-clear-icon.png");
-        this.ddlClear = new lively.morphic.DropDownList(
-                        new Rectangle(6*nGapGroupWidth + 25*17 + 10 + 14*nGapWidth,nSecondLineYPos,100, 20), 
-                        ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
-        //this.addMorph(this.ddlClear);
+        this.imgFill           = img(6*nGapGroupWidth + 25*18 + 10 + 13*nGapWidth,nSecondLineYPos,24,24, "images/fill.png");
+
+
         this.addMorph(this.imgInsertRow);
         this.addMorph(this.imgRemoveRow);
         this.addMorph(this.imgInsertColumn);
@@ -2536,6 +2535,7 @@ dataformat: currency & percentage & date & time
         this.addMorph(this.imgCut);
         this.addMorph(this.imgPaste);
         this.addMorph(this.imgClear);
+        this.addMorph(this.imgFill);
 
         this.addMorph(this.imgBold);
         this.addMorph(this.imgItalic );
@@ -2563,55 +2563,7 @@ dataformat: currency & percentage & date & time
 
         this.ddlFontSize.grabbingEnabled = false;
         this.ddlFont.grabbingEnabled = false;
-        /*
-        this.imgSave.grabbingEnabled = false;
-        this.imgSaveAs.grabbingEnabled = false;
-        this.imgCopy.grabbingEnabled = false;
-        this.imgCut.grabbingEnabled = false;
-        this.imgPaste.grabbingEnabled = false;
-        this.imgClear.grabbingEnabled = false;
-        this.imgBold.grabbingEnabled = false;
-        this.imgItalic.grabbingEnabled = false;
-        this.imgUnderline.grabbingEnabled = false;
-        this.imgBackGroundColor.grabbingEnabled = false;
-        this.imgFontColor.grabbingEnabled = false;
-        this.imgSignDollar.grabbingEnabled = false;
-        this.imgSignPercent.grabbingEnabled = false;
-        this.imgBoarder.grabbingEnabled = false;
-        this.imgFilter.grabbingEnabled = false;
-        this.imgInsertRow.grabbingEnabled = false;
-        this.imgRemoveRow.grabbingEnabled = false;
-        this.imgInsertColumn.grabbingEnabled = false;
-        this.imgRemoveColumn.grabbingEnabled = false;
-        this.imgTextAlignLeft.grabbingEnabled = false;
-        this.imgTextAlignCenter.grabbingEnabled = false;
-        this.imgTextAlignRight.grabbingEnabled = false;
-        this.imgFormatCell.grabbingEnabled = false;
-
-        this.imgSave.disableHalos();
-        this.imgSaveAs.disableHalos();
-        this.imgCopy.disableHalos();
-        this.imgCut.disableHalos();
-        this.imgPaste.disableHalos();
-        this.imgClear.disableHalos();
-        this.imgBold.disableHalos();
-        this.imgItalic.disableHalos();
-        this.imgUnderline.disableHalos();
-        this.imgBackGroundColor.disableHalos();
-        this.imgFontColor.disableHalos();
-        this.imgSignDollar.disableHalos();
-        this.imgSignPercent.disableHalos();
-        this.imgBoarder.disableHalos();
-        this.imgFilter.disableHalos();
-        this.imgInsertRow.disableHalos();
-        this.imgRemoveRow.disableHalos();
-        this.imgInsertColumn.disableHalos();
-        this.imgRemoveColumn.disableHalos();
-        this.imgTextAlignLeft.disableHalos();
-        this.imgTextAlignCenter.disableHalos();
-        this.imgTextAlignRight.disableHalos();
-        this.imgFormatCell.disableHalos();
-*/
+  
     },
 
     initializeEvents: function() {

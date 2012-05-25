@@ -2383,7 +2383,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
             oItem = {}
             oItem.isMenuItem=true;
-            oItem.string="Down";
+            oItem.string="Fill Down";
             oItem.value="Down";
             oItem.onClickCallback=this.onMenuClick_Down;
             oItem.parent = this;
@@ -2391,7 +2391,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
             oItem = {}
             oItem.isMenuItem=true;
-            oItem.string="Right";
+            oItem.string="Fill Right";
             oItem.value="Right";
             oItem.onClickCallback=this.onMenuClick_Right;
             oItem.parent = this;
@@ -2399,7 +2399,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
             oItem = {}
             oItem.isMenuItem=true;
-            oItem.string="Up";
+            oItem.string="Fill Up";
             oItem.value="Up";
             oItem.onClickCallback=this.onMenuClick_Up;
             oItem.parent = this;
@@ -2407,7 +2407,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
             oItem = {}
             oItem.isMenuItem=true;
-            oItem.string="Left";
+            oItem.string="Fill Left";
             oItem.value="Left";
             oItem.onClickCallback=this.onMenuClick_Left;
             oItem.parent = this;

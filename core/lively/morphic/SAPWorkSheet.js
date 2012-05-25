@@ -2103,8 +2103,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         //saving each column in different set
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             oItem ={};
-            oItem.x=this.grid.arrSelectedCells[i].gridPos().x;
-            nY = this.grid.arrSelectedCells[i].gridPos().y;
+            oItem.x=this.grid.arrSelectedCells[i].gridPos().x+1;
+            nY = this.grid.arrSelectedCells[i].gridPos().y+1;
 
             bExist = arrDisplay.detect(function(ea) { return ea.x == oItem.x});
             if (bExist){

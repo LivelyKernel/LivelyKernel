@@ -750,9 +750,8 @@ lively.morphic.Shapes.Shape.addMethods(
 
         this.getNodeClass() && this.setNodeClassHTML(ctx, this.getNodeClass());
         if (this.getNodeId()) { 
-            console.log("Set nodeId ...");
             this.setNodeIdHTML(ctx, this.getNodeId());
-            this.setStyleSheetHTML(ctx, this.getStyleSheet());
+            this.getStyleSheet() && this.setStyleSheetHTML(ctx, this.getStyleSheet());
         }
         
         

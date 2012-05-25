@@ -878,7 +878,7 @@ lively.morphic.Shapes.Shape.addMethods(
             alert("Cannot set morph specific style sheet. Shape node was not assigned any id.");
             return false;
         }
-	console.log("Setting CSS for shape "+morphId+" to "+value);	
+	//console.log("Setting CSS for shape "+morphId+" to "+value);	
         var specificCss = "#"+morphId+" { "+value+" }";
         var styleTagId = "style-"+morphId;
 

@@ -165,7 +165,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
         return node.setAttributeNS(null, name, String(value));
     },
     setFill: function(node, fill, shapeBounds) {
-        if (fill === undefined) {
+        if (!fill) {
             node.style.background = null;
          } else if (this.isHTML(node)) {
             if (fill == null) fill = Color.rgba(0,0,0,0);

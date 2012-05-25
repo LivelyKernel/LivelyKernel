@@ -2095,12 +2095,21 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         debugger;
         var arrDisplay=[];
         //saving only same column
-        
+        var arrColumns=[]; //hold columns
+
+//this.allModules().detect(function(ea) { return ea.fileName() == fileName })
+        //arrDisplay = this.grid.arrSelectedCells.sortBy(function(obj) { return obj.gridPos().x});
+        var nX,nY;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            nX = this.grid.arrSelectedCells.gridPos().x;
+            nY = this.grid.arrSelectedCells.gridPos().y;
+            //if (!arrColumns.detect(function(ea) { return ea) == nX})){
+            //    arrColumns.push(nX);
+                
+            //}
 
 
-        arrDisplay = this.grid.arrSelectedCells.sortBy(function(obj) { return obj.gridPos().x});
-
-
+        }
 
         var nMax= this.grid.arrSelectedCells.max(function(obj) { return obj.gridPos().x})
         //for (i= 0; i< this.grid.arrSelectedCells.length; i++) {

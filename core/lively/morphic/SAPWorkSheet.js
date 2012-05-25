@@ -2125,8 +2125,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             nMax= arrDisplay[i].arrY.max(function(obj) { return obj})
             nMin= arrDisplay[i].arrY.min(function(obj) { return obj})
             
-            for (j= 0; j< arrDisplay[j].arrY.length; j++) { 
-                var a = this.grid.at(arrDisplay[i].x,nMin).textString;
+            for (j= 0; j< arrDisplay[i].arrY.length; j++) { 
+                //var a = this.grid.at(arrDisplay[i].x,nMin).textString;
                 this.grid.at(arrDisplay[i].x,arrDisplay[i].arrY[j]).textString=this.grid.at(arrDisplay[i].x,nMin).textString;
             }
             

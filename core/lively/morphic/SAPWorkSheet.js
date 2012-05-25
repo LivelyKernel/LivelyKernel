@@ -2161,6 +2161,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         }else{
             var self = this;
             var arrItems= [
+                ['',  function() { self.oClearMenu.remove(); }],
             	['Clear All',  function() { self.clearCell(true,true,true,true,true) }],
             	['Clear Formats',  function() { self.clearCell(true,false,false,false,false) }],
                 ['Clear Contents',  function() { self.clearCell(false,true,false,false,false) }],

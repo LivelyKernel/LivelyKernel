@@ -2109,28 +2109,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         }
     }
 },
-'Clear Menu Events', {
-    onMenuClick_ClearMenuHide: function(evt) {
-       this.parent.oClearMenu.remove();
-    },
-    onMenuClick_ClearAll: function(evt) {
-        this.parent.clearCell(true,true,true,true,true);
-    },
-    onMenuClick_ClearFormats: function(evt) {
-       //this.clearCell(bClearFormats,bClearContents,bClearComments,bClearFormula,bClearStyle)
-       this.parent.clearCell(true,false,false,false,false);
-    },
-    onMenuClick_ClearContents: function(evt) {
-        //this.clearCell(bClearFormats,bClearContents,bClearComments,bClearFormula)
-       this.parent.clearCell(false,true,false,false,false);
-    },
-    onMenuClick_ClearComments: function($super,evt) {
-       this.parent.clearCell(false,false,true,false,false);
-    },
-    onMenuClick_ClearFormulas: function(evt) {
-       this.parent.clearCell(false,false,false,true,false);
-    }
-},
 'Fill Menu Events', {
     onMenuClick_FillMenuHide: function(evt) {
        this.parent.oFillMenu.remove();

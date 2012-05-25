@@ -224,8 +224,8 @@ Object.subclass('lively.morphic.Morph',
     },
 
     setAppearanceStylingMode: function(value) {
-    // TRUE when appearance is styled through style dialog,
-    // FALSE when appearance is styled through style sheets
+    // TRUE when appearance is styled through style sheets,
+    // FALSE when appearance is styled through style dialog
         return this.shape.setAppearanceStylingMode(value);
     },
     getAppearanceStylingMode: function() {

@@ -2094,7 +2094,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         //need to get hightest y axis
         debugger;
         var arrDisplay=[];
-        arrDisplay = this.grid.arrSelectedCells.sortBy(function(obj) { return obj.gridPos().x})
+        //saving only same column
+        
+
+
+        arrDisplay = this.grid.arrSelectedCells.sortBy(function(obj) { return obj.gridPos().x});
+
+
+
         var nMax= this.grid.arrSelectedCells.max(function(obj) { return obj.gridPos().x})
         //for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
         //   arrDisplay.push({x:this.grid.arrSelectedCells[i].gridPos().x ,y:this.grid.arrSelectedCells[i].gridPos().y})

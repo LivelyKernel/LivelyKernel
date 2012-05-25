@@ -2099,7 +2099,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
             
         //saving each column in different set for selected Data
-        
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+             oItem ={};
+        }
         
 
 

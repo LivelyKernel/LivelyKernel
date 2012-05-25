@@ -2152,11 +2152,20 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             }
         }
         //get max number for each cell
+        var sValue;
         for (i= 0; i< arrDisplay.length; i++) {
-            nMax= arrDisplay[i].arrY.max(function(obj) { return obj})
-            nMin= arrDisplay[i].arrY.min(function(obj) { return obj})
+            //nMax= arrDisplay[i].arrY.max(function(obj) { return obj})
+            //nMin= arrDisplay[i].arrY.min(function(obj) { return obj})
+
+            for (n= 0; n< arrDataSet.length; n++) {
+                if (arrDisplay[i].x==arrDataSet[n].gridX){
+                    sValue = arrDataSet[n].oDataCell.value;
+                    break;
+                }
+            }
+
             for (j= 0; j< arrDisplay[i].arrY.length; j++) { 
-                this.grid.at(arrDisplay[i].x,arrDisplay[i].arrY[j]).textString = this.grid.at(arrDisplay[i].x,nMin).textString;
+                this.grid.at(arrDisplay[i].x,arrDisplay[i].arrY[j]).textString =sValue; // this.grid.at(arrDisplay[i].x,nMin).textString;
             }
         }
         

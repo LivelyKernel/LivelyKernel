@@ -18,7 +18,7 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
 		this.styleSheet = style;
 	   }
         }
-    )
+    );
 
     lively.morphic.Shapes.Shape.addMethods(
         'stylesheets', {
@@ -30,7 +30,7 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
             },
             
         }
-    )
+    );
 
 
 

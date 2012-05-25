@@ -97,6 +97,14 @@ Object.subclass('lively.morphic.Shapes.Shape',
         return this.shapeGetter('StyleSheet') || "";
     },
 
+    setAppearanceStylingMode: function(value) {
+        return this.shapeSetter('AppearanceStylingMode', value);
+    },
+    getAppearanceStylingMode: function() {
+        return this.shapeGetter('AppearanceStylingMode');
+    },
+
+
 },
 'comparing', {
     equals: function (otherShape) {

@@ -826,6 +826,8 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     setBorderHTML: function(ctx, width, fill, opacity) {
         if (!ctx.shapeNode) return;
+
+        
         if ((fill instanceof Color) && opacity) fill = fill.withA(opacity);
         if (!fill) fill = Color.rgba(0,0,0,0);
         ctx.shapeNode.style['border'] = this.getBorderStyle() + ' ' + width + 'px ' +

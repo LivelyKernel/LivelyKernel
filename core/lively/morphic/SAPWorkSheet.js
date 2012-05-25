@@ -2092,7 +2092,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     fillDown: function(){
         var i,j;
         //need to get hightest y axis
-        debugger;
+        
         var arrDisplay=[];
         var bExist;
         var oItem={}
@@ -2121,6 +2121,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
         }
         //get max number for each cell
+debugger;
         for (i= 0; i< arrDisplay.length; i++) {
             nMax= arrDisplay[i].arrY.max(function(obj) { return obj})
             nMin= arrDisplay[i].arrY.min(function(obj) { return obj})

@@ -898,7 +898,14 @@ lively.morphic.Shapes.Shape.addMethods(
         this.isStyleSheetAppearance = value;
         this.setFillHTML(ctx, this.shapeGetter("Fill"));
         this.setOpacityHTML(ctx, this.shapeGetter("Opacity"));
-    }  
+    } ,
+
+     setBorderStylingModeHTML: function(ctx, value) {
+        this.isStyleSheetBorder = value;
+        
+    } 
+
+ 
 
 });
 

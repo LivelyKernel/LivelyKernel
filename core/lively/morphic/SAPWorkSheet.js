@@ -2099,12 +2099,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
 //this.allModules().detect(function(ea) { return ea.fileName() == fileName })
         //arrDisplay = this.grid.arrSelectedCells.sortBy(function(obj) { return obj.gridPos().x});
-        var nX,nY;
+        var nX,nY,nMax;
+        //saving each column in different set
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             oItem ={};
             oItem.x=this.grid.arrSelectedCells[i].gridPos().x;
             nY = this.grid.arrSelectedCells[i].gridPos().y;
-            //oItem.y=this.grid.arrSelectedCells[i].gridPos().y;
 
             bExist = arrDisplay.detect(function(ea) { return ea.x == oItem.x});
             if (bExist){
@@ -2119,17 +2119,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
                 arrDisplay.push(oItem);
             }
 
-
-
-            //if (!arrColumns.detect(function(ea) { return ea) == nX})){
-            //    arrColumns.push(nX);
-                
-            //}
-
-
+        }
+        //get max number for each cell
+        for (i= 0; i< arrDisplay.length; i++) {
+            nMax= arrDisplay[i].arrY.max(function(obj) { return obj})
+            arrDisplay[i].max = nMax;
         }
 
-        var nMax= this.grid.arrSelectedCells.max(function(obj) { return obj.gridPos().x})
+        //var nMax= this.grid.arrSelectedCells.max(function(obj) { return obj.gridPos().x})
         //for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
         //   arrDisplay.push({x:this.grid.arrSelectedCells[i].gridPos().x ,y:this.grid.arrSelectedCells[i].gridPos().y})
         //}

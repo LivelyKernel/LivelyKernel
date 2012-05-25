@@ -2116,6 +2116,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
                 arrDataSet.push(oItem);
             }
         }
+        //get min (top row) and use this value to change all value
         for (i= 0; i< arrDataSet.length; i++) {
             nMax= arrDataSet[i].arrY.max(function(obj) { return obj});
             nMin= arrDataSet[i].arrY.min(function(obj) { return obj});
@@ -2123,7 +2124,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
                 this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x].value = this.grid.arrData[nMin][arrDataSet[i].x].value;
             }
         }
-
 
         //saving each column in different set
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
@@ -2143,7 +2143,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
                 oItem.arrY.push(nY)
                 arrDisplay.push(oItem);
             }
-
         }
         //get max number for each cell
         for (i= 0; i< arrDisplay.length; i++) {
@@ -2154,18 +2153,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             }
         }
         
-
-        //var nMax= this.grid.arrSelectedCells.max(function(obj) { return obj.gridPos().x})
-        //for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-        //   arrDisplay.push({x:this.grid.arrSelectedCells[i].gridPos().x ,y:this.grid.arrSelectedCells[i].gridPos().y})
-        //}
-        //arrDisplay= arrDisplay.sortBy(function(obj) { return obj.x})
-
-
-        //for data
-        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            
-        }
     },
     fillUp: function(){
        

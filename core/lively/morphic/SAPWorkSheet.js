@@ -2099,7 +2099,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
            arrDisplay.push({x:this.grid.arrSelectedCells[i].gridPos().x ,y:this.grid.arrSelectedCells[i].gridPos().y})
         }
-        arrDisplay.sortBy(x)
+        arrDisplay.sortBy("x")
 
 
         //for data

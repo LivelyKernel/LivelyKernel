@@ -929,7 +929,7 @@ lively.morphic.Shapes.Rectangle.addMethods(
     setBorderRadiusHTML: function(ctx, value) {
         if (Object.isString(value)) {
             // irregular border radius for windows e.g.
-            ctx.getShapeNode().style.borderRadius = value
+            ctx.getShapeNode().style.borderRadius = (this.isStyleSheetBorder)?null:value;
         } else {
              ctx.domInterface.setHTMLBorderRadius(ctx.getShapeNode(), value, value)
         }

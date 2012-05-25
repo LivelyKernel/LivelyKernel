@@ -2314,45 +2314,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         if (this.oFillMenu){
             this.oFillMenu.openInWorld(this.imgFill.getPositionInWorld().addXY(7, 7));
         }else{
-           
-
-
-            var arrItems=[]
-            oItem = {}
-            oItem.isMenuItem=true;
-            oItem.string="";
-            oItem.onClickCallback=this.onMenuClick_FillMenuHide;
-            oItem.parent = this;
-            arrItems.push(oItem);
-
-            oItem = {}
-            oItem.isMenuItem=true;
-            oItem.string="Fill Down";
-            oItem.onClickCallback=this.onMenuClick_Down;
-            oItem.parent = this;
-            arrItems.push(oItem);
-
-            oItem = {}
-            oItem.isMenuItem=true;
-            oItem.string="Fill Right";
-            oItem.onClickCallback=this.onMenuClick_Right;
-            oItem.parent = this;
-            arrItems.push(oItem);
-
-            oItem = {}
-            oItem.isMenuItem=true;
-            oItem.string="Fill Up";
-            oItem.value="Up";
-            oItem.onClickCallback=this.onMenuClick_Up;
-            oItem.parent = this;
-            arrItems.push(oItem);
-
-            oItem = {}
-            oItem.isMenuItem=true;
-            oItem.string="Fill Left";
-            oItem.onClickCallback=this.onMenuClick_Left;
-            oItem.parent = this;
-            arrItems.push(oItem);
+           var self = this;
+           var arrItems= [
+                ['',  function() { self.oFillMenu.remove(); }],
+            	['Fill Down',  function() { self.onMenuClick_Down() }],
+            	['Fill Right',  function() { self.onMenuClick_Right() }],
+                ['Fill Up',  function() { self.onMenuClick_Up() }],
+                ['Fill Left',  function() { self.onMenuClick_Left() }]];
             
             this.oFillMenu= new lively.morphic.Menu(null, arrItems);
             

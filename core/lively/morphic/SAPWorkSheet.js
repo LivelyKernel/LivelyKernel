@@ -2165,49 +2165,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             	['Clear Formats',  function() { self.clearCell(true,false,false,false,false) }],
                 ['Clear Contents',  function() { self.clearCell(false,true,false,false,false) }],
                 ['Clear Comments',  function() { self.clearCell(false,false,true,false,false) }]];
+
+//Note from Robert~~~ thanks
 //['Clear Formats', this.onMenuClick_ClearFormats.bind(this)]
 //var self = this; ['Clear All', function() { self.clearCell(true,true,true,true,true) }]
+//this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
 
-
-
-            //this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
-           /*
-            arrItems=[]
-            oItem = {}
-            oItem.isMenuItem=true;
-            oItem.string="";
-            oItem.onClickCallback=this.onMenuClick_ClearMenuHide;
-            oItem.parent = this;
-            arrItems.push(oItem);
-
-            oItem = {}
-            oItem.isMenuItem=true;
-            oItem.string="Clear All";
-            oItem.onClickCallback=this.onMenuClick_ClearAll;
-            oItem.parent = this;
-            arrItems.push(oItem);
-
-            oItem = {}
-            oItem.isMenuItem=true;
-            oItem.string="Clear Formats";
-            oItem.onClickCallback=this.onMenuClick_ClearFormats;
-            oItem.parent = this;
-            arrItems.push(oItem);
-
-            oItem = {}
-            oItem.isMenuItem=true;
-            oItem.string="Clear Contents";
-            oItem.onClickCallback=this.onMenuClick_ClearContents;
-            oItem.parent = this;
-            arrItems.push(oItem);
-
-            oItem = {}
-            oItem.isMenuItem=true;
-            oItem.string="Clear Comments";
-            oItem.onClickCallback=this.onMenuClick_ClearComments;
-            oItem.parent = this;
-            arrItems.push(oItem);
-            */
             this.oClearMenu= new lively.morphic.Menu(null, arrItems);
             this.oClearMenu.addScript(function onMouseOut(evt) {
                 $super(evt);

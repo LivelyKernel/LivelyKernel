@@ -2091,17 +2091,19 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 'Fill', {
     fillDown: function(){
         var i,j;
-        //need to get hightest y axis
-        
         var arrDisplay=[];
+        var arrDataSet =[];
         var bExist;
         var oItem={}
-
-//this.allModules().detect(function(ea) { return ea.fileName() == fileName })
-        //arrDisplay = this.grid.arrSelectedCells.sortBy(function(obj) { return obj.gridPos().x});
         var nX,nY,nMax;
-        //saving each column in different set
 
+            
+        //saving each column in different set for selected Data
+        
+        
+
+
+        //saving each column in different set
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             oItem ={};
             oItem.x=this.grid.arrSelectedCells[i].gridPos().x+1; //need to check why we have to add 1
@@ -2125,13 +2127,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         for (i= 0; i< arrDisplay.length; i++) {
             nMax= arrDisplay[i].arrY.max(function(obj) { return obj})
             nMin= arrDisplay[i].arrY.min(function(obj) { return obj})
-            
             for (j= 0; j< arrDisplay[i].arrY.length; j++) { 
                 this.grid.at(arrDisplay[i].x,arrDisplay[i].arrY[j]).textString = this.grid.at(arrDisplay[i].x,nMin).textString;
             }
-            
-            
-
         }
         
 

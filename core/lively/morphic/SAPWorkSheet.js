@@ -2101,6 +2101,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         //arrDisplay = this.grid.arrSelectedCells.sortBy(function(obj) { return obj.gridPos().x});
         var nX,nY,nMax;
         //saving each column in different set
+debugger;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             oItem ={};
             oItem.x=this.grid.arrSelectedCells[i].gridPos().x+1;

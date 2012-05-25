@@ -2229,14 +2229,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             oItem.onClickCallback=this.onMenuClick_ClearComments;
             oItem.parent = this;
             arrItems.push(oItem);
-            
+            */
             this.oClearMenu= new lively.morphic.Menu(null, arrItems);
             this.oClearMenu.addScript(function onMouseOut(evt) {
                 $super(evt);
                 //this.remove();
                 console.log("onMouseOut")
                 return true;
-            })*/
+            })
             this.oClearMenu.openIn(this,this.imgClear.getPosition().addXY(7, 7),false);
         }
     },

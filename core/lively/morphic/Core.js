@@ -197,8 +197,13 @@ Object.subclass('lively.morphic.Morph',
         else {
             a = value.split(/[\s,]+/);
         }
+        var type = this.constructor;
         
-        a.unshift(this.constructor.name);
+        while (type != Object) {
+            a.unshift(type.name);
+            type = type.superclass;
+        }        
+
         var result = [];
         a.each(function(item){result.push( item.toLowerCase());});
         result = result.uniq();

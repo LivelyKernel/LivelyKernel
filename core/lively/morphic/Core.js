@@ -215,6 +215,14 @@ Object.subclass('lively.morphic.Morph',
         return this.shape.getNodeId();
     },
 
+    setStyleSheet: function(value) {
+        this.setNodeId();
+        return this.shape.setStyleSheet(value);
+    },
+    getStyleSheet: function() {
+        return this.shape.getStyleSheet();
+    },
+
     setVertices: function(v) { this.shape.setVertices(v) },
 
 },

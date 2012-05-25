@@ -2100,9 +2100,29 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             
         //saving each column in different set for selected Data
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-             oItem ={};
+            oItem ={};
+            oItem.x=this.grid.arrSelectedData[i].x;
+            nY = this.grid.arrSelectedData[i].y;
+            bExist = arrDataSet.detect(function(ea) { return ea.x == oItem.x});
+            if (bExist){
+                 arrDataSet.forEach(function (ea) {
+                    if (ea.x==oItem.x){
+                        ea.arrY.push(nY);
+                    }
+                });
+            }else{
+                oItem.arrY=[];
+                oItem.arrY.push(nY)
+                arrDataSet.push(oItem);
+            }
         }
-        
+        for (i= 0; i< arrDisplay.length; i++) {
+            nMax= arrDataSet[i].arrY.max(function(obj) { return obj});
+            nMin= arrDataSet[i].arrY.min(function(obj) { return obj});
+            for (j= 0; j< arrDataSet[i].arrY.length; j++) { 
+                
+            }
+        }
 
 
         //saving each column in different set

@@ -2181,14 +2181,19 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         if (this.oClearMenu){
             this.oClearMenu.openInWorld(this.imgClear.getPositionInWorld().addXY(7, 7));
         }else{
+            var self = this;
             var arrItems= [
-            	['Clear All', this.onMenuClick_ClearAll],
-            	['Clear Formats', this.onMenuClick_ClearFormats],
-                ['Clear Contents', this.onMenuClick_ClearContents],
-                //['Clear Formulas', this.onMenuClick_ClearFormulas],
-                ['Clear Comments', this.onMenuClick_ClearComments]];
+            	['Clear All',  function() { self.clearCell(true,true,true,true,true) }],
+            	['Clear Formats',  function() { self.clearCell(true,false,false,false,false) }],
+                ['Clear Contents',  function() { self.clearCell(false,true,false,false,false) }],
+                ['Clear Comments',  function() { self.clearCell(false,false,true,false,false) }]];
+//['Clear Formats', this.onMenuClick_ClearFormats.bind(this)]
+//var self = this; ['Clear All', function() { self.clearCell(true,true,true,true,true) }]
+
+
+
             //this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
-           
+           /*
             arrItems=[]
             oItem = {}
             oItem.isMenuItem=true;
@@ -2231,7 +2236,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
                 //this.remove();
                 console.log("onMouseOut")
                 return true;
-            })
+            })*/
             this.oClearMenu.openIn(this,this.imgClear.getPosition().addXY(7, 7),false);
         }
     },

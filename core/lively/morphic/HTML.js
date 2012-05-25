@@ -893,8 +893,9 @@ lively.morphic.Shapes.Shape.addMethods(
 	css.appendTo(document.head);
     }  ,
     
-    setAppearanceStylingMode: function(ctx, value) {
+    setAppearanceStylingModeHTML: function(ctx, value) {
         this.isStyleSheetAppearance = value;
+
     }  
 
 });

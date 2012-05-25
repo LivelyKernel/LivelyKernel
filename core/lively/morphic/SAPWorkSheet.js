@@ -1944,27 +1944,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     },
 },
 'Other methods', {
-    fillDown: function(){
-        var i;
-        //need to get hightest y axis
-        
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-           
-        }
-        //for data
-        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            
-        }
-    },
-    fillUp: function(){
-       
-    },
-    fillRight: function(){
-       
-    },
-    fillLeft: function(){
-       
-    },
     setFontSize: function(sFontSize){
         this.ddlFontSize.setSelectionMatching(sFontSize);
     },
@@ -2107,6 +2086,29 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
         }
+    }
+},
+'Fill', {
+    fillDown: function(){
+        var i;
+        //need to get hightest y axis
+        
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+           
+        }
+        //for data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            
+        }
+    },
+    fillUp: function(){
+       
+    },
+    fillRight: function(){
+       
+    },
+    fillLeft: function(){
+       
     }
 },
 'Image Click Events', {

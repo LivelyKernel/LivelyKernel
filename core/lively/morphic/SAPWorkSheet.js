@@ -2101,8 +2101,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         //arrDisplay = this.grid.arrSelectedCells.sortBy(function(obj) { return obj.gridPos().x});
         var nX,nY;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            nX = this.grid.arrSelectedCells.gridPos().x;
-            nY = this.grid.arrSelectedCells.gridPos().y;
+            nX = this.grid.arrSelectedCells[i].gridPos().x;
+            nY = this.grid.arrSelectedCells[i].gridPos().y;
             bExist = arrColumns.detect(function(ea) { return ea == nX});
             if (!bExist){
                  arrColumns.push(nX);

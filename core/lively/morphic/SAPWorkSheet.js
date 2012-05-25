@@ -2116,11 +2116,15 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
                 arrDataSet.push(oItem);
             }
         }
-        for (i= 0; i< arrDisplay.length; i++) {
+        for (i= 0; i< arrDataSet.length; i++) {
             nMax= arrDataSet[i].arrY.max(function(obj) { return obj});
             nMin= arrDataSet[i].arrY.min(function(obj) { return obj});
             for (j= 0; j< arrDataSet[i].arrY.length; j++) { 
-                
+                this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x].value = this.grid.arrData[nMin][arrDisplay[i].x].value;
+
+                //this.grid.at(arrDisplay[i].x,arrDisplay[i].arrY[j]).textString = this.grid.at(arrDisplay[i].x,nMin).textString;
+
+
             }
         }
 

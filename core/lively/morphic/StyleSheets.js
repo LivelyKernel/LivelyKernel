@@ -15,7 +15,7 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
 		css = $('<style type="text/css" id="' + styleTagId + '"></style>');
 		css.text(specificCss);
 		css.appendTo(document.head);
-		this.styleSheet = style;
+		this.shape.setStyleSheet(style);
 	   }
         }
     );

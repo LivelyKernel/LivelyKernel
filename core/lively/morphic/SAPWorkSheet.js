@@ -2108,14 +2108,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
             bExist = arrDisplay.detect(function(ea) { return ea.x == oItem.x});
             if (bExist){
-                  oItem.arrY.push(nY)
-                 arrDisplay.push(oItem);
-            }else{
-                arrDisplay.forEach(function (ea) {
+                 arrDisplay.forEach(function (ea) {
                     if (ea.x==oItem.x){
                         ea.arrY.push(nY);
                     }
                 });
+            }else{
+                oItem.arrY.push(nY)
+                arrDisplay.push(oItem);
             }
 
 

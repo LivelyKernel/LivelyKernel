@@ -2105,8 +2105,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             oItem.x=this.grid.arrSelectedData[i].x;
             oItem.gridX = oItem.x-this.grid.startColumn+1;
        
-
-
             nY = this.grid.arrSelectedData[i].y;
             bExist = arrDataSet.detect(function(ea) { return ea.x == oItem.x});
             if (bExist){

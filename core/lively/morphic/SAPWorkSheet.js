@@ -2095,7 +2095,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         debugger;
         var arrDisplay=[];
         arrDisplay = this.grid.arrSelectedCells.sortBy(function(obj) { return obj.gridPos().x})
-
+        arrDisplay = this.grid.arrSelectedCells.max(function(obj) { return obj.gridPos().x})
         //for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
         //   arrDisplay.push({x:this.grid.arrSelectedCells[i].gridPos().x ,y:this.grid.arrSelectedCells[i].gridPos().y})
         //}

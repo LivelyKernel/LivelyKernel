@@ -232,6 +232,16 @@ Object.subclass('lively.morphic.Morph',
         return this.shape.getAppearanceStylingMode();
     },
 
+    setBorderStylingMode: function(value) {
+    // TRUE when border is styled through style sheets,
+    // FALSE when border is styled through style dialog
+        return this.shape.setBorderStylingMode(value);
+    },
+    getBorderStylingMode: function() {
+        return this.shape.getBorderStylingMode();
+    },
+
+
     setVertices: function(v) { this.shape.setVertices(v) },
 
 },

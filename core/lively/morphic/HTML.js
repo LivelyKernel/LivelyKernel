@@ -747,9 +747,15 @@ lively.morphic.Shapes.Shape.addMethods(
         this.setBorderStyleHTML(ctx, this.getBorderStyle());
         this.setPaddingHTML(ctx, this.getPadding()); // also sets extent
 
-        this.getNodeId() && this.setNodeIdHTML(ctx, this.getNodeId());
-        this.getNodeClass() && this.setNodeClassHTML(ctx, this.getNodeClass());
 
+        this.getNodeClass() && this.setNodeClassHTML(ctx, this.getNodeClass());
+        if (this.getNodeId()) { 
+            console.log("Set nodeId ...");
+            this.setNodeIdHTML(ctx, this.getNodeId());
+            this.setStyleSheetHTML(ctx, this.getStyleSheet());
+        }
+        
+        
         if (UserAgent.fireFoxVersion)
             ctx.shapeNode['-moz-user-modify'] = 'read-only'
     },
@@ -866,11 +872,13 @@ lively.morphic.Shapes.Shape.addMethods(
     },
 
     setStyleSheetHTML: function(ctx, value) {
+
         var morphId = ctx.shapeNode.id;
         if (!morphId) {
             alert("Cannot set morph specific style sheet. Shape node was not assigned any id.");
+            return false;
         }
-		
+	console.log("Setting CSS for shape "+morphId+" to "+value);	
         var specificCss = "#"+morphId+" { "+value+" }";
         var styleTagId = "style-"+morphId;
 

@@ -2114,6 +2114,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
                     }
                 });
             }else{
+                oItem.arrY=[];
                 oItem.arrY.push(nY)
                 arrDisplay.push(oItem);
             }

@@ -141,7 +141,8 @@ lively.morphic.Morph.addMethods(
         setToolTip: 'setToolTipHTML',
         focus: 'focusHTML',
         blur: 'blurHTML',
-        setFocusable: 'setFocusableHTML'
+        setFocusable: 'setFocusableHTML',
+        setStyleSheet: 'setStyleSheetHTML'
     },
 },
 'udpating', {
@@ -225,6 +226,10 @@ lively.morphic.Morph.addMethods(
     setToolTipHTML: function(ctxt, string) {
         if (ctxt.morphNode)
             ctxt.morphNode.setAttribute('title', string)
+    },
+
+    setStyleSheetHTML: function(ctx, css) {
+    
     }
 
 },

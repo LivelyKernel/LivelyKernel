@@ -2135,7 +2135,7 @@ debugger;
 
                 var b = this.grid.at(x,y).textString;
 
-                this.grid.at(x,y).textString=this.grid.at(arrDisplay[i].x,nMin).textString;
+                this.grid.at(x,y).textString = this.grid.at(arrDisplay[i].x,nMin).textString;
             }
             
             

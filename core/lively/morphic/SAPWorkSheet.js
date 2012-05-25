@@ -2313,7 +2313,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         if (this.oFillMenu){
             this.oFillMenu.openInWorld(this.imgFill.getPositionInWorld().addXY(7, 7));
         }else{
-            arrItems=[]
+           
+
+
+            var arrItems=[]
             oItem = {}
             oItem.isMenuItem=true;
             oItem.string="";

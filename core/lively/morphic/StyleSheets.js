@@ -20,7 +20,7 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
         }
     )
 
-    lively.morphic.Shapes.shape.addMethods(
+    lively.morphic.Shapes.Shape.addMethods(
         'stylesheets', {
             setStyleSheet: function(style) {
 		return this.shapeSetter('StyleSheet', value);

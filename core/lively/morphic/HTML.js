@@ -896,6 +896,7 @@ lively.morphic.Shapes.Shape.addMethods(
     setAppearanceStylingModeHTML: function(ctx, value) {
         this.isStyleSheetAppearance = value;
         this.setFillHTML(ctx, this.shapeGetter("Fill"));
+        this.setOpacityHTML(ctx, this.shapeGetter("Opacity"));
     }  
 
 });

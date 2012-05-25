@@ -863,7 +863,23 @@ lively.morphic.Shapes.Shape.addMethods(
     setNodeIdHTML: function(ctx, value) {
         //console.log("HTML.js, setStyleIdHTML(): Ok, got it, setting shape HTML id to "+value);
         ctx.shapeNode.id = value;
-    },    
+    },
+
+    setStyleSheetHTML: function(ctx, value) {
+        var morphId = ctx.shapeNode.id;
+        if (!morphId) {
+            alert("Cannot set morph specific style sheet. Shape node was not assigned any id.");
+        }
+		
+        var specificCss = "#"+morphId+" { "+style+" }";
+        var styleTagId = "style-"+morphId;
+
+	var css = $('#' + styleTagId);
+	css.remove();
+	css = $('<style type="text/css" id="' + styleTagId + '"></style>');
+	css.text(specificCss);
+	css.appendTo(document.head);
+    }    
 
 });
 

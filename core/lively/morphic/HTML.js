@@ -790,7 +790,11 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     setFillHTML: function(ctx, value) {
         if (!ctx.shapeNode) return;
-        ctx.domInterface.setFill(ctx.shapeNode, value, this.getBounds());
+        if (this.isStyleSheetAppearance){
+            ctx.domInterface.setFill(ctx.shapeNode, null, this.getBounds());
+        } else {
+            ctx.domInterface.setFill(ctx.shapeNode, value, this.getBounds());
+        }
     },
     setBorderColorHTML: function(ctx, fill) {
         var alpha;

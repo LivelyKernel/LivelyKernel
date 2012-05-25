@@ -2128,9 +2128,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             for (j= 0; j< arrDisplay[i].arrY.length; j++) { 
                 //var a = this.grid.at(arrDisplay[i].x,nMin).textString;
                 var a = this.grid.at(arrDisplay[i].x,nMin).textString;
-                var b = this.grid.at(arrDisplay[i].x,arrDisplay[i].arrY[j]).textString;
+                
+                var x = arrDisplay[i].x;
+                var y = arrDisplay[i].arrY[j];
 
-                this.grid.at(arrDisplay[i].x,arrDisplay[i].arrY[j]).textString=this.grid.at(arrDisplay[i].x,nMin).textString;
+                var b = this.grid.at(x,y).textString;
+
+                this.grid.at(x,y).textString=this.grid.at(arrDisplay[i].x,nMin).textString;
             }
             
             

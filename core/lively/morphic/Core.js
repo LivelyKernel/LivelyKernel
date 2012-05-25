@@ -223,6 +223,15 @@ Object.subclass('lively.morphic.Morph',
         return this.shape.getStyleSheet();
     },
 
+    setAppearanceStylingMode: function(value) {
+    // TRUE when appearance is styled through style dialog,
+    // FALSE when appearance is styled through style sheets
+        return this.shape.setAppearanceStylingMode(value);
+    },
+    getAppearanceStylingMode: function() {
+        return this.shape.getAppearanceStylingMode();
+    },
+
     setVertices: function(v) { this.shape.setVertices(v) },
 
 },

@@ -820,7 +820,6 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     setBorderRadiusHTML: function(ctx, value) {
         // does not make sense for morphs in general
-        console.log("Border Radius change!");
     },
     setStrokeOpacityHTML: function(ctx, opacity) {
         return this.setBorderHTML(ctx, this.getBorderWidth(), this.getBorderColor(), opacity)

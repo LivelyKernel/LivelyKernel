@@ -322,8 +322,12 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
         this.setHTMLBorderRadius(node, radiusPt.x, radiusPt.y)
     },
     setHTMLBorderRadius: function(node, rx, ry) {
-        var roundRectValue =  Math.max(0, rx) + 'px /' +  Math.max(0, ry) + 'px';
-        node.style.borderRadius = roundRectValue;
+        if (rx === null || ry === null) {
+            node.style.borderRadius = null;
+        } else {
+            var roundRectValue =  Math.max(0, rx) + 'px /' +  Math.max(0, ry) + 'px';
+            node.style.borderRadius = roundRectValue;
+        }
     },
     computeScrollBarExtentHTML: function() {
         var body = document.getElementsByTagName('body')[0],

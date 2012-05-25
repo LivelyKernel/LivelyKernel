@@ -2094,8 +2094,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         //need to get hightest y axis
         debugger;
         var arrDisplay=[];
-        //saving only same column
-        var arrColumns=[]; //hold columns
         var bExist;
         var oItem={}
 
@@ -2105,14 +2103,23 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             oItem ={};
             oItem.x=this.grid.arrSelectedCells[i].gridPos().x;
-            oItem.y=this.grid.arrSelectedCells[i].gridPos().y;
+            nY = this.grid.arrSelectedCells[i].gridPos().y;
+            //oItem.y=this.grid.arrSelectedCells[i].gridPos().y;
 
-            bExist = arrColumns.detect(function(ea) { return ea.x == oItem.x});
+            bExist = arrDisplay.detect(function(ea) { return ea.x == oItem.x});
             if (bExist){
-                 arrColumns.push(oItem);
+                  oItem.arrY.push(nY)
+                 arrDisplay.push(oItem);
             }else{
-                
+                arrDisplay.forEach(function (ea) {
+                    if (ea.x==oItem.x){
+                        ea.arrY.push(nY);
+                    }
+                });
             }
+
+
+
             //if (!arrColumns.detect(function(ea) { return ea) == nX})){
             //    arrColumns.push(nX);
                 

@@ -2101,11 +2101,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         //arrDisplay = this.grid.arrSelectedCells.sortBy(function(obj) { return obj.gridPos().x});
         var nX,nY,nMax;
         //saving each column in different set
-debugger;
+
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             oItem ={};
-            oItem.x=this.grid.arrSelectedCells[i].gridPos().x+1;
-            nY = this.grid.arrSelectedCells[i].gridPos().y+1;
+            oItem.x=this.grid.arrSelectedCells[i].gridPos().x+1; //need to check why we have to add 1
+            nY = this.grid.arrSelectedCells[i].gridPos().y+1;  //need to check why we have to add 1
 
             bExist = arrDisplay.detect(function(ea) { return ea.x == oItem.x});
             if (bExist){
@@ -2122,21 +2122,12 @@ debugger;
 
         }
         //get max number for each cell
-debugger;
         for (i= 0; i< arrDisplay.length; i++) {
             nMax= arrDisplay[i].arrY.max(function(obj) { return obj})
             nMin= arrDisplay[i].arrY.min(function(obj) { return obj})
             
             for (j= 0; j< arrDisplay[i].arrY.length; j++) { 
-                //var a = this.grid.at(arrDisplay[i].x,nMin).textString;
-                var a = this.grid.at(arrDisplay[i].x,nMin).textString;
-                
-                var x = arrDisplay[i].x;
-                var y = arrDisplay[i].arrY[j];
-
-                var b = this.grid.at(x,y).textString;
-
-                this.grid.at(x,y).textString = this.grid.at(arrDisplay[i].x,nMin).textString;
+                this.grid.at(arrDisplay[i].x,arrDisplay[i].arrY[j]).textString = this.grid.at(arrDisplay[i].x,nMin).textString;
             }
             
             

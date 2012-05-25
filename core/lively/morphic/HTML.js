@@ -909,7 +909,7 @@ lively.morphic.Shapes.Shape.addMethods(
 
      setBorderStylingModeHTML: function(ctx, value) {
         this.isStyleSheetBorder = value;
-        
+        this.setBorderHTML();
     } 
 
  

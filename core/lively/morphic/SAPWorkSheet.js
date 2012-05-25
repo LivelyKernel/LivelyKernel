@@ -2096,16 +2096,22 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         var arrDisplay=[];
         //saving only same column
         var arrColumns=[]; //hold columns
-         var bExist
+        var bExist;
+        var oItem={}
+
 //this.allModules().detect(function(ea) { return ea.fileName() == fileName })
         //arrDisplay = this.grid.arrSelectedCells.sortBy(function(obj) { return obj.gridPos().x});
         var nX,nY;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            nX = this.grid.arrSelectedCells[i].gridPos().x;
-            nY = this.grid.arrSelectedCells[i].gridPos().y;
-            bExist = arrColumns.detect(function(ea) { return ea == nX});
-            if (!bExist){
-                 arrColumns.push(nX);
+            oItem ={};
+            oItem.x=this.grid.arrSelectedCells[i].gridPos().x;
+            oItem.y=this.grid.arrSelectedCells[i].gridPos().y;
+
+            bExist = arrColumns.detect(function(ea) { return ea.x == oItem.x});
+            if (bExist){
+                 arrColumns.push(oItem);
+            }else{
+                
             }
             //if (!arrColumns.detect(function(ea) { return ea) == nX})){
             //    arrColumns.push(nX);

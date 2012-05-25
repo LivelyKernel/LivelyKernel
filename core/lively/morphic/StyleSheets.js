@@ -19,4 +19,19 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
 	   }
         }
     )
+
+    lively.morphic.Shapes.shape.addMethods(
+        'stylesheets', {
+            setStyleSheet: function(style) {
+		return this.shapeSetter('StyleSheet', value);
+            },
+            getStyleSheet: function() {
+                return this.shapeGetter('StyleSheet') || "";
+            },
+            
+        }
+    )
+
+
+
 })

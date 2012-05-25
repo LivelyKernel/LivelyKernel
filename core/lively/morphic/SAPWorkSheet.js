@@ -2096,6 +2096,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         var bExist;
         var oItem={}
         var nX,nY,nMax;
+        var oDataCell;
 
             debugger;
         //saving each column in different set for selected Data
@@ -2124,8 +2125,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         for (i= 0; i< arrDataSet.length; i++) {
             nMax= arrDataSet[i].arrY.max(function(obj) { return obj});
             nMin= arrDataSet[i].arrY.min(function(obj) { return obj});
+            arrDataSet[i].oDataCell = this.grid.arrData[nMin][arrDataSet[i].x];
+
             for (j= 0; j< arrDataSet[i].arrY.length; j++) { 
-                this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x].value = this.grid.arrData[nMin][arrDataSet[i].x].value;
+                this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x].value = arrDataSet[i].value;
             }
         }
 

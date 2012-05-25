@@ -104,6 +104,14 @@ Object.subclass('lively.morphic.Shapes.Shape',
         return this.shapeGetter('AppearanceStylingMode');
     },
 
+    setBorderStylingMode: function(value) {
+        return this.shapeSetter('BorderStylingMode', value);
+    },
+    getBorderStylingMode: function() {
+        return this.shapeGetter('BorderStylingMode');
+    },
+
+
 
 },
 'comparing', {

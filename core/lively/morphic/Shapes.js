@@ -90,6 +90,13 @@ Object.subclass('lively.morphic.Shapes.Shape',
         return this.shapeGetter('NodeId') || "";
     },
 
+    setStyleSheet: function(value) {
+        return this.shapeSetter('StyleSheet', value);
+    },
+    getStyleSheet: function() {
+        return this.shapeGetter('StyleSheet') || "";
+    },
+
 },
 'comparing', {
     equals: function (otherShape) {

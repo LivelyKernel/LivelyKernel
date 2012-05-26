@@ -2130,38 +2130,21 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         }
 
         //saving each column in different set
+        var nOrgRow,nOrgCol;
+        var data,arrData 
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            oItem ={};
-            oItem.x=this.grid.arrSelectedCells[i].gridPos().x+1; //need to check why we have to add 1
+            nX = this.grid.arrSelectedCells[i].gridPos().x+1; //need to check why we have to add 1
             nY = this.grid.arrSelectedCells[i].gridPos().y+1;  //need to check why we have to add 1
-            bExist = arrDisplay.detect(function(ea) { return ea.x == oItem.x});
-            if (bExist){
-                 arrDisplay.forEach(function (ea) {
-                    if (ea.x==oItem.x){
-                        ea.arrY.push(nY);
-                    }
-                });
-            }else{
-                oItem.arrY=[];
-                oItem.arrY.push(nY)
-                arrDisplay.push(oItem);
-            }
+            nOrgRow = nY  + this.grid.startRow;
+            nOrgCol = nX  + this.grid.startColumn;
+            data = this.grid.dataModel[nY] && this.grid.dataModel[nY][nX];
+            arrData = this.grid.arrData[nOrgRow] && this.grid.arrData[nOrgRow][nOrgCol];
+            sValue = data && data.value ? data.value.toString() : "";
+    
+            this.grid.arrSelectedCells.textString =sValue;
+
         }
-        //get max number for each cell
-        var sValue;
-        for (i= 0; i< arrDisplay.length; i++) {
-            sValue="";
-            //get value from data set
-            for (n= 0; n< arrDataSet.length; n++) {
-                if (arrDisplay[i].x==arrDataSet[n].gridX){
-                    sValue = arrDataSet[n].oDataCell.value;
-                    break;
-                }
-            }
-            for (j= 0; j< arrDisplay[i].arrY.length; j++) { 
-                this.grid.at(arrDisplay[i].x,arrDisplay[i].arrY[j]).textString =sValue; // this.grid.at(arrDisplay[i].x,nMin).textString;
-            }
-        }
+        
     },
     fillUp: function(){
         var i,j;

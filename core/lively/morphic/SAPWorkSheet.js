@@ -2308,13 +2308,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             sValue="";
             //get value from data set
             for (n= 0; n< arrDataSet.length; n++) {
-                if (arrDisplay[i].x==arrDataSet[n].gridX){
+                if (arrDisplay[i].y==arrDataSet[n].gridY){
                     sValue = arrDataSet[n].oDataCell.value;
                     break;
                 }
             }
             for (j= 0; j< arrDisplay[i].arrY.length; j++) { 
-                this.grid.at(arrDisplay[i].x,arrDisplay[i].arrY[j]).textString =sValue; // this.grid.at(arrDisplay[i].x,nMin).textString;
+                //this.grid.at(arrDisplay[i].x,arrDisplay[i].arrY[j]).textString =sValue; // this.grid.at(arrDisplay[i].x,nMin).textString;
+
             }
         }
     }

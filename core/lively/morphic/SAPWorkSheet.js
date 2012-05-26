@@ -2144,7 +2144,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
     },
     fillRightLeft: function(bRight){
         var i,j;
-        var arrDisplay=[];
         var arrDataSet =[];
         var bExist;
         var oItem={}

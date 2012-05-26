@@ -2252,47 +2252,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
             for (j= 0; j< arrDataSet[i].arrX.length; j++) { 
                 this.grid.arrData[arrDataSet[i].y][arrDataSet[i].arrX[j]].value = arrDataSet[i].oDataCell.value;
-                
-                
             }
         }
 
-        //saving each column in different set
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            oItem ={};
-            oItem.y=this.grid.arrSelectedCells[i].gridPos().y+1; //need to check why we have to add 1
-            nX = this.grid.arrSelectedCells[i].gridPos().x+1;  //need to check why we have to add 1
-            
 
-            bExist = arrDisplay.detect(function(ea) { return ea.y == oItem.y});
-            if (bExist){
-                 arrDisplay.forEach(function (ea) {
-                    if (ea.y==oItem.y){
-                        ea.arrX.push(nX);
-                    }
-                });
-            }else{
-                oItem.arrX=[];
-                oItem.arrX.push(nX)
-                arrDisplay.push(oItem);
-            }
-        }
-        //get max number for each cell
-        var sValue;
-        for (i= 0; i< arrDisplay.length; i++) {
-            sValue="";
-            //get value from data set
-            for (n= 0; n< arrDataSet.length; n++) {
-                if (arrDisplay[i].y==arrDataSet[n].gridY){
-                    sValue = arrDataSet[n].oDataCell.value;
-                    break;
-                }
-            }
-            for (j= 0; j< arrDisplay[i].arrY.length; j++) { 
-                //this.grid.at(arrDisplay[i].x,arrDisplay[i].arrY[j]).textString =sValue; // this.grid.at(arrDisplay[i].x,nMin).textString;
-
-            }
-        }
+     
     }
 },
 'Image Click Events', {

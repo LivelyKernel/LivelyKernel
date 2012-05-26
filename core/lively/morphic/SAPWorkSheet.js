@@ -2460,8 +2460,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
            var arrItems= [
                 ['',  function() { self.oFillMenu.remove(); }],
             	['Fill Down',  function() { self.fillDown() }],
-            	['Fill Right',  function() { self.fillRight() }],
-                ['Fill Up',  function() { self.fillUp() }],
+            	['Fill Right',  function() { self.fillRightLeft(true) }],
+                ['Fill Up',  function() { self.fillRightLeft(false) }],
                 ['Fill Left',  function() { self.fillLeft() }]];
             
             this.oFillMenu= new lively.morphic.Menu(null, arrItems);

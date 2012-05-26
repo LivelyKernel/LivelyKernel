@@ -2128,7 +2128,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             }
         }
 
-        //saving each column in different set
+        //Apply to selected display cells
         var nOrgRow,nOrgCol;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             nOrgRow = this.grid.arrSelectedCells[i].gridPos().y  + this.grid.startRow;

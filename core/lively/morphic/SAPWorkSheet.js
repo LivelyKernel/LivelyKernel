@@ -2242,14 +2242,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
                 arrDataSet.push(oItem);
             }
         }
-        debugger;
         var nMaxMin;
         //get min (top row) and use this value to change all value
         for (i= 0; i< arrDataSet.length; i++) {
             if (bRight){
-                nMaxMin= arrDataSet[i].arrX.max(function(obj) { return obj});
-            }else{
                 nMaxMin= arrDataSet[i].arrX.min(function(obj) { return obj});
+            }else{
+                nMaxMin= arrDataSet[i].arrX.max(function(obj) { return obj});
             }
             arrDataSet[i].oDataCell = this.grid.arrData[arrDataSet[i].y][nMaxMin];
             for (j= 0; j< arrDataSet[i].arrX.length; j++) { 

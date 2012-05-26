@@ -2133,9 +2133,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             nOrgRow = this.grid.arrSelectedCells[i].gridPos().y  + this.grid.startRow;
             nOrgCol = this.grid.arrSelectedCells[i].gridPos().x  + this.grid.startColumn;
-            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-            this.grid.arrSelectedCells[i].textString =sValue;
-
+            this.grid.arrSelectedCells[i].textString =this.grid.arrData[nOrgRow][nOrgCol].value;
         }
         
     },

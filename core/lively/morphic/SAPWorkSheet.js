@@ -2131,7 +2131,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
         //saving each column in different set
         var nOrgRow,nOrgCol;
- 
+ debugger;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             nX = this.grid.arrSelectedCells[i].gridPos().x+1; //need to check why we have to add 1
             nY = this.grid.arrSelectedCells[i].gridPos().y+1;  //need to check why we have to add 1

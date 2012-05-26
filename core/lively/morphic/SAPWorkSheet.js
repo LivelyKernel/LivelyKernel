@@ -2131,16 +2131,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
         //saving each column in different set
         var nOrgRow,nOrgCol;
-        var data,arrData 
+ 
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             nX = this.grid.arrSelectedCells[i].gridPos().x+1; //need to check why we have to add 1
             nY = this.grid.arrSelectedCells[i].gridPos().y+1;  //need to check why we have to add 1
             nOrgRow = nY  + this.grid.startRow;
             nOrgCol = nX  + this.grid.startColumn;
-            data = this.grid.dataModel[nY] && this.grid.dataModel[nY][nX];
-            arrData = this.grid.arrData[nOrgRow] && this.grid.arrData[nOrgRow][nOrgCol];
-            sValue = data && data.value ? data.value.toString() : "";
-    
+            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
             this.grid.arrSelectedCells.textString =sValue;
 
         }

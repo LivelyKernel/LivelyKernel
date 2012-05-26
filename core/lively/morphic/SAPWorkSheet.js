@@ -2245,6 +2245,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
                 arrDataSet.push(oItem);
             }
         }
+        debugger;
         //get min (top row) and use this value to change all value
        /* for (i= 0; i< arrDataSet.length; i++) {
             nMax= arrDataSet[i].arrY.max(function(obj) { return obj});

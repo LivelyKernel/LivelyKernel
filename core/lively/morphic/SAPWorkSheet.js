@@ -2228,7 +2228,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             oItem ={};
             oItem.y=this.grid.arrSelectedData[i].y;
             oItem.gridX = oItem.x-this.grid.startColumn+1;
-            oItem.gridY = oItem.x-this.grid.startRow+1;
+            //oItem.gridY = oItem.x-this.grid.startRow+1;
            
             nX = this.grid.arrSelectedData[i].x;
             nY = this.grid.arrSelectedData[i].y;

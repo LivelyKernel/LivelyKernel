@@ -2241,7 +2241,78 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
        
     },
     fillLeft: function(){
+        var i,j;
+        var arrDisplay=[];
+        var arrDataSet =[];
+        var bExist;
+        var oItem={}
+        var nX,nY,nMax;
+        var oDataCell;
+
+        //saving each column in different set for selected Data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            oItem ={};
+            oItem.x=this.grid.arrSelectedData[i].x;
+            oItem.gridX = oItem.x-this.grid.startColumn+1;
        
+            nY = this.grid.arrSelectedData[i].y;
+            bExist = arrDataSet.detect(function(ea) { return ea.x == oItem.x});
+            if (bExist){
+                 arrDataSet.forEach(function (ea) {
+                    if (ea.x==oItem.x){
+                        ea.arrY.push(nY);
+                    }
+                });
+            }else{
+                oItem.arrY=[];
+                oItem.arrY.push(nY)
+                arrDataSet.push(oItem);
+            }
+        }
+        //get min (top row) and use this value to change all value
+        for (i= 0; i< arrDataSet.length; i++) {
+            nMax= arrDataSet[i].arrY.max(function(obj) { return obj});
+            nMin= arrDataSet[i].arrY.min(function(obj) { return obj});
+            arrDataSet[i].oDataCell = this.grid.arrData[nMin][arrDataSet[i].x];
+
+            for (j= 0; j< arrDataSet[i].arrY.length; j++) { 
+                this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x].value = arrDataSet[i].oDataCell.value;
+            }
+        }
+
+        //saving each column in different set
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            oItem ={};
+            oItem.x=this.grid.arrSelectedCells[i].gridPos().x+1; //need to check why we have to add 1
+            nY = this.grid.arrSelectedCells[i].gridPos().y+1;  //need to check why we have to add 1
+            bExist = arrDisplay.detect(function(ea) { return ea.x == oItem.x});
+            if (bExist){
+                 arrDisplay.forEach(function (ea) {
+                    if (ea.x==oItem.x){
+                        ea.arrY.push(nY);
+                    }
+                });
+            }else{
+                oItem.arrY=[];
+                oItem.arrY.push(nY)
+                arrDisplay.push(oItem);
+            }
+        }
+        //get max number for each cell
+        var sValue;
+        for (i= 0; i< arrDisplay.length; i++) {
+            sValue="";
+            //get value from data set
+            for (n= 0; n< arrDataSet.length; n++) {
+                if (arrDisplay[i].x==arrDataSet[n].gridX){
+                    sValue = arrDataSet[n].oDataCell.value;
+                    break;
+                }
+            }
+            for (j= 0; j< arrDisplay[i].arrY.length; j++) { 
+                this.grid.at(arrDisplay[i].x,arrDisplay[i].arrY[j]).textString =sValue; // this.grid.at(arrDisplay[i].x,nMin).textString;
+            }
+        }
     }
 },
 'Image Click Events', {

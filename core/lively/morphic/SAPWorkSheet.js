@@ -2226,11 +2226,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         //saving each Row in different set for selected Data
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
             oItem ={};
-            oItem.y = this.grid.arrSelectedData[i].y;
-            oItem.gridY = oItem.y-this.grid.startRow+1;
-       
+            oItem.y=this.grid.arrSelectedData[i].y;
+            oItem.gridX = oItem.x-this.grid.startColumn+1;
+            oItem.gridY = oItem.x-this.grid.startRow+1;
+           
             nX = this.grid.arrSelectedData[i].x;
-
+            nY = this.grid.arrSelectedData[i].y;
             bExist = arrDataSet.detect(function(ea) { return ea.y == oItem.y});
             if (bExist){
                  arrDataSet.forEach(function (ea) {
@@ -2245,13 +2246,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             }
         }
         //get min (top row) and use this value to change all value
-        for (i= 0; i< arrDataSet.length; i++) {
-            nMax= arrDataSet[i].arrX.max(function(obj) { return obj});
-            nMin= arrDataSet[i].arrX.min(function(obj) { return obj});
-            arrDataSet[i].oDataCell = this.grid.arrData[nMax][arrDataSet[i].y];
-
-            for (j= 0; j< arrDataSet[i].arrX.length; j++) { 
-                this.grid.arrData[arrDataSet[i].y][arrDataSet[i].arrX[j]].value = arrDataSet[i].oDataCell.value;
+       /* for (i= 0; i< arrDataSet.length; i++) {
+            nMax= arrDataSet[i].arrY.max(function(obj) { return obj});
+            nMin= arrDataSet[i].arrY.min(function(obj) { return obj});
+            arrDataSet[i].oDataCell = this.grid.arrData[nMin][arrDataSet[i].x];
+            for (j= 0; j< arrDataSet[i].arrY.length; j++) { 
+                this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x].value = arrDataSet[i].oDataCell.value;
             }
         }
         //Apply to selected display cells
@@ -2260,7 +2260,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             nOrgRow = this.grid.arrSelectedCells[i].gridPos().y  + this.grid.startRow;
             nOrgCol = this.grid.arrSelectedCells[i].gridPos().x  + this.grid.startColumn;
             this.grid.arrSelectedCells[i].textString =this.grid.arrData[nOrgRow][nOrgCol].value;
-        }
+        }*/
 
      
     }

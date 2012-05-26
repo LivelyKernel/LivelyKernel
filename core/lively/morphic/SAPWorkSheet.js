@@ -2126,8 +2126,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             }else{
                 nMaxMin= arrDataSet[i].arrY.max(function(obj) { return obj});
             }
-            
-            
             arrDataSet[i].oDataCell = this.grid.arrData[nMaxMin][arrDataSet[i].x];
             for (j= 0; j< arrDataSet[i].arrY.length; j++) { 
                 this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x].value = arrDataSet[i].oDataCell.value;

@@ -2247,14 +2247,15 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         }
         debugger;
         //get min (top row) and use this value to change all value
-       /* for (i= 0; i< arrDataSet.length; i++) {
-            nMax= arrDataSet[i].arrY.max(function(obj) { return obj});
-            nMin= arrDataSet[i].arrY.min(function(obj) { return obj});
-            arrDataSet[i].oDataCell = this.grid.arrData[nMin][arrDataSet[i].x];
-            for (j= 0; j< arrDataSet[i].arrY.length; j++) { 
-                this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x].value = arrDataSet[i].oDataCell.value;
+        for (i= 0; i< arrDataSet.length; i++) {
+            nMax= arrDataSet[i].arrX.max(function(obj) { return obj});
+            nMin= arrDataSet[i].arrX.min(function(obj) { return obj});
+            arrDataSet[i].oDataCell = this.grid.arrData[arrDataSet[i].y][nMax];
+            for (j= 0; j< arrDataSet[i].arrX.length; j++) { 
+                this.grid.arrData[arrDataSet[i].y][arrDataSet[i].arrX[j]].value = arrDataSet[i].oDataCell.value;
             }
         }
+/*
         //Apply to selected display cells
         var nOrgRow,nOrgCol;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {

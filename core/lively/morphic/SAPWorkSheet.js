@@ -2277,7 +2277,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             arrDataSet[i].oDataCell = this.grid.arrData[nMax][arrDataSet[i].y];
 
             for (j= 0; j< arrDataSet[i].arrX.length; j++) { 
-                //this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x].value = arrDataSet[i].oDataCell.value;
+                this.grid.arrData[arrDataSet[i].y][arrDataSet[i].arrX[j]].value = arrDataSet[i].oDataCell.value;
+                
                 
             }
         }

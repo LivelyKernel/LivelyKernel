@@ -2123,7 +2123,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             nMax= arrDataSet[i].arrY.max(function(obj) { return obj});
             nMin= arrDataSet[i].arrY.min(function(obj) { return obj});
             arrDataSet[i].oDataCell = this.grid.arrData[nMin][arrDataSet[i].x];
-
             for (j= 0; j< arrDataSet[i].arrY.length; j++) { 
                 this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x].value = arrDataSet[i].oDataCell.value;
             }
@@ -2131,10 +2130,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 
         //saving each column in different set
         var nOrgRow,nOrgCol;
- debugger;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            nX = this.grid.arrSelectedCells[i].gridPos().x+1; //need to check why we have to add 1
-            nY = this.grid.arrSelectedCells[i].gridPos().y+1;  //need to check why we have to add 1
             nOrgRow = this.grid.arrSelectedCells[i].gridPos().y  + this.grid.startRow;
             nOrgCol = this.grid.arrSelectedCells[i].gridPos().x  + this.grid.startColumn;
             sValue = this.grid.arrData[nOrgRow][nOrgCol].value;

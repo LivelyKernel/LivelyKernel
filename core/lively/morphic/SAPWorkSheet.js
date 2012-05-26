@@ -2249,52 +2249,56 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         var nX,nY,nMax;
         var oDataCell;
 
-        //saving each column in different set for selected Data
+        //saving each Row in different set for selected Data
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
             oItem ={};
-            oItem.x=this.grid.arrSelectedData[i].x;
-            oItem.gridX = oItem.x-this.grid.startColumn+1;
+            oItem.y = this.grid.arrSelectedData[i].y;
+            oItem.gridY = oItem.y-this.grid.startRow+1;
        
-            nY = this.grid.arrSelectedData[i].y;
-            bExist = arrDataSet.detect(function(ea) { return ea.x == oItem.x});
+            nX = this.grid.arrSelectedData[i].x;
+
+            bExist = arrDataSet.detect(function(ea) { return ea.y == oItem.y});
             if (bExist){
                  arrDataSet.forEach(function (ea) {
-                    if (ea.x==oItem.x){
-                        ea.arrY.push(nY);
+                    if (ea.y==oItem.y){
+                        ea.arrX.push(nX);
                     }
                 });
             }else{
-                oItem.arrY=[];
-                oItem.arrY.push(nY)
+                oItem.arrX=[];
+                oItem.arrX.push(nX)
                 arrDataSet.push(oItem);
             }
         }
         //get min (top row) and use this value to change all value
         for (i= 0; i< arrDataSet.length; i++) {
-            nMax= arrDataSet[i].arrY.max(function(obj) { return obj});
-            nMin= arrDataSet[i].arrY.min(function(obj) { return obj});
-            arrDataSet[i].oDataCell = this.grid.arrData[nMin][arrDataSet[i].x];
+            nMax= arrDataSet[i].arrX.max(function(obj) { return obj});
+            nMin= arrDataSet[i].arrX.min(function(obj) { return obj});
+            arrDataSet[i].oDataCell = this.grid.arrData[nMin][arrDataSet[i].y];
 
-            for (j= 0; j< arrDataSet[i].arrY.length; j++) { 
-                this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x].value = arrDataSet[i].oDataCell.value;
+            for (j= 0; j< arrDataSet[i].arrX.length; j++) { 
+                //this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x].value = arrDataSet[i].oDataCell.value;
+                
             }
         }
 
         //saving each column in different set
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             oItem ={};
-            oItem.x=this.grid.arrSelectedCells[i].gridPos().x+1; //need to check why we have to add 1
-            nY = this.grid.arrSelectedCells[i].gridPos().y+1;  //need to check why we have to add 1
-            bExist = arrDisplay.detect(function(ea) { return ea.x == oItem.x});
+            oItem.y=this.grid.arrSelectedCells[i].gridPos().y+1; //need to check why we have to add 1
+            nX = this.grid.arrSelectedCells[i].gridPos().x+1;  //need to check why we have to add 1
+            
+
+            bExist = arrDisplay.detect(function(ea) { return ea.y == oItem.y});
             if (bExist){
                  arrDisplay.forEach(function (ea) {
-                    if (ea.x==oItem.x){
-                        ea.arrY.push(nY);
+                    if (ea.y==oItem.y){
+                        ea.arrX.push(nX);
                     }
                 });
             }else{
-                oItem.arrY=[];
-                oItem.arrY.push(nY)
+                oItem.arrX=[];
+                oItem.arrX.push(nX)
                 arrDisplay.push(oItem);
             }
         }

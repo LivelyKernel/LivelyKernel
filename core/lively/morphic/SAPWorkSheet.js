@@ -2211,10 +2211,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             }
         }
     },
-    fillRight: function(){
-       
-    },
-    fillLeft: function(){
+    fillRightLeft: function(bRight){
         var i,j;
         var arrDisplay=[];
         var arrDataSet =[];
@@ -2246,11 +2243,15 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             }
         }
         debugger;
+        var nMaxMin;
         //get min (top row) and use this value to change all value
         for (i= 0; i< arrDataSet.length; i++) {
-            nMax= arrDataSet[i].arrX.max(function(obj) { return obj});
-            nMin= arrDataSet[i].arrX.min(function(obj) { return obj});
-            arrDataSet[i].oDataCell = this.grid.arrData[arrDataSet[i].y][nMax];
+            if (bRight){
+                nMaxMin= arrDataSet[i].arrX.max(function(obj) { return obj});
+            }else{
+                nMaxMin= arrDataSet[i].arrX.min(function(obj) { return obj});
+            }
+            arrDataSet[i].oDataCell = this.grid.arrData[arrDataSet[i].y][nMaxMin];
             for (j= 0; j< arrDataSet[i].arrX.length; j++) { 
                 this.grid.arrData[arrDataSet[i].y][arrDataSet[i].arrX[j]].value = arrDataSet[i].oDataCell.value;
             }

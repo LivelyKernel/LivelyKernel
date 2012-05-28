@@ -1071,14 +1071,18 @@ currently only support
     	var nValue; 
         var sValue;
         var nStartX,nStartY,nEndX,nEndY;
+        
+        var SUMFORMULA = "=SUM("
+        var AVERAGEFORMULA = "=AVERAGE("
+        var RIGHTCLOSER = ")"
+        
         if (sOrgValue){
         
         try{
             sValue= sOrgValue.toUpperCase();
             if (sValue.substr(0,5)=="=SUM("){
-                
-                //arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");
-
+                arrValue= sValue.replace(SUMFORMULA,"").replace(RIGHTCLOSER,"").split(":");
+            
                 var oStartCell = this.getCellDataIndex(arrValue[0]);
                 var oEndCell = this.getCellDataIndex(arrValue[1]);
                 
@@ -1106,7 +1110,9 @@ currently only support
                 }
                 return nTotal;  
             }else if(sValue.substr(0,9)=="=AVERAGE("){
-                //arrValue= sValue.replace(/=AVERAGE\(/g, "").replace(/\)/g,"").split(":");
+                arrValue= sValue.replace(AVERAGEFORMULA, "").replace(RIGHTCLOSER,"").split(":");
+
+
                 var oStartCell = this.getCellDataIndex(arrValue[0]);
                 var oEndCell = this.getCellDataIndex(arrValue[1]);
                 var nCount=0;
@@ -1136,7 +1142,7 @@ currently only support
                 nAve = parseInt(nTotal/nCount)
                 return nAve;		
 	   }else{  //copying other cell
-                //var oCell = this.getCellDataIndex(sValue.replace(/=/g, ""));
+                var oCell = this.getCellDataIndex(sValue.replace("=", ""));
                
                 nValue =  this.arrData[oCell.y][oCell.x].value;
                 return nValue; 

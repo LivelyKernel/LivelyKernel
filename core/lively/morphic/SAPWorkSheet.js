@@ -2128,9 +2128,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         //Apply to selected display cells
         var nOrgRow,nOrgCol;
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            nOrgRow = this.grid.arrSelectedCells[i].gridPos().y  + this.grid.startRow;
-            nOrgCol = this.grid.arrSelectedCells[i].gridPos().x  + this.grid.startColumn;
-            this.grid.arrSelectedCells[i].textString =this.grid.arrData[nOrgRow][nOrgCol].value;
+            //nOrgRow = this.grid.arrSelectedCells[i].gridPos().y  + this.grid.startRow;
+            //nOrgCol = this.grid.arrSelectedCells[i].gridPos().x  + this.grid.startColumn;
+            //this.grid.arrSelectedCells[i].textString =this.grid.arrData[nOrgRow][nOrgCol].value;
+            this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y);
         }
     },
     fillRightLeft: function(bRight){

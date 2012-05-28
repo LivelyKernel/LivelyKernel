@@ -1900,7 +1900,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 'DropDown Events', {
     ddlFont_onMouseDown: function(){
         if (this.fontPicker){
-            //debugger;
             if (this.fontPicker.isVisible()){
                 this.fontPicker.setVisible(false);
             }else{

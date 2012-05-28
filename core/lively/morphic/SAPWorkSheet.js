@@ -994,7 +994,7 @@ console.log('updateDisplay:'  + elapsed/1000);
             for (var n = 0; n < this.arrData.length; n++) {
                 this.arrData[n].splice(nOrgCol,1);
             }
-            this.updateDataModel();
+            this.updateDisplay();
         }
     },
     removeCol: function() {

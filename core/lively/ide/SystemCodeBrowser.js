@@ -37,8 +37,8 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser', {
         this.panel.codeBaseDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}, padding: Rectangle.inset(2)})
 
         this.panel.localDirBtn.setLabel('local');
-        connect(this.panel.localDirBtn, 'fire', this, 'setTargetURL',
-            {converter: function() { return URL.source.getDirectory() }});
+        connect(this.panel.localDirBtn, 'fire', this, 'setTargetURL', {converter: function() {
+            return $world.getUserName() ? $world.getUserDir() : URL.source.getDirectory() }});
         this.panel.localDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}, padding: Rectangle.inset(2)})
     },
 

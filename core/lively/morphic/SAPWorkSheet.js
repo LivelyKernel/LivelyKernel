@@ -1074,10 +1074,11 @@ currently only support
         if (sOrgValue){
         
         try{
-            debugger;
             sValue= sOrgValue.toUpperCase();
             if (sValue.substr(0,5)=="=SUM("){
-                arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");
+                
+                //arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");
+
                 var oStartCell = this.getCellDataIndex(arrValue[0]);
                 var oEndCell = this.getCellDataIndex(arrValue[1]);
                 
@@ -1105,7 +1106,7 @@ currently only support
                 }
                 return nTotal;  
             }else if(sValue.substr(0,9)=="=AVERAGE("){
-                arrValue= sValue.replace(/=AVERAGE\(/g, "").replace(/\)/g,"").split(":");
+                //arrValue= sValue.replace(/=AVERAGE\(/g, "").replace(/\)/g,"").split(":");
                 var oStartCell = this.getCellDataIndex(arrValue[0]);
                 var oEndCell = this.getCellDataIndex(arrValue[1]);
                 var nCount=0;
@@ -1133,24 +1134,9 @@ currently only support
                     }
                 }
                 nAve = parseInt(nTotal/nCount)
-                return nAve;	
-                /*if (oStartCell.columnIndex==oEndCell.columnIndex){
-                    for (var nRow = oStartCell.rowIndex; nRow <= oEndCell.rowIndex; nRow ++) {
-                        
-                        nValue = parseFloat(this.arrData[nRow][oStartCell.columnIndex].value);
-		        if (isNaN(nValue)) {nValue=0}
-		        nTotal  +=nValue;
-                        nCount +=1;
-		    }
-                    nAve = parseInt(nTotal/nCount)
-	       }else{//summing horizontally
-                    for (var nCol = oStartCell.columnIndex; nCol <= oEndCell.columnIndex; nCol ++) {
-						
-		      }
-                }*/
-                return nAve;	
+                return nAve;		
 	   }else{  //copying other cell
-                var oCell = this.getCellDataIndex(sValue.replace(/=/g, ""));
+                //var oCell = this.getCellDataIndex(sValue.replace(/=/g, ""));
                
                 nValue =  this.arrData[oCell.y][oCell.x].value;
                 return nValue; 

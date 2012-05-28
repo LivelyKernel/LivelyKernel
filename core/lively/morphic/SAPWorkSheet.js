@@ -682,7 +682,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
         return row;
     },
-    updateCellDisplay: function(x,y) {
+    updateCellDisplay: function(x,y,bIgnoreSelection) {
     /*
         Description: applying grid cell display using data object
         parameter: x=grid x-coord, y=grid y-coord.
@@ -722,7 +722,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         //selected cell
         if (arrData && arrData.selected){
             this.at(x,y).selectedCell();
-            this.arrSelectedCells.push(this.at(x,y));
+            if (!bIgnoreSelection){
+                this.arrSelectedCells.push(this.at(x,y));
+            }
         }
 
         //DATA formats

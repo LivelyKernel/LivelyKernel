@@ -699,13 +699,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var rowOffset = this.hideColHeads ? 0 : 1,
             colOffset = this.hideRowHeads ? 0 : 1;
 
-        //x = x + 1;
-        //y = y + 1;
-        debugger;
-         x = x + colOffset;
+        x = x + colOffset;
         y = y + rowOffset;
-console.log(this.hideColHeads)
-console.log(this.hideRowHeads )
 
         //Annotation
         if (arrData && arrData.annotation){

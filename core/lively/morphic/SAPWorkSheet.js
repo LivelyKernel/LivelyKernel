@@ -2277,10 +2277,6 @@ debugger;
     },
     imgBold_Click: function() {
         var i;
-        //for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-      //      this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
-        //}
-        //for data
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontWeight='bold';
         }

@@ -690,9 +690,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var bRedFont=false;  //for negative number & currency
         var nOrgRow = y  + this.startRow;
         var nOrgCol = x + this.startColumn;
-
-        x = x + this.hideColHeads ? 0 : 1;
-        y = y + this.hideRowHeads ? 0 : 1;
+        //x = x + this.hideColHeads ? 0 : 1;
+        //y = y + this.hideRowHeads ? 0 : 1;
+        x = x + 1;
+        y = y + 1;
         console.log(x)
         console.log(y)
 

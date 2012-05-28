@@ -2261,7 +2261,7 @@ debugger;
         if (this.grid.arrSelectedData[0]){
             if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].fontStyle){
                 if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].fontStyle=='italic'){
-                    sFontStyle="normal"
+                    sFontStyle="none";
                 }
             }
         }

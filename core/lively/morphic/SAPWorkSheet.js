@@ -826,11 +826,8 @@ var start = new Date().getTime();
         var nEndY =this.endRow-1;
 
 
-
-
-
-        for (var y = 0; y < nEndY ; y++) {
-            for (var x = 0; x < nEndX ; x++) {
+        for (var y = 0; y < this.numRows; y++) {
+            for (var x = 0; x < this.numCols; x++) {
                 this.updateCellDisplay(x,y)
             }
         }

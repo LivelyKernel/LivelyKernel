@@ -2267,7 +2267,6 @@ debugger;
     },
     imgUnderline_Click: function() {
         var i;
-         //for data
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textDecoration='underline';
         }

@@ -313,7 +313,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 this.rowHeads [nRow-this.startRow].textString = nRow.toString();
             }
 
-            this.updateDataModel();
+            this.updateDisplay();
 
             //if scroll reached end we need to increase??
             // I need to rework this

@@ -661,7 +661,7 @@ lively.morphic.World.addMethods(
         }
         return null;
     },
-    newMethod: function() {
+    getUserDir: function() {
         // enter comment here
     },
 

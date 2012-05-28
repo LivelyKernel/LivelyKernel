@@ -123,9 +123,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 this.activeCell.textString=this.parseFormula(sValue);
                 this.activeCell.setToolTip('Formula: \n' + sValue);
                 this.activeCell.setBorderStyle("dotted");
-                
             }
-
         }
     },
     applyDataFormates: function(sValue,oDataFormat) {

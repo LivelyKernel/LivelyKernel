@@ -73,7 +73,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         cells.forEach(function (cell) {
             connect(cell, 'textString', connection, 'update');
         });
-        
     },
     newConnectionPointFromSelectedCells: function(){
         var cells = this.getCellSelections(),
@@ -108,7 +107,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 sAlign="right";
             }
         } 
-
         return sAlign;
     },
     //when focus changed:  formula..etc

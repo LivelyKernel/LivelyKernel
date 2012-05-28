@@ -2257,9 +2257,16 @@ debugger;
     },
     imgItalic_Click: function() {
         var i;
-        //for data
+        var sFontStyle="italic";
+        if (this.grid.arrSelectedData[0]){
+            if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].fontStyle){
+                if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].fontStyle=='italic'){
+                    sFontStyle="normal"
+                }
+            }
+        }
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontStyle='italic';
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontStyle=sFontStyle;
         }
          for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y,true);

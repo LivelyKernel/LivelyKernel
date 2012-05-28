@@ -28,8 +28,8 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser', {
 
         connect(this.locationInput(), 'savedTextString', this, 'setTargetURL',
             {converter: function(value) { return new URL(value) }});
-        this.targetURL = this.targetURL // hrmpf
-        this.locationInput().applyStyle({fontSize: 8, textColor: Color.darkGray, borderWidth: 0})
+        this.targetURL = this.targetURL; // hrmpf
+        this.locationInput().applyStyle({fontSize: 8, textColor: Color.darkGray, borderWidth: 0});
 
         this.panel.codeBaseDirBtn.setLabel('codebase');
         connect(this.panel.codeBaseDirBtn, 'fire', this, 'setTargetURL',

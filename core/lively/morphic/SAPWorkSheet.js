@@ -829,8 +829,8 @@ var start = new Date().getTime();
 
 
 
-        for (var y = nStartY ; y < nEndY ; y++) {
-            for (var x = nStartX; x < nEndX ; x++) {
+        for (var y = 0; y < nEndY ; y++) {
+            for (var x = 0; x < nEndX ; x++) {
                 this.updateCellDisplay(x,y)
             }
         }

@@ -828,6 +828,15 @@ var start = new Date().getTime();
         this.arrSelectedCells.lenght=0;
         this.arrSelectedCells =[];
 
+        var nStartX = this.startColumn;
+        var nStartY = this.startRow;
+        var nEndX = this.endColumn-1;
+        var nEndY =this.endRow-1;
+
+
+
+
+
         for (var y = 0; y < this.dataModel.length; y++) {
             for (var x = 0; x < this.dataModel[y].length; x++) {
                 this.updateCellDisplay(x,y)

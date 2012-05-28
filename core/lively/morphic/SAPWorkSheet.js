@@ -2079,6 +2079,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
 },
 'Fill', {
     fillDownUp: function(bDown){
+/*Description: fill up or down:  copying cells*/
         var i,j;
         var arrDisplay=[];
         var arrDataSet =[];

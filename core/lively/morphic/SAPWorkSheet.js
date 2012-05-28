@@ -2134,7 +2134,7 @@ debugger;
             //nOrgCol = this.grid.arrSelectedCells[i].gridPos().x  + this.grid.startColumn;
             //this.grid.arrSelectedCells[i].textString =this.grid.arrData[nOrgRow][nOrgCol].value;
             debugger;
-            this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x-1,this.grid.arrSelectedCells[i].gridPos().y-1,true);
+            this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y,true);
         }
     },
     fillRightLeft: function(bRight){

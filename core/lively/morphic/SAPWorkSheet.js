@@ -744,7 +744,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 
             }
         }
-
+debugger;
         this.at(x,y).textString = sValue;
 
 

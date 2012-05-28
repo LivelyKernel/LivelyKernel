@@ -2032,7 +2032,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         var i;
         var nValue;//to check number
 
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+        /*for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
             nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
             nOrgRow = nRow-1  + this.grid.startRow;
@@ -2055,10 +2055,16 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             }else{ //case when general is selected
                 this.grid.arrSelectedCells[i].textString= sValue;
             }
-        }
+        }*/
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
         }
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y,true);
+        }
+
+
+
     }
 },
 'Fill', {

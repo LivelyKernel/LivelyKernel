@@ -682,8 +682,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
         return row;
     },
-
-
+    updateCellDisplay: function() {
+        
+    },  
     updateDisplay: function() {
 /*this get called when scroll is moving*/
         var nOrgRow;

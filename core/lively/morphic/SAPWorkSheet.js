@@ -2276,8 +2276,17 @@ debugger;
     },
     imgBold_Click: function() {
         var i;
+        var sFontWeight="bold";
+        if (this.grid.arrSelectedData[0]){
+            if (this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontWeight){
+                if (this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontWeight=='bold'){
+                    sFontWeight="normal"
+                }
+            }
+        }
+
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontWeight='bold';
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontWeight=sFontWeight;
         }
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y,true);

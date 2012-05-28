@@ -983,7 +983,7 @@ console.log('updateDisplay:'  + elapsed/1000);
             var nOrgRow = nRow -1 + this.startRow;
  
             this.arrData.splice(nOrgRow ,1);
-            this.updateDataModel();
+            this.updateDisplay();
         }
     },
     removeColBetween: function() {

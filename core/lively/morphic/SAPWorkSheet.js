@@ -693,6 +693,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         x = x + this.hideColHeads ? 0 : 1;
         y = y + this.hideRowHeads ? 0 : 1;
+        console.log(x)
+        console.log(y)
 
         var data = this.dataModel[y] && this.dataModel[y][x];
         var arrData = this.arrData[nOrgRow] && this.arrData[nOrgRow][nOrgCol];

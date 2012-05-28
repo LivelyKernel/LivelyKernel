@@ -682,8 +682,133 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
         return row;
     },
-    updateCellDisplay: function() {
+    updateCellDisplay: function(x,y) {
+  
+        var bRedFont=false;  //for negative number & currency
+        var nOrgRow = y  + this.startRow;
+        var nOrgCol = x + this.startColumn;
+        var data = this.dataModel[y] && this.dataModel[y][x];
+        var arrData = this.arrData[nOrgRow] && this.arrData[nOrgRow][nOrgCol];
+        var sValue = data && data.value ? data.value.toString() : "";
+        var nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
+
+        //Annotation
+        if (arrData && arrData.annotation){
+            this.at(x+1,y+1).annotationCell();
+        }else{
+            this.at(x+1,y+1).deactivateCell();
+        }
+        //formula
+        if (arrData && arrData.formula){
+            sValue = this.parseFormula(arrData.formula);
+            this.at(x+1,y+1).formulaCell();
+            this.at(x+1,y+1).setToolTip('Formula: \n' + arrData.formula);
+            this.at(x+1,y+1).setBorderStyle("dotted");
+        }else{
+            this.at(x+1,y+1).setToolTip("");
+            this.at(x+1,y+1).setBorderStyle("solid");
+        }
+
+        //selected cell
+        if (arrData && arrData.selected){
+            this.at(x+1,y+1).selectedCell();
+            this.arrSelectedCells.push(this.at(x+1,y+1));
+        }
+
+        //DATA formats
+        if (arrData && arrData.dataFormat){
+            if (arrData.dataFormat.type){
+                sValue= this.applyDataFormates(sValue,arrData.dataFormat);
+                //for negateive number for currency & number
+                if (arrData.dataFormat.negativeType){
+                    if (arrData.dataFormat.negativeType==1 || arrData.dataFormat.negativeType==3){
+                        if (!isNaN(nValue)){ 
+                            if (nValue < 0){
+                                bRedFont=true;
+                            }
+                        }
+                    }
+                }
+                
+            }
+        }
+
+        this.at(x+1,y+1).textString = sValue;
+
+
+        //cell formats
+        /*fontWeight: 'bold'
+        textDecoration: 'underline'
+        fontStyle: 'italic'
+        fontSize:12
+        fontFamily:sFont
+        textAlign: 'left'
+        borderColor: 
+        textColor:
+        fill
+        */
+        var sFontWeight="normal";
+        var sTextDecoration="normal";
+        var sFontStyle="normal";
+        var sFontSize = this.defalutFontSize;
+        var sFontFamily = this.defaultFontFamily;
+        var sTextAlign = "left";
+        var oBorderColor=null;
+        var oFill = null;
+        var oTextColor=null;
+        //if value is number then should return right
+        sTextAlign = this.getAlignforValueType(arrData && arrData.dataFormat,sValue)
         
+        if (arrData && arrData.fontWeight){
+            sFontWeight=arrData.fontWeight;
+        }
+        if (arrData && arrData.textDecoration){
+            sTextDecoration=arrData.textDecoration;
+        }
+        if (arrData && arrData.fontStyle){
+            sFontStyle=arrData.fontStyle;
+        }
+        if (arrData && arrData.fontSize){
+            sFontSize =arrData.fontSize;
+        }                
+        if (arrData && arrData.fontFamily){
+            sFontFamily =arrData.fontFamily;
+        }
+        if (arrData && arrData.textAlign){
+            sTextAlign =arrData.textAlign;
+        }
+
+        if (arrData && arrData.borderColor){
+            oBorderColor=eval(arrData.borderColor);
+        }                
+        if (arrData && arrData.fill){
+            oFill =eval(arrData.fill);
+        } 
+        if (arrData && arrData.textColor){
+            oTextColor=eval(arrData.textColor);
+        } 
+        //oText.applyStyle({borderColor: oBorderColor, fill: oFill ,textColor: oTextColor});
+        //bug in applystyle textDecoration & fontStyle & fontWeight do not work
+        
+        //this.at(x+1,y+1).applyStyle({fontSize:sFontSize,fontFamily:sFontFamily,fill: oFill ,textColor: oTextColor});
+        //this.at(x+1,y+1).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});  
+        
+        if (bRedFont){
+            oTextColor=Color.red;
+        }
+        this.at(x+1,y+1).applyStyle({fontSize:sFontSize,fontFamily:sFontFamily,
+                                fill: oFill ,textColor: oTextColor,
+                                fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
+        //bug in applystyle textDecoration & fontStyle & fontWeight do not work.. if this is fixed then remove below line
+        this.at(x+1,y+1).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
+        //this.at(x+1,y+1).setTextDecoration(sTextDecoration);
+        //borderColor does not take null value.
+        if (oBorderColor){
+            this.at(x+1,y+1).applyStyle({borderColor: oBorderColor});
+        }
+        this.at(x+1,y+1).setAlign(sTextAlign); 
+
+
     },  
     updateDisplay: function() {
 /*this get called when scroll is moving*/

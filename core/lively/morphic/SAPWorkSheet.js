@@ -823,7 +823,6 @@ var start = new Date().getTime();
 
         this.arrSelectedCells.lenght=0;
         this.arrSelectedCells =[];
-    
 
         for (var y = 0; y < this.dataModel.length; y++) {
             for (var x = 0; x < this.dataModel[y].length; x++) {

@@ -682,6 +682,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
         return row;
     },
+    /*
+        Detail:  applying grid cell display using data object
+        parameter: x=grid x-coord, y=grid y-coord.
+    */
     updateCellDisplay: function(x,y) {
   
         var bRedFont=false;  //for negative number & currency

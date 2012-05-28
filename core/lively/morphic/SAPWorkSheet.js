@@ -2278,7 +2278,7 @@ debugger;
         if (this.grid.arrSelectedData[0]){
             if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].textDecoration){
                 if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].textDecoration=='underline'){
-                    sTextDecoration="normal"
+                    sTextDecoration="none";
                 }
             }
         }

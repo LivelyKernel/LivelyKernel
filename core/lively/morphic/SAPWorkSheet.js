@@ -2274,8 +2274,16 @@ debugger;
     },
     imgUnderline_Click: function() {
         var i;
+        var sTextDecoration="underline";
+        if (this.grid.arrSelectedData[0]){
+            if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].textDecoration){
+                if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].textDecoration=='underline'){
+                    sTextDecoration="normal"
+                }
+            }
+        }
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textDecoration='underline';
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textDecoration=sTextDecoration;
         }
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y,true);

@@ -2278,8 +2278,8 @@ debugger;
         var i;
         var sFontWeight="bold";
         if (this.grid.arrSelectedData[0]){
-            if (this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontWeight){
-                if (this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontWeight=='bold'){
+            if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].fontWeight){
+                if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].fontWeight=='bold'){
                     sFontWeight="normal"
                 }
             }

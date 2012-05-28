@@ -700,6 +700,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         //x = x + 1;
         //y = y + 1;
+        debugger;
          x = x + this.hideColHeads ? 0 : 1;
         y = y + this.hideRowHeads ? 0 : 1;
 console.log(this.hideColHeads)

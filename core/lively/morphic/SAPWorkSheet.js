@@ -2163,7 +2163,7 @@ debugger;
             }
             arrDataSet[i].oDataCell = this.grid.arrData[arrDataSet[i].y][nMaxMin];
             for (j= 0; j< arrDataSet[i].arrX.length; j++) { 
-                this.grid.arrData[arrDataSet[i].y][arrDataSet[i].arrX[j]].value = arrDataSet[i].oDataCell.value;
+                this.grid.arrData[arrDataSet[i].y][arrDataSet[i].arrX[j]]= arrDataSet[i].oDataCell;
             }
         }
 

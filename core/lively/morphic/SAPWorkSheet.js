@@ -702,7 +702,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         //y = y + 1;
          x = x + this.hideColHeads ? 0 : 1;
         y = y + this.hideRowHeads ? 0 : 1;
-
+console.log(this.hideColHeads)
+console.log(this.hideRowHeads )
 
         //Annotation
         if (arrData && arrData.annotation){

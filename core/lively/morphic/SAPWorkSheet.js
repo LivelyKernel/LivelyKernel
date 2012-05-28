@@ -1543,7 +1543,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
             if (!isSelected){
                 this.grid.activeCell.deactivate();
             }
-            
         }    
         this.grid.activeCell = this;
         this.grid.activeCellContent = this.textString;

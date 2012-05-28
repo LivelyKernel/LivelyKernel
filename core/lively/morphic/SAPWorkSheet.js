@@ -1941,21 +1941,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         var i;
         var that = this.owner;
         that.ddlFont.updateList([sFont]);
-        //for (i= 0; i< that.grid.arrSelectedCells.length; i++) {
-      //      that.grid.arrSelectedCells[i].emphasizeAll({fontFamily:sFont});
-    //    }
 
-        //for data
         for (i= 0; i< that.grid.arrSelectedData.length; i++) {
             that.grid.arrData[that.grid.arrSelectedData[i].y][that.grid.arrSelectedData[i].x].fontFamily=sFont;
         }
         for (i= 0; i< that.grid.arrSelectedCells.length; i++) {
             that.grid.updateCellDisplay(that.grid.arrSelectedCells[i].gridPos().x,that.grid.arrSelectedCells[i].gridPos().y,true);
         }
-
-
         that.fontPicker.setVisible(false);
-        
     },
     clearCell: function(bClearFormats,bClearContents,bClearComments,bClearFormula,bClearStyle) {
         var nRow;

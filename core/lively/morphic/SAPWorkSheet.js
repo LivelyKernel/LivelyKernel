@@ -811,14 +811,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
     },  
     updateDisplay: function() {
-/*this get called when scroll is moving*/
-        var nOrgRow;
-        var nOrgCol;
-        var sValue;
-        var nValue;
-        var bRedFont=false;  //for negative number & currency
 var start = new Date().getTime();
-
         //need to reset selected cell for grid display when scrolls
         this.arrSelectedCells.lenght=0;
         this.arrSelectedCells =[];
@@ -827,7 +820,6 @@ var start = new Date().getTime();
                 this.updateCellDisplay(x,y)
             }
         }
-
         if (this.activeCell) {
             this.activeCellContent = this.activeCell.getContent();
         }

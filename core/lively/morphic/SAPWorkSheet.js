@@ -696,7 +696,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         //var arrData = this.arrData[nOrgRow] && this.arrData[nOrgRow][nOrgCol];
 
 
-        var sValue = data && data.value ? data.value.toString() : "";
+        var sValue = oData && oData.value ? oData.value.toString() : "";
 
         var nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
 
@@ -707,16 +707,16 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         y = y + rowOffset;
 
         //Annotation
-        if (arrData && arrData.annotation){
+        if (oData && oData.annotation){
             this.at(x,y).annotationCell();
         }else{
             this.at(x,y).deactivateCell();
         }
         //formula
-        if (arrData && arrData.formula){
-            sValue = this.parseFormula(arrData.formula);
+        if (oData && oData.formula){
+            sValue = this.parseFormula(oData.formula);
             this.at(x,y).formulaCell();
-            this.at(x,y).setToolTip('Formula: \n' + arrData.formula);
+            this.at(x,y).setToolTip('Formula: \n' + oData.formula);
             this.at(x,y).setBorderStyle("dotted");
         }else{
             this.at(x,y).setToolTip("");
@@ -724,7 +724,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
 
         //selected cell
-        if (arrData && arrData.selected){
+        if (oData&& oData.selected){
             this.at(x,y).selectedCell();
             if (!bIgnoreSelection){
                 this.arrSelectedCells.push(this.at(x,y));
@@ -732,12 +732,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
 
         //DATA formats
-        if (arrData && arrData.dataFormat){
-            if (arrData.dataFormat.type){
-                sValue= this.applyDataFormates(sValue,arrData.dataFormat);
+        if (oData && oData.dataFormat){
+            if (oData.dataFormat.type){
+                sValue= this.applyDataFormates(sValue,oData.dataFormat);
                 //for negateive number for currency & number
-                if (arrData.dataFormat.negativeType){
-                    if (arrData.dataFormat.negativeType==1 || arrData.dataFormat.negativeType==3){
+                if (oData.dataFormat.negativeType){
+                    if (oData.dataFormat.negativeType==1 || oData.dataFormat.negativeType==3){
                         if (!isNaN(nValue)){ 
                             if (nValue < 0){
                                 bRedFont=true;
@@ -748,21 +748,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 
             }
         }
-debugger;
+
         this.at(x,y).textString = sValue;
 
-
-        //cell formats
-        /*fontWeight: 'bold'
-        textDecoration: 'underline'
-        fontStyle: 'italic'
-        fontSize:12
-        fontFamily:sFont
-        textAlign: 'left'
-        borderColor: 
-        textColor:
-        fill
-        */
         var sFontWeight="normal";
         var sTextDecoration="normal";
         var sFontStyle="normal";
@@ -773,35 +761,35 @@ debugger;
         var oFill = null;
         var oTextColor=null;
         //if value is number then should return right
-        sTextAlign = this.getAlignforValueType(arrData && arrData.dataFormat,sValue)
+        sTextAlign = this.getAlignforValueType(oData && oData.dataFormat,sValue)
         
-        if (arrData && arrData.fontWeight){
-            sFontWeight=arrData.fontWeight;
+        if (oData&& oData.fontWeight){
+            sFontWeight=oData.fontWeight;
         }
-        if (arrData && arrData.textDecoration){
-            sTextDecoration=arrData.textDecoration;
+        if (oData&& oData.textDecoration){
+            sTextDecoration=oData.textDecoration;
         }
-        if (arrData && arrData.fontStyle){
-            sFontStyle=arrData.fontStyle;
+        if (oData&& oData.fontStyle){
+            sFontStyle=oData.fontStyle;
         }
-        if (arrData && arrData.fontSize){
-            sFontSize =arrData.fontSize;
+        if (oData&& oData.fontSize){
+            sFontSize =oData.fontSize;
         }                
-        if (arrData && arrData.fontFamily){
-            sFontFamily =arrData.fontFamily;
+        if (oData&& oData.fontFamily){
+            sFontFamily =oData.fontFamily;
         }
-        if (arrData && arrData.textAlign){
-            sTextAlign =arrData.textAlign;
+        if (oData && oData.textAlign){
+            sTextAlign =oData.textAlign;
         }
 
-        if (arrData && arrData.borderColor){
-            oBorderColor=eval(arrData.borderColor);
+        if (oData&& oData.borderColor){
+            oBorderColor=eval(oData.borderColor);
         }                
-        if (arrData && arrData.fill){
-            oFill =eval(arrData.fill);
+        if (oData && oData.fill){
+            oFill =eval(oData.fill);
         } 
-        if (arrData && arrData.textColor){
-            oTextColor=eval(arrData.textColor);
+        if (oData && oData.textColor){
+            oTextColor=eval(oData.textColor);
         } 
         //oText.applyStyle({borderColor: oBorderColor, fill: oFill ,textColor: oTextColor});
         //bug in applystyle textDecoration & fontStyle & fontWeight do not work

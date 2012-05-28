@@ -839,8 +839,8 @@ var start = new Date().getTime();
 
 
 
-        for (var y = 0; y < this.dataModel.length; y++) {
-            for (var x = 0; x < this.dataModel[y].length; x++) {
+        for (var y = nStartY ; y < nEndY ; y++) {
+            for (var x = nStartX; x < nEndX ; x++) {
                 this.updateCellDisplay(x,y)
             }
         }

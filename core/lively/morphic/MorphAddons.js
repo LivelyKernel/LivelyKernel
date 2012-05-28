@@ -662,7 +662,8 @@ lively.morphic.World.addMethods(
         return null;
     },
     getUserDir: function() {
-        // enter comment here
+        var username = this.getUserName();
+        return username ? URL.root.withFilename('users/' + username + '/') : null;
     },
 
     requestUserName: function() {

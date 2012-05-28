@@ -691,9 +691,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var nOrgRow = y  + this.startRow;
         var nOrgCol = x + this.startColumn;
 
-        //var nOrgRow = y-1  + this.startRow;
-        //var nOrgCol = x-1 + this.startColumn;
-
+        x = x + this.hideColHeads ? 0 : 1;
+        y = y + this.hideRowHeads ? 0 : 1;
 
         var data = this.dataModel[y] && this.dataModel[y][x];
         var arrData = this.arrData[nOrgRow] && this.arrData[nOrgRow][nOrgCol];
@@ -702,25 +701,25 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         //Annotation
         if (arrData && arrData.annotation){
-            this.at(x+1,y+1).annotationCell();
+            this.at(x,y).annotationCell();
         }else{
-            this.at(x+1,y+1).deactivateCell();
+            this.at(x,y).deactivateCell();
         }
         //formula
         if (arrData && arrData.formula){
             sValue = this.parseFormula(arrData.formula);
-            this.at(x+1,y+1).formulaCell();
-            this.at(x+1,y+1).setToolTip('Formula: \n' + arrData.formula);
-            this.at(x+1,y+1).setBorderStyle("dotted");
+            this.at(x,y).formulaCell();
+            this.at(x,y).setToolTip('Formula: \n' + arrData.formula);
+            this.at(x,y).setBorderStyle("dotted");
         }else{
-            this.at(x+1,y+1).setToolTip("");
-            this.at(x+1,y+1).setBorderStyle("solid");
+            this.at(x,y).setToolTip("");
+            this.at(x,y).setBorderStyle("solid");
         }
 
         //selected cell
         if (arrData && arrData.selected){
-            this.at(x+1,y+1).selectedCell();
-            this.arrSelectedCells.push(this.at(x+1,y+1));
+            this.at(x,y).selectedCell();
+            this.arrSelectedCells.push(this.at(x,y));
         }
 
         //DATA formats
@@ -741,7 +740,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             }
         }
 
-        this.at(x+1,y+1).textString = sValue;
+        this.at(x,y).textString = sValue;
 
 
         //cell formats
@@ -804,17 +803,17 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         if (bRedFont){
             oTextColor=Color.red;
         }
-        this.at(x+1,y+1).applyStyle({fontSize:sFontSize,fontFamily:sFontFamily,
+        this.at(x,y).applyStyle({fontSize:sFontSize,fontFamily:sFontFamily,
                                 fill: oFill ,textColor: oTextColor,
                                 fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
         //bug in applystyle textDecoration & fontStyle & fontWeight do not work.. if this is fixed then remove below line
-        this.at(x+1,y+1).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
+        this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
         //this.at(x+1,y+1).setTextDecoration(sTextDecoration);
         //borderColor does not take null value.
         if (oBorderColor){
-            this.at(x+1,y+1).applyStyle({borderColor: oBorderColor});
+            this.at(x,y).applyStyle({borderColor: oBorderColor});
         }
-        this.at(x+1,y+1).setAlign(sTextAlign); 
+        this.at(x,y).setAlign(sTextAlign); 
 
 
     },  

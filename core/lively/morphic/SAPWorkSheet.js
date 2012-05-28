@@ -964,7 +964,7 @@ console.log('updateDisplay:'  + elapsed/1000);
                 arrColumns.push(oCell); 
             }
             this.arrData.splice(nOrgRow ,0,arrColumns);
-            this.updateDataModel()
+            this.updateDisplay()
         }
     },
     addRow: function() {

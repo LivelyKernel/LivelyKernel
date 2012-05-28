@@ -686,7 +686,7 @@ lively.morphic.World.addMethods(
             this.askToRegisterAnAccount();
             return null;
         }
-        var userDir = URL.root.withFilename('users/' + username + '/');
+        var userDir = this.getUserDir();
         new WebResource(userDir).ensureExistance();
         return userDir;
     },

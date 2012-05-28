@@ -690,6 +690,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var bRedFont=false;  //for negative number & currency
         var nOrgRow = y  + this.startRow;
         var nOrgCol = x + this.startColumn;
+
+        //var nOrgRow = y-1  + this.startRow;
+        //var nOrgCol = x-1 + this.startColumn;
+
+
         var data = this.dataModel[y] && this.dataModel[y][x];
         var arrData = this.arrData[nOrgRow] && this.arrData[nOrgRow][nOrgCol];
         var sValue = data && data.value ? data.value.toString() : "";

@@ -692,15 +692,16 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var nOrgCol = x + this.startColumn;
         //x = x + this.hideColHeads ? 0 : 1;
         //y = y + this.hideRowHeads ? 0 : 1;
-        x = x + 1;
-        y = y + 1;
-        console.log(x)
-        console.log(y)
 
         var data = this.dataModel[y] && this.dataModel[y][x];
         var arrData = this.arrData[nOrgRow] && this.arrData[nOrgRow][nOrgCol];
         var sValue = data && data.value ? data.value.toString() : "";
         var nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
+
+
+        x = x + 1;
+        y = y + 1;
+
 
         //Annotation
         if (arrData && arrData.annotation){

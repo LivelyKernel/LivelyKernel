@@ -956,13 +956,11 @@ console.log('updateDisplay:'  + elapsed/1000);
         if (this.activeCell) {
             var nRow = this.activeCell.gridCoords.y - (this.hideColHeads ? 0 : 1);
             var nColumn = this.activeCell.gridCoords.x;
-
             var nOrgRow = nRow-1  + this.startRow;
             var nOrgCol = nColumn-1 + this.startColumn;
             var oCell
             var arrColumns=[];
         
-
             for (nCol = 0; nCol < this.arrData[0].length; nCol++) {
                 oCell ={}; 
                 oCell.value = "";
@@ -972,10 +970,7 @@ console.log('updateDisplay:'  + elapsed/1000);
             }
             this.arrData.splice(nOrgRow ,0,arrColumns);
             this.updateDataModel()
-
         }
-        
-        
     },
     addRow: function() {
         var row = [];

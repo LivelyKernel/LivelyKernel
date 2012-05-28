@@ -661,6 +661,10 @@ lively.morphic.World.addMethods(
         }
         return null;
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
     requestUserName: function() {
         if (!Config.userNameURL) return null;
         var webR = new WebResource(Config.userNameURL).get();

@@ -278,7 +278,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 this.colHeads[nCol-this.startColumn].textString = this.getColumnName(nCol);
             }
             
-            this.updateDataModel();
+            this.updateDisplay();
               //I need to rework this
     
             if (nScrollValue==this.hScroll.valueScale){

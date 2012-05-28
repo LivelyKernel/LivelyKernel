@@ -2119,7 +2119,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
             arrDataSet[i].oDataCell = this.grid.arrData[nMaxMin][arrDataSet[i].x];
             for (j= 0; j< arrDataSet[i].arrY.length; j++) { 
                 //we might need to copy: formula, format...etc.. then we need copy function.
-                this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x].value = arrDataSet[i].oDataCell.value;
+                //this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x].value = arrDataSet[i].oDataCell.value;
+                this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x]=arrDataSet[i].oDataCell;
+
             }
         }
 

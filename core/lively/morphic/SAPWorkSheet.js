@@ -746,7 +746,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.at(x,y).textString = sValue;
 
         var sFontWeight="normal";
-        var sTextDecoration="normal";
+        var sTextDecoration="none";
         var sFontStyle="normal";
         var sFontSize = this.defalutFontSize;
         var sFontFamily = this.defaultFontFamily;

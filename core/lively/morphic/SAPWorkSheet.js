@@ -927,7 +927,7 @@ console.log('updateDisplay:'  + elapsed/1000);
                 this.arrData[n].splice(nOrgCol,0,oCell);
             }
 
-            this.updateDataModel();
+            this.updateDisplay();
 
         }
     },

@@ -1,46 +1,46 @@
 module('lively.Touch').requires('lively.TestFramework').toRun(function () {
 
-  cop.create('TouchEvents').refineClass(lively.morphic.Morph, {
+cop.create('TouchEvents')
+.refineClass(lively.morphic.Morph, {
     registerForTouchEvents: function (handleOnCapture) {
-      if (!UserAgent.isTouch) {
-        return;
-      }
-      handleOnCapture = false;
+        if (!UserAgent.isTouch) {
+            return;
+        }
+        handleOnCapture = false;
 
-      if (this.onTouchStartAction) {
-        this.registerForEvent('touchstart', this, 'onTouchStartAction', handleOnCapture);
-      } else if (this.onTouchStart) {
-        this.registerForEvent('touchstart', this, 'onTouchStart', handleOnCapture);
-      }
-      if (this.onTouchMoveAction) {
-        this.registerForEvent('touchmove', this, 'onTouchMoveAction', handleOnCapture);
-      } else if (this.onTouchMove) {
-        this.registerForEvent('touchmove', this, 'onTouchMove', handleOnCapture);
-      }
-      if (this.onTouchEndAction) {
-        this.registerForEvent('touchend', this, 'onTouchEndAction', handleOnCapture);
-      } else if (this.onTouchEnd) {
-        this.registerForEvent('touchend', this, 'onTouchEnd', handleOnCapture);
-      }
-      if (this.onTouchCancel) {
-        this.registerForEvent('touchcancel', this, 'onTouchCancel', handleOnCapture);
-      }
+        if (this.onTouchStartAction) {
+            this.registerForEvent('touchstart', this, 'onTouchStartAction', handleOnCapture);
+        } else if (this.onTouchStart) {
+            this.registerForEvent('touchstart', this, 'onTouchStart', handleOnCapture);
+        }
+        if (this.onTouchMoveAction) {
+            this.registerForEvent('touchmove', this, 'onTouchMoveAction', handleOnCapture);
+        } else if (this.onTouchMove) {
+            this.registerForEvent('touchmove', this, 'onTouchMove', handleOnCapture);
+        }
+        if (this.onTouchEndAction) {
+            this.registerForEvent('touchend', this, 'onTouchEndAction', handleOnCapture);
+        } else if (this.onTouchEnd) {
+            this.registerForEvent('touchend', this, 'onTouchEnd', handleOnCapture);
+        }
+        if (this.onTouchCancel) {
+            this.registerForEvent('touchcancel', this, 'onTouchCancel', handleOnCapture);
+        }
     },
-
-
 
     registerForGestureEvents: function(handleOnCapture) {
-      handleOnCapture = false;
-      if (this.onGestureStart) {
-        this.registerForEvent('gesturestart', this, 'onGestureStart', handleOnCapture);
-      }
-      if (this.onGestureChange) {
-        this.registerForEvent('gesturechange', this, 'onGestureChange', handleOnCapture);
-      }
-      if (this.onGestureEnd) {
-        this.registerForEvent('gestureend', this, 'onGestureEnd', handleOnCapture);
-      }
+        handleOnCapture = false;
+        if (this.onGestureStart) {
+            this.registerForEvent('gesturestart', this, 'onGestureStart', handleOnCapture);
+        }
+        if (this.onGestureChange) {
+            this.registerForEvent('gesturechange', this, 'onGestureChange', handleOnCapture);
+        }
+        if (this.onGestureEnd) {
+            this.registerForEvent('gestureend', this, 'onGestureEnd', handleOnCapture);
+        }
     },
+
     unregisterFromGestureEvents: function() {
         // Since Morphs are able to register for Gesture Events, they must be able to unregister
         var eventHandler = this.eventHandler;
@@ -54,11 +54,13 @@ module('lively.Touch').requires('lively.TestFramework').toRun(function () {
     },
 
     registerForEvents: function(handleOnCapture) {
-      this.registerForGestureEvents(handleOnCapture);
-      cop.proceed(handleOnCapture);
+        this.registerForGestureEvents(handleOnCapture);
+        cop.proceed(handleOnCapture);
     },
 
-}).refineClass(lively.morphic.EventHandler, {
+})
+.refineClass(lively.morphic.EventHandler, {
+
     patchEvent: function(evt) {
         evt = cop.proceed(evt);
         if (['touchend', 'touchstart', 'touchmove'].include(evt.type)) {
@@ -69,30 +71,31 @@ module('lively.Touch').requires('lively.TestFramework').toRun(function () {
         }
         return evt;
     },
+
     patchTouchEvent: function(evt) {
-        if(evt.changedTouches) {
-            for(var i = 0; i < evt.changedTouches.length; i++){
-                evt.changedTouches[i].lastUpdate = new Date();
-            }
-            evt.getPosition = function() {
-                if (!evt.scaledPos) {
-                    if (evt.changedTouches.length > 0) {
-                        evt.scaledPos = evt.changedTouches[0].getPagePosition();
-                    }
-                    else if (evt.touches.length > 0) {
-                        evt.scaledPos = evt.touches[0].getPagePosition();
-                    }
-                }
-                return evt.scaledPos;
-            };
+        if (!evt.changedTouches) return;
+        for (var i = 0; i < evt.changedTouches.length; i++) {
+            evt.changedTouches[i].lastUpdate = new Date();
         }
+        evt.getPosition = function() {
+            if (!evt.scaledPos) {
+                if (evt.changedTouches.length > 0) {
+                    evt.scaledPos = evt.changedTouches[0].getPagePosition();
+                }
+                else if (evt.touches.length > 0) {
+                    evt.scaledPos = evt.touches[0].getPagePosition();
+                }
+            }
+            return evt.scaledPos;
+        };
     },
+
     patchTouchStartEvent: function(evt) {
-        for(var i = 0; i < evt.changedTouches.length; i++){
+        for (var i = 0; i < evt.changedTouches.length; i++){
             var touch = evt.changedTouches[i];
-                    
+
             touch.startDate = new Date();
-                    
+
             touch.getClientPosition = function(){
                 return pt(this.clientX, this.clientY);
             };
@@ -111,7 +114,7 @@ module('lively.Touch').requires('lively.TestFramework').toRun(function () {
                 return new Date().valueOf() - this.startDate.valueOf();
             };
             touch.timeSinceLastUpdate = function(){
-                return new Date().valueOf() - this.lastUpdate.valueOf();                        
+                return new Date().valueOf() - this.lastUpdate.valueOf();
             };
             touch.timeFromStartToLastUpdate = function () {
                 return this.lastUpdate.valueOf() - this.startDate.valueOf();
@@ -128,22 +131,21 @@ module('lively.Touch').requires('lively.TestFramework').toRun(function () {
             };
 
             touch.startTouch = Object.clone(touch);
-        } 
-    },
-
+        }
+    }
 
 }); //end of cop
 
-TouchEvents.beGlobal();
-
 TestCase.subclass('TouchEventsTest', 'default category', {
+
     testRegisterForGestureEvents: function() {
-        var m = Morph.makeRectangle(0,0,100,100);
+        var m = lively.morphic.Morph.makeRectangle(0,0,100,100);
         var eventHandlerKeys = Properties.own(m.eventHandler.dispatchTable);
         this.assert(eventHandlerKeys.include("gesturestart"), "No gesturestart")
     },
+
     testUnregisterFromGestureEvents: function() {
-        var m = Morph.makeRectangle(0,0,100,100);
+        var m = lively.morphic.Morph.makeRectangle(0,0,100,100);
         var eventHandlerKeys = Properties.own(m.eventHandler.dispatchTable);
         m.unregisterFromGestureEvents();
         var gestureNodeFound = 0;
@@ -153,36 +155,33 @@ TestCase.subclass('TouchEventsTest', 'default category', {
                 gestureNodeFound += 1;
             }
         });
-    },
-});
-Object.extend(TouchList.prototype,{
-    include: function(touch){
-        for(var i = 0; i < this.length; i++){
-            if(this[i] === touch){
-                return true;
-            }
-        }
-        return false;
     }
+
 });
 
+(function setupTouchEvents(){
+    TouchEvents.beGlobal();
 
-if(typeof Config.useTwoFingerHaloGesture !== 'boolean'){
-    Config.useTwoFingerHaloGesture = true;
-}
+    if (typeof Config.useTwoFingerHaloGesture !== 'boolean'){
+        Config.useTwoFingerHaloGesture = true;
+    }
+})();
 
-cop.create('TapEvents').refineClass(lively.morphic.World, {
+cop.create('TapEvents')
+.refineClass(lively.morphic.World, {
     onrestore: function(){
-        connect(lively.morphic.World, "currentWorld", this, "loadHoldIndicator");
+        lively.bindings.connect(lively.morphic.World, "currentWorld", this, "loadHoldIndicator");
         cop.proceed();
     },
+
     showHalos: function() {
         // lazy function is lazy
     },
 
-}).refineClass(lively.morphic.Morph, {
+})
+.refineClass(lively.morphic.Morph, {
     onMouseDown: function(evt) {
-        if(!$world.ignoreMouseEvents){
+        if (!$world.ignoreMouseEvents){
             return cop.proceed(evt);
         } else {
             evt.stop();
@@ -190,7 +189,7 @@ cop.create('TapEvents').refineClass(lively.morphic.World, {
         }
     },
     onMouseUp: function(evt) {
-        if(!$world.ignoreMouseEvents){
+        if (!$world.ignoreMouseEvents){
             return cop.proceed(evt);
         } else {
             evt.stop();
@@ -198,7 +197,7 @@ cop.create('TapEvents').refineClass(lively.morphic.World, {
         }
     },
     onMouseMove: function(evt) {
-        if(!$world.ignoreMouseEvents){
+        if (!$world.ignoreMouseEvents){
             return cop.proceed(evt);
         } else {
             evt.stop();
@@ -210,19 +209,19 @@ cop.create('TapEvents').refineClass(lively.morphic.World, {
         var items = cop.proceed();
         var self = this;
         items = items.collect(function(ea) {
-            if(ea && ea[0] === "get halo on...") {
+            if (ea && ea[0] === "get halo on...") {
                 var morphs = self.withAllSubmorphsSelect(function(){return true;});
                 //TODO: use a function which returns all owners of the morph
                 for (var m = self.owner; (m !== self.world()) && (typeof m !== "undefined"); m = m.owner) {
                     morphs.push(m);
                 }
                 morphs = morphs.reject(function(ea){ return ea.selectionDisabled || ea === self; });
-            
+
                 ea[0] = "get selection on...";
                 ea[1] = morphs.collect(function(ea) {
                     return [ea.getName() || ea.toString(), function(evt) { ea.select();}]
                 });
-            
+
             }
             return ea;
         });
@@ -230,6 +229,7 @@ cop.create('TapEvents').refineClass(lively.morphic.World, {
     },
 
 }).beGlobal();
+
 lively.morphic.Box.subclass('lively.morphic.NameDisplay',
 'default category', {
     askForNewName: function() {
@@ -241,13 +241,18 @@ lively.morphic.Box.subclass('lively.morphic.NameDisplay',
             alertOK(oldName + ' renamed to ' + name);
         }, morph.getName() || '')
     },
-    style: {borderWidth: 1, borderRadius: 12, borderColor: Color.darkGray, enableHalos: false, enableDropping: false, enableDragging: false, opacity: 0.7, fill: Color.white, clipMode: 'hidden', toolTip: 'rename the object'},
-
-
-
-
-
-
+    style: {
+        borderWidth: 1,
+        borderRadius: 12,
+        borderColor: Color.darkGray,
+        enableHalos: false,
+        enableDropping: false,
+        enableDragging: false,
+        opacity: 0.7,
+        fill: Color.white,
+        clipMode: 'hidden',
+        toolTip: 'rename the object'
+    },
 
     onClick: function(evt) {
         //this.askForNewName.bind(this).delay(0);
@@ -273,7 +278,14 @@ lively.morphic.Box.subclass('lively.morphic.NameDisplay',
         } else {
             this.labelMorph.setExtent(pt(0,0));
         }
-        this.labelMorph.applyStyle({align: 'center', fixedWidth: false, fixedHeight: false, textColor: Color.darkGray, borderStyle: "hidden", fill: Color.rgba(0,0,0,0)});
+        this.labelMorph.applyStyle({
+            align: 'center',
+            fixedWidth: false,
+            fixedHeight: false,
+            textColor: Color.darkGray,
+            borderStyle: "hidden",
+            fill: Color.rgba(0,0,0,0)
+        });
 
         this.labelMorph.wantsToBeDebugged = true;
 
@@ -303,17 +315,12 @@ lively.morphic.Box.subclass('lively.morphic.NameDisplay',
         this.labelMorph.fit();
         this.setExtent(this.labelMorph.getExtent().addPt(pt(10,5)));
         this.labelMorph.align(this.labelMorph.bounds().center(), this.innerBounds().center());
-        this.align( this.getBounds().topCenter(), 
+        this.align( this.getBounds().topCenter(),
                     this.owner.innerBounds().bottomCenter());
     },
 
-
-
-
-
-
-
 });
+
 lively.morphic.Morph.addMethods(
 "Tap ThroughHalos", {
     onTap: function(evt) {
@@ -362,14 +369,16 @@ lively.morphic.Morph.addMethods(
 },
 "TouchToMouse", {
     fireMouseEvent: function(evtType, touchObj, target) {
-        
+
         var buttonFlag = touchObj.buttonFlag || 0;
 
-        if(buttonFlag === 0 ||
+        if (buttonFlag === 0 ||
            buttonFlag === 1 ||
            buttonFlag === 2) {
 
             var mouseEvent = document.createEvent('MouseEvents');
+            // rk: What about using the EventSimulator for this? It already
+            // implements cross-browser event generation + dispatch
             mouseEvent.initMouseEvent(evtType,
                 true,
                 true,
@@ -399,27 +408,23 @@ lively.morphic.Morph.addMethods(
 
         if (evt.targetTouches.length === 1){
             this.tapTouch = evt.targetTouches[0];
-            if(evt.dontScroll || typeof this.onTouchMove === "function") {
+            if (evt.dontScroll || typeof this.onTouchMove === "function") {
                 evt.dontScroll = true;
             } else {
                 this.moveTouch = evt.targetTouches[0];
             }
         }
 
-
-
         if (evt.touches.length === 1 && !evt.holdIsScheduled) {
             this.handleFirstTouch(evt);
         } else if (evt.touches && evt.touches.length === 2) {
             this.handleSecondTouch(evt);
         }
-        if (typeof this.onTouchStart === "function") { 
+        if (typeof this.onTouchStart === "function") {
             return this.onTouchStart(evt);
         }
+        return false;
     },
-
-
-
 
     onTouchMoveAction: function (evt) {
         if (this.areEventsIgnoredOrDisabled()) {
@@ -434,39 +439,39 @@ lively.morphic.Morph.addMethods(
         }
 
         // cancel the hold indicator for text (text does not have a movetouch)
-        if (evt.touches.length === 1 && 
-                this.tapTouch && 
+        if (evt.touches.length === 1 &&
+                this.tapTouch &&
                 evt.touches[0] === this.tapTouch) {
 
             var delta = this.tapTouch.getScreenDeltaToStart();
 
             if (delta.r() > 25) {   // not hold
-                this.cancelHold(); 
+                this.cancelHold();
             }
         }
-        
 
-        if (evt.touches.length === 1 && 
-                this.moveTouch && 
+        if (evt.touches.length === 1 &&
+                this.moveTouch &&
                 evt.touches[0] === this.moveTouch) {
-            
+
             this.moveToTouchPosition(evt);
             evt.stop();
             //return true;
         }
-        if (typeof this.onTouchMove === "function") { 
+        if (typeof this.onTouchMove === "function") {
             return this.onTouchMove(evt);
         }
+
+        return false;
     },
+
     moveToTouchPosition: function(evt) {
-        if (!this.moveTouch) {
-            return;
-        }
+        if (!this.moveTouch) { return }
 
         var delta = this.moveTouch.getScreenDeltaToStart();
 
         if (this.scrolled || this.moved || delta.r() > 25) {   // not hold
-            this.cancelHold(); 
+            this.cancelHold();
 
             if (this !== this.world() && this.isTouchDraggable()) {
                 // move the morph
@@ -481,14 +486,14 @@ lively.morphic.Morph.addMethods(
                 }
             } else {
                 // scroll the world
-                if(!this.scrolled) {
+                if (!this.scrolled) {
                     $world.initializeBrowserScrollForTouchEvents(this.moveTouch.startTouch);
                 }
                 this.scrolled = true;
 
                 $world.emulateBrowserScrollForTouchEvents(this.moveTouch);
             }
-        } 
+        }
     },
     dropToTouchPosition: function(evt) {
         if (this.moved) {
@@ -509,8 +514,8 @@ lively.morphic.Morph.addMethods(
         if (this.areEventsIgnoredOrDisabled()){
             return false;
         }
-  
-        if(this.moveTouch && this.moveTouch.canceled){
+
+        if (this.moveTouch && this.moveTouch.canceled){
             // In this case, the mobile browser is going to emit some mouseevents,
             // which may cause problems (e.g. removing halos). The only way to
             // prevent this, is stopping the touch-Start-events. However, we don't
@@ -531,7 +536,7 @@ lively.morphic.Morph.addMethods(
 
         var out = false;
 
-        if (typeof this.onTouchEnd === "function") { 
+        if (typeof this.onTouchEnd === "function") {
             out = this.onTouchEnd(evt);
         }
 
@@ -542,12 +547,12 @@ lively.morphic.Morph.addMethods(
             this.moveTouch = false;
             this.moved = false;
             this.scrolled = false;
-        
+
             $world.endBrowserScrollForTouchEvents();
             evt.stop();
         }
 
-        if(this.tapTouch && evt.changedTouches.include(this.tapTouch)) {
+        if (this.tapTouch && evt.changedTouches.include(this.tapTouch)) {
             this.cancelHold();
         }
 
@@ -564,12 +569,12 @@ lively.morphic.Morph.addMethods(
         return out;
     },
     checkForTap: function(evt) {
-        if(this.tapTouch){
+        if (this.tapTouch){
             var delta = this.tapTouch.timeFromStartToLastUpdate();
             // TODO some scripts (ie pieStart) take long and delay processing of furher events
             // especially TouchEnd, which checks for taps using the time that passed
             // that forces us to increase the tap-threshold
-            if(delta <= 200 && this.tapTouch.getScreenDeltaToStart().r() <= 25){
+            if (delta <= 200 && this.tapTouch.getScreenDeltaToStart().r() <= 25){
                 //console.log("event - type: tap on: "+this.eventHandler.dispatchTable[evt.type].target + (evt.fromTouch ? " (was generated from touch)" : "") + "(at "+ new Date().valueOf() +")" + " -- phase " + evt.eventPhase);
                 this.tapped(evt);
             }
@@ -580,11 +585,9 @@ lively.morphic.Morph.addMethods(
         $world.cancelHold();
     },
 
-
-
     tapped: function(evt) {
         var doubleTapTimeout = 250;
-            
+
         if (this.lastTap && new Date() - this.lastTap <= doubleTapTimeout) {
             if (typeof this.onDoubleTap === "function") {
                 this.lastTap = false;
@@ -598,12 +601,14 @@ lively.morphic.Morph.addMethods(
             this.lastTap = new Date();
         }
     },
+
     handleFirstTouch: function(evt) {
         $world.scheduleHoldIndicatorFor(this);
         evt.holdIsScheduled = true;
         $world.setEditMode(true);
         this.selectable = false;
     },
+
     handleSecondTouch: function(evt) {
         $world.cancelHold();
         if (evt.targetTouches.length == 1 && Config.useTwoFingerHaloGesture) {
@@ -612,7 +617,7 @@ lively.morphic.Morph.addMethods(
             this.selectable = true;
 
             for(var i = 0; i<2; i++){
-                if(evt.touches[i] != evt.targetTouches[0]){
+                if (evt.touches[i] != evt.targetTouches[0]){
                     evt.touches[i].canceled = true;
                 }
             }
@@ -629,7 +634,7 @@ lively.morphic.Morph.addMethods(
 
     triggerHold: function() {
         this.cancelHold();
-        if(typeof this.onHold === "function"){
+        if (typeof this.onHold === "function"){
             this.onHold(this.tapTouch);
         }
     },
@@ -645,12 +650,12 @@ lively.morphic.Morph.addMethods(
                 this.isDraggableWithoutHalo();
     },
 
-}, 
+},
 "Selection", {
 
     select: function() {
         // enter comment here
-        if(!this.isSelectable()) return;
+        if (!this.isSelectable()) return;
         $world.updateSelection(this);
         this.selectionMorph = this.createSelectionMorph();
         $world.addMorph(this.selectionMorph);
@@ -666,20 +671,20 @@ lively.morphic.Morph.addMethods(
         ));
         border.setBorderColor(Color.green.lighter());
         border.align(border.bounds().topLeft(), this.shape.bounds().topLeft());
-        border.disableDropping();        
+        border.disableDropping();
         border.applyStyle({adjustForNewBounds: true});
 
         border.setOrigin(this.getOrigin());
         border.setTransform(this.getGlobalTransform());
         border.targetMorph = this;
 
-        border.onTap = function (evt) { 
+        border.onTap = function (evt) {
             this.targetMorph.morphBeneath(evt.getPosition()).select();
             evt.stop();
         };
         border.disableSelection();
 
-        if(PieMenu) {
+        if (PieMenu) {
             border.onTouchStart = function (evt) {
             // TODO this takes about 100ms and delays processing of furher events
             // especially TouchEnd, which checks for taps using the time that passed
@@ -709,7 +714,7 @@ lively.morphic.Morph.addMethods(
         }});
         //connect(this, "remove", border, "remove", {removeAfterUpdate: true});
 
-        
+
 
         var cornerPlaces = ["topLeft", "topRight", "bottomLeft", "bottomRight"];
         for(var i = 0; i < cornerPlaces.length; i += 1) {
@@ -717,7 +722,7 @@ lively.morphic.Morph.addMethods(
             corner.setScale(1 / $world.getZoomLevel() / this.getGlobalTransform().getScale());
             corner.name = "corner"+cornerPlaces[i];
             corner.setOrigin(pt(22,22));
-            
+
             corner.setFill(null)
             var colorMorph = lively.morphic.Morph.makeEllipse(new Rectangle(0,0,22,22))
             colorMorph.setFill(new lively.morphic.LinearGradient(
@@ -766,9 +771,9 @@ lively.morphic.Morph.addMethods(
 
     deselect: function() {
         // enter comment here
-        if(this.selectionMorph){
+        if (this.selectionMorph){
             this.unignoreEvents();
-        
+
             disconnect(this, "extent", this.selectionMorph, "setExtent");
             disconnect(this, "_Position", this.selectionMorph, "setPosition");
             disconnect(this, "_Rotation", this.selectionMorph, "setRotation");
@@ -789,8 +794,8 @@ lively.morphic.Morph.addMethods(
     },
     isSelectable: function() {
         // comment
-        if(typeof this.selectionDisabled === "undefined"){
-            if(this.owner){
+        if (typeof this.selectionDisabled === "undefined"){
+            if (this.owner){
                 return this.owner.isSelectable();
             } else {
                 return true;
@@ -806,15 +811,15 @@ lively.morphic.Morph.addMethods(
 },
 "PieMenu", {
             showPieMenu: function(position){
-                if(this.showsPie || !this.world() || this.pieDisabled){
+                if (this.showsPie || !this.world() || this.pieDisabled){
                     return;
                 }
-                
-                if(this.showTimeout){
+
+                if (this.showTimeout){
                     window.clearTimeout(this.showTimeout);
                     delete this.showTimeout;
                 }
-                
+
                 this.showsPie = true;
                 //this.halos = this.getHalos();
                 var pieMenu = this.world().showPieFor(this, this.pieItems);
@@ -822,7 +827,7 @@ lively.morphic.Morph.addMethods(
                 console.log("position: "+position);
                 pieMenu.align(pieMenu.bounds().center(), position);
             },
-        
+
             getPieItemClasses: function() {
                 return [
                     lively.morphic.DragPieItem,
@@ -856,14 +861,14 @@ lively.morphic.Morph.addMethods(
             }
             item.enter();
             this.enteredItem = item;
-        } else if(delta.r() <= 40 && this.enteredItem) {
+        } else if (delta.r() <= 40 && this.enteredItem) {
             this.enteredItem.leave();
             this.enteredItem = null;
         }
     },
 
     pieStart: function(evt) {
-        if(evt.changedTouches.length === 1){
+        if (evt.changedTouches.length === 1){
             this.pieItems = this.getPieItems();
             this.pieTouch = evt.changedTouches[0];
             this.pieTouch.screenStart = pt(this.pieTouch.screenX, this.pieTouch.screenY);
@@ -879,11 +884,11 @@ lively.morphic.Morph.addMethods(
         }
     },
     pieMove: function(evt) {
-        if(this.pieTouch){
+        if (this.pieTouch){
             var pagePos = pt(this.pieTouch.pageX, this.pieTouch.pageY);
             evt.getPosition = function(){return pagePos};
 
-            if(this.activatedPieItem){
+            if (this.activatedPieItem){
                 this.activatedPieItem.move(evt);
             } else {
                 this.doPieBehavior(evt);
@@ -900,16 +905,16 @@ lively.morphic.Morph.addMethods(
         }
 
         //TODO: pieTouch in touches?
-        if(this.pieTouch){
-            
+        if (this.pieTouch){
 
-            if(this.showTimeout){
+
+            if (this.showTimeout){
                 window.clearTimeout(this.showTimeout);
                 delete this.showTimeout;
             }else{
                 this.removePieMenu();
             }
-            if(this.activatedPieItem){
+            if (this.activatedPieItem){
                 this.activatedPieItem.end(evt);
                 this.activatedPieItem = null;
             }
@@ -933,7 +938,7 @@ lively.morphic.Morph.addMethods(
     },
 
     activatePieItem: function(item, evt) {
-        if(this.showTimeout){
+        if (this.showTimeout){
             window.clearTimeout(this.showTimeout);
             delete this.showTimeout;
         } else {
@@ -953,8 +958,8 @@ lively.morphic.Morph.addMethods(
                     case '-webkit-': eventName = "webkitTransitionEnd"; break;
                     case '-o-'     : eventName = "oTransitionEnd"; break;
                 }
-                
-                if(prefix === "-moz-") {
+
+                if (prefix === "-moz-") {
                     this.renderContext().morphNode.style["MozTransitionProperty"] = "top, left";
                     this.renderContext().morphNode.style["MozTransitionDuration"] = time + "ms";
                 } else {
@@ -963,11 +968,11 @@ lively.morphic.Morph.addMethods(
                 }
 
                 this.moveBy(delta);
-                
-                var that = this;    
+
+                var that = this;
 
                 var remover = function(evt){
-                    if(prefix === "-moz-") {
+                    if (prefix === "-moz-") {
                         that.renderContext().morphNode.style["MozTransitionProperty"] = "";
                         that.renderContext().morphNode.style["MozTransitionDuration"] = "";
                     } else {
@@ -988,7 +993,7 @@ lively.morphic.Morph.addMethods(
                     case '-o-'     : eventName = "oTransitionEnd"; break;
                 }
 
-                if(prefix === "-moz-") {
+                if (prefix === "-moz-") {
                     this.renderContext().morphNode.style["MozTransitionProperty"] = "top, left";
                     this.renderContext().morphNode.style["MozTransitionDuration"] = time + "ms";
                 } else {
@@ -996,11 +1001,11 @@ lively.morphic.Morph.addMethods(
                     this.renderContext().morphNode.style[prefix + "transition-duration"] = time + "ms";
                 }
                 this.setPosition(position);
-                
-                var that = this;    
+
+                var that = this;
 
                 var remover = function(evt){
-                    if(prefix === "-moz-") {
+                    if (prefix === "-moz-") {
                         that.renderContext().morphNode.style["MozTransitionProperty"] = "";
                         that.renderContext().morphNode.style["MozTransitionDuration"] = "";
                     } else {
@@ -1016,19 +1021,19 @@ lively.morphic.Morph.addMethods(
 "fixed", {
 setFixed: function(fixed, fixedPosition) {
 
-        if(fixed && this.owner !== $world) {
+        if (fixed && this.owner !== $world) {
             return;
         }
 
         this.isFixed = fixed;
-        if(fixed) {
+        if (fixed) {
             this.fixedScale = this.getScale() * $world.getZoomLevel();
             this.fixedPosition = this.getPosition().subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel());
 
             connect($world, "zoomLevel", this, "updateZoomScale");
             connect($world, "emulatedScrolling", this, "toggleScrolling");
             connect($world, "zoomingInProgress", this, "toggleScrolling");
-            if(!fixedPosition) {
+            if (!fixedPosition) {
                 connect($world, "scrollOffset", this, "updateScrollPosition");
             }
         } else {
@@ -1037,7 +1042,7 @@ setFixed: function(fixed, fixedPosition) {
             disconnect($world, "emulatedScrolling", this, "toggleScrolling");
             disconnect($world, "zoomingInProgress", this, "toggleScrolling");
         }
-        
+
 
     },
     setFixedPosition: function(position) {
@@ -1050,8 +1055,8 @@ setFixed: function(fixed, fixedPosition) {
 
 
     toggleScrolling: function(isScrolling) {
-        if(!this.isFixed) return
-        if(isScrolling) {
+        if (!this.isFixed) return
+        if (isScrolling) {
             this.remove();
         } else {
             $world.addMorph(this);
@@ -1063,8 +1068,8 @@ setFixed: function(fixed, fixedPosition) {
     },
 
     updateZoomScale: function(newZoom) {
-        if(this.fixedScale) {
-            
+        if (this.fixedScale) {
+
             this.setScale(this.fixedScale/newZoom);
         }
     },
@@ -1128,7 +1133,7 @@ lively.morphic.Morph.subclass('lively.morphic.ResizeCorner',
             this.dragStartPoint = null;
             this.originalTargetBounds = null;
 
-            if(this.infoMorphs){
+            if (this.infoMorphs){
                 this.infoMorphs.invoke("remove");
             }
     },
@@ -1166,8 +1171,8 @@ lively.morphic.Morph.subclass('lively.morphic.ResizeCorner',
         target.setExtent(newBounds.extent());
     },
     createInfoMorph: function(number) {
-        if(!this.infoMorphs){
-            this.infoMorphs = []; 
+        if (!this.infoMorphs){
+            this.infoMorphs = [];
         }
 
         this.infoMorphs[number] = new lively.morphic.Text(new Rectangle(0,0,500,30),"");
@@ -1177,12 +1182,12 @@ lively.morphic.Morph.subclass('lively.morphic.ResizeCorner',
         $world.addMorph(this.infoMorphs[number]);
     },
     alignInfo: function() {
-        if(!this.infoMorphs) {
+        if (!this.infoMorphs) {
             this.infoMorphs = [];
         }
 
         for(var i = 0; i < this.infoMorphs.length; i++){
-            if(this.infoMorphs[i]){
+            if (this.infoMorphs[i]){
                 this.infoMorphs[i].align(
                     this.infoMorphs[i].bounds().bottomLeft().addPt(
                         pt(0,(this.infoMorphs[i].getExtent().y) * i * this.infoMorphs[i].getScale())
@@ -1193,13 +1198,13 @@ lively.morphic.Morph.subclass('lively.morphic.ResizeCorner',
         }
     },
     setInfo: function(number, textStr) {
-        if(!this.infoMorphs) {
+        if (!this.infoMorphs) {
             this.infoMorphs = [];
         }
-        if(!this.infoMorphs[number]){
+        if (!this.infoMorphs[number]){
             this.createInfoMorph(number);
         }
-        if(!this.infoMorphs[number].owner){
+        if (!this.infoMorphs[number].owner){
             $world.addMorph(this.infoMorphs[number]);
         }
         this.infoMorphs[number].setTextString(textStr);
@@ -1219,7 +1224,7 @@ lively.morphic.Morph.subclass('lively.morphic.ResizeCorner',
 lively.morphic.World.addMethods(
 "TapEvents", {
     loadHoldIndicator: function() {
-        if(UserAgent.isTouch){
+        if (UserAgent.isTouch){
             this.holdIndicator = this.loadPartItem("HoldIndicator", "PartsBin/iPadWidgets");
         }
     },
@@ -1234,7 +1239,7 @@ lively.morphic.World.addMethods(
     },
 
     emulateBrowserScrollForTouchEvents: function(touch) {
-        if(!this._emulatedScrollingTemporarilyDisabled){
+        if (!this._emulatedScrollingTemporarilyDisabled){
             var touchDelta = pt(touch.clientX, touch.clientY).subPt(this.scrollTouchStart);
             var scrollTarget = this.scrollStart.subPt(touchDelta);
             window.scrollTo(scrollTarget.x, scrollTarget.y);
@@ -1247,7 +1252,7 @@ lively.morphic.World.addMethods(
     onTap: function($super, evt) {
         $super(evt);
         if (this.currentHaloTarget && !this.isInEditMode()) {
-            this.currentHaloTarget.removeHalos() 
+            this.currentHaloTarget.removeHalos()
         }
         this.setEditMode(false)
         // worldMenu.js integration!!!
@@ -1290,7 +1295,7 @@ lively.morphic.World.addMethods(
 
 
 },
-"EditMode", { 
+"EditMode", {
     isInEditMode: function() {
         return this.editMode
     },
@@ -1301,7 +1306,7 @@ lively.morphic.World.addMethods(
     },
     showHoldIndicatorFor: function(morph) {
 
-        if(morph.tapTouch && this.holdIndicator){
+        if (morph.tapTouch && this.holdIndicator){
             this.addMorph(this.holdIndicator);
             this.holdIndicator.align(
                 this.holdIndicator.bounds().center(),
@@ -1311,7 +1316,7 @@ lively.morphic.World.addMethods(
         }
     },
     updateSelection: function(newSelectedMorph) {
-        if(this.currentlySelectedMorph) {
+        if (this.currentlySelectedMorph) {
             this.currentlySelectedMorph.deselect();
         }
         this.currentlySelectedMorph = newSelectedMorph;
@@ -1324,11 +1329,11 @@ lively.morphic.World.addMethods(
         }, 400);
     },
     cancelHold: function() {
-        if(this.holdIndicatorTimeout) {
+        if (this.holdIndicatorTimeout) {
             window.clearTimeout(this.holdIndicatorTimeout);
         }
-        if(this.holdIndicator) {
-            this.holdIndicator.remove(); 
+        if (this.holdIndicator) {
+            this.holdIndicator.remove();
         }
     },
 
@@ -1342,18 +1347,18 @@ lively.morphic.World.addMethods(
                 this.currentPieTarget = morph;
                 this.pieMenu = new lively.morphic.PieMenu(pieItems);
                 this.addMorph(this.pieMenu);
-                
+
                 this.pieMenu.submorphs.each(function(ea) {
                     ea = ea.submorphs[0];
-                    if(ea.labelMorph) {
+                    if (ea.labelMorph) {
                         ea.labelMorph.bringToFront();
                         ea.labelMorph.align(ea.labelMorph.bounds().center(), ea.innerBounds().center());
                     }
                 });
-                
+
                 return this.pieMenu;
             },
-        
+
             removePie: function() {
                 if (this.currentPieTarget) {
                     this.currentPieTarget.removePieMenu();
@@ -1363,7 +1368,7 @@ lively.morphic.World.addMethods(
     onTap: function($super, evt) {
         $super(evt);
         if (this.currentHaloTarget) {
-            this.currentHaloTarget.removeHalos() 
+            this.currentHaloTarget.removeHalos()
         }
 
         this.removePie();
@@ -1403,7 +1408,7 @@ lively.morphic.World.addMethods(
 
     followHand: function(val) {
         var handPosition = val.subPt(pt(
-                document.body.scrollLeft, 
+                document.body.scrollLeft,
                 document.body.scrollTop)
             ).scaleBy(
                 $world.getZoomLevel()
@@ -1414,16 +1419,16 @@ lively.morphic.World.addMethods(
 
         console.log(handPosition.toString());
 
-        if(x < scrollThreshold ){
+        if (x < scrollThreshold ){
             window.scrollBy(x-scrollThreshold , 0);
         }
-        if(x > document.documentElement.clientWidth - scrollThreshold ){
+        if (x > document.documentElement.clientWidth - scrollThreshold ){
             window.scrollBy(x + scrollThreshold - document.documentElement.clientWidth, 0);
         }
-        if(y < scrollThreshold ){
+        if (y < scrollThreshold ){
             window.scrollBy(0, y-scrollThreshold );
         }
-        if(y > document.documentElement.clientHeight - scrollThreshold ){
+        if (y > document.documentElement.clientHeight - scrollThreshold ){
             window.scrollBy(0, y + scrollThreshold - document.documentElement.clientHeight);
         }
 
@@ -1432,7 +1437,7 @@ lively.morphic.World.addMethods(
 },
 "zooming", {
     calculateCurrentZoom: function() {
-        if(UserAgent.isTouch) {
+        if (UserAgent.isTouch) {
             return document.documentElement.clientWidth / window.innerWidth;
         }  else {
             return window.outerWidth / window.innerWidth;
@@ -1442,7 +1447,7 @@ lively.morphic.World.addMethods(
         return this.getZoomLevel();
     },
 getZoomLevel: function() {
-        if(!this.zoomLevel){
+        if (!this.zoomLevel){
             this.zoomLevel = this.calculateCurrentZoom();
         }
         return this.zoomLevel;
@@ -1454,7 +1459,7 @@ getZoomLevel: function() {
 
 lively.morphic.Halo.addMethods("TouchToMouse", {
     onTouchStart: function (evt) {
-        if(evt.touches.length==1){
+        if (evt.touches.length==1){
             evt.preventDefault();
             var touch = evt.touches[0];
             touch.buttonFlag = "unknown";
@@ -1463,10 +1468,10 @@ lively.morphic.Halo.addMethods("TouchToMouse", {
         return true;
     },
     onTouchMove: function(evt) {
-        if(evt.touches.length === 1){
+        if (evt.touches.length === 1){
             evt.preventDefault();
             var touch = evt.touches[0];
-            if(touch.buttonFlag === "unknown") {
+            if (touch.buttonFlag === "unknown") {
                 touch.buttonFlag = 0;
                 this.fireMouseEvent('mousedown', touch, evt.target);
             }
@@ -1476,10 +1481,10 @@ lively.morphic.Halo.addMethods("TouchToMouse", {
         return true;
     },
     onTouchEnd: function(evt) {
-        if(evt.touches.length==0){
+        if (evt.touches.length==0){
             var touch = evt.changedTouches[0];
 
-            if(touch.buttonFlag === "unknown") {
+            if (touch.buttonFlag === "unknown") {
                 touch.buttonFlag = 0;
                 this.fireMouseEvent('mousedown', touch, evt.target);
                 this.fireMouseEvent('mouseup', touch, evt.target);
@@ -1524,7 +1529,7 @@ lively.morphic.Button.addMethods("TapEvents", {
 
 cop.create("GestureEvents").refineClass(lively.morphic.Morph, {
     onGestureChange: function (evt) {
-        if(this.areEventsIgnoredOrDisabled()){
+        if (this.areEventsIgnoredOrDisabled()){
             return false;
         }
         if (this.halosTemporaryInvisible) {
@@ -1532,10 +1537,10 @@ cop.create("GestureEvents").refineClass(lively.morphic.Morph, {
             this.setRotation(this.originalRotation+evt.rotation/180*Math.PI);
             evt.stop()
         };
-        if ($world.isInEditMode()) $world.setEditMode(false) 
+        if ($world.isInEditMode()) $world.setEditMode(false)
     },
     onGestureStart: function(evt) {
-        if(this.areEventsIgnoredOrDisabled()){
+        if (this.areEventsIgnoredOrDisabled()){
             return false;
         }
         if (this.showsHalos) {
@@ -1570,7 +1575,7 @@ cop.create("GestureEvents").refineClass(lively.morphic.Morph, {
     },
 }).refineClass(lively.morphic.World, {
     onGestureStart:function (evt) {
-        if(!this.pieMode){
+        if (!this.pieMode){
             cop.proceed(evt);
             this.zoomingInProgress = true;
             this._emulatedScrollingTemporarilyDisabled = true;
@@ -1580,9 +1585,9 @@ cop.create("GestureEvents").refineClass(lively.morphic.Morph, {
 
     },
     onGestureEnd: function(evt) {
-        if(!this.pieMode){
-            window.setTimeout( function() { 
-                $world.zoomLevel = $world.calculateCurrentZoom(); 
+        if (!this.pieMode){
+            window.setTimeout( function() {
+                $world.zoomLevel = $world.calculateCurrentZoom();
                 $world.onWindowScroll();
                 $world.zoomingInProgress = false;
             }, 1);
@@ -1661,7 +1666,7 @@ morphMenuDefaultPartsItems: function () {
 			      if (!part) return;
             lively.morphic.World.current().firstHand().grabMorph(part);
         }]}))
-    
+
         items.pushAll(["TextField", "Button"].collect(function(ea) { return [ea, function() {
             var partSpaceName = 'PartsBin/iPadWidgets',
                 part = lively.PartsBin.getPart(ea, partSpaceName);
@@ -1723,12 +1728,12 @@ morphMenuDefaultPartsItems: function () {
     },
       enlargeMorph: function() {
         if (this.sliderKnob.isEnlarged()) {
-            return    
+            return
         }
         var largeSliderKnob = this.sliderKnob.copy()
 
         this.sliderKnob.addMorph(largeSliderKnob)
-        largeSliderKnob.setScale(largeSliderKnob.getScale()*2) // define min/max size 
+        largeSliderKnob.setScale(largeSliderKnob.getScale()*2) // define min/max size
         largeSliderKnob.ignoreEvents()
         largeSliderKnob.disableSelection()
         largeSliderKnob.setFill(null)
@@ -1743,7 +1748,7 @@ morphMenuDefaultPartsItems: function () {
 
 
         updateFill: function(value) {
-            if(this.inverted && this.inverted())
+            if (this.inverted && this.inverted())
                 var value = 1 - value;
             var color = this.color || Color.rgb(53,83,255);
             var align = this.vertical() ? 'northSouth' : 'eastWest';
@@ -1751,7 +1756,7 @@ morphMenuDefaultPartsItems: function () {
                 [
                     {offset: 0, color: color},
                     {offset: value, color: color},
-                    {offset: Math.min(1,value+0.01), color: Color.white}                
+                    {offset: Math.min(1,value+0.01), color: Color.white}
                 ],
                 align
             );
@@ -1773,7 +1778,7 @@ morphMenuDefaultPartsItems: function () {
             var val = this.getScaledValue();
             var bnds = this.shape.bounds();
             var knobMult = this.knobRatio || 3
-            var ext = this.getSliderExtent(); 
+            var ext = this.getSliderExtent();
             if (this.vertical()) { // more vertical...
                 var offset = 0 - (this.sliderKnob.bounds().width / 2) + (this.getExtent().x / 2);
                 this.sliderKnob.setPosition(pt(offset,this.sliderKnob.getPosition().y));
@@ -1784,12 +1789,12 @@ morphMenuDefaultPartsItems: function () {
             } else { // more horizontal...
                 var offset = 0 - (this.sliderKnob.bounds().height / 2) + (this.getExtent().y / 2);
                 this.sliderKnob.setPosition(pt(this.sliderKnob.getPosition().x, offset));
-                var size = this.getExtent().y * knobMult; 
+                var size = this.getExtent().y * knobMult;
                 this.sliderKnob.setExtent(pt(size,size));
                 var elevPix = Math.max(ext*bnds.width, this.mss); // thickness of elevator in pixels
                 var topLeft = pt((bnds.width - elevPix)*val, this.sliderKnob.getPosition().y - this.sliderKnob.getOrigin().y);
             };
-                
+
             this.sliderKnob.setPosition(topLeft.addPt(this.sliderKnob.getOrigin()));
             this.sliderKnob.setBorderRadius(13);
             this.sliderKnob.draggableWithoutHalo = true;
@@ -1799,9 +1804,9 @@ morphMenuDefaultPartsItems: function () {
         this.knobRatio = num;
     },
     getSliderExtent: function() {
-    if (this.vertical()) 
+    if (this.vertical())
         return (this.sliderKnob.getExtent().y)/(this.getExtent().y)
-    else 
+    else
         return (this.sliderKnob.getExtent().x)/(this.getExtent().x)
     },
     onDoubleTap: function(){
@@ -1958,7 +1963,7 @@ morphMenuDefaultPartsItems: function () {
             if (ea.constructor === lively.morphic.Button){
                 if (ea.beToolbarButton && ea.label && ea.label.getTextString) {
                     ea.beToolbarButton(ea.label.getTextString());
-                    if (!(ea === that.closeButton 
+                    if (!(ea === that.closeButton
                             || ea === that.menuButton
                             || ea === that.collapseButton)) {
                         ea.setPosition(pt(barHeight*ea.orderInTaskBar, ea.getPosition().y));
@@ -2057,7 +2062,7 @@ cop.create('DoubleTapSelection').refineClass(lively.morphic.Button,{
     tapped: function(evt) {
         var doubleTapTimeout = 250,
             that = this;
-            
+
         if (this.lastTap && new Date() - this.lastTap <= doubleTapTimeout) {
             if (typeof this.onDoubleTap === "function") {
                 this.lastTap.event.doNotTap = true;
@@ -2099,7 +2104,7 @@ cop.create('TouchAndHoldSelection').refineClass(lively.morphic.Button,{
 });
 cop.create('SelectionMode').refineClass(lively.morphic.World, {
     ensureSelectionMorph: function() {
-        if(!this.selectionModeButton){
+        if (!this.selectionModeButton){
             this.selectionModeButton = new lively.morphic.Button(rect(0,0,44,44));
             this.selectionModeButton.setExtent(pt(100,84));
             this.selectionModeButton.setLabel("activate selection mode");
@@ -2134,7 +2139,7 @@ cop.create('SelectionMode').refineClass(lively.morphic.World, {
             };
             this.selectionModeButton.toggle = function(){
                 this.isActivated = !this.isActivated;
-                if(this.isActivated){
+                if (this.isActivated){
                     this.setFill(this.lighterFill);
                     $world.activateSelection();
                 } else {
@@ -2160,7 +2165,7 @@ cop.create('SelectionMode').refineClass(lively.morphic.World, {
 
 }).refineClass(lively.morphic.Morph, {
     onTap: function(evt){
-        if(this.world().selectionActivated){
+        if (this.world().selectionActivated){
             this.select();
             evt.stop();
         } else {
@@ -2169,7 +2174,7 @@ cop.create('SelectionMode').refineClass(lively.morphic.World, {
     }
 }).refineClass(lively.morphic.Button, {
     onTap: function(evt){
-        if(this.world().selectionActivated){
+        if (this.world().selectionActivated){
             this.select();
             evt.stop();
         } else {
@@ -2178,7 +2183,7 @@ cop.create('SelectionMode').refineClass(lively.morphic.World, {
     }
 }).refineClass(lively.morphic.Text, {
     onTap: function(evt){
-        if(this.world().selectionActivated){
+        if (this.world().selectionActivated){
             this.select();
             evt.stop();
         } else {
@@ -2221,7 +2226,7 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         var container = new lively.morphic.ListItemContainer(rect(0,0,10,10));
         container.setExtent(pt(348.0,41.9));
         return container;
-        
+
     },
     reset: function() {
         this.disableDropping();
@@ -2257,7 +2262,7 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
     },
     updateSelection: function(newSelectedMorph) {
     var hasText = true;
-    if(this.selectedMorph) {
+    if (this.selectedMorph) {
         hasText = this.selectedMorph.submorphs[0];
         this.selectedMorph.setFill(
             new lively.morphic.LinearGradient(
@@ -2268,25 +2273,25 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
             'northSouth'
             )
         );
-        if(hasText) {        this.selectedMorph.submorphs[0].setTextColor(Color.rgb(47,47,47));
+        if (hasText) {        this.selectedMorph.submorphs[0].setTextColor(Color.rgb(47,47,47));
         }
     }
     hasText = newSelectedMorph.submorphs[0];
 
-    
-    if(hasText) {
+
+    if (hasText) {
         this.selection = newSelectedMorph.item.value;
         if (this.selection[1] instanceof Array && !this.submenusDisabled) {
             this.openSubMenu(this.selection);
             return;
         }
-        
+
     } else {
         this.selection = null;
     }
     this.selectedLineNo = newSelectedMorph.index;
     this.selectedMorph = newSelectedMorph;
-    
+
     this.selectedMorph.setFill(
 new lively.morphic.LinearGradient(
         [
@@ -2296,8 +2301,8 @@ new lively.morphic.LinearGradient(
         ],
         'northSouth'
     ));
-    
-    if(hasText) {
+
+    if (hasText) {
         this.selectedMorph.submorphs[0].setTextColor(Color.rgb(222,222,222));
     }
     },
@@ -2310,7 +2315,7 @@ new lively.morphic.LinearGradient(
             var offset = this.getExtent().x * this.getLevel();
 
             var container;
-            if(this.nextContainer){
+            if (this.nextContainer){
                 container = this.nextContainer;
                 delete this.nextContainer;
             } else {
@@ -2318,7 +2323,7 @@ new lively.morphic.LinearGradient(
             }
             container.setPosition(pt(offset, 0));
             this.get("SubmenuContainer").addMorph(container);
-    
+
             this.currentContainer = container;
             this.addMenuItems(selection[1]);
 
@@ -2330,11 +2335,11 @@ new lively.morphic.LinearGradient(
         }).bind(this).delay(0);
     },
     openSuperMenu: function() {
-    if(this.getLevel() <= 0) {
+    if (this.getLevel() <= 0) {
         return;
     }
     this.title = this.titleStack.pop();
-    
+
     var offset = this.getExtent().x * this.getLevel();
 
     var that = this;
@@ -2384,7 +2389,7 @@ new lively.morphic.LinearGradient(
 },
 'private functions', {
     getCurrentContainer: function() {
-    if(!this.currentContainer){
+    if (!this.currentContainer){
         this.currentContainer = this.get("SubmenuContainer").submorphs[0];
     }
     return this.currentContainer;
@@ -2396,12 +2401,12 @@ new lively.morphic.LinearGradient(
     addMenuItems: function(items) {
     var that = this;
     items.forEach(function (item) {
-        if(typeof item === "string") {
+        if (typeof item === "string") {
             that.addItem({string: item, value: item, isListItem: true});
         } else {
             that.addItem({string: item[0], value: item, isListItem: true});
         }
-        
+
     });
     },
 
@@ -2454,7 +2459,7 @@ new lively.morphic.LinearGradient(
     text.setFontSize(14);
     text.setTextColor(Color.rgb(47,47,47));
     text.setFontFamily("Helvetica, Arial, sans-serif");
-    
+
     text.setPosition(pt(10,10));
     text.textString = textString;
 
@@ -2469,7 +2474,7 @@ new lively.morphic.LinearGradient(
         icon = new lively.morphic.Image(rect, "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/ipadMenu/submenu.png", false);
     var xPos = part.getExtent().subPt(icon.getExtent().scaleBy(1.5)).x,
         yPos = part.getExtent().subPt(icon.getExtent()).scaleBy(0.5).y;
-    
+
         icon.setPosition(pt(xPos,yPos))
         icon.disableHalos();
         icon.disableSelection();
@@ -2489,6 +2494,18 @@ new lively.morphic.LinearGradient(
 
 
 });
+
+Object.extend(lively.morphic.TouchList.prototype,{
+    include: function(touch){
+    for(var i = 0; i < this.length; i++){
+        if (this[i] === touch){
+            return true;
+        }
+    }
+        return false;
+    }
+});
+
 lively.morphic.Box.subclass('lively.morphic.ListItemContainer',
 'default category', {
     isInBounds: function() {
@@ -2501,7 +2518,7 @@ lively.morphic.Box.subclass('lively.morphic.ListItemContainer',
     var lastUpdate = new Date().valueOf();
     this.isTouched = false;
     var that = this;
-    if(!this.isInBounds()) {
+    if (!this.isInBounds()) {
         this.velocity = 0;
         var yPos = Math.min(0,Math.max(-this.maxScroll, this.getPosition().y));
         this.setPositionAnimated(pt(this.getPosition().x,yPos),500)
@@ -2511,14 +2528,14 @@ lively.morphic.Box.subclass('lively.morphic.ListItemContainer',
     evt.stop();
 
     var touch = evt.touches[0];
-    
-    if(touch && touch.originalDragOffset) {
+
+    if (touch && touch.originalDragOffset) {
         var x = this.getPosition().x;
 
         var delta = (touch.clientY - touch.originalDragOffset) / this.owner.owner.owner.getScale();
         //this.setPosition(pt(x,touch.originalMenuOffset+delta));
         this.setPositionAnimated(pt(x,touch.originalMenuOffset+delta),0);
-        if(!this.isInBounds()) {
+        if (!this.isInBounds()) {
             var yPos = Math.min(0,Math.max(-this.maxScroll, this.getPosition().y));
             delta = this.getPosition().y-yPos;
             //this.moveBy(pt(0,-delta/2));
@@ -2533,7 +2550,7 @@ lively.morphic.Box.subclass('lively.morphic.ListItemContainer',
 
         touch.lastTouch = touch.clientY;
         touch.lastUpdate = now;
-        
+
         this.velocity = positionDelta*(-10 / timeDelta);
     }
     return true;
@@ -2544,7 +2561,7 @@ lively.morphic.Box.subclass('lively.morphic.ListItemContainer',
 
     var touch = evt.touches[0];
 
-    if(touch) {
+    if (touch) {
         touch.originalDragOffset = touch.clientY;
         touch.originalMenuOffset = this.getPosition().y;
 
@@ -2563,10 +2580,10 @@ lively.morphic.Box.subclass('lively.morphic.ListItemContainer',
         var yPos = Math.min(0,Math.max(-this.maxScroll, this.getPosition().y));
     var delta = this.getPosition().y-yPos;
 
-    if(this.velocity*delta > 0) {
+    if (this.velocity*delta > 0) {
         // out of bounds and velocity is in wrong direction
         this.velocity -= delta/15;
-    } else if(delta !== 0) {
+    } else if (delta !== 0) {
         this.velocity = -delta/15;
     }
     },
@@ -2610,7 +2627,7 @@ lively.morphic.Box.subclass('lively.morphic.ListItem',
     },
     onTouchMove: function(evt) {
     var touch = evt.touches[0];
-    
+
     this.lastClickPos = pt(touch.clientX,touch.clientY);
 
     return false;
@@ -2618,11 +2635,11 @@ lively.morphic.Box.subclass('lively.morphic.ListItem',
     onTouchEnd: function(evt) {
     var deltaPt = this.lastClickPos.subPt(this.clickPosition);
     var delta = deltaPt.x*deltaPt.x + deltaPt.y*deltaPt.y;
-    if(delta<25) {
+    if (delta<25) {
         //TODO: find a better way to find the related listMorph
         var listMorph = this.owner.owner.owner;
 
-        if(listMorph && listMorph.updateSelection) {
+        if (listMorph && listMorph.updateSelection) {
             listMorph.updateSelection(this);
         }
     }
@@ -2648,18 +2665,18 @@ cop.create('worldMenu').refineClass(lively.morphic.World, {
         var screenPos = pagePosition.subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel());
 
         touchMenu.setPosition(pos);
-        if(screenPos.y > document.documentElement.clientHeight / 2) {
+        if (screenPos.y > document.documentElement.clientHeight / 2) {
             touchMenu.moveBy(pt(0, -(touchMenu.getExtent().y + 1 * touchMenu.get("Triangle").getExtent().y)).scaleBy(1 / $world.getZoomLevel()));
             touchMenu.movePointerToBottom();
         } else {
             touchMenu.movePointerToTop();
         }
 
-        if(screenPos.x < touchMenu.getExtent().x / 2) {
+        if (screenPos.x < touchMenu.getExtent().x / 2) {
             touchMenu.moveBy(pt(touchMenu.getExtent().x / 2 - screenPos.x, 0).scaleBy(1 / $world.getZoomLevel()));
             touchMenu.get("Triangle").moveBy(pt(- touchMenu.getExtent().x / 2 + screenPos.x,0));
         }
-        if(screenPos.x > document.documentElement.clientWidth - touchMenu.getExtent().x / 2) {
+        if (screenPos.x > document.documentElement.clientWidth - touchMenu.getExtent().x / 2) {
             var delta = document.documentElement.clientWidth - screenPos.x;
             touchMenu.moveBy(pt( -touchMenu.getExtent().x / 2 + delta, 0).scaleBy(1 / $world.getZoomLevel()));
             touchMenu.get("Triangle").moveBy(pt(+touchMenu.getExtent().x/2-delta,0));
@@ -2667,8 +2684,8 @@ cop.create('worldMenu').refineClass(lively.morphic.World, {
 
 
         this.addBlockerWith(touchMenu);
-        if(fixed) {
-            touchMenu.setFixed(true, true);    
+        if (fixed) {
+            touchMenu.setFixed(true, true);
         }
         return touchMenu;
     },
@@ -2697,7 +2714,7 @@ cop.create('worldMenu').refineClass(lively.morphic.World, {
         connect(blocker, "onTap", blocker, "remove");
         connect(blocker, "onClick", blocker, "remove");
         connect(menu, "remove", blocker, "remove", {removeAfterUpdate: true});
-        
+
         this.addMorph(blocker);
     },
 
@@ -2760,7 +2777,7 @@ cop.create('worldMenu').refineClass(lively.morphic.World, {
             if (!part) {
                 return;
             }
-            if(UserAgent.isTouch) {
+            if (UserAgent.isTouch) {
                 part.openInWorld();
                 //part.align(part.bounds().topLeft(), menuMorph.bounds().topRight());
                 part.align(part.bounds().center(), $world.visibleBounds().center());
@@ -2769,7 +2786,7 @@ cop.create('worldMenu').refineClass(lively.morphic.World, {
             } else {
                 lively.morphic.World.current().firstHand().grabMorph(part);
             }
-            
+
         }]}));
 
 
@@ -2780,7 +2797,7 @@ cop.create('worldMenu').refineClass(lively.morphic.World, {
             if (!part) {
                 return;
             }
-            if(UserAgent.isTouch) {
+            if (UserAgent.isTouch) {
                 part.openInWorld();
                 part.align(part.bounds().topLeft(), menuMorph.bounds().topRight());
                 $world.setEditMode(true);
@@ -2810,8 +2827,8 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
     morphMenuItems: function() {
         var a = cop.proceed();
         var self = this;
-        if( this != $world) {
-            if(this.isFixed) {
+        if ( this != $world) {
+            if (this.isFixed) {
                 a.push(["set unfixed", function() {
                     self.setFixed(false);
                 }]);
@@ -2827,7 +2844,7 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
                                 ['edit', function() {
                                     $world.openObjectEditorFor(self)
                                 }],
-                                ['style', 
+                                ['style',
                                 [ ['Fill', function() {
                                     $world.openColorStylerFor(self);
                                 }],
@@ -2837,14 +2854,14 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
                                 $world.openLayoutStylerFor(self);}]
                                 ]
                                 ]
-                            ]    
+                            ]
                     ])
         }
         return a;
     },
 }).refineClass(lively.morphic.World, {
     openColorStylerFor: function(target){
-        if(!this.colorStyler) {
+        if (!this.colorStyler) {
             this.colorStyler = this.openPartItem('ColorChooser', 'PartsBin/iPadWidgets');
         } else {
             this.addMorph(this.colorStyler)
@@ -2853,7 +2870,7 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
 
     },
     openBorderStylerFor: function(target){
-        if(!this.borderStyler) {
+        if (!this.borderStyler) {
             this.borderStyler = this.openPartItem('BorderStyler', 'PartsBin/iPadWidgets');
         } else {
             this.addMorph(this.borderStyler)
@@ -2861,7 +2878,7 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
         target.showHalos()
 },
     openLayoutStylerFor: function(target){
-        if(!this.layoutStyler) {
+        if (!this.layoutStyler) {
             this.layoutStyler = this.openPartItem('LayoutStyler', 'PartsBin/iPadWidgets');
         } else {
             this.addMorph(this.layoutStyler)
@@ -2870,7 +2887,7 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
 },}).beGlobal()
 
 
-    
+
     lively.morphic.Morph.subclass('lively.morphic.PieMenu',
 'inizialization', {
     initialize: function($super, halos) {
@@ -2880,9 +2897,9 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
             i = 0,
             alpha = Math.PI / n,
             innerRadius= 75,
-            outerRadius= 150; 
+            outerRadius= 150;
 
-        this.setupStyle(outerRadius);  
+        this.setupStyle(outerRadius);
 
         for(i=0; i<n; i++) {
             var a = (2*i - 1) * alpha,
@@ -2910,7 +2927,7 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
             halos[i].setOpacity(1);
             halos[i].moveBy(p.getExtent().scaleBy(0.5));
             this.addMorph(p);
-            connect(halos[i].shape, "_Fill", p, "setFill"); 
+            connect(halos[i].shape, "_Fill", p, "setFill");
 
         }
 
@@ -2927,7 +2944,7 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
         //this.lock();
         this.submorphs.each(function (ea) {
             ea.disableHalos();
-        }) 
+        })
     },
 
 
@@ -2951,7 +2968,7 @@ lively.morphic.Morph.subclass('lively.morphic.PieItem',
         return this.labelMorph;
 },
     alignIcon: function() {
-        if(this.iconOffset)
+        if (this.iconOffset)
             this.moveBy(this.iconOffset)
     },
 
@@ -2983,14 +3000,14 @@ lively.morphic.Morph.subclass('lively.morphic.PieItem',
     'settings', {
         labelText: "",
     setInfo: function(textStr) {
-        if(!this.infoMorph) {
+        if (!this.infoMorph) {
             this.createInfoMorph();
         }
         this.infoMorph.setTextString(textStr);
         this.infoMorph.fit();
     },
     alignInfo: function() {
-        if(!this.infoMorph) {
+        if (!this.infoMorph) {
             this.createInfoMorph();
         }
 
@@ -3034,11 +3051,11 @@ lively.morphic.Morph.subclass('lively.morphic.PieItem',
     },
 
     move: function(evt) {
-        
+
     },
     end: function(event) {
-        
-        if(this.infoMorph) {
+
+        if (this.infoMorph) {
             this.infoMorph.remove();
             this.infoMorph = null;
         }
@@ -3056,7 +3073,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ClosePieItem',
     },
     'pieItemActions', {
         activate: function(evt) {
-            if(this.targetMorph.setFixed) {
+            if (this.targetMorph.setFixed) {
                 this.targetMorph.setFixed(false);
             }
             this.targetMorph.deselect();
@@ -3096,13 +3113,13 @@ lively.morphic.PieItem.subclass('lively.morphic.CopyPieItem',
     },
     'pieItemActions', {
         activate: function(evt) {
-            
+
             try {
                 this.copiedTarget = this.targetMorph.copy();
             } catch(e) {
                 alert("could not copy morph: " + this.targetMorph)
                 return;
-            }; 
+            };
 
             this.copiedTarget.setTransform(this.targetMorph.getGlobalTransform());
             var delta = this.targetMorph.pieTouch.pageStart.subPt(evt.getPosition());
@@ -3117,13 +3134,13 @@ lively.morphic.PieItem.subclass('lively.morphic.CopyPieItem',
 
             this.targetMorph.selectionMorph.setVisible(false);
             $world.startFollowingHand();
-            
+
         },
         move: function(evt) {
             evt.hand.setPosition(evt.getPosition());
         },
     end: function(evt) {
-        if(this.copiedTarget){
+        if (this.copiedTarget){
             evt.world.dispatchDrop(evt);
             this.copiedTarget.deselect();
             this.copiedTarget.select();
@@ -3177,7 +3194,7 @@ lively.morphic.PieItem.subclass('lively.morphic.DragPieItem',
     },
     'pieItemActions', {
         activate: function(evt) {
-            
+
             //TODO: rather use startpoint of the gesture?
             this.eventStart = evt.getPosition();
             this.targetStart = this.targetMorph.getPosition();
@@ -3185,7 +3202,7 @@ lively.morphic.PieItem.subclass('lively.morphic.DragPieItem',
         },
         move: function(evt) {
             evt.hand.setPosition(evt.getPosition());
-            if(this.eventStart){
+            if (this.eventStart){
                 var delta = evt.getPosition().subPt(this.eventStart),
                     transform = this.targetMorph.owner.getGlobalTransform().inverse();
 
@@ -3234,7 +3251,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
             $world.startFollowingHand();
         },
     ensureMarkerMorph: function() {
-        if(!$world.markerMorph) {
+        if (!$world.markerMorph) {
             var m = new lively.morphic.Box(rect(0,0,10,10));
             m.setExtent(pt(100,100));
             m.setPosition(pt(0,0));
@@ -3242,7 +3259,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
                 fill: null,
                 borderColor: Color.rgb(255,143,0),
                 borderStyle: "dashed",
-                borderWidth: 3.664    
+                borderWidth: 3.664
             });
             m.openInWorld();
             $world.markerMorph = m;
@@ -3261,14 +3278,14 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
     handleHighlightAtPosition: function(position) {
         var target = this.findTarget(position);
 
-        if(target !== this.currentTarget) {
+        if (target !== this.currentTarget) {
             this.removeHighlight(this.currentTarget);
             this.setHighlight(target);
             this.currentTarget = target;
         }
     },
     setHighlight: function(morph) {
-        if($world.markerMorph) {
+        if ($world.markerMorph) {
             $world.markerMorph.setBounds(morph.globalBounds());
             $world.markerMorph.setVisible(true);
             $world.markerMorph.bringToFront();
@@ -3278,7 +3295,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
     removeHighlight: function(morph) {
         //TODO: remove the marker morph from the actual morph. Right now the world only has one
         // marker morph, so I just make it invisible
-        if($world.markerMorph) {
+        if ($world.markerMorph) {
             $world.markerMorph.setVisible(false);
         }
     },
@@ -3288,13 +3305,13 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
         var allMorphsAtPosition = $world.morphsContainingPoint(positionInWorld);
 
         var blackList = [$world.firstHand(), $world.markerMorph, this.arrow];
-        
+
         for(var i = 0; i < allMorphsAtPosition.length; i++) {
             if (!blackList.include(allMorphsAtPosition[i])) {
                 return allMorphsAtPosition[i];
             }
         }
-        
+
     },
     end: function() {
         $world.markerMorph.setVisible(false);
@@ -3317,7 +3334,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
             ], 'northSouth'),
             borderColor: Color.black
         });
-        
+
         var text = new TextMorph(new Rectangle(0,0,100,10));
         text.applyStyle({
             fill: null,
@@ -3337,7 +3354,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
         var sourceList = this.createDropDownSenderList(this.source);
         morph.addMorph(sourceList);
         sourceList.setPosition(pt(255,10));
-        
+
         connect(sourceDropDown, "selectedLineNo", sourceList, "updateProperties", {converter: function(value){
             return this.sourceObj.realObjects[value];
         }});
@@ -3354,7 +3371,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
         var targetList = this.createDropDownReceiverList(this.currentTarget);
         morph.addMorph(targetList);
         targetList.setPosition(pt(625,10));
-        
+
         //connect(targetDropDown, "selection", targetList, "updateProperties");
         connect(targetDropDown, "selectedLineNo", targetList, "updateProperties", {converter: function(value){
             return this.sourceObj.realObjects[value];
@@ -3374,7 +3391,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
         okBtn.setPosition(pt(750,10));
         okBtn.setLabel("OK");
         okBtn.onrestore();
-        
+
 
         var cancelBtn = okBtn.copy();
         cancelBtn.onclick = function(evt) {
@@ -3398,7 +3415,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
         receiverList.setExtent(lively.pt(107.0,25.0));
 
         receiverList.updateSelection = function(selectionString) {
-            if(selectionString === "enter name...") {
+            if (selectionString === "enter name...") {
                 $world.prompt('Enter name of connection point', function(input) {
                     if (!input) return;
                     receiverList.addItem(input);
@@ -3418,7 +3435,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
                 propMenu.push(propName);
             });
             menu.push(propMenu);
-    
+
             //Scripts
             var scriptMenuItems = ["Scripts"];
             Functions.own(target).forEach(function(scriptName) {
@@ -3427,7 +3444,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
             menu.push(scriptMenuItems);
 
             menu.push(["custom", "enter name..."]);
-    
+
             this.updateList(menu, true);
             receiverList.selection = receiverList.selection || propMenu[1];
         };
@@ -3435,7 +3452,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
         receiverList.updateProperties(target);
 
         receiverList.disableSelection();
-        
+
         connect(receiverList, "selection", receiverList, "updateSelection");
 
         return receiverList;
@@ -3474,7 +3491,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
         senderList.updateProperties = function(target) {
             this.updateList(Properties.own(target.getConnectionPoints()));
         }
-        return senderList;    
+        return senderList;
 },
 
 
@@ -3495,8 +3512,8 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
         console.log(this.connectSourceProperty);
         console.log(this.connectTarget);
         console.log(this.connectTargetProperty);
-        
-        if(     this.connectSource &&
+
+        if (     this.connectSource &&
                 this.connectSourceProperty &&
                 this.connectTarget &&
                 this.connectTargetProperty){
@@ -3550,7 +3567,7 @@ lively.morphic.PieItem.subclass('lively.morphic.RotatePieItem',
             this.startTheta = startOffset.theta();
         },
         move: function(evt) {
-            
+
             this.arrow.getControlPoints().last().setPos(evt.getPosition());
 
             var offset = evt.getPosition().subPt(this.globalPosition);
@@ -3600,7 +3617,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ScalePieItem',
             this.startDist = startOffset.r();
         },
         move: function(evt) {
-            
+
             this.arrow.getControlPoints().last().setPos(evt.getPosition());
 
             var offset = evt.getPosition().subPt(this.globalPosition).r();
@@ -3634,7 +3651,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ResizePieItem',
     'pieItemActions', {
         activate: function(evt) {
             this.startPosition = evt.getPosition();
-            this.startExtent = this.targetMorph.getExtent();     
+            this.startExtent = this.targetMorph.getExtent();
         },
         move: function(evt) {
             var delta = evt.getPosition().subPt(this.startPosition);
@@ -3652,19 +3669,19 @@ lively.morphic.PieItem.subclass('lively.morphic.ResizePieItem',
 lively.morphic.Path.addMethods(
     "SVGArrows", {
         makeArrowHead: function(){
-            
+
             var defs = this.getDefs();
 
             var marker;
 
             for(var node = defs.firstChild; node; node = node.nextSibling){
-                if(node.getAttribute("id") === "ArrowHead"){
+                if (node.getAttribute("id") === "ArrowHead"){
                     marker = node;
                     break;
                 }
             }
 
-            if(!marker){
+            if (!marker){
                 marker = NodeFactory.createNS(Namespace.SVG, "marker");
                 marker.setAttribute("id", "ArrowHead");
                 marker.setAttribute("viewBox", "0 0 10 10");
@@ -3684,15 +3701,15 @@ lively.morphic.Path.addMethods(
             }
 
             for(var node = this.renderContext().svgNode.firstChild; node; node = node.nextSibling){
-                if(node.tagName === "path"){
-                   node.setAttribute("marker-end","url(#ArrowHead)"); 
+                if (node.tagName === "path"){
+                   node.setAttribute("marker-end","url(#ArrowHead)");
                 }
             }
         },
-    
+
         getDefs: function() {
         var defs = this.renderContext().svgNode.getElementsByTagName("def");
-        if(defs.length >= 1){
+        if (defs.length >= 1){
             return defs.item(0);
         } else {
             defs = NodeFactory.createNS(Namespace.SVG, "defs");
@@ -3704,14 +3721,14 @@ lively.morphic.Path.addMethods(
 
 cop.create('PieMenu').refineClass(lively.morphic.Morph, {
     onTouchStartAction: function (evt) {
-        if($world.pieMode){
+        if ($world.pieMode){
             return this.pieStart(evt);
         } else {
             cop.proceed(evt);
         }
     },
     onTouchMoveAction: function (evt) {
-        if($world.pieMode){
+        if ($world.pieMode){
             //console.log("doing piemove");
             return this.pieMove(evt);
         } else {
@@ -3719,7 +3736,7 @@ cop.create('PieMenu').refineClass(lively.morphic.Morph, {
         }
     },
     onTouchEndAction: function (evt) {
-        if($world.pieMode){
+        if ($world.pieMode){
             return this.pieEnd(evt);
         } else {
             cop.proceed(evt);
@@ -3734,7 +3751,7 @@ cop.create('PieMenu').refineClass(lively.morphic.Morph, {
 
 }).refineClass(lively.morphic.List, {
     updateList: function(items, useOwnImplementation) {
-        if(!useOwnImplementation) {
+        if (!useOwnImplementation) {
             cop.proceed(items);
         } else {
 
@@ -3744,7 +3761,7 @@ cop.create('PieMenu').refineClass(lively.morphic.Morph, {
         this.itemList = [];
         var mapToItemList = function(array) {
             for(var i=0; i < array.length; i++) {
-                if(array[i].constructor === Array) {
+                if (array[i].constructor === Array) {
                     mapToItemList(array[i].slice(1));
                 } else {
                     that.itemList.push(array[i]);
@@ -3756,13 +3773,13 @@ cop.create('PieMenu').refineClass(lively.morphic.Morph, {
         this.renderContextDispatch('updateListContent', items);
         }
     },
-    
+
     updateListContentHTML: function(ctx, itemStrings) {
         //cop.proceed(ctx,itemStrings);
         //return;
         if (!itemStrings) itemStrings = [];
         var scroll = this.getScroll();
-        if(!ctx || !ctx.subNodes) return;
+        if (!ctx || !ctx.subNodes) return;
         if (ctx.subNodes.length > 0) this.removeListContentHTML(ctx);
         var extent = this.getExtent();
 
@@ -3774,7 +3791,7 @@ cop.create('PieMenu').refineClass(lively.morphic.Morph, {
     },
     makeList: function(ctx, activeNode, items) {
         for (var i = 0; i < items.length; i++) {
-            if(items[i].constructor === Array) {
+            if (items[i].constructor === Array) {
                 var optGroup = XHTMLNS.create('optgroup');
                 optGroup.label = items[i][0];
                 activeNode.appendChild(optGroup);
@@ -3828,7 +3845,7 @@ cop.create('ToolMorphLayer').refineClass(lively.morphic.Morph, {
         this.targetMorph.remove();
         this.helperMorphs = this.submorphs.withoutAll([this.targetMorph, this.titleBar]);
         this.helperMorphs.invoke('remove');
-        if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(true);
+        if (this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(true);
         var finCollapse = function () {
             this.state = 'collapsed';  // Set it now so setExtent works right
             if (this.collapsedTransform) this.setTransform(this.collapsedTransform);
@@ -3870,7 +3887,7 @@ cop.create('ToolMorphLayer').refineClass(lively.morphic.Morph, {
         /*if (this.expandedPosition && this.expandedPosition.dist(this.getPosition()) > 100)
             this.animatedInterpolateTo(this.expandedPosition, 5, 50, finExpand);
         else*/ finExpand();
-        if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(false);
+        if (this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(false);
         this.owner.dispatchNotify && this.owner.dispatchNotify("expand", this);
     },
     onMouseUp: function() {

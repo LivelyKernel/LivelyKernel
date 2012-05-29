@@ -1301,16 +1301,11 @@ currently only support
         /* delta is positive if wheel was scrolled up,
         * and negative, if wheel was scrolled down.
         */
-        debugger;
-        console.log(delta);
-        
         if (this.vScroll){
-            console.log("onMouseWheelhandle:" + this.prviousScrollValue);
             var nNewValue = this.prviousScrollValue-delta;
-            if (nNewValue > 0 && nNewValue <= this.vScroll.valueScale ){
+            if (nNewValue >= 0 && nNewValue <= this.vScroll.valueScale ){
                 this.vScroll.setValue(nNewValue);
                 this.updateRowDisplay(this.prviousScrollValue-delta)
-                console.log("onMouseWheelhandle after:" + this.prviousScrollValue-delta);
             }
              
         }

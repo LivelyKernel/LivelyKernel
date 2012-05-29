@@ -439,12 +439,6 @@ lively.morphic.Layout.HorizontalLayout.subclass('lively.morphic.Layout.TightHori
 });
 lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
 'default category', {
-    getBorderSize: function(direction) {
-        if (!direction) return this.getBorderSize("left");
-        if (!this.borderSize) return 10;
-        if (Object.isNumber(this.borderSize)) return this.borderSize;
-        return this.borderSize[direction];
-    },
     basicLayout: function(container, submorphs) {
         var extent = container.getExtent();
         var width = extent.x;

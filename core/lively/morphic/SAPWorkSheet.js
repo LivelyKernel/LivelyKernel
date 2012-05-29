@@ -688,12 +688,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var nOrgRow = y  + this.startRow;
         var nOrgCol = x + this.startColumn;
         var oData=this.arrData[nOrgRow] && this.arrData[nOrgRow][nOrgCol];
-
-
         var sValue = oData && oData.value ? oData.value.toString() : "";
-
         var nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
-
         var rowOffset = this.hideColHeads ? 0 : 1,
             colOffset = this.hideRowHeads ? 0 : 1;
 
@@ -742,7 +738,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 
             }
         }
-debugger;
         this.at(x,y).textString = sValue;
 
         var sFontWeight="normal";

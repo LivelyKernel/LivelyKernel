@@ -1302,7 +1302,7 @@ currently only support
             if (nNewValue >= 0 && nNewValue <= this.vScroll.valueScale ){
                 console.log("onMouseWheelhandle=" + nNewValue)
                 this.vScroll.setValue(nNewValue);
-                this.updateRowDisplay(this.prviousScrollValue-delta)
+                //this.updateRowDisplay(this.prviousScrollValue-delta)
             }
              
         }

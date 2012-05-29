@@ -331,16 +331,16 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
         var extent = container.getExtent(),
             width = extent.x,
             height = extent.y,
-            borderWidth = this.getBorderSize(),
             spacing = this.getSpacing(),
-            childHeight = height - 2*borderWidth,
+            childHeight = height - this.getBorderSize("top") - this.getBorderSize("bottom"),
             fixedChildrenWidth = submorphs.reduce(function (s, e) {
                 return (!e.layout || !e.layout.resizeWidth) ? s + e.getExtent().x : s }, 0),
             varChildren = submorphs.select(function(e) {
                 return e.layout && e.layout.resizeWidth; }),
             varChildrenCount = varChildren.size(),
             varChildrenWidth = extent.x - fixedChildrenWidth
-                             - (submorphs.size() - 1) * spacing - 2 * borderWidth,
+                             - (submorphs.size() - 1) * spacing
+                             - this.getBorderSize("left") - this.getBorderSize("right"),
             varChildWidth = varChildrenWidth / varChildrenCount;
 
         varChildren.forEach(function (each) {
@@ -359,9 +359,10 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
             if (extent.y < minHeight) height = minHeight;
             container.setExtent(pt(width, height));
         }
+        var borderSizeTop = this.getBorderSize("top");
 
         submorphs.reduce(function (x, morph) {
-            morph.setPositionTopLeft(pt(x, borderWidth));
+            morph.setPositionTopLeft(pt(x, borderSizeTop ));
             var newWidth = morph.getExtent().x,
                 newHeight = (morph.layout != undefined && morph.layout.resizeHeight == true) ?
                 childHeight :
@@ -369,12 +370,12 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
             if (morph.layout && morph.layout.resizeWidth) newWidth = varChildWidth;
             morph.setExtent(pt(newWidth, newHeight));
             return x + morph.getExtent().x + spacing;
-        }, borderWidth);
+        }, this.borderSize("left"));
     },
 
         getMinWidth: function(container, submorphs) {
 
-            return 2 * this.getBorderSize() +
+            return this.getBorderSize("left") + this.getBorderSize("right") +
                 (submorphs.size()-1) * this.getSpacing() +
                 submorphs.reduce(function (s, e)
 		    {if (e.layout == undefined || e.layout.resizeWidth == false || e.layout.resizeWidth == undefined)
@@ -384,7 +385,7 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
 
         },
 	getMinHeight: function(container, submorphs) {
-            return 2 * this.getBorderSize() +
+            return this.getBorderSize("top") + this.getBorderSize("bottom") +
                 submorphs.reduce(function(h, morph)
 		    {if (morph.getMinHeight() > h)
 			{return morph.getMinHeight();}

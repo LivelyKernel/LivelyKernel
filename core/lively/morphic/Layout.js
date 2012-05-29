@@ -212,12 +212,13 @@ Object.subclass('lively.morphic.Layout.Layout',
         return 0;
     },
 
-    getBorderSize: function() {
-        if (!this.borderSize && this.borderSize != 0) {
-            this.borderSize = 10;
-        }
-        return this.borderSize;
+    getBorderSize: function(direction) {
+        if (!direction) return this.getBorderSize("left");
+        if (!this.borderSize) return this.borderSize = 10;
+        if (Object.isNumber(this.borderSize)) return this.borderSize;
+        return this.borderSize[direction];
     },
+
 
     getSpacing: function() {
         if (!this.spacing && this.spacing != 0) {

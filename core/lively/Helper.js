@@ -27,7 +27,7 @@ module('lively.Helper').requires('lively.LogHelper').toRun(function() {
 
 Object.extend(Global, {
     // DEPRECATED!!!
-    range: Array.range,
+    range: Array.range
 });
 
 Object.extend(Global, {
@@ -40,7 +40,7 @@ Object.extend(Global, {
             altKey: false,
             shiftKey: false,
             metaKey: false
-        }; 
+        };
         var evt = new Event(rawEvent);
         evt.hand = lively.morphic.World.current().hands.first();
         if (point) evt.mousePoint = point;
@@ -52,7 +52,7 @@ Object.extend(Global, {
 Object.subclass('lively.Helper.XMLConverter', {
 
     documentation: 'Converts JS -> XML and XML -> JS, not complete but works for most cases, namespace support',
-    
+
     convertToJSON: function(xml) {
         return this.storeXMLDataInto(xml, {});
     },
@@ -75,35 +75,35 @@ Object.subclass('lively.Helper.XMLConverter', {
     },
 
     toJSONString: function(jsObj, indent) {
-            if (!indent) indent = '';
-            result = '{';
-            for (var key in jsObj) {
-                var value = jsObj[key];
-                result += '\n\t' + indent + '"' + key + '": ';
-            
-                if (Object.isNumber(value)) {
-                    result += value;
-                } else if (Object.isString(value)) {
-                    result += '"' + value + '"';
-                } else if (Object.isArray(value)) {
-                    result += '[' + value.collect(function(item) {
-                        return this.toJSONString(item, indent + '\t');
-                    }, this).join(', ') + ']';
-                } else {
-                    result += this.toJSONString(value, indent + '\t');
-                }
+        if (!indent) indent = '';
+        var result = '{';
+        for (var key in jsObj) {
+            var value = jsObj[key];
+            result += '\n\t' + indent + '"' + key + '": ';
 
-                result += ',';
+            if (Object.isNumber(value)) {
+                result += value;
+            } else if (Object.isString(value)) {
+                result += '"' + value + '"';
+            } else if (Object.isArray(value)) {
+                result += '[' + value.collect(function(item) {
+                    return this.toJSONString(item, indent + '\t');
+                }, this).join(', ') + ']';
+            } else {
+                result += this.toJSONString(value, indent + '\t');
             }
-            result += '\n' + indent + '}';
-            return result;
+
+            result += ',';
+        }
+        result += '\n' + indent + '}';
+        return result;
     },
 
     convertToXML: function(jsObj, nsMapping, baseDoc, nsWereDeclared) {
         if (!jsObj.tagName)
             throw new Error('Cannot convert JS object without attribute "tagName" to XML!');
 
-        // deal with special nodes 
+        // deal with special nodes
         if (jsObj.tagName === 'cdataSection')
             return baseDoc.createCDATASection(jsObj.data);
         if (jsObj.tagName === 'textNode')
@@ -114,7 +114,7 @@ Object.subclass('lively.Helper.XMLConverter', {
             return Strings.format('xmlns:%s="%s"', prefix, nsMapping[prefix])
         }).join(' ');
         var node = this.createNodeFromString(Strings.format('<%s %s/>', jsObj.tagName, nsDecl), baseDoc);
-    
+
         // set attributes
         Properties.own(jsObj)
             .reject(function(key) { return key == 'tagName' || key == 'children' })
@@ -129,7 +129,7 @@ Object.subclass('lively.Helper.XMLConverter', {
                     node.setAttribute(key, value);
                 }
             })
-    
+
         // add childnodes
         jsObj.children && jsObj.children.forEach(function(childJsObj) {
             node.appendChild(this.convertToXML(childJsObj, nsMapping, baseDoc, true));
@@ -139,11 +139,12 @@ Object.subclass('lively.Helper.XMLConverter', {
 
     createNodeFromString: function(string, baseDoc) {
         return baseDoc.adoptNode(new DOMParser().parseFromString(string, "text/xml").documentElement);
-    },
+    }
 
 });
 
 Object.extend(Global, {
+
     showThenHide: function(morph, duration) {
         duration = duration || 3;
         morph.openInWorld();
@@ -160,17 +161,17 @@ Object.extend(Global, {
             pt(args.shift(), args.shift());
         var duration = args.shift();
         var extent = args.shift() || pt(12,12);
-        
-        
+
+
         var b = new BoxMorph(extent.extentAsRectangle());
         b.align(b.getCenter(), pos);
         b.applyStyle({fill: Color.red});
         b.ignoreEvents();
-        
+
         showThenHide(b, duration);
         return b;
     },
-    
+
     showRect: function(rect, duration) {
         var b = new BoxMorph(rect);
         b.applyStyle({borderColor: Color.red, borderWidth: 2, fill: null});
@@ -196,7 +197,7 @@ Object.extend(Global, {
 
         if (duration) showThenHide(morph, duration);
         else morph.openInWorld();
-        
+
         morph.setBorderWidth(2);
         morph.setBorderColor(Color.red);
         morph.arrowHead.head.setFill(Color.red);
@@ -221,18 +222,18 @@ Object.extend(Global, {
             morph.addMorph(middleLabel);
             morph.middleLabel = middleLabel;
         }
-        
+
         morph.addScript(function updateLabelPositions() {
             this.startLabel.setPosition(this.getStartPos());
             this.endLabel.setPosition(this.getEndPos());
-            if (this.middleLabel)    this.middleLabel.setPosition(this.getRelativePoint(0.5));
+            if (this.middleLabel) this.middleLabel.setPosition(this.getRelativePoint(0.5));
         });
 
         connect(morph, 'geometryChanged', morph, 'updateLabelPositions');
-        
-        morph.toggleLineStyle();    
 
-        return morph
+        morph.toggleLineStyle();
+
+        return morph;
     },
 
     showConnections: function(obj) {

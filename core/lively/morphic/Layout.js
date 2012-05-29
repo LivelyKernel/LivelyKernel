@@ -875,12 +875,12 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.TileLayout',
     getMinWidth: function(container, submorphs) {
         return submorphs.reduce(function(s, e) {
             return (e.getExtent().x > s) ? e.getExtent().x : s; }, 0) +
-            2 * this.getBorderSize();
+            this.getBorderSize("left") + this.getBorderSize("right");
     },
     getMinHeight: function(container, submorphs) {
         return submorphs.reduce(function(s, e) {
             return (e.getExtent().y > s) ? e.getExtent().y : s; }, 0) +
-            2 * this.getBorderSize();
+            this.getBorderSize("top") + this.getBorderSize("bottom");
     },
 
     handlesSubmorphResized: function() {

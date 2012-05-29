@@ -214,8 +214,8 @@ Object.subclass('lively.morphic.Layout.Layout',
 
     getBorderSize: function(direction) {
         if (!direction) return this.getBorderSize("left");
-        if (!this.borderSize) return this.borderSize = 10;
         if (Object.isNumber(this.borderSize)) return this.borderSize;
+        if (!this.borderSize) return this.borderSize = 10;
         return this.borderSize[direction];
     },
 

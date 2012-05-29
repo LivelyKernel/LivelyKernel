@@ -1713,10 +1713,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
             }
         }
         console.log("after: " +sValue )
-       
- 
-
-        
     },
     put: function(aValue) {
         // TODO: check if aValue starts with =, then evaluate it or not

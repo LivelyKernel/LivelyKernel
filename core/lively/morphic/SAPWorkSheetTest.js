@@ -8,7 +8,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.colHeads = [];
         this.rowHeads = [];
 
-        this.disableHalos();
+        //this.disableHalos();
         this.defaultCellHeight = 30;
         this.defaultCellWidth = 120;
         this.defaultRowHeaderWidth = 50;
@@ -52,14 +52,48 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeScrolls();
         this.initializeAnnotation();
        
-        $.getScript("../../core/lively/date.format.js")
+        /*$.getScript("../../core/lively/date.format.js")
             .done(function(script, textStatus) {
             console.log( "success loading date.format.js");
             })
             .fail(function(jqxhr, settings, exception) {
                 console.log("error loading date.format.js");
+        });*/
+    },
+    newConnectionForCells: function(name, cells){
+        var connection = {
+            cells: cells,
+            grid: this,
+            name: name
+        };
+        (function update() {
+            var values = this.cells.invoke('getContent');
+            lively.bindings.signal(this.grid, this.name, values);
+        }).asScriptOf(connection);
+        cells.forEach(function (cell) {
+            connect(cell, 'textString', connection, 'update');
         });
-
+    },
+    newConnectionPointFromSelectedCells: function(){
+        var cells = this.getCellSelections(),
+        grid = this;
+        if (!cells || cells.length === 0) {
+            alert('No cells selected!');
+            return;
+        }
+        this.world().prompt('Name for connection point?', function (name) {
+            if (!name) {
+                alert('aborting...');
+                return;
+            }
+            if (!grid.hasOwnProperty('connections')) {
+                grid.connections = {};
+            }
+            grid.connections[name] = grid.newConnectionForCells(name, cells);
+            cells.forEach(function (cell) {
+                show(cell)
+            });
+        });
     },
     getAlignforValueType: function(oDataFormat,sValue) {
         var sAlign="right";
@@ -73,7 +107,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 sAlign="right";
             }
         } 
-
         return sAlign;
     },
     //when focus changed:  formula..etc
@@ -85,14 +118,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 var nRow= this.getActiveRowIndex();
                 var nOrgRow = nRow - 1  + this.startRow;
                 var nOrgCol = nColumn - 1+ this.startColumn;
-                debugger;
                 this.arrData[nOrgRow][nOrgCol].formula = sValue; 
                 this.activeCell.textString=this.parseFormula(sValue);
                 this.activeCell.setToolTip('Formula: \n' + sValue);
                 this.activeCell.setBorderStyle("dotted");
-                
             }
-
         }
     },
     applyDataFormates: function(sValue,oDataFormat) {
@@ -181,18 +211,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                         }
                         sValue = this.roundtoFixNumber(sValue ,oDataFormat.decimalPlaces,"",true,bBracket);
                     }
-                    
                     break;
                     default:
-
                 }
-
         return sValue
-
     },
     initializeScrolls: function() {
-
-        var start = new Date().getTime();
+    /*Creating vertical & horizontal slider for scrolls*/
         var nXPos = this.defaultCellWidth * (this.numCols-1) + this.defaultRowHeaderWidth;
         var nYPos = this.defaultCellHeight;
         var nHeight = this.defaultCellHeight * (this.numRows-1);
@@ -205,19 +230,18 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         connect(this.vScroll, "value", this, "updateRowDisplay", {});
         connect(this.hScroll , "value", this, "updateColumnDisplay", {});
-        var elapsed = new Date().getTime() - start;
-	elapsed = elapsed/1000;
-	console.log('End initializeScrolls=' + elapsed);
     },
     getLayoutableSubmorphs: function() {
         return this.submorphs;
     },
     updateDataModel: function() {
+        /*we might not need this:  we can display cell directly from arrData... */
         this.clear();
         this.dataModel = [];
         var nRow;
         var nCol;
         var arrColumns=[];
+
         for (nRow = this.startRow; nRow < this.endRow-1; nRow++) {
             arrColumns=[];
             for (nCol = this.startColumn; nCol < this.endColumn-1; nCol++) {
@@ -225,8 +249,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 	   }
            this.dataModel.push(arrColumns);
         }
-        //console.log("updateDataModel");
-        //debugger;
         this.updateDisplay();
     },
     //fires when horizontal scroll moves
@@ -253,16 +275,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 this.colHeads[nCol-this.startColumn].textString = this.getColumnName(nCol);
             }
             
-            this.updateDataModel();
+            this.updateDisplay();
               //I need to rework this
     
             if (nScrollValue==this.hScroll.valueScale){
                 this.hScroll.valueScale = nScrollValue + 50;
                 this.hScroll.setValue(nScrollValue + 45);
                 this.updateColumnDisplay(nScrollValue + 45);
-                
-            }
-            
+            } 
         }
         
     },
@@ -278,7 +298,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var nScrollValue= parseInt(evt);//.toFixed(2);
         if (this.prviousScrollValue !=nScrollValue){
             this.prviousScrollValue = nScrollValue;
-           
+           console.log("updateRowDisplay=" +nScrollValue)
             this.startRow = nScrollValue;
             this.endRow = this.startRow + this.numRows;
 
@@ -287,53 +307,40 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             }
             //Row name
             for (var nRow= this.startRow+1 ; nRow< this.endRow ; nRow++) {
-                
-                    this.rowHeads [nRow-this.startRow].textString = nRow.toString();
-               
+                this.rowHeads [nRow-this.startRow].textString = nRow.toString();
             }
 
-            this.updateDataModel();
+            this.updateDisplay();
 
             //if scroll reached end we need to increase??
             // I need to rework this
             if (nScrollValue==this.vScroll.valueScale){
+                console.log("updateRowDisplay=xxxx")
                this.vScroll.valueScale = nScrollValue + 50;
                this.vScroll.setValue(nScrollValue + 45);
                this.updateRowDisplay(nScrollValue + 45);
             }
-            
         }
-
     },
     initializeAnnotation: function() {
-        var start = new Date().getTime();
+        /*Creating annotation*/
         this.oAnnotation= new lively.morphic.SAPGridAnnotation();
         this.oAnnotation.doitContext = this;
         this.oAnnotation.setExtent(lively.pt(200,100));
         this.oAnnotation.addToGrid(this);
         this.oAnnotation.setVisible(false);
-        var elapsed = new Date().getTime() - start;
-	elapsed = elapsed/1000;
-	console.log('End initializeAnnotation=' + elapsed);
     },
     initializeData: function() {
-        var start = new Date().getTime();
         this.rows = [];
         this.dataModel = [];
+        //we don't need this
         this.addScript(function renderFunction(value) { return value; });
-        
         this.createEmptyCells();
-
-
-        var elapsed = new Date().getTime() - start;
-	elapsed = elapsed/1000;
-	console.log('End initializeData '  + elapsed);
     },
-    initializeMorph: function() {
-        //var start = new Date().getTime();  
-         this.setExtent(pt(
-            this.numCols * this.defaultCellWidth  + 2 * this.borderSize,
-            this.numRows * this.defaultCellHeight + 2 * this.borderSize));
+    initializeMorph: function() { 
+        this.setExtent(pt(
+        this.numCols * this.defaultCellWidth  + 2 * this.borderSize,
+        this.numRows * this.defaultCellHeight + 2 * this.borderSize));
         this.setFill(Color.rgb(255,255,255));
         if (!this.hideColHeads) {
             this.createColHeads();
@@ -343,26 +350,15 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
         this.createCells();
         this.createLayout();
-
-        //var elapsed = new Date().getTime() - start;
-	//elapsed = elapsed/1000;
-	//console.log('End initializeMorph=' + elapsed);
     },
-    //expand column data when moving scroll
     expandColumns: function(nDataLength) {
-        //var start = new Date().getTime();    
-        debugger;
+        /*expand column data when moving scroll*/
         var nStartColumn = this.arrData[0].length;
         var nEndColumn =nStartColumn + this.maxEmptyColumntoCreate;
         if (nEndColumn < nDataLength ){
             nEndColumn = nDataLength ;
         }
         
-        //Expend column names
-        //for (var nCol = nStartColumn ; nCol < nEndColumn ; nCol++) {
-          //  this.colNames.push(this.getColumnName(nCol + 1));
-        //}
-
         //Expend column cell
         for (var nRow = 0; nRow < this.arrData.length; nRow++) {
 		for (var nCol = nStartColumn ; nCol < nEndColumn ; nCol++) {
@@ -373,25 +369,20 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                         this.arrData[nRow][nCol] = oCell ;
 		}
 	}
-
-        //var elapsed = new Date().getTime() - start;
-	//elapsed = elapsed/1000;
-	//console.log('expandColumns=' + elapsed);
     },
     expandRows: function(nDataLength) {
+        /*expand row data when moving scroll*/
         //create this.maxEmptyRowtoCreate
         if(typeof nDataLength == 'undefined') {
             nDataLength = 0;
         }
-        //debugger;
+
         var oCell={};
         var arrColumns;
         var nStartRow = this.arrData.length;
         var nEndRow = nStartRow + this.maxEmptyRowtoCreate;
-        
         var nStartColumn=0;
         var nEndColumn = this.arrData[0].length;//nStartColumn + this.maxEmptyColumntoCreate;
-
 
         if (nEndRow < nDataLength ){
             nEndRow  = nDataLength ;
@@ -455,26 +446,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             }
             this.rows[y + rowOffset] = row;
         }
-
-/*
-        var headOffset = this.hideColHeads ? 0 : 1;
-        var self = this,
-            cells = lively.morphic.Morph.createN(this.numRows * this.numCols, function() {
-                return self.createCellOptimized();
-            });
-//debugger;
-        for (var y = 0; y < this.numRows; y++) {
-            var row = [];
-            for (var x = 0; x < this.numCols; x++) {
-                var cell = cells.pop();
-                cell.addToGrid(this);
-                cell.gridCoords = pt(x, y + headOffset);
-                cell.name = '[' + x + ';' + y + ']';
-                row.push(cell);
-            }
-            this.rows.push(row);
-        }
-*/
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
 	console.log('End createCells =' + elapsed);
@@ -493,14 +464,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         cell.gridCoords = pt(x + headOffsetX, y + headOffsetY);
         cell.name = '[' + x + ';' + y + ']';
         return cell;
-        /*var cell = new lively.morphic.SAPGridCell();
-        cell.doitContext = this;
-        cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
-        cell.addToGrid(this);
-        cell.gridCoords = pt(x, y + headOffset);
-        cell.name = '[' + x + ';' + y + ']';
-        return cell;
-        */
     },
 
     createColHeads: function() {
@@ -510,7 +473,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.colHeads.push(this.createColHead(i,sName ));
         }
         this.rows[0] = this.colHeads;
-
     },
     createRowHeads: function() {
         var sName="";
@@ -558,30 +520,24 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.arrData[nRow][nColumn].annotation = sText;
     },
 
- showAnnotation: function(nColumn,nRow) {
-        
+    showAnnotation: function(nColumn,nRow) {
         var nOrgRow = nRow-1  + this.startRow;
         var nOrgCol = nColumn-1 + this.startColumn;
 
         sAnnotation  = this.arrData[nOrgRow][nOrgCol].annotation
-
-
         this.oAnnotation.setVisible(true);
         if (sAnnotation){
             this.oAnnotation.textString = sAnnotation ;
         }else{
             this.oAnnotation.textString = '';
         }
-        
         this.oAnnotation.nColumn=nColumn;
         this.oAnnotation.nRow=nRow;
         this.oAnnotation.setPosition(this.at(nColumn,nRow).getPosition());
-
     },
     hideAnnotation: function() {
         this.oAnnotation.setVisible(false);
     },
-
     at: function(x, y) {
         //if (!this.hideColHeads) y++;
         //if (!this.hideRowHeads) x++;
@@ -605,19 +561,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.at(0,0).activate();
             return;
         }
-debugger;
         this.applyCellChanges();
-        //var activePos = this.activeCell.gridPos();
         
         var curX = this.activeCell.gridCoords.x;
         var curY = this.activeCell.gridCoords.y;
 
         var newX = curX  + aPoint.x;
         var newY = curY + aPoint.y;
-
-       
-       //var newPos = activePos.addPt(aPoint);
-        //var nextCell = this.at(newX,newY );
 
         if (evt.isShiftDown()){
             this.setCellSelection(this,this.activeCell);
@@ -627,33 +577,7 @@ debugger;
         this.at(newX , newY ).activate(evt.isShiftDown());
         this.at(newX , newY ).focus();
         this.setCellSelection(this,this.at(newX , newY ));
-
-
-        //nextCell && nextCell.activate();
-
-
-        /*
-
-        this.applyCellChanges();
-        var curX = this.getActiveColIndex();
-        var curY = this.getActiveRowIndex();
-        var newX = curX + aPoint.x;
-        var newY = curY + aPoint.y;
-
-        if (evt.isShiftDown()){
-            this.setCellSelection(this,this.activeCell);
-        }else{
-            this.removeSelectedCells();
-        }
-
-        if (this.numRows > newY  && this.numCols > newX && newY >= 0 && newX >= 0) {
-            this.at(newX , newY ).activate(evt.isShiftDown());
-            this.at(newX , newY ).focus();
-            this.setCellSelection(this,this.at(newX , newY ));
-        }
-        */
     },
-
     setAnnotationData: function(arrNotes) {
         for (var i = 0; i < arrNotes.length; i++) {
             //this.at(arrNotes[i].nColumn ,arrNotes[i].nRow ).annotation= arrNotes[i].sNote;
@@ -665,7 +589,6 @@ debugger;
         }
         this.updateDisplay();
     },
-
     setData: function(aJsArray) {
         this.clear();
         this.dataModel = [];
@@ -673,21 +596,12 @@ debugger;
         var nRow;
         var nCol;
         var arrColumns=[];
-        //debugger;
         //saving to global empty data
         var start = new Date().getTime();
-//debugger;
-        /*this.createEmptyCells(aJsArray.length);
 
-        for (nRow = 0; nRow < aJsArray.length; nRow++) {
-	   for (nCol = 0; nCol < aJsArray[nRow].length ; nCol++) {
-		this.arrData[nRow][nCol].value=aJsArray[nRow][nCol];
-	   }
-	}
-        */
         this.arrData = aJsArray;
         //i need to rework this
-        
+
         if (this.arrData.length > this.defaultMaxRowScrollValue){
             this.vScroll.valueScale = this.arrData.length;
         }
@@ -695,11 +609,6 @@ debugger;
             this.hScroll.valueScale = this.arrData[0].length;
         }
 
-
-        //create header
-           //Expend column names
-            //this.colNames
-        //debugger;
         var nEndColumn = this.numCols;
         if (this.arrData[0].length > this.numCols){
             nEndColumn  = this.arrData[0].length;
@@ -707,36 +616,27 @@ debugger;
                 this.colNames.push(this.getColumnName(nCol + 1));
             }
         }
-    
+
         var nDataRowLength = this.arrData.length;
         var nDataColLength = this.arrData[0].length;
         //bug when data range is less than default row and column length.
         //need to add code here
-        
 
         //saving only visible row/column to dataModel
         for (nRow = 0; nRow < this.numRows-1; nRow++) {
             arrColumns=[];
             for (nCol = 0; nCol < this.numCols-1; nCol++) {
-                arrColumns[nCol] = this.arrData[nRow][nCol];
-	    }
+                arrColumns[nCol] = this.arrData[nRow] && this.arrData[nRow][nCol];
+	          }
             this.dataModel.push(arrColumns);
 	}
-        
-        /*var that = this;
-        aJsArray.forEach(function(ea) {
-            if (ea.constructor.name === 'Array') {
-                that.dataModel.push(ea);
-                return;
-            }
-            var row = that.createDataRowFromObject(ea);
-            that.dataModel.push(row);
-        });*/
+
         this.updateDisplay();
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
 	console.log('End setData=' + elapsed);
     },
+
     getDataObjects: function() {
         var that = this;
         return this.rows.map(function(ea){
@@ -753,13 +653,8 @@ debugger;
         var that = this;
         return this.rows.map(function(ea){
             var arrColumns = [];
- //debugger;
             for (var i = 0; i < that.numCols; i++) {
-                //if (that.colNames[i] != undefined) {
-                 
-		  arrColumns[i]= ea[i].getContent();
-                    //obj[that.colNames[i]] = ea[i].getContent();
-                //}
+	       arrColumns[i]= ea[i].getContent();
             }
             return arrColumns;
         });
@@ -785,153 +680,146 @@ debugger;
         }
         return row;
     },
-
-
-    updateDisplay: function() {
-/*this get called when scroll is moving*/
-        var nOrgRow;
-        var nOrgCol;
-        var sValue;
-        var nValue;
+    updateCellDisplay: function(x,y,bIgnoreSelection) {
+    /*
+        Description: applying grid cell display using data object
+        parameter: x=grid x-coord, y=grid y-coord.
+    */
         var bRedFont=false;  //for negative number & currency
-var start = new Date().getTime();
+        var nOrgRow = y  + this.startRow;
+        var nOrgCol = x + this.startColumn;
+        var oData=this.arrData[nOrgRow] && this.arrData[nOrgRow][nOrgCol];
+        var sValue = oData && oData.value ? oData.value.toString() : "";
+        var nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
+        var rowOffset = this.hideColHeads ? 0 : 1,
+            colOffset = this.hideRowHeads ? 0 : 1;
 
-        //need to reset selected cell for grid display when scrolls
-        this.arrSelectedCells.lenght=0;
-        this.arrSelectedCells =[];
-        for (var y = 0; y < this.dataModel.length; y++) {
-        //for (var y = 0; y < this.dataModel.length && y < this.numRows; y++) {
-            for (var x = 0; x < this.dataModel[y].length; x++) {
-            //for (var x = 0; x < this.dataModel[y].length && x < this.numCols; x++) {
-                bRedFont=false;
-                nOrgRow = y  + this.startRow;
-                nOrgCol = x + this.startColumn;
+        x = x + colOffset;
+        y = y + rowOffset;
 
+        //Annotation
+        if (oData && oData.annotation){
+            this.at(x,y).annotationCell();
+        }else{
+            this.at(x,y).deactivateCell();
+        }
+        //formula
+        if (oData && oData.formula){
+            sValue = this.parseFormula(oData.formula);
+            this.at(x,y).formulaCell();
+            this.at(x,y).setToolTip('Formula: \n' + oData.formula);
+            this.at(x,y).setBorderStyle("dotted");
+        }else{
+            this.at(x,y).setToolTip("");
+            this.at(x,y).setBorderStyle("solid");
+        }
 
-                sValue = this.dataModel[y][x].value.toString();
-                nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
-                //Annotation
-                if (this.arrData[nOrgRow][nOrgCol].annotation){
-                    this.at(x+1,y+1).annotationCell();
-                }else{
-                    this.at(x+1,y+1).deactivateCell();
-                }
-                //formula
-                if (this.arrData[nOrgRow][nOrgCol].formula){
-                    sValue = this.parseFormula(this.arrData[nOrgRow][nOrgCol].formula);
-                    this.at(x+1,y+1).formulaCell();
-                    this.at(x+1,y+1).setToolTip('Formula: \n' + this.arrData[nOrgRow][nOrgCol].formula);
-                    this.at(x+1,y+1).setBorderStyle("dotted");
-                }else{
-                    this.at(x+1,y+1).setToolTip("");
-                    this.at(x+1,y+1).setBorderStyle("solid");
-                }
+        //selected cell
+        if (oData&& oData.selected){
+            this.at(x,y).selectedCell();
+            if (!bIgnoreSelection){
+                this.arrSelectedCells.push(this.at(x,y));
+            }
+        }
 
-                //selected cell
-                if (this.arrData[nOrgRow][nOrgCol].selected){
-                    this.at(x+1,y+1).selectedCell();
-                    this.arrSelectedCells.push(this.at(x+1,y+1));
-                }
-
-                //DATA formats
-                if (this.arrData[nOrgRow][nOrgCol].dataFormat){
-                    if (this.arrData[nOrgRow][nOrgCol].dataFormat.type){
-                        sValue= this.applyDataFormates(sValue,this.arrData[nOrgRow][nOrgCol].dataFormat);
-                        //for negateive number for currency & number
-                        debugger;
-                        if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType){
-                            if (this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==1 || this.arrData[nOrgRow][nOrgCol].dataFormat.negativeType==3){
-                                if (!isNaN(nValue)){ 
-                                    if (nValue < 0){
-                                        bRedFont=true;
-                                    }
-                                }
+        //DATA formats
+        if (oData && oData.dataFormat){
+            if (oData.dataFormat.type){
+                sValue= this.applyDataFormates(sValue,oData.dataFormat);
+                //for negateive number for currency & number
+                if (oData.dataFormat.negativeType){
+                    if (oData.dataFormat.negativeType==1 || oData.dataFormat.negativeType==3){
+                        if (!isNaN(nValue)){ 
+                            if (nValue < 0){
+                                bRedFont=true;
                             }
                         }
-                        
                     }
                 }
-
-                this.at(x+1,y+1).textString = sValue;
-
-
-                //cell formats
-                /*fontWeight: 'bold'
-                textDecoration: 'underline'
-                fontStyle: 'italic'
-                fontSize:12
-                fontFamily:sFont
-                textAlign: 'left'
-                borderColor: 
-                textColor:
-                fill
-                */
-                var sFontWeight="normal";
-                var sTextDecoration="normal";
-                var sFontStyle="normal";
-                var sFontSize = this.defalutFontSize;
-                var sFontFamily = this.defaultFontFamily;
-                var sTextAlign = "left";
-                var oBorderColor=null;
-                var oFill = null;
-                var oTextColor=null;
-                //if value is number then should return right
-                sTextAlign = this.getAlignforValueType(this.arrData[nOrgRow][nOrgCol].dataFormat,sValue)
                 
-                if (this.arrData[nOrgRow][nOrgCol].fontWeight){
-                    sFontWeight=this.arrData[nOrgRow][nOrgCol].fontWeight;
-                }
-                if (this.arrData[nOrgRow][nOrgCol].textDecoration){
-                    sTextDecoration=this.arrData[nOrgRow][nOrgCol].textDecoration;
-                }
-                if (this.arrData[nOrgRow][nOrgCol].fontStyle){
-                    sFontStyle=this.arrData[nOrgRow][nOrgCol].fontStyle;
-                }
-                if (this.arrData[nOrgRow][nOrgCol].fontSize){
-                    sFontSize =this.arrData[nOrgRow][nOrgCol].fontSize;
-                }                
-                if (this.arrData[nOrgRow][nOrgCol].fontFamily){
-                    sFontFamily =this.arrData[nOrgRow][nOrgCol].fontFamily;
-                }
-                if (this.arrData[nOrgRow][nOrgCol].textAlign){
-                    sTextAlign =this.arrData[nOrgRow][nOrgCol].textAlign;
-                }
+            }
+        }
+        this.at(x,y).textString = sValue;
 
-                if (this.arrData[nOrgRow][nOrgCol].borderColor){
-                    oBorderColor=eval(this.arrData[nOrgRow][nOrgCol].borderColor);
-                }                
-                if (this.arrData[nOrgRow][nOrgCol].fill){
-                    oFill =eval(this.arrData[nOrgRow][nOrgCol].fill);
-                } 
-                if (this.arrData[nOrgRow][nOrgCol].textColor){
-                    oTextColor=eval(this.arrData[nOrgRow][nOrgCol].textColor);
-                } 
-                //oText.applyStyle({borderColor: oBorderColor, fill: oFill ,textColor: oTextColor});
-                //bug in applystyle textDecoration & fontStyle & fontWeight do not work
-                
-                //this.at(x+1,y+1).applyStyle({fontSize:sFontSize,fontFamily:sFontFamily,fill: oFill ,textColor: oTextColor});
-                //this.at(x+1,y+1).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});  
-                
-                if (bRedFont){
-                    oTextColor=Color.red;
-                }
-                this.at(x+1,y+1).applyStyle({fontSize:sFontSize,fontFamily:sFontFamily,
-                                        fill: oFill ,textColor: oTextColor,
-                                        fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
-                //bug in applystyle textDecoration & fontStyle & fontWeight do not work.. if this is fixed then remove below line
-                this.at(x+1,y+1).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
-                //this.at(x+1,y+1).setTextDecoration(sTextDecoration);
-                //borderColor does not take null value.
-                if (oBorderColor){
-                    this.at(x+1,y+1).applyStyle({borderColor: oBorderColor});
-                }
-                this.at(x+1,y+1).setAlign(sTextAlign); 
+        var sFontWeight="normal";
+        var sTextDecoration="none";
+        var sFontStyle="normal";
+        var sFontSize = this.defalutFontSize;
+        var sFontFamily = this.defaultFontFamily;
+        var sTextAlign = "left";
+        var oBorderColor=null;
+        var oFill = null;
+        var oTextColor=null;
+        //if value is number then should return right
+        sTextAlign = this.getAlignforValueType(oData && oData.dataFormat,sValue)
+        
+        if (oData&& oData.fontWeight){
+            sFontWeight=oData.fontWeight;
+        }
+        if (oData&& oData.textDecoration){
+            sTextDecoration=oData.textDecoration;
+        }
+        if (oData&& oData.fontStyle){
+            sFontStyle=oData.fontStyle;
+        }
+        if (oData&& oData.fontSize){
+            sFontSize =oData.fontSize;
+        }                
+        if (oData&& oData.fontFamily){
+            sFontFamily =oData.fontFamily;
+        }
+        if (oData && oData.textAlign){
+            sTextAlign =oData.textAlign;
+        }
+
+        if (oData&& oData.borderColor){
+            oBorderColor=eval(oData.borderColor);
+        }                
+        if (oData && oData.fill){
+            oFill =eval(oData.fill);
+        } 
+        if (oData && oData.textColor){
+            oTextColor=eval(oData.textColor);
+        } 
+        //oText.applyStyle({borderColor: oBorderColor, fill: oFill ,textColor: oTextColor});
+        //bug in applystyle textDecoration & fontStyle & fontWeight do not work
+        
+        //this.at(x+1,y+1).applyStyle({fontSize:sFontSize,fontFamily:sFontFamily,fill: oFill ,textColor: oTextColor});
+        //this.at(x+1,y+1).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});  
+        
+        if (bRedFont){
+            oTextColor=Color.red;
+        }
+        this.at(x,y).applyStyle({fontSize:sFontSize,fontFamily:sFontFamily,
+                                fill:oFill ,textColor:oTextColor,
+                                fontWeight:sFontWeight,fontStyle:sFontStyle,textDecoration:sTextDecoration});
+        //bug in applystyle textDecoration & fontStyle & fontWeight do not work.. if this is fixed then remove below line
+        //this.at(x,y).emphasizeAll({fontWeight: sFontWeight,fontStyle: sFontStyle,textDecoration: sTextDecoration});
+        //this.at(x+1,y+1).setTextDecoration(sTextDecoration);
+        //borderColor does not take null value.
+        if (oBorderColor){
+            this.at(x,y).applyStyle({borderColor: oBorderColor});
+        }
+        this.at(x,y).setAlign(sTextAlign); 
+
+
+    },  
+    updateDisplay: function() {
+var start = new Date().getTime();
+
+        this.arrSelectedCells.lenght=0;
+        this.arrSelectedCells =[];
+
+        for (var y = 0; y < this.numRows-1; y++) {
+            for (var x = 0; x < this.numCols-1; x++) {
+                this.updateCellDisplay(x,y,false)
             }
         }
 
         if (this.activeCell) {
             this.activeCellContent = this.activeCell.getContent();
         }
+
 var elapsed = new Date().getTime() - start;
 console.log('updateDisplay:'  + elapsed/1000);
     },
@@ -1032,7 +920,7 @@ console.log('updateDisplay:'  + elapsed/1000);
                 this.arrData[n].splice(nOrgCol,0,oCell);
             }
 
-            this.updateDataModel();
+            this.updateDisplay();
 
         }
     },
@@ -1056,13 +944,11 @@ console.log('updateDisplay:'  + elapsed/1000);
         if (this.activeCell) {
             var nRow = this.activeCell.gridCoords.y - (this.hideColHeads ? 0 : 1);
             var nColumn = this.activeCell.gridCoords.x;
-
             var nOrgRow = nRow-1  + this.startRow;
             var nOrgCol = nColumn-1 + this.startColumn;
             var oCell
             var arrColumns=[];
         
-
             for (nCol = 0; nCol < this.arrData[0].length; nCol++) {
                 oCell ={}; 
                 oCell.value = "";
@@ -1071,11 +957,8 @@ console.log('updateDisplay:'  + elapsed/1000);
                 arrColumns.push(oCell); 
             }
             this.arrData.splice(nOrgRow ,0,arrColumns);
-            this.updateDataModel()
-
+            this.updateDisplay()
         }
-        
-        
     },
     addRow: function() {
         var row = [];
@@ -1093,7 +976,7 @@ console.log('updateDisplay:'  + elapsed/1000);
             var nOrgRow = nRow -1 + this.startRow;
  
             this.arrData.splice(nOrgRow ,1);
-            this.updateDataModel();
+            this.updateDisplay();
         }
     },
     removeColBetween: function() {
@@ -1104,7 +987,7 @@ console.log('updateDisplay:'  + elapsed/1000);
             for (var n = 0; n < this.arrData.length; n++) {
                 this.arrData[n].splice(nOrgCol,1);
             }
-            this.updateDataModel();
+            this.updateDisplay();
         }
     },
     removeCol: function() {
@@ -1176,13 +1059,18 @@ currently only support
     	var nValue; 
         var sValue;
         var nStartX,nStartY,nEndX,nEndY;
+        
+        var SUMFORMULA = "=SUM("
+        var AVERAGEFORMULA = "=AVERAGE("
+        var RIGHTCLOSER = ")"
+        
         if (sOrgValue){
         
         try{
-            debugger;
             sValue= sOrgValue.toUpperCase();
             if (sValue.substr(0,5)=="=SUM("){
-                arrValue= sValue.replace(/=SUM\(/g, "").replace(/\)/g,"").split(":");
+                arrValue= sValue.replace(SUMFORMULA,"").replace(RIGHTCLOSER,"").split(":");
+            
                 var oStartCell = this.getCellDataIndex(arrValue[0]);
                 var oEndCell = this.getCellDataIndex(arrValue[1]);
                 
@@ -1210,7 +1098,9 @@ currently only support
                 }
                 return nTotal;  
             }else if(sValue.substr(0,9)=="=AVERAGE("){
-                arrValue= sValue.replace(/=AVERAGE\(/g, "").replace(/\)/g,"").split(":");
+                arrValue= sValue.replace(AVERAGEFORMULA, "").replace(RIGHTCLOSER,"").split(":");
+
+
                 var oStartCell = this.getCellDataIndex(arrValue[0]);
                 var oEndCell = this.getCellDataIndex(arrValue[1]);
                 var nCount=0;
@@ -1238,24 +1128,9 @@ currently only support
                     }
                 }
                 nAve = parseInt(nTotal/nCount)
-                return nAve;	
-                /*if (oStartCell.columnIndex==oEndCell.columnIndex){
-                    for (var nRow = oStartCell.rowIndex; nRow <= oEndCell.rowIndex; nRow ++) {
-                        
-                        nValue = parseFloat(this.arrData[nRow][oStartCell.columnIndex].value);
-		        if (isNaN(nValue)) {nValue=0}
-		        nTotal  +=nValue;
-                        nCount +=1;
-		    }
-                    nAve = parseInt(nTotal/nCount)
-	       }else{//summing horizontally
-                    for (var nCol = oStartCell.columnIndex; nCol <= oEndCell.columnIndex; nCol ++) {
-						
-		      }
-                }*/
-                return nAve;	
+                return nAve;		
 	   }else{  //copying other cell
-                var oCell = this.getCellDataIndex(sValue.replace(/=/g, ""));
+                var oCell = this.getCellDataIndex(sValue.replace("=", ""));
                
                 nValue =  this.arrData[oCell.y][oCell.x].value;
                 return nValue; 
@@ -1307,14 +1182,13 @@ currently only support
         items.push(['- column', this.removeCol.bind(this)]);
         items.push(['+ row', this.addRow.bind(this)]);
         items.push(['- row', this.removeRow.bind(this)]);
+        items.push(['add selected cells to connection points', this.newConnectionPointFromSelectedCells.bind(this)]);
         return items;
     },
 },
 
 'Keyboard Events', {
     onEnterPressed: function($super, evt) {
-        //Hak March27 2012:  calculate formula
-        
         this.onDownPressed(evt);
         return true;
     },
@@ -1327,12 +1201,6 @@ currently only support
         evt.stop();
     },
     onDownPressed: function(evt) {
-   
-        if (evt.isShiftDown()){
-            console.log("onDownPressed: ShiftDown")
-        }else{
-            console.log("onDownPressed: no ShiftDown")
-        }
         this.moveActiveCellBy(evt,pt(0,1));
         evt.stop();
     },
@@ -1348,18 +1216,14 @@ currently only support
         
     onKeyDown: function($super, evt) {
         $super(evt);
-         //console.log("SAPGrid.onKeyDown");
     },
 
     onKeyPress: function($super,evt) {
          $super(evt);
-        //console.log("SAPGrid.onKeyPress");
-
     },
 
     onKeyUp: function($super,evt) {
          $super(evt);
-         //console.log("SAPGrid.onKeyUp");
     },
     
 },
@@ -1389,16 +1253,37 @@ currently only support
         oGrid.arrSelectedData.push(oSelectedData);
     },
     getCellSelections: function() {
-       
+        return this.arrSelectedData
+               .collect(function(selData) { return this.at(selData.x+1, selData.y+1) }, this)
+               .select(function(cell) { return cell && cell.getContent });
     },
     removeSelectedCells: function() {
-        for (i= 0; i< this.arrSelectedCells.length; i++) {
-            this.arrSelectedCells[i].deactivateCell();
+    /*remove selected cells when user change the selection*/
+        var nCol;
+        var nRow;
+        var nOrgRow;
+        var nOrgCol;
+        
+        for (var i= 0; i< this.arrSelectedCells.length; i++) {
+            nRow  = this.arrSelectedCells[i].gridCoords.y;             
+            nCol= this.arrSelectedCells[i].gridCoords.x;
+            
+            nOrgRow = nRow -1 + this.startRow;
+            nOrgCol = nCol -1 + this.startColumn; 
+
+            //if cell contains annotation or formula should change back to their style
+            if (this.arrData[nOrgRow][nOrgCol].formula){
+                this.arrSelectedCells[i].formulaCell();
+            }else if (this.arrData[nOrgRow][nOrgCol].annotation){
+                this.arrSelectedCells[i].annotationCell();
+            }else{
+                this.arrSelectedCells[i].deactivateCell();
+            }
         }
         this.arrSelectedCells.lenght=0;
         this.arrSelectedCells =[];
 
-        //for data
+        //for data:  removing data
         for (i= 0; i< this.arrSelectedData.length; i++) {
             this.arrData[this.arrSelectedData[i].y][this.arrSelectedData[i].x].selected=false;
         }
@@ -1408,35 +1293,67 @@ currently only support
     },
 },
 'Mouse Events', {
-    onMouseMove: function($super, evt) {
+    onMouseWheelhandle: function(delta){
+        /* delta is positive if wheel was scrolled up,
+        * and negative, if wheel was scrolled down.
+        */
+        if (this.vScroll){
+            var nNewValue = this.prviousScrollValue-delta;
+            if (nNewValue >= 0 && nNewValue <= this.vScroll.valueScale ){
+                console.log("onMouseWheelhandle=" + nNewValue)
+                this.vScroll.setValue(nNewValue);
+                //don't need below to update due to we have connect(this.vScroll, "value", this, "updateRowDisplay", {});
+                //this.updateRowDisplay(this.prviousScrollValue-delta)
+            }
+             
+        }
         
-/*
-evt.MOUSEDOWN:1
-clientX:551
-ClientY:359;
-layerX:106
-layerY:50
-offsetX:57
-offSetY:16
-pageX:551
-pageY:359
+    },
+    onMouseWheelEntry: function(evt) {
+        //debugger;
+        console.log("onMouseWheelEntry");
+        var delta = 0;
+        if (!event) /* For IE. */
+            event = window.event;
+        if (event.wheelDelta) { /* IE/Opera. */
+            delta = event.wheelDelta / 120;
+            /** In Opera 9, delta differs in sign as compared to IE. */
+            if (window.opera)
+            delta = -delta;
+        } else if (event.detail) { /** Mozilla case. */
+             /** In Mozilla, sign of delta is different than in IE.
+            * Also, delta is multiple of 3.
+            */
+            delta = -event.detail / 3;
+        }
 
-screenX:496
-screenY:384
-x:551
-y359
-*/
-        //console.log("SAPGrid.onMouseMove");
+        /** If delta is nonzero, handle it.
+        * Basically, delta is now positive if wheel was scrolled up,
+        * and negative, if wheel was scrolled down.
+        */
+        if (delta)
+            this.onMouseWheelhandle(delta);
+
+        /** Prevent default actions caused by mouse wheel.
+        * That might be ugly, but we handle scrolls somehow
+        * anyway, so don't bother here..
+        */
+        if (event.preventDefault)
+            event.preventDefault();
+        event.returnValue = false;	  
+    },
+    onMouseWheel: function(evt) {
+        console.log("onMouseWheel");
+    },
+    onMouseMove: function($super, evt) {
         $super(evt);
     },
     onMouseDown: function($super, evt) {
         $super(evt);
-         //console.log("SAPGrid.onMouseDown");
     },
 
     onMouseUp: function($super, evt) {
         $super(evt);
-         //console.log("SAPGrid.onMouseUp");
     },
     onMouseWheel: function(evt) {
         console.log("onMouseWheel");
@@ -1603,7 +1520,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
             if (!isSelected){
                 this.grid.activeCell.deactivate();
             }
-            
         }    
         this.grid.activeCell = this;
         this.grid.activeCellContent = this.textString;
@@ -1748,16 +1664,11 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         }
     },
     onDoubleClick: function (evt) {
-        //if (this.annotation){
-            var nCol= this.gridCoords.x;
-            var nRow = this.gridCoords.y;
-            
-            console.log("onDoubleClick [" + nCol + ", "+ nRow + "]");
-	    this.grid.showAnnotation(nCol,nRow);
-	//}
+	this.grid.showAnnotation(nCol,nRow);
     },
     onBlur: function($super,evt) {
         //$super(evt);
+        //NEED TO REWORK THIS JUST CALL UPDATECELLDISPLAY MEHTOD.....
         var nCol= this.gridCoords.x;
         var nRow = this.gridCoords.y;
         
@@ -1803,10 +1714,6 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
             }
         }
         console.log("after: " +sValue )
-       
- 
-
-        
     },
     put: function(aValue) {
         // TODO: check if aValue starts with =, then evaluate it or not
@@ -1835,6 +1742,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     initialize: function($super, arg) {
         $super(arg);
         this.evalExpression = undefined;
+
         this.disableHalos();
         //this.cellformula='';
         //this.annotation='';//maybe we need array object to save more than one
@@ -1845,6 +1753,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         }
     },
     updateEvalExpression: function() {
+        console.log("updateEvalExpression")
         if (this.textString.substring(0,1) === '=') {
             this.evalExpression = this.textString.substring(1);
             //this.textString = this.grid.evaluateExpression(this.textString.substring(1));
@@ -1961,241 +1870,42 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         textColor: Color.black
     }
 },
-'default category', {
-    initialize: function($super,oGrid, nXpos, nYpos,nWidth,nHeight) {
-        nXpos = (nXpos==undefined) ? (0) : (nXpos);
-        nYpos = (nWidth==undefined) ? (0) : (nYpos);
-        nHeight = (nHeight==undefined) ? (30) : (nHeight);
-        nWidth = (nWidth==undefined) ? (1200) : (nWidth);
-   
-        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nXpos,nYpos,nWidth,nHeight)));
-        this.grid=oGrid;
-
-        this.imgSave;
-        this.imgSaveAs;
-        this.imgCopy;
-        this.imgCut;
-        this.imgPaste;
-        this.imgClear;
-        this.imgBold;
-        this.imgItalic;
-        this.imgUnderline;
-        this.imgBackGroundColor;
-        this.imgFontColor;
-        this.imgSignDollar;
-        this.imgSignPercent;
-        this.imgBoarder;
-        this.imgFilter;
-        this.imgInsertRow;
-        this.imgRemoveRow;
-        this.imgInsertColumn;
-        this.imgRemoveColumn;
-        this.imgFormatCell;
-        this.imgTextAlignLeft;
-        this.imgTextAlignCenter;
-        this.imgTextAlignRight;
-        this.ddlFontSize;
-        this.ddlFont;
-        this.fontPicker;
-        this.oClearMenu=null;
-        this.oDataFormat = null;
-        this.initializeImages();
-        this.initializeEvents();
-
-/*
-
-
-
-fontWeight: 'bold'
-textDecoration: 'underline'
-fontStyle: 'italic'
-fontSize:12
-fontFamily:sFont
-textAlign: 'left'
-backgroundcolor: ss
-boardercolor: xx
-formula: xx
-value: yy
-
-
-getFontSize()
-getFontWeight()
-getFontFamily
-getColor
-setColor
-getTextDecoration
-getTextAlignment
-getBackgroundColor
-getItalics
-
-
-formula:
-notes:
-dataformat: currency & percentage & date & time
-    - currency: symbol , decimalPlaces ,useThousandSeparator, unitOfMeasure (whole,thousand,million), negativeType (withminus, red, withBracket, redwithBracket) 
-    - percentage: Decimal places
-    - date: dateformat (~5 types)
-    - time: timeformat (~5 types)
-*/
-
-
-    },initializeImages: function() {
-        var nGapWidth = 6;
-        var nGapGroupWidth = 25;
-        var nSecondLineYPos = 30;
-
-        this.imgSave = new lively.morphic.Image(new Rectangle(10,3,24,24), "images/Save-icon.png"); 
-        this.imgSaveAs = new lively.morphic.Image(new Rectangle(24*1 + 10 + nGapWidth,3,24,24), "images/Save-as-icon.png"); 
-        this.imgPaste= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*2 + 10 + 2*nGapWidth,3,24,24), "images/Action-paste-icon.png"); 
-        this.imgCut= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,3,24,24), "images/Cut-icon.png"); 
-        this.imgCopy= new lively.morphic.Image(new Rectangle(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,nSecondLineYPos,24,24), "images/Actions-edit-copy-icon.png"); 
-    
-        this.ddlFont = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth, 3, 120, 20), []);
-
-        this.ddlFontSize = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
-
-        this.addMorph(this.ddlFont );
-        this.addMorph(this.ddlFontSize );
-
-        this.imgBold= new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-bold-icon.png"); 
-        this.imgBold.setToolTip("Bold");
-        this.imgItalic = new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*5 + 10 + 5*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-italic-icon.png"); 
-        this.imgItalic.setToolTip("Italic");
-        this.imgUnderline= new lively.morphic.Image(new Rectangle(2*nGapGroupWidth + 24*6 + 10 + 6*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-underline-icon.png"); 
-        this.imgUnderline.setToolTip("Underline");
-
-        this.imgBackGroundColor= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*8 + 10 + 7*nGapWidth,nSecondLineYPos,24,24), "images/color-fill-icon.png"); 
-        this.imgFontColor= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*9 + 10 + 8*nGapWidth,nSecondLineYPos,24,24), "images/Actions-format-text-color-icon.png"); 
-
-        this.imgSignDollar= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,3,24,24), "images/US-dollar-icon.png"); 
-        this.imgSignDollar.setToolTip("Number Format: Currency");
-        this.imgSignPercent= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*12 + 10 + 12*nGapWidth,3,24,24), "images/Percent-icon2.png"); 
-        this.imgSignPercent.setToolTip("Number Format: Percentage");
-
-        this.imgFormatCell= new lively.morphic.Image(new Rectangle(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,nSecondLineYPos,24,24), "images/rick-text-format-icon.png"); 
-
-
-        this.imgBoarder = new lively.morphic.Image(new Rectangle(4*nGapGroupWidth + 24*13 + 10 + 13*nGapWidth,3,24,24), "images/border-2-bottom-icon.png"); 
-        this.imgFilter = new lively.morphic.Image(new Rectangle(4*nGapGroupWidth + 24*14 + 10 + 14*nGapWidth,3,24,24), "images/filter-icon.png"); 
-
-        this.imgInsertRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,3,24,24), "images/table-row-insert-icon.png");
-        this.imgInsertRow.setToolTip("Insert Row");
-
-        this.imgInsertColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,nSecondLineYPos,24,24), "images/table-column-insert-icon.png");
-        this.imgInsertColumn .setToolTip("Insert Column");
-        
-        this.imgRemoveRow = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,3,24,24), "images/table-row-delete-icon.png");
-        this.imgRemoveRow .setToolTip("Delete Row");
-        this.imgRemoveColumn = new lively.morphic.Image(new Rectangle(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,nSecondLineYPos,24,24), "images/table-column-delete-icon.png");
-        this.imgRemoveColumn .setToolTip("Delete Column");
-    
-        this.imgTextAlignLeft = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*19 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-left-icon.png");
-        this.imgTextAlignLeft.setToolTip("Align Text Left");
-        this.imgTextAlignCenter = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*20 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-center-icon.png");
-        this.imgTextAlignCenter.setToolTip("Align Text Center");
-        this.imgTextAlignRight = new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*21 + 10 + 13*nGapWidth,3,24,24), "images/Text-align-right-icon.png");
-        this.imgTextAlignRight.setToolTip("Align Text Right");
-
-        this.imgClear= new lively.morphic.Image(new Rectangle(6*nGapGroupWidth + 25*22 + 10 + 14*nGapWidth,3,24,24), "images/Actions-edit-clear-icon.png"); 
-
-        this.addMorph(this.imgInsertRow);
-        this.addMorph(this.imgRemoveRow);
-        this.addMorph(this.imgInsertColumn);
-        this.addMorph(this.imgRemoveColumn);
-
-        this.addMorph(this.imgSave);
-        this.addMorph(this.imgSaveAs);
-
-        this.addMorph(this.imgCopy);
-        this.addMorph(this.imgCut);
-        this.addMorph(this.imgPaste);
-        this.addMorph(this.imgClear);
- 
-        this.addMorph(this.imgBold);
-        this.addMorph(this.imgItalic );
-        this.addMorph(this.imgUnderline);
-   
-        this.addMorph(this.imgBackGroundColor);
-        this.addMorph(this.imgFontColor);
-
-        this.addMorph(this.imgSignDollar);
-        this.addMorph(this.imgSignPercent);
-        this.addMorph(this.imgFormatCell);
-
-
-        this.addMorph(this.imgBoarder);
-        this.addMorph(this.imgFilter);
-
-        this.addMorph(this.imgInsertRow);
-        this.addMorph(this.imgRemoveRow);
-        this.addMorph(this.imgInsertColumn);
-        this.addMorph(this.imgRemoveColumn);
-
-        this.addMorph(this.imgTextAlignLeft);
-        this.addMorph(this.imgTextAlignCenter);
-        this.addMorph(this.imgTextAlignRight);
-
-        this.ddlFontSize.grabbingEnabled = false;
-        this.ddlFont.grabbingEnabled = false;
-
-
-        var oSubmorphs= this.submorphs
-        //debugger;
-        //for (var i = 0; i < oSubmorphs.length; i++) {
-            //if (oSubmorphs[i].shape==lively.morphic.Image){
-            //      console.log("image")
-            //}
-        //}
-
-        this.imgSave.grabbingEnabled = false;
-        this.imgSaveAs.grabbingEnabled = false;
-        this.imgCopy.grabbingEnabled = false;
-        this.imgCut.grabbingEnabled = false;
-        this.imgPaste.grabbingEnabled = false;
-        this.imgClear.grabbingEnabled = false;
-        this.imgBold.grabbingEnabled = false;
-        this.imgItalic.grabbingEnabled = false;
-        this.imgUnderline.grabbingEnabled = false;
-        this.imgBackGroundColor.grabbingEnabled = false;
-        this.imgFontColor.grabbingEnabled = false;
-        this.imgSignDollar.grabbingEnabled = false;
-        this.imgSignPercent.grabbingEnabled = false;
-        this.imgBoarder.grabbingEnabled = false;
-        this.imgFilter.grabbingEnabled = false;
-        this.imgInsertRow.grabbingEnabled = false;
-        this.imgRemoveRow.grabbingEnabled = false;
-        this.imgInsertColumn.grabbingEnabled = false;
-        this.imgRemoveColumn.grabbingEnabled = false;
-        this.imgTextAlignLeft.grabbingEnabled = false;
-        this.imgTextAlignCenter.grabbingEnabled = false;
-        this.imgTextAlignRight.grabbingEnabled = false;
-        this.imgFormatCell.grabbingEnabled = false;
-
-
-        this.imgSave.disableHalos();
-        this.imgSaveAs.disableHalos();
-        this.imgCopy.disableHalos();
-        this.imgCut.disableHalos();
-        this.imgPaste.disableHalos();
-        this.imgClear.disableHalos();
-        this.imgBold.disableHalos();
-        this.imgItalic.disableHalos();
-        this.imgUnderline.disableHalos();
-        this.imgBackGroundColor.disableHalos();
-        this.imgFontColor.disableHalos();
-        this.imgSignDollar.disableHalos();
-        this.imgSignPercent.disableHalos();
-        this.imgBoarder.disableHalos();
-        this.imgFilter.disableHalos();
-        this.imgInsertRow.disableHalos();
-        this.imgRemoveRow.disableHalos();
-        this.imgInsertColumn.disableHalos();
-        this.imgRemoveColumn.disableHalos();
-        this.imgTextAlignLeft.disableHalos();
-        this.imgTextAlignCenter.disableHalos();
-        this.imgTextAlignRight.disableHalos();
-        this.imgFormatCell.disableHalos();
+'DropDown Events', {
+    ddlFont_onMouseDown: function(){
+        if (this.fontPicker){
+            if (this.fontPicker.isVisible()){
+                this.fontPicker.setVisible(false);
+            }else{
+                this.fontPicker.setVisible(true);
+                //this.fontPicker.focus();
+            }
+        }else{
+            this.fontPicker= new lively.morphic.SAPFontPicker("courier",this.fontPicker_callBack);
+            this.fontPicker.setPosition(pt(181,24));
+            this.addMorph(this.fontPicker);
+            connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});
+        }
     },
+    ddlFontSize_onChange: function(){
+        var i;
+        var nFontsize = this.ddlFontSize.getSelectedItem();
+
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontSize=nFontsize;
+        }
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y,true);
+        }
+
+    },
+    
+    fontPicker_onBlur: function(){
+       console.log("onBlur");
+       this.fontPicker.setVisible(false);
+
+    },
+},
+'Other methods', {
     setFontSize: function(sFontSize){
         this.ddlFontSize.setSelectionMatching(sFontSize);
     },
@@ -2216,82 +1926,247 @@ dataformat: currency & percentage & date & time
         var i;
         var that = this.owner;
         that.ddlFont.updateList([sFont]);
-        for (i= 0; i< that.grid.arrSelectedCells.length; i++) {
-            that.grid.arrSelectedCells[i].emphasizeAll({fontFamily:sFont});
-        }
 
-        //for data
         for (i= 0; i< that.grid.arrSelectedData.length; i++) {
             that.grid.arrData[that.grid.arrSelectedData[i].y][that.grid.arrSelectedData[i].x].fontFamily=sFont;
         }
-
-
+        for (i= 0; i< that.grid.arrSelectedCells.length; i++) {
+            that.grid.updateCellDisplay(that.grid.arrSelectedCells[i].gridPos().x,that.grid.arrSelectedCells[i].gridPos().y,true);
+        }
         that.fontPicker.setVisible(false);
-        
     },
-    ddlFont_onMouseDown: function(){
-        if (this.fontPicker){
-            //debugger;
-            if (this.fontPicker.isVisible()){
-                this.fontPicker.setVisible(false);
-            }else{
-                this.fontPicker.setVisible(true);
-                //this.fontPicker.focus();
-            }
-        }else{
-            this.fontPicker= new lively.morphic.SAPFontPicker("courier",this.fontPicker_callBack);
-            this.fontPicker.setPosition(pt(181,24));
-            this.addMorph(this.fontPicker);
-            connect(this.fontPicker, "onBlur", this, "fontPicker_onBlur", {});
-        }
-        
-    
-    },
-    ddlFontSize_onChange: function(){
+    clearCell: function(bClearFormats,bClearContents,bClearComments,bClearFormula,bClearStyle) {
+        var nRow;
+        var nColumn;
+        var nOrgRow;
+        var nOrgCol;
+        var sValue;
         var i;
-        var nFontsize = this.ddlFontSize.getSelectedItem();
+
+        //Grid
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.grid.arrSelectedCells[i].emphasizeAll({fontSize:nFontsize });
+            nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow -1  + this.grid.startRow;
+            nOrgCol = nColumn -1 + this.grid.startColumn; 
+            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
+            nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
+            if (bClearStyle){
+                this.grid.arrSelectedCells[i].applyStyle({fontSize:10,
+							fontFamily:"helvetica",
+                                                        fill: null,textColor: null,
+                                                        fontWeight: "normal",
+							fontStyle: "normal",
+							textDecoration: "normal"});
+               this.grid.arrSelectedCells[i].emphasizeAll({fontSize:10,
+							fontFamily:"helvetica",
+                                                        fill: null,textColor: null,
+                                                        fontWeight: "normal",
+							fontStyle: "normal",
+							textDecoration: "normal"});
+            }
+            if (bClearContents){
+                this.grid.arrSelectedCells[i].textString="";
+            }
+            if (bClearComments){
+                if (this.grid.arrData[nOrgRow][nOrgCol].formula && !bClearFormula){
+                    this.grid.arrSelectedCells[i].formulaCell();
+                }else{
+                    this.grid.arrSelectedCells[i].deactivateCell();
+                }
+            }
+            if (bClearFormats){
+                if (!bClearContents){
+                    this.grid.arrSelectedCells[i].textString = sValue;
+                }
+            }
+            if (bClearFormula){
+                this.grid.arrSelectedCells[i].textString="";
+                if (this.grid.arrData[nOrgRow][nOrgCol].annotation && !bClearComments){
+                    this.grid.arrSelectedCells[i].annotationCell();
+                }else{
+                    this.grid.arrSelectedCells[i].deactivateCell();
+                }
+            }    
         }
-         //for data
+        //Data
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontSize=nFontsize;
+            if (bClearStyle){
+            }
+            if (bClearContents){
+                this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].value="";
+            }
+            if (bClearComments){
+                this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].annotation="";
+            }
+            if (bClearFormats){
+                this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=null;
+            }
+            if (bClearFormula){
+                this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].value="";
+                this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].formula="";
+            }    
+        }
+    },
+    setDataFormates: function(oDataFormat) {
+        var nRow;
+        var nColumn;
+        var nOrgRow;
+        var nOrgCol;
+        var sValue;
+        var i;
+        var nValue;//to check number
+
+        /*for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
+            nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
+            nOrgRow = nRow-1  + this.grid.startRow;
+            nOrgCol = nColumn-1 + this.grid.startColumn; 
+            sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
+            nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
+
+            if (oDataFormat){
+                sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
+                this.grid.arrSelectedCells[i].textString= sValue;
+                if (oDataFormat.type=="currency" || oDataFormat.type=="number"){
+                    if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
+                        if (!isNaN(nValue )){
+                            if (nValue <0){
+                                this.grid.arrSelectedCells[i].applyStyle({textColor: Color.red});
+                            }
+                        }
+                    }
+                }
+            }else{ //case when general is selected
+                this.grid.arrSelectedCells[i].textString= sValue;
+            }
+        }*/
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
+        }
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y,true);
         }
 
+
+
+    }
+},
+'Fill', {
+    fillDownUp: function(bDown){
+/*Description: fill up or down:  copying cells*/
+        var i,j;
+        var arrDisplay=[];
+        var arrDataSet =[];
+        var bExist;
+        var oItem={}
+        var nX,nY,nMax;
+        var oDataCell;
+debugger;
+        //saving each column in different set for selected Data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            oItem ={};
+            oItem.x=this.grid.arrSelectedData[i].x;
+            oItem.gridX = oItem.x-this.grid.startColumn+1;
+       
+            nY = this.grid.arrSelectedData[i].y;
+            bExist = arrDataSet.detect(function(ea) { return ea.x == oItem.x});
+            if (bExist){
+                 arrDataSet.forEach(function (ea) {
+                    if (ea.x==oItem.x){
+                        ea.arrY.push(nY);
+                    }
+                });
+            }else{
+                oItem.arrY=[];
+                oItem.arrY.push(nY)
+                arrDataSet.push(oItem);
+            }
+        }
+        //get min (top row) and use this value to change all value
+        var nMaxMin;
+        for (i= 0; i< arrDataSet.length; i++) {
+            if (bDown){
+                nMaxMin= arrDataSet[i].arrY.min(function(obj) { return obj});
+            }else{
+                nMaxMin= arrDataSet[i].arrY.max(function(obj) { return obj});
+            }
+            arrDataSet[i].oDataCell = this.grid.arrData[nMaxMin][arrDataSet[i].x];
+            for (j= 0; j< arrDataSet[i].arrY.length; j++) { 
+                //we might need to copy: formula, format...etc.. then we need copy function.
+                //this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x].value = arrDataSet[i].oDataCell.value;
+                this.grid.arrData[arrDataSet[i].arrY[j]][arrDataSet[i].x]=arrDataSet[i].oDataCell;
+
+            }
+        }
+
+        //Apply to selected display cells
+        var nOrgRow,nOrgCol;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            //nOrgRow = this.grid.arrSelectedCells[i].gridPos().y  + this.grid.startRow;
+            //nOrgCol = this.grid.arrSelectedCells[i].gridPos().x  + this.grid.startColumn;
+            //this.grid.arrSelectedCells[i].textString =this.grid.arrData[nOrgRow][nOrgCol].value;
+            debugger;
+            this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y,true);
+        }
     },
-    
-    fontPicker_onBlur: function(){
-       console.log("onBlur");
-       this.fontPicker.setVisible(false);
+    fillRightLeft: function(bRight){
+        var i,j;
+        var arrDataSet =[];
+        var bExist;
+        var oItem={}
+        var nX,nY,nMax;
+        var oDataCell;
 
-    },
-    initializeEvents: function() {
-        connect(this.imgBold, "onMouseDown", this, "imgBold_Click", {});
-        connect(this.imgItalic, "onMouseDown", this, "imgItalic_Click", {});
-        connect(this.imgUnderline, "onMouseDown", this, "imgUnderline_Click", {});
-    
-        connect(this.imgSave , "onMouseDown", this, "imgSave_Click", {});
-        connect(this.imgInsertRow, "onMouseDown", this, "imgInsertRow_Click", {});
-        connect(this.imgInsertColumn, "onMouseDown", this, "imgInsertColumn_Click", {});
-        connect(this.imgRemoveRow, "onMouseDown", this, "imgRemoveRow_Click", {});
-        connect(this.imgRemoveColumn, "onMouseDown", this, "imgRemoveColumn_Click", {});
+        //saving each Row in different set for selected Data
+        for (i= 0; i< this.grid.arrSelectedData.length; i++) {
+            oItem ={};
+            oItem.y=this.grid.arrSelectedData[i].y;
+            oItem.gridX = oItem.x-this.grid.startColumn+1;
+            //oItem.gridY = oItem.x-this.grid.startRow+1;
+           
+            nX = this.grid.arrSelectedData[i].x;
+            nY = this.grid.arrSelectedData[i].y;
+            bExist = arrDataSet.detect(function(ea) { return ea.y == oItem.y});
+            if (bExist){
+                 arrDataSet.forEach(function (ea) {
+                    if (ea.y==oItem.y){
+                        ea.arrX.push(nX);
+                    }
+                });
+            }else{
+                oItem.arrX=[];
+                oItem.arrX.push(nX)
+                arrDataSet.push(oItem);
+            }
+        }
+        var nMaxMin;
+        //get min (top row) and use this value to change all value
+        for (i= 0; i< arrDataSet.length; i++) {
+            if (bRight){
+                nMaxMin= arrDataSet[i].arrX.min(function(obj) { return obj});
+            }else{
+                nMaxMin= arrDataSet[i].arrX.max(function(obj) { return obj});
+            }
+            arrDataSet[i].oDataCell = this.grid.arrData[arrDataSet[i].y][nMaxMin];
+            for (j= 0; j< arrDataSet[i].arrX.length; j++) { 
+                this.grid.arrData[arrDataSet[i].y][arrDataSet[i].arrX[j]]= arrDataSet[i].oDataCell;
+            }
+        }
 
-        connect(this.imgSignDollar, "onMouseDown", this, "imgSignDollar_Click", {});
-        connect(this.imgSignPercent, "onMouseDown", this, "imgSignPercent_Click", {});
+        //Apply to selected display cells
+        var nOrgRow,nOrgCol;
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            //nOrgRow = this.grid.arrSelectedCells[i].gridPos().y  + this.grid.startRow;
+            //nOrgCol = this.grid.arrSelectedCells[i].gridPos().x  + this.grid.startColumn;
+            //this.grid.arrSelectedCells[i].textString =this.grid.arrData[nOrgRow][nOrgCol].value;
+            this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y,true);
+        }
 
-        connect(this.imgTextAlignLeft, "onMouseDown", this, "imgTextAlignLeft_Click", {});
-        connect(this.imgTextAlignCenter, "onMouseDown", this, "imgTextAlignCenter_Click", {});
-        connect(this.imgTextAlignRight, "onMouseDown", this, "imgTextAlignRight_Click", {});
-
-        connect(this.ddlFontSize, "onChange", this, "ddlFontSize_onChange", {});
-        connect(this.ddlFont , "onMouseDown", this, "ddlFont_onMouseDown", {});
-        connect(this.imgFormatCell, "onMouseDown", this, "imgFormatCell_Click", {});
-
-        connect(this.imgClear, "onMouseDown", this, "imgClear_Click", {});
-//imgClear
-        
-
-    },
+     
+    }
+},
+'Image Click Events', {
     imgFormatCell_Click: function() {
         var nX = this.grid.oWorkBook.getPosition().x +  250;
         var nY = this.grid.oWorkBook.getPosition().y +  130;
@@ -2308,84 +2183,113 @@ dataformat: currency & percentage & date & time
             this.oDataFormat.openInWindow(pt(nX ,nY ));
             this.oDataFormat.owner.setTitle("Format Cells");
         }
-        
     },
     imgTextAlignLeft_Click: function() {
         var i;
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.grid.arrSelectedCells[i].setAlign('left'); 
-        }
-        //for data
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textAlign='left';
         }
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y,true);
+        }
     },
     imgClear_Click: function() {
-        debugger;
+       
         if (this.oClearMenu){
-            this.oClearMenu.openInWorld(this.imgClear.getPositionInWorld().addXY(5, 5));
+            this.oClearMenu.openInWorld(this.imgClear.getPositionInWorld().addXY(7, 7));
         }else{
-            //'Clear All','Clear Formats','Clear Contents','Clear Comments'
-	    var arrItems=[];
-            arrItems= [
-            	['Clear All', function() { alert('first') }],
-            	['Clear Formats', function() { alert('second') }],
-                ['Clear Contents', function() { alert('3rd') }],
-                ['Clear Comments', function() { alert('4th') }]
-            ];
-            this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(5, 5), null, arrItems);
+            var self = this;
+            var arrItems= [
+                ['',  function() { self.oClearMenu.remove(); }],
+            	['Clear All',  function() { self.clearCell(true,true,true,true,true) }],
+            	['Clear Formats',  function() { self.clearCell(true,false,false,false,false) }],
+                ['Clear Contents',  function() { self.clearCell(false,true,false,false,false) }],
+                ['Clear Comments',  function() { self.clearCell(false,false,true,false,false) }]];
+
+//Note from Robert~~~ thanks
+//['Clear Formats', this.onMenuClick_ClearFormats.bind(this)]
+//var self = this; ['Clear All', function() { self.clearCell(true,true,true,true,true) }]
+//this.oClearMenu= lively.morphic.Menu.openAt(this.imgClear.getPositionInWorld().addXY(7, 7), null, arrItems);
+
+            this.oClearMenu= new lively.morphic.Menu(null, arrItems);
+            this.oClearMenu.addScript(function onMouseOut(evt) {
+                $super(evt);
+                //this.remove();
+                console.log("onMouseOut")
+                return true;
+            })
+            this.oClearMenu.openIn(this,this.imgClear.getPosition().addXY(7, 7),false);
         }
     },
     imgTextAlignCenter_Click: function() {
         var i;
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.grid.arrSelectedCells[i].setAlign('center'); 
-        }
-        //for data
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textAlign='center';
+        }
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y,true);
         }
     },
     imgTextAlignRight_Click: function() {
         var i;
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.grid.arrSelectedCells[i].setAlign('right'); 
-        }
         //for data
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
             this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textAlign='right';
         }
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y,true);
+        }
     },
     imgItalic_Click: function() {
-        debugger;
         var i;
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.grid.arrSelectedCells[i].emphasizeAll({fontStyle: 'italic'});
+        var sFontStyle="italic";
+        if (this.grid.arrSelectedData[0]){
+            if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].fontStyle){
+                if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].fontStyle=='italic'){
+                    sFontStyle="normal";
+                }
+            }
         }
-        //for data
-        
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontStyle='italic';
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontStyle=sFontStyle;
+        }
+         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y,true);
         }
     },
     imgUnderline_Click: function() {
         var i;
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.grid.arrSelectedCells[i].emphasizeAll({textDecoration: 'underline'});
+        var sTextDecoration="underline";
+        if (this.grid.arrSelectedData[0]){
+            if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].textDecoration){
+                if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].textDecoration=='underline'){
+                    sTextDecoration="none";
+                }
+            }
         }
-         //for data
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textDecoration='underline';
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].textDecoration=sTextDecoration;
+        }
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y,true);
         }
     },
     imgBold_Click: function() {
         var i;
-        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-            this.grid.arrSelectedCells[i].emphasizeAll({fontWeight: 'bold'});
+        var sFontWeight="bold";
+        if (this.grid.arrSelectedData[0]){
+            if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].fontWeight){
+                if (this.grid.arrData[this.grid.arrSelectedData[0].y][this.grid.arrSelectedData[0].x].fontWeight=='bold'){
+                    sFontWeight="normal"
+                }
+            }
         }
-        //for data
+
         for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontWeight='bold';
+            this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].fontWeight=sFontWeight;
+        }
+        for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
+            this.grid.updateCellDisplay(this.grid.arrSelectedCells[i].gridPos().x,this.grid.arrSelectedCells[i].gridPos().y,true);
         }
     },
     imgBackGroundColor_Click: function() {
@@ -2466,6 +2370,23 @@ dataformat: currency & percentage & date & time
         }
 
     },
+    imgFill_Click: function() {
+        if (this.oFillMenu){
+            this.oFillMenu.openInWorld(this.imgFill.getPositionInWorld().addXY(7, 7));
+        }else{
+           var self = this;
+           var arrItems= [
+                ['',  function() { self.oFillMenu.remove(); }],
+            	['Fill Down',  function() { self.fillDownUp(true) }],
+            	['Fill Right',  function() { self.fillRightLeft(true) }],
+                ['Fill Up',  function() { self.fillDownUp(false) }],
+                ['Fill Left',  function() { self.fillRightLeft(false) }]];
+            
+            this.oFillMenu= new lively.morphic.Menu(null, arrItems);
+            
+            this.oFillMenu.openIn(this,this.imgFill.getPosition().addXY(7, 7),false);
+        }
+    },
     imgSave_Click: function() {
         alert(this.grid.numCols )
     },
@@ -2480,46 +2401,232 @@ dataformat: currency & percentage & date & time
     },
     imgRemoveColumn_Click: function() {
         this.grid.removeColBetween();
-    },
-    setDataFormates: function(oDataFormat) {
-        var nRow;
-        var nColumn;
-        var nOrgRow;
-        var nOrgCol;
-        var sValue;
-        var i;
-        var nValue;//to check number
-         debugger;
-        //if (oDataFormat){
-            for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
-                nRow  = this.grid.arrSelectedCells[i].gridCoords.y;
-                nColumn = this.grid.arrSelectedCells[i].gridCoords.x;
-                nOrgRow = nRow-1  + this.grid.startRow;
-                nOrgCol = nColumn-1 + this.grid.startColumn; 
-                sValue = this.grid.arrData[nOrgRow][nOrgCol].value;
-                nValue = sValue.toString().replace(/[^0-9\.\-]+/g,"");
+    }
+},
+'default category', {
+    initialize: function($super,oGrid, nXpos, nYpos,nWidth,nHeight) {
+        nXpos = (nXpos==undefined) ? (0) : (nXpos);
+        nYpos = (nWidth==undefined) ? (0) : (nYpos);
+        nHeight = (nHeight==undefined) ? (30) : (nHeight);
+        nWidth = (nWidth==undefined) ? (1200) : (nWidth);
+   
+        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nXpos,nYpos,nWidth,nHeight)));
+        this.grid=oGrid;
 
-                if (oDataFormat){
-                    sValue = this.grid.applyDataFormates(sValue ,oDataFormat);
-                    this.grid.arrSelectedCells[i].textString= sValue;
-                    if (oDataFormat.type=="currency" || oDataFormat.type=="number"){
-                        if (oDataFormat.negativeType==1 || oDataFormat.negativeType==3){
-                            if (!isNaN(nValue )){
-                                if (nValue <0){
-                                    this.grid.arrSelectedCells[i].applyStyle({textColor: Color.red});
-                                }
-                            }
-                        }
-                    }
-                }else{ //case when general is selected
-                    this.grid.arrSelectedCells[i].textString= sValue;
-                }
-            }
-            for (i= 0; i< this.grid.arrSelectedData.length; i++) {
-                this.grid.arrData[this.grid.arrSelectedData[i].y][this.grid.arrSelectedData[i].x].dataFormat=oDataFormat;
-            }
-        //}
+        this.imgSave;
+        this.imgSaveAs;
+        this.imgCopy;
+        this.imgCut;
+        this.imgPaste;
+        this.imgClear;
+        this.imgFill;
+        this.imgBold;
+        this.imgItalic;
+        this.imgUnderline;
+        this.imgBackGroundColor;
+        this.imgFontColor;
+        this.imgSignDollar;
+        this.imgSignPercent;
+        this.imgBoarder;
+        this.imgFilter;
+        this.imgInsertRow;
+        this.imgRemoveRow;
+        this.imgInsertColumn;
+        this.imgRemoveColumn;
+        this.imgFormatCell;
+        this.imgTextAlignLeft;
+        this.imgTextAlignCenter;
+        this.imgTextAlignRight;
+        this.ddlFontSize;
+        this.ddlClear;
+        this.ddlFont;
+        this.fontPicker;
+        this.oClearMenu=null;
+        this.oFillMenu = null;
+        this.oDataFormat = null;
+        this.initializeImages();
+        this.initializeEvents();
+
+/*
+
+
+
+fontWeight: 'bold'
+textDecoration: 'underline'
+fontStyle: 'italic'
+fontSize:12
+fontFamily:sFont
+textAlign: 'left'
+backgroundcolor: ss
+boardercolor: xx
+formula: xx
+value: yy
+
+
+getFontSize()
+getFontWeight()
+getFontFamily
+getColor
+setColor
+getTextDecoration
+getTextAlignment
+getBackgroundColor
+getItalics
+
+
+formula:
+notes:
+dataformat: currency & percentage & date & time
+    - currency: symbol , decimalPlaces ,useThousandSeparator, unitOfMeasure (whole,thousand,million), negativeType (withminus, red, withBracket, redwithBracket) 
+    - percentage: Decimal places
+    - date: dateformat (~5 types)
+    - time: timeformat (~5 types)
+*/
+
+
     },
+
+    initializeImages: function() {
+        var nGapWidth = 6,
+            nGapGroupWidth = 25,
+            nSecondLineYPos = 30;
+
+        function img(x, y, w, h, path) {
+            var url = URL.root.withFilename("users/kimhw/").withFilename(path);
+            var oImg = new lively.morphic.Image(new Rectangle(x,y,w,h), url);
+            oImg.grabbingEnabled = false;
+            oImg.disableHalos();
+            return oImg;
+            //return new lively.morphic.Image(new Rectangle(x,y,w,h), url);
+        }
+
+        this.imgSave            = img(10,3,24,24, "images/Save-icon.png");
+        this.imgSaveAs          = img(24*1 + 10 + nGapWidth,3,24,24, "images/Save-as-icon.png");
+        this.imgPaste           = img(nGapGroupWidth + 24*2 + 10 + 2*nGapWidth,3,24,24, "images/Action-paste-icon.png");
+        this.imgCut             = img(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,3,24,24, "images/Cut-icon.png");
+        this.imgCopy            = img(nGapGroupWidth + 24*3 + 10 + 3*nGapWidth,nSecondLineYPos,24,24, "images/Actions-edit-copy-icon.png");
+
+        this.ddlFont            = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth, 3, 120, 20), []);
+
+        this.ddlFontSize        = new lively.morphic.DropDownList(new Rectangle(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth + 120, 3, 100, 20), ['8', '9', '10','11','12','13','14','16','18','20','22','24']);
+
+        this.addMorph(this.ddlFont );
+        this.addMorph(this.ddlFontSize );
+
+        this.imgBold            = img(2*nGapGroupWidth + 24*4 + 10 + 4*nGapWidth,nSecondLineYPos,24,24, "images/Actions-format-text-bold-icon.png");
+        this.imgBold.setToolTip("Bold");
+        this.imgItalic          = img(2*nGapGroupWidth + 24*5 + 10 + 5*nGapWidth,nSecondLineYPos,24,24, "images/Actions-format-text-italic-icon.png");
+        this.imgItalic.setToolTip("Italic");
+        this.imgUnderline       = img(2*nGapGroupWidth + 24*6 + 10 + 6*nGapWidth,nSecondLineYPos,24,24, "images/Actions-format-text-underline-icon.png");
+        this.imgUnderline.setToolTip("Underline");
+
+        this.imgBackGroundColor = img(3*nGapGroupWidth + 24*8 + 10 + 7*nGapWidth,nSecondLineYPos,24,24, "images/color-fill-icon.png");
+        this.imgFontColor       = img(3*nGapGroupWidth + 24*9 + 10 + 8*nGapWidth,nSecondLineYPos,24,24, "images/Actions-format-text-color-icon.png");
+
+        this.imgSignDollar      = img(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,3,24,24, "images/US-dollar-icon.png");
+        this.imgSignDollar.setToolTip("Number Format: Currency");
+        this.imgSignPercent     = img(3*nGapGroupWidth + 24*12 + 10 + 12*nGapWidth,3,24,24, "images/Percent-icon2.png");
+        this.imgSignPercent.setToolTip("Number Format: Percentage");
+
+        this.imgFormatCell      = img(3*nGapGroupWidth + 24*11 + 10 + 11*nGapWidth,nSecondLineYPos,24,24, "images/rick-text-format-icon.png");
+
+
+        this.imgBoarder         = img(4*nGapGroupWidth + 24*13 + 10 + 13*nGapWidth,3,24,24, "images/border-2-bottom-icon.png");
+        this.imgFilter          = img(4*nGapGroupWidth + 24*14 + 10 + 14*nGapWidth,3,24,24, "images/filter-icon.png");
+
+        this.imgInsertRow       = img(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,3,24,24, "images/table-row-insert-icon.png");
+        this.imgInsertRow.setToolTip("Insert Row");
+
+        this.imgInsertColumn    = img(5*nGapGroupWidth + 24*15 + 10 + 13*nGapWidth,nSecondLineYPos,24,24, "images/table-column-insert-icon.png");
+        this.imgInsertColumn .setToolTip("Insert Column");
+
+        this.imgRemoveRow       = img(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,3,24,24, "images/table-row-delete-icon.png");
+        this.imgRemoveRow .setToolTip("Delete Row");
+        this.imgRemoveColumn    = img(5*nGapGroupWidth + 25*16 + 10 + 11*nGapWidth,nSecondLineYPos,24,24, "images/table-column-delete-icon.png");
+        this.imgRemoveColumn .setToolTip("Delete Column");
+
+        this.imgTextAlignLeft   = img(6*nGapGroupWidth + 25*17 + 10 + 13*nGapWidth,3,24,24, "images/Text-align-left-icon.png");
+        this.imgTextAlignLeft.setToolTip("Align Text Left");
+        this.imgTextAlignCenter = img(6*nGapGroupWidth + 25*18 + 10 + 13*nGapWidth,3,24,24, "images/Text-align-center-icon.png");
+        this.imgTextAlignCenter.setToolTip("Align Text Center");
+        this.imgTextAlignRight  = img(6*nGapGroupWidth + 25*19 + 10 + 13*nGapWidth,3,24,24, "images/Text-align-right-icon.png");
+        this.imgTextAlignRight.setToolTip("Align Text Right");
+
+        this.imgClear           = img(6*nGapGroupWidth + 25*17 + 10 + 13*nGapWidth,nSecondLineYPos,24,24, "images/Actions-edit-clear-icon.png");
+        this.imgFill           = img(6*nGapGroupWidth + 25*18 + 10 + 13*nGapWidth,nSecondLineYPos,24,24, "images/fill.png");
+
+
+        this.addMorph(this.imgInsertRow);
+        this.addMorph(this.imgRemoveRow);
+        this.addMorph(this.imgInsertColumn);
+        this.addMorph(this.imgRemoveColumn);
+
+        this.addMorph(this.imgSave);
+        this.addMorph(this.imgSaveAs);
+
+        this.addMorph(this.imgCopy);
+        this.addMorph(this.imgCut);
+        this.addMorph(this.imgPaste);
+        this.addMorph(this.imgClear);
+        this.addMorph(this.imgFill);
+
+        this.addMorph(this.imgBold);
+        this.addMorph(this.imgItalic );
+        this.addMorph(this.imgUnderline);
+
+        this.addMorph(this.imgBackGroundColor);
+        this.addMorph(this.imgFontColor);
+
+        this.addMorph(this.imgSignDollar);
+        this.addMorph(this.imgSignPercent);
+        this.addMorph(this.imgFormatCell);
+
+
+        this.addMorph(this.imgBoarder);
+        this.addMorph(this.imgFilter);
+
+        this.addMorph(this.imgInsertRow);
+        this.addMorph(this.imgRemoveRow);
+        this.addMorph(this.imgInsertColumn);
+        this.addMorph(this.imgRemoveColumn);
+
+        this.addMorph(this.imgTextAlignLeft);
+        this.addMorph(this.imgTextAlignCenter);
+        this.addMorph(this.imgTextAlignRight);
+
+        this.ddlFontSize.grabbingEnabled = false;
+        this.ddlFont.grabbingEnabled = false;
+  
+    },
+
+    initializeEvents: function() {
+        connect(this.imgBold, "onMouseDown", this, "imgBold_Click", {});
+        connect(this.imgItalic, "onMouseDown", this, "imgItalic_Click", {});
+        connect(this.imgUnderline, "onMouseDown", this, "imgUnderline_Click", {});
+    
+        connect(this.imgSave , "onMouseDown", this, "imgSave_Click", {});
+        connect(this.imgInsertRow, "onMouseDown", this, "imgInsertRow_Click", {});
+        connect(this.imgInsertColumn, "onMouseDown", this, "imgInsertColumn_Click", {});
+        connect(this.imgRemoveRow, "onMouseDown", this, "imgRemoveRow_Click", {});
+        connect(this.imgRemoveColumn, "onMouseDown", this, "imgRemoveColumn_Click", {});
+
+        connect(this.imgSignDollar, "onMouseDown", this, "imgSignDollar_Click", {});
+        connect(this.imgSignPercent, "onMouseDown", this, "imgSignPercent_Click", {});
+
+        connect(this.imgTextAlignLeft, "onMouseDown", this, "imgTextAlignLeft_Click", {});
+        connect(this.imgTextAlignCenter, "onMouseDown", this, "imgTextAlignCenter_Click", {});
+        connect(this.imgTextAlignRight, "onMouseDown", this, "imgTextAlignRight_Click", {});
+
+        connect(this.ddlFontSize, "onChange", this, "ddlFontSize_onChange", {});
+        connect(this.ddlFont , "onMouseDown", this, "ddlFont_onMouseDown", {});
+        connect(this.imgFormatCell, "onMouseDown", this, "imgFormatCell_Click", {});
+
+        connect(this.imgClear, "onMouseDown", this, "imgClear_Click", {});
+        connect(this.imgFill, "onMouseDown", this, "imgFill_Click", {});
+
+
+    }
+
 });    
 
 lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
@@ -2552,20 +2659,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         var nWidth= this.grid.defaultCellWidth * this.grid.numCols + 50;
         var nHeight = this.grid.defaultCellHeight * this.grid.numRows + 50;
         this.setExtent(lively.pt(nWidth,nHeight));
-        //this.setFill(Color.rgb(255, 255, 225));
-    },
-     onMouseDown: function($super, evt) {
-        
-        $super(evt);
-    },
-    onScroll: function(evt) {
-        console.log("SAPWorkBook: onScroll");
-    },
-    onMouseWheel: function($super,evt) {
-        console.log("SAPWorkBook: onMouseWheel");
-        $super(evt);
     }
-
 });
 lively.morphic.Text.subclass('lively.morphic.SAPGridHeadCell',
 'settings', {

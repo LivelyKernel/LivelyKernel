@@ -1668,6 +1668,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     },
     onBlur: function($super,evt) {
         //$super(evt);
+        //NEED TO REWORK THIS JUST CALL UPDATECELLDISPLAY MEHTOD.....
         var nCol= this.gridCoords.x;
         var nRow = this.gridCoords.y;
         

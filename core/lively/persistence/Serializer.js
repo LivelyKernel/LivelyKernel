@@ -862,7 +862,7 @@ ObjectLinearizerPlugin.subclass('lively.persistence.TraitPlugin',
 ObjectLinearizerPlugin.subclass('IgnoreFunctionsPlugin',
 'interface', {
     ignoreProp: function(obj, propName, value) {
-        return value && typeof value === 'function' && !value.isLivelyClosure && !(value instanceof RegExp);
+        return value && typeof value === 'function' && !value.isLivelyClosure && !value.isPrivateClass && !(value instanceof RegExp);
     },
 });
 

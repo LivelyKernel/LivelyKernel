@@ -478,9 +478,10 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
             if (extent.y < minHeight) height = minHeight;
             container.setExtent(pt(width, height));
         }
+        var borderSizeLeft = this.getBorderSize("left");
 
         submorphs.reduce(function (y, morph) {
-            morph.setPositionTopLeft(pt(this.getBorderSize("left"), y));
+            morph.setPositionTopLeft(pt(borderSizeLeft, y));
             var newHeight = morph.getExtent().y;
             var newWidth = (morph.layout && morph.layout.resizeWidth == true) ?
                 childWidth :

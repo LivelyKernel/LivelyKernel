@@ -226,23 +226,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     getLayoutableSubmorphs: function() {
         return this.submorphs;
     },
-    updateDataModel: function() {
-        /*we might not need this:  we can display cell directly from arrData... */
-        this.clear();
-        this.dataModel = [];
-        var nRow;
-        var nCol;
-        var arrColumns=[];
-
-        for (nRow = this.startRow; nRow < this.endRow-1; nRow++) {
-            arrColumns=[];
-            for (nCol = this.startColumn; nCol < this.endColumn-1; nCol++) {
-                arrColumns[nCol-this.startColumn] = this.arrData[nRow][nCol];
-	   }
-           this.dataModel.push(arrColumns);
-        }
-        this.updateDisplay();
-    },
     //fires when horizontal scroll moves
     updateColumnDisplay: function(evt) {
         if (isNaN(evt)){

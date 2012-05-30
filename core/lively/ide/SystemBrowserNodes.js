@@ -115,9 +115,10 @@ lively.ide.BrowserNode.subclass('lively.ide.FileFragmentNode', {
     },
 
     saveSource: function($super, newSource, sourceControl) {
-        this.target.debugMode = this.browser.debugMode
+        this.enableDebugFileParsing(this.browser.debugMode);
         this.target.putSourceCode(newSource);
         this.savedSource = this.target.getSourceCode(); // assume that users sees newSource after that
+        this.enableDebugFileParsing(false);
         return true;
     },
 
@@ -313,8 +314,10 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
     },
 
     reparse: function() {
-         this.getSourceControl().reparseModule(this.moduleName, true);
-         this.signalChange();
+        lively.ide.enableDebugFileParsing(this.browser.debugMode);
+        this.getSourceControl().reparseModule(this.moduleName, true);
+        this.signalChange();
+        lively.ide.enableDebugFileParsing(false);
     }
 },
 'consistency', {
@@ -564,7 +567,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CategorizedClassFragmentNode', 
 });
 
 lively.ide.MultiFileFragmentsNode.subclass('lively.ide.MethodCategoryFragmentNode', {
- 
+
     isCategoryNode: true,
 
     getName: function() { return this.target.getName() },

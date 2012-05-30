@@ -499,6 +499,14 @@ Object.extend(lively.ide, {
         return this.startSourceControl();
     },
 
+    debugFileParsingEnabled: function() {
+        return this._debugFileParsingEnabled;
+    },
+
+    enableDebugFileParsing: function(bool) {
+        return this._debugFileParsingEnabled = bool;
+    },
+
     startSourceControl: function() {
         // creates or fetches
         return lively.ide.SourceControl = lively.ide.SourceControl || new AnotherSourceDatabase();

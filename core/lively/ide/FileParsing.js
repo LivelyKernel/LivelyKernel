@@ -470,6 +470,15 @@ Object.subclass('CodeParser', {
 
     giveHint: Functions.Null,
 
+    /*debugging*/
+    get debugMode() {
+        return this._debugMode || lively.ide.debugFileParsingEnabled();
+    },
+
+    set debugMode(bool) {
+        return this._debugMode = bool;
+    },
+
     /* parsing */
     prepareParsing: function(src, config) {
         this.src = src;
@@ -567,14 +576,13 @@ Object.subclass('CodeParser', {
             var msg = 'The following parser errors occured. Please note that not all of them are real errors. If you know that the source code should be a class definition look at the output of klassDef and look for "<--Error-->" to get a hint what to fix in order to parse the code.\n\n';
             msg += this.parserErrors.pluck('parseError').join('\n\n----------------------\n');
 
-            lively.morphic.World.current().addTextWindow({title: 'Parsing errors', content: msg})
+            lively.morphic.World.current().addTextWindow({title: 'Parsing errors', content: msg});
         }
 
         if (this.specialDescr && this.specialDescr.length > 0
                               && (!this.specialDescr.last().subElements().last().isError
                                 || !this.changeList.last().isError)) {
             console.warn('Couldn\'t find end of ' + this.specialDescr.last().type);
-            //throw dbgOn(new Error('Couldn\'t find end of ' + specialDescr.last().type));
         }
 
         console.log('Finished parsing in ' + (new Date().getTime()-msStart)/1000 + ' s');

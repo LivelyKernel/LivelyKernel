@@ -2661,6 +2661,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.hScroll  = new lively.morphic.Slider(new Rectangle(0,nHeight + this.grid.defaultCellHeight , nXPos,15), this.grid.defaultMaxColScrollValue);
         this.addMorph(this.hScroll );
         
+        this.grid.vScroll = this.vScroll;
+        this.grid.hScroll = this.hScroll
         connect(this.vScroll, "value", this.grid, "updateRowDisplay", {});
         connect(this.hScroll , "value", this.grid, "updateColumnDisplay", {});
 

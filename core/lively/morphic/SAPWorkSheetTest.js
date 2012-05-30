@@ -2649,6 +2649,23 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         var nToolBarWidth= this.grid.defaultCellWidth * (this.grid.numCols -1) + this.grid.defaultRowHeaderWidth;
         this.toolBar= new lively.morphic.SAPGridToolBar(this.grid,0,0,nToolBarWidth,this.toolBarHeight);
 
+
+   /*Creating vertical & horizontal slider for scrolls*/
+        var nXPos = nToolBarWidth;
+        var nYPos = this.grid.defaultCellHeight;
+        var nHeight = this.grid.defaultCellHeight * (this.numRows-1);
+      
+        this.vScroll = new lively.morphic.Slider(new Rectangle(nXPos ,nYPos, 15,nHeight ), this.grid.defaultMaxRowScrollValue);
+        this.addMorph(this.vScroll);
+
+        this.hScroll  = new lively.morphic.Slider(new Rectangle(0,nHeight + this.grid.defaultCellHeight , nXPos,15), this.grid.defaultMaxColScrollValue);
+        this.addMorph(this.hScroll );
+
+        connect(this.vScroll, "value", this.grid, "updateRowDisplay", {});
+        connect(this.hScroll , "value", this.grid, "updateColumnDisplay", {});
+
+
+
         this.addMorph(this.gridLayer);
         this.gridLayer.addMorph(this.grid);
         //this.addMorph(this.grid);

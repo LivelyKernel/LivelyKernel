@@ -2614,7 +2614,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
 'default category', {
     initialize: function($super, numCols, numRows,bHideColHeader,bHideRowHeader) {
         $super();
-        this.numCols = numCols;
+        this.numCols = numCols*2;
         this.numRows = numRows;
         this.hideColHeads = bHideColHeader ? bHideColHeader:false;
         this.hideRowHeads = bHideRowHeader ? bHideRowHeader:false;

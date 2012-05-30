@@ -545,14 +545,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var newX = curX  + aPoint.x;
         var newY = curY + aPoint.y;
         
-        if (newX ==0 || newY==0){
+        if (newX ==0 || newY==0 || newX ==this.numCols || newY==this.numRows){
             return;
         }
-        if (newX ==0 || newY==0){
-            return;
-        }
+       
 
-        debugger;
         if (evt.isShiftDown()){
             this.setCellSelection(this,this.activeCell);
         }else{

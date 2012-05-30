@@ -174,7 +174,7 @@ lively.morphic.Morph.addMethods(
 
         var curVersion = this.findCurrentPartVersion();
         var limitId = curVersion? curVersion.derivationIds.last() : this.derivationIds.first();
-
+        debugger
         optScope.withAllSubmorphsDo(function (ea) {
             var otherIds = ea.derivationIds.concat([ea.id])
             var tempCommonIds = myIds.intersect(otherIds);

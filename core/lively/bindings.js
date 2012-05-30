@@ -489,6 +489,7 @@ Object.extend(Global, {
     disconnectAll: lively.bindings.disconnectAll,
     signal: lively.bindings.signal,
     updateAttributeConnection: lively.bindings.signal
+
 });
     
 }); // end of module

@@ -2652,7 +2652,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
 
    /*Creating vertical & horizontal slider for scrolls*/
         var nXPos = nToolBarWidth;
-        var nYPos = this.toolBarHeight;
+        var nYPos = this.toolBarHeight + this.grid.defaultCellHeight;
         var nHeight = this.grid.defaultCellHeight * (this.numRows-1);
       
         this.vScroll = new lively.morphic.Slider(new Rectangle(nXPos ,nYPos, 15,nHeight ), this.grid.defaultMaxRowScrollValue);

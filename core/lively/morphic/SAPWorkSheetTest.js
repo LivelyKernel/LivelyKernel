@@ -2742,7 +2742,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridLayout',
 'method category', {
     initialize: function($super,nPosX,nPosY,nWidth,nHeight) {
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nPosX,nPosY,nWidth,nHeight)))
-        this.setFill(Color.red)
+        this.setFill(Color.red);
+        this.applyStyle({clipMode: 'hidden'});
+        //this.applyStyle({resizeWidth: true, resizeHeight: false, fixedHeight: true, clipMode: 'hidden', allowInput: true});
+        
+
     },
      addToMorph: function(oParent) {
         this.oParent = oParent;

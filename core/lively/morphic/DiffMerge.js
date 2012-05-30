@@ -180,6 +180,7 @@ lively.morphic.Morph.addMethods(
         optScope.withAllSubmorphsDo(function (ea) {
             var otherIds = ea.derivationIds.concat([ea.id])
             var tempCommonIds = myIds.intersect(otherIds);
+            debugger
             if (tempCommonIds.length > commonIds.length && tempCommonIds.last() !== limit) {
                 commonIds = tempCommonIds;
                 result = ea;

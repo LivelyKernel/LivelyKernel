@@ -2614,6 +2614,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.hideRowHeads = bHideRowHeader ? bHideRowHeader:false;
         this.toolBarHeight = 60;
         this.grid;
+        this.gridLayer;    //layer holding grid & scrolls
         this.toolBar;
         this.dataFormatter;
         this.initializeLayout();

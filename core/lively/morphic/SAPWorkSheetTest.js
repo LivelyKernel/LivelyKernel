@@ -431,7 +431,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         cell.doitContext = this;
         cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
         //cell.fitWidth();
-        cell.fit();
+        //cell.fit();
         return cell;
     },
     createCell: function(x, y, headOffsetX, headOffsetY) {

@@ -1639,7 +1639,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         }
     },
     onDoubleClick: function (evt) {
-	this.grid.showAnnotation(nCol,nRow);
+	this.grid.showAnnotation(this.gridCoords.x,this.gridCoords.y);
     },
     onBlur: function($super,evt) {
         //$super(evt);

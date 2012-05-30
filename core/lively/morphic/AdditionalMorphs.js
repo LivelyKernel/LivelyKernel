@@ -903,6 +903,7 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         closer.setExtent(pt(20,20))
         this.addMorph(closer)
         closer.setPosition(pt(this.getExtent().x - 23,6))
+        closer.layout = {moveHorizontal: true};
         connect(closer, "fire", this, "closeTab", {});
         this.closeButton = closer;
         return this;

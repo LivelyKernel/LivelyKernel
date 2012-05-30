@@ -152,7 +152,6 @@ lively.morphic.Text.addMethods(
         // FIXME use defaultconfig
         if (URL.source && URL.source.toString().include('disableSyntaxHighlighting=true')) return;
         if (!this.renderContext().textNode) return; // FIXME
-        var length = this.textString.length;
         var later = function() {
             this._syntaxHighlightTimeout = null;
             this.highlightSyntaxFromTo(0, this.textString.length,

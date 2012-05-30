@@ -114,10 +114,16 @@ lively.morphic.Text.addMethods(
         if (length > this.syntaxHighlightingCharLimit) return;
         var later = function() {
             this._syntaxHighlightTimeout = null;
+            this.lastSyntaxHighlightTime = Date.now();
             this.highlightSyntaxFromTo(0, length, SyntaxHighlighter.JavaScriptRules);
         }.bind(this);
         clearTimeout(this._syntaxHighlightTimeout);
-        this._syntaxHighlightTimeout = setTimeout(later, 600);
+        if (!this.lastSyntaxHighlightTime) {
+            return later();
+        } else {
+            var t = Date.now() - this.lastSyntaxHighlightTime;
+            this._syntaxHighlightTimeout = setTimeout(later, Math.max(100, t*2));
+        }
     },
     applyHighlighterRules: function(target, highlighterRules) {
         for (var ruleName in highlighterRules) {

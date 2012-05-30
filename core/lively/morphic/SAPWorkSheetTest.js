@@ -2632,7 +2632,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
 
         this.grid.setPosition(pt(0,this.toolBarHeight+2));
 
-        this.gridLayer = new lively.morphic.Text(new Rectangle(30, 90, 30, 60));
+        this.gridLayer = new lively.morphic.Text(new Rectangle(0, this.toolBarHeight+2, nWidth, nHeight ));
        
 
 

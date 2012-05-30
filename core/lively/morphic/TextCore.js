@@ -301,7 +301,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
     get textString() {
         // when the prototype property is accessed
-        delete this.priorSelectionRange;
         if (this === this.constructor.prototype) return undefined;
         if (!this.cachedTextString)
             this.cachedTextString = this.renderContextDispatch('getTextString');

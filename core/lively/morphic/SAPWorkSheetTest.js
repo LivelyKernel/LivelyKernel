@@ -2744,6 +2744,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridLayout',
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nPosX,nPosY,nWidth,nHeight)))
         this.setFill(Color.red);
         this.applyStyle({clipMode: 'hidden'});
+        this.setBorderColor(Color.rgb(177,181,186));
         //this.applyStyle({resizeWidth: true, resizeHeight: false, fixedHeight: true, clipMode: 'hidden', allowInput: true});
         
 

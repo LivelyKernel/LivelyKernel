@@ -67,6 +67,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             connect(cell, 'textString', connection, 'update');
         });
     },
+    changedHeaderSize: function(evt){
+        
+    },
     newConnectionPointFromSelectedCells: function(){
         var cells = this.getCellSelections(),
         grid = this;

@@ -2632,13 +2632,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
 
         this.grid.setPosition(pt(0,this.toolBarHeight+2));
 
-        this.gridLayer = new lively.morphic.Text(new Rectangle(0, this.toolBarHeight+2, 
+        this.gridLayer = new lively.morphic.SAPGridLayout(0, this.toolBarHeight+2, 
                                                 this.grid.defaultCellWidth * (this.grid.numCols-1)+50, 
-                                                this.grid.defaultCellHeight * this.grid.numRows));
-       
-        this.gridLayer.setFill(Color.red);
+                                                this.grid.defaultCellHeight * this.grid.numRows);
         
-        this.gridLayer.applyStyle({resizeWidth: false, resizeHeight: false, fixedHeight: true, clipMode: 'hidden', allowInput: true});
+        
 
         var nToolBarWidth= this.grid.defaultCellWidth * (this.grid.numCols -1) + this.grid.defaultRowHeaderWidth;
         this.toolBar= new lively.morphic.SAPGridToolBar(this.grid,0,0,nToolBarWidth,this.toolBarHeight);

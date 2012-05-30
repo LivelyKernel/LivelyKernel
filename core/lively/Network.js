@@ -510,10 +510,10 @@ View.subclass('NetRequest', {
             this.setStatus(this.getStatus());
             if (this.transport.responseText !== undefined)
                 this.setResponseText(this.getResponseText());
-               
+
             if (this.transport.responseXML !== undefined)
                 this.setResponseXML(this.getResponseXML());
-            
+
             if (this.transport.getAllResponseHeaders() !== undefined)
                 this.setResponseHeaders(this.getResponseHeaders());
             this.disconnectModel(); // autodisconnect?
@@ -900,7 +900,7 @@ Resource.subclass('SVNResource', {
         if (!xml) return;
         /* The response contains the properties of the specified file or directory,
         e.g. the revision (= version-name) */
-        var revisionNode = xml.getElementsByTagName('version-name')[0];
+        var revisionNode = lively.Data.XPathQuery.find('//lp1:version-name', xml);
         if (!revisionNode) return;
         this.setHeadRevision(Number(revisionNode.textContent));
     },

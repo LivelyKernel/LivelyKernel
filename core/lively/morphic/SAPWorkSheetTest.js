@@ -2644,7 +2644,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.toolBar= new lively.morphic.SAPGridToolBar(this.grid,0,0,nToolBarWidth,this.toolBarHeight);
 
         this.addMorph(this.gridLayer);
-        this.addMorph(this.grid);
+        this.gridLayer.addMorph(this.grid);
+        //this.addMorph(this.grid);
         this.addMorph(this.toolBar);
 
         

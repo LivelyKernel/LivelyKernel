@@ -143,12 +143,12 @@ lively.morphic.Text.addMethods(
         if (URL.source && URL.source.toString().include('disableSyntaxHighlighting=true')) return;
         if (!this.renderContext().textNode) return; // FIXME
         var length = this.textString.length;
-
-        // if (length > 10000) return;
-        var currentMs = Date.now();
-        if (this.lastSyntaxHighlightTime && (currentMs-this.lastSyntaxHighlightTime < 300)) return;
-        this.lastSyntaxHighlightTime = currentMs;
-        this.highlightSyntaxFromTo(0, length, SyntaxHighlighter.LaTeXRules);
+        var later = function() {
+            this._syntaxHighlightTimeout = null;
+            this.highlightSyntaxFromTo(0, length, SyntaxHighlighter.LaTeXRules);
+        }.bind(this);
+        clearTimeout(this._syntaxHighlightTimeout);
+        this._syntaxHighlightTimeout = setTimeout(later, 300);
     },
 
 })

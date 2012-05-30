@@ -72,6 +72,7 @@ module('lively.Touch').requires('lively.TestFramework').toRun(function () {
     patchTouchEvent: function(evt) {
         if(evt.changedTouches) {
             for(var i = 0; i < evt.changedTouches.length; i++){
+                console.log("I'm a timestamp: "+evt.timeStamp);
                 evt.changedTouches[i].lastUpdate = new Date();
             }
             evt.getPosition = function() {

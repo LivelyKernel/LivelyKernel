@@ -155,7 +155,8 @@ lively.morphic.Text.addMethods(
         var length = this.textString.length;
         var later = function() {
             this._syntaxHighlightTimeout = null;
-            this.highlightSyntaxFromTo(0, length, SyntaxHighlighter.LaTeXRules);
+            this.highlightSyntaxFromTo(0, this.textString.length,
+                SyntaxHighlighter.LaTeXRules);
         }.bind(this);
         clearTimeout(this._syntaxHighlightTimeout);
         this._syntaxHighlightTimeout = setTimeout(later, 300);

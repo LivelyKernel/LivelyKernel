@@ -2742,8 +2742,8 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
 });
 lively.morphic.Morph.subclass('lively.morphic.SAPGridLayout',
 'method category', {
-    initialize: function($super) {
-        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,100,100)))
+    initialize: function($super,nPosX,nPosY,nWidth,nHeight) {
+        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nPosX,nPosY,nWidth,nHeight)))
         this.setFill(Color.red)
     },
      addToMorph: function(oParent) {

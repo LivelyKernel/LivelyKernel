@@ -2620,21 +2620,27 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.initializeLayout();
     },
      initializeLayout: function() {
+        var nWidth= this.grid.defaultCellWidth * this.grid.numCols + 50;
+        var nHeight = this.grid.defaultCellHeight * this.grid.numRows + 50;
+
         this.grid = new lively.morphic.SAPGrid(this.numCols,this.numRows);
         this.grid.name="BPCGrid";
         this.grid.oWorkBook = this;
         this.addMorph(this.grid);
         this.grid.setPosition(pt(0,this.toolBarHeight+2));
-        //this.gridLayer = new lively.morphic()
+        this.gridLayer = new lively.morphic.Shapes.Rectangle(new Rectangle(0, this.toolBarHeight+2, nWidth, nHeight));
+        this.gridLayer.setFill(Color.red);
+        
         //m.applyStyle({resizeWidth: true, resizeHeight: false, fixedHeight: true, clipMode: 'hidden', allowInput: true});
 
         var nToolBarWidth= this.grid.defaultCellWidth * (this.grid.numCols -1) + this.grid.defaultRowHeaderWidth;
         this.toolBar= new lively.morphic.SAPGridToolBar(this.grid,0,0,nToolBarWidth,this.toolBarHeight);
         this.addMorph(this.toolBar);
 
-        var nWidth= this.grid.defaultCellWidth * this.grid.numCols + 50;
-        var nHeight = this.grid.defaultCellHeight * this.grid.numRows + 50;
+        
         this.setExtent(lively.pt(nWidth,nHeight));
+      
+
     }
 });
 lively.morphic.Text.subclass('lively.morphic.SAPGridHeadCell',

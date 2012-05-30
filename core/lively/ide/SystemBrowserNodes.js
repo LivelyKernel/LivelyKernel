@@ -115,10 +115,10 @@ lively.ide.BrowserNode.subclass('lively.ide.FileFragmentNode', {
     },
 
     saveSource: function($super, newSource, sourceControl) {
-        this.enableDebugFileParsing(this.browser.debugMode);
+        lively.ide.enableDebugFileParsing(this.browser.debugMode);
         this.target.putSourceCode(newSource);
         this.savedSource = this.target.getSourceCode(); // assume that users sees newSource after that
-        this.enableDebugFileParsing(false);
+        lively.ide.enableDebugFileParsing(false);
         return true;
     },
 

@@ -415,6 +415,7 @@ Object.extend(Array, {
         for (var i = begin; i <= end; i += step)
         result.push(i);
         return result;
+
     },
     from: function(iterable) {
         if (!iterable) return [];

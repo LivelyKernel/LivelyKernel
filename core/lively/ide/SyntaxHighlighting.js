@@ -115,7 +115,8 @@ lively.morphic.Text.addMethods(
         var later = function() {
             this._syntaxHighlightTimeout = null;
             var start = Date.now();
-            this.highlightSyntaxFromTo(0, length, SyntaxHighlighter.JavaScriptRules);
+            this.highlightSyntaxFromTo(0, this.textString.length,
+                SyntaxHighlighter.JavaScriptRules);
             this.lastSyntaxHighlightTime = Date.now() - start;
         }.bind(this);
         clearTimeout(this._syntaxHighlightTimeout);

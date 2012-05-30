@@ -172,16 +172,13 @@ lively.morphic.Morph.addMethods(
             commonIds = new Array(),
             myIds = this.derivationIds.concat([this.id]);
 
-        var parVersion = this.findParentPartVersion();
         // todo: implement a limit
-        var limit = parVersion ? parVersion.derivationIds.last() : this.derivationIds.first();
         
 
         optScope.withAllSubmorphsDo(function (ea) {
             var otherIds = ea.derivationIds.concat([ea.id])
             var tempCommonIds = myIds.intersect(otherIds);
-            debugger
-            if (tempCommonIds.length > commonIds.length && tempCommonIds.last() !== limit) {
+            if (tempCommonIds.length > commonIds.length) {
                 commonIds = tempCommonIds;
                 result = ea;
             }

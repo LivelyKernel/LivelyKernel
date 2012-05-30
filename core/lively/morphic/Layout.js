@@ -370,7 +370,7 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
             if (morph.layout && morph.layout.resizeWidth) newWidth = varChildWidth;
             morph.setExtent(pt(newWidth, newHeight));
             return x + morph.getExtent().x + spacing;
-        }, this.borderSize("left"));
+        }, this.getBorderSize("left"));
     },
 
         getMinWidth: function(container, submorphs) {

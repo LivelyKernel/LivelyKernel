@@ -1,5 +1,5 @@
 module('lively.LimeMachine').requires().toRun(function() {
 
-alert("besorgte Mütter!");
+alert("besorgte Mütter!!");
 
 }) // end of module

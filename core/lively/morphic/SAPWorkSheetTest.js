@@ -544,7 +544,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         var newX = curX  + aPoint.x;
         var newY = curY + aPoint.y;
-        
+        nextCell = this.at(newPos.x, newPos.y);
         if (newX ==0 || newY==0){
             return;
         }

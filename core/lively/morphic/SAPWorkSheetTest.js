@@ -2623,6 +2623,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.gridLayer;    //layer holding grid & scrolls
         this.toolBar;
         this.dataFormatter;
+        this.vScroll = null;
+        this.hScroll = null;
         this.initializeLayout();
     },
      initializeLayout: function() {

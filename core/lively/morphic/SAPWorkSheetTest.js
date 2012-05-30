@@ -2740,5 +2740,15 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
         }
     }
 });
-
+lively.morphic.Morph.subclass('lively.morphic.SAPGridLayout',
+'method category', {
+    initialize: function($super) {
+        $super(new lively.morphic.Shapes.Rectangle(new Rectangle(0,0,100,100)))
+        this.setFill(Color.red)
+    },
+     addToMorph: function(oParent) {
+        this.oParent = oParent;
+        this.oParent.addMorph(this);
+    },
+});
 }) // end of module

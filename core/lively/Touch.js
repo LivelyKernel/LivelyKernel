@@ -108,13 +108,13 @@ module('lively.Touch').requires('lively.TestFramework').toRun(function () {
             touch.screenStart = touch.getScreenPosition();
 
             touch.timeSinceStart = function(){
-                return new Date().valueOf() - this.startDate.valueOf();
+                return new Date().valueOf() - this.startDate;
             };
             touch.timeSinceLastUpdate = function(){
-                return new Date().valueOf() - this.lastUpdate.valueOf();                        
+                return new Date().valueOf() - this.lastUpdate;                        
             };
             touch.timeFromStartToLastUpdate = function () {
-                return this.lastUpdate.valueOf() - this.startDate.valueOf();
+                return this.lastUpdate - this.startDate;
             }
 
             touch.getClientDeltaToStart = function(){

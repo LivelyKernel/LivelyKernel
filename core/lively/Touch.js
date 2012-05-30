@@ -91,7 +91,7 @@ module('lively.Touch').requires('lively.TestFramework').toRun(function () {
         for(var i = 0; i < evt.changedTouches.length; i++){
             var touch = evt.changedTouches[i];
                     
-            touch.startDate = new Date();
+            touch.startDate = evt.timeStamp;
                     
             touch.getClientPosition = function(){
                 return pt(this.clientX, this.clientY);

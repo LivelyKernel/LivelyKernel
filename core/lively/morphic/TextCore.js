@@ -321,6 +321,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         // if (this.attributeConnections)
             // lively.bindings.signal(this, 'textString', string);
 
+        delete this.priorSelectionRange;
+
         return string;
     },
 

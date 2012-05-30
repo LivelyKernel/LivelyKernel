@@ -2625,24 +2625,26 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.grid = new lively.morphic.SAPGrid(this.numCols,this.numRows);
         this.grid.name="BPCGrid";
         this.grid.oWorkBook = this;
-        this.addMorph(this.grid);
+        
 
         var nWidth= this.grid.defaultCellWidth * this.grid.numCols + 50;
         var nHeight = this.grid.defaultCellHeight * this.grid.numRows + 50;
 
         this.grid.setPosition(pt(0,this.toolBarHeight+2));
 
-        this.gridLayer = new lively.morphic.Text(new Rectangle(0, this.toolBarHeight+2, this.grid.defaultCellWidth * (this.grid.numCols-1)+50, this.grid.defaultCellHeight * this.grid.numRows));
+        this.gridLayer = new lively.morphic.Text(new Rectangle(0, this.toolBarHeight+2, 
+                                                this.grid.defaultCellWidth * (this.grid.numCols-1)+50, 
+                                                this.grid.defaultCellHeight * this.grid.numRows));
        
-
-
-
         this.gridLayer.setFill(Color.red);
-        this.addMorph(this.gridLayer);
+        
         //m.applyStyle({resizeWidth: true, resizeHeight: false, fixedHeight: true, clipMode: 'hidden', allowInput: true});
 
         var nToolBarWidth= this.grid.defaultCellWidth * (this.grid.numCols -1) + this.grid.defaultRowHeaderWidth;
         this.toolBar= new lively.morphic.SAPGridToolBar(this.grid,0,0,nToolBarWidth,this.toolBarHeight);
+
+        this.addMorph(this.gridLayer);
+        this.addMorph(this.grid);
         this.addMorph(this.toolBar);
 
         

@@ -1492,7 +1492,10 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
 },
 'default category', {
     onstore: function(){
-        alert(0)
+        console.log("onstore")
+    },
+    submorphResized: function(aSubmorph) {
+        console.log("submorphResized")
     },
     addToGrid: function(aGrid) {
         this.grid = aGrid;

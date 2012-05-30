@@ -117,7 +117,7 @@ lively.morphic.Text.addMethods(
             this.highlightSyntaxFromTo(0, length, SyntaxHighlighter.JavaScriptRules);
         }.bind(this);
         clearTimeout(this._syntaxHighlightTimeout);
-        this._syntaxHighlightTimeout = setTimeout(later, 300);
+        this._syntaxHighlightTimeout = setTimeout(later, 600);
     },
     applyHighlighterRules: function(target, highlighterRules) {
         for (var ruleName in highlighterRules) {

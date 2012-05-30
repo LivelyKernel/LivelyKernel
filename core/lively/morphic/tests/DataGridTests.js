@@ -222,6 +222,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DataGridTests.Dat
 
     test04NewColHeadIsCreatedOnAddCol: function() {
         this.grid.addCol();
+debugger;
         this.assert(this.grid.rows[0][5].isColHead, 'no colHead created');
         this.assertIdentity(this.grid.rows[1][5], this.grid.at(5, 0), 'at not working');
         this.assert(!this.grid.rows[5], 'one row too much!');

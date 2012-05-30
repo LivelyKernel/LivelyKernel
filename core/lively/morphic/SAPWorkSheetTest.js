@@ -43,12 +43,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.selectedColumnHeader=null;
         this.selectedRowHeader=null;
     
-        this.vScroll = null;
+        this.vScroll = null; // now scroll is passing from Layout
         this.hScroll = null;
 
         this.activeCellContent = '';
         this.initializeData();
         this.initializeMorph();
+        //removed this to SAPGridLayout
         //this.initializeScrolls();
         this.initializeAnnotation();
     },

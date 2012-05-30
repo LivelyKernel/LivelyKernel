@@ -2631,9 +2631,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         var nHeight = this.grid.defaultCellHeight * this.grid.numRows + 50;
 
         this.grid.setPosition(pt(0,this.toolBarHeight+2));
-         var bounds = new Rectangle(30, 90, 30, 60)
 
-        this.gridLayer = new lively.morphic.Rectangle(bounds);
+        this.gridLayer = new lively.morphic.Text(new Rectangle(30, 90, 30, 60));
        
 
 

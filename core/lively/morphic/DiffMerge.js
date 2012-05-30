@@ -170,10 +170,11 @@ lively.morphic.Morph.addMethods(
         var scope = optScope || $world,
             result = undefined,
             commonIds = new Array(),
-            self = this;
+            myIds = this.derivationIds.concat([this.id]);
 
         optScope.withAllSubmorphsDo(function (ea) {
-            var tempCommonIds = self.derivationIds.intersect(ea.derivationIds);
+            var otherIds = ea.derivationIds.concat([ea.id])
+            var tempCommonIds = myIds.intersect(otherIds);
             if (tempCommonIds.length > commonIds.length) {
                 commonIds = tempCommonIds;
                 result = ea;

@@ -2658,7 +2658,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.vScroll = new lively.morphic.Slider(new Rectangle(nXPos ,nYPos, 15,nHeight ), this.grid.defaultMaxRowScrollValue);
         this.addMorph(this.vScroll);
 
-        this.hScroll  = new lively.morphic.Slider(new Rectangle(0,nHeight + this.grid.defaultCellHeight+this.toolBarHeight+3 , nXPos,15), this.grid.defaultMaxColScrollValue);
+        this.hScroll  = new lively.morphic.Slider(new Rectangle(0,nHeight + this.grid.defaultCellHeight+this.toolBarHeight+2 , nXPos,15), this.grid.defaultMaxColScrollValue);
         this.addMorph(this.hScroll );
         
         this.grid.vScroll = this.vScroll;

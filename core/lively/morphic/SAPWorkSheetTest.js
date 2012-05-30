@@ -49,7 +49,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.activeCellContent = '';
         this.initializeData();
         this.initializeMorph();
-        //this.initializeScrolls();
+        this.initializeScrolls();
         this.initializeAnnotation();
     },
     newConnectionForCells: function(name, cells){

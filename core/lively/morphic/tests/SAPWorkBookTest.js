@@ -6,8 +6,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SAPWorkBookTest.S
         $super();
         this.oWorkBook= new lively.morphic.SAPWorkBook(10,10);
         this.oWorkBook.openInWorld();
-
-
     },
     tearDown: function($super) {
         $super();

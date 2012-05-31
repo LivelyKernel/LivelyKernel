@@ -1490,6 +1490,13 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
 'settings', {
     isCell: true
 },
+'setExtent', {
+    setExtent: function (ext) {
+        console.log("setExtent")
+        return $super(ext.roundTo(20));
+        //return $super(ext.roundTo(20));
+    }
+},
 'accessing', {
     gridPos: function() {
         if (!this.gridCoords) throw new Error(this + ' has no grid coordinates');

@@ -1029,14 +1029,14 @@ doAutoIndent: function() {
     },
 
     onBackspacePressed: function(evt) {
-        //if (this.textString === '') {
-          //  evt.stop();
-            //return true;
-        //}
-        if (this.mergeText()) {
+        if (this.textString === '') {
             evt.stop();
             return true;
         }
+        //if (this.mergeText()) {
+          //  evt.stop();
+            //return true;
+        //}
         if (this.isTabBeforeCursor(true)) {
             this.insertAtCursor('', false, true)
             evt.stop();

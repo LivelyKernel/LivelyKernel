@@ -10,7 +10,8 @@ whereAreYou -> {
 	true
 },
 fromTo :x :y = seq(x) (~seq(y) char)* seq(y), 
-space = ^space | fromTo('//', '\n') | fromTo('//', #end) | fromTo('/*', '*/'),
+fromToWithout :x :y = seq(x) (~seq(y) char)*,
+space = ^space | fromToWithout('//', '\n') | fromTo('//', #end) | fromTo('/*', '*/'),
 nameFirst    = letter | '$' | '_',
 nameRest     = nameFirst | digit,
 iName =

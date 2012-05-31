@@ -796,7 +796,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
     },  
     updateDisplay: function() {
-var start = new Date().getTime();
+//var start = new Date().getTime();
 
         this.arrSelectedCells.lenght=0;
         this.arrSelectedCells =[];
@@ -811,8 +811,8 @@ var start = new Date().getTime();
             this.activeCellContent = this.activeCell.getContent();
         }
 
-var elapsed = new Date().getTime() - start;
-console.log('updateDisplay:'  + elapsed/1000);
+//var elapsed = new Date().getTime() - start;
+//console.log('updateDisplay:'  + elapsed/1000);
     },
     setActiveCellContent: function(aString) {
         if (!this.activeCell) {

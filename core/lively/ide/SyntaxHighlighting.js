@@ -112,22 +112,18 @@ lively.morphic.Text.addMethods(
         if (!this.renderContext().textNode) return; // FIXME
         var length = this.textString.length;
         if (length > this.syntaxHighlightingCharLimit) return;
-        console.log("now: " + this.textString);
         var later = function() {
-            console.log("later: " + this.textString);
             this._syntaxHighlightTimeout = null;
             var start = Date.now();
             this.highlightSyntaxFromTo(0, this.textString.length,
                 SyntaxHighlighter.JavaScriptRules);
             this.lastSyntaxHighlightTime = Date.now() - start;
-            console.log("time: " + this.lastSyntaxHighlightTime);
         }.bind(this);
         clearTimeout(this._syntaxHighlightTimeout);
         if (this.lastSyntaxHighlightTime === undefined) {
             later();
         } else {
             var time = Math.max(300, this.lastSyntaxHighlightTime * 2);
-            console.log("set timeout for " + time + "ms");
             this._syntaxHighlightTimeout = setTimeout(later, time);
         }
         return true;

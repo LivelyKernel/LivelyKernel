@@ -1049,7 +1049,7 @@ doAutoIndent: function() {
         return true;
     },
     onDelPressed: function(evt) {
-		/* this gets the cahced text into an inconsistent state
+	/* this gets the cached text into an inconsistent state
         if (this.isTabAfterCursor(true)) {
             this.insertAtCursor('', false, true)
             evt.stop();

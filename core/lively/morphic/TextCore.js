@@ -1029,10 +1029,10 @@ doAutoIndent: function() {
     },
 
     onBackspacePressed: function(evt) {
-        /*if (this.textString === '') {
+        if (this.textString === '') {
             evt.stop();
             return true;
-        }
+        }/*
         if (this.mergeText()) {
             evt.stop();
             return true;

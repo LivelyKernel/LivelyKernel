@@ -129,13 +129,7 @@ Trait('TextChunkOwner',
         }*/
     },
     fixChunksDelayed: function() {
-        if (!this._fixingChunks) {
-            this._fixingChunks = true;
-            (function() {
-                this.fixChunks();
-                this._fixingChunks = false;
-            }).bind(this).delay(0);
-        }
+        this.fixChunks.bind(this).delay(0);
     },
      garbageCollectChunks: function() {
         // garbage collect unused chunks, e.g. when the user has selected and removed

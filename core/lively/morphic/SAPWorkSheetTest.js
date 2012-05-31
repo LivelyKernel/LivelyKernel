@@ -1176,7 +1176,11 @@ currently only support
         return items;
     },
 },
-
+'Expend cells', {
+    getNumofColumnView: function(){
+        
+    },
+},
 'Keyboard Events', {
     onEnterPressed: function($super, evt) {
         this.onDownPressed(evt);

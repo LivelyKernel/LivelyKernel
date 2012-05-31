@@ -51,7 +51,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
         var src = '23 // comment\n42',
             expected = ['begin', [0, 16],
                 ['number', [0, 2], 23],
-                ['number', [3, 16], 42]
+                ['number', [14, 16], 42]
             ],
              result = this.parseJS(src);
         this.assertMatches(expected, result,

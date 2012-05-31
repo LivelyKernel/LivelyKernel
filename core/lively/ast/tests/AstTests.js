@@ -47,16 +47,16 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
             result = this.parseJS(src, 'number');
         this.assertMatches(expected, result);
     },
-    // test03SingleLineCommentWithoutSemicolon: function() {
-    //     // FIXME, not implemented yet
-    //     var src = '23 // comment\n42',
-    //         expected = ['begin', [0, 16],
-    //             ['number', [0, 2], 23],
-    //             ['number', [3, 16], 42]
-    //         ],
-    //         result = this.parseJS(src);
-    //     this.assertMatches(expected, result, 'single line comment without semicolon cannot be parsed');
-    // },
+    test03SingleLineCommentWithoutSemicolon: function() {
+        var src = '23 // comment\n42',
+            expected = ['begin', [0, 16],
+                ['number', [0, 2], 23],
+                ['number', [3, 16], 42]
+            ],
+             result = this.parseJS(src);
+        this.assertMatches(expected, result,
+            'single line comment without semicolon cannot be parsed');
+    },
     // test04AssignmentOperators: function() {
     //     // FIXME, not implemented yet
     //     var src1 = 'a >>= 12',

@@ -1039,7 +1039,8 @@ doAutoIndent: function() {
         }
 	/* this gets the cached text into an inconsistent state */
         //if ((Global.haltOnce++) == 1) debugger;
-        this.hasNullSelection()
+        var selRange = this.getSelectionRange();
+        this.setSelectionRange(selRange[0], selRange[1]);
         /*if (this.isTabBeforeCursor(true)) {
             this.insertAtCursor('', false, true)
             evt.stop();

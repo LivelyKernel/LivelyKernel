@@ -98,6 +98,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.createLayout();
     },
 },
+'Create Header', { 
+    
+},
 'Create Cells', { 
     createCells: function() {
         var start = new Date().getTime();

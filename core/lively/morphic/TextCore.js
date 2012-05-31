@@ -1037,7 +1037,7 @@ doAutoIndent: function() {
         if (this.mergeText()) {
             evt.stop(); return true;
         }
-		/* this gets the cahced text into an inconsistent state
+	/* this gets the cached text into an inconsistent state
         if (this.isTabBeforeCursor(true)) {
             this.insertAtCursor('', false, true)
             evt.stop();

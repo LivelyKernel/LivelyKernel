@@ -1030,7 +1030,7 @@ doAutoIndent: function() {
 
     onBackspacePressed: function(evt) {
         if (this.textString === '') {
-            console.warn("this should not happen!");
+            console.log("this should not happen!");
             //evt.stop();
             //return true;
         }

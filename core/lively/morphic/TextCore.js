@@ -1037,13 +1037,13 @@ doAutoIndent: function() {
             evt.stop();
             return true;
         }
-        //if (this.isTabBeforeCursor(true)) {
-            //this.insertAtCursor('', false, true)
-            //evt.stop();
-            //return true;
-        //}
-        if (this.charsTyped.length > 0)
-            this.charsTyped = this.charsTyped.substring(0, this.charsTyped.length-1);
+        if (this.isTabBeforeCursor(true)) {
+            this.insertAtCursor('', false, true)
+            evt.stop();
+            return true;
+        }
+        //if (this.charsTyped.length > 0)
+          //  this.charsTyped = this.charsTyped.substring(0, this.charsTyped.length-1);
         this.fixChunksDelayed();
         return true;
     },

@@ -1183,7 +1183,9 @@ currently only support
 },
 'Expend cells', {
     getNumofColumnView: function(){
-        
+        for (var n = 0; n < this.colHeads; n++) {
+         console.log(this.colHeads[n].getExtent().x)
+        }
     },
 },
 'Keyboard Events', {

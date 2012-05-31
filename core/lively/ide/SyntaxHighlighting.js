@@ -113,6 +113,7 @@ lively.morphic.Text.addMethods(
         var length = this.textString.length;
         if (length > this.syntaxHighlightingCharLimit) return;
         clearTimeout(this._syntaxHighlightTimeout);
+        console.log("text: " + this.charsTyped);
         var later = function() {
             this._syntaxHighlightTimeout = null;
             var start = Date.now();

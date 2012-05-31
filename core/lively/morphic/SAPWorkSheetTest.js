@@ -1,7 +1,7 @@
 module('lively.morphic.SAPWorkSheetTest').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.WidgetsTraits', 'lively.morphic.Styles','lively.persistence.MassMorphCreation','lively.morphic.SAPCommonWidgets').toRun(function() {
 lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
-'initialization', { 
-    initialize: function($super, numCols, numRows,bHideColHeader,bHideRowHeader) {
+'initialization', {
+   initialize: function($super, numCols, numRows,bHideColHeader,bHideRowHeader) {
         $super();
         this.hideColHeads = bHideColHeader ? bHideColHeader:false;
         this.hideRowHeads = bHideRowHeader ? bHideRowHeader:false;
@@ -53,6 +53,52 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         //this.initializeScrolls();
         this.initializeAnnotation();
     },
+    initializeScrolls: function() {
+    /*Creating vertical & horizontal slider for scrolls*/
+        var nXPos = this.defaultCellWidth * (this.numCols-1) + this.defaultRowHeaderWidth;
+        var nYPos = this.defaultCellHeight;
+        var nHeight = this.defaultCellHeight * (this.numRows-1);
+      
+        this.vScroll = new lively.morphic.Slider(new Rectangle(nXPos ,nYPos, 15,nHeight ), this.defaultMaxRowScrollValue);
+        this.addMorph(this.vScroll);
+
+        this.hScroll  = new lively.morphic.Slider(new Rectangle(0,nHeight + this.defaultCellHeight , nXPos,15), this.defaultMaxColScrollValue);
+        this.addMorph(this.hScroll );
+
+        connect(this.vScroll, "value", this, "updateRowDisplay", {});
+        connect(this.hScroll , "value", this, "updateColumnDisplay", {});
+    },
+    initializeAnnotation: function() {
+        /*Creating annotation*/
+        this.oAnnotation= new lively.morphic.SAPGridAnnotation();
+        this.oAnnotation.doitContext = this;
+        this.oAnnotation.setExtent(lively.pt(200,100));
+        this.oAnnotation.addToGrid(this);
+        this.oAnnotation.setVisible(false);
+    },
+    initializeData: function() {
+        this.rows = [];
+        this.dataModel = [];
+        //we don't need this
+        this.addScript(function renderFunction(value) { return value; });
+        this.createEmptyCells();
+    },
+    initializeMorph: function() { 
+        this.setExtent(pt(
+        this.numCols * this.defaultCellWidth  + 2 * this.borderSize,
+        this.numRows * this.defaultCellHeight + 2 * this.borderSize));
+        this.setFill(Color.rgb(255,255,255));
+        if (!this.hideColHeads) {
+            this.createColHeads();
+        }
+        if (!this.hideRowHeads) {
+            this.createRowHeads();
+        }
+        this.createCells();
+        this.createLayout();
+    },
+},
+'Other Methods', { 
     newConnectionForCells: function(name, cells){
         var connection = {
             cells: cells,
@@ -212,21 +258,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                 }
         return sValue
     },
-    initializeScrolls: function() {
-    /*Creating vertical & horizontal slider for scrolls*/
-        var nXPos = this.defaultCellWidth * (this.numCols-1) + this.defaultRowHeaderWidth;
-        var nYPos = this.defaultCellHeight;
-        var nHeight = this.defaultCellHeight * (this.numRows-1);
-      
-        this.vScroll = new lively.morphic.Slider(new Rectangle(nXPos ,nYPos, 15,nHeight ), this.defaultMaxRowScrollValue);
-        this.addMorph(this.vScroll);
-
-        this.hScroll  = new lively.morphic.Slider(new Rectangle(0,nHeight + this.defaultCellHeight , nXPos,15), this.defaultMaxColScrollValue);
-        this.addMorph(this.hScroll );
-
-        connect(this.vScroll, "value", this, "updateRowDisplay", {});
-        connect(this.hScroll , "value", this, "updateColumnDisplay", {});
-    },
     getLayoutableSubmorphs: function() {
         return this.submorphs;
     },
@@ -299,35 +330,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
                this.updateRowDisplay(nScrollValue + 45);
             }
         }
-    },
-    initializeAnnotation: function() {
-        /*Creating annotation*/
-        this.oAnnotation= new lively.morphic.SAPGridAnnotation();
-        this.oAnnotation.doitContext = this;
-        this.oAnnotation.setExtent(lively.pt(200,100));
-        this.oAnnotation.addToGrid(this);
-        this.oAnnotation.setVisible(false);
-    },
-    initializeData: function() {
-        this.rows = [];
-        this.dataModel = [];
-        //we don't need this
-        this.addScript(function renderFunction(value) { return value; });
-        this.createEmptyCells();
-    },
-    initializeMorph: function() { 
-        this.setExtent(pt(
-        this.numCols * this.defaultCellWidth  + 2 * this.borderSize,
-        this.numRows * this.defaultCellHeight + 2 * this.borderSize));
-        this.setFill(Color.rgb(255,255,255));
-        if (!this.hideColHeads) {
-            this.createColHeads();
-        }
-        if (!this.hideRowHeads) {
-            this.createRowHeads();
-        }
-        this.createCells();
-        this.createLayout();
     },
     expandColumns: function(nDataLength) {
         /*expand column data when moving scroll*/

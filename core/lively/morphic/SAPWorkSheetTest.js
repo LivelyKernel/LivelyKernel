@@ -1184,7 +1184,7 @@ currently only support
 'Expend cells', {
     getNumofColumnView: function(){
         debugger;
-        var nGridWidth =  this.getExtent().x;
+        var nGridWidth =  this.owner.getExtent().x;//this
 
         for (var n = 0; n < this.colHeads.length; n++) {
          console.log(this.colHeads[n].getExtent().x)

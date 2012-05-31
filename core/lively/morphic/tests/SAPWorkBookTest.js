@@ -4,9 +4,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SAPWorkBookTest.S
 'running', {
     setUp: function($super) {
         $super();
-        debugger;
-        this.oWorkBook = lively.morphic.SAPWorkBook(10,10);
+        this.oWorkBook= new lively.morphic.SAPWorkBook(10,10);
         this.oWorkBook.openInWorld();
+
+
     },
     tearDown: function($super) {
         $super();

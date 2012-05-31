@@ -265,6 +265,7 @@ Object.subclass('AnotherSourceDatabase', {
     },
 
     addModule: function(fileName, source, isVirtual) {
+        debugger
         var moduleWrapper = this.findModuleWrapperForFileName(fileName);
         if (moduleWrapper) return moduleWrapper;
         moduleWrapper = this.createModuleWrapperForFileName(fileName, isVirtual);

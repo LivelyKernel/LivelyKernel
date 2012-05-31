@@ -129,6 +129,7 @@ lively.morphic.Text.addMethods(
             var time = Math.max(100, this.lastSyntaxHighlightTime);
             this._syntaxHighlightTimeout = setTimeout(later, time);
         }
+        return true;
     },
     applyHighlighterRules: function(target, highlighterRules) {
         for (var ruleName in highlighterRules) {

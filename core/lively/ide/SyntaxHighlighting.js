@@ -113,6 +113,7 @@ lively.morphic.Text.addMethods(
         var length = this.textString.length;
         if (length > this.syntaxHighlightingCharLimit) return;
         clearTimeout(this._syntaxHighlightTimeout);
+        console.log("fixing=" + this._fixingChunks);
         var later = function() {
             if (this._fixingChunks) return this.highlightJavaScriptSyntax();
             this._syntaxHighlightTimeout = null;

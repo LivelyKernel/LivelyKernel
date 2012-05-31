@@ -112,9 +112,9 @@ lively.morphic.Text.addMethods(
         if (!this.renderContext().textNode) return; // FIXME
         var length = this.textString.length;
         if (length > this.syntaxHighlightingCharLimit) return;
-        console.log("now: " + this.textString);
+        console.log("now: " + this);
         var later = function() {
-            console.log("later: " + this.textString);
+            console.log("later: " + this);
             this._syntaxHighlightTimeout = null;
             var start = Date.now();
             this.highlightSyntaxFromTo(0, this.textString.length,

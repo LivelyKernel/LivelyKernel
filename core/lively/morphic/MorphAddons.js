@@ -236,7 +236,7 @@ lively.morphic.Morph.addMethods(
         this.submorphs.each(function(submorph){
             console.log(submorph);
             
-            var supermorph = this.world();
+            var supermorph = null; // ?
             console.log(supermorph);
                supermorph.addMorph(submorph.copy());
             this.submorphs = this.submorphs.without(submorph);

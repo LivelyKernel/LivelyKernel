@@ -131,10 +131,10 @@ Trait('TextChunkOwner',
     fixChunksDelayed: function() {
         if (!this._fixingChunks) {
             this._fixingChunks = true;
-            function() {
+            (function() {
                 this.fixChunks();
                 this._fixingChunks = false;
-            }.bind(this).delay(0);
+            }).bind(this).delay(0);
         }
     },
      garbageCollectChunks: function() {

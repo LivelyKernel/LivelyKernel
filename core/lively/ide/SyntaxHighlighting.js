@@ -127,7 +127,8 @@ lively.morphic.Text.addMethods(
             later();
         } else {
             var time = Math.max(100, this.lastSyntaxHighlightTime);
-            this._syntaxHighlightTimeout = setTimeout(later, 500);
+            console.log("set timeout for " + time + "ms");
+            this._syntaxHighlightTimeout = setTimeout(later, time);
         }
         return true;
     },

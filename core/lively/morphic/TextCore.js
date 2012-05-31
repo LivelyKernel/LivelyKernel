@@ -2001,10 +2001,10 @@ this. textNodeString()
             rangeToTest = selRange.clone();
         if (after) rangeToTest[1] = rangeToTest[1]+this.tab.length;
         else rangeToTest[0] = rangeToTest[0]-this.tab.length;
-        this.setSelectionRange(rangeToTest[0], rangeToTest[1]);
-        var isTab = this.selectionString() === this.tab;
-        if (!isTab || !selectIt)
-                this.setSelectionRange(selRange[0], selRange[1]);
+        var strToTest = this.textNodeString().substring(rangeToTest[0], rangeToTest[1]);
+        var isTab = strToTest === this.tab;
+        if (isTab && selectIt)
+            this.setSelectionRange(rangeToTest[0], rangeToTest[1]);
         return isTab;
     },
 

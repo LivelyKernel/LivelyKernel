@@ -277,7 +277,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         var nScrollValue= parseInt(evt);//.toFixed(2);
         if (this.prviousScrollValue !=nScrollValue){
             this.prviousScrollValue = nScrollValue;
-           console.log("updateRowDisplay=" +nScrollValue)
             this.startRow = nScrollValue;
             this.endRow = this.startRow + this.numRows;
 

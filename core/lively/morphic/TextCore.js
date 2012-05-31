@@ -1029,11 +1029,11 @@ doAutoIndent: function() {
     },
 
     onBackspacePressed: function(evt) {
-        if (this.textString === '') {
-            console.warn("this should not happen!");
+        //if (this.textString === '') {
+         //   console.warn("this should not happen!");
             //evt.stop();
             //return true;
-        }
+       // }
         if (this.mergeText()) {
             evt.stop();
             return true;

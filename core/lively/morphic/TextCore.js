@@ -1035,9 +1035,9 @@ doAutoIndent: function() {
         }
         if (this.isTabBeforeCursor(true)) {
             console.warn('yeah');
-      //      this.insertAtCursor('', false, true)
-        //    evt.stop();
-      //      return true;
+            this.insertAtCursor('', false, true)
+            evt.stop();
+            return true;
         }
         if (this.charsTyped.length > 0)
             this.charsTyped = this.charsTyped.substring(0, this.charsTyped.length-1);

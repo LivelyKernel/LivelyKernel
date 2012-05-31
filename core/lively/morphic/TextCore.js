@@ -1042,9 +1042,9 @@ doAutoIndent: function() {
             evt.stop();
             return true;
         }
-        //if (this.charsTyped.length > 0)
-          //  this.charsTyped = this.charsTyped.substring(0, this.charsTyped.length-1);
-        this.fixChunksDelayed();
+        if (this.charsTyped.length > 0)
+            this.charsTyped = this.charsTyped.substring(0, this.charsTyped.length-1);
+        //this.fixChunksDelayed();
         return true;
     },
     onDelPressed: function(evt) {

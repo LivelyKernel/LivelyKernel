@@ -99,7 +99,57 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     },
 },
 'Create Cells', { 
-    
+    createCells: function() {
+        var start = new Date().getTime();
+
+        var rowOffset = this.hideColHeads ? 0 : 1,
+            colOffset = this.hideRowHeads ? 0 : 1,
+            numCellRows = this.numRows - rowOffset,
+            numCellCols = this.numCols - colOffset,
+            self = this,
+            cells = lively.morphic.Morph.createN(numCellRows * numCellCols, function() {
+                return self.createCellOptimized();
+            });
+
+        function addCellToRow(row, x, y) {
+            var cell = cells.pop();
+            cell.addToGrid(self);
+            //cell.gridCoords = pt(x , y );
+            cell.gridCoords = pt(x + colOffset, y + rowOffset);
+            cell.name = '[' + (x + colOffset) + ';' + (y + rowOffset) + ']';
+            //cell.textString = '[' + (x + colOffset) + ';' + (y + rowOffset) + ']';
+            row[x + colOffset] = cell;
+        }
+
+        for (var y = 0; y < numCellRows; y++) {
+            var row = new Array(numCellRows);
+            for (var x = 0; x < numCellCols; x++) {
+                addCellToRow(row, x, y);
+            }
+            this.rows[y + rowOffset] = row;
+        }
+        var elapsed = new Date().getTime() - start;
+	elapsed = elapsed/1000;
+	console.log('End createCells =' + elapsed);
+    },
+    createCellOptimized: function() {
+        var cell = new lively.morphic.SAPGridCell();
+        cell.doitContext = this;
+        cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
+        //cell.fitWidth();
+        //cell.fit();
+        return cell;
+    },
+    createCell: function(x, y, headOffsetX, headOffsetY) {
+        var cell = new lively.morphic.SAPGridCell();
+        cell.doitContext = this;
+        cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
+        cell.addToGrid(this);
+        cell.gridCoords = pt(x + headOffsetX, y + headOffsetY);
+        cell.name = '[' + x + ';' + y + ']';
+        return cell;
+    },
+
 },
 'Other Methods', { 
     newConnectionForCells: function(name, cells){
@@ -400,57 +450,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 		this.arrData.push(arrColumns);
 	}
     },
-    createCells: function() {
-        var start = new Date().getTime();
-
-        var rowOffset = this.hideColHeads ? 0 : 1,
-            colOffset = this.hideRowHeads ? 0 : 1,
-            numCellRows = this.numRows - rowOffset,
-            numCellCols = this.numCols - colOffset,
-            self = this,
-            cells = lively.morphic.Morph.createN(numCellRows * numCellCols, function() {
-                return self.createCellOptimized();
-            });
-
-        function addCellToRow(row, x, y) {
-            var cell = cells.pop();
-            cell.addToGrid(self);
-            //cell.gridCoords = pt(x , y );
-            cell.gridCoords = pt(x + colOffset, y + rowOffset);
-            cell.name = '[' + (x + colOffset) + ';' + (y + rowOffset) + ']';
-            //cell.textString = '[' + (x + colOffset) + ';' + (y + rowOffset) + ']';
-            row[x + colOffset] = cell;
-        }
-
-        for (var y = 0; y < numCellRows; y++) {
-            var row = new Array(numCellRows);
-            for (var x = 0; x < numCellCols; x++) {
-                addCellToRow(row, x, y);
-            }
-            this.rows[y + rowOffset] = row;
-        }
-        var elapsed = new Date().getTime() - start;
-	elapsed = elapsed/1000;
-	console.log('End createCells =' + elapsed);
-    },
-    createCellOptimized: function() {
-        var cell = new lively.morphic.SAPGridCell();
-        cell.doitContext = this;
-        cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
-        //cell.fitWidth();
-        //cell.fit();
-        return cell;
-    },
-    createCell: function(x, y, headOffsetX, headOffsetY) {
-        var cell = new lively.morphic.SAPGridCell();
-        cell.doitContext = this;
-        cell.setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
-        cell.addToGrid(this);
-        cell.gridCoords = pt(x + headOffsetX, y + headOffsetY);
-        cell.name = '[' + x + ';' + y + ']';
-        return cell;
-    },
-
     createColHeads: function() {
         var sName="";
         var oHeader;

@@ -98,6 +98,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.createLayout();
     },
 },
+'Create Cells', { 
+    
+},
 'Other Methods', { 
     newConnectionForCells: function(name, cells){
         var connection = {

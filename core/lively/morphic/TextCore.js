@@ -1038,12 +1038,13 @@ doAutoIndent: function() {
             evt.stop(); return true;
         }
 	/* this gets the cached text into an inconsistent state */
-        if ((Global.haltOnce++) == 1) debugger;
-        if (this.isTabBeforeCursor(true)) {
+        //if ((Global.haltOnce++) == 1) debugger;
+        this.hasNullSelection()
+        /*if (this.isTabBeforeCursor(true)) {
             this.insertAtCursor('', false, true)
             evt.stop();
             return true;
-        }
+        }*/
         if (this.charsTyped.length > 0)
             this.charsTyped = this.charsTyped.substring(0, this.charsTyped.length-1);
         this.fixChunksDelayed();

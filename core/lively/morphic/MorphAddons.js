@@ -230,6 +230,10 @@ lively.morphic.Morph.addMethods(
     removeAllMorphs: function() {
         this.submorphs.clone().invoke('remove')
     },
+
+    dropAllMorphs: function() {
+    
+    }
 },
 'events', {
     takesKeyboardFocus: function() {},

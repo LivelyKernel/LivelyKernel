@@ -19,7 +19,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SAPWorkBookTest.S
     },
     test02TestEvaluate: function() {
         this.oWorkBook.grid.evaluateExpression("this.at(3,3).activate()");
-        this.oWorkBook.assertEquals(this.oWorkBook.grid.activeCell, this.oWorkBook.grid.at(3,3), "could not activate cell (3,3) using evaluateExpression");
+        this.assertEquals(this.oWorkBook.grid.activeCell, this.oWorkBook.grid.at(3,3), "could not activate cell (3,3) using evaluateExpression");
     }
 
 });

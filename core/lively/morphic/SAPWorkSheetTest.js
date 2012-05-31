@@ -1940,7 +1940,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridToolBar',
         var nOrgCol;
         var sValue;
         var i;
-
+debugger;
         //Grid
         for (i= 0; i< this.grid.arrSelectedCells.length; i++) {
             nRow  = this.grid.arrSelectedCells[i].gridCoords.y;

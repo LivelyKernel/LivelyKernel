@@ -1491,7 +1491,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
     isCell: true
 },
 'setExtent', {
-    setExtent: function (ext) {
+    setExtent: function ($super,ext) {
         console.log("setExtent")
         return $super(ext.roundTo(20));
         //return $super(ext.roundTo(20));

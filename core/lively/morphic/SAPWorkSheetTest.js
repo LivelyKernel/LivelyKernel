@@ -1183,6 +1183,7 @@ currently only support
 },
 'Expend cells', {
     getNumofColumnView: function(){
+        debugger;
         for (var n = 0; n < this.colHeads; n++) {
          console.log(this.colHeads[n].getExtent().x)
         }

@@ -2703,7 +2703,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridHeadCell',
 'default category', {
     initialize: function($super, arg1, arg2) {
         $super(arg1, arg2);
-        this.disableHalos();
+        //this.disableHalos();
         this.setBorderColor(Color.rgb(177,181,186));
         this.renderContext().textNode.setAttribute('contenteditable', false);
     },

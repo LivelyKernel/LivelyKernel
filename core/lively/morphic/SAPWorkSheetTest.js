@@ -1333,21 +1333,14 @@ currently only support
             event.preventDefault();
         event.returnValue = false;	  
     },
-    onMouseWheel: function(evt) {
-        console.log("onMouseWheel");
-    },
     onMouseMove: function($super, evt) {
         $super(evt);
     },
     onMouseDown: function($super, evt) {
         $super(evt);
     },
-
     onMouseUp: function($super, evt) {
         $super(evt);
-    },
-    onMouseWheel: function(evt) {
-        console.log("onMouseWheel");
     }
 },
 'Common Tool', {

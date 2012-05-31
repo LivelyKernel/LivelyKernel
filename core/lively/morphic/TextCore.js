@@ -1033,7 +1033,7 @@ doAutoIndent: function() {
             evt.stop();
             return true;
         }
-        if (this.isTabBeforeCursor(true)) {
+        if (false && this.isTabBeforeCursor(true)) {
             console.warn('yeah');
       //      this.insertAtCursor('', false, true)
         //    evt.stop();

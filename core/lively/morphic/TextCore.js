@@ -1028,7 +1028,7 @@ doAutoIndent: function() {
         return true;
     },
 
-    onBackspacePressed: function(evt) {
+    onBackspacePressed: function(evt) {return true;
         if (this.textString === '') {
             evt.stop();
             return true;

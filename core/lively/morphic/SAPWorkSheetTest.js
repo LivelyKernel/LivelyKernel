@@ -99,7 +99,54 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
     },
 },
 'Create Header', { 
-    
+    createColHeads: function() {
+        var sName="";
+        var oHeader;
+        for (var i = 0; i < this.numCols; i++) {
+            sName = this.getColumnName(i);
+            oHeader=this.createColHead(i,sName);
+            this.colHeads.push(oHeader);
+            //changedHeaderSize
+            connect(oHeader, 'extent', this, 'changedHeaderSize')
+        }
+        this.rows[0] = this.colHeads;
+    },
+    createRowHeads: function() {
+        var sName="";
+        for (var i = 0; i < this.numRows; i++) {
+            sName = i==0 ? "" :  i.toString();
+            var rowHead = this.createRowHead(i,sName);
+            this.rowHeads.push(rowHead);
+            if (!this.rows[i]) { this.rows[i] = []; }
+            var row = this.rows[i];
+            row[0] = rowHead;
+        }
+    },
+    createHead: function(isRow, index, title) {
+        var head;
+        var nWidth;
+        if (isRow){
+            head = new lively.morphic.SAPGridRowHead();
+            head.setAlign('right');
+            nWidth = this.defaultCellWidth;
+        }else{
+            head = new lively.morphic.SAPGridColHead();
+            head.setAlign('center');
+            nWidth = this.defaultRowHeaderWidth;
+        }
+
+        head.setExtent(pt(nWidth , this.defaultCellHeight));
+        head.addToGrid(this);
+        head.gridCoords = isRow ? pt(0, index) : pt(index, 0);
+        head.textString = head.name = title;
+        return head;
+    },
+    createColHead: function(index, title) {
+        return this.createHead(false, index, title);
+    },
+    createRowHead: function(index, title) {
+        return this.createHead(true, index, title);
+    }
 },
 'Create Cells', { 
     createCells: function() {
@@ -453,55 +500,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 		this.arrData.push(arrColumns);
 	}
     },
-    createColHeads: function() {
-        var sName="";
-        var oHeader;
-        for (var i = 0; i < this.numCols; i++) {
-            sName = this.getColumnName(i);
-            oHeader=this.createColHead(i,sName);
-            this.colHeads.push(oHeader);
-            //changedHeaderSize
-            connect(oHeader, 'extent', this, 'changedHeaderSize')
-        }
-        this.rows[0] = this.colHeads;
-    },
-    createRowHeads: function() {
-        var sName="";
-        for (var i = 0; i < this.numRows; i++) {
-            sName = i==0 ? "" :  i.toString();
-            var rowHead = this.createRowHead(i,sName);
-            this.rowHeads.push(rowHead);
-            if (!this.rows[i]) { this.rows[i] = []; }
-            var row = this.rows[i];
-            row[0] = rowHead;
-        }
-    },
-    createHead: function(isRow, index, title) {
-        var head;
-        var nWidth;
-        if (isRow){
-            head = new lively.morphic.SAPGridRowHead();
-            head.setAlign('right');
-            nWidth = this.defaultCellWidth;
-        }else{
-            head = new lively.morphic.SAPGridColHead();
-            head.setAlign('center');
-            nWidth = this.defaultRowHeaderWidth;
-        }
-
-        head.setExtent(pt(nWidth , this.defaultCellHeight));
-        head.addToGrid(this);
-        head.gridCoords = isRow ? pt(0, index) : pt(index, 0);
-        head.textString = head.name = title;
-        return head;
-    },
-    createColHead: function(index, title) {
-        return this.createHead(false, index, title);
-    },
-    createRowHead: function(index, title) {
-        return this.createHead(true, index, title);
-    },
-
     createLayout: function() {
         var layouter = new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows);
         layouter.rows = this.rows;

@@ -1028,15 +1028,15 @@ doAutoIndent: function() {
         return true;
     },
 
-    onBackspacePressed: function(evt) {/*
-        if (this.textString === '') {
+    onBackspacePressed: function(evt) {
+        /*if (this.textString === '') {
             evt.stop();
             return true;
         }
         if (this.mergeText()) {
             evt.stop();
             return true;
-        }
+        }*/
         if (this.isTabBeforeCursor(true)) {
             this.insertAtCursor('', false, true)
             evt.stop();
@@ -1044,7 +1044,7 @@ doAutoIndent: function() {
         }
         if (this.charsTyped.length > 0)
             this.charsTyped = this.charsTyped.substring(0, this.charsTyped.length-1);
-        this.fixChunksDelayed(); */
+        this.fixChunksDelayed();
         return true;
     },
     onDelPressed: function(evt) {

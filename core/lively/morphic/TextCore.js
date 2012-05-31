@@ -875,7 +875,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return copy;
     },
     mergeText: function() {
-        if ((Global.haltOnce++) == 6) debugger;
+        if ((Global.haltOnce++) == 16) debugger;
         var fromMorph = this.splittedFrom;
         while (fromMorph && !fromMorph.owner)
             fromMorph = fromMorph.splittedFrom;

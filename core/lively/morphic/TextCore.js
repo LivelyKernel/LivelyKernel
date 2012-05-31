@@ -1037,17 +1037,12 @@ doAutoIndent: function() {
         if (this.mergeText()) {
             evt.stop(); return true;
         }
-	/* this gets the cached text into an inconsistent state */
-        //if ((Global.haltOnce++) == 1) debugger;
-        var selRange = this.getSelectionRange();
-        this.setSelectionRange(selRange[0], selRange[1]);
-        /*if (this.isTabBeforeCursor(true)) {
+        if (this.isTabBeforeCursor(true)) {
             this.insertAtCursor('', false, true)
             evt.stop();
             return true;
-        }*/
+        }
         if (this.charsTyped.length > 0) {
-            console.log("cc " + this.charsTyped.length);
             this.charsTyped = this.charsTyped.substring(0, this.charsTyped.length-1);
         }
         this.fixChunksDelayed();

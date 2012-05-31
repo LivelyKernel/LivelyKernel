@@ -1302,7 +1302,7 @@ currently only support
     },
     onMouseWheelEntry: function(evt) {
         //debugger;
-        console.log("onMouseWheelEntry");
+        //console.log("onMouseWheelEntry");
         var delta = 0;
         if (!event) /* For IE. */
             event = window.event;

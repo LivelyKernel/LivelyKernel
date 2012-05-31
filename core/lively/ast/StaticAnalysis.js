@@ -252,9 +252,8 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
         var newFragment = cop.proceed(newSource);
         return newFragment;
     }
-});
-
-// .beGlobal();
+})
+.beGlobal();
 
 Object.extend(AdvancedSyntaxHighlighting, {
     errorStyle: { backgroundColor: Color.web.salmon.lighter() },

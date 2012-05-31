@@ -123,7 +123,9 @@ lively.morphic.Text.addMethods(
             this.lastSyntaxHighlightTime = Date.now() - start;
         }.bind(this);
         if (this.lastSyntaxHighlightTime >= 0) {
-            var time = Math.max(300, this.lastSyntaxHighlightTime * 2);
+            var time = this.lastSyntaxHighlightTime * 2;
+            time = Math.max(this.syntaxHighlightingMinDelay, time);
+            time = Math.min(this.syntaxHighlightingMaxDelay, time);
             this._syntaxHighlightTimeout = setTimeout(later, time);
         } else {
             later();

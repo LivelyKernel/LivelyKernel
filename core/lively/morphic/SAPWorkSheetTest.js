@@ -1185,9 +1185,12 @@ currently only support
     getNumofColumnView: function(){
         debugger;
         var nGridWidth =  this.owner.getExtent().x;//this
-
+        var nTotalWidth = 0;
         for (var n = 0; n < this.colHeads.length; n++) {
-         console.log(this.colHeads[n].getExtent().x)
+            nTotalWidth +=this.colHeads[n].getExtent().x
+             if (nTotalWidth > nGridWidth ){
+                return n;
+            }
         }
     },
 },

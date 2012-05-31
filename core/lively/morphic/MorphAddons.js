@@ -231,8 +231,9 @@ lively.morphic.Morph.addMethods(
         this.submorphs.clone().invoke('remove')
     },
 
-    dropAllMorphs: function() {
-    
+    dropMorphs: function() {
+        // Removes the morph and lets all its child morphs drop to its owner
+        
     }
 },
 'events', {

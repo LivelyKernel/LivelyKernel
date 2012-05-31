@@ -1043,6 +1043,7 @@ doAutoIndent: function() {
         }
         if (this.charsTyped.length > 0)
             this.charsTyped = this.charsTyped.substring(0, this.charsTyped.length-1);
+        console.log("fix chunks");
         this.fixChunksDelayed();
         return true;
     },

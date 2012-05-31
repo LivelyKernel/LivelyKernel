@@ -126,7 +126,7 @@ lively.morphic.Text.addMethods(
         if (this.lastSyntaxHighlightTime === undefined) {
             later();
         } else {
-            var time = Math.max(100, this.lastSyntaxHighlightTime);
+            var time = Math.max(300, this.lastSyntaxHighlightTime);
             console.log("set timeout for " + time + "ms");
             this._syntaxHighlightTimeout = setTimeout(later, time);
         }

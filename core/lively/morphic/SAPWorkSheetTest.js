@@ -2717,6 +2717,13 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
 'settings', {
     isColHead: true
 },
+'setExtent', {
+    setExtent: function ($super,ext) {
+        console.log("SAPGridColHead setExtent")
+        return $super(ext);
+        //return $super(ext.roundTo(20));
+    }
+},
 'default category', {
     onMouseDown: function (evt) {
         this.grid.hideAnnotation();

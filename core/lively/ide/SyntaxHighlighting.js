@@ -123,7 +123,7 @@ lively.morphic.Text.addMethods(
             console.log("time: " + this.lastSyntaxHighlightTime);
         }.bind(this);
         clearTimeout(this._syntaxHighlightTimeout);
-        if (this.lastSyntaxHighlightTime === undefined) {
+        if (true || this.lastSyntaxHighlightTime === undefined) {
             later();
         } else {
             var time = Math.max(100, this.lastSyntaxHighlightTime);

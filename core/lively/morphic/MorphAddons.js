@@ -234,7 +234,7 @@ lively.morphic.Morph.addMethods(
     removeAndDropSubmorphs: function() {
         // Removes the morph and lets all its child morphs drop to its owner
         this.withAllSubmorphsDo(function(submorph){
-            this.removeMorph(submorph);
+            this.submorphs = this.submorphs.without(submorph);
             submorph.owner = this.owner;
             this.owner.addMorph(submorph);
         }, this);

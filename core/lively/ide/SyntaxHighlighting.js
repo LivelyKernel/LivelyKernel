@@ -112,6 +112,7 @@ lively.morphic.Text.addMethods(
         if (!this.renderContext().textNode) return; // FIXME
         var length = this.textString.length;
         if (length > this.syntaxHighlightingCharLimit) return;
+        clearTimeout(this._syntaxHighlightTimeout);
         var later = function() {
             this._syntaxHighlightTimeout = null;
             var start = Date.now();
@@ -119,7 +120,6 @@ lively.morphic.Text.addMethods(
                 SyntaxHighlighter.JavaScriptRules);
             this.lastSyntaxHighlightTime = Date.now() - start;
         }.bind(this);
-        clearTimeout(this._syntaxHighlightTimeout);
         if (this.lastSyntaxHighlightTime === undefined) {
             later();
         } else {

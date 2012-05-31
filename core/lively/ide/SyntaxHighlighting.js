@@ -113,6 +113,7 @@ lively.morphic.Text.addMethods(
         var length = this.textString.length;
         if (length > this.syntaxHighlightingCharLimit) return;
         var later = function() {
+            console.log("here");
             this._syntaxHighlightTimeout = null;
             var start = Date.now();
             this.highlightSyntaxFromTo(0, this.textString.length,
@@ -124,7 +125,7 @@ lively.morphic.Text.addMethods(
             later();
         } else {
             var time = Math.max(100, this.lastSyntaxHighlightTime);
-            this._syntaxHighlightTimeout = 1//setTimeout(later, time);
+            this._syntaxHighlightTimeout = setTimeout(later, time);
         }
     },
     applyHighlighterRules: function(target, highlighterRules) {

@@ -1659,7 +1659,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
         var nValue  = sValue;
         var oTextColor=null;
         //debugger;
-        console.log("before: " + sValue );
+        //console.log("before: " + sValue );
 
         //this.grid.arrData[nRow][nCol].value=sValue ;
         this.grid.arrData[nOrgRow][nOrgCol].value=sValue ;
@@ -1694,7 +1694,7 @@ lively.morphic.Text.subclass('lively.morphic.SAPGridCell',
               
             }
         }
-        console.log("after: " +sValue )
+        //console.log("after: " +sValue )
     },
     put: function(aValue) {
         // TODO: check if aValue starts with =, then evaluate it or not

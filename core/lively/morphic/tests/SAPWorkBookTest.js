@@ -1,4 +1,4 @@
-module('lively.morphic.tests.SAPWorkBookTest').requires('lively.morphic.tests.Morphic').toRun(function() {
+module('lively.morphic.tests.SAPWorkBookTest').requires('lively.morphic.tests.Morphic','lively.morphic.SAPWorkSheet').toRun(function() {
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SAPWorkBookTest.SAPWorkBookTest',
 'running', {

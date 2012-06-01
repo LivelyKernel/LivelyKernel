@@ -2673,6 +2673,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         var nHeight = this.grid.defaultCellHeight * this.numRows + 50;
 
         this.grid.setPosition(pt(0,this.toolBarHeight+2));
+        this.grid.applyStyle({position:'fixed'})
 
         this.gridLayer = new lively.morphic.SAPGridLayout(0, this.toolBarHeight+2, 
                                                 this.grid.defaultCellWidth * (this.numCols-1)+50, 

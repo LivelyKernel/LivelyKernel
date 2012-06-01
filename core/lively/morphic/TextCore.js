@@ -1037,14 +1037,12 @@ doAutoIndent: function() {
         if (this.mergeText()) {
             evt.stop(); return true;
         }
-        console.log("before = " + this.cachedTextString);
-        this.textString;
-        console.log("after = " + this.cachedTextString);
-        /*if (this.isTabBeforeCursor(true)) {
+        if (this.isTabBeforeCursor(true)) {
             this.insertAtCursor('', false, true)
             evt.stop();
+            this.cachedTextString = null; 
             return true;
-        }*/
+        }
         if (this.charsTyped.length > 0) {
             this.charsTyped = this.charsTyped.substring(0, this.charsTyped.length-1);
         }

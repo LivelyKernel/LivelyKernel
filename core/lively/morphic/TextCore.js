@@ -2919,7 +2919,7 @@ Trait("lively.morphic.TextUndoTrait", {
         this.observeTextChanges();
     },
     onLoad: function() {
-        
+        if (this.prepareForUndo) this.prepareForUndo();
     },
 
     observeTextChanges: function() {

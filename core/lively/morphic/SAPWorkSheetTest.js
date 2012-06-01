@@ -818,6 +818,9 @@ console.log('createHead')
         for (var x = this.startColumn; x < this.numCols-1; x++) {
             if (this.arrData[0][x].cellWidth){
                 console.log("cellWidth = " + this.arrData[0][x].cellWidth)
+                //this.colHeads[x-this.startColumn]
+            }else{
+                
             } 
         }
 

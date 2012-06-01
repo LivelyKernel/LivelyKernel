@@ -2911,7 +2911,7 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
 Trait("lively.morphic.TextUndoTrait", {
     prepareForUndo: function() {
         if (!lively.morphic.Events.MutationObserver) {
-            console.warn('Trying to enable undo but no MutationObserver was found');
+            console.warn('Trying to enable undo but no MutationObserver was found')
         }
         this.doNotSerialize = ['undoState'];
         this.undoState = {idx: 0, undos: [], undoInProgress: false};

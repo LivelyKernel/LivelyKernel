@@ -2752,7 +2752,11 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
             oPos.x=60;
         }
         this.cellWidth = oPos.x;  //saving cell width 
+        if (this.grid.selectedColumnHeader){
+            
+        }
         oPos.y=30; // to make fixed height
+        
         return $super(oPos);
         //return $super(ext.roundTo(20));
     }

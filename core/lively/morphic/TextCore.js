@@ -2918,6 +2918,8 @@ Trait("lively.morphic.TextUndoTrait", {
         this.recordUndoState();
         this.observeTextChanges();
     },
+onLoad: function() {},
+
     observeTextChanges: function() {
         var self = this,
             textNode = this.renderContext().textNode,

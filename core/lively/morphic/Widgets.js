@@ -943,7 +943,6 @@ lively.morphic.World.addMethods(
     },
 
     openInspectorFor: function(object, evt) {
-        if (Config.useObjectInspector) console.log("epep");
         var name = Config.useObjectInspector ? "ObjectInspector" : "Explorer";
         var part = this.openPartItem(name, 'PartsBin/Tools');
         part.explore(object);

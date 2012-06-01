@@ -2937,7 +2937,7 @@ Trait("lively.morphic.TextUndoTrait", {
         });
     },
     onTextChange: function(mutations) {
-        this.recordUndoState();
+        this.recordUndoState(mutations);
     },
     recordUndoState: function() {
         var undoState = this.undoState;

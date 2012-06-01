@@ -1182,7 +1182,7 @@ currently only support
     },
 },
 'Expend cells', {
-    getNumofColumnView: function(){
+    getNumofVisibleColumn: function(){
 /*returns visible number of column on the grid*/
         debugger;
         var nGridWidth =  this.owner.getExtent().x-1;//

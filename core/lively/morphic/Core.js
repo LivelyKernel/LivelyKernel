@@ -50,7 +50,7 @@ Object.subclass('lively.morphic.Morph',
 },
 'accessing -- morph properties', {
     setPosition: function(value) { 
-    if (value.x && value.y) return this.morphicSetter('Position', value);
+    return this.morphicSetter('Position', value);
 },
     getPosition: function() { return this.morphicGetter('Position') || pt(0,0) },
     setRotation: function(value) { return this.morphicSetter('Rotation', value) },

@@ -2981,14 +2981,18 @@ Object.extend(lively.morphic, {
 
 Object.extend(lively.morphic.TextUndoTrait, {
     install: function() {
-        this.applyTo(lively.morphic.Text, {override: ['getEmphasisAt']});
+        if (lively.morphic.Events.MutationObserver) {
+         this.applyTo(lively.morphic.Text, {override: ['getEmphasisAt']});
+        }
     }
 });
 
 (function setupTextUndo() {
     if (Config.textUndoEnabled) {
-        console.log('Text undo enabled');
-        lively.morphic.TextUndoTrait.install();
+        requires('lively.morphic.Events').toRun(function() {
+            console.log('Text undo enabled');
+            lively.morphic.TextUndoTrait.install();
+        });
     }
 })();
 

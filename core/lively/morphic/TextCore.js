@@ -2977,7 +2977,7 @@ Trait("lively.morphic.TextUndoTrait", {
 
 Object.extend(Trait("lively.morphic.TextUndoTrait"), {
     install: function() {
-        this.applyTo(lively.morphic.text, {override: ['getEmphasisAt']});
+        this.applyTo(lively.morphic.Text, {override: ['getEmphasisAt']});
     }
 });
 

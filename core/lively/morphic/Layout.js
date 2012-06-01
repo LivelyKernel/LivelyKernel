@@ -547,7 +547,6 @@ lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.JournalLayo
         });
         $super(container, submorphs);
         if (this.getEffectiveHeight(container, submorphs) != container.getExtent().y) {
-            console.log("Container height: "+container.getExtent().y);
             container.setExtent(
                 pt(container.getExtent().x, this.getEffectiveHeight(container, submorphs)));
         }

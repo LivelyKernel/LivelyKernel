@@ -1038,7 +1038,7 @@ doAutoIndent: function() {
             evt.stop(); return true;
         }
         if (this.isTabBeforeCursor(true)) {
-            this.insertAtCursor('', false, true)
+            this.insertAtCursor('', false, true);
             evt.stop();
             this.cachedTextString = null; 
             return true;

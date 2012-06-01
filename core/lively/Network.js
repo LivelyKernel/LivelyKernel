@@ -1365,8 +1365,8 @@ Object.subclass('WebResource',
     addContentType: function(contentType) {
         this.requestHeaders["Content-Type"] = contentType || '';
     },
-    newMethod: function() {
-        // enter comment here
+    addNoCacheHeader: function() {
+        this.setRequestHeaders({"Cache-Control": 'no-cache'});
     }
 
 

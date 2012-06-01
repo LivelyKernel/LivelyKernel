@@ -1438,6 +1438,7 @@ Object.subclass('WebResource',
         this.content = this.convertContent(content || '');
         if (requiredRevision) this.addHeaderForRequiredRevision(requiredRevision);
         if (contentType) this.addContentType(contentType)
+        this.addNoCacheHeader();
         var req = this.createXMLHTTPRequest('PUT');
         req.request(this.content);
         return this;

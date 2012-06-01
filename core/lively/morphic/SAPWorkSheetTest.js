@@ -823,7 +823,7 @@ console.log('createHead')
                 //this.colHeads[x-this.startColumn]
                 this.colHeads[x-this.startColumn].setExtent(pt(nWidth, this.colHeads[x-this.startColumn].getExtent.y));
             }else{
-                
+                this.colHeads[x-this.startColumn].setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
             } 
         }
 

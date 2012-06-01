@@ -2734,7 +2734,6 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
 'setExtent', {
     setExtent: function ($super,ext) {
         console.log("SAPGridColHead setExtent")
-        debugger;
         return $super(ext);
         //return $super(ext.roundTo(20));
     }

@@ -1,13 +1,15 @@
 module('lively.morphic.MorphAddons').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.morphic.Widgets', 'lively.morphic.Styles').toRun(function() {
 
-Object.extend(Global, {
+Object.extend(lively.morphic, {
+
     show: function(obj) {
         if (!obj) return;
-        if (Object.isArray(obj)) obj.forEach(function(ea) { show(ea) })
-        else if (obj instanceof lively.Point) newShowPt(obj)
-        else if (obj instanceof Rectangle) newShowRect(obj)
-        else if (obj.isMorph) return newShowMorph(obj)
+        if (Object.isArray(obj)) obj.forEach(function(ea) { lively.morphic.show(ea) });
+        else if (obj instanceof lively.Point) lively.morphic.newShowPt(obj);
+        else if (obj instanceof Rectangle) lively.morphic.newShowRect(obj);
+        else if (obj.isMorph) return lively.morphic.newShowMorph(obj);
     },
+
     newShowPt: function (/*pos or x,y, duration, extent*/) {
         var args = $A(arguments);
         // pos either specified using point object or two numbers
@@ -24,57 +26,75 @@ Object.extend(Global, {
         b.align(b.getCenter(), pos);
         b.setFill(Color.red);
 
-        newShowThenHide(b, duration);
+        lively.morphic.newShowThenHide(b, duration);
         return b;
     },
+
     newShowRect: function (rect, duration) {
         var b = new lively.morphic.Morph();
         b.isEpiMorph = true;
         b.setBounds(rect);
         b.applyStyle({fill: null, borderWidth: 2, borderColor: Color.red})
-        newShowThenHide(b, duration);
+        lively.morphic.newShowThenHide(b, duration);
         return b
     },
+
     newShowMorph: function (morph) {
-        newShowRect(morph.getGlobalTransform().transformRectToRect(morph.getShape().getBounds()))
+        lively.morphic.newShowRect(
+            morph.getGlobalTransform().transformRectToRect(morph.getShape().getBounds()))
     },
+
     newShowThenHide: function (morph, duration) {
         var w = Global.world || lively.morphic.World.current();
         if (!w) { alert("no world"); return }
         duration = duration || 3;
         w.addMorph(morph);
-        if (duration) // FIXME use scheduler
+        if (duration) { // FIXME use scheduler
             (function() { morph.remove() }).delay(duration);
+        }
     },
+
     alertDbg: function(msg) {
         if (Global.lively.morphic.World) alert(msg)
     },
+
     alert: function(msg, delay) {
-        var world = (Global.lively.morphic.World && lively.morphic.World.current()) ||
-            (Global.lively && lively.morphic && lively.morphic.World.current())
+        var world = Global.lively && lively.morphic && lively.morphic.World.current();
         if (world) world.alert(String(msg), delay);
         else console.log('ALERT: ' + msg);
     },
+
     alertOK: function (msg, delay) {
-        var world = (Global.lively.morphic.World && lively.morphic.World.current()) ||
-            (Global.lively && lively.morphic && lively.morphic.World.current());
+        var world = Global.lively && lively.morphic && lively.morphic.World.current();
         if (world) world.setStatusMessage(String(msg), Color.green, delay || 5);
         else console.log(msg);
     },
+
     inspect: function(obj) {
         if (Global.lively && lively.morphic && lively.morphic.World.current())
-			return lively.morphic.World.current().openInspectorFor(obj);
+            return lively.morphic.World.current().openInspectorFor(obj);
     },
+
     edit: function(obj) {
         if (Global.lively && lively.morphic && lively.morphic.World.current())
             return lively.morphic.World.current().openObjectEditorFor(obj);
     },
+
     showCallStack: function() {
         var stack = 'no stack';
         try { throw new Error() } catch(e) { if (e.stack) stack = e.stack }
-        alert(stack)
+        lively.morphic.alert(stack);
     },
 
+});
+
+Object.extend(Global, {
+    show:     lively.morphic.show,
+    alertDbg: lively.morphic.alertDbg,
+    alert:    lively.morphic.alert,
+    alertOK:  lively.morphic.alertOK,
+    inspect:  lively.morphic.inspect,
+    edit:     lively.morphic.edit
 });
 
 lively.morphic.Morph.addMethods(
@@ -419,7 +439,10 @@ lively.morphic.Morph.addMethods(
         });
         return res;
     },
-
+},
+'interaction', {
+    show: function() { lively.morphic.show(this) },
+    edit: function() { lively.morphic.edit(this) }
 });
 
 lively.morphic.Morph.addMethods(
@@ -574,7 +597,11 @@ lively.morphic.World.addMethods(
             btn.align(btn.bounds().topRight(), closeBtn.bounds().topLeft().addPt(pt(-5,0)));
             connect(btn, 'fire', btn, 'callbackFunc')
         }
-        console.log(msg);
+        if (color == Color.red) {
+            console.error(msg);
+        } else {
+            console.log(msg);
+        }
         return this.addStatusMessageMorph(msgMorph, delay || 5);
     },
 
@@ -633,20 +660,56 @@ lively.morphic.World.addMethods(
         }
         return null;
     },
+    getUserDir: function() {
+        var username = this.getUserName();
+        return username ? URL.root.withFilename('users/' + username + '/') : null;
+    },
+
     requestUserName: function() {
         if (!Config.userNameURL) return null;
         var webR = new WebResource(Config.userNameURL).get();
         return webR.status.isSuccess() ? webR.content.replace(/\n|\"/g, '') : null;
     },
-    newMethod: function() {
-        // enter comment here
+    askToRegisterAnAccount: function() {
+        var msg = 'Cannot retrieve your user name. Register an account now?';
+        $world.confirm(msg, function(response) {
+            if (response) {
+                window.open('http://lively-kernel.org/trac/register');
+            }
+        });
     },
+
+
     ensureUserDir: function(optUserName) {
-        optUserName = optUserName || this.getUserName();
-        var userDir = new URL(Config.rootPath).withFilename('users/').withFilename(optUserName + '/');
-        new WebResource(userDir).ensureExistance();
+        var username = optUserName || this.getUserName();
+        if (!username) {
+            this.askToRegisterAnAccount();
+            return null;
+        }
+        var userDir = this.getUserDir();
+        userDir.asWebResource().ensureExistance();
         return userDir;
     },
+    ensureUserConfig: function(optUserName) {
+        var userDirURL = this.ensureUserDir(optUserName);
+        if (!userDirURL) return;
+        var userConfigURL = userDirURL.withFilename('config.js');
+        if (userConfigURL.asWebResource().exists()) {
+            return userConfigURL;
+        }
+        module('lively.ide.BrowserCommands').load(true);
+        var createModuleCommand = new lively.ide.AddNewFileCommand();
+        createModuleCommand.createModuleFile(userConfigURL);
+        return userConfigURL;
+    },
+    showUserConfig: function() {
+        var url = this.ensureUserConfig()
+        require('lively.ide').toRun(function() {
+            lively.ide.browse(url);
+        });
+    },
+
+
     isGrabbable: function(evt) {
         return false;
     }

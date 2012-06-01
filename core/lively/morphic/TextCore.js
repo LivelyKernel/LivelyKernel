@@ -2908,9 +2908,6 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
 });
 
 Trait("lively.morphic.TextUndoTrait", {
-    onLoad: function() {
-        this.prepareForUndo();
-    },
     prepareForUndo: function() {
         this.doNotSerialize = ['undoState'];
         this.undoState = {idx: 0, undos: [], undoInProgress: false};

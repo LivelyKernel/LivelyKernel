@@ -1184,7 +1184,6 @@ currently only support
 'Expend cells', {
     getNumofVisibleColumn: function(){
 /*returns visible number of column on the grid*/
-
         var nGridWidth =  this.owner.getExtent().x-1;//
         var nTotal = 0;
         for (var n = 0; n < this.colHeads.length; n++) {

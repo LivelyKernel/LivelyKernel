@@ -2907,4 +2907,69 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
     },
 });
 
+Trait("lively.morphic.TextUndoTrait", {
+    prepareForUndo: function() {
+        this.doNotSerialize = ['undoState'];
+        this.undoState = {idx: 0, undos: [], undoInProgress: false};
+        this.recordUndoState();
+        this.observeTextChanges();
+    },
+    observeTextChanges: function() {
+        var self = this,
+            textNode = this.renderContext().textNode,
+            observer = new lively.morphic.Events.MutationObserver(
+                function(mutations) { return self.onTextChange(mutations); });
+        observer.observe(textNode, {
+            childList: true,
+            characterData: true,
+            attributes: true,
+            characterDataOldValue: true,
+            attributeOldValue: true,
+            subtree: true
+        });
+    },
+    onTextChange: function(mutations) {
+        this.recordUndoState();
+    },
+    recordUndoState: function() {
+        var undoState = this.undoState;
+        if (undoState.undoInProgress) {
+            undoState.undoInProgress = false;
+            return;
+        }
+        undoState.undos = undoState.undos.slice(0, undoState.idx);
+        var richText = this.getRichText2(),
+            sel = this.getSelectionRange();
+        undoState.undos.push({richText: richText, selection: sel});
+        undoState.idx++;
+    },
+    applyUndoState: function() {
+        this.undoState.undoInProgress = true;
+        var undoState = this.undoState.undos[this.undoState.idx-1];
+        if (undoState) {
+            this.setRichText2(undoState.richText);
+            var sel = undoState.selection;
+            if (sel) {
+                this.setSelectionRange(sel[0], sel[1]);
+            }
+        }
+    },
+    undo: function() {
+        this.undoState.idx--;
+        this.applyUndoState();
+    },
+    redo: function() {
+        this.undoState.idx++;
+        this.applyUndoState();
+    },
+    // fixes
+    getEmphasisAt: function (idx) {
+        var chunkAndIdx = this.getChunkAndLocalIndex(idx, true);
+        var style = chunkAndIdx && chunkAndIdx[0].style;
+        if (!style) return null;
+        // need to return copy of style
+        return Object.extend({}, style);
+    }
+});
+
 }) // end of module

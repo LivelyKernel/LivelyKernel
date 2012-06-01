@@ -2681,7 +2681,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         
         
 
-        var nToolBarWidth= this.grid.defaultCellWidth * (this.numCols -1) + this.grid.defaultRowHeaderWidth;
+        var nToolBarWidth= this.gridLayer.getExtent().x//this.grid.defaultCellWidth * (this.numCols -1) + this.grid.defaultRowHeaderWidth;
         this.toolBar= new lively.morphic.SAPGridToolBar(this.grid,0,0,nToolBarWidth,this.toolBarHeight);
 
 

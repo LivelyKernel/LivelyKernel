@@ -558,8 +558,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
 
         var newX = curX  + aPoint.x;
         var newY = curY + aPoint.y;
-        var nNumofVisibleRow =  this.getNumofVisibleRow();
-        var nNumofVisibleColumn = this.getNumofVisibleColumn();     
+        var nNumofVisibleRow =  this.getNumofVisibleRow()+1;
+        var nNumofVisibleColumn = this.getNumofVisibleColumn()+1;     
 
         if (newX ==0 || newY==0 || newX == nNumofVisibleColumn  || newY==nNumofVisibleRow ){
         //if (newX ==0 || newY==0 || newX ==this.numCols || newY==this.numRows){

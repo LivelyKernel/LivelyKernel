@@ -2918,7 +2918,9 @@ Trait("lively.morphic.TextUndoTrait", {
         this.recordUndoState();
         this.observeTextChanges();
     },
-onLoad: function() {},
+    onLoad: function() {
+        
+    },
 
     observeTextChanges: function() {
         var self = this,

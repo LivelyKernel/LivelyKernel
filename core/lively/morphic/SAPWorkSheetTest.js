@@ -1199,8 +1199,8 @@ currently only support
         var nGridHeight =  this.owner.getExtent().y-1;//
         var nTotal = 0;
         debugger;
-        for (var n = 0; n < this.numRows.length; n++) {
-            nTotal +=this.colHeads[n].getExtent().y
+        for (var n = 0; n < this.rowHeads.length; n++) {
+            nTotal +=this.rowHeads[n].getExtent().y
              if (nTotal > nGridHeight ){
                 return n;
                 break;

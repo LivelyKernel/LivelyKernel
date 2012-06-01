@@ -2804,6 +2804,8 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
     onMouseDown: function (evt) {
  
         this.grid.hideAnnotation();
+        this.grid.selectedRowHeader= this;
+
         if (evt.isLeftMouseButtonDown()) {
             var nRow= this.gridCoords.y;
             var nOrgRow = nRow-1 + this.grid.startRow;
@@ -2822,7 +2824,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
                     }
                 }
             }else{
-                this.grid.selectedRowHeader= this;
+                
                 this.grid.removeSelectedCells();
                 //for grid selected
                 for (var x = 1; x < this.grid.numCols; x++) {

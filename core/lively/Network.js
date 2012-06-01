@@ -1365,6 +1365,10 @@ Object.subclass('WebResource',
     addContentType: function(contentType) {
         this.requestHeaders["Content-Type"] = contentType || '';
     },
+    newMethod: function() {
+        // enter comment here
+    }
+
 
 },
 'HTTP methods', {

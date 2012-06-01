@@ -2026,7 +2026,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     },
 });
 Object.extend(lively.morphic.Events, {
-    MutationObserver window.MutationObserver
+    MutationObserver: window.MutationObserver
                                          || window.WebKitMutationObserver
                                          || window.MozMutationObserver
 });

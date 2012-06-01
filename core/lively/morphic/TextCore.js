@@ -2021,10 +2021,10 @@ this. textNodeString()
     tabspacesForCursorPos: function() {
         var cursorPos = this.getSelectionRange()[0]
         if (this.textString[cursorPos] == '\n') return this.tab
-        var beginOfLine = this.textString.lastIndexOf("\n", cursorPos);
+        var beginOfLine = this.textString.lastIndexOf('\n', cursorPos);
         var column = this.textString.substring(beginOfLine + 1, cursorPos);
         // alertOK("tab " + column.length)
-        return  Strings.indent("", " ", this.tab.length - column.length % this.tab.length )
+        return  Strings.indent('', ' ', this.tab.length - column.length % this.tab.length )
     },
 },
 'syntax highlighting', {

@@ -2736,9 +2736,10 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
     isColHead: true
 },
 'setExtent', {
-    setExtent: function ($super,ext) {
-        console.log("SAPGridColHead setExtent")
-        return $super(ext);
+    setExtent: function ($super,oPos) {
+        console.log(oPos.x)
+        
+        return $super(oPos);
         //return $super(ext.roundTo(20));
     }
 },

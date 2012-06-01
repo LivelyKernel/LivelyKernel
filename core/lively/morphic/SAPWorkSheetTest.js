@@ -2737,10 +2737,11 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
 },
 'setExtent', {
     setExtent: function ($super,oPos) {
-        console.log(this.grid.defaultCellWidth)
+       
         if (oPos.x < 60){
             oPos.x=60;
         }
+        oPos.y=30;
         return $super(oPos);
         //return $super(ext.roundTo(20));
     }

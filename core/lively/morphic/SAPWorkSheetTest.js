@@ -128,10 +128,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         if (isRow){
             head = new lively.morphic.SAPGridRowHead();
             head.setAlign('right');
+            head.row = index;
             nWidth = this.defaultCellWidth;
         }else{
             head = new lively.morphic.SAPGridColHead();
             head.setAlign('center');
+            head.column = index;
             nWidth = this.defaultRowHeaderWidth;
         }
 console.log('createHead')

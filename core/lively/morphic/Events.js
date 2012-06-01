@@ -2025,6 +2025,9 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         }
     },
 });
+Object.extend(SomeObject, {
+    m1: function() {},
+});
 
 // FIXME remove!!!
 module('lively.morphic.EventExperiments').load();

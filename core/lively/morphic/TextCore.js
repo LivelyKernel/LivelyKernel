@@ -2002,7 +2002,6 @@ this. textNodeString()
         if (after) rangeToTest[1] = rangeToTest[1]+this.tab.length;
         else rangeToTest[0] = rangeToTest[0]-this.tab.length;
         var strToTest = this.getTextNode().textContent.substring(rangeToTest[0], rangeToTest[1]);
-        //console.log("strToTest = " + this.textNodeString());
         var isTab = strToTest === this.tab;
         if (isTab && selectIt)
             this.setSelectionRange(rangeToTest[0], rangeToTest[1]);

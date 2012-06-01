@@ -2755,14 +2755,16 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
         if (oPos.x < 60){
             oPos.x=60;
         }
-        console.log("setExtent: " + oPos.x);
+        
         this.cellWidth = oPos.x;  //saving cell width 
         //saving column width in arrData[0]
         if (this.grid){
             if (this.grid.selectedColumnHeader){
-                var nOrgCol = this.grid.selectedColumnHeader.gridCoords.x- 1+ this.grid.startColumn;
-                console.log( oPos.x);
-                this.grid.arrData[0][nOrgCol].ColWidth = oPos.x;
+                if (this.column==this.grid.selectedColumnHeader.gridCoords.x){
+                    var nOrgCol = this.grid.selectedColumnHeader.gridCoords.x- 1+ this.grid.startColumn;
+                    console.log("setExtent: " + oPos.x);
+                    this.grid.arrData[0][nOrgCol].ColWidth = oPos.x;
+                }
             }
         }
         

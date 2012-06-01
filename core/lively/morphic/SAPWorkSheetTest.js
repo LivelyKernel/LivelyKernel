@@ -1201,7 +1201,6 @@ currently only support
         debugger;
         for (var n = 0; n < this.rowHeads.length; n++) {
             nTotal +=this.rowHeads[n].getExtent().y
-console.log(this.rowHeads[n].getExtent().y + ", nTotal= " + nTotal )
              if (nTotal > nGridHeight ){
                 return n;
                 break;

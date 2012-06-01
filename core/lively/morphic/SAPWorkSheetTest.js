@@ -2749,6 +2749,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
 'default category', {
     onMouseDown: function (evt) {
         this.grid.hideAnnotation();
+        console.log("onMouseDown");
         if (evt.isLeftMouseButtonDown()) {
             var nCol= this.gridCoords.x;
             var nOrgCol = nCol-1 + this.grid.startColumn;

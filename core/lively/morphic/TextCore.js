@@ -2972,4 +2972,8 @@ Trait("lively.morphic.TextUndoTrait", {
     }
 });
 
+(function setupTextUndo() {
+
+})();
+
 }) // end of module

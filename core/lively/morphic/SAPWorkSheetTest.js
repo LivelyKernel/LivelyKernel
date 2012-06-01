@@ -811,7 +811,8 @@ console.log('createHead')
         this.arrSelectedCells =[];
 
 
-        //changing width & height 
+        //changing width & height of header: this will change entire cells
+        
         
 
 

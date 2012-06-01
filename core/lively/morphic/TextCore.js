@@ -2985,10 +2985,8 @@ Object.extend(lively.morphic.TextUndoTrait, {
 
 (function setupTextUndo() {
     if (Config.textUndoEnabled) {
-        require('lively.morphic.Events').toRun(function() {
-            console.log('Text undo enabled');
-            lively.morphic.TextUndoTrait.install();
-        });
+        console.log('Text undo enabled');
+        lively.morphic.TextUndoTrait.install();
     }
 })();
 

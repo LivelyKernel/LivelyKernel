@@ -2781,6 +2781,12 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
 'settings', {
     isRowHead: true
 },
+'default category', {
+    initialize: function($super) {
+        $super();
+        this.cellHeight=120;
+    },
+},
 'setExtent', {
     setExtent: function ($super,oPos) {
        
@@ -2788,7 +2794,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
             oPos.y=30;
         }
        oPos.x = 60;
-        console.log(oPos.x)
+       this.cellHeight = oPos.y;
         return $super(oPos);
         //return $super(ext.roundTo(20));
     }

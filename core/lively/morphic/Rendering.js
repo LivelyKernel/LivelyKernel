@@ -314,16 +314,15 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
         throw new Error('Cannot set MinWidth for node ' + node);
     },
 
-
-
-
     setHTMLBorderRadiusPoint: function(node, radiusPt) {
         this.setHTMLBorderRadius(node, radiusPt.x, radiusPt.y)
     },
+
     setHTMLBorderRadius: function(node, rx, ry) {
         var roundRectValue =  Math.max(0, rx) + 'px /' +  Math.max(0, ry) + 'px';
         node.style.borderRadius = roundRectValue;
     },
+
     computeScrollBarExtentHTML: function() {
         var body = document.getElementsByTagName('body')[0],
             div = XHTMLNS.create('div');
@@ -345,8 +344,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
             return 0;
         }
         return result;
-    },
-
+    }
 
 });
 
@@ -354,7 +352,7 @@ Object.subclass('lively.morphic.Rendering.RenderContext',
 'settings', {
     domInterface: new lively.morphic.Rendering.DOMInterface(),
     shapeDispatchTable: {},
-    morphDispatchTable: {},
+    morphDispatchTable: {}
 },
 'creation', {
     newInstance: function() {

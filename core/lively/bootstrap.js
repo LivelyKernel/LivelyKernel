@@ -861,7 +861,7 @@ var LivelyLoader = {
         });
     },
 
-    startNewMorphicWorld: function(startupFunc) {
+    startFromSerializedWorld: function(startupFunc) {
         if (!livelyConfigExists() || !Config.isNewMorphic) return false;
         var self = this;
 
@@ -1019,7 +1019,6 @@ var EmbededLoader = {
 };
 
 var LivelyMigrationSupport = {
-
     // increase this value by hand if you make a change that effects object layout
     // LivelyMigrationSupport.migrationLevel
     migrationLevel: 4,
@@ -1058,9 +1057,8 @@ var LivelyMigrationSupport = {
 
     window.addEventListener('DOMContentLoaded', function() {
         LivelyMigrationSupport.setDocumentMigrationLevel(document);
-        if (EmbededLoader.embedLively() ||
-            LivelyLoader.startNewMorphicWorld(startupFunc)) return;
-        console.warn('couldn\'t strt Lively');
+        if (LivelyLoader.startFromSerializedWorld(startupFunc)) return;
+        console.warn("Lively startup failed'");
     }, true);
 
     window.addEventListener('beforeunload', function(evt) {

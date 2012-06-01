@@ -331,8 +331,8 @@ lively.morphic.Morph.addMethods(
 lively.morphic.World.addMethods(
 'HTML render settings', {
     htmlDispatchTable: {
-        setScroll: 'setScrollHTML',
-    },
+        setScroll: 'setScrollHTML'
+    }
 },
 'scrolling', {
     setScrollHTML: function(ctx, value) {

@@ -364,21 +364,24 @@ lively.Main.Loader.subclass('lively.Main.HTMLLoader',
 // uses demo flags from defaultconfig.js and localconfig.js
 Object.subclass('lively.Main.Examples', {
 
+    createStar: function() {
+        var makeStarVertices = function(r,center,startAngle) {
+            var vertices = [];
+            var nVerts = 10;
+            for (var i=0; i <= nVerts; i++) {
+                var a = startAngle + (2*Math.PI/nVerts*i);
+                var p = lively.Point.polar(r,a);
+                if (i%2 == 0) p = p.scaleBy(0.39);
+                vertices.push(p.addPt(center));
+            }
+            return vertices;
+        }
+        return lively.morphic.Morph.makePolygon(makeStarVertices(50,pt(0,0),0), 1, Color.black, Color.yellow);
+    },
+
     showStar: function(world) {
         if (Config.showStar) {  // Make a star
-            var makeStarVertices = function(r,center,startAngle) {
-                var vertices = [];
-                var nVerts = 10;
-                for (var i=0; i <= nVerts; i++) {
-                    var a = startAngle + (2*Math.PI/nVerts*i);
-                    var p = lively.Point.polar(r,a);
-                    if (i%2 == 0) p = p.scaleBy(0.39);
-                    vertices.push(p.addPt(center));
-                }
-                return vertices;
-            }
-
-            widget = Morph.makePolygon(makeStarVertices(50,pt(0,0),0), 1, Color.black, Color.yellow);
+            widget = this.createStar()
             widget.setPosition(pt(125, 275));
             world.addMorph(widget);
 

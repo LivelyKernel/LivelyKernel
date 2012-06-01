@@ -2743,7 +2743,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
 },
 'setExtent', {
     setExtent: function ($super,oPos) {
-       
+       debugger;
         if (oPos.x < 60){
             oPos.x=60;
         }

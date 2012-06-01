@@ -2939,7 +2939,7 @@ Trait("lively.morphic.TextUndoTrait", {
     onTextChange: function(mutations) {
         this.recordUndoState(mutations);
     },
-    recordUndoState: function() {
+    recordUndoState: function(mutations) {
         var undoState = this.undoState;
         if (undoState.undoInProgress) {
             undoState.undoInProgress = false;
@@ -2948,7 +2948,7 @@ Trait("lively.morphic.TextUndoTrait", {
         undoState.undos = undoState.undos.slice(0, undoState.idx);
         var richText = this.getRichText2(),
             sel = this.getSelectionRange();
-        undoState.undos.push({richText: richText, selection: sel});
+        undoState.undos.push({richText: richText, selection: sel, mutations: mutations});
         undoState.idx++;
     },
     applyUndoState: function() {

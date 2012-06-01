@@ -821,7 +821,7 @@ console.log('createHead')
             if (nWidth){
                 console.log("cellWidth = " + this.arrData[0][x].cellWidth)
                 //this.colHeads[x-this.startColumn]
-                this.colHeads.setExtent(pt(nWidth, this.colHeads.getExtent.y));
+                this.colHeads[x-this.startColumn].setExtent(pt(nWidth, this.colHeads[x-this.startColumn].getExtent.y));
             }else{
                 
             } 

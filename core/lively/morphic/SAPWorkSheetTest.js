@@ -815,10 +815,13 @@ console.log('createHead')
         
         //var nOrgRow = y  + this.startRow;
         //var nOrgCol = x + this.startColumn;
+        var nWidth;
         for (var x = this.startColumn; x < this.numCols-1; x++) {
-            if (this.arrData[0][x].cellWidth){
+            nWidth = this.arrData[0][x].cellWidth
+            if (nWidth){
                 console.log("cellWidth = " + this.arrData[0][x].cellWidth)
                 //this.colHeads[x-this.startColumn]
+                this.colHeads.setExtent(pt(nWidth, this.colHeads.getExtent.y));
             }else{
                 
             } 

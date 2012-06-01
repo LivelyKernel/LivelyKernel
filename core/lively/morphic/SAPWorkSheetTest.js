@@ -2751,6 +2751,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
         if (oPos.x < 60){
             oPos.x=60;
         }
+        console.log("setExtent: " + oPos.x);
         this.cellWidth = oPos.x;  //saving cell width 
         //saving column width in arrData[0]
         if (this.grid){

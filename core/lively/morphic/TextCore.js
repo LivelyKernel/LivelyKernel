@@ -2982,7 +2982,9 @@ Object.extend(Trait("lively.morphic.TextUndoTrait"), {
 });
 
 (function setupTextUndo() {
-
+    if (Config.textUndoEnabled) {
+        Trait("lively.morphic.TextUndoTrait").install();
+    }
 })();
 
 }) // end of module

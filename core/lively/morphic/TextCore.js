@@ -2974,10 +2974,11 @@ Trait("lively.morphic.TextUndoTrait", {
         return Object.extend({}, style);
     }
 });
-Object.extend(Object, {
-    m1: function() {
-        lively.morphic.TextUndoTrait
-},
+
+Object.extend(Trait("lively.morphic.TextUndoTrait"), {
+    install: function() {
+        this.applyTo(lively.morphic.text, {override: ['getEmphasisAt']});
+    }
 });
 
 (function setupTextUndo() {

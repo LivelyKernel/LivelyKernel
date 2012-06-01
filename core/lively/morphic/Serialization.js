@@ -121,7 +121,6 @@ lively.morphic.Text.addMethods(
         chunks.forEach(function(ea) {
             ea.textString = ea.storedString;
         });
-        if (this.prepareForUndo) this.prepareForUndo();
     },
     prepareForNewRenderContext: function($super,renderCtx) {
         $super(renderCtx);

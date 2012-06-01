@@ -1037,8 +1037,9 @@ doAutoIndent: function() {
         if (this.mergeText()) {
             evt.stop(); return true;
         }
+        console.log("before = " + this.cachedTextString);
         this.textString;
-        console.log("cached = " + this.cachedTextString);
+        console.log("after = " + this.cachedTextString);
         /*if (this.isTabBeforeCursor(true)) {
             this.insertAtCursor('', false, true)
             evt.stop();

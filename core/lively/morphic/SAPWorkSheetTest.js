@@ -1184,18 +1184,30 @@ currently only support
 'Expend cells', {
     getNumofVisibleColumn: function(){
 /*returns visible number of column on the grid*/
-        debugger;
+
         var nGridWidth =  this.owner.getExtent().x-1;//
-        var nTotalWidth = 0;
+        var nTotal = 0;
         for (var n = 0; n < this.colHeads.length; n++) {
-            console.log("n=" + n + ",  width=" + this.colHeads[n].getExtent().x)
-            nTotalWidth +=this.colHeads[n].getExtent().x
-             if (nTotalWidth > nGridWidth ){
+            nTotal +=this.colHeads[n].getExtent().x
+             if (nTotal > nGridWidth ){
                 return n;
                 break;
             }
         }
     },
+    getNumofVisibleRow: function(){
+/*returns visible number of column on the grid*/
+
+        var nGridHeight =  this.owner.getExtent().y-1;//
+        var nTotal = 0;
+        for (var n = 0; n < this.numRows.length; n++) {
+            nTotal +=this.colHeads[n].getExtent().y
+             if (nTotal > nGridHeight ){
+                return n;
+                break;
+            }
+        }
+    }
 },
 'Keyboard Events', {
     onEnterPressed: function($super, evt) {

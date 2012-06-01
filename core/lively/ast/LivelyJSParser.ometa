@@ -158,6 +158,7 @@ jsonBinding =
 jsonPropName = "name" | "number" | "string",
 memberFragment = spaces jsonBinding:jb (',' | empty) spaces end -> jb,
 categoryFragment = spaces pos:p1 listOf(#exprPart, ','):es pos:p2 ("," | empty) spaces end -> [#arr, [p1, p2]].concat(es),
+traitFragment = spaces pos:p1  "Trait" "(" spaces listOf(#exprPart, ','):es spaces ")" sc pos:p2 end -> [#arr, [p1, p2]].concat(es),
 formal = spaces pos:p1 "name":n pos:p2 -> [#get, [p1, p2], n],
 funcRest =
 	pos: p1 "(" listOf(#formal, ','):args ")" "{" srcElems:body "}" pos:p2

@@ -1196,7 +1196,7 @@ currently only support
         }
     },
     getNumofVisibleRow: function(){
-/*returns visible number of column on the grid*/
+/*returns visible number of Row on the grid*/
 
         var nGridHeight =  this.owner.getExtent().y-1;//
         var nTotal = 0;

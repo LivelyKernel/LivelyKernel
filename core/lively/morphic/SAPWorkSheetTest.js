@@ -808,6 +808,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.arrSelectedCells.lenght=0;
         this.arrSelectedCells =[];
 
+
+        //changing width & height 
+        
+
+
         for (var y = 0; y < this.numRows-1; y++) {
             for (var x = 0; x < this.numCols-1; x++) {
                 this.updateCellDisplay(x,y,false)

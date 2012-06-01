@@ -813,15 +813,15 @@ console.log('createHead')
 
         //changing width & height of header: this will change entire cells
         
-        //var nOrgRow = y  + this.startRow;
-        //var nOrgCol = x + this.startColumn;
+        var nOrgRow;
+        var nOrgCol;
         var nWidth;
-        for (var x = this.startColumn; x < this.numCols-1; x++) {
-            nWidth = this.arrData[0][x].cellWidth
+        for (var x = 0; x < this.numCols-1; x++) {
+            nOrgCol = x + this.startColumn
+            nWidth = this.arrData[0][nOrgCol].cellWidth
             if (nWidth){
-                console.log("cellWidth = " + this.arrData[0][x].cellWidth)
-                //this.colHeads[x-this.startColumn]
-                this.colHeads[x-this.startColumn].setExtent(pt(nWidth, this.colHeads[x-this.startColumn].getExtent.y));
+                console.log("cellWidth = " + nWidth )
+                this.colHeads[x].setExtent(pt(nWidth, this.colHeads[x].getExtent.y));
             }else{
                 //this.colHeads[x-this.startColumn].setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
             } 

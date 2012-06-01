@@ -2998,7 +2998,26 @@ Object.extend(lively.morphic.TextUndoTrait, {
 })();
 
 Trait("lively.morphic.TextDiffTrait", {
-    showDiff: function() {},
+    diff: function(string1, string2, options) {
+        options = options || {};
+        var asLines = options.lines,
+            insertAt = options.insertAt,
+            text = this;
+        if (insertAt === undefined) {
+            this.textString = "";
+            insertAt = 0;
+        }
+        require('apps.DiffMatchPatch').toRun(function() {
+            var diffs;
+            if (asLines) {
+                diffs = dmp.diff_lineMode(string1, string2);
+            } else {
+                diffs = dmp.diff_main(string1, string2);
+                dmp.diff_cleanupSemantic(diffs);
+            }
+            dmp.showDiffsIn(diffs, text, insertAt);
+        });
+    },
 }).applyTo(lively.morphic.Text);
 
 }) // end of module

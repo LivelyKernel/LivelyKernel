@@ -322,6 +322,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         // if (this.attributeConnections)
             // lively.bindings.signal(this, 'textString', string);
 
+        delete this.priorSelectionRange;
+
         return string;
     },
 
@@ -1020,20 +1022,22 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     onBackspacePressed: function(evt) {
-        if (this.textString === '') {
-            evt.stop();
+        /* this should not be neccessary anymore
+       if (this.textString === '') {
+           evt.stop();
             return true;
-        }
+        }*/
         if (this.mergeText()) {
             evt.stop(); return true;
         }
         if (this.isTabBeforeCursor(true)) {
-            this.insertAtCursor('', false, true)
+            this.insertAtCursor('', false, true);
             evt.stop();
             return true;
         }
-        if (this.charsTyped.length > 0)
+        if (this.charsTyped.length > 0) {
             this.charsTyped = this.charsTyped.substring(0, this.charsTyped.length-1);
+        }
         this.fixChunksDelayed();
         return true;
     },
@@ -1984,15 +1988,17 @@ this. textNodeString()
     isTabBeforeCursor: function(selectIt) { return this.isTabBeforeOrAfterCursor(selectIt, false) },
     isTabAfterCursor: function(selectIt) { return this.isTabBeforeOrAfterCursor(selectIt, true) },
     isTabBeforeOrAfterCursor: function(selectIt, after) {
-        if (!this.hasNullSelection()) return;
+        if (!this.hasNullSelection()) return false;
         var selRange = this.getSelectionRange(),
             rangeToTest = selRange.clone();
-        if (after) rangeToTest[1] = rangeToTest[1]+this.tab.length;
-        else rangeToTest[0] = rangeToTest[0]-this.tab.length;
-        this.setSelectionRange(rangeToTest[0], rangeToTest[1]);
-        var isTab = this.selectionString() === this.tab;
-        if (!isTab || !selectIt)
-                this.setSelectionRange(selRange[0], selRange[1]);
+        if (after) rangeToTest[1] = rangeToTest[1] + this.tab.length;
+        else rangeToTest[0] = rangeToTest[0] - this.tab.length;
+        // @cschuster: consider using the HTML API here
+        var strToTest = this.getTextNode().textContent.substring(rangeToTest[0], rangeToTest[1]),
+            isTab = strToTest === this.tab;
+        if (isTab && selectIt) {
+            this.setSelectionRange(rangeToTest[0], rangeToTest[1]);
+        }
         return isTab;
     },
 

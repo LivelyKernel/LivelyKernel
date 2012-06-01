@@ -2735,6 +2735,9 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
 'settings', {
     isColHead: true
 },
+'default category', {
+    
+},
 'setExtent', {
     setExtent: function ($super,oPos) {
        

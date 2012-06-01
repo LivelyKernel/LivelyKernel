@@ -1196,9 +1196,9 @@ currently only support
     },
     getNumofVisibleRow: function(){
 /*returns visible number of Row on the grid*/
-
         var nGridHeight =  this.owner.getExtent().y-1;//
         var nTotal = 0;
+        debugger;
         for (var n = 0; n < this.numRows.length; n++) {
             nTotal +=this.colHeads[n].getExtent().y
              if (nTotal > nGridHeight ){

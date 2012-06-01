@@ -225,6 +225,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         this.charsTyped = '';
         this.evalEnabled = false;
         this.fit();
+        if (this.prepareForUndo) this.prepareForUndo();
     }
 },
 'styling', {

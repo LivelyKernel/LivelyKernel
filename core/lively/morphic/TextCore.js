@@ -640,7 +640,10 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             case "v": { //  Just do the native paste
                 return false; }
             case "z": { //  Just do the native undo
-                console.log('Undo requested');
+                if (this.undo) {
+                    this.undo();
+                    return true;
+                }
                 return false; }
         }
 

@@ -2997,4 +2997,8 @@ Object.extend(lively.morphic.TextUndoTrait, {
     }
 })();
 
+Trait("lively.morphic.TextDiffTrait", {
+    showDiff: function() {},
+}).applyTo(lively.morphic.Text);
+
 }) // end of module

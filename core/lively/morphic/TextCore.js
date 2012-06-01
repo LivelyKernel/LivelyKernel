@@ -4,7 +4,7 @@ Trait('TextChunkOwner',
 'rendering', {
     forceRender: function() {
         this.setTextChunks(this.getTextChunks());
-    },
+    }
 },
 'accessing', {
     createChunk: function() {
@@ -18,7 +18,7 @@ Trait('TextChunkOwner',
         return this.textChunks;
     },
     setTextChunks: function(chunks) {
-        this.removeTextChunks()
+        this.removeTextChunks();
         chunks.invoke('addTo', this);
         this.textChunks = chunks;
         this.cachedTextString = null;
@@ -33,12 +33,12 @@ Trait('TextChunkOwner',
         var offset = 0;
         return this.textChunks.collect(function(chunk) {
             return [offset, offset += chunk.textString.length];
-        })
-    },
+        });
+    }
 
 },
 'testing', {
-    isFocused: Functions.False,
+    isFocused: Functions.False
 },
 'removing', {
     removeTextChunks: function() {
@@ -48,7 +48,7 @@ Trait('TextChunkOwner',
             var chunk = this.textChunks.shift();
             chunk.remove();
         }
-    },
+    }
 },
 'chunk computations', {
     getChunkAndLocalIndex: function(idx, useChunkStart) {
@@ -70,7 +70,8 @@ Trait('TextChunkOwner',
         // sanitize indexes
         var maxLength = this.textString.length,
             fromSafe = Math.min(from, to),
-            toSafe = Math.max(from, to);
+            toSafe = Math.max(from, to),
+            startChunk, endChunk;
         fromSafe = Math.max(0, Math.min(maxLength, fromSafe));
         toSafe = Math.max(0, Math.min(maxLength, toSafe));
         var zeroLength = fromSafe === toSafe;
@@ -87,11 +88,11 @@ Trait('TextChunkOwner',
             // split the chunks and retrieve chunks inbetween from-to
             var start = this.getChunkAndLocalIndex(fromSafe);
             if (!start) return [];
-            var startChunk = start[0].splitAfter(start[1]);
+            startChunk = start[0].splitAfter(start[1]);
 
             var end = this.getChunkAndLocalIndex(toSafe);
             if (!end) return [];
-            var endChunk = end[0].splitBefore(end[1]);
+            endChunk = end[0].splitBefore(end[1]);
         }
 
         var chunks = this.getTextChunks(),
@@ -105,7 +106,7 @@ Trait('TextChunkOwner',
         var chunk = this.firstTextChunk();
         while (chunk)
             chunk = chunk.joinWithNextIfEqualStyle() ? chunk : chunk.next();
-    },
+    }
 },
 'garbage collection', {
     fixChunks: function() {
@@ -152,7 +153,7 @@ Trait('TextChunkOwner',
             // What if first chunk is broken --> currently just cancel but give warning
             if (!chunks[i-1]) { // need chunk before
                 console.warn('trying to reclaimRemovedChunks of a text chunk with no prev chunk');
-                continue
+                continue;
             }
 
             // find the next valid chunk, this becomes the chunks new nextChunk
@@ -168,7 +169,7 @@ Trait('TextChunkOwner',
             // if we find chunks between prev and nextRenderedChunk then they are added to
             // chunks[i]. If we find nothing this chunk can really be removed
             var nodesBetween = chunks[i-1].nodesBetweenMeAndOther(nextRenderedChunk);
-            if (nodesBetween.length == 0) continue; // nothing found
+            if (nodesBetween.length === 0) continue; // nothing found
             chunks[i].claim(nodesBetween);
             chunks[i].addTo(this, nextRenderedChunk);
             chunksInUse.push(chunks[i]);
@@ -178,7 +179,7 @@ Trait('TextChunkOwner',
 
     removeNonChunkNodes: function(chunks) {
         for (var i = 0; i < chunks.length; i++)
-            chunks[i].removeNonChunkNodes()
+            chunks[i].removeNonChunkNodes();
     },
 
     fixTextBeforeAndAfterChunks: function(chunks) {
@@ -187,11 +188,11 @@ Trait('TextChunkOwner',
         chunks[0].ingestAllPrecedingElements();
         for (var i = 0; i < chunks.length; i++)
             chunks[i].ingestAllFollowingElements(chunks[i+1]);
-    },
+    }
 },
 'debugging', {
-    isInChunkDebugMode: function() { return !!this.chunkDebugMode },
-    setChunkDebugMode: function(bool) {  this.chunkDebugMode = bool; this.forceRender() },
+    isInChunkDebugMode: function() { return !!this.chunkDebugMode; },
+    setChunkDebugMode: function(bool) { this.chunkDebugMode = bool; this.forceRender(); }
 });
 
 lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), Trait('TextChunkOwner'),
@@ -224,7 +225,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         this.charsTyped = '';
         this.evalEnabled = false;
         this.fit();
-    },
+    }
 },
 'styling', {
     applyStyle: function($super, spec) {
@@ -250,7 +251,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (spec.syntaxHighlighting !== undefined) spec.syntaxHighlighting ? this.enableSyntaxHighlighting() : this.disableSyntaxHighlighting();
         if (spec.emphasize !== undefined) this.emphasizeAll(spec.emphasize);
         return this;
-    },
+    }
 },
 'accessing', {
     setExtent: function($super, value) {
@@ -258,8 +259,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         if (this.owner && this.owner.isInLayoutCycle) return;
 
-        var textExtent = this.getTextExtent(),
-            scrollbarExtent = this.getScrollBarExtent(),
+        var scrollbarExtent = this.getScrollBarExtent(),
+            textExtent = this.getTextExtent(),
             borderWidth = this.getBorderWidth(),
             padding = this.getPadding() || new Rectangle(0,0,0,0),
             width = null,
@@ -280,6 +281,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         if (this.fixedHeight) {
             height = Math.max(value, textExtent.y); // FIXME shouldn't that be value.y? (max width ever used??)
+            // yes it should, and it is used, e.g. Scriptpanes are fixed in both dimensions  -bsiegmund
+            // reverted for now, some bugs reported -bsiegmund
             if (this.showsHorizontalScrollBar())
                 height -= scrollbarExtent.y;
             height -= borderWidth*2;
@@ -544,37 +547,33 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             return false; // let HTML magic handle paste
         }
 
-        var data = htmlData ||  lively.morphic.HTMLParser.stringToHTML(textData) // own rich text
+        var data = htmlData || lively.morphic.HTMLParser.stringToHTML(textData), // own rich text
             richText = lively.morphic.HTMLParser.pastedHTMLToRichText(data);
         try {
-          richText.replaceSelectionInMorph(this)
+            richText.replaceSelectionInMorph(this);
         } catch(e) {
-            var selRange = this.getSelectionRange();
-            $world.setStatusMessage("Error in Text>>onPaste() @ replaceSelelectionInMorph",
-                Color.red, undefined, function() {
-                    inspect({
-                        richText: richText,
-                        text: this,
-                        selecitonRange: selRange})
-                }.bind(this))
-            $world.logError(e);
+            var world = this.world();
+            if (!world) return true;
+            var selRange = this.getSelectionRange(),
+                text = this;
+            function inspectCb() {
+                lively.morphic.inspect({richText: richText, text: text, selecitonRange: selRange});
+            }
+            world.setStatusMessage("Error in Text>>onPaste() @ replaceSelelectionInMorph",
+                                   Color.red, undefined, inspectCb);
+            world.logError(e);
         }
         evt.stop()
         return true;
     },
     onCut: function(evt) {
-        this.fixChunksDelayed()
+        this.fixChunksDelayed();
     },
-
 
     processCommandKeys: function(evt) {
         var key = evt.getKeyChar();
         // alert("key " + key)
         if (key) key = key.toLowerCase();
-
-        var second =  !UserAgent.isWindows && !UserAgent.isLinux
-            && evt.isCtrlDown() // TODO what for windows?
-
 
         if (evt.isShiftDown()) {  // shifted commands here...
             switch (key) {
@@ -586,10 +585,10 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                 case "s": { this.convertTabsToSpaces(); return true; }
                 case "u": { this.unEmphasizeSelection(); return true; }
                 case "x": { this.doAutoIndent(); return true;}
-                case "5": { this.emphasizeSelection({color: Color.black}); return true; }
-                case "6": { this.emphasizeSelection({color: Color.red}); return true; }
-                case "7": { this.emphasizeSelection({color: Color.green}); return true; }
-                case "8": { this.emphasizeSelection({color: Color.blue}); return true; }
+                case "5": { this.emphasizeSelection({color: Config.userColor1 || Color.black}); return true; }
+                case "6": { this.emphasizeSelection({color: Config.userColor2 || Color.red}); return true; }
+                case "7": { this.emphasizeSelection({color: Config.userColor3 ||  Color.green}); return true; }
+                case "8": { this.emphasizeSelection({color: Config.userColor4 || Color.blue}); return true; }
 
             }
         }
@@ -606,7 +605,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             case "l": { this.toggleEmphasisForSelection('Font'); return true; }
             case "u": { this.toggleEmphasisForSelection('Underline'); return true; }
 
-
             case "1": { this.applyStyle({align: 'left'}); return true; }
             case "2": { this.applyStyle({align: 'right'});; return true; }
             case "3": { this.applyStyle({align: 'center'}); return true; }
@@ -620,7 +618,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             case "f": { this.doFind(); return true; }
             case "g": { this.doFindNext(); return true; }
             case "m": { this.doMore(evt.isShiftDown()); return true; }
-
 
             case "a": {
                 if (this.charsTyped && this.charsTyped.length > 0) {
@@ -754,7 +751,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         this.lastFindLoc = this.getSelectionRange()[0] + sel.length;
         this.charsTyped = '';
     },
-	indentSelection: function() {
+	  indentSelection: function() {
         var tab = this.tab;
         this.modifySelectedLines(function(line) { return line.length == 0 ? line : tab + line });
     },
@@ -870,6 +867,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         return copy;
     },
+
     mergeText: function() {
         var fromMorph = this.splittedFrom;
         while (fromMorph && !fromMorph.owner)
@@ -885,40 +883,40 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         fromMorph.setNullSelectionAt(textLength);
         return true;
     },
-    doAutoIndent: function() {
-        var text = this.textString;
 
-        var i = 0;
-        var tokens = {};
+    doAutoIndent: function() {
+        var text = this.textString,
+            i = 0, j = 0,
+        tokens = {};
 
         //strip out regexes
-        while(text.match(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/)){
+        while (text.match(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/)) {
             tokens[i] =  text.match(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/)[2];
             text = text.replace(/([=\(:;][\n ]*)(\/([^\n\/]|\\\/)+[^\\]\/)/, "$1\u0007"+i);
             i++;
         }
 
         //strip out strings
-        while(text.match(/"[^"\n]*"/)){
+        while (text.match(/"[^"\n]*"/)) {
             tokens[i] =  text.match(/"[^"]*"/)[0];
             text = text.replace(/"[^"]*"/, "\u0007"+i);
             i++;
         }
-        while(text.match(/'[^'\n]*'/)){
+        while (text.match(/'[^'\n]*'/)) {
             tokens[i] =  text.match(/'[^']*'/)[0];
             text =  text.replace(/'[^']*'/, "\u0007"+i);
             i++;
         }
 
         //strip out comments(one lined)
-        while(text.match(/(\/\/[^\n]*)\n/)){
+        while (text.match(/(\/\/[^\n]*)\n/)) {
             tokens[i] = text.match(/(\/\/[^\n]*)\n/)[1];
             text =  text.replace(/(\/\/[^\n]*)\n/, "\u0007"+i+"\n");
             i++;
         }
 
         //strip out comments(block)
-        while(text.match(/\/\*(.|\n)*?\*\//)){
+        while (text.match(/\/\*(.|\n)*?\*\//)) {
             tokens[i] = text.match(/\/\*(.|\n)*?\*\//)[0];
             text = text.replace(/\/\*(.|\n)*?\*\//, "\u0007"+i);
             i++;
@@ -926,14 +924,14 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         //strip out leading and trailing whitespace
         text = text.replace(/ *\n/g, "\n");
-        text = text.replace(/ *(.*[^ ]) *\n/g, "$1\n");
+            text = text.replace(/ *(.*[^ ]) *\n/g, "$1\n");
 
-        var formatted = '';
-        var lines = text.split('\n');
-        var indent = 0;
-        var lastCount = 0;
+        var formatted = '',
+        lines = text.split('\n'),
+        indent = 0,
+        lastCount = 0;
 
-        for (var i=0; i < lines.length; i++) {
+        for (i = 0; i < lines.length; i++) {
             var ln = lines[i];
 
             var brackets = [
@@ -948,12 +946,12 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                 [0,0]
             ];
 
-            for(var j = 0; j < ln.length; j++){
-                for(var b = 0; b < brackets.length; b++){
-                    if(ln[j] === brackets[b][0]){
+            for (j = 0; j < ln.length; j++) {
+                for (var b = 0; b < brackets.length; b++) {
+                    if (ln[j] === brackets[b][0]) {
                         counts[b][0]++;
-                    } else if(ln[j] === brackets[b][1]){
-                        if(counts[b][0] > 0){
+                    } else if (ln[j] === brackets[b][1]) {
+                        if (counts[b][0] > 0) {
                             counts[b][0]--;
                         } else {
                             counts[b][1]++;
@@ -962,7 +960,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                 }
             }
 
-            counts = counts.reduce(function(ea1, ea2){
+            counts = counts.reduce(function(ea1, ea2) {
                 return [ea1[0] + ea2[0], ea1[1] + ea2[1]];
             });
 
@@ -970,8 +968,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             lastCount = Math.max(0, counts[0]);
 
             var padding = '';
-            for (var j = 0; j < indent; j++) {
-                padding += '    ';
+            for (j = 0; j < indent; j++) {
+                padding += this.tab;
             }
 
             formatted += padding + ln + '\n';
@@ -980,18 +978,16 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         text = formatted;
 
         //put strings, regexes and comments back in
-        while(i > 0){
+        while (i > 0) {
             i--;
             text= text.replace(new RegExp("\u0007"+i),tokens[i]);
         }
 
         this.textString = text;
     },
-
     doVarDeclClean: function() {
         this.modifySelectedLines(this.varDeclCleaner());
-    },
-
+    }
 },
 'keyboard event reaction', {
     onEnterPressed: function(evt) {
@@ -1285,8 +1281,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         //console.log('Text>>insertTextChunksAtCursor');
         var selRange = this.getSelectionRange();
         if (!selRange) { throw new Error("" + this + ": No selection to replace")}
-        var
-            start = Math.min(selRange[0],selRange[1]),
+        var start = Math.min(selRange[0],selRange[1]),
             end = Math.max(selRange[0],selRange[1]),
             chunks = this.getTextChunks(),
             oldChunks = this.sliceTextChunks(start, end),

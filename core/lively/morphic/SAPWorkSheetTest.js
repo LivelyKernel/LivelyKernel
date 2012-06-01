@@ -1183,14 +1183,16 @@ currently only support
 },
 'Expend cells', {
     getNumofColumnView: function(){
+/*returns visible number of column on the grid*/
         debugger;
-        var nGridWidth =  this.owner.getExtent().x-1;//this
+        var nGridWidth =  this.owner.getExtent().x-1;//
         var nTotalWidth = 0;
         for (var n = 0; n < this.colHeads.length; n++) {
             console.log("n=" + n + ",  width=" + this.colHeads[n].getExtent().x)
             nTotalWidth +=this.colHeads[n].getExtent().x
              if (nTotalWidth > nGridWidth ){
                 return n;
+                break;
             }
         }
     },

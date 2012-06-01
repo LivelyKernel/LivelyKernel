@@ -2982,7 +2982,7 @@ Object.extend(lively.morphic, {
 Object.extend(lively.morphic.TextUndoTrait, {
     install: function() {
         if (lively.morphic.Events.MutationObserver) {
-         this.applyTo(lively.morphic.Text, {override: ['getEmphasisAt']});
+            this.applyTo(lively.morphic.Text, {override: ['getEmphasisAt']});
         }
     }
 });

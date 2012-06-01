@@ -1037,6 +1037,7 @@ doAutoIndent: function() {
         if (this.mergeText()) {
             evt.stop(); return true;
         }
+        this.textString;
         console.log("cached = " + this.cachedTextString);
         /*if (this.isTabBeforeCursor(true)) {
             this.insertAtCursor('', false, true)

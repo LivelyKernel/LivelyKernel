@@ -2669,7 +2669,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.grid.oWorkBook = this;
         
 
-        var nWidth= this.grid.defaultCellWidth * this.numCols + 50;
+        var nWidth= this.grid.defaultCellWidth * this.numCols + 60;
         var nHeight = this.grid.defaultCellHeight * this.numRows + 50;
 
         this.grid.setPosition(pt(0,this.toolBarHeight+2));

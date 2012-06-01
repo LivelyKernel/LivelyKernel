@@ -2756,7 +2756,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridColHead',
         if (this.grid){
             if (this.grid.selectedColumnHeader){
                 var nOrgCol = this.grid.selectedColumnHeader.gridCoords.x- 1+ this.grid.startColumn;
-                debugger;
+                console.log( oPos.x);
                 this.grid.arrData[0][nOrgCol].ColWidth = oPos.x;
             }
         }

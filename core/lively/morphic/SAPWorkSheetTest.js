@@ -2780,7 +2780,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
         if (oPos.y < 30){
             oPos.y=30;
         }
-        //oPos.x=60;
+        oPos.x=55;
         return $super(oPos);
         //return $super(ext.roundTo(20));
     }

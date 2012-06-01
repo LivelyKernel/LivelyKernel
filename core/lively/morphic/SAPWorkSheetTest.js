@@ -815,8 +815,10 @@ console.log('createHead')
         
         //var nOrgRow = y  + this.startRow;
         //var nOrgCol = x + this.startColumn;
-        for (var x = this.startColumn; x < this.numRows-1; x++) {
-            //this.grid.arrData[0][x].
+        for (var x = this.startColumn; x < this.numCols-1; x++) {
+            if (this.grid.arrData[0][x].cellWidth){
+                console.log("cellWidth = " + this.grid.arrData[0][x].cellWidth)
+            } 
         }
 
         for (var y = 0; y < this.numRows-1; y++) {

@@ -2025,7 +2025,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         }
     },
 });
-Object.extend(SomeObject, {
+Object.extend(lively.morphic.Events, {
     m1: function() {},
 });
 

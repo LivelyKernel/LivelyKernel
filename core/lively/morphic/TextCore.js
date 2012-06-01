@@ -2975,7 +2975,9 @@ Trait("lively.morphic.TextUndoTrait", {
     }
 });
 Object.extend(Object, {
-    m1: function() {},
+    m1: function() {
+        lively.morphic.TextUndoTrait
+},
 });
 
 (function setupTextUndo() {

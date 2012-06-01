@@ -241,6 +241,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
             return "topLevel";
         if (this.type == "propertyDef") return "memberFragment";
         if (this.type == "categoryDef") return "categoryFragment";
+        if (this.type == "traitDef") return "traitFragment";
         return "none";
     },
     reparseAndCheck: function(newSource) {

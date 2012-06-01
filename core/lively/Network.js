@@ -1451,6 +1451,7 @@ Object.subclass('WebResource',
         // this mehod intentionally not called delete because some JS engines
         // throw an error when parsing "keywords" as object key names
         var request = this.createNetRequest();
+        this.addNoCacheHeader();
         request.del(this.getURL());
         return this;
     },

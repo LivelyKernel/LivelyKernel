@@ -2774,6 +2774,17 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
 'settings', {
     isRowHead: true
 },
+'setExtent', {
+    setExtent: function ($super,oPos) {
+       
+        if (oPos.x < 30){
+            oPos.x=30;
+        }
+        oPos.x=50;
+        return $super(oPos);
+        //return $super(ext.roundTo(20));
+    }
+},
 'default category', {
     onMouseDown: function (evt) {
  

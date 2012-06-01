@@ -2026,7 +2026,9 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     },
 });
 Object.extend(lively.morphic.Events, {
-    m1: function() {},
+    MutationObserver window.MutationObserver
+                                         || window.WebKitMutationObserver
+                                         || window.MozMutationObserver
 });
 
 // FIXME remove!!!

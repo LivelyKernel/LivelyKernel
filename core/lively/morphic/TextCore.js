@@ -2914,7 +2914,13 @@ Trait("lively.morphic.TextUndoTrait", {
             console.warn('Trying to enable undo but no MutationObserver was found');
         }
         this.doNotSerialize = ['undoState'];
-        this.undoState = {idx: 0, undos: [], undoInProgress: false};
+        this.undoState = {
+            idx: 0,
+            undos: [],
+            undoInProgress: false,
+            waitForNextRecording: 20, // ms
+            lastUndoRecorded: null
+        };
         this.recordUndoState();
         this.observeTextChanges();
     },
@@ -2928,35 +2934,91 @@ Trait("lively.morphic.TextUndoTrait", {
             observer = new lively.morphic.Events.MutationObserver(
                 function(mutations) { return self.onTextChange(mutations); });
         observer.observe(textNode, {
-            childList: true,
             characterData: true,
-            attributes: true,
-            characterDataOldValue: true,
-            attributeOldValue: true,
             subtree: true
         });
     },
     onTextChange: function(mutations) {
         this.recordUndoState(mutations);
     },
+    styleStringAsObject: function(string) {
+        var obj = {};
+        string = string || '';
+        string.split(';').forEach(function(subStr) {
+            var splitted = subStr.split(':'),
+                key = Strings.removeSurroundingWhitespaces(splitted[0]),
+                val = splitted[1] ? Strings.removeSurroundingWhitespaces(splitted[1]) : '';
+            if (key && key != '') obj[key] = val;
+        });
+        return obj;
+    },
+    compareStyleStrings: function(style1String, style2String) {
+        var style1 = this.styleStringAsObject(style1String),
+            style2 = this.styleStringAsObject(style2String),
+            diff = {},
+            stylesDiffer = false,
+            keys = Properties.own(style1).concat(Properties.own(style2)).uniq();
+        keys.forEach(function(key) {
+            if (style1[key] != style2[key]) {
+                stylesDiffer = true;
+                diff[key] = {a: style1[key], b: style2[key]};
+            }
+        });
+        return stylesDiffer ? diff : null;
+    },
+    showMutations: function(mutations) {
+        var t = this.get('mutations');
+        if (!t) return;
+        t.textString += '\n\nMutations for undo ' + this.undoState.idx;
+        var differs = false;
+        mutations.forEach(function(m) {
+            t.insertTextStringAt(0, '\n');// pos++;
+            if (m.type === 'attributes' && m.attributeName === 'style') {
+                var diff = this.compareStyleStrings(m.oldValue, m.target.style.cssText);
+                if (diff) {
+                    differs = true;
+                    t.textString += '\n' + Exporter.stringify(m.target)
+                                    + ' ' + JSON.stringify(diff);
+                }
+            } else {
+                t.textString += '\n' + m.type;
+                t.textString += '\n' + m.oldValue;
+                t.textString += '\n' + m.target.textContent;
+            }
+        }, this);
+        if (!differs) {
+            t.textString += '\nno changes';
+        }
+    },
     recordUndoState: function(mutations) {
         var undoState = this.undoState;
-        if (undoState.undoInProgress) {
-            undoState.undoInProgress = false;
-            return;
-        }
         undoState.undos = undoState.undos.slice(0, undoState.idx);
+        var last = undoState.undos.last();
+        if (false && last) {
+            if ((Date.now() - last.timestamp) < this.undoState.waitForNextRecording) {
+                return;
+            }
+        }
         var richText = this.getRichText2(),
             sel = this.getSelectionRange();
-        undoState.undos.push({richText: richText, selection: sel, mutations: mutations});
+        var last = undoState.undos.last();
+        if (last && last.richText.textString === richText.textString) {
+            return;
+        }
+        undoState.undos.push({
+            richText: richText,
+            selection: sel,
+            mutations: mutations,
+            timestamp: Date.now()
+        });
         undoState.idx++;
     },
     applyUndoState: function() {
-        this.undoState.undoInProgress = true;
-        var undoState = this.undoState.undos[this.undoState.idx-1];
-        if (undoState) {
-            this.setRichText2(undoState.richText);
-            var sel = undoState.selection;
+        var undoState = this.undoState,
+            undo = undoState.undos[undoState.idx-1];
+        if (undo) {
+            this.setRichText2(undo.richText);
+            var sel = undo.selection;
             if (sel) {
                 this.setSelectionRange(sel[0], sel[1]);
             }

@@ -92,7 +92,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.createColHeads();
         }
         if (!this.hideRowHeads) {
-            //this.createRowHeads();
+            this.createRowHeads();
         }
         console.log("initializeMorph:createCells: start")
         this.createCells();

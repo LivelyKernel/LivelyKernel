@@ -828,8 +828,8 @@ console.log("updateDisplay Start")
             nOrgCol = x +1 + this.startColumn
             nWidth = this.arrData[0][nOrgCol].cellWidth
             if (nWidth){
-                console.log("cellWidth = " + nWidth )
-                this.colHeads[x].setExtent(pt(nWidth, this.colHeads[x].getExtent.y));
+                //console.log("cellWidth = " + nWidth )
+                //this.colHeads[x].setExtent(pt(nWidth, this.colHeads[x].getExtent.y));
             }else{
                 //this.colHeads[x].setExtent(pt(this.defaultCellWidth, this.defaultCellHeight));
             } 

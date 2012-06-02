@@ -95,7 +95,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             this.createRowHeads();
         }
         this.createCells();
-        this.createLayout();
+        //this.createLayout();
     },
 },
 'Create Header', { 

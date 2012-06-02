@@ -153,7 +153,7 @@ console.log('createHead....')
 'Create Cells', { 
     createCells: function() {
         var start = new Date().getTime();
-
+console.log("Start createCells")
         var rowOffset = this.hideColHeads ? 0 : 1,
             colOffset = this.hideRowHeads ? 0 : 1,
             numCellRows = this.numRows - rowOffset,
@@ -167,7 +167,7 @@ console.log('createHead....')
             var cell = cells.pop();
             cell.addToGrid(self);
             //cell.gridCoords = pt(x , y );
-            console.log("addCellToRow:" + x + "," + y)
+            //console.log("addCellToRow:" + x + "," + y)
             cell.gridCoords = pt(x + colOffset, y + rowOffset);
             cell.name = '[' + (x + colOffset) + ';' + (y + rowOffset) + ']';
             //cell.textString = '[' + (x + colOffset) + ';' + (y + rowOffset) + ']';

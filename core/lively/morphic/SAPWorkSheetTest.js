@@ -102,7 +102,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         console.log("initializeMorph:createLayout end")
     },
 },
-'Create Header', { 
+'Create Header',{ 
     createColHeads: function() {
         var sName="";
         var oHeader;

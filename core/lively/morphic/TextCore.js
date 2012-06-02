@@ -2920,7 +2920,7 @@ Trait("lively.morphic.TextUndoTrait", {
             undoInProgress: false,
             waitForNextRecording: 20, // ms
             lastUndoRecorded: null,
-            maxUndos: 5
+            // maxUndos: 5
         };
         this.recordUndoState();
         this.observeTextChanges();

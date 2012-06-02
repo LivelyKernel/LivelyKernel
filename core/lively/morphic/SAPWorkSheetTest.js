@@ -814,7 +814,7 @@ console.log("Start createCells")
 
         this.arrSelectedCells.lenght=0;
         this.arrSelectedCells =[];
-
+console.log("updateDisplay Start")
 
         //changing width & height of header: this will change entire cells
         

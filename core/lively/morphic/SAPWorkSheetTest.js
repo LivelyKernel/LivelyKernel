@@ -129,14 +129,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             head = new lively.morphic.SAPGridRowHead();
             head.setAlign('right');
             head.row = index;
-            nWidth = this.defaultCellWidth;
+            //nWidth = this.defaultCellWidth;
         }else{
             head = new lively.morphic.SAPGridColHead();
             head.setAlign('center');
             head.column = index;
-            nWidth = this.defaultRowHeaderWidth;
+            //nWidth = this.defaultRowHeaderWidth;
         }
-console.log('createHead..')
+console.log('createHead....')
         //head.setExtent(pt(nWidth , this.defaultCellHeight));
         head.addToGrid(this);
         head.gridCoords = isRow ? pt(0, index) : pt(index, 0);

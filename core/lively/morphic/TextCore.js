@@ -3007,7 +3007,7 @@ Trait("lively.morphic.TextUndoTrait", {
             // alertOK('no undo recored');
             return;
         }
-        undoState.undos = undoState.undos.slice(0, Math.max(undoState.idx, 0));
+        undoState.undos = undoState.undos.slice(0, Math.max(undoState.idx, 1));
         undoState.undos.push({
             richText: richText,
             selection: sel,

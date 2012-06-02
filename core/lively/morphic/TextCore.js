@@ -3025,7 +3025,8 @@ Trait("lively.morphic.TextUndoTrait", {
         }
     },
     undo: function() {
-        if (this.undoState.idx > 0) this.undoState.idx--;
+        this.undoState.idx--;
+        if (this.undoState.idx < 0) this.undoState.idx = 0;
         this.applyUndoState();
     },
     redo: function() {

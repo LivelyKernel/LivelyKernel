@@ -2831,7 +2831,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
 'default category', {
     initialize: function($super) {
         $super();
-        this.cellHeight=120;
+        this.cellHeight=30;
     },
 },
 'setExtent', {

@@ -2935,7 +2935,8 @@ Trait("lively.morphic.TextUndoTrait", {
                 function(mutations) { return self.onTextChange(mutations); });
         observer.observe(textNode, {
             characterData: true,
-            subtree: true
+            subtree: true,
+            childList: true
         });
     },
     onTextChange: function(mutations) {

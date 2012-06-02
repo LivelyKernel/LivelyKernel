@@ -3003,6 +3003,7 @@ Trait("lively.morphic.TextUndoTrait", {
             sel = this.getSelectionRange();
         var last = undoState.undos.last();
         if (last && last.richText.textString === richText.textString) {
+            alertOK('no undo recored');
             return;
         }
         undoState.undos.push({

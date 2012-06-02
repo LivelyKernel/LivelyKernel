@@ -593,6 +593,7 @@ console.log("Start createCells")
         this.updateDisplay();
     },
     setData: function(aJsArray) {
+        console.log("*** setData Start")
         this.clear();
         this.dataModel = [];
 
@@ -638,6 +639,7 @@ console.log("Start createCells")
         var elapsed = new Date().getTime() - start;
 	elapsed = elapsed/1000;
 	console.log('End setData=' + elapsed);
+        console.log("*** setData End")
     },
 
     getDataObjects: function() {

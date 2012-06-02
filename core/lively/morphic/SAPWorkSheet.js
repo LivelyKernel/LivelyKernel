@@ -498,7 +498,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             //nWidth = this.defaultRowHeaderWidth;
         }
 
-        head.setExtent(pt(nWidth , this.defaultCellHeight));
+        //head.setExtent(pt(nWidth , this.defaultCellHeight));
         head.addToGrid(this);
         head.gridCoords = isRow ? pt(0, index) : pt(index, 0);
         head.textString = head.name = title;

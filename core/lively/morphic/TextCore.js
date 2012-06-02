@@ -2919,7 +2919,8 @@ Trait("lively.morphic.TextUndoTrait", {
             undos: [],
             undoInProgress: false,
             waitForNextRecording: 20, // ms
-            lastUndoRecorded: null
+            lastUndoRecorded: null,
+            maxUndos: 5
         };
         this.recordUndoState();
         this.observeTextChanges();
@@ -3014,6 +3015,11 @@ Trait("lively.morphic.TextUndoTrait", {
             timestamp: Date.now()
         });
         undoState.idx++;
+
+        if (undoState.maxUndos && undoState.undos.length > undoState.maxUndos) {
+            undoState.undos = undoState.undos.slice(1);
+            undoState.idx--;
+        }
     },
     applyUndoState: function() {
         var undoState = this.undoState,

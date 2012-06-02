@@ -504,9 +504,11 @@ console.log("Start createCells")
 	}
     },
     createLayout: function() {
+        console.log("createLayout Start")
         var layouter = new lively.morphic.Layout.GridLayout(this, this.numCols, this.numRows);
         layouter.rows = this.rows;
         this.applyLayout();
+        console.log("createLayout End")
     },
     setAnnotation: function(nColumn,nRow,sText) {
         this.arrData[nRow][nColumn].annotation = sText;

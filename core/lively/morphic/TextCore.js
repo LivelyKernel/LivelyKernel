@@ -311,7 +311,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
     set textString(string) {
         string = String(string);
-
+if (Global.test01SimpleTextUndoAndRedo) debugger;
         // setting the textString removes all the content in the text morph
         this.removeTextChunks();
 

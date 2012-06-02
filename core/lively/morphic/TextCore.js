@@ -3072,7 +3072,7 @@ Trait("lively.morphic.TextDiffTrait", {
             insertAt = 0;
         }
         require('apps.DiffMatchPatch').toRun(function() {
-            var diffs;
+            var diffs, dmp = new diff_match_patch();
             if (asLines) {
                 diffs = dmp.diff_lineMode(string1, string2);
             } else {

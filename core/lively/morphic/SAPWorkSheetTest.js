@@ -2836,14 +2836,13 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
 },
 'setExtent', {
     setExtent: function ($super,oPos) {
-       
+       console.log("SAPGridRowHead: setExtent");
         if (oPos.y < 30){
             oPos.y=30;
         }
        oPos.x = 60;
        this.cellHeight = oPos.y;
         return $super(oPos);
-        //return $super(ext.roundTo(20));
     }
 },
 'default category', {

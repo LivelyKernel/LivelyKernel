@@ -51,7 +51,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeMorph();
         this.initializeScrolls();
         this.initializeAnnotation();
-       
+        console.log("******* End All ***************")
         /*$.getScript("../../core/lively/date.format.js")
             .done(function(script, textStatus) {
             console.log( "success loading date.format.js");

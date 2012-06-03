@@ -690,6 +690,7 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.GridLayout',
     adjustRowAndColSizes: function() {
         this.colWidths = [];
         this.rowHeights = [];
+        console.log("Layout: adjustRowAndColSizes")
         var x, y;
         for (x = 0; x < this.numCols; x++) {
             this.colWidths.push(this.getColWidth(x));

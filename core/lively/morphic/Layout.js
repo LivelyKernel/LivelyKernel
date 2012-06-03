@@ -646,7 +646,7 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.GridLayout',
     onSubmorphResized: function(aMorph, aSubmorph, allSubmorphs) {
         var gridCoords = aSubmorph.gridCoords,
             subExtent = aSubmorph.getExtent();
-
+debugger;
         if (aMorph.isInLayoutCycle) { return; }
 console.log("Layout: onSubmorphResized")
         aMorph.isInLayoutCycle = true;

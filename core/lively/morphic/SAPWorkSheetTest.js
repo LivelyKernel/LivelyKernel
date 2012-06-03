@@ -113,6 +113,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             //changedHeaderSize
             //connect(oHeader, 'extent', this, 'changedHeaderSize')
         }
+        debugger;
         this.colHeads[0].setExtent(pt(this.defaultRowHeaderWidth, this.defaultCellHeight));
         //this.rows[0] = this.colHeads;
     },

@@ -138,7 +138,9 @@ lively.morphic.Morph.addMethods(
     },
     findCurrentPartVersion: function () {
         // returns the current version in PartsBin as morph
-        return this.getPartItem().loadPart(false).part;
+        var partItem = this.getPartItem();
+        if (new WebResource(partItem.getFileURL()).exists())
+            return partItem.loadPart(false).part
     },
     findDerivationParent: function (optScope) {
         //returns the nearest ancestor in line that can be found in scope or world

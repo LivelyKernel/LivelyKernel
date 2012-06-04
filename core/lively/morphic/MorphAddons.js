@@ -235,15 +235,10 @@ lively.morphic.Morph.addMethods(
         // Removes the morph and lets all its child morphs drop to its owner
         this.submorphs.each(function(submorph){
             
-            console.log(null || "Test");
             
-            var supermorph = this.owner;
-            if (!supermorph) supermorph= $world; // ?
-            console.log("This Morph: ");
-            console.log(this);
-            console.log("Supermorph:");
-            console.log(supermorph);
-               supermorph.addMorph(submorph.copy());
+            var supermorph = this.owner || $world; 
+            supermorph.addMorph(submorph.copy());
+            submorph.remove();
             this.submorphs = this.submorphs.without(submorph);
             submorph.owner = supermorph;
             

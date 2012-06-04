@@ -523,7 +523,10 @@ console.log("Start createCells")
         var nOrgRow = nRow-1  + this.startRow;
         var nOrgCol = nColumn-1 + this.startColumn;
 
-        sAnnotation  = this.arrData[nOrgRow][nOrgCol].annotation
+        sAnnotation  = this.arrData[nOrgRow][nOrgCol].annotation;
+        
+
+
         this.oAnnotation.setVisible(true);
         if (sAnnotation){
             this.oAnnotation.textString = sAnnotation ;

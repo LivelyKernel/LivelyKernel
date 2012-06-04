@@ -904,7 +904,10 @@ lively.morphic.Shapes.Shape.addMethods(
     }  ,
 
     setComputedStylesHTML: function(ctx) {
-        var borderWidth = ctx.asdf;
+        if (ctx.shapeNode) {
+            var borderWidth = window.getComputedStyle(ctx.shapeNode);
+            console.log(borderWidth);
+        }
     },
 
 

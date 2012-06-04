@@ -98,9 +98,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         }
         console.log("initializeMorph:createCells: start")
         this.createCells();
-        console.log("initializeMorph:createLayout start")
+        console.log("***************** initializeMorph:createLayout start")
         this.createLayout();
-        console.log("initializeMorph:createLayout end")
+        console.log("***************** initializeMorph:createLayout end")
     },
 },
 'Create Header', { 

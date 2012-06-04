@@ -73,6 +73,10 @@ Object.extend(Object, {
         return typeof object == "function";
     },
 
+    isBoolean: function(object) {
+        return typeof object == "boolean";
+    },
+
     isString: function(object) {
         return typeof object == "string";
     },

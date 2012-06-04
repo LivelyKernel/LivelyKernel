@@ -51,7 +51,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
         this.initializeMorph();
         //removed this to SAPGridLayout
         //this.initializeScrolls();
-        this.initializeAnnotation();
+        //this.initializeAnnotation();
         console.log("******* end all******")
     },
     initializeScrolls: function() {

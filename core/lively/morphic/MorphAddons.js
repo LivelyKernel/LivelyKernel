@@ -240,7 +240,7 @@ lively.morphic.Morph.addMethods(
             supermorph.addMorph(submorph.copy());
             submorph.remove();
             this.submorphs = this.submorphs.without(submorph);
-            submorph.owner = supermorph;
+            //submorph.owner = supermorph;
             
         }, this);
         this.remove();

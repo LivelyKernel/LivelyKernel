@@ -247,7 +247,11 @@ Object.subclass('lively.morphic.Morph',
     getBorderStylingMode: function() {
         return this.shape.getBorderStylingMode();
     },
+    
+    updateComputedStyles: function() {
+    
 
+    },
 
     setVertices: function(v) { this.shape.setVertices(v) },
 

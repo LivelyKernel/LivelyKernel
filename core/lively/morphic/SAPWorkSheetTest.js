@@ -525,7 +525,7 @@ console.log("Start createCells")
 
         sAnnotation  = this.arrData[nOrgRow][nOrgCol].annotation;
         
-
+        debugger;
         if (!this.oAnnotation){
             this.oAnnotation= new lively.morphic.SAPGridAnnotation();
             this.oAnnotation.doitContext = this;

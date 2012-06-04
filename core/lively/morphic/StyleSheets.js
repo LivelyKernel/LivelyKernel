@@ -13,6 +13,16 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
     // FALSE when appearance is styled through style dialog
         return this.shape.setAppearanceStylingMode(value);
     },
+
+        setStyleSheet: function(value) {
+        this.setNodeId();
+        return this.shape.setStyleSheet(value);
+    },
+    getStyleSheet: function() {
+        this.shape.getStyleSheet();
+        this.updateComputedStyles();
+    },    
+    
     getAppearanceStylingMode: function() {
         return this.shape.getAppearanceStylingMode();
     },

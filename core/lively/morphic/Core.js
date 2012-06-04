@@ -249,7 +249,7 @@ Object.subclass('lively.morphic.Morph',
     },
     
     updateComputedStyles: function() {
-    
+        return this.shape.updateComputedStyles();
 
     },
 

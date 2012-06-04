@@ -2730,11 +2730,10 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.addMorph(this.hScroll );
         
         this.grid.vScroll = this.vScroll;
-        this.grid.hScroll = this.hScroll
+        this.grid.hScroll = this.hScroll;
+        //adding connect object for when scrolls are moving
         connect(this.vScroll, "value", this.grid, "updateRowDisplay", {});
         connect(this.hScroll , "value", this.grid, "updateColumnDisplay", {});
-
-
 
         this.addMorph(this.gridContainer);
         this.gridContainer.addMorph(this.grid);

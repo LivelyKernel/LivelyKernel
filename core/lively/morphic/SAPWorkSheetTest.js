@@ -526,8 +526,17 @@ console.log("Start createCells")
         sAnnotation  = this.arrData[nOrgRow][nOrgCol].annotation;
         
 
+        if (!this.oAnnotation){
+            this.oAnnotation= new lively.morphic.SAPGridAnnotation();
+            this.oAnnotation.doitContext = this;
+            this.oAnnotation.setExtent(lively.pt(200,100));
+            this.oAnnotation.addToGrid(this);
+        }
 
-        this.oAnnotation.setVisible(true);
+
+
+
+        
         if (sAnnotation){
             this.oAnnotation.textString = sAnnotation ;
         }else{

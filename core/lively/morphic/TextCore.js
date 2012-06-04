@@ -1510,6 +1510,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     selectWord: function(str, i1) { // Selection caret before char i1
+        if (!str) return i1;
         // Most of the logic here is devoted to selecting matching backets
         var rightBrackets = "*)}]>'\"";
         var leftBrackets = "*({[<'\"";

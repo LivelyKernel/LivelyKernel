@@ -227,7 +227,8 @@ Object.subclass('lively.morphic.Morph',
         return this.shape.setStyleSheet(value);
     },
     getStyleSheet: function() {
-        return this.shape.getStyleSheet();
+        this.shape.getStyleSheet();
+        this.updateComputedStyles();
     },
 
     setAppearanceStylingMode: function(value) {

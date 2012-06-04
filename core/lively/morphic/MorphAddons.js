@@ -243,6 +243,7 @@ lively.morphic.Morph.addMethods(
             //submorph.owner = supermorph;
             
         }, this);
+        this.removeAllMorphs();
         this.remove();
     }
 },

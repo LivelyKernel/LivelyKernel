@@ -900,6 +900,11 @@ lively.morphic.Shapes.Shape.addMethods(
 	css.text(specificCss);
 	css.appendTo(document.head);
     }  ,
+
+    adaptExtentForStyleSheetsHTML: function(ctx) {
+
+    },
+
     
     setAppearanceStylingModeHTML: function(ctx, value) {
         this.isStyleSheetAppearance = value;

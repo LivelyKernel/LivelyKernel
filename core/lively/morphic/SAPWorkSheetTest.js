@@ -532,7 +532,7 @@ console.log("Start createCells")
             this.oAnnotation.setExtent(lively.pt(200,100));
             this.oAnnotation.addToGrid(this);
         }
-
+        this.oAnnotation.setVisible(true);
 
 
 

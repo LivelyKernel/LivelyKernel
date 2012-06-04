@@ -902,8 +902,8 @@ lively.morphic.Shapes.Shape.addMethods(
 	css.appendTo(document.head);
     }  ,
 
-    getBorderStyleSheetWidthHTML: function(ctx) {
-        console.log("Get Border STyle Sheet Width");
+    getComputedBorderWidthHTML: function(ctx) {
+        console.log("Get Border Style Sheet Width");
     },
 
 

@@ -116,7 +116,7 @@ Object.subclass('lively.morphic.Shapes.Shape',
     },
 
     updateComputedStyles: function() {
-    
+        return this.shapeSetter('ComputedStyles');
 
     }
 

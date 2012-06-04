@@ -8,9 +8,23 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
 
 		this.shape.setStyleSheet(style);
             },
-            getBorderStylingMode: function() {
-                return this.shape.getBorderStylingMode();
-            }  ,
+               setAppearanceStylingMode: function(value) {
+    // TRUE when appearance is styled through style sheets,
+    // FALSE when appearance is styled through style dialog
+        return this.shape.setAppearanceStylingMode(value);
+    },
+    getAppearanceStylingMode: function() {
+        return this.shape.getAppearanceStylingMode();
+    },
+
+    setBorderStylingMode: function(value) {
+    // TRUE when border is styled through style sheets,
+    // FALSE when border is styled through style dialog
+        return this.shape.setBorderStylingMode(value);
+    },
+    getBorderStylingMode: function() {
+        return this.shape.getBorderStylingMode();
+    },
         }
     );
 

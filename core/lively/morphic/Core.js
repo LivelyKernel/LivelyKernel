@@ -222,14 +222,7 @@ Object.subclass('lively.morphic.Morph',
         return this.shape.getNodeId();
     },
 
-    setStyleSheet: function(value) {
-        this.setNodeId();
-        return this.shape.setStyleSheet(value);
-    },
-    getStyleSheet: function() {
-        this.shape.getStyleSheet();
-        this.updateComputedStyles();
-    },
+
 
     setAppearanceStylingMode: function(value) {
     // TRUE when appearance is styled through style sheets,

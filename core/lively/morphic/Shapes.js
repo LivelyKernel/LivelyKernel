@@ -115,7 +115,10 @@ Object.subclass('lively.morphic.Shapes.Shape',
         return this.shapeGetter('BorderStylingMode');
     },
 
+    updateComputedStyles: function() {
+    
 
+    }
 
 },
 'comparing', {

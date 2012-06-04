@@ -25,6 +25,12 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
     getBorderStylingMode: function() {
         return this.shape.getBorderStylingMode();
     },
+
+    
+    updateComputedStyles: function() {
+        return this.shape.updateComputedStyles();
+
+    },
         }
     );
 

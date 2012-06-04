@@ -2687,21 +2687,19 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.hideRowHeads = bHideRowHeader ? bHideRowHeader:false;
         this.toolBarHeight = 60;
         this.grid;
-        this.gridContainer;    //layer holding grid & scrolls
+        this.gridContainer;    //container holding grid & scrolls:  for resizing cells
         this.toolBar;
-        this.dataFormatter;
+        this.dataFormatter;    //
         this.vScroll = null;
         this.hScroll = null;
         this.initializeLayout();
     },
      initializeLayout: function() {
         
-
         this.grid = new lively.morphic.SAPGrid(this.numCols*2,this.numRows);
         this.grid.name="BPCGrid";
         this.grid.oWorkBook = this;
         
-
         var nWidth= this.grid.defaultCellWidth * this.numCols + 50;
         var nHeight = this.grid.defaultCellHeight * this.numRows + 50;
 
@@ -2712,9 +2710,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
                                                 this.grid.defaultCellWidth * (this.numCols-1)+60, 
                                                 this.grid.defaultCellHeight * this.numRows);
         
-        
-
-        var nToolBarWidth= this.gridContainer.getExtent().x//this.grid.defaultCellWidth * (this.numCols -1) + this.grid.defaultRowHeaderWidth;
+        var nToolBarWidth= this.gridContainer.getExtent().x;//this.grid.defaultCellWidth * (this.numCols -1) + this.grid.defaultRowHeaderWidth;
         this.toolBar= new lively.morphic.SAPGridToolBar(this.grid,0,0,nToolBarWidth,this.toolBarHeight);
 
 
@@ -2726,7 +2722,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.vScroll = new lively.morphic.Slider(new Rectangle(nXPos ,nYPos, 15,nHeight ), this.grid.defaultMaxRowScrollValue);
         this.addMorph(this.vScroll);
 
-        this.hScroll  = new lively.morphic.Slider(new Rectangle(0,nHeight + this.grid.defaultCellHeight+this.toolBarHeight+2 , nXPos,15), this.grid.defaultMaxColScrollValue);
+        this.hScroll  = new lively.morphic.Slider(new Rectangle(0,nHeight + this.grid.defaultCellHeight+this.toolBarHeight+2 , nXPos,15),               this.grid.defaultMaxColScrollValue);
         this.addMorph(this.hScroll );
         
         this.grid.vScroll = this.vScroll;
@@ -2740,10 +2736,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         //this.addMorph(this.grid);
         this.addMorph(this.toolBar);
 
-        
         this.setExtent(lively.pt(nWidth,nHeight));
-      
-
     }
 });
 lively.morphic.Text.subclass('lively.morphic.SAPGridHeadCell',

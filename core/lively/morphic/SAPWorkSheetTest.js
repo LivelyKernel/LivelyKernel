@@ -547,7 +547,9 @@ console.log("Start createCells")
         this.oAnnotation.setPosition(this.at(nColumn,nRow).getPosition());
     },
     hideAnnotation: function() {
-        this.oAnnotation.setVisible(false);
+        if (this.oAnnotation){
+            this.oAnnotation.setVisible(false);
+        }
     },
     at: function(x, y) {
         //if (!this.hideColHeads) y++;

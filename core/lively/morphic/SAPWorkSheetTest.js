@@ -2687,7 +2687,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.hideRowHeads = bHideRowHeader ? bHideRowHeader:false;
         this.toolBarHeight = 60;
         this.grid;
-        this.gridLayer;    //layer holding grid & scrolls
+        this.gridContainer;    //layer holding grid & scrolls
         this.toolBar;
         this.dataFormatter;
         this.vScroll = null;
@@ -2708,13 +2708,13 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
         this.grid.setPosition(pt(0,this.toolBarHeight+2));
         //this.grid.applyStyle({position:'fixed'})
 
-        this.gridLayer = new lively.morphic.SAPGridContainer(0, this.toolBarHeight+2, 
+        this.gridContainer = new lively.morphic.SAPGridContainer(0, this.toolBarHeight+2, 
                                                 this.grid.defaultCellWidth * (this.numCols-1)+60, 
                                                 this.grid.defaultCellHeight * this.numRows);
         
         
 
-        var nToolBarWidth= this.gridLayer.getExtent().x//this.grid.defaultCellWidth * (this.numCols -1) + this.grid.defaultRowHeaderWidth;
+        var nToolBarWidth= this.gridContainer.getExtent().x//this.grid.defaultCellWidth * (this.numCols -1) + this.grid.defaultRowHeaderWidth;
         this.toolBar= new lively.morphic.SAPGridToolBar(this.grid,0,0,nToolBarWidth,this.toolBarHeight);
 
 
@@ -2736,8 +2736,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPWorkBook',
 
 
 
-        this.addMorph(this.gridLayer);
-        this.gridLayer.addMorph(this.grid);
+        this.addMorph(this.gridContainer);
+        this.gridContainer.addMorph(this.grid);
         //this.addMorph(this.grid);
         this.addMorph(this.toolBar);
 

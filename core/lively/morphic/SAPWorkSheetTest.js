@@ -2887,8 +2887,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGridContainer',
         this.applyStyle({clipMode: 'hidden',borderColor: Color.rgb(177,181,186), borderWidth: 1});
         //this.setBorderColor(Color.rgb(177,181,186));
         //this.applyStyle({resizeWidth: true, resizeHeight: false, fixedHeight: true, clipMode: 'hidden', allowInput: true});
-        
-
     },
      addToMorph: function(oParent) {
         this.oParent = oParent;

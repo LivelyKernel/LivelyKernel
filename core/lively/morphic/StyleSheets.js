@@ -7,7 +7,10 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
 		this.setNodeId();
 
 		this.shape.setStyleSheet(style);
-	   }
+            },
+            getBorderStylingMode: function() {
+                return this.shape.getBorderStylingMode();
+            }  ,
         }
     );
 

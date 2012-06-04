@@ -446,6 +446,10 @@ lively.morphic.Text.subclass('lively.morphic.DataGridCell',
     }
 },
 'default category', {
+    setExtent: function ($super,oPos) {
+        console.log("Cell setExtent");
+        $super(oPos);
+    },
     addToGrid: function(aGrid) {
         this.grid = aGrid;
         this.grid.addMorph(this);

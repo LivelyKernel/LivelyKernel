@@ -2887,7 +2887,7 @@ lively.morphic.SAPGridHeadCell.subclass('lively.morphic.SAPGridRowHead',
         }
     }
 });
-lively.morphic.Morph.subclass('lively.morphic.SAPGridLayout',
+lively.morphic.Morph.subclass('lively.morphic.SAPGridContainer',
 'method category', {
     initialize: function($super,nPosX,nPosY,nWidth,nHeight) {
         $super(new lively.morphic.Shapes.Rectangle(new Rectangle(nPosX,nPosY,nWidth,nHeight)))

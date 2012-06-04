@@ -472,6 +472,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPGrid',
             sName = this.getColumnName(i);
             this.colHeads.push(this.createColHead(i,sName ));
         }
+        this.colHeads[0].setExtent(pt(this.defaultRowHeaderWidth, this.defaultCellHeight));
         this.rows[0] = this.colHeads;
     },
     createRowHeads: function() {

@@ -528,7 +528,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             // sub menu item = [name, [sub elements]]
             if (Object.isArray(item) && Object.isArray(item[1])) {
                 var name = item[0], subItems = item[1];
-                result.push(createItem(name + ">", name, i, null, function(evt) {
+                result.push(createItem(name, name, i, null, function(evt) {
                     self.openSubMenu(evt, name, subItems) }, true));
                 return;
             }

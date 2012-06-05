@@ -607,6 +607,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                     borderRadius: 4
                 })
                 
+                // if the item is a submenu, set its textColor to white
                 var arrow = itemMorph.submorphs.first();
                 if (arrow) {
                     arrow.applyStyle({textColor: Color.white});
@@ -627,6 +628,8 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             itemMorph.addScript(function deselect(evt) {
                 this.isSelected = false;
                 this.applyStyle({fill: null, textColor: Color.black});
+                
+                // if the item is a submenu, set its textColor back to black
                 var arrow = this.submorphs.first();
                 if (arrow) {
                     arrow.applyStyle({textColor: Color.black});

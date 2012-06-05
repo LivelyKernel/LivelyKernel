@@ -846,7 +846,10 @@ lively.morphic.Morph.addMethods(
         }
 
         if (this.owner && this.owner.submorphs.length > 1) {
-            console.log("Eligible for menu!");
+            var arrange = [];
+            arrange.push(["bring to front", function(){self.bringToFront()}]);
+            arrange.push(["send to back", function(){self.sendToBack()}]);
+            items.push(["arrange morph", arrange]);
         }
        
 

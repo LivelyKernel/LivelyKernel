@@ -780,7 +780,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                 
                 var arrow = ea.submorphs.first();
                 console.log("Found an arrow, pos was "+ arrow.getPosition().x+", "+arrow.getPosition().y);
-                arrow.setPosition(arrow.getPosition().withX(newExtent.x-40));
+                arrow.setPosition(arrow.getPosition().withX(newExtent.x-10));
                 console.log("... pos now is "+ arrow.getPosition().x+", "+arrow.getPosition().y);
             }
         })

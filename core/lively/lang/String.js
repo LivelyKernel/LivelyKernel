@@ -11,7 +11,6 @@ Object.extend(String.prototype, {
       return this == '';
     },
 
-    
     blank: function() {
       return /^\s*$/.test(this);
     },
@@ -94,7 +93,7 @@ Object.extend(String.prototype, {
 
     times: function(count) {
         return count < 1 ? '' : new Array(count + 1).join(this);
-    },
+    }
 
 });
 
@@ -215,10 +214,11 @@ Strings = {
         depth = depth || 0;
         var s = ""
         list.forEach(function(ea) {
-            if (ea instanceof Array)
+            if (ea instanceof Array) {
                 s += Strings.printNested(ea, depth + 1)
-            else
+            } else {
                 s +=  Strings.indent(ea +"\n", '  ', depth);
+            }
         })
         return s
     },
@@ -228,9 +228,34 @@ Strings = {
     },
 
     tableize: function(s) {
+        // string => array
+        // Strings.tableize('a b c\nd e f') => [[a, b, c], [d, e, f]]
         return Strings.lines(s).collect(function(ea) {
             return Strings.tokens(ea)
         })
+    },
+
+    pad: function(string, n, left) {
+        return left ? ' '.times(n) + string : string + ' '.times(n);
+    },
+
+    printTable: function(tableArray, options) {
+        // array => string
+        // Strings.printTable([[a, b, c], [d, e, f]]) => 'a b c\nd e f'
+        var columnWidths = [],
+            separator = (options && options.separator) || ' ',
+            alignRight = (options && options.align === 'right');
+        tableArray.forEach(function(row) {
+            row.forEach(function(cellString, i) {
+                if (columnWidths[i] === undefined) columnWidths[i] = 0;
+                columnWidths[i] = Math.max(columnWidths[i], cellString.length);
+            });
+        });
+        return tableArray.collect(function(row) {
+            return row.collect(function(cellString, i) {
+                return Strings.pad(cellString, columnWidths[i] - cellString.length, alignRight);
+            }).join(separator);
+        }).join('\n');
     },
 
     newUUID: function() {
@@ -242,10 +267,10 @@ Strings = {
         return id;
     },
 
-	unescapeCharacterEntities: function(s) {
-		// like &uml;
-		var div = XHTMLNS.create('div');
-		div.innerHTML = s;
-		return div.textContent
-	},
+    unescapeCharacterEntities: function(s) {
+        // like &uml;
+        var div = XHTMLNS.create('div');
+        div.innerHTML = s;
+        return div.textContent
+    }
 };

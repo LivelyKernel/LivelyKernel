@@ -122,11 +122,7 @@ Object.subclass('lively.morphic.Shapes.Shape',
 
 },
 'comparing', {
-    equals: function (otherShape) {
-        var diffsArray = this.getDiffsTo(otherShape)
-        if(diffsArray.length > 0) return false;
-        return true;
-    },
+
 
 
 });

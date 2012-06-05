@@ -281,6 +281,20 @@ Properties = {
 
     printObjectSize: function(obj) {
         return Numbers.humanReadableByteSize(JSON.stringify(obj).length);
+    },
+    
+    any: function(obj, predicate) {
+        for (var name in obj) {
+            if (predicate(obj)) return true;
+        }
+    },
+    
+    allProperties: function(obj, predicate) {
+        var result = [];
+        for (var name in obj) {
+            if (predicate(obj)) result.push(name);
+        }
+        return result;
     }
 
 };

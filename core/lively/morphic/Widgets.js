@@ -778,6 +778,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             ea.setExtent(ea.getExtent().withX(newExtent.x));
             if (ea.submorphs.length>0) {
                 var arrow = ea.submorphs.first();
+                console.log("Found an arrow, setting position to "+ (newExtent.x-10));
                 arrow.setPosition(arrow.getPosition().withX(newExtent.x-10));
             }
         })

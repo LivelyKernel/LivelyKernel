@@ -285,14 +285,14 @@ Properties = {
     
     any: function(obj, predicate) {
         for (var name in obj) {
-            if (predicate(obj)) return true;
+            if (predicate(obj, name)) return true;
         }
     },
     
     allProperties: function(obj, predicate) {
         var result = [];
         for (var name in obj) {
-            if (predicate(obj)) result.push(name);
+            if (predicate(obj, name)) result.push(name);
         }
         return result;
     }

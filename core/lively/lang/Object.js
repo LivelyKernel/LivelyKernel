@@ -205,7 +205,7 @@ Objects = {
 
     safeToString: function(obj) {
         try {
-            return obj ? obj.toString() : String(obj);
+            return (obj ? obj.toString() : String(obj)).replace('\n','');
         } catch (e) {
             return '<error printing object>';
         }

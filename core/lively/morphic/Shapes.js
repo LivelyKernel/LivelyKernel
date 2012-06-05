@@ -127,28 +127,7 @@ Object.subclass('lively.morphic.Shapes.Shape',
         if(diffsArray.length > 0) return false;
         return true;
     },
-    getDiffsTo: function (otherShape) {
-        // returns a list of differences between two shapes.
-        // TODO: refactor, adapt to morph diffing
-        var self = this,
-            blacklist = ["get"],
-            diffsArray = Functions.all(this).withoutAll(blacklist).select(function (ea) {
-                if (!ea.startsWith("get") || !otherShape[ea]) return false;
-                try {
-                    if (self[ea]() && typeof(self[ea]()) == 'object') {
-                        return !self[ea]().equals(otherShape[ea]());
-                    } else {
-                        return self[ea]() != otherShape[ea]();
-                    }
-                } catch (ex) {
-                    return false;
-                }
-            });
-        if (!this.name == otherShape.name) {
-            diffsArray.push("constructor");
-        };
-        return diffsArray;
-    },
+
 
 });
 

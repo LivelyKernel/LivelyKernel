@@ -846,9 +846,7 @@ lively.morphic.Morph.addMethods(
         }
 
 
-        if (this.owner.submorphs.length>1) {
-
-        }        
+       
 
         if (this.submorphs.length > 0) {
             if (this.isLocked()) {

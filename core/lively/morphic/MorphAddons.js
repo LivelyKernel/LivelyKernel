@@ -131,7 +131,16 @@ lively.morphic.Morph.addMethods(
         this.remove();
         owner.addMorphFront(this);
     },
-
+    
+    sendToBack: function() {
+        // Hack: remove and re-add morph
+        var owner = this.owner;
+        if (!owner) {
+            return;
+        }
+        this.remove();
+        owner.addMorphFront(this);
+    },
 
     indentedListItemsOfMorphNames: function (indent) {
         indent = indent || '';

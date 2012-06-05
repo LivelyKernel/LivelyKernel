@@ -627,7 +627,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             itemMorph.addScript(function deselect(evt) {
                 this.isSelected = false;
                 this.applyStyle({fill: null, textColor: Color.black});
-                var arrow = itemMorph.submorphs.first();
+                var arrow = this.submorphs.first();
                 if (arrow) {
                     arrow.applyStyle({textColor: Color.black});
                 }

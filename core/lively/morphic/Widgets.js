@@ -544,17 +544,17 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         var y = 0, x = 0, self = this;
 
         this.items.forEach(function(item) {
-            /*
-            if (item.isSubMenu) {
-                var arrowMorph = new lively.morphic.Text(
-                    new Rectangle(this.getExtent().x-10, y, 10, itemHeight), "▶");
-                this.itemMorphs.push(this.addMorph(arrowMorph));
-            }
-            */
+           
             var itemHeight = 23,
                 itemMorph = new lively.morphic.Text(
                     new Rectangle(0, y, this.getExtent().x, itemHeight), item.string);
-
+             
+            if (item.isSubMenu) {
+                var arrowMorph = new lively.morphic.Text(
+                    new Rectangle(this.getExtent().x-10, y, 10, itemHeight), "▶");
+                itemMorph.addMorph(arrowMorph);
+            }
+            
 
             this.itemMorphs.push(this.addMorph(itemMorph));
             

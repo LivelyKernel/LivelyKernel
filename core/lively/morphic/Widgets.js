@@ -777,10 +777,11 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         morphs.forEach(function(ea) {     
             ea.setExtent(ea.getExtent().withX(newExtent.x));
             if (ea.submorphs.length>0) {
-                var arrow = ea.submorphs.first();
                 
+                var arrow = ea.submorphs.first();
+                console.log("Found an arrow, pos was "+ arrow.getPosition().x+", "+arrow.getPosition().y);
                 arrow.setPosition(arrow.getPosition().withX(newExtent.x-40));
-                console.log("Found an arrow, pos is "+ arrow.getPosition().x+", "+arrow.getPosition().y);
+                console.log("... pos now is "+ arrow.getPosition().x+", "+arrow.getPosition().y);
             }
         })
     }

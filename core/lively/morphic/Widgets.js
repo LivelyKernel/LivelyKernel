@@ -845,6 +845,11 @@ lively.morphic.Morph.addMethods(
             items.push(["enable grabbing", this.enableGrabbing.bind(this)])
         }
 
+
+        if (this.owner.submorphs.length>1) {
+
+        }        
+
         if (this.submorphs.length > 0) {
             if (this.isLocked()) {
                 items.push(["unlock parts", this.unlock.bind(this)])

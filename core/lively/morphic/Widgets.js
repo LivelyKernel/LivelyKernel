@@ -561,7 +561,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                 handStyle: 'default',
                 enableGrabbing: false,
                 allowInput: false,
-                fontSize: 8,
+                fontSize: 10,
                 padding: Rectangle.inset(3,2) });
                 itemMorph.addMorph(arrowMorph);
             }

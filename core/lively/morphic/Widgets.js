@@ -868,7 +868,7 @@ lively.morphic.Morph.addMethods(
                 this.owner.owner.stackMenuItems(this, items)    // move between page and background
             }
         }
-        console.log(items);
+
         return items;
     },
     getWindow: function() {

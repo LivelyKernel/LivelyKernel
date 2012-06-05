@@ -131,6 +131,8 @@ lively.morphic.Morph.addMethods(
         this.remove();
         owner.addMorphFront(this);
     },
+
+
     indentedListItemsOfMorphNames: function (indent) {
         indent = indent || '';
         var items = [];

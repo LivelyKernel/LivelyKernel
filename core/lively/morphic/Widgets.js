@@ -606,6 +606,12 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                     textColor: Color.white,
                     borderRadius: 4
                 })
+                
+                var arrow = itemMorph.submorphs.first();
+                if (arrow) {
+                    arrow.applyStyle({textColor: Color.white});
+                }
+                
                 self.overItemMorph = itemMorph;
                 self.removeSubMenu()
                 item.onMouseOverCallback && item.onMouseOverCallback(evt);

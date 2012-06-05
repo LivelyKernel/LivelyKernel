@@ -767,7 +767,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     },
 
     fitToItems: function() {
-        var offset = 10,
+        var offset = 10 + 20,
             morphs = this.itemMorphs;
         if (this.title) morphs = morphs.concat([this.title]);
         var widths = morphs.invoke('getTextExtent').pluck('x');
@@ -776,12 +776,9 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         this.setExtent(newExtent);
         morphs.forEach(function(ea) {     
             ea.setExtent(ea.getExtent().withX(newExtent.x));
-            if (ea.submorphs.length>0) {
-                
+            if (ea.submorphs.length>0) {   
                 var arrow = ea.submorphs.first();
-                console.log("Found an arrow, pos was "+ arrow.getPosition().x+", "+arrow.getPosition().y);
                 arrow.setPosition(arrow.getPosition().withX(newExtent.x-17));
-                console.log("... pos now is "+ arrow.getPosition().x+", "+arrow.getPosition().y);
             }
         })
     }

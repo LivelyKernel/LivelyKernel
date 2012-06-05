@@ -845,7 +845,9 @@ lively.morphic.Morph.addMethods(
             items.push(["enable grabbing", this.enableGrabbing.bind(this)])
         }
 
-
+        if (this.owner && this.owner.submorphs.length > 1) {
+            console.log("Eligible for menu!");
+        }
        
 
         if (this.submorphs.length > 0) {

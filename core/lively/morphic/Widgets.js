@@ -774,7 +774,13 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         var width = Math.max.apply(Global, widths) + offset;
         var newExtent = this.getExtent().withX(width);
         this.setExtent(newExtent);
-        morphs.forEach(function(ea) { ea.setExtent(ea.getExtent().withX(newExtent.x)) })
+        morphs.forEach(function(ea) {     
+            ea.setExtent(ea.getExtent().withX(newExtent.x));
+            if (ea.submorphs.length>0) {
+                var arrow = ea.submorphs.first();
+                arrow.setPosition(arrow.getPosition().withX(newExtent.x-10));
+            }
+        })
     }
 
 });

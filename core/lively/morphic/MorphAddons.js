@@ -139,7 +139,7 @@ lively.morphic.Morph.addMethods(
             return;
         }
         this.remove();
-        owner.addMorphFront(this);
+        owner.addMorphBack(this);
     },
 
     indentedListItemsOfMorphNames: function (indent) {

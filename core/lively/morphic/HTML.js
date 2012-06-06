@@ -914,6 +914,7 @@ lively.morphic.Shapes.Shape.addMethods(
             if (ctx.originNode) {
                 this.compensateShapeNode(ctx);
             }
+            this.setExtentHTML(ctx, this.getExtent());
         }
     },
 

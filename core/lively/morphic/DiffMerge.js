@@ -3,7 +3,6 @@ module('lively.morphic.DiffMerge').requires('lively.morphic.Complete').toRun(fun
 lively.morphic.Morph.addMethods(
 'diffing', {
     equals: function(otherMorph) {
-        // migrated
         var diff = this.diffTo(otherMorph);
         var diffPropsToConsider = ["added", "removed", "modified"]
         return Properties.own(diff).select(function (ea) {

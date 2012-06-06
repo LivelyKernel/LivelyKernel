@@ -910,7 +910,10 @@ lively.morphic.Shapes.Shape.addMethods(
             var borderWidth = parseInt(style["borderWidth"].replace("px",""));
             //console.log("BorderWidth = "+borderWidth);
             this.shapeSetter('ComputedBorderWidth', borderWidth );
-            this.compensateShapeNode(ctx);
+            
+            if (ctx.originNode) {
+                this.compensateShapeNode(ctx);
+            }
         }
     },
 

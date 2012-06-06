@@ -124,8 +124,15 @@ lively.morphic.Morph.addMethods(
 
     findParentPartVersion: function () {
         //this returns the PartsBin version of the morph that matches the morphs revisionOnLoad
-        var revision = this.partsBinMetaInfo? this.getPartsBinMetaInfo().revisionOnLoad : null ;
-        return this.getPartItem().loadPart(false, null, revision).part;
+        var revision = this.partsBinMetaInfo? this.getPartsBinMetaInfo().revisionOnLoad : null,
+            partItem = this.getPartItem();
+        if (new WebResource(partItem.getFileURL()).exists()) {
+            var m = this.getPartItem().loadPart(false, null, revision).part;
+            m.withAllSubmorphsDo(function (ea) {
+                ea.id = ea.derivationIds.pop();
+            })
+            return(m)
+        }
     },
     findCurrentPartVersion: function () {
         // returns the current version in PartsBin as morph

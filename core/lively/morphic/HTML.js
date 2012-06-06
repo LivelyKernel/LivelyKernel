@@ -912,7 +912,7 @@ lively.morphic.Shapes.Shape.addMethods(
         }
     },
 
-
+    setComputedBorderWidthHTML: function(ctx, width) {},
 
     
     setAppearanceStylingModeHTML: function(ctx, value) {

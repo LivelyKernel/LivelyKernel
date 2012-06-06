@@ -2,45 +2,45 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
 
     lively.morphic.Morph.addMethods(
         'stylesheets', {
-	   applyStyleSheet: function(style) {
+			applyStyleSheet: function(style) {
 
-		this.setNodeId();
+				this.setNodeId();
 
-		this.shape.setStyleSheet(style);
-            },
-               setAppearanceStylingMode: function(value) {
-    // TRUE when appearance is styled through style sheets,
-    // FALSE when appearance is styled through style dialog
-        return this.shape.setAppearanceStylingMode(value);
-    },
+				this.shape.setStyleSheet(style);
+			},
+			setAppearanceStylingMode: function(value) {
+				// TRUE when appearance is styled through style sheets,
+				// FALSE when appearance is styled through style dialog
+				return this.shape.setAppearanceStylingMode(value);
+			},
 
-        setStyleSheet: function(value) {
-        this.setNodeId();
-        return this.shape.setStyleSheet(value);
-    },
-    getStyleSheet: function() {
-        this.shape.getStyleSheet();
-        this.updateComputedStyles();
-    },    
-    
-    getAppearanceStylingMode: function() {
-        return this.shape.getAppearanceStylingMode();
-    },
+			setStyleSheet: function(value) {
+				this.setNodeId();
+				return this.shape.setStyleSheet(value);
+			},
+			getStyleSheet: function() {
+				this.shape.getStyleSheet();
+				this.updateComputedStyles();
+			},    
+		
+			getAppearanceStylingMode: function() {
+				return this.shape.getAppearanceStylingMode();
+			},
 
-    setBorderStylingMode: function(value) {
-    // TRUE when border is styled through style sheets,
-    // FALSE when border is styled through style dialog
-        return this.shape.setBorderStylingMode(value);
-    },
-    getBorderStylingMode: function() {
-        return this.shape.getBorderStylingMode();
-    },
+			setBorderStylingMode: function(value) {
+				// TRUE when border is styled through style sheets,
+				// FALSE when border is styled through style dialog
+				return this.shape.setBorderStylingMode(value);
+			},
+			getBorderStylingMode: function() {
+				return this.shape.getBorderStylingMode();
+			},
 
-    
-    updateComputedStyles: function() {
-        return this.shape.updateComputedStyles();
+		
+			updateComputedStyles: function() {
+				return this.shape.updateComputedStyles();
 
-    },
+			},
         }
     );
 
@@ -48,31 +48,31 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
         'stylesheets', {
 
 
-    setStyleSheet: function(value) {
-        return this.shapeSetter('StyleSheet', value);
-    },
-    getStyleSheet: function() {
-        return this.shapeGetter('StyleSheet') || "";
-    },
+			setStyleSheet: function(value) {
+				return this.shapeSetter('StyleSheet', value);
+			},
+			getStyleSheet: function() {
+				return this.shapeGetter('StyleSheet') || "";
+			},
 
-    setAppearanceStylingMode: function(value) {
-        return this.shapeSetter('AppearanceStylingMode', value);
-    },
-    getAppearanceStylingMode: function() {
-        return this.shapeGetter('AppearanceStylingMode');
-    },
+			setAppearanceStylingMode: function(value) {
+				return this.shapeSetter('AppearanceStylingMode', value);
+			},
+			getAppearanceStylingMode: function() {
+				return this.shapeGetter('AppearanceStylingMode');
+			},
 
-    setBorderStylingMode: function(value) {
-        return this.shapeSetter('BorderStylingMode', value);
-    },
-    getBorderStylingMode: function() {
-        return this.shapeGetter('BorderStylingMode');
-    },
+			setBorderStylingMode: function(value) {
+				return this.shapeSetter('BorderStylingMode', value);
+			},
+			getBorderStylingMode: function() {
+				return this.shapeGetter('BorderStylingMode');
+			},
 
-    updateComputedStyles: function() {
-        return this.shapeSetter('ComputedStyles');
+			updateComputedStyles: function() {
+				return this.shapeSetter('ComputedStyles');
 
-    }
+			}
 
             
         }

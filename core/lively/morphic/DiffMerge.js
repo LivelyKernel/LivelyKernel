@@ -2,15 +2,7 @@ module('lively.morphic.DiffMerge').requires('lively.morphic.Complete').toRun(fun
 
 lively.morphic.Morph.addMethods(
 'diffing', {
-    equals: function(otherMorph) {
-        var diff = this.diffTo(otherMorph);
-        var diffPropsToConsider = ["added", "removed", "modified"]
-        return Properties.own(diff).select(function (ea) {
-            return diffPropsToConsider.select(function (prop) {
-                return Properties.own(diff[ea][prop]).length > 0
-            }).length > 0
-        }).length == 0
-    },
+
 
     diffTo: function(parent) {
         // returns a list of changes between the morph and parent, including its submorphs.

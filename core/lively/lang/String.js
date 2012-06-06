@@ -244,7 +244,15 @@ Strings = {
         // Strings.printTable([[a, b, c], [d, e, f]]) => 'a b c\nd e f'
         var columnWidths = [],
             separator = (options && options.separator) || ' ',
-            alignRight = (options && options.align === 'right');
+            alignLeftAll = !options || !options.align || options.align === 'left',
+            alignRightAll = options && options.align === 'right';
+        function alignRight(columnIndex) {
+            if (alignLeftAll) return false;
+            if (alignRightAll) return true;
+            return options
+                && Object.isArray(options.align)
+                && options.align[columnIndex] === 'right';
+        }
         tableArray.forEach(function(row) {
             row.forEach(function(cellString, i) {
                 if (columnWidths[i] === undefined) columnWidths[i] = 0;
@@ -253,7 +261,7 @@ Strings = {
         });
         return tableArray.collect(function(row) {
             return row.collect(function(cellString, i) {
-                return Strings.pad(cellString, columnWidths[i] - cellString.length, alignRight);
+                return Strings.pad(cellString, columnWidths[i] - cellString.length, alignRight(i));
             }).join(separator);
         }).join('\n');
     },
@@ -273,4 +281,5 @@ Strings = {
         div.innerHTML = s;
         return div.textContent
     }
+
 };

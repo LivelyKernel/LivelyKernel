@@ -2,7 +2,16 @@ module('lively.morphic.DiffMerge').requires('lively.morphic.Complete').toRun(fun
 
 lively.morphic.Morph.addMethods(
 'diffing', {
-
+    equals: function(otherMorph) {
+        // migrated
+        var diff = this.diffTo(otherMorph);
+        var diffPropsToConsider = ["added", "removed", "modified"]
+        return Properties.own(diff).select(function (ea) {
+            return diffPropsToConsider.select(function (prop) {
+                return Properties.own(diff[ea][prop]).length > 0
+            }).length > 0
+        }).length == 0
+    },
 
     diffTo: function(parent) {
         // returns a list of changes between the morph and parent, including its submorphs.
@@ -124,15 +133,8 @@ lively.morphic.Morph.addMethods(
 
     findParentPartVersion: function () {
         //this returns the PartsBin version of the morph that matches the morphs revisionOnLoad
-        var revision = this.partsBinMetaInfo? this.getPartsBinMetaInfo().revisionOnLoad : null,
-            partItem = this.getPartItem();
-        if (new WebResource(partItem.getFileURL()).exists()) {
-            var m = this.getPartItem().loadPart(false, null, revision).part;
-            m.withAllSubmorphsDo(function (ea) {
-                ea.id = ea.derivationIds.pop();
-            })
-            return(m)
-        }
+        var revision = this.partsBinMetaInfo? this.getPartsBinMetaInfo().revisionOnLoad : null ;
+        return this.getPartItem().loadPart(false, null, revision).part;
     },
     findCurrentPartVersion: function () {
         // returns the current version in PartsBin as morph

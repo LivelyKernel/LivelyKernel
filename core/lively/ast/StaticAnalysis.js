@@ -160,7 +160,7 @@ Object.subclass('lively.ast.DFAScope',
         var res = [];
         res.pushAll(this.global_uses);
         this.scopes.each(function(s) {
-            res.pushAll(s.allGlobalUses()); 
+            res.pushAll(s.allGlobalUses());
         });
         return res;
     },
@@ -168,7 +168,7 @@ Object.subclass('lively.ast.DFAScope',
         var res = [];
         res.pushAll(this.global_defs);
         this.scopes.each(function(s) {
-            res.pushAll(s.allGlobalDefs()); 
+            res.pushAll(s.allGlobalDefs());
         });
         return res;
     },
@@ -209,6 +209,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
             this.highlightGlobals(target, ast);
         } catch (e) {
             this.parseErrors = [e];
+            this.doNotSerialize.push('parseErrors');
             target.emphasize(AdvancedSyntaxHighlighting.errorStyle, e[3], this.textString.length);
         }
     },

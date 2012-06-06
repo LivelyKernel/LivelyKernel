@@ -126,6 +126,8 @@ lively.morphic.Morph.addMethods(
         //this returns the PartsBin version of the morph that matches the morphs revisionOnLoad
         var revision = this.partsBinMetaInfo? this.getPartsBinMetaInfo().revisionOnLoad : null,
             partItem = this.getPartItem();
+        if (!partItem)
+            return
         if (new WebResource(partItem.getFileURL()).exists()) {
             var m = this.getPartItem().loadPart(false, null, revision).part;
             m.withAllSubmorphsDo(function (ea) {

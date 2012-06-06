@@ -19,8 +19,9 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
 				return this.shape.setStyleSheet(value);
 			},
 			getStyleSheet: function() {
-				this.shape.getStyleSheet();
+				var r = this.shape.getStyleSheet();
 				this.updateComputedStyles();
+                                return r;
 			},    
 		
 			getAppearanceStylingMode: function() {

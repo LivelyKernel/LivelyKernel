@@ -52,6 +52,33 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
             getStyleSheet: function() {
                 return this.shapeGetter('StyleSheet') || "";
             },
+
+    setStyleSheet: function(value) {
+        return this.shapeSetter('StyleSheet', value);
+    },
+    getStyleSheet: function() {
+        return this.shapeGetter('StyleSheet') || "";
+    },
+
+    setAppearanceStylingMode: function(value) {
+        return this.shapeSetter('AppearanceStylingMode', value);
+    },
+    getAppearanceStylingMode: function() {
+        return this.shapeGetter('AppearanceStylingMode');
+    },
+
+    setBorderStylingMode: function(value) {
+        return this.shapeSetter('BorderStylingMode', value);
+    },
+    getBorderStylingMode: function() {
+        return this.shapeGetter('BorderStylingMode');
+    },
+
+    updateComputedStyles: function() {
+        return this.shapeSetter('ComputedStyles');
+
+    }
+
             
         }
     );

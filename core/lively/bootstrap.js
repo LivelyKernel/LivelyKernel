@@ -600,6 +600,7 @@ var LivelyLoader = {
             'lively/lang/String.js',
             'lively/lang/Array.js',
             'lively/lang/Number.js',
+            'lively/lang/Date.js',
             'lively/defaultconfig.js',
             'lively/localconfig.js',
             'lively/Base.js',

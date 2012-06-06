@@ -531,6 +531,59 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
 
 });
 
+lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.VerticalScrollerLayout',
+'default category', {
+    basicLayout: function(container, submorphs) {
+        // omitting container resize
+        var extent = container.getExtent();
+        var width = extent.x;
+        var height = extent.y;
+        var spacing = this.getSpacing();
+        var childWidth = width - this.getBorderSize("left") - this.getBorderSize("right");
+
+        var fixedChildrenHeight = submorphs.reduce(function(s, e) {
+            return !e.layout || !e.layout.resizeHeight ?
+                s + e.getExtent().y : s;
+        }, 0);
+
+        var varChildren = submorphs.select(function(e) {
+                return e.layout && e.layout.resizeHeight; }),
+            varChildrenCount = varChildren.size();
+
+        var varChildrenHeight = extent.y -
+            fixedChildrenHeight -
+            (submorphs.size() - 1) * spacing -
+            this.getBorderSize("top") -
+            this.getBorderSize("bottom");
+
+        var varChildHeight = varChildrenHeight / varChildrenCount;
+        varChildren.forEach(function (each) {
+            if (each.getMinHeight() > varChildHeight) {
+                varChildrenHeight -= each.getMinHeight();
+                varChildrenCount -= 1;
+            }
+        });
+        varChildHeight = varChildrenHeight / varChildrenCount;
+
+
+        var borderSizeLeft = this.getBorderSize("left");
+
+        submorphs.reduce(function (y, morph) {
+            morph.setPositionTopLeft(pt(borderSizeLeft, y));
+            var newHeight = morph.getExtent().y;
+            var newWidth = (morph.layout && morph.layout.resizeWidth == true) ?
+                childWidth :
+                morph.getExtent().x;
+            if (morph.layout && morph.layout.resizeHeight) {
+                newHeight = varChildHeight;
+            }
+            morph.setExtent(pt(newWidth, newHeight));
+            return y + morph.getExtent().y + spacing;
+        }, this.getBorderSize("top"));
+
+    }
+});
+
 lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.JournalLayout',
 'default category', {
 

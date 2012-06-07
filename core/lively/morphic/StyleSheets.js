@@ -1,4 +1,4 @@
-module('lively.morphic.StyleSheets').requires().toRun(function() {
+module('lively.morphic.StyleSheets').requires("apps.Less").toRun(function() {
 
     lively.morphic.Morph.addMethods(
         'stylesheets', {

@@ -569,7 +569,8 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
              
             if (item.isSubMenu) {
                 var arrowMorph = new lively.morphic.Text(
-                    new Rectangle(0, y, 10, itemHeight), "▶");
+                    new Rectangle(0, 0, 10, itemHeight), "▶");
+                    arrowMorph.setPosition(pt(this.getExtent().x, y));
                 arrowMorph.applyStyle({
                 clipMode: 'hidden',
                 fixedHeight: true,

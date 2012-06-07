@@ -177,6 +177,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
 },
 'inline image', {
     onKeyPress: function($super, evt) {
+        // The extent of iages should can be changed by using th + and - key
         var key = evt.getKeyChar();
 
         switch (key) {

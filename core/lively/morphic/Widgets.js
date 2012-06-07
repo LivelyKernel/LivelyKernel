@@ -175,7 +175,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
         return items;
     },
 },
-'inline image', {
+'keyboard events', {
     onKeyPress: function($super, evt) {
         // The extent of iages should can be changed by using the + and - key
         var key = evt.getKeyChar();

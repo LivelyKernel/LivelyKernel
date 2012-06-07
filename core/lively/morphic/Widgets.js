@@ -176,6 +176,23 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
     },
 },
 'inline image', {
+    onKeyPress: function($super, evt) {
+        var key = evt.getKeyChar();
+
+        switch (key) {
+            case "-": {
+                this.setExtent(this.getExtent().scaleBy(0.8))
+                return true;
+            }
+            case "+": {
+                this.setExtent(this.getExtent().scaleBy(1.1))
+                return true;
+            }
+        }
+        return $super(evt)
+    }
+},
+'inline image', {
     convertToBase64: function() {
         var urlString = this.getImageURL();
 

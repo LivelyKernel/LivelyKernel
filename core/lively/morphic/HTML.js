@@ -887,14 +887,20 @@ lively.morphic.Shapes.Shape.addMethods(
     },
 
     setStyleSheetHTML: function(ctx, value) {
-
         var morphId = ctx.shapeNode.id;
         if (!morphId) {
             alert("Cannot set morph specific style sheet. Shape node was not assigned any id.");
             return false;
         }
 	//console.log("Setting CSS for shape "+morphId+" to "+value);	
-        var specificCss = "#"+morphId+" { "+value+" }";
+        specificCss = "#"+morphId+" { "+value+" }";
+
+        if (less) {
+            new(less.Parser)().parse(specificCss, function(e, tree){
+                specificCss = tree.toCSS();
+            });
+        }
+
         var styleTagId = "style-"+morphId;
 
 	var css = $('#' + styleTagId);
@@ -902,7 +908,8 @@ lively.morphic.Shapes.Shape.addMethods(
 	css = $('<style type="text/css" id="' + styleTagId + '"></style>');
 	css.text(specificCss);
 	css.appendTo(document.head);
-    }  ,
+       
+    }  
 
     setComputedStylesHTML: function(ctx) {
         if (ctx.shapeNode) {

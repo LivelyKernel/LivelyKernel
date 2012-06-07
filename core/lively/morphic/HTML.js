@@ -909,7 +909,7 @@ lively.morphic.Shapes.Shape.addMethods(
 	css.text(specificCss);
 	css.appendTo(document.head);
        
-    }  
+    }, 
 
     setComputedStylesHTML: function(ctx) {
         if (ctx.shapeNode) {

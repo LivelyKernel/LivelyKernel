@@ -70,7 +70,7 @@ Object.extend(Object, {
     },
 
     isFunction: function(object) {
-        return typeof object == "function";
+        return object instanceof Function;
     },
 
     isBoolean: function(object) {

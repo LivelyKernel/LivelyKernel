@@ -1952,6 +1952,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         return this.grabMorphs([morph], evt)
     },
     grabMorphs: function(morphs, evt) {
+        console.log(evt);
         if (this.submorphs.length > 0) return false;
         this.carriesGrabbedMorphs = true;
         morphs.forEach(function(morph) {

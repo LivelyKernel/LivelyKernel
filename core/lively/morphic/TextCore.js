@@ -225,7 +225,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         this.charsTyped = '';
         this.evalEnabled = false;
         this.fit();
-        if (this.prepareForUndo) this.prepareForUndo();
+        if (this.prepareForTextMutationRecording) this.prepareForTextMutationRecording();
     }
 },
 'styling', {
@@ -426,8 +426,10 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             paddingHeight = padding.top() + padding.bottom(),
             width = this.fixedWidth ? extent.x : (textExtent.x + borderWidth*2 + paddingWidth),
             height = this.fixedHeight ? extent.y : (textExtent.y + borderWidth*2 + paddingHeight);
-        this.setExtent(pt(width, height));
-    },
+        // if (width !== extent.x || height != extent.y) {
+            this.setExtent(pt(width, height));
+        // }
+    }
 },
 'text modes', {
     beLabel: function(customStyle) {
@@ -2909,166 +2911,6 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
     },
 });
 
-Trait("lively.morphic.TextUndoTrait", {
-    prepareForUndo: function() {
-        if (!lively.morphic.Events.MutationObserver) {
-            console.warn('Trying to enable undo but no MutationObserver was found');
-        }
-        this.doNotSerialize = ['undoState'];
-        this.undoState = {
-            idx: 0,
-            undos: [],
-            undoInProgress: false,
-            waitForNextRecording: 20, // ms
-            lastUndoRecorded: null,
-            maxUndos: 5
-        };
-        this.recordUndoState();
-        this.observeTextChanges();
-    },
-    onLoad: function() {
-        if (this.prepareForUndo) this.prepareForUndo();
-    },
-
-    observeTextChanges: function() {
-        var self = this,
-            textNode = this.renderContext().textNode,
-            observer = new lively.morphic.Events.MutationObserver(
-                function(mutations) { return self.onTextChange(mutations); });
-        observer.observe(textNode, {
-            characterData: true,
-            subtree: true,
-            childList: true
-        });
-    },
-    onTextChange: function(mutations) {
-        this.recordUndoState(mutations);
-    },
-    styleStringAsObject: function(string) {
-        var obj = {};
-        string = string || '';
-        string.split(';').forEach(function(subStr) {
-            var splitted = subStr.split(':'),
-                key = Strings.removeSurroundingWhitespaces(splitted[0]),
-                val = splitted[1] ? Strings.removeSurroundingWhitespaces(splitted[1]) : '';
-            if (key && key != '') obj[key] = val;
-        });
-        return obj;
-    },
-    compareStyleStrings: function(style1String, style2String) {
-        var style1 = this.styleStringAsObject(style1String),
-            style2 = this.styleStringAsObject(style2String),
-            diff = {},
-            stylesDiffer = false,
-            keys = Properties.own(style1).concat(Properties.own(style2)).uniq();
-        keys.forEach(function(key) {
-            if (style1[key] != style2[key]) {
-                stylesDiffer = true;
-                diff[key] = {a: style1[key], b: style2[key]};
-            }
-        });
-        return stylesDiffer ? diff : null;
-    },
-    showMutations: function(mutations) {
-        var t = this.get('mutations');
-        if (!t) return;
-        t.textString += '\n\nMutations for undo ' + this.undoState.idx;
-        var differs = false;
-        mutations.forEach(function(m) {
-            t.insertTextStringAt(0, '\n');// pos++;
-            if (m.type === 'attributes' && m.attributeName === 'style') {
-                var diff = this.compareStyleStrings(m.oldValue, m.target.style.cssText);
-                if (diff) {
-                    differs = true;
-                    t.textString += '\n' + Exporter.stringify(m.target)
-                                    + ' ' + JSON.stringify(diff);
-                }
-            } else {
-                t.textString += '\n' + m.type;
-                t.textString += '\n' + m.oldValue;
-                t.textString += '\n' + m.target.textContent;
-            }
-        }, this);
-        if (!differs) {
-            t.textString += '\nno changes';
-        }
-    },
-    recordUndoState: function(mutations) {
-        var undoState = this.undoState;
-// alertOK('recordUndoState ' + (undoState.idx-1))
-        var last = undoState.undos[undoState.idx-1];
-        if (false && last) {
-            if ((Date.now() - last.timestamp) < this.undoState.waitForNextRecording) {
-                return;
-            }
-        }
-        var richText = this.getRichText2(),
-            sel = this.getSelectionRange();
-        if (last && last.richText.textString === richText.textString) {
-            // alertOK('no undo recored');
-            return;
-        }
-        undoState.undos = undoState.undos.slice(0, Math.max(undoState.idx, 1));
-        undoState.undos.push({
-            richText: richText,
-            selection: sel,
-            mutations: mutations,
-            timestamp: Date.now()
-        });
-        undoState.idx++;
-
-        if (undoState.maxUndos && undoState.undos.length > undoState.maxUndos) {
-            undoState.undos = undoState.undos.slice(1);
-            undoState.idx--;
-        }
-    },
-    applyUndoState: function() {
-        var undoState = this.undoState,
-            undo = undoState.undos[undoState.idx-1];
-        if (undo) {
-            this.setRichText2(undo.richText);
-            var sel = undo.selection;
-            if (sel) {
-                this.setSelectionRange(sel[0], sel[1]);
-            }
-        }
-    },
-    undo: function() {
-        this.undoState.idx--;
-        if (this.undoState.idx <= 0) this.undoState.idx = 1;
-        this.applyUndoState();
-    },
-    redo: function() {
-        this.undoState.idx++;
-        this.applyUndoState();
-    },
-    // fixes
-    getEmphasisAt: function (idx) {
-        var chunkAndIdx = this.getChunkAndLocalIndex(idx, true);
-        var style = chunkAndIdx && chunkAndIdx[0].style;
-        if (!style) return null;
-        // need to return copy of style
-        return Object.extend({}, style);
-    }
-});
-
-Object.extend(lively.morphic, {
-    TextUndoTrait: Trait("lively.morphic.TextUndoTrait")
-});
-
-Object.extend(lively.morphic.TextUndoTrait, {
-    install: function() {
-        this.applyTo(lively.morphic.Text, {override: ['getEmphasisAt']});
-    }
-});
-
-(function setupTextUndo() {
-    if (Config.textUndoEnabled) {
-        console.log('Text undo enabled');
-        lively.morphic.TextUndoTrait.install();
-    }
-})();
-
 Trait("lively.morphic.TextDiffTrait", {
     diff: function(string1, string2, options) {
         options = options || {};
@@ -3092,4 +2934,4 @@ Trait("lively.morphic.TextDiffTrait", {
     },
 }).applyTo(lively.morphic.Text);
 
-}) // end of module
+}) // end of modulerp

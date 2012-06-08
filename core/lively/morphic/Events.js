@@ -4,7 +4,7 @@ lively.morphic.EventSimulator = {
     createKeyboardEvent: function(spec) {
         var evt = document.createEvent("KeyboardEvent");
         evt.initKeyboardEvent(spec.type || "keypress", true, true, window,
-            spec.ctrl || 0, spec.alt || 0, spec.shift || 0, spec.meta || 0,
+            spec.ctrl || false, spec.alt || false, spec.shift || false, spec.meta || false,
             0, spec.charCode || (spec.charPressed && spec.charPressed.charCodeAt(0)) || 0);
         return evt;
     },
@@ -14,7 +14,7 @@ lively.morphic.EventSimulator = {
         spec.targetNode = targetNode ? targetNode : spec.targetNode;
         var evt = this.createKeyboardEvent(spec),
             result = spec.targetNode.dispatchEvent(evt);
-        return result;
+        return [result, evt];
     },
     createMouseEvent: function(type, pos, button, keys) {
         // event.initMouseEvent(type, canBubble, cancelable, view,

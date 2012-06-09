@@ -73,19 +73,16 @@ lively.PartCaching.setupCache = function() {
 
 cop.create('PartCachingLayer').refineClass(lively.PartsBin.PartItem, {
     loadPart: function(isAsync, optCached, rev) {
-        debugger;
-        var cachedPart = lively.PartCache.getPart(this.name, this.partsSpaceName);
+        connect(this, 'json', this, 'cachePartJSON');
+        connect(this, 'loadedMetaInfo', this, 'cachePartMetaInfo');
+        var cachedPart = Config.PartCachingEnabled && lively.PartCache.getPart(this.name, this.partsSpaceName);
         if (!cachedPart) {
             return cop.proceed(isAsync, optCached, rev);
         } else {
             this.setPartFromJSON(cachedPart.json, cachedPart.metaInfo, rev);
             return this;
         }
-    }
-});
-
-cop.create('PartCachingControlsLayer')
-.refineClass(lively.PartsBin.PartItem, {
+    },
     cachePartJSON: function(json) {
         lively.PartCache.setPartJSON(this.name, this.partsSpaceName, json);
     },
@@ -95,11 +92,6 @@ cop.create('PartCachingControlsLayer')
     uploadPart: function() {
         lively.PartCache.invalidCachedVersion(this.name, this.partsSpaceName);
         return cop.proceed();
-    },
-    loadPart: function(isAsync, optCached, rev) {
-        connect(this, 'json', this, 'cachePartJSON');
-        connect(this, 'loadedMetaInfo', this, 'cachePartMetaInfo');
-        return cop.proceed(isAsync, optCached, rev);
     }
 })
 .refineClass(lively.morphic.World, {
@@ -123,19 +115,12 @@ cop.create('PartCachingControlsLayer')
             }
         }
         return items;
-    },
-    openPartItem: function (partName, optPartspaceName) {
-        debugger;
-        var layers = Config.PartCachingEnabled ? [PartCachingLayer] : [],
-            result;
-        cop.withLayers(layers, function() {result = cop.proceed(partName, optPartspaceName)});
-        return result;
     }
 })
 
 
 Config.PartCachingEnabled = true; // default
 lively.PartCaching.setupCache();
-PartCachingControlsLayer.beGlobal();
+PartCachingLayer.beGlobal();
 
 }) // end of module

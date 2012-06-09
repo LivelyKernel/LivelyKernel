@@ -73,6 +73,7 @@ lively.PartCaching.setupCache = function() {
 
 cop.create('PartCachingLayer').refineClass(lively.PartsBin.PartItem, {
     loadPart: function(isAsync, optCached, rev) {
+        debugger;
         var cachedPart = lively.PartCache.getPart(this.name, this.partsSpaceName);
         if (!cachedPart) {
             return cop.proceed(isAsync, optCached, rev);

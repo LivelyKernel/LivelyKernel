@@ -125,6 +125,7 @@ cop.create('PartCachingControlsLayer')
         return items;
     },
     loadPartItem: function (partName, optPartspaceName) {
+        debugger;
         var layers = Config.PartCachingEnabled ? [PartCachingLayer] : [],
             result;
         cop.withLayers(layers, function() {result = cop.proceed(partName, optPartspaceName)});

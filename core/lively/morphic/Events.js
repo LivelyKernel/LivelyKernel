@@ -1959,7 +1959,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         morphs.forEach(function(morph) {
             var vert = morph.showsVerticalScrollBar();
             var hori = morph.showsHorizontalScrollBar();
-            console.log("Vertical: "+(vert)?"YES":"NO"+ "    Horizontal:"+(hori)?"YES":"NO");
+            console.log("Vertical: "+((vert)?"YES":"NO")+ "    Horizontal:"+((hori)?"YES":"NO"));
             console.log("Scrollbarextent: "+morph.getScrollBarExtent());
 
 

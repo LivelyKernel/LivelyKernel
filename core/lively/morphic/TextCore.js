@@ -706,7 +706,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             "Enter the text you wish to find...",
             function(response) {
                 if (!response) return;
-                text.focus();
+                //text.focus();
                 return text.searchForFind(response, text.getSelectionRange()[1]);
             }, this.lastSearchString);
     },

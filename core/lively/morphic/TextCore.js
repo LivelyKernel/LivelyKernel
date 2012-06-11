@@ -1643,7 +1643,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (i1 < 0 && !noWrap) i1 = this.textString.indexOf(str, 0); // wrap
         if (i1 >= 0) this.setSelectionRange(i1, i1+str.length);
         else this.setNullSelectionAt(0);
-        //this.scrollSelectionIntoView();
+        this.scrollSelectionIntoView();
         this.lastSearchString = str;
         this.lastFindLoc = i1;
     },

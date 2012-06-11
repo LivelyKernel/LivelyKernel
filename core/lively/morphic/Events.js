@@ -693,7 +693,10 @@ handleOnCapture);
 
     },
 
-    onMouseUp: function(evt) { return false; },
+    onMouseUp: function(evt) { 
+        console.log("MouseUp on "+this.name);
+        return false; 
+    },
     onMouseUpEntry: function(evt) {
         var world = evt.world,
             completeClick = world.clickedOnMorph === this,

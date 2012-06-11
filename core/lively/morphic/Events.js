@@ -998,6 +998,7 @@ handleOnCapture);
         return this.fullContainsWorldPoint(evt.getPosition()) ? this.dropOnMe(evt) : false;
     },
     grabMe: function(evt) {
+        console.log("GRAB ME!");
         return this.grabbingEnabled && evt.hand.grabMorph(this, evt);
     },
     getGrabShadow: function (local) {

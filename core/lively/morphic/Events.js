@@ -671,21 +671,11 @@ handleOnCapture);
         // check if mouse is on the scrollbar
         if (this.showsVerticalScrollBar() || this.showsHorizontalScrollBar()) {    
             var scrollbarExtent = this.getScrollBarExtent();
-            var sx = scrollbarExtent.x;
-            var sy = scrollbarExtent.y;
-            var ox = evt.offsetX;
-            var oy = evt.offsetY;
             var extent = this.getExtent();
-            var width = extent.x;
-            var height = extent.y;
-            
-            if ((ox > width - sx) || (oy > height - sy)) {
-
-                console.log("INSIDE THE SCROLLBAR!");
+        
+            if ((evt.offsetX> extent.x- scrollbarExtent.x) || (evt.offsetY> extent.y- scrollbarExtent.y)) {
                 return false;
             }
-
-
         }
 
         if (this.showsMorphMenu

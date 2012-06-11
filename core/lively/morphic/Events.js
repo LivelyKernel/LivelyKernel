@@ -679,7 +679,12 @@ handleOnCapture);
             var width = extent.x;
             var height = extent.y;
             
-            console.log("sx: "+sx +"sy: "+sy +"ox: "+ox +"oy: "+oy +"width: "+width +"height: "+height );
+            if ((ox > width - sx) || (oy > height - sy)) {
+
+                console.log("INSIDE THE SCROLLBAR!");
+                return false;
+            }
+
 
         }
 

@@ -669,7 +669,7 @@ handleOnCapture);
     onMouseDownEntry: function(evt) {
         
         // check if mouse is on the scrollbar
-        console.log(evt);        
+   
 
         if (this.showsMorphMenu
           && evt.isRightMouseButtonDown() // only world morph is present?

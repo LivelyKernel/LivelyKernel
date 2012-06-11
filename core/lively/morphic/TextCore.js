@@ -1638,7 +1638,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 },
 'searching', {
     searchForFind: function(str, start, noWrap) {
-        var that = this;
         var i1 = this.textString.indexOf(str, start);
         if (i1 < 0 && !noWrap) i1 = this.textString.indexOf(str, 0); // wrap
         if (i1 >= 0) this.setSelectionRange(i1, i1+str.length);
@@ -1646,7 +1645,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         this.scrollSelectionIntoView();
         this.lastSearchString = str;
         this.lastFindLoc = i1;
-        (function(){that.focus();}).delay(0);
     },
 },
 'debugging', {

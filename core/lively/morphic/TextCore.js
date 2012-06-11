@@ -707,7 +707,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             function(response) {
                 if (!response) return;
                 text.focus();
-                return text.searchForFind(response, text.getSelectionRange()[1]);
+                var start = text.getSelectionRange()[1];
+                function() { text.searchForFind(response, start) }.delay(0);
             }, this.lastSearchString);
     },
 

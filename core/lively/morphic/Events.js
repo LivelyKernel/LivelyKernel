@@ -1957,8 +1957,12 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         if (this.submorphs.length > 0) return false;
         this.carriesGrabbedMorphs = true;
         morphs.forEach(function(morph) {
-            console.log(morph.name);
-            console.log(evt);
+            var vert = morph.showsVerticalScrollBar();
+            var hori = morph.showsHorizontalScrollBar();
+            console.log("Vertical: "+(vert)?"YES":"NO"+ "    Horizontal:"+(hori)?"YES":"NO");
+            console.log("Scrollbarextent: "+morph.getScrollBarExtent());
+
+
             if (morph.grabByHand) { 
                 morph.grabByHand(this);
             }

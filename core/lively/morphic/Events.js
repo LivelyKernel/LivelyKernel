@@ -1957,10 +1957,9 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         if (this.submorphs.length > 0) return false;
         this.carriesGrabbedMorphs = true;
         morphs.forEach(function(morph) {
- 
+            console.log(morph.name);
             if (morph.grabByHand) { 
                 morph.grabByHand(this);
-                
             }
             else this.addMorphWithShadow(morph)
         }, this)

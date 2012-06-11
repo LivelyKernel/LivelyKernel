@@ -667,6 +667,7 @@ handleOnCapture);
     },
 
     onMouseDownEntry: function(evt) {
+      console.log("MouseDownEntry on "+this.name);
         if (this.showsMorphMenu
           && evt.isRightMouseButtonDown() // only world morph is present?
           && this.world().morphsContainingPoint(evt.getPosition()).length === 1) {

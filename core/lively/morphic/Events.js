@@ -697,7 +697,7 @@ handleOnCapture);
         return false; 
     },
     onMouseUpEntry: function(evt) {
-        console.log("MouseUpEntry on "+this.name);
+  
         var world = evt.world,
             completeClick = world.clickedOnMorph === this,
             internalCompleteClick = evt.hand.internalClickedOnMorph === this;

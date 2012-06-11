@@ -663,6 +663,7 @@ handleOnCapture);
     },
 
     onMouseDown: function(evt) {
+        console.log("OnMouseDown on "+this.name);
         return false;
     },
 

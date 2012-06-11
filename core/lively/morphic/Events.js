@@ -675,7 +675,11 @@ handleOnCapture);
             var sy = scrollbarExtent.y;
             var ox = evt.offsetX;
             var oy = evt.offsetY;
-
+            var extent = this.getExtent();
+            var width = extent.x;
+            var height = extent.y;
+            
+            console.log("sx: "+sx +"sy: "+sy +"ox: "+ox +"oy: "+oy +"width: "+width +"height: "+height );
 
         }
 

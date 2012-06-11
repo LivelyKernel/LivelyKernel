@@ -795,7 +795,6 @@ handleOnCapture);
     onMouseMove: function(evt) {},
 
     onMouseMoveEntry: function(evt) {
-        console.log("MouseMove on "+this.name);
         if ((new Date().getTime() > evt.hand.lastScrollTime + 250) &&
                 (!this.isText || this.isScrollable())) {
             evt.hand.scrollFocusMorph = this;

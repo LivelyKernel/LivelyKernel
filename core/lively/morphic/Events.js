@@ -673,10 +673,10 @@ handleOnCapture);
                 
             var scrollbarExtent = this.getScrollBarExtent();
             var extent = this.getExtent();
-            console.log("You clicked on: "+this.name);
+            //console.log("You clicked on: "+this.name);
             //console.log(this.grabbingEnabled);
-            console.log("evt.offsetX: "+ (evt.offsetX) + "    extent.x- scrollbarExtent.x: " +(extent.x- scrollbarExtent.x));
-            console.log("evt.offsetY: "+ (evt.offsetY)+"    extent.y- scrollbarExtent.y: "+(extent.y- scrollbarExtent.y));
+            //console.log("evt.offsetX: "+ (evt.offsetX) + "    extent.x- scrollbarExtent.x: " +(extent.x- scrollbarExtent.x));
+            //console.log("evt.offsetY: "+ (evt.offsetY)+"    extent.y- scrollbarExtent.y: "+(extent.y- scrollbarExtent.y));
             // FIXME: not the perfect solution for text edit scroll morphs
             if ((evt.offsetX> extent.x- scrollbarExtent.x) && (evt.offsetX < extent.x)  || 
                 (evt.offsetY> extent.y- scrollbarExtent.y) && (evt.offsetY < extent.y)) {

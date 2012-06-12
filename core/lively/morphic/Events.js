@@ -667,7 +667,7 @@ handleOnCapture);
     },
 
     onMouseDownEntry: function(evt) {
-        
+        /*
         // check if mouse is on the scrollbar
         if (this.showsVerticalScrollBar() || this.showsHorizontalScrollBar()) {    
             var scrollbarExtent = this.getScrollBarExtent();
@@ -678,10 +678,10 @@ handleOnCapture);
             // FIXME: not the perfect solution for text edit scroll morphs
             if ((evt.offsetX> extent.x- scrollbarExtent.x) && (evt.offsetX < extent.x)  || 
                 (evt.offsetY> extent.y- scrollbarExtent.y) && (evt.offsetY < extent.y)) {
-                return true;
+                return false;
             }
         }
-
+*/
         if (this.showsMorphMenu
           && evt.isRightMouseButtonDown() // only world morph is present?
           && this.world().morphsContainingPoint(evt.getPosition()).length === 1) {

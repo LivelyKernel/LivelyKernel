@@ -672,15 +672,15 @@ handleOnCapture);
         if (this.showsVerticalScrollBar() || this.showsHorizontalScrollBar()) {    
             var scrollbarExtent = this.getScrollBarExtent();
             var extent = this.getExtent();
-            /*
+            
             console.log("evt.offsetX: "+ (evt.offsetX) + "    extent.x- scrollbarExtent.x: " +(extent.x- scrollbarExtent.x));
             console.log("evt.offsetY: "+ (evt.offsetY)+"    extent.y- scrollbarExtent.y: "+(extent.y- scrollbarExtent.y));
             // FIXME: not the perfect solution for text edit scroll morphs
             if ((evt.offsetX> extent.x- scrollbarExtent.x) && (evt.offsetX < extent.x)  || 
                 (evt.offsetY> extent.y- scrollbarExtent.y) && (evt.offsetY < extent.y)) {
-                return false;
+                //return false;
             }
-            */
+            
         }
 
         if (this.showsMorphMenu

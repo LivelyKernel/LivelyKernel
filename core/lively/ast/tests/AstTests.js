@@ -152,6 +152,14 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
             result = this.parseJS(src, 'stmt');
         this.assertMatches(expected, result);
     },
+    test13ParseBinary: function() {
+        var src = '1&1|1',
+            expected = ['binop', [0, 5], '|',
+                ['binop', [0, 3], '&', ['number', [0, 1], 1], ['number', [2, 3], 1]],
+                ['number', [4, 5], 1]],
+            result = this.parseJS(src, 'expr');
+        this.assertMatches(expected, result);
+    }
 });
 
 

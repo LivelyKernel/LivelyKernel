@@ -646,7 +646,10 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         return this.windowBounds().intersection(this.innerBounds());
     },
     setNodeId: function() {
-            return this.shape.setNodeId("the-world");
+        // FIXME: maybe it would be more intelligent to really 
+        // generate an ID for the world so we avoid conflicts 
+        // when multiple worlds are displayed in the same browser window
+        return this.shape.setNodeId("the-world");
     },
 },
 'rendering', {

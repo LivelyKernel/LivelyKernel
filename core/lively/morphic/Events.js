@@ -673,6 +673,7 @@ handleOnCapture);
             var scrollbarExtent = this.getScrollBarExtent();
             var extent = this.getExtent();
             
+            // FIXME: not the perfect solution for text edit scroll morphs
             if ((evt.offsetX> extent.x- scrollbarExtent.x) && (evt.offsetX < extent.x)  || 
                 (evt.offsetY> extent.y- scrollbarExtent.y) && (evt.offsetY < extent.y)) {
                 return false;

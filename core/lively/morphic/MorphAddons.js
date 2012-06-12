@@ -280,7 +280,7 @@ lively.morphic.Morph.addMethods(
     getStyleClass: function() { return this.styleClass || [] },
 
     setStyleClass: function(value) {
-        console.log("MorphAddons.js, setStyleClass()");
+        
         // from good ol' SVG days
         var attr;
         if (value instanceof Array) {

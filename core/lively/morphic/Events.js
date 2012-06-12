@@ -673,7 +673,9 @@ handleOnCapture);
             var scrollbarExtent = this.getScrollBarExtent();
             var extent = this.getExtent();
             var scroll = this.getScroll();            
-
+            
+            console.log( "X scroll: "+scroll[0]+"     Y scroll: "+scroll[1]);
+            
             if ((evt.offsetX> extent.x- scrollbarExtent.x + scroll[0]) || (evt.offsetY> extent.y- scrollbarExtent.y + scroll[1])) {
                 return false;
             }

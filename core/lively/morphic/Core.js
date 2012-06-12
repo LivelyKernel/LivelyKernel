@@ -645,6 +645,10 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         // return this.windowBounds().intersection(this.bounds());
         return this.windowBounds().intersection(this.innerBounds());
     },
+    setNodeId: function() {
+        
+        //return this.shape.setNodeId("morph-"+this.id.toLowerCase());
+    },
 },
 'rendering', {
     displayOnCanvas: function(domElement) {

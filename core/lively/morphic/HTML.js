@@ -901,7 +901,7 @@ lively.morphic.Shapes.Shape.addMethods(
             });
         }
 
-        var styleTagId = "style-"+morphId;
+        var styleTagId = "style-for-"+morphId;
 
 	var css = $('#' + styleTagId);
 	css.remove();

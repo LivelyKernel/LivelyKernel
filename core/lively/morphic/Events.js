@@ -672,12 +672,9 @@ handleOnCapture);
         if (this.showsVerticalScrollBar() || this.showsHorizontalScrollBar()) {    
             var scrollbarExtent = this.getScrollBarExtent();
             var extent = this.getExtent();
-            var scroll = this.getScroll();            
             
-            console.log("    offsetY: "+ evt.offsetY+ "      Y scroll: "+scroll[1]+ "   extent.y- scrollbarExtent.y: "+(extent.y- scrollbarExtent.y));
-            
-            
-            if ((evt.offsetX> extent.x- scrollbarExtent.x + scroll[0]) || (evt.offsetY> extent.y- scrollbarExtent.y + scroll[1])) {
+            if ((evt.offsetX> extent.x- scrollbarExtent.x) && (evt.offsetX < extent.x)  || 
+                (evt.offsetY> extent.y- scrollbarExtent.y) && (evt.offsetY < extent.y)) {
                 return false;
             }
         }

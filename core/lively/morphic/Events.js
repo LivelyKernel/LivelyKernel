@@ -669,7 +669,7 @@ handleOnCapture);
     onMouseDownEntry: function(evt) {
         
         // check if mouse is on the scrollbar
-        if (this.showsVerticalScrollBar() || this.showsHorizontalScrollBar()) {    
+        if (this.showsVerticalScrollBar() || this.showsHorizontalScrollBar() && this.grabbingEnabled) {    
             var scrollbarExtent = this.getScrollBarExtent();
             var extent = this.getExtent();
             

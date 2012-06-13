@@ -304,7 +304,7 @@ lively.ast.Node.addMethods(
         if (Object.isObject(pattern) && value.isASTNode) {
             return value.match(pattern);
         }
-        throw {key: key, err: "missmatch", expected: pattern.toString(), actual: value.toString()};
+        throw {key: key, err: "missmatch", expected: String(pattern), actual: String(value)};
     }
 });
 

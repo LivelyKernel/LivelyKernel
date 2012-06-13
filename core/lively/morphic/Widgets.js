@@ -1335,7 +1335,7 @@ lively.morphic.World.addMethods(
             ['Documentation', [
                 ["On short cuts", this.openShortcutDocumentation.bind(this)],
                 ["On connect data bindings", this.openConnectDocumentation.bind(this)],
-				        ["on Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
+				        ["On Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
                 ["More ...", function() { window.open(Config.rootPath + 'documentation/'); }]
             ]],
             ['Save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],

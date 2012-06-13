@@ -567,7 +567,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             
             var itemHeight = 23,
                 itemMorph = new lively.morphic.Text(
-                    new Rectangle(0, y, this.getExtent().x, itemHeight), item.string);
+                    new Rectangle(0, y, this.getExtent().x, itemHeight), title);
              
             if (item.isSubMenu) {
                 var arrowMorph = new lively.morphic.Text(

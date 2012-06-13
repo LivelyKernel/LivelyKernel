@@ -274,28 +274,27 @@ lively.ast.Node.addMethods(
         }
         return matchedPlaceholder;
     },
-    matchVal: function(value, pattern) {
+    matchVal: function(key, value, pattern) {
         if (pattern === lively.ast.Node.placeholder) return {val: value};
-        if (thisVal === patternVal) return true;
-        if (Object.isString(patternVal) && thisVal.toString() == patternVal)
+        if (value === pattern) return true;
+        if (Object.isString(pattern) && value.toString() == pattern)
             return true;
-        if (Object.isArray(patternVal)) {
-            if (!Object.isArray(thisVal)) throw Error(key + " not an array");
-            if (thisVal.length !== patternVal.length) {
+        if (Object.isArray(pattern) && Object.isArray(value)) {
+            if (value.length !== pattern.length) {
                 throw {key: key, err: "count",
-                       expected: patternVal.length, actual: thisVal.length};
+                       expected: pattern.length, actual: value.length};
             }
             var matchedPlaceholder = true;
-            for (var i = 0; i < thisVal.length; i++) {
-                var result = this.matchVal(thisVal[i], patternVal[i]);
+            for (var i = 0; i < value.length; i++) {
+                var result = this.matchVal(key, value[i], pattern[i]);
                 if (result.val) matchedPlaceholder = result;
             }
             return matchedPlaceholder;
         }
-        if (Object.isObject(patternVal) && thisVal.isASTNode) {
-            return thisVal.match(patternVal);
+        if (Object.isObject(pattern) && value.isASTNode) {
+            return value.match(pattern);
         }
-        throw {err: "missmatch", expected: patternVal, actual: thisVal};
+        throw {key: key, err: "missmatch", expected: pattern, actual: value};
     }
 });
 

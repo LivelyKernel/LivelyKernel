@@ -277,10 +277,11 @@ lively.ast.Node.addMethods(
     matchVal: function(key, value, pattern) {
         if (pattern === lively.ast.Node.placeholder) return {val: value};
         if (value === pattern) return true;
-        if (Object.isString(pattern) && value.toString() == pattern)
-            return true;
-        if (Object.isString(pattern) && value.isString && value.value == pattern)
-            return true;
+        if (Object.isString(pattern)) {
+            if (value.toString() == pattern) return true;
+            if (value.value == pattern) return true;
+            if (value.name == pattern) return true;
+        }
         if (Object.isArray(pattern) && Object.isArray(value)) {
             if (value.length !== pattern.length) {
                 throw {key: key, err: "count",

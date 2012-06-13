@@ -789,7 +789,7 @@ lively.morphic.Shapes.Shape.addMethods(
             realExtent = value
                          .addXY(-2 * borderWidth, -2 * borderWidth)
                          .addXY(-paddingWidth, -paddingHeight);
-            realExtent.maxPt(pt(0,0));
+            realExtent = realExtent.maxPt(pt(0,0));
         ctx.domInterface.setExtent(ctx.shapeNode, realExtent);
         return realExtent;
     },

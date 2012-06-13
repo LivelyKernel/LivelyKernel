@@ -1304,42 +1304,42 @@ lively.morphic.World.addMethods(
                 ['System Console', this.openSystemConsole.bind(this)]
             ]],
             ['Stepping', [
-                ['start stepping',  function() { world.submorphs.each(
+                ['Start stepping',  function() { world.submorphs.each(
                         function(ea) {ea.startSteppingScripts && ea.startSteppingScripts()})}],
-                ['stop stepping', function() { world.submorphs.each(
+                ['Stop stepping', function() { world.submorphs.each(
                         function(ea) {ea.stopStepping && ea.stopStepping()})}],
             ]],            
             ['Preferences', [
-                ['set username', this.askForUserName.bind(this)],
-                ['my user config', this.showUserConfig.bind(this)],
-                ['set extent', this.askForNewWorldExtent.bind(this)],
-                ['set background color', this.askForNewBackgroundColor.bind(this)]]
+                ['Set username', this.askForUserName.bind(this)],
+                ['My user config', this.showUserConfig.bind(this)],
+                ['Set extent', this.askForNewWorldExtent.bind(this)],
+                ['Set background color', this.askForNewBackgroundColor.bind(this)]]
             ],
             ['Debugging', this.debuggingMenuItems(world)],
             ['Wiki', [
-                ['about this wiki', this.openAboutBox.bind(this)],
-                ['bootstrap parts from webwerkstatt', this.openBootstrapParts.bind(this)],
-                ['view versions of this world', this.openVersionViewer.bind(this)],
-                ['download world', function() {
+                ['About this wiki', this.openAboutBox.bind(this)],
+                ['Bootstrap parts from webwerkstatt', this.openBootstrapParts.bind(this)],
+                ['View versions of this world', this.openVersionViewer.bind(this)],
+                ['Download world', function() {
                     require('lively.persistence.StandAlonePackaging').toRun(function() {
                         lively.persistence.StandAlonePackaging.packageCurrentWorld();
                     });
                 }],
-                ['upload world to Dropbox', function() {
+                ['Upload world to Dropbox', function() {
                     require('apps.Dropbox').toRun(function() {
                         DropboxAPI.uploadArchivedWorld();
                     });
                 }],
-                ['delete world', this.interactiveDeleteWorldOnServer.bind(this)]
+                ['Delete world', this.interactiveDeleteWorldOnServer.bind(this)]
             ]],
             ['Documentation', [
-                ["on short cuts", this.openShortcutDocumentation.bind(this)],
-                ["on connect data bindings", this.openConnectDocumentation.bind(this)],
+                ["On short cuts", this.openShortcutDocumentation.bind(this)],
+                ["On connect data bindings", this.openConnectDocumentation.bind(this)],
 				        ["on Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
-                ["more...", function() { window.open(Config.rootPath + 'documentation/'); }]
+                ["More ...", function() { window.open(Config.rootPath + 'documentation/'); }]
             ]],
-            ['save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],
-            ['save world', this.saveWorld.bind(this), 'synchron']
+            ['Save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],
+            ['Save world', this.saveWorld.bind(this), 'synchron']
         ];
         return items;
     }

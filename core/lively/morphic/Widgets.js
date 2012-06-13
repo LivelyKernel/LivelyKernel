@@ -1184,9 +1184,9 @@ lively.morphic.World.addMethods(
 
     debuggingMenuItems: function(world) {
         var items = [
-            ['reset world scale', this.resetScale.bind(this)],
-            ['reset title bars', this.resetAllTitleBars.bind(this)],
-            ['reset button labels', this.resetAllButtonLabels.bind(this)],
+            ['Reset world scale', this.resetScale.bind(this)],
+            ['Reset title bars', this.resetAllTitleBars.bind(this)],
+            ['Reset button labels', this.resetAllButtonLabels.bind(this)],
             ['World serialization info', function() {
                 require('lively.persistence.Debugging').toRun(function() {
                     var json = lively.persistence.Serializer.serialize(world),
@@ -1203,9 +1203,9 @@ lively.morphic.World.addMethods(
                 alertOK(name + ' is not loaded at startup anymore');
             },
             menuItems = worldRequirements.collect(function(name) {
-                return [name, [['remove', removeRequirement.curry(name)]]];
+                return [name, [['Remove', removeRequirement.curry(name)]]];
             });
-        items.push(['requirements', menuItems]);
+        items.push(['Requirements', menuItems]);
 
         // method tracing items
         function disableGlobalTracing() {

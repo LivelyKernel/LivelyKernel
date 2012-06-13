@@ -205,6 +205,12 @@ Strings = {
         return str.split(/\n\r?/);
     },
 
+    nonEmptyLines: function(str) {
+        return Strings.lines(str).reject(function(line) {
+            return line == ''
+        });
+    },
+
     tokens: function(str, regex) {
         regex = regex || /\s+/;
         return str.split(regex);

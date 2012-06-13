@@ -656,7 +656,7 @@ lively.morphic.List.addMethods(
     },
     deselectAtHTML: function(ctx, idx) {
         if (!ctx.listNode) return;
-        if (idx < 0 || idx >= this.itemList.length) reurn;
+        if (idx < 0 || idx >= this.itemList.length) return;
         var node = ctx.subNodes[idx];
         if (node) node.selected = false;
     },

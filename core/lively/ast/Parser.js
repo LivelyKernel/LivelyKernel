@@ -269,7 +269,7 @@ lively.ast.Node.addMethods(
     match: function(patternAst) {
         var matchedPlaceholder = true;
         for (var key in patternAst) {
-            var result = this.matchVal(this[key], patternAst[key]);
+            var result = this.matchVal(key, this[key], patternAst[key]);
             if (result.val) matchedPlaceholder = result;
         }
         return matchedPlaceholder;

@@ -1595,12 +1595,11 @@ lively.morphic.World.addMethods(
         var files = evt.dataTransfer.files;
         if (files && files.length > 0) {
             new lively.FileUploader().handleDroppedFiles(files, evt);
-        } else {
+        } else if (evt.dataTransfer && evt.dataTransfer.types) {
             // this needs to be extracted!
-            var supportedTypes = ['text/plain', "text/uri-list", 'text/html', 'text'],
-                type = supportedTypes.detect(function(type) {
-                    return evt.dataTransfer.types.include(type);
-                });
+            var types = Array.from(evt.dataTransfer.types),
+                supportedTypes = ['text/plain', "text/uri-list", 'text/html', 'text'],
+                type = supportedTypes.detect(function(type) { return types.include(type); });
             if (type) {
                 var data = evt.dataTransfer.getData(type);
                 this.addTextWindow({

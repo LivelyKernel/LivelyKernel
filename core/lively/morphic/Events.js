@@ -1152,18 +1152,6 @@ lively.morphic.Text.addMethods(
     }
 },
 'event handling', {
-    onSelectStart: function(evt) {
-        if (this.eventsAreIgnored)
-            evt.stop();
-        // alert(this.getSelectionRange())
-        // if (!this.bounds().containsPoint(evt.getPosition()))
-            // evt.preventDefault();
-        // just do the normal thing
-
-        // Allow HTML selection
-        return true;
-    },
-
     onBlur: function($super, evt) {
         $super(evt);
         delete this.constructor.prototype.activeInstance;
@@ -1212,7 +1200,6 @@ lively.morphic.List.addMethods(
         return false;
     },
     onMouseUp: function (evt) {
-
         if (evt.isLeftMouseButtonDown()) {
             var idx = this.renderContextDispatch('getItemIndexFromEvent', evt);
             // don't update when selection can't be found
@@ -1293,7 +1280,8 @@ lively.morphic.List.addMethods(
 
 lively.morphic.DropDownList.addMethods(
 'properties', {
-    isDropDownList: 'true', // triggers correct rendering
+    // triggers correct rendering
+    isDropDownList: 'true'
 },
 'mouse events', {
     onMouseDown: function(evt) {
@@ -1301,7 +1289,6 @@ lively.morphic.DropDownList.addMethods(
             evt.preventDefault()
             return false;
         }
-
         this.changeTriggered = false; // see onBlur
         return true;
      },
@@ -1313,6 +1300,7 @@ lively.morphic.DropDownList.addMethods(
         this.changeTriggered = true; // see onBlur
         return false;
     },
+
     onBlur: function(evt) {
         // drop down lists are stupid
         // onChange is not triggered when the same selection is choosen again
@@ -1323,13 +1311,10 @@ lively.morphic.DropDownList.addMethods(
         this.updateSelectionAndLineNoProperties(idx);
     },
 
-
-
     registerForOtherEvents: function($super, handleOnCapture) {
         $super(handleOnCapture)
         if (this.onBlur) this.registerForEvent('blur', this, 'onBlur', handleOnCapture);
-    },
-
+    }
 
 });
 
@@ -1594,21 +1579,16 @@ lively.morphic.World.addMethods(
         return true
     },
 
-    onSelectStart: function(evt) {
-        if (this.clickedOnMorph && !this.clickedOnMorph.isText && !this.clickedOnMorph.isList)
-            evt.stop();
-        if (this.clickedOnMorph && this.clickedOnMorph.isText && !this.clickedOnMorph.allowInput)
-            evt.stop()
-        return false;
-    },
     onHTML5DragEnter: function(evt) {
         evt.stop();
         return true;
     },
+
     onHTML5DragOver: function(evt) {
         evt.stop();
         return true;
     },
+
     onHTML5Drop: function(evt) {
         // see https://developer.mozilla.org/en/Using_files_from_web_applications
         evt.stop();
@@ -1632,8 +1612,6 @@ lively.morphic.World.addMethods(
         }
         return true;
     }
-
-
 },
 'window related', {
     onWindowResize: function(evt) {

@@ -226,15 +226,33 @@ Object.subclass('lively.Main.Loader',
 
     browserSpecificFixes: function() {
         if (Global.navigator.appName == 'Opera') window.onresize();
-        // selection style of morphs/texts/lists etc.
-        if (UserAgent.fireFoxVersion) return;
-        var cssDef = ':focus {outline:none;}\n.visibleSelection:focus {';
-        if (UserAgent.webKitVersion) {
-            cssDef += '  outline: 2px auto -webkit-focus-ring-color;';
-        } else  {
-            cssDef += '  outline: 2px auto blue;';
-        }
-        cssDef += '}';
+        var cssDef = "";
+        // 1. Don't DOM-select arbitrary elements on mouse move
+        // none is different to -moz-none:
+        // none has the same meaning as in display rule, none of the
+        // sub-elements can overwrite it whereas -moz-none allows
+        // child elements to overwrite -moz-user-select
+        cssDef += "*:not(:focus) {\n"
+                + "  -moz-user-select: -moz-none;\n"
+                + "  -webkit-user-select: none;\n"
+                + "  -ms-user-select: none;\n"
+                + "  user-select: none;\n"
+                + "}"
+                + ".visibleSelection:focus, .visibleSelection:focus * {\n"
+                + "  -moz-user-select: element;\n"
+                + "  -webkit-user-select: auto;\n"
+                + "  -ms-user-select: auto;\n"
+                + "  user-select: auto;\n"
+                + "}\n";
+        // 2. selection style of morphs/texts/lists etc.
+        // suppress focus highlight for most elements
+        // only texts, lists, etc should show the real focus
+        cssDef += ':focus {\n'
+                + '  outline:none;\n'
+                + '}\n'
+                + '.visibleSelection:focus {\n'
+                + '  outline: 2px auto ' + (UserAgent.webKitVersion ? '-webkit-focus-ring-color' : 'blue') + ';\n'
+                + '}\n';
         XHTMLNS.addCSSDef(cssDef);
     },
 

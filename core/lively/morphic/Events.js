@@ -1215,8 +1215,6 @@ lively.morphic.List.addMethods(
                     this.selectAt(idx);
             }
         }
-
-        evt.stop();
         return true;
     },
     onMouseUpEntry: function ($super, evt) {

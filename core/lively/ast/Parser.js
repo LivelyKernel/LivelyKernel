@@ -283,14 +283,21 @@ lively.ast.Node.addMethods(
             if (value.name == pattern) return true;
         }
         if (Object.isArray(pattern) && Object.isArray(value)) {
+            var matchedPlaceholder = true;
+            for (var i = 0; i < pattern.length; i++) {
+                var lastMatchedPlaceholder = false;
+                var lastError = null;
+                for (var j = 0; j < value.length; j++) {
+                    try {
+                        lastMatchedPlaceholder = this.matchVal(key, value[j], pattern[i]);
+                    } catch(e) { lastError = e; }
+                }
+                if (!lastMatchedPlaceholder) throw lastError;
+                if (lastMatchedPlaceholder.val) matchedPlaceholder = lastMatchedPlaceholder;
+            }
             if (value.length !== pattern.length) {
                 throw {key: key, err: "count",
                        expected: pattern.length, actual: value.length};
-            }
-            var matchedPlaceholder = true;
-            for (var i = 0; i < value.length; i++) {
-                var result = this.matchVal(key, value[i], pattern[i]);
-                if (result.val) matchedPlaceholder = result;
             }
             return matchedPlaceholder;
         }

@@ -1216,8 +1216,8 @@ Function.addMethods(
         return parseResult;
     },
 });
-Object.extend(SomeObject, {
-    m1: function() {},
+Object.extend(lively.ast.Node, {
+    placeholder: {},
 });
 
 

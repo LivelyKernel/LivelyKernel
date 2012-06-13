@@ -264,6 +264,39 @@ lively.ast.Node.addMethods(
     isComposite: function() {
         return false;
     }
+},
+'matching', {
+    match: function(patternAst) {
+        var matchedPlaceholder = true;
+        for (var key in patternAst) {
+            var result = this.matchVal(this[key], patternAst[key]);
+            if (result.val) matchedPlaceholder = result;
+        }
+        return matchedPlaceholder;
+    },
+    matchVal: function(value, pattern) {
+        if (pattern === lively.ast.Node.placeholder) return {val: value};
+        if (thisVal === patternVal) return true;
+        if (Object.isString(patternVal) && thisVal.toString() == patternVal)
+            return true;
+        if (Object.isArray(patternVal)) {
+            if (!Object.isArray(thisVal)) throw Error(key + " not an array");
+            if (thisVal.length !== patternVal.length) {
+                throw {key: key, err: "count",
+                       expected: patternVal.length, actual: thisVal.length};
+            }
+            var matchedPlaceholder = true;
+            for (var i = 0; i < thisVal.length; i++) {
+                var result = this.matchVal(thisVal[i], patternVal[i]);
+                if (result.val) matchedPlaceholder = result;
+            }
+            return matchedPlaceholder;
+        }
+        if (Object.isObject(patternVal) && thisVal.isASTNode) {
+            return thisVal.match(patternVal);
+        }
+        throw {err: "missmatch", expected: patternVal, actual: thisVal};
+    }
 });
 
 Object.subclass('lively.ast.SourceGenerator',

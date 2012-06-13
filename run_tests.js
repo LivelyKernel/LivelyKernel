@@ -99,6 +99,12 @@ var testList = [
     "cop.tests.LayerTests"
 ];
 
+var additionalModules = getURLParam('additionalModules');
+if (additionalModules) {
+    var moduleNames = additionalModules.split(',');
+    testList.pushAll(moduleNames);
+}
+
 // filter is something like "lively.morphic.*|.*Origin.*|test03"
 var filter = getURLParam('testFilter'), suiteFilter;
 if (filter) {
@@ -109,6 +115,7 @@ if (filter) {
         return moduleFilterRegexp.test(name) });
     suiteFilter = parts.slice(1).join('|'); // last 2
 }
+
 
 prepareConfig();
 

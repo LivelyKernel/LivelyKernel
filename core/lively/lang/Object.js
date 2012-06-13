@@ -92,6 +92,10 @@ Object.extend(Object, {
     isRegExp: function(object) {
         return object instanceof RegExp;
     },
+    
+    isObject: function(object) {
+        return typeof object == "object";
+    },
 
     inherit: function(obj) {
         var constructor = function ProtoConstructor() { return this }

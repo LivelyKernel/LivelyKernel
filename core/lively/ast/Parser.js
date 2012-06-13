@@ -279,6 +279,8 @@ lively.ast.Node.addMethods(
         if (value === pattern) return true;
         if (Object.isString(pattern) && value.toString() == pattern)
             return true;
+        if (Object.isString(pattern) && value.isString && value.value == pattern)
+            return true;
         if (Object.isArray(pattern) && Object.isArray(value)) {
             if (value.length !== pattern.length) {
                 throw {key: key, err: "count",

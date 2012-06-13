@@ -18,7 +18,9 @@ function alertForever(msg) {
 
 function getURLParam(name) {
     var queryRegex = new RegExp(name + '=([^\\&]+)'),
-        match = document.URL.split('?').last().match(queryRegex);
+        match = document.URL.split('?').last().match(queryRegex),
+        // FIXME OMeta overwrite unescape
+        unescape = window._unescape || window.unescape;
     return match && unescape(match[1]);
 }
 

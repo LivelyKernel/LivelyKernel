@@ -25,7 +25,7 @@ lively.morphic.Morph.addMethods(
         // BoundsHalo has to be in the background (top of the list)
         // so that when other Halos get moved to be seen on the screen they are still in front
         return [lively.morphic.BoundsHalo,
-            lively.morphic.ResizeHalo,
+            //lively.morphic.ResizeHalo,
             lively.morphic.DragHalo,
             lively.morphic.InspectHalo,
             lively.morphic.RotateHalo,

@@ -578,6 +578,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         evt.stop()
         return true;
     },
+
     onCut: function(evt) {
         this.fixChunksDelayed();
     },
@@ -1370,6 +1371,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     setSelectionRange: function(start, end) {
+        if (!this.isFocused()) this.focus();
         if (start < 0) { start = 0; }
         if (start > this.textString.length) { start = this.textString.length; }
         if (end < 0) { end = 0; }
@@ -1386,8 +1388,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (startBoundaryPoint === undefined) startBoundaryPoint = endBoundaryPoint;
         if (endBoundaryPoint === undefined) endBoundaryPoint = startBoundaryPoint;
 
-// alert('selecting ' + startBoundaryPoint[0].textContent + '[' + startBoundaryPoint[1] + ']-'
-    // + endBoundaryPoint[0].textContent + '[' + endBoundaryPoint[1] + ']')
+        // alert('selecting ' + startBoundaryPoint[0].textContent + '[' + startBoundaryPoint[1] + ']-'
+        // + endBoundaryPoint[0].textContent + '[' + endBoundaryPoint[1] + ']')
 
         if (sel.setBaseAndExtent) {
             // setBaseAndExtent supports right-to-left selections (at least in Chrome...)
@@ -1396,7 +1398,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                 endBoundaryPoint[0], endBoundaryPoint[1]);
         } else { // e.g. FireFox does not support setBaseAndExtent
             // actually it should not be necessary to switch the values
-            // bot range does not work with right-to-left selections
+            // but range does not work with right-to-left selections
             if (start > end) {
                 var temp = endBoundaryPoint;
                 endBoundaryPoint = startBoundaryPoint;
@@ -2269,11 +2271,9 @@ Object.subclass('lively.morphic.TextChunk',
         };
 
         // We dont care we want to have the right so use this as right and dont split
-        if (returnRight && myString.length === 0)
-            return this;
+        if (returnRight && myString.length === 0) return this;
         // same thing
-        if (!returnRight && newString.length === 0)
-            return this;
+        if (!returnRight && newString.length === 0) return this;
 
         this.textString = myString;
         var newChunk = this.createForSplit(newString),
@@ -2287,7 +2287,8 @@ Object.subclass('lively.morphic.TextChunk',
 
         return returnRight ? newChunk : this;
     },
-    createForSplit: function(str) { return new this.constructor(str, this.style.clone()) },
+
+    createForSplit: function(str) { return new this.constructor(str, this.style.clone()) }
 
 },
 'joining', {
@@ -2301,11 +2302,11 @@ Object.subclass('lively.morphic.TextChunk',
         this.textString += next.textString;
         return true;
     },
+
     joinWithNextIfEqualStyle: function() {
         var next = this.next();
-        if (next && this.style.equals(next.style))
-            return this.joinWithNext();
-    },
+        return next && this.style.equals(next.style) ? this.joinWithNext() : null;
+    }
 
 },
 'styling', {
@@ -2313,7 +2314,7 @@ Object.subclass('lively.morphic.TextChunk',
         this.normalize();
         if (styleSpec) this.style.add(styleSpec);
         this.style.applyToHTML(this.getChunkNode(), this.debugMode);
-    },
+    }
 },
 'subnodes', {
     normalize: function() {

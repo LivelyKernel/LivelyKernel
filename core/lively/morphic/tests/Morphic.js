@@ -502,7 +502,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         this.assert(m.textString.indexOf(m.selectionString()) != -1);
     },
 
-
     test06ModifySelectedLinesInsertsAtCorrectPosition: function() {
         var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20));
         this.world.addMorph(m);

@@ -691,6 +691,7 @@ Object.extend(lively.morphic.World, {
         world.displayOnCanvas(domElement)
         world.applyStyle({fill: Color.gray.lighter()})
         world.addHandMorph();
+        world.id = (new UUID).id;
         this.currentWorld = world;
         return world;
     },

@@ -1810,7 +1810,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
             var cell = new Rectangle(0, 0, this.barHeight-5, this.barHeight-5);
 
             this.closeButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "X", pt(-4,-4)));
+                new lively.morphic.WindowControl(cell, this.controlSpacing, "X", pt(-5,-4)));
             this.closeButton.applyStyle({moveHorizontal: true});
             //this.closeButton.linkToStyles('titleBar_closeButton');
             this.menuButton = this.addMorph(

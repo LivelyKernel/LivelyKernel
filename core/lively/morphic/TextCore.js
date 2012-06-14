@@ -1968,7 +1968,7 @@ this. textNodeString()
     },
 	
 	insertRichTextAt: function(string, style, index) {
-        var chunks = this.sliceTextChunks(index - 1, index),
+        var chunks = this.sliceTextChunks(index, index),
             firstChunk = chunks[0];
         if (!firstChunk) {
             console.warn('insertTextStringAt failed, found no text chunk!');

@@ -310,6 +310,8 @@ Properties = {
 
 Object.extend(Object.prototype, {
     addScript: function (funcOrString, optName) {
+        if (funcOrString == undefined)
+            return false
         var func = Function.fromString(funcOrString);
         return func.asScriptOf(this, optName);
     }

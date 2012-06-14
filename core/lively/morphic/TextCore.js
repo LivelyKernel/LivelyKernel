@@ -1966,6 +1966,18 @@ this. textNodeString()
         var chunkAndIdx = this.getChunkAndLocalIndex(idx, true);
         return chunkAndIdx && chunkAndIdx[0].style;
     },
+	
+	insertRichTextAt: function(string, style, index) {
+        var chunks = this.sliceTextChunks(index - 1, index),
+            firstChunk = chunks[0];
+        if (!firstChunk) {
+            console.warn('insertTextStringAt failed, found no text chunk!');
+            return;
+        }
+        firstChunk.textString += string;
+        firstChunk.styleText(style);
+        this.coalesceChunks();
+    },
 
 },
 'status messages', {

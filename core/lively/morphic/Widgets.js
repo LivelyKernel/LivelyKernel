@@ -564,7 +564,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         this.items.forEach(function(item) {
            
             // Always start menu items with a capital letter
-            //var title = item.string.substr(0,1).toUpperCase() + item.string.substr(1, item.string.length-1);
+            var title = item.string //.substr(0,1).toUpperCase() + item.string.substr(1, item.string.length-1);
             
             var itemHeight = 23,
                 itemMorph = new lively.morphic.Text(

@@ -148,9 +148,9 @@ Object.extend(Object, {
         return protoObj;
     },
 
-	addScript: function (funcOrString, optName) {
+	addScript: function (object, funcOrString, optName) {
 		var func = Function.fromString(funcOrString);
-		return func.asScriptOf(this, optName);
+		return func.asScriptOf(object, optName);
 	}
 });
 

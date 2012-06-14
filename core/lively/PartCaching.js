@@ -100,9 +100,9 @@ cop.create('PartCachingLayer').refineClass(lively.PartsBin.PartItem, {
         for(var i = 0; i < items.length; i++) {
             if (items[i][0] === "Preferences") {
                 if (Config.PartCachingEnabled) {
-                    items[i][1].push(['disable part caching', function() { Config.PartCachingEnabled = false }]);
+                    items[i][1].push(['Disable part caching', function() { Config.PartCachingEnabled = false }]);
                 } else {
-                    items[i][1].push(['enable part caching', function() {
+                    items[i][1].push(['Enable part caching', function() {
                         Config.PartCachingEnabled = true;
                         lively.PartCache.clearCache();
                     }]);
@@ -110,7 +110,7 @@ cop.create('PartCachingLayer').refineClass(lively.PartsBin.PartItem, {
             }
             if (items[i][0] === "Debugging") {
                 if (Config.PartCachingEnabled) {
-                    items[i][1].splice(4, 0, ['clear part cache', function() { lively.PartCache.clearCache(); }]);
+                    items[i][1].splice(4, 0, ['Clear part cache', function() { lively.PartCache.clearCache(); }]);
                 }
             }
         }

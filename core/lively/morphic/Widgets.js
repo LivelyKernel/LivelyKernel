@@ -1011,10 +1011,6 @@ lively.morphic.World.addMethods(
     openPartsBin: function(evt) {
         return this.openPartItem('PartsBinBrowser', 'PartsBin/Tools');
     },
-    openObjectEditor: function(evt) {
-        return this.openPartItem('ObjectEditor', 'PartsBin/Tools');
-    },
-
     openInspectorFor: function(object, evt) {
         var name = Config.useObjectInspector ? "ObjectInspector" : "Explorer";
         var part = this.openPartItem(name, 'PartsBin/Tools');

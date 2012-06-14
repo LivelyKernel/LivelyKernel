@@ -302,3 +302,15 @@ Properties = {
     }
 
 };
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Extensions to Object instances
+///////////////////////////////////////////////////////////////////////////////
+
+Object.extend(Object.prototype, {
+    addScript: function (funcOrString, optName) {
+        var func = Function.fromString(funcOrString);
+        return func.asScriptOf(this, optName);
+    }
+});

@@ -521,6 +521,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         evt.stop();
         return true;
     },
+
     onKeyPress: function(evt) {
         this.cachedTextString = null;
 
@@ -540,6 +541,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         evt.stopPropagation()
         return true;
     },
+
     onPaste: function (evt) {
         var htmlData = evt.clipboardData && evt.clipboardData.getData("text/html"),
             textData = evt.clipboardData && evt.clipboardData.getData("text/plain");
@@ -549,18 +551,26 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             return false; // let HTML magic handle paste
         }
 
-        var data = htmlData || lively.morphic.HTMLParser.stringToHTML(textData), // own rich text
+        // try to process own rich text
+        var data = htmlData || lively.morphic.HTMLParser.stringToHTML(textData),
             richText = lively.morphic.HTMLParser.pastedHTMLToRichText(data);
+        if (!richText) {
+            this.insertAtCursor(textData, true, true);
+            evt.stop()
+            return true;
+        }
         try {
             richText.replaceSelectionInMorph(this);
         } catch(e) {
             var world = this.world();
-            if (!world) return true;
+            if (!world) { evt.stop(); return true; }
             var selRange = this.getSelectionRange(),
-                text = this;
-            function inspectCb() {
-                lively.morphic.inspect({richText: richText, text: text, selecitonRange: selRange});
-            }
+                text = this,
+                inspectCb = lively.morphic.inspect.curry({
+                    richText: richText,
+                    text: text,
+                    selecitonRange: selRange
+                });
             world.setStatusMessage("Error in Text>>onPaste() @ replaceSelelectionInMorph",
                                    Color.red, undefined, inspectCb);
             world.logError(e);
@@ -2731,31 +2741,33 @@ Object.extend(lively.morphic.HTMLParser, {
         // creates DOM node from a snipped of HTML
         if (data.startsWith('<meta charset')) {
             // it's a special apple format?
-            var string = '<?xml version=\'1.0\'?><div xmlns:lively="' + Namespace.LIVELY + '">' + data + '</div>';
-            string = string.replace("<meta charset='utf-8'>", "")
-            string = string.replace(/<br(.*?)>/g, "<br $1/>")
-            var node = new DOMParser().parseFromString(string, "text/xml").documentElement;
+            var string = '<?xml version=\'1.0\'?><div xmlns:lively="'
+                       + Namespace.LIVELY + '">' + data + '</div>';
+            string = string.replace("<meta charset='utf-8'>", "");
+            string = string.replace(/<br(.*?)>/g, "<br $1/>");
+            var doc = new DOMParser().parseFromString(string, "text/xml"),
+                errorOccurred = doc.getElementsByTagName('parsererror').length > 0;
+            return !errorOccurred && doc.documentElement;
+        }
+        // it's a complete html document
+        // we are currently cutting of everything excepts the body -- this means that
+        // style can be lost
+        var start = data.indexOf('<body>');
+        if (start > -1) {
+            start += 6; // "<body>"
+            var end = data.indexOf('</body>')
+            var string = data.slice(start, end);
+            string = Strings.removeSurroundingWhitespaces(string);
         } else {
-            // it's a cpmplete html document
-            // we are currently cutting of everything excepts the body -- this means that
-            // style can be lost
-            var start = data.indexOf('<body>');
-            if (start > -1) {
-                start += 6; // "<body>"
-                var end = data.indexOf('</body>')
-                var string = data.slice(start, end);
-                string = Strings.removeSurroundingWhitespaces(string);
-            } else {
-                var string = data; // if no body tag just use the plain string
-            }
-            var node = XHTMLNS.create('div');
-            try {
-                node.innerHTML = this.sanitizeHtml(string);
-            } catch (e) {
-                // JENS: logError breaks browser under windows?
-                alert("PASTE ERROR: " + e + '\n could not paste: ' + string +'\n'
-                + 'please report problem on: http://lively-kernel.org/trac')
-            }
+            var string = data; // if no body tag just use the plain string
+        }
+        var node = XHTMLNS.create('div');
+        try {
+            node.innerHTML = this.sanitizeHtml(string);
+        } catch (e) {
+            // JENS: logError breaks browser under windows?
+            alert("PASTE ERROR: " + e + '\n could not paste: ' + string +'\n'
+            + 'please report problem on: http://lively-kernel.org/trac')
         }
         return node
     },
@@ -2780,16 +2792,16 @@ Object.extend(lively.morphic.HTMLParser, {
         })
     },
 
-
-
     pastedHTMLToRichText: function(data) {
-        // creates a rich text object from HTML snipped
+        // creates a rich text object from HTML snippet
         var node = this.sourceToNode(data);
+        if (!node) return;
         this.sanitizeNode(node);
         var richText = new lively.morphic.RichText(node.textContent);
         this.extractStylesAndApplyToRichText(node, richText, {styles: [], styleStart: 0})
         return richText;
     },
+
     extractStylesAndApplyToRichText: function(element, richText, mem) {
         // private
         for (var i = 0; i < element.childNodes.length; i++) {

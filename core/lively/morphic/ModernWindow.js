@@ -300,7 +300,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.owner.alignReframeHandle();
         });
         handle.setHandStyle("e-resize");
-        handle.bringToFront();
+        
         return handle;
     },
 
@@ -318,6 +318,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
                             this.rightReframeHandle.getExtent().y+"    "+
                             "Position: "+this.rightReframeHandle.getPosition().x+", "+
                             this.rightReframeHandle.getPosition().y);
+            this.rightReframeHandle.bringToFront();
             
         }
     },

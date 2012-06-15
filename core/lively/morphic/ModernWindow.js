@@ -131,7 +131,7 @@ lively.morphic.WindowControl.subclass("lively.morphic.ModernWindowControl",
     initialize: function($super, bnds, inset, labelString, labelOffset, color) {
         $super(bnds, labelString);
         this.label.applyStyle({fontSize: 8});
-        this.setStyleSheet(style);
+        this.setStyleSheet(this.style);
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
     },

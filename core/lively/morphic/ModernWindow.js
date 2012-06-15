@@ -232,7 +232,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             if (newExtent.x < this.owner.minWidth) newExtent.x = this.owner.minWidth;
             if (newExtent.y < this.owner.minHeight) newExtent.y = this.owner.minHeight;
             this.owner.setExtent(newExtent);
-            console.log("WindowExtent: "+this.owner.getExtent().x+" ,  "+this.owner.getExtent().y);
+            //console.log("WindowExtent: "+this.owner.getExtent().x+" ,  "+this.owner.getExtent().y);
             this.align(this.bounds().bottomRight(), this.owner.getExtent());
         });
         handle.addScript(function onDragEnd (evt) {
@@ -240,7 +240,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.originalTargetExtent = null;
             this.owner.alignBottomReframeHandle();
             this.owner.alignRightReframeHandle();
-            
         });
         handle.setHandStyle("se-resize");
         return handle;

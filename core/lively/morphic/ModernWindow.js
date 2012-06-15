@@ -82,7 +82,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 'appearance', {
     spacing: 4, // window border
     style: {borderWidth: 0, fill: null, borderRadius: 0, strokeOpacity: 0, adjustForNewBounds: true, enableDragging: true},
-    styleSheet: "background-color: rgba(255, 255, 255, 0.6); box-shadow: 0px 10px 15px #000; border-radius: 5px;",
+    styleSheet: "background-color: rgba(255, 255, 255, 0.6); box-shadow: 0px 10px 20px #000; border-radius: 5px; .highlighted {box-shadow: 0px 10px 15px #333;}",
 },
 
 
@@ -126,6 +126,18 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         // Overridden in TabbedPanelMorph
         return new lively.morphic.ModernTitleBar(titleString, width, this, optSuppressControls);
     },
+    
+    highlight: function(trueForLight) {
+        this.highlighted = trueForLight;
+        //var fill = this.titleBar.getStyle().fill || this.titleBar.getFill(),
+      //      newFill = trueForLight ? fill.lighter(1) : fill;
+        //this.titleBar.applyStyle({
+      //      fill: newFill,
+        //});
+
+        this.titleBar.label.applyStyle({emphasize: {fontWeight: trueForLight ? 'bold' : 'normal'}});
+    },
+    
 
 },'rest',
 {

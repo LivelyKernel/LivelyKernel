@@ -170,8 +170,8 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         var titleHeight = titleBar.bounds().height - titleBar.getBorderWidth();
         this.setBounds(bounds.withHeight(bounds.height + titleHeight));
         this.targetMorph = this.addMorph(targetMorph);
-        //this.reframeHandle = this.addMorph(this.makeReframeHandle());
-        //this.alignReframeHandle();
+        this.reframeHandle = this.addMorph(this.makeReframeHandle());
+        this.alignReframeHandle();
         this.titleBar = this.addMorph(titleBar);
         this.contentOffset = pt(this.spacing, titleHeight);
         targetMorph.setPosition(this.contentOffset);
@@ -206,7 +206,34 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.setNodeClass(!trueForLight ? 'highlighted' : '');
         this.titleBar.label.applyStyle({emphasize: {fontWeight: trueForLight ? 'bold' : 'normal'}});
     },
-    
+    makeReframeHandle: function() {
+        var handle = lively.morphic.Morph.makePolygon(
+            [pt(14, 0), pt(14, 14), pt(0, 14)], 0, null, Color.red);
+        handle.addScript(function onDragStart(evt) {
+            this.dragStartPoint = evt.mousePoint;
+            this.originalTargetExtent = this.owner.getExtent();
+        });
+        handle.addScript(function onDrag(evt) {
+            var moveDelta = evt.mousePoint.subPt(this.dragStartPoint)
+            if (evt.isShiftDown()) {
+                var maxDelta = Math.max(moveDelta.x, moveDelta.y);
+	              moveDelta = pt(maxDelta, maxDelta);
+            };
+            this.owner.setExtent(this.originalTargetExtent.addPt(moveDelta));
+            this.align(this.bounds().bottomRight(), this.owner.getExtent());
+        });
+        handle.addScript(function onDragEnd (evt) {
+            this.dragStartPoint = null;
+            this.originalTargetExtent = null;
+        });
+        return handle;
+    },
+
+    alignReframeHandle: function() {
+        if (this.reframeHandle) {
+            this.reframeHandle.align(this.reframeHandle.bounds().bottomRight(), this.getExtent());
+        }
+    },
 
 },'rest',
 {

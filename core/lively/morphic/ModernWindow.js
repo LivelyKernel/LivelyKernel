@@ -159,6 +159,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         
         return this;
     },
+    makeTitleBar: function(titleString, width, optSuppressControls) {
+        // Overridden in TabbedPanelMorph
+        return new lively.morphic.ModernTitleBar(titleString, width, this, optSuppressControls);
+    },
 
 },'rest',
 {

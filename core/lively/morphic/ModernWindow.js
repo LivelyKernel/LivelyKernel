@@ -300,6 +300,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.owner.alignReframeHandle();
         });
         handle.setHandStyle("e-resize");
+        handle.bringToFront();
         return handle;
     },
 

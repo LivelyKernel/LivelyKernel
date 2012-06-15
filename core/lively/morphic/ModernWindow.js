@@ -93,10 +93,10 @@ lively.morphic.TitleBar.subclass("lively.morphic.ModernTitleBar",
             this.closeButton.applyStyle({moveHorizontal: true});
             //this.closeButton.linkToStyles('titleBar_closeButton');
             this.menuButton = this.addMorph(
-                new lively.morphic.ModernWindowControl(cell, this.controlSpacing, "M", pt(-5,-6), "#D5E7C8"));
+                new lively.morphic.ModernWindowControl(cell, this.controlSpacing, "M", pt(-5,-6), "#EEEEEE"));
             //this.menuButton.linkToStyles('titleBar_menuButton');
             this.collapseButton = this.addMorph(
-                new lively.morphic.ModernWindowControl(cell, this.controlSpacing, "–", pt(-3,-6), "#D5E7C8"));
+                new lively.morphic.ModernWindowControl(cell, this.controlSpacing, "–", pt(-3,-6), "#EEEEEE"));
             this.collapseButton.applyStyle({moveHorizontal: true});
             //this.collapseButton.linkToStyles('titleBar_collapseButton');
 
@@ -135,7 +135,7 @@ lively.morphic.WindowControl.subclass("lively.morphic.ModernWindowControl",
         $super(bnds, inset, labelString, labelOffset);
         this.setAppearanceStylingMode(true);
         //this.setBorderStylingMode(true);
-        this.applyStyle({borderWidth: 1, borderRadius: 3, borderColor: Color.rgbHex("EEEEEE ")});
+        this.applyStyle({borderWidth: 1, borderRadius: 3, borderColor: Color.rgbHex("888888")});
         this.setStyleSheet(this.style +"background: "+color+";");
     },
 });

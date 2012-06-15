@@ -33,7 +33,8 @@ lively.morphic.World.addMethods({
 lively.morphic.Morph.subclass('lively.morphic.Window',
 'appearance', {
     spacing: 4, // window border
-    style: {borderWidth: 0, fill: Color.white, borderRadius: 0, strokeOpacity: 0, adjustForNewBounds: true, enableDragging: true},
+    style: {borderWidth: 0, fill: null, borderRadius: 0, strokeOpacity: 0, adjustForNewBounds: true, enableDragging: true},
+    styleSheet: "background-color: rgba(255, 255, 255, 0.6); box-shadow: 0px 0px 15px #000;",
 },
 
 
@@ -66,6 +67,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.expandedExtent       = null;
         this.ignoreEventsOnExpand = false;
         this.disableDropping();
+        
+        this.setAppearanceStyleMode(true);
+        this.setStyleSheet(this.styleSheet);
+        
         return this;
     },
 

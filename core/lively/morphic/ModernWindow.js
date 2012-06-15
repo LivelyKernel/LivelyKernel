@@ -133,7 +133,7 @@ lively.morphic.WindowControl.subclass("lively.morphic.ModernWindowControl",
     initialize: function($super, bnds, inset, labelString, labelOffset, color) {
         $super(bnds, inset, labelString, labelOffset);
         this.setAppearanceStylingMode(true);
-        this.setBorderStylingMode(true);
+        //this.setBorderStylingMode(true);
         this.setStyleSheet(this.style +"background: "+color+";");
     },
 });

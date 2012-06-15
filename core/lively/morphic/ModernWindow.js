@@ -136,7 +136,8 @@ lively.morphic.WindowControl.subclass("lively.morphic.ModernWindowControl",
         $super(bnds, inset, labelString, labelOffset);
         this.setAppearanceStylingMode(true);
         //this.setBorderStylingMode(true);
-        this.applyStyle({borderWidth: 1, borderRadius: 3, borderColor: Color.rgbHex("888888")});
+        this.applyStyle({borderWidth: 1, borderRadius: 3, borderColor: Color.rgbHex("888888"), emphasize: {fontWeight: 'bold'}});
+
         this.setStyleSheet(this.style +"background: "+color+";");
     },
 });

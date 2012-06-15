@@ -231,6 +231,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         handle.addScript(function onDragEnd (evt) {
             this.dragStartPoint = null;
             this.originalTargetExtent = null;
+            this.owner.alignBottomReframeHandle();
         });
         handle.setHandStyle("se-resize");
         return handle;
@@ -259,6 +260,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         handle.addScript(function onDragEnd (evt) {
             this.dragStartPoint = null;
             this.originalTargetExtent = null;
+            this.owner.alignReframeHandle();
         });
         handle.setHandStyle("s-resize");
         return handle;

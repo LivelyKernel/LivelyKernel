@@ -105,6 +105,9 @@ lively.morphic.TitleBar.subclass("lively.morphic.ModernTitleBar",
         this.adjustForNewBounds();
         this.adjustForNewBounds();
 
+        this.setAppearanceStylingMode(true);
+        this.setBorderStylingMode(true);
+
         this.disableDropping();
     },
 

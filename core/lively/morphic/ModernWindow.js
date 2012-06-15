@@ -170,12 +170,15 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         var titleHeight = titleBar.bounds().height - titleBar.getBorderWidth();
         this.setBounds(bounds.withHeight(bounds.height + titleHeight));
         this.targetMorph = this.addMorph(targetMorph);
+        
+        // create three reframe handles (bottom, right, and bottom-right) and align them to the window
         this.reframeHandle = this.addMorph(this.makeReframeHandle());
         this.alignReframeHandle();
         this.bottomReframeHandle = this.addMorph(this.makeBottomReframeHandle());
         this.alignBottomReframeHandle();
         this.rightReframeHandle = this.addMorph(this.makeRightReframeHandle());
         this.alignRightReframeHandle();
+        
         this.titleBar = this.addMorph(titleBar);
         this.contentOffset = pt(this.spacing, titleHeight);
         targetMorph.setPosition(this.contentOffset);

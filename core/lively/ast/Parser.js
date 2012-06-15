@@ -289,8 +289,8 @@ lively.ast.Node.addMethods(
                 var lastError = null;
                 for (var j = 0; j < value.length; j++) {
                     try {
-                        var value = this.matchVal(key, value[j], pattern[i]);
-                        if (value !== true) matchedPlaceholder = value;
+                        var res = this.matchVal(key, value[j], pattern[i]);
+                        if (res !== true) matchedPlaceholder = res;
                         success = true;
                     } catch(e) { lastError = e; }
                 }
@@ -298,7 +298,7 @@ lively.ast.Node.addMethods(
             }
             if (value.length !== pattern.length) {
                 throw {key: key, err: "count",
-                       expected: pattern.length, actuall: value};
+                       expected: pattern.length, actual: value.length};
             }
             return matchedPlaceholder;
         }

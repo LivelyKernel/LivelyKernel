@@ -1,4 +1,4 @@
-module('lively.morphic.ModernWindow').requires('lively.morphic.Widgets').toRun(function() {
+module('lively.morphic.ModernWindow').requires('lively.morphic.Widgets', 'lively.morphic.StyleSheets').toRun(function() {
 
 lively.morphic.Morph.addMethods({
     openInModernWindow: function (optPos) {
@@ -33,7 +33,7 @@ lively.morphic.World.addMethods({
 lively.morphic.Morph.subclass('lively.morphic.Window',
 'appearance', {
     spacing: 4, // window border
-
+    style: {borderWidth: 0, fill: null, borderRadius: 0, strokeOpacity: 0, adjustForNewBounds: true, enableDragging: true},
 },
 
 

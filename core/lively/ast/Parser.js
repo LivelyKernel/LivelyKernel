@@ -276,7 +276,7 @@ lively.ast.Node.addMethods(
     },
     matchVal: function(key, value, pattern) {
         if (pattern === lively.ast.Node.placeholder) return value;
-        if (value === pattern) return true;
+        if (value == pattern) return true;
         if (Object.isString(pattern)) {
             if (value.toString() == pattern) return true;
             if (value.value == pattern) return true;
@@ -298,7 +298,7 @@ lively.ast.Node.addMethods(
             }
             if (value.length !== pattern.length) {
                 throw {key: key, err: "count",
-                       expected: pattern.length, actual: value.length};
+                       expected: pattern.length, actuall: value};
             }
             return matchedPlaceholder;
         }

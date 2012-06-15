@@ -149,6 +149,8 @@ lively.morphic.WindowControl.subclass("lively.morphic.ModernWindowControl",
 lively.morphic.Morph.subclass('lively.morphic.Window',
 'appearance', {
     spacing: 4, // window border
+    minWidth: 200,
+    minHeight: 100,
     style: {borderWidth: 0, fill: null, borderRadius: 0, strokeOpacity: 0, adjustForNewBounds: true, enableDragging: true},
     styleSheet: "background-color: rgba(255, 255, 255, 0.6); box-shadow: 0px 5px 20px #000; border-radius: 5px; &.highlighted {box-shadow: 0px 4px 15px #666;}",
 },

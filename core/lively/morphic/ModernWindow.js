@@ -291,12 +291,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         });
         handle.addScript(function onDrag(evt) {
             var moveDelta = pt(evt.mousePoint.subPt(this.dragStartPoint).x,0);
-            /*
-            if (evt.isShiftDown()) {
-                var maxDelta = Math.max(moveDelta.x, moveDelta.y);
-	              moveDelta = pt(maxDelta, maxDelta);
-            };
-            */
             this.owner.setExtent(this.originalTargetExtent.addPt(moveDelta));
             this.align(this.bounds().topRight(), pt(this.owner.getExtent().x,0));
         });

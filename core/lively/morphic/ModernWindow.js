@@ -240,7 +240,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.dragStartPoint = null;
             this.originalTargetExtent = null;
             this.owner.alignBottomReframeHandle();
-             this.owner.alignRightReframeHandle();
+            this.owner.alignRightReframeHandle();
             
         });
         handle.setHandStyle("se-resize");
@@ -280,9 +280,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 
     alignBottomReframeHandle: function() {
         if (this.bottomReframeHandle) {
-            this.bottomReframeHandle.align(this.bottomReframeHandle.bounds().bottomLeft(), pt(0,this.getExtent().y));
-            this.bottomReframeHandle.setExtent(this.bottomReframeHandle.getExtent().withX(this.getExtent().x));
             this.bottomReframeHandle.bringToFront();
+            this.bottomReframeHandle.setExtent(this.bottomReframeHandle.getExtent().withX(this.getExtent().x));
+            this.bottomReframeHandle.align(this.bottomReframeHandle.bounds().bottomLeft(), pt(0,this.getExtent().y));
+
+
         }
     },
     
@@ -313,18 +315,9 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 
     alignRightReframeHandle: function() {
         if (this.rightReframeHandle) {
-            console.log("Before   -   Extent: "+this.rightReframeHandle.getExtent().x+", "+
-                            this.rightReframeHandle.getExtent().y+"    "+
-                            "Position: "+this.rightReframeHandle.getPosition().x+", "+
-                            this.rightReframeHandle.getPosition().y);
-
-            
+        
             this.rightReframeHandle.align(this.rightReframeHandle.bounds().topRight(), this.getExtent().withY(0));
             this.rightReframeHandle.setExtent(this.rightReframeHandle.getExtent().withY(this.getExtent().Y));
-             console.log("After   -   Extent: "+this.rightReframeHandle.getExtent().x+", "+
-                            this.rightReframeHandle.getExtent().y+"    "+
-                            "Position: "+this.rightReframeHandle.getPosition().x+", "+
-                            this.rightReframeHandle.getPosition().y);
             this.rightReframeHandle.bringToFront();
             
         }

@@ -319,7 +319,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 
             this.rightReframeHandle.setExtent(this.rightReframeHandle.getExtent().withY(this.getExtent().y - this.reframeHandle.getExtent().y));
             this.rightReframeHandle.align(this.rightReframeHandle.bounds().topRight(), this.getExtent().withY(0));
-            this.rightReframeHandle.bringToFront();        
 
             
         }

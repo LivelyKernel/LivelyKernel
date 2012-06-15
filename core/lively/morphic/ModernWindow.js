@@ -70,7 +70,7 @@ lively.morphic.TitleBar.subclass("lively.morphic.ModernTitleBar",
         }
         var bounds = new Rectangle(0, 0, windowWidth, this.barHeight);
 
-        (new lively.morphic.Box).initialize(bounds).apply(this);
+        lively.morphic.Box.initialize.apply(this, bounds);
 
         // this.ignoreEvents();
         this.windowMorph = windowMorph;

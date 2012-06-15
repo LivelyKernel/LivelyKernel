@@ -273,6 +273,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.dragStartPoint = null;
             this.originalTargetExtent = null;
             this.owner.alignReframeHandle();
+            this.owner.alignRightReframeHandle();
         });
         handle.setHandStyle("s-resize");
         return handle;

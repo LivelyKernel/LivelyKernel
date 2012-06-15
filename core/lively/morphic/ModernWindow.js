@@ -17,9 +17,17 @@ lively.morphic.World.addMethods({
     internalAddModernWindow: function (morph, title, pos, suppressReframeHandle) {
         morph.applyStyle({borderWidth: 1, borderColor: CrayonColors.iron});
         pos = pos || this.firstHand().getPosition().subPt(pt(5, 5));
-        var win = this.addFramedMorph(morph, String(title || ""), pos, suppressReframeHandle);
+        var win = this.addFramedModernMorph(morph, String(title || ""), pos, suppressReframeHandle);
         return morph;
+    },
+     addFramedModernMorph: function (morph, title, optLoc, optSuppressControls, suppressReframeHandle) {
+        var w = this.addMorph(
+            new lively.morphic.ModernWindow(morph, title || 'ModernWindow',
+                                      optSuppressControls, suppressReframeHandle));
+        w.setPosition(optLoc || this.positionForNewMorph(morph));
+        return w;
     }
+    
 });
 
 lively.morphic.Morph.subclass('lively.morphic.Window',

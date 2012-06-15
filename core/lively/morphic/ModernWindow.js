@@ -68,7 +68,10 @@ lively.morphic.TitleBar.subclass("lively.morphic.ModernTitleBar",
             this.barHeight = this.shortBarHeight;
         }
         var bounds = new Rectangle(0, 0, windowWidth, this.barHeight);
-
+        
+        this.setAppearanceStylingMode(true);
+        this.setBorderStylingMode(true);
+        
         $super(bounds);
 
         // this.ignoreEvents();

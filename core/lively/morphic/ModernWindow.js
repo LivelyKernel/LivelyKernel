@@ -89,7 +89,7 @@ lively.morphic.TitleBar.subclass("lively.morphic.ModernTitleBar",
             var cell = new Rectangle(0, 0, this.barHeight-5, this.barHeight-5);
 
             this.closeButton = this.addMorph(
-                new lively.morphic.ModernWindowControl(cell, this.controlSpacing, "X", pt(-5,-4), "#F49923"));
+                new lively.morphic.ModernWindowControl(cell, this.controlSpacing, "X", pt(-5,-4), "#E73F22"));
             this.closeButton.applyStyle({moveHorizontal: true});
             //this.closeButton.linkToStyles('titleBar_closeButton');
             this.menuButton = this.addMorph(
@@ -134,6 +134,7 @@ lively.morphic.WindowControl.subclass("lively.morphic.ModernWindowControl",
         $super(bnds, inset, labelString, labelOffset);
         this.setAppearanceStylingMode(true);
         //this.setBorderStylingMode(true);
+        this.applyStyle({borderWidth: 1, borderColor: Color.rgbHex("0066cc")});
         this.setStyleSheet(this.style +"background: "+color+";");
     },
 });

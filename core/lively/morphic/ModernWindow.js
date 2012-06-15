@@ -1,5 +1,27 @@
 module('lively.morphic.ModernWindow').requires('lively.morphic.Widgets').toRun(function() {
 
+lively.morphic.Morph.addMethods({
+    openInModernWindow: function (optPos) {
+        lively.morphic.World.current().internalAddWindow(this,
+            this.name, optPos || this.getPosition());
+        this.applyStyle({resizeWidth: true, resizeHeight: true});
+        if (this.partsBinMetaInfo) {
+            this.owner.setPartsBinMetaInfo(this.getPartsBinMetaInfo());
+            this.owner.setName(this.name);
+            this.owner.setTitle(this.name);
+        }
+    }
+});
+
+lively.morphic.World.addMethods({
+    internalAddModernWindow: function (morph, title, pos, suppressReframeHandle) {
+        morph.applyStyle({borderWidth: 1, borderColor: CrayonColors.iron});
+        pos = pos || this.firstHand().getPosition().subPt(pt(5, 5));
+        var win = this.addFramedMorph(morph, String(title || ""), pos, suppressReframeHandle);
+        return morph;
+    }
+});
+
 lively.morphic.Morph.subclass('lively.morphic.Window',
 'appearance', {
     spacing: 4, // window border

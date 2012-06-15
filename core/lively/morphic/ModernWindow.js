@@ -68,7 +68,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.ignoreEventsOnExpand = false;
         this.disableDropping();
         
-        this.setAppearanceStyleMode(true);
+        this.setAppearanceStylingMode(true);
         this.setStyleSheet(this.styleSheet);
         
         return this;

@@ -33,7 +33,7 @@ lively.morphic.World.addMethods({
 lively.morphic.Morph.subclass('lively.morphic.Window',
 'appearance', {
     spacing: 4, // window border
-    style: {borderWidth: 0, fill: null, borderRadius: 0, strokeOpacity: 0, adjustForNewBounds: true, enableDragging: true},
+    style: {borderWidth: 0, fill: Color.white, borderRadius: 0, strokeOpacity: 0, adjustForNewBounds: true, enableDragging: true},
 },
 
 

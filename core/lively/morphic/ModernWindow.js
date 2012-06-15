@@ -267,7 +267,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 
     alignReframeHandle: function() {
         if (this.reframeHandle) {
-            this.reframeHandle.align(this.reframeHandle.bounds().bottomRight(), this.getExtent());
+            this.reframeHandle.align(this.reframeHandle.bounds().bottomLeft(), this.getExtent());
         }
     },
     

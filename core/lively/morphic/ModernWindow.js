@@ -77,6 +77,19 @@ lively.morphic.TitleBar.subclass("lively.morphic.ModernTitleBar",
 
 );
 
+lively.morphic.WindowControl.subclass("lively.morphic.ModernWindowControl",
+'documentation', {
+    documentation: "Event handling for ModernWindow morphs",
+},
+'initializing', {
+    initialize: function($super, bnds, inset, labelString, labelOffset) {
+        $super(bnds, labelString);
+        this.label.applyStyle({fontSize: 8});
+        this.setAppearanceStylingMode(true);
+        this.setBorderStylingMode(true);
+    },
+});
+
 
 lively.morphic.Morph.subclass('lively.morphic.Window',
 'appearance', {

@@ -208,6 +208,12 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.setNodeClass(!trueForLight ? 'highlighted' : '');
         this.titleBar.label.applyStyle({emphasize: {fontWeight: trueForLight ? 'bold' : 'normal'}});
     },
+
+    adaptTargetExtent: function() {
+        var extent = this.getExtent();
+        this.targetMorph.setExtent(extent.subPt(this.contentOffset)/*.subPt(pt(this.spacing, this.spacing))*/);  
+    },
+
     makeReframeHandle: function() {
         var handle = lively.morphic.Morph.makePolygon(
             [pt(14, 0), pt(14, 14), pt(0, 14)], 0, null, Color.red);
@@ -264,11 +270,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         });
         handle.setHandStyle("s-resize");
         return handle;
-    },
-
-    adaptTargetExtent: function() {
-        var extent = this.getExtent();
-        this.targetMorph.setExtent(extent.subPt(this.contentOffset).subPt(pt(this.spacing, this.spacing)));  
     },
 
     alignBottomReframeHandle: function() {

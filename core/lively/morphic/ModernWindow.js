@@ -221,8 +221,8 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
     },
 
     makeReframeHandle: function() {
-        var handle = lively.morphic.Morph.makePolygon(
-            [pt(14, 0), pt(14, 14), pt(0, 14)], 0, null, this.debugMode?Color.red:null);
+        //var handle = lively.morphic.Morph.makePolygon([pt(14, 0), pt(14, 14), pt(0, 14)], 0, null, this.debugMode?Color.red:null);
+                    var handle = new lively.morphic.Box(new Rectangle(0, 0, 14, 14));
         handle.addScript(function onDragStart(evt) {
             this.dragStartPoint = evt.mousePoint;
             this.originalTargetExtent = this.owner.getExtent();

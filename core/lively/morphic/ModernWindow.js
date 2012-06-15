@@ -246,6 +246,12 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         handle.setHandStyle("se-resize");
         return handle;
     },
+    alignReframeHandle: function() {
+        if (this.reframeHandle) {
+            this.reframeHandle.align(this.reframeHandle.bounds().bottomRight(), this.getExtent());
+            this.reframeHandle.bringToFront();
+        }
+    },
 
     
     makeBottomReframeHandle: function() {

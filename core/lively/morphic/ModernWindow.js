@@ -241,6 +241,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
     makeBottomReframeHandle: function() {
         var theExtent = this.getExtent();
         var handle = lively.morphic.Morph.makeRectangle(0,0,theExtent.width, this.spacing);
+        handle.applyStyle({fill: Color.purple}); 
         handle.addScript(function onDragStart(evt) {
             this.dragStartPoint = evt.mousePoint;
             this.originalTargetExtent = this.owner.getExtent();
@@ -260,7 +261,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.dragStartPoint = null;
             this.originalTargetExtent = null;
         });
-        handle.setHandStyle("se-resize");
+        handle.setHandStyle("s-resize");
         return handle;
     },
 

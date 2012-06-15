@@ -138,7 +138,7 @@ lively.morphic.WindowControl.subclass("lively.morphic.ModernWindowControl",
         //this.setBorderStylingMode(true);
         this.applyStyle({borderWidth: 1, borderRadius: 3, borderColor: Color.rgbHex("888888")});
         this.label.applyStyle({emphasize: {fontWeight: 'bold'}});
-        this.label.setPosition(this.label.getPosition().addPt(labelOffset));
+        //this.label.setPosition(this.label.getPosition().addPt(labelOffset));
         this.setStyleSheet(this.style +"background: "+color+";");
     },
 });

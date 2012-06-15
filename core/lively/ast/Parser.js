@@ -275,7 +275,7 @@ lively.ast.Node.addMethods(
         return matchedPlaceholder;
     },
     matchVal: function(key, value, pattern) {
-        if (pattern === lively.ast.Node.placeholder) return {val: value};
+        if (pattern === lively.ast.Node.placeholder) return value;
         if (value === pattern) return true;
         if (Object.isString(pattern)) {
             if (value.toString() == pattern) return true;

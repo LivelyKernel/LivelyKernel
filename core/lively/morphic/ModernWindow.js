@@ -244,7 +244,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         var theExtent = this.getExtent();
         //console.log("The extent:");
         //console.log(theExtent);
-        var handle = lively.morphic.Morph.makeRectangle(0,0,theExtent.y, this.spacing);
+        var handle = lively.morphic.Morph.makeRectangle(0,0,theExtent.x, this.spacing);
         handle.applyStyle({fill: Color.purple}); 
         handle.addScript(function onDragStart(evt) {
             this.dragStartPoint = evt.mousePoint;
@@ -259,7 +259,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             };
             */
             this.owner.setExtent(this.originalTargetExtent.addPt(moveDelta));
-            this.align(this.bounds().bottomLeft(), pt(0,this.owner.getExtent().height));
+            this.align(this.bounds().bottomLeft(), pt(0,this.owner.getExtent().y));
         });
         handle.addScript(function onDragEnd (evt) {
             this.dragStartPoint = null;

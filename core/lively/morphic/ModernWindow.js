@@ -91,6 +91,7 @@ lively.morphic.TitleBar.subclass("lively.morphic.ModernTitleBar",
             this.closeButton = this.addMorph(
                 new lively.morphic.ModernWindowControl(cell, this.controlSpacing, "X", pt(-5,-4), "#E73F22"));
             this.closeButton.applyStyle({moveHorizontal: true});
+            this.closeButton.label.applyStyle({color: Color.white});
             //this.closeButton.linkToStyles('titleBar_closeButton');
             this.menuButton = this.addMorph(
                 new lively.morphic.ModernWindowControl(cell, this.controlSpacing, "M", pt(-5,-6), "#EEEEEE"));

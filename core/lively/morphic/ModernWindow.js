@@ -264,7 +264,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         });
         handle.addScript(function onDrag(evt) {
             var moveDelta = pt(0,evt.mousePoint.subPt(this.dragStartPoint).y);
-            this.owner.setExtent(this.originalTargetExtent.addPt(moveDelta));
+            var newExtent = this.originalTargetExtent.addPt(moveDelta);
+        
+            if (newExtent.y < this.owner.minHeight) newExtent.y = this.owner.minHeight;
+            this.owner.setExtent(newExtent);
+
             this.align(this.bounds().bottomLeft(), pt(0,this.owner.getExtent().y));
         });
         handle.addScript(function onDragEnd (evt) {
@@ -299,7 +303,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         });
         handle.addScript(function onDrag(evt) {
             var moveDelta = pt(evt.mousePoint.subPt(this.dragStartPoint).x,0);
-            this.owner.setExtent(this.originalTargetExtent.addPt(moveDelta));
+            var newExtent = this.originalTargetExtent.addPt(moveDelta);
+            if (newExtent.x < this.owner.minWidth) newExtent.x = this.owner.minWidth;
+ 
+            this.owner.setExtent(newExtent);
             this.align(this.bounds().topRight(), pt(this.owner.getExtent().x,0));
         });
         handle.addScript(function onDragEnd (evt) {

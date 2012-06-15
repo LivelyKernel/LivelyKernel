@@ -38,6 +38,14 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTMLText.TextAttrib
         this.assert(textNode.contenteditable, 'contenteditable not enabled by default');
         this.text.setInputAllowed(false);
         this.assert(!textNode.contenteditable, 'contenteditable not disabled');
+    },
+
+    test04InsertRichTextAndCopy: function() {
+        this.text.textString = "Heoe!";
+        this.assertEquals(this.text.copy().textString, "Heoe!");
+        this.text.insertRichTextAt("y J", {color:Color.red}, 2);
+        this.assertEquals(this.text.textString, "Hey Joe!");
+        this.assertEquals(this.text.copy().textString, "Hey Joe!");
     }
 });
 

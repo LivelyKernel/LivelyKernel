@@ -134,7 +134,8 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         //this.titleBar.applyStyle({
       //      fill: newFill,
         //});
-
+        
+        this.setNodeClass(trueForLight ? 'highlighted' : '');
         this.titleBar.label.applyStyle({emphasize: {fontWeight: trueForLight ? 'bold' : 'normal'}});
     },
     

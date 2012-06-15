@@ -242,9 +242,9 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
     
     makeBottomReframeHandle: function() {
         var theExtent = this.getExtent();
-        console.log("The extent:");
-                console.log(theExtent);
-        var handle = lively.morphic.Morph.makeRectangle(0,0,theExtent.width, this.spacing);
+        //console.log("The extent:");
+        //console.log(theExtent);
+        var handle = lively.morphic.Morph.makeRectangle(0,0,theExtent.y, this.spacing);
         handle.applyStyle({fill: Color.purple}); 
         handle.addScript(function onDragStart(evt) {
             this.dragStartPoint = evt.mousePoint;

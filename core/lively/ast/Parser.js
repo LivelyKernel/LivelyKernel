@@ -285,15 +285,16 @@ lively.ast.Node.addMethods(
         if (Object.isArray(pattern) && Object.isArray(value)) {
             var matchedPlaceholder = true;
             for (var i = 0; i < pattern.length; i++) {
-                var lastMatchedPlaceholder = false;
+                var success = false;
                 var lastError = null;
                 for (var j = 0; j < value.length; j++) {
                     try {
-                        lastMatchedPlaceholder = this.matchVal(key, value[j], pattern[i]);
+                        var value = this.matchVal(key, value[j], pattern[i]);
+                        if (value !== true) matchedPlaceholder = value;
+                        success = true;
                     } catch(e) { lastError = e; }
                 }
-                if (!lastMatchedPlaceholder) throw lastError;
-                if (lastMatchedPlaceholder.val) matchedPlaceholder = lastMatchedPlaceholder;
+                if (!success) throw lastError;
             }
             if (value.length !== pattern.length) {
                 throw {key: key, err: "count",

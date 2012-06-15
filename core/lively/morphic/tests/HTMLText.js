@@ -44,8 +44,8 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTMLText.TextAttrib
         this.text.textString = "Heoe!";
         this.assertEquals(this.text.copy().textString, "Heoe!");
         this.text.insertRichTextAt("y J", {color:Color.red}, 2);
-        this.assertEquals(this.text.textString, "Hey Joe!");
-        this.assertEquals(this.text.copy().textString, "Hey Joe!");
+        this.assertEquals(this.text.textString, "Hey Joe!", "text after insert");
+        this.assertEquals(this.text.copy().textString, "Hey Joe!", "text after copy");
     }
 });
 

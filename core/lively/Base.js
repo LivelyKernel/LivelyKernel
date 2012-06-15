@@ -823,6 +823,10 @@ Namespace.addMethods(
     relativePath: function(optType) {
         return new URL(this.uri(optType)).relativePathFrom(URL.codeBase);
     },
+    
+    lastPart: function() {
+        return this.name().match(/[^.]+$/)[0]
+    },
 
 },
 'module dependencies', {

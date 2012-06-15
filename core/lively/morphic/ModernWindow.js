@@ -209,11 +209,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.titleBar.label.applyStyle({emphasize: {fontWeight: trueForLight ? 'bold' : 'normal'}});
     },
 
-    adaptTargetExtent: function() {
-        var extent = this.getExtent();
-        this.targetMorph.setExtent(extent.subPt(this.contentOffset)/*.subPt(pt(this.spacing, this.spacing))*/);  
-    },
-
     makeReframeHandle: function() {
         var handle = lively.morphic.Morph.makePolygon(
             [pt(14, 0), pt(14, 14), pt(0, 14)], 0, null, Color.red);
@@ -230,7 +225,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             };
             */
             this.owner.setExtent(this.originalTargetExtent.addPt(moveDelta));
-            this.owner.adaptTargetExtent();
+
             this.align(this.bounds().bottomRight(), this.owner.getExtent());
         });
         handle.addScript(function onDragEnd (evt) {
@@ -261,7 +256,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             };
             */
             this.owner.setExtent(this.originalTargetExtent.addPt(moveDelta));
-            this.owner.adaptTargetExtent();
             this.align(this.bounds().bottomLeft(), pt(0,this.owner.getExtent().y));
         });
         handle.addScript(function onDragEnd (evt) {

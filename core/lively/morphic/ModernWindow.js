@@ -228,7 +228,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.dragStartPoint = null;
             this.originalTargetExtent = null;
         });
-        handle.setHandStyle("ne-resize");
+        handle.setHandStyle("se-resize");
         return handle;
     },
 

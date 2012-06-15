@@ -13,6 +13,6 @@ cop.create('AutoIndentLayer').refineClass(lively.morphic.Text, {
         }
         return true;
     },
-})
+}).beGlobal();
 
 }) // end of module

@@ -286,7 +286,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.originalTargetExtent = this.owner.getExtent();
         });
         handle.addScript(function onDrag(evt) {
-            var moveDelta = pt(0,evt.mousePoint.subPt(this.dragStartPoint).y);
+            var moveDelta = pt(evt.mousePoint.subPt(this.dragStartPoint).x,0);
             /*
             if (evt.isShiftDown()) {
                 var maxDelta = Math.max(moveDelta.x, moveDelta.y);
@@ -294,18 +294,18 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             };
             */
             this.owner.setExtent(this.originalTargetExtent.addPt(moveDelta));
-            this.align(this.bounds().bottomLeft(), pt(0,this.owner.getExtent().y));
+            this.align(this.bounds().topRight(), pt(this.owner.getExtent().x,0));
         });
         handle.addScript(function onDragEnd (evt) {
             this.dragStartPoint = null;
             this.originalTargetExtent = null;
             this.owner.alignReframeHandle();
         });
-        handle.setHandStyle("s-resize");
+        handle.setHandStyle("e-resize");
         return handle;
     },
 
-    alignBottomReframeHandle: function() {
+    alignRightReframeHandle: function() {
         if (this.bottomReframeHandle) {
             this.bottomReframeHandle.align(this.bottomReframeHandle.bounds().bottomLeft(), pt(0,this.getExtent().y));
             this.bottomReframeHandle.setExtent(this.bottomReframeHandle.getExtent().withX(this.getExtent().x));

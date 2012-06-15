@@ -562,7 +562,7 @@ var LivelyLoader = {
         LoadingScreen.add();
         this.bootstrapNewMorphicWorld(function() {
             // FIXME
-            Config.modulesOnWorldLoad = ['lively.ast.StaticAnalysis'];
+            //Config.modulesOnWorldLoad = ['lively.ast.StaticAnalysis'];
             self.loadMain(document.body, startupFunc);
         });
         return true;

@@ -70,6 +70,7 @@ lively.morphic.TitleBar.subclass("lively.morphic.ModernTitleBar",
         }
         var bounds = new Rectangle(0, 0, windowWidth, this.barHeight);
 
+        // calling $super.$super ...
         lively.morphic.Box.prototype.initialize.call(this, bounds);
 
         // this.ignoreEvents();
@@ -88,14 +89,14 @@ lively.morphic.TitleBar.subclass("lively.morphic.ModernTitleBar",
             var cell = new Rectangle(0, 0, this.barHeight-5, this.barHeight-5);
 
             this.closeButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "X", pt(-5,-4)));
+                new lively.morphic.ModernWindowControl(cell, this.controlSpacing, "X", pt(-5,-4)));
             this.closeButton.applyStyle({moveHorizontal: true});
             //this.closeButton.linkToStyles('titleBar_closeButton');
             this.menuButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "M", pt(-5,-6)));
+                new lively.morphic.ModernWindowControl(cell, this.controlSpacing, "M", pt(-5,-6)));
             //this.menuButton.linkToStyles('titleBar_menuButton');
             this.collapseButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "–", pt(-3,-6)));
+                new lively.morphic.ModernWindowControl(cell, this.controlSpacing, "–", pt(-3,-6)));
             this.collapseButton.applyStyle({moveHorizontal: true});
             //this.collapseButton.linkToStyles('titleBar_collapseButton');
 
@@ -123,10 +124,14 @@ lively.morphic.WindowControl.subclass("lively.morphic.ModernWindowControl",
 'documentation', {
     documentation: "Event handling for ModernWindow morphs",
 },
+'style', {
+    style: "background: #3d9eff; background-image: linear-gradient(270deg, #3d9eff 0%, #0060bf 100%); border: 1px solid #0066cc;  border-radius: 4px;   box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.6), 0px 2px 4px 0px rgba(0, 0, 0, 0.8);"
+},
 'initializing', {
-    initialize: function($super, bnds, inset, labelString, labelOffset) {
+    initialize: function($super, bnds, inset, labelString, labelOffset, color) {
         $super(bnds, labelString);
         this.label.applyStyle({fontSize: 8});
+        this.setStyleSheet(style);
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
     },

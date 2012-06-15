@@ -281,7 +281,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
     alignBottomReframeHandle: function() {
         if (this.bottomReframeHandle) {
             this.bottomReframeHandle.bringToFront();
-            this.bottomReframeHandle.setExtent(this.bottomReframeHandle.getExtent().withX(this.getExtent().x));
+            this.bottomReframeHandle.setExtent(this.bottomReframeHandle.getExtent().withX(this.getExtent().x  - this.reframeHandle.getExtent().x));
             this.bottomReframeHandle.align(this.bottomReframeHandle.bounds().bottomLeft(), pt(0,this.getExtent().y));
 
 
@@ -307,6 +307,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.dragStartPoint = null;
             this.originalTargetExtent = null;
             this.owner.alignReframeHandle();
+            this.owner.alignBottomReframeHandle();
         });
         handle.setHandStyle("e-resize");
         
@@ -316,13 +317,15 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
     alignRightReframeHandle: function() {
         if (this.rightReframeHandle) {
 
-            this.rightReframeHandle.setExtent(this.rightReframeHandle.getExtent().withY(this.getExtent().Y));
+            this.rightReframeHandle.setExtent(this.rightReframeHandle.getExtent().withY(this.getExtent().y - this.reframeHandle.getExtent().y));
             this.rightReframeHandle.align(this.rightReframeHandle.bounds().topRight(), this.getExtent().withY(0));
             this.rightReframeHandle.bringToFront();        
 
             
         }
     },
+    
+    
     
     
 

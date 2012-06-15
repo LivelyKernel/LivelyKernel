@@ -239,8 +239,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
     
     makeBottomReframeHandle: function() {
         var theExtent = this.getExtent();
-        //console.log("The extent:");
-        //console.log(theExtent);
         var handle = lively.morphic.Morph.makeRectangle(0,0,theExtent.x, this.spacing);
         handle.applyStyle({fill: Color.purple}); 
         handle.addScript(function onDragStart(evt) {
@@ -268,9 +266,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 
     alignBottomReframeHandle: function() {
         if (this.bottomReframeHandle) {
-            console.log(this.bounds());
             this.bottomReframeHandle.align(this.bounds().bottomLeft(), pt(0,this.bottomReframeHandle.owner.getExtent().y));
-            console.log(this.bottomReframeHandle.getPosition());
         }
     },
     

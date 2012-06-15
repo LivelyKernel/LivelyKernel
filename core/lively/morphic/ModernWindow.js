@@ -4,7 +4,7 @@ lively.morphic.Morph.addMethods({
     openInModernWindow: function (optPos) {
         lively.morphic.World.current().internalAddWindow(this,
             this.name, optPos || this.getPosition());
-        //this.applyStyle({resizeWidth: true, resizeHeight: true});
+        this.applyStyle({resizeWidth: true, resizeHeight: true});
         if (this.partsBinMetaInfo) {
             this.owner.setPartsBinMetaInfo(this.getPartsBinMetaInfo());
             this.owner.setName(this.name);

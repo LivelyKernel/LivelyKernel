@@ -483,7 +483,9 @@ lively.morphic.Morph.addMethods(
     onRenderFinished: function(ctx) {
         this._isRendered = true;
         this.renderContextDispatch('onRenderFinished', ctx);
-        this.shapeSetter('ComputedStyles'); // update the computed styles of the shape to adapt the extent
+
+        // update the computed styles of the shape to adapt the extent
+        this.updateComputedStyles && this.updateComputedStyles();
     },
 
     isRendered: function() {

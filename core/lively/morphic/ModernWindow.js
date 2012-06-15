@@ -126,7 +126,7 @@ lively.morphic.WindowControl.subclass("lively.morphic.ModernWindowControl",
 },
 
 'style', {
-    style: "border: 1px solid #0066cc;  border-radius: 4px; box-shadow: inset 0 0 2px #FFFFFF;",
+    style: "border-radius: 4px; box-shadow: inset 0 0 2px #FFFFFF;",
     
 },
 
@@ -135,7 +135,7 @@ lively.morphic.WindowControl.subclass("lively.morphic.ModernWindowControl",
         $super(bnds, inset, labelString, labelOffset);
         this.setAppearanceStylingMode(true);
         //this.setBorderStylingMode(true);
-        this.applyStyle({borderWidth: 1, borderColor: Color.rgbHex("EEEEEE ")});
+        this.applyStyle({borderWidth: 1, borderRadius: 3, borderColor: Color.rgbHex("EEEEEE ")});
         this.setStyleSheet(this.style +"background: "+color+";");
     },
 });

@@ -296,7 +296,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         var theExtent = this.getExtent();
         //var handle = lively.morphic.Morph.makeRectangle(0,0,theExtent.x, this.spacing);
         var handle = lively.morphic.Morph.makePolygon(
-            [pt(0, 0), pt(this.spacing, 0), pt(this.spacing, theExtent.y), pt(0, theExtent.y)], 0, null, Color.green);
+            [pt(0, 0), pt(this.spacing, 0), pt(this.spacing, theExtent.y), pt(0, theExtent.y)], 0, null, this.debugMode? Color.green : null);
         //handle.applyStyle({fill: Color.purple}); 
         handle.addScript(function onDragStart(evt) {
             this.dragStartPoint = evt.mousePoint;

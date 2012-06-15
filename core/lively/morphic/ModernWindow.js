@@ -69,6 +69,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.disableDropping();
         
         this.setAppearanceStylingMode(true);
+        this.setBorderStylingMode(true);
         this.setStyleSheet(this.styleSheet);
         
         return this;

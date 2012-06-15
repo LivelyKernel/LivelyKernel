@@ -64,8 +64,50 @@ lively.morphic.TitleBar.subclass("lively.morphic.ModernTitleBar",
 'intitializing', {
     initialize: function($super, headline, windowWidth, windowMorph, optSuppressControls) {
 
-        $super(headline, windowWidth, windowMorph, optSuppressControls);
+        if (optSuppressControls)  {  // for dialog boxes
+            this.suppressControls = true;
+            this.barHeight = this.shortBarHeight;
+        }
+        var bounds = new Rectangle(0, 0, windowWidth, this.barHeight);
 
+        lively.morphic.Box.initialize(bounds).apply(this);
+
+        // this.ignoreEvents();
+        this.windowMorph = windowMorph;
+
+        // Note: Layout of submorphs happens in adjustForNewBounds (q.v.)
+        var label;
+        if (headline instanceof lively.morphic.Text) {
+            label = headline;
+        } else if (headline != null) { // String
+            label = lively.morphic.Text.makeLabel(headline, this.labelStyle);
+        }
+        this.label = this.addMorph(label);
+
+        if (!this.suppressControls) {
+            var cell = new Rectangle(0, 0, this.barHeight-5, this.barHeight-5);
+
+            this.closeButton = this.addMorph(
+                new lively.morphic.WindowControl(cell, this.controlSpacing, "X", pt(-5,-4)));
+            this.closeButton.applyStyle({moveHorizontal: true});
+            //this.closeButton.linkToStyles('titleBar_closeButton');
+            this.menuButton = this.addMorph(
+                new lively.morphic.WindowControl(cell, this.controlSpacing, "M", pt(-5,-6)));
+            //this.menuButton.linkToStyles('titleBar_menuButton');
+            this.collapseButton = this.addMorph(
+                new lively.morphic.WindowControl(cell, this.controlSpacing, "–", pt(-3,-6)));
+            this.collapseButton.applyStyle({moveHorizontal: true});
+            //this.collapseButton.linkToStyles('titleBar_collapseButton');
+
+            this.connectButtons(windowMorph);
+        }
+        // This will align the buttons and label properly
+        this.adjustForNewBounds();
+        this.adjustForNewBounds();
+
+        this.disableDropping();
+        
+        
 
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);

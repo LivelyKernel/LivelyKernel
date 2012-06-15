@@ -30,6 +30,88 @@ lively.morphic.World.addMethods({
     
 });
 
+lively.morphic.TitleBar.subclass("lively.morphic.ModernTitleBar",
+'properties', {
+    controlSpacing: 3,
+    barHeight: 22,
+    shortBarHeight: 15,
+    accessibleInInactiveWindow: true,
+    style: {
+        fill: new lively.morphic.LinearGradient(
+            [{offset: 0, color: Color.white},
+            {offset: 1, color: Color.gray.mixedWith(Color.black, 0.8)}]),
+        strokeOpacity: 1,
+        borderRadius: "8px 8px 0px 0px",
+        borderWidth: 1,
+        borderColor: Color.darkGray,
+        adjustForNewBounds: true,
+        resizeWidth: true
+    },
+    labelStyle: {
+        borderRadius: 0,
+        padding: Rectangle.inset(0,0),
+        fill: null,
+        fontSize: 10,
+        align: 'center',
+        clipMode: 'hidden',
+        fixedWidth: true,
+        fixedHeight: true,
+        resizeWidth: true,
+        textColor: Color.darkGray,
+        emphasize: {textShadow: {color: Color.white, offset: pt(0,1)}}
+    }
+},
+'intitializing', {
+    initialize: function($super, headline, windowWidth, windowMorph, optSuppressControls) {
+        if (optSuppressControls)  {  // for dialog boxes
+            this.suppressControls = true;
+            this.barHeight = this.shortBarHeight;
+        }
+        var bounds = new Rectangle(0, 0, windowWidth, this.barHeight);
+
+        $super(bounds);
+
+        // this.ignoreEvents();
+        this.windowMorph = windowMorph;
+
+        // Note: Layout of submorphs happens in adjustForNewBounds (q.v.)
+        var label;
+        if (headline instanceof lively.morphic.Text) {
+            label = headline;
+        } else if (headline != null) { // String
+            label = lively.morphic.Text.makeLabel(headline, this.labelStyle);
+        }
+        this.label = this.addMorph(label);
+
+        if (!this.suppressControls) {
+            var cell = new Rectangle(0, 0, this.barHeight-5, this.barHeight-5);
+
+            this.closeButton = this.addMorph(
+                new lively.morphic.WindowControl(cell, this.controlSpacing, "X", pt(-5,-4)));
+            this.closeButton.applyStyle({moveHorizontal: true});
+            //this.closeButton.linkToStyles('titleBar_closeButton');
+            this.menuButton = this.addMorph(
+                new lively.morphic.WindowControl(cell, this.controlSpacing, "M", pt(-5,-6)));
+            //this.menuButton.linkToStyles('titleBar_menuButton');
+            this.collapseButton = this.addMorph(
+                new lively.morphic.WindowControl(cell, this.controlSpacing, "–", pt(-3,-6)));
+            this.collapseButton.applyStyle({moveHorizontal: true});
+            //this.collapseButton.linkToStyles('titleBar_collapseButton');
+
+            this.connectButtons(windowMorph);
+        }
+        // This will align the buttons and label properly
+        this.adjustForNewBounds();
+        this.adjustForNewBounds();
+
+        this.disableDropping();
+    },
+
+}
+
+);
+
+
 lively.morphic.Morph.subclass('lively.morphic.Window',
 'appearance', {
     spacing: 4, // window border

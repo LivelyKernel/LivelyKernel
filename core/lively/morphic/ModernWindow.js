@@ -254,6 +254,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             };
             */
             this.owner.setExtent(this.originalTargetExtent.addPt(moveDelta));
+            this.owner.adaptTargetExtent();
             this.align(this.bounds().bottomLeft(), pt(0,this.owner.getExtent().y));
         });
         handle.addScript(function onDragEnd (evt) {

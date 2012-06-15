@@ -126,7 +126,7 @@ lively.morphic.WindowControl.subclass("lively.morphic.ModernWindowControl",
 },
 
 'style', {
-    style: "background: #3d9eff; background-image: linear-gradient(270deg, #3d9eff 0%, #0060bf 100%); border: 1px solid #0066cc;  border-radius: 4px;"
+    style: "border: 1px solid #0066cc;  border-radius: 4px;"
 },
 
 'initializing', {
@@ -134,7 +134,7 @@ lively.morphic.WindowControl.subclass("lively.morphic.ModernWindowControl",
         $super(bnds, inset, labelString, labelOffset);
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
-        this.setStyleSheet(this.style);
+        this.setStyleSheet(this.style +"background: "+color+";");
     },
 });
 

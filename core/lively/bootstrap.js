@@ -6,9 +6,11 @@ var isFireBug = isFirefox && window.console && window.console.firebug !== undefi
     if (!lively) { lively = Global.lively = {}; }
 
     if (!lively.whenLoaded) {
-        lively.whenLoadedCallbacks = [];
+        if (!Config.finishLoadingCallbacks) {
+            Config.finishLoadingCallbacks = [];
+        }
         lively.whenLoaded = function(callback) {
-            lively.whenLoadedCallbacks.push(callback);
+            Config.finishLoadingCallbacks.push(callback);
         }
     }
 })(this);

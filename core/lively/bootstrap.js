@@ -1,6 +1,18 @@
 var isFirefox = window.navigator.userAgent.indexOf('Firefox') > -1;
 var isFireBug = isFirefox && window.console && window.console.firebug !== undefined;
 
+(function setupLively(Global) {
+    var lively = Global.lively;
+    if (!lively) { lively = Global.lively = {}; }
+
+    if (!lively.whenLoaded) {
+        lively.whenLoadedCallbacks = [];
+        lively.whenLoaded = function(callback) {
+            lively.whenLoadedCallbacks.push(callback);
+        }
+    }
+})(this);
+
 (function setupConsole() {
 
     var platformConsole = window.console ||

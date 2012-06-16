@@ -155,18 +155,19 @@ function __oldNamespace(spec, context) {
 (function testModuleLoad() {
     var modules = Global.subNamespaces(true).select(function(ea) { return ea.wasDefined });
     modules
-        .select(function(ea) { return ea.hasPendingRequirements() })
-        .forEach(function(ea) {
-			var msg = Strings.format('%s has unloaded requirements: %s',
-				ea.uri(), ea.pendingRequirementNames());
-			console.warn(msg); 
+    .select(function(ea) { return ea.hasPendingRequirements() })
+    .forEach(function(ea) {
+              var msg = Strings.format('%s has unloaded requirements: %s',
+                                         ea.uri(), ea.pendingRequirementNames());
+              console.warn(msg);
 
-                        if (Config.ignoreMissingModules || document.URL.indexOf('ignoreMissingModules=true') >= 0) {
-                            ea.pendingRequirements = [];
-                            ea.load();
-                            testModuleLoad.delay(6);
-                        }
-		 });
+        // FIXME use proper Config-URL-parsing
+        if (lively.Config.ignoreMissingModules || document.URL.indexOf('ignoreMissingModules=true') >= 0) {
+            ea.pendingRequirements = [];
+            ea.load();
+            testModuleLoad.delay(6);
+        }
+        });
     console.log('Module load check done. ' + modules.length + ' modules loaded.');
 }).delay(10);
 
@@ -236,7 +237,7 @@ function require(/*requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/
         args = $A(arguments);
     require.counter !== undefined ? require.counter++ : require.counter = 0;
     var m = module(getUniqueName()).beAnonymous();
-    if (Config.showModuleDefStack)
+    if (lively.Config.showModuleDefStack)
         try { throw new Error() } catch(e) { m.defStack = e.stack }
     return m.requires(Object.isArray(args[0]) ? args[0] : args);
 };
@@ -322,8 +323,9 @@ Object.extend(Function.prototype, {
                 this.addCategorizedMethods(category, args[i] instanceof Function ? (args[i])() : args[i]);
             }
         }
-        for (var i = 0; i < traits.length; i++)
+        for (i = 0; i < traits.length; i++) {
             traits[i].applyTo(this);
+        }
     },
 
     addCategorizedMethods: function(categoryName, source) {
@@ -471,9 +473,11 @@ Object.extend(Function.prototype, {
     },
 
     categoryNameFor: function(propName) {
-        for (var categoryName in this.categories)
-            if (this.categories[categoryName].include(propName))
+        for (var categoryName in this.categories) {
+            if (this.categories[categoryName].include(propName)) {
                 return categoryName;
+            }
+        }
         return null;
     },
     remove: function() {
@@ -546,40 +550,39 @@ var Class = {
     },
 
     isValidIdentifier: function(str) {
-        return (/^(?:[a-zA-Z_][\w\-]*[.])*[a-zA-Z_][\w\-]*$/).test(str);
+        return /^(?:[a-zA-Z_][\w\-]*[.])*[a-zA-Z_][\w\-]*$/.test(str);
     },
 
     isClass: function Class$isClass(object) {
-        if(object === Object
-            || object === Array
-            || object === Function
-            || object === String
-            || object === Number) {
-                return true;
+        if (object === Object
+          || object === Array
+          || object === Function
+          || object === String
+          || object === Number) {
+            return true;
         }
         return (object instanceof Function) && (object.superclass !== undefined);
     },
 
     className: function Class$className(cl) {
-        if(cl === Object) return "Object"
-        if(cl === Array) return "Array"
-        if(cl === Function) return "Function"
-        if(cl === String) return "String"
-        if(cl === Number) return "Number"
+        if (cl === Object) return "Object"
+        if (cl === Array) return "Array"
+        if (cl === Function) return "Function"
+        if (cl === String) return "String"
+        if (cl === Number) return "Number"
         return cl.type;
     },
 
     forName: function forName(name) {
         // lookup the class object given the qualified name
-        var ns = Class.namespaceFor(name);
-        var shortName = Class.unqualifiedNameFor(name);
+        var ns = Class.namespaceFor(name),
+            shortName = Class.unqualifiedNameFor(name);
         return ns[shortName];
     },
 
-    deleteObjectNamed: function Class$delteObjectNamed(name) {
+    deleteObjectNamed: function Class$deleteObjectNamed(name) {
         var ns = Class.namespaceFor(name),
             shortName = Class.unqualifiedNameFor(name);
-        if (!ns[shortName]) return;
         delete ns[shortName];
     },
 
@@ -592,11 +595,7 @@ var Class = {
 
     namespaceFor: function Class$namespaceFor(className) {
         // get the namespace object given the qualified name
-        if (className) {
-            var lastDot = className.lastIndexOf('.');
-        } else {
-            var lastDot = -1;
-        }
+        var lastDot = className ? className.lastIndexOf('.') : -1;
         if (lastDot < 0) return Global;
         else return namespace(className.substring(0, lastDot));
     },
@@ -778,13 +777,13 @@ Namespace.addMethods(
             relativePath += fileExtension;
         }
         var uri = '';
-        Config.modulePaths.forEach(function(ea) {
+        lively.Config.modulePaths.forEach(function(ea) {
             if (relativePath.substring(0, ea.length) == ea) {
-                uri = Config.rootPath + relativePath;
+                uri = lively.Config.rootPath + relativePath;
             }
         });
         if (uri == '') {
-            uri = Config.codeBase + relativePath;
+            uri = lively.Config.codeBase + relativePath;
         }
         return uri;
     },
@@ -801,8 +800,8 @@ Namespace.addMethods(
             } else
                 throw dbgOn(new Error('unknown namespaceIdentifier'));
 
-            // FIXME: extract to Config.codeBaseDB
-            url = Config.couchDBURL + '/' + this.fromDB + '/_design/raw_data/_list/javascript/for-module?module=' + id;
+            // FIXME: extract to lively.Config.codeBaseDB
+            url = lively.Config.couchDBURL + '/' + this.fromDB + '/_design/raw_data/_list/javascript/for-module?module=' + id;
             this.__cachedUri = url;
             return url;
         } else {
@@ -813,7 +812,7 @@ Namespace.addMethods(
             } else {
                 if (id.startsWith('Global.')) namespacePrefix = 'Global.';
                 else throw dbgOn(new Error('unknown namespaceIdentifier'));
-                url = Config.codeBase + this.namespaceIdentifier.substr(namespacePrefix.length).replace(/\./g, '/');
+                url = lively.Config.codeBase + this.namespaceIdentifier.substr(namespacePrefix.length).replace(/\./g, '/');
             }
 
             this.__cachedUri = url;
@@ -823,10 +822,10 @@ Namespace.addMethods(
     relativePath: function(optType) {
         return new URL(this.uri(optType)).relativePathFrom(URL.codeBase);
     },
-    
+
     lastPart: function() {
         return this.name().match(/[^.]+$/)[0]
-    },
+    }
 
 },
 'module dependencies', {
@@ -1008,7 +1007,7 @@ Object.extend(Namespace, {
     namespaceStack: [Global],
     current: function() { return this.namespaceStack.last() },
     topologicalSortLoadedModules: function() {
-        if (Config.standAlone) {
+        if (lively.Config.standAlone) {
             var scripIds = [];
             $('body script').each(function() { scripIds.push($(this).attr('id')) });
             return scripIds.collect(function(id) {
@@ -1062,10 +1061,11 @@ Object.extend(Namespace, {
         urls = manual.concat(urls);
         return urls;
     },
+
     bootstrapModulesString: function() {
         var urls = this.bootstrapModules();
         return '[\'' + urls.join('\', \'') + '\']';
-    },
+    }
 });
 
 (function createLivelyNamespace(Global) {

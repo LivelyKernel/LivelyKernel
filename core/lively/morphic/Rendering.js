@@ -227,6 +227,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
 
     setHTMLTransform: function(node, rotationInRad, scale, pivot) {
         var scaleX = 1, scaleY = 1;
+    debugger;
         if (typeof scale == "number") {
             scaleX = scale;
             scaleY = scale;

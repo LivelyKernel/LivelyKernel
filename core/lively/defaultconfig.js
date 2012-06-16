@@ -31,7 +31,7 @@
  *  to be overridden.
  */
 
-(function setupUserAgent(Global) {
+;(function setupUserAgent(Global) {
 
     var webKitVersion = (function() {
         if (!window.navigator) return 0;

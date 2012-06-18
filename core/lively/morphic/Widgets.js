@@ -168,6 +168,43 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
     },
 });
 
+lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
+'initializing', {
+    initialize: function($super, bounds, url) {
+         //if (bounds) this.setBounds(bounds);
+        $super(bounds, '');
+        
+        this.image = new lively.morphic.Image(this.getExtent().extentAsRectangle(), url, true);
+        this.addMorph(this.image);
+        this.image.ignoreEvents();
+        this.image.disableHalos();
+        
+    },
+},
+'accessing', {
+    setImage: function(url) {
+        this.image.setImageURL(url);
+        return this;
+    },
+    getImage: function() { return this.image.getImageURL() },
+
+    setImageOffset: function(padding) { this.image && this.image.setPosition(padding) },
+},
+'menu', {
+    morphMenuItems: function($super) {
+        var self = this, items = $super();
+        items.push([
+            'set image', function(evt) {
+            $world.prompt('Set image URL', function(input) {
+                if (input !== null)
+                    self.setImage(input || '');
+            }, self.getImage());
+        }])
+        return items;
+    },
+});
+
+
 lively.morphic.Morph.subclass('lively.morphic.Image',
 'initializing', {
     doNotSerialize: ['isLoaded'],

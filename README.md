@@ -6,7 +6,7 @@ For feedback, announcement and discussions, please feel invited to subscribe to 
 
 This repository is a fork of the Lively Kernel Webwerkstatt wiki at [HPI](http://www.lively-kernel.org/repository/webwerkstatt/). To learn more about the motivation and long-term vision for this repository see [the wiki](https://github.com/rksm/LivelyKernel/wiki/Repository-Purpose).
 
-Current build status of the master branch: [![Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png)](http://travis-ci.org/rksm/LivelyKernel)
+Current build status of the master branch: [![Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png?branch=master)](http://travis-ci.org/rksm/LivelyKernel)
 
 ## Installation
 
@@ -89,7 +89,7 @@ This runs tests in the browser you specified in testing/config.js. See `lk test 
 ### LivelyKernel on Travis-CI
 
 We use [Travis-CI](http://www.travis-ci.org) to run tests continuously on every commit into the Master branch:
-[![Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png)](http://travis-ci.org/rksm/LivelyKernel)
+[![Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png?branch=master)](http://travis-ci.org/rksm/LivelyKernel)
 
 
 ## Contributing

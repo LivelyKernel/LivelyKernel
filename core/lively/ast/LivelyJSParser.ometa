@@ -220,6 +220,10 @@ stmt =
 		| ";" pos:p2								-> [#get, [p1, p2], "undefined"]),
 functionDef =
 	pos:p1 "function" "name":n funcRest:f pos:p2 -> [#var, [p1,p2], n, f],
+functionDefFragment =
+	functionDef:f spaces end -> f,
+functionDefsFragment =
+	pos:p1 functionDef*:fs pos:p2 spaces end -> [#arr, [p1, p2]].concat(fs),
 srcElem =
 	functionDef | stmt,
 srcElems =

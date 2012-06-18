@@ -165,7 +165,6 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
 'initializing', {
     initialize: function($super, bounds, url) {
         if (bounds) this.setBounds(bounds);
-        // calling $super.$super ...
         $super(bounds, '');
         
         this.image = new lively.morphic.Image(this.getExtent().extentAsRectangle(), url, true);

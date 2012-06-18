@@ -175,11 +175,11 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
         this.changeAppearanceFor(bool);
     },
     onMouseUp: function(evt) { 
-          if (this.isActive && evt.isLeftMouseButtonDown()
-                && !evt.isCommandKey() && (this.value===false) ) {
+        if (this.isActive && evt.isLeftMouseButtonDown()
+                && !evt.isCommandKey() && (this.value===false) && this.otherButtons) {
             //var newValue = this.toggle ? !this.value : false;
             this.setValue(true);
-            ['ImageButton2','ImageButton1'].each(function(btn){this.get(btn).setValue(false);});
+            this.otherButtons.each(function(btn){btn.setValue(false);});
             return false;
         }
         return false;

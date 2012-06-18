@@ -163,10 +163,10 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
     }
 },
 'initializing', {
-    initialize: function($super, bounds, labelString) {
+    initialize: function($super, bounds, url) {
         if (bounds) this.setBounds(bounds);
         // calling $super.$super ...
-        lively.morphic.Box.prototype.initialize.call(this, this.defaultShape());
+        lively.morphic.Morph.prototype.initialize.call(this, this.defaultShape());
         
         this.value = false;
         this.toggle = false;
@@ -175,33 +175,21 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
         this.lighterFill = this.normalFill.lighter();
         this.setFill(this.normalFill);
         
-        this.image = new lively.morphic.Image(this.getExtent().extentAsRectangle(), labelString);
-        this.label = new lively.morphic.Text(this.getExtent().extentAsRectangle(), labelString);
-        this.addMorph(this.label);
-        this.label.beLabel(this.style.label);
+        this.image = new lively.morphic.Image(this.getExtent().extentAsRectangle(), url, true);
+        this.addMorph(this.image);
+        this.image.ignoreEvents();
+        this.image.disableHalos();
+        
     },
 },
 'accessing', {
-    setLabel: function(label) {
-        this.label.setTextString(label);
-        this.label.setExtent(this.getExtent());
-        this.label.applyStyle(this.style.label);
+    setImage: function(url) {
+        this.image.setImageURL(url);
         return this;
     },
-    getLabel: function(label) { return this.label.textString },
+    getImage: function(label) { return this.image.getImageURL() },
 
-    setValue: function(bool) {
-        this.value = bool;
-        // buttons should fire on mouse up
-        if (!bool || this.toggle) lively.bindings.signal(this, 'fire', bool);
-        this.changeAppearanceFor(bool);
-    },
-    setExtent: function($super, extent) {
-        // FIXME use layout! spaceFill!
-        $super(extent);
-        this.label && this.label.setExtent(extent)
-    },
-    setPadding: function(padding) { this.label && this.label.setPadding(padding) },
+    setPadding: function(padding) { this.image && this.label.setPadding(padding) },
 },
 'styling', {
     changeAppearanceFor: function(value) {

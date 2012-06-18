@@ -218,9 +218,10 @@ stmt =
 		| "with" "(" expr:x ")" stmt:s pos:p2		-> [#with, [p1, p2], x, s]
 		| expr:e sc									-> e
 		| ";" pos:p2								-> [#get, [p1, p2], "undefined"]),
+functionDef =
+	pos:p1 "function" "name":n funcRest:f pos:p2 -> [#var, [p1,p2], n, f],
 srcElem =
-	pos:p1 "function" "name":n funcRest:f pos:p2 -> [#var, [p1,p2], n, f]
-	| stmt,
+	functionDef | stmt,
 srcElems =
 	pos:p1 srcElem*:ss pos:p2
 	-> [#begin, [p1,p2]].concat(ss),

@@ -195,12 +195,7 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
     changeAppearanceFor: function(value) {
         this.setFill(value ? this.lighterFill : this.normalFill);
     },
-    applyStyle: function($super, spec) {
-        $super(spec);
-        if (spec.label && this.label) {
-            this.label.applyStyle(spec.label);
-        }
-    }
+    applyStyle: function() { } // avoid running into problems because the missing label
 },
 'events', {
 
@@ -974,10 +969,10 @@ lively.morphic.Morph.addMethods(
     morphMenuItems: function() {
         var self = this, items = [];
         items.push([
-            'Publish', function(evt) {
+            'publish', function(evt) {
             self.copyToPartsBinWithUserRequest();
         }])
-        items.push(['Open in window', function(evt){
+        items.push(['open in window', function(evt){
             self.openInWindow(evt.mousePoint);
         }]);
 
@@ -986,40 +981,40 @@ lively.morphic.Morph.addMethods(
             .reject(function(ea) { return ea === self})
             .reject(function(ea) { return ea === $world})
         var self = this;
-        items.push(["Add morph to...", morphs.collect(function(ea) {
+        items.push(["add morph to...", morphs.collect(function(ea) {
                 return [ea, function() { ea.addMorph(self)}]
         })])
-        items.push(["Get halo on...", morphs.collect(function(ea) {
+        items.push(["get halo on...", morphs.collect(function(ea) {
                 return [ea, function(evt) { ea.toggleHalos(evt)}]
         })])
         var steppingItems = [];
         
         if (this.startSteppingScripts) {
-            steppingItems.push(["Start stepping", function(){self.startSteppingScripts()}])
+            steppingItems.push(["start stepping", function(){self.startSteppingScripts()}])
         } 
         if (this.scripts.length != 0) {
-            steppingItems.push(["Stop stepping", function(){self.stopStepping()}])
+            steppingItems.push(["stop stepping", function(){self.stopStepping()}])
         }
         if (steppingItems.length != 0) {
-            items.push(["Stepping", steppingItems])
+            items.push(["stepping", steppingItems])
         } 
          if (this.attributeConnections && this.attributeConnections.length > 0) {
-            items.push(["Connections", this.attributeConnections
+            items.push(["connections", this.attributeConnections
                 .reject(function(ea) { return ea.dependedBy}) // Meta connection
                 .reject(function(ea) { return ea.targetMethodName == 'alignToMagnet'}) // Meta connection
                 .collect(function(ea) {
                     var s = ea.sourceAttrName + " -> " + ea.targetObj  + "." + ea.targetMethodName
                     return [s, [
-                        ["Disconnect", function() {
+                        ["disconnect", function() {
                             alertOK("disconnecting " + ea)
                             ea.disconnect()}],
-                        ["Edit converter", function() {
+                        ["edit converter", function() {
                             var window = lively.bindings.editConnection(ea);
                         }],
-                        ["Show", function() {
+                        ["show", function() {
                             lively.bindings.showConnection(ea);
                         }],
-                        ["Hide", function() {
+                        ["hide", function() {
                             if (ea.visualConnector) ea.visualConnector.remove();
                         }],
                     ]]
@@ -1027,36 +1022,36 @@ lively.morphic.Morph.addMethods(
         }
 
         if (this.grabbingEnabled || this.grabbingEnabled == undefined) {
-            items.push(["Disable grabbing", this.disableGrabbing.bind(this)])
+            items.push(["disable grabbing", this.disableGrabbing.bind(this)])
         } else {
-            items.push(["Enable grabbing", this.enableGrabbing.bind(this)])
+            items.push(["enable grabbing", this.enableGrabbing.bind(this)])
         }
 
         if (this.owner && this.owner.submorphs.length > 1) {
             var arrange = [];
-            arrange.push(["Bring to front", function(){self.bringToFront()}]);
-            arrange.push(["Send to back", function(){self.sendToBack()}]);
-            items.push(["Arrange morph", arrange]);
+            arrange.push(["bring to front", function(){self.bringToFront()}]);
+            arrange.push(["send to back", function(){self.sendToBack()}]);
+            items.push(["arrange morph", arrange]);
         }
        
 
         if (this.submorphs.length > 0) {
             if (this.isLocked()) {
-                items.push(["Unlock parts", this.unlock.bind(this)])
+                items.push(["unlock parts", this.unlock.bind(this)])
             } else {
-                items.push(["Lock parts", this.lock.bind(this)])
+                items.push(["lock parts", this.lock.bind(this)])
             }
         }
 
         if (false) {
-        items.push(["Enable internal selections", function() {
+        items.push(["enable internal selections", function() {
             Trait('SelectionMorphTrait').applyTo(self, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
             self.enableDragging();
         }])
         }
 
         if (this.reset)
-            items.push(['Reset', this.reset.bind(this)]);
+            items.push(['reset', this.reset.bind(this)]);
 
         if (this.owner.owner) { // Is owner owner a Stack?
             if (this.owner.owner.pageArray) {

@@ -4,7 +4,7 @@ Lively Kernel is a web-based runtime and development environment that makes crea
 
 For feedback, announcement and discussions, please feel invited to subscribe to our [mailing list](http://lively-kernel.org/list/index.html).
 
-This repository is a fork of the Lively Kernel Webwerkstatt wiki at [HPI](http://www.lively-kernel.org/repository/webwerkstatt/). To learn more about the motivation and long-term vision for this repository see [the wiki](https://github.com/rksm/LivelyKernel/wiki/Repository-Purpose).
+This repository is a fork of the Lively Kernel [Webwerkstatt wiki](http://www.lively-kernel.org/repository/webwerkstatt/) at HPI. See this project's [wiki](https://github.com/rksm/LivelyKernel/wiki/Repository-Purpose) to learn about the motivation and long-term vision for this repository.
 
 Current build status of the master branch: [![Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png?branch=master)](http://travis-ci.org/rksm/LivelyKernel)
 
@@ -40,7 +40,7 @@ Get Lively Kernel *core* up and running.
     ```
 
 
-That's it. You can now visit ther rather boring page [blank.xhtml](http://localhost:9001/blank.xhtml) or run the tests with `lk test`.
+That's it. You can now visit the empty starting page [blank.xhtml](http://localhost:9001/blank.xhtml) or run the tests with `lk test`.
 
 
 ### Setup an apache server
@@ -54,7 +54,7 @@ See [installation notes for apache on Debian and Mac OS x](https://github.com/rk
 
 ### Installing the Webwerkstatt PartsBin
 
-You can install all the cool tools from Webwerkstatt's PartsBin. Have a look at [the HOWTO](https://github.com/rksm/LivelyKernel/wiki/How-to-make-PartsBin-work).
+You can install all the cool tools from Webwerkstatt's PartsBin. Have a look at our [HOWTO](https://github.com/rksm/LivelyKernel/wiki/How-to-make-PartsBin-work).
 
 
 ### Using livelykernel-scripts
@@ -86,14 +86,14 @@ To initiate a test run do
 This runs tests in the browser you specified in testing/config.js. See `lk test --help` for all [the test runner options](https://github.com/rksm/LivelyKernel/wiki/Lk-script-test).
 
 
-### LivelyKernel on Travis-CI
+### Continuous Integration
 
-We use [Travis-CI](http://www.travis-ci.org) to run tests continuously on every commit into the Master branch:
+[Travis-CI](http://www.travis-ci.org) runs tests continuously on every commit into the master branch:
 [![Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png?branch=master)](http://travis-ci.org/rksm/LivelyKernel)
 
 
 ## Contributing
 
-Please this [wiki page](https://github.com/rksm/LivelyKernel/wiki/Git-Github-Hints) for some best practices to work with git and github.
+Please have a look at this [wiki page](https://github.com/rksm/LivelyKernel/wiki/Git-Github-Hints) for our conventions on how to work with git and github.
 
 All code is published under the [MIT license](https://github.com/rksm/LivelyKernel/blob/master/LICENSE).

@@ -150,9 +150,9 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
         this.image.setImageURL(url);
         return this;
     },
-    getImage: function(label) { return this.image.getImageURL() },
+    getImage: function() { return this.image.getImageURL() },
 
-    setImagePadding: function(padding) { this.image && this.image.setPadding(padding) },
+    setImageOffset: function(padding) { this.image && this.image.setPosition(padding) },
 },
 'menu', {
     morphMenuItems: function($super) {

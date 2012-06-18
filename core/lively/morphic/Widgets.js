@@ -169,7 +169,6 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
 });
 
 lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
-
 'accessing', {
     setImage: function(url) {
         this.image.setImageURL(url);
@@ -178,19 +177,7 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
     getImage: function() { return this.image.getImageURL() },
 
     setImageOffset: function(padding) { this.image && this.image.setPosition(padding) },
-},
-'menu', {
-    morphMenuItems: function($super) {
-        var self = this, items = $super();
-        items.push([
-            'set image', function(evt) {
-            $world.prompt('Set image URL', function(input) {
-                if (input !== null)
-                    self.setImage(input || '');
-            }, self.getImage());
-        }])
-        return items;
-    },
+
 });
 
 

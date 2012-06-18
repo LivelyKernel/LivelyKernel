@@ -164,16 +164,18 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
 },
 'initializing', {
     initialize: function($super, bounds, labelString) {
-        $super(this.defaultShape());
         if (bounds) this.setBounds(bounds);
-
+        // calling $super.$super ...
+        lively.morphic.Box.prototype.initialize.call(this, this.defaultShape());
+        
         this.value = false;
         this.toggle = false;
         this.isActive = true;
         this.normalFill = this.getFill();
         this.lighterFill = this.normalFill.lighter();
         this.setFill(this.normalFill);
-
+        
+        this.image = new lively.morphic.Image(this.getExtent().extentAsRectangle(), labelString);
         this.label = new lively.morphic.Text(this.getExtent().extentAsRectangle(), labelString);
         this.addMorph(this.label);
         this.label.beLabel(this.style.label);

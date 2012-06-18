@@ -133,35 +133,6 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 
 
 lively.morphic.Button.subclass('lively.morphic.ImageButton',
-'settings', {
-    isButton: true,
-    style: {
-        enableGrabbing: false,
-        enableDropping: false,
-        borderColor: Color.neutral.lightGray,
-        borderWidth: 1,
-        borderRadius: 5,
-        padding: Rectangle.inset(0,3),
-        fill: new lively.morphic.LinearGradient(
-            [{offset: 0, color: Color.gray.mixedWith(Color.white, 0.2)},
-            {offset: 0.4, color: Color.gray.mixedWith(Color.white, 0.9)},
-            {offset: 0.6, color: Color.gray.mixedWith(Color.white, 0.9)},
-            {offset: 1, color: Color.gray.mixedWith(Color.white, 0.3)}],
-            "NorthSouth"),
-        label: {
-            borderWidth: 0,
-            fill: null,
-            padding: Rectangle.inset(0,3),
-            fontSize: 10,
-            align: 'center',
-            fixedWidth: true,
-            fixedHeight: true,
-            textColor: Color.black,
-            clipMode: 'hidden',
-            emphasize: {textShadow: {offset: pt(0,1), color: Color.white}}
-        }
-    }
-},
 'initializing', {
     initialize: function($super, bounds, url) {
         if (bounds) this.setBounds(bounds);

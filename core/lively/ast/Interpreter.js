@@ -1010,6 +1010,11 @@ lively.ast.Function.addMethods('accessing', {
     isComposite: function() {
         return true;
     }
+},
+'evaluation', {
+    eval: function() {
+        return new Function(this.argNames().join(","), this.body.asJS());
+    },
 });
 
 lively.ast.Visitor.subclass('lively.ast.ContainsDebuggerVisitor', 'visiting', {

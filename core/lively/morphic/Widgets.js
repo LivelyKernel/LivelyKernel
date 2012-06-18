@@ -166,14 +166,7 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
     initialize: function($super, bounds, url) {
         if (bounds) this.setBounds(bounds);
         // calling $super.$super ...
-        lively.morphic.Morph.prototype.initialize.call(this, this.defaultShape());
-        
-        this.value = false;
-        this.toggle = false;
-        this.isActive = true;
-        this.normalFill = this.getFill();
-        this.lighterFill = this.normalFill.lighter();
-        this.setFill(this.normalFill);
+        $super(bounds, '');
         
         this.image = new lively.morphic.Image(this.getExtent().extentAsRectangle(), url, true);
         this.addMorph(this.image);
@@ -189,59 +182,17 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
     },
     getImage: function(label) { return this.image.getImageURL() },
 
-    setPadding: function(padding) { this.image && this.label.setPadding(padding) },
-},
-'styling', {
-    changeAppearanceFor: function(value) {
-        this.setFill(value ? this.lighterFill : this.normalFill);
-    },
-    applyStyle: function() { } // avoid running into problems because the missing label
-},
-'events', {
-
-    onMouseDown: function (evt) {
-        if (this.isActive && evt.isLeftMouseButtonDown()
-            && !this.toggle && !evt.isCommandKey()) {
-            this.setValue(true);
-        }
-        return false;
-    },
-    onMouseUp: function(evt) {
-        if (this.isActive && evt.isLeftMouseButtonDown()
-                && !evt.isCommandKey()) {
-            var newValue = this.toggle ? !this.value : false;
-            this.setValue(newValue);
-            return false;
-        }
-        return false;
-    },
-    simulateButtonClick: function() {
-        var world = this.world() || lively.morphic.World.current(),
-            hand = world.firstHand();
-        function createEvent() {
-            return {
-                isLeftMouseButtonDown: Functions.True,
-                isRightMouseButtonDown: Functions.False,
-                isCommandKey: Functions.False,
-                isAltDown: Functions.False,
-                world: world,
-                hand: hand,
-                getPosition: function() { return hand.getPosition() }
-            }
-        }
-        this.onMouseDown(createEvent());
-        this.onMouseUp(createEvent());
-    },
+    setImagePadding: function(padding) { this.image && this.image.setPadding(padding) },
 },
 'menu', {
     morphMenuItems: function($super) {
         var self = this, items = $super();
         items.push([
-            'set label', function(evt) {
-            $world.prompt('Set label', function(input) {
+            'set image', function(evt) {
+            $world.prompt('Set image URL', function(input) {
                 if (input !== null)
-                    self.setLabel(input || '');
-            }, self.getLabel());
+                    self.setImage(input || '');
+            }, self.getImage());
         }])
         return items;
     },

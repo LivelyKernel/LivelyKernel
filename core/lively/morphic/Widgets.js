@@ -174,7 +174,16 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
         this.value = bool;
         this.changeAppearanceFor(bool);
     },
-    getImage: function() { return this.image.getImageURL() },
+    onMouseUp: function(evt) { 
+          if (this.isActive && evt.isLeftMouseButtonDown()
+                && !evt.isCommandKey() && (this.value===false) ) {
+            //var newValue = this.toggle ? !this.value : false;
+            this.setValue(true);
+            ['ImageButton2','ImageButton1'].each(function(btn){this.get(btn).setValue(false);});
+            return false;
+        }
+        return false;
+    },
 
     setImageOffset: function(padding) { this.image && this.image.setPosition(padding) },
 

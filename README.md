@@ -8,6 +8,7 @@ This repository is a fork of the Lively Kernel Webwerkstatt wiki at [HPI](http:/
 
 Integration test status using [Travis-CI](http://www.travis-ci.org) of master: [![Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png)](http://travis-ci.org/rksm/LivelyKernel)
 
+Current build status of the master branch: [![Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png?branch=master)](http://travis-ci.org/rksm/LivelyKernel)
 
 ## Installation
 
@@ -85,6 +86,12 @@ To initiate a test run do
     lk test
 
 This runs tests in the browser you specified in testing/config.js. See `lk test --help` for all [the test runner options](https://github.com/rksm/LivelyKernel/wiki/Lk-script-test).
+
+
+### LivelyKernel on Travis-CI
+
+We use [Travis-CI](http://www.travis-ci.org) to run tests continuously on every commit into the Master branch:
+[![Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png?branch=master)](http://travis-ci.org/rksm/LivelyKernel)
 
 
 ## Contributing

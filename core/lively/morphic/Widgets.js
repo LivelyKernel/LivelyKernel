@@ -81,7 +81,6 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     }
 },
 'events', {
-
     onMouseDown: function (evt) {
         if (this.isActive && evt.isLeftMouseButtonDown()
             && !this.toggle && !evt.isCommandKey()) {

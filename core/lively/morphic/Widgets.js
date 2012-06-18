@@ -185,7 +185,10 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
         return false;
     },
 
-    setImageOffset: function(padding) { this.image && this.image.setPosition(padding) },
+    setOtherButtons: function(morphs) { 
+        var otherButtons = [];
+        
+    },
 
 });
 

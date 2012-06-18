@@ -52,11 +52,6 @@ That's it. You can now visit the empty starting page [blank.xhtml](http://localh
 See [installation notes for apache on Debian and Mac OS x](https://github.com/rksm/LivelyKernel/wiki/Lively-kernel-installation-on-debian-and-mac-os-x) for details.
 
 
-### Installing the Webwerkstatt PartsBin
-
-You can install all the cool tools from Webwerkstatt's PartsBin. Have a look at our [HOWTO](https://github.com/rksm/LivelyKernel/wiki/How-to-make-PartsBin-work).
-
-
 ### Using livelykernel-scripts
 
 We will shortly publish an automated installer. In the meantime you may want to try out:

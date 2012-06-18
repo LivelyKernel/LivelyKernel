@@ -169,18 +169,7 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
 });
 
 lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
-'initializing', {
-    initialize: function($super, bounds, url) {
-         //if (bounds) this.setBounds(bounds);
-        $super(bounds, '');
-        
-        this.image = new lively.morphic.Image(this.getExtent().extentAsRectangle(), url, true);
-        this.addMorph(this.image);
-        this.image.ignoreEvents();
-        this.image.disableHalos();
-        
-    },
-},
+
 'accessing', {
     setImage: function(url) {
         this.image.setImageURL(url);

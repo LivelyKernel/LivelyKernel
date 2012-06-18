@@ -120,7 +120,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     morphMenuItems: function($super) {
         var self = this, items = $super();
         items.push([
-            'set label', function(evt) {
+            'Set label', function(evt) {
             $world.prompt('Set label', function(input) {
                 if (input !== null)
                     self.setLabel(input || '');

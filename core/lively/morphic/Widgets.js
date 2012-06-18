@@ -170,11 +170,6 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
 
 lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
 'buttonstuff', {
-    initialize: function($super, bounds, url) {
-
-        $super(bounds, url);
-        
-    },
     
     setValue: function(bool) {
         this.value = bool;

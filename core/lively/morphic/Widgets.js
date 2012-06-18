@@ -187,7 +187,15 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
 
     setOtherButtons: function(morphs) { 
         var otherButtons = [];
-        
+        if (morphs.first().toUpperCase) {
+            morphs.each(function(btn){
+                var a = this.get(btn);    
+                a && a.setOtherButtons && otherButtons.push(a);
+            });
+        } else {
+            otherButtons = morphs;
+        }
+        this.otherButtons = otherButtons;
     },
 
 });

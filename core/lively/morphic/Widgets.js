@@ -169,7 +169,7 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
 });
 
 lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
-'accessing', {
+'buttonstuff', {
     setImage: function(url) {
         this.image.setImageURL(url);
         return this;

@@ -147,7 +147,7 @@ lively.morphic.Morph.addMethods(
         var items = [];
         if (this.name) {
             items.push({isListItem: true, string: indent + this.name, value: this, selectionString: this.name})
-            indent += '\t';
+            indent += indent;
         }
         items = items.concat(this.submorphs.invoke('indentedListItemsOfMorphNames', indent).flatten());
         return items;

@@ -449,7 +449,7 @@ Object.extend(lively.bindings, {
             'Editor for ' + con.targetObj.name + ' -> ' + con.sourceObj.name :
             'Editor for converter function';
         var window = $world.addFramedMorph(editor, title)
-        return window 
+        return window;
     },
     showConnection: function(con) {
         var source = con.sourceObj,
@@ -540,7 +540,7 @@ lively.morphic.Box.subclass('lively.morph.ConnectionBuilder',
             items = [];
         items.push(this.underMorphMenu(pos, builder.sourceMorph));
         items.pushAll(this.propertiesMenuForTarget(target));
-        show(target);
+        lively.morphic.show(target);
         lively.morphic.Menu.openAtHand('Connect to ' + (target.name || target), items)
     },
     underMorphMenu: function(position, sourceMorph, sourceAttribute) {

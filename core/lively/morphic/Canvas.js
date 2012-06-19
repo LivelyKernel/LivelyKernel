@@ -16,7 +16,7 @@ lively.morphic.Rendering.RenderContext.subclass('lively.morphic.Canvas.RenderCon
 },
 'accessing', {
     getCanvas: function() { return this.canvas },
-    getGraphicContext: function() {        
+    getGraphicContext: function() {
         if (this._graphicContext) return this._graphicContext;
         var canvas = this.getCanvas();
         if (!canvas || !canvas.getContext) throw new Error('Cannot access canvas or drawing context');
@@ -137,7 +137,7 @@ lively.morphic.Morph.addMethods(
         this.getShape().renderCANVAS(ctx);
 
         this.drawSubmorphsOnCANVAS(ctx);
-        
+
         graphicContext.restore();
     },
     drawSubmorphsOnCANVAS: function(ctx) {

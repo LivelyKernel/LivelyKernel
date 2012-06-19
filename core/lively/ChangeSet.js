@@ -51,7 +51,7 @@ Object.subclass('Change',
 },
 'accessing', {
 	getXMLElement: function() { return this.xmlElement },
-	
+
 	setXMLElement: function(newElement) {
 		var p = this.getXMLElement().parentNode,
 			oldElement = this.getXMLElement();
@@ -246,7 +246,7 @@ Change.subclass('ChangeSet',
 
 	reconstructFrom: function(node) {
 		if (!node) return false;
-		var codeNodes = $A(node.childNodes).select(function(node) { return node.localName == 'code' }); 
+		var codeNodes = $A(node.childNodes).select(function(node) { return node.localName == 'code' });
 		if (codeNodes.length == 0) return false;
 		if (codeNodes.length > 1)
 			console.warn('multiple code nodes in ' + node);
@@ -270,7 +270,7 @@ Change.subclass('ChangeSet',
 			else throw e;
 		}
 	},
-	
+
 	findOrCreateDefNodeOfWorld: function(doc) {
 		// FIXME !!!
 		if (doc.getAttribute && (doc.getAttribute('type') || doc.getAttribute('lively:type')) == "WorldMorph" ) {
@@ -356,25 +356,25 @@ Change.subclass('ChangeSet',
 	logChange: function(spec) {},
 },
 'system startup, initializer and world requirements', {
-	
+
 	getInitializer: function() {
 		var elems = this.subElements();
 		for (var i = 0; i < elems.length; i++)
 			if (elems[i].isInitializer()) return elems[i];
 	},
-	
+
 	getWorldRequirementsList: function() {
 		var elems = this.subElements();
 		for (var i = 0; i < elems.length; i++)
 			if (elems[i].isWorldRequirementsList()) return elems[i];
 	},
-	
+
 	ensureHasInitializeScript: function() {
 		if (this.getInitializer()) return;
 		var content = '// this script is evaluated on world load';
 		this.addOrChangeElementNamed(Change.initializerName, content);
 	},
-	
+
 	ensureHasWorldRequirements: function() {
 		if (this.getWorldRequirementsList()) return;
 		var content = '// An array of module names that is loaded on world load\n[]';
@@ -382,7 +382,7 @@ Change.subclass('ChangeSet',
 			DoitChange.create(content, Change.worldRequirementsListName),
 			this.getInitializer()); // insert before initializer
 	},
-	
+
 	evaluateAllButInitializer: function() {
 		var changes = this.subElements();
 		for (var i = 0; i < changes.length; i++) {
@@ -393,12 +393,12 @@ Change.subclass('ChangeSet',
 					change.evaluate();
 		}
 	},
-	
+
 	evaluateInitializer: function() {
 		var initializerDoit = this.getInitializer();
 		if (initializerDoit) initializerDoit.evaluate();
 	},
-	
+
 	evaluateWorldRequirements: function() {
 		var requirementsDoit = this.getWorldRequirementsList();
 		if (!requirementsDoit) return;
@@ -406,13 +406,13 @@ Change.subclass('ChangeSet',
 		if (Object.isArray(list))
 			Config.modulesBeforeWorldLoad = Config.modulesBeforeWorldLoad.concat(list);
 	},
-	
+
 	ensureCompatibility: function() {
 		var ps = this.subElementNamed('postscript');
 		if (!ps) return;
 		ps.setName(Change.initializerName);
 	},
-	
+
 	addWorldRequirement: function(moduleName) {
 		var list = this.getWorldRequirementsList().evaluate();
 		if (!list.include(moduleName))
@@ -438,8 +438,8 @@ Change.subclass('ChangeSet',
 		var fileNames = dir.getSubElements().subDocuments.collect(function(file) {
 			return file.getURL().filename()
 		}).select(function(ea){return ea.endsWith(".js")});
-		var fullModuleNames = fileNames.collect(function(ea){ 
-			return namespaceName + "." + ea.match(/(.+)\.js/)[1]});
+		var fullModuleNames = fileNames.collect(function(ea) {
+			return namespaceName + "." + ea.match(/(.+)\.js/)[1] });
 		return fullModuleNames
 	}
 });
@@ -633,7 +633,7 @@ Change.subclass('StaticChange',
 			var className = this.getClassName(),
 				klass = Class.forName(className);
 			if (!klass) throw dbgOn(new Error('Could not find class of static change' + this.getName()));
-			var src = Strings.format('Object.extend(%s, {%s: %s})', className, this.getName(), this.getDefinition());		
+			var src = Strings.format('Object.extend(%s, {%s: %s})', className, this.getName(), this.getDefinition());
 			eval(src);
 			return klass[this.getName()];
 		} catch(e) {
@@ -642,7 +642,7 @@ Change.subclass('StaticChange',
 		}
 	},
 },
-'conversion', {	
+'conversion', {
 	asJs: function(depth) { // FIXME duplication with ProtoChange
 		depth = depth || '';
 		var body = this.getDefinition();

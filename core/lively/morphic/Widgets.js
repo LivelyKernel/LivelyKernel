@@ -39,11 +39,6 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.isActive = true;
         
         this.changeAppearanceFor(false, false);
-        /*
-        this.normalFill = this.getFill();
-        this.lighterFill = this.normalFill.lighter();
-        this.setFill(this.normalFill);
-        */
         
         this.label = new lively.morphic.Text(this.getExtent().extentAsRectangle(), labelString);
         this.addMorph(this.label);

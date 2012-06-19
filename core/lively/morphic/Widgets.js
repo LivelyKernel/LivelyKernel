@@ -131,9 +131,8 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     
     onMouseUp: function(evt) {
         if (this.isValidClick (evt) && this.isPressed) {
-            this.changeAppearanceFor(false);
             if (this.toggle) this.setValue(!this.value);
-            
+            this.changeAppearanceFor(false);            
             this.isPressed = false;
             lively.bindings.signal(this, 'fire', this.value)
         }

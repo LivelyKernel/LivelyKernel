@@ -93,6 +93,7 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
         var b = bounds || this.defaultBounds;
         $super(b, '');
         this.colorDisplay = new lively.morphic.Box(b.insetBy(this.colorDisplayOffset));
+        this.removeAllMorphs(); // get rid of the default Text
         this.addMorph(this.colorDisplay);
         this.colorDisplay.disableHalos();
         this.colorDisplay.setFill(this.defaultColor);

@@ -193,11 +193,12 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
     getImage: function() { return this.image.getImageURL() },
     changeAppearanceFor: function($super, pressed, toggled) {
         $super(pressed, toggled);
-        if (pressed) {
+        if (pressed && !this.imageOffset) {
             this.imageOffset = this.image.getPosition();
             this.setImageOffset(this.imageOffset.addPt(pt(0,1)));
         } else {
             this.setImageOffset(this.imageOffset);
+            this.imageOffset = null;
         }   
     },
     setImageOffset: function(padding) { 

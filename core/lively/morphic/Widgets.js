@@ -141,6 +141,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
             var newValue = this.toggle ? !this.value : false;
             this.setValue(newValue);
             this.changeAppearanceFor(false);
+            this.isPressed = false;
         }
         return false;
     },

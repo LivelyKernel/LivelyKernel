@@ -657,6 +657,7 @@ lively.morphic.World.addMethods(
         } else {
             console.log(msg);
         }
+        msgMorph.ignoreEvents();
         return this.addStatusMessageMorph(msgMorph, delay || 5);
     },
 

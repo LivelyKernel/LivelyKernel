@@ -4,7 +4,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 'settings', {
     isButton: true,
     
-    normalColor: Color.rgbHex('#999999'),
+    normalColor: Color.rgbHex('#BBBBBB'),
     toggleColor: Color.rgb(171,215,248),
     
     style: {

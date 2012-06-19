@@ -152,7 +152,7 @@ lively.morphic.Morph.addMethods(
         items = items.concat(this.submorphs.invoke('indentedListItemsOfMorphNames', indent).flatten());
         return items;
     },
-    treeItemsOfMorphNames: function (scripts, properties) {
+    treeItemsOfMorphNames: function (scripts, properties, showUnnamed) {
         scripts = scripts || []
         properties = properties || {}
         if (this.name) {

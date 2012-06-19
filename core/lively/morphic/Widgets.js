@@ -91,23 +91,31 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     },
     */
     onMouseOut: function (evt) {
-        console.log('LEAVE');
+        this.isPressed && this.changeAppearanceFor(false);
+    },
+    
+    onMouseOver: function (evt) {
+        if (evt.isLeftMouseButtonDown()) {
+            this.isPressed && this.changeAppearanceFor(true);
+        }
+        else {
+            this.isPressed = false;    
+        }
     },
     
     onMouseDown: function (evt) {
-        this.isDown = true;
-        this.changeAppearanceFor(true);
         
-        /*
         if (this.isValidClick (evt)&& !this.toggle ) {
-            this.setValue(true);
+            this.isPressed = true;
+            this.changeAppearanceFor(true);
+            // this.setValue(true);
         }
-        */
+        
         return false;
     },
     
     onMouseUp: function(evt) {
-        if (this.isValidClick (evt)) {
+        if (this.isValidClick (evt) && this.isPressed) {
             var newValue = this.toggle ? !this.value : false;
             this.setValue(newValue);
             return false;

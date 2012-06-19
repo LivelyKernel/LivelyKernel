@@ -86,6 +86,8 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
 'init', {
     defaultBounds: new Rectangle(0,0,24,24),
     
+    initialize: function(optBounds){}
+    
 }
 
 );

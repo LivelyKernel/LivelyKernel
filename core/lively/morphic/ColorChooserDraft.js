@@ -93,6 +93,8 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
         $super(b, '');
         this.colorDisplay = new lively.morphic.Box(b.insetBy(this.colorDisplayOffset));
         this.addMorph(this.colorDisplay);
+        this.colorDisplay.disableHalos();
+        this.colorDisplay.setFill(this.defaultColor);
     }
     
 }

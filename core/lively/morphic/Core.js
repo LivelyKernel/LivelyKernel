@@ -261,6 +261,7 @@ Object.subclass('lively.morphic.Morph',
         // actually this should be done below so that geometry connects works correctly
         // but for the current Chrome stable (12.0.7) this leads to a render bug (morph is offseted)
         if (tfm) {
+            tfm = Math.round(tfm*Math.pow(10,10))/Math.pow(10,10);
             morph.setTransform(tfm);
         }
 

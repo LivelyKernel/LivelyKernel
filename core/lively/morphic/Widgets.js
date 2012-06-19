@@ -88,8 +88,10 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     setPadding: function(padding) { this.label && this.label.setPadding(padding) },
 },
 'styling', {
-    changeAppearanceFor: function(value) {
-        this.setFill(value ? this.lighterFill : this.normalFill);
+    changeAppearanceFor: function(pressed, toggled) {
+        var baseColor = toggled ? this.toggleColor : this.normalColor;
+        var shade = pressed ? Color.black : Color.white;
+        this.setFill(this.generateFillWith(baseColor, shade));
     },
     applyStyle: function($super, spec) {
         $super(spec);
@@ -97,7 +99,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
             this.label.applyStyle(spec.label);
         }
     },
-    getFillWith: function(color, shade){
+    generateFillWith: function(color, shade){
      return new lively.morphic.LinearGradient(
             [{offset: 0, color: color.mixedWith(shade, 0.2)},
             {offset: 0.4, color: color.mixedWith(shade, 0.9)},

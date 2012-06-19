@@ -158,7 +158,7 @@ lively.morphic.Morph.addMethods(
         showUnnamed = options["showUnnamed"]
         if (this.name) {
             var item = {name: this.name, value: this},
-                children = this.submorphs.invoke('treeItemsOfMorphNames', scripts, properties, showUnnamed).compact()
+                children = this.submorphs.invoke('treeItemsOfMorphNames', options).compact()
             if (children.length > 0) {
                 item.children = children
             }

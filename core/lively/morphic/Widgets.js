@@ -199,9 +199,9 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
 
     setOtherButtons: function(morphs) { 
         var otherButtons = [];
-        var t = this;
-        if (morphs.first()) {
-            if (morphs.first().toUpperCase) {
+        if (morphs.first()) { // if the list is empty, apply the empty list
+            if (morphs.first().toUpperCase) { // if the list contains strings, get the morphs first
+                var t = this;
                 morphs.each(function(btn){
                     var a = t.get(btn);    
                     a && a.setOtherButtons && otherButtons.push(a);

@@ -99,7 +99,14 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
         this.colorDisplay.setFill(this.defaultColor);
         this.colorDisplay.applyStyle({borderRadius: this.colorDisplayBorderRadius, resizeWidth: true, resizeHeight: true});
         this.applyStyle({adjustForNewBounds: true});
-    }
+    },
+    
+    setValue: function(bool) {
+        this.value = bool;
+        this.changeAppearanceFor(bool);
+        
+    },
+    
     
 }
 

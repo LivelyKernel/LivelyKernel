@@ -107,12 +107,6 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     isValidClick: function(evt) {
         return this.isActive && evt.isLeftMouseButtonDown()&& !evt.isCommandKey();    
     },
-    /*
-    registerForOtherEvents: function($super, handleOnCapture) {
-        $super(handleOnCapture)
-        if (this.onMouseLeave) this.registerForEvent('mouseleave', this, 'onMouseLeave', handleOnCapture);
-    },
-    */
     onMouseOut: function (evt) {
         this.isPressed && this.changeAppearanceFor(false);
     },

@@ -96,6 +96,7 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
         this.colorDisplay.disableHalos();
         this.colorDisplay.setFill(this.defaultColor);
         this.colorDisplay.applyStyle({borderRadius:4, resizeWidth: true, resizeHeight: true});
+        this.applyStyle({adjustForNewBounds: true});
     }
     
 }

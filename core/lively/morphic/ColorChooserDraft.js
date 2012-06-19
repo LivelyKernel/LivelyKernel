@@ -92,6 +92,7 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
         var b = bounds || this.defaultBounds;
         $super(b, '');
         this.colorDisplay = new lively.morphic.Box(b.insetBy(this.colorDisplayOffset));
+        this.addMorph(this.colorDisplay);
         
     }
     

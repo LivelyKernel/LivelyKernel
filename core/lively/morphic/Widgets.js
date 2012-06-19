@@ -173,7 +173,7 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
     setValue: function(bool) {
         this.value = bool;
         this.changeAppearanceFor(bool);
-        console.log('Value set to '+bool);
+        
     },
     
     onMouseDown: function (evt) {
@@ -186,10 +186,9 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
     },
     
     onMouseUp: function(evt) { 
-        console.log('MouseUp! '+this.isActive+'  '+evt.isLeftMouseButtonDown()+'  '+!evt.isCommandKey()+'  '+!this.value+'  '+this.otherButtons);
         if (this.isActive && evt.isLeftMouseButtonDown()
                 && !evt.isCommandKey() && !this.value && this.otherButtons) {
-            console.log('Going in!');
+            
             //var newValue = this.toggle ? !this.value : false;
             this.setValue(true);
             this.otherButtons.each(function(btn){btn.setValue(false);});
@@ -201,13 +200,15 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
     setOtherButtons: function(morphs) { 
         var otherButtons = [];
         var t = this;
-        if (morphs.first().toUpperCase) {
-            morphs.each(function(btn){
-                var a = t.get(btn);    
-                a && a.setOtherButtons && otherButtons.push(a);
-            });
-        } else {
-            otherButtons = morphs;
+        if (morphs.first()) {
+            if (morphs.first().toUpperCase) {
+                morphs.each(function(btn){
+                    var a = t.get(btn);    
+                    a && a.setOtherButtons && otherButtons.push(a);
+                });
+            } else {
+                otherButtons = morphs;
+            }
         }
         this.otherButtons = otherButtons;
     },

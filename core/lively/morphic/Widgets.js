@@ -94,8 +94,8 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     generateFillWith: function(color, shade, upperCenter, lowerCenter){
      return new lively.morphic.LinearGradient(
             [{offset: 0, color: color.mixedWith(shade, 0.2)},
-            {offset: upperCenter || 0.2, color: color},
-            {offset: lowerCenter || 0.8, color: color},
+            {offset: upperCenter || 0.4, color: color},
+            {offset: lowerCenter || 0.7, color: color},
             {offset: 1, color: color.mixedWith(shade, 0.2)}],
             "NorthSouth");     
     }

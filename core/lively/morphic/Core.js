@@ -56,7 +56,7 @@ Object.subclass('lively.morphic.Morph',
     setRotation: function(value) { return this.morphicSetter('Rotation', value) },
     getRotation: function() { return this.morphicGetter('Rotation') || 0 },
     setScale: function(value) { 
-    debugger;
+    if (value > 1) debugger;
     return this.morphicSetter('Scale', value) 
     },
     getScale: function() { return this.morphicGetter('Scale') || 1 },

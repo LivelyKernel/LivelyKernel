@@ -191,8 +191,15 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
         return this;
     },
     getImage: function() { return this.image.getImageURL() },
+    changeAppearanceFor: function($super, pressed, toggled) {
+        $super(pressed, toggled);
 
-    setImageOffset: function(padding) { this.image && this.image.setPosition(padding) },
+        pressed    
+    },
+    setImageOffset: function(padding) { 
+        this.imageOffset = padding;
+        this.image && this.image.setPosition(padding) 
+    },
 },
 'menu', {
     morphMenuItems: function($super) {

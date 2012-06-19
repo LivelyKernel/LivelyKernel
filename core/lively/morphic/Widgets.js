@@ -133,8 +133,8 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     
     onMouseUp: function(evt) {
         if (this.isValidClick (evt) && this.isPressed) {
-            var newValue = this.toggle ? !this.value : false;
-            this.setValue(newValue);
+            if (this.toggle) this.setValue(!this.value);
+            
             this.changeAppearanceFor(false);
             this.isPressed = false;
         }

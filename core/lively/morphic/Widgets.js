@@ -157,7 +157,7 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
     morphMenuItems: function($super) {
         var self = this, items = $super();
         items.push([
-            'et image', function(evt) {
+            'Set image', function(evt) {
             $world.prompt('Set image URL', function(input) {
                 if (input !== null)
                     self.setImage(input || '');

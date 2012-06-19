@@ -4,7 +4,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 'settings', {
     isButton: true,
     
-    normalColor: Color.rgbHex('#BBBBBB'),
+    normalColor: Color.rgbHex('#CCCCCC'),
     toggleColor: Color.rgb(171,215,248),
     
     style: {
@@ -88,7 +88,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
      return new lively.morphic.LinearGradient(
             [{offset: 0, color: color.mixedWith(shade, 0.2)},
             {offset: 0.3, color: color},
-            {offset: 0.7, color: color},
+            {offset: 0.8, color: color},
             {offset: 1, color: color.mixedWith(shade, 0.2)}],
             "NorthSouth");     
     }

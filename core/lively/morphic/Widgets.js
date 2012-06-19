@@ -43,13 +43,16 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.toggle = false;
         this.isActive = true;
         
+        
+        
+        
         this.normalStyle = this.style;
         this.normalStyle.fill = this.generateFillWith(this.normalColor, Color.white);
         
         this.downStyle = this.normalStyle;
-        this.downStyle.fill = this.downStyle.fill.lighter();
-        this.downStyle = this.normalStyle;
-        this.downStyle.fill = this.downStyle.fill.lighter();        
+        this.downStyle.fill = this.generateFillWith(this.normalColor, Color.black);
+        this.toggleStyle = this.normalStyle;
+        this.toggleStyle .fill = this.downStyle.fill.lighter();        
         
         /*
         this.normalFill = this.getFill();

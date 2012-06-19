@@ -82,7 +82,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         
         //var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1): this.style.label.padding;
         
-        this.setPadding(labelPadding);
+        //this.setPadding(labelPadding);
         this.setFill(this.generateFillWith(baseColor, shade, upperGradientCenter, lowerGradientCenter));
     },
     applyStyle: function($super, spec) {

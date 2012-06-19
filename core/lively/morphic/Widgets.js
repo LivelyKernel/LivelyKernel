@@ -86,11 +86,11 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
             this.label.applyStyle(spec.label);
         }
     },
-    generateFillWith: function(color, shade){
+    generateFillWith: function(color, shade, upperCenter, lowerCenter){
      return new lively.morphic.LinearGradient(
             [{offset: 0, color: color.mixedWith(shade, 0.2)},
-            {offset: 0.2, color: color},
-            {offset: 0.8, color: color},
+            {offset: upperCenter || 0.2, color: color},
+            {offset: lowerCenter || 0.8, color: color},
             {offset: 1, color: color.mixedWith(shade, 0.2)}],
             "NorthSouth");     
     }

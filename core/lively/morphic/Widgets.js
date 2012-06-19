@@ -167,7 +167,7 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
     },
 });
 
-lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
+lively.morphic.ImageButton.subclass('lively.morphic.ImageOptionButton',
 'buttonstuff', {
     
     setValue: function(bool) {

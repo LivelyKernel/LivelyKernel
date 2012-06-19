@@ -87,6 +87,7 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
     defaultBounds: new Rectangle(0,0,24,24),
     defaultColor: Color.red,
     colorDisplayOffset: 4,
+    colorDisplayBorderRadius: 3,
     
     initialize: function($super, bounds){
         var b = bounds || this.defaultBounds;
@@ -95,7 +96,7 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
         this.addMorph(this.colorDisplay);
         this.colorDisplay.disableHalos();
         this.colorDisplay.setFill(this.defaultColor);
-        this.colorDisplay.applyStyle({borderRadius:4, resizeWidth: true, resizeHeight: true});
+        this.colorDisplay.applyStyle({borderRadius: this.colorDisplayBorderRadius, resizeWidth: true, resizeHeight: true});
         this.applyStyle({adjustForNewBounds: true});
     }
     

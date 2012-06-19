@@ -180,7 +180,7 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
         
         this.image = new lively.morphic.Image(this.getExtent().extentAsRectangle(), url, true);
         this.addMorph(this.image);
-        this.image.ignoreEvents();
+        this.image.disableEvents();
         //this.image.disableHalos();
         
     },

@@ -218,31 +218,26 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
 lively.morphic.ImageButton.subclass('lively.morphic.ImageOptionButton',
 'buttonstuff', {
     
-    setValue: function(bool) {
-        this.value = bool;
+    initialize: function($super, bounds, url) {
+         //if (bounds) this.setBounds(bounds);
+        $super(bounds, '');
+        
+        this.toggle = true;
+        
+    },
+    
+    setValue: function(bool, really) {
+        if (bool) {
+            this.value = true;
+            this.otherButtons.each(function(btn){btn.setValue(false, true);});
+        }
+        else if (really) {
+            this.value = false;
+        }
         this.changeAppearanceFor(bool);
         
     },
     
-    onMouseDown: function (evt) {
-        if (this.isActive && evt.isLeftMouseButtonDown()
-            && !this.value && !evt.isCommandKey()) {
-            this.changeAppearanceFor(true);
-        }
-
-
-    },
-    
-    onMouseUp: function(evt) { 
-        if (this.isActive && evt.isLeftMouseButtonDown()
-                && !evt.isCommandKey() && !this.value && this.otherButtons) {
-            
-            this.setValue(true);
-            this.otherButtons.each(function(btn){btn.setValue(false);});
-            return false;
-        }
-        return false;
-    },
 
     setOtherButtons: function(morphs) { 
         var otherButtons = [];

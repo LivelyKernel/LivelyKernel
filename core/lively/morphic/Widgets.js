@@ -233,7 +233,8 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageOptionButton',
     },
     
     setValue: function(bool, really) {
-        console.log((this.name +" should be "+bool) +((really)?", for real":""));
+        console.log((this.name +" should be "+bool))
+        if (really) console.log("for real");
         if (bool) {
             this.value = true;
             this.otherButtons.each(function(btn){btn.setValue(false, true);});

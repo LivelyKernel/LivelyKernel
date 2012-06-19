@@ -84,7 +84,8 @@ colorForPos: function(pos) {
 
 lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
 'init', {
-        
+    defaultBounds: Rectangle(0,0,24,24),
+    
 }
 
 );

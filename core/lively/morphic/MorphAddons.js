@@ -153,9 +153,9 @@ lively.morphic.Morph.addMethods(
         return items;
     },
     treeItemsOfMorphNames: function (options) {
-        scripts = options["scripts"] || []
-        properties = options["properties"] || {}
-        showUnnamed = options["showUnnamed"]
+        var scripts = options["scripts"] || [],
+            properties = options["properties"] || {},
+            showUnnamed = options["showUnnamed"]
 
         if (this.name || showUnnamed) {
             var item = {name: this.name, value: this},

@@ -76,7 +76,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         var isToggled = toggled || this.value;
         var baseColor = isToggled ? this.toggleColor : this.normalColor;
         
-        var shade = pressed ? baseColor.darker()  : baseColor.lighter();
+        var shade = pressed ? baseColor.mixedWith(Color.black, 0.2)  : baseColor.lighter();
         var upperGradientCenter = pressed ? 0.2  : 0.3;
         var lowerGradientCenter = pressed ? 0.9  : 0.7;        
         

@@ -60,9 +60,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     getLabel: function(label) { return this.label.textString },
 
     setValue: function(bool) {
-        this.value = bool;
-        // buttons should fire on mouse up
-       
+        this.value = bool;   
     },
     setExtent: function($super, extent) {
         // FIXME use layout! spaceFill!

@@ -193,6 +193,7 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
     },
     getImage: function() { return this.image.getImageURL() },
     changeAppearanceFor: function($super, pressed, toggled) {
+        console.log(this.name+ " should change its appearance to "+ pressed+ "    "+toggled);
         $super(pressed, toggled);
         if (pressed && !this.imageOffset) {
             this.imageOffset = this.image.getPosition();

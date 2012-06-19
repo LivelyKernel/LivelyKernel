@@ -3,6 +3,10 @@ module('lively.morphic.Widgets').requires('lively.morphic.Core', 'lively.morphic
 lively.morphic.Morph.subclass('lively.morphic.Button',
 'settings', {
     isButton: true,
+    
+    normalColor: Color.gray,
+    toggleColor: Color.rgb(171,215,248),
+    
     style: {
         enableGrabbing: false,
         enableDropping: false,
@@ -40,15 +44,19 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.isActive = true;
         
         this.normalStyle = this.style;
+        this.normalStyle.fill = this.generateFillWith(this.normalColor, Color.white);
+        
         this.downStyle = this.normalStyle;
         this.downStyle.fill = this.downStyle.fill.lighter();
         this.downStyle = this.normalStyle;
         this.downStyle.fill = this.downStyle.fill.lighter();        
         
+        /*
         this.normalFill = this.getFill();
         this.lighterFill = this.normalFill.lighter();
         this.setFill(this.normalFill);
-
+        */
+        
         this.label = new lively.morphic.Text(this.getExtent().extentAsRectangle(), labelString);
         this.addMorph(this.label);
         this.label.beLabel(this.style.label);

@@ -38,6 +38,13 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.value = false;
         this.toggle = false;
         this.isActive = true;
+        
+        this.normalStyle = this.style;
+        this.downStyle = this.normalStyle;
+        this.downStyle.fill = this.downStyle.fill.lighter();
+        this.downStyle = this.normalStyle;
+        this.downStyle.fill = this.downStyle.fill.lighter();        
+        
         this.normalFill = this.getFill();
         this.lighterFill = this.normalFill.lighter();
         this.setFill(this.normalFill);
@@ -78,7 +85,16 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         if (spec.label && this.label) {
             this.label.applyStyle(spec.label);
         }
+    },
+    getFillWith: function(color, shade){
+     return new lively.morphic.LinearGradient(
+            [{offset: 0, color: color.mixedWith(shade, 0.2)},
+            {offset: 0.4, color: color.mixedWith(shade, 0.9)},
+            {offset: 0.6, color: color.mixedWith(shade, 0.9)},
+            {offset: 1, color: color.mixedWith(shade, 0.3)}],
+            "NorthSouth");     
     }
+    
 },
 'events', {
     isValidClick: function(evt) {
@@ -118,9 +134,9 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     
     onMouseUp: function(evt) {
         if (this.isValidClick (evt) && this.isPressed) {
+            
             var newValue = this.toggle ? !this.value : false;
             this.setValue(newValue);
-            return false;
         }
         return false;
     },

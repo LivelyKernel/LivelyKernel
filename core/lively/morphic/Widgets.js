@@ -193,6 +193,8 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
     getImage: function() { return this.image.getImageURL() },
     changeAppearanceFor: function($super, pressed, toggled) {
         $super(pressed, toggled);
+        
+        // knock the image down by 1px when the button is pressed
         if (pressed && !this.imageOffset) {
             this.imageOffset = this.image.getPosition();
             this.setImageOffset(this.imageOffset.addPt(pt(0,1)));

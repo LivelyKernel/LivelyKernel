@@ -82,6 +82,14 @@ colorForPos: function(pos) {
     },
 });
 
+lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
+'init', {
+        
+}
+
+);
+
+
 lively.morphic.ColorChooser.subclass('lively.morphic.CrayonColorChooser',
 'settings', {
     colorNames: 'crayons',

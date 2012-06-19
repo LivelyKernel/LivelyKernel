@@ -232,7 +232,10 @@ Object.subclass('lively.morphic.EventHandler',
         }
 
         evt.getKeyCode = function() { return evt.keyCode }
-
+        
+        if (evt.type === 'mouseleave') console.log('Events.js  -  MOUSE LEAVE!');
+        if (evt.type === 'mouseenter') console.log('Events.js  -  MOUSE ENTER!');
+        
         evt.isMouseEvent = evt.type === 'mousedown' || evt.type === 'mouseup' || evt.type === 'mousemove' || evt.type === 'mouseover' || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'mouseover' || evt.type === 'selectstart' || evt.type === 'contextmenu' || evt.type === 'mousewheel';
 
         evt.isKeyboardEvent = !evt.isMouseEvent && (evt.type === 'keydown' || evt.type === 'keyup' || evt.type === 'keypress');

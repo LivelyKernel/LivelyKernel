@@ -678,13 +678,15 @@ Object.subclass('lively.morphic.Similitude',
                     scale = arguments[2];
                 if (scale === undefined) { scale = pt(1.0, 1.0); }
                 this.a = this.ensureNumber(scale.x * Math.cos(angleInRadians));
-                if (this.a > 1) this.a = Math.round(this.a*Math.pow(10,2))/Math.pow(10,2);
                 this.b = this.ensureNumber(scale.y * Math.sin(angleInRadians));
                 this.c = this.ensureNumber(scale.x * - Math.sin(angleInRadians));
                 this.d = this.ensureNumber(scale.y * Math.cos(angleInRadians));
-                if (this.d > 1) this.d = Math.round(this.d*Math.pow(10,2))/Math.pow(10,2);
                 this.e = this.ensureNumber(delta.x);
                 this.f = this.ensureNumber(delta.y);
+                
+                // avoid inaccurate translations in Chrome
+                if (this.a > 1) this.a = Math.round(this.a*Math.pow(10,2))/Math.pow(10,2);
+                if (this.d > 1) this.d = Math.round(this.d*Math.pow(10,2))/Math.pow(10,2);
             } else {
                 this.fromMatrix(duck);
             }

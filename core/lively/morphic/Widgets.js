@@ -75,7 +75,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     changeAppearanceFor: function(pressed, toggled) {
         var isToggled = toggled || this.value;
         var baseColor = isToggled ? this.toggleColor : this.normalColor;
-        var shade = pressed ? Color.rgbHex('#999999')  : Color.white;
+        var shade = pressed ? Color.rgbHex('#AAAAAA')  : Color.white;
         this.setFill(this.generateFillWith(baseColor, shade));
     },
     applyStyle: function($super, spec) {
@@ -87,8 +87,8 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     generateFillWith: function(color, shade){
      return new lively.morphic.LinearGradient(
             [{offset: 0, color: color.mixedWith(shade, 0.2)},
-            {offset: 0.3, color: color},
-            {offset: 0.6, color: color},
+            {offset: 0.2, color: color},
+            {offset: 0.8, color: color},
             {offset: 1, color: color.mixedWith(shade, 0.2)}],
             "NorthSouth");     
     }

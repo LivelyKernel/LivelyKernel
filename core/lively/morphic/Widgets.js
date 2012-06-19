@@ -75,12 +75,15 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     changeAppearanceFor: function(pressed, toggled) {
         var isToggled = toggled || this.value;
         var baseColor = isToggled ? this.toggleColor : this.normalColor;
+        
         var shade = pressed ? Color.rgbHex('#AAAAAA')  : Color.white;
+        var upperGradientCenter = pressed ? 0.2  : 0.4;
+        var lowerGradientCenter = pressed ? 0.8  : 0.7;        
         
         var labelPadding = pressed ? this.style.label.padding.insetBy(1): this.style.label.padding;
         
         this.setPadding(labelPadding);
-        this.setFill(this.generateFillWith(baseColor, shade));
+        this.setFill(this.generateFillWith(baseColor, shade, upperGradientCenter, lowerGradientCenter));
     },
     applyStyle: function($super, spec) {
         $super(spec);

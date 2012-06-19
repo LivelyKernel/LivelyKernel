@@ -81,16 +81,17 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     }
 },
 'events', {
+    isValidClick: function(evt) {
+        return this.isActive && evt.isLeftMouseButtonDown()&& !evt.isCommandKey();    
+    },
     onMouseDown: function (evt) {
-        if (this.isActive && evt.isLeftMouseButtonDown()
-            && !this.toggle && !evt.isCommandKey()) {
+        if (this.isValidClick (evt)&& !this.toggle ) {
             this.setValue(true);
         }
         return false;
     },
     onMouseUp: function(evt) {
-        if (this.isActive && evt.isLeftMouseButtonDown()
-                && !evt.isCommandKey()) {
+        if (this.isValidClick (evt)) {
             var newValue = this.toggle ? !this.value : false;
             this.setValue(newValue);
             return false;

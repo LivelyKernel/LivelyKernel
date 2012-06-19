@@ -68,7 +68,6 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.value = bool;
         // buttons should fire on mouse up
         if (!bool || this.toggle) lively.bindings.signal(this, 'fire', bool);
-        this.changeAppearanceFor(bool);
     },
     setExtent: function($super, extent) {
         // FIXME use layout! spaceFill!
@@ -141,6 +140,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
             
             var newValue = this.toggle ? !this.value : false;
             this.setValue(newValue);
+            this.changeAppearanceFor(false);
         }
         return false;
     },

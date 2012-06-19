@@ -237,7 +237,6 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageOptionButton',
         else if (really) {
             this.value = false;
         }
-        this.changeAppearanceFor(bool);
         
     },
     

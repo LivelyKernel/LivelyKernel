@@ -226,16 +226,11 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageOptionButton',
 'buttonstuff', {
     
     initialize: function($super, bounds, url) {
-         //if (bounds) this.setBounds(bounds);
         $super(bounds, '');
-        
         this.toggle = true;
-        
     },
     
     setValue: function(bool, really) {
-        //console.log((this.name +" should be "+bool))
-        //if (really) console.log("for real");
         if (bool) {
             this.value = true;
             this.otherButtons.each(function(btn){btn.setValue(false, true);});
@@ -243,8 +238,7 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageOptionButton',
         else if (really) {
             this.value = false;
         }
-        this.changeAppearanceFor(this.pressed, this.value);
-        
+        this.changeAppearanceFor(this.pressed, this.value);        
     },
     
 

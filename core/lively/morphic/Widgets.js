@@ -79,7 +79,8 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 },
 'styling', {
     changeAppearanceFor: function(pressed, toggled) {
-        var baseColor = toggled ? this.toggleColor : this.normalColor;
+        var isToggled = toggled || this.value;
+        var baseColor = isToggled ? this.toggleColor : this.normalColor;
         var shade = pressed ? Color.black : Color.white;
         this.setFill(this.generateFillWith(baseColor, shade));
     },

@@ -81,7 +81,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         var upperGradientCenter = pressed ? 0.2  : 0.3;
         var lowerGradientCenter = pressed ? 0.8  : 0.7;        
         
-        if (this.style && this.style.label && this.style.label.padding) {
+        if (this.label && this.style && this.style.label && this.style.label.padding) {
                     var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
             this.setPadding(labelPadding);
         }

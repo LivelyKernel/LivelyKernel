@@ -76,8 +76,8 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         var isToggled = toggled || this.value;
         var baseColor = isToggled ? this.toggleColor : this.normalColor;
         
-        var shade = pressed ? Color.rgbHex('#BBBBBB')  : Color.white;
-        var upperGradientCenter = pressed ? 0.2  : 0.4;
+        var shade = pressed ? baseColor.darker()  : baseColor.lighter();
+        var upperGradientCenter = pressed ? 0.2  : 0.3;
         var lowerGradientCenter = pressed ? 0.9  : 0.7;        
         
         if (this.style && this.style.label && this.style.label.padding) {
@@ -95,7 +95,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     generateFillWith: function(color, shade, upperCenter, lowerCenter){
      return new lively.morphic.LinearGradient(
             [{offset: 0, color: color.mixedWith(shade, 0.2)},
-            {offset: upperCenter || 0.4, color: color},
+            {offset: upperCenter || 0.3, color: color},
             {offset: lowerCenter || 0.7, color: color},
             {offset: 1, color: color.mixedWith(shade, 0.2)}],
             "NorthSouth");     

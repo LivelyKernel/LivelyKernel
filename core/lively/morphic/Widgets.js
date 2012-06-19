@@ -78,7 +78,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         
         var shade = pressed ? Color.rgbHex('#AAAAAA')  : Color.white;
         var upperGradientCenter = pressed ? 0.2  : 0.4;
-        var lowerGradientCenter = pressed ? 0.8  : 0.7;        
+        var lowerGradientCenter = pressed ? 0.9  : 0.7;        
         
         //var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1): this.style.label.padding;
         

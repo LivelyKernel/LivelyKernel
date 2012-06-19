@@ -189,7 +189,6 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageToggleButton',
         if (this.isActive && evt.isLeftMouseButtonDown()
                 && !evt.isCommandKey() && !this.value && this.otherButtons) {
             
-            //var newValue = this.toggle ? !this.value : false;
             this.setValue(true);
             this.otherButtons.each(function(btn){btn.setValue(false);});
             return false;

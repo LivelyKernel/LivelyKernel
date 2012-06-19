@@ -60,7 +60,9 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     getLabel: function(label) { return this.label.textString },
 
     setValue: function(bool) {
-        this.value = bool;   
+        this.value = bool;
+        // buttons should fire on mouse up
+        if (!bool || this.toggle) lively.bindings.signal(this, 'fire', bool);
     },
     setExtent: function($super, extent) {
         // FIXME use layout! spaceFill!
@@ -79,7 +81,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         var upperGradientCenter = pressed ? 0.2  : 0.3;
         var lowerGradientCenter = pressed ? 0.8  : 0.7;        
         
-        if (this.label && this.style && this.style.label && this.style.label.padding) {
+        if (this.style && this.style.label && this.style.label.padding) {
                     var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
             this.setPadding(labelPadding);
         }
@@ -105,7 +107,12 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     isValidClick: function(evt) {
         return this.isActive && evt.isLeftMouseButtonDown()&& !evt.isCommandKey();    
     },
-
+    /*
+    registerForOtherEvents: function($super, handleOnCapture) {
+        $super(handleOnCapture)
+        if (this.onMouseLeave) this.registerForEvent('mouseleave', this, 'onMouseLeave', handleOnCapture);
+    },
+    */
     onMouseOut: function (evt) {
         this.isPressed && this.changeAppearanceFor(false);
     },
@@ -120,7 +127,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     },
     
     onMouseDown: function (evt) {
-        
+        console.log("Mouse Down on "+this.name);
         if (this.isValidClick (evt)) {
                 this.isPressed = true;
                 this.changeAppearanceFor(true);
@@ -131,10 +138,10 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     
     onMouseUp: function(evt) {
         if (this.isValidClick (evt) && this.isPressed) {
-            if (this.toggle) this.setValue(!this.value);
-            this.changeAppearanceFor(false);            
+            var newValue = this.toggle ? !this.value : false;
+            this.setValue(newValue);
+            this.changeAppearanceFor(false);
             this.isPressed = false;
-            lively.bindings.signal(this, 'fire', this.value)
         }
         return false;
     },
@@ -175,11 +182,14 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 lively.morphic.Button.subclass('lively.morphic.ImageButton',
 'initializing', {
     initialize: function($super, bounds, url) {
+         //if (bounds) this.setBounds(bounds);
         $super(bounds, '');
         
         this.image = new lively.morphic.Image(this.getExtent().extentAsRectangle(), url, true);
         this.addMorph(this.image);
-        this.image.disableEvents();    
+        this.image.ignoreEvents();
+        this.image.disableHalos();
+        
     },
 },
 'accessing', {
@@ -188,24 +198,8 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
         return this;
     },
     getImage: function() { return this.image.getImageURL() },
-    changeAppearanceFor: function($super, pressed, toggled) {
-        $super(pressed, toggled);
-        
-        // knock the image down by 1px when the button is pressed
-        if (pressed && !this.imageOffset) {
-            this.imageOffset = this.image.getPosition();
-            this.setImageOffset(this.imageOffset.addPt(pt(0,1)));
-        } else if(!pressed && this.imageOffset){
-            this.setImageOffset(this.imageOffset);
-            this.imageOffset = null;
-        } else {
-             this.imageOffset = this.image.getPosition();   
-        }   
-        
-    },
-    setImageOffset: function(padding) { 
-        this.image && this.image.setPosition(padding) 
-    },
+
+    setImageOffset: function(padding) { this.image && this.image.setPosition(padding) },
 },
 'menu', {
     morphMenuItems: function($super) {
@@ -224,22 +218,31 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
 lively.morphic.ImageButton.subclass('lively.morphic.ImageOptionButton',
 'buttonstuff', {
     
-    initialize: function($super, bounds, url) {
-        $super(bounds, '');
-        this.toggle = true;
+    setValue: function(bool) {
+        this.value = bool;
+        this.changeAppearanceFor(bool);
+        
     },
     
-    setValue: function(bool, really) {
-        if (bool) {
-            this.value = true;
-            this.otherButtons.each(function(btn){btn.setValue(false, true);});
+    onMouseDown: function (evt) {
+        if (this.isActive && evt.isLeftMouseButtonDown()
+            && !this.value && !evt.isCommandKey()) {
+            this.changeAppearanceFor(true);
         }
-        else if (really) {
-            this.value = false;
-        }
-        this.changeAppearanceFor(this.pressed, this.value);        
+
+
     },
     
+    onMouseUp: function(evt) { 
+        if (this.isActive && evt.isLeftMouseButtonDown()
+                && !evt.isCommandKey() && !this.value && this.otherButtons) {
+            
+            this.setValue(true);
+            this.otherButtons.each(function(btn){btn.setValue(false);});
+            return false;
+        }
+        return false;
+    },
 
     setOtherButtons: function(morphs) { 
         var otherButtons = [];

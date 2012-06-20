@@ -847,7 +847,7 @@ lively.morphic.Shapes.Shape.addMethods(
         ctx.originNode.style.setProperty('margin-left', -this.getBorderWidth() + 'px', 'important');
     },
     setOpacityHTML: function(ctx, value) {
-        If (ctx.shapeNode) ctx.shapeNode.style.opacity = this.isStyleSheetAppearance ? null : value;
+        if (ctx.shapeNode) ctx.shapeNode.style.opacity = this.isStyleSheetAppearance ? null : value;
     },
     setPaddingHTML: function(ctx, r) {
         if (r === undefined || !ctx.shapeNode) return r;

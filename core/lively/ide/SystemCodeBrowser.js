@@ -28,8 +28,8 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser', {
 
         connect(this.locationInput(), 'savedTextString', this, 'setTargetURL',
             {converter: function(value) { return new URL(value) }});
-        this.targetURL = this.targetURL // hrmpf
-        this.locationInput().applyStyle({fontSize: 8, textColor: Color.darkGray, borderWidth: 0})
+        this.targetURL = this.targetURL; // hrmpf
+        this.locationInput().applyStyle({fontSize: 8, textColor: Color.darkGray, borderWidth: 0});
 
         this.panel.codeBaseDirBtn.setLabel('codebase');
         connect(this.panel.codeBaseDirBtn, 'fire', this, 'setTargetURL',
@@ -37,8 +37,8 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser', {
         this.panel.codeBaseDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}, padding: Rectangle.inset(2)})
 
         this.panel.localDirBtn.setLabel('local');
-        connect(this.panel.localDirBtn, 'fire', this, 'setTargetURL',
-            {converter: function() { return URL.source.getDirectory() }});
+        connect(this.panel.localDirBtn, 'fire', this, 'setTargetURL', {converter: function() {
+            return $world.getUserName() ? $world.getUserDir() : URL.source.getDirectory() }});
         this.panel.localDirBtn.applyStyle({scaleProportional: true, label: {fontSize: 8}, padding: Rectangle.inset(2)})
     },
 
@@ -131,45 +131,81 @@ Object.extend(lively.ide.SystemBrowser, {
 });
 
 Object.extend(lively.ide, {
-    browse: function(objectName, methodName, moduleNameOrSpec) {
-        // Browse a method in a object (class, layer, etc)
-        // See MethodFinder for original implementation
-        // Example:
-        // objectName = "lively.morphic.Morph"
-        // methodName = "onMouseDown"
-        // moduleNameOrSpec = "lively.morphic.Events"
-        //    || {name: "lively.ast.LivelyJSParser", type: 'ometa'};
+    browse: function(/*args*/) {
+        // args can be:
+        // 1. objectName, methodName, moduleNameOrSpec
+        //   Browse a method in a object (class, layer, etc)
+        //   See MethodFinder for original implementation
+        //   Example:
+        //   objectName = "lively.morphic.Morph"
+        //   methodName = "onMouseDown"
+        //   moduleNameOrSpec = "lively.morphic.Events"
+        //     || {name: "lively.ast.LivelyJSParser", type: 'ometa'};
+        // 2. URL (URL object or string)
+        // 3. path (String) relative to URL.root
 
-        var promise = {}, moduleName, moduleType;
-        if (Object.isString(moduleNameOrSpec)) {
-            moduleName = moduleNameOrSpec;
-        } else if (moduleNameOrSpec.name) {
-            moduleName = moduleNameOrSpec.name;
-            moduleType = moduleNameOrSpec.type || moduleType;
-        }
-
-        if (objectName) {
-            objectName = objectName.replace(/^Global\./,"");
-        }
-
-        var relative = module(moduleName).relativePath(moduleType),
-            moduleNode = lively.ide.startSourceControl().addModule(relative),
-            rootNode = moduleNode.ast(),
-            fileFragments = rootNode.subElements(10).select(function(ea) {
-                var path = ea.getOwnerNamePath();
-                return path.include(objectName) && (!methodName || path.include(methodName));
-            });
-
-        if (fileFragments.length > 0) {
-            return fileFragments[0].browseIt()
+        var args = Array.from(arguments);
+        if (args.length === 1) { // url or path
+            var url = args[0].toString().startsWith('http:') ?
+                new URL(args[0]) : URL.root.withFilename(args[0]);
+            this.browseURL(url);
         } else {
-            alert("could not browse " + methodName + " in " + objectName);
-            rootNode.browseIt();
-            return false;
+            var objectName = args[0],
+                methodName = args[1],
+                moduleNameOrSpec = args[2];
+
+            var promise = {}, moduleName, moduleType;
+            if (Object.isString(moduleNameOrSpec)) {
+                moduleName = moduleNameOrSpec;
+            } else if (moduleNameOrSpec.name) {
+                moduleName = moduleNameOrSpec.name;
+                moduleType = moduleNameOrSpec.type || moduleType;
+            }
+
+            if (objectName) {
+                objectName = objectName.replace(/^Global\./,"");
+            }
+
+            var relative = module(moduleName).relativePath(moduleType),
+                moduleNode = lively.ide.startSourceControl().addModule(relative),
+                rootNode = moduleNode.ast(),
+                fileFragments = rootNode.subElements(10).select(function(ea) {
+                    var path = ea.getOwnerNamePath();
+                    return path.include(objectName) && (!methodName || path.include(methodName));
+                });
+
+            if (fileFragments.length > 0) {
+                return fileFragments[0].browseIt()
+            } else {
+                alert("could not browse " + methodName + " in " + objectName);
+                rootNode.browseIt();
+                return false;
+            }
+
+            return promise;
+        }
+    },
+    browseURL: function(url) {
+        var browser = this.openSystemCodeBrowser();
+        if (url.isLeaf()) {
+            var dir = url.getDirectory(),
+                fileName = url.filename();
+            browser.setTargetURL(dir);
+            browser.selectNodeMatching(function(node) {
+                return node && node.url && node.url().filename() == fileName;
+            })
+        } else {
+            browser.setTargetURL(url);
         }
 
-        return promise;
-    }
+    },
+    openSystemCodeBrowser: function() {
+        var browser = new lively.ide.SystemBrowser();
+        browser.openIn(lively.morphic.World.current());
+        return browser;
+    },
+
+
 });
 
 }) // end of module

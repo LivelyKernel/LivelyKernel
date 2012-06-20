@@ -7,7 +7,7 @@ var $break = {};
 
 // FIXME: Is Enumerable used somewhere else? Can Array be extended directly?
 var Enumerable = {
-    each: function(iterator, context) {
+    each: Array.prototype.forEach || function(iterator, context) {
         var index = 0;
         iterator = iterator.bind(context);
         try {
@@ -22,7 +22,7 @@ var Enumerable = {
 
     all: function(iterator, context) {
         var result = true;
-        for (var i = 0; i < this.length; i++) {
+        for (var i = 0, len = this.length; i < len; i++) {
             result = result && !! iterator.call(context || Global, this[i], i);
             if (!result) break;
         }
@@ -30,21 +30,21 @@ var Enumerable = {
     },
 
     any: function(iterator, context) {
-        return this.detect(iterator, context) !== undefined
+        return this.detect(iterator, context) !== undefined;
     },
 
-    collect: (Array.prototype.map || (function(iterator, context) {
+    collect: Array.prototype.map || (function(iterator, context) {
         iterator = iterator ? iterator.bind(context) : Prototype.K;
         var results = [];
         this.each(function(value, index) {
             results.push(iterator(value, index));
         });
         return results;
-    })),
+    }),
 
     detect: function(iterator, context) {
-        for (var i = 0; i < this.length; i++) {
-            var value = this[i];
+        for (var value, i = 0, len = this.length; i < len; i++) {
+            value = this[i];
             if (iterator.call(context, value, i)) return value;
         }
         return undefined;
@@ -71,22 +71,23 @@ var Enumerable = {
         return results;
     },
 
-    include: function(object) {
-        if (typeof this.indexOf == 'function') return this.indexOf(object) != -1;
+    include: Array.prototype.indexOf ?
+        function(object) { return this.indexOf(object) != -1 } :
+        function(object) {
+            if (typeof this.indexOf == 'function') return this.indexOf(object) != -1;
 
-        var found = false;
-        this.each(function(value) {
-            if (value == object) {
-                found = true;
-                throw $break;
-            }
-        });
-        return found;
-    },
-
+            var found = false;
+            this.each(function(value) {
+                if (value == object) {
+                    found = true;
+                    throw $break;
+                }
+            });
+            return found;
+        },
 
     inject: function(memo, iterator, context) {
-        iterator = iterator.bind(context);
+        if (context) iterator = iterator.bind(context);
         this.each(function(value, index) {
             memo = iterator(memo, value, index);
         });
@@ -94,10 +95,10 @@ var Enumerable = {
     },
 
     invoke: function(method) {
-        var args = $A(arguments).slice(1),
+        var args = Array.from(arguments).slice(1),
             result = new Array(this.length);
-        for (var i = 0; i < this.length; i++) {
-            var value = this[i];
+        for (var value, i = 0, len = this.length; i < len; i++) {
+            value = this[i];
             result[i] = value[method].apply(value, args);
         }
         return result;
@@ -124,7 +125,7 @@ var Enumerable = {
     },
 
     partition: function(iterator, context) {
-        iterator = iterator ? iterator.bind(context) : Prototype.K;
+        iterator = iterator ? (context ? iterator.bind(context) : iterator) : Prototype.K;
         var trues = [],
             falses = [];
         this.each(function(value, index) {
@@ -377,6 +378,17 @@ Object.extend(Array.prototype, {
         var sum = 0;
         for (var i = 0; i < this.length; i++) sum += this[i];
         return sum;
+    },
+
+    groupBy: function(iterator, context) {
+        iterator = context ? iterator.bind(context) : iterator;
+        var groups = {};
+        for (var i = 0, len = this.length; i < len; i++) {
+            var hash = iterator(this[i], i);
+            if (!groups[hash]) groups[hash] = [];
+            groups[hash].push(this[i]);
+        }
+        return groups;
     }
 
 });
@@ -431,7 +443,7 @@ Object.extend(Array, {
 // Global Helper - Arrays
 ///////////////////////////////////////////////////////////////////////////////
 
-Arrays = {
+var Arrays = {
     equal: function(firstArray, secondArray) {
         // deprecated, use anArray.equals
         return firstArray.equals(secondArray);
@@ -444,4 +456,4 @@ Arrays = {
 ///////////////////////////////////////////////////////////////////////////////
 
 // DEPRECATED!
-$A = Array.from;
+var $A = Array.from;

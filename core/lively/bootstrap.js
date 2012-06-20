@@ -3,6 +3,20 @@ var isFireBug = isFirefox && window.console && window.console.firebug !== undefi
 
 function livelyConfigExists() { return typeof Config !== "undefined" }
 
+(function setupLively(Global) {
+    var lively = Global.lively;
+    if (!lively) { lively = Global.lively = {}; }
+
+    if (!lively.whenLoaded) {
+        if (!Config.finishLoadingCallbacks) {
+            Config.finishLoadingCallbacks = [];
+        }
+        lively.whenLoaded = function(callback) {
+            Config.finishLoadingCallbacks.push(callback);
+        }
+    }
+})(this);
+
 (function setupConsole() {
 
     var platformConsole = window.console ||
@@ -20,9 +34,11 @@ function livelyConfigExists() { return typeof Config !== "undefined" }
 
     if (isFireBug) return;
 
+    var consumers = platformConsole.consumers = [];
+    platformConsole.wasWrapped = false;
+
     function addWrappers() {
         if (platformConsole.wasWrapped) return;
-        platformConsole.wasWrapped = true;
 
         var props = [];
         for (var name in platformConsole) props.push(name);
@@ -41,10 +57,10 @@ function livelyConfigExists() { return typeof Config !== "undefined" }
                 };
             })(props[i]);
         }
+        platformConsole.wasWrapped = true;
     }
 
     function removeWrappers() {
-        platformConsole.wasWrapped = false;
         for (var name in platformConsole) {
             if (name[0] !== '$') continue;
             platformConsole[name.substring(1, name.length)] = platformConsole[name];
@@ -52,7 +68,6 @@ function livelyConfigExists() { return typeof Config !== "undefined" }
         }
     }
 
-    var consumers = platformConsole.consumers = [];
     platformConsole.addConsumer = function(c) {
         addWrappers();
         consumers.push(c);
@@ -903,6 +918,7 @@ var LivelyLoader = {
             'lively/lang/String.js',
             'lively/lang/Array.js',
             'lively/lang/Number.js',
+            'lively/lang/Date.js',
             'lively/defaultconfig.js',
             'lively/localconfig.js',
             'lively/Base.js',

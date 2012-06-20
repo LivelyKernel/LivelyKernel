@@ -7,47 +7,47 @@ Object.subclass("SyntaxHighlighter", {
 Object.extend(SyntaxHighlighter, {
     JavaScriptRules: {
         // based on http://code.google.com/p/jquery-chili-js/ regex and colors
-        num: { 
+        num: {
               match: /\b[+-]?(?:\d*\.?\d+|\d+\.?\d*)(?:[eE][+-]?\d+)?\b/g
             , style: {color: Color.web.blue}
         },
-        reg_exp: { 
+        reg_exp: {
               match: /\/[^\/\\\n]*(?:\\.[^\/\\\n]*)*\/[gim]*/g
             , style: {color: Color.web.maroon}
         },
-        brace: { 
+        brace: {
               match: /[\{\}]/g
             , style: {color: Color.web.green}
         },
-        statement: { 
+        statement: {
               match: /\b(with|while|var|try|throw|switch|return|if|for|finally|else|do|default|continue|const|catch|case|break)\b/g
             , style: {color: Color.web.navy}
         },
-        object: { 
+        object: {
               match: /\b(String|RegExp|Object|Number|Math|Function|Date|Boolean|Array)\b/g
             , style: {color: Color.web.deeppink}
         },
-        superclassOrLayer: { 
+        superclassOrLayer: {
               match: /([A-Za-z.]+)(?=\.(subclass|refineClass|addMethods|extend))/g
             , style: {color: Color.web.navy}
         },
-        methodName: { 
+        methodName: {
               match: /([A-Za-z0-9_$]+:)/g   // (?= function)
             , style: {color: Color.web.darkred}
         },
-        lively: { 
+        lively: {
               match: /\b(subclass|refineClass|addMethods|extend)\b/g
             , style: {color: Color.web.gray}
         },
-        error: { 
+        error: {
               match: /\b(URIError|TypeError|SyntaxError|ReferenceError|RangeError|EvalError|Error)\b/g
             , style: {color: Color.web.coral}
         },
-        property: { 
+        property: {
               match: /\b(undefined|arguments|NaN|Infinity)\b/g
             , style: {color: Color.web.purple}
         },
-        'function': { 
+        'function': {
               match: /\b(parseInt|parseFloat|isNaN|isFinite|eval|encodeURIComponent|encodeURI|decodeURIComponent|decodeURI)\b/g
             , style: {color: Color.web.olive}
         },
@@ -55,68 +55,89 @@ Object.extend(SyntaxHighlighter, {
               match: /\b(void|typeof|this|new|instanceof|in|function|delete)\b/g
             , style: {color: Color.web.darkblue}
         },
-        string: { 
+        string: {
               match: /(?:\'[^\'\\\n]*(?:\\.[^\'\\\n]*)*\')|(?:\"[^\"\\\n]*(?:\\.[^\"\\\n]*)*\")/g
             , style: {color: Color.web.teal}
         },
-        ml_comment: { 
+        ml_comment: {
               match: /\/\*[^*]*\*+(?:[^\/][^*]*\*+)*\//g
             , style: {color: Color.web.gray}
         }
-        , sl_comment: { 
+        , sl_comment: {
               match: /\/\/.*/g
             , style: {color: Color.web.green}
         }
     },
     LaTeXRules: {
-        num: { 
+        num: {
               match: /\b[+-]?(?:\d*\.?\d+|\d+\.?\d*)(?:[eE][+-]?\d+)?\b/g
             , style: {color: Color.web.blue}
         },
-        brace: { 
+        brace: {
               match: /[\{\}]/g,
               style: {color: Color.web.deeppink}
         },
-        braceContents: { 
+        braceContents: {
               match: /\{([^\}]+)\}/g,
               style: {fontStyle: 'italic'}
         },
-        parameters: { 
+        parameters: {
               match: /\[[^\]]+\]/g
             , style: {color: Color.web.mediumvioletred}
         },
-        command: { 
+        command: {
               match: /\\[^{\s\[]+/g
             , style: {color: Color.web.sandybrown}
         },
-        string: { 
+        string: {
               match: /(?:\'[^\'\\\n]*(?:\\.[^\'\\\n]*)*\')|(?:\"[^\"\\\n]*(?:\\.[^\"\\\n]*)*\")/g
             , style: {color: Color.web.teal}
         },
-        comment: { 
+        comment: {
               match: /[^\\]%[^\n]+/g,
                 style: {color: Color.web.green}
         },
     }
-    
+
 });
 
 if (!Config.isNewMorphic) return;
 
 lively.morphic.Text.addMethods(
 'syntax highlighting', {
-    syntaxHighlightingCharLimit: 4000,
+    syntaxHighlightingCharLimit: 8000,
+    syntaxHighlightingMinDelay: 300,
+    syntaxHighlightingMaxDelay: 10000,
     highlightJavaScriptSyntax: function() {
         // FIXME use defaultconfig
         if (URL.source && URL.source.toString().include('disableSyntaxHighlighting=true')) return;
         if (!this.renderContext().textNode) return; // FIXME
         var length = this.textString.length;
-
         if (length > this.syntaxHighlightingCharLimit) return;
-        var currentMs = Date.now();
-        if (this.lastSyntaxHighlightTime && (currentMs-this.lastSyntaxHighlightTime < 300)) return;
-        this.lastSyntaxHighlightTime = currentMs;
-        this.highlightSyntaxFromTo(0, length, SyntaxHighlighter.JavaScriptRules);
+        clearTimeout(this._syntaxHighlightTimeout);
+        var later = function() {
+            this._syntaxHighlightTimeout = null;
+            var start = Date.now();
+            this.highlightSyntaxFromTo(0, this.textString.length,
+                SyntaxHighlighter.JavaScriptRules);
+            this.lastSyntaxHighlightTime = Date.now() - start;
+        }.bind(this);
+        if (this.lastSyntaxHighlightTime >= 0) {
+            var time = this.lastSyntaxHighlightTime * 2;
+            time = Math.max(this.syntaxHighlightingMinDelay, time);
+            time = Math.min(this.syntaxHighlightingMaxDelay, time);
+            this._syntaxHighlightTimeout = setTimeout(later, time);
+        } else {
+            later();
+        }
+        return true;
+    },
+    applyHighlighterRules: function(target, highlighterRules) {
+        for (var ruleName in highlighterRules) {
+            if (!highlighterRules.hasOwnProperty(ruleName)) continue;
+            var rule = highlighterRules[ruleName];
+            target.emphasizeRegex(rule.match, rule.style)
+        }
     },
 
     highlightSyntaxFromTo: function(from, to, highlighterRules) {
@@ -124,19 +145,11 @@ lively.morphic.Text.addMethods(
             scroll = this.getScroll();
         if (false) {
             this.emphasize({color: Color.black, fontWeight: 'normal'}, from, to);
-            for (var ruleName in highlighterRules) {
-                if (!highlighterRules.hasOwnProperty(ruleName)) continue;
-                var rule = highlighterRules[ruleName];
-                this.emphasizeRegex(rule.match, rule.style)
-            }
+            this.applyHighlighterRules(this, highlighterRules);
         } else {
             var rt = new lively.morphic.RichText(this.textString);
-            for (var ruleName in highlighterRules) {
-                if (!highlighterRules.hasOwnProperty(ruleName)) continue;
-                var rule = highlighterRules[ruleName];
-                rt.emphasizeRegex(rule.match, rule.style)
-            }
-            this.setRichText(rt)
+            this.applyHighlighterRules(rt, highlighterRules);
+            this.setRichText(rt);
         }
         selRange && this.setSelectionRange(selRange[0], selRange[1]);
         scroll && this.setScroll(scroll[0], scroll[1]);
@@ -145,13 +158,13 @@ lively.morphic.Text.addMethods(
         // FIXME use defaultconfig
         if (URL.source && URL.source.toString().include('disableSyntaxHighlighting=true')) return;
         if (!this.renderContext().textNode) return; // FIXME
-        var length = this.textString.length;
-
-        // if (length > 10000) return;
-        var currentMs = Date.now();
-        if (this.lastSyntaxHighlightTime && (currentMs-this.lastSyntaxHighlightTime < 300)) return;
-        this.lastSyntaxHighlightTime = currentMs;
-        this.highlightSyntaxFromTo(0, length, SyntaxHighlighter.LaTeXRules);
+        var later = function() {
+            this._syntaxHighlightTimeout = null;
+            this.highlightSyntaxFromTo(0, this.textString.length,
+                SyntaxHighlighter.LaTeXRules);
+        }.bind(this);
+        clearTimeout(this._syntaxHighlightTimeout);
+        this._syntaxHighlightTimeout = setTimeout(later, 300);
     },
 
 })
@@ -190,8 +203,5 @@ cop.create("SyntaxHighlightLayer")
         return morph
     }
 });
-
-
-
 
 }) // end of module

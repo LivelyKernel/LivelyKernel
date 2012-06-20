@@ -321,10 +321,13 @@ lively.morphic.Morph.addMethods(
         var node = ctx.morphNode;
         if (node && this.isFocused()) node.blur();
     },
-    setFocusableHTML: function(ctx, bool) {
+    setFocusableHTML: function(ctx, boolOrIndex) {
         if (!ctx.morphNode) return;
-        if (bool) ctx.morphNode.tabIndex = -1;
-        else delete ctx.morphNode.tabIndex
+        if (typeof boolOrIndex === "boolean") {
+            ctx.morphNode.tabIndex = -1;
+        } else if (typeof boolOrIndex === "number") {
+            ctx.morphNode.tabIndex = boolOrIndex;
+        } else delete ctx.morphNode.tabIndex
     },
 });
 
@@ -636,7 +639,9 @@ lively.morphic.List.addMethods(
         return idx;
     },
     deselectNodesHTML: function(ctx) {
-        ctx.subNodes.forEach(function(ea) { ea.selected = false })
+        if (ctx.subNodes) {
+            ctx.subNodes.forEach(function(ea) { ea.selected = false })
+        }
     },
 },
 'drop down support HTML', {
@@ -753,6 +758,7 @@ lively.morphic.Shapes.Shape.addMethods(
             realExtent = value
                          .addXY(-2 * borderWidth, -2 * borderWidth)
                          .addXY(-paddingWidth, -paddingHeight);
+            realExtent = realExtent.maxPt(pt(0,0));
         ctx.domInterface.setExtent(ctx.shapeNode, realExtent);
         return realExtent;
     },

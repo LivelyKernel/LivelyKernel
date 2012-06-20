@@ -128,9 +128,6 @@ lively.morphic.Morph.addMethods(
         return morph;
     },
 
-
-
-
     findParentPartVersion: function () {
         //this returns the PartsBin version of the morph that matches the morphs revisionOnLoad
         var revision = this.partsBinMetaInfo? this.getPartsBinMetaInfo().revisionOnLoad : null ;
@@ -138,7 +135,10 @@ lively.morphic.Morph.addMethods(
     },
     findCurrentPartVersion: function () {
         // returns the current version in PartsBin as morph
-        return this.getPartItem().loadPart(false).part;
+        var partItem = this.getPartItem();
+        if (new partItem.getFileURL().asWebResource().exists()) {
+            return partItem.loadPart(false).part;
+        }
     },
     findDerivationParent: function (optScope) {
         //returns the nearest ancestor in line that can be found in scope or world
@@ -150,14 +150,9 @@ lively.morphic.Morph.addMethods(
             self = this;
 
         scope.withAllSubmorphsDo(function (ea) {
-            var tempCommonIds = self.derivationIds.intersect(ea.derivationIds);
-            if (tempCommonIds.equals(ea.derivationIds)
-                //&& tempCommonIds.length <= self.derivationIds.length
-                && tempCommonIds.length > commonIds.length) {
-                commonIds = tempCommonIds;
-                result = ea;
-            }
-        })
+            var idsShouldContain = [ea.id].concat(ea.derivationIds || []);
+            if (self.derivationIds.intersect(idsShouldContain).length == idsShouldContain.length) { result = ea; }
+         })
 
         return result;
     },
@@ -167,10 +162,14 @@ lively.morphic.Morph.addMethods(
         var scope = optScope || $world,
             result = undefined,
             commonIds = new Array(),
-            self = this;
+            myIds = this.derivationIds.concat([this.id]);
+
+        // todo: implement a limit
+
 
         optScope.withAllSubmorphsDo(function (ea) {
-            var tempCommonIds = self.derivationIds.intersect(ea.derivationIds);
+            var otherIds = ea.derivationIds.concat([ea.id]),
+                tempCommonIds = myIds.intersect(otherIds);
             if (tempCommonIds.length > commonIds.length) {
                 commonIds = tempCommonIds;
                 result = ea;
@@ -491,10 +490,7 @@ Object.subclass('DiffList',
             if(Properties.own(self[ea].conflicted).length > 0) conflicted.push(ea)
         })
         return conflicted;
-    },
-
-
-
+    }
 
 });
 

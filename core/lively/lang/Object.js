@@ -298,7 +298,12 @@ Properties = {
         return false;
     },
 
-    // FIXME why new method, #all should be enough?
-    allProperties: function(obj, predicate) { return this.all(obj, predicate) }
+    allProperties: function(obj, predicate) {
+        var result = [];
+        for (var name in obj) {
+            if (predicate(obj, name)) result.push(name);
+        }
+        return result;
+    }
 
 };

@@ -165,10 +165,13 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
         return node.setAttributeNS(null, name, String(value));
     },
     setFill: function(node, fill, shapeBounds) {
-        if (fill === undefined) return;
-        if (this.isHTML(node)) {
+        if (!fill) {
+            node.style.background = null;
+        } else if (this.isHTML(node)) {
+            // FIXME rk 12-06-21, it should be possible to remove the next statement?
             if (fill == null) fill = Color.rgba(0,0,0,0);
             if (fill.isGradient) { this.setHTMLGradient(node, fill, shapeBounds); return };
+            if (fill.isCSSFill) { fill.applyToNode(node); return };
             if (fill instanceof Color) {
                 node.style.background = fill.toRGBAString()
                 return;
@@ -319,8 +322,12 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
     },
 
     setHTMLBorderRadius: function(node, rx, ry) {
-        var roundRectValue =  Math.max(0, rx) + 'px /' +  Math.max(0, ry) + 'px';
-        node.style.borderRadius = roundRectValue;
+        if (rx === null || ry === null) {
+            node.style.borderRadius = null;
+        } else {
+            var roundRectValue =  Math.max(0, rx) + 'px /' +  Math.max(0, ry) + 'px';
+            node.style.borderRadius = roundRectValue;
+        }
     },
 
     computeScrollBarExtentHTML: function() {

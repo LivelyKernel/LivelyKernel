@@ -197,7 +197,7 @@ Object.extend(lively.ide, {
         } else {
             browser.setTargetURL(url);
         }
-        
+
     },
     openSystemCodeBrowser: function() {
         var browser = new lively.ide.SystemBrowser();
@@ -207,4 +207,5 @@ Object.extend(lively.ide, {
 
 
 });
+
 }) // end of module

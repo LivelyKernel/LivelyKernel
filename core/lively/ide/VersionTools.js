@@ -103,16 +103,16 @@ lively.morphic.WindowedApp.subclass('lively.ide.FileVersionViewer',
         Global.open(this.selectedURL())
     },
 
-
     revert: function() {
         this.fetchSelectedVersionAndDo(function(resForGet) {
              // using two to know when status of put
             var resForPut = new WebResource(this.url).beAsync();
             lively.bindings.connect(resForGet, 'content', resForPut, 'put');
             lively.bindings.connect(resForPut, 'status', this, 'revertDone', {updater:
-                function($upd, status) { if (status.isDone())$upd(status) }});
+                function($upd, status) { if (status.isDone()) $upd(status); }});
         });
     },
+
     revertDone: function (status) {
         var w = lively.morphic.World.current();
         if (status.code() < 400)

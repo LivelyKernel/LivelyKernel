@@ -375,6 +375,7 @@ Object.subclass('lively.morphic.Morph',
 },
 'prototypical scripting', {
     addScript: function(funcOrString, optName) {
+        if (!funcOrString) return false;
         var func = Function.fromString(funcOrString);
         return func.asScriptOf(this, optName);
     },

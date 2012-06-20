@@ -824,7 +824,7 @@ Namespace.addMethods(
     },
 
     lastPart: function() {
-        return this.name().match(/[^.]+$/)[0]
+        return this.name().match(/[^.]+$/)[0];
     }
 
 },

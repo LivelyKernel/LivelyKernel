@@ -31,7 +31,7 @@
  *  to be overridden.
  */
 
-;(function setupUserAgent(Global) {
+(function setupUserAgent(Global) {
 
     var webKitVersion = (function() {
         if (!window.navigator) return 0;
@@ -210,6 +210,21 @@ var Config = {
     },
 
     toString: function() { return 'lively.Config' },
+
+    displayWarning: function() {
+        var warn = $('<div/>');
+        warn.text('Currently optimized loading is disabled. '
+                 + 'It can therefore take a bit longer loading a world. '
+                 + 'We will soon fix this issue.');
+        warn.css({position: 'absolute',
+                  left: '20px',
+                  top: '20px',
+                  color: 'orange',
+                  'font-family': 'sans-serif',
+                  "font-size": "20px"});
+        warn.appendTo('body');
+        window.setTimeout(function() { warn.remove(); }, 4000);
+    },
 
     inspect: function() {
         // gather all groups

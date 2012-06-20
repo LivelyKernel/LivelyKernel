@@ -248,7 +248,7 @@ Object.subclass('AnotherSourceDatabase', {
         if (m && Config.modulePaths.include(m[1])) {
             fileName = m[1] + m[2];
         }
-        return this.allModules().detect(function(ea) { return ea.fileName() == fileName })
+        return this.allModules().detect(function(ea) { return ea.fileName() == fileName });
     },
 
     createModuleWrapperForFileName: function(fileName, isVirtual) {
@@ -497,6 +497,14 @@ AnotherSourceDatabase.addMethods(
 Object.extend(lively.ide, {
     sourceDB: function() {
         return this.startSourceControl();
+    },
+
+    debugFileParsingEnabled: function() {
+        return this._debugFileParsingEnabled;
+    },
+
+    enableDebugFileParsing: function(bool) {
+        return this._debugFileParsingEnabled = bool;
     },
 
     startSourceControl: function() {

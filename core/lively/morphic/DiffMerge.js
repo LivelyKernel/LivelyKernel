@@ -139,8 +139,9 @@ lively.morphic.Morph.addMethods(
     findCurrentPartVersion: function () {
         // returns the current version in PartsBin as morph
         var partItem = this.getPartItem();
-        if (new WebResource(partItem.getFileURL()).exists())
-            return partItem.loadPart(false).part
+        if (new WebResource(partItem.getFileURL()).exists()) {
+            return partItem.loadPart(false).part;
+        }
     },
     findDerivationParent: function (optScope) {
         //returns the nearest ancestor in line that can be found in scope or world
@@ -153,15 +154,7 @@ lively.morphic.Morph.addMethods(
 
         scope.withAllSubmorphsDo(function (ea) {
             var idsShouldContain = [ea.id].concat(ea.derivationIds || []);
-            // var tempCommonIds = self.derivationIds.intersect(ea.derivationIds);
-            // if (tempCommonIds.equals(ea.derivationIds)
-                // && tempCommonIds.length <= self.derivationIds.length
-                // && tempCommonIds.length > commonIds.length) {
-                // commonIds = tempCommonIds;
-                // result = ea;
-            // }
-            if (self.derivationIds.intersect(idsShouldContain).length == idsShouldContain.length)
-                result = ea
+            if (self.derivationIds.intersect(idsShouldContain).length == idsShouldContain.length) { result = ea; }
          })
 
         return result;
@@ -175,11 +168,11 @@ lively.morphic.Morph.addMethods(
             myIds = this.derivationIds.concat([this.id]);
 
         // todo: implement a limit
-        
+
 
         optScope.withAllSubmorphsDo(function (ea) {
-            var otherIds = ea.derivationIds.concat([ea.id])
-            var tempCommonIds = myIds.intersect(otherIds);
+            var otherIds = ea.derivationIds.concat([ea.id]),
+                tempCommonIds = myIds.intersect(otherIds);
             if (tempCommonIds.length > commonIds.length) {
                 commonIds = tempCommonIds;
                 result = ea;
@@ -500,10 +493,7 @@ Object.subclass('DiffList',
             if(Properties.own(self[ea].conflicted).length > 0) conflicted.push(ea)
         })
         return conflicted;
-    },
-
-
-
+    }
 
 });
 

@@ -141,6 +141,29 @@ lively.morphic.Morph.addMethods(
         items = items.concat(this.submorphs.invoke('indentedListItemsOfMorphNames', indent).flatten());
         return items;
     },
+    treeItemsOfMorphNames: function (options) {
+        var scripts = options["scripts"] || [],
+            properties = options["properties"] || {},
+            showUnnamed = options["showUnnamed"]
+
+        if (this.name || showUnnamed) {
+            var item = {name: this.name || "a " + Class.getConstructor(this).displayName, value: this},
+                children = this.submorphs.invoke('treeItemsOfMorphNames', options).compact()
+            if (children.length > 0) {
+                item.children = children
+            }
+            Properties.own(properties).each(function (v) {
+                item[v] = properties[v]
+            })
+            scripts.each(function (script) {
+                Object.addScript(item, script)
+            })
+            return item
+        } else {
+            return null
+        }
+    },
+
     isSubmorphOf: function(otherMorph) {
         var self = this, found = false;
         otherMorph.withAllSubmorphsDo(function(morph) { found = found || morph === self });

@@ -14,7 +14,7 @@ lively.morphic.EventSimulator = {
         spec.targetNode = targetNode ? targetNode : spec.targetNode;
         var evt = this.createKeyboardEvent(spec),
             result = spec.targetNode.dispatchEvent(evt);
-        return [result, evt];
+        return result;
     },
     createMouseEvent: function(type, pos, button, keys) {
         // event.initMouseEvent(type, canBubble, cancelable, view,
@@ -233,7 +233,6 @@ Object.subclass('lively.morphic.EventHandler',
 
         evt.getKeyCode = function() { return evt.keyCode }
 
-        
         evt.isMouseEvent = evt.type === 'mousedown' || evt.type === 'mouseup' || evt.type === 'mousemove' || evt.type === 'mouseover' || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'mouseover' || evt.type === 'selectstart' || evt.type === 'contextmenu' || evt.type === 'mousewheel';
 
         evt.isKeyboardEvent = !evt.isMouseEvent && (evt.type === 'keydown' || evt.type === 'keyup' || evt.type === 'keypress');
@@ -668,22 +667,23 @@ handleOnCapture);
     },
 
     onMouseDownEntry: function(evt) {
-        
         // check if mouse is on the scrollbar
-        if ((this.showsVerticalScrollBar() || this.showsHorizontalScrollBar()) && this.grabbingEnabled) {
-                
-            var scrollbarExtent = this.getScrollBarExtent();
-            var extent = this.getExtent();
+        var suppressScrollbarClick = (this.showsVerticalScrollBar()
+                                    || this.showsHorizontalScrollBar())
+                                  && this.grabbingEnabled;
+        if (suppressScrollbarClick) {
+            var scrollbarExtent = this.getScrollBarExtent(),
+                extent = this.getExtent();
             //console.log("You clicked on: "+this.name);
             //console.log(this.grabbingEnabled);
             //console.log("evt.offsetX: "+ (evt.offsetX) + "    extent.x- scrollbarExtent.x: " +(extent.x- scrollbarExtent.x));
             //console.log("evt.offsetY: "+ (evt.offsetY)+"    extent.y- scrollbarExtent.y: "+(extent.y- scrollbarExtent.y));
             // FIXME: not the perfect solution for text edit scroll morphs
-            if ((evt.offsetX> extent.x- scrollbarExtent.x) && (evt.offsetX < extent.x)  || 
+            if ((evt.offsetX> extent.x- scrollbarExtent.x) && (evt.offsetX < extent.x)  ||
                 (evt.offsetY> extent.y- scrollbarExtent.y) && (evt.offsetY < extent.y)) {
                 return false;
             }
-            
+
         }
 
         if (this.showsMorphMenu
@@ -712,11 +712,8 @@ handleOnCapture);
 
     },
 
-    onMouseUp: function(evt) { 
-        return false; 
-    },
+    onMouseUp: function(evt) { return false; },
     onMouseUpEntry: function(evt) {
-  
         var world = evt.world,
             completeClick = world.clickedOnMorph === this,
             internalCompleteClick = evt.hand.internalClickedOnMorph === this;
@@ -1175,18 +1172,6 @@ lively.morphic.Text.addMethods(
     }
 },
 'event handling', {
-    onSelectStart: function(evt) {
-        if (this.eventsAreIgnored)
-            evt.stop();
-        // alert(this.getSelectionRange())
-        // if (!this.bounds().containsPoint(evt.getPosition()))
-            // evt.preventDefault();
-        // just do the normal thing
-
-        // Allow HTML selection
-        return true;
-    },
-
     onBlur: function($super, evt) {
         $super(evt);
         delete this.constructor.prototype.activeInstance;
@@ -1235,7 +1220,6 @@ lively.morphic.List.addMethods(
         return false;
     },
     onMouseUp: function (evt) {
-
         if (evt.isLeftMouseButtonDown()) {
             var idx = this.renderContextDispatch('getItemIndexFromEvent', evt);
             // don't update when selection can't be found
@@ -1251,8 +1235,6 @@ lively.morphic.List.addMethods(
                     this.selectAt(idx);
             }
         }
-
-        evt.stop();
         return true;
     },
     onMouseUpEntry: function ($super, evt) {
@@ -1316,7 +1298,8 @@ lively.morphic.List.addMethods(
 
 lively.morphic.DropDownList.addMethods(
 'properties', {
-    isDropDownList: 'true', // triggers correct rendering
+    // triggers correct rendering
+    isDropDownList: 'true'
 },
 'mouse events', {
     onMouseDown: function(evt) {
@@ -1324,7 +1307,6 @@ lively.morphic.DropDownList.addMethods(
             evt.preventDefault()
             return false;
         }
-
         this.changeTriggered = false; // see onBlur
         return true;
      },
@@ -1336,6 +1318,7 @@ lively.morphic.DropDownList.addMethods(
         this.changeTriggered = true; // see onBlur
         return false;
     },
+
     onBlur: function(evt) {
         // drop down lists are stupid
         // onChange is not triggered when the same selection is choosen again
@@ -1346,13 +1329,10 @@ lively.morphic.DropDownList.addMethods(
         this.updateSelectionAndLineNoProperties(idx);
     },
 
-
-
     registerForOtherEvents: function($super, handleOnCapture) {
         $super(handleOnCapture)
         if (this.onBlur) this.registerForEvent('blur', this, 'onBlur', handleOnCapture);
-    },
-
+    }
 
 });
 
@@ -1618,21 +1598,16 @@ lively.morphic.World.addMethods(
         return true
     },
 
-    onSelectStart: function(evt) {
-        if (this.clickedOnMorph && !this.clickedOnMorph.isText && !this.clickedOnMorph.isList)
-            evt.stop();
-        if (this.clickedOnMorph && this.clickedOnMorph.isText && !this.clickedOnMorph.allowInput)
-            evt.stop()
-        return false;
-    },
     onHTML5DragEnter: function(evt) {
         evt.stop();
         return true;
     },
+
     onHTML5DragOver: function(evt) {
         evt.stop();
         return true;
     },
+
     onHTML5Drop: function(evt) {
         // see https://developer.mozilla.org/en/Using_files_from_web_applications
         evt.stop();
@@ -1641,10 +1616,9 @@ lively.morphic.World.addMethods(
             new lively.FileUploader().handleDroppedFiles(files, evt);
         } else if (false) { // currently disabled because self-drops are annoying
             // this needs to be extracted!
-            var supportedTypes = ['text/plain', "text/uri-list", 'text/html', 'text'],
-                type = supportedTypes.detect(function(type) {
-                    return evt.dataTransfer.types.include(type);
-                });
+            var types = Array.from(evt.dataTransfer.types),
+                supportedTypes = ['text/plain', "text/uri-list", 'text/html', 'text'],
+                type = supportedTypes.detect(function(type) { return types.include(type); });
             if (type) {
                 var data = evt.dataTransfer.getData(type);
                 this.addTextWindow({
@@ -1656,8 +1630,6 @@ lively.morphic.World.addMethods(
         }
         return true;
     }
-
-
 },
 'window related', {
     onWindowResize: function(evt) {
@@ -1974,15 +1946,10 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         return this.grabMorphs([morph], evt)
     },
     grabMorphs: function(morphs, evt) {
-        
-        
         if (this.submorphs.length > 0) return false;
         this.carriesGrabbedMorphs = true;
         morphs.forEach(function(morph) {
-
-            if (morph.grabByHand) { 
-                morph.grabByHand(this);
-            }
+            if (morph.grabByHand) morph.grabByHand(this)
             else this.addMorphWithShadow(morph)
         }, this)
         evt && evt.stop();
@@ -2052,6 +2019,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         }
     },
 });
+
 Object.extend(lively.morphic.Events, {
     MutationObserver: window.MutationObserver
                       || window.WebKitMutationObserver

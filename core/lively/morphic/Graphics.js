@@ -681,6 +681,10 @@ Object.subclass('lively.morphic.Similitude',
                 this.d = this.ensureNumber(scale.y * Math.cos(angleInRadians));
                 this.e = this.ensureNumber(delta.x);
                 this.f = this.ensureNumber(delta.y);
+
+                // avoid inaccurate translations in Chrome
+                if (this.a > 1) this.a = Math.round(this.a*Math.pow(10,2))/Math.pow(10,2);
+                if (this.d > 1) this.d = Math.round(this.d*Math.pow(10,2))/Math.pow(10,2);
             } else {
                 this.fromMatrix(duck);
             }
@@ -1117,6 +1121,10 @@ Object.extend(Color, {
             rHex = str.substring(1,3);
             gHex = str.substring(3,5);
             bHex = str.substring(5,7);
+        } else if (str.length == 6) {
+            rHex = str.substring(0,2);
+            gHex = str.substring(2,4);
+            bHex = str.substring(4,6);
         } else if (str.length == 4) {
             // short form like #C00
             rHex = str.substring(1,2);

@@ -1614,7 +1614,7 @@ lively.morphic.World.addMethods(
         var files = evt.dataTransfer.files;
         if (files && files.length > 0) {
             new lively.FileUploader().handleDroppedFiles(files, evt);
-        } else if (evt.dataTransfer && evt.dataTransfer.types) {
+        } else if (false) { // currently disabled because self-drops are annoying
             // this needs to be extracted!
             var types = Array.from(evt.dataTransfer.types),
                 supportedTypes = ['text/plain', "text/uri-list", 'text/html', 'text'],

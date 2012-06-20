@@ -2,7 +2,7 @@ module('lively.morphic.HTML').requires('lively.morphic.Rendering', 'lively.morph
 
 Color.addMethods(
 'HTML rendering', {
-    toCSSString: Color.prototype.toRGBAString,
+    toCSSString: Color.prototype.toRGBAString
 });
 
 Trait('LinearGradientCSSTrait',
@@ -229,7 +229,7 @@ lively.morphic.Morph.addMethods(
     },
 
     setStyleSheetHTML: function(ctx, css) {
-    
+
     }
 
 },
@@ -252,13 +252,8 @@ lively.morphic.Morph.addMethods(
             this.setVisibleHTML(ctx, false);
         var tooltip = this.morphicGetter('ToolTip');
         tooltip && this.setToolTipHTML(ctx, tooltip);
-
-        
-        
         if (UserAgent.fireFoxVersion)
             ctx.morphNode['-moz-user-modify'] = 'read-only'
-
-
     },
     appendHTML: function(ctx, optMorphAfter) {
         if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
@@ -285,13 +280,10 @@ lively.morphic.Morph.addMethods(
             }
         }
 
-
-
         var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
         this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode, ctx.shapeNode);
 
         this.getShape().renderUsing(ctx);
-
     },
     insertMorphNodeInHTML: function(ctx, morphNode, parentNode, optAfterNode) {
         if (!optAfterNode || !$A(parentNode.childNodes).include(optAfterNode)) {
@@ -348,8 +340,8 @@ lively.morphic.Morph.addMethods(
 lively.morphic.World.addMethods(
 'HTML render settings', {
     htmlDispatchTable: {
-        setScroll: 'setScrollHTML',
-    },
+        setScroll: 'setScrollHTML'
+    }
 },
 'scrolling', {
     setScrollHTML: function(ctx, value) {
@@ -675,7 +667,7 @@ lively.morphic.List.addMethods(
     },
     deselectAtHTML: function(ctx, idx) {
         if (!ctx.listNode) return;
-        if (idx < 0 || idx >= this.itemList.length) reurn;
+        if (idx < 0 || idx >= this.itemList.length) return;
         var node = ctx.subNodes[idx];
         if (node) node.selected = false;
     },
@@ -736,7 +728,6 @@ lively.morphic.Shapes.Shape.addMethods(
         setBorderStylingMode: 'setBorderStylingModeHTML',
         setComputedStyles: 'setComputedStylesHTML',
         setComputedBorderWidth: 'setComputedBorderWidthHTML'
-        
     },
 },
 'initializing', {
@@ -752,14 +743,12 @@ lively.morphic.Shapes.Shape.addMethods(
         this.setBorderStyleHTML(ctx, this.getBorderStyle());
         this.setPaddingHTML(ctx, this.getPadding()); // also sets extent
 
-
         this.getNodeClass() && this.setNodeClassHTML(ctx, this.getNodeClass());
-        if (this.getNodeId()) { 
+        if (this.getNodeId()) {
             this.setNodeIdHTML(ctx, this.getNodeId());
             this.getStyleSheet && this.setStyleSheetHTML(ctx, this.getStyleSheet());
         }
-        
-        
+
         if (UserAgent.fireFoxVersion)
             ctx.shapeNode['-moz-user-modify'] = 'read-only'
     },
@@ -795,7 +784,7 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     setFillHTML: function(ctx, value) {
         if (!ctx.shapeNode) return;
-        if (this.isStyleSheetAppearance){
+        if (this.isStyleSheetAppearance) {
             ctx.domInterface.setFill(ctx.shapeNode, null, this.getBounds());
         } else {
             ctx.domInterface.setFill(ctx.shapeNode, value, this.getBounds());
@@ -803,18 +792,18 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     setBorderColorHTML: function(ctx, fill) {
         var alpha;
-        if (this.getStrokeOpacity() != 1)
+        if (this.getStrokeOpacity() != 1) {
             alpha = this.getStrokeOpacity();
-        else {
-            if (fill === null)
-                alpha = 0;
-            else
-                alpha = fill.a
+        } else {
+            alpha = fill === null ? 0 : fill.a;
         }
         return this.setBorderHTML(ctx, this.getBorderWidth(), fill, alpha)
     },
     setBorderStyleHTML: function(ctx, value) {
-        if (ctx.shapeNode) ctx.shapeNode.style.borderStyle = (this.isStyleSheetBorder)?null:value;
+        if (ctx.shapeNode) {
+            var style = this.isStyleSheetBorder ? null : value;
+            ctx.shapeNode.style.borderStyle = style;
+        }
     },
     setBorderWidthHTML: function(ctx, width) {
         this.setBorderHTML(ctx, width, this.getBorderColor(), this.getStrokeOpacity());
@@ -833,11 +822,8 @@ lively.morphic.Shapes.Shape.addMethods(
         if (this.isStyleSheetBorder) {
              ctx.shapeNode.style['border'] = null;
         } else {
-        
             if ((fill instanceof Color) && opacity) fill = fill.withA(opacity);
             if (!fill) fill = Color.rgba(0,0,0,0);
-        
-        
             ctx.shapeNode.style['border'] = this.getBorderStyle() + ' ' + width + 'px ' +
                 fill.toCSSString(this.getBounds(), ctx.domInterface.html5CssPrefix);
         }
@@ -861,7 +847,7 @@ lively.morphic.Shapes.Shape.addMethods(
         ctx.originNode.style.setProperty('margin-left', -this.getBorderWidth() + 'px', 'important');
     },
     setOpacityHTML: function(ctx, value) {
-        ctx.shapeNode.style.opacity = (this.isStyleSheetAppearance)?null:value;
+        If (ctx.shapeNode) ctx.shapeNode.style.opacity = this.isStyleSheetAppearance ? null : value;
     },
     setPaddingHTML: function(ctx, r) {
         if (r === undefined || !ctx.shapeNode) return r;
@@ -871,17 +857,16 @@ lively.morphic.Shapes.Shape.addMethods(
         ctx.shapeNode.style.padding = s;
         return r;
     },
-    
+
     setNodeClassHTML: function(ctx, value) {
         //console.log("Ok, got it, setting shape HTML class to "+value);
         var a = value;
         if (value instanceof Array) {
             a = value.join(" ");
         }
-        
-
         ctx.shapeNode.className = a;
     },
+
     setNodeIdHTML: function(ctx, value) {
         //console.log("HTML.js, setStyleIdHTML(): Ok, got it, setting shape HTML id to "+value);
         ctx.shapeNode.id = value;
@@ -891,63 +876,59 @@ lively.morphic.Shapes.Shape.addMethods(
         var morphId = ctx.shapeNode.id;
         if (!morphId) {
             alert("Cannot set morph specific style sheet. Shape node was not assigned any id.");
-            return false;
+            return;
         }
 
         var styleTagId = "style-for-"+morphId;
 
-	var css = $('#' + styleTagId);
-	css.remove();
+	    var css = $('#' + styleTagId);
+	    css.remove();
 
         if (value && value.length > 1) {
 
-    	   //console.log("Setting CSS for shape "+morphId+" to "+value);	
+    	    //console.log("Setting CSS for shape "+morphId+" to "+value);
             specificCss = "#"+morphId+" { "+value+" }";
 
             if (less) {
-                new(less.Parser)().parse(specificCss, function(e, tree){
+                new less.Parser().parse(specificCss, function(e, tree) {
                     specificCss = tree.toCSS();
                 });
             }
 
-        
-	   css = $('<style type="text/css" id="' + styleTagId + '"></style>');
-	   css.text(specificCss);
-	   css.appendTo(document.head);
+
+	        css = $('<style type="text/css" id="' + styleTagId + '"></style>');
+	        css.text(specificCss);
+	        css.appendTo(document.head);
         }
-       
-    }, 
+
+    },
 
     setComputedStylesHTML: function(ctx) {
-        if (ctx.shapeNode) {
-            var style = window.getComputedStyle(ctx.shapeNode);
-            var borderWidth = parseInt(style["borderWidth"].replace("px",""));
-            //console.log("BorderWidth = "+borderWidth);
-            this.shapeSetter('ComputedBorderWidth', borderWidth );
-            
-            if (ctx.originNode) {
-                this.compensateShapeNode(ctx);
-            }
-            this.setExtentHTML(ctx, this.getExtent());
+        if (!ctx.shapeNode) return;
+        var style = window.getComputedStyle(ctx.shapeNode),
+            borderWidth = parseInt(style["borderWidth"].replace("px",""));
+        //console.log("BorderWidth = "+borderWidth);
+        this.shapeSetter('ComputedBorderWidth', borderWidth );
+
+        if (ctx.originNode) {
+            this.compensateShapeNode(ctx);
         }
+        this.setExtentHTML(ctx, this.getExtent());
     },
 
     setComputedBorderWidthHTML: function(ctx, width) {},
 
-    
     setAppearanceStylingModeHTML: function(ctx, value) {
         this.isStyleSheetAppearance = value;
         this.setFillHTML(ctx, this.shapeGetter("Fill"));
         this.setOpacityHTML(ctx, this.shapeGetter("Opacity"));
-    } ,
+    },
 
-     setBorderStylingModeHTML: function(ctx, value) {
+    setBorderStylingModeHTML: function(ctx, value) {
         this.isStyleSheetBorder = value;
         this.setBorderHTML(ctx, this.getBorderWidth(), this.getBorderColor(), this.getStrokeOpacity());
         this.setBorderRadiusHTML(ctx, this.getBorderRadius());
-    } 
-
- 
+    }
 
 });
 
@@ -1181,6 +1162,7 @@ lively.morphic.Shapes.Path.addMethods(
 Object.extend(lively.morphic, {
     CSS: {}
 });
+
 Object.subclass('lively.morphic.CSS.Fill',
 'settings', {
     isCSSFill: true
@@ -1188,7 +1170,7 @@ Object.subclass('lively.morphic.CSS.Fill',
 'initializing', {
     initialize: function(cssBackgroundString) {
         this.cssBackgroundString = cssBackgroundString || "";
-    },
+    }
 },
 'rendering', {
     applyToNode: function(node) {

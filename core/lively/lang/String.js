@@ -193,8 +193,14 @@ Strings = {
         return removeLeadingWhitespace(removeTrailingWhitespace(str));
     },
 
-    print: function(str) {
-        var result = str;
+    print: function(obj) {
+        if (obj && obj.constructor && obj.constructor === Array) {
+            return '[' + obj.map(function(ea) { return Strings.print(ea) }) + ']';
+        }
+        if (typeof obj !== "string") {
+            return String(obj);
+        }
+        var result = String(obj);
         result = result.replace(/\n/g, '\\n\\\n')
         result = result.replace(/("|')/g, '\\$1')
         result = '\'' + result + '\'';
@@ -285,7 +291,7 @@ Strings = {
         // like &uml;
         var div = XHTMLNS.create('div');
         div.innerHTML = s;
-        return div.textContent
+        return div.textContent;
     }
 
 };

@@ -131,12 +131,23 @@ lively.morphic.Morph.addMethods(
         this.remove();
         owner.addMorphFront(this);
     },
+
+    sendToBack: function() {
+        // Hack: remove and re-add morph
+        var owner = this.owner;
+        if (!owner) {
+            return;
+        }
+        this.remove();
+        owner.addMorphBack(this);
+    },
+
     indentedListItemsOfMorphNames: function (indent) {
         indent = indent || '';
         var items = [];
         if (this.name) {
             items.push({isListItem: true, string: indent + this.name, value: this, selectionString: this.name})
-            indent += '\t';
+            indent += indent;
         }
         items = items.concat(this.submorphs.invoke('indentedListItemsOfMorphNames', indent).flatten());
         return items;
@@ -253,6 +264,17 @@ lively.morphic.Morph.addMethods(
     removeAllMorphs: function() {
         this.submorphs.clone().invoke('remove')
     },
+
+    removeAndDropSubmorphs: function() {
+        // Removes the morph and lets all its child morphs drop to its owner
+        this.submorphs.each(function(submorph) {
+            var supermorph = this.owner || $world;
+            supermorph.addMorph(submorph.copy());
+        }, this);
+
+        this.removeAllMorphs();
+        this.remove();
+    }
 },
 'events', {
     takesKeyboardFocus: function() {},

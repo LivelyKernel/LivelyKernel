@@ -244,15 +244,11 @@ Object.subclass('AnotherSourceDatabase', {
     findModuleWrapperForFileName: function(fileName) {
         // support for Config.modulePaths == [users/, projects/]
         // FIXME this is a hack
-        //console.log("** in file name: " + fileName);
         var m = fileName.match(/\.\.\/([A-Za-z0-9]+\/)(.*)/);
         if (m && Config.modulePaths.include(m[1])) {
             fileName = m[1] + m[2];
         }
-        return this.allModules().detect(function(ea) {
-            //console.log(ea.fileName()); 
-            return ea.fileName() == fileName 
-        })
+        return this.allModules().detect(function(ea) { return ea.fileName() == fileName });
     },
 
     createModuleWrapperForFileName: function(fileName, isVirtual) {

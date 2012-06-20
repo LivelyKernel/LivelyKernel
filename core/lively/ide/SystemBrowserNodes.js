@@ -630,7 +630,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.AllMethodCategoryFragmentNode',
     },
 },
 'testing', {
-    isClassNode: true,
+    isClassNode: true
 });
 
 lively.ide.FileFragmentNode.subclass('lively.ide.ObjectFragmentNode', {

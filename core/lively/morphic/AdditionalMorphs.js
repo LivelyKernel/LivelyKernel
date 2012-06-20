@@ -539,6 +539,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
         this.setExtent(newExtent);
         this.setBorderWidth(1);
         this.setBorderColor(Color.gray);
+        this.layout = {adjustForNewBounds: true};
         tabBarStrategy.applyTo(this);
     },
 
@@ -785,6 +786,7 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         this.setFill(Color.gray);
         this.setBorderWidth(1);
         this.setBorderColor(Color.gray);
+        this.layout = {adjustForNewBounds: true};
         this.initializePane(this.getTabContainer().getTabPaneExtent());
         this.initializeLabel('Tab');
         this.draggingEnabled = this.grabbingEnabled = false;
@@ -902,6 +904,7 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         closer.setExtent(pt(20,20))
         this.addMorph(closer)
         closer.setPosition(pt(this.getExtent().x - 23,6))
+        closer.layout = {moveHorizontal: true};
         connect(closer, "fire", this, "closeTab", {});
         this.closeButton = closer;
         return this;
@@ -933,7 +936,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         this.setBorderWidth(1);
         this.setBorderColor(Color.gray);
         this.setExtent(extent);
-
+        this.layout = {adjustForNewBounds: true, resizeWidth: true, resizeHeight: true};
         this.draggingEnabled = this.grabbingEnabled = false;
 
     },
@@ -1060,6 +1063,7 @@ lively.morphic.TabStrategyAbstract.subclass('lively.morphic.TabStrategyTop',
     adjustTabBar: function(aTabBar) {
         aTabBar.setPosition(pt(0,0));
         aTabBar.setRotation(0);
+        aTabBar.layout = {adjustForNewBounds: true, resizeWidth: true};
         aTabBar.setExtent(pt(aTabBar.getTabContainer().getTabPaneExtent().x, aTabBar.getDefaultHeight()));
     },
 
@@ -1133,6 +1137,7 @@ lively.morphic.TabStrategyAbstract.subclass('lively.morphic.TabStrategyBottom',
     adjustTabBar: function(aTabBar) {
         aTabBar.setPosition(pt(0, aTabBar.getTabContainer().getTabPaneExtent().y));
         aTabBar.setRotation(0);
+        aTabBar.layout = {adjustForNewBounds: true, resizeWidth: true};
         aTabBar.setExtent(pt(aTabBar.getExtent().x, aTabBar.getDefaultHeight()));
     },
 

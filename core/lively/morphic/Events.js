@@ -2020,6 +2020,12 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     },
 });
 
+Object.extend(lively.morphic.Events, {
+    MutationObserver: window.MutationObserver
+                      || window.WebKitMutationObserver
+                      || window.MozMutationObserver
+});
+
 // FIXME remove!!!
 module('lively.morphic.EventExperiments').load();
 

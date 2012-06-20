@@ -1,14 +1,9 @@
 module('lively.morphic.Core').requires('lively.morphic.Shapes', 'lively.Traits').toRun(function() {
 
-if (!Config.isNewMorphic) {
-    var list = module('lively.morphic.Core').traceDependendModules()
-    console.warn("WARNING LOADED NEW MORPHIC IN OLD ONE\n" + Strings.printNested(list));
-};
-
 Object.subclass('lively.morphic.Morph',
 'properties', {
     style: {enableDropping: true, enableHalos: true},
-    isMorph: true,
+    isMorph: true
 },
 'initializing', {
     isMorph: true,
@@ -17,15 +12,8 @@ Object.subclass('lively.morphic.Morph',
         this.submorphs = [];
         this.scripts = [];
         this.shape = shape || this.defaultShape();
-        
         this.setNewId();
-        //console.log("Initializing morph "+this.id);
-        //this.shape.styleClassName=this.constructor.name;
-        //this.shape.styleId = this.id;
-        //console.log("Shape Style ID: " + this.shape.styleId);
-
         this.prepareForNewRenderContext(this.defaultRenderContext());
- 
         this.applyStyle(this.getStyle());
         this.setNodeClass(this.getNodeClass());
         this.setNodeId(this.id);
@@ -33,13 +21,14 @@ Object.subclass('lively.morphic.Morph',
     setNewId: function(optId) {
         if (this.derivationIds == undefined) this.derivationIds = [];
         this.derivationIds.push(this.id);
-        this.id = optId || (new UUID).id;
+        this.id = optId || new UUID().id;
     },
 
     defaultShape: function(optBounds) {
         return new lively.morphic.Shapes.Rectangle(optBounds || new Rectangle(0,0,0,0));
     },
-    defaultRenderContext: function() { return new lively.morphic.HTML.RenderContext() },
+
+    defaultRenderContext: function() { return new lively.morphic.HTML.RenderContext() }
 
 },
 'accessing -- shapes', {
@@ -49,16 +38,11 @@ Object.subclass('lively.morphic.Morph',
     },
 },
 'accessing -- morph properties', {
-    setPosition: function(value) { 
-    if (value.x != null && value.y != null) return this.morphicSetter('Position', value);
-},
+    setPosition: function(value) { return this.morphicSetter('Position', value) },
     getPosition: function() { return this.morphicGetter('Position') || pt(0,0) },
     setRotation: function(value) { return this.morphicSetter('Rotation', value) },
     getRotation: function() { return this.morphicGetter('Rotation') || 0 },
-    setScale: function(value) { 
-    if (value > 1) debugger;
-    return this.morphicSetter('Scale', value) 
-    },
+    setScale: function(value) { return this.morphicSetter('Scale', value) },
     getScale: function() { return this.morphicGetter('Scale') || 1 },
     setBounds: function(bounds) {
         this.setPosition(bounds.topLeft().addPt(this.getOrigin()));
@@ -191,7 +175,7 @@ Object.subclass('lively.morphic.Morph',
 
     getOpacity: function() { return this.shape.getOpacity() },
     setOpacity: function(o) { return this.shape.setOpacity(o) },
-    
+
 
     setNodeClass: function(value) {
         //console.log("Core.js, Morph, setNodeClass(): Setting style class to "+value);
@@ -203,11 +187,11 @@ Object.subclass('lively.morphic.Morph',
             a = value.split(/[\s,]+/);
         }
         var type = this.constructor;
-        
+
         while (type != Object) {
             a.unshift(type.name);
             type = type.superclass;
-        }        
+        }
 
         var result = [];
         a.each(function(item){result.push( item.toLowerCase());});
@@ -353,19 +337,21 @@ Object.subclass('lively.morphic.Morph',
     },
 },
 'morph removal', {
+
     remove: function() {
         this.suspendSteppingAll();
         if (this.showsHalos) this.removeHalos();
         this.renderContextDispatch('remove');
     },
+
     removeMorph: function(morph) {
+        // PRIVATE! do *not* call directly
         this.submorphs = this.submorphs.without(morph);
         morph.owner = null;
         if (this.getLayouter()) {
             this.getLayouter().onSubmorphRemoved(this, morph, this.submorphs);
         }
     },
-
 
 },
 'transformation', {
@@ -430,9 +416,7 @@ Object.subclass('lively.morphic.Morph',
 },
 'prototypical scripting', {
     addScript: function(funcOrString, optName) {
-        if (funcOrString == undefined)
-            return false
-
+        if (!funcOrString) return false;
         var func = Function.fromString(funcOrString);
         return func.asScriptOf(this, optName);
     },
@@ -610,7 +594,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         enableMorphMenu: true,
         enableDragging: true
     },
-    isWorld: true,
+    isWorld: true
 },
 'accessing -- morphic relationship', {
     addMorph: function($super, morph, optMorphBefore) {
@@ -620,27 +604,27 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         this.updateScrollFocus();
         return r;
     },
-    topMorph: function() { return this.submorphs.withoutAll(this.hands).last() },
+    topMorph: function() { return this.submorphs.withoutAll(this.hands).last() }
 
 },
 'accessing', {
     world: function() { return this },
     firstHand: function() { return this.hands && this.hands[0] },
     windowBounds:  function () {
-    var canvas = this.renderContext().getMorphNode(),
-        topmost = document.documentElement,
-        body = document.body,
-        scale = 1 / this.getScale(),
-        topLeft = pt(body.scrollLeft - (canvas.offsetLeft || 0), body.scrollTop - (canvas.offsetTop || 0)),
-        width, height;
-    if(UserAgent.isTouch){
-        width = window.innerWidth * scale;
-        height = window.innerHeight * scale;
-    } else {
-        width = topmost.clientWidth * scale;
-        height = topmost.clientHeight * scale;
-    }
-    return topLeft.scaleBy(scale).extent(pt(width, height));
+        var canvas = this.renderContext().getMorphNode(),
+            topmost = document.documentElement,
+            body = document.body,
+            scale = 1 / this.getScale(),
+            topLeft = pt(body.scrollLeft - (canvas.offsetLeft || 0), body.scrollTop - (canvas.offsetTop || 0)),
+            width, height;
+        if (UserAgent.isTouch){
+            width = window.innerWidth * scale;
+            height = window.innerHeight * scale;
+        } else {
+            width = topmost.clientWidth * scale;
+            height = topmost.clientHeight * scale;
+        }
+        return topLeft.scaleBy(scale).extent(pt(width, height));
     },
 
     visibleBounds:  function () {
@@ -649,8 +633,8 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         return this.windowBounds().intersection(this.innerBounds());
     },
     setNodeId: function() {
-        // FIXME: maybe it would be more intelligent to really 
-        // generate an ID for the world so we avoid conflicts 
+        // FIXME: maybe it would be more intelligent to really
+        // generate an ID for the world so we avoid conflicts
         // when multiple worlds are displayed in the same browser window
         return this.shape.setNodeId("the-world");
     },
@@ -660,6 +644,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         this.renderContext().setParentNode(domElement);
         this.renderContextDispatch('append');
     },
+
     hideHostMouseCursor: function () {
         if (!Config.hideSystemCursor) return;
         // FIXME
@@ -678,7 +663,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         this.hands.push(hand);
         hand.addToWorld(this);
         this.addMorph(hand);
-    },
+    }
 },
 'changes', {
     setChangeSet: function(changeSet) { this.changeSet = changeSet },
@@ -686,7 +671,9 @@ lively.morphic.Morph.subclass('lively.morphic.World',
 });
 
 Object.extend(lively.morphic.World, {
+
     current: function() { return this.currentWorld },
+
     createOn: function(domElement, bounds) {
         var world = new this();
         bounds = bounds || new Rectangle(0,0,400,400);
@@ -696,7 +683,7 @@ Object.extend(lively.morphic.World, {
         world.addHandMorph();
         this.currentWorld = world;
         return world;
-    },
+    }
 });
 
 lively.morphic.Morph.subclass('lively.morphic.Box',

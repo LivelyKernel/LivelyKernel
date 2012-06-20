@@ -128,9 +128,6 @@ lively.morphic.Morph.addMethods(
         return morph;
     },
 
-
-
-
     findParentPartVersion: function () {
         //this returns the PartsBin version of the morph that matches the morphs revisionOnLoad
         var revision = this.partsBinMetaInfo? this.getPartsBinMetaInfo().revisionOnLoad : null ;
@@ -139,7 +136,7 @@ lively.morphic.Morph.addMethods(
     findCurrentPartVersion: function () {
         // returns the current version in PartsBin as morph
         var partItem = this.getPartItem();
-        if (new WebResource(partItem.getFileURL()).exists()) {
+        if (new partItem.getFileURL().asWebResource().exists()) {
             return partItem.loadPart(false).part;
         }
     },

@@ -1,4 +1,4 @@
-module('lively.morphic.tests.Morphic2').requires('lively.morphic.tests.Morphic', 'lively.morphic.DiffMerge').toRun(function() {
+module('lively.morphic.tests.Morphic2').requires('lively.morphic.tests.Morphic', 'lively.morphic.DiffMerge', 'lively.PartsBin').toRun(function() {
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PivotPointTests',
 'running', {
@@ -652,25 +652,29 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         m1.getPartItem = getPartItemFactory;
 
         this.assertEquals(m1.findParentPartVersion().getPartsBinMetaInfo().revisionOnLoad, m1.getPartsBinMetaInfo().revisionOnLoad, 'Revision number of current revision was wrong.')
-        
+
         this.assert(!m2.findParentPartVersion().getPartsBinMetaInfo().revisionOnLoad, "Should't have found a match");
     },
 
 
     testFindCurrentPartVersion: function() {
-        var m1 = Morph.makeRectangle(0,0,100,100);
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100),
+            test = this;
+        m1.name = "m1";
         m1.getPartsBinMetaInfo().revisionOnLoad = 2;
         m1.getPartItem = function () {
-            return {part: this,
-                    loadPart: function () {
-                        return {part: this,
-                                loadPart: function () {
-                                    return this;
-                                }.bind(this)}
-                    }.bind(this)}
+            return {
+                part: this,
+                loadPart: function () { return {part: this} }.bind(this),
+                getFileURL: function() {
+                    var url = URL.root.withFilename('PartsBin/' + this.name + ".json");
+                    test.spy(url, "asWebResource", function () {return {exists: Functions.True}});
+                    return url;
+                }.bind(this)
+            }
         };
         this.assertEquals(m1.getPartsBinMetaInfo().revisionOnLoad,
-            m1.findCurrentPartVersion().getPartsBinMetaInfo().revisionOnLoad, 
+            m1.findCurrentPartVersion().getPartsBinMetaInfo().revisionOnLoad,
             'Wrong revision number')
     },
 
@@ -731,8 +735,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var pbv = m1.copy();
         var m4 = pbv.copy(); // simulate copyToPartsBin
 
-        m4.isDirectDescendentOf = function () {return true}; 
-        m4.submorphs[0].isDirectDescendentOf = function () {return true}; 
+        m4.isDirectDescendentOf = function () {return true};
+        m4.submorphs[0].isDirectDescendentOf = function () {return true};
 
         this.assert(m4.existsAlreadyIn(pbv), "Should exist in first generation")
         this.assert(m4.submorphs[0].existsAlreadyIn(pbv), "submorph should exist in first generation");
@@ -760,8 +764,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assert(!m8.submorphs[0].findSiblingInRelative(m7, m4), 'Wrong submorph sibling with grand parent')
     },
 
-
-
 },
 'diffing', {
     testCopy: function() {
@@ -773,12 +775,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m1.addMorph(m2);
-        //simulate copyToPartsBin
+        // simulate copyToPartsBin
         var pbv = m1.copy();
-        //simulate copyFromPartsBin
+        // simulate copyFromPartsBin
         var m3 = pbv.copy();
         var m4 = m3.copy();
-        //this.assert(!m4.diffTo(m3), "found changes, but there weren't some") //required in three way diff, therefore staying
+        // this.assert(!m4.diffTo(m3), "found changes, but there weren't some")
+        // required in three way diff, therefore staying
         var m5 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m4.addMorph(m5)
 
@@ -795,7 +798,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
         //modified morphs
         m6.setFill(Global.Color.red);
-        debugger
         this.assert(m6.diffTo(m4)[m6.id].modified['Fill'], "no removal found")
 
         //submorphsModified
@@ -826,10 +828,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assert(!a.equals(c),'the vectors should not have been the same');
         this.assert(!a.equals(d),'the colors should not have been the same');
     },
+
     testMorphEquals: function() {
-        var m1 = $world.loadPartItem("Rectangle", "PartsBin/Basic");
-        var m2 = $world.loadPartItem("Rectangle", "PartsBin/Basic")
-        var m3 = m1.copy();
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100),
+            m2 = m1.copy();
+        this.assert(m1.equals(m2), "Morphs are not equal after copying");
+    },
+
+    testMorphEqualsWithPartsBinMorphs: function() {
+        if (Config.serverInvokedTest) return; // Not yet PB access
+        var m1 = $world.loadPartItem("Rectangle", "PartsBin/Basic"),
+            m2 = $world.loadPartItem("Rectangle", "PartsBin/Basic"),
+            m3 = m1.copy();
         this.assert(m1.equals(m2), "Morphs that were both loaded from the same part are not equal");
         this.assert(m1.equals(m3), "Morphs are not equal after copying");
     },

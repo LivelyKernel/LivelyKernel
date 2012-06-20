@@ -92,7 +92,7 @@ Object.extend(Object, {
     isRegExp: function(object) {
         return object instanceof RegExp;
     },
-    
+
     isObject: function(object) {
         return typeof object == "object";
     },
@@ -248,7 +248,8 @@ Properties = {
     all: function(object, predicate) {
         var a = [];
         for (var name in object) {
-            if ((object.__lookupGetter__(name) || !Object.isFunction(object[name])) && (predicate ? predicate(name, object) : true)) a.push(name);
+            if ((object.__lookupGetter__(name) || !Object.isFunction(object[name]))
+              && (predicate ? predicate(name, object) : true)) a.push(name);
         }
         return a;
     },
@@ -265,19 +266,20 @@ Properties = {
         for (var name in object) {
             if (!object.hasOwnProperty(name)) continue;
             var value = object[name];
-            if (!(value instanceof Function)) var result = func.call(context || this, name, value);
+            if (!Object.isFunction(value)) {
+                func.call(context || this, name, value);
+            }
         }
     },
 
     nameFor: function(object, value) {
-        for (var name in object)
-        if (object[name] === value) return name;
+        for (var name in object) { if (object[name] === value) return name; }
         return undefined
     },
 
     values: function(obj) {
         var values = [];
-        for (var name in obj) values.push(obj[name]);
+        for (var name in obj) { values.push(obj[name]); }
         return values;
     },
 
@@ -290,19 +292,13 @@ Properties = {
     printObjectSize: function(obj) {
         return Numbers.humanReadableByteSize(JSON.stringify(obj).length);
     },
-    
+
     any: function(obj, predicate) {
-        for (var name in obj) {
-            if (predicate(obj, name)) return true;
-        }
+        for (var name in obj) { if (predicate(obj, name)) return true; }
+        return false;
     },
-    
-    allProperties: function(obj, predicate) {
-        var result = [];
-        for (var name in obj) {
-            if (predicate(obj, name)) result.push(name);
-        }
-        return result;
-    }
+
+    // FIXME why new method, #all should be enough?
+    allProperties: function(obj, predicate) { return this.all(obj, predicate) }
 
 };

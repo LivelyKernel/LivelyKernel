@@ -263,6 +263,7 @@ Object.extend(Function.prototype, {
     addToObject: function(obj, name) {
         this.name = name;
         obj[name] = this;
+        this.declaredObject = Objects.safeToString(obj);
         // suppport for tracing
         if (lively.Tracing && lively.Tracing.stackTracingEnabled) {
             lively.Tracing.instrumentMethod(obj, name, {

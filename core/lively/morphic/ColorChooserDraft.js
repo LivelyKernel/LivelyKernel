@@ -346,6 +346,16 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
         // this.offsetForWorld.curry(pos).bind(this).delay(0);
 
         return this;
+    },
+    offsetForWorld: function(pos) {
+        var bounds = this.innerBounds().translatedBy(pos);
+        if (this.title) {
+            bounds = bounds.withTopLeft(bounds.topLeft().addXY(0, this.title.getExtent().y));
+        }
+        if (this.owner.visibleBounds) {
+            bounds = this.moveBoundsForVisibility(bounds, this.owner.visibleBounds());
+        }
+        this.setBounds(bounds);
     }
 }
 

@@ -348,7 +348,7 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
     },
     setCallback: function(target, callback){
         this.callback = callback; 
-        connect(this, 'chooseColor', target, 'callback'); 
+        connect(this, 'chooseColor', target, callback); 
     },
     open: function(parentMorph, pos, remainOnScreen, captionIfAny) {
         this.setPosition(pos || pt(0,0));

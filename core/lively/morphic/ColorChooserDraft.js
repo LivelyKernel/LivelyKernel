@@ -409,6 +409,59 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
 
 );
 
+lively.morphic.ColorChooser.subclass('lively.morphic.SimpleColorChooser',
+'settings', {
+    colorNames: 'custom',
+},
+'initializing', {
+    initialize: function($super,bounds, colors){
+        // under constructions...
+        if (!colors) {
+            colors = this.gatherCustomColors();
+        }
+        this.colors = colors;
+        $super(bounds);
+    },
+    gatherCustomColors: function() {
+        // lively.morphic.CustomColorChooser.prototype.gatherCustomColors()
+        var colors = [];
+        var gatherColor = function(eaColor) {
+            if (eaColor && !colors.detect(function(colorSetEa) {
+                return colorSetEa.equals(eaColor)}))
+                colors.push(eaColor)
+        }
+        $world.withAllSubmorphsDo(function(ea) {
+            gatherColor(ea.getBorderColor());
+        })
+        return colors
+    },
+
+    buildColorMap: function() {
+        var x = Math.floor(Math.sqrt(this.colors.length)) + 1,
+            y = x,
+            extent = this.innerBounds().extent().scaleByPt(pt(1/x, 1/y));
+        for (var j = 0; j < y; j++) {
+            for (var i = 0; i < x; i++) {
+                var idx = j*x+i, // running offset j*x^1 + i*y^0
+                    color = this.colors[idx],
+                    r = extent.scaleByPt(pt(i, j)).extent(extent),
+                    morph = new lively.morphic.Box(r);
+                morph.applyStyle({fill: color, borderWidth: 0});
+                morph.ignoreEvents();
+                this.addMorph(morph);
+            }
+        }
+    },
+},
+'color mapping', {
+    colorForPos: function(pos) {
+        var r = this.shape.getBounds().insetBy(this.getBorderWidth()),
+            pos = r.closestPointToPt(pos),
+            m = this.submorphs.detect(function(ea) { return ea.bounds().containsPoint(pos) });
+        return m ? m.getFill() : Color.black;
+    },
+});
+
 
 
 }) // end of moduleeee

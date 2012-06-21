@@ -1132,9 +1132,8 @@ lively.morphic.World.addMethods(
         return this.openPartItem('PartsBinBrowser', 'PartsBin/Tools');
     },
     openInspectorFor: function(object, evt) {
-        var name = Config.useObjectInspector ? "ObjectInspector" : "Explorer";
-        var part = this.openPartItem(name, 'PartsBin/Tools');
-        part.explore(object);
+        var part = this.openPartItem("ObjectInspector", 'PartsBin/Tools');
+        part.inspect(object);
         return part;
     },
     openStyleEditorFor: function(morph, evt) {

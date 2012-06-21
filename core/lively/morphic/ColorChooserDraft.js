@@ -371,7 +371,7 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
         this.colorChooser.onMouseMove = function(evt) {
               this.currentlySelectedColor = this.colorForPos(this.localize(evt.getPosition()));
         };
-        
+        connect(this, 'currentlySelectedColor', this, 'chooseColor');         
         
         return this;
     },

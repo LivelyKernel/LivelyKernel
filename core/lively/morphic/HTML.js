@@ -2,7 +2,7 @@ module('lively.morphic.HTML').requires('lively.morphic.Rendering', 'lively.morph
 
 Color.addMethods(
 'HTML rendering', {
-    toCSSString: Color.prototype.toRGBAString,
+    toCSSString: Color.prototype.toRGBAString
 });
 
 Trait('LinearGradientCSSTrait',

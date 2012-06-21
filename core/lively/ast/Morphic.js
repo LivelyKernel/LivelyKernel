@@ -23,14 +23,16 @@
 
 module('lively.ast.Morphic').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.ast.Interpreter','lively.Tracing').toRun(function() {
 
-Object.extend(lively.morphic.Morph, {
+Object.extend(lively.ast, {
     openDebugger: function openDebugger(frame, title) {
         var part = lively.PartsBin.getPart("Debugger", "PartsBin/Debugging");
-        part.setTopFrame(frame);
+        part.targetMorph.setTopFrame(frame);
         if (title) part.setTitle(title);
         part.openInWorld();
         var m = part;
-        m.align(m.bounds().topCenter().addPt(pt(0,-20)), $world.visibleBounds().topCenter());
+        m.align(
+            m.bounds().topCenter().addPt(pt(0,-20)),
+            lively.morphic.World.current().visibleBounds().topCenter());
     },
 });
 
@@ -40,7 +42,7 @@ cop.create('DebugScriptsLayer')
         var func = Function.fromString(funcOrString),
             name = func.name || optName;
         if (func.containsDebugger()) {
-            func = func.forDebugging("lively.morphic.Morph.openDebugger");
+            func = func.forDebugging("lively.ast.openDebugger");
         }
         var script = func.asScriptOf(this, name);
         var source = script.livelyClosure.source = funcOrString.toString();
@@ -55,7 +57,7 @@ cop.create('DebugMethodsLayer').refineObject(Function.prototype, {
             if (Object.isFunction(func)) {
                 if (func.containsDebugger()) {
                     var origSource = func.toString();
-                    source[property] = func.forDebugging("lively.morphic.Morph.openDebugger");
+                    source[property] = func.forDebugging("lively.ast.openDebugger");
                     source[property].toString = function() { return origSource; };
                 }
             }
@@ -74,7 +76,7 @@ lively.morphic.Text.addMethods(
             return fun.apply(ctx, [], {breakAtCalls:true});
         } catch(e) {
             if (e.isUnwindException) {
-                lively.morphic.Morph.openDebugger(e.topFrame);
+                lively.ast.openDebugger(e.topFrame);
             } else {
                 this.showError(e);
             }
@@ -89,7 +91,7 @@ cop.create('DebugGlobalErrorHandlerLayer')
     logError: function(err, optName) {
         if (err.simStack) {
             var frame = lively.ast.Interpreter.Frame.fromTraceNode(err.simStack);
-            lively.morphic.Morph.openDebugger(frame, err.toString());
+            lively.ast.openDebugger(frame, err.toString());
             return false;
         } else {
             return cop.proceed(err, optName);
@@ -121,7 +123,5 @@ cop.create('DeepInterpretationLayer')
         return !this.isNative(func);
     }
 });
-
-
 
 }) // end of module

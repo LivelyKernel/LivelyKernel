@@ -110,9 +110,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
             return this.getFunc().declaredClass + ">>" + this.getFunc().methodName;
         if (this.funcAst && this.funcAst._parent && this.funcAst._parent.isVarDeclaration)
             return this.funcAst._parent.name;
-        if (this.getFunc().name)
-            return this.getFunc().name;
-        return 'anonymous';
+        return this.getFunc().qualifiedMethodName();
     },
     getFuncSource: function() {
         // get the top-most 'real function'

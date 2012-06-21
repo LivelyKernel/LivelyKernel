@@ -368,7 +368,31 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
             bounds = this.moveBoundsForVisibility(bounds, this.owner.visibleBounds());
         }
         this.setBounds(bounds);
-    }
+    },
+    moveBoundsForVisibility: function(menuBounds, visibleBounds) {
+        var offsetX = 0,
+            offsetY = 0;
+        Global.lastMenuBounds = menuBounds;
+
+        if (menuBounds.right() > visibleBounds.right())
+            offsetX = -1 * (menuBounds.right() - visibleBounds.right());
+
+        var overlapLeft = menuBounds.left() + offsetX;
+        if (overlapLeft < 0)
+            offsetX += -overlapLeft;
+
+        if (menuBounds.bottom() > visibleBounds.bottom()) {
+            offsetY = -1 * (menuBounds.bottom() - visibleBounds.bottom());
+            // so that hand is not directly over menu, does not work when
+            // menu is in the bottom right corner
+            offsetX += 1;
+        }
+        var overlapTop = menuBounds.top() + offsetY;
+        if (overlapTop < 0)
+            offsetY += -overlapTop;
+
+        return menuBounds.translatedBy(pt(offsetX, offsetY));
+    },
 }
 
 );

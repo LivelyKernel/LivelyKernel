@@ -131,7 +131,7 @@ lively.morphic.Morph.addMethods(
         this.remove();
         owner.addMorphFront(this);
     },
-    
+
     sendToBack: function() {
         // Hack: remove and re-add morph
         var owner = this.owner;
@@ -174,7 +174,7 @@ lively.morphic.Morph.addMethods(
             return null
         }
     },
-    
+
     isSubmorphOf: function(otherMorph) {
         var self = this, found = false;
         otherMorph.withAllSubmorphsDo(function(morph) { found = found || morph === self });
@@ -267,22 +267,13 @@ lively.morphic.Morph.addMethods(
 
     removeAndDropSubmorphs: function() {
         // Removes the morph and lets all its child morphs drop to its owner
-
-        
-        this.submorphs.each(function(submorph){
-            
-            
-            var supermorph = this.owner || $world; 
+        this.submorphs.each(function(submorph) {
+            var supermorph = this.owner || $world;
             supermorph.addMorph(submorph.copy());
-            //submorph.remove();
-            //this.submorphs = this.submorphs.without(submorph);
-            //submorph.owner = supermorph;
-            
         }, this);
-        
-       this.removeAllMorphs();
+
+        this.removeAllMorphs();
         this.remove();
-        
     }
 },
 'events', {
@@ -303,7 +294,6 @@ lively.morphic.Morph.addMethods(
     getStyleClass: function() { return this.styleClass || [] },
 
     setStyleClass: function(value) {
-        
         // from good ol' SVG days
         var attr;
         if (value instanceof Array) {

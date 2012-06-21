@@ -219,7 +219,6 @@ Object.subclass('lively.morphic.Layout.Layout',
         return this.borderSize[direction];
     },
 
-
     getSpacing: function() {
         if (!this.spacing && this.spacing != 0) {
             this.spacing = 15;
@@ -441,6 +440,7 @@ lively.morphic.Layout.HorizontalLayout.subclass('lively.morphic.Layout.TightHori
 });
 lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
 'default category', {
+
     basicLayout: function(container, submorphs) {
         var extent = container.getExtent();
         var width = extent.x;
@@ -535,11 +535,11 @@ lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.VerticalScr
 'default category', {
     basicLayout: function(container, submorphs) {
         // omitting container resize
-        var extent = container.getExtent();
-        var width = extent.x;
-        var height = extent.y;
-        var spacing = this.getSpacing();
-        var childWidth = width - this.getBorderSize("left") - this.getBorderSize("right");
+        var extent = container.getExtent(),
+            width = extent.x,
+            height = extent.y,
+            spacing = this.getSpacing(),
+            childWidth = width - this.getBorderSize("left") - this.getBorderSize("right");
 
         var fixedChildrenHeight = submorphs.reduce(function(s, e) {
             return !e.layout || !e.layout.resizeHeight ?
@@ -701,8 +701,6 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.GridLayout',
             subExtent = aSubmorph.getExtent();
 
         if (aMorph.isInLayoutCycle) { return; }
-//debugger;
-console.log("Layout: onSubmorphResized")
         aMorph.isInLayoutCycle = true;
         if (aSubmorph.gridCoords) {
             for (var x = 0; x < this.numCols; x++) {
@@ -745,7 +743,6 @@ console.log("Layout: onSubmorphResized")
     adjustRowAndColSizes: function() {
         this.colWidths = [];
         this.rowHeights = [];
-        console.log("Layout: adjustRowAndColSizes")
         var x, y;
         for (x = 0; x < this.numCols; x++) {
             this.colWidths.push(this.getColWidth(x));
@@ -868,21 +865,10 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.ConstraintLayout',
 
     addConstraint: function(aConstraint) {
         this.constraints.push(aConstraint);
-    },
-
-
-
-
-
-
-
-
-
-
-
-
+    }
 
 });
+
 Object.subclass('lively.morphic.Layout.ConstraintLayoutInfo',
 'default category', {
     initialize: function(aMorph) { //, aSolver) {
@@ -899,15 +885,12 @@ Object.subclass('lively.morphic.Layout.ConstraintLayoutInfo',
         };
     },
 
-
-
     setMorph: function(aMorph) {
         this.morph = aMorph;
     },
     getMorph: function() {
         return this.morph;
     },
-
 
     updateThisMorph: function() {
         var morph = this.getMorph();

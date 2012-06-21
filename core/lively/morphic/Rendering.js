@@ -167,7 +167,8 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
     setFill: function(node, fill, shapeBounds) {
         if (!fill) {
             node.style.background = null;
-         } else if (this.isHTML(node)) {
+        } else if (this.isHTML(node)) {
+            // FIXME rk 12-06-21, it should be possible to remove the next statement?
             if (fill == null) fill = Color.rgba(0,0,0,0);
             if (fill.isGradient) { this.setHTMLGradient(node, fill, shapeBounds); return };
             if (fill.isCSSFill) { fill.applyToNode(node); return };
@@ -321,6 +322,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
     setHTMLBorderRadiusPoint: function(node, radiusPt) {
         this.setHTMLBorderRadius(node, radiusPt.x, radiusPt.y)
     },
+
     setHTMLBorderRadius: function(node, rx, ry) {
         if (rx === null || ry === null) {
             node.style.borderRadius = null;
@@ -329,6 +331,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
             node.style.borderRadius = roundRectValue;
         }
     },
+
     computeScrollBarExtentHTML: function() {
         var body = document.getElementsByTagName('body')[0],
             div = XHTMLNS.create('div');
@@ -350,8 +353,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
             return 0;
         }
         return result;
-    },
-
+    }
 
 });
 
@@ -359,7 +361,7 @@ Object.subclass('lively.morphic.Rendering.RenderContext',
 'settings', {
     domInterface: new lively.morphic.Rendering.DOMInterface(),
     shapeDispatchTable: {},
-    morphDispatchTable: {},
+    morphDispatchTable: {}
 },
 'creation', {
     newInstance: function() {

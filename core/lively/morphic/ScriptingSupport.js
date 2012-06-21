@@ -107,10 +107,7 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
         this.partItem = partItem;
         this.setupLogo();
         this.disableDropping();
-        if(typeof this.disableSelection === "function") {
-            this.disableSelection();
-        } 
-        
+        if (Object.isFunction(this.disableSelection)) this.disableSelection();
     },
 
     setupLogo: function() {

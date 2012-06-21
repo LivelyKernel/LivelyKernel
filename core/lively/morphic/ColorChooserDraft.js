@@ -373,7 +373,8 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
         };
         this.colorChooser.callback = this.chooseColor;
         this.colorChooser.onMouseUp = function(evt) {
-            this.callback(this.currentlySelectedColor);
+            
+            //this.callback(this.currentlySelectedColor);
         };
         
         return this;

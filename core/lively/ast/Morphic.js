@@ -50,7 +50,6 @@ cop.create('DebugScriptsLayer')
 });
 cop.create('DebugMethodsLayer').refineObject(Function.prototype, {
     addCategorizedMethods: function(categoryName, source) {
-        console.log("sppp" + categoryName);
         for (var property in source) {
             var func = source[property];
             if (Object.isFunction(func)) {

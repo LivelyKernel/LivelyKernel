@@ -301,7 +301,7 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
         this.removeAllMorphs(); // get rid of the default Text
         this.addMorph(this.colorDisplay);
         this.colorDisplay.disableHalos();
-        this.colorDisplay.setFill(this.defaultColor);
+        this.setColor(this.defaultColor);
         this.colorDisplay.applyStyle({borderRadius: this.colorDisplayBorderRadius, resizeWidth: true, resizeHeight: true});
         this.applyStyle({adjustForNewBounds: true});
     },
@@ -314,8 +314,12 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
             var pos = this.getPosition();
             var menuPos = pos.addPt(pt(0, this.bounds().height));
             menu.open(lively.morphic.World.current(), menuPos, false);
+            menu.setCallback(this.setColor);
         }
     },
+    setColor: function(color){
+         this.colorDisplay.setFill(this.defaultColor);
+    }
         
     
 }

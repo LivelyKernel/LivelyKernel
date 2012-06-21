@@ -31,7 +31,7 @@
  *  to be overridden.
  */
 
-(function setupUserAgent(Global) {
+;(function setupUserAgent(Global) {
 
     var webKitVersion = (function() {
         if (!window.navigator) return 0;
@@ -518,6 +518,9 @@ Config.addOptions(
         ["showAllTyping", true, "Defeat all bundled type-in for testing"],
         ["useSoftTabs", true],
         ["disableSyntaxHighlighting", false]
+    ],
+    "lively.PartsBin", [
+        ["PartCachingEnabled", true, "Whether parts are cached after they are loaded the first time"]
     ]
 );
 

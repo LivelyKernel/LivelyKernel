@@ -1,4 +1,4 @@
-module('lively.morphic.HTML').requires('lively.morphic.Rendering', 'lively.morphic.PathShapes', 'lively.Traits').toRun(function() {
+module('lively.morphic.HTML').requires('lively.morphic.Rendering', 'lively.morphic.PathShapes', 'lively.Traits', 'apps.Less').toRun(function() {
 
 Color.addMethods(
 'HTML rendering', {

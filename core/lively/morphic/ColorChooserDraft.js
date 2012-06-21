@@ -304,6 +304,13 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
         this.colorDisplay.applyStyle({borderRadius: this.colorDisplayBorderRadius, resizeWidth: true, resizeHeight: true});
         this.applyStyle({adjustForNewBounds: true});
     },
+    setValue: function(bool) {
+        this.value = bool;
+        // buttons should fire on mouse up
+        if (!bool) {
+            var chooser = new lively.morphic.RGBColorChooser();
+        }
+    },
         
     
 }

@@ -16,8 +16,8 @@ module('lively.morphic.StyleSheets').requires("apps.Less").toRun(function() {
 
 			setStyleSheet: function(value) {
 				this.setNodeId();
+				this.shape.setStyleSheet(value);
 				this.updateComputedStyles();
-				return this.shape.setStyleSheet(value);
 			},
 			getStyleSheet: function() {
 				var r = this.shape.getStyleSheet();
@@ -40,8 +40,8 @@ module('lively.morphic.StyleSheets').requires("apps.Less").toRun(function() {
 
 		
 			updateComputedStyles: function() {
-				return this.shape.updateComputedStyles();
-
+				this.shape.updateComputedStyles();
+				this.submorphs.each(function(m){m.updateComputedStyles();});
 			},
         }
     );

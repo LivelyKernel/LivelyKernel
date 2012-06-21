@@ -859,7 +859,6 @@ lively.morphic.Shapes.Shape.addMethods(
     },
 
     setNodeClassHTML: function(ctx, value) {
-        //console.log("Ok, got it, setting shape HTML class to "+value);
         var a = value;
         if (value instanceof Array) {
             a = value.join(" ");

@@ -1,51 +1,5 @@
 module('lively.morphic.StyleSheets').requires("apps.Less").toRun(function() {
 
-    lively.morphic.Morph.addMethods(
-        'stylesheets', {
-			applyStyleSheet: function(style) {
-
-				this.setNodeId();
-
-				this.shape.setStyleSheet(style);
-			},
-			setAppearanceStylingMode: function(value) {
-				// TRUE when appearance is styled through style sheets,
-				// FALSE when appearance is styled through style dialog
-				return this.shape.setAppearanceStylingMode(value);
-			},
-
-			setStyleSheet: function(value) {
-				this.setNodeId();
-				this.shape.setStyleSheet(value);
-				this.updateComputedStyles();
-			},
-			getStyleSheet: function() {
-				var r = this.shape.getStyleSheet();
-				//this.updateComputedStyles();
-                                return r;
-			},    
-		
-			getAppearanceStylingMode: function() {
-				return this.shape.getAppearanceStylingMode();
-			},
-
-			setBorderStylingMode: function(value) {
-				// TRUE when border is styled through style sheets,
-				// FALSE when border is styled through style dialog
-				return this.shape.setBorderStylingMode(value);
-			},
-			getBorderStylingMode: function() {
-				return this.shape.getBorderStylingMode();
-			},
-
-		
-			updateComputedStyles: function() {
-				this.shape.updateComputedStyles();
-				this.submorphs.each(function(m){m.updateComputedStyles();});
-			},
-        }
-    );
-
 
 
 

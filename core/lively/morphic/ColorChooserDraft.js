@@ -310,7 +310,13 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
 
 );
 
+lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
+'init', {
+    
+    
+}
 
+);
 
 
 

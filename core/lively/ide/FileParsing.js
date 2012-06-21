@@ -1,4 +1,4 @@
-module('lively.ide.FileParsing').requires('lively.Ometa', 'lively.LKFileParser').toRun(function() {
+module('lively.ide.FileParsing').requires('lively.Ometa', 'lively.LKFileParser', 'lively.ide.SourceDatabase').toRun(function() {
 
 // ===========================================================================
 // FileFragments, another SourceCodeDescriptor

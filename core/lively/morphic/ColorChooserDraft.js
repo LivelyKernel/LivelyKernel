@@ -356,7 +356,7 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
         this.offsetForWorld(pos);
         
         this.addMorph(this.colorChooser);
-        this.colorChooser.setPosition(pt(2,2));
+        this.colorChooser.setPosition(pt(this.chooserOffset,this.chooserOffset));
         
         return this;
     },

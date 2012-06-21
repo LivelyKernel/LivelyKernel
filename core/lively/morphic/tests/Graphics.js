@@ -2,18 +2,9 @@ module('lively.morphic.tests.Graphics').requires().toRun(function() {
 
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.ColorTests',
 'testing', {
-    testAddWorldToDoc: function() {
-        var canvasNode = document.body, bounds = new Rectangle(0, 0, 100, 100),
-            world = new lively.morphic.World();
-        try {
-            world.setBounds(bounds);
-            world.displayOnCanvas(canvasNode);
-
-            var expected = {tagName: 'div', parentNode: canvasNode, childNodes: [{tagName: 'div'}]};
-            this.assertNodeMatches(expected, world.renderContext().getMorphNode());
-        } finally {
-            world.remove();
-        }
+    testRgbHex: function() {
+        this.assert(new Color(1,1,1).equals(Color.rgbHex("#FFFFFF")),"#FFFFFF should be white");
+        this.assert(new Color(0,0,0).equals(Color.rgbHex("#000000")),"#000000 should be black");        
     },
 });
 

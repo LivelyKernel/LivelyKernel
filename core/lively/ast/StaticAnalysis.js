@@ -247,7 +247,9 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
     },
     reparseAndCheck: function(newSource) {
         try {
-            lively.ast.Parser.parse(newSource, this.specialHighlighting());
+            var highlighting = this.specialHighlighting()
+            if (highlighting != "none")
+                lively.ast.Parser.parse(newSource, highlighting);
         } catch (e) {
             throw OMetaSupport.handleErrorDebug(e[0], e[1], e[2], e[3]/*src, rule, msg, idx*/);
         }

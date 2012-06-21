@@ -330,15 +330,15 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
         borderStyle: 'outset',
         borderRadius: 4,
     },
+    chooserOffset: 4,
     isEpiMorph: true,
 },
 'init', {
     initialize: function($super, chooser) {
-        var width = 160;
-        var height  = 120;
-        var padding = 4;
-        $super(new Rectangle(0,0, width , height  ));
-        this.colorChooser = chooser || new lively.morphic.RGBColorChooser();            
+        this.colorChooser = chooser || new lively.morphic.RGBColorChooser();  
+        var b = this.colorChooser.getBounds();
+        $super(new Rectangle(0,0, b.width + this.chooserOffset*2 , b.height+ this.chooserOffset*2));
+                  
     },
     open: function(parentMorph, pos, remainOnScreen, captionIfAny) {
         this.setPosition(pos || pt(0,0));

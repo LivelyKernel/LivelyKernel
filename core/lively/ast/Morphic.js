@@ -47,7 +47,7 @@ cop.create('DebugScriptsLayer')
         script.toString = function() { return source };
         return script;
     },
-});
+}).beGlobal();
 cop.create('DebugMethodsLayer').refineObject(Function.prototype, {
     addCategorizedMethods: function(categoryName, source) {
         for (var property in source) {

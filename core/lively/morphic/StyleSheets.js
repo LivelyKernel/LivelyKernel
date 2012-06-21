@@ -16,6 +16,7 @@ module('lively.morphic.StyleSheets').requires("apps.Less").toRun(function() {
 
 			setStyleSheet: function(value) {
 				this.setNodeId();
+				this.updateComputedStyles();
 				return this.shape.setStyleSheet(value);
 			},
 			getStyleSheet: function() {

@@ -309,6 +309,8 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
         // buttons should fire on mouse up
         if (!bool) {
             var chooser = new lively.morphic.RGBColorChooser();
+            var menu = new lively.morphic.SimpleColorMenu(chooser);
+            menu.open();
         }
     },
         

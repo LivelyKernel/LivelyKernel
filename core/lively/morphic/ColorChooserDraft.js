@@ -378,10 +378,7 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
         
         return this;
     },
-    chooseColor: function(color){
-        //console.log(color);
-        //this.callback(color);  
-    },
+    choosenColor: Color.black,
     remove: function($super) {
         var w = this.world();
         if (w && w.currentMenu === this) w.currentMenu = null;

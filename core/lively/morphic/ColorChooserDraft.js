@@ -53,7 +53,7 @@ colorForPos: function(pos) {
             pos = r.closestPointToPt(pos),
             rh2 = r.height/2;
         var color =  this.colorMap(pos.x, pos.y, rh2, this.colorWheel(r.width+1));
-        hasLabel && this.ensureLabel().setTextString("color:" + color);
+        this.hasLabel && this.ensureLabel().setTextString("color:" + color);
         return color;
     },
   ensureLabel: function() {

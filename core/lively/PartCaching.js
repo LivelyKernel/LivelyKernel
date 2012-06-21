@@ -75,7 +75,7 @@ cop.create('PartCachingLayer').refineClass(lively.PartsBin.PartItem, {
     loadPart: function(isAsync, optCached, rev) {
         connect(this, 'json', this, 'cachePartJSON');
         connect(this, 'loadedMetaInfo', this, 'cachePartMetaInfo');
-        var cachedPart = Config.PartCachingEnabled && lively.PartCache.getPart(this.name, this.partsSpaceName);
+        var cachedPart = lively.Config.get("PartCachingEnabled") && lively.PartCache.getPart(this.name, this.partsSpaceName);
         if (!cachedPart) {
             return cop.proceed(isAsync, optCached, rev);
         } else {
@@ -99,27 +99,25 @@ cop.create('PartCachingLayer').refineClass(lively.PartsBin.PartItem, {
         var items = cop.proceed();
         for(var i = 0; i < items.length; i++) {
             if (items[i][0] === "Preferences") {
-                if (Config.PartCachingEnabled) {
-                    items[i][1].push(['Disable part caching', function() { Config.PartCachingEnabled = false }]);
+                if (lively.Config.get("PartCachingEnabled")) {
+                    items[i][1].push(['Disable part caching', function() { lively.Config.set("PartCachingEnabled", false) }]);
                 } else {
                     items[i][1].push(['Enable part caching', function() {
-                        Config.PartCachingEnabled = true;
+                        Config.set("PartCachingEnabled", true);
                         lively.PartCache.clearCache();
                     }]);
                 }
             }
             if (items[i][0] === "Debugging") {
-                if (Config.PartCachingEnabled) {
+                if (Config.get("PartCachingEnabled")) {
                     items[i][1].splice(4, 0, ['Clear part cache', function() { lively.PartCache.clearCache(); }]);
                 }
             }
         }
         return items;
     }
-})
+});
 
-
-Config.PartCachingEnabled = true; // default
 lively.PartCaching.setupCache();
 PartCachingLayer.beGlobal();
 

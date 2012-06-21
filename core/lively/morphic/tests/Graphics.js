@@ -1,4 +1,4 @@
-module('lively.morphic.tests.Graphics').requires('lively.morphic.Graphics').toRun(function() {
+module('lively.morphic.tests.Graphics').requires('lively.TestFramework','lively.morphic.Graphics').toRun(function() {
 
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.ColorTests',
 'testing', {

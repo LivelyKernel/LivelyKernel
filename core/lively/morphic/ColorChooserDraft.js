@@ -379,7 +379,7 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
     },
     chooseColor: function(color){
         //console.log(color);
-        this.callback(color);  
+        //this.callback(color);  
     },
     remove: function($super) {
         var w = this.world();

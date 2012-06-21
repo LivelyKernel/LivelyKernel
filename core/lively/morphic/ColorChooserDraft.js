@@ -340,11 +340,9 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
         owner.addMorph(this);
 
         this.offsetForWorld(pos);
-        // delayed because of fitToItems
-        // currently this is deactivated because the initial bounds are correct
-        // for our current usage
-        // this.offsetForWorld.curry(pos).bind(this).delay(0);
-
+        
+        this.addMorph(this.colorChooser);
+        
         return this;
     },
     offsetForWorld: function(pos) {

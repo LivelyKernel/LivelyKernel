@@ -362,7 +362,7 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
         this.colorChooser.disableGrabbing();
         this.colorChooser.disableDragging();
         this.colorChooser.onMouseMove = function(evt) {
-              this.currentlySelectedColor=this.colorForPos(this.localize(evt.getPosition()));
+              this.currentlySelectedColor = this.colorForPos(this.localize(evt.getPosition()));
         };
         
         

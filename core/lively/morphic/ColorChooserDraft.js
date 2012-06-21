@@ -375,7 +375,7 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
               this.currentlySelectedColor = this.colorForPos(this.localize(evt.getPosition()));
         };
         //this.colorChooser.callback = this.chooseColor;
-        connect(this.colorChooser, 'currentlySelectedColor', this, 'choosenColor');
+        //connect(this.colorChooser, 'currentlySelectedColor', this, 'choosenColor');
         
         return this;
     },

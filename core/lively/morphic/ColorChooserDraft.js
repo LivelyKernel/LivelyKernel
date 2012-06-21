@@ -346,6 +346,9 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
         $super(new Rectangle(0,0, b.width + this.chooserOffset*2 , b.height+ this.chooserOffset*2));
                   
     },
+    setCallback: function(callback){
+        this.callback = callback;  
+    },
     open: function(parentMorph, pos, remainOnScreen, captionIfAny) {
         this.setPosition(pos || pt(0,0));
         var owner = parentMorph || lively.morphic.World.current();

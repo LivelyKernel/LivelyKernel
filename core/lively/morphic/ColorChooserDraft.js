@@ -368,14 +368,11 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
         this.colorChooser.setPosition(pt(this.chooserOffset,this.chooserOffset));
         this.colorChooser.disableGrabbing();
         this.colorChooser.disableDragging();
-        this.colorChooser.onMouseMove = function(evt) {
+        this.colorChooser.onMouseUp = function(evt) {
               this.currentlySelectedColor = this.colorForPos(this.localize(evt.getPosition()));
         };
-        this.colorChooser.callback = this.chooseColor;
-        this.colorChooser.onMouseUp = function(evt) {
-            
-            //this.callback(this.currentlySelectedColor);
-        };
+        //this.colorChooser.callback = this.chooseColor;
+        connect(this.colorChooser, 'currentlySelectedColor', this, 'chooseColor');
         
         return this;
     },

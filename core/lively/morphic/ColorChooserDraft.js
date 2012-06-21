@@ -314,7 +314,7 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
             var pos = this.getPosition();
             var menuPos = pos.addPt(pt(0, this.bounds().height));
             menu.open(lively.morphic.World.current(), menuPos, false);
-            menu.setCallback(this, this.setColor);
+            menu.setCallback(this, 'setColor');
         }
     },
     setColor: function(color){

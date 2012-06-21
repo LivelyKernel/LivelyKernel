@@ -24,23 +24,23 @@
 
 
 module('lively.Ometa').requires('lively.Network', 'ometa.ometa-base', 'ometa.lk-parser-extensions').toRun(function() {
-                                           
+
 /*
     An Ometa Workspace like http://www.cs.ucla.edu/~awarth/ometa/.
-    Uses Alessandro Warth OMeta-js 2 to evalute text. 
+    Uses Alessandro Warth OMeta-js 2 to evalute text.
 */
 Object.subclass('OMetaSupport');
 
 Object.extend(OMetaSupport, {
-    
-    ometaGrammarDir: URL.codeBase,  
+
+    ometaGrammarDir: URL.codeBase,
 
     fromFile: function(fileName) {
         var src = OMetaSupport.fileContent(fileName);
         var grammar = OMetaSupport.ometaEval(src);
         return grammar;
     },
-    
+
     translateAndWrite: function(sourceFileName, destFileName, additionalRequirements) {
 	var requirementsString = additionalRequirements ? ',\'' + additionalRequirements.join('\',\'') + '\'' : '';
     var str = Strings.format('module(\'%s\').requires(\'ometa.parser\'%s).toRun(function() {\n%s\n});',
@@ -52,7 +52,7 @@ Object.extend(OMetaSupport, {
         Strings.format('Successfully compiled OMeta grammar %s to %s',sourceFileName, destFileName),
         Color.green, 3);
     },
-    
+
     ometaEval: function(src) {
         var jsSrc = OMetaSupport.translateToJs(src);
         return eval(jsSrc);
@@ -73,7 +73,7 @@ Object.extend(OMetaSupport, {
         else errorFunc = OMetaSupport.handleErrorDebug;
         return grammar.matchAll(src, rule, null, errorFunc.curry(src, rule));
     },
-    
+
     matchWithGrammar: function(grammar, rule, src, errorHandling) {
         // errorHandling can be undefined or a callback or true (own error handle is used)
         var errorFunc;
@@ -82,7 +82,7 @@ Object.extend(OMetaSupport, {
         else errorFunc = OMetaSupport.handleErrorDebug;
         return grammar.match(src, rule, null, errorFunc.curry(src, rule));
     },
-    
+
     handleErrorDebug: function(src, rule, grammarInstance, errorIndex) {
         var charsBefore = 500;
         var charsAfter = 250;
@@ -97,9 +97,9 @@ Object.extend(OMetaSupport, {
         console.log(msg);
         return msg;
     },
-    
+
     handleError: function(src, rule, grammarInstance, errorIndex) {},
-    
+
     fileContent: function(fileName) {
         var url = URL.codeBase.withFilename(fileName);
         return new WebResource(url).get().content;

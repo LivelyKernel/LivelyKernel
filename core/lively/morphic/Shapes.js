@@ -35,7 +35,7 @@ Object.subclass('lively.morphic.Shapes.Shape',
     },
     setBorderWidth: function(width) { return this.shapeSetter('BorderWidth', width) },
     getBorderWidth: function() {
-       if (this.getBorderStylingMode && this.getBorderStylingMode()) {
+        if (this.getBorderStylingMode && this.getBorderStylingMode()) {
             return this.shapeGetter('ComputedBorderWidth') || 0;
         }
         return this.shapeGetter('BorderWidth')  || 0;
@@ -81,6 +81,7 @@ Object.subclass('lively.morphic.Shapes.Shape',
         //console.log("Shapes.js, setNodeClass(): Setting style class to "+value);
         return this.shapeSetter('NodeClass', value);
     },
+
     getNodeClass: function() {
         return this.shapeGetter('NodeClass') || [];
     },
@@ -89,15 +90,10 @@ Object.subclass('lively.morphic.Shapes.Shape',
         //console.log("Shapes.js, setNodeId(): Setting style id to "+value);
         return this.shapeSetter('NodeId', value);
     },
+
     getNodeId: function() {
         return this.shapeGetter('NodeId') || "";
     }
-
-
-},
-'comparing', {
-
-
 
 });
 

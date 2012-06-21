@@ -20,7 +20,7 @@ module('lively.morphic.StyleSheets').requires("apps.Less").toRun(function() {
 			},
 			getStyleSheet: function() {
 				var r = this.shape.getStyleSheet();
-				this.updateComputedStyles();
+				//this.updateComputedStyles();
                                 return r;
 			},    
 		

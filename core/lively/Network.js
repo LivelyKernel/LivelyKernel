@@ -505,15 +505,12 @@ View.subclass('NetRequest', {
                 this._streamContentLength = allContent.length;
             }
         }
-
         if (this.getReadyState() === this.Done) {
             this.setStatus(this.getStatus());
             if (this.transport.responseText !== undefined)
                 this.setResponseText(this.getResponseText());
-
             if (this.transport.responseXML !== undefined)
                 this.setResponseXML(this.getResponseXML());
-
             if (this.transport.getAllResponseHeaders() !== undefined)
                 this.setResponseHeaders(this.getResponseHeaders());
             this.disconnectModel(); // autodisconnect?
@@ -900,7 +897,7 @@ Resource.subclass('SVNResource', {
         if (!xml) return;
         /* The response contains the properties of the specified file or directory,
         e.g. the revision (= version-name) */
-        var revisionNode = lively.Data.XPathQuery.find('//lp1:version-name', xml);
+        var revisionNode = xml.getElementsByTagName('version-name')[0];
         if (!revisionNode) return;
         this.setHeadRevision(Number(revisionNode.textContent));
     },
@@ -1369,7 +1366,6 @@ Object.subclass('WebResource',
         this.setRequestHeaders({"Cache-Control": 'no-cache'});
     }
 
-
 },
 'HTTP methods', {
 
@@ -1623,20 +1619,20 @@ Object.subclass('WebResource',
     },
 
     pvtProcessPropfindForSubElements: function(doc) {
-        //alert(doc.documentElement);
-        if (!this.status.isSuccess())
+        if (!this.status.isSuccess()) {
             throw new Error('Cannot access subElements of ' + this.getURL());
-        var davNs = this.ensureDavXmlNs(doc);
-        var nodes = new Query("/" + davNs + ":multistatus/" + davNs + ":response").findAll(doc.documentElement)
-        var urlQ = new Query(davNs + ':href');
+        }
+        var davNs = this.ensureDavXmlNs(doc),
+            nodes = new Query("/" + davNs + ":multistatus/" + davNs + ":response").findAll(doc.documentElement),
+            urlQ = new Query(davNs + ':href'),
+            result = [];
         nodes.shift(); // remove first since it points to this WebResource
-        var result = [];
         for (var i = 0; i < nodes.length; i++) {
-            var urlNode = urlQ.findFirst(nodes[i]);
-            var url = urlNode.textContent || urlNode.text; // text is FIX for IE9+
+            var urlNode = urlQ.findFirst(nodes[i]),
+                url = urlNode.textContent || urlNode.text; // text is FIX for IE9+
             if (/!svn/.test(url)) continue;// ignore svn dirs
-            var child = new WebResource(this.getURL().withPath(url));
-            var revNode = nodes[i].getElementsByTagName('version-name')[0];
+            var child = new WebResource(this.getURL().withPath(url)),
+                revNode = nodes[i].getElementsByTagName('version-name')[0];
             if (revNode) child.headRevision = Number(revNode.textContent);
             result.push(child);
         }

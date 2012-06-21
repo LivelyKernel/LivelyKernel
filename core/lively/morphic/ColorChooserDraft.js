@@ -311,9 +311,42 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
 );
 
 lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
+'settings', {
+    style: {
+        fill: Color.gray.lighter(3),
+        borderColor: Color.gray,
+        borderWidth: 1,
+        borderStyle: 'outset',
+        borderRadius: 4,
+    },
+    isEpiMorph: true,
+},
 'init', {
-    
-    
+    initialize: function($super, chooser) {
+        $super(new Rectangle(0,0, 120, 120));
+        this.colorChooser = chooser || new lively.morphic.RGBColorChooser();            
+    },
+    open: function(parentMorph, pos, remainOnScreen, captionIfAny) {
+        this.setPosition(pos || pt(0,0));
+        var owner = parentMorph || lively.morphic.World.current();
+        this.remainOnScreen = remainOnScreen;
+        if (!remainOnScreen) {
+            if (owner.currentMenu) { owner.currentMenu.remove() };
+            owner.currentMenu = this;
+        } else {
+            this.isEpiMorph = false;
+        }
+
+        owner.addMorph(this);
+
+        this.offsetForWorld(pos);
+        // delayed because of fitToItems
+        // currently this is deactivated because the initial bounds are correct
+        // for our current usage
+        // this.offsetForWorld.curry(pos).bind(this).delay(0);
+
+        return this;
+    }
 }
 
 );

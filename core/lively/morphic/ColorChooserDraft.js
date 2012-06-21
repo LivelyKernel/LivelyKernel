@@ -334,7 +334,10 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
 },
 'init', {
     initialize: function($super, chooser) {
-        $super(new Rectangle(0,0, 164, 124));
+        var width = 160;
+        var height  = 120;
+        var padding = 4;
+        $super(new Rectangle(0,0, width , height  ));
         this.colorChooser = chooser || new lively.morphic.RGBColorChooser();            
     },
     open: function(parentMorph, pos, remainOnScreen, captionIfAny) {

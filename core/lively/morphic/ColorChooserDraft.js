@@ -345,6 +345,11 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
         
         return this;
     },
+    remove: function($super) {
+        var w = this.world();
+        if (w && w.currentMenu === this) w.currentMenu = null;
+        $super();
+    },
     offsetForWorld: function(pos) {
         var bounds = this.innerBounds().translatedBy(pos);
         if (this.title) {

@@ -3282,7 +3282,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
             this.setBorderColor(Color.black);
             if (!this.layout) this.layout = {};
             this.layout.resizeWidth = true;
-            this.setLayouter(new lively.morphic.TreeLayout(this));
+            this.setLayouter(new lively.morphic.Layout.TreeLayout(this));
         },
         initializeNode: function() {
             var bounds = pt(0,0).extent(pt(200,20));
@@ -3455,7 +3455,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
             return label;
         },
         createNodeAfter: function(item, optOtherNode) {
-            var node = new users.cschuster.Widgets.Tree(item, this);
+            var node = new lively.morphic.Tree(item, this);
             if (optOtherNode) {
                 node.setPosition(optOtherNode.getPosition().addXY(0,1));
             }

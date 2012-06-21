@@ -106,12 +106,12 @@ Object.subclass('lively.ast.Interpreter.Frame',
         if (!this.getFunc()) {
             return 'frame has no function!';
         }
-        if (this.getFunc().name)
-            return this.getFunc().name;
         if (this.getFunc().declaredClass)
             return this.getFunc().declaredClass + ">>" + this.getFunc().methodName;
         if (this.funcAst && this.funcAst._parent && this.funcAst._parent.isVarDeclaration)
             return this.funcAst._parent.name;
+        if (this.getFunc().name)
+            return this.getFunc().name;
         return 'anonymous';
     },
     getFuncSource: function() {

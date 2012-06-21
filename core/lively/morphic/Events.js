@@ -1201,6 +1201,14 @@ lively.morphic.Text.addMethods(
 });
 
 lively.morphic.List.addMethods(
+'change event handling', {
+    inputEventTriggeredChange: function() {
+        // this is to ensure that the selection is only set once
+        this.selectionTriggeredInInputEvent = true;
+        var self = this;
+        (function() { delete self.selectionTriggeredInInputEvent }).delay(0);
+    }
+},
 'mouse events', {
     onMouseDown: function(evt) {
 
@@ -1225,6 +1233,7 @@ lively.morphic.List.addMethods(
             // don't update when selection can't be found
             // this happens e.g. when clicked on a scrollbar
             if (idx >= 0) {
+                this.inputEventTriggeredChange();
                 this.updateSelectionAndLineNoProperties(idx);
             }
 
@@ -1288,6 +1297,10 @@ lively.morphic.List.addMethods(
         return false;
     },
     onChange: function(evt) {
+        if (this.selectionTriggeredInInputEvent) {
+            delete this.selectionTriggeredInInputEvent;
+            return false;
+        }
         var idx = this.renderContextDispatch('getSelectedIndexes').first();
         this.updateSelectionAndLineNoProperties(idx);
         this.changeTriggered = true; // see onBlur

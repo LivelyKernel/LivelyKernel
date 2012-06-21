@@ -886,7 +886,7 @@ lively.morphic.Shapes.Shape.addMethods(
         if (value && value.length > 1) {
 
     	    //console.log("Setting CSS for shape "+morphId+" to "+value);
-            specificCss = "#"+morphId+" { "+value+" }";
+            var specificCss = "#"+morphId+" { "+value+" }";
 
             if (less) {
                 new less.Parser().parse(specificCss, function(e, tree) {

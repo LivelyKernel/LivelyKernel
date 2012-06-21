@@ -22,6 +22,7 @@ lively.morphic.Box.subclass('lively.morphic.ColorChooser',
 lively.morphic.ColorChooser.subclass('lively.morphic.RGBColorChooser',
 'settings', {
     colorNames: 'rgb',
+    hasLabel: true,
 },
 'initializing', {
     buildColorMap: function() {
@@ -52,8 +53,8 @@ colorForPos: function(pos) {
             pos = r.closestPointToPt(pos),
             rh2 = r.height/2;
         var color =  this.colorMap(pos.x, pos.y, rh2, this.colorWheel(r.width+1));
-        this.ensureLabel().setTextString("color:" + color)
-        return color
+        hasLabel && this.ensureLabel().setTextString("color:" + color);
+        return color;
     },
   ensureLabel: function() {
        if (!this.label) {

@@ -1024,6 +1024,13 @@ lively.morphic.Morph.addMethods(
             items.push(["Enable grabbing", this.enableGrabbing.bind(this)])
         }
 
+        if (this.owner && this.owner.submorphs.length > 1) {
+            var arrange = [];
+            arrange.push(["Bring to front", function(){self.bringToFront()}]);
+            arrange.push(["Send to back", function(){self.sendToBack()}]);
+            items.push(["Arrange morph", arrange]);
+        }
+
         if (this.submorphs.length > 0) {
             if (this.isLocked()) {
                 items.push(["Unlock parts", this.unlock.bind(this)])
@@ -1039,8 +1046,9 @@ lively.morphic.Morph.addMethods(
         }])
         }
 
-        if (this.reset) {
-            items.push(['reset', this.reset.bind(this)]);
+        if (this.reset)
+            items.push(['Reset', this.reset.bind(this)]);
+
         }
 
         return items;

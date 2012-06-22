@@ -1978,6 +1978,17 @@ this. textNodeString()
         return chunkAndIdx && chunkAndIdx[0].style;
     },
 
+	insertRichTextAt: function(string, style, index) {
+        var newChunk = this.sliceTextChunks(index, index)[0];
+        if (!newChunk) {
+            console.warn('insertRichtTextAt failed, found no text chunk!');
+            return;
+        }
+        newChunk.textString += string;
+        newChunk.styleText(style);
+        this.coalesceChunks();
+    },
+
 },
 'status messages', {
     setStatusMessage: function(msg, color, delay) {

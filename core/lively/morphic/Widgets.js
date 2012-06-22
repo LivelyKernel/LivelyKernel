@@ -4,6 +4,9 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 'settings', {
     isButton: true,
 
+    normalColor: Color.rgbHex('#DDDDDD'),
+    toggleColor: Color.rgb(171,215,248),
+
     style: {
         enableGrabbing: false,
         enableDropping: false,
@@ -39,9 +42,8 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.value = false;
         this.toggle = false;
         this.isActive = true;
-        this.normalFill = this.getFill();
-        this.lighterFill = this.normalFill.lighter();
-        this.setFill(this.normalFill);
+
+        this.changeAppearanceFor(false, false);
 
         this.label = new lively.morphic.Text(this.getExtent().extentAsRectangle(), labelString);
         this.addMorph(this.label);
@@ -61,7 +63,6 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.value = bool;
         // buttons should fire on mouse up
         if (!bool || this.toggle) lively.bindings.signal(this, 'fire', bool);
-        this.changeAppearanceFor(bool);
     },
     setExtent: function($super, extent) {
         // FIXME use layout! spaceFill!
@@ -71,31 +72,67 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     setPadding: function(padding) { this.label && this.label.setPadding(padding) },
 },
 'styling', {
-    changeAppearanceFor: function(value) {
-        this.setFill(value ? this.lighterFill : this.normalFill);
+    changeAppearanceFor: function(pressed, toggled) {
+        var isToggled = toggled || this.value,
+            baseColor = isToggled ? this.toggleColor : this.normalColor,
+            shade = pressed ? baseColor.mixedWith(Color.black, 0.9)  : baseColor.lighter(3),
+            bottomShade = pressed ?  baseColor.lighter(3):baseColor.mixedWith(Color.black, 0.9),
+            upperGradientCenter = pressed ? 0.2  : 0.3,
+            lowerGradientCenter = pressed ? 0.8  : 0.7;
+
+        if (this.style && this.style.label && this.style.label.padding) {
+            var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
+            this.setPadding(labelPadding);
+        }
+        this.setFill(this.generateFillWith(baseColor, shade, upperGradientCenter, lowerGradientCenter, bottomShade));
     },
     applyStyle: function($super, spec) {
         $super(spec);
         if (spec.label && this.label) {
             this.label.applyStyle(spec.label);
         }
+    },
+    generateFillWith: function(color, shade, upperCenter, lowerCenter, bottomShade){
+     return new lively.morphic.LinearGradient(
+            [{offset: 0, color: color.mixedWith(shade, 0.2)},
+            {offset: upperCenter || 0.3, color: color},
+            {offset: lowerCenter || 0.7, color: color},
+            {offset: 1, color: color.mixedWith(bottomShade|| shade, 0.2)}],
+            "NorthSouth");
     }
+
 },
 'events', {
+    isValidClick: function(evt) {
+        return this.isActive && evt.isLeftMouseButtonDown() && !evt.isCommandKey();
+    },
+
+    onMouseOut: function (evt) {
+        this.isPressed && this.changeAppearanceFor(false);
+    },
+
+    onMouseOver: function (evt) {
+        if (evt.isLeftMouseButtonDown()) {
+            this.isPressed && this.changeAppearanceFor(true);
+        } else {
+            this.isPressed = false;
+        }
+    },
 
     onMouseDown: function (evt) {
-        if (this.isActive && evt.isLeftMouseButtonDown()
-            && !this.toggle && !evt.isCommandKey()) {
-            this.setValue(true);
+        if (this.isValidClick (evt)) {
+                this.isPressed = true;
+                this.changeAppearanceFor(true);
         }
         return false;
     },
+
     onMouseUp: function(evt) {
-        if (this.isActive && evt.isLeftMouseButtonDown()
-                && !evt.isCommandKey()) {
+        if (this.isValidClick (evt) && this.isPressed) {
             var newValue = this.toggle ? !this.value : false;
             this.setValue(newValue);
-            return false;
+            this.changeAppearanceFor(false);
+            this.isPressed = false;
         }
         return false;
     },
@@ -121,7 +158,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     morphMenuItems: function($super) {
         var self = this, items = $super();
         items.push([
-            'set label', function(evt) {
+            'Set label', function(evt) {
             $world.prompt('Set label', function(input) {
                 if (input !== null)
                     self.setLabel(input || '');
@@ -130,6 +167,87 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         return items;
     },
 });
+
+
+lively.morphic.Button.subclass('lively.morphic.ImageButton',
+'initializing', {
+    initialize: function($super, bounds, url) {
+         //if (bounds) this.setBounds(bounds);
+        $super(bounds, '');
+
+        this.image = new lively.morphic.Image(this.getExtent().extentAsRectangle(), url, true);
+        this.addMorph(this.image);
+        this.image.ignoreEvents();
+        this.image.disableHalos();
+    },
+},
+'accessing', {
+    setImage: function(url) {
+        this.image.setImageURL(url);
+        return this;
+    },
+    getImage: function() { return this.image.getImageURL() },
+
+    setImageOffset: function(padding) { this.image && this.image.setPosition(padding) },
+},
+'menu', {
+    morphMenuItems: function($super) {
+        var self = this, items = $super();
+        items.push([
+            'Set image', function(evt) {
+            $world.prompt('Set image URL', function(input) {
+                if (input !== null)
+                    self.setImage(input || '');
+            }, self.getImage());
+        }])
+        return items;
+    },
+});
+
+lively.morphic.ImageButton.subclass('lively.morphic.ImageOptionButton',
+'buttonstuff', {
+
+    setValue: function(bool) {
+        this.value = bool;
+        this.changeAppearanceFor(bool);
+    },
+
+    onMouseDown: function (evt) {
+        if (this.isActive && evt.isLeftMouseButtonDown()
+            && !this.value && !evt.isCommandKey()) {
+            this.changeAppearanceFor(true);
+        }
+    },
+
+    onMouseUp: function(evt) {
+        if (this.isActive && evt.isLeftMouseButtonDown()
+                && !evt.isCommandKey() && !this.value && this.otherButtons) {
+
+            this.setValue(true);
+            this.otherButtons.each(function(btn){btn.setValue(false);});
+            return false;
+        }
+        return false;
+    },
+
+    setOtherButtons: function(morphs) {
+        var otherButtons = [];
+        if (morphs.first()) { // if the list is empty, apply the empty list
+            if (morphs.first().toUpperCase) { // if the list contains strings, get the morphs first
+                var t = this;
+                morphs.each(function(btn){
+                    var a = t.get(btn);
+                    a && a.setOtherButtons && otherButtons.push(a);
+                });
+            } else {
+                otherButtons = morphs;
+            }
+        }
+        this.otherButtons = otherButtons;
+    },
+
+});
+
 
 lively.morphic.Morph.subclass('lively.morphic.Image',
 'initializing', {
@@ -175,6 +293,24 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
         items.push(['inline image data', this.convertToBase64.bind(this)]);
         return items;
     },
+},
+'keyboard events', {
+    onKeyPress: function($super, evt) {
+        // The extent of iages should can be changed by using the + and - key
+        var key = evt.getKeyChar();
+
+        switch (key) {
+            case "-": {
+                this.setExtent(this.getExtent().scaleBy(0.8))
+                return true;
+            }
+            case "+": {
+                this.setExtent(this.getExtent().scaleBy(1.1))
+                return true;
+            }
+        }
+        return $super(evt)
+    }
 },
 'inline image', {
     convertToBase64: function() {

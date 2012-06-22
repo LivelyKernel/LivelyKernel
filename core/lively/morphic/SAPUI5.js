@@ -21,14 +21,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
 'event handling', {
 
     onClick: function(evt) {
-        // for halos/menus
          if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) {
             evt.stop()
             return true;
         }
-        // we do it ourselves
         lively.bindings.signal(this, 'fire', true);
-        // evt.stop();
          return true;
      },
 

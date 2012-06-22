@@ -966,10 +966,10 @@ lively.morphic.Morph.addMethods(
     morphMenuItems: function() {
         var self = this, items = [];
         items.push([
-            'publish', function(evt) {
+            'Publish', function(evt) {
             self.copyToPartsBinWithUserRequest();
         }])
-        items.push(['open in window', function(evt){
+        items.push(['Open in window', function(evt){
             self.openInWindow(evt.mousePoint);
         }]);
 
@@ -978,29 +978,29 @@ lively.morphic.Morph.addMethods(
             .reject(function(ea) { return ea === self})
             .reject(function(ea) { return ea === $world})
         var self = this;
-        items.push(["add morph to...", morphs.collect(function(ea) {
+        items.push(["Add morph to...", morphs.collect(function(ea) {
                 return [ea, function() { ea.addMorph(self)}]
         })])
-        items.push(["get halo on...", morphs.collect(function(ea) {
+        items.push(["Get halo on...", morphs.collect(function(ea) {
                 return [ea, function(evt) { ea.toggleHalos(evt)}]
         })])
          if (this.attributeConnections && this.attributeConnections.length > 0) {
-            items.push(["connections", this.attributeConnections
+            items.push(["Connections", this.attributeConnections
                 .reject(function(ea) { return ea.dependedBy}) // Meta connection
                 .reject(function(ea) { return ea.targetMethodName == 'alignToMagnet'}) // Meta connection
                 .collect(function(ea) {
                     var s = ea.sourceAttrName + " -> " + ea.targetObj  + "." + ea.targetMethodName
                     return [s, [
-                        ["disconnect", function() {
+                        ["Disconnect", function() {
                             alertOK("disconnecting " + ea)
                             ea.disconnect()}],
-                        ["edit converter", function() {
+                        ["Edit converter", function() {
                             var window = lively.bindings.editConnection(ea);
                         }],
-                        ["show", function() {
+                        ["Show", function() {
                             lively.bindings.showConnection(ea);
                         }],
-                        ["hide", function() {
+                        ["Hide", function() {
                             if (ea.visualConnector) ea.visualConnector.remove();
                         }],
                     ]]
@@ -1008,21 +1008,21 @@ lively.morphic.Morph.addMethods(
         }
 
         if (this.grabbingEnabled || this.grabbingEnabled == undefined) {
-            items.push(["disable grabbing", this.disableGrabbing.bind(this)])
+            items.push(["Disable grabbing", this.disableGrabbing.bind(this)])
         } else {
-            items.push(["enable grabbing", this.enableGrabbing.bind(this)])
+            items.push(["Enable grabbing", this.enableGrabbing.bind(this)])
         }
 
         if (this.submorphs.length > 0) {
             if (this.isLocked()) {
-                items.push(["unlock parts", this.unlock.bind(this)])
+                items.push(["Unlock parts", this.unlock.bind(this)])
             } else {
-                items.push(["lock parts", this.lock.bind(this)])
+                items.push(["Lock parts", this.lock.bind(this)])
             }
         }
 
         if (false) {
-        items.push(["enable internal selections", function() {
+        items.push(["Enable internal selections", function() {
             Trait('SelectionMorphTrait').applyTo(self, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
             self.enableDragging();
         }])
@@ -1045,7 +1045,7 @@ lively.morphic.Morph.addMethods(
             return this.owner.getWindow();
         }
         return null;
-    },
+    }
 });
 
 lively.morphic.Text.addMethods(
@@ -1264,9 +1264,9 @@ lively.morphic.World.addMethods(
 
     debuggingMenuItems: function(world) {
         var items = [
-            ['reset world scale', this.resetScale.bind(this)],
-            ['reset title bars', this.resetAllTitleBars.bind(this)],
-            ['reset button labels', this.resetAllButtonLabels.bind(this)],
+            ['Reset world scale', this.resetScale.bind(this)],
+            ['Reset title bars', this.resetAllTitleBars.bind(this)],
+            ['Reset button labels', this.resetAllButtonLabels.bind(this)],
             ['World serialization info', function() {
                 require('lively.persistence.Debugging').toRun(function() {
                     var json = lively.persistence.Serializer.serialize(world),
@@ -1275,19 +1275,17 @@ lively.morphic.World.addMethods(
                 })}]];
 
         // world requirements
-        var changeSet = this.getChangeSet();
-        if (changeSet) {
-            var worldRequirementsChange = changeSet.getWorldRequirementsList(),
-                worldRequirements = worldRequirementsChange.evaluate(),
-                removeRequirement = function(name) {
-                    changeSet.removeWorldRequirement(name);
-                    alertOK(name + ' is not loaded at startup anymore');
-                },
-                menuItems = worldRequirements.collect(function(name) {
-                    return [name, [['remove', removeRequirement.curry(name)]]];
-                });
-            items.push(['requirements', menuItems]);
-        }
+        var changeSet = this.getChangeSet()
+            worldRequirementsChange = changeSet.getWorldRequirementsList(),
+            worldRequirements = worldRequirementsChange.evaluate(),
+            removeRequirement = function(name) {
+                changeSet.removeWorldRequirement(name);
+                alertOK(name + ' is not loaded at startup anymore');
+            },
+            menuItems = worldRequirements.collect(function(name) {
+                return [name, [['Remove', removeRequirement.curry(name)]]];
+            });
+        items.push(['Requirements', menuItems]);
 
         // method tracing items
         function disableGlobalTracing() {
@@ -1356,44 +1354,43 @@ lively.morphic.World.addMethods(
             ['Parts', this.morphMenuDefaultPartsItems()],
             ['Tools', [
                 ['Workspace', this.openWorkspace.bind(this)],
-		            ['System Code Browser', this.openSystemBrowser.bind(this)],
+		        ['System Code Browser', this.openSystemBrowser.bind(this)],
                 ['Object Editor', this.openObjectEditor.bind(this)],
                 ['Test Runner', this.openTestRunner.bind(this)],
                 ['Method Finder', this.openMethodFinder.bind(this)],
-                ['Text Editor', function() { new lively.morphic.TextEditor().openIn(world) }]
+                ['Text Editor', function() { new lively.morphic.TextEditor().openIn(world) }],
             ]],
             ['Preferences', [
-                ['set username', this.askForUserName.bind(this)],
-                ['set extent', this.askForNewWorldExtent.bind(this)],
-                ['set background color', this.askForNewBackgroundColor.bind(this)],
-                ['show lively.Config', function() {
-                    world.addTextWindow({title: 'lively.Config', content: lively.Config.inspect() }); }]]
+                ['Set username', this.askForUserName.bind(this)],
+                ['My user config', this.showUserConfig.bind(this)],
+                ['Set extent', this.askForNewWorldExtent.bind(this)],
+                ['Set background color', this.askForNewBackgroundColor.bind(this)]]
             ],
             ['Debugging', this.debuggingMenuItems(world)],
             ['Wiki', [
-                ['about this wiki', this.openAboutBox.bind(this)],
-                ['bootstrap parts from webwerkstatt', this.openBootstrapParts.bind(this)],
-                ['view versions of this world', this.openVersionViewer.bind(this)],
-                ['download world', function() {
+                ['About this wiki', this.openAboutBox.bind(this)],
+                ['Bootstrap parts from webwerkstatt', this.openBootstrapParts.bind(this)],
+                ['View versions of this world', this.openVersionViewer.bind(this)],
+                ['Download world', function() {
                     require('lively.persistence.StandAlonePackaging').toRun(function() {
                         lively.persistence.StandAlonePackaging.packageCurrentWorld();
                     });
                 }],
-                ['upload world to Dropbox', function() {
+                ['Upload world to Dropbox', function() {
                     require('apps.Dropbox').toRun(function() {
                         DropboxAPI.uploadArchivedWorld();
                     });
                 }],
-                ['delete world', this.interactiveDeleteWorldOnServer.bind(this)]
+                ['Delete world', this.interactiveDeleteWorldOnServer.bind(this)]
             ]],
             ['Documentation', [
-                ["on short cuts", this.openShortcutDocumentation.bind(this)],
-                ["on connect data bindings", this.openConnectDocumentation.bind(this)],
-				        ["on Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
-                ["more...", function() { window.open(Config.rootPath + 'documentation/'); }]
+                ["On short cuts", this.openShortcutDocumentation.bind(this)],
+                ["On connect data bindings", this.openConnectDocumentation.bind(this)],
+				        ["On Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
+                ["More ...", function() { window.open(Config.rootPath + 'documentation/'); }]
             ]],
-            ['save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],
-            ['save world', this.saveWorld.bind(this), 'synchron']
+            ['Save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],
+            ['Save world', this.saveWorld.bind(this), 'synchron']
         ];
         return items;
     }
@@ -2066,7 +2063,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph')/*TOD
             var self = this;
             itemFilter = function (items) {
             items[0] = [
-                'publish window', function(evt) {
+                'Publish window', function(evt) {
                 self.copyToPartsBinWithUserRequest();
                 }]
             return items;
@@ -2077,11 +2074,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph')/*TOD
     morphMenuItems: function($super) {
         var self = this, items = $super();
         items[0] = [
-            'publish window', function(evt) {
+            'Publish window', function(evt) {
                 self.copyToPartsBinWithUserRequest();
             }];
         items.push([
-            'set title', function(evt) {
+            'Set title', function(evt) {
                 $world.prompt('Enter new title', function(input) {
                     if (input || input == '') self.setTitle(input);
                 }, self.getTitle()); }]);

@@ -36,9 +36,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
 'serialization', {
     prepareForNewRenderContext: function ($super, renderCtx) {
         $super(renderCtx);
-        // FIXME what about connections to this.isChecked?
-        // they would be updated here...
-        this.setChecked(this.isChecked());
+
     },
 });
 

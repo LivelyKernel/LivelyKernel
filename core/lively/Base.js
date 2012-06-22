@@ -157,9 +157,9 @@ function __oldNamespace(spec, context) {
     modules
     .select(function(ea) { return ea.hasPendingRequirements() })
     .forEach(function(ea) {
-			  var msg = Strings.format('%s has unloaded requirements: %s',
-				                         ea.uri(), ea.pendingRequirementNames());
-			  console.warn(msg);
+		var msg = Strings.format('%s has unloaded requirements: %s',
+			ea.uri(), ea.pendingRequirementNames());
+		console.warn(msg);
 
         // FIXME use proper Config-URL-parsing
         if (lively.Config.ignoreMissingModules || document.URL.indexOf('ignoreMissingModules=true') >= 0) {
@@ -167,7 +167,7 @@ function __oldNamespace(spec, context) {
             ea.load();
             testModuleLoad.delay(6);
         }
-		});
+	});
     console.log('Module load check done. ' + modules.length + ' modules loaded.');
 }).delay(10);
 

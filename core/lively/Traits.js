@@ -108,7 +108,7 @@ Object.subclass('RealTrait',
         objectConfs.forEach(function(conf) {
             if (!conf.object) return;
             var options = conf.options;
-                this.applyToObject(conf.object, options);
+            this.applyToObject(conf.object, options);
         }, this);
     },
     applyTo: function(obj, options) {

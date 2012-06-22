@@ -1039,16 +1039,15 @@ lively.morphic.Morph.addMethods(
             }
         }
 
-        if (false) {
-        items.push(["Enable internal selections", function() {
-            Trait('SelectionMorphTrait').applyTo(self, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
-            self.enableDragging();
-        }])
+        if (false) { // rk 12-06-22: what is this for???
+            items.push(["Enable internal selections", function() {
+                Trait('SelectionMorphTrait').applyTo(self, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
+                self.enableDragging();
+            }])
         }
 
-        if (this.reset)
+        if (this.reset) {
             items.push(['Reset', this.reset.bind(this)]);
-
         }
 
         return items;

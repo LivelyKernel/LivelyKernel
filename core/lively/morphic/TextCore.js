@@ -1655,7 +1655,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 },
 'searching', {
     searchForFind: function(str, start, noWrap) {
-        // if (this.world()) this.focus();
         var i1 = this.textString.indexOf(str, start);
         if (i1 < 0 && !noWrap) i1 = this.textString.indexOf(str, 0); // wrap
         if (i1 >= 0) this.setSelectionRange(i1, i1+str.length);
@@ -2042,10 +2041,10 @@ this. textNodeString()
     tabspacesForCursorPos: function() {
         var cursorPos = this.getSelectionRange()[0]
         if (this.textString[cursorPos] == '\n') return this.tab
-        var beginOfLine = this.textString.lastIndexOf("\n", cursorPos);
+        var beginOfLine = this.textString.lastIndexOf('\n', cursorPos);
         var column = this.textString.substring(beginOfLine + 1, cursorPos);
         // alertOK("tab " + column.length)
-        return  Strings.indent("", " ", this.tab.length - column.length % this.tab.length )
+        return  Strings.indent('', ' ', this.tab.length - column.length % this.tab.length )
     },
 },
 'syntax highlighting', {
@@ -2811,7 +2810,7 @@ Object.extend(lively.morphic.HTMLParser, {
     pastedHTMLToRichText: function(data) {
         // creates a rich text object from HTML snippet
         var node = this.sourceToNode(data);
-        if (!node) return;
+        if (!node) return null;
         this.sanitizeNode(node);
         var richText = new lively.morphic.RichText(node.textContent);
         this.extractStylesAndApplyToRichText(node, richText, {styles: [], styleStart: 0})

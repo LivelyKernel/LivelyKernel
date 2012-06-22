@@ -1226,7 +1226,8 @@ lively.morphic.Shapes.Shape.addMethods(
 			this.updateComputedStyles();
 		},
 		applyStyleSheetFromFile: function(file){
-		        var absPath = document.location.href.toString().split('?')[0].substring(0, url.lastIndexOf('/') + 1);
+		        var absPath = document.location.href.toString().split('?')[0];
+		        absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);
 		        var url = new URL(absPath +"/"+file);
 		        
 

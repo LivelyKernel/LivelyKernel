@@ -1233,7 +1233,6 @@ lively.morphic.Shapes.Shape.addMethods(
 				status: webRGet.status.code(),
 				responseText: webRGet.content
 			};
-
 		},
 					
 		setStyleSheet: function(value) {
@@ -1244,7 +1243,7 @@ lively.morphic.Shapes.Shape.addMethods(
 		getStyleSheet: function() {
 			var r = this.shape.getStyleSheet();
 			//this.updateComputedStyles();
-							return r;
+			return r;
 		},    
 	
 		getAppearanceStylingMode: function() {

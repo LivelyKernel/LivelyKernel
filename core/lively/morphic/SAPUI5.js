@@ -3,11 +3,13 @@ module('lively.morphic.SAPUI5').requires().toRun(function() {
 lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
 'initializing', {
     initialize: function($super, label) {
-        $super(this.createShape());
+        this.label = label;
+        $super(this.createShape(label));
     },
-    createShape: function() {
+    createShape: function(label) {
         var node = XHTMLNS.create('button');
         node.type = 'checkbox';
+        label && node.innerHTML = label;
         return new lively.morphic.Shapes.External(node);
     },
 },

@@ -1,6 +1,12 @@
 module('lively.morphic.SAPUI5').requires().toRun(function() {
 
 lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
+
+'settings',{
+    classes: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnStd',    
+    activeClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnAct'
+},
+
 'initializing', {
     initialize: function($super, label) {
         this.label = label;
@@ -9,7 +15,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
     createShape: function(label) {
         var node = XHTMLNS.create('button');
         node.type = 'checkbox';
-        if (label) node.innerHTML = label;
+        label && node.innerHTML = label;
         return new lively.morphic.Shapes.External(node);
     },
 },

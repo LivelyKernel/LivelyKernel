@@ -2,7 +2,7 @@ module('lively.morphic.SAPUI5').requires().toRun(function() {
 
 lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
 'initializing', {
-    initialize: function($super) {
+    initialize: function($super, label) {
         $super(this.createShape());
     },
     createShape: function() {

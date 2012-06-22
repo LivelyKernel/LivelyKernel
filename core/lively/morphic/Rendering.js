@@ -479,9 +479,11 @@ lively.morphic.Morph.addMethods(
             (function() { self.onLoad(); }).delay(0);
         }
         
+        
         // update the computed styles of the shape to adapt the extent
-        console.log("Updating computed styles for "+this.name);
-        this.updateComputedStyles();
+        // FIX ME! this doesn't seem to work, maybe have to try at a later point ...
+        // console.log("Updating computed styles for "+this.name);
+        // this.updateComputedStyles();
     },
 
     onRenderFinished: function(ctx) {

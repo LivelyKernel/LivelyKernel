@@ -27,7 +27,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
             return true;
         }
         // we do it ourselves
-
+        lively.bindings.signal(this, 'fire', true);
         // evt.stop();
          return true;
      },

@@ -1117,8 +1117,8 @@ lively.morphic.World.addMethods(
         return this.openPartItem('PartsBinBrowser', 'PartsBin/Tools');
     },
     openInspectorFor: function(object, evt) {
-        var part = this.openPartItem('Explorer', 'PartsBin/Tools');
-        part.explore(object);
+        var part = this.openPartItem("ObjectInspector", 'PartsBin/Tools');
+        part.inspect(object);
         return part;
     },
     openStyleEditorFor: function(morph, evt) {
@@ -1245,6 +1245,9 @@ lively.morphic.World.addMethods(
         } finally {
             Config.rootPath = oldRootPath
         }
+    },
+    openSystemConsole: function() {
+        return this.openPartItem('SystemConsole', 'PartsBin/Tools');
     }
 },
 'menu', {
@@ -1377,6 +1380,7 @@ lively.morphic.World.addMethods(
                 ['Test Runner', this.openTestRunner.bind(this)],
                 ['Method Finder', this.openMethodFinder.bind(this)],
                 ['Text Editor', function() { new lively.morphic.TextEditor().openIn(world) }],
+                ['System Console', this.openSystemConsole.bind(this)]
             ]],
             ['Preferences', [
                 ['Set username', this.askForUserName.bind(this)],

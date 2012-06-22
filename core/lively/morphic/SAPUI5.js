@@ -1,11 +1,6 @@
 module('lively.morphic.SAPUI5').requires().toRun(function() {
 
 lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
-'properties', {
-    connections: {
-        setChecked: {}
-    }
-},
 'initializing', {
     initialize: function($super, isChecked) {
         $super(this.createShape());

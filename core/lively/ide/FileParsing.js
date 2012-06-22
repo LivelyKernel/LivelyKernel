@@ -472,7 +472,7 @@ Object.subclass('CodeParser', {
 
     /*debugging*/
     get debugMode() {
-        return this._debugMode || lively.ide.debugFileParsingEnabled();
+        return this._debugMode || lively.ide.debugFileParsingEnabled && lively.ide.debugFileParsingEnabled();
     },
 
     set debugMode(bool) {

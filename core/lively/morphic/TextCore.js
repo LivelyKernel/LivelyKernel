@@ -2774,15 +2774,26 @@ Object.extend(lively.morphic.HTMLParser, {
             var string = data.slice(start, end);
             string = Strings.removeSurroundingWhitespaces(string);
         } else {
-            var string = data; // if no body tag just use the plain string
-        }
-        var node = XHTMLNS.create('div');
-        try {
-            node.innerHTML = this.sanitizeHtml(string);
-        } catch (e) {
-            // JENS: logError breaks browser under windows?
-            alert("PASTE ERROR: " + e + '\n could not paste: ' + string +'\n'
-            + 'please report problem on: http://lively-kernel.org/trac')
+            // it's a complete html document
+            // we are currently cutting of everything excepts the body -- this means that
+            // style can be lost
+            var start = data.indexOf('<body>');
+            if (start > -1) {
+                start += 6; // "<body>"
+                var end = data.indexOf('</body>')
+                var string = data.slice(start, end);
+                string = Strings.removeSurroundingWhitespaces(string);
+            } else {
+                var string = data; // if no body tag just use the plain string
+            }
+            var node = XHTMLNS.create('div');
+            try {
+                node.innerHTML = this.sanitizeHtml(string);
+            } catch (e) {
+                // JENS: logError breaks browser under windows?
+                alert("PASTE ERROR: " + e + '\n could not paste: ' + string +'\n'
+                + 'please report problem on: http://lively-kernel.org/trac')
+            }
         }
         return node
     },

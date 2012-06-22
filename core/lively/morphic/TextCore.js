@@ -1820,8 +1820,9 @@ this. textNodeString()
 'rich text', {
     emphasize: function(styleSpec, from, to) {
         var chunks = this.sliceTextChunks(from, to);
-        for (var i = 0; i < chunks.length; i++)
+        for (var i = 0; i < chunks.length; i++) {
             chunks[i].styleText(styleSpec);
+        }
         this.coalesceChunks();
     },
     unEmphasize: function(from, to) {
@@ -2778,35 +2779,23 @@ Object.extend(lively.morphic.HTMLParser, {
         // it's a complete html document
         // we are currently cutting of everything excepts the body -- this means that
         // style can be lost
-        var start = data.indexOf('<body>');
+        var start = data.indexOf('<body>'), string;
         if (start > -1) {
             start += 6; // "<body>"
-            var end = data.indexOf('</body>')
-            var string = data.slice(start, end);
-            string = Strings.removeSurroundingWhitespaces(string);
+            var end = data.indexOf('</body>');
+            string = Strings.removeSurroundingWhitespaces(data.slice(start, end));
         } else {
-            // it's a complete html document
-            // we are currently cutting of everything excepts the body -- this means that
-            // style can be lost
-            var start = data.indexOf('<body>');
-            if (start > -1) {
-                start += 6; // "<body>"
-                var end = data.indexOf('</body>')
-                var string = data.slice(start, end);
-                string = Strings.removeSurroundingWhitespaces(string);
-            } else {
-                var string = data; // if no body tag just use the plain string
-            }
-            var node = XHTMLNS.create('div');
-            try {
-                node.innerHTML = this.sanitizeHtml(string);
-            } catch (e) {
-                // JENS: logError breaks browser under windows?
-                alert("PASTE ERROR: " + e + '\n could not paste: ' + string +'\n'
-                + 'please report problem on: http://lively-kernel.org/trac')
-            }
+            string = data; // if no body tag just use the plain string
         }
-        return node
+        var node = XHTMLNS.create('div');
+        try {
+            node.innerHTML = this.sanitizeHtml(string);
+        } catch (e) {
+            // JENS: logError breaks browser under windows?
+            alert("PASTE ERROR: " + e + '\n could not paste: ' + string +'\n'
+                 + 'please report problem on: http://lively-kernel.org/trac')
+        }
+        return node;
     },
     sanitizeHtml: function(string) {
         // replaces html br with newline

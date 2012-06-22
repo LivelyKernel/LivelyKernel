@@ -22,6 +22,7 @@ lively.morphic.Box.subclass('lively.morphic.ColorChooser',
 lively.morphic.ColorChooser.subclass('lively.morphic.RGBColorChooser',
 'settings', {
     colorNames: 'rgb',
+    hasLabel: true,
 },
 'initializing', {
     buildColorMap: function() {
@@ -52,8 +53,8 @@ colorForPos: function(pos) {
             pos = r.closestPointToPt(pos),
             rh2 = r.height/2;
         var color =  this.colorMap(pos.x, pos.y, rh2, this.colorWheel(r.width+1));
-        this.ensureLabel().setTextString("color:" + color)
-        return color
+        this.hasLabel && this.ensureLabel().setTextString("color:" + color);
+        return color;
     },
   ensureLabel: function() {
        if (!this.label) {
@@ -281,4 +282,197 @@ new lively.morphic.ColorField().openInWorld(pt(100,100))
         })
     },
 });
-}) // end of moduleeee
+
+lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
+'init', {
+    defaultBounds: new Rectangle(0,0,24,24),
+    defaultColor: Color.red,
+    colorDisplayOffset: 4,
+    colorDisplayBorderRadius: 3,
+
+    initialize: function($super, bounds){
+        var b = bounds || this.defaultBounds;
+        $super(b, '');
+        this.colorDisplay = new lively.morphic.Box(b.insetBy(this.colorDisplayOffset));
+        this.removeAllMorphs(); // get rid of the default Text
+        this.addMorph(this.colorDisplay);
+        this.colorDisplay.disableHalos();
+        this.setColor(this.defaultColor);
+        this.colorDisplay.applyStyle({borderRadius: this.colorDisplayBorderRadius, resizeWidth: true, resizeHeight: true});
+        this.applyStyle({adjustForNewBounds: true});
+    },
+    setValue: function(bool) {
+        this.value = bool;
+        // buttons should fire on mouse up
+        if (!bool) {
+            var chooser = new lively.morphic.RGBColorChooser();
+            var menu = new lively.morphic.SimpleColorMenu(chooser);
+            var pos = this.getPosition();
+            var menuPos = pos.addPt(pt(0, this.bounds().height));
+            menu.open(lively.morphic.World.current(), menuPos, false);
+            menu.setCallback(this, 'setColor');
+        }
+    },
+    setColor: function(color){
+        console.log('Change color to '+color.toString());
+         this.colorDisplay.setFill(color);
+    }
+
+
+}
+
+);
+
+lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
+'settings', {
+    style: {
+        fill: Color.gray.lighter(3),
+        borderColor: Color.gray,
+        borderWidth: 1,
+        borderStyle: 'outset',
+        borderRadius: 4,
+    },
+    chooserOffset: 4,
+    isEpiMorph: true,
+},
+'init', {
+    initialize: function($super, chooser) {
+        this.colorChooser = chooser || new lively.morphic.RGBColorChooser();
+        this.colorChooser.hasLabel = false;
+        var b = this.colorChooser.getBounds();
+        $super(new Rectangle(0,0, b.width + this.chooserOffset*2 , b.height+ this.chooserOffset*2));
+
+    },
+
+    setCallback: function(target, callback){
+        if (this.colorChooser) connect(this.colorChooser, 'currentlySelectedColor', target, callback);
+    },
+
+    open: function(parentMorph, pos, remainOnScreen, callbackTarget, callbackFunc) {
+        this.setPosition(pos || pt(0,0));
+        var owner = parentMorph || lively.morphic.World.current();
+        this.remainOnScreen = remainOnScreen;
+        if (!remainOnScreen) {
+            if (owner.currentMenu) { owner.currentMenu.remove() };
+            owner.currentMenu = this;
+        } else {
+            this.isEpiMorph = false;
+        }
+
+        owner.addMorph(this);
+
+        this.offsetForWorld(pos);
+
+        this.addMorph(this.colorChooser);
+        this.colorChooser.setPosition(pt(this.chooserOffset,this.chooserOffset));
+        this.colorChooser.disableGrabbing();
+        this.colorChooser.disableDragging();
+        this.colorChooser.onMouseUp = function(evt) {
+              this.currentlySelectedColor = this.colorForPos(this.localize(evt.getPosition()));
+              this.owner.remove();
+        };
+        //this.colorChooser.callback = this.chooseColor;
+        //connect(this.colorChooser, 'currentlySelectedColor', this, 'choosenColor');
+
+        return this;
+    },
+    choosenColor: Color.black,
+    remove: function($super) {
+        var w = this.world();
+        if (w && w.currentMenu === this) w.currentMenu = null;
+        $super();
+    },
+    offsetForWorld: function(pos) {
+        var bounds = this.innerBounds().translatedBy(pos);
+        if (this.title) {
+            bounds = bounds.withTopLeft(bounds.topLeft().addXY(0, this.title.getExtent().y));
+        }
+        if (this.owner.visibleBounds) {
+            bounds = this.moveBoundsForVisibility(bounds, this.owner.visibleBounds());
+        }
+        this.setBounds(bounds);
+    },
+    moveBoundsForVisibility: function(menuBounds, visibleBounds) {
+        var offsetX = 0,
+            offsetY = 0;
+        Global.lastMenuBounds = menuBounds;
+
+        if (menuBounds.right() > visibleBounds.right())
+            offsetX = -1 * (menuBounds.right() - visibleBounds.right());
+
+        var overlapLeft = menuBounds.left() + offsetX;
+        if (overlapLeft < 0)
+            offsetX += -overlapLeft;
+
+        if (menuBounds.bottom() > visibleBounds.bottom()) {
+            offsetY = -1 * (menuBounds.bottom() - visibleBounds.bottom());
+            // so that hand is not directly over menu, does not work when
+            // menu is in the bottom right corner
+            offsetX += 1;
+        }
+        var overlapTop = menuBounds.top() + offsetY;
+        if (overlapTop < 0)
+            offsetY += -overlapTop;
+
+        return menuBounds.translatedBy(pt(offsetX, offsetY));
+    },
+}
+
+);
+
+lively.morphic.ColorChooser.subclass('lively.morphic.SimpleColorChooser',
+'settings', {
+    colorNames: 'custom',
+},
+'initializing', {
+    initialize: function($super,bounds, colors){
+        // under constructions...
+        if (!colors) {
+            colors = this.gatherCustomColors();
+        }
+        this.colors = colors;
+        $super(bounds);
+    },
+    gatherCustomColors: function() {
+        // lively.morphic.CustomColorChooser.prototype.gatherCustomColors()
+        var colors = [];
+        var gatherColor = function(eaColor) {
+            if (eaColor && !colors.detect(function(colorSetEa) {
+                return colorSetEa.equals(eaColor)}))
+                colors.push(eaColor)
+        }
+        $world.withAllSubmorphsDo(function(ea) {
+            gatherColor(ea.getBorderColor());
+        })
+        return colors
+    },
+
+    buildColorMap: function() {
+        var x = Math.floor(Math.sqrt(this.colors.length)) + 1,
+            y = x,
+            extent = this.innerBounds().extent().scaleByPt(pt(1/x, 1/y));
+        for (var j = 0; j < y; j++) {
+            for (var i = 0; i < x; i++) {
+                var idx = j*x+i, // running offset j*x^1 + i*y^0
+                    color = this.colors[idx],
+                    r = extent.scaleByPt(pt(i, j)).extent(extent),
+                    morph = new lively.morphic.Box(r);
+                morph.applyStyle({fill: color, borderWidth: 0});
+                morph.ignoreEvents();
+                this.addMorph(morph);
+            }
+        }
+    },
+},
+'color mapping', {
+    colorForPos: function(pos) {
+        var r = this.shape.getBounds().insetBy(this.getBorderWidth()),
+            pos = r.closestPointToPt(pos),
+            m = this.submorphs.detect(function(ea) { return ea.bounds().containsPoint(pos) });
+        return m ? m.getFill() : Color.black;
+    },
+});
+
+
+
+}) // end of module

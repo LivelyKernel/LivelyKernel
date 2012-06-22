@@ -14,7 +14,12 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         borderWidth: 1,
         borderRadius: 5,
         padding: Rectangle.inset(0,3),
-
+        fill: new lively.morphic.LinearGradient(
+            [{offset: 0, color: Color.gray.mixedWith(Color.white, 0.2)},
+            {offset: 0.4, color: Color.gray.mixedWith(Color.white, 0.9)},
+            {offset: 0.6, color: Color.gray.mixedWith(Color.white, 0.9)},
+            {offset: 1, color: Color.gray.mixedWith(Color.white, 0.3)}],
+            "NorthSouth"),
         label: {
             borderWidth: 0,
             fill: null,
@@ -68,19 +73,18 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 },
 'styling', {
     changeAppearanceFor: function(pressed, toggled) {
-        var isToggled = toggled || this.value;
-        var baseColor = isToggled ? this.toggleColor : this.normalColor;
-
-        var shade = pressed ? baseColor.mixedWith(Color.black, 0.9)  : baseColor.lighter(3);
-        var bottomShade = pressed ?  baseColor.lighter(3):baseColor.mixedWith(Color.black, 0.9);
-        var upperGradientCenter = pressed ? 0.2  : 0.3;
-        var lowerGradientCenter = pressed ? 0.8  : 0.7;
+        var isToggled = toggled || this.value,
+            baseColor = isToggled ? this.toggleColor : this.normalColor,
+            shade = pressed ? baseColor.mixedWith(Color.black, 0.9)  : baseColor.lighter(3),
+            bottomShade = pressed ?  baseColor.lighter(3):baseColor.mixedWith(Color.black, 0.9),
+            upperGradientCenter = pressed ? 0.2  : 0.3,
+            lowerGradientCenter = pressed ? 0.8  : 0.7;
 
         if (this.style && this.style.label && this.style.label.padding) {
-                    var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
+            var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
             this.setPadding(labelPadding);
         }
-        this.setFill(this.generateFillWith(baseColor, shade, upperGradientCenter, lowerGradientCenter, bottomShade ));
+        this.setFill(this.generateFillWith(baseColor, shade, upperGradientCenter, lowerGradientCenter, bottomShade));
     },
     applyStyle: function($super, spec) {
         $super(spec);
@@ -100,8 +104,9 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 },
 'events', {
     isValidClick: function(evt) {
-        return this.isActive && evt.isLeftMouseButtonDown()&& !evt.isCommandKey();
+        return this.isActive && evt.isLeftMouseButtonDown() && !evt.isCommandKey();
     },
+
     onMouseOut: function (evt) {
         this.isPressed && this.changeAppearanceFor(false);
     },
@@ -109,8 +114,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     onMouseOver: function (evt) {
         if (evt.isLeftMouseButtonDown()) {
             this.isPressed && this.changeAppearanceFor(true);
-        }
-        else {
+        } else {
             this.isPressed = false;
         }
     },
@@ -165,7 +169,6 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 });
 
 
-
 lively.morphic.Button.subclass('lively.morphic.ImageButton',
 'initializing', {
     initialize: function($super, bounds, url) {
@@ -176,7 +179,6 @@ lively.morphic.Button.subclass('lively.morphic.ImageButton',
         this.addMorph(this.image);
         this.image.ignoreEvents();
         this.image.disableHalos();
-
     },
 },
 'accessing', {
@@ -208,7 +210,6 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageOptionButton',
     setValue: function(bool) {
         this.value = bool;
         this.changeAppearanceFor(bool);
-
     },
 
     onMouseDown: function (evt) {
@@ -216,8 +217,6 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageOptionButton',
             && !this.value && !evt.isCommandKey()) {
             this.changeAppearanceFor(true);
         }
-
-
     },
 
     onMouseUp: function(evt) {
@@ -682,10 +681,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         var y = 0, x = 0, self = this;
 
         this.items.forEach(function(item) {
-
-            // Always start menu items with a capital letter
-            var title = item.string //.substr(0,1).toUpperCase() + item.string.substr(1, item.string.length-1);
-
+            var title = item.string;
             var itemHeight = 23,
                 itemMorph = new lively.morphic.Text(
                     new Rectangle(0, y, this.getExtent().x, itemHeight), title);
@@ -696,22 +692,21 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                     new Rectangle(0, 0, 10, itemHeight), "▶");
                     arrowMorph.setPosition(pt(this.getExtent().x, y));
                 arrowMorph.applyStyle({
-                clipMode: 'hidden',
-                fixedHeight: true,
-                fixedWidth: false,
-                borderWidth: 0,
-                fill: null,
-                handStyle: 'default',
-                enableGrabbing: false,
-                allowInput: false,
-                fontSize: 10,
-                padding: Rectangle.inset(3,2) });
+                    clipMode: 'hidden',
+                    fixedHeight: true,
+                    fixedWidth: false,
+                    borderWidth: 0,
+                    fill: null,
+                    handStyle: 'default',
+                    enableGrabbing: false,
+                    allowInput: false,
+                    fontSize: 10,
+                    padding: Rectangle.inset(3,2)
+                });
                 itemMorph.addMorph(arrowMorph);
             }
 
-
             this.itemMorphs.push(this.addMorph(itemMorph));
-
 
             itemMorph.applyStyle({
                 clipMode: 'hidden',
@@ -926,13 +921,13 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         var offset = 10 + 20,
             morphs = this.itemMorphs;
         if (this.title) morphs = morphs.concat([this.title]);
-        var widths = morphs.invoke('getTextExtent').pluck('x');
-        var width = Math.max.apply(Global, widths) + offset;
-        var newExtent = this.getExtent().withX(width);
+        var widths = morphs.invoke('getTextExtent').pluck('x'),
+            width = Math.max.apply(Global, widths) + offset,
+            newExtent = this.getExtent().withX(width);
         this.setExtent(newExtent);
         morphs.forEach(function(ea) {
             ea.setExtent(ea.getExtent().withX(newExtent.x));
-            if (ea.submorphs.length>0) {
+            if (ea.submorphs.length > 0) {
                 var arrow = ea.submorphs.first();
                 arrow.setPosition(arrow.getPosition().withX(newExtent.x-17));
             }
@@ -959,10 +954,9 @@ lively.morphic.Morph.addMethods(
     },
     disableMorphMenu: function() { this.showsMorphMenu = false },
     openMorphMenuAt: function(pos, itemFilter) {
-        if (!(itemFilter instanceof Function)) {
-            itemFilter = function (items) { return items }
-        }
-        return lively.morphic.Menu.openAt(pos, this.name || this.toString(), itemFilter(this.morphMenuItems()));
+        itemFilter = Object.isFunction(itemFilter) ? itemFilter : Functions.K;
+        return lively.morphic.Menu.openAt(pos, this.name || this.toString(),
+                                          itemFilter(this.morphMenuItems()));
     },
     showMorphMenu: function(evt) {
         this.openMorphMenuAt(evt.getPosition());
@@ -1037,7 +1031,6 @@ lively.morphic.Morph.addMethods(
             items.push(["Arrange morph", arrange]);
         }
 
-
         if (this.submorphs.length > 0) {
             if (this.isLocked()) {
                 items.push(["Unlock parts", this.unlock.bind(this)])
@@ -1075,12 +1068,9 @@ lively.morphic.Morph.addMethods(
             return this.owner.getWindow();
         }
         return null;
-    },
-
-
-
-
+    }
 });
+
 lively.morphic.Text.addMethods(
 'menu', {
     morphMenuItems: function($super) {
@@ -1415,7 +1405,7 @@ lively.morphic.World.addMethods(
             ['Parts', this.morphMenuDefaultPartsItems()],
             ['Tools', [
                 ['Workspace', this.openWorkspace.bind(this)],
-		['System Code Browser', this.openSystemBrowser.bind(this)],
+		        ['System Code Browser', this.openSystemBrowser.bind(this)],
                 ['Object Editor', this.openObjectEditor.bind(this)],
                 ['Test Runner', this.openTestRunner.bind(this)],
                 ['Method Finder', this.openMethodFinder.bind(this)],
@@ -1548,7 +1538,7 @@ lively.morphic.World.addMethods(
 
         blockMorph.addMorph(d.panel);
 
-        if(activeWindow.targetMorph){
+        if (activeWindow.targetMorph) {
             d.panel.align(d.panel.bounds().topRight(), pointOfAlign);
         } else {
             d.panel.align(d.panel.bounds().center(), pointOfAlign);
@@ -1854,6 +1844,7 @@ lively.morphic.List.addMethods(
     },
 
 });
+
 lively.morphic.DropDownList.addMethods(
 'initializing', {
     initialize: function($super, bounds, optItems) {
@@ -2000,8 +1991,6 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
         this.applyStyle({borderRadius: collapsed ? "8px 8px 8px 8px" : "8px 8px 0px 0px"});
     },
 
-
-
 },
 'event handling', {
     onMouseDown: function (evt) {
@@ -2012,7 +2001,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
     onMouseUp: Functions.False,
 });
 
-lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph'),
+lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph')/*TODO get rid of this*/,
 'documentation', {
     documentation: "Full-fledged windows with title bar, menus, etc",
 },
@@ -2367,13 +2356,14 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
         var bounds = new Rectangle(this.inset, this.inset, this.panel.getExtent().x - 2*this.inset, 18);
         this.label = this.panel.addMorph(new lively.morphic.Text(bounds, this.message));
         this.label.beLabel({fill: Color.white, fixedHeight: true, fixedWidth: false, padding: Rectangle.inset(0,0)});
-// FIXME ugly hack for wide dialogs
-(function fit() {
-    this.label.fit();
-    var labelWidth = this.label.getExtent().x, panelExtent = this.panel.getExtent();
-    if (labelWidth > panelExtent.x)
-        this.panel.setExtent(panelExtent.withX(labelWidth))
-}).bind(this).delay(0);
+        // FIXME ugly hack for wide dialogs
+        (function fit() {
+            this.label.fit();
+            var labelWidth = this.label.getExtent().x, panelExtent = this.panel.getExtent();
+            if (labelWidth > panelExtent.x) {
+                this.panel.setExtent(panelExtent.withX(labelWidth));
+            }
+        }).bind(this).delay(0);
         this.label.disableDragging();
         this.label.disableGrabbing();
     },
@@ -2481,6 +2471,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
         return view;
     },
 });
+
 lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
 // new lively.morphic.PromptDialog('Test', function(input) { alert(input) }).open()
 'initializing', {
@@ -2698,8 +2689,6 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         });
     },
 
-
-
 },
 'aligning', {
     // Note: the next four methods should be removed after we have gridding, i think (DI)
@@ -2773,8 +2762,6 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             // alert("grab " + this.selectedMorphs[i])
             this.addMorph(this.selectedMorphs[i]);
         }
-
-
     },
     dropOn: function(morph) {
         // alert("drop " + this + " on " + morph)
@@ -2822,10 +2809,10 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
     selectMorphs: function(selectedMorphs) {
         this.owner.selectionMorph.selectedMorphs = selectedMorphs
 
-// finding pos, starting with max values
-        var topLeft = this.bounds().bottomRight();
-        var bottomRight = this.bounds().topLeft();
-        var self = this;
+        // finding pos, starting with max values
+        var topLeft = this.bounds().bottomRight(),
+            bottomRight = this.bounds().topLeft(),
+            self = this;
 
         this.removeSelecitonIndicators();
         selectedMorphs.forEach(function(ea) {
@@ -2859,7 +2846,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             this.selectionIndicators.invoke('remove');
         this.selectionIndicators = [];
     },
-  makeGroup: function() {
+    makeGroup: function() {
         if (!this.selectedMorphs) return;
         var group = new lively.morphic.Box(this.bounds());
         group.isGroup = true;
@@ -2879,8 +2866,8 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         this.selectMorphs(all)
     },
 
-
 });
+
 Trait('SelectionMorphTrait',
 'selection', {
     getSelectedMorphs: function() {
@@ -3097,7 +3084,6 @@ Object.extend(lively.ide, {
 });
 
 
-
 lively.morphic.Box.subclass('lively.morphic.HorizontalDivider', Trait('HorizontalDividerTrait'),
 'settings', {
     style: {fill: Color.gray, enableDragging: true},
@@ -3240,334 +3226,338 @@ lively.morphic.Box.subclass('lively.morphic.SliderKnob',
 
 
 });
+
 Object.extend(Array.prototype, {
     asListItemArray: function() {
         return this.collect(function(ea) {
             return {isListItem: true, string: ea.toString(), value: ea};
         });
-    },
+    }
 })
 
-/*
-var tree = new lively.morphic.Tree();
-tree.openInHand();
-tree.setItem({
-    name: "root",
-    children: [
-        {name: "item 1", children: [{name: "subitem"}]},
-        {name: "item 2"}]
-});
-*/
 lively.morphic.Box.subclass('lively.morphic.Tree',
-    'initializing', {
-        initialize: function($super, item, optParent, optDragAndDrop) {
+'documentation', {
+    example: function() {
+        var tree = new lively.morphic.Tree();
+        tree.openInHand();
+        tree.setItem({
+            name: "root",
+            children: [
+                {name: "item 1", children: [{name: "subitem"}]},
+                {name: "item 2"}]
+        });
+    }
+},
+'initializing', {
+    initialize: function($super, item, optParent, optDragAndDrop) {
+        this.item = item;
+        this.parent = optParent;
+        this.depth = this.parent ? this.parent.depth + 1 : 0;
+        $super(pt(0, 0).extent(pt(300,20)));
+        this.initializeLayout();
+        this.disableDragging();
+        if (!optDragAndDrop && !(this.parent && this.parent.dragAndDrop)) {
+            this.disableDropping();
+            this.disableGrabbing();
+        } else {
+            this.dragAndDrop = true;
+        }
+        if (item) this.setItem(item);
+    },
+
+    initializeLayout: function() {
+        this.setFill(Color.white);
+        this.setBorderWidth(0);
+        this.setBorderColor(Color.black);
+        if (!this.layout) this.layout = {};
+        this.layout.resizeWidth = true;
+        this.setLayouter(new lively.morphic.Layout.TreeLayout(this));
+    },
+
+    initializeNode: function() {
+        var bounds = pt(0,0).extent(pt(200,20));
+        var node = new lively.morphic.Box(bounds);
+        node.ignoreEvents();
+        if (!node.layout) node.layout = {};
+        node.layout.resizeWidth = true;
+        var layouter = new lively.morphic.Layout.HorizontalLayout(node);
+        layouter.setSpacing(5);
+        layouter.setBorderSize(0);
+        node.setLayouter(layouter);
+        if (!node.layout) node.layout = {};
+        node.layout.resizeWidth = true;
+        this.icon = node.addMorph(this.createIcon());
+        this.label = node.addMorph(this.createLabel());
+        this.node = this.addMorph(node);
+    }
+},
+"accessing", {
+    getRootTree: function() {
+        if (this.parent) return this.parent.getRootTree();
+        return this;
+    },
+    setItem: function(item) {
+        this.layoutAfter(function() {
             this.item = item;
-            this.parent = optParent;
-            this.depth = this.parent ? this.parent.depth + 1 : 0;
-            $super(pt(0, 0).extent(pt(300,20)));
-            this.initializeLayout();
-            this.disableDragging();
-            if (!optDragAndDrop && !(this.parent && this.parent.dragAndDrop)) {
-                this.disableDropping();
-                this.disableGrabbing();
+            connect(item, "changed", this, "update");
+            this.submorphs.invoke("remove");
+            this.childNodes = null;
+            if (this.item.name == undefined) {
+                if (this.item.children) this.expand();
             } else {
-                this.dragAndDrop = true;
+                this.initializeNode();
             }
-            if (item) this.setItem(item);
-        },
-        initializeLayout: function() {
-            this.setFill(Color.white);
-            this.setBorderWidth(0);
-            this.setBorderColor(Color.black);
-            if (!this.layout) this.layout = {};
-            this.layout.resizeWidth = true;
-            this.setLayouter(new lively.morphic.Layout.TreeLayout(this));
-        },
-        initializeNode: function() {
-            var bounds = pt(0,0).extent(pt(200,20));
-            var node = new lively.morphic.Box(bounds);
-            node.ignoreEvents();
-            if (!node.layout) node.layout = {};
-            node.layout.resizeWidth = true;
-            var layouter = new lively.morphic.Layout.HorizontalLayout(node);
-            layouter.setSpacing(5);
-            layouter.setBorderSize(0);
-            node.setLayouter(layouter);
-            if (!node.layout) node.layout = {};
-            node.layout.resizeWidth = true;
-            this.icon = node.addMorph(this.createIcon());
-            this.label = node.addMorph(this.createLabel());
-            this.node = this.addMorph(node);
-        }
+        });
     },
-    "accessing", {
-        getRootTree: function() {
-            if (this.parent) return this.parent.getRootTree();
-            return this;
-        },
-        setItem: function(item) {
-            this.layoutAfter(function() {
-                this.item = item;
-                connect(item, "changed", this, "update");
-                this.submorphs.invoke("remove");
-                this.childNodes = null;
-                if (this.item.name == undefined) {
-                    if (this.item.children) this.expand();
-                } else {
-                    this.initializeNode();
-                }
-            });
-        },
+},
+'updating', {
+    update: function() {
+        this.updateItem(this.item);
     },
-    'updating', {
-        update: function() {
-            this.updateItem(this.item);
-        },
-        updateItem: function(item) {
-            var oldItem = this.item;
-            if (oldItem)
-                disconnect(oldItem, "changed", this, "update");
-            this.item = item;
-            if (item == null) {
-                this.remove();
-            } else {
-                connect(item, "changed", this, "update");
-                if (oldItem === item && item.onUpdate) item.onUpdate(this);
-                this.updateNode();
-                if (this.childNodes) {
-                    if (oldItem === item && item.onUpdateChildren) item.onUpdateChildren(this);
-                    this.updateChildren();
-                }
-            }
-        },
-        updateNode: function() {
-            if (this.node) {
-                this.updateIcon();
-                this.updateLabel();
-            }
-        },
-        updateIcon: function() {
-            var str = this.item.children ? "►" : "";
-            if (this.childNodes) str = "▼";
-            if (this.icon.textString !== str) this.icon.textString = str;
-        },
-        updateLabel: function() {
-            var str = this.item.name;
-            var changed = false;
-            if (this.item.description) str += "  " + this.item.description;
-            if (this.label.getTextNode().textContent !== str) {
-                this.label.textString = this.item.name + (this.item.description ? "  " : "");
-                if (this.item.description) {
-                    var chunk = this.label.createChunk();
-                    chunk.textString = this.item.description;
-                    chunk.styleText({color: Color.web.darkgray});
-                    this.label.getTextChunks().push(chunk);
-                }
-                changed = true;
-            }
-            if (this.item.style && this.item.style !== this.label.oldStyle) {
-                this.label.firstTextChunk().styleText(this.item.style);
-                this.label.oldStyle = this.item.style;
-                changed = true;
-            }
-            var isSelected = this.label.getFill() !== null;
-            if (isSelected && !this.item.isSelected)
-                this.label.setFill(null);
-            if (!isSelected && this.item.isSelected)
-                this.label.setFill(Color.rgb(218, 218, 218));
-            if (changed) this.label.growOrShrinkToFit();
-        },
-        updateChildren: function() {
-            if (!this.childNodes) return;
-            var oldChildren = this.childNodes.map(function(n) { return n.item; });
-            var toRemove = oldChildren.withoutAll(this.item.children);
-            for (var i = 0; i < this.childNodes.length; i++) {
-                var node = this.childNodes[i];
-                if (toRemove.include(node.item)) {
-                    node.remove();
-                    this.childNodes.removeAt(i--);
-                }
-            }
-            var pageSize = this.childrenPerPage ? this.childrenPerPage : 100;
-            var currentInterval = Math.ceil(this.childNodes.length / pageSize) * pageSize;
-            currentInterval = Math.max(currentInterval , 100);
-            var childrenToShow = Math.min(this.item.children.length, currentInterval);
-            for (var j = 0; j < childrenToShow; j++) {
-                var item = this.item.children[j];
-                if (this.childNodes.length > j && this.childNodes[j].item === item) {
-                    this.childNodes[j].update();
-                } else {
-                    var after = this.childNodes[j - 1];
-                    var newNode = this.createNodeAfter(item, after);
-                    this.childNodes.pushAt(newNode, j);
-                }
+    updateItem: function(item) {
+        var oldItem = this.item;
+        if (oldItem)
+            disconnect(oldItem, "changed", this, "update");
+        this.item = item;
+        if (item == null) {
+            this.remove();
+        } else {
+            connect(item, "changed", this, "update");
+            if (oldItem === item && item.onUpdate) item.onUpdate(this);
+            this.updateNode();
+            if (this.childNodes) {
+                if (oldItem === item && item.onUpdateChildren) item.onUpdateChildren(this);
+                this.updateChildren();
             }
         }
     },
-    'creating', {
-        createIcon: function() {
-            var bounds = pt(0, 0).extent(pt(10, 20));
-            var str = this.item.children ? "►" : "";
-            var icon = new lively.morphic.Text(bounds, str);
-            icon.setBorderWidth(0);
-            icon.setFill(null);
-            icon.disableDragging();
-            icon.disableGrabbing();
-            icon.setInputAllowed(false);
-            icon.setHandStyle('default');
-            icon.setAlign("right");
-            icon.addScript(function onMouseDown(evt) {
-                if (this.owner.owner.item.children && evt.isLeftMouseButtonDown()) {
-                    this.owner.owner.toggle();
-                }
-            });
-            return icon;
-        },
-        createLabel: function() {
-            var bounds = pt(0, 0).extent(pt(100, 20));
-            var name = this.item.name + (this.item.description ? "  " : "");
-            var label = new lively.morphic.Text(bounds, name);
-            if (this.item.style) {
-                label.firstTextChunk().styleText(this.item.style);
-                label.oldStyle = this.item.style;
-            }
-            if (this.item.description) {
-                var gray = {color: Color.web.darkgray};
-                label.insertRichTextAt(this.item.description, gray, name.length);
-            }
-            label.setBorderWidth(0);
-            label.setFill(null);
-            label.disableDragging();
-            label.disableGrabbing();
-            label.setInputAllowed(false);
-            label.setHandStyle('default');
-            label.setFixedWidth(false);
-            label.setFixedHeight(true);
-            label.addScript(function onMouseDown(evt) {
-                if (evt.isLeftMouseButtonDown() && this.owner.owner.item.onSelect) {
-                    this.owner.owner.getRootTree().select(this.owner.owner);
-                }
-            });
-            if (this.item.isSelected) {
-                label.setFill(Color.rgb(218, 218, 218));
-            }
-            return label;
-        },
-        createNodeAfter: function(item, optOtherNode) {
-            var node = new lively.morphic.Tree(item, this);
-            if (optOtherNode) {
-                node.setPosition(optOtherNode.getPosition().addXY(0,1));
-            }
-            this.addMorph(node);
-            return node;
-        },
-    },
-    'tree', {
-        isChild: function() {
-            return this.parent && this.parent.node;
-        },
-        showChildren: function() {
-            var that = this;
-            this.childNodes = [];
-            if (!this.item.children) return;
-            this.showMoreChildren();
-        },
-        showMoreChildren: function() {
-            this.layoutAfter(function() {
-                var childrenToShow = this.item.children.slice(
-                    this.childNodes.length,
-                    this.childNodes.length + (this.childrenPerPage ? this.childrenPerPage : 100));
-                if (this.showMoreNode) this.showMoreNode.remove();
-                this.showMoreNode = null;
-                var start = this.childNodes.length === 0 ? this : this.childNodes.last();
-                childrenToShow.reduce(function(previous, currentItem) {
-                    var node = this.createNodeAfter(currentItem, previous);
-                    this.childNodes.push(node);
-                    return node;
-                }.bind(this), start);
-                if (this.childNodes.length < this.item.children.length) {
-                    var more = {name: "", description: "[show more]",
-                                onSelect: this.showMoreChildren.bind(this)};
-                    this.showMoreNode = this.createNodeAfter(more, this.childNodes.last());
-                }
-            });
-        },
-        expand: function() {
-            this.layoutAfter(function () {
-                if (this.item.onExpand) this.item.onExpand(this);
-                if (this.icon) this.icon.setTextString("▼");
-                this.showChildren();
-            })
-        },
-        collapse: function() {
-            this.layoutAfter(function() {
-                if (this.item.onCollapse) this.item.onCollapse(this.item);
-                if (this.icon) this.icon.setTextString("►");
-                if (this.childNodes) this.childNodes.invoke("remove");
-                this.childNodes = null;
-                if (this.showMoreNode) this.showMoreNode.remove();
-                this.showMoreNode = null;
-            });
-        },
-        toggle: function() {
-            this.childNodes ? this.collapse() : this.expand();
-        },
-        select: function(tree) {
-            this.withAllTreesDo(function(t) {
-                if (t.item.isSelected) {
-                    delete t.item.isSelected;
-                    t.label.setFill(null);
-                }
-            });
-            if (tree) {
-                tree.label.setFill(Color.rgb(218, 218, 218));
-                tree.item.isSelected = true;
-                tree.item.onSelect(tree);
-            }
-        },
-        layoutAfter: function(callback) {
-            try {
-                this.getLayouter().defer();
-                callback.call(this);
-            } finally {
-                this.getLayouter().resume();
-            }
-        }
-    },
-    'editing', {
-        edit: function() { console.warn('editing tree node label not supported yet'); },
-        editDescription: function() {
-            this.label.textString = this.item.name + (this.item.description ? "  " : "");
-            this.label.growOrShrinkToFit();
-            var bounds = pt(0,0).extent(pt(160, 20));
-            var edit = new lively.morphic.Text(bounds, this.item.description);
-            edit.isInputLine = true;
-            edit.setClipMode("hidden");
-            edit.setFixedHeight(true);
-            edit.setFixedWidth(true);
-            edit.setBorderWidth(0);
-            edit.onEnterPressed = edit.onEscPressed;
-            this.node.addMorph(edit);
-            edit.growOrShrinkToFit();
-            edit.onBlur = function() { this.finishEditingDescription(edit); }.bind(this);
-            (function() { edit.focus(); edit.selectAll(); }).delay(0);
-        },
-        finishEditingDescription: function(edit) {
-            if (this.item.onEdit) this.item.onEdit(edit.textString);
-            edit.remove();
+    updateNode: function() {
+        if (this.node) {
+            this.updateIcon();
             this.updateLabel();
         }
     },
-    'enumerating', {
-        withAllTreesDo: function(iter, context, depth) {
-            if (!depth) depth = 0;
-            iter.call(context || Global, this, depth);
-            if (!this.childNodes) return;
-            for (var i = 0; i < this.childNodes.length; i++) {
-                this.childNodes[i].withAllTreesDo(iter, context, depth + 1);
+    updateIcon: function() {
+        var str = this.item.children ? "►" : "";
+        if (this.childNodes) str = "▼";
+        if (this.icon.textString !== str) this.icon.textString = str;
+    },
+    updateLabel: function() {
+        var str = this.item.name;
+        var changed = false;
+        if (this.item.description) str += "  " + this.item.description;
+        if (this.label.getTextNode().textContent !== str) {
+            this.label.textString = this.item.name + (this.item.description ? "  " : "");
+            if (this.item.description) {
+                var chunk = this.label.createChunk();
+                chunk.textString = this.item.description;
+                chunk.styleText({color: Color.web.darkgray});
+                this.label.getTextChunks().push(chunk);
+            }
+            changed = true;
+        }
+        if (this.item.style && this.item.style !== this.label.oldStyle) {
+            this.label.firstTextChunk().styleText(this.item.style);
+            this.label.oldStyle = this.item.style;
+            changed = true;
+        }
+        var isSelected = this.label.getFill() !== null;
+        if (isSelected && !this.item.isSelected)
+            this.label.setFill(null);
+        if (!isSelected && this.item.isSelected)
+            this.label.setFill(Color.rgb(218, 218, 218));
+        if (changed) this.label.growOrShrinkToFit();
+    },
+    updateChildren: function() {
+        if (!this.childNodes) return;
+        var oldChildren = this.childNodes.map(function(n) { return n.item; });
+        var toRemove = oldChildren.withoutAll(this.item.children);
+        for (var i = 0; i < this.childNodes.length; i++) {
+            var node = this.childNodes[i];
+            if (toRemove.include(node.item)) {
+                node.remove();
+                this.childNodes.removeAt(i--);
+            }
+        }
+        var pageSize = this.childrenPerPage ? this.childrenPerPage : 100;
+        var currentInterval = Math.ceil(this.childNodes.length / pageSize) * pageSize;
+        currentInterval = Math.max(currentInterval , 100);
+        var childrenToShow = Math.min(this.item.children.length, currentInterval);
+        for (var j = 0; j < childrenToShow; j++) {
+            var item = this.item.children[j];
+            if (this.childNodes.length > j && this.childNodes[j].item === item) {
+                this.childNodes[j].update();
+            } else {
+                var after = this.childNodes[j - 1];
+                var newNode = this.createNodeAfter(item, after);
+                this.childNodes.pushAt(newNode, j);
             }
         }
     }
-);
+},
+'creating', {
+    createIcon: function() {
+        var bounds = pt(0, 0).extent(pt(10, 20));
+        var str = this.item.children ? "►" : "";
+        var icon = new lively.morphic.Text(bounds, str);
+        icon.setBorderWidth(0);
+        icon.setFill(null);
+        icon.disableDragging();
+        icon.disableGrabbing();
+        icon.setInputAllowed(false);
+        icon.setHandStyle('default');
+        icon.setAlign("right");
+        icon.addScript(function onMouseDown(evt) {
+            if (this.owner.owner.item.children && evt.isLeftMouseButtonDown()) {
+                this.owner.owner.toggle();
+            }
+        });
+        return icon;
+    },
+    createLabel: function() {
+        var bounds = pt(0, 0).extent(pt(100, 20));
+        var name = this.item.name + (this.item.description ? "  " : "");
+        var label = new lively.morphic.Text(bounds, name);
+        if (this.item.style) {
+            label.firstTextChunk().styleText(this.item.style);
+            label.oldStyle = this.item.style;
+        }
+        if (this.item.description) {
+            var gray = {color: Color.web.darkgray};
+            label.insertRichTextAt(this.item.description, gray, name.length);
+        }
+        label.setBorderWidth(0);
+        label.setFill(null);
+        label.disableDragging();
+        label.disableGrabbing();
+        label.setInputAllowed(false);
+        label.setHandStyle('default');
+        label.setFixedWidth(false);
+        label.setFixedHeight(true);
+        label.addScript(function onMouseDown(evt) {
+            if (evt.isLeftMouseButtonDown() && this.owner.owner.item.onSelect) {
+                this.owner.owner.getRootTree().select(this.owner.owner);
+            }
+        });
+        if (this.item.isSelected) {
+            label.setFill(Color.rgb(218, 218, 218));
+        }
+        return label;
+    },
+    createNodeAfter: function(item, optOtherNode) {
+        var node = new lively.morphic.Tree(item, this);
+        if (optOtherNode) {
+            node.setPosition(optOtherNode.getPosition().addXY(0,1));
+        }
+        this.addMorph(node);
+        return node;
+    },
+},
+'tree', {
+    isChild: function() {
+        return this.parent && this.parent.node;
+    },
+    showChildren: function() {
+        var that = this;
+        this.childNodes = [];
+        if (!this.item.children) return;
+        this.showMoreChildren();
+    },
+    showMoreChildren: function() {
+        this.layoutAfter(function() {
+            var childrenToShow = this.item.children.slice(
+                this.childNodes.length,
+                this.childNodes.length + (this.childrenPerPage ? this.childrenPerPage : 100));
+            if (this.showMoreNode) this.showMoreNode.remove();
+            this.showMoreNode = null;
+            var start = this.childNodes.length === 0 ? this : this.childNodes.last();
+            childrenToShow.reduce(function(previous, currentItem) {
+                var node = this.createNodeAfter(currentItem, previous);
+                this.childNodes.push(node);
+                return node;
+            }.bind(this), start);
+            if (this.childNodes.length < this.item.children.length) {
+                var more = {name: "", description: "[show more]",
+                            onSelect: this.showMoreChildren.bind(this)};
+                this.showMoreNode = this.createNodeAfter(more, this.childNodes.last());
+            }
+        });
+    },
+    expand: function() {
+        this.layoutAfter(function () {
+            if (this.item.onExpand) this.item.onExpand(this);
+            if (this.icon) this.icon.setTextString("▼");
+            this.showChildren();
+        })
+    },
+    collapse: function() {
+        this.layoutAfter(function() {
+            if (this.item.onCollapse) this.item.onCollapse(this.item);
+            if (this.icon) this.icon.setTextString("►");
+            if (this.childNodes) this.childNodes.invoke("remove");
+            this.childNodes = null;
+            if (this.showMoreNode) this.showMoreNode.remove();
+            this.showMoreNode = null;
+        });
+    },
+    toggle: function() {
+        this.childNodes ? this.collapse() : this.expand();
+    },
+    select: function(tree) {
+        this.withAllTreesDo(function(t) {
+            if (t.item.isSelected) {
+                delete t.item.isSelected;
+                t.label.setFill(null);
+            }
+        });
+        if (tree) {
+            tree.label.setFill(Color.rgb(218, 218, 218));
+            tree.item.isSelected = true;
+            tree.item.onSelect(tree);
+        }
+    },
+    layoutAfter: function(callback) {
+        try {
+            this.getLayouter().defer();
+            callback.call(this);
+        } finally {
+            this.getLayouter().resume();
+        }
+    }
+},
+'editing', {
+    edit: function() { console.warn('editing tree node label not supported yet'); },
+    editDescription: function() {
+        this.label.textString = this.item.name + (this.item.description ? "  " : "");
+        this.label.growOrShrinkToFit();
+        var bounds = pt(0,0).extent(pt(160, 20));
+        var edit = new lively.morphic.Text(bounds, this.item.description);
+        edit.isInputLine = true;
+        edit.setClipMode("hidden");
+        edit.setFixedHeight(true);
+        edit.setFixedWidth(true);
+        edit.setBorderWidth(0);
+        edit.onEnterPressed = edit.onEscPressed;
+        this.node.addMorph(edit);
+        edit.growOrShrinkToFit();
+        edit.onBlur = function() { this.finishEditingDescription(edit); }.bind(this);
+        (function() { edit.focus(); edit.selectAll(); }).delay(0);
+    },
+    finishEditingDescription: function(edit) {
+        if (this.item.onEdit) this.item.onEdit(edit.textString);
+        edit.remove();
+        this.updateLabel();
+    }
+},
+'enumerating', {
+    withAllTreesDo: function(iter, context, depth) {
+        if (!depth) depth = 0;
+        iter.call(context || Global, this, depth);
+        if (!this.childNodes) return;
+        for (var i = 0; i < this.childNodes.length; i++) {
+            this.childNodes[i].withAllTreesDo(iter, context, depth + 1);
+        }
+    }
+});
 
 }) // end of module

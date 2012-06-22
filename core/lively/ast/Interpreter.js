@@ -794,6 +794,7 @@ Object.subclass('lively.ast.FunctionCaller', 'documentation', {
     activate: function(frame, isNewCall, func, funcName, recv, argValues) {
         // if we send apply to a function (recv) we want to interpret it
         // although apply is a native function
+        debugger;
         if (recv && (Object.isFunction(recv) || recv.isFunction) && funcName == 'apply') {
             if (!recv.isFunction) recv = recv.forInterpretation(Global);
             func = recv; // The function object is what we want to run

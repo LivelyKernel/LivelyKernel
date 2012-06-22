@@ -1217,9 +1217,7 @@ lively.morphic.Shapes.Shape.addMethods(
     lively.morphic.Morph.addMethods(
         'stylesheets', {
 			applyStyleSheet: function(style) {
-
 				this.setNodeId();
-
 				this.shape.setStyleSheet(style);
 			},
 			setAppearanceStylingMode: function(value) {

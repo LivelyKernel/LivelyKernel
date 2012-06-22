@@ -404,6 +404,35 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
         this.setChecked(this.isChecked());
     },
 });
+lively.morphic.Morph.subclass('lively.morphic.PasswordInput',
+'initializing', {
+    initialize: function($super, isChecked) {
+        $super(this.createShape());
+    },
+    createShape: function() {
+        var node = XHTMLNS.create('input');
+        node.type = 'password';
+        node.className = 'visibleSelection';
+        return new lively.morphic.Shapes.External(node);
+    },
+},
+'accessing', {
+    set value(string) {
+        // FIXME move to lively.morphic.HTML
+        var inputNode = this.renderContext().shapeNode;
+        if (inputNode) {
+            inputNode.value = string;
+        }
+
+        lively.bindings.signal(this, 'value', string);
+        return string;
+    },
+    get value() {
+        // FIXME move to lively.morphic.HTML
+        var inputNode = this.renderContext().shapeNode;
+        return inputNode ? inputNode.value : '';
+    }
+});
 
 lively.morphic.Box.subclass('lively.morphic.ProgressBar',
 'settings', {

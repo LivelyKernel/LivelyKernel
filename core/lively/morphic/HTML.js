@@ -1222,7 +1222,8 @@ lively.morphic.Shapes.Shape.addMethods(
 			setAppearanceStylingMode: function(value) {
 				// TRUE when appearance is styled through style sheets,
 				// FALSE when appearance is styled through style dialog
-				return this.shape.setAppearanceStylingMode(value);
+				this.shape.setAppearanceStylingMode(value);
+				this.updateComputedStyles();
 			},
 
 			setStyleSheet: function(value) {

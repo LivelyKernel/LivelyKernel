@@ -14,12 +14,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         borderWidth: 1,
         borderRadius: 5,
         padding: Rectangle.inset(0,3),
-        fill: new lively.morphic.LinearGradient(
-            [{offset: 0, color: Color.gray.mixedWith(Color.white, 0.2)},
-            {offset: 0.4, color: Color.gray.mixedWith(Color.white, 0.9)},
-            {offset: 0.6, color: Color.gray.mixedWith(Color.white, 0.9)},
-            {offset: 1, color: Color.gray.mixedWith(Color.white, 0.3)}],
-            "NorthSouth"),
+
         label: {
             borderWidth: 0,
             fill: null,
@@ -1039,15 +1034,16 @@ lively.morphic.Morph.addMethods(
             }
         }
 
-        if (false) {
-        items.push(["Enable internal selections", function() {
-            Trait('SelectionMorphTrait').applyTo(self, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
-            self.enableDragging();
-        }])
+        if (false) { // rk 12-06-22: what is this for???
+            items.push(["Enable internal selections", function() {
+                Trait('SelectionMorphTrait').applyTo(self, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
+                self.enableDragging();
+            }])
         }
 
-        if (this.reset)
+        if (this.reset) {
             items.push(['Reset', this.reset.bind(this)]);
+        }
 
         if (this.owner.owner) { // Is owner owner a Stack?
             if (this.owner.owner.pageArray) {

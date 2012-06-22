@@ -226,6 +226,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         this.charsTyped = '';
         this.evalEnabled = false;
         this.fit();
+        if (this.prepareForTextMutationRecording) this.prepareForTextMutationRecording();
     }
 },
 'styling', {
@@ -650,6 +651,12 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             case "c": { lively.morphic.Text.clipboardString = this.selectionString();
                 return false; }
             case "v": { //  Just do the native paste
+                return false; }
+            case "z": {
+                if (this.undo) {
+                    this.undo();
+                    return true;
+                }
                 return false; }
         }
 

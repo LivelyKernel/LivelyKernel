@@ -1235,6 +1235,8 @@ lively.morphic.Shapes.Shape.addMethods(
                         webR.forceUncached();
 			var webRGet = webR.get();
 			console.log(webRGet.content);
+			this.setStyleSheet(webRGet.content);
+			
 			return {
 				status: webRGet.status.code(),
 				responseText: webRGet.content

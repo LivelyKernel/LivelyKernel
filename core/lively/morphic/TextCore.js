@@ -79,10 +79,11 @@ Trait('TextChunkOwner',
             var chunkBeforeSpec = this.getChunkAndLocalIndex(fromSafe);
             if (!chunkBeforeSpec) return [];
             var chunkBefore = chunkBeforeSpec[0].splitBefore(chunkBeforeSpec[1]),
+                chunkAfter = chunkBefore.next(),
                 idxInChunks = this.textChunks.indexOf(chunkBefore),
                 newChunk = new lively.morphic.TextChunk('');
-            this.textChunks.pushAt(newChunk, idxInChunks+1);
-            newChunk.addTo(this, chunkBefore.next());
+            this.textChunks.pushAt(newChunk, idxInChunks + 1);
+            newChunk.addTo(this, chunkAfter);
             return [newChunk];
         } else {
             // split the chunks and retrieve chunks inbetween from-to

@@ -1226,21 +1226,14 @@ lively.morphic.Shapes.Shape.addMethods(
 			this.updateComputedStyles();
 		},
 		applyStyleSheetFromFile: function(file){
-			if (typeof WebResource !== "undefined") {
-				var webR = new WebResource(url);
-				if (forceUncached) webR.forceUncached();
-				var webRGet = webR.get();
-				return {
-					status: webRGet.status.code(),
-					responseText: webRGet.content
-				};
-			}
+			var webR = new WebResource(url);
+                        webR.forceUncached();
+			var webRGet = webR.get();
+			return {
+				status: webRGet.status.code(),
+				responseText: webRGet.content
+			};
 
-			var req = new XMLHttpRequest();
-			if (forceUncached) url = this.makeUncached(url);
-			req.open('GET', url, false/*sync*/);
-			req.send();
-			return req;
 		},
 					
 		setStyleSheet: function(value) {

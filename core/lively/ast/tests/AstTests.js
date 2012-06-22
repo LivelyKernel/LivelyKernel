@@ -612,6 +612,11 @@ TestCase.subclass('lively.ast.tests.AstTests.InterpreterTest',
         var result = func.forInterpretation().call();
         this.assertEquals(23, result);
     },
+    test37NativeMethodSend: function() {
+        var func = function(){return new Date().getTime()};
+        var result = func.forInterpretation().call();
+        this.assert(result > 0);
+    },
 });
 
 TestCase.subclass('lively.ast.tests.AstTests.ExecutionStateReifierTest',

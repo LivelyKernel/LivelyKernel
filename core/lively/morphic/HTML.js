@@ -1215,66 +1215,66 @@ lively.morphic.Shapes.Shape.addMethods(
     );
 
     lively.morphic.Morph.addMethods(
-        'stylesheets', {
-			applyStyleSheet: function(style) {
-				this.setStyleSheet(style);
-			},
-			setAppearanceStylingMode: function(value) {
-				// TRUE when appearance is styled through style sheets,
-				// FALSE when appearance is styled through style dialog
-				this.shape.setAppearanceStylingMode(value);
-				this.updateComputedStyles();
-			},
-                        applyStyleSheetFromFile: function(file){
-                            if (typeof WebResource !== "undefined") {
-                            var webR = new WebResource(url);
-                            if (forceUncached) webR.forceUncached();
-                            var webRGet = webR.get();
-                            return {
-                                status: webRGet.status.code(),
-                                responseText: webRGet.content
-                            };
-                        }
+	'stylesheets', {
+		applyStyleSheet: function(style) {
+			this.setStyleSheet(style);
+		},
+		setAppearanceStylingMode: function(value) {
+			// TRUE when appearance is styled through style sheets,
+			// FALSE when appearance is styled through style dialog
+			this.shape.setAppearanceStylingMode(value);
+			this.updateComputedStyles();
+		},
+		applyStyleSheetFromFile: function(file){
+			if (typeof WebResource !== "undefined") {
+				var webR = new WebResource(url);
+				if (forceUncached) webR.forceUncached();
+				var webRGet = webR.get();
+				return {
+					status: webRGet.status.code(),
+					responseText: webRGet.content
+				};
+			}
 
-                        var req = new XMLHttpRequest();
-                        if (forceUncached) url = this.makeUncached(url);
-                        req.open('GET', url, false/*sync*/);
-                        req.send();
-                        return req;
-                        },
-                        
-			setStyleSheet: function(value) {
-				this.setNodeId();
-				this.shape.setStyleSheet(value);
-				this.updateComputedStyles();
-			},
-			getStyleSheet: function() {
-				var r = this.shape.getStyleSheet();
-				//this.updateComputedStyles();
-                                return r;
-			},    
-		
-			getAppearanceStylingMode: function() {
-				return this.shape.getAppearanceStylingMode();
-			},
+			var req = new XMLHttpRequest();
+			if (forceUncached) url = this.makeUncached(url);
+			req.open('GET', url, false/*sync*/);
+			req.send();
+			return req;
+		},
+					
+		setStyleSheet: function(value) {
+			this.setNodeId();
+			this.shape.setStyleSheet(value);
+			this.updateComputedStyles();
+		},
+		getStyleSheet: function() {
+			var r = this.shape.getStyleSheet();
+			//this.updateComputedStyles();
+							return r;
+		},    
+	
+		getAppearanceStylingMode: function() {
+			return this.shape.getAppearanceStylingMode();
+		},
 
-			setBorderStylingMode: function(value) {
-				// TRUE when border is styled through style sheets,
-				// FALSE when border is styled through style dialog
-                                this.shape.setBorderStylingMode(value);
-                                this.updateComputedStyles();
-			},
-			getBorderStylingMode: function() {
-				return this.shape.getBorderStylingMode();
-			},
+		setBorderStylingMode: function(value) {
+			// TRUE when border is styled through style sheets,
+			// FALSE when border is styled through style dialog
+							this.shape.setBorderStylingMode(value);
+							this.updateComputedStyles();
+		},
+		getBorderStylingMode: function() {
+			return this.shape.getBorderStylingMode();
+		},
 
-		
-			updateComputedStyles: function() {
-				this.shape.updateComputedStyles();
-				this.submorphs.each(function(m){m.updateComputedStyles();});
-			},
-        }
-    );
+	
+		updateComputedStyles: function() {
+			this.shape.updateComputedStyles();
+			this.submorphs.each(function(m){m.updateComputedStyles();});
+		},
+	}
+);
 
 
 

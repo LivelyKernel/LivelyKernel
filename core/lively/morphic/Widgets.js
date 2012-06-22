@@ -14,12 +14,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         borderWidth: 1,
         borderRadius: 5,
         padding: Rectangle.inset(0,3),
-        fill: new lively.morphic.LinearGradient(
-            [{offset: 0, color: Color.gray.mixedWith(Color.white, 0.2)},
-            {offset: 0.4, color: Color.gray.mixedWith(Color.white, 0.9)},
-            {offset: 0.6, color: Color.gray.mixedWith(Color.white, 0.9)},
-            {offset: 1, color: Color.gray.mixedWith(Color.white, 0.3)}],
-            "NorthSouth"),
+
         label: {
             borderWidth: 0,
             fill: null,

@@ -633,10 +633,11 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     },
 
     createMenuItems: function(items) {
-        function createItem(string, value, idx, callback, callback2) {
+        function createItem(string, value, idx, callback, callback2, isSubMenu) {
             return {
                 isMenuItem: true,
                 isListItem: true,
+				isSubMenu: isSubMenu,
                 string: string,
                 value: value,
                 idx: idx,
@@ -665,7 +666,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             if (Object.isArray(item) && Object.isArray(item[1])) {
                 var name = item[0], subItems = item[1];
                 result.push(createItem(name, name, i, null, function(evt) {
-                    self.openSubMenu(evt, name, subItems) }));
+                    self.openSubMenu(evt, name, subItems) }, true));
                 return;
             }
             // item = "some string"
@@ -680,10 +681,33 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         var y = 0, x = 0, self = this;
 
         this.items.forEach(function(item) {
+            var title = item.string;
             var itemHeight = 23,
                 itemMorph = new lively.morphic.Text(
-                    new Rectangle(0, y, this.getExtent().x, itemHeight), item.string);
+                    new Rectangle(0, y, this.getExtent().x, itemHeight), title);
+
+            // If an item has a sub menu, add an arrow icon to it
+            if (item.isSubMenu) {
+                var arrowMorph = new lively.morphic.Text(
+                    new Rectangle(0, 0, 10, itemHeight), "▶");
+                    arrowMorph.setPosition(pt(this.getExtent().x, y));
+                arrowMorph.applyStyle({
+                    clipMode: 'hidden',
+                    fixedHeight: true,
+                    fixedWidth: false,
+                    borderWidth: 0,
+                    fill: null,
+                    handStyle: 'default',
+                    enableGrabbing: false,
+                    allowInput: false,
+                    fontSize: 10,
+                    padding: Rectangle.inset(3,2)
+                });
+                itemMorph.addMorph(arrowMorph);
+            }
+
             this.itemMorphs.push(this.addMorph(itemMorph));
+
             itemMorph.applyStyle({
                 clipMode: 'hidden',
                 fixedHeight: true,
@@ -720,6 +744,13 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                     textColor: Color.white,
                     borderRadius: 4
                 })
+
+                // if the item is a submenu, set its textColor to white
+                var arrow = itemMorph.submorphs.first();
+                if (arrow) {
+                    arrow.applyStyle({textColor: Color.white});
+                }
+
                 self.overItemMorph = itemMorph;
                 self.removeSubMenu()
                 item.onMouseOverCallback && item.onMouseOverCallback(evt);
@@ -735,6 +766,12 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             itemMorph.addScript(function deselect(evt) {
                 this.isSelected = false;
                 this.applyStyle({fill: null, textColor: Color.black});
+
+                // if the item is a submenu, set its textColor back to black
+                var arrow = this.submorphs.first();
+                if (arrow) {
+                    arrow.applyStyle({textColor: Color.black});
+                }
             })
             y += itemHeight;
             x = Math.max(x, itemMorph.getTextExtent().x);
@@ -881,14 +918,20 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     },
 
     fitToItems: function() {
-        var offset = 10,
+        var offset = 10 + 20,
             morphs = this.itemMorphs;
         if (this.title) morphs = morphs.concat([this.title]);
-        var widths = morphs.invoke('getTextExtent').pluck('x');
-        var width = Math.max.apply(Global, widths) + offset;
-        var newExtent = this.getExtent().withX(width);
+        var widths = morphs.invoke('getTextExtent').pluck('x'),
+            width = Math.max.apply(Global, widths) + offset,
+            newExtent = this.getExtent().withX(width);
         this.setExtent(newExtent);
-        morphs.forEach(function(ea) { ea.setExtent(ea.getExtent().withX(newExtent.x)) })
+        morphs.forEach(function(ea) {
+            ea.setExtent(ea.getExtent().withX(newExtent.x));
+            if (ea.submorphs.length > 0) {
+                var arrow = ea.submorphs.first();
+                arrow.setPosition(arrow.getPosition().withX(newExtent.x-17));
+            }
+        })
     }
 
 });

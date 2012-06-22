@@ -593,6 +593,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (evt.isShiftDown()) {  // shifted commands here...
             switch (key) {
                 case "i": { this.doInspect(); return true; }
+                case "e": { this.doEdit(); return true; }
                 case "d": { this.doDebugit(); return true; }
                 case "p": { this.doListProtocol(); return true; }
                 case "f": { this.doBrowseImplementors(); return true; }
@@ -748,7 +749,11 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
     doInspect: function() {
         var obj = this.evalSelection();
-        if (obj) this.world().openInspectorFor(obj)
+        if (obj) this.world().openInspectorFor(obj);
+    },
+    doEdit: function() {
+        var obj = this.evalSelection();
+        if (obj) this.world().openObjectEditorFor(obj);
     },
     doBrowseSenders: function() {
         this.world().openBrowseSendersFor(this.getSelectionOrLineString())

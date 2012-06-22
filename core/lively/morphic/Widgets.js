@@ -2,6 +2,8 @@ module('lively.morphic.Widgets').requires('lively.morphic.Core', 'lively.morphic
 
 lively.morphic.Morph.subclass('lively.morphic.Button',
 'settings', {
+    isButton: true,
+
     style: {
         enableGrabbing: false,
         enableDropping: false,
@@ -1421,9 +1423,17 @@ lively.morphic.List.addMethods(
     },
 },
 'settings', {
-    style: {borderColor: Color.black, borderWidth: 0, fill: Color.gray.lighter().lighter(), clipMode: 'auto', fontFamily: 'Helvetica', fontSize: 10, enableGrabbing: false},
+    style: {
+        borderColor: Color.black,
+        borderWidth: 0,
+        fill: Color.gray.lighter().lighter(),
+        clipMode: 'auto',
+        fontFamily: 'Helvetica',
+        fontSize: 10,
+        enableGrabbing: false
+    },
     selectionColor: Color.green.lighter(),
-    isList: true,
+    isList: true
 },
 'initializing', {
     initialize: function($super, bounds, optItems) {
@@ -1439,17 +1449,15 @@ lively.morphic.List.addMethods(
         $super(extent);
         this.resizeList();
     },
-    getListExtent: function() { return this.renderContextDispatch('getListExtent') },
-
-
+    getListExtent: function() { return this.renderContextDispatch('getListExtent') }
 },
 'list interface', {
     getMenu: function() { /*FIXME actually menu items*/ return [] },
     updateList: function(items) {
         if (!items) items = [];
         this.itemList = items;
-        var that = this;
-        var itemStrings = items.collect(function(ea) { return that.renderFunction(ea); });
+        var that = this,
+            itemStrings = items.collect(function(ea) { return that.renderFunction(ea); });
         this.renderContextDispatch('updateListContent', itemStrings);
     },
     addItem: function(item) {
@@ -1457,8 +1465,7 @@ lively.morphic.List.addMethods(
     },
 
     selectAt: function(idx) {
-        if (!this.isMultipleSelectionList)
-            this.clearSelections();
+        if (!this.isMultipleSelectionList) this.clearSelections();
         this.renderContextDispatch('selectAllAt', [idx]);
         this.updateSelectionAndLineNoProperties(idx);
     },
@@ -1504,7 +1511,7 @@ lively.morphic.List.addMethods(
         if (idx === undefined) return;
         this.changeListPosition(idx, idx+1);
     },
-    clearSelections: function() { this.renderContextDispatch('clearSelections') },
+    clearSelections: function() { this.renderContextDispatch('clearSelections') }
 
 },
 'private list functions', {
@@ -1516,16 +1523,19 @@ lively.morphic.List.addMethods(
         this.selectAt(newIdx);
     },
     resizeList: function(idx) {
-        this.renderContextDispatch('resizeList');
+        return this.renderContextDispatch('resizeList');
     },
     find: function(itemOrValue) {
         // returns the index in this.itemList
         for (var i = 0; i < this.itemList.length; i++) {
             var val = this.itemList[i];
-            if (val === itemOrValue || (val && val.isListItem && val.value === itemOrValue))
-                return i
+            if (val === itemOrValue || (val && val.isListItem && val.value === itemOrValue)) {
+                return i;
+            }
         }
-    },
+        // return -1?
+        return undefined;
+    }
 
 },
 'styling', {
@@ -1560,8 +1570,7 @@ lively.morphic.List.addMethods(
     setSelectionMatching: function(string) {
         for (var i = 0; i < this.itemList.length; i++) {
             var itemString = this.itemList[i].string || String(this.itemList[i]);
-            if (string == itemString)
-                this.selectAt(i);
+            if (string == itemString) this.selectAt(i);
         }
     },
     selectAllAt: function(indexes) {
@@ -2162,8 +2171,8 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
         var input = new lively.morphic.Text(this.label.bounds().insetByPt(pt(this.label.getPosition().x * 2, 0)), this.defaultInput || '');
         input.align(input.getPosition(), this.label.bounds().bottomLeft().addPt(pt(0,5)));
         input.beInputLine({fixedWidth: true});
-		    input.disableDragging();
-		    input.disableGrabbing();
+		input.disableDragging();
+		input.disableGrabbing();
         connect(input, 'savedTextString', this, 'result');
         connect(input, 'onEscPressed', this, 'result', {converter: function() { return null } });
         connect(this.panel, 'onEscPressed', this, 'result', {converter: function() { return null}});

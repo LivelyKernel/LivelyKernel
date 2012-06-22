@@ -501,9 +501,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextLayoutTests',
         // make text small, vertical extent should shrink
         this.text.textString = 'aaa';
         this.assertEqualsEpsilon(pt(50,15), this.text.getTextExtent(), 'text extent did not shrink');
-    },
-
-
+    }
 
 });
 
@@ -542,9 +540,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic2.HtmlPars
 
     testSanitizeNode: function() {
         var s = "<html>\n<body>\n<!--StartFragment-->\n"
-                + "<span>a\nb</span>\n"
-                + "<!--EndFragment-->\n</body>\n</html>";
-        var node = lively.morphic.HTMLParser.sourceToNode(s);
+              + "<span>a\nb</span>\n"
+              + "<!--EndFragment-->\n</body>\n</html>",
+            node = lively.morphic.HTMLParser.sourceToNode(s);
         lively.morphic.HTMLParser.sanitizeNode(node);
         this.assertEquals(node.textContent, "a\nb", "too many newlines");
     },

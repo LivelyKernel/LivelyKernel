@@ -84,6 +84,7 @@ var testList = [
     "lively.morphic.tests.CoreToolsTests",
     "lively.morphic.tests.DataGridTests",
     "lively.morphic.tests.EventTests",
+    "lively.morphic.tests.Graphics",
     'lively.morphic.tests.HTML',
     'lively.morphic.tests.HTMLText',
     "lively.morphic.tests.Layout",

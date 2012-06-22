@@ -16,7 +16,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
     createShape: function(label) {
         var node = XHTMLNS.create('button');
         node.type = 'checkbox';
-        label && node.innerHTML = label;
+        if (label) node.innerHTML = label;
         return new lively.morphic.Shapes.External(node);
     },
 },

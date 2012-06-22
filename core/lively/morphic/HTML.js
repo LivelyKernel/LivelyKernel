@@ -1226,7 +1226,7 @@ lively.morphic.Shapes.Shape.addMethods(
 			this.updateComputedStyles();
 		},
 		applyStyleSheetFromFile: function(file){
-			var webR = new WebResource(url);
+			var webR = new WebResource(file);
                         webR.forceUncached();
 			var webRGet = webR.get();
 			return {

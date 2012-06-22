@@ -274,16 +274,6 @@ Object.subclass('lively.ast.Interpreter.Frame',
         }
     }
 },
-'printing', {
-    highlightSourceText: function(text) {
-        text.setTextString(this.getFuncSource());
-        text.highlightJavaScriptSyntax();
-        if (this.pc !== null) {
-            var style = { backgroundColor: Color.rgb(255,255,127) };
-            text.emphasize(style, this.pc.pos[0], this.pc.pos[1]);
-        }
-    },
-},
 'debugging', {
     toString: function() {
         var mappings = [];

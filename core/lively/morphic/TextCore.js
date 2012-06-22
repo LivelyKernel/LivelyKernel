@@ -427,10 +427,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             paddingHeight = padding.top() + padding.bottom(),
             width = this.fixedWidth ? extent.x : (textExtent.x + borderWidth*2 + paddingWidth),
             height = this.fixedHeight ? extent.y : (textExtent.y + borderWidth*2 + paddingHeight);
-        // if (width !== extent.x || height != extent.y) {
-            this.setExtent(pt(width, height));
-        // }
-    }
+        this.setExtent(pt(width, height));
+    },
 },
 'text modes', {
     beLabel: function(customStyle) {
@@ -525,6 +523,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         evt.stop();
         return true;
     },
+
     onKeyPress: function(evt) {
         this.cachedTextString = null;
 
@@ -544,6 +543,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         evt.stopPropagation()
         return true;
     },
+
     onPaste: function (evt) {
         var htmlData = evt.clipboardData && evt.clipboardData.getData("text/html"),
             textData = evt.clipboardData && evt.clipboardData.getData("text/plain");
@@ -553,18 +553,26 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             return false; // let HTML magic handle paste
         }
 
-        var data = htmlData || lively.morphic.HTMLParser.stringToHTML(textData), // own rich text
+        // try to process own rich text
+        var data = htmlData || lively.morphic.HTMLParser.stringToHTML(textData),
             richText = lively.morphic.HTMLParser.pastedHTMLToRichText(data);
+        if (!richText) {
+            this.insertAtCursor(textData, true, true);
+            evt.stop()
+            return true;
+        }
         try {
             richText.replaceSelectionInMorph(this);
         } catch(e) {
             var world = this.world();
-            if (!world) return true;
+            if (!world) { evt.stop(); return true; }
             var selRange = this.getSelectionRange(),
-                text = this;
-            function inspectCb() {
-                lively.morphic.inspect({richText: richText, text: text, selecitonRange: selRange});
-            }
+                text = this,
+                inspectCb = lively.morphic.inspect.curry({
+                    richText: richText,
+                    text: text,
+                    selecitonRange: selRange
+                });
             world.setStatusMessage("Error in Text>>onPaste() @ replaceSelelectionInMorph",
                                    Color.red, undefined, inspectCb);
             world.logError(e);
@@ -572,6 +580,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         evt.stop()
         return true;
     },
+
     onCut: function(evt) {
         this.fixChunksDelayed();
     },
@@ -1376,6 +1385,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     setSelectionRange: function(start, end) {
+        if (!this.isFocused()) this.focus();
         if (start < 0) { start = 0; }
         if (start > this.textString.length) { start = this.textString.length; }
         if (end < 0) { end = 0; }
@@ -1392,8 +1402,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (startBoundaryPoint === undefined) startBoundaryPoint = endBoundaryPoint;
         if (endBoundaryPoint === undefined) endBoundaryPoint = startBoundaryPoint;
 
-// alert('selecting ' + startBoundaryPoint[0].textContent + '[' + startBoundaryPoint[1] + ']-'
-    // + endBoundaryPoint[0].textContent + '[' + endBoundaryPoint[1] + ']')
+        // alert('selecting ' + startBoundaryPoint[0].textContent + '[' + startBoundaryPoint[1] + ']-'
+        // + endBoundaryPoint[0].textContent + '[' + endBoundaryPoint[1] + ']')
 
         if (sel.setBaseAndExtent) {
             // setBaseAndExtent supports right-to-left selections (at least in Chrome...)
@@ -1402,7 +1412,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                 endBoundaryPoint[0], endBoundaryPoint[1]);
         } else { // e.g. FireFox does not support setBaseAndExtent
             // actually it should not be necessary to switch the values
-            // bot range does not work with right-to-left selections
+            // but range does not work with right-to-left selections
             if (start > end) {
                 var temp = endBoundaryPoint;
                 endBoundaryPoint = startBoundaryPoint;
@@ -1810,8 +1820,9 @@ this. textNodeString()
 'rich text', {
     emphasize: function(styleSpec, from, to) {
         var chunks = this.sliceTextChunks(from, to);
-        for (var i = 0; i < chunks.length; i++)
+        for (var i = 0; i < chunks.length; i++) {
             chunks[i].styleText(styleSpec);
+        }
         this.coalesceChunks();
     },
     unEmphasize: function(from, to) {
@@ -1967,17 +1978,18 @@ this. textNodeString()
         var chunkAndIdx = this.getChunkAndLocalIndex(idx, true);
         return chunkAndIdx && chunkAndIdx[0].style;
     },
-	
+
 	insertRichTextAt: function(string, style, index) {
         var newChunk = this.sliceTextChunks(index, index)[0];
         if (!newChunk) {
             console.warn('insertRichtTextAt failed, found no text chunk!');
             return;
         }
-        newChunk.textString += string;
+        newChunk.textString = string;
         newChunk.styleText(style);
         this.coalesceChunks();
-    },
+        this.cachedTextString = null;
+    }
 
 },
 'status messages', {
@@ -2286,11 +2298,9 @@ Object.subclass('lively.morphic.TextChunk',
         };
 
         // We dont care we want to have the right so use this as right and dont split
-        if (returnRight && myString.length === 0)
-            return this;
+        if (returnRight && myString.length === 0) return this;
         // same thing
-        if (!returnRight && newString.length === 0)
-            return this;
+        if (!returnRight && newString.length === 0) return this;
 
         this.textString = myString;
         var newChunk = this.createForSplit(newString),
@@ -2304,7 +2314,8 @@ Object.subclass('lively.morphic.TextChunk',
 
         return returnRight ? newChunk : this;
     },
-    createForSplit: function(str) { return new this.constructor(str, this.style.clone()) },
+
+    createForSplit: function(str) { return new this.constructor(str, this.style.clone()) }
 
 },
 'joining', {
@@ -2318,11 +2329,11 @@ Object.subclass('lively.morphic.TextChunk',
         this.textString += next.textString;
         return true;
     },
+
     joinWithNextIfEqualStyle: function() {
         var next = this.next();
-        if (next && this.style.equals(next.style))
-            return this.joinWithNext();
-    },
+        return next && this.style.equals(next.style) ? this.joinWithNext() : null;
+    }
 
 },
 'styling', {
@@ -2330,7 +2341,7 @@ Object.subclass('lively.morphic.TextChunk',
         this.normalize();
         if (styleSpec) this.style.add(styleSpec);
         this.style.applyToHTML(this.getChunkNode(), this.debugMode);
-    },
+    }
 },
 'subnodes', {
     normalize: function() {
@@ -2758,33 +2769,34 @@ Object.extend(lively.morphic.HTMLParser, {
         // creates DOM node from a snipped of HTML
         if (data.startsWith('<meta charset')) {
             // it's a special apple format?
-            var string = '<?xml version=\'1.0\'?><div xmlns:lively="' + Namespace.LIVELY + '">' + data + '</div>';
-            string = string.replace("<meta charset='utf-8'>", "")
-            string = string.replace(/<br(.*?)>/g, "<br $1/>")
-            var node = new DOMParser().parseFromString(string, "text/xml").documentElement;
-        } else {
-            // it's a cpmplete html document
-            // we are currently cutting of everything excepts the body -- this means that
-            // style can be lost
-            var start = data.indexOf('<body>');
-            if (start > -1) {
-                start += 6; // "<body>"
-                var end = data.indexOf('</body>')
-                var string = data.slice(start, end);
-                string = Strings.removeSurroundingWhitespaces(string);
-            } else {
-                var string = data; // if no body tag just use the plain string
-            }
-            var node = XHTMLNS.create('div');
-            try {
-                node.innerHTML = this.sanitizeHtml(string);
-            } catch (e) {
-                // JENS: logError breaks browser under windows?
-                alert("PASTE ERROR: " + e + '\n could not paste: ' + string +'\n'
-                + 'please report problem on: http://lively-kernel.org/trac')
-            }
+            var string = '<?xml version=\'1.0\'?><div xmlns:lively="'
+                       + Namespace.LIVELY + '">' + data + '</div>';
+            string = string.replace("<meta charset='utf-8'>", "");
+            string = string.replace(/<br(.*?)>/g, "<br $1/>");
+            var doc = new DOMParser().parseFromString(string, "text/xml"),
+                errorOccurred = doc.getElementsByTagName('parsererror').length > 0;
+            return !errorOccurred && doc.documentElement;
         }
-        return node
+        // it's a complete html document
+        // we are currently cutting of everything excepts the body -- this means that
+        // style can be lost
+        var start = data.indexOf('<body>'), string;
+        if (start > -1) {
+            start += 6; // "<body>"
+            var end = data.indexOf('</body>');
+            string = Strings.removeSurroundingWhitespaces(data.slice(start, end));
+        } else {
+            string = data; // if no body tag just use the plain string
+        }
+        var node = XHTMLNS.create('div');
+        try {
+            node.innerHTML = this.sanitizeHtml(string);
+        } catch (e) {
+            // JENS: logError breaks browser under windows?
+            alert("PASTE ERROR: " + e + '\n could not paste: ' + string +'\n'
+                 + 'please report problem on: http://lively-kernel.org/trac')
+        }
+        return node;
     },
     sanitizeHtml: function(string) {
         // replaces html br with newline
@@ -2807,16 +2819,16 @@ Object.extend(lively.morphic.HTMLParser, {
         })
     },
 
-
-
     pastedHTMLToRichText: function(data) {
-        // creates a rich text object from HTML snipped
+        // creates a rich text object from HTML snippet
         var node = this.sourceToNode(data);
+        if (!node) return null;
         this.sanitizeNode(node);
         var richText = new lively.morphic.RichText(node.textContent);
         this.extractStylesAndApplyToRichText(node, richText, {styles: [], styleStart: 0})
         return richText;
     },
+
     extractStylesAndApplyToRichText: function(element, richText, mem) {
         // private
         for (var i = 0; i < element.childNodes.length; i++) {
@@ -2951,4 +2963,4 @@ Trait("lively.morphic.TextDiffTrait", {
     },
 }).applyTo(lively.morphic.Text);
 
-}) // end of modulerp
+}) // end of module

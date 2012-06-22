@@ -1229,6 +1229,7 @@ lively.morphic.Shapes.Shape.addMethods(
 			var webR = new WebResource(file);
                         webR.forceUncached();
 			var webRGet = webR.get();
+			console.log(webRGet.content);
 			return {
 				status: webRGet.status.code(),
 				responseText: webRGet.content

@@ -46,6 +46,9 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTMLText.TextAttrib
         this.text.insertRichTextAt("y J", {color:Color.red}, 2);
         this.assertEquals(this.text.textString, "Hey Joe!", "text after insert");
         this.assertEquals(this.text.copy().textString, "Hey Joe!", "text after copy");
+        this.checkDOM([{tagName: 'span', textContent: 'He', style: {}},
+                       {tagName: 'span', textContent: 'y J', style: {color: 'rgb(204,0,0)'}},
+                       {tagName: 'span', textContent: 'oe!', style: {}}]);
     }
 });
 

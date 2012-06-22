@@ -1985,10 +1985,11 @@ this. textNodeString()
             console.warn('insertRichtTextAt failed, found no text chunk!');
             return;
         }
-        newChunk.textString += string;
+        newChunk.textString = string;
         newChunk.styleText(style);
         this.coalesceChunks();
-    },
+        this.cachedTextString = null;
+    }
 
 },
 'status messages', {

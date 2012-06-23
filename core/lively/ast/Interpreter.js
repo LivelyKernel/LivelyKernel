@@ -822,10 +822,13 @@ Object.subclass('lively.ast.FunctionCaller', 'documentation', {
     },
 
     doNew: function(frame, func, args) {
+        if (this.isNative(func))
+            return new func();
         var proto = func.prototype,
             constructor = function() {};
         constructor.prototype = proto;
         var newObj = new constructor();
+        newObj.constructor = func;
         func.apply(newObj, args, frame); // call with new object
         return newObj;
     },

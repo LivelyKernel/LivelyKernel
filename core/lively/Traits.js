@@ -231,6 +231,7 @@ Object.extend(RealTrait, {
 });
 
 Object.extend(Global, {
+
     Trait: function(/*traitName, def ... */) {
         var args = $A(arguments),
             traitName = args.shift(),
@@ -245,6 +246,7 @@ Object.extend(Global, {
         }
         return trait;
     }
+
 });
 
 Object.extend(lively.Traits, {

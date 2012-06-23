@@ -2,7 +2,7 @@ module('lively.morphic.ColorChooserDraft').requires('lively.morphic.Core', 'live
 
 lively.morphic.Box.subclass('lively.morphic.ColorChooser',
 'settings', {
-    defaultBounds: new Rectangle(0,0, 160, 120),
+    defaultBounds: new Rectangle(0,0, 160, 120)
 },
 'initializing', {
     initialize: function($super, bounds) {
@@ -17,12 +17,13 @@ lively.morphic.Box.subclass('lively.morphic.ColorChooser',
 'color mapping', {
     colorForPos: function(pos) {
         throw new Error('subclass responsibility');
-    },
+    }
 });
+
 lively.morphic.ColorChooser.subclass('lively.morphic.RGBColorChooser',
 'settings', {
     colorNames: 'rgb',
-    hasLabel: true,
+    hasLabel: true
 },
 'initializing', {
     buildColorMap: function() {
@@ -462,7 +463,7 @@ lively.morphic.ColorChooser.subclass('lively.morphic.SimpleColorChooser',
                 this.addMorph(morph);
             }
         }
-    },
+    }
 },
 'color mapping', {
     colorForPos: function(pos) {
@@ -470,9 +471,7 @@ lively.morphic.ColorChooser.subclass('lively.morphic.SimpleColorChooser',
             pos = r.closestPointToPt(pos),
             m = this.submorphs.detect(function(ea) { return ea.bounds().containsPoint(pos) });
         return m ? m.getFill() : Color.black;
-    },
+    }
 });
-
-
 
 }) // end of module

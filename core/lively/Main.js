@@ -887,16 +887,17 @@ lively.Main.Examples.subclass('lively.Main.HTMLExamples', {
         Config.showSlideWorld = false
         Config.showDeveloperWorld = false
         require('lively.Examples').toRun(function() { $super(world) });
-    },
+    }
 
 });
+
 Object.extend(lively.Main, {
     getLoader: function(canvas) {
         if (canvas.tagName.toUpperCase() == 'CANVAS' || Config.isNewMorphic) return new lively.Main.CanvasLoader();
         if (canvas.tagName.toUpperCase() == 'SVG' && !Config.forceHTML) return new lively.Main.Loader();
         if (canvas.tagName.toUpperCase() == 'DIV' || Config.forceHTML) return new lively.Main.HTMLLoader();
         throw new Error('No loader for ' + canvas);
-    },
+    }
 });
 
 }); // end of module

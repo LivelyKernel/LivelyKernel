@@ -968,42 +968,41 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.TileLayout',
 });
 
 lively.morphic.Layout.JournalLayout.subclass("lively.morphic.Layout.TreeLayout",
-    'initializing', {
-        initialize: function($super, container) {
-            $super(container);
-            this.spacing = 0;
-            var indent = this.container.isChild() ? 16 : 0;
-            this.borderSize = {top: 0, right: 0, bottom: 0, left: indent};
-            this.displaysPlaceholders = Functions.False;
-            this.isDefered = false;
+'initializing', {
+    initialize: function($super, container) {
+        $super(container);
+        this.spacing = 0;
+        var indent = this.container.isChild() ? 16 : 0;
+        this.borderSize = {top: 0, right: 0, bottom: 0, left: indent};
+        this.displaysPlaceholders = Functions.False;
+        this.isDefered = false;
+    }
+},
+'updating', {
+    defer: function() {
+        this.isDefered = true;
+        if (this.container.owner instanceof lively.morphic.Tree) {
+            this.container.owner.getLayouter().defer();
         }
     },
-    'updating', {
-        defer: function() {
-            this.isDefered = true;
-            if (this.container.owner instanceof lively.morphic.Tree) {
-                this.container.owner.getLayouter().defer();
-            }
-        },
-        resume: function() {
-            this.isDefered = false;
-            var indent = this.container.isChild() ? 16 : 0;
-            this.borderSize = {top: 0, right: 0, bottom: 0, left: indent};
-            this.layout(this.container, this.container.submorphs);
-            if (this.container.owner instanceof lively.morphic.Tree) {
-                this.container.owner.getLayouter().resume();
-            }
-        },
-        onSubmorphAdded: function($super, aMorph, aSubmorph, allSubmorphs) {
-            if (!this.isDefered) $super(aMorph, aSubmorph, allSubmorphs);
-        },
-        onSubmorphResized: function($super, aMorph, aSubmorph, allSubmorphs) {
-            if (!this.isDefered) $super(aMorph, aSubmorph, allSubmorphs);
-        },
-        onSubmorphRemoved: function($super, aMorph, aSubmorph, allSubmorphs) {
-            if (!this.isDefered) $super(aMorph, aSubmorph, allSubmorphs);
-        },
+    resume: function() {
+        this.isDefered = false;
+        var indent = this.container.isChild() ? 16 : 0;
+        this.borderSize = {top: 0, right: 0, bottom: 0, left: indent};
+        this.layout(this.container, this.container.submorphs);
+        if (this.container.owner instanceof lively.morphic.Tree) {
+            this.container.owner.getLayouter().resume();
+        }
+    },
+    onSubmorphAdded: function($super, aMorph, aSubmorph, allSubmorphs) {
+        if (!this.isDefered) $super(aMorph, aSubmorph, allSubmorphs);
+    },
+    onSubmorphResized: function($super, aMorph, aSubmorph, allSubmorphs) {
+        if (!this.isDefered) $super(aMorph, aSubmorph, allSubmorphs);
+    },
+    onSubmorphRemoved: function($super, aMorph, aSubmorph, allSubmorphs) {
+        if (!this.isDefered) $super(aMorph, aSubmorph, allSubmorphs);
     }
-);
+});
 
 }); // end of module

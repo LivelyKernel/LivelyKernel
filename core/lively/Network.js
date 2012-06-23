@@ -1362,6 +1362,9 @@ Object.subclass('WebResource',
     addContentType: function(contentType) {
         this.requestHeaders["Content-Type"] = contentType || '';
     },
+    addNoCacheHeader: function() {
+        this.setRequestHeaders({"Cache-Control": 'no-cache'});
+    }
 
 },
 'HTTP methods', {
@@ -1431,6 +1434,7 @@ Object.subclass('WebResource',
         this.content = this.convertContent(content || '');
         if (requiredRevision) this.addHeaderForRequiredRevision(requiredRevision);
         if (contentType) this.addContentType(contentType)
+        this.addNoCacheHeader();
         var req = this.createXMLHTTPRequest('PUT');
         req.request(this.content);
         return this;
@@ -1448,6 +1452,7 @@ Object.subclass('WebResource',
         // this mehod intentionally not called delete because some JS engines
         // throw an error when parsing "keywords" as object key names
         var request = this.createNetRequest();
+        this.addNoCacheHeader();
         request.del(this.getURL());
         return this;
     },
@@ -1614,19 +1619,20 @@ Object.subclass('WebResource',
     },
 
     pvtProcessPropfindForSubElements: function(doc) {
-        if (!this.status.isSuccess())
+        if (!this.status.isSuccess()) {
             throw new Error('Cannot access subElements of ' + this.getURL());
-        var davNs = this.ensureDavXmlNs(doc);
-        var nodes = new Query("/" + davNs + ":multistatus/" + davNs + ":response").findAll(doc.documentElement)
-        var urlQ = new Query(davNs + ':href');
+        }
+        var davNs = this.ensureDavXmlNs(doc),
+            nodes = new Query("/" + davNs + ":multistatus/" + davNs + ":response").findAll(doc.documentElement),
+            urlQ = new Query(davNs + ':href'),
+            result = [];
         nodes.shift(); // remove first since it points to this WebResource
-        var result = [];
         for (var i = 0; i < nodes.length; i++) {
-            var urlNode = urlQ.findFirst(nodes[i]);
-            var url = urlNode.textContent || urlNode.text; // text is FIX for IE9+
+            var urlNode = urlQ.findFirst(nodes[i]),
+                url = urlNode.textContent || urlNode.text; // text is FIX for IE9+
             if (/!svn/.test(url)) continue;// ignore svn dirs
-            var child = new WebResource(this.getURL().withPath(url));
-            var revNode = nodes[i].getElementsByTagName('version-name')[0];
+            var child = new WebResource(this.getURL().withPath(url)),
+                revNode = nodes[i].getElementsByTagName('version-name')[0];
             if (revNode) child.headRevision = Number(revNode.textContent);
             result.push(child);
         }

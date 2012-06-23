@@ -79,10 +79,11 @@ Trait('TextChunkOwner',
             var chunkBeforeSpec = this.getChunkAndLocalIndex(fromSafe);
             if (!chunkBeforeSpec) return [];
             var chunkBefore = chunkBeforeSpec[0].splitBefore(chunkBeforeSpec[1]),
+                chunkAfter = chunkBefore.next(),
                 idxInChunks = this.textChunks.indexOf(chunkBefore),
                 newChunk = new lively.morphic.TextChunk('');
-            this.textChunks.pushAt(newChunk, idxInChunks+1);
-            newChunk.addTo(this, chunkBefore.next());
+            this.textChunks.pushAt(newChunk, idxInChunks + 1);
+            newChunk.addTo(this, chunkAfter);
             return [newChunk];
         } else {
             // split the chunks and retrieve chunks inbetween from-to
@@ -225,6 +226,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         this.charsTyped = '';
         this.evalEnabled = false;
         this.fit();
+        if (this.prepareForTextMutationRecording) this.prepareForTextMutationRecording();
     }
 },
 'styling', {
@@ -591,6 +593,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (evt.isShiftDown()) {  // shifted commands here...
             switch (key) {
                 case "i": { this.doInspect(); return true; }
+                case "e": { this.doEdit(); return true; }
                 case "d": { this.doDebugit(); return true; }
                 case "p": { this.doListProtocol(); return true; }
                 case "f": { this.doBrowseImplementors(); return true; }
@@ -649,6 +652,12 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             case "c": { lively.morphic.Text.clipboardString = this.selectionString();
                 return false; }
             case "v": { //  Just do the native paste
+                return false; }
+            case "z": {
+                if (this.undo) {
+                    this.undo();
+                    return true;
+                }
                 return false; }
         }
 
@@ -709,7 +718,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             function(response) {
                 if (!response) return;
                 text.focus();
-                return text.searchForFind(response, text.getSelectionRange()[1]);
+                var start = text.getSelectionRange()[1];
+                (function() { text.searchForFind(response, start) }).delay(0);
             }, this.lastSearchString);
     },
 
@@ -740,7 +750,11 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
     doInspect: function() {
         var obj = this.evalSelection();
-        if (obj) this.world().openInspectorFor(obj)
+        if (obj) this.world().openInspectorFor(obj);
+    },
+    doEdit: function() {
+        var obj = this.evalSelection();
+        if (obj) this.world().openObjectEditorFor(obj);
     },
     doBrowseSenders: function() {
         this.world().openBrowseSendersFor(this.getSelectionOrLineString())
@@ -1515,6 +1529,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     selectWord: function(str, i1) { // Selection caret before char i1
+        if (!str) return i1;
         // Most of the logic here is devoted to selecting matching backets
         var rightBrackets = "*)}]>'\"";
         var leftBrackets = "*({[<'\"";
@@ -1640,7 +1655,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 },
 'searching', {
     searchForFind: function(str, start, noWrap) {
-        // if (this.world()) this.focus();
         var i1 = this.textString.indexOf(str, start);
         if (i1 < 0 && !noWrap) i1 = this.textString.indexOf(str, 0); // wrap
         if (i1 >= 0) this.setSelectionRange(i1, i1+str.length);
@@ -1806,8 +1820,9 @@ this. textNodeString()
 'rich text', {
     emphasize: function(styleSpec, from, to) {
         var chunks = this.sliceTextChunks(from, to);
-        for (var i = 0; i < chunks.length; i++)
+        for (var i = 0; i < chunks.length; i++) {
             chunks[i].styleText(styleSpec);
+        }
         this.coalesceChunks();
     },
     unEmphasize: function(from, to) {
@@ -1964,6 +1979,18 @@ this. textNodeString()
         return chunkAndIdx && chunkAndIdx[0].style;
     },
 
+	insertRichTextAt: function(string, style, index) {
+        var newChunk = this.sliceTextChunks(index, index)[0];
+        if (!newChunk) {
+            console.warn('insertRichtTextAt failed, found no text chunk!');
+            return;
+        }
+        newChunk.textString = string;
+        newChunk.styleText(style);
+        this.coalesceChunks();
+        this.cachedTextString = null;
+    }
+
 },
 'status messages', {
     setStatusMessage: function(msg, color, delay) {
@@ -2027,10 +2054,10 @@ this. textNodeString()
     tabspacesForCursorPos: function() {
         var cursorPos = this.getSelectionRange()[0]
         if (this.textString[cursorPos] == '\n') return this.tab
-        var beginOfLine = this.textString.lastIndexOf("\n", cursorPos);
+        var beginOfLine = this.textString.lastIndexOf('\n', cursorPos);
         var column = this.textString.substring(beginOfLine + 1, cursorPos);
         // alertOK("tab " + column.length)
-        return  Strings.indent("", " ", this.tab.length - column.length % this.tab.length )
+        return  Strings.indent('', ' ', this.tab.length - column.length % this.tab.length )
     },
 },
 'syntax highlighting', {
@@ -2753,14 +2780,13 @@ Object.extend(lively.morphic.HTMLParser, {
         // it's a complete html document
         // we are currently cutting of everything excepts the body -- this means that
         // style can be lost
-        var start = data.indexOf('<body>');
+        var start = data.indexOf('<body>'), string;
         if (start > -1) {
             start += 6; // "<body>"
-            var end = data.indexOf('</body>')
-            var string = data.slice(start, end);
-            string = Strings.removeSurroundingWhitespaces(string);
+            var end = data.indexOf('</body>');
+            string = Strings.removeSurroundingWhitespaces(data.slice(start, end));
         } else {
-            var string = data; // if no body tag just use the plain string
+            string = data; // if no body tag just use the plain string
         }
         var node = XHTMLNS.create('div');
         try {
@@ -2768,9 +2794,9 @@ Object.extend(lively.morphic.HTMLParser, {
         } catch (e) {
             // JENS: logError breaks browser under windows?
             alert("PASTE ERROR: " + e + '\n could not paste: ' + string +'\n'
-            + 'please report problem on: http://lively-kernel.org/trac')
+                 + 'please report problem on: http://lively-kernel.org/trac')
         }
-        return node
+        return node;
     },
     sanitizeHtml: function(string) {
         // replaces html br with newline
@@ -2796,7 +2822,7 @@ Object.extend(lively.morphic.HTMLParser, {
     pastedHTMLToRichText: function(data) {
         // creates a rich text object from HTML snippet
         var node = this.sourceToNode(data);
-        if (!node) return;
+        if (!node) return null;
         this.sanitizeNode(node);
         var richText = new lively.morphic.RichText(node.textContent);
         this.extractStylesAndApplyToRichText(node, richText, {styles: [], styleStart: 0})
@@ -2913,5 +2939,28 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
         };
     },
 });
+
+Trait("lively.morphic.TextDiffTrait", {
+    diff: function(string1, string2, options) {
+        options = options || {};
+        var asLines = options.lines,
+            insertAt = options.insertAt,
+            text = this;
+        if (insertAt === undefined) {
+            this.textString = "";
+            insertAt = 0;
+        }
+        require('apps.DiffMatchPatch').toRun(function() {
+            var diffs, dmp = new diff_match_patch();
+            if (asLines) {
+                diffs = dmp.diff_lineMode(string1, string2);
+            } else {
+                diffs = dmp.diff_main(string1, string2);
+                dmp.diff_cleanupSemantic(diffs);
+            }
+            dmp.showDiffsIn(diffs, text, insertAt);
+        });
+    },
+}).applyTo(lively.morphic.Text);
 
 }) // end of module

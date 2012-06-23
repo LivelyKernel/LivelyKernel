@@ -5,9 +5,9 @@ module('lively.DOMAbstraction').requires().toRun(function() {
 // ===========================================================================
 
 Global.Namespace = {
-    SVG: "http:\/\/www.w3.org/2000/svg", 
-    LIVELY: UserAgent.usableNamespacesInSerializer ? "http:\/\/www.experimentalstuff.com/Lively"  : null, 
-    XLINK: "http:\/\/www.w3.org/1999/xlink", 
+    SVG: "http:\/\/www.w3.org/2000/svg",
+    LIVELY: UserAgent.usableNamespacesInSerializer ? "http:\/\/www.experimentalstuff.com/Lively"  : null,
+    XLINK: "http:\/\/www.w3.org/1999/xlink",
     XHTML: "http:\/\/www.w3.org/1999/xhtml",
     ATOM: "http:\/\/www.w3.org/2005/Atom",
 
@@ -17,6 +17,9 @@ Global.Namespace = {
     DC: "http:\/\/purl.org/dc/terms",
     BATCH: "http:\/\/schemas.google.com/gdata/batch",
     GD: "http:\/\/schemas.google.com/g/2005",
+
+    // SVN / DAV
+    LP1: "DAV:"
 };
 
 Global.Converter = {
@@ -35,7 +38,7 @@ Global.Converter = {
 
     parseInset: function(string) {
         // syntax: <left>(,<top>(,<right>,<bottom>)?)?
-        
+
         if (!string || string == "none") return null;
         try {
             var box = string.split(",");
@@ -58,7 +61,7 @@ Global.Converter = {
         default:
             console.log("unable to parse padding " + padding);
             return null;
-        } 
+        }
         return Rectangle.inset(t, l, b, r);
     },
 
@@ -96,7 +99,7 @@ Global.Converter = {
             return JSON.serialize({XML: Exporter.stringify(value)});
         throw new Error('Cannot store Document/DocumentType'); // to be removed
     },
-    
+
     toJSONAttribute: function(obj) {
         return obj ? escape(JSON.serialize(obj, Converter.wrapperAndNodeEncodeFilter)) : "";
     },
@@ -116,13 +119,13 @@ Global.Converter = {
     fromJSONAttribute: function(str) {
         return str ?  JSON.unserialize(unescape(str), Converter.nodeDecodeFilter) : null;
     },
-    
+
     needsJSONEncoding: function(value) {
         // some objects can be saved in as DOM attributes using their
         // .toString() form, others need JSON
         if (value instanceof Color) return false;
         var type = typeof value.valueOf();
-        return type != "string" && type != "number"; 
+        return type != "string" && type != "number";
     },
 
     quoteCDATAEndSequence: function(string) {
@@ -164,14 +167,14 @@ Global.Converter = {
             }
             desc.appendChild(encoding);
             return desc;
-        } 
-    
+        }
+
         if (propValue && propValue.toLiteral) {
             desc.setAttributeNS(null, "family", propValue.constructor.type);
             desc.appendChild(NodeFactory.createCDATA(JSON.serialize(propValue.toLiteral())));
             return desc;
         }
-                
+
         if (propValue.nodeType) {
             switch (propValue.nodeType) {
                 case document.DOCUMENT_NODE:
@@ -182,10 +185,10 @@ Global.Converter = {
                     desc.appendChild(document.importNode(propValue, true));
             }
             return desc;
-        } 
+        }
         return null;
     },
-    
+
     isJSONConformant: function(value) { // for now, arrays not handled but could be
         if (value instanceof Element && value.ownerDocument === document) return false;
         // why disallow all objects?
@@ -229,7 +232,7 @@ Global.NodeFactory = {
     createText: function(string) {
     return Global.document.createTextNode(string);
     },
-    
+
     createNL: function(string) {
     return Global.document.createTextNode("\n");
     },
@@ -241,7 +244,7 @@ Global.NodeFactory = {
     CDATAType: function() {
         return Global.document.CDATA_SECTION_NODE;
     },
-    
+
     TextType: function() {
         return Global.document.TEXT_NODE;
     },
@@ -263,7 +266,7 @@ Global.XLinkNS = {
     setHref: function(node, href) {
     return node.setAttributeNS(Namespace.XLINK, "href", href);
     },
-    
+
     getHref: function(node) {
     return node.getAttributeNS(Namespace.XLINK, "href");
     }
@@ -382,9 +385,7 @@ Copier.subclass('Importer', {
             return null;
         }
         var doc = webRes.contentDocument;
-        console.log("problems to parse  " + URL.source);
-        if (!doc)
-            return null;
+        if (!doc) return null;
         // FIX for IE9+
         if (doc.documentElement == null) {
              doc = new ActiveXObject('MSXML2.DOMDocument.6.0');
@@ -436,7 +437,7 @@ Object.subclass('DocLinkConverter', {
         });
 
         var codeBaseDef = this.createCodeBaseDef(this.codeBaseFrom(this.codeBase, this.toDir));
-        
+
         if (codeBaseDefs.length == 0) {
             var script = NodeFactory.create('script');
             script.setAttribute('name', 'codeBase');

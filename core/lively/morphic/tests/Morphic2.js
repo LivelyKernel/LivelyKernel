@@ -1,4 +1,4 @@
-module('lively.morphic.tests.Morphic2').requires('lively.morphic.tests.Morphic', 'lively.morphic.DiffMerge').toRun(function() {
+module('lively.morphic.tests.Morphic2').requires('lively.morphic.tests.Morphic', 'lively.morphic.DiffMerge', 'lively.PartsBin').toRun(function() {
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PivotPointTests',
 'running', {
@@ -501,9 +501,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextLayoutTests',
         // make text small, vertical extent should shrink
         this.text.textString = 'aaa';
         this.assertEqualsEpsilon(pt(50,15), this.text.getTextExtent(), 'text extent did not shrink');
-    },
-
-
+    }
 
 });
 
@@ -542,9 +540,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic2.HtmlPars
 
     testSanitizeNode: function() {
         var s = "<html>\n<body>\n<!--StartFragment-->\n"
-                + "<span>a\nb</span>\n"
-                + "<!--EndFragment-->\n</body>\n</html>";
-        var node = lively.morphic.HTMLParser.sourceToNode(s);
+              + "<span>a\nb</span>\n"
+              + "<!--EndFragment-->\n</body>\n</html>",
+            node = lively.morphic.HTMLParser.sourceToNode(s);
         lively.morphic.HTMLParser.sanitizeNode(node);
         this.assertEquals(node.textContent, "a\nb", "too many newlines");
     },
@@ -658,16 +656,20 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
 
     testFindCurrentPartVersion: function() {
-        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100),
+            test = this;
+        m1.name = "m1";
         m1.getPartsBinMetaInfo().revisionOnLoad = 2;
         m1.getPartItem = function () {
-            return {part: this,
-                    loadPart: function () {
-                        return {part: this,
-                                loadPart: function () {
-                                    return this;
-                                }.bind(this)}
-                    }.bind(this)}
+            return {
+                part: this,
+                loadPart: function () { return {part: this} }.bind(this),
+                getFileURL: function() {
+                    var url = URL.root.withFilename('PartsBin/' + this.name + ".json");
+                    test.spy(url, "asWebResource", function () {return {exists: Functions.True}});
+                    return url;
+                }.bind(this)
+            }
         };
         this.assertEquals(m1.getPartsBinMetaInfo().revisionOnLoad,
             m1.findCurrentPartVersion().getPartsBinMetaInfo().revisionOnLoad,
@@ -699,6 +701,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         var m2 = lively.morphic.Morph.makeRectangle(0,0,100,100);
         m1.addMorph(m2);
+        var m6 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        m2.addMorph(m6);
         //simulate copyToPartsBin
         var m3 = m1.copy();
         //simulate copyFromPartsBin

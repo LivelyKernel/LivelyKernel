@@ -215,7 +215,7 @@ cop.create('lively.morphic.VisualBindingsLayer')
 
         var debugging = items.detect(function(ea) { return ea[0] == "Debugging"})
         if (debugging) {
-            debugging[1].splice(4, 0, ["show connectors",
+            debugging[1].splice(4, 0, ["Show connectors",
                 function() {
                     this.submorphs.select(function(ea) {
                         return ea.isPath && ea.con
@@ -238,7 +238,7 @@ cop.create('lively.morphic.VisualBindingsLayer')
                     builder.setPosition(pt(0,0));
                 }]
             });
-        return cop.proceed().concat([["connect...", connectionItems]]);
+        return cop.proceed().concat([["Connect ...", connectionItems]]);
     },
 })
 .beGlobal();
@@ -449,7 +449,7 @@ Object.extend(lively.bindings, {
             'Editor for ' + con.targetObj.name + ' -> ' + con.sourceObj.name :
             'Editor for converter function';
         var window = $world.addFramedMorph(editor, title)
-        return window
+        return window;
     },
     showConnection: function(con) {
         var source = con.sourceObj,
@@ -470,20 +470,20 @@ Object.extend(lively.bindings, {
         visualConnector.addScript(function morphMenuItems() {
             var visualConnector = this, con = this.con, world = $world;
             var items = [
-                ['edit converter', function() {
+                ['Edit converter', function() {
                     var window = lively.bindings.editConnection(con);
                     window.align(window.bounds().topCenter(),
                     visualConnector.bounds().bottomCenter())
                 }],
-                ['hide', function() {
+                ['Hide', function() {
                     visualConnector.disconnectFromMagnets();
                     visualConnector.remove();
                 }],
-                ['disconnect', function() {
+                ['Disconnect', function() {
                     alertOK('Disconnected ' + visualConnector.con);
                     visualConnector.con.visualDisconnect();
                 }],
-                ['cancel', function() {}],
+                ['Cancel', function() {}],
             ];
             return items;
         })
@@ -540,7 +540,7 @@ lively.morphic.Box.subclass('lively.morph.ConnectionBuilder',
             items = [];
         items.push(this.underMorphMenu(pos, builder.sourceMorph));
         items.pushAll(this.propertiesMenuForTarget(target));
-        newShowMorph(target);
+        lively.morphic.show(target);
         lively.morphic.Menu.openAtHand('Connect to ' + (target.name || target), items)
     },
     underMorphMenu: function(position, sourceMorph, sourceAttribute) {
@@ -568,15 +568,15 @@ lively.morphic.Box.subclass('lively.morph.ConnectionBuilder',
                 scriptMenuItems.push([scriptName, function() {
                     (that.createConnectFuncFor(aMorph))(scriptName);}]);
             });
-        menu.push(["scripts...", scriptMenuItems]);
+        menu.push(["Scripts ...", scriptMenuItems]);
         // Custom
-        menu.push(["custom...", function() {
+        menu.push(["Custom ...", function() {
             world.prompt('Enter name of connection point', function(input) {
                 if (!input) return;
                 (that.createConnectFuncFor(aMorph))(input);
             })
         }])
-        menu.push(['cancel', function() {}]);
+        menu.push(['Cancel', function() {}]);
         return menu;
     },
     createConnectFuncFor: function(targetMorph) {

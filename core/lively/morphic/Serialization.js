@@ -119,8 +119,8 @@ lively.morphic.Text.addMethods(
         this.charsTyped = '';
         var chunks = this.getTextChunks();
         chunks.forEach(function(ea) {
-                ea.textString = ea.storedString;
-            });
+            ea.textString = ea.storedString;
+        });
     },
     prepareForNewRenderContext: function($super,renderCtx) {
         $super(renderCtx);
@@ -236,6 +236,7 @@ lively.morphic.World.addMethods(
         if (status.isSuccess()) {
             this.tryToGetWorldRevision(); // update the rev used for overwrite check
             this.savedWorldAsURL =  status.url;
+            lively.bindings.signal(this, 'savingDone', status.url);
         } else {
             this.alert('Problem saving ' + status.url + ': ' + status)
         }

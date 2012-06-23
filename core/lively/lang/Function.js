@@ -50,14 +50,14 @@ Object.extend(Function.prototype, {
     },
 
     inspect: function() {
-        // Print method name (if any) and the first 80 characters of the 
+        // Print method name (if any) and the first 80 characters of the
         // decompiled source (without 'function')
         var def = this.toString(),
             i = def.indexOf('{'),
             header = this.qualifiedMethodName() + def.substring(8, i),
             // strip newlines
             body = (def.substring(i, 88) +
-                     (def.length > 88 ? '...' : '')).replace(/\n/g, ' '); 
+                     (def.length > 88 ? '...' : '')).replace(/\n/g, ' ');
         return header + body;
     },
 
@@ -221,12 +221,12 @@ Object.extend(Function.prototype, {
             return trace;
         }
     },
-    
+
     unbind: function() {
         // for serializing functions
         return Function.fromString(this.toString());
     },
-    
+
     asScript: function(optVarMapping) {
         return lively.Closure.fromFunction(this, optVarMapping).recreateFunc();
     },
@@ -245,7 +245,7 @@ Object.extend(Function.prototype, {
                     try {
                         return obj.constructor.prototype[name].apply(obj, arguments)
                     } catch (e) {
-                        if ($world) 
+                        if ($world)
                             $world.logError(e, 'Error in $super call')
                         else
                             alert('Error in $super call: ' + e + '\n' + e.stack);
@@ -259,10 +259,11 @@ Object.extend(Function.prototype, {
         }
         return this.asScript(mapping).addToObject(obj, name);
     },
-    
+
     addToObject: function(obj, name) {
         this.name = name;
         obj[name] = this;
+        this.declaredObject = Objects.safeToString(obj);
         // suppport for tracing
         if (lively.Tracing && lively.Tracing.stackTracingEnabled) {
             lively.Tracing.instrumentMethod(obj, name, {
@@ -271,17 +272,17 @@ Object.extend(Function.prototype, {
         }
         return this;
     },
-    
+
     binds: function(varMapping) {
         // convenience function
         return lively.Closure.fromFunction(this, varMapping || {}).recreateFunc()
     },
-    
+
     setProperty: function(name, value) {
         this[name] = value;
         if (this.hasLivelyClosure) this.livelyClosure.funcProperties[name] = value
     },
-    
+
     getVarMapping: function() {
         if (this.hasLivelyClosure) return this.livelyClosure.varMapping;
         if (this.isWrapper) return this.originalFunction.varMapping;
@@ -299,7 +300,7 @@ Object.extend(Function.prototype, {
 Object.extend(Function, {
     fromString: function(funcOrString) {
         return eval('(' + funcOrString.toString() + ')')
-    }    
+    }
 });
 
 
@@ -368,10 +369,10 @@ Functions = {
     },
 
     methodChain: function(method) {
-        // method wrappers used for wrapping, cop, and other method 
-        // manipulations attach a property "originalFunction" to the wrapper by 
-        // convention this property references the wrapped method like wrapper 
-        // -> cop wrapper -> real method 
+        // method wrappers used for wrapping, cop, and other method
+        // manipulations attach a property "originalFunction" to the wrapper by
+        // convention this property references the wrapped method like wrapper
+        // -> cop wrapper -> real method
         // this method gives access to the linked list starting at "method
         var result = [];
         do {

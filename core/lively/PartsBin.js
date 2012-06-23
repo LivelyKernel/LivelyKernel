@@ -156,7 +156,7 @@ Object.subclass('lively.PartsBin.PartItem',
             json = serializer.serialize(part);
             htmlLogo = part.asHTMLLogo();
         } catch(e){
-            throw e
+            throw e;
         } finally {
             part.setPosition(oldPos);
             // for fixing the bug that parts are shown in the world
@@ -661,20 +661,17 @@ Trait('lively.PartsBin.PartTrait', {
         this.setPosition(oldPos)
         // width="2000pt" height="2000pt"
         return '<?xml version="1.0" encoding="UTF-8"?>\n'+
-        '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
-        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" '+
-        'xmlns:ev="http://www.w3.org/2001/xml-events" version="1.1" baseProfile="full" >\n' +
+            '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
+            '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" '+
+            'xmlns:ev="http://www.w3.org/2001/xml-events" version="1.1" baseProfile="full" >\n' +
             Exporter.stringify(logoMorph.rawNode) +
-        '</svg>';
+            '</svg>';
     },
+
     asHTMLLogo: function() {
         return '<html><body>please implement</body></html>'
-    },
-
-
-
+    }
 
 });
-
 
 }) // end of module

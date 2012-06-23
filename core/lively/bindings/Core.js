@@ -161,12 +161,13 @@ Object.subclass('AttributeConnection',
 		var connection = this, updater = this.getUpdater(), converter = this.getConverter(),
 			target = this.targetObj, propName = this.targetMethodName;
 		if (!target || !propName) {
-			var msg = 'Cannot update ' + this.toString(newValue) + ' because of no target (' +
-					target + ') or targetProp (' + propName+') ';
-			if (this.isWeakConnection) {
-        this.disconnect();
-      }
-      console.error(msg);
+			var msg = 'Cannot update ' + this.toString(newValue)
+                    + ' because of no target ('
+                    + target + ') or targetProp (' + propName+') ';
+		    if (this.isWeakConnection) {
+                this.disconnect();
+            }
+            console.error(msg);
 
 			// alert(msg);
 			return null;

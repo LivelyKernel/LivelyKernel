@@ -115,9 +115,10 @@ lively.ide.BrowserNode.subclass('lively.ide.FileFragmentNode', {
     },
 
     saveSource: function($super, newSource, sourceControl) {
-        this.target.debugMode = this.browser.debugMode
+        lively.ide.enableDebugFileParsing(this.browser.debugMode);
         this.target.putSourceCode(newSource);
         this.savedSource = this.target.getSourceCode(); // assume that users sees newSource after that
+        lively.ide.enableDebugFileParsing(false);
         return true;
     },
 
@@ -313,8 +314,10 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
     },
 
     reparse: function() {
-         this.getSourceControl().reparseModule(this.moduleName, true);
-         this.signalChange();
+        lively.ide.enableDebugFileParsing(this.browser.debugMode);
+        this.getSourceControl().reparseModule(this.moduleName, true);
+        this.signalChange();
+        lively.ide.enableDebugFileParsing(false);
     }
 },
 'consistency', {
@@ -554,12 +557,18 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CategorizedClassFragmentNode', 
         var paneName = this.browser.paneNameOfNode(this),
             idx = Number(paneName[paneName.length-1]),
             nextPane = 'Pane' + (idx + 1);
-        this.browser.inPaneSelectNodeNamed(nextPane, '-- all --')
+        this.browser.inPaneSelectNodeNamed(nextPane, '-- all --');
+        setTimeout((function() {
+            //FIXME: dirty hack to get syntax highlighting when selecting classes
+            this.browser.panel.sourcePane.innerMorph().highlightJavaScriptSyntax();
+        }).bind(this), 800);
     },
 
 });
 
 lively.ide.MultiFileFragmentsNode.subclass('lively.ide.MethodCategoryFragmentNode', {
+
+    isCategoryNode: true,
 
     getName: function() { return this.target.getName() },
 
@@ -619,6 +628,9 @@ lively.ide.FileFragmentNode.subclass('lively.ide.AllMethodCategoryFragmentNode',
         return false;
         // do nothing
     },
+},
+'testing', {
+    isClassNode: true
 });
 
 lively.ide.FileFragmentNode.subclass('lively.ide.ObjectFragmentNode', {

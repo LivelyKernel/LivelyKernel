@@ -131,16 +131,50 @@ lively.morphic.Morph.addMethods(
         this.remove();
         owner.addMorphFront(this);
     },
+
+    sendToBack: function() {
+        // Hack: remove and re-add morph
+        var owner = this.owner;
+        if (!owner) {
+            return;
+        }
+        this.remove();
+        owner.addMorphBack(this);
+    },
+
     indentedListItemsOfMorphNames: function (indent) {
         indent = indent || '';
         var items = [];
         if (this.name) {
             items.push({isListItem: true, string: indent + this.name, value: this, selectionString: this.name})
-            indent += '\t';
+            indent += indent;
         }
         items = items.concat(this.submorphs.invoke('indentedListItemsOfMorphNames', indent).flatten());
         return items;
     },
+    treeItemsOfMorphNames: function (options) {
+        var scripts = options["scripts"] || [],
+            properties = options["properties"] || {},
+            showUnnamed = options["showUnnamed"]
+
+        if (this.name || showUnnamed) {
+            var item = {name: this.name || "a " + Class.getConstructor(this).displayName, value: this},
+                children = this.submorphs.invoke('treeItemsOfMorphNames', options).compact()
+            if (children.length > 0) {
+                item.children = children
+            }
+            Properties.own(properties).each(function (v) {
+                item[v] = properties[v]
+            })
+            scripts.each(function (script) {
+                Object.addScript(item, script)
+            })
+            return item
+        } else {
+            return null
+        }
+    },
+
     isSubmorphOf: function(otherMorph) {
         var self = this, found = false;
         otherMorph.withAllSubmorphsDo(function(morph) { found = found || morph === self });
@@ -230,6 +264,17 @@ lively.morphic.Morph.addMethods(
     removeAllMorphs: function() {
         this.submorphs.clone().invoke('remove')
     },
+
+    removeAndDropSubmorphs: function() {
+        // Removes the morph and lets all its child morphs drop to its owner
+        this.submorphs.each(function(submorph) {
+            var supermorph = this.owner || $world;
+            supermorph.addMorph(submorph.copy());
+        }, this);
+
+        this.removeAllMorphs();
+        this.remove();
+    }
 },
 'events', {
     takesKeyboardFocus: function() {},
@@ -602,6 +647,7 @@ lively.morphic.World.addMethods(
         } else {
             console.log(msg);
         }
+        msgMorph.ignoreEvents();
         return this.addStatusMessageMorph(msgMorph, delay || 5);
     },
 

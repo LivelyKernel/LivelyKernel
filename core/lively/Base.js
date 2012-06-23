@@ -157,9 +157,9 @@ function __oldNamespace(spec, context) {
     modules
     .select(function(ea) { return ea.hasPendingRequirements() })
     .forEach(function(ea) {
-			  var msg = Strings.format('%s has unloaded requirements: %s',
-				                         ea.uri(), ea.pendingRequirementNames());
-			  console.warn(msg);
+		var msg = Strings.format('%s has unloaded requirements: %s',
+			ea.uri(), ea.pendingRequirementNames());
+		console.warn(msg);
 
         // FIXME use proper Config-URL-parsing
         if (lively.Config.ignoreMissingModules || document.URL.indexOf('ignoreMissingModules=true') >= 0) {
@@ -167,7 +167,7 @@ function __oldNamespace(spec, context) {
             ea.load();
             testModuleLoad.delay(6);
         }
-		});
+	});
     console.log('Module load check done. ' + modules.length + ' modules loaded.');
 }).delay(10);
 
@@ -595,7 +595,7 @@ var Class = {
 
     namespaceFor: function Class$namespaceFor(className) {
         // get the namespace object given the qualified name
-        var lastDot = className.lastIndexOf('.');
+        var lastDot = className ? className.lastIndexOf('.') : -1;
         if (lastDot < 0) return Global;
         else return namespace(className.substring(0, lastDot));
     },
@@ -822,6 +822,10 @@ Namespace.addMethods(
     relativePath: function(optType) {
         return new URL(this.uri(optType)).relativePathFrom(URL.codeBase);
     },
+
+    lastPart: function() {
+        return this.name().match(/[^.]+$/)[0];
+    }
 
 },
 'module dependencies', {

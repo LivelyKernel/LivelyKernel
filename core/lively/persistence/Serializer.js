@@ -273,7 +273,7 @@ Object.subclass('ObjectGraphLinearizer',
             id = jsoObj.id;
         this.registry = this.createRealRegistry(jsoObj.registry);
         var result = this.recreateFromId(id);
-        this.letAllPlugins('deserializationDone');
+        this.letAllPlugins('deserializationDone', [jsoObj]);
         this.cleanup();
         this.log('Deserializing done in ' + (new Date() - start) + 'ms');
         return result;

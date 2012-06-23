@@ -1339,6 +1339,21 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ListMorphTests',
         this.assert(isSelected !== '', 'highlight wrong')
     },
 
+    testNoDoubleSelectionWhenClickedInList: function() {
+        var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100)),
+            counter = {count: 0, selected: function() { this.count++ }},
+            items = [1, 2, 3];
+        this.world.addMorph(list);
+        list.updateList(items);
+        list.setSelection(2);
+
+        lively.bindings.connect(list, 'selection', counter, 'selected')
+        list.onMouseUp({isLeftMouseButtonDown: Functions.True,
+                        target: list.renderContext().subNodes[2]})
+        list.onChange({});
+        this.assertEquals(1, counter.count, 'selection triggered too often');
+    }
+
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MultipleSelectionListTests',

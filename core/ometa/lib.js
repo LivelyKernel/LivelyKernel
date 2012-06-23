@@ -38,7 +38,7 @@ String.prototype.writeStream      = function() { return new StringBuffer(this) }
 // make Arrays print themselves sensibly
 
 // Object.prototype.printOn = function(ws) { ws.nextPutAll(this.toString()) }
-// 
+//
 // Array.prototype.toString = function() { var ws = "".writeStream(); this.printOn(ws); return ws.contents() }
 // Array.prototype.printOn = function(ws) {
 //   ws.nextPutAll("[")
@@ -73,7 +73,7 @@ String.prototype.writeStream      = function() { return new StringBuffer(this) }
 // }
 
 // Object.prototype.hasProperty = function(p) { return this[p] != undefined }
-// 
+//
 // isImmutable = function(x) { return x === null || x === undefined || x.isImmutable() }
 // Object.prototype.isImmutable  = function() { return false }
 // Boolean.prototype.isImmutable = function() { return true }
@@ -82,20 +82,20 @@ String.prototype.writeStream      = function() { return new StringBuffer(this) }
 
 // Object.prototype.isNumber    = function() { return false }
 // Number.prototype.isNumber    = function() { return true }
-// 
+//
 // Object.prototype.isString    = function() { return false }
 // String.prototype.isString    = function() { return true }
-// 
+//
 // Object.prototype.isCharacter = function() { return false }
-// 
+//
 // String.prototype.isCharacter = function() { return this.length == 1 }
 // String.prototype.isSpace     = function() { return this.isCharacter() && this.charCodeAt(0) <= 32   }
 // String.prototype.isDigit     = function() { return this.isCharacter() && this >= "0" && this <= "9" }
 // String.prototype.isLower     = function() { return this.isCharacter() && this >= "a" && this <= "z" }
 // String.prototype.isUpper     = function() { return this.isCharacter() && this >= "A" && this <= "Z" }
-//   
+//
 // String.prototype.digitValue  = function() { return this.charCodeAt(0) - "0".charCodeAt(0) }
-// 
+//
 // Object.prototype.isSequenceable = false
 // Array.prototype.isSequenceable  = true
 // String.prototype.isSequenceable = true
@@ -108,14 +108,14 @@ String.prototype.writeStream      = function() { return new StringBuffer(this) }
 //     r[idx] = f(this[idx])
 //   return r
 // }
-// 
+//
 // Array.prototype.reduce = function(f, z) {
 //   var r = z
 //   for (var idx = 0; idx < this.length; idx++)
 //     r = f(r, this[idx])
 //   return r
 // }
-// 
+//
 // Array.prototype.delimWith = function(d) {
 //   return this.reduce(
 //     function(xs, x) {
@@ -151,6 +151,8 @@ escapeChar = function(c) {
   var charCode = c.charCodeAt(0)
   return charCode > 255 ? String.fromCharCode(charCode) : escapeStringFor[charCode]
 }
+
+window._unescape = window.unescape;
 
 function unescape(s) {
   if (s[0] == '\\')

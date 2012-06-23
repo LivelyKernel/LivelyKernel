@@ -7,48 +7,48 @@ module('lively.tests.ToolsTests').requires(
 var tests = lively.tests;
 
 Object.extend(tests.ToolsTests, {
-	  createDummyNamespace: function() {
-		    console.assert(!tests.ToolsTests['testNS'], 'testNS already existing');
-		    // creating 5 namespaces-    namespace('testNS.one', tests.ToolsTests);    namespace('testNS.two', tests.ToolsTests);
-		    namespace('testNS.three.threeOne', tests.ToolsTests);
-		    // create classes
-		    Object.subclass(tests.ToolsTests.namespaceIdentifier + '.testNS.Dummy', { method1: function() { 1 } });
-		    Object.subclass(tests.ToolsTests.namespaceIdentifier + '.testNS.one.Dummy');
-		    Object.subclass(tests.ToolsTests.namespaceIdentifier + '.testNS.three.threeOne.Dummy');
-		    // create functions
-		    tests.ToolsTests.testNS.dummyFunc = function() { return 1 };
-		    tests.ToolsTests.testNS.three.threeOne.dummyFunc = function() { return 2 };
-	  },
+	createDummyNamespace: function() {
+		console.assert(!tests.ToolsTests['testNS'], 'testNS already existing');
+		// creating 5 namespaces-    namespace('testNS.one', tests.ToolsTests);    namespace('testNS.two', tests.ToolsTests);
+		namespace('testNS.three.threeOne', tests.ToolsTests);
+		// create classes
+		Object.subclass(tests.ToolsTests.namespaceIdentifier + '.testNS.Dummy', { method1: function() { 1 } });
+		Object.subclass(tests.ToolsTests.namespaceIdentifier + '.testNS.one.Dummy');
+		Object.subclass(tests.ToolsTests.namespaceIdentifier + '.testNS.three.threeOne.Dummy');
+		// create functions
+		tests.ToolsTests.testNS.dummyFunc = function() { return 1 };
+		tests.ToolsTests.testNS.three.threeOne.dummyFunc = function() { return 2 };
+	},
 	  removeDummyNamespace: function() { delete tests.ToolsTests['testNS']  },
 });
 
 TestCase.subclass('lively.ide.tests.FileParserTests.FileParserTest', {
 
     setUp: function() {
-	      this.sut = new FileParser();
-	      this.sut.verbose = false;
+	    this.sut = new FileParser();
+	    this.sut.verbose = false;
     },
 
     testParseClassDef: function() {
-	      var source = "Object.subclass('Test', {});"
-	      this.sut.parseFile('1', 0, source, null/*db*/, 'scan', null/*search_str*/)
-	      this.assertEquals(this.sut.changeList.length, 1);
-	      this.assertEquals(this.sut.changeList.first().name, 'Test');
-	      this.assertEquals(this.sut.changeList.first().type, 'classDef');
+	    var source = "Object.subclass('Test', {});"
+	    this.sut.parseFile('1', 0, source, null/*db*/, 'scan', null/*search_str*/)
+	    this.assertEquals(this.sut.changeList.length, 1);
+	    this.assertEquals(this.sut.changeList.first().name, 'Test');
+	    this.assertEquals(this.sut.changeList.first().type, 'classDef');
     },
 
     testScanModuleDef: function() {
-	      var source = "module('bla.blupf').requires('blupf.bla').toRun({\nObject.subclass('Test', {\n});\n\n});"
-	      this.sut.parseFile('2', 0, source, null/*db*/, 'scan', null/*search_str*/)
-	      this.assertEquals(this.sut.changeList.length, 2);
-	      this.assertEquals(this.sut.changeList[0].type, 'moduleDef');
+	    var source = "module('bla.blupf').requires('blupf.bla').toRun({\nObject.subclass('Test', {\n});\n\n});"
+	    this.sut.parseFile('2', 0, source, null/*db*/, 'scan', null/*search_str*/)
+	    this.assertEquals(this.sut.changeList.length, 2);
+	    this.assertEquals(this.sut.changeList[0].type, 'moduleDef');
     },
 
     testScanFunctionDef01: function() {
-	      var source = "module('bla.blupf').requires('blupf.bla').toRun({\nfunction abc(a,b,c) {\n return 1+2;\n};\nObject.subclass('Test', {\n});\n\n});"
-	          this.sut.parseFile('3', 0, source, null/*db*/, 'scan', null/*search_str*/)
-	      this.assertEquals(this.sut.changeList.length, 3);
-	      this.assertEquals(this.sut.changeList[1].type, 'functionDef');
+	    var source = "module('bla.blupf').requires('blupf.bla').toRun({\nfunction abc(a,b,c) {\n return 1+2;\n};\nObject.subclass('Test', {\n});\n\n});"
+	    this.sut.parseFile('3', 0, source, null/*db*/, 'scan', null/*search_str*/)
+	    this.assertEquals(this.sut.changeList.length, 3);
+	    this.assertEquals(this.sut.changeList[1].type, 'functionDef');
     },
 
     testScanFunctionDef02: function() {
@@ -710,8 +710,7 @@ TestCase.subclass('lively.tests.ToolsTests.CombinedModulesFileParserTest',
 		var objTrans = this.sut.transformFileLineAndCharPosReference(obj);
 		this.assert(obj.file != objTrans.file, "object did not get transformed")
 		this.assert(obj.line != objTrans.line, "object line did not get transformed")
-	},
-
+	}
 
 });
 
@@ -755,7 +754,7 @@ TestCase.subclass('lively.tests.ToolsTests.SimpleBrowserTest',
 
 		// remove it, we're done
 		panel.owner.remove();
-	},
+	}
 });
 
 }) // end of module

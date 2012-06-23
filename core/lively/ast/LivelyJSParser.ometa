@@ -9,7 +9,7 @@ whereAreYou -> {
 	alert(msg);
 	true
 },
-fromTo :x :y = seq(x) (~seq(y) char)* seq(y), 
+fromTo :x :y = seq(x) (~seq(y) char)* seq(y),
 fromToWithout :x :y = seq(x) (~seq(y) char)*,
 space = ^space | fromToWithout('//', '\n') | fromTo('//', #end) | fromTo('/*', '*/'),
 nameFirst    = letter | '$' | '_',
@@ -19,7 +19,7 @@ iName =
 isKeyword :x = ?LivelyJSParser._isKeyword(x),
 name =
 	pos:p1 iName:n ~isKeyword(n) pos:p2 -> [#name, [p1, p2], n],
-keyword	= 
+keyword	=
 	pos:p1 iName:k isKeyword(k) pos:p2 -> [k, [p1, p2], k],
 hexDigit
 	= char:x {this.hexDigits.indexOf(x.toLowerCase())}:v ?(v >= 0)
@@ -47,7 +47,7 @@ special =
 	| '?'     | ':'     | ``!=='' | ``!=''  | ``==='' | ``=='' | ``=''   | ``>>>''
 	| ``>>='' | ``>=''  | ``>>''  | '>'     | ``<<='' | ``<='' | ``<<''  | '<'
 	| ``++''  | ``+=''  | '+'     | ``--''  | ``-=''  | '-'    | ``*=''  | '*'
-	| ``/=''  | '/'     | ``%=''  | '%'     | ``&&='' | ``&&'' | ``||='' | ``||''  
+	| ``/=''  | '/'     | ``%=''  | '%'     | ``&&='' | ``&&'' | ``||='' | ``||''
 	| '.'     | '!'     | '&'     | '|'     | '^'):s pos:p2
 	-> [s, [p1, p2], s],
 tok =

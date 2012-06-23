@@ -63,6 +63,7 @@ TestCase.subclass('lively.tests.BaseTests.StringsFormatTableTest', {
                               'for ' + i + ' ' + data.input);
         }, this);
     }
+
 });
 
 }) // end of module

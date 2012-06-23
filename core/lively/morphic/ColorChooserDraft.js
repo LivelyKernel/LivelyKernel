@@ -2,7 +2,7 @@ module('lively.morphic.ColorChooserDraft').requires('lively.morphic.Core', 'live
 
 lively.morphic.Box.subclass('lively.morphic.ColorChooser',
 'settings', {
-    defaultBounds: new Rectangle(0,0, 160, 120),
+    defaultBounds: new Rectangle(0,0, 160, 120)
 },
 'initializing', {
     initialize: function($super, bounds) {
@@ -17,12 +17,13 @@ lively.morphic.Box.subclass('lively.morphic.ColorChooser',
 'color mapping', {
     colorForPos: function(pos) {
         throw new Error('subclass responsibility');
-    },
+    }
 });
+
 lively.morphic.ColorChooser.subclass('lively.morphic.RGBColorChooser',
 'settings', {
     colorNames: 'rgb',
-    hasLabel: true,
+    hasLabel: true
 },
 'initializing', {
     buildColorMap: function() {
@@ -82,8 +83,6 @@ colorForPos: function(pos) {
             Color.black.mixedWith(columnHue, (y - rh2)/rh2);  // neutral down to darkest
     },
 });
-
-
 
 lively.morphic.ColorChooser.subclass('lively.morphic.CrayonColorChooser',
 'settings', {
@@ -285,15 +284,13 @@ new lively.morphic.ColorField().openInWorld(pt(100,100))
     },
 });
 
-
-
 lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
 'init', {
     defaultBounds: new Rectangle(0,0,24,24),
     defaultColor: Color.red,
     colorDisplayOffset: 4,
     colorDisplayBorderRadius: 3,
-    
+
     initialize: function($super, bounds){
         var b = bounds || this.defaultBounds;
         $super(b, '');
@@ -321,8 +318,8 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
         console.log('Change color to '+color.toString());
          this.colorDisplay.setFill(color);
     }
-        
-    
+
+
 }
 
 );
@@ -341,17 +338,17 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
 },
 'init', {
     initialize: function($super, chooser) {
-        this.colorChooser = chooser || new lively.morphic.RGBColorChooser();  
+        this.colorChooser = chooser || new lively.morphic.RGBColorChooser();
         this.colorChooser.hasLabel = false;
         var b = this.colorChooser.getBounds();
         $super(new Rectangle(0,0, b.width + this.chooserOffset*2 , b.height+ this.chooserOffset*2));
-                  
+
     },
-    
+
     setCallback: function(target, callback){
-        if (this.colorChooser) connect(this.colorChooser, 'currentlySelectedColor', target, callback); 
+        if (this.colorChooser) connect(this.colorChooser, 'currentlySelectedColor', target, callback);
     },
-    
+
     open: function(parentMorph, pos, remainOnScreen, callbackTarget, callbackFunc) {
         this.setPosition(pos || pt(0,0));
         var owner = parentMorph || lively.morphic.World.current();
@@ -366,7 +363,7 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
         owner.addMorph(this);
 
         this.offsetForWorld(pos);
-        
+
         this.addMorph(this.colorChooser);
         this.colorChooser.setPosition(pt(this.chooserOffset,this.chooserOffset));
         this.colorChooser.disableGrabbing();
@@ -377,7 +374,7 @@ lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
         };
         //this.colorChooser.callback = this.chooseColor;
         //connect(this.colorChooser, 'currentlySelectedColor', this, 'choosenColor');
-        
+
         return this;
     },
     choosenColor: Color.black,
@@ -466,7 +463,7 @@ lively.morphic.ColorChooser.subclass('lively.morphic.SimpleColorChooser',
                 this.addMorph(morph);
             }
         }
-    },
+    }
 },
 'color mapping', {
     colorForPos: function(pos) {
@@ -474,9 +471,7 @@ lively.morphic.ColorChooser.subclass('lively.morphic.SimpleColorChooser',
             pos = r.closestPointToPt(pos),
             m = this.submorphs.detect(function(ea) { return ea.bounds().containsPoint(pos) });
         return m ? m.getFill() : Color.black;
-    },
+    }
 });
 
-
-
-}) // end of moduleeee
+}) // end of module

@@ -1259,10 +1259,9 @@ Function.addMethods(
         return parseResult;
     },
 });
+
 Object.extend(lively.ast.Node, {
-    placeholder: {},
+    placeholder: {}
 });
-
-
 
 }) // end of module

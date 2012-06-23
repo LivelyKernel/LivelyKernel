@@ -1,7 +1,7 @@
 module('lively.ast.generated.Nodes').requires().toRun(function() {
 Object.subclass('lively.ast.Node');
 
-lively.ast.Node.subclass('lively.ast.Sequence', 
+lively.ast.Node.subclass('lively.ast.Sequence',
 'testing', {
 	isSequence: true,
 },
@@ -67,7 +67,7 @@ lively.ast.Node.subclass('lively.ast.Sequence',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Number', 
+lively.ast.Node.subclass('lively.ast.Number',
 'testing', {
 	isNumber: true,
 },
@@ -90,7 +90,7 @@ lively.ast.Node.subclass('lively.ast.Number',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.String', 
+lively.ast.Node.subclass('lively.ast.String',
 'testing', {
 	isString: true,
 },
@@ -113,7 +113,7 @@ lively.ast.Node.subclass('lively.ast.String',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Cond', 
+lively.ast.Node.subclass('lively.ast.Cond',
 'testing', {
 	isCond: true,
 },
@@ -146,7 +146,7 @@ lively.ast.Node.subclass('lively.ast.Cond',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.If', 
+lively.ast.Node.subclass('lively.ast.If',
 'testing', {
 	isIf: true,
 },
@@ -194,7 +194,7 @@ lively.ast.Node.subclass('lively.ast.If',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.While', 
+lively.ast.Node.subclass('lively.ast.While',
 'testing', {
 	isWhile: true,
 },
@@ -242,7 +242,7 @@ lively.ast.Node.subclass('lively.ast.While',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.DoWhile', 
+lively.ast.Node.subclass('lively.ast.DoWhile',
 'testing', {
 	isDoWhile: true,
 },
@@ -290,7 +290,7 @@ lively.ast.Node.subclass('lively.ast.DoWhile',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.For', 
+lively.ast.Node.subclass('lively.ast.For',
 'testing', {
 	isFor: true,
 },
@@ -344,7 +344,7 @@ lively.ast.Node.subclass('lively.ast.For',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.ForIn', 
+lively.ast.Node.subclass('lively.ast.ForIn',
 'testing', {
 	isForIn: true,
 },
@@ -379,7 +379,7 @@ lively.ast.Node.subclass('lively.ast.ForIn',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Set', 
+lively.ast.Node.subclass('lively.ast.Set',
 'testing', {
 	isSet: true,
 },
@@ -406,7 +406,7 @@ lively.ast.Node.subclass('lively.ast.Set',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.ModifyingSet', 
+lively.ast.Node.subclass('lively.ast.ModifyingSet',
 'testing', {
 	isModifyingSet: true,
 },
@@ -434,7 +434,7 @@ lively.ast.Node.subclass('lively.ast.ModifyingSet',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.BinaryOp', 
+lively.ast.Node.subclass('lively.ast.BinaryOp',
 'testing', {
 	isBinaryOp: true,
 },
@@ -462,7 +462,7 @@ lively.ast.Node.subclass('lively.ast.BinaryOp',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.UnaryOp', 
+lively.ast.Node.subclass('lively.ast.UnaryOp',
 'testing', {
 	isUnaryOp: true,
 },
@@ -488,7 +488,7 @@ lively.ast.Node.subclass('lively.ast.UnaryOp',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.PreOp', 
+lively.ast.Node.subclass('lively.ast.PreOp',
 'testing', {
 	isPreOp: true,
 },
@@ -514,7 +514,7 @@ lively.ast.Node.subclass('lively.ast.PreOp',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.PostOp', 
+lively.ast.Node.subclass('lively.ast.PostOp',
 'testing', {
 	isPostOp: true,
 },
@@ -540,7 +540,7 @@ lively.ast.Node.subclass('lively.ast.PostOp',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.This', 
+lively.ast.Node.subclass('lively.ast.This',
 'testing', {
 	isThis: true,
 },
@@ -562,7 +562,7 @@ lively.ast.Node.subclass('lively.ast.This',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Variable', 
+lively.ast.Node.subclass('lively.ast.Variable',
 'testing', {
 	isVariable: true,
 },
@@ -587,7 +587,7 @@ lively.ast.Node.subclass('lively.ast.Variable',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.GetSlot', 
+lively.ast.Node.subclass('lively.ast.GetSlot',
 'testing', {
 	isGetSlot: true,
 },
@@ -618,7 +618,7 @@ lively.ast.Node.subclass('lively.ast.GetSlot',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Break', 
+lively.ast.Node.subclass('lively.ast.Break',
 'testing', {
 	isBreak: true,
 },
@@ -639,7 +639,7 @@ lively.ast.Node.subclass('lively.ast.Break',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Debugger', 
+lively.ast.Node.subclass('lively.ast.Debugger',
 'testing', {
 	isDebugger: true,
 },
@@ -660,7 +660,7 @@ lively.ast.Node.subclass('lively.ast.Debugger',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Continue', 
+lively.ast.Node.subclass('lively.ast.Continue',
 'testing', {
 	isContinue: true,
 },
@@ -681,7 +681,7 @@ lively.ast.Node.subclass('lively.ast.Continue',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.ArrayLiteral', 
+lively.ast.Node.subclass('lively.ast.ArrayLiteral',
 'testing', {
 	isArrayLiteral: true,
 },
@@ -706,7 +706,7 @@ lively.ast.Node.subclass('lively.ast.ArrayLiteral',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Return', 
+lively.ast.Node.subclass('lively.ast.Return',
 'testing', {
 	isReturn: true,
 },
@@ -731,7 +731,7 @@ lively.ast.Node.subclass('lively.ast.Return',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.With', 
+lively.ast.Node.subclass('lively.ast.With',
 'testing', {
 	isWith: true,
 },
@@ -758,7 +758,7 @@ lively.ast.Node.subclass('lively.ast.With',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Send', 
+lively.ast.Node.subclass('lively.ast.Send',
 'testing', {
 	isSend: true,
 },
@@ -799,7 +799,7 @@ lively.ast.Node.subclass('lively.ast.Send',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Call', 
+lively.ast.Node.subclass('lively.ast.Call',
 'testing', {
 	isCall: true,
 },
@@ -832,7 +832,7 @@ lively.ast.Node.subclass('lively.ast.Call',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.New', 
+lively.ast.Node.subclass('lively.ast.New',
 'testing', {
 	isNew: true,
 },
@@ -859,7 +859,7 @@ lively.ast.Node.subclass('lively.ast.New',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.VarDeclaration', 
+lively.ast.Node.subclass('lively.ast.VarDeclaration',
 'testing', {
 	isVarDeclaration: true,
 },
@@ -887,7 +887,7 @@ lively.ast.Node.subclass('lively.ast.VarDeclaration',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Throw', 
+lively.ast.Node.subclass('lively.ast.Throw',
 'testing', {
 	isThrow: true,
 },
@@ -914,7 +914,7 @@ lively.ast.Node.subclass('lively.ast.Throw',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.TryCatchFinally', 
+lively.ast.Node.subclass('lively.ast.TryCatchFinally',
 'testing', {
 	isTryCatchFinally: true,
 },
@@ -957,7 +957,7 @@ lively.ast.Node.subclass('lively.ast.TryCatchFinally',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Function', 
+lively.ast.Node.subclass('lively.ast.Function',
 'testing', {
 	isFunction: true,
 },
@@ -997,7 +997,7 @@ lively.ast.Node.subclass('lively.ast.Function',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.ObjectLiteral', 
+lively.ast.Node.subclass('lively.ast.ObjectLiteral',
 'testing', {
 	isObjectLiteral: true,
 },
@@ -1026,7 +1026,7 @@ lively.ast.Node.subclass('lively.ast.ObjectLiteral',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.ObjProperty', 
+lively.ast.Node.subclass('lively.ast.ObjProperty',
 'testing', {
 	isObjProperty: true,
 },
@@ -1055,7 +1055,7 @@ lively.ast.Node.subclass('lively.ast.ObjProperty',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Switch', 
+lively.ast.Node.subclass('lively.ast.Switch',
 'testing', {
 	isSwitch: true,
 },
@@ -1084,7 +1084,7 @@ lively.ast.Node.subclass('lively.ast.Switch',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Case', 
+lively.ast.Node.subclass('lively.ast.Case',
 'testing', {
 	isCase: true,
 },
@@ -1114,7 +1114,7 @@ lively.ast.Node.subclass('lively.ast.Case',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Default', 
+lively.ast.Node.subclass('lively.ast.Default',
 'testing', {
 	isDefault: true,
 },
@@ -1139,7 +1139,7 @@ lively.ast.Node.subclass('lively.ast.Default',
 	},
 })
 
-lively.ast.Node.subclass('lively.ast.Regex', 
+lively.ast.Node.subclass('lively.ast.Regex',
 'testing', {
 	isRegex: true,
 },
@@ -1162,7 +1162,7 @@ lively.ast.Node.subclass('lively.ast.Regex',
 		return visitor.visitRegex(this);
 	},
 })
-Object.subclass('lively.ast.Visitor', 
+Object.subclass('lively.ast.Visitor',
 'visiting', {
 	visit: function(node) { return node.accept(this) },
 	visitSequence: function(node) {},
@@ -1204,4 +1204,5 @@ Object.subclass('lively.ast.Visitor',
 	visitRegex: function(node) {},
 
 })
+
 });

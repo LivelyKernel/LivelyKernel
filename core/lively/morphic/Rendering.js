@@ -478,13 +478,11 @@ lively.morphic.Morph.addMethods(
             var self = this;
             (function() { self.onLoad(); }).delay(0);
         }
-        
     },
 
     onRenderFinished: function(ctx) {
         this._isRendered = true;
         this.renderContextDispatch('onRenderFinished', ctx);
-
     },
 
     isRendered: function() {
@@ -493,7 +491,7 @@ lively.morphic.Morph.addMethods(
         // this morph is in the DOM! (use !!this.world() for this test). More specifically,
         // even when you call #remove this will still return true since the morph
         return !!this._isRendered;
-    },
+    }
 });
 
 lively.morphic.Shapes.Shape.addMethods(
@@ -503,7 +501,7 @@ lively.morphic.Shapes.Shape.addMethods(
         this.setRenderContext(renderContext);
         this.renderContextDispatch('init');
         this.renderContextDispatch('appendShape');
-    },
+    }
 });
 
-}) // end of module
+}); // end of module

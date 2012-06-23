@@ -2,7 +2,7 @@ module('lively.ast.TestFramework').requires('lively.TestFramework', 'lively.ast.
 cop.create('DebugTestsLayer')
 .refineClass(TestCase, {
     runTest: function(aSelector) {
-        if (!this.shouldRun) return;
+        if (!this.shouldRun) return null;
         this.currentSelector = aSelector || this.currentSelector;
         this.running();
         var runTearDown = true;
@@ -25,7 +25,7 @@ cop.create('DebugTestsLayer')
             }
         }
         return this.result;
-    },
+    }
 })
 .refineClass(lively.ast.FunctionCaller, {
     shouldInterpret: function(frame, func) {

@@ -35,8 +35,6 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
                           module('users.robertkrahn.foo').uri());
     }
 
-
-
 });
 
 TestCase.subclass('lively.tests.ModuleSystemTests.LoaderTest', {

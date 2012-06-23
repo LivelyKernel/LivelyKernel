@@ -96,8 +96,9 @@ cop.create('DebugGlobalErrorHandlerLayer')
         } else {
             return cop.proceed(err, optName);
         }
-    },
+    }
 }).beGlobal();
+
 Object.extend(lively.Tracing, {
     startGlobalDebugging: function() {
         var root = new TracerStackNode(null, {
@@ -115,8 +116,9 @@ Object.extend(lively.Tracing, {
             lively.Tracing.globalTracingEnabled = false;
             lively.Tracing.setCurrentContext(null);
         }).delay(0.2);
-    },
+    }
 });
+
 cop.create('DeepInterpretationLayer')
 .refineClass(lively.ast.FunctionCaller, {
     shouldInterpret: function(frame, func) {

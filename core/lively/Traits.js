@@ -24,7 +24,7 @@ Object.subclass('RealTrait',
     },
     createAnonymousTrait: function(options) {
         return RealTrait.createAnonymousTrait('Modified' + this.name, options);
-    },
+    }
 },
 'accessing', {
     optionsConfForObj: function(obj) {
@@ -167,13 +167,13 @@ Object.subclass('RealTrait',
             aliasing = (options && options.alias) || {},
             exclusion = (options && options.exclude) || [],
             override = (options && options.override) || [];
-            for (var name in source) {
-                if (!source.hasOwnProperty(name)) continue;
-                if (exclusion.include(name)) continue;
-                var aliasedName = aliasing[name] || name;
-                if (target[aliasedName] && !override.include(aliasedName)) continue;
-                def[aliasedName] = source[name];
-            }
+        for (var name in source) {
+            if (!source.hasOwnProperty(name)) continue;
+            if (exclusion.include(name)) continue;
+            var aliasedName = aliasing[name] || name;
+            if (target[aliasedName] && !override.include(aliasedName)) continue;
+            def[aliasedName] = source[name];
+        }
         Object.extend(target, def);
         return this;
     },
@@ -210,10 +210,10 @@ Object.subclass('RealTrait',
     },
 },
 'categories', {
-  getCategoryNames: function() { return Properties.own(this.categories) },
+    getCategoryNames: function() { return Properties.own(this.categories) }
 },
 'debugging', {
-  toString: function() { return 'Trait(\'' + this.name + '\')' },
+    toString: function() { return 'Trait(\'' + this.name + '\')' }
 });
 
 Object.extend(RealTrait, {

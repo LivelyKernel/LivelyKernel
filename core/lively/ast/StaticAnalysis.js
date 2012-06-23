@@ -263,4 +263,5 @@ Object.extend(AdvancedSyntaxHighlighting, {
     errorStyle: { backgroundColor: Color.web.salmon.lighter() },
     globalStyle: { color: Color.red }
 });
+
 });

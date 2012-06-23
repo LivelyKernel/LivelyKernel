@@ -1145,8 +1145,9 @@ Object.extend(lively.persistence.Serializer, {
     },
 
     serializeWorldToDocumentWithSerializer: function(world, doc, serializer) {
-        // this helper object was introduced to make the code that is browser dependent
-        // (currently IE9 vs the rest) easier to read. It sould be moved to dome general DOM abstraction layer
+        // this helper object was introduced to make the code that is browser
+        // dependent (currently IE9 vs the rest) easier to read. It sould be
+        // moved to dome general DOM abstraction layer
         var domAccess = {
             getSystemDictNode: function(doc) {
                 return (doc.getElementById ?
@@ -1178,8 +1179,8 @@ Object.extend(lively.persistence.Serializer, {
         var head = domAccess.getHeadNode(doc);
 
         // FIXME remove previous meta elements - is this really necessary?
-        //var metaElement;
-        //while (metaElement = doc.getElementsByTagName('meta')[0])
+        // var metaElement;
+        // while (metaElement = doc.getElementsByTagName('meta')[0])
         //    metaElement.parentNode.removeChild(metaElement)
         // removed 2012-01-5 fabian
         // doing this instead: remove old serialized data.. is it necessary or not?
@@ -1187,9 +1188,7 @@ Object.extend(lively.persistence.Serializer, {
         var metaToBeRemoved = ['LivelyMigrationLevel', 'WorldChangeSet', 'LivelyJSONWorld'];
         metaToBeRemoved.forEach(function(ea) {
             var element = doc.getElementById(ea);
-            if (element) {
-                element.parentNode.removeChild(element);
-            }});
+            if (element) { element.parentNode.removeChild(element); }});
 
 
         // FIXME remove system dictionary
@@ -1222,8 +1221,8 @@ Object.extend(lively.persistence.Serializer, {
         return doc;
     },
     deserialize: function(json, optDeserializer) {
-        var deserializer = optDeserializer || this.createObjectGraphLinearizer();
-        var obj = deserializer.deserialize(json);
+        var deserializer = optDeserializer || this.createObjectGraphLinearizer(),
+            obj = deserializer.deserialize(json);
         return obj;
     },
 
@@ -1268,6 +1267,11 @@ Object.extend(lively.persistence.Serializer, {
     },
 
     newMorphicCopy: function(obj) {
+        // this method exists for compatibility
+        return this.copy(obj);
+    },
+
+    copy: function(obj) {
         var serializer = this.createObjectGraphLinearizerForCopy();
         serializer.showLog = false;
         var copyPlugin = new CopyOnlySubmorphsPlugin();

@@ -82,6 +82,9 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
     getButtonExtent: function() { return this.renderContextDispatch('getButtonExtent') },
     updateLabel: function(label) {
         this.renderContextDispatch('updateLabel', label);
+    },
+    setLabel: function(label) {
+        this.updateLabel(label);
     }
     
 },

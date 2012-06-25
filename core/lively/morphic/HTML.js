@@ -1260,7 +1260,7 @@ lively.morphic.Shapes.Shape.addMethods(
                             
                             // syntax fixes for the sap gold reflection css
                             css = css.replace(/[\s]*=[\s]*/g,"=");
-                            css = css.replace(/alpha[\s]*\([\s]*opacity[\s]*\:/,"alpha(opacity=");
+                            css = css.replace(/alpha[\s]*\([\s]*opacity[\s]*\:/g,"alpha(opacity=");
                             css = css.replace(".dev-datepicker/jQuery",".dev-datepicker.jQuery");
                             
                             // insert line breaks so the css is more legible

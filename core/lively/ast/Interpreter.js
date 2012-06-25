@@ -253,7 +253,6 @@ Object.subclass('lively.ast.Interpreter.Frame',
         });
     },
     resume: function(breakAtCalls) {
-        console.log("Interpreting " + this.getFuncName());
         this.breakAtCalls = breakAtCalls ? true : false;
         var result = this.getFuncAst().resume(this);
         if (this.getCaller() && this.getCaller().isResuming()) {

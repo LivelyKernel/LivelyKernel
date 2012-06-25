@@ -698,7 +698,6 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
     },
 
     evalSource: function(newSource) {
-        debugger;
         if (!this.browser.evaluate) return false;
         var ownerName = this.target.className || this.target.findOwnerFragment().name;
         if (!Class.forName(ownerName)) {

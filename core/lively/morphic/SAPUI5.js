@@ -148,6 +148,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
         this.setButtonNodeClass(pressed?this.activeClasses:this.classes);
   
     },
+    /*
     onClick: function(evt) {
          if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) {
             evt.stop()
@@ -156,7 +157,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
         lively.bindings.signal(this, 'fire', true);
          return true;
      },
-
+*/
     onMouseOut: function (evt) {
         this.isPressed && this.changeAppearanceFor(false);
     },

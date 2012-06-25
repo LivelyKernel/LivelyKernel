@@ -44,6 +44,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
         updateLabel: 'updateLabelHTML',
         resizeButton: 'resizeButtonHTML',
         getButtonExtent: 'getButtonExtentHTML',
+        setButtonNodeClass: 'setButtonNodeClassHTML',
     },
 },
 'initializing', {

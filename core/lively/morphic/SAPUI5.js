@@ -93,8 +93,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
     updateLabelHTML: function(ctx, label) {
         ctx.buttonNode.innerHTML = label;
     },
-    setButtonNodeClassHTML: function(ctx, class) {
-        ctx.buttonNode.class = class;
+    setButtonNodeClassHTML: function(ctx, classNames) {
+        ctx.buttonNode.class = classNames;
     }
 },
 

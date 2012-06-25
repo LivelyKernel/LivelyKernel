@@ -134,6 +134,9 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
         }])
         return items;
     },
+    setButtonNodeClass: function(class) {
+        this.renderContextDispatch('setButtonNodeClass', class);     
+    }
     
 },
 'event handling', {

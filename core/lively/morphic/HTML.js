@@ -892,6 +892,7 @@ lively.morphic.Shapes.Shape.addMethods(
                 new less.Parser().parse(specificCss, function(e, tree) {
                     specificCss = tree.toCSS();
                 });
+                console.log(specificCss);
             }
 
 

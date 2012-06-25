@@ -8,10 +8,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
 },
 
 'initializing', {
-    initialize: function($super, label) {
-        this.label = label;
-        $super(this.createShape(label));
-        this.setNodeClass(this.classes);
+    initialize: function($super, bounds, optLabel) {
+        $super(bounds);
+        if (optLabel) this.setLabel(optLabel);
     },
     createShape: function(label) {
         var node = XHTMLNS.create('button');

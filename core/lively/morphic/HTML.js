@@ -1248,8 +1248,12 @@ lively.morphic.Shapes.Shape.addMethods(
 			    if (!resPath){
                                 resPath = absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);   
 			    }
+			    
+
 			    var urlReplace = "url("+resPath;
-			    var css = webRGet.content.replace(/(url|URL)\(/g, urlReplace );
+			    var urlReplace = "url("+resPath;
+			    var urlReplace = "url("+resPath;			    			    
+			    var css = webRGet.content.replace(/url\([\s]*\'[\s]*(?!http)/g, urlReplace );
                             
                             // set the style sheet
                             this.setStyleSheet(css);

@@ -56,7 +56,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
     },
 
     setSizeHTML: function(ctx, size) {
-        if (ctx.listNode) ctx.listNode.size = size;
+        if (ctx.buttonNode) ctx.buttonNode.size = size;
     },
     setSize: function(size) {
         this.renderContextDispatch('setSize', size);

@@ -85,7 +85,18 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
     },
     setLabel: function(label) {
         this.updateLabel(label);
-    }
+    },
+    morphMenuItems: function($super) {
+        var self = this, items = $super();
+        items.push([
+            'Set label', function(evt) {
+            $world.prompt('Set label', function(input) {
+                if (input !== null)
+                    self.setLabel(input || '');
+            }, self.getLabel());
+        }])
+        return items;
+    },
     
 },
 'event handling', {

@@ -67,8 +67,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
 'node creation', {
     createButtonNodeHTML: function() {
         var node = XHTMLNS.create('button');
-        node.style.cssText = 'white-space: pre';
-        node.className = 'visibleSelection';
         return node;
     },
     getListExtentHTML: function(ctx) {

@@ -51,7 +51,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
     initialize: function($super, bounds, optLabel) {
         $super(bounds);
         if (optLabel) this.setLabel(optLabel);
-        this.setNodeClass(this.classes);
+        this.setButtonNodeClass(this.classes);
     }
 },
 

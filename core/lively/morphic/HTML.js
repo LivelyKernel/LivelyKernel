@@ -1239,8 +1239,12 @@ lively.morphic.Shapes.Shape.addMethods(
 			var webR = new WebResource(url);
                         webR.forceUncached();
 			var webRGet = webR.get();
-			console.log(webRGet.status.code());
-			this.setStyleSheet(webRGet.content);
+			if (webRGet.status.code() == 200) {
+                            this.setStyleSheet(webRGet.content);
+			}
+			else {
+   
+			}
 			
 			return {
 				status: webRGet.status.code(),

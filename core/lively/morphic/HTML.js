@@ -1248,12 +1248,15 @@ lively.morphic.Shapes.Shape.addMethods(
 			    if (!resPath){
                                 resPath = absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);   
 			    }
-			    
-
 			    var urlReplace = "url("+resPath;
 			    var urlReplaceSingle = "url('"+resPath;
 			    var urlReplaceDouble = 'url("'+resPath;			    			    
-			    var css = webRGet.content.replace(/url\([\s]*\'(?![\s]*http)/g, urlReplaceSingle).replace(/url\([\s]*\"(?![\s]*http)/g, urlReplaceDouble ).replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, urlReplace ).replace("//","/");
+			    var css = webRGet.content.replace(/url\([\s]*\'(?![\s]*http)/g, urlReplaceSingle).replace(/url\([\s]*\"(?![\s]*http)/g, urlReplaceDouble ).replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, urlReplace );
+
+                            // format the css so it's legible
+                            css = css.replace(/;(?![\s]*\n)/,";\n");                            
+                            css = css.replace(/}(?![\s]*\n)/,"}\n");
+                            css = css.replace(/{(?![\s]*\n)/,"{\n");
                             
                             // set the style sheet
                             this.setStyleSheet(css);

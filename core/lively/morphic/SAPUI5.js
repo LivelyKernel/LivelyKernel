@@ -2,11 +2,12 @@ module('lively.morphic.SAPUI5').requires('lively.morphic.HTML').toRun(function()
 
 lively.morphic.Morph.subclass('lively.morphic.SAPUI5.SuperButton',
 'initializing', {
-    initialize: function($super) {
-        $super(this.createShape());
+    initialize: function($super, label) {
+        $super(this.createShape(label));
     },
-    createShape: function() {
+    createShape: function(label) {
         var node = XHTMLNS.create('button');
+        node.innerHTML = label;
         return new lively.morphic.Shapes.External(node);
     },
 },

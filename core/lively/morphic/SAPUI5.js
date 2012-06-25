@@ -6,7 +6,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.SuperButton',
         $super(this.createShape());
     },
     createShape: function() {
-        var node = XHTMLNS.create('input');
+        var node = XHTMLNS.create('button');
         return new lively.morphic.Shapes.External(node);
     },
 },

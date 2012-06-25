@@ -1258,8 +1258,9 @@ lively.morphic.Shapes.Shape.addMethods(
 			    var urlReplaceDouble = 'url("'+resPath;			    			    
 			    css = css.replace(/url\([\s]*\'(?![\s]*http)/g, urlReplaceSingle).replace(/url\([\s]*\"(?![\s]*http)/g, urlReplaceDouble ).replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, urlReplace );
                             
-                            // avoid less parsing errors
+                            // syntax fixes for the sap gold reflection css
                             css = css.replace(/[\s]*=[\s]*/g,"=");
+                            css = css.replace(/alpha[\s]*\([\s]*opacity[\s]*\:/,"alpha(opacity=");
                             css = css.replace(".dev-datepicker/jQuery",".dev-datepicker.jQuery");
                             
                             // insert line breaks so the css is more legible

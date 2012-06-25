@@ -1243,7 +1243,7 @@ lively.morphic.Shapes.Shape.addMethods(
                             this.setStyleSheet(webRGet.content);
 			}
 			else {
-   
+                            throw new Error("Couldn't load stylesheet at absPath --> "+webRGet.status.code());
 			}
 			
 			return {

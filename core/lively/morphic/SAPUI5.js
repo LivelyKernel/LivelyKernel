@@ -6,7 +6,14 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
     classes: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnStd',    
     activeClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnAct'
 },
-
+'HTML render settings', {
+    htmlDispatchTable: {
+        updateLabel: 'updateLabelHTML',
+        resizeButton: 'resizeButtonHTML',
+        getButtonExtent: 'getButtonExtentHTML',
+        setSize: 'setSizeHTML',
+    },
+},
 'initializing', {
     initialize: function($super, bounds, optLabel) {
         $super(bounds);

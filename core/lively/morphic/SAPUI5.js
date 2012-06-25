@@ -195,7 +195,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
         return false;
     },
     isValidClick: function(evt) {
-        return this.isActive && evt.isLeftMouseButtonDown() && !evt.isCommandKey();
+        return evt.isLeftMouseButtonDown() && !evt.isCommandKey();
     },
     setValue: function(bool) {
         this.value = bool;

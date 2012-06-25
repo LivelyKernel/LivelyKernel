@@ -1257,7 +1257,7 @@ lively.morphic.Shapes.Shape.addMethods(
                             css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/,";\n");                            
                             css = css.replace(/\}(?![\s]*(\r\n|\n|\r))/,"}\n");
                             css = css.replace(/\{(?![\s]*(\r\n|\n|\r))/,"{\n");
-                            
+                            console.log(css);
                             // set the style sheet
                             this.setStyleSheet(css);
 			}

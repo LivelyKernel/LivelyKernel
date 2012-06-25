@@ -1260,6 +1260,7 @@ lively.morphic.Shapes.Shape.addMethods(
                             
                             // avoid less parsing errors
                             css = css.replace(/[\s]*=[\s]*/g,"=");
+                            css = css.replace(".dev-datepicker/jQuery",".dev-datepicker.jQuery");
                             
                             // insert line breaks so the css is more legible
                             css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/g,";\n").replace(/\}(?![\s]*(\r\n|\n|\r))/g,"}\n").replace(/\{(?![\s]*(\r\n|\n|\r))/g,"{\n");

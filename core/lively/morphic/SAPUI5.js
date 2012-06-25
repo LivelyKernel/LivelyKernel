@@ -1,4 +1,4 @@
-module('lively.morphic.SAPUI5').requires().toRun(function() {
+module('lively.morphic.SAPUI5').requires('lively.morphic.HTML').toRun(function() {
 
 lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
 

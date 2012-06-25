@@ -1248,7 +1248,7 @@ lively.morphic.Shapes.Shape.addMethods(
 			if (webRGet.status.code() == 200) {
 			    // add resource path to all relative urls in the css
 			    var css = webRGet.content;
-			    /*
+			    
 			    var resPath = resourcePath;
 			    if (!resPath){
                                 resPath = absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);   
@@ -1257,9 +1257,9 @@ lively.morphic.Shapes.Shape.addMethods(
 			    var urlReplaceSingle = "url('"+resPath;
 			    var urlReplaceDouble = 'url("'+resPath;			    			    
 			    css = css.replace(/url\([\s]*\'(?![\s]*http)/g, urlReplaceSingle).replace(/url\([\s]*\"(?![\s]*http)/g, urlReplaceDouble ).replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, urlReplace );
-                            */
+                            
                             // insert line breaks so the css is more legible
-                            //css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/g,";\n").replace(/\}(?![\s]*(\r\n|\n|\r))/g,"}\n").replace(/\{(?![\s]*(\r\n|\n|\r))/g,"{\n");
+                            css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/g,";\n").replace(/\}(?![\s]*(\r\n|\n|\r))/g,"}\n").replace(/\{(?![\s]*(\r\n|\n|\r))/g,"{\n");
                             //console.log(css);
                             
                             // set the style sheet

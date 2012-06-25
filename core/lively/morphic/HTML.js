@@ -1226,15 +1226,20 @@ lively.morphic.Shapes.Shape.addMethods(
 			this.updateComputedStyles();
 		},
 		applyStyleSheetFromFile: function(file){
-		        var absPath = document.location.href.toString().split('?')[0];
-		        absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);
-		        var url = new URL(absPath +"/"+file);
+		        var absPath = file;
+		        // is the filename absolute? if not then make it absolute.
+		        if (absPath.search('http://')<0) {
+		          absPath = document.location.href.toString().split('?')[0];
+		          absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);
+		          absPath += "/"+file;
+		        }
+		        var url = new URL(absPath);
 		        
 
 			var webR = new WebResource(url);
                         webR.forceUncached();
 			var webRGet = webR.get();
-			console.log(webRGet.content);
+			console.log(webRGet.status.code());
 			this.setStyleSheet(webRGet.content);
 			
 			return {

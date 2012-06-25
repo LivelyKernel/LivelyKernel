@@ -176,6 +176,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
     },
 
     onMouseDown: function (evt) {
+        console.log("Mouse Down on Button!");
         if (this.isValidClick (evt)) {
                 this.isPressed = true;
                 this.changeAppearanceFor(true);

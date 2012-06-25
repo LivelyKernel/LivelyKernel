@@ -69,8 +69,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
         var node = XHTMLNS.create('button');
         return node;
     },
-    getListExtentHTML: function(ctx) {
-        return ctx.listNode.scrollHeight != 0 ? pt(ctx.listNode.scrollWidth, ctx.listNode.scrollHeight) : this.getExtent()
+    getButtonExtentHTML: function(ctx) {
+        return ctx.buttonNode.scrollHeight != 0 ? pt(ctx.buttonNode.scrollWidth, ctx.buttonNode.scrollHeight) : this.getExtent()
     },
 },
 

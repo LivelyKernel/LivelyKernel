@@ -145,7 +145,12 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
 },
 'event handling', {
     changeAppearanceFor: function(pressed) {
-        this.setButtonNodeClass(pressed?this.activeClasses:this.classes);
+        console.log
+        if (pressed) {
+            this.setButtonNodeClass(this.activeClasses);
+        } else {
+            this.setButtonNodeClass(this.classes);
+        }
   
     },
     /*

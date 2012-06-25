@@ -185,6 +185,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
     },
 
     onMouseUp: function(evt) {
+        console.log("Mouse Up on Button!");
         if (this.isValidClick (evt) && this.isPressed) {
             var newValue = this.toggle ? !this.value : false;
             this.setValue(newValue);

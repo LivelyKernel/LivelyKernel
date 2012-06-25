@@ -1225,7 +1225,10 @@ lively.morphic.Shapes.Shape.addMethods(
 			this.shape.setAppearanceStylingMode(value);
 			this.updateComputedStyles();
 		},
-		applyStyleSheetFromFile: function(file){
+		applyStyleSheetFromFile: function(file, resourcePath){
+		        // use the resourcePath parameter if the resources addressed
+		        // in the CSS file are in a different directory than the CSS'
+		        
 		        var absPath = file;
 		        // is the filename absolute? if not then make it absolute.
 		        if (absPath.search('http://')<0) {
@@ -1240,7 +1243,15 @@ lively.morphic.Shapes.Shape.addMethods(
                         webR.forceUncached();
 			var webRGet = webR.get();
 			if (webRGet.status.code() == 200) {
-                            this.setStyleSheet(webRGet.content);
+			    var resPath = resourcePath;
+			    if (!resPath){
+                                resPath = absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);   
+			    }
+			    var urlReplaceSingle = "url('"+resPath;
+			    var urlReplaceDouble = 'url("'+resPath;
+			    var css = webRGet.content.replace(/replaceme/g, urlReplaceSingle);
+			    css = webRGet.content.replace(/replaceme/g, urlReplaceDouble);
+                            this.setStyleSheet(css);
 			}
 			else {
                             throw new Error("Couldn't load stylesheet at "+absPath+" --> " +webRGet.status.code());

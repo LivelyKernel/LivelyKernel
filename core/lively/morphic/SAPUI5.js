@@ -41,7 +41,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
     setClipModeHTML: function(ctx, clipMode) {
         // FIXME duplication wiht super, delay logic
         // can be extracted
-        if (!ctx.listNode || this.delayedClipMode) {
+        if (!ctx.buttonNode || this.delayedClipMode) {
             this.delayedClipMode = clipMode;
             return;
         }

@@ -9,9 +9,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
 'HTML render settings', {
     htmlDispatchTable: {
         updateLabel: 'updateLabelHTML',
-        resizeButton: 'resizeButtonHTML',
         getButtonExtent: 'getButtonExtentHTML',
-        setSize: 'setSizeHTML',
     },
 },
 'initializing', {

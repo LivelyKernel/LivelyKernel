@@ -1253,7 +1253,7 @@ lively.morphic.Shapes.Shape.addMethods(
 			    var urlReplaceDouble = 'url("'+resPath;			    			    
 			    var css = webRGet.content.replace(/url\([\s]*\'(?![\s]*http)/g, urlReplaceSingle).replace(/url\([\s]*\"(?![\s]*http)/g, urlReplaceDouble ).replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, urlReplace );
 
-                            // format the css so it's legible
+                            // insert line breaks so the css is more legible
                             css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/g,";\n");                            
                             css = css.replace(/\}(?![\s]*(\r\n|\n|\r))/g,"}\n");
                             css = css.replace(/\{(?![\s]*(\r\n|\n|\r))/g,"{\n");

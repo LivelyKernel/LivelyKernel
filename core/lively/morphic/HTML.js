@@ -1258,9 +1258,11 @@ lively.morphic.Shapes.Shape.addMethods(
 			    var urlReplaceDouble = 'url("'+resPath;			    			    
 			    css = css.replace(/url\([\s]*\'(?![\s]*http)/g, urlReplaceSingle).replace(/url\([\s]*\"(?![\s]*http)/g, urlReplaceDouble ).replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, urlReplace );
                             
+                            css = css.replace(/[\s]*=[\s]*/g,"=");
+                            
                             // insert line breaks so the css is more legible
-                            css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/g,";\n").replace(/\}(?![\s]*(\r\n|\n|\r))/g,"}\n").replace(/\{(?![\s]*(\r\n|\n|\r))/g,"{\n");
-                            console.log(css);
+                            //css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/g,";\n").replace(/\}(?![\s]*(\r\n|\n|\r))/g,"}\n").replace(/\{(?![\s]*(\r\n|\n|\r))/g,"{\n");
+                            //console.log(css);
                             
                             // set the style sheet
                             this.setStyleSheet(css);

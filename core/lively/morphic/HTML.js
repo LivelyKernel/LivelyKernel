@@ -1251,10 +1251,10 @@ lively.morphic.Shapes.Shape.addMethods(
 			    
 
 			    var urlReplace = "url("+resPath;
-			    var urlReplaceDouble = "url('"+resPath;
-			    var urlReplaceSingle = 'url("'+resPath;			    			    
-			    var css = webRGet.content.replace(/url\([\s]*\'[\s]*(?!http)/g, urlReplace );
-			    css = webRGet.content.replace(/url\([\s]*(?!http)/g, urlReplaceSingle );
+			    var urlReplaceSingle = "url('"+resPath;
+			    var urlReplaceDouble = 'url("'+resPath;			    			    
+			    var css = webRGet.content.replace(/url\([\s]*\'[\s]*(?!http)/g, urlReplaceSingle);
+			    css = webRGet.content.replace(/url\([\s]*(?!http)/g, urlReplace );
 			    css = webRGet.content.replace(/url\([\s]*\"[\s]*(?!http)/g, urlReplaceDouble );
                             
                             // set the style sheet

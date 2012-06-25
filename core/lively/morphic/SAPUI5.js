@@ -55,13 +55,18 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
         this.setClipModeHTMLForNode(ctx, ctx.listNode, clipMode);
     },
 
-    setSizeHTML: function(ctx, size) {
-        if (ctx.buttonNode) ctx.buttonNode.size = size;
-    },
-    setSize: function(size) {
-        this.renderContextDispatch('setSize', size);
-    },
+},
 
+'node creation', {
+    createButtonNodeHTML: function() {
+        var node = XHTMLNS.create('button');
+        node.style.cssText = 'white-space: pre';
+        node.className = 'visibleSelection';
+        return node;
+    },
+    getListExtentHTML: function(ctx) {
+        return ctx.listNode.scrollHeight != 0 ? pt(ctx.listNode.scrollWidth, ctx.listNode.scrollHeight) : this.getExtent()
+    },
 },
 
 'accessing', {

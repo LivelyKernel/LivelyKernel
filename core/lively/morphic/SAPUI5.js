@@ -1,15 +1,9 @@
 module('lively.morphic.SAPUI5').requires('lively.morphic.HTML').toRun(function() {
 
 lively.morphic.Morph.subclass('lively.morphic.SAPUI5.SuperButton',
-'properties', {
-    connections: {
-        setChecked: {}
-    }
-},
 'initializing', {
     initialize: function($super, isChecked) {
         $super(this.createShape());
-        this.setChecked(isChecked);
     },
     createShape: function() {
         var node = XHTMLNS.create('button');
@@ -27,16 +21,12 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.SuperButton',
             return true;
         }
         // we do it ourselves
-        this.setChecked(!this.isChecked());
         return true;
      },
 },
 'serialization', {
     prepareForNewRenderContext: function ($super, renderCtx) {
         $super(renderCtx);
-        // FIXME what about connections to this.isChecked?
-        // they would be updated here...
-        this.setChecked(this.isChecked());
     },
 });
 

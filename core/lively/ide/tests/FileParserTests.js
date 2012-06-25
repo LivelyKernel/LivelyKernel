@@ -230,9 +230,9 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         this.sut.src = src;
         var descriptor = this.sut.callOMeta('functionDef');
         this.assert(descriptor, 'no descriptor');
-            this.assertEquals(descriptor.name, 'equals');
+        this.assertEquals(descriptor.name, 'equals');
         this.assertIdentity(descriptor.startIndex, 0);
-            this.assertIdentity(descriptor.stopIndex, src.lastIndexOf(';'));
+        this.assertIdentity(descriptor.stopIndex, src.lastIndexOf(';'));
     },
     testParseFunction3: function() {    // function abc() {...}
         var src = 'function bar() {\n\n}';

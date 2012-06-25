@@ -190,6 +190,11 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
     isValidClick: function(evt) {
         return this.isActive && evt.isLeftMouseButtonDown() && !evt.isCommandKey();
     },
+    setValue: function(bool) {
+        this.value = bool;
+        // buttons should fire on mouse up
+        if (!bool || this.toggle) lively.bindings.signal(this, 'fire', bool);
+    },
 
 }
 );

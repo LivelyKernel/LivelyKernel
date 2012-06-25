@@ -27,7 +27,7 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
         ctx.subNodes = [];
         $super(ctx);
         if (this.shape) // FIXME should also be done when no shape exists...?
-            this.updateLabel(this.label || [])
+            this.updateLabel(this.label || "Button")
     },
     appendHTML: function($super, ctx, optMorphAfter) {
         $super(ctx, optMorphAfter);
@@ -56,6 +56,9 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
         buttonNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';
         buttonNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
     },
+    updateLabelHTML: function(ctx, label) {
+        ctx.buttonNode.innerHTML = label;
+    }
 },
 
 'node creation', {
@@ -76,7 +79,11 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
     resizeButton: function(idx) {
         return this.renderContextDispatch('resizeButton');
     },
-    getButtonExtent: function() { return this.renderContextDispatch('getButtonExtent') }
+    getButtonExtent: function() { return this.renderContextDispatch('getButtonExtent') },
+    updateLabel: function(label) {
+        this.renderContextDispatch('updateLabel', label);
+    }
+    
 },
 'event handling', {
 

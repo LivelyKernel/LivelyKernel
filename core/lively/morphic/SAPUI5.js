@@ -95,13 +95,8 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.Button',
          return true;
      },
 
-},
-'serialization', {
-    prepareForNewRenderContext: function ($super, renderCtx) {
-        $super(renderCtx);
-
-    },
-});
+}
+);
 
 
 }) // end of module

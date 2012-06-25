@@ -1243,12 +1243,15 @@ lively.morphic.Shapes.Shape.addMethods(
                         webR.forceUncached();
 			var webRGet = webR.get();
 			if (webRGet.status.code() == 200) {
+			    // add resource path to all relative urls in the css
 			    var resPath = resourcePath;
 			    if (!resPath){
                                 resPath = absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);   
 			    }
 			    var urlReplace = "url("+resPath;
 			    var css = webRGet.content.replace(/(url|URL)\(/g, urlReplace );
+                            
+                            // set the style sheet
                             this.setStyleSheet(css);
 			}
 			else {

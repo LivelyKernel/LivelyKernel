@@ -8,7 +8,6 @@ lively.morphic.Morph.subclass('lively.morphic.SAPUI5.SuperButton',
     createShape: function(label) {
         var node = XHTMLNS.create('button');
         node.style.padding="0";
-        node.style.margin="0";
         node.innerHTML = label;
         return new lively.morphic.Shapes.External(node);
     },

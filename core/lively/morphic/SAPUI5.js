@@ -176,7 +176,6 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
     },
 
     onMouseDown: function (evt) {
-        console.log("Mouse Down on Button!");
         if (this.isValidClick (evt)) {
                 this.isPressed = true;
                 this.changeAppearanceFor(true);
@@ -185,7 +184,6 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
     },
 
     onMouseUp: function(evt) {
-        console.log("Mouse Up on Button!");
         if (this.isValidClick (evt) && this.isPressed) {
             var newValue = this.toggle ? !this.value : false;
             this.setValue(newValue);
@@ -195,7 +193,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
         return false;
     },
     isValidClick: function(evt) {
-        return evt.isLeftMouseButtonDown() && !evt.isCommandKey();
+        return this.isActive && evt.isLeftMouseButtonDown() && !evt.isCommandKey();
     },
     setValue: function(bool) {
         this.value = bool;

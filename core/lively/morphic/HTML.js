@@ -1249,8 +1249,8 @@ lively.morphic.Shapes.Shape.addMethods(
 			    }
 			    var urlReplaceSingle = "url('"+resPath;
 			    var urlReplaceDouble = 'url("'+resPath;
-			    var css = webRGet.content.replace(/replaceme/g, urlReplaceSingle);
-			    css = webRGet.content.replace(/replaceme/g, urlReplaceDouble);
+			    var css = webRGet.content.replace(/(url|URL)\(\'/g, urlReplaceSingle);
+			    css = webRGet.content.replace(/(url|URL)\(\"/g, urlReplaceDouble);
                             this.setStyleSheet(css);
 			}
 			else {

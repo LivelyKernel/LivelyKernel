@@ -238,7 +238,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         var src = 'function bar() {\n\n}';
         this.sut.src = src;
         var descriptor = this.sut.callOMeta('functionDef');
-            this.assert(descriptor, 'no descriptor');
+        this.assert(descriptor, 'no descriptor');
         this.assertEquals(descriptor.name, 'bar');
         this.assertIdentity(descriptor.startIndex, 0);
         this.assertIdentity(descriptor.stopIndex, src.lastIndexOf('}'));

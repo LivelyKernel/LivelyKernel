@@ -28,8 +28,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
             ctx.buttonNode= this.createButtonNodeHTML();
         ctx.subNodes = [];
         $super(ctx);
-        if (this.shape) // FIXME should also be done when no shape exists...?
-            this.updateLabel(this.label || "Button")
+        if (this.shape) this.updateLabel(this.label || "Button")
     },
     appendHTML: function($super, ctx, optMorphAfter) {
         $super(ctx, optMorphAfter);

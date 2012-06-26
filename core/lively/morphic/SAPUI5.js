@@ -221,9 +221,15 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
     },
     setupCheckBoxNodeHTML: function(ctx){
         var c = XHTMLNS.create('input');
-        c.type = "CheckBox";
+        c.type = "checkbox";
+        c.id = 'checkbox-'+ctx.shapeNode.id;
         ctx.checkBoxNode = c;
     },    
+    setupCheckBoxNodeHTML: function(ctx){
+        var l = XHTMLNS.create('label');
+        l.htmlFor = 'checkbox-'+ctx.shapeNode.id;
+        ctx.labelNode = l;
+    },
     appendHTML: function($super, ctx, optMorphAfter) {
         $super(ctx, optMorphAfter);
         ctx.wrapperNode.appendChild(ctx.checkBoxNode);

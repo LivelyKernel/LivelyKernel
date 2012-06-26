@@ -272,8 +272,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
 'accessing', {
     setActive: function(active) {
         this.isActive = active;
-        if (active) this.pressed = false;
-        this.changeAppearanceFor(false);
+        this.updateAppearance();
     },
     setExtent: function($super, extent) {
         $super(extent);

@@ -212,7 +212,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
     initHTML: function($super, ctx) {
         if (!ctx.wrapperNode) ctx.wrapperNode= XHTMLNS.create('div');
         if (!ctx.checkBoxNode) this.setupCheckBoxNodeHTML(ctx);
-        if (!ctx.labelNode) ctx.labelNode= XHTMLNS.create('label');
+        if (!ctx.labelNode) this.setupLabelNodeHTML(ctx);
         
         this.setWrapperNodeClass(this.isActive?this.classes:this.disabledClasses);
         ctx.subNodes = [];
@@ -225,7 +225,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
         c.id = 'checkbox-'+ctx.shapeNode.id;
         ctx.checkBoxNode = c;
     },    
-    setupCheckBoxNodeHTML: function(ctx){
+    setupLabelNodeHTML: function(ctx){
         var l = XHTMLNS.create('label');
         l.htmlFor = 'checkbox-'+ctx.shapeNode.id;
         ctx.labelNode = l;

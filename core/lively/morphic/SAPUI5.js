@@ -63,7 +63,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
     initHTML: function($super, ctx) {
         if (!ctx.buttonNode)
             ctx.buttonNode= this.createButtonNodeHTML();
-        this.setButtonNodeClass(this.classes);
+        this.setButtonNodeClass(this.isActive?this.classes:this.disabledClasses);
         ctx.subNodes = [];
         $super(ctx);
         if (this.shape) this.updateLabel(this.label || "Button")

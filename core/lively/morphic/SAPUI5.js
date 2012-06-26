@@ -1,37 +1,5 @@
 module('lively.morphic.SAPUI5').requires('lively.morphic.HTML').toRun(function() {
 
-lively.morphic.Morph.subclass('lively.morphic.SAPUI5.SuperButton',
-'initializing', {
-    initialize: function($super, label) {
-        $super(this.createShape(label));
-    },
-    createShape: function(label) {
-        var node = XHTMLNS.create('button');
-        node.style.padding="0";
-        node.innerHTML = label;
-        return new lively.morphic.Shapes.External(node);
-    },
-},
-'accessing', {
-
-},
-'event handling', {
-    onClick: function(evt) {
-        // for halos/menus
-         if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) {
-            evt.stop()
-            return true;
-        }
-        // we do it ourselves
-        return true;
-     },
-},
-'serialization', {
-    prepareForNewRenderContext: function ($super, renderCtx) {
-        $super(renderCtx);
-    },
-});
-
 lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
 
 'settings',{

@@ -460,9 +460,6 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
         onMouseDown: function(evt) {
         return true;   
     },
-        onMouseUpEntry: function(evt) {
-        return true;   
-    },
         onMouseOver: function(evt) {
         return true;   
     },

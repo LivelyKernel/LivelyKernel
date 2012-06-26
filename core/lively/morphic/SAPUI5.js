@@ -184,7 +184,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
 lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
 
 'settings',{
-    classes: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnStd',    
+    classes: 'sapUiCb sapUiCbInteractive sapUiCbStd',    
     activeClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnAct',
     disabledClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnDsbl',
     label: "Checkbox"

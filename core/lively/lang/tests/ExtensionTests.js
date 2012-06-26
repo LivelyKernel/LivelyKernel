@@ -67,11 +67,15 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectsTest', {
 TestCase.subclass('lively.lang.tests.ExtensionTests.PropertiesTest',
 'running', {
     setUp: function() {
-        var Foo = function() { this.a = 1; this.aa = 1; this.b = Functions.Empty; };
+        var Foo = function() {
+            this.a = 1;
+            this.aa = 1;
+            this.b = Functions.True;    
+        };
+        Foo.prototype.c = 2;
+        Foo.prototype.cc = 2;
+        Foo.prototype.d = Functions.False;
         this.sut = new Foo();
-        this.sut.c = 2;
-        this.sut.cc = 2;
-        this.sut.d = Functions.True;
     }
 },
 'testing', {

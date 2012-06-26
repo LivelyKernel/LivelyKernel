@@ -415,6 +415,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     
     appendHTML: function($super, ctx, optMorphAfter) {
         $super(ctx, optMorphAfter);
+        ctx.wrapperNode.appendChild(ctx.listNode );
         ctx.shapeNode.appendChild(ctx.wrapperNode );
         this.resizeListHTML(ctx);
     },

@@ -366,6 +366,8 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     selectionColor: null,
     wrapperClasses: 'sapUiLbx sapUiLbxStd' ,
     itemClass: 'sapUiLbxI',
+    selectedItemClass: 'sapUiLbxISel',
+    itemSpanClass: 'sapUiLbxITxt',
 },
 'HTML render settings', {
     htmlDispatchTable: {
@@ -444,9 +446,20 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
             node.parentNode.removeChild(node);
         }
     },
-    createItemNodeHTML: function(ctx, title) { 
+    createItemNodeHTML: function(title) { 
+        // create the li
         var l = XHTMLNS.create('li');
         l.className = this.itemClass;
+        l.title = title;
+        
+        // create the span inside the li
+        var s = XHTMLNS.create('span');
+        s.innerHTML = title;
+        s.className = this.itemSpanClass;
+        s.style = "text-align:left"; // its in the SAPUI5 html, but is it really necessary?
+        l.appendChild(s);
+        
+        return l;
     },
     updateListContentHTML: function(ctx, itemStrings) {
         if (!itemStrings) itemStrings = [];
@@ -455,8 +468,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
         if (ctx.subNodes.length > 0) this.removeListContentHTML(ctx);
         var extent = this.getExtent();
         for (var i = 0; i < itemStrings.length; i++) {
-            var option = XHTMLNS.create('li');
-            option.textContent = itemStrings[i];
+            var option = this.createItemNodeHTML(itemStrings[i]);
             ctx.listNode.appendChild(option);
             ctx.subNodes.push(option);
         }
@@ -466,7 +478,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     resizeListHTML: function(ctx) {
         var borderWidth = this.getBorderWidth(),
             extent = this.getExtent().subPt(pt(2*borderWidth, 2*borderWidth)),
-            listNode = ctx.listNode;
+            listNode = ctx.wrapperNode;
         listNode.style.left = this.shape.getPosition().x /*+ this.padding.left()*/ + 'px';
         listNode.style.top = this.shape.getPosition().y /*+ this.padding.top()*/ + 'px';
         listNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';
@@ -483,14 +495,9 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
         }
     },
 },
-'drop down support HTML', {
-    renderAsDropDownListHTML: function(ctx) {
-        if (ctx.listNode) ctx.listNode.size = 1
-    },
-},
 'multiple selection support HTML', {
     enableMultipleSelectionsHTML: function(ctx) {
-        if (ctx.listNode) ctx.listNode.multiple = true;
+        
     },
     getSelectedIndexesHTML: function(ctx) {
         var indexes = ctx.subNodes
@@ -498,11 +505,19 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
             .select(function(idxOrNull) { return idxOrNull || idxOrNull === 0 })
         return indexes;
     },
+    selectNodeHTML: function(node, select){
+        if (select) {
+            node.className = this.itemClass +' '+ this.selectedItemClass;
+        } else {
+            node.className = this.itemClass;
+        }
+        node.selected = select;
+    },
     deselectAtHTML: function(ctx, idx) {
         if (!ctx.listNode) return;
         if (idx < 0 || idx >= this.itemList.length) return;
         var node = ctx.subNodes[idx];
-        if (node) node.selected = false;
+        if (node) this.selectNodeHTML(node, false);
     },
     selectAllAtHTML: function(ctx, indexes) {
         if (!ctx.listNode) return;
@@ -511,7 +526,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
             if (idx < 0 || idx >= this.itemList.length) continue;
             var node = ctx.subNodes[idx];
             if (!node) continue;
-            node.selected = true;
+            //this.selectNodeHTML(node, true);
             if (node.scrollIntoViewIfNeeded) // no Firefox support
                 node.scrollIntoViewIfNeeded();
         }

@@ -841,7 +841,16 @@ Object.extend(lively.ast, {
     halt: function(frame) {
         // overwrite this function, e.g. to open a debugger
         return false; // return true to actually stop execution
-    }
+    },
+    withoutHalting: function(func) {
+        var oldHalt = lively.ast.halt;
+        lively.ast.halt = Functions.False;
+        try {
+            func();
+        } finally {
+            lively.ast.halt = oldHalt;
+        }
+    },
 });
 
 lively.ast.Visitor.subclass('lively.ast.ContainsDebuggerVisitor', 'visiting', {

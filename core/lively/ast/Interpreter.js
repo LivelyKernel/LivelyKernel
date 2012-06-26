@@ -794,7 +794,8 @@ lively.ast.Function.addMethods('interpretation', {
             lively.ast.Interpreter.Frame.top = null;
         }
     },
-    apply: function(thisObj, argValues, calledFunction) {
+    apply: function(thisObj, argValues) {
+        var calledFunction = this.asFunction();
         var mapping = Object.extend({}, calledFunction.getVarMapping());
         var callerFrame = lively.ast.Interpreter.Frame.top;
         var argNames = this.argNames();

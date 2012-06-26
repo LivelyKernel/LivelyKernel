@@ -457,13 +457,19 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
         if (evt.isRightMouseButtonDown()) this.showHalos();
         return false;   
     },
-        onMouseDown: function(evt) {
-        return falsetrue;   
-    },
-        onMouseOver: function(evt) {
+    onMouseUpEntry: function(evt) {
         return false;   
     },
-        onMouseMove: function(evt) {
+    onMouseDown: function(evt) {
+        return false;   
+    },
+    onMouseDownEntry: function(evt) {
+        return false;   
+    },
+    onMouseOver: function(evt) {
+        return false;   
+    },
+    onMouseMove: function(evt) {
         return false;   
     }
 },

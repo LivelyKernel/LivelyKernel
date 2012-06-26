@@ -793,11 +793,8 @@ lively.ast.Function.addMethods('interpretation', {
         var callerFrame = lively.ast.Interpreter.Frame.top;
         var argNames = this.argNames();
         // work-around for $super
-        if (this.getRealFunction().isWrapper) {
-            var vm = this.getRealFunction().getVarMapping();
-            if (vm["$super"] && argNames[0] == "$super") {
-                argValues.unshift(vm["$super"]);
-            }
+        if (mapping["$super"] && argNames[0] == "$super") {
+            argValues.unshift(vm["$super"]);
         }
         var newFrame = this.lexicalScope.newScope(calledFunction, mapping);
         if (thisObj !== undefined) newFrame.setThis(thisObj);

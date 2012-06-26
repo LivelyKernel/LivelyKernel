@@ -298,8 +298,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
         }])
         return items;
     },
-    setButtonNodeClass: function(className) {
-        this.renderContextDispatch('setButtonNodeClass', className);     
+    setCheckBoxNodeClass: function(className) {
+        this.renderContextDispatch('setCheckBoxNodeClass', className);     
     }
     
 },

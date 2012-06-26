@@ -96,6 +96,9 @@ Object.subclass('lively.ast.Interpreter.Frame',
         if (this.mapping.hasOwnProperty(name)) {
             return {val: this.mapping[name], frame: this};
         }
+        if (this.mapping === Global) { // reached global scope
+            throw new ReferenceError(name + " is not defined");
+        }
         // lookup in my current function
         var mapping = this.func.getVarMapping();
         if (mapping) {

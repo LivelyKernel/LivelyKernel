@@ -385,14 +385,10 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
 
 'rendering', {
     initHTML: function($super, ctx) {
-        if (!ctx.listNode)
-            ctx.listNode = this.createListNodeHTML();
+        
+        if (!ctx.wrapperNode) this.setupCheckBoxNodeHTML(ctx);
+        if (!ctx.listNode) this.setupLabelNodeHTML(ctx);
             
-                var wrapper = XHTMLNS.create('ul');
-        var list = XHTMLNS.create('ul');
-        node.style.cssText = 'white-space: pre';
-        node.className = 'visibleSelection';
-        return node;
             
         ctx.subNodes = [];
         $super(ctx);
@@ -403,7 +399,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
         
     },
     
-     setupWrapperxNodeHTML: function(ctx){
+     setupWrapperNodeHTML: function(ctx){
         var c = XHTMLNS.create('div');
         ctx.wrapperNode = c;
     },    

@@ -810,7 +810,7 @@ lively.ast.Function.addMethods('interpretation', {
         return this.basicApply(newFrame);
     },
     asFunction: function(optFunc) {
-        if (this._chachedFunction) return 
+        if (this._chachedFunction) return this._chachedFunction;
         var that = this;
         var fn = function(/*args*/) {
             return that.apply(this, $A(arguments), fn);

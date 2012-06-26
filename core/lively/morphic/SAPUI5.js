@@ -114,7 +114,9 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
 
 'accessing', {
     setActive: function(active) {
-            
+        this.isActive = active;
+        this.isActive && this.pressed = false;
+        this.changeAppearance(false);
     },
     setExtent: function($super, extent) {
         $super(extent);

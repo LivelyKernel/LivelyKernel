@@ -97,10 +97,8 @@ cop.create('DebugGlobalErrorHandlerLayer')
             var frame = lively.ast.Interpreter.Frame.fromTraceNode(err.simStack);
             lively.ast.openDebugger(frame, err.toString());
             return false;
-        } else {
-            if (!err.isUnwindException) {
-                return cop.proceed(err, optName);
-            }
+        } else if (!err.isUnwindException) {
+            return cop.proceed(err, optName);
         }
     }
 })

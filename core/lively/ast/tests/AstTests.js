@@ -604,7 +604,6 @@ TestCase.subclass('lively.ast.tests.AstTests.InterpreterTest',
     },
     test35AssignVarsOfOuterScope: function() {
         var func = function m(){var a=2;(function(){a++})(); return a};
-        debugger;
         var result = func.forInterpretation().call();
         this.assertEquals(3, result);
     },

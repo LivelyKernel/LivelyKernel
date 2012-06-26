@@ -820,7 +820,7 @@ lively.ast.Function.addMethods('interpretation', {
             return that.apply(this, $A(arguments), true);
         }};
         if (optFunc) {
-            fn.toSource = function() { return optFunc.toSource(); };
+            fn.source = optFunc.toSource();
             fn.varMapping = optFunc.getVarMapping();
             if (optFunc.declaredClass) fn.declaredClass = optFunc.declaredClass;
             if (optFunc.methodName) fn.methodName = optFunc.methodName;

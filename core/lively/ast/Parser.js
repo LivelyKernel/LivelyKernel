@@ -931,6 +931,11 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
             nextStatement: function(node) { return null; },
             isComposite: function() { return true; }
         },
+        evaluation: {
+            eval: function() {
+                return new Function(this.argNames().join(","), this.body.asJS());
+            },
+        }
     },
 
     json: {

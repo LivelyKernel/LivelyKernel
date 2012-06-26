@@ -814,7 +814,7 @@ lively.ast.Function.addMethods('interpretation', {
         if (this._chachedFunction) return this._chachedFunction;
         var that = this;
         var fn = function(/*args*/) {
-            return that.apply(this, $A(arguments), fn);
+            return that.apply(this, $A(arguments));
         };
         fn.forInterpretation = function() { return fn; };
         fn.ast = function() { return that; };

@@ -6,7 +6,7 @@ Object.extend(Function.prototype, {
         if (!this.source) {
             var name = this.methodName || this.name || "anonymous";
             this.source = this.toString()
-                .replace(/^function[^\(]*/, "function " + this.methodName);
+                .replace(/^function[^\(]*/, "function " + name);
         }
         return this.source;
     },

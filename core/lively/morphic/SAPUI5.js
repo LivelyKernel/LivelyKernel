@@ -37,6 +37,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
 'settings',{
     classes: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnStd',    
     activeClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnAct',
+    disabledClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnDsbl',
     label: "Button"
 },
 'HTML render settings', {

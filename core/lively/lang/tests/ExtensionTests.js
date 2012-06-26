@@ -81,17 +81,17 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertiesTest',
         result = Properties.all(this.sut, function (name, object) { 
             return name.length == 1;
         });
-        this.assertEquals(expected, result);
+        this.assertMatches(expected, result);
         expected = ["aa", "cc"];
         result = Properties.all(this.sut, function (name, object) { 
             return name.length == 2;
         });
-        this.assertEquals(expected, result);
+        this.assertMatches(expected, result);
     },
     testOwn: function() {
         var expected = ["c", "cc"];
         var result = Properties.own(this.sut);
-        this.assertEquals(expected, result);
+        this.assertMatches(expected, result);
     },
     testAllProperties: function() {
         var expected, result;
@@ -99,12 +99,12 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertiesTest',
         result = Properties.allProperties(this.sut, function (object, name) { 
             return name.length == 1;
         });
-        this.assertEquals(expected, result);
+        this.assertMatches(expected, result);
         expected = ["aa", "cc"];
         result = Properties.allProperties(this.sut, function (object, name) { 
             return name.length == 2;
         });
-        this.assertEquals(expected, result);
+        this.assertMatches(expected, result);
     }
 });
 

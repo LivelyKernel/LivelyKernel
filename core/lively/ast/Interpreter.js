@@ -298,7 +298,7 @@ Object.extend(lively.ast.Interpreter.Frame, {
 
 lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     run: function(node, optMapping) {
-        return this.runWithFrame(node, lively.ast.Interpreter.Frame.create(optMapping));
+        return this.runWithFrame(node, lively.ast.Interpreter.Frame.create(null, optMapping));
     },
     runWithFrame: function(node, frame) {
         this.currentFrame = frame;

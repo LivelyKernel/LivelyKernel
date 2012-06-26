@@ -303,7 +303,7 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
             func.containsDebugger();
     },
     invoke: function(node, recv, func, argValues) {
-        debugger;
+        var isNew = node._parent && node._parent.isNew;
         this.currentFrame.setPC(node);
         // if we send apply to a function (recv) we want to interpret it
         // although apply is a native function
@@ -315,11 +315,16 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
         if (this.shouldInterpret(this.currentFrame, func)) {
             func = func.forInterpretation();
         }
-        if (node._parent && node._parent.isNew) {
+        if (isNew) {
             if (this.isNative(func)) return new func();
             recv = this.newObject(func)
         }
-        return func.apply(recv, argValues);
+        var result = func.apply(recv, argValues);
+        if (isNew && !Object.isObject(result)) {
+            // 13.2.2 ECMA-262 3rd. Ediion Specification:
+            return recv;
+        }
+        return result;
     },
     newObject: function(func) {
         var proto = func.prototype;

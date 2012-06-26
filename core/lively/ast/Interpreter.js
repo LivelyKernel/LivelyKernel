@@ -818,6 +818,9 @@ lively.ast.Function.addMethods('interpretation', {
         };
         fn.forInterpretation = function() { return fn; };
         fn.ast = function() { return that; };
+        fn.startHalted = function() { return function(/*args*/) {
+            return that.apply(this, $A(arguments), true);
+        }};
         if (optFunc) {
             fn.toSource = function() { return optFunc.toSource(); };
             fn.varMapping = optFunc.getVarMapping();

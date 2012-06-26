@@ -98,7 +98,9 @@ cop.create('DebugGlobalErrorHandlerLayer')
             lively.ast.openDebugger(frame, err.toString());
             return false;
         } else {
-            return cop.proceed(err, optName);
+            if (!err.isUnwindException) {
+                return cop.proceed(err, optName);
+            }
         }
     }
 })

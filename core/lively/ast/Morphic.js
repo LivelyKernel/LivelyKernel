@@ -25,14 +25,12 @@ module('lively.ast.Morphic').requires('lively.morphic.Core', 'lively.morphic.Eve
 
 Object.extend(lively.ast, {
     halt: function(frame) {
-        debugger;
         (function() {
             lively.ast.openDebugger(frame, "Debugger");
         }).delay(0);
         return true;
     },
     openDebugger: function openDebugger(frame, title) {
-        debugger;
         var part = lively.PartsBin.getPart("Debugger", "PartsBin/Debugging");
         part.targetMorph.setTopFrame(frame);
         if (title) part.setTitle(title);

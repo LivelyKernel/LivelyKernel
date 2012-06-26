@@ -113,6 +113,9 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
 },
 
 'accessing', {
+    setActive: function(active) {
+            
+    },
     setExtent: function($super, extent) {
         $super(extent);
         this.resizeButton();
@@ -149,11 +152,10 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
 },
 'event handling', {
     changeAppearanceFor: function(pressed) {
-        console.log("Set button to "+pressed);
         if (pressed) {
             this.setButtonNodeClass(this.activeClasses);
         } else {
-            this.setButtonNodeClass(this.classes);
+            this.setButtonNodeClass(this.isActive?this.classes:this.disabledClasses);
         }
   
     },

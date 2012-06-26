@@ -1257,7 +1257,6 @@ Function.addMethods('ast', {
         if (!parseResult || Object.isString(parseResult)) return parseResult;
         parseResult = parseResult.children[0];
         if (parseResult.isVarDeclaration && parseResult.val.isFunction) {
-            parseResult.val.setName(parseResult.name);
             return this._cachedAst = parseResult.val;
         }
         return this._cachedAst = parseResult;

@@ -804,7 +804,7 @@ lively.ast.Function.addMethods('interpretation', {
         if (thisObj !== undefined) newFrame.setThis(thisObj);
         newFrame.setArguments(argValues);
         newFrame.setCaller(lively.ast.Interpreter.Frame.top);
-        if (startHalted) newFrame.breatAtFirstStatement();
+        if (startHalted) newFrame.breakAtFirstStatement();
         return this.basicApply(newFrame);
     },
     asFunction: function(optFunc) {

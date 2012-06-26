@@ -1,4 +1,4 @@
-module('lively.ast.generated.Translator').requires().toRun(function() {
+module('lively.ast.generated.Translator').requires('ometa.parser').toRun(function() {
 JSTranslator=Object.delegated(Parser,{
 "trans":function(){var $elf=this,t,ans;return (function(){this._form((function(){return (function(){t=this._apply("anything");return ans=this._applyWithArgs("apply",t)}).call(this)}));return ans}).call(this)},
 "begin":function(){var $elf=this,pos,children;return (function(){pos=this._apply("anything");children=this._many((function(){return this._apply("trans")}));this._apply("end");return new lively.ast.Sequence(pos,children)}).call(this)},

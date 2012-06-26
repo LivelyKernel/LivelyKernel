@@ -257,19 +257,6 @@ Object.subclass('lively.ast.Interpreter.Frame',
         var mappingString = '{' + mappings.join(',') + '}';
         return 'Frame(' + mappingString + ')';
     },
-},
-'invocation', {
-    isNative: function(func) {
-        if (func.isFunction) return false; // ast node
-        if (!this._nativeFuncRegex) this._nativeFuncRegex = /\{\s+\[native\scode\]\s+\}$/;
-        return this._nativeFuncRegex.test(func.toString())
-    },
-    shouldInterpret: function(func) {
-        if (this.isNative(func)) return false;
-        return func.hasOwnProperty("forInterpretation") ||
-            this.breakAtCalls ||
-            func.containsDebugger();
-    }
 });
 
 Object.extend(lively.ast.Interpreter.Frame, {
@@ -305,6 +292,16 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     },
 },
 'invoking', {
+    isNative: function(func) {
+        if (!this._nativeFuncRegex) this._nativeFuncRegex = /\{\s+\[native\scode\]\s+\}$/;
+        return this._nativeFuncRegex.test(func.toString())
+    },
+    shouldInterpret: function(frame, func) {
+        if (this.isNative(func)) return false;
+        return func.hasOwnProperty("forInterpretation") ||
+            frame.breakAtCalls ||
+            func.containsDebugger();
+    },
     invoke: function(node, recv, func, argValues) {
         this.currentFrame.setPC(node);
         // if we send apply to a function (recv) we want to interpret it
@@ -314,7 +311,7 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
             recv = argValues.shift(); // thisObj is first parameter
             argValues = argValues[0]; // the second arg are the arguments (as an array)
         }
-        if (this.shouldInterpret(func)) {
+        if (this.shouldInterpret(this.currentFrame, func)) {
             func = func.forInterpretation();
         }
         if (node._parent && node._parent.isNew) {

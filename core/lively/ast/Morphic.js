@@ -125,7 +125,7 @@ Object.extend(lively.Tracing, {
 });
 
 cop.create('DeepInterpretationLayer')
-.refineClass(lively.ast.Interpreter.Frame, {
+.refineClass(lively.ast.InterpreterVisitor, {
     shouldInterpret: function(func) {
         return !this.isNative(func);
     }

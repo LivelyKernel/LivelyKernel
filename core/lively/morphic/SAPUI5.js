@@ -386,8 +386,8 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
 'rendering', {
     initHTML: function($super, ctx) {
         
-        if (!ctx.wrapperNode) this.setupCheckBoxNodeHTML(ctx);
-        if (!ctx.listNode) this.setupLabelNodeHTML(ctx);
+        if (!ctx.wrapperNode) this.setupWrapperNodeHTML(ctx);
+        if (!ctx.listNode) this.setupListNodeHTML(ctx);
             
             
         ctx.subNodes = [];

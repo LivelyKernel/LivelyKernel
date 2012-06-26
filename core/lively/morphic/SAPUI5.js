@@ -331,7 +331,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
         if (this.isActive) {
             
             lively.bindings.signal(this, 'fire', true);
-        
+            this.setChecked(!this.checked);
         }
          return true;
      },

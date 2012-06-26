@@ -221,21 +221,23 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
     },
     appendHTML: function($super, ctx, optMorphAfter) {
         $super(ctx, optMorphAfter);
-        this.appendButtonHTML(ctx);
+        this.appendCheckBoxHTML(ctx);
     },
-    appendButtonHTML: function(ctx) {
-        ctx.shapeNode.appendChild(ctx.buttonNode);
-        this.resizeButtonHTML(ctx);
+    appendCheckBoxHTML: function(ctx) {
+        ctx.wrapperNode.appendChild(ctx.checkBoxNode);
+        ctx.wrapperNode.appendChild(ctx.labelNode);
+        ctx.shapeNode.appendChild(ctx.wrapperNode);
+        this.resizeCheckBoxHTML(ctx);
     },
 
     setClipModeHTML: function(ctx, clipMode) {
         // FIXME duplication wiht super, delay logic
         // can be extracted
-        if (!ctx.buttonNode || this.delayedClipMode) {
+        if (!ctx.wrapperNode|| this.delayedClipMode) {
             this.delayedClipMode = clipMode;
             return;
         }
-        this.setClipModeHTMLForNode(ctx, ctx.buttonNode, clipMode);
+        this.setClipModeHTMLForNode(ctx, ctx.wrapperNode, clipMode);
     },
     resizeButtonHTML: function(ctx) {
         var borderWidth = this.getBorderWidth(),

@@ -303,6 +303,7 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
             func.containsDebugger();
     },
     invoke: function(node, recv, func, argValues) {
+        debugger;
         this.currentFrame.setPC(node);
         // if we send apply to a function (recv) we want to interpret it
         // although apply is a native function

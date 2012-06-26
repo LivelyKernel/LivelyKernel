@@ -281,7 +281,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
     },
     setExtent: function($super, extent) {
         $super(extent);
-        this.resizeButton();
+        this.resizeCheckBox();
     },
     resizeCheckBox: function(idx) {
         return this.renderContextDispatch('resizeCheckBox');

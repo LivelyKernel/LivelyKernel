@@ -1258,7 +1258,7 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         var that = this;
         var fun = this.examples.factorial.forInterpretation();
         var fac3 = this.assertBreaks(function() {
-           fun.apply(that.examples, [3], {breakAtCalls:true});
+           fun.startHalted().apply(that.examples, [3]);
         });
         this.assertEquals(fac3.mapping.n, 3);
         this.assertBreaks(function() {

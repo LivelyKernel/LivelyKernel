@@ -324,7 +324,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
     },
     
     onClick: function(evt) {
-        console.log("Clicked!");
+        console.log(evt);
          if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) {
             evt.stop()
             return true;

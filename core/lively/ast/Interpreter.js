@@ -826,7 +826,7 @@ lively.ast.Function.addMethods('interpretation', {
             if (optFunc.declaredObject) fn.declaredObject = optFunc.declaredObject;
             if (optFunc.name) fn.name = optFunc.name;
         }
-        return fn;
+        return this._chachedFunction = fn;
     }
 },
 'continued interpretation', {

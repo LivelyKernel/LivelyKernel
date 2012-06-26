@@ -1164,6 +1164,7 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
     testStartsHalted: function() {
         var that = this;
         var fun = (function() {var i=23}).forInterpretation();
+        debugger;
         var frame = this.assertBreaks(function() {
            fun.apply(null, [], {breakAtCalls:true});
         });

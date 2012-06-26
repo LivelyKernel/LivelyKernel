@@ -203,7 +203,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
         if (optLabel) this.setLabel(optLabel);
         this.checked = false;
         this.active = true;
-        
+        this.updateAppearance();
     }
 },
 

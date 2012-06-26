@@ -323,7 +323,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
           // todo: if nonActive -> readonly="readonly" etc ...
     },
     
-    onClick: function(evt) {
+    onChange: function(evt) {
         console.log(evt);
          if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) {
             evt.stop()

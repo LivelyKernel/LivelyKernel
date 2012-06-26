@@ -1255,18 +1255,6 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
 
 });
 
-Function.addMethods('ast', {
-    ast: function() {
-        if (this._cachedAst) return this._cachedAst;
-        var parseResult = lively.ast.Parser.parse(this.toString(), 'topLevel');
-        if (!parseResult || Object.isString(parseResult)) return parseResult;
-        parseResult = parseResult.children[0];
-        if (parseResult.isVarDeclaration && parseResult.val.isFunction) {
-            return this._cachedAst = parseResult.val;
-        }
-        return this._cachedAst = parseResult;
-    },
-});
 
 Object.extend(lively.ast.Node, {
     placeholder: {}

@@ -387,6 +387,13 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     initHTML: function($super, ctx) {
         if (!ctx.listNode)
             ctx.listNode = this.createListNodeHTML();
+            
+                var wrapper = XHTMLNS.create('ul');
+        var list = XHTMLNS.create('ul');
+        node.style.cssText = 'white-space: pre';
+        node.className = 'visibleSelection';
+        return node;
+            
         ctx.subNodes = [];
         $super(ctx);
         if (this.shape) // FIXME should also be done when no shape exists...?
@@ -395,9 +402,19 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
         if (this.isMultipleSelectionList) this.enableMultipleSelectionsHTML(ctx); 
         
     },
+    
+     setupWrapperxNodeHTML: function(ctx){
+        var c = XHTMLNS.create('div');
+        ctx.wrapperNode = c;
+    },    
+    setupListNodeHTML: function(ctx){
+        var l = XHTMLNS.create('ul');
+        ctx.listNode = l;
+    },
+    
     appendHTML: function($super, ctx, optMorphAfter) {
         $super(ctx, optMorphAfter);
-        ctx.shapeNode.appendChild(ctx.listNode);
+        ctx.shapeNode.appendChild(ctx.wrapperNode );
         this.resizeListHTML(ctx);
     },
 
@@ -499,13 +516,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     clearSelectionsHTML: function(ctx) { this.deselectNodesHTML(ctx) },
 },
 'node creation', {
-    createListNodeHTML: function() {
-        var node = XHTMLNS.create('select');
-        node.size = 2; // hmm 1 is drop downlist, any value hight is normal list
-        node.style.cssText = 'white-space: pre';
-        node.className = 'visibleSelection';
-        return node;
-    },
+
     getListExtentHTML: function(ctx) {
         return ctx.listNode.scrollHeight != 0 ? pt(ctx.listNode.scrollWidth, ctx.listNode.scrollHeight) : this.getExtent()
     },

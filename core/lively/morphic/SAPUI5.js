@@ -465,7 +465,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
         return true;   
     },
         onMouseMove: function(evt) {
-        return truefalse;   
+        return true;   
     }
 },
 

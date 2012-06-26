@@ -360,6 +360,18 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
 );
 
 
+lively.morphic.Box.subclass('lively.morphic.SAPUI5.ListBox',
+'settings',{
+    baseClass:'sapUiCb',
+    activeClass: 'sapUiCbInteractive sapUiCbStd', 
+    checkedClass: 'sapUiCbChk',
+    disabledClass: 'sapUiCbDis',
+    readOnlyClass: 'sapUiCbRo',
+    label: "Checkbox"
+}
+
+);
+
 
 
 

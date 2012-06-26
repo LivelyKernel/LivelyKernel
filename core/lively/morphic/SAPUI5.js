@@ -239,10 +239,10 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
         }
         this.setClipModeHTMLForNode(ctx, ctx.wrapperNode, clipMode);
     },
-    resizeButtonHTML: function(ctx) {
+    resizeCheckBoxHTML: function(ctx) {
         var borderWidth = this.getBorderWidth(),
             extent = this.getExtent().subPt(pt(2*borderWidth, 2*borderWidth)),
-            buttonNode= ctx.buttonNode;
+            buttonNode= ctx.wrapperNode;
         buttonNode.style.left = this.shape.getPosition().x /*+ this.padding.left()*/ + 'px';
         buttonNode.style.top = this.shape.getPosition().y /*+ this.padding.top()*/ + 'px';
         buttonNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';

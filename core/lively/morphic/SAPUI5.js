@@ -439,6 +439,12 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     },
     */
 },
+'events', {
+    onClick: function(evt) {
+        console.log(evt);
+    },
+},
+
 'list specific', {
     removeListContentHTML: function(ctx) {
         ctx.subNodes = [];

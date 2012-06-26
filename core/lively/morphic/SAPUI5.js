@@ -265,6 +265,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
     setWrapperNodeClassHTML: function(ctx, className) {
         ctx.wrapperNode.className = className;
     },
+    
+    
     updateInputTagHTML: function(ctx) {
             
     }
@@ -291,6 +293,9 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
     setExtent: function($super, extent) {
         $super(extent);
         this.resizeCheckBox();
+    },
+    updateInputTag: function(idx) {
+        return this.renderContextDispatch('updateInputTag');
     },
     resizeCheckBox: function(idx) {
         return this.renderContextDispatch('resizeCheckBox');

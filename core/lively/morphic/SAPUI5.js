@@ -213,7 +213,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
         if (!ctx.checkBoxNode) this.setupCheckBoxNodeHTML(ctx);
         if (!ctx.labelNode) this.setupLabelNodeHTML(ctx);
         
-        this.setWrapperNodeClass(this.isActive?this.classes:this.disabledClasses);
+        this.setWrapperNodeClass(this.active?this.classes:this.disabledClasses);
         ctx.subNodes = [];
         $super(ctx);
         if (this.shape) this.updateLabel(this.label || "Button")

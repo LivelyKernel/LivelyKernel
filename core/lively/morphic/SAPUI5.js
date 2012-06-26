@@ -257,12 +257,9 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
 },
 
 'node creation', {
-    createButtonNodeHTML: function() {
-        var node = XHTMLNS.create('button');
-        return node;
-    },
-    getButtonExtentHTML: function(ctx) {
-        return ctx.buttonNode.scrollHeight != 0 ? pt(ctx.buttonNode.scrollWidth, ctx.buttonNode.scrollHeight) : this.getExtent()
+
+    getWrapperExtentHTML: function(ctx) {
+        return ctx.wrapperNode.scrollHeight != 0 ? pt(ctx.wrapperNode.scrollWidth, ctx.wrapperNode.scrollHeight) : this.getExtent()
     },
 },
 

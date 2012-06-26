@@ -526,7 +526,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
             if (idx < 0 || idx >= this.itemList.length) continue;
             var node = ctx.subNodes[idx];
             if (!node) continue;
-            //this.selectNodeHTML(node, true);
+            this.selectNodeHTML(node, true);
             if (node.scrollIntoViewIfNeeded) // no Firefox support
                 node.scrollIntoViewIfNeeded();
         }

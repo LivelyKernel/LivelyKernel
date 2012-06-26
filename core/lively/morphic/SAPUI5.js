@@ -331,25 +331,15 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
 },
 'event handling', {
     updateAppearance: function() {
-        /*
-            baseClass:'sapUiCb',
-    activeClass: 'sapUiCbInteractive sapUiCbStd', 
-    checkedClass: 'sapUiCbChk',
-    disabledClass: 'sapUiCbDis',
-    readOnlyClass: 'sapUiCbRo',
-        */
+
         var classNames = this.baseClass;
         
-        if (this.checked) { classNames+=' '+this.checkedClass};
-        
-        
-        
-        if (this.checked) {
-            this.setWrapperNodeClass(this.activeClasses);
-        } else {
-            this.setWrapperNodeClass(this.active?this.classes:this.disabledClasses);
-        }
-          // todo: if nonActive -> readonly="readonly" etc ...
+        if (this.checked) { classNames+=' '+this.checkedClass}
+        if (this.readOnly) {classNames+=' '+this.readOnlyClass}
+        if (this.active) {classNames+=' '+this.activeClass}
+            else {classNames+=' '+this.disabledClass}
+        this.setWrapperNodeClass(classNames);
+        this.updateInputTag();
     },
     
     onChange: function(evt) {

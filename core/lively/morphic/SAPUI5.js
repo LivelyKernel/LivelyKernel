@@ -197,6 +197,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
         resizeCheckBox: 'resizeCheckBoxHTML',
         getCheckBoxExtent: 'getCheckBoxExtentHTML',
         setWrapperNodeClass: 'setWrapperNodeClassHTML',
+        updateInputTag: 'updateInputTagHTML'
     },
 },
 'initializing', {
@@ -263,7 +264,11 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
     },
     setWrapperNodeClassHTML: function(ctx, className) {
         ctx.wrapperNode.className = className;
+    },
+    updateInputTagHTML: function(ctx) {
+            
     }
+    
 },
 
 'node creation', {
@@ -319,6 +324,19 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
 },
 'event handling', {
     updateAppearance: function() {
+        /*
+            baseClass:'sapUiCb',
+    activeClass: 'sapUiCbInteractive sapUiCbStd', 
+    checkedClass: 'sapUiCbChk',
+    disabledClass: 'sapUiCbDis',
+    readOnlyClass: 'sapUiCbRo',
+        */
+        var classNames = this.baseClass;
+        
+        if (this.checked) { classNames+=' '+this.checkedClass};
+        
+        
+        
         if (this.checked) {
             this.setWrapperNodeClass(this.activeClasses);
         } else {

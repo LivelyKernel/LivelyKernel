@@ -312,23 +312,27 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
 },
 'event handling', {
     updateAppearance: function() {
-        if (pressed) {
+        if (this.isChecked()) {
             this.setCheckBoxNodeClass(this.activeClasses);
         } else {
             this.setCheckBoxNodeClass(this.isActive?this.classes:this.disabledClasses);
         }
           // todo: if nonActive -> readonly="readonly" etc ...
     },
-    /*
+    
     onClick: function(evt) {
          if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) {
             evt.stop()
             return true;
         }
-        lively.bindings.signal(this, 'fire', true);
+        if (this.isActive) {
+            
+            lively.bindings.signal(this, 'fire', true);
+        
+        }
          return true;
      },
-*/
+
     /*
     onMouseOut: function (evt) {
         this.isPressed && this.changeAppearanceFor(false);

@@ -453,7 +453,19 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
         }
     },
     onMouseUp: function(evt) {
-        console.log(evt)    
+        return false;   
+    },
+        onMouseDown: function(evt) {
+        return false;   
+    },
+        onMouseUpEntry: function(evt) {
+        return false;   
+    },
+        onMouseOver: function(evt) {
+        return false;   
+    },
+        onMouseMove: function(evt) {
+        return false;   
     }
 },
 

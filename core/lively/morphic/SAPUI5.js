@@ -55,7 +55,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
         this.value = false;
         this.toggle = false;
         this.isActive = true;
-        this.setButtonNodeClass(this.classes);
+        
     }
 },
 
@@ -63,6 +63,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
     initHTML: function($super, ctx) {
         if (!ctx.buttonNode)
             ctx.buttonNode= this.createButtonNodeHTML();
+        this.setButtonNodeClass(this.classes);
         ctx.subNodes = [];
         $super(ctx);
         if (this.shape) this.updateLabel(this.label || "Button")

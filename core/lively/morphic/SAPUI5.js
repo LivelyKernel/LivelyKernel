@@ -221,15 +221,11 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
     },
     appendHTML: function($super, ctx, optMorphAfter) {
         $super(ctx, optMorphAfter);
-        this.appendCheckBoxHTML(ctx);
-    },
-    appendCheckBoxHTML: function(ctx) {
         ctx.wrapperNode.appendChild(ctx.checkBoxNode);
         ctx.wrapperNode.appendChild(ctx.labelNode);
         ctx.shapeNode.appendChild(ctx.wrapperNode);
         this.resizeCheckBoxHTML(ctx);
     },
-
     setClipModeHTML: function(ctx, clipMode) {
         // FIXME duplication wiht super, delay logic
         // can be extracted

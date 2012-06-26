@@ -307,7 +307,7 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
         this.currentFrame.setPC(node);
         // if we send apply to a function (recv) we want to interpret it
         // although apply is a native function
-        if (recv && Object.isFunction(recv) && funcName == 'apply') {
+        if (recv && Object.isFunction(recv) && func === Function.prototype.apply) {
             func = recv; // The function object is what we want to run
             recv = argValues.shift(); // thisObj is first parameter
             argValues = argValues[0]; // the second arg are the arguments (as an array)

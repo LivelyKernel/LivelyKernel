@@ -365,6 +365,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     style: null,
     selectionColor: null,
     wrapperClasses: 'sapUiLbx sapUiLbxStd' ,
+    itemClass: 'sapUiLbxI',
 },
 'HTML render settings', {
     htmlDispatchTable: {
@@ -420,20 +421,20 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     setClipModeHTML: function(ctx, clipMode) {
         // FIXME duplication wiht super, delay logic
         // can be extracted
-        if (!ctx.listNode || this.delayedClipMode) {
+        if (!ctx.wrapperNode|| this.delayedClipMode) {
             this.delayedClipMode = clipMode;
             return;
         }
-        this.setClipModeHTMLForNode(ctx, ctx.listNode, clipMode);
+        this.setClipModeHTMLForNode(ctx, ctx.wrapperNode, clipMode);
     },
-
+    /*
     setSizeHTML: function(ctx, size) {
-        if (ctx.listNode) ctx.listNode.size = size;
+        if (ctx.wrapperNode) ctx.wrapperNode.size = size;
     },
     setSize: function(size) {
         this.renderContextDispatch('setSize', size);
     },
-
+    */
 },
 'list specific', {
     removeListContentHTML: function(ctx) {
@@ -443,6 +444,10 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
             node.parentNode.removeChild(node);
         }
     },
+    createItemNodeHTML: function(ctx, title) { 
+        var l = XHTMLNS.create('li');
+        l.className = this.itemClass;
+    },
     updateListContentHTML: function(ctx, itemStrings) {
         if (!itemStrings) itemStrings = [];
         var scroll = this.getScroll();
@@ -450,7 +455,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
         if (ctx.subNodes.length > 0) this.removeListContentHTML(ctx);
         var extent = this.getExtent();
         for (var i = 0; i < itemStrings.length; i++) {
-            var option = XHTMLNS.create('option');
+            var option = XHTMLNS.create('li');
             option.textContent = itemStrings[i];
             ctx.listNode.appendChild(option);
             ctx.subNodes.push(option);

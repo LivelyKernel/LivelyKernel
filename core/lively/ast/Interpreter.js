@@ -184,7 +184,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
         return this.pc.nextStatement() != null;
     },
     restart: function() {
-        this.initialize(this.mapping);
+        this.initialize(this.func, this.mapping);
         this.breakAtFirstStatement();
         this.resume();
     }

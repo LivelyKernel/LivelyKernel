@@ -443,7 +443,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     onClick: function(evt) {
         var t = evt.target.parentNode;
         if (t.nodeName == 'li') {
-            this.selectNodeHTML(t, true);    
+            this.selectOnlyNodeHTML(t, true);    
         }
     },
 },
@@ -523,6 +523,10 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
             node.className = this.itemClass;
         }
         node.selected = select;
+    },
+    selectOnlyNodeHTML: function(node, select){
+       this.clearSelections();
+       this.selectNodeHTML(node, select);
     },
     deselectAtHTML: function(ctx, idx) {
         if (!ctx.listNode) return;

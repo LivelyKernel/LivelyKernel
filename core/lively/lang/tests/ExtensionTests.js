@@ -64,4 +64,49 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectsTest', {
 	}
 });
 
+TestCase.subclass('lively.lang.tests.ExtensionTests.PropertiesTest',
+'running', {
+    setUp: function() {
+        var Foo = function() { this.a = 1; this.aa = 1; this.b = Functions.Empty; };
+        this.sut = new Foo();
+        this.sut.c = 2;
+        this.sut.cc = 2;
+        this.sut.d = Functions.True;
+    }
+},
+'testing', {
+    testAll: function() {
+        var expected, result;
+        expected = ["a", "c"];
+        result = Properties.all(this.sut, function (name, object) { 
+            return name.length == 1;
+        });
+        this.assertEquals(expected, result);
+        expected = ["aa", "cc"];
+        result = Properties.all(this.sut, function (name, object) { 
+            return name.length == 2;
+        });
+        this.assertEquals(expected, result);
+    },
+    testOwn: function() {
+        var expected = ["c", "cc"];
+        var result = Properties.own(this.sut);
+        this.assertEquals(expected, result);
+    },
+    testAllProperties: function() {
+        var expected, result;
+        expected = ["a", "b", "c", "d"];
+        result = Properties.allProperties(this.sut, function (object, name) { 
+            return name.length == 1;
+        });
+        this.assertEquals(expected, result);
+        expected = ["aa", "cc"];
+        result = Properties.allProperties(this.sut, function (object, name) { 
+            return name.length == 2;
+        });
+        this.assertEquals(expected, result);
+    }
+});
+
+
 }) // end of module

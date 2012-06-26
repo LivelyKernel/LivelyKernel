@@ -93,7 +93,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertiesTest',
         this.assertMatches(expected, result);
     },
     testOwn: function() {
-        var expected = ["c", "cc"];
+        var expected = ["a", "aa"];
         var result = Properties.own(this.sut);
         this.assertMatches(expected, result);
     },

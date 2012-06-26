@@ -270,8 +270,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
     updateInputTagHTML: function(ctx) {
         ctx.checkBoxNode.checked = (this.checked)?"checked":null;
         ctx.checkBoxNode.disabled= (this.active)?null:"disabled";        
-        ctx.checkBoxNode.readOnly= (this.readOnly)?readOnly:null;        
-
+        ctx.checkBoxNode.readOnly= (this.readOnly)?"readOnly":null;   
     }
     
 },

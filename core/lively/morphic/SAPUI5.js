@@ -446,6 +446,9 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
             this.selectOnlyNodeHTML(t, true);    
         }
     },
+    onMouseUp: function(evt) {
+        console.log(evt)    
+    }
 },
 
 'list specific', {

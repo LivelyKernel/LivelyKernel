@@ -194,7 +194,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
         updateLabel: 'updateLabelHTML',
         resizeCheckBox: 'resizeCheckBoxHTML',
         getCheckBoxExtent: 'getCheckBoxExtentHTML',
-        setCheckBoxNodeClass: 'setCheckBoxNodeClassHTML',
+        setWrapperNodeClass: 'setWrapperNodeClassHTML',
     },
 },
 'initializing', {

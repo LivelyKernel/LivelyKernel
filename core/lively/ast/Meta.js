@@ -12,9 +12,9 @@ Object.extend(Function.prototype, {
     updateSource: function(source) {
         var ast = lively.ast.Parser.parse(source, "functionDef");
         var newFun = ast.val.eval();
-        newFun.declaredClass = optFunc.declaredClass;
-        newFun.methodName = optFunc.methodName;
-        newFun.sourceModule = optFunc.sourceModule;
+        newFun.declaredClass = this.declaredClass;
+        newFun.methodName = this.methodName;
+        newFun.sourceModule = this.sourceModule;
         newFun.source = source;
         newFun.locallyChanged = true;
         //TODO: This should probably use 'addMethod' instead

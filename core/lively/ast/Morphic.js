@@ -80,7 +80,6 @@ lively.morphic.Text.addMethods(
             return fun.startHalted().apply(ctx, []);
         } catch(e) {
             if (e.isUnwindException) {
-                //TODO: Still needed with new 'halt'?
                 lively.ast.openDebugger(e.topFrame);
             } else {
                 this.showError(e);

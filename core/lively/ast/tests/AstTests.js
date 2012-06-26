@@ -1061,7 +1061,13 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
     setUp: function($super) {
         $super();
         this.examples = new lively.ast.tests.AstTests.Examples();
+        this.oldHalt = lively.ast.halt;
+        lively.ast.halt = Functions.True;
     },
+    tearDown: function($super) {
+        $super();
+        lively.ast.halt = this.oldHalt;
+    }
 },
 'helping', {
     assertBreaks: function(cb) {

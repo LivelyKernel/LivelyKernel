@@ -1132,7 +1132,6 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
     },
     testStep: function() {
         var frame = this.assertBreaksWhenInterpretated(this.examples.withinComputation);
-        debugger;
         var frame2 = this.assertBreaks(function() { frame.stepToNextStatement() });
         this.assertEquals(frame, frame2);
         var mapping = frame.mapping;

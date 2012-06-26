@@ -401,6 +401,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     
      setupWrapperNodeHTML: function(ctx){
         var c = XHTMLNS.create('div');
+        c.className = 'sapUiLbx sapUiLbxStd';
         ctx.wrapperNode = c;
     },    
     setupListNodeHTML: function(ctx){

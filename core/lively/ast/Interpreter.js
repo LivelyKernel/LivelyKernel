@@ -60,6 +60,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
         if (caller) {
             this.caller = caller;
             caller.callee = this;
+            if (caller.breakAtCalls) this.breakAtFirstStatement();
         }
     },
     setThis: function(thisObj) {

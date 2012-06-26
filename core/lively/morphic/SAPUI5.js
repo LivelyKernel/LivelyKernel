@@ -315,10 +315,10 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
 },
 'event handling', {
     updateAppearance: function() {
-        if (this.isChecked()) {
-            this.setCheckBoxNodeClass(this.activeClasses);
+        if (this.checked()) {
+            this.setWrapperNodeClass(this.activeClasses);
         } else {
-            this.setCheckBoxNodeClass(this.isActive?this.classes:this.disabledClasses);
+            this.setWrapperNodeClass(this.isActive?this.classes:this.disabledClasses);
         }
           // todo: if nonActive -> readonly="readonly" etc ...
     },

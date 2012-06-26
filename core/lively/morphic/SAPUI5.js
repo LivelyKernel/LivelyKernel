@@ -318,7 +318,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
         if (this.checked) {
             this.setWrapperNodeClass(this.activeClasses);
         } else {
-            this.setWrapperNodeClass(this.isActive?this.classes:this.disabledClasses);
+            this.setWrapperNodeClass(this.active?this.classes:this.disabledClasses);
         }
           // todo: if nonActive -> readonly="readonly" etc ...
     },

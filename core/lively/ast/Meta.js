@@ -4,6 +4,7 @@ module('lively.ast.Meta').requires('lively.ast.Parser').toRun(function() {
 Object.extend(Function.prototype, {
     toSource: function() {
         if (!this.source) {
+            var name = this.methodName || this.name || "anonymous";
             this.source = this.toString()
                 .replace(/^function[^\(]*/, "function " + this.methodName);
         }

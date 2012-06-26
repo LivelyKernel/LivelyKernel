@@ -360,16 +360,166 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
 );
 
 
-lively.morphic.Box.subclass('lively.morphic.SAPUI5.ListBox',
+lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
 'settings',{
-    baseClass:'sapUiCb',
-    activeClass: 'sapUiCbInteractive sapUiCbStd', 
-    checkedClass: 'sapUiCbChk',
-    disabledClass: 'sapUiCbDis',
-    readOnlyClass: 'sapUiCbRo',
-    label: "Checkbox"
-}
+    style: null,
+    selectionColor: null,
+},
+'HTML render settings', {
+    htmlDispatchTable: {
+        updateListContent: 'updateListContentHTML',
+        resizeList: 'resizeListHTML',
+        getItemIndexFromEvent: 'getItemIndexFromEventHTML',
+        getListExtent: 'getListExtentHTML',
+        setSize: 'setSizeHTML',
+        renderAsDropDownList: 'renderAsDropDownListHTML',
+        setFontSize: 'setFontSizeHTML',
+        setFontFamily: 'setFontFamilyHTML',
+        getSelectedIndexes: 'getSelectedIndexesHTML',
+        enableMultipleSelections: 'enableMultipleSelectionsHTML',
+        selectAllAt: 'selectAllAtHTML',
+        clearSelections: 'clearSelectionsHTML',
+        deselectAt: 'deselectAtHTML',
+    },
+},
 
+'rendering', {
+    initHTML: function($super, ctx) {
+        if (!ctx.listNode)
+            ctx.listNode = this.createListNodeHTML();
+        ctx.subNodes = [];
+        $super(ctx);
+        if (this.shape) // FIXME should also be done when no shape exists...?
+            this.updateList(this.itemList || [])
+
+        if (this.isMultipleSelectionList) this.enableMultipleSelectionsHTML(ctx); 
+        
+    },
+    appendHTML: function($super, ctx, optMorphAfter) {
+        $super(ctx, optMorphAfter);
+        this.appendListHTML(ctx);
+    },
+    appendListHTML: function(ctx) {
+        ctx.shapeNode.appendChild(ctx.listNode);
+        this.resizeListHTML(ctx);
+    },
+
+    setClipModeHTML: function(ctx, clipMode) {
+        // FIXME duplication wiht super, delay logic
+        // can be extracted
+        if (!ctx.listNode || this.delayedClipMode) {
+            this.delayedClipMode = clipMode;
+            return;
+        }
+        this.setClipModeHTMLForNode(ctx, ctx.listNode, clipMode);
+    },
+
+    setSizeHTML: function(ctx, size) {
+        if (ctx.listNode) ctx.listNode.size = size;
+    },
+    setSize: function(size) {
+        this.renderContextDispatch('setSize', size);
+    },
+
+},
+'list specific', {
+    removeListContentHTML: function(ctx) {
+        ctx.subNodes = [];
+        while(ctx.listNode.childNodes.length > 0) {
+            var node = ctx.listNode.childNodes[0];
+            node.parentNode.removeChild(node);
+        }
+    },
+    updateListContentHTML: function(ctx, itemStrings) {
+        if (!itemStrings) itemStrings = [];
+        var scroll = this.getScroll();
+        if(!ctx || !ctx.subNodes) return;
+        if (ctx.subNodes.length > 0) this.removeListContentHTML(ctx);
+        var extent = this.getExtent();
+        for (var i = 0; i < itemStrings.length; i++) {
+            var option = XHTMLNS.create('option');
+            option.textContent = itemStrings[i];
+            ctx.listNode.appendChild(option);
+            ctx.subNodes.push(option);
+        }
+        this.resizeListHTML(ctx);
+        this.selectAllAtHTML(ctx, [this.selectedLineNo]);
+    },
+    resizeListHTML: function(ctx) {
+        var borderWidth = this.getBorderWidth(),
+            extent = this.getExtent().subPt(pt(2*borderWidth, 2*borderWidth)),
+            listNode = ctx.listNode;
+        listNode.style.left = this.shape.getPosition().x /*+ this.padding.left()*/ + 'px';
+        listNode.style.top = this.shape.getPosition().y /*+ this.padding.top()*/ + 'px';
+        listNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';
+        listNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
+    },
+    getItemIndexFromEventHTML: function(ctx, evt) {
+        var target = evt.target,
+            idx = ctx.subNodes.indexOf(target);
+        return idx;
+    },
+    deselectNodesHTML: function(ctx) {
+        if (ctx.subNodes) {
+            ctx.subNodes.forEach(function(ea) { ea.selected = false })
+        }
+    },
+},
+'drop down support HTML', {
+    renderAsDropDownListHTML: function(ctx) {
+        if (ctx.listNode) ctx.listNode.size = 1
+    },
+},
+'multiple selection support HTML', {
+    enableMultipleSelectionsHTML: function(ctx) {
+        if (ctx.listNode) ctx.listNode.multiple = true;
+    },
+    getSelectedIndexesHTML: function(ctx) {
+        var indexes = ctx.subNodes
+            .collect(function(ea, i) { return ea.selected && i })
+            .select(function(idxOrNull) { return idxOrNull || idxOrNull === 0 })
+        return indexes;
+    },
+    deselectAtHTML: function(ctx, idx) {
+        if (!ctx.listNode) return;
+        if (idx < 0 || idx >= this.itemList.length) return;
+        var node = ctx.subNodes[idx];
+        if (node) node.selected = false;
+    },
+    selectAllAtHTML: function(ctx, indexes) {
+        if (!ctx.listNode) return;
+        for (var i = 0; i < indexes.length; i++) {
+            var idx = indexes[i];
+            if (idx < 0 || idx >= this.itemList.length) continue;
+            var node = ctx.subNodes[idx];
+            if (!node) continue;
+            node.selected = true;
+            if (node.scrollIntoViewIfNeeded) // no Firefox support
+                node.scrollIntoViewIfNeeded();
+        }
+    },
+    clearSelectionsHTML: function(ctx) { this.deselectNodesHTML(ctx) },
+},
+'node creation', {
+    createListNodeHTML: function() {
+        var node = XHTMLNS.create('select');
+        node.size = 2; // hmm 1 is drop downlist, any value hight is normal list
+        node.style.cssText = 'white-space: pre';
+        node.className = 'visibleSelection';
+        return node;
+    },
+    getListExtentHTML: function(ctx) {
+        return ctx.listNode.scrollHeight != 0 ? pt(ctx.listNode.scrollWidth, ctx.listNode.scrollHeight) : this.getExtent()
+    },
+},
+'styling', {
+    setFontSizeHTML: function(ctx, value) {
+        if (ctx.listNode) ctx.listNode.style.fontSize = value + 'pt'
+    },
+    setFontFamilyHTML: function(ctx, value) {
+        if (ctx.listNode) ctx.listNode.style.fontFamily = value
+    },
+}
 );
 
 

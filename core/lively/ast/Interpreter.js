@@ -27,7 +27,6 @@ Object.subclass('lively.ast.Interpreter.Frame',
 'initialization', {
     initialize: function(func, mapping) {
         this.func = func;
-        if (!Object.isFunction(func)) debugger;
         this.mapping = mapping || {};
         this.returnTriggered = false;
         this.breakTriggered = false;

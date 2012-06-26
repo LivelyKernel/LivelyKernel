@@ -292,6 +292,10 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
         this.active = active;
         this.updateAppearance();
     },
+    setReadOnly: function(readOnly ) {
+        this.readOnly = readOnly ;
+        this.updateAppearance();
+    },
     setExtent: function($super, extent) {
         $super(extent);
         this.resizeCheckBox();

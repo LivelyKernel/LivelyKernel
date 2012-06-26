@@ -210,8 +210,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
 
 'rendering', {
     initHTML: function($super, ctx) {
-        if (!ctx.buttonNode)
-            ctx.buttonNode= this.createButtonNodeHTML();
+        if (!ctx.wrapperNode)
+            ctx.wrapperNode= this.createButtonNodeHTML();
         this.setButtonNodeClass(this.isActive?this.classes:this.disabledClasses);
         ctx.subNodes = [];
         $super(ctx);

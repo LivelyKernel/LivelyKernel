@@ -407,7 +407,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
         var c = XHTMLNS.create('div');
         c.className = this.wrapperClasses;
         c.onmouseup = function(evt){
-            console.log('MouseUP!');
+            console.log('MouseUP! Right?');
             console.log(evt.isRightMouseButtonDown());
             };
         ctx.wrapperNode = c;

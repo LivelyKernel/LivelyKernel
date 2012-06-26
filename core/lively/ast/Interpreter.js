@@ -835,11 +835,6 @@ lively.ast.Function.addMethods('interpretation', {
     resume: function(frame) {
         return this.basicApply(frame);
     },
-},
-'evaluation', {
-    eval: function() {
-        return new Function(this.argNames().join(","), this.body.asJS());
-    },
 });
 
 Object.extend(lively.ast, {

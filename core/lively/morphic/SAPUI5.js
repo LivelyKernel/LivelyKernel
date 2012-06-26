@@ -256,6 +256,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
     },
     updateLabelHTML: function(ctx, label) {
         ctx.labelNode.innerHTML = label;
+        ctx.checkBoxNode.title = label;
     },
     setWrapperNodeClassHTML: function(ctx, className) {
         ctx.wrapperNode.className = className;

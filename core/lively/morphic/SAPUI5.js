@@ -513,12 +513,8 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     },
 },
 'styling', {
-    setFontSizeHTML: function(ctx, value) {
-        if (ctx.listNode) ctx.listNode.style.fontSize = value + 'pt'
-    },
-    setFontFamilyHTML: function(ctx, value) {
-        if (ctx.listNode) ctx.listNode.style.fontFamily = value
-    },
+    setFontSizeHTML: function(ctx, value) {},
+    setFontFamilyHTML: function(ctx, value) {},
 }
 );
 

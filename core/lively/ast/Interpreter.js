@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.ast.Interpreter').requires('lively.ast.generated.Nodes', 'lively.ast.Parser').toRun(function() {
+module('lively.ast.Interpreter').requires('lively.ast.Parser', 'lively.ast.Meta').toRun(function() {
 
 Object.subclass('lively.ast.Interpreter.Frame',
 'initialization', {

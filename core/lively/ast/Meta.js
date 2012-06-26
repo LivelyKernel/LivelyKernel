@@ -1,4 +1,4 @@
-module('lively.ast.Meta').requires('lively.ast.Interpreter').toRun(function() {
+module('lively.ast.Meta').requires('lively.ast.Parser').toRun(function() {
 
 // Meta-Programming functions for displaying and saving functions
 Object.extend(Function.prototype, {
@@ -11,7 +11,10 @@ Object.extend(Function.prototype, {
     },
     updateSource: function(source) {
         var ast = lively.ast.Parser.parse(source, "functionDef");
-        var newFun = ast.val.asFunction(this);
+        var newFun = ast.val.eval();
+        newFun.declaredClass = optFunc.declaredClass;
+        newFun.methodName = optFunc.methodName;
+        newFun.sourceModule = optFunc.sourceModule;
         newFun.source = source;
         newFun.locallyChanged = true;
         //TODO: This should probably use 'addMethod' instead

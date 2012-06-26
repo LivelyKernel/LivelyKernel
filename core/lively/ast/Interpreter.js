@@ -842,9 +842,9 @@ Object.extend(lively.ast, {
         // overwrite this function, e.g. to open a debugger
         return false; // return true to actually stop execution
     },
-    withoutHalting: function(func) {
+    doWithHalt: function(func, halt) {
         var oldHalt = lively.ast.halt;
-        lively.ast.halt = Functions.False;
+        lively.ast.halt = halt || Functions.True;
         try {
             func();
         } finally {

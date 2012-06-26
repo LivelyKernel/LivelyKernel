@@ -904,23 +904,32 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
             printConstruction: function() { return this.printConstructorCall(this.pos, this.args.collect(function(ea) { return '"' + ea.name + '"' }), this.body) },
             toString: function() {
                 return Strings.format(
-                    '%s(function(%s) %s)',
-                    this.constructor.name, this.argNames().join(','), this.body)
+                    '%s(function %s(%s) %s)',
+                    this.constructor.name, this.name(), this.argNames().join(','), this.body)
             },
         },
         conversion: {
             asJS: function(depth) {
                 return Strings.format('function%s(%s) {\n%s\n}',
-                                      this.name ? ' ' + this.name : '',this.argNames().join(','),
+                                      this.name() ? ' ' + this.name() : '', this.argNames().join(','),
                                       this.indent(depth+1) + this.body.asJS(depth+1));
             },
         },
         accessing: {
-            setName: function(name) { this.name = name },
-            getName: function() { return this.name },
+            name: function() {
+                if (this._parent && this._parent.isVarDeclaration) {
+                    this._parent.name;
+                }
+                return undefined;
+            },
             parentFunction: function() { return this },
             argNames: function() { return this.args.collect(function(a){ return a.name }); },
             statements: function() { return this.body.children },
+        },
+        stepping: {
+            firstStatement: function() { return this.body.firstStatement(); },
+            nextStatement: function(node) { return null; },
+            isComposite: function() { return true; }
         },
     },
 
@@ -1232,7 +1241,6 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
         return src;
     },
 
-
     visitingCategoryForNode: function(ruleSpec) {
         var category = '\'visiting\', {\n\taccept: function(visitor) {\n';
         category += '\t\treturn visitor.visit' + ruleSpec.className + '(this);';
@@ -1242,21 +1250,17 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
 
 });
 
-
-Function.addMethods(
-'ast', {
+Function.addMethods('ast', {
     ast: function() {
+        if (this._cachedAst) return this._cachedAst;
         var parseResult = lively.ast.Parser.parse(this.toString(), 'topLevel');
         if (!parseResult || Object.isString(parseResult)) return parseResult;
         parseResult = parseResult.children[0];
         if (parseResult.isVarDeclaration && parseResult.val.isFunction) {
             parseResult.val.setName(parseResult.name);
-            parseResult.val.realFunction = this;
-            return parseResult.val;
-        } else if (parseResult.isFunction) {
-            parseResult.realFunction = this;
+            return this._cachedAst = parseResult.val;
         }
-        return parseResult;
+        return this._cachedAst = parseResult;
     },
 });
 

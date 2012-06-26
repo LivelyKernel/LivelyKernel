@@ -25,7 +25,8 @@ module('lively.ast.Interpreter').requires('lively.ast.generated.Nodes', 'lively.
 
 Object.subclass('lively.ast.Interpreter.Frame',
 'initialization', {
-    initialize: function(mapping) {
+    initialize: function(func, mapping) {
+        this.func = func;
         this.mapping = mapping || {};
         this.returnTriggered = false;
         this.breakTriggered = false;
@@ -37,12 +38,12 @@ Object.subclass('lively.ast.Interpreter.Frame',
         this.values = {}; // stores the results of computed expressions and statements
     },
     newScope: function(mapping) {
-        var newFrame = new this.constructor(mapping);
+        var newFrame = new lively.ast.Interpreter.Frame(mapping);
         newFrame.setContainingScope(this);
         return newFrame;
     },
     breakAtFirstStatement: function() {
-        this.bp = this.getFuncAst().firstStatement();
+        this.bp = this.func.ast().firstStatement();
     },
 },
 'accessing', {
@@ -66,73 +67,43 @@ Object.subclass('lively.ast.Interpreter.Frame',
     },
     setThis: function(thisObj) {
         this.addToMapping('this', thisObj);
-        return this.thisObj = thisObj;
+        return thisObj;
     },
     getThis: function() {
-        // return this.lookup('this')
-        return this.thisObj !== undefined ?
-            this.thisObj : (this.containingScope && this.containingScope.getThis());
+        if (this.mapping["this"]) return this.mapping["this"];
+        return Global;
     },
     setArguments: function(argValues) {
-        var argNames = this.getFuncAst().argNames();
+        var argNames = this.func.ast().argNames();
         for (var i = 0; i < argNames.length; i++)
             this.addToMapping(argNames[i], argValues[i]);
         return this.arguments = argValues;
     },
-
-
     getArguments: function(args) {
         return this.arguments;
     },
-    getFunc: function() {
-        return this.func
-    },
-    setFunc: function(func) {
-        this.funcAst = null;
-        this.func = func;
-    },
-    getFuncAst: function() {
-        if (!this.funcAst) {
-            if (!this.func) throw new Error('Frame has no function to create AST!');
-            if (!this.funcAst) this.funcAst = this.func.ast();
-        }
-        return this.funcAst;
-    },
-    setFuncAst: function(funcAst) {
-        this.funcAst = funcAst;
-        this.func = funcAst.getRealFunction();
-    },
     getFuncName: function() {
-        if (this.funcAst && this.funcAst._parent && this.funcAst._parent.isVarDeclaration) {
-            return this.funcAst._parent.name;
-        }
-        if (!this.getFunc()) {
+        if (!this.func) {
             return 'frame has no function!';
         }
-        return this.getFunc().getOriginal().qualifiedMethodName();
+        return this.func.getOriginal().qualifiedMethodName();
     },
     getFuncSource: function() {
-        // get the top-most 'real function'
-        var current = this.funcAst;
-        var realFunc = this.getFunc(); // fallback: this function
-        while (current) {
-            if (current.realFunction) realFunc = current.realFunction;
-            current = current._parent;
+        if (!this.func) {
+            return 'frame has no function!';
         }
-        return String(realFunc);
+        return this.func.getOriginal().toSource();
     },
     findFrame: function(name) {
-        if (this.mapping.hasOwnProperty(name)) return {
-            val: this.mapping[name],
-            frame: this
-        };
+        if (this.mapping.hasOwnProperty(name)) {
+            return {val: this.mapping[name], frame: this};
+        }
         // lookup in my current function
-        var func = this.getFunc(),
-            val = func && func.hasLivelyClosure && func.livelyClosure.lookup(name);
-        if (val !== undefined) return {
-            val: val,
-            frame: this
-        };
+        var mapping = func.getVarMapping();
+        if (mapping) {
+            var val = mapping[name];
+            if (val) return {val: val, frame: this};
+        }
         var containingScope = this.getContainingScope();
         return containingScope ? containingScope.findFrame(name) : null;
     },
@@ -188,21 +159,23 @@ Object.subclass('lively.ast.Interpreter.Frame',
 'program counter', {
     halt: function() {
         this.unbreak();
-        throw {
-            isUnwindException: true,
-            topFrame: this,
-            toString: function() {return "Debugger"}
-        };
+        if (lively.ast.halt(this)) {
+            throw {
+                isUnwindException: true,
+                topFrame: this,
+                toString: function() {return "Debugger"}
+            };
+        }
     },
     haltAtNextStatement: function(breakAtCalls) {
-        if (this.pc === this.getFuncAst()) {
+        if (this.pc === this.func.ast()) {
             var caller = this.getCaller();
             if (caller && caller.isResuming()) {
                 caller.haltAtNextStatement();
             }
         } else {
             var nextStmt = this.pc.nextStatement();
-            this.bp = nextStmt ? nextStmt : this.getFuncAst();
+            this.bp = nextStmt ? nextStmt : this.func.ast();
         }
     },
     stepToNextStatement: function(breakAtCalls) {
@@ -220,10 +193,10 @@ Object.subclass('lively.ast.Interpreter.Frame',
 },
 'resuming', {
     isResuming: function() {
-        return this.pc !== null || this.bp !== null
+        return this.pc !== null || this.bp !== null;
     },
     resumesNow: function() {
-        this.pc = null
+        this.pc = null;
     },
     isBreakingAt: function(node) {
         if (this.bp === null) return false;
@@ -254,19 +227,19 @@ Object.subclass('lively.ast.Interpreter.Frame',
     },
     resume: function(breakAtCalls) {
         this.breakAtCalls = breakAtCalls ? true : false;
-        var result = this.getFuncAst().resume(this);
+        var result = this.func.ast().resume(this);
         if (this.getCaller() && this.getCaller().isResuming()) {
             this.getCaller().putValue(this.getCaller().pc, result);
         }
         // break right after the last statement
-        this.setPC(this.getFuncAst());
+        this.setPC(this.func.ast());
         if (this.getCaller() && this.getCaller().isResuming()) {
             return this.getCaller().resume(breakAtCalls);
         }
         return result;
     },
     unbreak: function() {
-            // remove all previous breakpoints in this and caller frames
+        // remove all previous breakpoints in this and caller frames
         this.bp = null;
         if (this.getCaller()) {
             this.getCaller().unbreak();
@@ -284,22 +257,34 @@ Object.subclass('lively.ast.Interpreter.Frame',
         var mappingString = '{' + mappings.join(',') + '}';
         return 'Frame(' + mappingString + ')';
     },
+},
+'invocation', {
+    isNative: function(func) {
+        if (func.isFunction) return false; // ast node
+        if (!this._nativeFuncRegex) this._nativeFuncRegex = /\{\s+\[native\scode\]\s+\}$/;
+        return this._nativeFuncRegex.test(func.toString())
+    },
+    shouldInterpret: function(func) {
+        if (this.isNative(func)) return false;
+        return func.hasOwnProperty("forInterpretation") ||
+            this.breakAtCalls ||
+            func.containsDebugger();
+    }
 });
 
 Object.extend(lively.ast.Interpreter.Frame, {
-    create: function(mapping) {
-        return new lively.ast.Interpreter.Frame(mapping || {});
+    create: function(func, mapping) {
+        return new lively.ast.Interpreter.Frame(func, mapping || {});
     },
     global: function() {
-        return this.create(Global);
+        return this.create(null, Global);
     },
     fromTraceNode: function(trace) {
         var frame;
         if (trace.frame) {
             frame = trace.frame;
         } else {
-            var frame = lively.ast.Interpreter.Frame.create();
-            frame.setFuncAst(trace.method.ast());
+            var frame = lively.ast.Interpreter.Frame.create(trace.method);
             frame.setThis(trace.itsThis);
             frame.setArguments(trace.args);
         }
@@ -310,40 +295,51 @@ Object.extend(lively.ast.Interpreter.Frame, {
     }
 });
 
-Object.extend(Function.prototype, {
-    forInterpretation: function(optMapping) {
-        var func = this.ast();
-        func.lexicalScope = lively.ast.Interpreter.Frame.create(optMapping || Global);
-        func.prototype = this.prototype;
-        return func;
-    },
-});
-
 lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     run: function(node, optMapping) {
         return this.runWithFrame(node, lively.ast.Interpreter.Frame.create(optMapping));
     },
     runWithFrame: function(node, frame) {
-        this.setRootFrame(frame);
-        return this.visit(node);
-    },
-},
-'frame management', {
-    setRootFrame: function(frame) {
-        this.rootFrame = frame;
         this.currentFrame = frame;
+        return this.visit(node);
     },
 },
 'invoking', {
     invoke: function(node, recv, func, argValues) {
-        var frame = this.currentFrame,
-            newCall = node._parent && node._parent.isNew;
-        var caller = lively.ast.FunctionCaller.defaultInstance;
-        frame.setPC(node);
-        return caller.activate(frame, newCall, func, node.name, recv, argValues);
+        this.currentFrame.setPC(node);
+        // if we send apply to a function (recv) we want to interpret it
+        // although apply is a native function
+        if (recv && Object.isFunction(recv) && funcName == 'apply') {
+            func = recv; // The function object is what we want to run
+            recv = argValues.shift(); // thisObj is first parameter
+            argValues = argValues[0]; // the second arg are the arguments (as an array)
+        }
+        if (this.shouldInterpret(func)) {
+            func = func.forInterpretation();
+        }
+        if (node._parent && node._parent.isNew) {
+            if (this.isNative(func)) return new func();
+            recv = this.newObject(func)
+        }
+        return func.apply(recv, argValues);
+    },
+    newObject: function(func) {
+        var proto = func.prototype;
+        var constructor = function() {};
+        constructor.prototype = proto;
+        var newObj = new constructor();
+        newObj.constructor = func;
+        return newObj;
     },
 },
 'visiting', {
+    visit: function(node) {
+        var value = this.currentFrame.getValue(node);
+        if (!value) {
+            value = this.currentFrame.putValue(node, node.accept(this));
+        }
+        return value.val;
+    },
     visitSequence: function(node) {
         var result, frame = this.currentFrame;
         for (var i = 0; i < node.children.length; i++) {
@@ -461,49 +457,48 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     visitModifyingSet: function(node) {
         var frame = this.currentFrame,
             op = node.name + '=',
-            right = this.visit(node.right),
             oldValue = this.visit(node.left),
             newValue;
         switch (op) {
             case '+=':
-              newValue = oldValue + right;
+              newValue = oldValue + this.visit(node.right);
               break;
             case '-=':
-              newValue = oldValue - right;
+              newValue = oldValue - this.visit(node.right);
               break;
             case '*=':
-              newValue = oldValue * right;
+              newValue = oldValue * this.visit(node.right);
               break;
             case '/=':
-              newValue = oldValue / right;
+              newValue = oldValue / this.visit(node.right);
               break;
             case '>>=':
-              newValue = oldValue >>= right;
+              newValue = oldValue >>= this.visit(node.right);
               break;
             case '<<=':
-              newValue = oldValue <<= right;
+              newValue = oldValue <<= this.visit(node.right);
               break;
             case '>>>=':
-              newValue = oldValue >>> right;
+              newValue = oldValue >>> this.visit(node.right);
               break;
             case '&=':
-              newValue = oldValue & right;
+              newValue = oldValue & this.visit(node.right);
               break;
             case '|=':
-              newValue = oldValue | right;
+              newValue = oldValue | this.visit(node.right);
               break;
             case '&=':
-              newValue = oldValue & right;
+              newValue = oldValue & this.visit(node.right);
               break;
             case '^=':
-              newValue = oldValue ^ right;
+              newValue = oldValue ^ this.visit(node.right);
               break;
             case '||=':
-              newValue = oldValue || right;
-              break; // FIXME lazy evaluation
+              newValue = oldValue || this.visit(node.right);
+              break;
             case '&&=':
-              newValue = oldValue && right;
-              break; // FIXME lazy evaluation
+              newValue = oldValue && this.visit(node.right);
+              break;
             default:
               throw new Error('Modifying set has unknown operation ' + op);
         }
@@ -511,14 +506,14 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     },
     visitBinaryOp: function(node) {
         var frame = this.currentFrame;
+        var leftVal = this.visit(node.left);
         switch (node.name) {
             case '||':
-              return this.visit(node.left) || this.visit(node.right);
+              return leftVal || this.visit(node.right);
             case '&&':
-              return this.visit(node.left) && this.visit(node.right);
+              return leftVal && this.visit(node.right);
         }
-        var leftVal = this.visit(node.left),
-            rightVal = this.visit(node.right);
+        var rightVal = this.visit(node.right);
         switch (node.name) {
             case '+':
               return leftVal + rightVal;
@@ -561,8 +556,7 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
             case 'in':
               return leftVal in rightVal;
             case 'instanceof':
-              return leftVal instanceof (rightVal.isFunction ?
-                                         rightVal.prototype.constructor : rightVal);
+              return leftVal instanceof rightVal;
             default:
               throw new Error('No semantics for binary op ' + node.name)
         }
@@ -642,6 +636,10 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     visitContinue: function(node) {
         this.currentFrame.triggerContinue();
     },
+    visitDebugger: function($super, node) {
+        this.currentFrame.putValue(node, 1); // mark this 'debugger' as visited
+        this.currentFrame.halt(node, true);
+    },
     visitArrayLiteral: function(node) {
         var result = new Array(node.elements.length);
         for (var i = 0; i < node.elements.length; i++)
@@ -665,9 +663,8 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     },
     visitCall: function(node) {
         var func = this.visit(node.fn),
-            recv = func.isFunction ? func.lexicalScope.getThis() : Global,
             argValues = node.args.collect(function(ea) { return this.visit(ea) }, this);
-        return this.invoke(node, recv, func, argValues);
+        return this.invoke(node, undefined, func, argValues);
     },
     visitNew: function(node) {
         // No need to do anything because Send and Call
@@ -752,149 +749,13 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
 
 });
 
-lively.ast.InterpreterVisitor.subclass('lively.ast.ResumingInterpreterVisitor',
-'visiting', {
-    visit: function($super, node) {
-        var value = this.currentFrame.getValue(node);
-        if (!value) {
-            value = this.currentFrame.putValue(node, $super(node));
-        }
-        return value.val;
-    },
-    visitDebugger: function($super, node) {
-        this.currentFrame.putValue(node, 1); // mark this 'debugger' as visited
-        this.currentFrame.halt(node, true);
-        return $super(node);
-    },
-});
-
-Object.extend(lively.ast, {
-    getInterpreter: function() {
-        return new lively.ast.ResumingInterpreterVisitor();
-    },
-});
-
-Object.subclass('lively.ast.FunctionCaller', 'documentation', {
-    documentation: 'strategy for invoking functions',
-},
-'initializiation', {
-    initialize: function() {
-        this.logEnabled = false;
-        this.resetLog();
-    },
-},
-'interpretation', {
-    shouldInterpret: function(frame, func) {
-        if (this.isNative(func))
-            return false;
-        return func.hasOwnProperty("forInterpretation") ||
-                frame.breakAtCalls ||
-                func.containsDebugger();
-    },
-    activate: function(frame, isNewCall, func, funcName, recv, argValues) {
-        // if we send apply to a function (recv) we want to interpret it
-        // although apply is a native function
-        if (recv && (Object.isFunction(recv) || recv.isFunction) && funcName == 'apply') {
-            if (!recv.isFunction) recv = recv.forInterpretation(Global);
-            func = recv; // The function object is what we want to run
-            recv = argValues.shift(); // thisObj is first parameter
-            argValues = argValues[0]; // the second arg are the arguments (as an array)
-        }
-
-        if (this.shouldInterpret(frame, func)) {
-            func = func.forInterpretation(Global);
-        }
-
-        if (!func || !func.apply) this.lookupError(recv, funcName)
-
-        try {
-            if (!this.logEnabled) {
-                return isNewCall ?
-                    this.doNew(frame, func, argValues) : func.apply(recv, argValues, frame);
-            }
-            return this.doLog(
-                function() { return isNewCall ? this.doNew(frame, func, argValues) : func.apply(recv, argValues, frame); },
-                funcName, recv, argValues, frame)
-        } catch(e) {
-            throw e
-        }
-    },
-
-    doNew: function(frame, func, args) {
-        if (this.isNative(func))
-            return new func();
-        var proto = func.prototype,
-            constructor = function() {};
-        constructor.prototype = proto;
-        var newObj = new constructor();
-        newObj.constructor = func;
-        func.apply(newObj, args, frame); // call with new object
-        return newObj;
-    },
-
-    lookupError: function(recv, slotName) {
-        debugger
-        var msg = Strings.format('Send error: recevier %s does not understand %s', recv, slotName);
-        throw new Error(msg);
-    },
-
-    isNative: function(func) {
-        if (func.isFunction) return false; // ast node
-        if (!this._nativeFuncRegex) this._nativeFuncRegex = /\{\s+\[native\scode\]\s+\}$/;
-        return this._nativeFuncRegex.test(func.toString())
-    },
-    isSpecial: function(func, funcName) {
-        var realName = func.isFunction ? func.getRealFunction().name : func.name;
-        return realName == 'wrapped';
-    },
-},
-'logging', {
-    log: function(msg) {
-        this.logMsgs.push(this.logIndent + msg);
-    },
-    doLog: function(callback, funcName, recv, args, interpreter) {
-        function shorten(obj) {
-            return String(obj).replace(/\n/g, '').truncate(20)
-        }
-        try {
-            // this.log( shorten(recv) + '>>' + funcName + '(' + args.collect(function(ea) { return shorten(ea) }).join(',') + ')')
-            this.log(funcName)
-        } catch(e) {
-            this.log('Cannot log ' + funcName + ' because ' + e)
-        }
-        this.increaseLogIndent()
-        var result = callback.call(this)
-        this.decreaseLogIndent()
-        return result
-    },
-    loggingOnOrOff: function(state) {
-        this.logEnabled = state
-    },
-    increaseLogIndent: function(msg) {
-        this.logIndent += '  '
-    },
-    decreaseLogIndent: function(msg) {
-        this.logIndent = this.logIndent.slice(2)
-    },
-    resetLog: function() {
-        this.logIndent = '',
-        this.logMsgs = []
-    },
-    getLog: function() {
-        return this.logMsgs.join('\n')
-    },
-});
-
-Object.extend(lively.ast.FunctionCaller, {
-    defaultInstance: new lively.ast.FunctionCaller(),
-});
-
 lively.ast.Node.addMethods('interpretation', {
     position: function() {
         return this.pos[0] + "-" + this.pos[1];
     },
     startInterpretation: function(optMapping) {
-        return lively.ast.getInterpreter().run(this, optMapping);
+        var interpreter = new lively.ast.InterpreterVisitor();
+        return interpreter.run(this, optMapping);
     },
 });
 
@@ -914,74 +775,56 @@ lively.ast.GetSlot.addMethods('interpretation', {
     },
 });
 
-lively.ast.Function.addMethods('accessing', {
-    getRealFunction: function() {
-        if (this.realFunction) return this.realFunction;
-        return this.realFunction = this.eval();
-    },
-},
-'interpretation', {
-    forInterpretation: function() {
-        return this;
-    },
+lively.ast.Function.addMethods('interpretation', {
     position: function() {
         return[this.pos[1] - 1, this.pos[1]];
     },
     basicApply: function(frame) {
-        return lively.ast.getInterpreter().runWithFrame(this.body, frame);
+        var interpreter = new lively.ast.InterpreterVisitor();
+        try {
+            lively.ast.Interpreter.Frame.top = frame;
+            // important: lively.ast.Interpreter.Frame.top is only valid
+            // during the native VM-execution time. When the execution
+            // of the interpreter is stopped, there is no top frame anymore.
+            return interpreter.runWithFrame(this.body, frame);
+        } finally {
+            lively.ast.Interpreter.Frame.top = null;
+        }
     },
-    apply: function(thisObj, argValues, callerFrame) {
-        var mapping = Object.extend({}, this.getRealFunction().getVarMapping());
+    apply: function(thisObj, argValues, calledFunction) {
+        var mapping = Object.extend({}, calledFunction.getVarMapping());
+        var callerFrame = lively.ast.Interpreter.Frame.top;
         var argNames = this.argNames();
+        // work-around for $super
         if (this.getRealFunction().isWrapper) {
             var vm = this.getRealFunction().getVarMapping();
             if (vm["$super"] && argNames[0] == "$super") {
                 argValues.unshift(vm["$super"]);
             }
         }
-        for (var i = 0; i < argNames.length; i++)
-            mapping[argNames[i]] = argValues[i];
-        var newFrame = this.lexicalScope.newScope(mapping);
-        newFrame.setThis(thisObj);
-        newFrame.setFuncAst(this);
+        var newFrame = this.lexicalScope.newScope(calledFunction, mapping);
+        if (thisObj !== undefined) newFrame.setThis(thisObj);
         newFrame.setArguments(argValues);
-        if (callerFrame) {
-            newFrame.setCaller(callerFrame);
-        }
-        try {
-            if (lively.Tracing && lively.Tracing.getCurrentContext()) {
-                lively.Tracing.getCurrentContext().traceCall(this.getRealFunction(),
-                                                             thisObj, argValues);
-                lively.Tracing.getCurrentContext().frame = newFrame;
-            }
-            return this.basicApply(newFrame);
-        } catch(e) {
-            if (!e.simStack && lively.Tracing && lively.Tracing.getCurrentContext()) {
-                e.simStack = lively.Tracing.getCurrentContext().copyMe();
-            }
-            if (!e.isUnwindException) {
-                e.isUnwindException = true;
-                e.topFrame = newFrame;
-            }
-            throw e;
-        } finally {
-            if (lively.Tracing && lively.Tracing.getCurrentContext()) {
-                lively.Tracing.getCurrentContext().traceReturn(this.getRealFunction());
-            }
-        }
+        if (callerFrame) newFrame.setCaller(callerFrame);
+        return this.basicApply(newFrame);
     },
-    call: function(/*args*/) {
-        var args = $A(arguments),
-        thisObj = args.shift();
-            return this.apply(thisObj, args);
-    },
-    asFunction: function() {
+    asFunction: function(optFunc) {
+        if (this._chachedFunction) return 
         var that = this;
         var fn = function(/*args*/) {
-            return that.apply(this, $A(arguments));
+            return that.apply(this, $A(arguments), fn);
         };
-        fn.forInterpretation = function() { return that; };
-        fn.prototype = this.prototype;
+        fn.forInterpretation = function() { return fn; };
+        fn.ast = function() { return that; };
+        if (optFunc) {
+            fn.toSource = function() { return optFunc.toSource(); };
+            fn.varMapping = optFunc.getVarMapping();
+            if (optFunc.declaredClass) fn.declaredClass = optFunc.declaredClass;
+            if (optFunc.methodName) fn.methodName = optFunc.methodName;
+            if (optFunc.sourceModule) fn.sourceModule = optFunc.sourceModule;
+            if (optFunc.declaredObject) fn.declaredObject = optFunc.declaredObject;
+            if (optFunc.name) fn.name = optFunc.name;
+        }
         return fn;
     }
 },
@@ -990,21 +833,17 @@ lively.ast.Function.addMethods('accessing', {
         return this.basicApply(frame);
     },
 },
-'stepping', {
-    firstStatement: function() {
-        return this.body.firstStatement();
-    },
-    nextStatement: function(node) {
-        return null;
-    },
-    isComposite: function() {
-        return true;
-    }
-},
 'evaluation', {
     eval: function() {
         return new Function(this.argNames().join(","), this.body.asJS());
     },
+});
+
+Object.extend(lively.ast, {
+    halt: function(frame) {
+        // overwrite this function, e.g. to open a debugger
+        return false; // return true to actually stop execution
+    }
 });
 
 lively.ast.Visitor.subclass('lively.ast.ContainsDebuggerVisitor', 'visiting', {
@@ -1157,36 +996,16 @@ lively.ast.Visitor.subclass('lively.ast.ContainsDebuggerVisitor', 'visiting', {
 });
 
 Function.addMethods('debugging', {
+    forInterpretation: function(optMapping) {
+        var funcAst = this.ast();
+        if (optMapping) {
+            func.lexicalScope = lively.ast.Interpreter.Frame.create(optMapping || Global);
+        }
+        return funcAst.asFunction(this);
+    },
     containsDebugger: function() {
         return new lively.ast.ContainsDebuggerVisitor().visit(this.ast());
     },
-    forDebugging: function(onbreakpoint) {
-        var self = this,
-            wrapper = (function wrapper() {
-                try {
-                    var frame = null;
-                    if (lively.Tracing && lively.Tracing.getCurrentContext()) {
-                        var trace = lively.Tracing.getCurrentContext().caller;
-                        frame = lively.ast.Interpreter.Frame.fromTraceNode(trace);
-                    }
-                    return thisFunc.forInterpretation(Global).apply(this, $A(arguments), frame);
-                } catch(e) {
-                    if (e.isUnwindException) {
-                        BREAKPOINT_CALLBACK(e.topFrame, e.toString());
-                    } else {
-                        throw e;
-                    }
-                }
-            }).toString();
-        if (this.name) wrapper = wrapper.replace("wrapper", this.name);
-        wrapper = wrapper.replace("thisFunc", "(" + this.toString() + ")");
-        wrapper = wrapper.replace("BREAKPOINT_CALLBACK", onbreakpoint);
-        wrapper = Function.fromString(wrapper);
-        wrapper.forInterpretation = function(m) {
-            return self.forInterpretation(m);
-        };
-        return wrapper;
-    }
 });
 
 }) // end of module

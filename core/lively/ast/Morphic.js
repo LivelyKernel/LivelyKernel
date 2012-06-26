@@ -24,6 +24,12 @@
 module('lively.ast.Morphic').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.ast.Interpreter','lively.Tracing').toRun(function() {
 
 Object.extend(lively.ast, {
+    halt: function(frame) {
+        (function() {
+            lively.ast.openDebugger(frame, "Debugger");
+        }).delay(0);
+        return true;
+    },
     openDebugger: function openDebugger(frame, title) {
         var part = lively.PartsBin.getPart("Debugger", "PartsBin/Debugging");
         part.targetMorph.setTopFrame(frame);
@@ -42,7 +48,7 @@ cop.create('DebugScriptsLayer')
         var func = Function.fromString(funcOrString),
             name = func.name || optName;
         if (func.containsDebugger()) {
-            func = func.forDebugging("lively.ast.openDebugger");
+            func = func.forInterpretation();
         }
         var script = func.asScriptOf(this, name);
         var source = script.livelyClosure.source = funcOrString.toString();
@@ -56,9 +62,7 @@ cop.create('DebugMethodsLayer').refineObject(Function.prototype, {
             var func = source[property];
             if (Object.isFunction(func)) {
                 if (func.containsDebugger()) {
-                    var origSource = func.toString();
-                    source[property] = func.forDebugging("lively.ast.openDebugger");
-                    source[property].toString = function() { return origSource; };
+                    source[property] = func.forInterpretation();
                 }
             }
         }
@@ -76,6 +80,7 @@ lively.morphic.Text.addMethods(
             return fun.apply(ctx, [], {breakAtCalls:true});
         } catch(e) {
             if (e.isUnwindException) {
+                //TODO: Still needed with new 'halt'?
                 lively.ast.openDebugger(e.topFrame);
             } else {
                 this.showError(e);
@@ -120,8 +125,8 @@ Object.extend(lively.Tracing, {
 });
 
 cop.create('DeepInterpretationLayer')
-.refineClass(lively.ast.FunctionCaller, {
-    shouldInterpret: function(frame, func) {
+.refineClass(lively.ast.Interpreter.Frame, {
+    shouldInterpret: function(func) {
         return !this.isNative(func);
     }
 });

@@ -184,9 +184,11 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
 lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
 
 'settings',{
-    classes: 'sapUiCb sapUiCbInteractive sapUiCbStd',    
-    activeClasses: 'sapUiCb sapUiCbChk sapUiCbInteractive sapUiCbStd',
-    disabledClasses: 'sapUiCb sapUiCbDis',
+    baseClass:'sapUiCb',
+    activeClass: 'sapUiCbInteractive sapUiCbStd', 
+    checkedClass: 'sapUiCbChk',
+    disabledClass: 'sapUiCbDis',
+    readOnlyClass: 'sapUiCbRo',
     label: "Checkbox"
 },
 'HTML render settings', {
@@ -201,6 +203,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
     initialize: function($super, bounds, optLabel) {
         $super(bounds);
         if (optLabel) this.setLabel(optLabel);
+        this.readOnly = false;
         this.checked = false;
         this.active = true;
         this.updateAppearance();

@@ -99,7 +99,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
             return {val: this.mapping[name], frame: this};
         }
         // lookup in my current function
-        var mapping = func.getVarMapping();
+        var mapping = this.func.getVarMapping();
         if (mapping) {
             var val = mapping[name];
             if (val) return {val: val, frame: this};

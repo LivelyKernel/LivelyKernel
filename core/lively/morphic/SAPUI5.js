@@ -397,12 +397,10 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     },
     appendHTML: function($super, ctx, optMorphAfter) {
         $super(ctx, optMorphAfter);
-        this.appendListHTML(ctx);
-    },
-    appendListHTML: function(ctx) {
         ctx.shapeNode.appendChild(ctx.listNode);
         this.resizeListHTML(ctx);
     },
+
 
     setClipModeHTML: function(ctx, clipMode) {
         // FIXME duplication wiht super, delay logic

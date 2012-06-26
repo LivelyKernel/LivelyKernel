@@ -57,10 +57,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
         return this.caller;
     },
     setCaller: function(caller) {
-        if (caller.breakAtCalls) {
-            this.breakAtFirstStatement();
-        }
-        if (caller.func) {
+        if (caller) {
             this.caller = caller;
             caller.callee = this;
         }
@@ -794,10 +791,9 @@ lively.ast.Function.addMethods('interpretation', {
             lively.ast.Interpreter.Frame.top = null;
         }
     },
-    apply: function(thisObj, argValues) {
+    apply: function(thisObj, argValues, startHalted) {
         var calledFunction = this.asFunction();
         var mapping = Object.extend({}, calledFunction.getVarMapping());
-        var callerFrame = lively.ast.Interpreter.Frame.top;
         var argNames = this.argNames();
         // work-around for $super
         if (mapping["$super"] && argNames[0] == "$super") {
@@ -807,7 +803,8 @@ lively.ast.Function.addMethods('interpretation', {
         var newFrame = scope.newScope(calledFunction, mapping);
         if (thisObj !== undefined) newFrame.setThis(thisObj);
         newFrame.setArguments(argValues);
-        if (callerFrame) newFrame.setCaller(callerFrame);
+        newFrame.setCaller(lively.ast.Interpreter.Frame.top);
+        if (startHalted) newFrame.breatAtFirstStatement();
         return this.basicApply(newFrame);
     },
     asFunction: function(optFunc) {

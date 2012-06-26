@@ -1167,12 +1167,12 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         var frame = this.assertBreaks(function() {
            fun.apply(null, [], {breakAtCalls:true});
         });
-        this.assertEquals(frame.mapping["i"], null);
-        this.assertBreaks(function() {
-            that.assert(frame.stepToNextStatement());
-        });
-        this.assertEquals(frame.mapping["i"], 23);
-        frame.stepToNextStatement();
+        //this.assertEquals(frame.mapping["i"], null);
+        //this.assertBreaks(function() {
+        //    that.assert(frame.stepToNextStatement());
+        //});
+        //this.assertEquals(frame.mapping["i"], 23);
+        //frame.stepToNextStatement();
     },
     testStepOverAnotherDebugger: function() {
         var that = this;

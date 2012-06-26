@@ -325,10 +325,12 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
     
     onChange: function(evt) {
         console.log(evt);
+         /*
          if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) {
             evt.stop()
             return true;
         }
+        */
         if (this.active) {
             
             lively.bindings.signal(this, 'fire', true);

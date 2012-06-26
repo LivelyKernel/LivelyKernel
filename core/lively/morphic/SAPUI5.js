@@ -453,6 +453,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
         }
     },
     onMouseUp: function(evt) {
+        if (evt.isRightMouseButtonDown()) this.showHalos();
         return true;   
     },
         onMouseDown: function(evt) {

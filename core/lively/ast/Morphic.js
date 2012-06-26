@@ -77,7 +77,7 @@ lively.morphic.Text.addMethods(
             fun = Function.fromString(str).forInterpretation(),
             ctx = this.getDoitContext() || this;
         try {
-            return fun.apply(ctx, [], {breakAtCalls:true});
+            return fun.startHalted().apply(ctx, [], {breakAtCalls:true});
         } catch(e) {
             if (e.isUnwindException) {
                 //TODO: Still needed with new 'halt'?

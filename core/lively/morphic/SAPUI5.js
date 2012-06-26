@@ -491,7 +491,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     },
     deselectNodesHTML: function(ctx) {
         if (ctx.subNodes) {
-            ctx.subNodes.forEach(function(ea) { ea.selected = false })
+            ctx.subNodes.forEach(function(ea) { this.selectNodeHTML(ea, false); })
         }
     },
 },

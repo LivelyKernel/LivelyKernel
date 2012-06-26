@@ -270,6 +270,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
 },
 
 'accessing', {
+    isChecked: function(){ return this.checked;},
+    
     setActive: function(active) {
         this.isActive = active;
         this.updateAppearance();
@@ -327,6 +329,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
          return true;
      },
 */
+    /*
     onMouseOut: function (evt) {
         this.isPressed && this.changeAppearanceFor(false);
     },
@@ -364,6 +367,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
         // buttons should fire on mouse up
         if (!bool || this.toggle) lively.bindings.signal(this, 'fire', bool);
     },
+    */
 
 }
 );

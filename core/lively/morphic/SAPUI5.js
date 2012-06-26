@@ -364,6 +364,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
 'settings',{
     style: null,
     selectionColor: null,
+    wrapperClasses: 'sapUiLbx sapUiLbxStd' ,
 },
 'HTML render settings', {
     htmlDispatchTable: {
@@ -401,7 +402,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     
      setupWrapperNodeHTML: function(ctx){
         var c = XHTMLNS.create('div');
-        c.className = 'sapUiLbx sapUiLbxStd';
+        c.className = this.wrapperClasses;
         ctx.wrapperNode = c;
     },    
     setupListNodeHTML: function(ctx){

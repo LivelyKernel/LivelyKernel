@@ -276,7 +276,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
     resizeButton: function(idx) {
         return this.renderContextDispatch('resizeButton');
     },
-    getButtonExtent: function() { return this.renderContextDispatch('getButtonExtent') },
+    getWrapperExtent: function() { return this.renderContextDispatch('getButtonExtent') },
     updateLabel: function(label) {
         this.label = label;
         this.renderContextDispatch('updateLabel', label);

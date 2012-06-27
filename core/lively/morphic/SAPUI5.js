@@ -884,8 +884,8 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
 lively.morphic.Box.subclass('lively.morphic.SAPUI5.Label',
 
 'settings',{
-    classes: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnStd',    
-    activeClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnAct',
+    baseClass: 'sapUiLbl sapUiLblNowrap',    
+    boldClass: 'sapUiLblEmph',
     disabledClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnDsbl',
     label: "Button"
 },
@@ -1001,64 +1001,6 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Label',
         this.renderContextDispatch('setButtonNodeClass', className);     
     }
     
-},
-'event handling', {
-    changeAppearanceFor: function(pressed) {
-        if (pressed) {
-            this.setButtonNodeClass(this.activeClasses);
-        } else {
-            this.setButtonNodeClass(this.isActive?this.classes:this.disabledClasses);
-        }
-  
-    },
-    /*
-    onClick: function(evt) {
-         if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) {
-            evt.stop()
-            return true;
-        }
-        lively.bindings.signal(this, 'fire', true);
-         return true;
-     },
-*/
-    onMouseOut: function (evt) {
-        this.isPressed && this.changeAppearanceFor(false);
-    },
-
-    onMouseOver: function (evt) {
-        if (evt.isLeftMouseButtonDown()) {
-            this.isPressed && this.changeAppearanceFor(true);
-        } else {
-            this.isPressed = false;
-        }
-    },
-
-    onMouseDown: function (evt) {
-        if (this.isValidClick (evt)) {
-                this.isPressed = true;
-                this.changeAppearanceFor(true);
-        }
-        return false;
-    },
-
-    onMouseUp: function(evt) {
-        if (this.isValidClick (evt) && this.isPressed) {
-            var newValue = this.toggle ? !this.value : false;
-            this.setValue(newValue);
-            this.changeAppearanceFor(false);
-            this.isPressed = false;
-        }
-        return false;
-    },
-    isValidClick: function(evt) {
-        return this.isActive && evt.isLeftMouseButtonDown() && !evt.isCommandKey();
-    },
-    setValue: function(bool) {
-        this.value = bool;
-        // buttons should fire on mouse up
-        if (!bool || this.toggle) lively.bindings.signal(this, 'fire', bool);
-    },
-
 }
 );
 

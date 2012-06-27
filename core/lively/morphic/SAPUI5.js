@@ -591,11 +591,11 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
 lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
 
 'settings',{
-    baseClass:'sapUiCb',
-    activeClass: 'sapUiCbInteractive sapUiCbStd', 
-    checkedClass: 'sapUiCbChk',
-    disabledClass: 'sapUiCbDis',
-    readOnlyClass: 'sapUiCbRo',
+    baseClass:'sapUiRb',
+    activeClass: 'sapUiRbInteractive sapUiRbStd', 
+    checkedClass: 'sapUiRbSel',
+    disabledClass: 'sapUiRbDis',
+    readOnlyClass: 'sapUiRbRo',
     label: "Checkbox",
     htmlName: "radio"
 },

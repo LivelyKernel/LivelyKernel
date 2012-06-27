@@ -1,6 +1,17 @@
 module('lively.morphic.SAPUI5').requires('lively.morphic.HTML').toRun(function() {
 
 lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
+'HTML render settings', {
+    htmlDispatchTable: {
+        updateLabel: 'updateLabelHTML',
+        resizeButton: 'resizeButtonHTML',
+        getButtonExtent: 'getButtonExtentHTML',
+        setButtonNodeClass: 'setButtonNodeClassHTML',
+    },
+}
+);
+
+lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
 
 'settings',{
     classes: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnStd',    

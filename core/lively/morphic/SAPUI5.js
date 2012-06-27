@@ -892,8 +892,6 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Label',
 'HTML render settings', {
     htmlDispatchTable: {
         updateLabel: 'updateLabelHTML',
-        resizeButton: 'resizeButtonHTML',
-        getButtonExtent: 'getButtonExtentHTML',
         setButtonNodeClass: 'setButtonNodeClassHTML',
     },
 },

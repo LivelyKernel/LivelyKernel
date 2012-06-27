@@ -286,7 +286,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
     
 },
 'event handling', {
-    
+    /*
     onFocus: function($super, evt) {
         this.focus = true;
         this.changeAppearance();
@@ -297,7 +297,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
         this.changeAppearance();
         $super(evt);        
     },
-    
+    */
     changeAppearance: function() {
         var classNames = this.classes;
         if (!this.active){

@@ -596,13 +596,12 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
     checkedClass: 'sapUiCbChk',
     disabledClass: 'sapUiCbDis',
     readOnlyClass: 'sapUiCbRo',
-    label: "Checkbox"
+    label: "Checkbox",
+    htmlName: "radio"
 },
 'HTML render settings', {
     htmlDispatchTable: {
         updateLabel: 'updateLabelHTML',
-        resizeCheckBox: 'resizeCheckBoxHTML',
-        getCheckBoxExtent: 'getCheckBoxExtentHTML',
         setWrapperNodeClass: 'setWrapperNodeClassHTML',
         updateInputTag: 'updateInputTagHTML'
     },
@@ -614,6 +613,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
         this.readOnly = false;
         this.checked = false;
         this.active = true;
+        this.htmlName = this.htmlName;
         this.updateAppearance();
     }
 },
@@ -634,12 +634,6 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
 
 },
 
-'node creation', {
-
-    getWrapperExtentHTML: function(ctx) {
-        return ctx.wrapperNode.scrollHeight != 0 ? pt(ctx.wrapperNode.scrollWidth, ctx.wrapperNode.scrollHeight) : this.getExtent()
-    },
-},
 
 'accessing', {
     setChecked: function(checked){ 

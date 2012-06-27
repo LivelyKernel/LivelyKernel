@@ -218,7 +218,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
     appendHTML: function($super, ctx, optMorphAfter) {
         $super(ctx, optMorphAfter);
         ctx.shapeNode.appendChild(ctx.inputNode);
-        this.resizeButtonHTML(ctx);
+        this.resizeInputHTML(ctx);
     },
 
     setClipModeHTML: function(ctx, clipMode) {

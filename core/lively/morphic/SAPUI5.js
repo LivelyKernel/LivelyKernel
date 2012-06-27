@@ -782,12 +782,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
         l.htmlFor = 'radio-'+this.id;
         ctx.labelNode = l;
     },
-    setHtmlNameHTML: function(ctx, name){
-        ctx.checkBoxNode.name = name;    
-    },
-    getHtmlNameHTML: function(ctx){
-        return ctx.checkBoxNode.name;    
-    },
+
     isCheckedHTML: function(ctx){
         return ctx.checkBoxNode.checked;    
     },

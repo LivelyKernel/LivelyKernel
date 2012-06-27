@@ -749,8 +749,6 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
 },
 'HTML render settings', {
     htmlDispatchTable: {
-        updateLabel: 'updateLabelHTML',
-        setWrapperNodeClass: 'setWrapperNodeClassHTML',
         updateInputTag: 'updateInputTagHTML',
         setHtmlName:'setHtmlNameHTML',
         getHtmlName:'getHtmlNameHTML',

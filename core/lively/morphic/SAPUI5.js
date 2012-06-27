@@ -257,6 +257,12 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
 },
 
 'accessing', {
+    getValue: function() {
+        return this.renderContextDispatch('getValue');
+    },
+    setValue: function(value) {
+        return this.renderContextDispatch('setValue', value);
+    },
     setActive: function(active) {
         this.isActive = active;
         if (active) this.pressed = false;

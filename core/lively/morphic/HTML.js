@@ -1235,14 +1235,6 @@ lively.morphic.Shapes.Shape.addMethods(
         }
     );
     
-lively.morphic.World.addMethods(
-    'stylesheets', {
-        setBodyClass: function(className) {
-            var o = this.renderContext().originNode;
-            if (o) o.className = className;
-        }
-    }
-);
 
     lively.morphic.Morph.addMethods(
 	'stylesheets', {

@@ -197,6 +197,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
         getValue: 'getValueHTML',        
         setValue: 'setValueHTML',        
         setInputNodeClass: 'setInputNodeClassHTML',
+        setMaxLength: 'setMaxLengthHTML',
+        getMaxLength: 'getMaxLengthHTML',
     },
 },
 'initializing', {
@@ -270,6 +272,12 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
     },
     setValue: function(value) {
         return this.renderContextDispatch('setValue', value);
+    },
+    getMaxLength: function() {
+        return this.renderContextDispatch('getMaxLength');
+    },
+    setMaxLength: function(value) {
+        return this.renderContextDispatch('setMaxLength', value);
     },
     setActive: function(active) {
         this.active = active;

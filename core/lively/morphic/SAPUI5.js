@@ -187,7 +187,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
     classes: 'sapUiTf sapUiTfBrd sapUiTfStd',    
     focusClass: 'sapUiTfFoc',
     disabledClass: 'sapUiTfDsbl',
-    defaultValue: ""
+    defaultValue: "",
+    fixedHeight: true
 },
 'HTML render settings', {
     htmlDispatchTable: {
@@ -260,6 +261,10 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
 },
 
 'accessing', {
+    setFixedHeight: function(f) {
+        this.fixedHeight = f;
+        this.resizeInput();
+    },
     getValue: function() {
         return this.renderContextDispatch('getValue');
     },

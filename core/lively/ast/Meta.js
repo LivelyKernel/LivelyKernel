@@ -17,7 +17,7 @@ Object.extend(Function.prototype, {
                     this.declaredClass,
                     this.methodName,
                     this.sourceModule.name());
-            });
+            }.bind(this));
         }
         //TODO: Add browse implementation for Morphic scripts with ObjectEditor
         throw new Error('Cannot browse anonymous function ' + this);

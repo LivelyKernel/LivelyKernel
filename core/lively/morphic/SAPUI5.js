@@ -195,7 +195,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
         getInputExtent: 'getInputExtentHTML',
         getValue: 'getValueHTML',        
         setValue: 'setValueHTML',        
-        setInputNodeClass: 'setButtonNodeClassHTML',
+        setInputNodeClass: 'setInputNodeClassHTML',
     },
 },
 'initializing', {

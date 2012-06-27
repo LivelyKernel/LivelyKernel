@@ -10,6 +10,16 @@ Object.extend(Function.prototype, {
         }
         return this.source;
     },
+    browse: function() {
+        if (this.sourceModule && this.methodName && this.declaredClass) {
+            return lively.ide.browse(
+                this.declaredClass,
+                this.methodName,
+                this.sourceModule.name());
+        }
+        //TODO: Add browse implementation for Morphic scripts with ObjectEditor
+        throw new Error('Cannot browse anonymous function ' + this);
+    },
     updateSource: function(source) {
         var ast = lively.ast.Parser.parse(source, "functionDef");
         var newFun = ast.val.eval();

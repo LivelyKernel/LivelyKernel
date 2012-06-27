@@ -621,6 +621,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
 'rendering', {
     setupCheckBoxNodeHTML: function(ctx){
         var c = XHTMLNS.create('input');
+        c.name = this.htmlName;
         c.type = "radio";
         c.id = 'radio-'+this.id;
         ctx.checkBoxNode = c;

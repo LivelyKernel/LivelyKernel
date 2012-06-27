@@ -788,7 +788,13 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
     },
     setCheckedHTML: function(ctx, checked) {
         ctx.checkBoxNode.checked = checked;
-    }
+    },
+    setHtmlNameHTML: function(ctx, name){
+        ctx.checkBoxNode.name = name;    
+    },
+    getHtmlNameHTML: function(ctx){
+        return ctx.checkBoxNode.name;    
+    },
 },
 'accessing', {
     setChecked: function(checked){ 
@@ -799,7 +805,12 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
     isChecked: function(){
         return this.renderContextDispatch('isChecked');
     },
-    
+    setHtmlName: function(name){
+        this.renderContextDispatch('setHtmlName', name);
+    },
+    getHtmlName: function(){
+        return this.renderContextDispatch('getHtmlName');
+    },
     setActive: function(active) {
         this.active = active;
         this.updateAppearance();

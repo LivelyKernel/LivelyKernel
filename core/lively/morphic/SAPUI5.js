@@ -1,6 +1,6 @@
 module('lively.morphic.SAPUI5').requires('lively.morphic.HTML').toRun(function() {
 
-lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
+lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
 'HTML render settings', {
     htmlDispatchTable: {
         updateLabel: 'updateLabelHTML',

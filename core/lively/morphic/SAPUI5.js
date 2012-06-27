@@ -237,7 +237,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
         buttonNode.style.left = this.shape.getPosition().x /*+ this.padding.left()*/ + 'px';
         buttonNode.style.top = this.shape.getPosition().y /*+ this.padding.top()*/ + 'px';
         buttonNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';
-        buttonNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
+        //buttonNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
     },
 
     setInputNodeClassHTML: function(ctx, className) {

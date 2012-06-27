@@ -273,7 +273,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
     },
     setExtent: function($super, extent) {
         $super(extent);
-        this.resizeButton();
+        this.resizeInput();
     },
     resizeButton: function(idx) {
         return this.renderContextDispatch('resizeButton');

@@ -886,7 +886,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Label',
 'settings',{
     baseClass: 'sapUiLbl sapUiLblNowrap',    
     boldClass: 'sapUiLblEmph',
-    disabledClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnDsbl',
+    requiredClass: 'sapUiLblReq',
     label: "Button"
 },
 'HTML render settings', {

@@ -12,10 +12,12 @@ Object.extend(Function.prototype, {
     },
     browse: function() {
         if (this.sourceModule && this.methodName && this.declaredClass) {
-            return lively.ide.browse(
-                this.declaredClass,
-                this.methodName,
-                this.sourceModule.name());
+            require('lively.ide.SystemCodeBrowser').toRun(function() {
+                return lively.ide.browse(
+                    this.declaredClass,
+                    this.methodName,
+                    this.sourceModule.name());
+            });
         }
         //TODO: Add browse implementation for Morphic scripts with ObjectEditor
         throw new Error('Cannot browse anonymous function ' + this);

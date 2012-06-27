@@ -190,7 +190,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
 },
 'HTML render settings', {
     htmlDispatchTable: {
-        resizeInput: 'resizeBInputHTML',
+        resizeInput: 'resizeInputHTML',
         getInputExtent: 'getInputExtentHTML',
         getValue: 'getValueHTML',        
         setValue: 'setValueHTML',        

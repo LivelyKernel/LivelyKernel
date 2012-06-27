@@ -209,7 +209,6 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
             ctx.inputNode= XHTMLNS.create('input');
             
         this.setInputNodeClass(this.classes);
-        ctx.subNodes = [];
         $super(ctx);
         if (this.shape) this.updateLabel(this.label || "Button")
     },

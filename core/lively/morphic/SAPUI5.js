@@ -700,7 +700,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
 
 }
 );
-})odule('lively.morphic.SAPUI5').requires('lively.morphic.HTML').toRun(function() {
+}) // end of moduleodule('lively.morphic.SAPUI5').requires('lively.morphic.HTML').toRun(function() {
 
 lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
 

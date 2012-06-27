@@ -762,7 +762,6 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
         $super(bounds);
         if (optLabel) this.setLabel(optLabel);
         this.readOnly = false;
-        this.checked = false;
         this.active = true;
         this.htmlName = this.htmlName;
         this.updateAppearance();
@@ -841,7 +840,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
 
         var classNames = this.baseClass;
         
-        if (this.checked) { classNames+=' '+this.checkedClass}
+        if (this.isChecked()) { classNames+=' '+this.checkedClass}
         if (this.readOnly) {classNames+=' '+this.readOnlyClass}
             else if (this.active) {classNames+=' '+this.activeClass}
             else {classNames+=' '+this.disabledClass}
@@ -857,7 +856,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
             lively.bindings.signal(this, 'fire', true);
          
         }
-           this.setChecked(!this.checked);
+           //this.setChecked(!this.checked);
            this.updateAppearance();
          return true;
      },

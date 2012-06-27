@@ -359,7 +359,6 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
 }
 );
 
-
 lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
 'settings',{
     style: null,
@@ -436,14 +435,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
         }
         this.setClipModeHTMLForNode(ctx, ctx.wrapperNode, clipMode);
     },
-    /*
-    setSizeHTML: function(ctx, size) {
-        if (ctx.wrapperNode) ctx.wrapperNode.size = size;
-    },
-    setSize: function(size) {
-        this.renderContextDispatch('setSize', size);
-    },
-    */
+
 },
 'events', {
     onClick: function(evt) {
@@ -473,7 +465,6 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
         return false;   
     }
 },
-
 'list specific', {
     removeListContentHTML: function(ctx) {
         ctx.subNodes = [];
@@ -586,10 +577,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
 }
 );
 
-
-
 lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
-
 'settings',{
     baseClass:'sapUiRb',
     activeClass: 'sapUiRbInteractive sapUiRbStd', 
@@ -635,10 +623,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
     setHtmlNameHTML: function(ctx, name){
         ctx.checkBoxNode.name = name;    
     }
-
 },
-
-
 'accessing', {
     setChecked: function(checked){ 
         this.checked = checked;
@@ -715,7 +700,6 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
 
 }
 );
-
 }) // end of moduleodule('lively.morphic.SAPUI5').requires('lively.morphic.HTML').toRun(function() {
 
 lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',

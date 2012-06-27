@@ -884,9 +884,15 @@ lively.morphic.Shapes.Shape.addMethods(
 	    css.remove();
 
         if (value && value.length > 1) {
-
+            
     	    //console.log("Setting CSS for shape "+morphId+" to "+value);
             var specificCss = "#"+morphId+" { "+value+" }";
+            
+            // syntax fixes for the sap gold reflection css
+            specificCss = specificCss .replace(/[\s]*=[\s]*/g,"=");
+            specificCss = specificCss .replace(/alpha[\s]*\([\s]*opacity[\s]*\:/g,"alpha(opacity=");
+            specificCss = specificCss .replace(".dev-datepicker/jQuery",".dev-datepicker.jQuery");
+                            
 
             if (less) {
                 new less.Parser().parse(specificCss, function(e, tree) {

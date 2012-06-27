@@ -291,13 +291,11 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
         this.focus = true;
         this.changeAppearance();
         $super(evt);
-        return true;
     },
     onBlur: function($super, evt) {
         this.focus = false;
         this.changeAppearance();
         $super(evt);        
-        return true;
     },
     
     changeAppearance: function() {

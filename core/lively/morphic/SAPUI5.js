@@ -206,13 +206,13 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
 },
 
 'rendering', {
-    initHTML: function($super, ctx) {
+    initHTML: function($super, ctx, optValue) {
         if (!ctx.inputNode)
             ctx.inputNode= XHTMLNS.create('input');
             
         this.setInputNodeClass(this.classes);
         $super(ctx);
-        if (this.shape) this.updateLabel(this.label || "Button")
+        if (this.shape) this.setValue(optValue || this.defaultValue);
     },
     appendHTML: function($super, ctx, optMorphAfter) {
         $super(ctx, optMorphAfter);

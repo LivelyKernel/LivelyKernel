@@ -270,7 +270,7 @@ lively.morphic.Morph.addMethods(
                     ownerCtx.shapeNode.appendChild(ownerCtx.originNode);
                 }
                 this.owner.shape.compensateShapeNode(ownerCtx);
-                if (this.originClass) this.setOriginClassHTML(ctx, this.originClass);
+                
                 parentNode = ownerCtx.originNode;
             }
 
@@ -283,7 +283,7 @@ lively.morphic.Morph.addMethods(
 
         var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
         this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode, ctx.shapeNode);
-
+        if (this.originClass) this.setOriginClassHTML(ctx, this.originClass);
         this.getShape().renderUsing(ctx);
     },
     insertMorphNodeInHTML: function(ctx, morphNode, parentNode, optAfterNode) {

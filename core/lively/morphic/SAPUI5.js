@@ -206,8 +206,9 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
 'rendering', {
     initHTML: function($super, ctx) {
         if (!ctx.inputNode)
-            ctx.inputNode= this.createNodeHTML();
-        this.setButtonNodeClass(this.isActive?this.classes:this.disabledClasses);
+            ctx.inputNode= XHTMLNS.create('input');
+            
+        this.setInputNodeClass(this.classes);
         ctx.subNodes = [];
         $super(ctx);
         if (this.shape) this.updateLabel(this.label || "Button")
@@ -248,10 +249,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
 },
 
 'node creation', {
-    createButtonNodeHTML: function() {
-        var node = XHTMLNS.create('button');
-        return node;
-    },
+
     getButtonExtentHTML: function(ctx) {
         return ctx.buttonNode.scrollHeight != 0 ? pt(ctx.buttonNode.scrollWidth, ctx.buttonNode.scrollHeight) : this.getExtent()
     },

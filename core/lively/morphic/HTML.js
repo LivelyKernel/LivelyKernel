@@ -344,6 +344,19 @@ lively.morphic.World.addMethods(
         setBodyClass: 'setBodyClassHTML'
     }
 },
+'stylesheets', {
+        setBodyClass: function(className) {
+            this.bodyClass = className;
+
+            var o = this.renderContext().originNode;
+            if (o) o.className = className;
+        },
+        setBodyClassHTML: function(className) {
+            var o = this.renderContext().originNode;
+            if (o) o.className = className;
+        },
+},
+
 'scrolling', {
     setScrollHTML: function(ctx, value) {
         var x = value[0], // array conforms to setScroll/getScroll interface
@@ -351,7 +364,7 @@ lively.morphic.World.addMethods(
             xDiff = x - window.scrollX,
             yDiff = y - window.scrollY;
         window.scrollBy(xDiff, yDiff);
-    }
+    },
 });
 
 lively.morphic.Text.addMethods(

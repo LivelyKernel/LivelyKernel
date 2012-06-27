@@ -584,7 +584,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
     checkedClass: 'sapUiRbSel',
     disabledClass: 'sapUiRbDis',
     readOnlyClass: 'sapUiRbRo',
-    label: "Checkbox",
+    label: "Radio button",
     htmlName: "radio"
 },
 'HTML render settings', {
@@ -658,17 +658,6 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
     },
     getLabel: function() {
         return this.label;    
-    },
-    morphMenuItems: function($super) {
-        var self = this, items = $super();
-        items.push([
-            'Set label', function(evt) {
-            $world.prompt('Set label', function(input) {
-                if (input !== null)
-                    self.setLabel(input || '');
-            }, self.getLabel());
-        }])
-        return items;
     },
     setWrapperNodeClass: function(className) {
         this.renderContextDispatch('setWrapperNodeClass', className);     

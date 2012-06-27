@@ -346,14 +346,7 @@ lively.morphic.World.addMethods(
     }
 },
 'stylesheets', {
-        setBodyClass: function(className) {
-            this.bodyClass = className;
-            return this.renderContextDispatch('setBodyClass',className);
-        },
-        setBodyClassHTML: function(ctx, className) {
-            var o = ctx.originNode;
-            if (o) o.className = className;
-        },
+
 },
 
 'scrolling', {

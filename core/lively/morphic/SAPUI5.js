@@ -632,21 +632,6 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
     },
 
 
-    updateLabelHTML: function(ctx, label) {
-        ctx.labelNode.innerHTML = label;
-        ctx.checkBoxNode.title = label;
-    },
-    setWrapperNodeClassHTML: function(ctx, className) {
-        ctx.wrapperNode.className = className;
-    },
-    
-    
-    updateInputTagHTML: function(ctx) {
-        ctx.checkBoxNode.checked = (this.checked)?"checked":null;
-        ctx.checkBoxNode.disabled= (this.active)?null:"disabled";        
-        ctx.checkBoxNode.readOnly= (this.readOnly)?"readOnly":null;   
-    }
-    
 },
 
 'node creation', {
@@ -676,6 +661,63 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
     },
     updateInputTag: function(idx) {
         return this.renderContextDispatch('updateInputTag');
+    },
+    resizeCheckBox: function(idx) {
+        return this.renderContextDispatch('resizeCheckBox');
+    },
+    getWrapperExtent: function() { return this.renderContextDispatch('getWrapperExtent') },
+    updateLabel: function(label) {
+        this.label = label;
+        this.renderContextDispatch('updateLabel', label);
+    },
+    setLabel: function(label) {
+        this.updateLabel(label);
+    },
+    getLabel: function() {
+        return this.label;    
+    },
+    morphMenuItems: function($super) {
+        var self = this, items = $super();
+        items.push([
+            'Set label', function(evt) {
+            $world.prompt('Set label', function(input) {
+                if (input !== null)
+                    self.setLabel(input || '');
+            }, self.getLabel());
+        }])
+        return items;
+    },
+    setWrapperNodeClass: function(className) {
+        this.renderContextDispatch('setWrapperNodeClass', className);     
+    }
+    
+},
+'event handling', {
+    updateAppearance: function() {
+
+        var classNames = this.baseClass;
+        
+        if (this.checked) { classNames+=' '+this.checkedClass}
+        if (this.readOnly) {classNames+=' '+this.readOnlyClass}
+            else if (this.active) {classNames+=' '+this.activeClass}
+            else {classNames+=' '+this.disabledClass}
+        this.setWrapperNodeClass(classNames);
+        this.updateInputTag();
+    },
+    
+    onChange: function(evt) {
+
+        if (this.active && !this.readOnly) {
+            
+            lively.bindings.signal(this, 'fire', true);
+            this.setChecked(!this.checked);
+        }
+         return true;
+     },
+
+}
+);
+nderContextDispatch('updateInputTag');
     },
     resizeCheckBox: function(idx) {
         return this.renderContextDispatch('resizeCheckBox');

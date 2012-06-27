@@ -255,7 +255,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
     },
     getMaxLengthHTML: function(ctx) {
         if (ctx.inputNode) {
-            var m = ctx.inputNode.getAtrribute('maxlength');
+            var m = ctx.inputNode.getAttribute('maxlength');
             if (m && m !="") return m;
         }
         return null;  

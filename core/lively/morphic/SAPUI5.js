@@ -300,8 +300,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
         }])
         return items;
     },
-    setButtonNodeClass: function(className) {
-        this.renderContextDispatch('setButtonNodeClass', className);     
+    setInputNodeClass: function(className) {
+        this.renderContextDispatch('setInputNodeClass', className);     
     }
     
 },

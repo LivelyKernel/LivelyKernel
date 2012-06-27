@@ -1231,6 +1231,14 @@ lively.morphic.Shapes.Shape.addMethods(
 
     lively.morphic.Morph.addMethods(
 	'stylesheets', {
+	        setOriginClass: function(className) {
+                    this.originClass = className;
+                    return this.renderContextDispatch('setOriginClass',className);
+                },
+                setOriginClassHTML: function(ctx, className) {
+                    var o = ctx.originNode;
+                    if (o) o.className = className;
+                },
 		applyStyleSheet: function(style) {
 			this.setStyleSheet(style);
 		},

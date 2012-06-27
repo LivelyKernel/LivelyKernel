@@ -3,10 +3,8 @@ module('lively.morphic.SAPUI5').requires('lively.morphic.HTML').toRun(function()
 lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
 'HTML render settings', {
     htmlDispatchTable: {
-        updateLabel: 'updateLabelHTML',
-        resizeButton: 'resizeButtonHTML',
-        getButtonExtent: 'getButtonExtentHTML',
-        setButtonNodeClass: 'setButtonNodeClassHTML',
+        resizeComponent: 'resizeComponentHTML',
+        getComponentExtent: 'getComponentExtentHTML',
     },
 }
 );

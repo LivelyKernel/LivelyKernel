@@ -269,7 +269,7 @@ lively.morphic.Morph.addMethods(
                     ownerCtx.shapeNode.appendChild(ownerCtx.originNode);
                 }
                 this.owner.shape.compensateShapeNode(ownerCtx);
-
+                if (this.originClass) this.setOriginClassHTML(ctx, this.originClass);
                 parentNode = ownerCtx.originNode;
             }
 

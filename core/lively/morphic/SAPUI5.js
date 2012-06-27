@@ -190,20 +190,16 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
 },
 'HTML render settings', {
     htmlDispatchTable: {
-        updateLabel: 'updateLabelHTML',
-        resizeButton: 'resizeButtonHTML',
-        getButtonExtent: 'getButtonExtentHTML',
-        setButtonNodeClass: 'setButtonNodeClassHTML',
+        resizeInput: 'resizeBInputHTML',
+        getInputExtent: 'getInputExtentHTML',
+        setInputNodeClass: 'setButtonNodeClassHTML',
     },
 },
 'initializing', {
-    initialize: function($super, bounds, optLabel) {
+    initialize: function($super, bounds) {
         $super(bounds);
-        if (optLabel) this.setLabel(optLabel);
         this.value = false;
-        this.toggle = false;
-        this.isActive = true;
-        
+        this.active = true;
     }
 },
 

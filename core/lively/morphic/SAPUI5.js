@@ -619,52 +619,19 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
 },
 
 'rendering', {
-    initHTML: function($super, ctx) {
-        if (!ctx.wrapperNode) ctx.wrapperNode= XHTMLNS.create('span');
-        if (!ctx.checkBoxNode) this.setupCheckBoxNodeHTML(ctx);
-        if (!ctx.labelNode) this.setupLabelNodeHTML(ctx);
-        
-        this.setWrapperNodeClass(this.active?this.classes:this.disabledClasses);
-        ctx.subNodes = [];
-        $super(ctx);
-        if (this.shape) this.updateLabel(this.label || "Button")
-    },
     setupCheckBoxNodeHTML: function(ctx){
         var c = XHTMLNS.create('input');
-        c.type = "checkbox";
-        c.id = 'checkbox-'+this.id;
+        c.type = "radio";
+        c.id = 'radio-'+this.id;
         ctx.checkBoxNode = c;
     },    
     setupLabelNodeHTML: function(ctx){
         var l = XHTMLNS.create('label');
-        l.htmlFor = 'checkbox-'+this.id;
+        l.htmlFor = 'radio-'+this.id;
         ctx.labelNode = l;
     },
-    appendHTML: function($super, ctx, optMorphAfter) {
-        $super(ctx, optMorphAfter);
-        ctx.wrapperNode.appendChild(ctx.checkBoxNode);
-        ctx.wrapperNode.appendChild(ctx.labelNode);
-        ctx.shapeNode.appendChild(ctx.wrapperNode);
-        this.resizeCheckBoxHTML(ctx);
-    },
-    setClipModeHTML: function(ctx, clipMode) {
-        // FIXME duplication wiht super, delay logic
-        // can be extracted
-        if (!ctx.wrapperNode|| this.delayedClipMode) {
-            this.delayedClipMode = clipMode;
-            return;
-        }
-        this.setClipModeHTMLForNode(ctx, ctx.wrapperNode, clipMode);
-    },
-    resizeCheckBoxHTML: function(ctx) {
-        var borderWidth = this.getBorderWidth(),
-            extent = this.getExtent().subPt(pt(2*borderWidth, 2*borderWidth)),
-            wrapperNode= ctx.wrapperNode;
-        wrapperNode.style.left = this.shape.getPosition().x /*+ this.padding.left()*/ + 'px';
-        wrapperNode.style.top = this.shape.getPosition().y /*+ this.padding.top()*/ + 'px';
-        wrapperNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';
-        wrapperNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
-    },
+
+
     updateLabelHTML: function(ctx, label) {
         ctx.labelNode.innerHTML = label;
         ctx.checkBoxNode.title = label;

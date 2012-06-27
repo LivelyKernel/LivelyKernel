@@ -205,8 +205,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
 
 'rendering', {
     initHTML: function($super, ctx) {
-        if (!ctx.buttonNode)
-            ctx.buttonNode= this.createButtonNodeHTML();
+        if (!ctx.inputNode)
+            ctx.inputNode= this.createNodeHTML();
         this.setButtonNodeClass(this.isActive?this.classes:this.disabledClasses);
         ctx.subNodes = [];
         $super(ctx);

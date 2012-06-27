@@ -246,7 +246,14 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
     },
     setButtonNodeClassHTML: function(ctx, className) {
         ctx.buttonNode.className = className;
-    }
+    },
+    getValueHTML: function(ctx) {
+        if (ctx.inputNode) return ctx.inputNode.value;
+        else return "";  
+    },
+    setValueHTML: function(ctx, value) {
+        if (ctx.inputNode) ctx.inputNode.value = value;
+    },
 },
 
 'node creation', {
@@ -352,11 +359,6 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
     },
     isValidClick: function(evt) {
         return this.isActive && evt.isLeftMouseButtonDown() && !evt.isCommandKey();
-    },
-    setValue: function(bool) {
-        this.value = bool;
-        // buttons should fire on mouse up
-        if (!bool || this.toggle) lively.bindings.signal(this, 'fire', bool);
     },
 
 }

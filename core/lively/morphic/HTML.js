@@ -347,12 +347,10 @@ lively.morphic.World.addMethods(
 'stylesheets', {
         setBodyClass: function(className) {
             this.bodyClass = className;
-
-            var o = this.renderContext().originNode;
-            if (o) o.className = className;
+            return this.renderContextDispatch('setBodyClass',className);
         },
-        setBodyClassHTML: function(className) {
-            var o = this.renderContext().originNode;
+        setBodyClassHTML: function(ctx, className) {
+            var o = ctx.originNode;
             if (o) o.className = className;
         },
 },

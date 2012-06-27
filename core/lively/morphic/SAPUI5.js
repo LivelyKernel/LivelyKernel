@@ -288,9 +288,9 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
 'event handling', {
     changeAppearanceFor: function(pressed) {
         if (pressed) {
-            this.setButtonNodeClass(this.activeClasses);
+            this.setInputNodeClass(this.activeClasses);
         } else {
-            this.setButtonNodeClass(this.isActive?this.classes:this.disabledClasses);
+            this.setInputNodeClass(this.active?this.classes:this.disabledClasses);
         }
   
     },

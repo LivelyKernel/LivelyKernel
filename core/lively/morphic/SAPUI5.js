@@ -314,48 +314,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
         }
   
     },
-    /*
-    onClick: function(evt) {
-         if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) {
-            evt.stop()
-            return true;
-        }
-        lively.bindings.signal(this, 'fire', true);
-         return true;
-     },
-*/
-    onMouseOut: function (evt) {
-        this.isPressed && this.changeAppearanceFor(false);
-    },
-
-    onMouseOver: function (evt) {
-        if (evt.isLeftMouseButtonDown()) {
-            this.isPressed && this.changeAppearanceFor(true);
-        } else {
-            this.isPressed = false;
-        }
-    },
-
-    onMouseDown: function (evt) {
-        if (this.isValidClick (evt)) {
-                this.isPressed = true;
-                this.changeAppearanceFor(true);
-        }
-        return false;
-    },
-
-    onMouseUp: function(evt) {
-        if (this.isValidClick (evt) && this.isPressed) {
-            var newValue = this.toggle ? !this.value : false;
-            this.setValue(newValue);
-            this.changeAppearanceFor(false);
-            this.isPressed = false;
-        }
-        return false;
-    },
-    isValidClick: function(evt) {
-        return this.isActive && evt.isLeftMouseButtonDown() && !evt.isCommandKey();
-    },
+ 
 
 }
 );

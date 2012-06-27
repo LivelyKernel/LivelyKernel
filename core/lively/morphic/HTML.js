@@ -341,7 +341,7 @@ lively.morphic.World.addMethods(
 'HTML render settings', {
     htmlDispatchTable: {
         setScroll: 'setScrollHTML',
-        setBodyClass: 'setBodyClassHTML'
+
     }
 },
 'stylesheets', {

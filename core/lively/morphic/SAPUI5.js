@@ -620,7 +620,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
 
 'rendering', {
     initHTML: function($super, ctx) {
-        if (!ctx.wrapperNode) ctx.wrapperNode= XHTMLNS.create('div');
+        if (!ctx.wrapperNode) ctx.wrapperNode= XHTMLNS.create('span');
         if (!ctx.checkBoxNode) this.setupCheckBoxNodeHTML(ctx);
         if (!ctx.labelNode) this.setupLabelNodeHTML(ctx);
         

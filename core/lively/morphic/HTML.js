@@ -345,10 +345,6 @@ lively.morphic.World.addMethods(
 
     }
 },
-'stylesheets', {
-
-},
-
 'scrolling', {
     setScrollHTML: function(ctx, value) {
         var x = value[0], // array conforms to setScroll/getScroll interface

@@ -201,7 +201,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
 'initializing', {
     initialize: function($super, bounds) {
         $super(bounds);
-        this.value = false;
+        this.focus = false;
         this.active = true;
     }
 },
@@ -286,7 +286,10 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
     
 },
 'event handling', {
-    changeAppearanceFor: function(pressed) {
+    
+    
+    
+    changeAppearance: function() {
         if (pressed) {
             this.setInputNodeClass(this.activeClasses);
         } else {

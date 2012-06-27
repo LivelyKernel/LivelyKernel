@@ -184,10 +184,9 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
 lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
 
 'settings',{
-    classes: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnStd',    
-    activeClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnAct',
-    disabledClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnDsbl',
-    label: "Button"
+    classes: 'sapUiTf sapUiTfBrd sapUiTfStd',    
+    focusClass: 'sapUiTfFoc',
+    disabledClass: 'sapUiTfDsbl'
 },
 'HTML render settings', {
     htmlDispatchTable: {

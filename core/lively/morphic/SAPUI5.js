@@ -267,9 +267,9 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
         return this.renderContextDispatch('setValue', value);
     },
     setActive: function(active) {
-        this.isActive = active;
-        if (active) this.pressed = false;
-        this.changeAppearanceFor(false);
+        this.active = active;
+        if (!active) this.focus= false;
+        this.changeAppearance();
     },
     setExtent: function($super, extent) {
         $super(extent);

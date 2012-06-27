@@ -186,7 +186,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
 'settings',{
     classes: 'sapUiTf sapUiTfBrd sapUiTfStd',    
     focusClass: 'sapUiTfFoc',
-    disabledClass: 'sapUiTfDsbl'
+    disabledClass: 'sapUiTfDsbl',
+    defaultValue: ""
 },
 'HTML render settings', {
     htmlDispatchTable: {

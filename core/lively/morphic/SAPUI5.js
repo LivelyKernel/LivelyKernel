@@ -5,6 +5,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
     htmlDispatchTable: {
         resizeComponent: 'resizeComponentHTML',
         getComponentExtent: 'getComponentExtentHTML',
+        setComponentNodeClass:'setComponentNodeClassHTML'
     },
     
     resizeComponentHTML: function(ctx) {

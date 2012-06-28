@@ -51,7 +51,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Button',
 'HTML render settings', {
     htmlDispatchTable: {
         updateLabel: 'updateLabelHTML',
-        resizeButton: 'resizeButtonHTML',
     },
 },
 'initializing', {

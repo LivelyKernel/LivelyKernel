@@ -946,12 +946,14 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
                     labelClass +=' sapUiSliTextRight';
                 }
                                 
+                var value = range/(this.tickCount-1);
+                value *= i;
+                value += this.minValue;
                 
+                ctx.labels[i].className = labelClass;
+                ctx.labels[i].innerHTML = value;
                 
-                ctx.labels[i].className = labelClass;                
-                
-
-                
+                ctx.sliderBar.appendChild(ctx.labels[i]);
             }
         }
         

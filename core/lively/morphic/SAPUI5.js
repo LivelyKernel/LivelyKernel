@@ -403,12 +403,10 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
         ctx.labelNode = l;
     },
     appendHTML: function($super, ctx, optMorphAfter) {
-        $super(ctx, optMorphAfter);
         ctx.componentNode.appendChild(ctx.checkBoxNode);
         ctx.componentNode.appendChild(ctx.labelNode);
-        ctx.shapeNode.appendChild(ctx.componentNode);
+        $super(ctx, optMorphAfter);
         //this.setWrapperNodeClass(this.active?this.classes:this.disabledClasses);        
-        this.resizeCheckBoxHTML(ctx);
     },
     setClipModeHTML: function(ctx, clipMode) {
         // FIXME duplication wiht super, delay logic

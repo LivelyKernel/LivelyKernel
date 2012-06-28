@@ -875,10 +875,21 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 
 'rendering', {
     initHTML: function($super, ctx) {
-        if (!ctx.componentNode) ctx.componentNode= XHTMLNS.create('div');
-        if (!ctx.sliderRight) ctx.sliderRight= XHTMLNS.create('div');
-        if (!ctx.sliderLeft) ctx.sliderLeft= XHTMLNS.create('div');
-        if (!ctx.sliderBar) ctx.sliderBar= XHTMLNS.create('div');
+        if (!ctx.componentNode) { 
+            ctx.componentNode= XHTMLNS.create('div');
+        }
+        if (!ctx.sliderRight) { 
+            ctx.sliderRight= XHTMLNS.create('div');
+            ctx.sliderRight.className = 'sapUiSliR';
+        }
+        if (!ctx.sliderLeft) { 
+            ctx.sliderLeft= XHTMLNS.create('div');
+            ctx.sliderLeft.className = 'sapUiSliL';
+        }
+        if (!ctx.sliderBar) { 
+            ctx.sliderBar= XHTMLNS.create('div');
+            ctx.sliderBar.className = 'sapUiSliBar';
+        }
         
         this.updateAppearance();        
 
@@ -886,17 +897,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         $super(ctx);
         if (this.shape) this.updateLabel(this.label || "Button")
     },
-    setupCheckBoxNodeHTML: function(ctx){
-        var c = XHTMLNS.create('input');
-        c.type = "checkbox";
-        c.id = 'checkbox-'+this.id;
-        ctx.checkBoxNode = c;
-    },    
-    setupLabelNodeHTML: function(ctx){
-        var l = XHTMLNS.create('label');
-        l.htmlFor = 'checkbox-'+this.id;
-        ctx.labelNode = l;
-    },
+
     appendHTML: function($super, ctx, optMorphAfter) {
         ctx.componentNode.appendChild(ctx.checkBoxNode);
         ctx.componentNode.appendChild(ctx.labelNode);

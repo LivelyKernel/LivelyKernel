@@ -107,7 +107,8 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Button',
     classes: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnStd',    
     activeClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnAct',
     disabledClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnDsbl',
-    label: "Button"
+    label: "Button",
+    fixedHeight: true
 },
 
 'initializing', {

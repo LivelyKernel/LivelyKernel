@@ -994,12 +994,16 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         
     },
     
+    getSliderWidth: function(){
+       return this.renderContextDispatch('getSliderWidth');
+    },
+    getSliderWidth: function(ctx){
+       return ctx.sliderBar
+    },
     
 },
 'internal calculations',{
-    getSliderWidth: function(){
-        return extent.x;
-    },
+    
     pos2val: function(pos){
         var w = this.getWidth();
         var range = this.maxValue - this.minValue;

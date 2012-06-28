@@ -23,6 +23,12 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
     resizeComponent: function(idx) {
         return this.renderContextDispatch('resizeComponent');
     },
+    
+    setComponentNodeClassHTML: function(ctx, className) {
+        ctx.componentNode.className = className;
+    }
+    
+    
 }
 );
 

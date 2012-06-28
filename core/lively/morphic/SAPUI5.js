@@ -784,20 +784,6 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
     resizeCheckBox: function(idx) {
         return this.renderContextDispatch('resizeCheckBox');
     },
-    getWrapperExtent: function() { return this.renderContextDispatch('getWrapperExtent') },
-    updateLabel: function(label) {
-        this.label = label;
-        this.renderContextDispatch('updateLabel', label);
-    },
-    setLabel: function(label) {
-        this.updateLabel(label);
-    },
-    getLabel: function() {
-        return this.label;    
-    },
-    setWrapperNodeClass: function(className) {
-        this.renderContextDispatch('setWrapperNodeClass', className);     
-    }
     
 },
 'event handling', {
@@ -809,7 +795,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
         if (this.readOnly) {classNames+=' '+this.readOnlyClass}
             else if (this.active) {classNames+=' '+this.activeClass}
             else {classNames+=' '+this.disabledClass}
-        this.setWrapperNodeClass(classNames);
+        this.setComponentNodeClass(classNames);
         this.updateInputTag();
     },
     

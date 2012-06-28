@@ -972,6 +972,9 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         } else {throw new Error("Please assign both min and max of the slider.")}
         
     }
+},
+'events',{
+    updateAppearance: function(){}    
 }
 );
 

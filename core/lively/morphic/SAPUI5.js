@@ -927,9 +927,9 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         ctx.sliderLeft.appendChild(ctx.sliderBar);
         ctx.sliderBar.appendChild(ctx.sliderHilite);
         ctx.sliderBar.appendChild(ctx.sliderGrip); 
-        this.generateTicksHTML(ctx);   
         $super(ctx, optMorphAfter);
-        //this.setWrapperNodeClass(this.active?this.classes:this.disabledClasses);        
+        this.addSliderEventsHTML(ctx, ctx.sliderGrip);        
+        this.generateTicksHTML(ctx);
     },
     resizeComponentHTML: function($super, ctx) {
         $super(ctx);

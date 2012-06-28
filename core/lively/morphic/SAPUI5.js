@@ -6,8 +6,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
         resizeComponent: 'resizeComponentHTML',
         getComponentExtent: 'getComponentExtentHTML',
         setComponentNodeClass:'setComponentNodeClassHTML',
-        getComponentId: 'getComponentIdHTML',
-        setComponentId: 'setComponentIdHTML'
+        getComponentNodeId: 'getComponentIdHTML',
+        setComponentNodeId: 'setComponentNodeIdHTML'
     },
     
     resizeComponentHTML: function(ctx) {
@@ -32,6 +32,12 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
     },
     getComponentIdHTML: function(ctx) {
         return ctx.componentNode.id;
+    },
+    setComponentId: function() {
+        return this.renderContextDispatch('setComponentId');
+    },
+    setComponentIdHTML: function(ctx) {
+        ctx.componentNode.id = 'component-'+this.id;
     },
     resizeComponent: function(idx) {
         return this.renderContextDispatch('resizeComponent');

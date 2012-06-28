@@ -916,7 +916,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         }
         ctx.ticks = [];
         ctx.labels= [];
-        this.generateTicksHTML(ctx);
+        
 
         $super(ctx);
     },
@@ -926,7 +926,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         ctx.sliderRight.appendChild(ctx.sliderLeft);
         ctx.sliderLeft.appendChild(ctx.sliderBar);
         ctx.sliderBar.appendChild(ctx.sliderHilite);
-        ctx.sliderBar.appendChild(ctx.sliderGrip);    
+        ctx.sliderBar.appendChild(ctx.sliderGrip); 
+        this.generateTicksHTML(ctx);   
         $super(ctx, optMorphAfter);
         //this.setWrapperNodeClass(this.active?this.classes:this.disabledClasses);        
     },

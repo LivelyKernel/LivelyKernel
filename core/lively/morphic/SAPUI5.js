@@ -5,7 +5,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
     htmlDispatchTable: {
         resizeComponent: 'resizeComponentHTML',
         getComponentExtent: 'getComponentExtentHTML',
-        setComponentNodeClass:'setComponentNodeClassHTML'
+        setComponentNodeClass:'setComponentNodeClassHTML',
+        getComponentId: 'getComponentIdHTML'
     },
     
     resizeComponentHTML: function(ctx) {
@@ -24,6 +25,12 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
     getComponentExtent: function() { return this.renderContextDispatch('getComponentExtent') },
     getComponentExtentHTML: function(ctx) {
         return ctx.componentNode.scrollHeight != 0 ? pt(ctx.componentNode.scrollWidth, ctx.componentNode.scrollHeight) : this.getExtent()
+    },
+    getComponentId: function() {
+        return this.renderContextDispatch('getComponentId');
+    },
+    getComponentIdHTML: function(ctx) {
+        return ctx.componentNode.id;
     },
     resizeComponent: function(idx) {
         return this.renderContextDispatch('resizeComponent');

@@ -126,7 +126,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Button',
         if (!ctx.componentNode)
             ctx.componentNode= this.createButtonNodeHTML();
         this.setComponentNodeClass(this.isActive?this.classes:this.disabledClasses);
-        
+         this.setComponentNodeId();        
         $super(ctx);
         if (this.shape) this.updateLabel(this.label || "Button")
     },

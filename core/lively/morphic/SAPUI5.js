@@ -1011,6 +1011,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
        return parseInt(s["width"].replace("px",""));
     },
     
+    
 },
 'internal calculations',{
     
@@ -1049,12 +1050,12 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         if (this.readOnly) this.setComponentNodeClass(this.readOnlyClasses);
         else this.setComponentNodeClass(this.normalClasses);
     },
-    
-    addSliderEvents: function(sliderNode){
+    addSliderEventsHTML: function(ctx, sliderNode){
         sliderNode.onmousedown = this.onSliderMouseDown;    
         sliderNode.onmouseup = this.onSliderMouseUp;
         sliderNode.onmousemove = this.onSliderMouseMove;                
     },
+
     onSliderMouseDown: function(evt){console.log('Mouse Down on Slider!')},
     onSliderMouseUp: function(evt){console.log('Mouse Up on Slider!')},
     onSliderMouseMove: function(evt){console.log('Mouse Move on Slider!')},

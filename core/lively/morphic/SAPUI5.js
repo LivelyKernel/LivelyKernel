@@ -913,6 +913,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         }
         ctx.ticks = [];
         ctx.labels= [];
+        this.generateTicksHTML(ctx);
 
         $super(ctx);
     },
@@ -962,7 +963,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
                 ctx.sliderBar.appendChild(ctx.labels[i]);
             }
         }
-        
+        this.updateTicksHTML(ctx);
         
     },
     
@@ -970,7 +971,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
          return this.renderContextDispatch('updateTicks');
     },
     updateTicksHTML: function(){
-
+        
     },
     
 },

@@ -237,60 +237,37 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
         $super(ctx);
         if (this.shape) this.setValueHTML(ctx, (optValue || this.defaultValue));
     },
-    appendHTML: function($super, ctx, optMorphAfter) {
-        $super(ctx, optMorphAfter);
-        ctx.shapeNode.appendChild(ctx.inputNode);
-        this.resizeComponentHTML(ctx);
-    },
 
-    setClipModeHTML: function(ctx, clipMode) {
-        // FIXME duplication wiht super, delay logic
-        // can be extracted
-        if (!ctx.inputNode|| this.delayedClipMode) {
-            this.delayedClipMode = clipMode;
-            return;
-        }
-        this.setClipModeHTMLForNode(ctx, ctx.inputNode, clipMode);
-    },
+
     resizeComponentHTML: function(ctx) {
         var borderWidth = this.getBorderWidth(),
             extent = this.getExtent().subPt(pt(2*borderWidth, 2*borderWidth)),
-            buttonNode= ctx.inputNode;
+            buttonNode= ctx.componentNode;
         buttonNode.style.left = this.shape.getPosition().x /*+ this.padding.left()*/ + 'px';
         buttonNode.style.top = this.shape.getPosition().y /*+ this.padding.top()*/ + 'px';
         buttonNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';
         if (!this.fixedHeight) buttonNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
     },
 
-    setComponentNodeClassHTML: function(ctx, className) {
-        ctx.inputNode.className = className;
-    },
     getValueHTML: function(ctx) {
-        if (ctx.inputNode) return ctx.inputNode.value;
+        if (ctx.componentNode) return ctx.componentNode.value;
         else return "";  
     },
     setValueHTML: function(ctx, value) {
-        if (ctx.inputNode) ctx.inputNode.value = value;
+        if (ctx.componentNode) ctx.componentNode.value = value;
     },
     getMaxLengthHTML: function(ctx) {
-        if (ctx.inputNode) {
-            var m = ctx.inputNode.getAttribute('maxlength');
+        if (ctx.componentNode) {
+            var m = ctx.componentNode.getAttribute('maxlength');
             if (m && m !="") return m;
         }
         return null;  
     },
     setMaxLengthHTML: function(ctx, value) {
-        if (ctx.inputNode) {
-            if (value) ctx.inputNode.maxLength = value;
-            else ctx.inputNode.removeAttribute('maxlength');
+        if (ctx.componentNode) {
+            if (value) ctx.componentNode.maxLength = value;
+            else ctx.componentNode.removeAttribute('maxlength');
         }
-    },
-},
-
-'node creation', {
-
-    getComponentExtentHTML: function(ctx) {
-        return ctx.inputNode.scrollHeight != 0 ? pt(ctx.inputNode.scrollWidth, ctx.inputNode.scrollHeight) : this.getExtent()
     },
 },
 
@@ -316,18 +293,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
         if (!active) this.focus= false;
         this.changeAppearance();
     },
-    setExtent: function($super, extent) {
-        $super(extent);
-        this.resizeComponent();
-    },
-    resizeComponent: function(idx) {
-        return this.renderContextDispatch('resizeComponent');
-    },
-    getComponentExtent: function() { return this.renderContextDispatch('getComponentExtent') },
- 
-    setComponentNodeClass: function(className) {
-        this.renderContextDispatch('setComponentNodeClass', className);     
-    }
+
     
 },
 'event handling', {

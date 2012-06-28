@@ -964,6 +964,14 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         
         
     },
+    
+    updateTicks: function(){
+         return this.renderContextDispatch('updateTicks');
+    },
+    updateTicksHTML: function(){
+
+    },
+    
 },
 'accessing',{
     setTickCount: function(tickCount){

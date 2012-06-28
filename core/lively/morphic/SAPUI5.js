@@ -984,7 +984,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 },
 'internal calculations',{
     pos2val: function(pos){
-            
+
     },
     val2pos: function(val) {}    
 },

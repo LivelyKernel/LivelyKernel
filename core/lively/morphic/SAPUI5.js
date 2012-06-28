@@ -417,22 +417,11 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
         //this.setWrapperNodeClass(this.active?this.classes:this.disabledClasses);        
     },
 
-    resizeCheckBoxHTML: function(ctx) {
-        var borderWidth = this.getBorderWidth(),
-            extent = this.getExtent().subPt(pt(2*borderWidth, 2*borderWidth)),
-            wrapperNode= ctx.wrapperNode;
-        wrapperNode.style.left = this.shape.getPosition().x /*+ this.padding.left()*/ + 'px';
-        wrapperNode.style.top = this.shape.getPosition().y /*+ this.padding.top()*/ + 'px';
-        wrapperNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';
-        wrapperNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
-    },
     updateLabelHTML: function(ctx, label) {
         ctx.labelNode.innerHTML = label;
         ctx.checkBoxNode.title = label;
     },
-    setWrapperNodeClassHTML: function(ctx, className) {
-        ctx.wrapperNode.className = className;
-    },
+
     
     
     updateInputTagHTML: function(ctx) {

@@ -983,8 +983,13 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     
 },
 'internal calculations',{
+    getWidth: function(){
+        var borderWidth = this.getBorderWidth(),
+        extent = this.getExtent().subPt(pt(2*borderWidth, 2*borderWidth));
+        return extent.x;
+    },
     pos2val: function(pos){
-
+        
     },
     val2pos: function(val) {}    
 },

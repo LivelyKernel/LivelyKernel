@@ -819,24 +819,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
         if (active) this.pressed = false;
         this.changeAppearanceFor(false);
     },
-    setExtent: function($super, extent) {
-        $super(extent);
-        this.resizeButton();
-    },
-    resizeButton: function(idx) {
-        return this.renderContextDispatch('resizeButton');
-    },
-    getButtonExtent: function() { return this.renderContextDispatch('getButtonExtent') },
-    updateLabel: function(label) {
-        this.label = label;
-        this.renderContextDispatch('updateLabel', label);
-    },
-    setLabel: function(label) {
-        this.updateLabel(label);
-    },
-    getLabel: function() {
-        return this.label;    
-    },
+
     morphMenuItems: function($super) {
         var self = this, items = $super();
         items.push([
@@ -848,9 +831,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
         }])
         return items;
     },
-    setButtonNodeClass: function(className) {
-        this.renderContextDispatch('setButtonNodeClass', className);     
-    }
+
     
 }
 );

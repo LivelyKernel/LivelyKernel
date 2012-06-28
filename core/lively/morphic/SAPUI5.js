@@ -864,6 +864,60 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     normalClasses: 'sapUiSli sapUiSliStd',    
     readOnlyClasses: 'sapUiSli sapUiSliRo',
     fixedHeight: true
+},
+'initializing', {
+    initialize: function($super, bounds) {
+        $super(bounds);
+        this.readOnly = false;
+        this.updateAppearance();
+    }
+},
+
+'rendering', {
+    initHTML: function($super, ctx) {
+        if (!ctx.componentNode) ctx.componentNode= XHTMLNS.create('div');
+        if (!ctx.checkBoxNode) this.setupCheckBoxNodeHTML(ctx);
+        if (!ctx.labelNode) this.setupLabelNodeHTML(ctx);
+        
+        this.updateAppearance();        
+
+        ctx.subNodes = [];
+        $super(ctx);
+        if (this.shape) this.updateLabel(this.label || "Button")
+    },
+    setupCheckBoxNodeHTML: function(ctx){
+        var c = XHTMLNS.create('input');
+        c.type = "checkbox";
+        c.id = 'checkbox-'+this.id;
+        ctx.checkBoxNode = c;
+    },    
+    setupLabelNodeHTML: function(ctx){
+        var l = XHTMLNS.create('label');
+        l.htmlFor = 'checkbox-'+this.id;
+        ctx.labelNode = l;
+    },
+    appendHTML: function($super, ctx, optMorphAfter) {
+        ctx.componentNode.appendChild(ctx.checkBoxNode);
+        ctx.componentNode.appendChild(ctx.labelNode);
+        $super(ctx, optMorphAfter);
+        //this.setWrapperNodeClass(this.active?this.classes:this.disabledClasses);        
+    },
+
+    updateLabelHTML: function(ctx, label) {
+        ctx.labelNode.innerHTML = label;
+        ctx.checkBoxNode.title = label;
+    },
+
+    getComponentNodeIdHTML: function(ctx) {
+        return ctx.checkBoxNode.id;
+    },
+    
+    updateInputTagHTML: function(ctx) {
+        ctx.checkBoxNode.checked = (this.checked)?"checked":null;
+        ctx.checkBoxNode.disabled= (this.active)?null:"disabled";        
+        ctx.checkBoxNode.readOnly= (this.readOnly)?"readOnly":null;   
+    }
+    
 }
 );
 

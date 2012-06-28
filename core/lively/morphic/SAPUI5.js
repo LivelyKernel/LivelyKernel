@@ -819,16 +819,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
         if (this.shape) this.updateLabel(this.label || "Label")
         this.changeAppearance();
     },
-    resizeComponentHTML: function(ctx) {
-        var borderWidth = this.getBorderWidth(),
-            extent = this.getExtent().subPt(pt(2*borderWidth, 2*borderWidth)),
-            buttonNode= ctx.componentNode;
-        buttonNode.style.left = this.shape.getPosition().x /*+ this.padding.left()*/ + 'px';
-        buttonNode.style.top = this.shape.getPosition().y /*+ this.padding.top()*/ + 'px';
-        buttonNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';
-        if (!this.fixedHeight) buttonNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
-    },
-    
+
 
 
 },

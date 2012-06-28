@@ -1,10 +1,27 @@
 module('lively.morphic.SAPUI5').requires('lively.morphic.HTML').toRun(function() {
 
 lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
-'HTML render settings', {
+'rendering', {
     htmlDispatchTable: {
         resizeComponent: 'resizeComponentHTML',
         getComponentExtent: 'getComponentExtentHTML',
+    },
+    
+    resizeComponentHTML: function(ctx) {
+        var borderWidth = this.getBorderWidth(),
+            extent = this.getExtent().subPt(pt(2*borderWidth, 2*borderWidth)),
+            componentNode= ctx.componentNode;
+        componentNode.style.left = this.shape.getPosition().x /*+ this.padding.left()*/ + 'px';
+        componentNode.style.top = this.shape.getPosition().y /*+ this.padding.top()*/ + 'px';
+        componentNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';
+        componentNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
+    },
+    setExtent: function($super, extent) {
+        $super(extent);
+        this.resizeComponent();
+    },
+    resizeComponent: function(idx) {
+        return this.renderContextDispatch('resizeComponent');
     },
 }
 );

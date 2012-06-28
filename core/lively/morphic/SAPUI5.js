@@ -865,7 +865,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     readOnlyClasses: 'sapUiSli sapUiSliRo',
     fixedHeight: true,
     minValue: 0,
-    maxValue: 100
+    maxValue: 100,
+    tickCount: 0
 },
 'initializing', {
     initialize: function($super, bounds) {
@@ -925,14 +926,14 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     }    
 },
 'accessing',{
-    setTickCount: function(){
-        
+    setTickCount: function(tickCount){
+        this.tickCount = (tickCount<2) ? 0 : tickCount; // either no ticks or more than one
     },
     setValueRange: function(min, max) {
         if (min && max && (min < max)) {
             this.minValue = min;
             this.maxValue = max;
-        } else {throw new Error("Please assign both min and max of the slider")}
+        } else {throw new Error("Please assign both min and max of the slider.")}
         
     }
     

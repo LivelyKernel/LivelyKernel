@@ -239,8 +239,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
     initHTML: function($super, ctx, optValue) {
         if (!ctx.componentNode)
             ctx.componentNode= XHTMLNS.create('input');
-            
-        this.setComponentNodeClass(this.classes);
+         this.setComponentNodeClass(this.classes);
         $super(ctx);
         if (this.shape) this.setValueHTML(ctx, (optValue || this.defaultValue));
     },

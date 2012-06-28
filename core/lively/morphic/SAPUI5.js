@@ -715,12 +715,8 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
 },
 'initializing', {
     initialize: function($super, bounds, optLabel) {
-        $super(bounds);
-        if (optLabel) this.setLabel(optLabel);
-        this.readOnly = false;
-        this.active = true;
         this.htmlName = this.htmlName;
-        this.updateAppearance();
+        $super(bounds, optLabel);
     }
 },
 

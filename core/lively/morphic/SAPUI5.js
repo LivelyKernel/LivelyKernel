@@ -806,6 +806,11 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
     requiredClass: 'sapUiLblReq',
     label: "Label"
 },
+'HTML render settings', {
+    htmlDispatchTable: {
+        setFor: 'setForHTML',        
+    },
+},
 'initializing', {
     initialize: function($super, bounds, optLabel) {
         $super(bounds);
@@ -856,6 +861,13 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
     setRequired: function(b) {
         this.required = b;
         this.changeAppearance();        
+    },
+    
+    setFor: function(morph) {
+        if (morph && morph.getComponentId){
+            var id = morph.getComponentId();
+                
+        }  
     },
     
     setFixedHeight: function(f) {

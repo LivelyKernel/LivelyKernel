@@ -871,7 +871,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 },
 'HTML render settings', {
     htmlDispatchTable: {
-        generateTicks: 'generateTicksHTML',        
+        generateTicks: 'generateTicksHTML',
+        updateTicks: 'updateTicksHTML'       
     },
 },
 'initializing', {

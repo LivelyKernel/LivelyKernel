@@ -824,6 +824,16 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
 
 
 'accessing', {
+    changeAppearance: function() {
+        var classNames = this.classes;
+        if (!this.active){
+            classNames+=' '+this.disabledClass;
+        }
+        else if(this.hasFocus ) {
+            classNames+=' '+this.focusClass;
+        }
+        this.setComponentNodeClass(classNames );              
+    },
     setBold: function(b) {
         
     },

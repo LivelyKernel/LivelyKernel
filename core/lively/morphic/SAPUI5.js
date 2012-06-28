@@ -6,7 +6,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
         resizeComponent: 'resizeComponentHTML',
         getComponentExtent: 'getComponentExtentHTML',
         setComponentNodeClass:'setComponentNodeClassHTML',
-        getComponentNodeId: 'getComponentIdHTML',
+        getComponentNodeId: 'getComponentNodeIdHTML',
         setComponentNodeId: 'setComponentNodeIdHTML'
     },
     

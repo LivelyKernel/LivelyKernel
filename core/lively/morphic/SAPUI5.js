@@ -991,7 +991,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     pos2val: function(pos){
         var w = this.getWidth();
         var range = this.maxValue - this.minValue;
-        var s = w / range;
+        var s = range / w ;
         s *= pos;
         s += this.minValue;
         return s;
@@ -999,7 +999,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     val2pos: function(val) {
         var w = this.getWidth();
         var range = this.maxValue - this.minValue;
-        var s = range / w;
+        var s = w/ range;
         s *= (val - this.minValue);
         return s;
     }    

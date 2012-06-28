@@ -29,6 +29,11 @@ lively.Config.set("ignoreAdvice", false);
 
 lively.Config.add("modulePaths", 'apps');
 
+// Config.set("textUndoEnabled", document.URL.indexOf('textUndoEnabled=false') === -1);
+if (lively.Config.get("textUndoEnabled")) {
+    lively.Config.add("modulesBeforeWorldLoad", 'lively.morphic.TextUndo');
+}
+
 lively.Config.set("loadUserConfig", true);
 
 lively.Config.urlQueryOverride();

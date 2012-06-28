@@ -517,7 +517,8 @@ Config.addOptions(
         // Until we're confident
         ["showAllTyping", true, "Defeat all bundled type-in for testing"],
         ["useSoftTabs", true],
-        ["disableSyntaxHighlighting", false]
+        ["disableSyntaxHighlighting", false],
+        ["textUndoEnabled", true, "wether Lively takes care of undoing text changes or leaves it to the browser"]
     ],
     "lively.PartsBin", [
         ["PartCachingEnabled", true, "Whether parts are cached after they are loaded the first time"]

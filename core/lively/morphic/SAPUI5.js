@@ -203,7 +203,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Button',
 }
 );
 
-lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
+lively.morphic.Component.subclass('lively.morphic.SAPUI5.TextField',
 
 'settings',{
     classes: 'sapUiTf sapUiTfBrd sapUiTfStd',    
@@ -214,11 +214,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
 },
 'HTML render settings', {
     htmlDispatchTable: {
-        resizeInput: 'resizeInputHTML',
-        getInputExtent: 'getInputExtentHTML',
         getValue: 'getValueHTML',        
         setValue: 'setValueHTML',        
-        setInputNodeClass: 'setInputNodeClassHTML',
         setMaxLength: 'setMaxLengthHTML',
         getMaxLength: 'getMaxLengthHTML',
     },

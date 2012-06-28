@@ -837,11 +837,11 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
     },
     setBold: function(b) {
         this.bold = b;
-        this.updateAppearance();        
+        this.changeAppearance();        
     },
     setRequired: function(b) {
         this.required = b;
-        this.updateAppearance();        
+        this.changeAppearance();        
     },
     
     setFixedHeight: function(f) {

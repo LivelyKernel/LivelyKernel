@@ -252,17 +252,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
         if (this.shape) this.setValueHTML(ctx, (optValue || this.defaultValue));
     },
 
-
-    resizeComponentHTML: function(ctx) {
-        var borderWidth = this.getBorderWidth(),
-            extent = this.getExtent().subPt(pt(2*borderWidth, 2*borderWidth)),
-            buttonNode= ctx.componentNode;
-        buttonNode.style.left = this.shape.getPosition().x /*+ this.padding.left()*/ + 'px';
-        buttonNode.style.top = this.shape.getPosition().y /*+ this.padding.top()*/ + 'px';
-        buttonNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';
-        if (!this.fixedHeight) buttonNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
-    },
-
     getValueHTML: function(ctx) {
         if (ctx.componentNode) return ctx.componentNode.value;
         else return "";  

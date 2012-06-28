@@ -968,6 +968,11 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
                 ctx.labels[i].innerHTML = value;
                 
                 ctx.sliderBar.appendChild(ctx.labels[i]);
+                
+                var s = window.getComputedStyle(ctx.labels[i]);
+                var w = parseInt(s["width"].replace("px",""));
+                ctx.labels[i].pxCorrection = -(w/2);
+                
             }
         }
         this.updateTicksHTML(ctx);

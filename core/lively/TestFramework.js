@@ -717,8 +717,8 @@ Object.subclass('TestResult', {
 
     failuresToString: function(withError) {
         return this.failed.collect(function(ea) {
-            return Strings.format("%s>>%s%s", ea.classname, ea.selector,
-                                  withError ? '\n\t--> ' + ea.err.message : "");
+            var errString = withError ? "\n\t--> " + (ea.err.stack || ea.err.message || ea.err) : "";
+            return Strings.format("%s>>%s%s", ea.classname, ea.selector, errString);
         });
     },
 

@@ -989,9 +989,20 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         return extent.x;
     },
     pos2val: function(pos){
-        
+        var w = this.getWidth();
+        var range = this.maxValue - this.minValue;
+        var s = w / range;
+        s *= pos;
+        s += this.minValue;
+        return s;
     },
-    val2pos: function(val) {}    
+    val2pos: function(val) {
+        var w = this.getWidth();
+        var range = this.maxValue - this.minValue;
+        var s = range / w;
+        s *= (val - this.minValue);
+        return s;
+    }    
 },
 
 'accessing',{

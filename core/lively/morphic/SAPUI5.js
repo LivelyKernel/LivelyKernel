@@ -116,9 +116,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Button',
         $super(extent);
         this.resizeButton();
     },
-    resizeButton: function(idx) {
-        return this.renderContextDispatch('resizeButton');
-    },
     getButtonExtent: function() { return this.renderContextDispatch('getButtonExtent') },
     updateLabel: function(label) {
         this.label = label;

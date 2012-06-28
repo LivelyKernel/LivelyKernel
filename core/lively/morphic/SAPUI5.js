@@ -936,8 +936,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
             ctx.sliderBar.appendChild(ctx.ticks[i]);
             if  (this.hasLabels) {
                 var labelClass = 'sapUiSliText';
-                if (i == 0) labelClass +' sapUiSliTextLeft';
-                else if (i == tickCount-1) labelClass +' sapUiSliTextRight';
+                if (i == 0) labelClass +=' sapUiSliTextLeft';
+                else if (i == tickCount-1) labelClass +=' sapUiSliTextRight';
                 
                 
                 

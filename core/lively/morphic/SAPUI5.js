@@ -998,7 +998,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
        return this.renderContextDispatch('getSliderWidth');
     },
     getSliderWidthHTML: function(ctx){
-       return window.getComputedStyle(ctx.sliderBar)
+       var s = window.getComputedStyle(ctx.sliderBar);
+       return parseInt(s["width"].replace("px",""));
     },
     
 },

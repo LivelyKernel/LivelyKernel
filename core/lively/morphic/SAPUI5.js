@@ -980,7 +980,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         if (this.tickCount != c || (this.hasLabels && ctx.labels.length != c)) {
             throw new Error("Slider: Tick count is not synchronized!");
         }
-        var w = this.getWidth();
+        var w = this.getSliderWidth();
         for (var i = 0; i < c; i++){
              var s = w / (c-1);
              var pos = s * i;
@@ -1005,7 +1005,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 'internal calculations',{
     
     pos2val: function(pos){
-        var w = this.getWidth();
+        var w = this.getSliderWidth();
         var range = this.maxValue - this.minValue;
         var s = range / w ;
         s *= pos;
@@ -1013,7 +1013,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         return s;
     },
     val2pos: function(val) {
-        var w = this.getWidth();
+        var w = this.getSliderWidth();
         var range = this.maxValue - this.minValue;
         var s = w/ range;
         s *= (val - this.minValue);

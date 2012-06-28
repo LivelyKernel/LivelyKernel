@@ -432,13 +432,6 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
     
 },
 
-'node creation', {
-
-    getWrapperExtentHTML: function(ctx) {
-        return ctx.wrapperNode.scrollHeight != 0 ? pt(ctx.wrapperNode.scrollWidth, ctx.wrapperNode.scrollHeight) : this.getExtent()
-    },
-},
-
 'accessing', {
     setChecked: function(checked){ 
         this.checked = checked;
@@ -453,41 +446,9 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
         this.readOnly = readOnly ;
         this.updateAppearance();
     },
-    setExtent: function($super, extent) {
-        $super(extent);
-        this.resizeCheckBox();
-    },
     updateInputTag: function(idx) {
         return this.renderContextDispatch('updateInputTag');
     },
-    resizeCheckBox: function(idx) {
-        return this.renderContextDispatch('resizeCheckBox');
-    },
-    getWrapperExtent: function() { return this.renderContextDispatch('getWrapperExtent') },
-    updateLabel: function(label) {
-        this.label = label;
-        this.renderContextDispatch('updateLabel', label);
-    },
-    setLabel: function(label) {
-        this.updateLabel(label);
-    },
-    getLabel: function() {
-        return this.label;    
-    },
-    morphMenuItems: function($super) {
-        var self = this, items = $super();
-        items.push([
-            'Set label', function(evt) {
-            $world.prompt('Set label', function(input) {
-                if (input !== null)
-                    self.setLabel(input || '');
-            }, self.getLabel());
-        }])
-        return items;
-    },
-    setWrapperNodeClass: function(className) {
-        this.renderContextDispatch('setWrapperNodeClass', className);     
-    }
     
 },
 'event handling', {
@@ -499,7 +460,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
         if (this.readOnly) {classNames+=' '+this.readOnlyClass}
             else if (this.active) {classNames+=' '+this.activeClass}
             else {classNames+=' '+this.disabledClass}
-        this.setWrapperNodeClass(classNames);
+        this.setComponentNodeClass(classNames);
         this.updateInputTag();
     },
     

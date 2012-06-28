@@ -27,10 +27,10 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
     getComponentExtentHTML: function(ctx) {
         return ctx.componentNode.scrollHeight != 0 ? pt(ctx.componentNode.scrollWidth, ctx.componentNode.scrollHeight) : this.getExtent()
     },
-    getComponentId: function() {
+    getComponentNodeId: function() {
         return this.renderContextDispatch('getComponentId');
     },
-    getComponentIdHTML: function(ctx) {
+    getComponentNodeIdHTML: function(ctx) {
         return ctx.componentNode.id;
     },
     setComponentId: function() {

@@ -352,7 +352,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.TextField',
 }
 );
 
-lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
+lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
 
 'settings',{
     baseClass:'sapUiCb',
@@ -364,9 +364,6 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.CheckBox',
 },
 'HTML render settings', {
     htmlDispatchTable: {
-        updateLabel: 'updateLabelHTML',
-        resizeCheckBox: 'resizeCheckBoxHTML',
-        getCheckBoxExtent: 'getCheckBoxExtentHTML',
         setWrapperNodeClass: 'setWrapperNodeClassHTML',
         updateInputTag: 'updateInputTagHTML'
     },

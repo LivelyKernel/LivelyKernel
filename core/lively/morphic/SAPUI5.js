@@ -931,7 +931,9 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         
         // create ticks and labels
         for (var i = 0; i < this.tickCount; i++) {
-            ctx.ticks[i] = this.generateTickHTML(ctx);
+            ctx.ticks[i] = XHTMLNS.create('div');
+            ctx.ticks[i].className = 'sapUiSliTick';
+            ctx.sliderBar.appendChild(ctx.ticks[i]);
             if  (this.hasLabels) {
                 
             }
@@ -939,12 +941,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         
         
     },
-    generateTickHTML: function(ctx) {
-        var t = XHTMLNS.create('div');
-        t.className = 'sapUiSliTick';
-        ctx.sliderBar.appendChild(t);
-        return t;
-    }
 },
 'accessing',{
     setTickCount: function(tickCount){

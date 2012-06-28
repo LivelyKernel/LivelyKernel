@@ -929,8 +929,14 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         ctx.labels.each(function(n){n.parentNode.removeChild(n);});
         ctx.labels = [];
         
-        // create left tick and text
-        ctx.ticks[0] = this.generateTickHTML(ctx);
+        // create ticks and labels
+        for (var i = 0; i < this.tickCount; i++) {
+            ctx.ticks[i] = this.generateTickHTML(ctx);
+            if  (this.labels) {
+                
+            }
+        }
+        
         
     },
     generateTickHTML: function(ctx) {

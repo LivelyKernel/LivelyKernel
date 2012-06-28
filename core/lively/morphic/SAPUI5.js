@@ -807,6 +807,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
             ctx.componentNode= XHTMLNS.create('label');
         $super(ctx);
         if (this.shape) this.updateLabel(this.label || "Label")
+        this.changeAppearance();
     },
     resizeComponentHTML: function(ctx) {
         var borderWidth = this.getBorderWidth(),
@@ -825,14 +826,14 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
 
 'accessing', {
     changeAppearance: function() {
-        var classNames = this.classes;
-        if (!this.active){
-            classNames+=' '+this.disabledClass;
+        var classNames = this.baseClass;
+        if (this.bold){
+            classNames+=' '+this.boldClass;
         }
-        else if(this.hasFocus ) {
-            classNames+=' '+this.focusClass;
+        if(this.required) {
+            classNames+=' '+this.requiredClass;
         }
-        this.setComponentNodeClass(classNames );              
+        this.setComponentNodeClass(classNames);              
     },
     setBold: function(b) {
         

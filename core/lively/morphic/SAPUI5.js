@@ -26,7 +26,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
 }
 );
 
-lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
+lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Button',
 
 'settings',{
     classes: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnStd',    
@@ -38,8 +38,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
     htmlDispatchTable: {
         updateLabel: 'updateLabelHTML',
         resizeButton: 'resizeButtonHTML',
-        getButtonExtent: 'getButtonExtentHTML',
-        setButtonNodeClass: 'setButtonNodeClassHTML',
+        //getButtonExtent: 'getButtonExtentHTML',
+        //setButtonNodeClass: 'setButtonNodeClassHTML',
     },
 },
 'initializing', {
@@ -55,8 +55,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Button',
 
 'rendering', {
     initHTML: function($super, ctx) {
-        if (!ctx.buttonNode)
-            ctx.buttonNode= this.createButtonNodeHTML();
+        if (!ctx.componentNode)
+            ctx.componentNode= this.createButtonNodeHTML();
         this.setButtonNodeClass(this.isActive?this.classes:this.disabledClasses);
         ctx.subNodes = [];
         $super(ctx);

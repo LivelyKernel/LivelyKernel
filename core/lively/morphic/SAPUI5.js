@@ -982,7 +982,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
              ctx.ticks[i].style.left = pos+"px";
              console.log("Setting left of tick "+i+" to "+pos);
              if (i > 0 && i < c-1) {
-                ctx.labels[i].style.left = pos;
+                ctx.labels[i].style.left = pos+"px";
              }
              
         }

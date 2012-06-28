@@ -817,13 +817,21 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
         buttonNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';
         if (!this.fixedHeight) buttonNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
     },
+    
 
 
 },
 
 
 'accessing', {
-
+    setBold: function(b) {
+        
+    },
+    
+    setFixedHeight: function(f) {
+        this.fixedHeight = f;
+        this.resizeComponent();
+    },
     morphMenuItems: function($super) {
         var self = this, items = $super();
         items.push([

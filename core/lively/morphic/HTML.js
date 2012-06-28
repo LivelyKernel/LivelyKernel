@@ -916,7 +916,6 @@ lively.morphic.Shapes.Shape.addMethods(
         if (!ctx.shapeNode) return;
         var style = window.getComputedStyle(ctx.shapeNode),
             borderWidth = parseInt(style["borderWidth"].replace("px",""));
-        //console.log("BorderWidth = "+borderWidth);
         this.shapeSetter('ComputedBorderWidth', borderWidth );
 
         if (ctx.originNode) {

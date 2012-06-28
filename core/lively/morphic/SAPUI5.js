@@ -979,7 +979,11 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         for (var i = 0; i < c; i++){
              var s = w / (c-1);
              var pos = s * i;
-             ctx.ticks[i]
+             ctx.ticks[i].style.left = pos;
+             if (i > 0 && i < c-1) {
+                ctx.labels[i].style.left = pos;
+             }
+             
         }
         
     },

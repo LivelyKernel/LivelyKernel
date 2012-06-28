@@ -913,6 +913,7 @@ lively.morphic.Shapes.Shape.addMethods(
     },
 
     setComputedStylesHTML: function(ctx) {
+        /*
         if (!ctx.shapeNode) return;
         var style = window.getComputedStyle(ctx.shapeNode),
             borderWidth = parseInt(style["borderWidth"].replace("px",""));
@@ -922,6 +923,7 @@ lively.morphic.Shapes.Shape.addMethods(
             this.compensateShapeNode(ctx);
         }
         this.setExtentHTML(ctx, this.getExtent());
+        */
     },
 
     setComputedBorderWidthHTML: function(ctx, width) {},

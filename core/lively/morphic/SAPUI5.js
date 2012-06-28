@@ -867,7 +867,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     minValue: 0,
     maxValue: 100,
     tickCount: 0,
-    labels: true
+    hasLabels: true
 },
 'HTML render settings', {
     htmlDispatchTable: {
@@ -932,7 +932,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         // create ticks and labels
         for (var i = 0; i < this.tickCount; i++) {
             ctx.ticks[i] = this.generateTickHTML(ctx);
-            if  (this.labels) {
+            if  (this.hasLabels) {
                 
             }
         }

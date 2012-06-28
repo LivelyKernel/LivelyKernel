@@ -230,17 +230,17 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
 
 'rendering', {
     initHTML: function($super, ctx, optValue) {
-        if (!ctx.inputNode)
-            ctx.inputNode= XHTMLNS.create('input');
+        if (!ctx.componentNode)
+            ctx.componentNode= XHTMLNS.create('input');
             
-        this.setInputNodeClass(this.classes);
+        this.setComponentNodeClass(this.classes);
         $super(ctx);
         if (this.shape) this.setValueHTML(ctx, (optValue || this.defaultValue));
     },
     appendHTML: function($super, ctx, optMorphAfter) {
         $super(ctx, optMorphAfter);
         ctx.shapeNode.appendChild(ctx.inputNode);
-        this.resizeInputHTML(ctx);
+        this.resizeComponentHTML(ctx);
     },
 
     setClipModeHTML: function(ctx, clipMode) {
@@ -252,7 +252,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
         }
         this.setClipModeHTMLForNode(ctx, ctx.inputNode, clipMode);
     },
-    resizeInputHTML: function(ctx) {
+    resizeComponentHTML: function(ctx) {
         var borderWidth = this.getBorderWidth(),
             extent = this.getExtent().subPt(pt(2*borderWidth, 2*borderWidth)),
             buttonNode= ctx.inputNode;
@@ -262,7 +262,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
         if (!this.fixedHeight) buttonNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
     },
 
-    setInputNodeClassHTML: function(ctx, className) {
+    setComponentNodeClassHTML: function(ctx, className) {
         ctx.inputNode.className = className;
     },
     getValueHTML: function(ctx) {
@@ -289,7 +289,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
 
 'node creation', {
 
-    getInputExtentHTML: function(ctx) {
+    getComponentExtentHTML: function(ctx) {
         return ctx.inputNode.scrollHeight != 0 ? pt(ctx.inputNode.scrollWidth, ctx.inputNode.scrollHeight) : this.getExtent()
     },
 },
@@ -297,7 +297,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
 'accessing', {
     setFixedHeight: function(f) {
         this.fixedHeight = f;
-        this.resizeInput();
+        this.resizeComponent();
     },
     getValue: function() {
         return this.renderContextDispatch('getValue');
@@ -318,15 +318,15 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
     },
     setExtent: function($super, extent) {
         $super(extent);
-        this.resizeInput();
+        this.resizeComponent();
     },
-    resizeInput: function(idx) {
-        return this.renderContextDispatch('resizeInput');
+    resizeComponent: function(idx) {
+        return this.renderContextDispatch('resizeComponent');
     },
-    getInputExtent: function() { return this.renderContextDispatch('getInputExtent') },
+    getComponentExtent: function() { return this.renderContextDispatch('getComponentExtent') },
  
-    setInputNodeClass: function(className) {
-        this.renderContextDispatch('setInputNodeClass', className);     
+    setComponentNodeClass: function(className) {
+        this.renderContextDispatch('setComponentNodeClass', className);     
     }
     
 },
@@ -351,7 +351,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
         else if(this.hasFocus ) {
             classNames+=' '+this.focusClass;
         }
-        this.setInputNodeClass(classNames );              
+        this.setComponentNodeClass(classNames );              
     },
  
 

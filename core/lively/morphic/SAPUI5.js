@@ -866,7 +866,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
     setFor: function(morph) {
         if (morph && morph.getComponentId){
             var id = morph.getComponentId();
-                
+            return this.renderContextDispatch('setFor', id);    
         }  
     },
     

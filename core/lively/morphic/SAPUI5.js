@@ -916,7 +916,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         }
         ctx.ticks = [];
         ctx.labels= [];
-        
+        this.generateTicksHTML(ctx);
 
         $super(ctx);
     },

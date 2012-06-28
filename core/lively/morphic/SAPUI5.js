@@ -1050,7 +1050,9 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     },
     
     addSliderEvents: function(sliderNode){
-        sliderNode    
+        sliderNode.onmousedown = this.onSliderMouseDown;    
+        sliderNode.onmouseup = this.onSliderMouseUp;
+        sliderNode.onmousemove = this.onSliderMouseMove;                
     },
     onSliderMouseDown: function(evt){console.log('Mouse Down on Slider!')},
     onSliderMouseUp: function(evt){console.log('Mouse Up on Slider!')},

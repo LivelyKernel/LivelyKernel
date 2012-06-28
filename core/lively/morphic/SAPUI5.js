@@ -145,22 +145,13 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Button',
 'event handling', {
     changeAppearanceFor: function(pressed) {
         if (pressed) {
-            this.setButtonNodeClass(this.activeClasses);
+            this.setComponentNodeClass(this.activeClasses);
         } else {
-            this.setButtonNodeClass(this.isActive?this.classes:this.disabledClasses);
+            this.setComponentNodeClass(this.isActive?this.classes:this.disabledClasses);
         }
   
     },
-    /*
-    onClick: function(evt) {
-         if (evt.isCommandKey() || !evt.isLeftMouseButtonDown()) {
-            evt.stop()
-            return true;
-        }
-        lively.bindings.signal(this, 'fire', true);
-         return true;
-     },
-*/
+
     onMouseOut: function (evt) {
         this.isPressed && this.changeAppearanceFor(false);
     },

@@ -909,7 +909,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
             ctx.sliderHilite.className = 'sapUiSliHiLi';
         }
 
-        
         $super(ctx);
     },
     
@@ -933,7 +932,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 'accessing',{
     setTickCount: function(tickCount){
         this.tickCount = (tickCount<2) ? 0 : tickCount; // either no ticks or more than one
-        this.generateTicksHTML
+        this.generateTicks();
     },
     setValueRange: function(min, max) {
         if (min && max && (min < max)) {

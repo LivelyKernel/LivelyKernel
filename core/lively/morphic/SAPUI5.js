@@ -892,8 +892,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
             ctx.sliderBar= XHTMLNS.create('div');
             ctx.sliderBar.className = 'sapUiSliBar';
         }
-        
-               
 
         ctx.ticks = [];
         $super(ctx);
@@ -906,21 +904,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         $super(ctx, optMorphAfter);
         //this.setWrapperNodeClass(this.active?this.classes:this.disabledClasses);        
     },
-
-    updateLabelHTML: function(ctx, label) {
-        ctx.labelNode.innerHTML = label;
-        ctx.checkBoxNode.title = label;
-    },
-
-    getComponentNodeIdHTML: function(ctx) {
-        return ctx.checkBoxNode.id;
-    },
-    
-    updateInputTagHTML: function(ctx) {
-        ctx.checkBoxNode.checked = (this.checked)?"checked":null;
-        ctx.checkBoxNode.disabled= (this.active)?null:"disabled";        
-        ctx.checkBoxNode.readOnly= (this.readOnly)?"readOnly":null;   
-    }
     
 }
 );

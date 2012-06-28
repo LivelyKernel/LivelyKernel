@@ -876,8 +876,9 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 'rendering', {
     initHTML: function($super, ctx) {
         if (!ctx.componentNode) ctx.componentNode= XHTMLNS.create('div');
-        if (!ctx.checkBoxNode) this.setupCheckBoxNodeHTML(ctx);
-        if (!ctx.labelNode) this.setupLabelNodeHTML(ctx);
+        if (!ctx.sliderRight) ctx.sliderRight= XHTMLNS.create('div');
+        if (!ctx.sliderLeft) ctx.sliderLeft= XHTMLNS.create('div');
+        if (!ctx.sliderBar) ctx.sliderBar= XHTMLNS.create('div');
         
         this.updateAppearance();        
 

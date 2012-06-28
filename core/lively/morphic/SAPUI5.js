@@ -73,14 +73,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Button',
         $super(ctx);
         if (this.shape) this.updateLabel(this.label || "Button")
     },
-    appendHTML: function($super, ctx, optMorphAfter) {
-        $super(ctx, optMorphAfter);
-        this.appendButtonHTML(ctx);
-    },
-    appendButtonHTML: function(ctx) {
-        ctx.shapeNode.appendChild(ctx.componentNode);
-        this.resizeButtonHTML(ctx);
-    },
+
 
     setClipModeHTML: function(ctx, clipMode) {
         // FIXME duplication wiht super, delay logic

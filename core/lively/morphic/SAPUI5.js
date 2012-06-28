@@ -57,6 +57,9 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.LabelComponent',
     setLabel: function(label) {
         this.updateLabel(label);
     },
+    updateLabelHTML: function(ctx, label) {
+        ctx.componentNode.innerHTML = label;
+    },
     getLabel: function() {
         return this.label;    
     },

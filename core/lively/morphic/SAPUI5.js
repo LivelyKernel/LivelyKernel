@@ -203,7 +203,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Button',
 }
 );
 
-lively.morphic.Component.subclass('lively.morphic.SAPUI5.TextField',
+lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
 
 'settings',{
     classes: 'sapUiTf sapUiTfBrd sapUiTfStd',    

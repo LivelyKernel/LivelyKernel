@@ -930,6 +930,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         ctx.labels = [];
         
         // create ticks and labels
+        var range = this.maxValue - this.minValue;
         for (var i = 0; i < this.tickCount; i++) {
             ctx.ticks[i] = XHTMLNS.create('div');
             ctx.ticks[i].className = 'sapUiSliTick';
@@ -937,19 +938,17 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
             if  (this.hasLabels) {
 
                 ctx.labels[i] = XHTMLNS.create('div');
-                
                 var labelClass = 'sapUiSliText';
                 if (i == 0) { 
                     labelClass +=' sapUiSliTextLeft';
-                    ctx.minTick = true;
                 }
-                else if (i == tickCount-1) {
+                else if (i == this.tickCount-1) {
                     labelClass +=' sapUiSliTextRight';
-                    ctx.maxTick = true;
                 }
+                                
                 
-
-                ctx.labels[i].className = labelClass ;                
+                
+                ctx.labels[i].className = labelClass;                
                 
 
                 

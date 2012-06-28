@@ -128,20 +128,11 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Button',
             ctx.componentNode= this.createButtonNodeHTML();
         this.setComponentNodeClass(this.isActive?this.classes:this.disabledClasses);
          this.setComponentNodeId();        
+         if (this.htmlFor) this.
         $super(ctx);
         if (this.shape) this.updateLabel(this.label || "Button")
     },
 
-
-    setClipModeHTML: function(ctx, clipMode) {
-        // FIXME duplication wiht super, delay logic
-        // can be extracted
-        if (!ctx.componentNode|| this.delayedClipMode) {
-            this.delayedClipMode = clipMode;
-            return;
-        }
-        this.setClipModeHTMLForNode(ctx, ctx.componentNode, clipMode);
-    },
 
 },
 

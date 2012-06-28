@@ -900,8 +900,9 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     },
 
     appendHTML: function($super, ctx, optMorphAfter) {
-        ctx.componentNode.appendChild(ctx.checkBoxNode);
-        ctx.componentNode.appendChild(ctx.labelNode);
+        ctx.componentNode.appendChild(ctx.sliderRight);
+        ctx.sliderRight.appendChild(ctx.sliderLeft);
+        ctx.sliderLeft.appendChild(ctx.sliderBar);
         $super(ctx, optMorphAfter);
         //this.setWrapperNodeClass(this.active?this.classes:this.disabledClasses);        
     },

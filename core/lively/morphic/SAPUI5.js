@@ -836,24 +836,19 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
         this.setComponentNodeClass(classNames);              
     },
     setBold: function(b) {
-        
+        this.bold = b;
+        this.updateAppearance();        
+    },
+    setRequired: function(b) {
+        this.required = b;
+        this.updateAppearance();        
     },
     
     setFixedHeight: function(f) {
         this.fixedHeight = f;
         this.resizeComponent();
     },
-    morphMenuItems: function($super) {
-        var self = this, items = $super();
-        items.push([
-            'Set label', function(evt) {
-            $world.prompt('Set label', function(input) {
-                if (input !== null)
-                    self.setLabel(input || '');
-            }, self.getLabel());
-        }])
-        return items;
-    },
+
 
     
 }

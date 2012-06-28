@@ -869,6 +869,9 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
             return this.renderContextDispatch('setFor', id);    
         }  
     },
+    setForHTML: function(ctx, id){
+        ctx.componentNode.htmlFor = id;
+    },
     
     setFixedHeight: function(f) {
         this.fixedHeight = f;

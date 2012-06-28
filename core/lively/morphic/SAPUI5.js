@@ -26,6 +26,9 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
     
     setComponentNodeClassHTML: function(ctx, className) {
         ctx.componentNode.className = className;
+    },
+    setComponentNodeClass: function(className) {
+        this.renderContextDispatch('setComponentNodeClass', className);     
     }
     
     

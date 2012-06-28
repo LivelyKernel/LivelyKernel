@@ -45,6 +45,15 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
 }
 );
 
+lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.LabelComponent',
+'HTML render settings', {
+    htmlDispatchTable: {
+        updateLabel: 'updateLabelHTML',
+    },
+}
+);
+
+
 lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Button',
 
 'settings',{
@@ -53,11 +62,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Button',
     disabledClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnDsbl',
     label: "Button"
 },
-'HTML render settings', {
-    htmlDispatchTable: {
-        updateLabel: 'updateLabelHTML',
-    },
-},
+
 'initializing', {
     initialize: function($super, bounds, optLabel) {
         $super(bounds);

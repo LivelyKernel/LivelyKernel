@@ -17,7 +17,7 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
         componentNode.style.left = this.shape.getPosition().x /*+ this.padding.left()*/ + 'px';
         componentNode.style.top = this.shape.getPosition().y /*+ this.padding.top()*/ + 'px';
         componentNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';
-        componentNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
+        if (!this.fixedHeight) componentNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
     },
     setExtent: function($super, extent) {
         $super(extent);

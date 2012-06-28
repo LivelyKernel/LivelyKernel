@@ -46,9 +46,30 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
 );
 
 lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.LabelComponent',
-'HTML render settings', {
+'HTML', {
     htmlDispatchTable: {
         updateLabel: 'updateLabelHTML',
+    },
+    updateLabel: function(label) {
+        this.label = label;
+        this.renderContextDispatch('updateLabel', label);
+    },
+    setLabel: function(label) {
+        this.updateLabel(label);
+    },
+    getLabel: function() {
+        return this.label;    
+    },
+    morphMenuItems: function($super) {
+        var self = this, items = $super();
+        items.push([
+            'Set label', function(evt) {
+            $world.prompt('Set label', function(input) {
+                if (input !== null)
+                    self.setLabel(input || '');
+            }, self.getLabel());
+        }])
+        return items;
     },
 }
 );
@@ -95,9 +116,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Button',
         this.setClipModeHTMLForNode(ctx, ctx.componentNode, clipMode);
     },
 
-    updateLabelHTML: function(ctx, label) {
-        ctx.componentNode.innerHTML = label;
-    },
 },
 
 'node creation', {

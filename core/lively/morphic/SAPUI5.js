@@ -95,9 +95,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Button',
     updateLabelHTML: function(ctx, label) {
         ctx.componentNode.innerHTML = label;
     },
-    setButtonNodeClassHTML: function(ctx, className) {
-        ctx.componentNode.className = className;
-    }
 },
 
 'node creation', {

@@ -921,13 +921,12 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         ctx.ticks = [];
         ctx.labels.each(function(n){n.parentNode.removeChild(n);});
         ctx.labels = [];
-        
-        
-    }    
+    }
 },
 'accessing',{
     setTickCount: function(tickCount){
         this.tickCount = (tickCount<2) ? 0 : tickCount; // either no ticks or more than one
+        this.generateTicksHTML
     },
     setValueRange: function(min, max) {
         if (min && max && (min < max)) {
@@ -936,7 +935,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         } else {throw new Error("Please assign both min and max of the slider.")}
         
     }
-    
 }
 );
 

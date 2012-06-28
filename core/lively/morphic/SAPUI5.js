@@ -868,6 +868,11 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     maxValue: 100,
     tickCount: 0
 },
+'HTML render settings', {
+    htmlDispatchTable: {
+        generateTicks: 'generateTicksHTML',        
+    },
+},
 'initializing', {
     initialize: function($super, bounds) {
         $super(bounds);

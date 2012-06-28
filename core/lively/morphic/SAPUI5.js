@@ -34,7 +34,12 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
     },
     setComponentNodeClass: function(className) {
         this.renderContextDispatch('setComponentNodeClass', className);     
-    }
+    },
+    appendHTML: function($super, ctx, optMorphAfter) {
+        $super(ctx, optMorphAfter);
+        ctx.shapeNode.appendChild(ctx.componentNode);
+        this.resizeComponentHTML(ctx);
+    },
     
     
 }

@@ -44,8 +44,9 @@ Object.subclass('lively.Closure',
     
     setFuncProperties: function(obj) {
         var props = this.getFuncProperties();
-        for (var name in obj)
-        if (obj.hasOwnProperty(name)) props[name] = obj[name];
+        Object.extend(
+            props,
+            Properties.all(obj, function(n) { return !n.startsWith("_"); }));
     },
 
     lookup: function(name) {

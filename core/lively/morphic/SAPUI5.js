@@ -878,6 +878,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         if (!ctx.componentNode) { 
             ctx.componentNode= XHTMLNS.create('div');
         }
+        this.updateAppearance(); 
+        
         if (!ctx.sliderRight) { 
             ctx.sliderRight= XHTMLNS.create('div');
             ctx.sliderRight.className = 'sapUiSliR';
@@ -891,11 +893,10 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
             ctx.sliderBar.className = 'sapUiSliBar';
         }
         
-        this.updateAppearance();        
+               
 
-        ctx.subNodes = [];
+        ctx.ticks = [];
         $super(ctx);
-        if (this.shape) this.updateLabel(this.label || "Button")
     },
 
     appendHTML: function($super, ctx, optMorphAfter) {

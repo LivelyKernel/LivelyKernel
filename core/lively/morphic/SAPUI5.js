@@ -40,6 +40,15 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
         ctx.shapeNode.appendChild(ctx.componentNode);
         this.resizeComponentHTML(ctx);
     },
+    setClipModeHTML: function(ctx, clipMode) {
+        // FIXME duplication wiht super, delay logic
+        // can be extracted
+        if (!ctx.wrapperNode|| this.delayedClipMode) {
+            this.delayedClipMode = clipMode;
+            return;
+        }
+        this.setClipModeHTMLForNode(ctx, ctx.componentNode, clipMode);
+    },
     
     
 }

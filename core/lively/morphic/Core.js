@@ -19,8 +19,8 @@ Object.subclass('lively.morphic.Morph',
         this.setNodeId(this.id);
     },
     setNewId: function(optId) {
-        if (this.derivationIds == undefined) this.derivationIds = [];
-        this.derivationIds.push(this.id);
+        if (this.derivationIds === undefined) this.derivationIds = [];
+        if (this.id !== undefined) this.derivationIds.push(this.id);
         this.id = optId || new UUID().id;
     },
 

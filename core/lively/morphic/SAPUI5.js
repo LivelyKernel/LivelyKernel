@@ -795,7 +795,8 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
     baseClass: 'sapUiLbl sapUiLblNowrap',    
     boldClass: 'sapUiLblEmph',
     requiredClass: 'sapUiLblReq',
-    label: "Label"
+    label: "Label",
+    fixedHeight: true
 },
 'HTML render settings', {
     htmlDispatchTable: {

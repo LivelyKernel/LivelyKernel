@@ -867,6 +867,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     minValue: 0,
     maxValue: 100,
     tickCount: 0,
+    tickPxCorrection: -1,
+    gripPxCorrection: -5,
     hasLabels: true
 },
 'HTML render settings', {

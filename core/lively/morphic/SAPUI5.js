@@ -859,4 +859,15 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
 }
 );
 
+lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
+'settings',{
+    baseClass: 'sapUiLbl sapUiLblNowrap',    
+    boldClass: 'sapUiLblEmph',
+    requiredClass: 'sapUiLblReq',
+    label: "Label",
+    fixedHeight: true
+}
+);
+
+
 }) // end of module

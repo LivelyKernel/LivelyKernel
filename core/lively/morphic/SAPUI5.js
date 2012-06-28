@@ -879,6 +879,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         $super(bounds);
         this.readOnly = false;
         this.updateAppearance();
+
     }
 },
 
@@ -909,7 +910,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
             ctx.sliderGrip= XHTMLNS.create('div');
             ctx.sliderGrip.className = 'sapUiSliGrip';
         }
-
+        ctx.ticks = [];
+        ctx.labels= [];
 
         $super(ctx);
     },

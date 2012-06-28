@@ -915,7 +915,9 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         $super(ctx, optMorphAfter);
         //this.setWrapperNodeClass(this.active?this.classes:this.disabledClasses);        
     },
-    
+    generateTicks: function(){
+        return this.renderContextDispatch('generateTicks');
+    },
     generateTicksHTML: function(ctx) {
         ctx.ticks.each(function(n){n.parentNode.removeChild(n);});
         ctx.ticks = [];

@@ -970,11 +970,25 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     updateTicks: function(){
          return this.renderContextDispatch('updateTicks');
     },
-    updateTicksHTML: function(){
+    updateTicksHTML: function(ctx){
+        var c = ctx.ticks.length;
+        if (this.tickCount != c) throw new Error("Slider: Tick count is not synchronized!");
+        for (var i = 0; i < c; i++){
+                
+            
+        }
         
     },
     
+    
 },
+'internal calculations',{
+    pos2val: function(pos){
+            
+    },
+    val2pos: function(val) {}    
+},
+
 'accessing',{
     setTickCount: function(tickCount){
         this.tickCount = (tickCount<2) ? 0 : tickCount; // either no ticks or more than one
@@ -989,7 +1003,10 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     }
 },
 'events',{
-    updateAppearance: function(){}    
+    updateAppearance: function(){
+        if (this.readOnly) this.setComponentNodeClass(this.readOnlyClasses);
+        else this.setComponentNodeClass(this.normalClasses);
+    }    
 }
 );
 

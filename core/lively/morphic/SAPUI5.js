@@ -808,6 +808,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
         if (!ctx.componentNode)
             ctx.componentNode= XHTMLNS.create('label');
         $super(ctx);
+        if (this.htmlFor) this.setForHTML(ctx,this.htmlFor);
         if (this.shape) this.updateLabel(this.label || "Label")
         this.changeAppearance();
     },

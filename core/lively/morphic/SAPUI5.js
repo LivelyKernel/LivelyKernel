@@ -784,7 +784,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
 }
 );
 
-lively.morphic.Box.subclass('lively.morphic.SAPUI5.Label',
+lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
 
 'settings',{
     baseClass: 'sapUiLbl sapUiLblNowrap',    

@@ -872,7 +872,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 'HTML render settings', {
     htmlDispatchTable: {
         generateTicks: 'generateTicksHTML',
-        updateTicks: 'updateTicksHTML'       
+        updateTicks: 'updateTicksHTML' ,    
+        getSliderWidth: 'getSliderWidthHTML'          
     },
 },
 'initializing', {
@@ -996,9 +997,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     
 },
 'internal calculations',{
-    getWidth: function(){
-        var borderWidth = this.getBorderWidth(),
-        extent = this.getExtent().subPt(pt(2*borderWidth, 2*borderWidth));
+    getSliderWidth: function(){
         return extent.x;
     },
     pos2val: function(pos){

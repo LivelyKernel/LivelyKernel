@@ -790,78 +790,29 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
     baseClass: 'sapUiLbl sapUiLblNowrap',    
     boldClass: 'sapUiLblEmph',
     requiredClass: 'sapUiLblReq',
-    label: "Button"
-},
-'HTML render settings', {
-    htmlDispatchTable: {
-        updateLabel: 'updateLabelHTML',
-        setButtonNodeClass: 'setButtonNodeClassHTML',
-    },
+    label: "Label"
 },
 'initializing', {
     initialize: function($super, bounds, optLabel) {
         $super(bounds);
         if (optLabel) this.setLabel(optLabel);
-        this.value = false;
-        this.toggle = false;
-        this.isActive = true;
-        
+        this.bold = false;
+        this.required = false;        
     }
 },
 
 'rendering', {
     initHTML: function($super, ctx) {
-        if (!ctx.buttonNode)
-            ctx.buttonNode= this.createButtonNodeHTML();
-        this.setButtonNodeClass(this.isActive?this.classes:this.disabledClasses);
+        if (!ctx.componentNode)
+            ctx.componentNode= this.createButtonNodeHTML();
         ctx.subNodes = [];
         $super(ctx);
         if (this.shape) this.updateLabel(this.label || "Button")
     },
-    appendHTML: function($super, ctx, optMorphAfter) {
-        $super(ctx, optMorphAfter);
-        this.appendButtonHTML(ctx);
-    },
-    appendButtonHTML: function(ctx) {
-        ctx.shapeNode.appendChild(ctx.buttonNode);
-        this.resizeButtonHTML(ctx);
-    },
 
-    setClipModeHTML: function(ctx, clipMode) {
-        // FIXME duplication wiht super, delay logic
-        // can be extracted
-        if (!ctx.buttonNode || this.delayedClipMode) {
-            this.delayedClipMode = clipMode;
-            return;
-        }
-        this.setClipModeHTMLForNode(ctx, ctx.buttonNode, clipMode);
-    },
-    resizeButtonHTML: function(ctx) {
-        var borderWidth = this.getBorderWidth(),
-            extent = this.getExtent().subPt(pt(2*borderWidth, 2*borderWidth)),
-            buttonNode= ctx.buttonNode;
-        buttonNode.style.left = this.shape.getPosition().x /*+ this.padding.left()*/ + 'px';
-        buttonNode.style.top = this.shape.getPosition().y /*+ this.padding.top()*/ + 'px';
-        buttonNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';
-        buttonNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
-    },
-    updateLabelHTML: function(ctx, label) {
-        ctx.buttonNode.innerHTML = label;
-    },
-    setButtonNodeClassHTML: function(ctx, className) {
-        ctx.buttonNode.className = className;
-    }
+
 },
 
-'node creation', {
-    createButtonNodeHTML: function() {
-        var node = XHTMLNS.create('button');
-        return node;
-    },
-    getButtonExtentHTML: function(ctx) {
-        return ctx.buttonNode.scrollHeight != 0 ? pt(ctx.buttonNode.scrollWidth, ctx.buttonNode.scrollHeight) : this.getExtent()
-    },
-},
 
 'accessing', {
     setActive: function(active) {

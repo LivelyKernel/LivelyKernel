@@ -814,11 +814,6 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Label',
 
 
 'accessing', {
-    setActive: function(active) {
-        this.isActive = active;
-        if (active) this.pressed = false;
-        this.changeAppearanceFor(false);
-    },
 
     morphMenuItems: function($super) {
         var self = this, items = $super();

@@ -935,14 +935,23 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
             ctx.ticks[i].className = 'sapUiSliTick';
             ctx.sliderBar.appendChild(ctx.ticks[i]);
             if  (this.hasLabels) {
+
+                ctx.labels[i] = XHTMLNS.create('div');
                 
                 var labelClass = 'sapUiSliText';
-                if (i == 0) labelClass +=' sapUiSliTextLeft';
-                else if (i == tickCount-1) labelClass +=' sapUiSliTextRight';
+                if (i == 0) { 
+                    labelClass +=' sapUiSliTextLeft';
+                    ctx.minTick = true;
+                }
+                else if (i == tickCount-1) {
+                    labelClass +=' sapUiSliTextRight';
+                    ctx.maxTick = true;
+                }
                 
-                ctx.labels[i] = XHTMLNS.create('div');
+
                 ctx.labels[i].className = labelClass ;                
                 
+
                 
             }
         }

@@ -930,7 +930,14 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         ctx.labels = [];
         
         // create left tick and text
+        ctx.ticks[0] = this.generateTickHTML(ctx);
         
+    },
+    generateTickHTML: function(ctx) {
+        var t = XHTMLNS.create('div');
+        t.className = 'sapUiSliTick';
+        ctx.sliderBar.appendChild(t);
+        return t;
     }
 },
 'accessing',{

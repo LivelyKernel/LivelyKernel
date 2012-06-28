@@ -972,10 +972,14 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     },
     updateTicksHTML: function(ctx){
         var c = ctx.ticks.length;
-        if (this.tickCount != c) throw new Error("Slider: Tick count is not synchronized!");
+        if (this.tickCount != c || (this.hasLabels && ctx.labels.length != c)) {
+            throw new Error("Slider: Tick count is not synchronized!");
+        }
+        var w = this.getWidth()
         for (var i = 0; i < c; i++){
-                
-            
+             var s = w / (c-1);
+             var pos = s * i;
+             ctx.ticks[i]
         }
         
     },

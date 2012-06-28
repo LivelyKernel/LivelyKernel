@@ -866,7 +866,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     fixedHeight: true,
     minValue: 0,
     maxValue: 100,
-    tickCount: 0
+    tickCount: 0,
+    labels: true
 },
 'HTML render settings', {
     htmlDispatchTable: {
@@ -927,6 +928,9 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         ctx.ticks = [];
         ctx.labels.each(function(n){n.parentNode.removeChild(n);});
         ctx.labels = [];
+        
+        // create left tick and text
+        
     }
 },
 'accessing',{

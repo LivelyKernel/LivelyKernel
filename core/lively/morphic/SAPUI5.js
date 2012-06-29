@@ -351,7 +351,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
         if (!ctx.componentNode) ctx.componentNode= XHTMLNS.create('span');
         if (!ctx.checkBoxNode) this.setupCheckBoxNodeHTML(ctx);
         if (!ctx.labelNode) this.setupLabelNodeHTML(ctx);
-        
+        this.setCheckedHTML(ctx, this.checked);        
         this.updateAppearance();        
 
         ctx.subNodes = [];
@@ -373,7 +373,6 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
         ctx.componentNode.appendChild(ctx.checkBoxNode);
         ctx.componentNode.appendChild(ctx.labelNode);
         $super(ctx, optMorphAfter);
-        this.setCheckedHTML(ctx, this.checked);
     },
 
     updateLabelHTML: function(ctx, label) {

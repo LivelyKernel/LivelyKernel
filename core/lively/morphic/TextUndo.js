@@ -196,21 +196,29 @@ LastMutations.push(mutations);
         // 1. remember the index of the chunk that was changed
         // 2. remember the index of the textNode that was changed (childNode of chunkNode)
         var text = this,
-            textNode = mutations[0].target,
+            textMutation = mutations[0],
+            domChange = lively.morphic.TextUndo.AtomicDOMChange.from(textMutation),
+            textNode = textMutation.target,
             chunkNodeIndex = this.findChunkNodeIndexOfTextNode(textNode),
-            chunkNode = this.getTextChunks()[chunkNodeIndex].getChunkNode(),
+            chunkNode = this.getTextChunks()[chunkNodeIndex].getChunkNode();
             // index of text in chunk node
-            textNodeIndex = Array.from(chunkNode.childNodes).indexOf(textNode),
-            prevTextString = mutations[0].oldValue || mutations[0].removedNodes[0].textContent;
+            // textNodeIndex = Array.from(chunkNode.childNodes).indexOf(textNode),
+            // prevTextString = mutations[0].oldValue || mutations[0].removedNodes[0].textContent;
         this.addUndo({
             type: 'textChunkChange',
             mutations: mutations,
             mutationsString: this.showMutationsExpt(mutations),
-            chunkNodeIndex: chunkNodeIndex,
-            prevTextString: prevTextString,
+            // chunkNodeIndex: chunkNodeIndex,
+            // prevTextString: prevTextString,
             undo: function() {
-                var chunkNode = text.getTextChunks()[this.chunkNodeIndex].getChunkNode();
-                chunkNode.childNodes[textNodeIndex].textContent = this.prevTextString;
+                domChange.undo();
+                debugger
+                text.cachedTextString = null;
+
+                // check
+                var foundChunkNode = text.getTextChunks()[chunkNodeIndex].getChunkNode();
+                lively.assert(foundChunkNode === chunkNode, "text undo: chunkNode changed");
+                // chunkNode.childNodes[textNodeIndex].textContent = this.prevTextString;
                 text.undoState.changes = text.undoState.changes.without(this);
             }
         });

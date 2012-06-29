@@ -733,16 +733,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
                 ea.updateAppearance();
             });
     },
-    updateAppearance: function() {
-        var classNames = this.baseClass;
-        if (this.isChecked()) { classNames+=' '+this.checkedClass}
-        if (this.readOnly) {classNames+=' '+this.readOnlyClass}
-            else if (this.active) {classNames+=' '+this.activeClass}
-            else {classNames+=' '+this.disabledClass}
-        this.setComponentNodeClass(classNames);
-        this.updateInputTag();
-    },
-    
+
     onClick: function(evt) {
         if (this.readOnly) evt.stop();  
     },
@@ -752,7 +743,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
         console.log("Radio Button, active: "+this.active+"    readOnly: "+this.readOnly);
         if (this.active && !this.readOnly) {
             lively.bindings.signal(this, 'fire', true);
-            this.setChecked(true);
+            //this.setChecked(true);
         }
 
        this.updateRadioGroup();

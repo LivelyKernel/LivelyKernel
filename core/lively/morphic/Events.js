@@ -1475,7 +1475,7 @@ lively.morphic.World.addMethods(
             // "that" construct from Antero Taivalsaari's Lively Qt
             Global.that = this.clickedOnMorph;
             alertOK('that = ' + Global.that);
-            return true;
+            // return true;
         }
 
         evt.hand.removeOpenMenu(evt);

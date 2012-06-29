@@ -99,7 +99,9 @@ LastMutations.push(mutations);
 
         // this.showMutationsExpt(mutations);
 
-        if (this.isChunkTextStringChange(mutations)) {
+        if (this.isTextAttributeChange(mutations)) {
+            this.recordTextAttributeChange(mutations);
+        } else if (this.isChunkTextStringChange(mutations)) {
             this.recordChunkTextStringChange(mutations);
         } else if (this.isSetTextStringChange(mutations)) {
             this.recordSetTextStringChange(mutations);
@@ -142,6 +144,41 @@ LastMutations.push(mutations);
     isUnimportant: function(mutations) {
         return mutations.all(function(ea) {
             return ea.isUnimportant && ea.isUnimportant();
+        });
+    },
+
+    // text attribute changes
+    isTextAttributeChange: function(mutations) {
+        return mutations.length === 1 && mutations[0].isStyleMutation;
+    },
+    recordTextAttributeChange: function(mutations) {
+        var text = this,
+            styleMutation = mutations[0],
+            atomicChange = lively.morphic.TextUndo.AtomicDOMChange.from(styleMutation),
+            chunkIndex = this.findChunkNodeIndexOf(atomicChange.target),
+            chunk = this.getTextChunks()[chunkIndex];
+
+        this.addUndo({
+            type: 'textAttributeChange',
+            mutations: mutations,
+            mutationsString: this.showMutationsExpt(mutations),
+            undo: function() {
+                // DOM level:
+                atomicChange.undo();
+                // morphic level:
+                styleMutation.styleChangesDo(function(key, oldValue, newValue) {
+                    // key in form: text-weight
+                    // transform into JS name: textWeight
+                    // for style setter into: setTextWeight
+                    var setterName = ('set-' + key).camelize();
+
+                    // /^\s*[0-9]/.test(" 000")
+
+                    if (chunk.style[setterName]) {
+                        chunk.style[setterName](oldValue);
+                    }
+                });
+            }
         });
     },
 
@@ -427,6 +464,7 @@ Object.subclass("lively.morphic.TextUndo.DOMAttributeMutation",
 'initializing', {
     initialize: function(mutation) {
         this.type = mutation.type;
+        this.attribute = mutation.attributeName;
         this.mutation = mutation;
         this.oldValue = mutation.oldValue;
         this.newValue = mutation.target.attributes[mutation.attributeName].value;
@@ -710,13 +748,14 @@ AsyncTestCase.subclass('TextUndoTest',
 
     test02UndoStyle: function() {
         this.text.textString = 'Foo';
-        this.text.emphasizeAll({fontWeight: 'bold' });
+        this.text.emphasizeAll({fontWeight: 'bold'});
         this.delay(function() {
             this.text.emphasizeAll({fontWeight: 'normal' });
         }, 0);
         this.delay(function() {
             this.text.undo();
             this.assertEquals('Foo', this.text.textString);
+            this.assertEquals(this.text.getTextChunks()[0].getChunkNode().style.fontWeight, "bold", "chunk node style");
             var emph = this.text.getEmphasisAt(0);
             this.assertEqualState({fontWeight: 'bold'}, emph);
             this.done();
@@ -1051,6 +1090,11 @@ Object.extend(lively.morphic.TextUndo.AtomicDOMChange, {
         if (mutationRecord.type === "childList" && mutationRecord.removedNodes.length === 1) {
             return new lively.morphic.TextUndo.AtomicDOMRemoveOneNodeChange(mutationRecord);
         }
+        // for our StyleDOMAttributeMutation
+        if (mutationRecord.isStyleMutation) {
+            return new lively.morphic.TextUndo.AtomicDOMStyleChange(mutationRecord);
+        }
+        // for generic style mutations
         if (mutationRecord.type === "attributes" && mutationRecord.attribute === "style") {
             return new lively.morphic.TextUndo.AtomicDOMStyleChange(mutationRecord);
         }
@@ -1297,6 +1341,36 @@ TestCase.subclass("lively.morphic.TextUndo.AtomicDOMChangeTest",
 
         this.assertAttributeChanged({
             target: this.childNode1,
+            attributeName: "style",
+            value: "font-weight: bold; text-decoration: underline; outline: none; ",
+            action: function() { atomicDOMChange.redo(); }
+        });
+
+    },
+
+    test06StyleDOMAttributeMutationRecordAndUndo: function() {
+        this.createTargetAndChildNodes(3);
+        this.target.attributes = {style: {value: "font-weight: bold; text-decoration: underline; outline: none; "}};
+        var mutation = new lively.morphic.TextUndo.StyleDOMAttributeMutation({
+                type: "attributes",
+                attributeName: "style",
+                oldValue: "text-decoration: none; font-weight: bold; outline: none; ",
+                target: this.target
+            }),
+            atomicDOMChange = lively.morphic.TextUndo.AtomicDOMChange.from(mutation);
+
+        this.assertEquals('style', atomicDOMChange.attribute);
+        this.assertIdentity(this.target, atomicDOMChange.target);
+
+        this.assertAttributeChanged({
+            target: this.target,
+            attributeName: "style",
+            value: "text-decoration: none; font-weight: bold; outline: none; ",
+            action: function() { atomicDOMChange.undo(); }
+        });
+
+        this.assertAttributeChanged({
+            target: this.target,
             attributeName: "style",
             value: "font-weight: bold; text-decoration: underline; outline: none; ",
             action: function() { atomicDOMChange.redo(); }

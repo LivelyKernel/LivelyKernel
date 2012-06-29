@@ -1061,8 +1061,10 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 
 		var doc = window.document;
                 
+                var sliderNode = this;
+                
                 $(document).mousemove(function(){
-                    e = Slider.eventHandlers.getEvent(e, this);
+                        console.log(sliderNode);
 
 		      if (Slider._sliderDragData) {	// drag
 			var s = Slider._sliderDragData.slider;

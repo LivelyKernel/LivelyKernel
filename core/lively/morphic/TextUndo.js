@@ -502,6 +502,19 @@ lively.morphic.TextUndo.DOMAttributeMutation.subclass("lively.morphic.TextUndo.S
 
     getNewStyle: function() {
         return this.newStyle = this.newStyle || this.parseStyleString(this.newValue);
+    },
+
+    getDiff: function() {
+        return this.compareStyles(this.getOldStyle(), this.getNewStyle());
+    },
+
+    styleChangesDo: function(iterator, context) {
+        var diff = this.getDiff();
+        if (!diff) return;
+        Properties.forEachOwn(this.getDiff(), function(key, diff) {
+            if (key === "_keys") return;
+            iterator.call(this, key, diff.a, diff.b);
+        }, context);
     }
 
 },
@@ -514,7 +527,7 @@ lively.morphic.TextUndo.DOMAttributeMutation.subclass("lively.morphic.TextUndo.S
     },
 
     getChangedStyleNames: function() {
-        var diff = this.compareStyles(this.getOldStyle(), this.getNewStyle());
+        var diff = this.getDiff();
         return diff ? diff._keys : [];
     },
 
@@ -840,6 +853,45 @@ TestCase.subclass("lively.morphic.TextUndo.StyleDOMAttributeMutationTest",
         result.consumes(this.mutations[1]);
         this.assert(!result.isUnchanged(), "should not be unchanged");
         this.assertMatches(["top"], result.getChangedStyleNames(), "style diff");
+    },
+
+    test08aDiffAttributesChanged: function() {
+        this.target.attributes.style.value = "position: absolute; top: 10px; left: 11px;";
+        var styleMutation = lively.morphic.TextUndo.DOMAttributeMutation.from(this.mutations[0]),
+            diff = styleMutation.getDiff();
+        delete diff._keys;
+        this.assertEqualState({top: {a: "4px",
+                                     b: "10px"},
+                               left: {a: "3px",
+                                      b: "11px"}}, diff, "diff");
+    },
+
+    test08bDiffAttributesRemoved: function() {
+        this.target.attributes.style.value = "position: absolute; left: 3px;";
+        var styleMutation = lively.morphic.TextUndo.DOMAttributeMutation.from(this.mutations[0]),
+            diff = styleMutation.getDiff();
+        delete diff._keys;
+        this.assertEqualState({top: {a: "4px", b: undefined}}, diff, "diff");
+    },
+
+    test08cDiffAttributesAdded: function() {
+        this.target.attributes.style.value = "position: absolute; top: 4px; left: 3px; bottom: 0px";
+        var styleMutation = lively.morphic.TextUndo.DOMAttributeMutation.from(this.mutations[0]),
+            diff = styleMutation.getDiff();
+        delete diff._keys;
+        this.assertEqualState({bottom: {a: undefined, b: "0px"}}, diff, "diff");
+    },
+
+    test09StyleChangesDo: function() {
+        this.target.attributes.style.value = "position: relative;"
+        var styleMutation = lively.morphic.TextUndo.DOMAttributeMutation.from(this.mutations[0]),
+            keys = [], oldValues = [], newValues = [];
+        styleMutation.styleChangesDo(function(key, oldValue, newValue) {
+            keys.push(key); oldValues.push(oldValue); newValues.push(newValue);
+        });
+        this.assertEqualState(["position", "left",    "top"], keys, "keys");
+        this.assertEqualState(["absolute", "3px",     "4px"], oldValues, "oldValues");
+        this.assertEqualState(["relative", undefined, undefined], newValues, "newValues");
     }
 });
 

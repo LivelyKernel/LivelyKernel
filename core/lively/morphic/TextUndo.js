@@ -177,6 +177,8 @@ LastMutations.push(mutations);
                     if (chunk.style[setterName]) {
                         chunk.style[setterName](oldValue);
                     }
+
+                    text.undoState.changes = text.undoState.changes.without(this);
                 });
             }
         });

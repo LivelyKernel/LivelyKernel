@@ -1332,7 +1332,10 @@ lively.morphic.Box.subclass('lively.morphic.SimpleText',
 'rendering', {
     initHTML: function($super, ctx) {
         $super(ctx);
-        if (ctx.shapeNode) ctx.shapeNode.contentEditable=true;
+        if (ctx.shapeNode) {
+            ctx.shapeNode.contentEditable=true;
+            ctx.shapeNode.innerHTML = "Simple Text";
+        }
     }
 }
 

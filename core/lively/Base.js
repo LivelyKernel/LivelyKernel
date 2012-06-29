@@ -1165,7 +1165,7 @@ function printStack() {
 };
 
 function logStack() {
-    this.console.log(printStack())
+    this.console.log(printStack());
 };
 
 (function setupjQuery(Global) {
@@ -1176,5 +1176,3 @@ function logStack() {
     // so we will restrict "our" to lively.$ in the future
     Global.$ = lively.$ = jQuery.noConflict(/*true -- really removes $*/);
 })(Global);
-
-namespace('lively');

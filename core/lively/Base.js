@@ -33,8 +33,6 @@ function dbgOn(cond, optMessage) {
     return cond;
 }
 
-// namespace logic adapted from
-// http://higher-order.blogspot.com/2008/02/designing-clientserver-web-applications.html
 function assert(value, message) {
     if (value) { return; }
     // capture the stack
@@ -43,6 +41,8 @@ function assert(value, message) {
     alert('Assertion failed' + (message ? ': ' + message : '!') + '\n' + stack);
 };
 
+// namespace logic adapted from
+// http://higher-order.blogspot.com/2008/02/designing-clientserver-web-applications.html
 var using = (function() {
 
     function Util(args) {  // args is an escaping arguments array

@@ -876,7 +876,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     htmlDispatchTable: {
         generateTicks: 'generateTicksHTML',
         updateTicks: 'updateTicksHTML' ,    
-        getSliderWidth: 'getSliderWidthHTML'          
+        getSliderWidth: 'getSliderWidthHTML',
+        setSliderPos: 'setSliderPosHTML'         
     },
 },
 'initializing', {

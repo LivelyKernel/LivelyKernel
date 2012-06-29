@@ -1120,15 +1120,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 		      Slider._currentInstance = null;
                     $(document).unbind("mousemove mouseup");
                 });
-                /*
-                var asdf = {
-				screenX:	e.screenX,
-				screenY:	e.screenY,
-				dx:			e.screenX - s.handle.offsetLeft,
-				dy:			e.screenY - s.handle.offsetTop,
-				startValue:	s.getValue(),
-				slider:		s
-			};
+                
+                sliderNode.startCoord = evt.screenX;
 
 		if (Slider.eventHandlers.getHandle(e)) {	// start drag
 			
@@ -1140,7 +1133,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 			s._increasing = null;
 			s.ontimer();
 		}
-		*/
+		
 		
             },
 }

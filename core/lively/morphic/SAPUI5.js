@@ -1064,7 +1064,28 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
                 $(document).mousemove(function(){
                     $("#test").html("sliding");
                 }).mouseup(function() {
-                    $("#test").html("not sliding");
+                    e = Slider.eventHandlers.getEvent(e, this);
+		  var s = Slider._currentInstance;
+		  var doc = s.document;
+		  if (doc.removeEventListener) {
+			doc.removeEventListener("mousemove", Slider.eventHandlers.onmousemove, true);
+			doc.removeEventListener("mouseup", Slider.eventHandlers.onmouseup, true);
+		  }
+		  else if (doc.detachEvent) {
+			doc.detachEvent("onmousemove", Slider.eventHandlers.onmousemove);
+			doc.detachEvent("onmouseup", Slider.eventHandlers.onmouseup);
+			doc.detachEvent("onlosecapture", Slider.eventHandlers.onmouseup);
+			s.element.releaseCapture();
+		  }
+
+		  if (Slider._sliderDragData) {	// end drag
+			Slider._sliderDragData = null;
+		  }
+		  else {
+			s._timer.stop();
+			s._increasing = null;
+		  }
+		      Slider._currentInstance = null;
                     $(document).unbind("mousemove mouseup");
                 });
                 
@@ -1090,28 +1111,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 		
             },
     onSliderMouseUp: function(evt){
-                e = Slider.eventHandlers.getEvent(e, this);
-		var s = Slider._currentInstance;
-		var doc = s.document;
-		if (doc.removeEventListener) {
-			doc.removeEventListener("mousemove", Slider.eventHandlers.onmousemove, true);
-			doc.removeEventListener("mouseup", Slider.eventHandlers.onmouseup, true);
-		}
-		else if (doc.detachEvent) {
-			doc.detachEvent("onmousemove", Slider.eventHandlers.onmousemove);
-			doc.detachEvent("onmouseup", Slider.eventHandlers.onmouseup);
-			doc.detachEvent("onlosecapture", Slider.eventHandlers.onmouseup);
-			s.element.releaseCapture();
-		}
-
-		if (Slider._sliderDragData) {	// end drag
-			Slider._sliderDragData = null;
-		}
-		else {
-			s._timer.stop();
-			s._increasing = null;
-		}
-		Slider._currentInstance = null;
+                
         },
     onSliderMouseMove: function(evt){
                 e = Slider.eventHandlers.getEvent(e, this);

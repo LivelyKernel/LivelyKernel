@@ -1062,7 +1062,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 		var doc = window.document;
 
 		if (doc.addEventListener) {
-			doc.addEventListener("mousemove", Slider.eventHandlers.onmousemove, true);
+			doc.addEventListener("mousemove", asdf, true);
 			doc.addEventListener("mouseup", Slider.eventHandlers.onmouseup, true);
 		}
 		else if (doc.attachEvent) {

@@ -930,6 +930,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         ctx.sliderBar.appendChild(ctx.sliderHilite);
         ctx.sliderBar.appendChild(ctx.sliderGrip); 
         $super(ctx, optMorphAfter);
+        this.setSliderPos(this.val2pos(this.value));
         this.addSliderEventsHTML(ctx, ctx.sliderGrip);        
         this.generateTicksHTML(ctx);
     },

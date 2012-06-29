@@ -728,8 +728,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
         this.renderContextDispatch('setChecked', checked);
         this.updateRadioGroup();
     }
-
-    
+ 
 },
 'event handling', {
     
@@ -739,6 +738,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
         this.owner.submorphs.each(function(ea){
             if (ea.constructor.name === cons && ea.getHtmlName()===name) 
                 ea.updateAppearance();
+                ea.checked = ea.isChecked();
             });
     },
 

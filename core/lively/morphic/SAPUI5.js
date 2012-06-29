@@ -1010,6 +1010,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     },
     updateComputedStyles: function($super) {
         this.generateTicks();
+        this.setValue(this.getValue());
         $super();    
     }
     

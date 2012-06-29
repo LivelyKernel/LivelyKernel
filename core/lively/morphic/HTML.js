@@ -1329,8 +1329,11 @@ lively.morphic.Shapes.Shape.addMethods(
 );
 
 lively.morphic.Box.subclass('lively.morphic.SimpleText',
-'settings', {
-    
+'rendering', {
+    initHTML: function($super, ctx) {
+        $super(ctx);
+        if (ctx.shapeNode) ctx.shapeNode.contentEditable=true;
+    }
 }
 
 );

@@ -1097,6 +1097,9 @@ Object.extend(Namespace, {
     delete Global.Namespace;
 })(Global);
 
+(function addUsefulStuffToLivelyNS(Global, lively) {
+    lively.assert = Global.assert;
+})(Global, lively);
 
 Object.extend(lively.Module, {
     findAllInThenDo: function(url, callback) {

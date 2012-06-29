@@ -385,10 +385,10 @@ Functions = {
     debounce: function(func, wait) {
         var timeout;
         return function() {
-            var context = this, args = arguments;
+            var that = this, args = arguments;
             var later = function() {
                 timeout = null;
-                func.apply(context, args);
+                func.apply(that, args);
             };
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);

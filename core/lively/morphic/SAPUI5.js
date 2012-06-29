@@ -1065,9 +1065,13 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     },
     addSliderEventsHTML: function (ctx, sliderNode) {
         var slider = this;
+        var maxPos = this.getWidth();
         $(sliderNode).mousedown(function (evt) {
             console.log(evt);
-            slider.startCoords = evt.
+            slider.startCoords = {
+                sliderX: slider.getSliderPos(),
+                mouseX: evt.screenX    
+            }
             $(document).mousemove(function () {
                 console.log(sliderNode);
 

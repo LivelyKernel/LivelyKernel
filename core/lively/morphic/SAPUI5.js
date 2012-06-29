@@ -443,18 +443,11 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
             }
             morph.updateAppearance();
         });    
-    }
-    /*
-    onChange: function(evt) {
+    },
+    onClick: function(evt) {
+        if (this.readOnly) evt.stop();  
+    },
 
-        if (this.active && !this.readOnly) {
-            
-            lively.bindings.signal(this, 'fire', true);
-            this.setChecked(!this.checked);
-        }
-         return true;
-     },
-    */
 }
 );
 

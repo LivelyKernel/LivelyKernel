@@ -1106,7 +1106,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
                 $(document).unbind("mousemove mouseup");
             });
 
-            sliderNode.startCoord = evt.screenX;
             /*
 			if (Slider.eventHandlers.getHandle(e)) {	// start drag
 				
@@ -1123,9 +1122,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         });
     },
 
-    onSliderMouseDown: function(evt){
-             
-            },
 }
 );
 

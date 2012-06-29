@@ -1330,12 +1330,20 @@ lively.morphic.Shapes.Shape.addMethods(
 
 lively.morphic.Box.subclass('lively.morphic.SimpleText',
 'simple text', {
+    htmlDispatchTable: {
+        setText: 'setTextHTML'
+    },
+    
     initialize: function($super, bounds, optText){
         $super(bounds);
         if (optText) this.setText(optText);
     },
     setText: function(text){
-        this.text = text;    
+        this.text = text; 
+        return this.renderContextDispatch('setText', text);   
+    },
+    setTextHTML: function(ctx, text){
+        ctx.shapeNode.innerHTML = "Simple Text";   
     },
     
     appendHTML: function($super, ctx) {
@@ -1343,7 +1351,7 @@ lively.morphic.Box.subclass('lively.morphic.SimpleText',
         if (ctx.shapeNode) {
             ctx.shapeNode.contentEditable=true;
             //var newtext = document.createTextNode("Simple Text");
-            ctx.shapeNode.innerHTML = "Simple Text";
+            
         }
     }
     

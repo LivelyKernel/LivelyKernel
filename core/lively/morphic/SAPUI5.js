@@ -1052,7 +1052,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     },
     addSliderEventsHTML: function(ctx, sliderNode){
         sliderNode.onmousedown = this.onSliderMouseDown;    
-        sliderNode.onmouseup = this.onSliderMouseUp;
+        //sliderNode.onmouseup = this.onSliderMouseUp;
         //sliderNode.onmousemove = this.onSliderMouseMove;                
     },
 

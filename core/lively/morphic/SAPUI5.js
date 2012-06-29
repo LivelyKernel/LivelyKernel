@@ -717,7 +717,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
 
         var classNames = this.baseClass;
         
-        if (this.isChecked()) { classNames+=' '+this.checkedClass}
+        if (this.checked()) { classNames+=' '+this.checkedClass}
         if (this.readOnly) {classNames+=' '+this.readOnlyClass}
             else if (this.active) {classNames+=' '+this.activeClass}
             else {classNames+=' '+this.disabledClass}

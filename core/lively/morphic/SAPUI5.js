@@ -1013,6 +1013,15 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
        return parseInt(s["width"].replace("px",""));
     },
     
+    setSliderPosHTML: function(ctx, px) {
+        var newPos = px;
+        var maxPos = this.getSliderWidthHTML(ctx);
+        if (newPos > maxPos) newPos = maxPos;
+        if (newPos < 0) newPos = 0;
+        ctx.sliderGrip.style.left = newPos+"px";
+        ctx.sliderHilite.style.width = newPos+"px";
+    }
+    
     
 },
 'internal calculations',{

@@ -1330,13 +1330,15 @@ lively.morphic.Shapes.Shape.addMethods(
 
 lively.morphic.Box.subclass('lively.morphic.SimpleText',
 'rendering', {
-    initHTML: function($super, ctx) {
+    appendHTML: function($super, ctx) {
         $super(ctx);
         if (ctx.shapeNode) {
             ctx.shapeNode.contentEditable=true;
-            ctx.shapeNode.innerHTML = "Simple Text";
+            var newtext = document.createTextNode("Simple Text");
+            ctx.shapeNode.appendChild(newtext);
         }
     }
+    
 }
 
 );

@@ -310,25 +310,22 @@ LastMutations.push(mutations);
         var groups = mutations.groupBy(function(ea) { return ea.type === 'attributes' }),
             attributeMutations = groups['true'],
             nonAttributeMutations = groups['false'];
+
         var text = this,
             addedNode = attributeMutations.length === 1 ? mutations[1].addedNodes[0] : mutations[0].target,
             idx = this.findChunkNodeIndexOf(addedNode),
-            atStart = idx === 0;
-        mutations = nonAttributeMutations;
+            atStart = idx === 0,
+            domChanges = mutations.collect(function(ea) {
+                return lively.morphic.TextUndo.AtomicDOMChange.from(ea);
+            });
+
         this.addUndo({
             type: 'chunkSplitAt' + (atStart ? 'Start' : 'End'),
-            mutations: mutations,
-            mutationsString: this.showMutationsExpt(mutations),
-            splittedChunkNodeIndex: idx,
+            mutations: nonAttributeMutations,
+            mutationsString: this.showMutationsExpt(nonAttributeMutations),
             undo: function() {
-                var idx = this.splittedChunkNodeIndex,
-                    chunks = text.getTextChunks();
-                if (atStart) {
-                    chunks[idx+1].textString = chunks[idx].textString + chunks[idx+1].textString;
-                } else {
-                    chunks[idx-1].textString += chunks[idx].textString;
-                }
-                chunks[idx].remove();
+                domChanges.invoke('undo');
+                var chunks = text.getTextChunks()
                 chunks.splice(idx, 1);
                 text.undoState.changes = text.undoState.changes.without(this);
             }
@@ -691,12 +688,14 @@ AsyncTestCase.subclass('lively.morphic.TextUndo.TextMutationUndoTest',
             this.text.emphasize({fontWeight: 'bold'}, 0, 1);
         }, 0);
         this.delay(function() {
-            this.assertEquals(2, undoState.changes.length);
+            this.assertEquals(2, undoState.changes.length, 'no of changes before undo');
             this.assertEqualState({fontWeight: 'bold'}, this.text.getEmphasisAt(0));
-            this.assertEqualState(2, this.text.getTextChunks().length);
+            this.assertEqualState(2, this.text.getTextChunks().length, 'no of text chunks before undo');
             undoState.changes.last().undo();
-            this.assertEqualState({}, this.text.getEmphasisAt(0));
-            this.assertEquals(1, this.text.getTextChunks().length);
+            this.assertEquals(1, this.text.renderContext().textNode.childNodes.length, 'textNode child count');
+            this.assertEquals('', this.text.getTextChunks()[0].getChunkNode().style.fontWeight, 'chunk style');
+            this.assertEqualState({}, this.text.getEmphasisAt(0), 'emph after undo');
+            this.assertEquals(1, this.text.getTextChunks().length, 'no of text chunks after undo');
             this.assertEquals('abc', this.text.textString);
             this.done();
         }, 0);
@@ -714,7 +713,7 @@ AsyncTestCase.subclass('lively.morphic.TextUndo.TextMutationUndoTest',
             this.assertEqualState({fontWeight: 'bold'}, this.text.getEmphasisAt(2));
             this.assertEqualState(2, this.text.getTextChunks().length);
             undoState.changes.last().undo();
-            this.assertEqualState({}, this.text.getEmphasisAt(2));
+            this.assertEqualState({}, this.text.getEmphasisAt(2), 'emph after undo');
             this.assertEquals(1, this.text.getTextChunks().length);
             this.assertEquals('abc', this.text.textString);
             this.done();

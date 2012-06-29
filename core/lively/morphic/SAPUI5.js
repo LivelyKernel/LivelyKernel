@@ -720,6 +720,10 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
     getHtmlName: function(){
         return this.renderContextDispatch('getHtmlName');
     },
+    setChecked: function(checked){
+        this.renderContextDispatch('setChecked', checked);
+        this.updateRadioGroup();
+    }
 
     
 },

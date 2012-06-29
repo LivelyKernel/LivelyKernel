@@ -382,7 +382,7 @@ Functions = {
         return result;
     },
     
-    debounce: function(func, wait) {
+    debounce: function(minDelay, func) {
         var timeout;
         return function() {
             var that = this, args = arguments;
@@ -391,7 +391,7 @@ Functions = {
                 func.apply(that, args);
             };
             clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
+            timeout = setTimeout(later, minDelay);
         };
     }
 };

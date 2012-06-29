@@ -1092,7 +1092,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
                     var s = slider.startCoords.sliderX;
                     var dx = evt.screenX - slider.startCoords.mouseX;
                     slider.setSliderPos(s + dx);
-
+                    slider.value = slider.pos2val(slider.getSliderPos());
                 }
             }).mouseup(function () {
                 slider.startCoords = null;

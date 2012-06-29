@@ -278,22 +278,19 @@ LastMutations.push(mutations);
                && nonAttributeMutations[0].target.parentNode === this.renderContext().textNode;
     },
     recordChunkSplit: function(mutations) {
-        var text = this;
-        mutations = mutations.select(function(ea) { return ea.type !== 'attributes' });
+        var text = this,
+            nonAttributeMutations = mutations.select(function(ea) { return ea.type !== 'attributes' }),
+            idx = this.findChunkNodeIndexOf(nonAttributeMutations[2].target),
+            domChanges = mutations.collect(function(ea) { return lively.morphic.TextUndo.AtomicDOMChange.from(ea); });
         this.addUndo({
             type: 'chunkSplit',
-            mutations: mutations,
-            mutationsString: this.showMutationsExpt(mutations),
-            splittedChunkNodeIndex: this.findChunkNodeIndexOf(mutations[2].target),
+            mutations: nonAttributeMutations,
+            mutationsString: this.showMutationsExpt(nonAttributeMutations),
             toString: function() { return this.type },
             undo: function() {
-                var idx = this.splittedChunkNodeIndex,
-                    chunks = text.getTextChunks();
-                chunks[idx-1].textString += chunks[idx].textString + chunks[idx+1].textString;
-                chunks[idx].remove();
-                chunks[idx+1].remove();
-                chunks.splice(idx, 2);
-                text.undoState.changes = text.undoState.changes.without(this);
+                domChanges.invoke("undo"); // dom
+                text.getTextChunks().splice(idx, 2); // morphic
+                text.undoState.changes = text.undoState.changes.without(this); // remove undo
             }
         });
     },

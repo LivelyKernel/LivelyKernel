@@ -1259,7 +1259,8 @@ lively.morphic.Shapes.Shape.addMethods(
 		        }
 		        var url = new URL(absPath);
 		        
-
+		        url.proxy = null;
+                        
 			var webR = new WebResource(url);
                         webR.forceUncached();
 			var webRGet = webR.get();

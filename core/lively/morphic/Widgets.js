@@ -1097,7 +1097,12 @@ lively.morphic.Text.addMethods(
 
 });
 
-lively.morphic.Box.subclass('lively.morphic.SimpleText');
+lively.morphic.Box.subclass('lively.morphic.SimpleText',
+'settings', {
+    
+}
+
+);
 
 
 lively.morphic.World.addMethods(

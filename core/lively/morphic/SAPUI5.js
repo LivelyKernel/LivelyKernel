@@ -1057,11 +1057,114 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     },
 
     onSliderMouseDown: function(evt){
-        console.log('Mouse Down on Slider!');
-        console.log(this);
+		e = Slider.eventHandlers.getEvent(e, this);
+		var s = this.slider;
+		if (s.element.focus)
+			s.element.focus();
+
+		Slider._currentInstance = s;
+		var doc = s.document;
+
+		if (doc.addEventListener) {
+			doc.addEventListener("mousemove", Slider.eventHandlers.onmousemove, true);
+			doc.addEventListener("mouseup", Slider.eventHandlers.onmouseup, true);
+		}
+		else if (doc.attachEvent) {
+			doc.attachEvent("onmousemove", Slider.eventHandlers.onmousemove);
+			doc.attachEvent("onmouseup", Slider.eventHandlers.onmouseup);
+			doc.attachEvent("onlosecapture", Slider.eventHandlers.onmouseup);
+			s.element.setCapture();
+		}
+
+		if (Slider.eventHandlers.getHandle(e)) {	// start drag
+			Slider._sliderDragData = {
+				screenX:	e.screenX,
+				screenY:	e.screenY,
+				dx:			e.screenX - s.handle.offsetLeft,
+				dy:			e.screenY - s.handle.offsetTop,
+				startValue:	s.getValue(),
+				slider:		s
+			};
+		}
+		else {
+			var lineEl = Slider.eventHandlers.getLine(e);
+			s._mouseX = e.offsetX + (lineEl ? s.line.offsetLeft : 0);
+			s._mouseY = e.offsetY + (lineEl ? s.line.offsetTop : 0);
+			s._increasing = null;
+			s.ontimer();
+		}
+		
             },
     onSliderMouseUp: function(evt){console.log('Mouse Up on Slider!')},
     onSliderMouseMove: function(evt){console.log('Mouse Move on Slider!')},
+    
+    onmousedown:	function (e) {
+		
+	},
+
+	onmousemove:	function (e) {
+		e = Slider.eventHandlers.getEvent(e, this);
+
+		if (Slider._sliderDragData) {	// drag
+			var s = Slider._sliderDragData.slider;
+
+			var boundSize = s.getMaximum() - s.getMinimum();
+			var size, pos, reset;
+
+			if (s._orientation == "horizontal") {
+				size = s.element.offsetWidth - s.handle.offsetWidth;
+				pos = e.screenX - Slider._sliderDragData.dx;
+				reset = Math.abs(e.screenY - Slider._sliderDragData.screenY) > 100;
+			}
+			else {
+				size = s.element.offsetHeight - s.handle.offsetHeight;
+				pos = s.element.offsetHeight - s.handle.offsetHeight -
+					(e.screenY - Slider._sliderDragData.dy);
+				reset = Math.abs(e.screenX - Slider._sliderDragData.screenX) > 100;
+			}
+			s.setValue(reset ? Slider._sliderDragData.startValue :
+						s.getMinimum() + boundSize * pos / size);
+			return false;
+		}
+		else {
+			var s = Slider._currentInstance;
+			if (s != null) {
+				var lineEl = Slider.eventHandlers.getLine(e);
+				s._mouseX = e.offsetX + (lineEl ? s.line.offsetLeft : 0);
+				s._mouseY = e.offsetY + (lineEl ? s.line.offsetTop : 0);
+			}
+		}
+
+	},
+
+	onmouseup:	function (e) {
+		e = Slider.eventHandlers.getEvent(e, this);
+		var s = Slider._currentInstance;
+		var doc = s.document;
+		if (doc.removeEventListener) {
+			doc.removeEventListener("mousemove", Slider.eventHandlers.onmousemove, true);
+			doc.removeEventListener("mouseup", Slider.eventHandlers.onmouseup, true);
+		}
+		else if (doc.detachEvent) {
+			doc.detachEvent("onmousemove", Slider.eventHandlers.onmousemove);
+			doc.detachEvent("onmouseup", Slider.eventHandlers.onmouseup);
+			doc.detachEvent("onlosecapture", Slider.eventHandlers.onmouseup);
+			s.element.releaseCapture();
+		}
+
+		if (Slider._sliderDragData) {	// end drag
+			Slider._sliderDragData = null;
+		}
+		else {
+			s._timer.stop();
+			s._increasing = null;
+		}
+		Slider._currentInstance = null;
+	},
+    
+    
+    
+    
 }
 );
 

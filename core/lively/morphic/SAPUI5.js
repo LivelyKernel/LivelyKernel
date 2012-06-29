@@ -1122,7 +1122,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
                 });
                 
                 sliderNode.startCoord = evt.screenX;
-
+                /*
 		if (Slider.eventHandlers.getHandle(e)) {	// start drag
 			
 		}
@@ -1133,7 +1133,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 			s._increasing = null;
 			s.ontimer();
 		}
-		
+		*/
 		
             },
 }

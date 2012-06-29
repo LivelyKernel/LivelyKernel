@@ -1328,7 +1328,12 @@ lively.morphic.Shapes.Shape.addMethods(
 	}
 );
 
+lively.morphic.Box.subclass('lively.morphic.SimpleText',
+'settings', {
+    
+}
 
+);
 
 
 }) // end of module

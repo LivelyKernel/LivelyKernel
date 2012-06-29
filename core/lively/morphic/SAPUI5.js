@@ -1051,17 +1051,13 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         else this.setComponentNodeClass(this.normalClasses);
     },
     addSliderEventsHTML: function (ctx, sliderNode) {
+        var slider = this;
         $(sliderNode).mousedown(function (evt) {
             console.log(evt);
-
-            var doc = window.document;
-
-            var sliderNode = this;
-
             $(document).mousemove(function () {
                 console.log(sliderNode);
 
-                if (Slider._sliderDragData) { // drag
+                if (slider.startCoords) { // drag
                     var s = Slider._sliderDragData.slider;
 
                     var boundSize = s.getMaximum() - s.getMinimum();

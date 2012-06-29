@@ -18,7 +18,6 @@ cop.create('EventExperimentLayer')
         if (evt.isAltDown()) {
             // "that" construct from Antero Taivalsaari's Lively Qt
             Global.that = evt.world.clickedOnMorph;
-            debugger;
             alertOK('that = ' + Global.that);
         }
 

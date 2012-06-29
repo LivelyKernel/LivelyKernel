@@ -751,7 +751,7 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
         }
 
        this.updateRadioGroup();
-         return true;
+        return false;
      },
 
 }

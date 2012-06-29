@@ -754,15 +754,14 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
     onClick: function(evt) {
         if (this.readOnly) evt.stop();  
     },
-    addNodeEventsHTML: function(ctx){
-        var morph = this;
-        $(ctx.checkBoxNode).change(function (evt) {
-            if (this.active && !this.readOnly) {
-                lively.bindings.signal(morph , 'fire', true);
-            }
-            morph.updateRadioGroup();
-        });    
+    
+    onChange: function(evt){
+           if (this.active && !this.readOnly) {
+                lively.bindings.signal(this, 'fire', true);
+            } 
+            this.updateRadioGroup();
     },
+
  
 }
 );

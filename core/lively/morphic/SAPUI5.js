@@ -1060,20 +1060,9 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
                 console.log(evt);
 
 		var doc = window.document;
-
-		if (doc.addEventListener) {
-			doc.addEventListener("mousemove", asdf, true);
-			doc.addEventListener("mouseup", Slider.eventHandlers.onmouseup, true);
-		}
-		else if (doc.attachEvent) {
-			doc.attachEvent("onmousemove", Slider.eventHandlers.onmousemove);
-			doc.attachEvent("onmouseup", Slider.eventHandlers.onmouseup);
-			doc.attachEvent("onlosecapture", Slider.eventHandlers.onmouseup);
-			s.element.setCapture();
-		}
-
-		if (Slider.eventHandlers.getHandle(e)) {	// start drag
-			Slider._sliderDragData = {
+                
+              
+                asdf = {
 				screenX:	e.screenX,
 				screenY:	e.screenY,
 				dx:			e.screenX - s.handle.offsetLeft,
@@ -1081,6 +1070,9 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 				startValue:	s.getValue(),
 				slider:		s
 			};
+
+		if (Slider.eventHandlers.getHandle(e)) {	// start drag
+			
 		}
 		else {
 			var lineEl = Slider.eventHandlers.getLine(e);

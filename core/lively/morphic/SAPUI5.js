@@ -729,16 +729,10 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
         this.readOnly = readOnly ;
         this.updateAppearance();
     },
-    setExtent: function($super, extent) {
-        $super(extent);
-        this.resizeCheckBox();
-    },
     updateInputTag: function(idx) {
         return this.renderContextDispatch('updateInputTag');
     },
-    resizeCheckBox: function(idx) {
-        return this.renderContextDispatch('resizeCheckBox');
-    },
+ 
     
 },
 'event handling', {

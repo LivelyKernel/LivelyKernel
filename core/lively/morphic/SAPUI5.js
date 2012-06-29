@@ -743,8 +743,9 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
         console.log("Radio Button, active: "+this.active+"    readOnly: "+this.readOnly);
         if (this.active && !this.readOnly) {
             lively.bindings.signal(this, 'fire', true);
+            this.setChecked(true);
         }
-           //this.setChecked(!this.checked);
+
        this.updateRadioGroup();
          return true;
      },

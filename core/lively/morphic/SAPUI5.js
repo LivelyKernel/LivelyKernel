@@ -373,7 +373,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
         ctx.componentNode.appendChild(ctx.checkBoxNode);
         ctx.componentNode.appendChild(ctx.labelNode);
         $super(ctx, optMorphAfter);
-        this.setCheckedHTML(this.checked);
+        this.setCheckedHTML(ctx, this.checked);
     },
 
     updateLabelHTML: function(ctx, label) {

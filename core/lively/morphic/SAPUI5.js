@@ -1061,7 +1061,12 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 
 		var doc = window.document;
                 
-                
+                $(document).mousemove(function(){
+                    $("#test").html("sliding");
+                }).mouseup(function() {
+                    $("#test").html("not sliding");
+                    $(document).unbind("mousemove mouseup");
+                });
                 
                 asdf = {
 				screenX:	e.screenX,

@@ -402,7 +402,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
 
 'accessing', {
     setChecked: function(checked){ 
-        this.checked = checked;
+        this.renderContextDispatch('setChecked');
         this.updateAppearance();
     },
     isChecked: function(){

@@ -396,6 +396,9 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
         this.checked = checked;
         this.updateAppearance();
     },
+    isChecked: function() {
+        return this.checked;
+    },
     
     setActive: function(active) {
         this.active = active;

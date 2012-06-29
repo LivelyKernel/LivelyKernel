@@ -1058,12 +1058,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 
     onSliderMouseDown: function(evt){
                 console.log(evt);
-		var s = this.slider;
-		if (s.element.focus)
-			s.element.focus();
 
-		Slider._currentInstance = s;
-		var doc = s.document;
+		var doc = window.document;
 
 		if (doc.addEventListener) {
 			doc.addEventListener("mousemove", Slider.eventHandlers.onmousemove, true);

@@ -393,6 +393,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
         return ctx.checkBoxNode.checked;    
     },
     setCheckedHTML: function(ctx, checked) {
+        this.checked = checked;
         ctx.checkBoxNode.checked = checked;
     },
     

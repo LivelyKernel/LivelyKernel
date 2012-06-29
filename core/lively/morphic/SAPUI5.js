@@ -1095,15 +1095,32 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 		}
 		
             },
-    onSliderMouseUp: function(evt){console.log('Mouse Up on Slider!')},
-    onSliderMouseMove: function(evt){console.log('Mouse Move on Slider!')},
-    
-    onmousedown:	function (e) {
-		
-	},
+    onSliderMouseUp: function(evt){
+                e = Slider.eventHandlers.getEvent(e, this);
+		var s = Slider._currentInstance;
+		var doc = s.document;
+		if (doc.removeEventListener) {
+			doc.removeEventListener("mousemove", Slider.eventHandlers.onmousemove, true);
+			doc.removeEventListener("mouseup", Slider.eventHandlers.onmouseup, true);
+		}
+		else if (doc.detachEvent) {
+			doc.detachEvent("onmousemove", Slider.eventHandlers.onmousemove);
+			doc.detachEvent("onmouseup", Slider.eventHandlers.onmouseup);
+			doc.detachEvent("onlosecapture", Slider.eventHandlers.onmouseup);
+			s.element.releaseCapture();
+		}
 
-	onmousemove:	function (e) {
-		e = Slider.eventHandlers.getEvent(e, this);
+		if (Slider._sliderDragData) {	// end drag
+			Slider._sliderDragData = null;
+		}
+		else {
+			s._timer.stop();
+			s._increasing = null;
+		}
+		Slider._currentInstance = null;
+        },
+    onSliderMouseMove: function(evt){
+                e = Slider.eventHandlers.getEvent(e, this);
 
 		if (Slider._sliderDragData) {	// drag
 			var s = Slider._sliderDragData.slider;
@@ -1135,36 +1152,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 			}
 		}
 
-	},
-
-	onmouseup:	function (e) {
-		e = Slider.eventHandlers.getEvent(e, this);
-		var s = Slider._currentInstance;
-		var doc = s.document;
-		if (doc.removeEventListener) {
-			doc.removeEventListener("mousemove", Slider.eventHandlers.onmousemove, true);
-			doc.removeEventListener("mouseup", Slider.eventHandlers.onmouseup, true);
-		}
-		else if (doc.detachEvent) {
-			doc.detachEvent("onmousemove", Slider.eventHandlers.onmousemove);
-			doc.detachEvent("onmouseup", Slider.eventHandlers.onmouseup);
-			doc.detachEvent("onlosecapture", Slider.eventHandlers.onmouseup);
-			s.element.releaseCapture();
-		}
-
-		if (Slider._sliderDragData) {	// end drag
-			Slider._sliderDragData = null;
-		}
-		else {
-			s._timer.stop();
-			s._increasing = null;
-		}
-		Slider._currentInstance = null;
-	},
-    
-    
-    
-    
+        },
 }
 );
 

@@ -1313,8 +1313,8 @@ lively.morphic.Shapes.Shape.addMethods(
 		setBorderStylingMode: function(value) {
 			// TRUE when border is styled through style sheets,
 			// FALSE when border is styled through style dialog
-							this.shape.setBorderStylingMode(value);
-							this.updateComputedStyles();
+			this.shape.setBorderStylingMode(value);
+			this.updateComputedStyles();
 		},
 		getBorderStylingMode: function() {
 			return this.shape.getBorderStylingMode();

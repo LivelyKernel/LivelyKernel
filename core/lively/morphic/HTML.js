@@ -1259,7 +1259,7 @@ lively.morphic.Shapes.Shape.addMethods(
 		        }
 		        var url = new URL(absPath);
 		        
-		        url.proxy = null;
+		        URL.proxy = null;
                         
 			var webR = new WebResource(url);
                         webR.forceUncached();

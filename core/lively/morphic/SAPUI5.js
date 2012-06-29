@@ -1011,7 +1011,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         ctx.sliderHilite.style.width = px+"px";
     },
     updateComputedStyles: function($super) {
-        console.log("UpdCS Slider");
         this.generateTicks();
         $super();    
     }

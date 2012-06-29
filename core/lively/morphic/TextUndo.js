@@ -961,6 +961,28 @@ lively.morphic.TextUndo.AtomicDOMChange.subclass("lively.morphic.TextUndo.Atomic
     }
 });
 
+lively.morphic.TextUndo.AtomicDOMChange.subclass("lively.morphic.TextUndo.AtomicDOMStyleChange",
+"initializing", {
+    initialize: function(mutationRecord) {
+        this.oldValue = mutationRecord.oldValue;
+        this.newValue = mutationRecord.newValue;
+        this.attribute = mutationRecord.attribute;
+        this.target = mutationRecord.target;
+    }
+},
+"undo / redo", {
+    undo: function() {
+        this.target.setAttribute(this.attribute, this.oldValue);
+    },
+    redo: function() {
+        this.target.setAttribute(this.attribute, this.newValue);
+    }
+},
+"debugging", {
+    toString: function($super) {
+        return $super() + "<" + oldValue + " => " + this.newValue + ' (' + this.target + ')>';
+    }
+})
 Object.extend(lively.morphic.TextUndo.AtomicDOMChange, {
     from: function(mutationRecord) {
         if (mutationRecord.type === "characterData") {
@@ -975,6 +997,9 @@ Object.extend(lively.morphic.TextUndo.AtomicDOMChange, {
         }
         if (mutationRecord.type === "childList" && mutationRecord.removedNodes.length === 1) {
             return new lively.morphic.TextUndo.AtomicDOMRemoveOneNodeChange(mutationRecord);
+        }
+        if (mutationRecord.type === "attributes" && mutationRecord.attribute === "style") {
+            return new lively.morphic.TextUndo.AtomicDOMStyleChange(mutationRecord);
         }
         throw new Error("mutation record of type " + mutationRecord.type + " not supported");
     }
@@ -1029,6 +1054,17 @@ TestCase.subclass("lively.morphic.TextUndo.AtomicDOMChangeTest",
         this.assertInserts(Object.extend(Object.protoCopy(spec), {
             action: function(test) { this.assertRemoves(spec); }
         }));
+    },
+
+    assertAttributeChanged: function(spec) {
+        var callCount = 0, attrName, value;
+        this.spy(spec.target, "setAttribute", function(thisAttrName, thisValue) {
+            callCount++; attrName = thisAttrName; value = thisValue;
+        });
+        spec.action.call(this);
+        this.assertEquals(1, callCount, 'call count');
+        this.assertEquals(spec.value, value, 'value');
+        this.assertEquals(spec.attributeName, attrName, 'attribute name');
     }
 },
 'testing', {
@@ -1160,7 +1196,6 @@ TestCase.subclass("lively.morphic.TextUndo.AtomicDOMChangeTest",
     test04bReplacedMultipleNodes: function() {
         this.createTargetAndChildNodes(5);
         this.target.childNodes = [this.childNode4, this.childNode5];
-        debugger;
         var mutation = {
                 type: "childList",
                 addedNodes: [this.childNode5],
@@ -1184,6 +1219,36 @@ TestCase.subclass("lively.morphic.TextUndo.AtomicDOMChangeTest",
             insertIndex: 1, removedNodes: [this.childNode1, this.childNode2, this.childNode3],
             action: function() { atomicDOMChange.redo(); }
         });
+    },
+
+    test05StyleChangeRecordAndUndo: function() {
+        this.createTargetAndChildNodes(3);
+        var mutation = {
+                type: "attributes",
+                attribute: "style",
+                newValue: "font-weight: bold; text-decoration: underline; outline: none; ",
+                oldValue: "text-decoration: none; font-weight: bold; outline: none; ",
+                target: this.childNode1
+            },
+            atomicDOMChange = lively.morphic.TextUndo.AtomicDOMChange.from(mutation);
+
+        this.assertEquals('style', atomicDOMChange.attribute);
+        this.assertIdentity(this.childNode1, atomicDOMChange.target);
+
+        this.assertAttributeChanged({
+            target: this.childNode1,
+            attributeName: "style",
+            value: "text-decoration: none; font-weight: bold; outline: none; ",
+            action: function() { atomicDOMChange.undo(); }
+        });
+
+        this.assertAttributeChanged({
+            target: this.childNode1,
+            attributeName: "style",
+            value: "font-weight: bold; text-decoration: underline; outline: none; ",
+            action: function() { atomicDOMChange.redo(); }
+        });
+
     }
 
 });

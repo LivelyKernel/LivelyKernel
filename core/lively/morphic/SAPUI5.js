@@ -434,6 +434,12 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
         this.updateInputTag();
     },
 
+    onChange: function(evt){
+           if (this.active && !this.readOnly) {
+                lively.bindings.signal(morph , 'fire', true);
+            } 
+            this.updateAppearance();
+    },
     
     addNodeEventsHTML: function(ctx){
         /*

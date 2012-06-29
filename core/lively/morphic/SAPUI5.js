@@ -993,9 +993,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
                  var o = ctx.labels[i].pxCorrection || 0;
                 ctx.labels[i].style.left = (pos+o)+"px";
              }
-             
         }
-        
     },
     
     getSliderWidth: function(){
@@ -1003,14 +1001,15 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     },
     getSliderWidthHTML: function(ctx){
        var s = window.getComputedStyle(ctx.sliderBar);
-       return parseInt(s["width"].replace("px",""));
+       var r = parseInt(s["width"].replace("px",""));
+       if (r === null || isNaN(r)) r = 0;
+       return r;
     },
     
     setSliderPosHTML: function(ctx, px) {
         ctx.sliderGrip.style.left = px+"px";
         ctx.sliderHilite.style.width = px+"px";
     }
-    
     
 },
 'internal calculations',{

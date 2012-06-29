@@ -937,6 +937,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     },
     resizeComponentHTML: function($super, ctx) {
         $super(ctx);
+        this.setSliderPos(this.val2pos(this.value));
         this.updateTicks();
     },
     generateTicks: function(){

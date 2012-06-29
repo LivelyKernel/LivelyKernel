@@ -668,6 +668,8 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
     htmlDispatchTable: {
         setHtmlName:'setHtmlNameHTML',
         getHtmlName:'getHtmlNameHTML',
+        isChecked: 'isCheckedHTML',
+        setChecked: 'setCheckedHTML'
     },
 },
 'initializing', {
@@ -697,9 +699,18 @@ lively.morphic.SAPUI5.CheckBox.subclass('lively.morphic.SAPUI5.RadioButton',
     getHtmlNameHTML: function(ctx){
         return ctx.checkBoxNode.name;    
     },
+    isCheckedHTML: function(ctx){
+        return ctx.checkBoxNode.checked;    
+    },
+    setCheckedHTML: function(ctx, checked) {
+        ctx.checkBoxNode.checked = checked;
+    },
+    
 },
 'accessing', {
-
+    isChecked: function(){
+        return this.renderContextDispatch('isChecked');
+    },
     setHtmlName: function(name){
         this.renderContextDispatch('setHtmlName', name);
     },

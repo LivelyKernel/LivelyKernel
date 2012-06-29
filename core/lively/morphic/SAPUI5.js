@@ -330,7 +330,9 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
 },
 'HTML render settings', {
     htmlDispatchTable: {
-        updateInputTag: 'updateInputTagHTML'
+        updateInputTag: 'updateInputTagHTML',
+        isChecked: 'isCheckedHTML',
+        setChecked: 'setCheckedHTML'
     },
 },
 'initializing', {

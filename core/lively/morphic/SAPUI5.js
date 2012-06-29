@@ -869,7 +869,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     tickCount: 0,
     tickPxCorrection: -1,
     gripPxCorrection: -5,
-    hasLabels: true
+    hasLabels: true,
+    value: 0
 },
 'HTML render settings', {
     htmlDispatchTable: {
@@ -1042,6 +1043,18 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
             this.minValue = min;
             this.maxValue = max;
         } else {throw new Error("Please assign both min and max of the slider.")}
+    },
+    setValue: function(value) {
+        this.value = value;
+        this.setSliderPos(this.val2pos(this.value));
+    },
+    getValue: function() {
+        return this.value;
+    },
+    setSliderPos: function(px) {
+        
+    },
+    getSliderPos: function(){
         
     }
 },

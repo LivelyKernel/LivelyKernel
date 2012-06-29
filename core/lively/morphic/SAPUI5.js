@@ -884,6 +884,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     initialize: function($super, bounds) {
         $super(bounds);
         this.readOnly = false;
+        this.disableGrabbing();
         this.updateAppearance();
 
     }

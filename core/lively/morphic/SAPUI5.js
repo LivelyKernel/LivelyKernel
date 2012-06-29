@@ -1015,9 +1015,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     },
     
     setSliderPosHTML: function(ctx, px) {
-
-        ctx.sliderGrip.style.left = newPos+"px";
-        ctx.sliderHilite.style.width = newPos+"px";
+        ctx.sliderGrip.style.left = px+"px";
+        ctx.sliderHilite.style.width = px+"px";
     }
     
     

@@ -1061,7 +1061,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 
 		var doc = window.document;
                 
-              
+                
+                
                 asdf = {
 				screenX:	e.screenX,
 				screenY:	e.screenY,

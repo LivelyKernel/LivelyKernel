@@ -1084,6 +1084,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
                 mouseX: evt.screenX    
             }
             $(document).mousemove(function (evt) {
+                console.log(evt);
                 if (slider.startCoords) { // drag
                     var s = slider.startCoords.sliderX;
                     var dx = evt.screenX - slider.startCoords.mouseX;

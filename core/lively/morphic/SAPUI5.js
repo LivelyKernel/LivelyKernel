@@ -1014,10 +1014,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
     },
     
     setSliderPosHTML: function(ctx, px) {
-        var newPos = px;
-        var maxPos = this.getSliderWidthHTML(ctx);
-        if (newPos > maxPos) newPos = maxPos;
-        if (newPos < 0) newPos = 0;
+
         ctx.sliderGrip.style.left = newPos+"px";
         ctx.sliderHilite.style.width = newPos+"px";
     }
@@ -1062,8 +1059,12 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         return this.value;
     },
     setSliderPos: function(px) {
+        var newPos = px;
+        var maxPos = this.getSliderWidth();
+        if (newPos > maxPos) newPos = maxPos;
+        if (newPos < 0) newPos = 0;
         this.sliderPos = newPos;
-        return this.renderContextDispatch('setSliderPos', px);
+        return this.renderContextDispatch('setSliderPos', this.sliderPos);
     },
     getSliderPos: function(){
 

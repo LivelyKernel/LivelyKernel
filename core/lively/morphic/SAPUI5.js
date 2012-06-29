@@ -977,7 +977,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
             var p = node.parentNode;
             if (p) {
                 p.removeChild(node);
-                p.append(node);
+                p.appendChild(node);
             }
         }
         

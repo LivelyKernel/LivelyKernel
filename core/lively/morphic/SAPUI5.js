@@ -971,6 +971,17 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
                 
             }
         }
+        
+        // reappend grip and hilite to maintain the desired node order (z-level)
+        var reappend = function(node) {
+            var p = node.parentNode;
+            p.removeChild(node);
+            p.append(node);
+        }
+        
+        reappend(ctx.sliderHilite);
+        reappend(ctx.sliderGrip);
+        
         this.updateTicksHTML(ctx);
         
     },

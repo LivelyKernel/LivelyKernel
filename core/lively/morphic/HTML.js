@@ -1329,7 +1329,15 @@ lively.morphic.Shapes.Shape.addMethods(
 );
 
 lively.morphic.Box.subclass('lively.morphic.SimpleText',
-'rendering', {
+'simple text', {
+    initialize: function($super, bounds, optText){
+        $super(bounds);
+        if (optText) this.setText(optText);
+    },
+    setText: function(text){
+        this.text = text;    
+    },
+    
     appendHTML: function($super, ctx) {
         $super(ctx);
         if (ctx.shapeNode) {

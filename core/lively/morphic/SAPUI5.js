@@ -1124,6 +1124,12 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 
 }
 );
+lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
+'HTML', {
+    
+}
+);
+
 
 
 }) // end of module

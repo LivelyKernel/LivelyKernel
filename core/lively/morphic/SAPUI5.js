@@ -1062,7 +1062,37 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 		var doc = window.document;
                 
                 $(document).mousemove(function(){
-                    $("#test").html("sliding");
+                    e = Slider.eventHandlers.getEvent(e, this);
+
+		      if (Slider._sliderDragData) {	// drag
+			var s = Slider._sliderDragData.slider;
+
+			var boundSize = s.getMaximum() - s.getMinimum();
+			var size, pos, reset;
+
+			if (s._orientation == "horizontal") {
+				size = s.element.offsetWidth - s.handle.offsetWidth;
+				pos = e.screenX - Slider._sliderDragData.dx;
+				reset = Math.abs(e.screenY - Slider._sliderDragData.screenY) > 100;
+			}
+			else {
+				size = s.element.offsetHeight - s.handle.offsetHeight;
+				pos = s.element.offsetHeight - s.handle.offsetHeight -
+					(e.screenY - Slider._sliderDragData.dy);
+				reset = Math.abs(e.screenX - Slider._sliderDragData.screenX) > 100;
+			}
+			s.setValue(reset ? Slider._sliderDragData.startValue :
+						s.getMinimum() + boundSize * pos / size);
+			return false;
+		  }
+		  else {
+			var s = Slider._currentInstance;
+			if (s != null) {
+				var lineEl = Slider.eventHandlers.getLine(e);
+				s._mouseX = e.offsetX + (lineEl ? s.line.offsetLeft : 0);
+				s._mouseY = e.offsetY + (lineEl ? s.line.offsetTop : 0);
+			}
+		  }
                 }).mouseup(function() {
                     e = Slider.eventHandlers.getEvent(e, this);
 		  var s = Slider._currentInstance;
@@ -1110,43 +1140,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 		}
 		
             },
-    onSliderMouseUp: function(evt){
-                
-        },
-    onSliderMouseMove: function(evt){
-                e = Slider.eventHandlers.getEvent(e, this);
-
-		if (Slider._sliderDragData) {	// drag
-			var s = Slider._sliderDragData.slider;
-
-			var boundSize = s.getMaximum() - s.getMinimum();
-			var size, pos, reset;
-
-			if (s._orientation == "horizontal") {
-				size = s.element.offsetWidth - s.handle.offsetWidth;
-				pos = e.screenX - Slider._sliderDragData.dx;
-				reset = Math.abs(e.screenY - Slider._sliderDragData.screenY) > 100;
-			}
-			else {
-				size = s.element.offsetHeight - s.handle.offsetHeight;
-				pos = s.element.offsetHeight - s.handle.offsetHeight -
-					(e.screenY - Slider._sliderDragData.dy);
-				reset = Math.abs(e.screenX - Slider._sliderDragData.screenX) > 100;
-			}
-			s.setValue(reset ? Slider._sliderDragData.startValue :
-						s.getMinimum() + boundSize * pos / size);
-			return false;
-		}
-		else {
-			var s = Slider._currentInstance;
-			if (s != null) {
-				var lineEl = Slider.eventHandlers.getLine(e);
-				s._mouseX = e.offsetX + (lineEl ? s.line.offsetLeft : 0);
-				s._mouseY = e.offsetY + (lineEl ? s.line.offsetTop : 0);
-			}
-		}
-
-        },
 }
 );
 

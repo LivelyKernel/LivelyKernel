@@ -1052,7 +1052,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         return this.value;
     },
     setSliderPos: function(px) {
-        
+        return this.renderContextDispatch('setSliderPos', px);
     },
     getSliderPos: function(){
             var maxPos = this.getWidth();        

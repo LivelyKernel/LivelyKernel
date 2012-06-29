@@ -1125,6 +1125,13 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 }
 );
 lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
+'settings',{
+    classes: 'sapUiTf sapUiTfBrd sapUiTfStd',    
+    focusClass: 'sapUiTfFoc',
+    disabledClass: 'sapUiTfDsbl',
+    defaultValue: "",
+    fixedHeight: true
+},
 'HTML', {
     
 }

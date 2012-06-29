@@ -980,9 +980,10 @@ lively.morphic.TextUndo.AtomicDOMChange.subclass("lively.morphic.TextUndo.Atomic
 },
 "debugging", {
     toString: function($super) {
-        return $super() + "<" + oldValue + " => " + this.newValue + ' (' + this.target + ')>';
+        return $super() + "<" + this.oldValue + " => " + this.newValue + ' (' + this.target + ')>';
     }
-})
+});
+
 Object.extend(lively.morphic.TextUndo.AtomicDOMChange, {
     from: function(mutationRecord) {
         if (mutationRecord.type === "characterData") {

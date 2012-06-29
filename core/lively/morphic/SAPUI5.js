@@ -1120,8 +1120,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 		      Slider._currentInstance = null;
                     $(document).unbind("mousemove mouseup");
                 });
-                
-                asdf = {
+                /*
+                var asdf = {
 				screenX:	e.screenX,
 				screenY:	e.screenY,
 				dx:			e.screenX - s.handle.offsetLeft,
@@ -1140,6 +1140,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
 			s._increasing = null;
 			s.ontimer();
 		}
+		*/
 		
             },
 }

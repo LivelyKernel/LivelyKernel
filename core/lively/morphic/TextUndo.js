@@ -251,21 +251,20 @@ LastMutations.push(mutations);
         return true;
     },
     recordSetTextStringChange: function(mutations) {
-        var i = 0, oldContent = '', text = this;
-        // gather the strings from the removed chunks
-        while (mutations[i].removedNodes.length > 0 && mutations[i].removedNodes[0].tagName === "span") {
-            for (var j = 0, len = mutations[i].removedNodes.length; j < len; j++) {
-                oldContent += mutations[i].removedNodes[j].textContent;
-            }
-            i++;
-        }
+        var text = this,
+            oldStyles = text.getChunkStyles(),
+            domChanges = mutations.collect(function(ea) { return lively.morphic.TextUndo.AtomicDOMChange.from(ea); });
         this.addUndo({
             type: 'textStringChange',
             mutations: mutations,
             mutationsString: this.showMutationsExpt(mutations),
             undo: function() {
-                // FIXME does not reset style!
-                text.textString = oldContent;
+                // dom
+                domChanges.invoke("undo");
+                // morphic
+                text.getTextChunks()[0].chunkNode = text.renderContext().textNode.childNodes[0];
+                text.cachedTextString = null;
+                // undo
                 text.undoState.changes = text.undoState.changes.without(this);
             }
         });
@@ -1011,7 +1010,8 @@ lively.morphic.TextUndo.AtomicDOMChange.subclass("lively.morphic.TextUndo.Atomic
 },
 "undo / redo", {
     undo: function() {
-        this.target.insertBefore(this.removedNodes[0], this.nextSibling || this.previousSibling.nextSibling);
+        var nextSibling = this.nextSibling || (this.previousSibling && this.previousSibling.nextSibling);
+        this.target.insertBefore(this.removedNodes[0], nextSibling);
     },
     redo: function() {
         this.target.removeChild(this.removedNodes[0]);
@@ -1104,6 +1104,7 @@ Object.extend(lively.morphic.TextUndo.AtomicDOMChange, {
         if (mutationRecord.type === "attributes" && mutationRecord.attribute === "style") {
             return new lively.morphic.TextUndo.AtomicDOMStyleChange(mutationRecord);
         }
+        debugger;
         throw new Error("mutation record of type " + mutationRecord.type + " not supported");
     }
 });

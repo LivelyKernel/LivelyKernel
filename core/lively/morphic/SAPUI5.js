@@ -1067,7 +1067,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
         return this.renderContextDispatch('setSliderPos', this.sliderPos);
     },
     getSliderPos: function(){
-
+        return this.sliderPos;
     }
 },
 'events',{

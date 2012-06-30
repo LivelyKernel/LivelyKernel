@@ -1353,7 +1353,18 @@ lively.morphic.Box.subclass('lively.morphic.SimpleText',
             //var newtext = document.createTextNode("Simple Text");
             this.setTextHTML(ctx, this.text);
         }
-    }
+    },
+    morphMenuItems: function($super) {
+        var self = this, items = $super();
+        items.push([
+            'Set text', function(evt) {
+            $world.prompt('Set text', function(input) {
+                if (input !== null)
+                    self.setText(input || '');
+            }, self.setText());
+        }])
+        return items;
+    },
     
 }
 

@@ -1359,7 +1359,7 @@ lively.morphic.Box.subclass('lively.morphic.SimpleText',
             $world.prompt('Set text', function(input) {
                 if (input !== null)
                     self.setText(input || '');
-            }, self.setText());
+            }, this.text);
         }])
         return items;
     },

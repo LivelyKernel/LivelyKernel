@@ -1336,7 +1336,7 @@ lively.morphic.Box.subclass('lively.morphic.SimpleText',
     
     initialize: function($super, bounds, optText){
         $super(bounds);
-        if (optText) this.setText(optText);
+        this.text = optText || "Simple Text";
     },
     setText: function(text){
         this.text = text; 

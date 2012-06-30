@@ -1343,7 +1343,7 @@ lively.morphic.Box.subclass('lively.morphic.SimpleText',
         return this.renderContextDispatch('setText', text);   
     },
     setTextHTML: function(ctx, text){
-        ctx.shapeNode.innerHTML = "Simple Text";   
+        ctx.shapeNode.innerHTML = text;   
     },
     
     appendHTML: function($super, ctx) {
@@ -1351,7 +1351,7 @@ lively.morphic.Box.subclass('lively.morphic.SimpleText',
         if (ctx.shapeNode) {
             ctx.shapeNode.contentEditable=true;
             //var newtext = document.createTextNode("Simple Text");
-            
+            this.setTextHTML(ctx, this.text);
         }
     }
     

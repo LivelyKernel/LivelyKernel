@@ -1189,7 +1189,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
 
 'event handling', {
     showListBox: function() {
-        var listBox = new lively.morphic.SAPUI5.ListBox(new Rectangle(0,0,100,100));
+        var listBox = new lively.morphic.SAPUI5.DropDownListBox(new Rectangle(0,0,100,100));
         listBox.updateList(this.items);
         this.world().addMorph(listBox);
     },

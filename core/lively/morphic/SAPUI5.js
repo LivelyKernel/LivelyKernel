@@ -1185,8 +1185,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     getComponentBoundsHTML: function(ctx) {
         var left = $(ctx.componentNode).offset().left;
         var top = $(ctx.componentNode).offset().top;
-        var height = $(ctx.componentNode).height();
-        var width = $(ctx.componentNode).width();        
+        var height = $(ctx.componentNode).outerHeight();
+        var width = $(ctx.componentNode).outerWidth();        
         return new Rectangle(left, top, width, height);
     },
     getComponentBounds: function() {

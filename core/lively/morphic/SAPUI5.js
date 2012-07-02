@@ -1119,13 +1119,21 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     fixedHeight: true
 },
 'HTML', {
-    
+    initHTML: function($super, ctx, optValue) {
+        if (!ctx.componentNode)
+            ctx.componentNode= XHTMLNS.create('div');
+         this.setComponentNodeClass(this.classes);
+         this.setComponentNodeId();
+        $super(ctx);
+        if (this.shape) this.setValueHTML(ctx, (optValue || this.defaultValue));
+    },
 },
 'initializing', {
     initialize: function($super, bounds) {
         $super(bounds);
         this.readOnly = false;
         this.active = true;
+        this.hasFocus = false;
         this.updateAppearance();
     }
 },

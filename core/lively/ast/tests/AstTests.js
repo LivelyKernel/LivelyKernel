@@ -1456,7 +1456,7 @@ TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
         this.assert(node.isPostOp);
     },
     testForLoopIsAfter: function() {
-        var fun = function() {var a=0;for(var i=1;i<4;i++){a=i};var b;};
+        var fun = function() {var a=0;for(var i=1;i<4;i++){a=i};var b;return b};
         var ast = fun.ast();
         var node = ast.firstStatement().nextStatement(); //var i=1
         var set = node._parent._parent.body.children[0];

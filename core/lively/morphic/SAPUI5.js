@@ -1120,6 +1120,14 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     defaultValue: "",
     fixedHeight: true
 },
+'HTML render settings', {
+    htmlDispatchTable: {
+        getValue: 'getValueHTML',        
+        setValue: 'setValueHTML',        
+        setMaxLength: 'setMaxLengthHTML',
+        getMaxLength: 'getMaxLengthHTML',
+    },
+},
 'initializing', {
     initialize: function($super, bounds) {
         $super(bounds);

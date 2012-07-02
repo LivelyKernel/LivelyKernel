@@ -454,7 +454,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
 'settings',{
     style: null,
     selectionColor: null,
-    wrapperClasses: 'sapUiLbx sapUiLbxStd' ,
+    componentClasses: 'sapUiLbx sapUiLbxStd' ,
     itemClass: 'sapUiLbxI',
     selectedItemClass: 'sapUiLbxISel',
     itemSpanClass: 'sapUiLbxITxt',
@@ -480,7 +480,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
 'rendering', {
     initHTML: function($super, ctx) {
         
-        if (!ctx.wrapperNode) this.setupWrapperNodeHTML(ctx);
+        if (!ctx.componentNode) this.setupComponentNodeHTML(ctx);
         if (!ctx.listNode) this.setupListNodeHTML(ctx);
             
             
@@ -493,16 +493,16 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
         
     },
     
-     setupWrapperNodeHTML: function(ctx){
+     setupComponentNodeHTML: function(ctx){
         var c = XHTMLNS.create('div');
-        c.className = this.wrapperClasses;
+        c.className = this.componentClasses;
         /*
         c.onmouseup = function(evt){
             console.log('MouseUP! Right?');
             console.log(evt.isRightMouseButtonDown());
             };
             */
-        ctx.wrapperNode = c;
+        ctx.componentNode = c;
     },    
     setupListNodeHTML: function(ctx){
         var l = XHTMLNS.create('ul');
@@ -511,8 +511,8 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     
     appendHTML: function($super, ctx, optMorphAfter) {
         $super(ctx, optMorphAfter);
-        ctx.wrapperNode.appendChild(ctx.listNode );
-        ctx.shapeNode.appendChild(ctx.wrapperNode );
+        ctx.componentNode.appendChild(ctx.listNode );
+        ctx.shapeNode.appendChild(ctx.componentNode );
         this.resizeListHTML(ctx);
     },
 
@@ -520,11 +520,11 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     setClipModeHTML: function(ctx, clipMode) {
         // FIXME duplication wiht super, delay logic
         // can be extracted
-        if (!ctx.wrapperNode|| this.delayedClipMode) {
+        if (!ctx.componentNode|| this.delayedClipMode) {
             this.delayedClipMode = clipMode;
             return;
         }
-        this.setClipModeHTMLForNode(ctx, ctx.wrapperNode, clipMode);
+        this.setClipModeHTMLForNode(ctx, ctx.componentNode, clipMode);
     },
 
 },
@@ -596,7 +596,7 @@ lively.morphic.List.subclass('lively.morphic.SAPUI5.ListBox',
     resizeListHTML: function(ctx) {
         var borderWidth = this.getBorderWidth(),
             extent = this.getExtent().subPt(pt(2*borderWidth, 2*borderWidth)),
-            listNode = ctx.wrapperNode;
+            listNode = ctx.componentNode;
         listNode.style.left = this.shape.getPosition().x /*+ this.padding.left()*/ + 'px';
         listNode.style.top = this.shape.getPosition().y /*+ this.padding.top()*/ + 'px';
         listNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';

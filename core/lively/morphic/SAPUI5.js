@@ -263,6 +263,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
             else ctx.componentNode.removeAttribute('maxlength');
         }
     },
+    
 },
 
 'accessing', {
@@ -285,7 +286,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
     setActive: function(active) {
         this.active = active;
         if (!active) this.focus= false;
-        this.changeAppearance();
+        this.updateAppearance();
     },
 
     
@@ -294,16 +295,16 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
    
     onFocus: function($super, evt) {
         this.hasFocus = true;
-        this.changeAppearance();
+        this.updateAppearance();
         $super(evt);
     },
     onBlur: function($super, evt) {
         this.hasFocus = false;
-        this.changeAppearance();
+        this.updateAppearance();
         $super(evt);        
     },
     
-    changeAppearance: function() {
+    updateAppearance: function() {
         var classNames = this.classes;
         if (!this.active){
             classNames+=' '+this.disabledClass;

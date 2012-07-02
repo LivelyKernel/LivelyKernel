@@ -159,6 +159,16 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
                 ['number', [4, 5], 1]],
             result = this.parseJS(src, 'expr');
         this.assertMatches(expected, result);
+    },
+    test14ParseQuotes: function() {
+        var src1 = "'\\'''",
+            expected1 = ['string', [0, 3], "'"],
+            result1 = this.parseJS(src1, 'expr'),
+            src2 = '"\\""',
+            expected2 = ['string', [0, 3], '"'],
+            result2 = this.parseJS(src1, 'expr');
+        this.assertMatches(expected1, result1);
+        this.assertMatches(expected2, result2);
     }
 });
 

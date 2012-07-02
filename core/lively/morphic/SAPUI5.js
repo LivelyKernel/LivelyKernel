@@ -276,6 +276,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
             ctx.componentNode.disabled = true;
             classNames+=' '+this.disabledClass;
         } else {
+            classNames+=' '+this.normalClass;
             ctx.componentNode.disabled = false;            
         }
         

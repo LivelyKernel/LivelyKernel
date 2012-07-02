@@ -1244,6 +1244,8 @@ lively.morphic.SAPUI5.ListBox.subclass('lively.morphic.SAPUI5.DropDownListBox',
     
     initialize: function($super, bounds, target, optItems) {
         $super(bounds, optItems);
+        this.setAppearanceStylingMode(true);
+        this.setBorderStylingMode(true);
         this.target = target;
     },
 

@@ -158,7 +158,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
                 ['binop', [0, 3], '&', ['number', [0, 1], 1], ['number', [2, 3], 1]],
                 ['number', [4, 5], 1]],
             result = this.parseJS(src, 'expr');
-        this.assertMatches(expected, result);
+        this.assertMatches(elxpected, result);
     },
     test14ParseQuotes: function() {
         var src1 = "'\\'''",

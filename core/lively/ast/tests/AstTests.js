@@ -225,20 +225,20 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
     test05aEnumerateASTNodes: function() {
         var funcAst = function(a) { if (a) return 1 + m(); foo() }.ast();
         // funcAst.printTree(true) gives a tree in post order, just enumerate it
-        // 0    Variable(condExpr)
-        // 1       Number(left)
-        // 2        Variable(fn)
-        // 3       Call(right)
-        // 4      BinaryOp(expr)
-        // 5     Return(children)
-        // 6    Sequence(trueExpr)
-        // 7     Variable(children)
-        // 8    Sequence(falseExpr)
-        // 9   If(children)
-        // 10    Variable(fn)
-        // 11   Call(children)
-        // 12  Sequence(body)
-        // 13 Function(undefined)
+        // 0     Variable(condExpr)
+        // 1        Number(left)
+        // 2         Variable(fn)
+        // 3        Call(right)
+        // 4       BinaryOp(expr)
+        // 5      Return(children)
+        // 6     Sequence(trueExpr)
+        // 7     Variable(falseExpr)
+        // 8    If(children)
+        // 9    Variable(fn)
+        // 10   Call(children)
+        // 11  Sequence(body)
+        // 12  Variable(arguments)
+        // 13 Function
         this.assertEquals(0, funcAst.body.children[0].condExpr.astIndex());
         this.assertEquals(1, funcAst.body.children[0].trueExpr.children[0].expr.left.astIndex());
         this.assertEquals(2, funcAst.body.children[0].trueExpr.children[0].expr.right.fn.astIndex());
@@ -251,7 +251,8 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         this.assertEquals(9, funcAst.body.children[1].fn.astIndex());
         this.assertEquals(10, funcAst.body.children[1].astIndex());
         this.assertEquals(11, funcAst.body.astIndex());
-        this.assertEquals(12, funcAst.astIndex());
+        this.assertEquals(12, funcAst.args[0].astIndex());
+        this.assertEquals(13, funcAst.astIndex());
     },
     test05bEnumerateASTNodesButNotNestedFunctions: function() {
         var funcAst = function() { (function() { return 3 }); foo() }.ast();

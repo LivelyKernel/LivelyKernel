@@ -1255,7 +1255,7 @@ lively.morphic.SAPUI5.ListBox.subclass('lively.morphic.SAPUI5.DropDownListBox',
     resizeListHTML: function(ctx) {
         var borderWidth = this.getBorderWidth(),
             extent = this.getExtent().subPt(pt(2*borderWidth, 2*borderWidth)),
-            listNode = ctx.wrapperNode;
+            listNode = ctx.componentNode;
         listNode.style.left = this.shape.getPosition().x /*+ this.padding.left()*/ + 'px';
         listNode.style.top = this.shape.getPosition().y /*+ this.padding.top()*/ + 'px';
         listNode.style.width = extent.x /*- this.padding.right() - this.padding.left())*/ + 'px';

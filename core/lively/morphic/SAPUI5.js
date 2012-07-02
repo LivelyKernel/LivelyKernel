@@ -1183,6 +1183,10 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     },
     getComponentBoundsHTML: function(ctx) {
         var left = $(ctx.ComponentNode).left();
+        var top = $(ctx.ComponentNode).top();
+        var height = $(ctx.ComponentNode).height();
+        var width = $(ctx.ComponentNode).width();        
+        console.log("left: "+left+"    top : "+top +"    height : "+height +"    width : "+width );
     },
     getComponentBounds: function() {
         return this.renderContextDispatch('getComponentBounds');

@@ -320,7 +320,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
 
 lively.morphic.SAPUI5.TextField.subclass('lively.morphic.SAPUI5.TextArea',
 'settings',{
-    classes: 'sapUiTf sapUiTfBrd sapUiTfStd',    
+    classes: 'sapUiTf sapUiTfBack sapUiTfBrd sapUiTxtA sapUiTfStd', 
     focusClass: 'sapUiTfFoc',
     disabledClass: 'sapUiTfDsbl',
     defaultValue: "",

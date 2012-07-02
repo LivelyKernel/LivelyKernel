@@ -1127,12 +1127,14 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     },
 },
 'initializing', {
-    initialize: function($super, bounds) {
+    initialize: function($super, bounds, optItems) {
         $super(bounds);
         this.readOnly = false;
         this.active = true;
         this.hasFocus = false;
+        this.items = optItems || [];
         this.updateAppearance();
+        
     }
 },
 

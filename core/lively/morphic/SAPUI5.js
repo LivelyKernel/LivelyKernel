@@ -291,9 +291,10 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
         } 
         
         if (this.readOnly) {
-            ctx.componentNode.readOnly= true;    
+            ctx.componentNode.readOnly= true;  
+            classNames+=' '+this.readOnlyClass;  
         } else {
-            ctx.componentNode.readOnly= false;        
+            ctx.componentNode.readOnly=false;        
         }    
         
         if (this.hasFocus ) {

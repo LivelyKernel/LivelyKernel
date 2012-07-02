@@ -1127,6 +1127,12 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
         $super(ctx);
         if (this.shape) this.setValueHTML(ctx, (optValue || this.defaultValue));
     },
+    setComponentNodeIdHTML: function(ctx) {
+        ctx.inputNode.id = 'combo-'+this.id;
+    },
+    getComponentNodeIdHTML: function(ctx) {
+        return ctx.inputNode.id;
+    },
 },
 'initializing', {
     initialize: function($super, bounds) {

@@ -255,7 +255,7 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         this.assertEquals(13, funcAst.astIndex());
     },
     test05bEnumerateASTNodesButNotNestedFunctions: function() {
-        var funcAst = function() { function f() { return 3 }; foo() }.ast();
+        var funcAst = function() { function f() { return 3 } foo() }.ast();
         // funcAst.printTree(true) gives a tree in post order, just enumerate it
         // x      Number(expr)
         // x     Return(children)

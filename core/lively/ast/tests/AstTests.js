@@ -162,11 +162,11 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
     },
     test14ParseQuotes: function() {
         var src1 = "'\\'''",
-            expected1 = ['string', [0, 3], "'"],
+            expected1 = ['string', [0, 4], "'"],
             result1 = this.parseJS(src1, 'expr'),
             src2 = '"\\""',
-            expected2 = ['string', [0, 3], '"'],
-            result2 = this.parseJS(src1, 'expr');
+            expected2 = ['string', [0, 4], '"'],
+            result2 = this.parseJS(src2, 'expr');
         this.assertMatches(expected1, result1);
         this.assertMatches(expected2, result2);
     }

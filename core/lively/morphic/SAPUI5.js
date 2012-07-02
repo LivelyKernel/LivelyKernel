@@ -1115,6 +1115,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     classes: 'sapUiTf sapUiTfBrd sapUiTfCombo sapUiTfStd',    
     focusClass: 'sapUiTfFoc',
     disabledClass: 'sapUiTfDsbl',
+    inputClasses: "sapUiTf sapUiTfInner",
     defaultValue: "",
     fixedHeight: true
 },
@@ -1132,9 +1133,9 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     initHTML: function($super, ctx, optValue) {
         if (!ctx.componentNode)
             ctx.componentNode= XHTMLNS.create('div');
-        if (!ctx.inputNode)
-            ctx.inputNode= XHTMLNS.create('input');
-        ctx.inputNode.style="width:100%;text-align:left";
+        if (!ctx.inputNode) this.setupInputNodeHTML(ctx);
+            
+        
         if (!ctx.buttonNode)
             ctx.buttonNode= XHTMLNS.create('div');
          this.setComponentNodeClass(this.classes);
@@ -1142,6 +1143,15 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
         $super(ctx);
         if (this.shape) this.setValueHTML(ctx, (optValue || this.defaultValue));
     },
+    setupInputNodeHTML: function(ctx){
+          ctx.inputNode= XHTMLNS.create('input');
+          ctx.inputNode.style="width:100%;text-align:left";
+          ctx.inputNode.className = this.inputClasses;
+    },
+    setupButtonNodeHTML: function(ctx){
+ 
+    },
+    
     appendHTML: function($super, ctx, optMorphAfter) {
         ctx.componentNode.appendChild(ctx.inputNode);
         ctx.componentNode.appendChild(ctx.buttonNode);

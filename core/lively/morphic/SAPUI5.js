@@ -1182,12 +1182,12 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
    
     onFocus: function($super, evt) {
         this.hasFocus = true;
-        this.changeAppearance();
+        this.updateAppearance();
         $super(evt);
     },
     onBlur: function($super, evt) {
         this.hasFocus = false;
-        this.changeAppearance();
+        this.updateAppearance();
         $super(evt);        
     },
     

@@ -1186,6 +1186,10 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
 },
 
 'event handling', {
+    showListBox: function() {
+        var listBox = new lively.morphic.SAPUI5.ListBox(new Rectangle(0,0,100,100));
+        this.world().addMorph(listBox);
+    },
     onFocus: function($super, evt) {
         this.hasFocus = true;
         this.updateAppearance();

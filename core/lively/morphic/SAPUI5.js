@@ -211,7 +211,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Button',
 lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
 
 'settings',{
-    classes: 'sapUiTf sapUiTfBrd',
+    baseClasses: 'sapUiTf sapUiTfBrd',
     normalClass: 'sapUiTfStd',
     readOnlyClass: 'sapUiTfRo',
     focusClass: 'sapUiTfFoc',
@@ -270,17 +270,13 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
         }
     },
     updateAppearanceHTML: function(ctx) {
-        var classNames = this.classes;
+        var classNames = this.baseClasses;
+        
         if (!this.active){
             ctx.componentNode.disabled = true;
             classNames+=' '+this.disabledClass;
         } else {
             ctx.componentNode.disabled = false;            
-        }
-        if (this.readOnly) {
-            ctx.componentNode.readOnly= true;    
-        } else {
-            ctx.componentNode.readOnly= false;        
         }
         
         if (this.warning) {
@@ -288,7 +284,16 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
         }
         if (this.error) {
             classNames+=' '+this.errorClass;
-        }        
+        }    
+        if (this.success) {
+            classNames+=' '+this.errorClass;
+        } 
+        
+        if (this.readOnly) {
+            ctx.componentNode.readOnly= true;    
+        } else {
+            ctx.componentNode.readOnly= false;        
+        }    
         
         if (this.hasFocus ) {
             classNames+=' '+this.focusClass;

@@ -1124,7 +1124,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     htmlDispatchTable: {
         getValue: 'getValueHTML',        
         setValue: 'setValueHTML',
-        getBoxPosition: 'getBoxPositionHTML'    
+        getComponentBounds: 'getComponentBoundsHTML'    
     },
 },
 'initializing', {
@@ -1181,9 +1181,11 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     getComponentNodeIdHTML: function(ctx) {
         return ctx.inputNode.id;
     },
-    
-    getBoxPosition: function() {
-        return this.renderContextDispatch('getBoxPosition');
+    getComponentBoundsHTML: function(ctx) {
+        var left = $(ctx.ComponentNode).left();
+    },
+    getComponentBounds: function() {
+        return this.renderContextDispatch('getComponentBounds');
     }
     
 },

@@ -1275,10 +1275,14 @@ lively.morphic.SAPUI5.ListBox.subclass('lively.morphic.SAPUI5.DropDownListBox',
     },
     onClick: function($super, evt) {
         $super(evt);
+        console.log("onClick, selected Item:");
+        console.log(this.getSelectedItem());
         this.remove();
     },    
     selectAt: function($super, idx){
         $super(idx);    
+        console.log("selectAt, selected Item:");
+        console.log(this.getSelectedItem());
         this.target.setValue(this.getSelectedItem());
     }
     

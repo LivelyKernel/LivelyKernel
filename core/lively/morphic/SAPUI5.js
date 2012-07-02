@@ -1235,6 +1235,10 @@ lively.morphic.SAPUI5.ListBox.subclass('lively.morphic.SAPUI5.DropDownListBox',
         $super(bounds, optItems);
         this.target = target;
     },
+
+    remove: function($super){
+        return $super();    
+    }
     
 },
 

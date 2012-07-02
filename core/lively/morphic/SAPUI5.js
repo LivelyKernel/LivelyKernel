@@ -1158,7 +1158,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
           ctx.buttonNode.innerHTML='▼';
           
     },
-    
     appendHTML: function($super, ctx, optMorphAfter) {
         ctx.componentNode.appendChild(ctx.inputNode);
         ctx.componentNode.appendChild(ctx.buttonNode);

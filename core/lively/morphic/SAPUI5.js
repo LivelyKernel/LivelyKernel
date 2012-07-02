@@ -1150,13 +1150,17 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     setupInputNodeHTML: function(ctx){
           ctx.inputNode= XHTMLNS.create('input');
           ctx.inputNode.style.width="100%"
-            ctx.inputNode.style.textAlign="left";
+          ctx.inputNode.style.textAlign="left";
           ctx.inputNode.className = this.inputClasses;
     },
     setupButtonNodeHTML: function(ctx){
          ctx.buttonNode= XHTMLNS.create('div');
           ctx.buttonNode.className = this.buttonClasses;
           ctx.buttonNode.innerHTML='▼';
+          $(ctx.buttonNode).click(function (evt) {
+                alert("Buttonnode was clicked");
+          });
+          
           
     },
     appendHTML: function($super, ctx, optMorphAfter) {
@@ -1180,11 +1184,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
 },
 
 'event handling', {
-    applyClickEventHTML: function(ctx){
-        $(ctx.buttonNode).click(function (evt) {
-                alert("Buttonnode was clicked");
-            });
-    },
     onFocus: function($super, evt) {
         this.hasFocus = true;
         this.updateAppearance();

@@ -214,7 +214,7 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         this.assertMatches(expected, r.children[0]);
     },
     test04GetParentFunction: function() {
-        var funcAst = function() { if (true) return 1 + m(); foo() }.ast();
+        var funcAst = function(a) { if (a) return 1 + m(); foo() }.ast();
         this.assertIdentity(funcAst,
             funcAst.body.children[0]
                 .trueExpr.children[0]

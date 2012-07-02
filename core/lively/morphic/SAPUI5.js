@@ -1180,7 +1180,9 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
 },
 
 'event handling', {
-   
+    applyClickEventHTML: function(ctx){
+        
+    },
     onFocus: function($super, evt) {
         this.hasFocus = true;
         this.updateAppearance();

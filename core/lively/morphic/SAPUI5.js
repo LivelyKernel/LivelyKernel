@@ -1264,7 +1264,7 @@ lively.morphic.SAPUI5.ListBox.subclass('lively.morphic.SAPUI5.DropDownListBox',
 
 'events', {
     onBlur: function(evt){
-        this.remove();    
+        //this.remove();    
     },
     onChange: function($super, evt) {
         // doesn't fire :(

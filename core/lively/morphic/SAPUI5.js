@@ -317,7 +317,11 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
     setValue: function(value) {
         return this.renderContextDispatch('setValue', value);
     },
-    
+    clearState: function(){
+        this.warning = false;
+        this.error = false;
+        this.success = false;    
+    },
     setReadOnly: function(value) {
         this.readOnly = value;
         this.updateAppearance();

@@ -1232,7 +1232,6 @@ lively.morphic.SAPUI5.ListBox.subclass('lively.morphic.SAPUI5.DropDownListBox',
 'events', {
     onBlur: function(evt){
         this.remove();    
-        
     }    
     
 }

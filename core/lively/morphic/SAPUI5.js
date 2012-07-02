@@ -1243,7 +1243,14 @@ lively.morphic.SAPUI5.ListBox.subclass('lively.morphic.SAPUI5.DropDownListBox',
 'events', {
     onBlur: function(evt){
         this.remove();    
-    }    
+    },
+    onChange: function($super, evt) {
+        alert(this.getSelectedItem());   
+    },
+    onClick: function($super, evt) {
+        $super(evt);
+        this.remove();
+    },    
     
 }
 );

@@ -1149,7 +1149,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     },
     setupInputNodeHTML: function(ctx){
           ctx.inputNode= XHTMLNS.create('input');
-          ctx.inputNode.style.width="100%;"
+          ctx.inputNode.style.width="100%"
             ctx.inputNode.style.textAlign="left";
           ctx.inputNode.className = this.inputClasses;
     },

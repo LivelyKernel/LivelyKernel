@@ -327,14 +327,17 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
         this.updateAppearance();
     },
     setWarning: function(value) {
+        this.clearState();
         this.warning= value;
         this.updateAppearance();
     },
     setError: function(value) {
+        this.clearState();
         this.error= value;
         this.updateAppearance();
     },
     setSuccess: function(value) {
+        this.clearState();
         this.success= value;
         this.updateAppearance();
     },

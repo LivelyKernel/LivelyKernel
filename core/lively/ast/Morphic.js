@@ -61,7 +61,9 @@ cop.create('DebugMethodsLayer').refineObject(Function.prototype, {
         for (var property in source) {
             var func = source[property];
             if (Object.isFunction(func)) {
+                console.log('parsing ' + property);
                 if (func.containsDebugger()) {
+                    console.log('interpreting ' + property);
                     source[property] = func.forInterpretation();
                 }
             }

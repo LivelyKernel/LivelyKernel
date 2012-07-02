@@ -265,8 +265,9 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         // 1   Call(children)
         // 2  Sequence(body)
         // 3 Function(undefined)
-        this.assertEquals(3, funcAst.astIndex());
-        this.assertEquals(2, funcAst.body.astIndex());
+        this.assertEquals(4, funcAst.astIndex());
+        this.assertEquals(3, funcAst.body.astIndex());
+        this.assertEquals(2, funcAst.body.children[0].astIndex());
         this.assertEquals(1, funcAst.body.children[1].astIndex());
         this.assertEquals(0, funcAst.body.children[1].fn.astIndex());
     },

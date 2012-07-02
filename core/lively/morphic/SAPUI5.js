@@ -324,14 +324,10 @@ lively.morphic.SAPUI5.TextField.subclass('lively.morphic.SAPUI5.TextArea',
     focusClass: 'sapUiTfFoc',
     disabledClass: 'sapUiTfDsbl',
     defaultValue: "",
-    fixedHeight: true
+    fixedHeight: false
 },
 'HTML render settings', {
     htmlDispatchTable: {
-        getValue: 'getValueHTML',        
-        setValue: 'setValueHTML',        
-        setMaxLength: 'setMaxLengthHTML',
-        getMaxLength: 'getMaxLengthHTML',
     },
 }
 );

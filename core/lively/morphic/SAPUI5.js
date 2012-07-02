@@ -1120,6 +1120,14 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
 },
 'HTML', {
     
+},
+'initializing', {
+    initialize: function($super, bounds) {
+        $super(bounds);
+        this.readOnly = false;
+        this.active = true;
+        this.updateAppearance();
+    }
 }
 );
 

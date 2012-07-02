@@ -1116,6 +1116,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     focusClass: 'sapUiTfFoc',
     disabledClass: 'sapUiTfDsbl',
     inputClasses: "sapUiTf sapUiTfInner",
+    buttonClasses: 'sapUiTfComboIcon',
     defaultValue: "",
     fixedHeight: true
 },
@@ -1150,6 +1151,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     setupButtonNodeHTML: function(ctx){
          ctx.buttonNode= XHTMLNS.create('div');
           ctx.buttonNode.className = this.buttonClasses;
+          ctx.innerHTML('▼');
           
     },
     

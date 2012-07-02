@@ -1191,7 +1191,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
         $super(evt);        
     },
     
-    changeAppearance: function() {
+    updateAppearance: function() {
         var classNames = this.classes;
         if (!this.active){
             classNames+=' '+this.disabledClass;

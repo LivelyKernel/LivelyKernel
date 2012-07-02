@@ -287,7 +287,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
             classNames+=' '+this.errorClass;
         }    
         if (this.success) {
-            classNames+=' '+this.errorClass;
+            classNames+=' '+this.successClass;
         } 
         
         if (this.readOnly) {

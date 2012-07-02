@@ -1118,7 +1118,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     inputClasses: "sapUiTf sapUiTfInner",
     buttonClasses: 'sapUiTfComboIcon',
     defaultValue: "",
-    fixedHeight: true
+    fixedHeight: true,
+
 },
 'HTML render settings', {
     htmlDispatchTable: {
@@ -1186,7 +1187,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
         var top = $(ctx.componentNode).offset().top;
         var height = $(ctx.componentNode).height();
         var width = $(ctx.componentNode).width();        
-        console.log("left: "+left+"    top : "+top +"    height : "+height +"    width : "+width );
+        return new Rectangle(left, top, width, height);
     },
     getComponentBounds: function() {
         return this.renderContextDispatch('getComponentBounds');
@@ -1196,8 +1197,9 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
 
 'event handling', {
     showListBox: function() {
-        var e = this.getComponentBounds();        
-        var listBox = new lively.morphic.SAPUI5.DropDownListBox(new Rectangle(0,0,100,100),this, this.items);
+        var b = this.getComponentBounds();
+        var r = b.withY(b.y + b.height).withHeight(300);
+        var listBox = new lively.morphic.SAPUI5.DropDownListBox(r, this, this.items);
         this.world().addMorph(listBox);
         listBox.focus();
     },

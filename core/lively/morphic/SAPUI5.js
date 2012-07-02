@@ -1230,6 +1230,16 @@ lively.morphic.SAPUI5.ListBox.subclass('lively.morphic.SAPUI5.DropDownListBox',
     selectedItemClass: 'sapUiLbxISel',
     itemSpanClass: 'sapUiLbxITxt',
 },
+'init', {
+    
+    initialize: function($super, bounds, target, optItems) {
+        $super(bounds, optItems);
+        this.target = target;
+    },
+    
+},
+
+
 'events', {
     onBlur: function(evt){
         this.remove();    

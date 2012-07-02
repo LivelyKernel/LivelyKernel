@@ -1124,8 +1124,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     htmlDispatchTable: {
         getValue: 'getValueHTML',        
         setValue: 'setValueHTML',        
-        setMaxLength: 'setMaxLengthHTML',
-        getMaxLength: 'getMaxLengthHTML',
     },
 },
 'initializing', {

@@ -372,15 +372,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
 
 lively.morphic.SAPUI5.TextField.subclass('lively.morphic.SAPUI5.TextArea',
 'settings',{
-    classes: 'sapUiTf sapUiTfBack sapUiTfBrd sapUiTxtA sapUiTfStd', 
-    focusClass: 'sapUiTfFoc',
-    disabledClass: 'sapUiTfDsbl',
-    defaultValue: "",
+    baseClasses: 'sapUiTf sapUiTfBack sapUiTfBrd sapUiTxtA', 
     fixedHeight: false
-},
-'HTML render settings', {
-    htmlDispatchTable: {
-    },
 },
 'rendering', {
     initHTML: function($super, ctx, optValue) {

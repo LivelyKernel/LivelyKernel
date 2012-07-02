@@ -267,9 +267,21 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
     updateAppearanceHTML: function(ctx) {
         var classNames = this.classes;
         if (!this.active){
+            ctx.componentNode.disabled = true;
             classNames+=' '+this.disabledClass;
+        } else {
+            ctx.componentNode.disabled = false;            
         }
-        else if(this.hasFocus ) {
+        if (this.readOnly) {
+            ctx.componentNode.readOnly= true;    
+        } else {
+            ctx.componentNode.readOnly= false;        
+        }
+        
+        if (this.warning)
+        
+        
+        if (this.hasFocus ) {
             classNames+=' '+this.focusClass;
         }
         this.setComponentNodeClassHTML(ctx, classNames ); 

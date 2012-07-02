@@ -318,7 +318,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
 }
 );
 
-lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
+lively.morphic.SAPUI5.TextField.subclass('lively.morphic.SAPUI5.TextAre',
 'settings',{
     classes: 'sapUiTf sapUiTfBrd sapUiTfStd',    
     focusClass: 'sapUiTfFoc',

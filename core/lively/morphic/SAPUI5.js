@@ -264,6 +264,10 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
             else ctx.componentNode.removeAttribute('maxlength');
         }
     },
+    updateAppearanceHTML: function(ctx) {
+        
+        
+    }
     
 },
 

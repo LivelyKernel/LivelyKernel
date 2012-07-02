@@ -1123,7 +1123,8 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
 'HTML render settings', {
     htmlDispatchTable: {
         getValue: 'getValueHTML',        
-        setValue: 'setValueHTML',        
+        setValue: 'setValueHTML',
+        getBoxPosition: 'getBoxPositionHTML'    
     },
 },
 'initializing', {
@@ -1180,10 +1181,16 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     getComponentNodeIdHTML: function(ctx) {
         return ctx.inputNode.id;
     },
+    
+    getBoxPosition: function() {
+        return this.renderContextDispatch('getBoxPosition');
+    }
+    
 },
 
 'event handling', {
     showListBox: function() {
+        var e = this.getExtent();        
         var listBox = new lively.morphic.SAPUI5.DropDownListBox(new Rectangle(0,0,100,100),this, this.items);
         this.world().addMorph(listBox);
         listBox.focus();

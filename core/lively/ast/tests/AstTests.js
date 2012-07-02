@@ -223,7 +223,7 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
     },
 
     test05aEnumerateASTNodes: function() {
-        var funcAst = function() { if (true) return 1 + m(); foo() }.ast();
+        var funcAst = function(a) { if (a) return 1 + m(); foo() }.ast();
         // funcAst.printTree(true) gives a tree in post order, just enumerate it
         // 0    Variable(condExpr)
         // 1       Number(left)

@@ -211,9 +211,14 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Button',
 lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
 
 'settings',{
-    classes: 'sapUiTf sapUiTfBrd sapUiTfStd',    
+    classes: 'sapUiTf sapUiTfBrd',
+    normalClass: 'sapUiTfStd',
+    readOnlyClass: 'sapUiTfRo',
     focusClass: 'sapUiTfFoc',
     disabledClass: 'sapUiTfDsbl',
+    warningClass: 'sapUiTfWarn',
+    errorClass: 'sapUiTfErr', 
+    successClass: 'sapUiTfSucc',
     defaultValue: "",
     fixedHeight: true
 },
@@ -278,8 +283,12 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
             ctx.componentNode.readOnly= false;        
         }
         
-        if (this.warning)
-        
+        if (this.warning) {
+            classNames+=' '+this.warningClass;
+        }
+        if (this.error) {
+            classNames+=' '+this.errorClass;
+        }        
         
         if (this.hasFocus ) {
             classNames+=' '+this.focusClass;

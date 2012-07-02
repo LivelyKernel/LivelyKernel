@@ -1135,8 +1135,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
         if (!ctx.componentNode)
             ctx.componentNode= XHTMLNS.create('div');
         if (!ctx.inputNode) this.setupInputNodeHTML(ctx);
-            
-        
         if (!ctx.buttonNode) this.setupButtonNodeHTML(ctx);
          this.setComponentNodeClass(this.classes);
          this.setComponentNodeId();
@@ -1159,6 +1157,13 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
         ctx.componentNode.appendChild(ctx.inputNode);
         ctx.componentNode.appendChild(ctx.buttonNode);
         $super(ctx, optMorphAfter);
+    },
+    getValueHTML: function(ctx) {
+        if (ctx.inputNode) return ctx.inputNode.value;
+        else return "";  
+    },
+    setValueHTML: function(ctx, value) {
+        if (ctx.inputNode) ctx.inputNode.value = value;
     },
     setComponentNodeIdHTML: function(ctx) {
         ctx.inputNode.id = 'combo-'+this.id;

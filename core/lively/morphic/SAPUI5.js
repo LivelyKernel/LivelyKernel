@@ -318,6 +318,24 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
 }
 );
 
+lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
+'settings',{
+    classes: 'sapUiTf sapUiTfBrd sapUiTfStd',    
+    focusClass: 'sapUiTfFoc',
+    disabledClass: 'sapUiTfDsbl',
+    defaultValue: "",
+    fixedHeight: true
+},
+'HTML render settings', {
+    htmlDispatchTable: {
+        getValue: 'getValueHTML',        
+        setValue: 'setValueHTML',        
+        setMaxLength: 'setMaxLengthHTML',
+        getMaxLength: 'getMaxLengthHTML',
+    },
+}
+);
+
 lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.CheckBox',
 
 'settings',{

@@ -1151,7 +1151,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     setupButtonNodeHTML: function(ctx){
          ctx.buttonNode= XHTMLNS.create('div');
           ctx.buttonNode.className = this.buttonClasses;
-          ctx.innerHTML('▼');
+          ctx.buttonNode.innerHTML='▼';
           
     },
     

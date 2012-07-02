@@ -1009,6 +1009,7 @@ Function.addMethods(
 'ast', {
     ast: function() {
         if (this._cachedAst) return this._cachedAst;
+        console.log('parsing ' + this.qualifiedMethodName());
         var parseResult = lively.ast.Parser.parse(this.toSource(), 'topLevel');
         if (!parseResult || Object.isString(parseResult)) return parseResult;
         parseResult = parseResult.children[0];

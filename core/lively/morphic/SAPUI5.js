@@ -1118,22 +1118,6 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
     defaultValue: "",
     fixedHeight: true
 },
-'HTML', {
-    initHTML: function($super, ctx, optValue) {
-        if (!ctx.componentNode)
-            ctx.componentNode= XHTMLNS.create('div');
-         this.setComponentNodeClass(this.classes);
-         this.setComponentNodeId();
-        $super(ctx);
-        if (this.shape) this.setValueHTML(ctx, (optValue || this.defaultValue));
-    },
-    setComponentNodeIdHTML: function(ctx) {
-        ctx.inputNode.id = 'combo-'+this.id;
-    },
-    getComponentNodeIdHTML: function(ctx) {
-        return ctx.inputNode.id;
-    },
-},
 'initializing', {
     initialize: function($super, bounds) {
         $super(bounds);
@@ -1142,6 +1126,33 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
         this.hasFocus = false;
         this.updateAppearance();
     }
+},
+
+'HTML', {
+    initHTML: function($super, ctx, optValue) {
+        if (!ctx.componentNode)
+            ctx.componentNode= XHTMLNS.create('div');
+        if (!ctx.inputNode)
+            ctx.inputNode= XHTMLNS.create('input');
+        ctx.inputNode.style="width:100%;text-align:left";
+        if (!ctx.buttonNode)
+            ctx.buttonNode= XHTMLNS.create('div');
+         this.setComponentNodeClass(this.classes);
+         this.setComponentNodeId();
+        $super(ctx);
+        if (this.shape) this.setValueHTML(ctx, (optValue || this.defaultValue));
+    },
+    appendHTML: function($super, ctx, optMorphAfter) {
+        ctx.componentNode.appendChild(ctx.checkBoxNode);
+        ctx.componentNode.appendChild(ctx.labelNode);
+        $super(ctx, optMorphAfter);
+    },
+    setComponentNodeIdHTML: function(ctx) {
+        ctx.inputNode.id = 'combo-'+this.id;
+    },
+    getComponentNodeIdHTML: function(ctx) {
+        return ctx.inputNode.id;
+    },
 },
 
 'event handling', {

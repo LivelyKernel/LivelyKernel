@@ -1222,13 +1222,12 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.ComboBox',
 
 lively.morphic.SAPUI5.ListBox.subclass('lively.morphic.SAPUI5.DropDownListBox',
 'settings',{
-    classes: 'sapUiTf sapUiTfBrd sapUiTfCombo sapUiTfStd',    
-    focusClass: 'sapUiTfFoc',
-    disabledClass: 'sapUiTfDsbl',
-    inputClasses: "sapUiTf sapUiTfInner",
-    buttonClasses: 'sapUiTfComboIcon',
-    defaultValue: "",
-    fixedHeight: true
+    style: null,
+    selectionColor: null,
+    wrapperClasses: 'sapUiLbx sapUiLbxFlexWidth sapUiLbxStd sapUiShd',
+    itemClass: 'sapUiLbxI',
+    selectedItemClass: 'sapUiLbxISel',
+    itemSpanClass: 'sapUiLbxITxt',
 }
 );
 

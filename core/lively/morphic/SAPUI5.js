@@ -7,7 +7,8 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
         getComponentExtent: 'getComponentExtentHTML',
         setComponentNodeClass:'setComponentNodeClassHTML',
         getComponentNodeId: 'getComponentNodeIdHTML',
-        setComponentNodeId: 'setComponentNodeIdHTML'
+        setComponentNodeId: 'setComponentNodeIdHTML',
+        getFixedHeight: 'getFixedHeightHTML'
     },
     
     resizeComponentHTML: function(ctx) {
@@ -20,7 +21,11 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
         if (!this.fixedHeight) componentNode.style.height = extent.y /*- this.padding.bottom() - this.padding.top()*/ + 'px';
     },
     setExtent: function($super, extent) {
-        $super(extent);
+        var e = extent;
+        if (this.fixedHeight) {
+            
+        }
+        $super(e);
         this.resizeComponent();
     },
     getComponentExtent: function() { return this.renderContextDispatch('getComponentExtent') },
@@ -42,7 +47,12 @@ lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
     resizeComponent: function(idx) {
         return this.renderContextDispatch('resizeComponent');
     },
-    
+    getFixedHeight: function() {
+        return this.renderContextDispatch('getFixedHeight');    
+    },
+    getFixedHeightHTML: function(ctx) {
+        return $(ctx.componentNode).outerHeight();
+    },
     setComponentNodeClassHTML: function(ctx, className) {
         ctx.componentNode.className = className;
     },

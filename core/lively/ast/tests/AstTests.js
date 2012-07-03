@@ -176,8 +176,7 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
                 ["try", [0, 17],
                     ["begin", [4, 4]], ["get", [12, 13], "e"], ["begin", [16, 16]],
                     ["get", [17, 17], "undefined"]]],
-            result = this.parseJS(src, 'expr');
-        inspect(result);
+            result = this.parseJS(src, 'topLevel');
         this.assertMatches(expected, result);
     }
 });

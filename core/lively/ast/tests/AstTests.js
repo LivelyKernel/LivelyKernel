@@ -172,10 +172,11 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
     },
     test15StatementAfterCatchBlock: function() {
         var src = 'try{} catch(e) {}',
-            expected = ["begin", [0, 17],
+            expected = ["begin", [0, 20],
                 ["try", [0, 17],
                     ["begin", [4, 4]], ["get", [12, 13], "e"], ["begin", [16, 16]],
-                    ["get", [17, 17], "undefined"]]],
+                    ["get", [17, 17], "undefined"]],
+                ["getp", [17, 20], ["string", [19, 20], "b"], ["get", [17, 18], "a"]]],
             result = this.parseJS(src, 'topLevel');
         this.assertMatches(expected, result);
     }

@@ -212,7 +212,7 @@ stmt =
 		| "throw" spacesNoNl expr:e sc pos:p2		-> [#throw, [p1, p2], e]
 		| "try" block:t
 			( "catch" "(" formal:e ")" block | ( empty pos:p -> [#get, [p,p], 'undefined'] ):e ):c
-			( "finally" block | empty pos:p -> [#get, [p,p], 'undefined'] ):f sc pos:p2
+			( "finally" block | empty pos:p -> [#get, [p,p], 'undefined'] ):f pos:p2
 			-> [#try, [p1, p2], t, e, c, f]
 		| "return" ( expr | empty pos:p -> [#get, [p,p], 'undefined'] ):e sc pos:p2 -> [#return, [p1, p2], e]
 		| "with" "(" expr:x ")" stmt:s pos:p2		-> [#with, [p1, p2], x, s]

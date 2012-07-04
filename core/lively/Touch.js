@@ -2824,9 +2824,6 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
             a.push(["tools", [  ['inspect', function() {
                                     $world.openInspectorFor(self)
                                 }],
-                                ['edit', function() {
-                                    $world.openObjectEditorFor(self)
-                                }],
                                 ['style', 
                                 [ ['Fill', function() {
                                     $world.openColorStylerFor(self);

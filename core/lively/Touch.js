@@ -2006,7 +2006,7 @@ morphMenuDefaultPartsItems: function () {
             $world.loadWorldMenu();
         },
     }).refineClass(lively.morphic.SliderKnob, {
-        onDrag: function(evt) {
+        onDrag: function($super, evt) {
         // the hitpoint is the offset that make the slider move smooth
         if (!this.hitPoint) return; // we were not clicked on...
 

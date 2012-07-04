@@ -2864,11 +2864,25 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
         var a = cop.proceed();
         var self = this;
         
-        a.push(["flaps", [  ['PartsBin', function() {
+        a[0] = ["PartsBin", function() {
+                var pb = self.openPartItem("FlapPB", "PartsBin/iPadWidgets");
+                pb.updateZoomScale.bind(pb, $world.getZoomLevel()).delay(0);
+            }];
+        a[2][2] = ['Object Editor', function() {
+                var oe = self.openPartItem("FlapOE", "PartsBin/iPadWidgets");
+                oe.updateZoomScale.bind(oe, $world.getZoomLevel()).delay(0);                                    
+            }];
+                
+        a[2].push(['Empty flap', function() {
+                var flap = self.openPartItem("Flap", "PartsBin/iPadWidgets");
+                flap.updateZoomScale.bind(flap, $world.getZoomLevel()).delay(0);
+            }]);
+        
+        a.push(["Flaps", [  ['PartsBin', function() {
                                 var pb = self.openPartItem("FlapPB", "PartsBin/iPadWidgets");
                                 pb.updateZoomScale.bind(pb, $world.getZoomLevel()).delay(0);
                             }],
-                            ['ObjectEditor', function() {
+                            ['Object Editor', function() {
                                 var oe = self.openPartItem("FlapOE", "PartsBin/iPadWidgets");
                                 oe.updateZoomScale.bind(oe, $world.getZoomLevel()).delay(0);                                    
                             }],

@@ -1,5 +1,93 @@
 module('lively.morphic.TextUndo').requires('lively.morphic.TextCore', 'lively.morphic.tests.Helper').toRun(function() {
 
+// TODO general explanation of the mutation-observer-undo approach
+// explain:
+// "text change"
+// "mutation"
+// "dom change"
+// "text undo"
+
+/*
+ * == What is text state?
+ *
+ * text content:
+ *   textChunks
+ *
+ * Style:
+ *   _WhiteSpaceHandling
+ *   _FontFamily
+ *   _FontSize
+ *   _MaxTextWidth
+ *   _MinTextWidth
+ *   _MaxTextHeight
+ *   _MinTextHeight
+ *
+ * Events:
+ *   _InputAllowed
+ *   allowInput
+ *
+ * Eval:
+ *   evalEnabled
+ *
+ * Syntax highlighting:
+ *   syntaxHighlightingWhileTyping
+ *   _syntaxHighlightTimeout
+ *   lastSyntaxHighlightTime
+ *
+ * Selection:
+ *   previousSelection
+ *   priorSelectionRange
+ *
+ * Modification / undo state:
+ *   undoState
+ *   charsTyped
+ *   charsReplaced
+ *
+ * Caching:
+ *   cachedTextString
+ *
+ * Searching:
+ *    lastFindLoc
+ *
+ *
+ * == TextChunks
+ * TextChunks are used to simplify the implementation of rich text and hold the
+ * string and style, as well the DOM state for text parts with the same style:
+ *
+ * TextChunk state:
+ *   style
+ *   chunkOwner
+ *   debugMode
+ *   chunkNode
+ *
+ *
+ * == Text state synchronization
+
+ * When changing the state manually (e.g. for undoing) it is important that the
+ * Morphic and DOM representation remain in synch. The current assumptions about
+ * the rendering can be used:
+ *   - a textMorph has one textNode
+ *   - the textNode as at least one <span/> node
+ *   - each span node is represented by a TextChunk
+ *
+ * When the DOM state is changed and it is known that the DOM change leaves the
+ * DOM in a well-formed (for Lively) state then it is possible to re-sync the
+ * morphic representation with the DOM.
+ * When the DOM state is unknown then first a normalization is necessary (see
+ * e.g. #coalesceChunks).
+ *
+ * For DOM mutation undos we will use a mixed approach: recovering the DOM state
+ * completely from DOM mutations and the changes they recorded. Resyncing the
+ * TextChunks by reading the spans but not parsing the style...? Instead of
+ * parsing the style we prefer to record the style on DOM mutation recording...
+ * for that we have to figure out what styles (what text chunks) have changes or
+ * recorsd all styles (expensive).
+ */
+
+// lively.morphic.TextUndo.TextUndo is created when a text change is recorded. A
+// text change is a list of DOM mutations. It is parameterized with settings
+// that hold the state necessary for undoing a text change as well as a
+// "undoFunc" that is triggered when the undo should be executed
 Object.subclass('lively.morphic.TextUndo.TextUndo',
 'initializing', {
     initialize: function(settings) {
@@ -32,6 +120,10 @@ Object.extend(lively.morphic.TextUndo.TextUndo, {
     }
 });
 
+// The lively.morphic.TextUndo.TextMutationObserverTrait is applied to
+// lively.morphic.Text and provides the functionality to record text changes.
+// Currently it uses calls to #prepareForTextMutationRecording that were patched
+// into the lively.morphic.Text code to be initialized
 Trait("lively.morphic.TextUndo.TextMutationObserverTrait", {
     onLoad: function() {
         if (this.prepareForTextMutationRecording) this.prepareForTextMutationRecording();

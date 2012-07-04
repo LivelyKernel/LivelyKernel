@@ -2033,6 +2033,10 @@ morphMenuDefaultPartsItems: function () {
     isEnlarged: function() {
         return this.submorphs.length != 0
     },
+    newMethod: function() {
+        // enter comment here
+    }
+
 
     })
 .beGlobal();

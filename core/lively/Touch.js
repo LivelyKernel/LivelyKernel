@@ -2041,6 +2041,10 @@ cop.create('DoubleTapSelection').refineClass(lively.morphic.Button,{
     onDoubleTap: function(){
         this.select();
     },
+}).refineClass(lively.morphic.Slider,{
+    onDoubleTap: function(){
+        this.select();
+    },
 }).refineClass(lively.morphic.Text,{
     onDoubleTap: function(evt){
         this.select();
@@ -2864,18 +2868,16 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
         var a = cop.proceed();
         var self = this;
         
-        alert(a[0]);
-        
         a[0] = ["PartsBin", function() {
                 var pb = self.openPartItem("FlapPB", "PartsBin/iPadWidgets");
                 pb.updateZoomScale.bind(pb, $world.getZoomLevel()).delay(0);
             }];
-        a[2][1][2] = ['Object Editor', function() {
+        a[2][2] = ['Object Editor', function() {
                 var oe = self.openPartItem("FlapOE", "PartsBin/iPadWidgets");
                 oe.updateZoomScale.bind(oe, $world.getZoomLevel()).delay(0);                                    
             }];
                 
-        a[2][1].push(['Empty Flap', function() {
+        a[2].push(['Empty flap', function() {
                 var flap = self.openPartItem("Flap", "PartsBin/iPadWidgets");
                 flap.updateZoomScale.bind(flap, $world.getZoomLevel()).delay(0);
             }]);

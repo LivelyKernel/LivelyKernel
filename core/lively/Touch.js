@@ -1900,7 +1900,7 @@ morphMenuDefaultPartsItems: function () {
         this.normalFill = Color.white;
         this.lighterFill = this.normalFill.mixedWith(Color.darkGray, 0.5);
         this.label.setBorderWidth(0);
-        this.label.setTextColor(Color.rgb(26,41,127));
+        this.label.setTextColor(Color.rgb(53,83,255).mixedWith(Color.black, 0.5));
         this.label.setPadding(pt(0,0).extent(pt(0,0)));
         this.centerLabel();
     },
@@ -2865,13 +2865,13 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
         var self = this;
         
         a.push(["flaps", [  ['PartsBin', function() {
-                                    
+                                self.openPartItem("FlapPB", "PartsBin/iPadWidgets");
                             }],
                             ['ObjectEditor', function() {
-                                    
+                                self.openPartItem("FlapOE", "PartsBin/iPadWidgets");                                    
                             }],
                             ['Empty flap', function() {
-                                $self.openPartItem("iPadWidgets", "Flap").openInWorld();
+                                self.openPartItem("Flap", "PartsBin/iPadWidgets");
                             }],
                         ]    
                     ])

@@ -2863,6 +2863,19 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
     morphMenuItems: function() {
         var a = cop.proceed();
         var self = this;
+        
+        a.push(["flaps", [  ['PartsBin', function() {
+                                    
+                            }],
+                            ['ObjectEditor', function() {
+                                    
+                            }],
+                            ['Empty flap', function() {
+                                    
+                            }],
+                        ]    
+                    ])
+        return;
     },
 
     openLayoutStylerFor: function(target){

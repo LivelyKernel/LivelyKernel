@@ -2863,16 +2863,12 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
     morphMenuItems: function() {
         var a = cop.proceed();
         var self = this;
-        
-        alertOK(a[0]);
-        
-        a[2][1].push(["PartsBin", function() {
+
+        a[2][1].push(["PartsBin Flap", function() {
                 var pb = self.openPartItem("FlapPB", "PartsBin/iPadWidgets");
                 pb.updateZoomScale.bind(pb, $world.getZoomLevel()).delay(0);
             }]);
-            
-        alertOK(a[0]);
-            
+
         a[2][1][2] = ['Object Editor', function() {
                 var oe = self.openPartItem("FlapOE", "PartsBin/iPadWidgets");
                 oe.updateZoomScale.bind(oe, $world.getZoomLevel()).delay(0);                                    

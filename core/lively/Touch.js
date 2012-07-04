@@ -2033,10 +2033,8 @@ morphMenuDefaultPartsItems: function () {
     isEnlarged: function() {
         return this.submorphs.length != 0
     },
-    onDragStart: function(evt) {
-        // enter comment here
-        return true;    
-    }
+    grabbingEnabled: true,   
+
 
 
     })

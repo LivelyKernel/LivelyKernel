@@ -2860,6 +2860,10 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
         }
         target.showHalos()
 },
+    newMethod: function() {
+        // enter comment here
+    },
+
     openLayoutStylerFor: function(target){
         if(!this.layoutStyler) {
             this.layoutStyler = this.openPartItem('LayoutStyler', 'PartsBin/iPadWidgets');

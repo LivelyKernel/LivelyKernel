@@ -2033,7 +2033,7 @@ morphMenuDefaultPartsItems: function () {
     isEnlarged: function() {
         return this.submorphs.length != 0
     },
-    grabbingEnabled: true,   
+   
 
 
 

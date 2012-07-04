@@ -2089,6 +2089,10 @@ cop.create('TouchAndHoldSelection').refineClass(lively.morphic.Button,{
     onHold: function(){
         this.select();
     },
+}).refineClass(lively.morphic.Slider,{
+    onHold: function(){
+        this.select();
+    },
 }).refineClass(lively.morphic.Text,{
     onHold: function(){
         this.select();

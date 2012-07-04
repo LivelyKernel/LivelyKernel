@@ -92,6 +92,7 @@ var testList = [
     "lively.morphic.tests.Morphic2",
     "lively.morphic.tests.PathTests",
     "lively.morphic.tests.ShapeTests",
+    "lively.morphic.tests.TextUndoTests",
     "lively.morphic.tests.TabTests",
 
     //bindings

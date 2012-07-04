@@ -2874,8 +2874,8 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
                                 self.openPartItem("Flap", "PartsBin/iPadWidgets");
                             }],
                         ]    
-                    ])
-        return;
+                    ]);
+        return a;
     },
 
     openLayoutStylerFor: function(target){

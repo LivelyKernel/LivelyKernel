@@ -3848,9 +3848,9 @@ cop.create('ToolMorphLayer').refineClass(lively.morphic.Morph, {
     onMouseDown: function (evt) {
         cop.proceed(evt);
 
-        if (!evt.isRightMouseButtonDown()){
+        /*if (!evt.isRightMouseButtonDown()){
             $world.ignoreHalos = true;
-        }
+        }*/
     },
 }).refineClass(lively.morphic.Window, {
     collapse: function () {

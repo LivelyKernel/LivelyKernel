@@ -2860,8 +2860,9 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
         }
         target.showHalos()
 },
-    newMethod: function() {
-        // enter comment here
+    morphMenuItems: function() {
+        var a = cop.proceed();
+        var self = this;
     },
 
     openLayoutStylerFor: function(target){

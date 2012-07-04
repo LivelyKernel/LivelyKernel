@@ -2873,7 +2873,7 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
                 oe.updateZoomScale.bind(oe, $world.getZoomLevel()).delay(0);                                    
             }];
                 
-        a[2].push(['Empty flap', function() {
+        a[2].push(['Empty Flap', function() {
                 var flap = self.openPartItem("Flap", "PartsBin/iPadWidgets");
                 flap.updateZoomScale.bind(flap, $world.getZoomLevel()).delay(0);
             }]);

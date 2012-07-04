@@ -2869,10 +2869,12 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
                                 pb.updateZoomScale.bind(pb, $world.getZoomLevel()).delay(0);
                             }],
                             ['ObjectEditor', function() {
-                                self.openPartItem("FlapOE", "PartsBin/iPadWidgets");                                    
+                                var oe = self.openPartItem("FlapOE", "PartsBin/iPadWidgets");
+                                oe.updateZoomScale.bind(pb, $world.getZoomLevel()).delay(0);                                    
                             }],
                             ['Empty flap', function() {
-                                self.openPartItem("Flap", "PartsBin/iPadWidgets");
+                                var flap = self.openPartItem("Flap", "PartsBin/iPadWidgets");
+                                flap.updateZoomScale.bind(pb, $world.getZoomLevel()).delay(0);
                             }],
                         ]    
                     ]);

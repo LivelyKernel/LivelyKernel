@@ -2871,7 +2871,7 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
                                     
                             }],
                             ['Empty flap', function() {
-                                    
+                                $self.openPartItem("iPadWidgets", "Flap").openInWorld();
                             }],
                         ]    
                     ])

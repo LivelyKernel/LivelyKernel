@@ -2865,7 +2865,7 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
         var self = this;
         
         a.push(["flaps", [  ['PartsBin', function() {
-                                self.openPartItem("FlapPB", "PartsBin/iPadWidgets");
+                                self.openPartItem("FlapPB", "PartsBin/iPadWidgets").updateZoomScale($world.getZoomLevel());
                             }],
                             ['ObjectEditor', function() {
                                 self.openPartItem("FlapOE", "PartsBin/iPadWidgets");                                    

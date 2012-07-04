@@ -2865,13 +2865,13 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
         var self = this;
         
         a.push(["flaps", [  ['PartsBin', function() {
-                                self.openPartItem("FlapPB", "PartsBin/iPadWidgets").openInWorld();
+                                self.openPartItem("FlapPB", "PartsBin/iPadWidgets");
                             }],
                             ['ObjectEditor', function() {
-                                self.openPartItem("FlapOE", "PartsBin/iPadWidgets").openInWorld();                                    
+                                self.openPartItem("FlapOE", "PartsBin/iPadWidgets");                                    
                             }],
                             ['Empty flap', function() {
-                                self.openPartItem("Flap", "PartsBin/iPadWidgets").openInWorld();
+                                self.openPartItem("Flap", "PartsBin/iPadWidgets");
                             }],
                         ]    
                     ]);

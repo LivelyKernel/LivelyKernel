@@ -43,18 +43,8 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
     },
     setExtentHTML: function(ctx, value) {
         if (!ctx.morphNode) return undefined;
-        var padding = this.getPadding(),
-            paddingWidth = padding.left() + padding.right(),
-            paddingHeight = padding.top() + padding.bottom(),
-            // HTML isn't using fractions for pixels, rounds internally,
-            // this has to be reflected to compensate HTML's box model
-            borderWidth = Math.floor(this.getBorderWidth()),
-            realExtent = value
-                         .addXY(-2 * borderWidth, -2 * borderWidth)
-                         .addXY(-paddingWidth, -paddingHeight);
-            realExtent = realExtent.maxPt(pt(0,0));
-        ctx.domInterface.setExtent(ctx.morphNode, realExtent);
-        return realExtent;
+        ctx.domInterface.setExtent(ctx.morphNode, value);
+        return value;
     },
     getExtent: function(){
         var ctx = this.renderContext();

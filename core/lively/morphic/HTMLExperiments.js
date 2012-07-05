@@ -57,12 +57,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
         return realExtent;
     },
     setFillHTML: function(ctx, value) {
-        if (!ctx.shapeNode) return;
-        if (this.isStyleSheetAppearance) {
-            ctx.domInterface.setFill(ctx.shapeNode, null, this.getBounds());
-        } else {
-            ctx.domInterface.setFill(ctx.shapeNode, value, this.getBounds());
-        }
+        
     },
     setBorderColorHTML: function(ctx, fill) {
         var alpha;

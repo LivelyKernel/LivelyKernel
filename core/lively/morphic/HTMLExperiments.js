@@ -53,7 +53,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
                          .addXY(-2 * borderWidth, -2 * borderWidth)
                          .addXY(-paddingWidth, -paddingHeight);
             realExtent = realExtent.maxPt(pt(0,0));
-        ctx.domInterface.setExtent(ctx.shapeNode, realExtent);
+        ctx.domInterface.setExtent(ctx.morphNode, realExtent);
         return realExtent;
     },
     setFillHTML: function(ctx, value) {

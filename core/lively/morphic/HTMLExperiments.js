@@ -48,8 +48,8 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
     },
     getExtent: function(){
         var ctx = this.renderContext();
-        var w = $(ctx.morphNode).outerWidth();
-        var h = $(ctx.morphNode).outerHeight();
+        var w = $(ctx.morphNode).innerWidth();
+        var h = $(ctx.morphNode).innerHeight();
         return pt(w, h);
     },
     

@@ -100,7 +100,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
         if (value instanceof Array) {
             a = value.join(" ");
         }
-        ctx.morphNodeshapeNode.className = a;
+        ctx.morphNode.className = a;
     },
     setStyleSheetHTML: function(ctx, value) {
         var morphId = ctx.morphNode.id;

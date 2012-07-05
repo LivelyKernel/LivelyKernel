@@ -95,6 +95,10 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
     setPaddingHTML: function(ctx, r) {
 
     },
+    setNodeIdHTML: function(ctx, value) {
+        //console.log("HTML.js, setStyleIdHTML(): Ok, got it, setting shape HTML id to "+value);
+        ctx.morphNode.id = value;
+    },
     setNodeClassHTML: function(ctx, value) {
         var a = value;
         if (value instanceof Array) {

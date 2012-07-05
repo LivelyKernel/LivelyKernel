@@ -38,14 +38,11 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
 },
 'updating', {
     setPositionHTML: function(ctx, value) {
-        if (!ctx.shapeNode) return;
-        ctx.domInterface.setPosition(ctx.shapeNode, value);
-        if (ctx.originNode) {
-            this.compensateShapeNode(ctx);
-        }
+        if (!ctx.morphNode) return undefined;
+        ctx.domInterface.setPosition(ctx.morphNode, value);
     },
     setExtentHTML: function(ctx, value) {
-        if (!ctx.shapeNode) return undefined;
+        if (!ctx.morphNode) return undefined;
         var padding = this.getPadding(),
             paddingWidth = padding.left() + padding.right(),
             paddingHeight = padding.top() + padding.bottom(),

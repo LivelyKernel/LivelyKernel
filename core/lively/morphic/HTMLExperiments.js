@@ -6,8 +6,8 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
 },
 'initializing', {
     initHTML: function(ctx) {
-        if (!ctx.shapeNode)
-            throw new Error('Cannot call Shape>>initHTML because no shapeNode exists')
+        ctx.shapeNode = XHTMLNS.create('div');
+        /*
         this.setPositionHTML(ctx, this.getPosition());
         this.setExtentHTML(ctx, this.getExtent());
         this.setFillHTML(ctx, this.getFill());
@@ -20,11 +20,12 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
         this.getNodeClass() && this.setNodeClassHTML(ctx, this.getNodeClass());
         if (this.getNodeId()) {
             this.setNodeIdHTML(ctx, this.getNodeId());
-            this.getStyleSheet && this.setStyleSheetHTML(ctx, this.getStyleSheet());
+            /this.getStyleSheet && this.setStyleSheetHTML(ctx, this.getStyleSheet());
         }
 
         if (UserAgent.fireFoxVersion)
             ctx.shapeNode['-moz-user-modify'] = 'read-only'
+            */
     },
     renderHTML: function(ctx) {
         if (ctx.shapeNode.parentNode) return;

@@ -56,6 +56,13 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
         ctx.domInterface.setExtent(ctx.morphNode, realExtent);
         return realExtent;
     },
+    getExtent: function(){
+        var ctx = this.renderContext();
+        var w = $(ctx.morphNode).outerWidth();
+        var h = $(ctx.morphNode).outerHeight();
+        return pt(w, h);
+    },
+    
     setFillHTML: function(ctx, value) {
         
     },
@@ -158,6 +165,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
         this.setExtentHTML(ctx, this.getExtent());
         
     },
+    
 
 
 }

@@ -2,7 +2,7 @@ module('lively.morphic.HTMLExperiments').requires('lively.morphic.HTML').toRun(f
 
 lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
 'documentation', {
-    documentation: 'a shape that wraps an arbitrary HTML element',
+    documentation: 'a shape that does not get rendered and acts as a proxy to the morph itself',
 }
 );
 

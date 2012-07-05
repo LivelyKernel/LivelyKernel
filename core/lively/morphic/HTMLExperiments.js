@@ -28,10 +28,12 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
             */
     },
     renderHTML: function(ctx) {
+        /*
         if (ctx.shapeNode.parentNode) return;
         var child = ctx.morphNode.childNodes[0];
         if (!child) ctx.morphNode.appendChild(ctx.shapeNode)
         else ctx.morphNode.insertBefore(ctx.shapeNode, child)
+        */
     },
 },
 'updating', {

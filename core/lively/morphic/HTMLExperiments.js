@@ -1,4 +1,4 @@
-module('lively.morphic.HTMLExperiments').requires().toRun(function() {
+module('lively.morphic.HTMLExperiments').requires('lively.morphic.HTML').toRun(function() {
 
 // Enter your code here
 

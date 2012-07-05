@@ -59,20 +59,9 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
     setFillHTML: function(ctx, value) {
         
     },
-    setBorderColorHTML: function(ctx, fill) {
-        var alpha;
-        if (this.getStrokeOpacity() != 1) {
-            alpha = this.getStrokeOpacity();
-        } else {
-            alpha = fill === null ? 0 : fill.a;
-        }
-        return this.setBorderHTML(ctx, this.getBorderWidth(), fill, alpha)
-    },
+
     setBorderStyleHTML: function(ctx, value) {
-        if (ctx.shapeNode) {
-            var style = this.isStyleSheetBorder ? null : value;
-            ctx.shapeNode.style.borderStyle = style;
-        }
+
     },
     setBorderWidthHTML: function(ctx, width) {
         this.setBorderHTML(ctx, width, this.getBorderColor(), this.getStrokeOpacity());
@@ -80,25 +69,10 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
         this.setExtentHTML(ctx, this.getExtent());
         return width;
     },
-    setBorderRadiusHTML: function(ctx, value) {
-        // does not make sense for morphs in general
-    },
-    setStrokeOpacityHTML: function(ctx, opacity) {
-        return this.setBorderHTML(ctx, this.getBorderWidth(), this.getBorderColor(), opacity)
-    },
+
+
     setBorderHTML: function(ctx, width, fill, opacity) {
-        if (!ctx.shapeNode) return;
-        if (this.isStyleSheetBorder) {
-             ctx.shapeNode.style['border'] = null;
-        } else {
-            if ((fill instanceof Color) && opacity) fill = fill.withA(opacity);
-            if (!fill) fill = Color.rgba(0,0,0,0);
-            ctx.shapeNode.style['border'] = this.getBorderStyle() + ' ' + width + 'px ' +
-                fill.toCSSString(this.getBounds(), ctx.domInterface.html5CssPrefix);
-        }
-        if (ctx.originNode) {
-            this.compensateShapeNode(ctx);
-        }
+
     },
     compensateShapeNode: function(ctx) {
         // compensates the shapeNode's position for childmorphs,
@@ -116,34 +90,15 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
         ctx.originNode.style.setProperty('margin-left', -this.getBorderWidth() + 'px', 'important');
     },
     setOpacityHTML: function(ctx, value) {
-        if (ctx.shapeNode) ctx.shapeNode.style.opacity = this.isStyleSheetAppearance ? null : value;
+
     },
     setPaddingHTML: function(ctx, r) {
-        if (r === undefined || !ctx.shapeNode) return r;
-        // Rectangle.inset(left, top, right, bottom) ==>
-        // CSS padding: [padding-top] [padding-right] [padding-bottom] [padding-left]
-        var s = r.top() + "px " + r.right() + "px " + r.bottom() + "px " + r.left() + "px";
-        ctx.shapeNode.style.padding = s;
-        return r;
-    },
 
-    setNodeClassHTML: function(ctx, value) {
-        var a = value;
-        if (value instanceof Array) {
-            a = value.join(" ");
-        }
-        ctx.shapeNode.className = a;
     },
-
-    setNodeIdHTML: function(ctx, value) {
-        //console.log("HTML.js, setStyleIdHTML(): Ok, got it, setting shape HTML id to "+value);
-        ctx.shapeNode.id = value;
-    },
-
     setStyleSheetHTML: function(ctx, value) {
-        var morphId = ctx.shapeNode.id;
+        var morphId = ctx.morphNode.id;
         if (!morphId) {
-            alert("Cannot set morph specific style sheet. Shape node was not assigned any id.");
+            alert("Cannot set morph specific style sheet. Morph node was not assigned any id.");
             return;
         }
 

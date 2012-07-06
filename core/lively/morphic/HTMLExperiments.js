@@ -37,6 +37,11 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
     },
 },
 'updating', {
+    getPosition: function() {
+        var ctx = this.renderContext();
+        var p = $(ctx.morphNode).position();
+        return pt(p.left, p.top);
+    },
     setPositionHTML: function(ctx, value) {
         if (!ctx.morphNode) return undefined;
         ctx.domInterface.setPosition(ctx.morphNode, value);

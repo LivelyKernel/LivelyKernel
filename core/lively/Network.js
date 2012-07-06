@@ -1364,6 +1364,7 @@ Object.subclass('WebResource',
     },
     addNoCacheHeader: function() {
         this.setRequestHeaders({"Cache-Control": 'no-cache'});
+        return this;
     }
 
 },

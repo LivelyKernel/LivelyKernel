@@ -84,42 +84,6 @@ module('lively.morphic.TextUndo').requires('lively.morphic.TextCore').toRun(func
  * recorsd all styles (expensive).
  */
 
-// lively.morphic.TextUndo.TextUndo is created when a text change is recorded. A
-// text change is a list of DOM mutations. It is parameterized with settings
-// that hold the state necessary for undoing a text change as well as a
-// "undoFunc" that is triggered when the undo should be executed
-Object.subclass('lively.morphic.TextUndo.TextUndo',
-'initializing', {
-    initialize: function(settings) {
-        this.type = 'unknown';
-        this.text = settings.text;
-        this.undoFunc = settings.undo;
-        delete settings.undo;
-        Object.extend(this, settings);
-    }
-},
-'undoing', {
-    undo: function() {
-        var text = this.text;
-        if (this.undoFunc) {
-            text.undoState.undoInProgress = true;
-            this.undoFunc();
-        }
-    }
-},
-'debugging', {
-    toString: function() {
-        return 'TextUndo<' + this.type + '>';
-    }
-});
-
-Object.extend(lively.morphic.TextUndo.TextUndo, {
-    forText: function(text, settings) {
-        if (!settings.text) settings.text = text;
-        return new this(settings);
-    }
-});
-
 // The lively.morphic.TextUndo.TextMutationObserverTrait is applied to
 // lively.morphic.Text and provides the functionality to record text changes.
 // Currently it uses calls to #prepareForTextMutationRecording that were patched
@@ -135,10 +99,7 @@ Trait("lively.morphic.TextUndo.TextMutationObserverTrait", {
             return;
         }
         this.doNotSerialize = ['undoState'];
-        this.undoState = {
-            changes: [],
-            recordingErrors: []
-        };
+        this.undoState = {changes: []};
         this.observeTextChangesExpt();
 LastMutations = [];
 basicUndos = this.undoState.changes;
@@ -181,6 +142,8 @@ LastMutations.push(mutations);
     },
     // ---------- recording mutations ------------
     addUndo: function(undoSettings) {
+        // undoSettings.textChunkState = this.getTextChunks().clone();
+        undoSettings.textChunkState = this.getTextChunks().invoke('toPlainObject');
         var undo = lively.morphic.TextUndo.TextUndo.forText(this, undoSettings);
         this.undoState.changes.push(undo);
     },
@@ -206,10 +169,18 @@ LastMutations.push(mutations);
         } else if (this.isChunkMergeAtBorder(mutations)) {
             this.recordChunkMergeAtBorder(mutations);
         } else {
-            debugger;
+            // debugger;
             console.error('unrecognized text change');
             // this.showMutationsExpt(mutations);
-            this.undoState.recordingErrors.push(mutations);
+            var domChanges = lively.morphic.TextUndo.AtomicDOMChange.fromMutations(mutations, this);
+            this.addUndo({
+                type: 'unknownChange',
+                mutations: mutations,
+                mutationsString: this.showMutationsExpt(mutations),
+                domChanges: domChanges,
+                undo: function() {}
+            });
+            // this.undoState.recordingErrors.push(mutations);
         }
     },
     normalizeMutations: function(mutations) {
@@ -246,7 +217,8 @@ LastMutations.push(mutations);
     recordTextAttributeChange: function(mutations) {
         var text = this,
             styleMutation = mutations[0],
-            atomicChange = lively.morphic.TextUndo.AtomicDOMChange.from(styleMutation),
+            domChanges = lively.morphic.TextUndo.AtomicDOMChange.fromMutations(mutations, this),
+            atomicChange = domChanges[0],
             chunkIndex = this.findChunkNodeIndexOf(atomicChange.target),
             chunk = this.getTextChunks()[chunkIndex];
 
@@ -254,6 +226,7 @@ LastMutations.push(mutations);
             type: 'textAttributeChange',
             mutations: mutations,
             mutationsString: this.showMutationsExpt(mutations),
+            domChanges: domChanges,
             undo: function() {
                 // DOM level:
                 atomicChange.undo();
@@ -289,7 +262,8 @@ LastMutations.push(mutations);
         // 2. remember the index of the textNode that was changed (childNode of chunkNode)
         var text = this,
             textMutation = mutations[0],
-            domChange = lively.morphic.TextUndo.AtomicDOMChange.from(textMutation),
+            domChanges = lively.morphic.TextUndo.AtomicDOMChange.fromMutations(mutations, this),
+            domChange = domChanges[0],
             textNode = textMutation.target,
             chunkNodeIndex = this.findChunkNodeIndexOfTextNode(textNode),
             chunkNode = this.getTextChunks()[chunkNodeIndex].getChunkNode();
@@ -300,6 +274,7 @@ LastMutations.push(mutations);
             type: 'textChunkChange',
             mutations: mutations,
             mutationsString: this.showMutationsExpt(mutations),
+            domChanges: domChanges,
             // chunkNodeIndex: chunkNodeIndex,
             // prevTextString: prevTextString,
             undo: function() {
@@ -314,11 +289,6 @@ LastMutations.push(mutations);
                 text.undoState.changes = text.undoState.changes.without(this);
             }
         });
-    },
-
-    isInsertTextNodesChange: function(mutations) {
-        var i = 0, chunks = this.getTextChunks();
-
     },
 
     isSetTextStringChange: function(mutations) {
@@ -345,11 +315,12 @@ LastMutations.push(mutations);
     recordSetTextStringChange: function(mutations) {
         var text = this,
             oldStyles = text.getChunkStyles(),
-            domChanges = mutations.collect(function(ea) { return lively.morphic.TextUndo.AtomicDOMChange.from(ea); });
+            domChanges = lively.morphic.TextUndo.AtomicDOMChange.fromMutations(mutations, this);
         this.addUndo({
             type: 'textStringChange',
             mutations: mutations,
             mutationsString: this.showMutationsExpt(mutations),
+            domChanges: domChanges,
             undo: function() {
                 // dom
                 domChanges.invoke("undo");
@@ -372,12 +343,13 @@ LastMutations.push(mutations);
         var text = this,
             nonAttributeMutations = mutations.select(function(ea) { return ea.type !== 'attributes' }),
             idx = this.findChunkNodeIndexOf(nonAttributeMutations[2].target),
-            domChanges = mutations.collect(function(ea) { return lively.morphic.TextUndo.AtomicDOMChange.from(ea); });
+            domChanges = lively.morphic.TextUndo.AtomicDOMChange.fromMutations(mutations, this);
+
         this.addUndo({
             type: 'chunkSplit',
             mutations: nonAttributeMutations,
             mutationsString: this.showMutationsExpt(nonAttributeMutations),
-            toString: function() { return this.type },
+            domChanges: domChanges,
             undo: function() {
                 domChanges.invoke("undo"); // dom
                 text.getTextChunks().splice(idx, 2); // morphic
@@ -403,14 +375,13 @@ LastMutations.push(mutations);
             addedNode = attributeMutations.length === 1 ? mutations[1].addedNodes[0] : mutations[0].target,
             idx = this.findChunkNodeIndexOf(addedNode),
             atStart = idx === 0,
-            domChanges = mutations.collect(function(ea) {
-                return lively.morphic.TextUndo.AtomicDOMChange.from(ea);
-            });
+            domChanges = lively.morphic.TextUndo.AtomicDOMChange.fromMutations(mutations, this);
 
         this.addUndo({
             type: 'chunkSplitAt' + (atStart ? 'Start' : 'End'),
             mutations: nonAttributeMutations,
             mutationsString: this.showMutationsExpt(nonAttributeMutations),
+            domChanges: domChanges,
             undo: function() {
                 domChanges.invoke('undo');
                 var chunks = text.getTextChunks()
@@ -428,10 +399,12 @@ LastMutations.push(mutations);
     },
     recordChunkMerge: function(mutations) {
         mutations = mutations.select(function(ea) { return ea.type !== 'attributes' });
+        var domChanges = lively.morphic.TextUndo.AtomicDOMChange.fromMutations(mutations, this);
         this.addUndo({
             type: 'chunkMerge',
             mutations: mutations,
             mutationsString: this.showMutationsExpt(mutations),
+            domChanges: domChanges,
             mergedChunkNodeIndex: this.findChunkNodeIndexOf(mutations[1].target),
             chunkTextStrings: [mutations[1].removedNodes[0].textContent,
                                mutations[0].target.textContent,
@@ -449,11 +422,13 @@ LastMutations.push(mutations);
     },
     recordChunkMergeAtBorder: function(mutations) {
         mutations = mutations.select(function(ea) { return ea.type !== 'attributes' });
-        var atStart = mutations[0].target === this.get;
+        var domChanges = lively.morphic.TextUndo.AtomicDOMChange.fromMutations(mutations, this),
+            atStart = mutations[0].target === this.getTextChunks()[0].getChunkNode();
         this.addUndo({
             type: 'chunkMergeAt' + (atStart ? 'Start' : 'End'),
             mutations: mutations,
             mutationsString: this.showMutationsExpt(mutations),
+            domChanges: domChanges,
             mergedChunkNodeIndex: this.findChunkNodeIndexOf(mutations[1].target),
             chunkTextStrings: [mutations[1].removedNodes[0].textContent,
                                mutations[0].removedNodes[0].textContent]
@@ -554,6 +529,43 @@ LastMutations.push(mutations);
     }
 
 });
+
+// lively.morphic.TextUndo.TextUndo is created when a text change is recorded. A
+// text change is a list of DOM mutations. It is parameterized with settings
+// that hold the state necessary for undoing a text change as well as a
+// "undoFunc" that is triggered when the undo should be executed
+Object.subclass('lively.morphic.TextUndo.TextUndo',
+'initializing', {
+    initialize: function(settings) {
+        this.type = 'unknown';
+        this.text = settings.text;
+        this.undoFunc = settings.undo;
+        delete settings.undo;
+        Object.extend(this, settings);
+    }
+},
+'undoing', {
+    undo: function() {
+        var text = this.text;
+        if (this.undoFunc) {
+            text.undoState.undoInProgress = true;
+            this.undoFunc();
+        }
+    }
+},
+'debugging', {
+    toString: function() {
+        return 'TextUndo<' + this.type + '>';
+    }
+});
+
+Object.extend(lively.morphic.TextUndo.TextUndo, {
+    forText: function(text, settings) {
+        if (!settings.text) settings.text = text;
+        return new this(settings);
+    }
+});
+
 
 Object.subclass("lively.morphic.TextUndo.DOMAttributeMutation",
 'initializing', {
@@ -682,30 +694,12 @@ Object.extend(lively.morphic.TextUndo.DOMAttributeMutation, {
     }
 });
 
-Object.subclass("lively.morphic.TextUndo.DOMMutation", {
-
-});
-
-Object.extend(lively.morphic.TextUndo.DOMMutation, {
-    mutationsFromObserveEvent: function(rawMutations) {
-        var result = [];
-        rawMutations.forEach(function(rawMutation) {
-            if (!result.any(function(domMutation) { return domMutation.consumes(rawMutation) })) {
-                result.push(new lively.morphic.TextUndo.DOMMutation(rawMutation));
-            }
-        });
-        return result;
-    }
-});
 
 (function setupUndo() {
     if (!Config.get("textUndoEnabled")) return;
     Trait("lively.morphic.TextUndo.TextMutationObserverTrait").applyTo(lively.morphic.Text);
     console.log("Text undo enabled");
 })();
-
-
-
 
 
 Object.subclass("lively.morphic.TextUndo.AtomicDOMChange",
@@ -719,10 +713,11 @@ Object.subclass("lively.morphic.TextUndo.AtomicDOMChange",
 
 lively.morphic.TextUndo.AtomicDOMChange.subclass("lively.morphic.TextUndo.AtomicDOMCharacterDataChange",
 "initializing", {
-    initialize: function(mutationRecord) {
+    initialize: function(mutationRecord, textMorph) {
         this.oldValue = mutationRecord.oldValue;
         this.newValue = mutationRecord.target.textContent;
         this.target = mutationRecord.target;
+        this.mutationString = textMorph ? textMorph.showMutationsExpt([mutationRecord]) : "";
     }
 },
 "undo / redo", {
@@ -741,31 +736,32 @@ lively.morphic.TextUndo.AtomicDOMChange.subclass("lively.morphic.TextUndo.Atomic
 
 lively.morphic.TextUndo.AtomicDOMChange.subclass("lively.morphic.TextUndo.AtomicDOMAddedOneNodeChange",
 "initializing", {
-    initialize: function(mutationRecord) {
+    initialize: function(mutationRecord, textMorph) {
         var children = Array.from(mutationRecord.target.childNodes);
         this.nodeIndex = children.indexOf(mutationRecord.addedNodes[0]);
-        this.addedNode = mutationRecord.addedNodes[0];
+        this.addedNodes = Array.from(mutationRecord.addedNodes);
         this.target = mutationRecord.target;
+        this.mutationString = textMorph ? textMorph.showMutationsExpt([mutationRecord]) : "";
     }
 },
 "undo / redo", {
     undo: function() {
-        this.target.removeChild(this.addedNode);
+        this.target.removeChild(this.addedNodes[0]);
     },
     redo: function() {
         this.target.insertBefore(
-            this.addedNode, this.target.childNodes[this.nodeIndex]);
+            this.addedNodes[0], this.target.childNodes[this.nodeIndex]);
     }
 },
 "debugging", {
     toString: function($super) {
-        return $super() + "<" + this.addedNode + " added at " + this.insetIndex + '(' + this.target + ')>';
+        return $super() + "<" + this.addedNodes + " added at " + this.nodeIndex + '(' + this.target + ')>';
     }
 });
 
 lively.morphic.TextUndo.AtomicDOMChange.subclass("lively.morphic.TextUndo.AtomicDOMRemoveOneNodeChange",
 "initializing", {
-    initialize: function(mutationRecord) {
+    initialize: function(mutationRecord, textMorph) {
         var children = Array.from(mutationRecord.target.childNodes);
         if (mutationRecord.previousSibling) {
             this.previousSibling = mutationRecord.previousSibling;
@@ -774,6 +770,7 @@ lively.morphic.TextUndo.AtomicDOMChange.subclass("lively.morphic.TextUndo.Atomic
         }
         this.removedNodes = [mutationRecord.removedNodes[0]];
         this.target = mutationRecord.target;
+        this.mutationString = textMorph ? textMorph.showMutationsExpt([mutationRecord]) : "";
     }
 },
 "undo / redo", {
@@ -788,16 +785,17 @@ lively.morphic.TextUndo.AtomicDOMChange.subclass("lively.morphic.TextUndo.Atomic
 "debugging", {
     toString: function($super) {
         var beforeOrAfter = this.nextSibling ? "before " + this.nextSibling : "after " + this.previousSibling;
-        return $super() + "<" + this.removedNode + " removed " + beforeOrAfter + '(' + this.target + ')>';
+        return $super() + "<" + this.removedNodes + " removed " + beforeOrAfter + '(' + this.target + ')>';
     }
 });
 
 lively.morphic.TextUndo.AtomicDOMChange.subclass("lively.morphic.TextUndo.AtomicDOMReplaceNodesChange",
 "initializing", {
-    initialize: function(mutationRecord) {
+    initialize: function(mutationRecord, textMorph) {
         this.removedNodes = Array.from(mutationRecord.removedNodes);
         this.addedNodes = Array.from(mutationRecord.addedNodes);
         this.target = mutationRecord.target;
+        this.mutationString = textMorph ? textMorph.showMutationsExpt([mutationRecord]) : "";
     }
 },
 "undo / redo", {
@@ -828,11 +826,12 @@ lively.morphic.TextUndo.AtomicDOMChange.subclass("lively.morphic.TextUndo.Atomic
 
 lively.morphic.TextUndo.AtomicDOMChange.subclass("lively.morphic.TextUndo.AtomicDOMStyleChange",
 "initializing", {
-    initialize: function(mutationRecord) {
+    initialize: function(mutationRecord, textMorph) {
         this.oldValue = mutationRecord.oldValue;
         this.newValue = mutationRecord.newValue;
         this.attribute = mutationRecord.attribute;
         this.target = mutationRecord.target;
+        this.mutationString = textMorph ? textMorph.showMutationsExpt([mutationRecord]) : "";
     }
 },
 "undo / redo", {
@@ -850,61 +849,33 @@ lively.morphic.TextUndo.AtomicDOMChange.subclass("lively.morphic.TextUndo.Atomic
 });
 
 Object.extend(lively.morphic.TextUndo.AtomicDOMChange, {
-    from: function(mutationRecord) {
+
+    from: function(mutationRecord, textMorph) {
         if (mutationRecord.type === "characterData") {
-            return new lively.morphic.TextUndo.AtomicDOMCharacterDataChange(mutationRecord);
+            return new lively.morphic.TextUndo.AtomicDOMCharacterDataChange(mutationRecord, textMorph);
         }
         if (mutationRecord.type === "childList" &&
             mutationRecord.addedNodes.length > 0 && mutationRecord.removedNodes.length > 0) {
-            return new lively.morphic.TextUndo.AtomicDOMReplaceNodesChange(mutationRecord);
+            return new lively.morphic.TextUndo.AtomicDOMReplaceNodesChange(mutationRecord, textMorph);
         }
         if (mutationRecord.type === "childList" && mutationRecord.addedNodes.length === 1) {
-            return new lively.morphic.TextUndo.AtomicDOMAddedOneNodeChange(mutationRecord);
+            return new lively.morphic.TextUndo.AtomicDOMAddedOneNodeChange(mutationRecord, textMorph);
         }
         if (mutationRecord.type === "childList" && mutationRecord.removedNodes.length === 1) {
-            return new lively.morphic.TextUndo.AtomicDOMRemoveOneNodeChange(mutationRecord);
+            return new lively.morphic.TextUndo.AtomicDOMRemoveOneNodeChange(mutationRecord, textMorph);
         }
-        // for our StyleDOMAttributeMutation
-        if (mutationRecord.isStyleMutation) {
-            return new lively.morphic.TextUndo.AtomicDOMStyleChange(mutationRecord);
-        }
-        // for generic style mutations
-        if (mutationRecord.type === "attributes" && mutationRecord.attribute === "style") {
-            return new lively.morphic.TextUndo.AtomicDOMStyleChange(mutationRecord);
+        // for our StyleDOMAttributeMutation as well as for generic style mutations
+        if (mutationRecord.isStyleMutation ||
+            (mutationRecord.type === "attributes" && mutationRecord.attribute === "style")) {
+            return new lively.morphic.TextUndo.AtomicDOMStyleChange(mutationRecord, textMorph);
         }
         debugger;
         throw new Error("mutation record of type " + mutationRecord.type + " not supported");
+    },
+
+    fromMutations: function(mutations, textMorph) {
+        return mutations.collect(function(ea) { return this.from(ea, textMorph); }, this);
     }
 });
-
-
-// AsyncTestCase.subclass('lively.morphic.TextUndo.TextUndo.DOMMutationTest',
-// // if (Global.TextMutationUndoTest) TextMutationUndoTest.remove();
-// 'running', {
-//     setUp: function($super) {
-//         this.$node = lively.$('<div/>').appendTo('body');
-//         var recordedMutations = this.recordedMutations = [];
-//         var observer = new lively.morphic.Events.MutationObserver(function(mutations, observer) {
-//             recordedMutations.push(lively.morphic.TextUndo.DOMMutation.mutationsFromObserveEvent(mutations));
-//         });
-//         observer.observe(this.$node[0], {
-//             characterData: true,
-//             characterDataOldValue: true,
-//             attributes: true,
-//             attributeOldValue: true,
-//             subtree: true,
-//             childList: true
-//         });
-//     },
-//     tearDown: function() {
-//         this.$node.remove();
-//     },
-//     shouldRun: false
-// },
-// 'testing', {
-//     test01AddSpan: function() {
-
-//     }
-// });
 
 }); // end of module

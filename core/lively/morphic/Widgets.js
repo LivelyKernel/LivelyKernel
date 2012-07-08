@@ -1089,20 +1089,18 @@ lively.morphic.Text.addMethods(
                 self.remove();
             }
         ]);
-        items.push([
-            (self.isInChunkDebugMode() ? 'disable' : 'enable') + ' text chunk debugging',
-            function() { self.setChunkDebugMode(!self.isInChunkDebugMode()) }]);
+        items.push(['debugging', [
+            [(self.isInChunkDebugMode() ? 'disable' : 'enable') + ' text chunk debugging',
+             function() { self.setChunkDebugMode(!self.isInChunkDebugMode()) }],
+            ['open text inspector', function() {
+                var inspector = $world.openPartItem('TextInspector', 'PartsBin/Debugging');
+                inspector.targetMorph.findAndConnectMorph(self);
+            }]
+        ]]);
         return items;
     },
 
 });
-
-lively.morphic.Box.subclass('lively.morphic.SimpleText',
-'settings', {
-    
-}
-
-);
 
 
 lively.morphic.World.addMethods(

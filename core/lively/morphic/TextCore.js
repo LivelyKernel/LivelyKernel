@@ -34,6 +34,10 @@ Trait('TextChunkOwner',
         return this.textChunks.collect(function(chunk) {
             return [offset, offset += chunk.textString.length];
         });
+    },
+
+    getChunkStyles: function() {
+        return this.getTextChunks().collect(function(ea) { return ea.getStyle() });
     }
 
 },
@@ -105,30 +109,21 @@ Trait('TextChunkOwner',
 
     coalesceChunks: function () {
         var chunk = this.firstTextChunk();
-        while (chunk)
+        while (chunk) {
             chunk = chunk.joinWithNextIfEqualStyle() ? chunk : chunk.next();
+        }
     }
 },
 'garbage collection', {
     fixChunks: function() {
-
-        //var selRange = this.isFocused() && this.getSelectionRange();
-        var selRange = this.hasSelection() && this.getSelectionRange();
-
-        var chunks = this.garbageCollectChunks();
-
-        // this.removeNonChunkNodes(chunks)
-        this.fixTextBeforeAndAfterChunks(chunks);
-        this.removeNonChunkNodes(chunks);
-
-        selRange && this.setSelectionRange(selRange[0], selRange[1]);
-
-        /* this breaks some other stuff
-        if (selRange &&
-            (selRange[0] > -1) &&
-            (selRange[1] < this.textString.length)) {
-                this.setSelectionRange(selRange[0], selRange[1]);
-        }*/
+        var selRange = this.hasSelection() && this.getSelectionRange(),
+            chunks = this.garbageCollectChunks(),
+            domChanged = false;
+        domChanged = this.fixTextBeforeAndAfterChunks(chunks);
+        domChanged = domChanged || this.removeNonChunkNodes(chunks);
+        if (domChanged && selRange) {
+            this.setSelectionRange(selRange[0], selRange[1]);
+        }
     },
     fixChunksDelayed: function() {
         this.fixChunks.bind(this).delay(0);
@@ -179,16 +174,22 @@ Trait('TextChunkOwner',
     },
 
     removeNonChunkNodes: function(chunks) {
-        for (var i = 0; i < chunks.length; i++)
-            chunks[i].removeNonChunkNodes();
+        var domChanged = false;
+        for (var i = 0, len = chunks.length; i < len; i++) {
+            domChanged = domChanged || chunks[i].removeNonChunkNodes();
+        }
+        return domChanged;
     },
 
     fixTextBeforeAndAfterChunks: function(chunks) {
-        // this removes the focus and selection...
+        // this removes the focus and selection
+        // if the DOM is really changed
         chunks = this.getTextChunks();
-        chunks[0].ingestAllPrecedingElements();
-        for (var i = 0; i < chunks.length; i++)
-            chunks[i].ingestAllFollowingElements(chunks[i+1]);
+        var domChanged = chunks[0].ingestAllPrecedingElements();
+        for (var i = 0, len = chunks.length; i < len; i++) {
+            domChanged = domChanged || chunks[i].ingestAllFollowingElements(chunks[i+1]);
+        }
+        return domChanged;
     }
 },
 'debugging', {
@@ -512,13 +513,15 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         // textString getter is expensive so only trigger when observers exist
         // Note that textString may not be changed, e.g. when pressing a control key only
-        if (this.attributeConnections)
+        if (this.attributeConnections) {
             lively.bindings.signal(this, 'textString', this.textString);
+        }
 
         this.fit();
 
-        if (evt.isShiftDown())
+        if (evt.isShiftDown()) {
             this.priorSelectionRange = this.getSelectionRange();
+        }
 
         evt.stop();
         return true;
@@ -1148,7 +1151,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return true;
     },
     onUpPressed: function($super, evt) { return $super(evt) || true },
-    onDownPressed: function($super, evt) { return $super(evt) || true },
+    onDownPressed: function($super, evt) { return $super(evt) || true }
 },
 'shortcut support', {
     shortcutHandlers: [],
@@ -2209,18 +2212,29 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
 
 });
 
+(function idSetup() {
+    var id = 0;
+    Object.extend(lively, {
+        newId: function() { return ++id; }
+    });
+})();
+
 Object.subclass('lively.morphic.TextChunk',
 'settings', {
     debugMode: false,
-    doNotSerialize: ['chunkNode'],
+    doNotSerialize: ['chunkNode']
 },
 'initializing', {
     initialize: function(str, style) {
         if (str) this.textString = str;
         this.style = style || new lively.morphic.TextEmphasis();
-    },
+    }
 },
 'accessing', {
+    id: function() {
+        if (!this._id) this._id = "_" + lively.newId();
+        return this._id;
+    },
     get textString() {
         return this.getChunkNode().textContent;
     },
@@ -2228,8 +2242,10 @@ Object.subclass('lively.morphic.TextChunk',
         return this.getChunkNode().textContent = string;
     },
     getChunkNode: function() {
-        if (!this.chunkNode)
+        if (!this.chunkNode) {
             this.chunkNode = XHTMLNS.create('span');
+            this.chunkNode.setAttribute("id", this.id());
+        }
         return this.chunkNode;
     },
     next: function() {
@@ -2240,9 +2256,10 @@ Object.subclass('lively.morphic.TextChunk',
         var chunks = this.chunkOwner.getTextChunks(), chunkIdx = chunks.indexOf(this);
         return chunks[chunkIdx-1];
     },
+    getStyle: function() { return this.style }
 },
 'testing', {
-    isRendered: function() { return this.chunkNode && this.chunkNode.parentNode != undefined },
+    isRendered: function() { return this.chunkNode && this.chunkNode.parentNode != undefined }
 },
 'adding', {
     addTo: function(chunkOwner, optChunkAfter) {
@@ -2253,10 +2270,11 @@ Object.subclass('lively.morphic.TextChunk',
         if (chunkOwner.isRichText) return; // FIXME
 
         var textNode = chunkOwner.renderContext().textNode,
-            chunkNode = this.getChunkNode();
+            chunkNode = this.getChunkNode(),
             otherChunkNode = optChunkAfter && optChunkAfter.getChunkNode();
         if (!textNode) {
-            // alert('Cannot add text chunk ' + this + ' to ' + chunkOwner + ' because no textNode is present');
+            // alert('Cannot add text chunk ' + this + ' to '
+            //      + chunkOwner + ' because no textNode is present');
             return;
         }
         if (chunkNode.parentNode) this.remove();
@@ -2271,7 +2289,7 @@ Object.subclass('lively.morphic.TextChunk',
     remove: function() {
         var n = this.getChunkNode();
         n.parentNode && n.parentNode.removeChild(n);
-    },
+    }
 },
 'splitting', {
     splitAfter: function(localIdx) { return this.split(localIdx, true) },
@@ -2315,7 +2333,7 @@ Object.subclass('lively.morphic.TextChunk',
         return returnRight ? newChunk : this;
     },
 
-    createForSplit: function(str) { return new this.constructor(str, this.style.clone()) }
+    createForSplit: function(str) { return new this.constructor(str, this.getStyle().clone()) }
 
 },
 'joining', {
@@ -2332,15 +2350,16 @@ Object.subclass('lively.morphic.TextChunk',
 
     joinWithNextIfEqualStyle: function() {
         var next = this.next();
-        return next && this.style.equals(next.style) ? this.joinWithNext() : null;
+        return next && this.getStyle().equals(next.getStyle()) ? this.joinWithNext() : null;
     }
 
 },
 'styling', {
     styleText: function(styleSpec) {
         this.normalize();
-        if (styleSpec) this.style.add(styleSpec);
-        this.style.applyToHTML(this.getChunkNode(), this.debugMode);
+        var style = this.getStyle();
+        if (styleSpec) style.add(styleSpec);
+        style.applyToHTML(this.getChunkNode(), this.debugMode);
     }
 },
 'subnodes', {
@@ -2367,7 +2386,11 @@ Object.subclass('lively.morphic.TextChunk',
             content += nextNode.textContent;
             if (nextNode.parentNode) nextNode.parentNode.removeChild(nextNode);
         }
-        if (content) this.textString += content;
+        if (content !== '') {
+            this.textString += content;
+            return true; // DOM was changed
+        }
+        return false;
     },
     ingestAllPrecedingElements: function(prevChunk) {
         var ownChunkNode = this.getChunkNode(),
@@ -2379,14 +2402,18 @@ Object.subclass('lively.morphic.TextChunk',
             content = prevNode.textContent + content;
             if (prevNode.parentNode) prevNode.parentNode.removeChild(prevNode);
         }
-        if (content) this.textString = content + this.textString;
+        if (content !== '') {
+            this.textString = content + this.textString;
+            return true; // DOM was changed
+        }
+        return false;
     },
     nodesBetweenMeAndOther: function(otherChunk) {
         // if !otherChunk then get all the chunks until the end
         var nextNode = this.getChunkNode(),
             otherChunkNode = otherChunk && otherChunk.getChunkNode(),
             nodes = [];
-        while (nextNode = nextNode.nextSibling) {
+        while ((nextNode = nextNode.nextSibling)) {
             if (nextNode === otherChunkNode) break;
             nodes.push(nextNode);
         }
@@ -2399,29 +2426,48 @@ Object.subclass('lively.morphic.TextChunk',
         for (var i = 0; i < chunkNode.childNodes.length; i++) {
             var node = chunkNode.childNodes[i];
             if (node.tagName === 'br') { lastBrFound = true; continue };
-            if (node.textContent.length > 0) lastBrFound = false;
+            if (node.textContent.length > 0) { lastBrFound = false; };
         }
-        if (lastBrFound) return;
-        chunkNode.appendChild(XHTMLNS.create('br'));
+        if (!lastBrFound) { chunkNode.appendChild(XHTMLNS.create('br')); };
     },
     removeNonChunkNodes: function() {
         var node = this.getChunkNode(),
-            childNode = node.firstChild;
-        while(childNode) {
-            var next = childNode.nextSibling
+            childNode = node.firstChild,
+            domChanged = false;
+        while (childNode) {
+            var next = childNode.nextSibling;
             // exception for br because at text end has to be a br to correctly line break the text
             // in chrome. see also ensureEndsWithBr
             if (!NodeFactory.isTextNode(childNode) && childNode.tagName != 'br') {
+                domChanged = true;
                 node.insertBefore(NodeFactory.createText(childNode.textContent), next);
                 node.removeChild(childNode);
             }
             childNode = next;
         }
-    },
+        return domChanged;
+    }
 
 },
 'debugging', {
-    toString: function() { return 'TextChunk(' + this.textString.truncate(10) + ',' + this.style + ')' },
+    toString: function() {
+        return Strings.format(
+            'TextChunk(%s<%s>,%s,%s)',
+            this.id(),
+            this.chunkNode ? "node " + this.chunkNode.getAttribute("id"): "no node",
+            this.textString.truncate(10),
+            this.getStyle());
+    },
+
+    toPlainObject: function() {
+        return {
+            id: this.id(),
+            textString: this.textString,
+            style: this.style,
+            chunkOwner: String(this.chunkOwner),
+            node: this.chunkNode ? "node " + this.chunkNode.getAttribute("id"): "no node"
+        }
+    }
 },
 'serialization', {
     cacheContent: function() {

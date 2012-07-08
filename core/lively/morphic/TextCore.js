@@ -2430,6 +2430,7 @@ Object.subclass('lively.morphic.TextChunk',
         }
         if (!lastBrFound) { chunkNode.appendChild(XHTMLNS.create('br')); };
     },
+
     removeNonChunkNodes: function() {
         var node = this.getChunkNode(),
             childNode = node.firstChild,

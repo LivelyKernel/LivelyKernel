@@ -783,24 +783,38 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.checkDOM([
             {tagName: 'span', textContent: 'e', childNodes: [{textContent: 'e'}]},
             {tagName: 'span', textContent: 'infootes', childNodes: [{textContent: 'infootes'}]},
-            {tagName: 'span', textContent: 't', childNodes: [{textContent: 't'}]},
+            {tagName: 'span', textContent: 't', childNodes: [{textContent: 't'}]}
         ])
     },
 
-    test11FixChunksShouldKeepSlection: function() {
+    test11aFixChunksThatChangesDOMShouldKeepSelection: function() {
         this.text.setTextString('eintest');
         // add a text outside of chunks manually
         this.text.renderContext().textNode.appendChild(document.createTextNode('test'))
-        this.text.setSelectionRange(2,5)
-        this.text.fixChunks()
+        this.text.setSelectionRange(2,5);
+        this.text.fixChunks();
         this.checkDOM([
             {tagName: 'span', textContent: 'eintesttest', childNodes: [
-                {tagName: undefined, textContent: 'eintesttest'},
-            ]},
-        ])
-        var range = this.text.getSelectionRange()
-        this.assert(range, 'no selection range after fixChunks!')
-        this.assertMatches([2, 5], range) // Inconsistency with selection ranges?
+                {tagName: undefined, textContent: 'eintesttest'}
+            ]}
+        ]);
+        var range = this.text.getSelectionRange();
+        this.assert(range, 'no selection range after fixChunks!');
+        this.assertMatches([2, 5], range); // Inconsistency with selection ranges?
+    },
+
+    test11bFixChunksThatDoesNothingShouldKeepSelection: function() {
+        this.text.setTextString('eintest');
+        this.text.setSelectionRange(2,5);
+        this.text.fixChunks();
+        this.checkDOM([
+            {tagName: 'span', textContent: 'eintest', childNodes: [
+                {tagName: undefined, textContent: 'eintest'}
+            ]}
+        ]);
+        var range = this.text.getSelectionRange();
+        this.assert(range, 'no selection range after fixChunks!');
+        this.assertMatches([2, 5], range);
     },
 
     test12GetAndSetSelectionRangeHaveEqualValues: function() {

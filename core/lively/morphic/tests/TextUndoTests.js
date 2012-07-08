@@ -1,7 +1,9 @@
 module('lively.morphic.tests.TextUndoTests').requires('lively.morphic.TextUndo', 'lively.morphic.tests.Helper').toRun(function() {
 
+// These tests are testing the change creation from DOM mutations and
+// the undo features based upon that directly. For tests of the
+// morphic level see lively.morphic.tests.TextUndoTests.TextUndoTest
 AsyncTestCase.subclass('lively.morphic.tests.TextUndoTests.TextMutationUndoTest',
-// if (Global.TextMutationUndoTest) TextMutationUndoTest.remove();
 'running', {
     setUp: function($super) {
         this.text = new lively.morphic.Text(new Rectangle(0,0, 100,100), "test");
@@ -108,7 +110,6 @@ AsyncTestCase.subclass('lively.morphic.tests.TextUndoTests.TextMutationUndoTest'
         var undoState = this.text.undoState;
         this.text.setTextString('foo');
         this.delay(function() {
-            this.assertEquals(0, undoState.recordingErrors.length, 'errors recording set textString');
             this.assertEquals(1, undoState.changes.length, 'no change recorded for set textString');
             undoState.changes.last().undo();
             this.assertEquals('test', this.text.textString);
@@ -117,6 +118,8 @@ AsyncTestCase.subclass('lively.morphic.tests.TextUndoTests.TextMutationUndoTest'
     }
 });
 
+// These tests are testing undo (and partially change recording) at
+// the text morph level
 AsyncTestCase.subclass('lively.morphic.tests.TextUndoTests.TextUndoTest',
 'running', {
     setUp: function($super) {
@@ -212,6 +215,7 @@ AsyncTestCase.subclass('lively.morphic.tests.TextUndoTests.TextUndoTest',
     }
 });
 
+// test for gathering multiple style mutations and create an own mutation from that
 TestCase.subclass("lively.morphic.tests.TextUndoTests.StyleDOMAttributeMutationTest",
 'running', {
     setUp: function($super) {
@@ -327,6 +331,8 @@ TestCase.subclass("lively.morphic.tests.TextUndoTests.StyleDOMAttributeMutationT
     }
 });
 
+// test for mutation interface "AtomicDOMChange" that provides an
+// interface and extended functionality for DOM mutations
 TestCase.subclass("lively.morphic.tests.TextUndoTests.AtomicDOMChangeTest",
 'helper', {
     createTargetAndChildNodes: function(n) {
@@ -422,7 +428,7 @@ TestCase.subclass("lively.morphic.tests.TextUndoTests.AtomicDOMChangeTest",
             atomicDOMChange = lively.morphic.TextUndo.AtomicDOMChange.from(mutation);
 
         this.assertEquals(1, atomicDOMChange.nodeIndex);
-        this.assertIdentity(this.childNode2, atomicDOMChange.addedNode);
+        this.assertIdentity(this.childNode2, atomicDOMChange.addedNodes[0]);
         this.assertIdentity(this.target, atomicDOMChange.target);
 
         this.assertRemoves({

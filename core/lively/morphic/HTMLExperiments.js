@@ -4,6 +4,7 @@ lively.morphic.Morph.subclass('lively.morphic.RelativeMorph',
 'HTML render settings', {
     htmlDispatchTable: {
         setContent: 'setContentHTML',
+         resetExtent: 'resetExtentHTML',
     },
 },
 'properties', {
@@ -114,7 +115,9 @@ setExtent: function($super, value) {
 },
 
 resetExtent: function() {
-    this.setExtent(null);
+    this.extentOverride = null;
+    ctx.morphNode.style.width = null;
+    ctx.morphNode.style.height = null; 
 },
 
 setRotationHTML: function(ctx) {

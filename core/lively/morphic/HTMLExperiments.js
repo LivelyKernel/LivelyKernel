@@ -132,7 +132,23 @@ setRotationHTML: function(ctx) {
 
 setScaleHTML: function(ctx) {
     
-}
+},
+
+    morphMenuItems: function($super) {
+        var self = this, items = $super();
+        items.push([
+            'Set content', function(evt) {
+            $world.prompt('Set content', function(input) {
+                if (input !== null)
+                    self.setLabel(input || '');
+            }, self.getLabel());
+        }]);
+        items.push([
+            'Reset extent', function(evt) {
+                this.resetExtent();
+        }]);
+        return items;
+    }
 });
 
 

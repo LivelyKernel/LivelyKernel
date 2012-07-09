@@ -77,6 +77,7 @@ getScale: function() {
 
 initHTML: function(ctx) {
         if (!ctx.morphNode) ctx.morphNode = XHTMLNS.create(this.tagName);;
+        if (this.content) this.setContentHTML(ctx, this.content);
         this.setFocusableHTML(ctx, this.isFocusable());
         //this.setPivotPointHTML(ctx, this.getPivotPoint())
         //ctx.domInterface.setHTMLTransformOrigin(ctx.morphNode, pt(0,0));

@@ -1,5 +1,104 @@
 module('lively.morphic.HTMLExperiments').requires('lively.morphic.HTML').toRun(function() {
 
+lively.morphic.Box.subclass('lively.morphic.RelativeMorph',
+'properties', {
+adjustOrigin: function() {
+    
+},
+
+appendHTML: function(ctx, optMorphAfter) {
+        if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
+        var parentNode = ctx.morphNode.parentNode;
+        if (!parentNode) {
+            var ownerCtx = this.owner && this.owner.renderContext();
+            parentNode = (ownerCtx && ownerCtx.shapeNode) || ctx.parentNode;
+            
+            if (this.owner.getShape().constructor.name === "NullShape") {
+             
+                  parentNode = ownerCtx.morphNode; 
+                
+            }
+            else
+            if (parentNode && ownerCtx && ownerCtx.shapeNode && parentNode === ownerCtx.shapeNode) {
+
+                if (!ownerCtx.originNode) {
+                    ownerCtx.originNode = ownerCtx.domInterface.htmlRect();
+                    ownerCtx.shapeNode.appendChild(ownerCtx.originNode);
+                }
+                this.owner.shape.compensateShapeNode(ownerCtx);
+                
+                parentNode = ownerCtx.originNode;
+            }
+
+            if (!parentNode) {
+                if (Config.debugMissingParentNode) debugger
+                alert('Cannot render ' + this + ' without parentNode')
+                return;
+            }
+        }
+
+        var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
+        this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode);
+        //if (this.originClass) this.setOriginClassHTML(ctx, this.originClass);
+        this.getShape().renderUsing(ctx);
+    },
+    
+getBounds: function() {
+    var p = this.getPosition();
+    var e = this.getExtent();
+    return new Rectangle(p.x, p.y, e.x, e.y);
+},
+
+getPosition: function() {
+    var ctx = this.renderContext();
+    //var ownerCtx = this.owner.renderContext();
+    var ownerPos = this.owner.getPosition();
+    //var p = $(ctx.morphNode).position();
+    var o = $(ctx.morphNode).offset();
+    return pt(o.left, o.top).subPt(ownerPos);
+},
+getRotation: function() {
+    return 0;
+},
+getScale: function() {
+    return 1;
+},
+
+initHTML: function(ctx) {
+        if (!ctx.morphNode) ctx.morphNode = XHTMLNS.create('ul');;
+        this.setFocusableHTML(ctx, this.isFocusable());
+        //this.setPivotPointHTML(ctx, this.getPivotPoint())
+        //ctx.domInterface.setHTMLTransformOrigin(ctx.morphNode, pt(0,0));
+        //this.setPositionHTML(ctx, this.getPosition());
+        //this.setRotationHTML(ctx, this.getRotation());
+        //this.setScaleHTML(ctx, this.getScale());
+        //this.setClipModeHTML(ctx, this.getClipMode());
+        //this.setHandStyleHTML(ctx, this.getHandStyle());
+        this.setPointerEventsHTML(ctx, this.getPointerEvents());
+        if (this.morphicGetter('Visible') === false)
+            this.setVisibleHTML(ctx, false);
+        var tooltip = this.morphicGetter('ToolTip');
+        tooltip && this.setToolTipHTML(ctx, tooltip);
+        if (UserAgent.fireFoxVersion)
+            ctx.morphNode['-moz-user-modify'] = 'read-only'
+    },
+
+
+setPositionHTML: function(ctx) {
+    
+},
+
+
+setRotationHTML: function(ctx) {
+    
+},
+
+setScaleHTML: function(ctx) {
+    
+}
+});
+
+
 lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
 'documentation', {
     documentation: 'a shape that does not get rendered and acts as a proxy to the morph itself',

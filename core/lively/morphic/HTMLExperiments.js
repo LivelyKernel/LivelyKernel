@@ -1,6 +1,11 @@
 module('lively.morphic.HTMLExperiments').requires('lively.morphic.HTML').toRun(function() {
 
 lively.morphic.Morph.subclass('lively.morphic.RelativeMorph',
+'HTML render settings', {
+    htmlDispatchTable: {
+        setContent: 'setContentHTML',
+    },
+},
 'properties', {
     
 tagName: 'div',
@@ -88,8 +93,13 @@ initHTML: function(ctx) {
         if (UserAgent.fireFoxVersion)
             ctx.morphNode['-moz-user-modify'] = 'read-only'
     },
-
-
+setContent: function(content){
+    this.renderContextDispatch('setContent', content);    
+},
+setContentHTML: function(ctx, content){
+    var textNode = document.createTextNode(content);
+    ctx.morphNode.appendChild(textNode);
+},
 setPositionHTML: function(ctx) {
     
 },

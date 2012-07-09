@@ -4,8 +4,9 @@ lively.morphic.Morph.subclass('lively.morphic.RelativeMorph',
 'HTML render settings', {
     htmlDispatchTable: {
         setContent: 'setContentHTML',
-         resetExtent: 'resetExtentHTML',
-    },
+        setAttribute: 'setAttributeHTML',
+        resetExtent: 'resetExtentHTML',
+     },
 },
 'properties', {
     

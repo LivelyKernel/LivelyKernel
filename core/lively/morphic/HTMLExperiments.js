@@ -1,11 +1,13 @@
 module('lively.morphic.HTMLExperiments').requires('lively.morphic.HTML').toRun(function() {
 
-lively.morphic.Box.subclass('lively.morphic.RelativeMorph',
+lively.morphic.Morph.subclass('lively.morphic.RelativeMorph',
 'properties', {
 adjustOrigin: function() {
     
 },
-
+initialize: function($super) {
+        $super(new lively.morphic.Shapes.NullShape());
+},
 appendHTML: function(ctx, optMorphAfter) {
         if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
         var parentNode = ctx.morphNode.parentNode;

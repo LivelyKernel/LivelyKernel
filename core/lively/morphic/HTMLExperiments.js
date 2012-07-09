@@ -118,6 +118,9 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
     },
 },
 'updating', {
+    getBounds: function($super) {
+        return pt(0,0).extent(this.getExtent())
+    },
     getPosition: function() {
         var ctx = this.renderContext();
         var p = $(ctx.morphNode).position();

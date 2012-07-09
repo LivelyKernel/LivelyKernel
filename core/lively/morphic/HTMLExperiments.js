@@ -2,11 +2,15 @@ module('lively.morphic.HTMLExperiments').requires('lively.morphic.HTML').toRun(f
 
 lively.morphic.Morph.subclass('lively.morphic.RelativeMorph',
 'properties', {
+    
+tagName: 'div',
+    
 adjustOrigin: function() {
     
 },
-initialize: function($super) {
-        $super(new lively.morphic.Shapes.NullShape());
+initialize: function($super, tag) {
+    if (tag) this.tagName = tag;    
+    $super(new lively.morphic.Shapes.NullShape());
 },
 appendHTML: function(ctx, optMorphAfter) {
         if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));

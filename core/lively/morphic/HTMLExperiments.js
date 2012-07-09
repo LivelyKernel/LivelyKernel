@@ -107,7 +107,10 @@ setContentHTML: function(ctx, content){
 setPositionHTML: function(ctx) {
     
 },
-
+setExtent: function($super, value) {
+    this.extentOverride = value;
+    $super(value);
+},
 
 setRotationHTML: function(ctx) {
     

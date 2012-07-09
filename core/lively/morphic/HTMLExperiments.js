@@ -110,6 +110,13 @@ setContentHTML: function(ctx, content){
 getContent: function(){
     return this.content || "";    
 },
+
+setAttribute: function(attribute, value) {
+    this.renderContextDispatch('setAttribute', attribute, value);  
+},
+setAttributeHTML: function(ctx, attribute, value) {
+    ctx.morphNode.setAttribute(attribute, value);
+},
 setPositionHTML: function(ctx) {
     
 },

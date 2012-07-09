@@ -150,7 +150,7 @@ setScaleHTML: function(ctx) {
         }]);
         items.push([
             'Reset extent', function(evt) {
-                this.resetExtent();
+                self.resetExtent();
         }]);
         return items;
     }

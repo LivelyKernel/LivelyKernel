@@ -108,33 +108,9 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
 'initializing', {
     initHTML: function(ctx) {
         ctx.shapeNode = XHTMLNS.create('div');
-        /*
-        this.setPositionHTML(ctx, this.getPosition());
-        this.setExtentHTML(ctx, this.getExtent());
-        this.setFillHTML(ctx, this.getFill());
-        this.setFillOpacity(this.getFillOpacity())
-        this.setOpacityHTML(ctx, this.getOpacity());
-        this.setBorderWidthHTML(ctx, this.getBorderWidth()); // The other border props are initialized there as well
-        this.setBorderStyleHTML(ctx, this.getBorderStyle());
-        this.setPaddingHTML(ctx, this.getPadding()); // also sets extent
-
-        this.getNodeClass() && this.setNodeClassHTML(ctx, this.getNodeClass());
-        if (this.getNodeId()) {
-            this.setNodeIdHTML(ctx, this.getNodeId());
-            /this.getStyleSheet && this.setStyleSheetHTML(ctx, this.getStyleSheet());
-        }
-
-        if (UserAgent.fireFoxVersion)
-            ctx.shapeNode['-moz-user-modify'] = 'read-only'
-            */
     },
     renderHTML: function(ctx) {
-        /*
-        if (ctx.shapeNode.parentNode) return;
-        var child = ctx.morphNode.childNodes[0];
-        if (!child) ctx.morphNode.appendChild(ctx.shapeNode)
-        else ctx.morphNode.insertBefore(ctx.shapeNode, child)
-        */
+
     },
 },
 'updating', {

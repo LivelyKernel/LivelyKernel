@@ -106,6 +106,9 @@ setContentHTML: function(ctx, content){
     var textNode = document.createTextNode(content);
     ctx.morphNode.appendChild(textNode);
 },
+getContent: function(){
+    return this.content || "";    
+},
 setPositionHTML: function(ctx) {
     
 },
@@ -134,9 +137,7 @@ setScaleHTML: function(ctx) {
     
 },
 
-getContent: function(){
-    return this.content || "";    
-},
+
 
     morphMenuItems: function($super) {
         var self = this, items = $super();

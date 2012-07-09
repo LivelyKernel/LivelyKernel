@@ -154,11 +154,15 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
     },
     setExtentHTML: function(ctx, value) {
         if (!ctx.morphNode) return undefined;
-        this.extentOverride = value;
-        var outer = this.getExtent();
-        var inner = pt($(ctx.morphNode).width(), $(ctx.morphNode).height());
-        var delta = outer.subPt(inner);
-        ctx.domInterface.setExtent(ctx.morphNode, value.subPt(delta));
+        if (!value) {
+             ctx.morphNode.style.width = null;
+            ctx.morphNode.style.height = null;           
+        } else {
+            var outer = this.getExtent();
+            var inner = pt($(ctx.morphNode).width(), $(ctx.morphNode).height());
+            var delta = outer.subPt(inner);
+            ctx.domInterface.setExtent(ctx.morphNode, value.subPt(delta));
+        }
         return value;
     },
     getExtent: function(){

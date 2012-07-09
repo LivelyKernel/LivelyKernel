@@ -115,7 +115,8 @@ setAttribute: function(attribute, value) {
     this.renderContextDispatch('setAttribute', attribute, value);  
 },
 setAttributeHTML: function(ctx, attribute, value) {
-    ctx.morphNode.setAttribute(attribute, value);
+    if (value) ctx.morphNode.setAttribute(attribute, value);
+    else ctx.morphNode.removeAttribute(attribute);
 },
 setPositionHTML: function(ctx) {
     

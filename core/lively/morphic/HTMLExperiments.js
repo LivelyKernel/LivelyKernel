@@ -97,6 +97,7 @@ setContent: function(content){
     this.renderContextDispatch('setContent', content);    
 },
 setContentHTML: function(ctx, content){
+    this.content = content;
     var textNode = document.createTextNode(content);
     ctx.morphNode.appendChild(textNode);
 },

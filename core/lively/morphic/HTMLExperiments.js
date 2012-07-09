@@ -134,14 +134,18 @@ setScaleHTML: function(ctx) {
     
 },
 
+getContent: function(){
+    return this.content || "";    
+},
+
     morphMenuItems: function($super) {
         var self = this, items = $super();
         items.push([
             'Set content', function(evt) {
             $world.prompt('Set content', function(input) {
                 if (input !== null)
-                    self.setLabel(input || '');
-            }, self.getLabel());
+                    self.setContent(input || '');
+            }, self.getContent());
         }]);
         items.push([
             'Reset extent', function(evt) {

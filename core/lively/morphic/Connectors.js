@@ -4,7 +4,8 @@ module('lively.morphic.Connectors').requires('lively.morphic.AdditionalMorphs', 
 
 lively.morphic.Morph.addMethods(
 'serialization', {
-    doNotSerialize: lively.morphic.Morph.prototype.doNotSerialize.concat(['magnets'])
+    // the serialization of magnets is important
+    // doNotSerialize: lively.morphic.Morph.prototype.doNotSerialize.concat(['magnets'])
 });
 
 lively.morphic.Box.subclass('lively.morphic.MagnetHalo',

@@ -75,6 +75,8 @@ getScale: function() {
     return 1;
 },
 
+
+    
 initHTML: function(ctx) {
         if (!ctx.morphNode) ctx.morphNode = XHTMLNS.create(this.tagName);;
         if (this.content) this.setContentHTML(ctx, this.content);

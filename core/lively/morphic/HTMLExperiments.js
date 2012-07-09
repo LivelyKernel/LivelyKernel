@@ -156,6 +156,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
         var h = $(ctx.morphNode).outerHeight();
         return pt(w, h);
     },
+
     
     setFillHTML: function(ctx, value) {
         

@@ -113,6 +113,10 @@ setExtent: function($super, value) {
     $super(value);
 },
 
+resetExtent: function() {
+    this.setExtent(null);
+},
+
 setRotationHTML: function(ctx) {
     
 },

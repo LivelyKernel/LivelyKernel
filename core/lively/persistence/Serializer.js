@@ -129,12 +129,12 @@ Object.subclass('ObjectGraphLinearizer',
         if (Object.isArray(obj)) {
             var result = [];
             for (var i = 0; i < obj.length; i++) {
-                this.path.push(i); // for debugging
+                //this.path.push(i); // for debugging
                 var item = obj[i];
 
                 if (this.somePlugin('ignoreProp', [obj, i, item])) continue;
                 result.push(this.register(item));
-                this.path.pop();
+                //this.path.pop();
             }
             return result;
         }
@@ -176,9 +176,9 @@ Object.subclass('ObjectGraphLinearizer',
             if (!source.hasOwnProperty(key) || (key === this.idProperty && !this.keepIds)) continue;
             var value = source[key];
             if (this.somePlugin('ignoreProp', [source, key, value])) continue;
-            this.path.push(key); // for debugging
+            //this.path.push(key); // for debugging
             copy[key] = this.register(value);
-            this.path.pop();
+            //this.path.pop();
         }
         this.letAllPlugins('additionallySerialize', [source, copy]);
         this.copyDepth--;
@@ -198,9 +198,9 @@ Object.subclass('ObjectGraphLinearizer',
         for (var key in registeredObj) {
             var value = registeredObj[key];
             if (this.somePlugin('ignorePropDeserialization', [registeredObj, key, value])) continue;
-            this.path.push(key); // for debugging
+            //this.path.push(key); // for debugging
             recreated[key] = this.patchObj(value);
-            this.path.pop();
+            //this.path.pop();
         };
         this.letAllPlugins('afterDeserializeObj', [recreated]);
         return recreated;
@@ -211,9 +211,9 @@ Object.subclass('ObjectGraphLinearizer',
 
         if (Object.isArray(obj))
             return obj.collect(function(item, idx) {
-                this.path.push(idx); // for debugging
+                //this.path.push(idx); // for debugging
                 var result = this.patchObj(item);
-                this.path.pop();
+                //this.path.pop();
                 return result;
             }, this)
 

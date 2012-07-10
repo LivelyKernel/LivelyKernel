@@ -74,7 +74,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 },
 'styling', {
     updateAppearance: function(){
-        this.changeAppearanceFor(this.isPressed, this.isToggled);
+        this.changeAppearanceFor(this.isPressed, this.value);
     },
     changeAppearanceFor: function(pressed, toggled) {
         

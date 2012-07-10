@@ -24,18 +24,19 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
     
     appendHTML: function(ctx, optMorphAfter) {
         if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
-        var parentNode = ctx.morphNode.parentNode;
+
+        var parentNode = false;//ctx.morphNode.parentNode;
         if (!parentNode) {
             var ownerCtx = this.owner && this.owner.renderContext();
             parentNode = (ownerCtx && ownerCtx.shapeNode) || ctx.parentNode;
             
-            if (this.owner.getShape().constructor.name === "NullShape") {
+            if (this.owner.getShape().constructor.name === "HTMLShape") {
              
-                  parentNode = ownerCtx.morphNode; 
+                  parentNode = ownerCtx.shapeNode;
+                  parentNode.appendChild(ctx.shapeNode);
                 
             }
-            else
-            if (parentNode && ownerCtx && ownerCtx.shapeNode && parentNode === ownerCtx.shapeNode) {
+            else if (parentNode && ownerCtx && ownerCtx.shapeNode && parentNode === ownerCtx.shapeNode) {
 
                 if (!ownerCtx.originNode) {
                     ownerCtx.originNode = ownerCtx.domInterface.htmlRect();
@@ -44,17 +45,14 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
                 this.owner.shape.compensateShapeNode(ownerCtx);
                 
                 parentNode = ownerCtx.originNode;
-            }
-
-            if (!parentNode) {
-                if (Config.debugMissingParentNode) debugger
-                alert('Cannot render ' + this + ' without parentNode')
-                return;
+                
+                var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
+                this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode);    
+            
             }
         }
 
-        var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
-        this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode);
+        
         //if (this.originClass) this.setOriginClassHTML(ctx, this.originClass);
         this.getShape().renderUsing(ctx);
     },

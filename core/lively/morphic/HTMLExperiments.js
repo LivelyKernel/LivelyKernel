@@ -50,6 +50,14 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         this.getShape().renderUsing(ctx);
     },
     
+    
+},
+'accessing',{
+    addMorph: function($super, morph, optMorphBefore) {
+            
+        $super(morph,optMorphBefore); 
+    }    
+    
 }
 
 

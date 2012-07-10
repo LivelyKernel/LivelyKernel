@@ -3,7 +3,7 @@ module('lively.morphic.HTMLExperiments').requires('lively.morphic.HTML').toRun(f
 cop.create('lively.morphic.TestLayer')
 .refineClass(lively.morphic.Morph, {
     getStyleSheet: function(){
-        return "Test!";    
+        return cop.proceed() + "Test!";    
     },
     getFunky: function(){
         return "Funky Test!";

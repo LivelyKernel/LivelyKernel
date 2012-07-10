@@ -1377,7 +1377,13 @@ lively.morphic.SAPUI5.ListBox.subclass('lively.morphic.SAPUI5.DropDownListBox',
 
 lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.MatrixLayout',
 'settings', {
-    
+   
+},
+'initializing', {
+    initialize: function($super, cols, rows) {
+        
+        
+    }    
 }
 
 );

@@ -1,5 +1,16 @@
 module('lively.morphic.HTMLExperiments').requires('lively.morphic.HTML').toRun(function() {
 
+cop.create('lively.morphic.TestLayer')
+.refineClass(lively.morphic.Morph, {
+    getStyleSheet: function(){
+        return "Test!";    
+    },
+    getFunky: function(){
+        return "Funky Test!";
+    }
+    
+    
+})
 
 cop.create('lively.morphic.RelativeLayer')
 .refineClass(lively.morphic.Morph, {

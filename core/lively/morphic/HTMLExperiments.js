@@ -15,8 +15,9 @@ tagName: 'div',
 adjustOrigin: function() {
     
 },
-initialize: function($super, tag) {
-    if (tag) this.tagName = tag;    
+initialize: function($super, tag, optContent) {
+    if (tag) this.tagName = tag;
+    if (optContent) this.content = optContent;
     $super(new lively.morphic.Shapes.NullShape());
 },
 appendHTML: function(ctx, optMorphAfter) {

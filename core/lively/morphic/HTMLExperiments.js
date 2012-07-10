@@ -9,17 +9,7 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
         });
     },
 
-    setContent: function(content){
-        this.renderContextDispatch('setContent', content);
-    },
-    setContentHTML: function(ctx, content){
-        this.content = content;
-        var textNode = document.createTextNode(content);
-        ctx.morphNode.appendChild(textNode);
-    },
-    getContent: function(){
-        return this.content || "";    
-    },
+
     adjustOrigin: function() {},
     
     appendHTML: function(ctx, optMorphAfter) {

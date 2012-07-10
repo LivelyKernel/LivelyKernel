@@ -367,14 +367,14 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     },
     setPositionHTML: function(ctx, value) {
         if (!ctx.morphNode) return undefined;
-        ctx.domInterface.setPosition(ctx.morphNode, value);
+        ctx.domInterface.setPosition(ctx.shapeNode, value);
     },
     setExtentHTML: function(ctx, value) {
         if (!ctx.morphNode) return undefined;
             var outer = this.getExtent();
-            var inner = pt($(ctx.morphNode).width(), $(ctx.morphNode).height());
+            var inner = pt($(ctx.shapeNode).width(), $(ctx.shapeNode).height());
             var delta = outer.subPt(inner);
-            ctx.domInterface.setExtent(ctx.morphNode, value.subPt(delta));
+            ctx.domInterface.setExtent(ctx.shapeNode, value.subPt(delta));
 
         return value;
     },

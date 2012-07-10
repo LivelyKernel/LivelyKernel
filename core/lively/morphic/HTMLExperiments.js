@@ -19,6 +19,7 @@ cop.create('lively.morphic.RelativeLayer')
         
     return cop.proceed({
         setContent: 'setContentHTML',
+        init: 'initHTML'
         /*setAttribute: 'setAttributeHTML',
         resetExtent: 'resetExtentHTML'*/
      });

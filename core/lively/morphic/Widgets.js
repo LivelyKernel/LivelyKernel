@@ -53,7 +53,10 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         return this;
     },
     getLabel: function(label) { return this.label.textString },
-
+    setActive: function(bool) {
+        this.isActive = bool;
+        this.updateAppearance();    
+    },
     setValue: function(bool) {
         this.value = bool;
         // buttons should fire on mouse up

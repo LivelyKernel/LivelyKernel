@@ -52,7 +52,6 @@ appendHTML: function(ctx, optMorphAfter) {
 
         var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
         this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode);
-        if (!this.extentOverride) this.resetExtent();
         //if (this.originClass) this.setOriginClassHTML(ctx, this.originClass);
         this.getShape().renderUsing(ctx);
     },
@@ -84,6 +83,7 @@ initHTML: function(ctx) {
         if (!ctx.morphNode) ctx.morphNode = XHTMLNS.create(this.tagName);;
         if (this.content) this.setContentHTML(ctx, this.content);
         if (this.extentOverride) this.setExtent(this.extentOverride);
+        else this.resetExtent();
         this.setFocusableHTML(ctx, this.isFocusable());
         //this.setPivotPointHTML(ctx, this.getPivotPoint())
         //ctx.domInterface.setHTMLTransformOrigin(ctx.morphNode, pt(0,0));

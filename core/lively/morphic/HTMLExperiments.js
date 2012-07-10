@@ -14,18 +14,29 @@ cop.create('lively.morphic.TestLayer')
 
 cop.create('lively.morphic.RelativeLayer')
 .refineClass(lively.morphic.Morph, {
-    /*
-    htmlDispatchTable: {
+    
+    htmlDispatchTable: function(){
+        
+    return {
         setContent: 'setContentHTML',
-        setAttribute: 'setAttributeHTML',
-        resetExtent: 'resetExtentHTML',
-     },
-    
-    tagName: 'div',
-    
+        /*setAttribute: 'setAttributeHTML',
+        resetExtent: 'resetExtentHTML'*/
+     }
+    },
+    setContent: function(content){
+        this.renderContextDispatch('setContent', content);    
+    },
+    setContentHTML: function(ctx, content){
+        this.content = content;
+        var textNode = document.createTextNode(content);
+        ctx.morphNode.appendChild(textNode);
+    },
+    getContent: function(){
+        return this.content || "";    
+    },
     adjustOrigin: function() {}
     
-    */
+    
     
 })
 

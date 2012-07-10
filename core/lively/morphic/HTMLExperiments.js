@@ -16,7 +16,7 @@ cop.create('lively.morphic.RelativeLayer')
 .refineClass(lively.morphic.Morph, {
     
     htmlDispatchTable: function(){
-   
+   return cop.proceed();
     return cop.proceed().push({
         setContent: 'setContentHTML',
         /*setAttribute: 'setAttributeHTML',

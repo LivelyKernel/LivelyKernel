@@ -60,21 +60,16 @@ getScale: function() {
     return 1;
 },
 
-setPositionHTML: function(ctx) {
-    
-},
 setExtent: function($super, value) {
     this.extentOverride = value;
     $super(value);
 },
 
-setRotationHTML: function(ctx) {
-    
-},
+setPositionHTML: function(ctx) {},
 
-setScaleHTML: function(ctx) {
-    
-},
+setRotationHTML: function(ctx) {},
+
+setScaleHTML: function(ctx) {},
 
    
     

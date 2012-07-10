@@ -192,7 +192,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
 },
 'initializing', {
     
-    initialize: function(tagName, optBounds){
+    initialize: function($super, tagName, optBounds){
         this.tagName = tagName;
         $super(optBounds);
     },

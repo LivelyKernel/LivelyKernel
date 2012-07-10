@@ -177,6 +177,17 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     
 },
 'accessing',{
+    setContent: function(content){
+        this.renderContextDispatch('setContent', content);
+    },
+    setContentHTML: function(ctx, content){
+        this.content = content;
+        var textNode = document.createTextNode(content);
+        ctx.morphNode.appendChild(textNode);
+    },
+    getContent: function(){
+        return this.content || "";    
+    },
     addMorph: function($super, morph, optMorphBefore) {
         // enable Relative Layout Layer
         $super(morph,optMorphBefore); 

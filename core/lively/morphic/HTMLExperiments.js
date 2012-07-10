@@ -162,7 +162,13 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 'settings', {
     tagName: 'div'
 },
-
+'HTML render settings', {
+    htmlDispatchTable: {
+        setContent: 'setContentHTML',
+        setAttribute: 'setAttributeHTML',
+        resetExtent: 'resetExtentHTML',
+     },
+},
 'initializing', {
     initialize: function($super, bounds, tagName) {
             if (tagName) this.tagName = tagName;

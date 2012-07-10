@@ -6,9 +6,9 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 
     normalColor: Color.rgbHex('#DDDDDD'),
     toggleColor: Color.rgb(171,215,248),
-    disabledColor: Color.rgb(171,215,248),
+    disabledColor: Color.rgbHex('#DDDDDD'),
     normalTextColor: Color.black,
-    disabledTextColor: Color.gray,
+    disabledTextColor: Color.rgbHex('#999999'),
 
     style: {
         enableGrabbing: false,

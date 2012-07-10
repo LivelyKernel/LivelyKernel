@@ -15,11 +15,13 @@ cop.create('lively.morphic.TestLayer')
 cop.create('lively.morphic.RelativeLayer')
 .refineClass(lively.morphic.Morph, {
     get htmlDispatchTable(){
-        return Object.extend(cop.proceed(), {
+        var r = cop.proceed();
+        Object.extend(r, {
             setContent: 'setContentHTML',
             /*setAttribute: 'setAttributeHTML',
             resetExtent: 'resetExtentHTML'*/
         });
+        return r;
     },
 
     setContent: function(content){

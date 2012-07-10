@@ -370,7 +370,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         ctx.domInterface.setPosition(ctx.shapeNode, value);
     },
     setExtentHTML: function(ctx, value) {
-        if (!ctx.morphNode) return undefined;
+        if (!ctx.shapeNode) return undefined;
             var outer = this.getExtent();
             var inner = pt($(ctx.shapeNode).width(), $(ctx.shapeNode).height());
             var delta = outer.subPt(inner);

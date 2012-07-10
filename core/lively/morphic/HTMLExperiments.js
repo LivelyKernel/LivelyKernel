@@ -128,6 +128,25 @@ setAttributeHTML: function(ctx, attribute, value) {
     if (value) $(ctx.morphNode).attr(attribute, value);
     else ctx.morphNode.removeAttribute(attribute);
 },
+
+ morphMenuItems: function($super) {
+        var self = this, items = $super();
+        items.push([
+            'Set content', function(evt) {
+            $world.prompt('Set content', function(input) {
+                if (input !== null)
+                    self.setContent(input || '');
+            }, self.getContent());
+        }]);
+        items.push([
+            'Reset extent', function(evt) {
+                self.resetExtent();
+        }]);
+        return items;
+    }
+    
+
+
 }
 
 

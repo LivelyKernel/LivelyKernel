@@ -191,12 +191,15 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     documentation: 'a shape that does not get rendered and acts as a proxy to the morph itself',
 },
 'initializing', {
+    
+    initialize: function(){
+        
+    },
+    
     initHTML: function(ctx) {
-        ctx.shapeNode = XHTMLNS.create('div');
+        ctx.shapeNode = XHTMLNS.create(this.tagName);
     },
-    renderHTML: function(ctx) {
 
-    },
 },
 'updating', {
     getBounds: function($super) {

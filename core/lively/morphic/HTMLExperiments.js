@@ -52,6 +52,7 @@ appendHTML: function(ctx, optMorphAfter) {
 
         var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
         this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode);
+        if (!this.extentOverride) this.resetExtent();
         //if (this.originClass) this.setOriginClassHTML(ctx, this.originClass);
         this.getShape().renderUsing(ctx);
     },

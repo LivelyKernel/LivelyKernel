@@ -188,7 +188,7 @@ setScaleHTML: function(ctx) {
 
 lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
 'documentation', {
-    documentation: 'a shape that does not get rendered and acts as a proxy to the morph itself',
+    documentation: 'an HTMLMorph shape',
 },
 'initializing', {
     

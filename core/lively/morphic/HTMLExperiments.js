@@ -1,15 +1,6 @@
 module('lively.morphic.HTMLExperiments').requires('lively.morphic.HTML').toRun(function() {
 
 cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
-    get renderContextTable(){
-        return Object.extend(cop.proceed(), {
-            setContent: 'setContentHTML',
-            setAttribute: 'setAttributeHTML',
-            resetExtent: 'resetExtentHTML'
-        });
-    },
-
-
     adjustOrigin: function() {},
     
     appendHTML: function(ctx, optMorphAfter) {

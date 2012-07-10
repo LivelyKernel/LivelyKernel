@@ -9,7 +9,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 'initializing', {
     initialize: function($super, bounds, tagName) {
             if (tagName) this.tagName = tagName;
-            
+            $super(new lively.morphic.HTMLShape(this.tagName));
     }    
     
 }

@@ -1421,7 +1421,11 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.MatrixLayout',
         for (var i = 0; i < this.cols; i++) {
             this.colgroupItems.push(XHTMLNS.create('col'));
         }    
-    }
+    },
+    appendHTML: function($super, ctx, optMorphAfter) {
+        ctx.componentNode.appendChild(ctx.colgroupNode);
+        $super(ctx, optMorphAfter);
+    },
 }
 );
 }) // end of module

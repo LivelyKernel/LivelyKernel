@@ -6,6 +6,9 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 
     normalColor: Color.rgbHex('#DDDDDD'),
     toggleColor: Color.rgb(171,215,248),
+    disabledColor: Color.rgb(171,215,248),
+    normalTextColor: Color.black,
+    disabledTextColor: Color.gray,
 
     style: {
         enableGrabbing: false,
@@ -70,19 +73,30 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     setPadding: function(padding) { this.label && this.label.setPadding(padding) },
 },
 'styling', {
+    updateAppearance: function(){
+        
+    },
     changeAppearanceFor: function(pressed, toggled) {
-        var isToggled = toggled || this.value,
-            baseColor = isToggled ? this.toggleColor : this.normalColor,
-            shade = pressed ? baseColor.mixedWith(Color.black, 0.9)  : baseColor.lighter(3),
-            bottomShade = pressed ?  baseColor.lighter(3):baseColor.mixedWith(Color.black, 0.9),
-            upperGradientCenter = pressed ? 0.2  : 0.3,
-            lowerGradientCenter = pressed ? 0.8  : 0.7;
+        
+        if (this.isActive) {
+            var isToggled = toggled || this.value,
+                baseColor = isToggled ? this.toggleColor : this.normalColor,
+                shade = pressed ? baseColor.mixedWith(Color.black, 0.9)  : baseColor.lighter(3),
+                bottomShade = pressed ?  baseColor.lighter(3):baseColor.mixedWith(Color.black, 0.9),
+                upperGradientCenter = pressed ? 0.2  : 0.3,
+                lowerGradientCenter = pressed ? 0.8  : 0.7;
 
-        if (this.style && this.style.label && this.style.label.padding) {
-            var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
-            this.setPadding(labelPadding);
+            this.label.setTextColor(this.normalTextColor);
+            if (this.style && this.style.label && this.style.label.padding) {
+                var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
+                this.setPadding(labelPadding);
+            }
+            this.setFill(this.generateFillWith(baseColor, shade, upperGradientCenter, lowerGradientCenter, bottomShade));
         }
-        this.setFill(this.generateFillWith(baseColor, shade, upperGradientCenter, lowerGradientCenter, bottomShade));
+        else {
+            this.label.setTextColor(this.disabledTextColor);                
+            this.setFill(this.disabledColor);
+        }
     },
     applyStyle: function($super, spec) {
         $super(spec);
@@ -118,7 +132,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     },
 
     onMouseDown: function (evt) {
-        if (this.isValidClick (evt)) {
+        if (this.isValidClick (evt) && this.isActive) {
                 this.isPressed = true;
                 this.changeAppearanceFor(true);
         }

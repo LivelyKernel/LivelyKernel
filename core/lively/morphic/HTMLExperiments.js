@@ -381,7 +381,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     getExtent: function(){
         var ctx = this.renderContext();
         var w = $(ctx.shapeNode).outerWidth();
-        var h = $(ctx.morphNode).outerHeight();
+        var h = $(ctx.shapeNode).outerHeight();
         return pt(w, h);
     },
 

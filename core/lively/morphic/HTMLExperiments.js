@@ -23,22 +23,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
             var ownerCtx = this.owner && this.owner.renderContext();
             parentNode = (ownerCtx && ownerCtx.shapeNode) || ctx.parentNode;
             
-            if (this.owner.getShape().constructor.name === "HTMLShape") {
-             
-                  parentNode = ownerCtx.shapeNode; 
-                
-            }
-            else
-            if (parentNode && ownerCtx && ownerCtx.shapeNode && parentNode === ownerCtx.shapeNode) {
-
-                if (!ownerCtx.originNode) {
-                    ownerCtx.originNode = ownerCtx.domInterface.htmlRect();
-                    ownerCtx.shapeNode.appendChild(ownerCtx.originNode);
-                }
-                this.owner.shape.compensateShapeNode(ownerCtx);
-                
-                parentNode = ownerCtx.originNode;
-            }
+          
         }
 
         var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();

@@ -68,9 +68,6 @@ setExtent: function($super, value) {
     $super(value);
 },
 
-
-
-
 setRotationHTML: function(ctx) {
     
 },

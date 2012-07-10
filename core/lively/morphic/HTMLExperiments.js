@@ -17,14 +17,14 @@ cop.create('lively.morphic.RelativeLayer')
     
     htmlDispatchTable: function(){
         
-    return {
+    return cop.proceed() + {
         setContent: 'setContentHTML',
         /*setAttribute: 'setAttributeHTML',
         resetExtent: 'resetExtentHTML'*/
      }
     },
     setContent: function(content){
-        this.renderContextDispatch('setContent', content);    
+        this.renderContextDispatch('setContent', content);
     },
     setContentHTML: function(ctx, content){
         this.content = content;

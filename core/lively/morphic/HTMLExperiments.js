@@ -69,28 +69,6 @@ getScale: function() {
 },
 
 
-    
-initHTML: function(ctx) {
-        if (!ctx.morphNode) ctx.morphNode = XHTMLNS.create(this.tagName);;
-        if (this.content) this.setContentHTML(ctx, this.content);
-        if (this.extentOverride) this.setExtent(this.extentOverride);
-        else this.resetExtent();
-        this.setFocusableHTML(ctx, this.isFocusable());
-        //this.setPivotPointHTML(ctx, this.getPivotPoint())
-        //ctx.domInterface.setHTMLTransformOrigin(ctx.morphNode, pt(0,0));
-        //this.setPositionHTML(ctx, this.getPosition());
-        //this.setRotationHTML(ctx, this.getRotation());
-        //this.setScaleHTML(ctx, this.getScale());
-        //this.setClipModeHTML(ctx, this.getClipMode());
-        //this.setHandStyleHTML(ctx, this.getHandStyle());
-        this.setPointerEventsHTML(ctx, this.getPointerEvents());
-        if (this.morphicGetter('Visible') === false)
-            this.setVisibleHTML(ctx, false);
-        var tooltip = this.morphicGetter('ToolTip');
-        tooltip && this.setToolTipHTML(ctx, tooltip);
-        if (UserAgent.fireFoxVersion)
-            ctx.morphNode['-moz-user-modify'] = 'read-only'
-    },
 setContent: function(content){
     this.renderContextDispatch('setContent', content);    
 },

@@ -1,4 +1,4 @@
-module('lively.morphic.SAPUI5').requires('lively.morphic.HTML').toRun(function() {
+module('lively.morphic.SAPUI5').requires('lively.morphic.HTMLExperiments').toRun(function() {
 
 lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
 'rendering', {

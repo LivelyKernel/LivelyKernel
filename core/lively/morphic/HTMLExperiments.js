@@ -68,26 +68,6 @@ getScale: function() {
     return 1;
 },
 
-
-setContent: function(content){
-    this.renderContextDispatch('setContent', content);    
-},
-setContentHTML: function(ctx, content){
-    this.content = content;
-    var textNode = document.createTextNode(content);
-    ctx.morphNode.appendChild(textNode);
-},
-getContent: function(){
-    return this.content || "";    
-},
-
-setAttribute: function(attribute, value) {
-    this.renderContextDispatch('setAttribute', attribute, value);  
-},
-setAttributeHTML: function(ctx, attribute, value) {
-    if (value) $(ctx.morphNode).attr(attribute, value);
-    else ctx.morphNode.removeAttribute(attribute);
-},
 setPositionHTML: function(ctx) {
     
 },

@@ -19,12 +19,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
 
         var parentNode = false;//ctx.morphNode.parentNode;
-        if (!parentNode) {
-            var ownerCtx = this.owner && this.owner.renderContext();
-            parentNode = (ownerCtx && ownerCtx.shapeNode) || ctx.parentNode;
-            
-          
-        }
+        
 
         var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
         this.insertMorphNodeInHTML(ctx, ctx.shapeNode, parentNode, afterNode);

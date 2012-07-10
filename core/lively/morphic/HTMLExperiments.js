@@ -347,12 +347,22 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
 
 },
 'updating', {
+    resetExtent: function() {
+    this.renderContextDispatch('resetExtent');     
+
+    },
+
+    resetExtentHTML: function(ctx){
+        this.extentOverride = null;
+        ctx.shapeNode.style.width = null;
+        ctx.shapeNode.style.height = null;         
+    },
     getBounds: function($super) {
         return pt(0,0).extent(this.getExtent())
     },
     getPosition: function() {
         var ctx = this.renderContext();
-        var p = $(ctx.morphNode).position();
+        var p = $(ctx.shapeNode).position();
         return pt(p.left, p.top);
     },
     setPositionHTML: function(ctx, value) {

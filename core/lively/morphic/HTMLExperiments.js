@@ -22,11 +22,6 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
     },
     adjustOrigin: function() {},
     
-    initialize: function(tag, optContent) {
-        if (tag) this.tagName = tag;
-        if (optContent) this.content = optContent;
-        cop.proceed(new lively.morphic.Shapes.NullShape());
-    },
     appendHTML: function(ctx, optMorphAfter) {
         if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
         var parentNode = ctx.morphNode.parentNode;

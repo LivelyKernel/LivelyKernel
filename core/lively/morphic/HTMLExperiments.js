@@ -53,12 +53,6 @@ getBounds: function() {
     return new Rectangle(p.x, p.y, e.x, e.y);
 },
 
-getPosition: function() {
-    var ctx = this.renderContext();
-    var ownerPos = this.owner.getPosition();
-    var o = $(ctx.morphNode).offset();
-    return pt(o.left, o.top).subPt(ownerPos);
-},
 getRotation: function() {
     return 0;
 },

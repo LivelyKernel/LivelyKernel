@@ -40,7 +40,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
                 parentNode = ownerCtx.originNode;
                 
                 var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
-                this.insertMorphNodeInHTML(ctx, ctx.shapeNode, parentNode, afterNode);    
+                this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode);    
             
             }
         }

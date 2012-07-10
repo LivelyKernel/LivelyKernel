@@ -1,7 +1,21 @@
 module('lively.morphic.HTMLExperiments').requires('lively.morphic.HTML').toRun(function() {
 
 
-
+cop.create('lively.morphic.RelativeLayer')
+.refineClass(lively.morphic.Morph, {
+    htmlDispatchTable: {
+        setContent: 'setContentHTML',
+        setAttribute: 'setAttributeHTML',
+        resetExtent: 'resetExtentHTML',
+     },
+    
+    tagName: 'div',
+    
+    adjustOrigin: function() {}
+    
+    
+    
+})
 
 lively.morphic.Morph.subclass('lively.morphic.RelativeMorph',
 'HTML render settings', {

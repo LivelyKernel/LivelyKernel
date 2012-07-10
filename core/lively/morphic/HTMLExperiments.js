@@ -16,7 +16,34 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 
 'rendering', {
     appendHTML: function(ctx, optMorphAfter) {
-       
+        if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
+
+        var parentNode = false;//ctx.morphNode.parentNode;
+        if (!parentNode) {
+            var ownerCtx = this.owner && this.owner.renderContext();
+            parentNode = (ownerCtx && ownerCtx.shapeNode) || ctx.parentNode;
+            
+            if (this.owner.getShape().constructor.name === "HTMLShape") {
+             
+                  parentNode = ownerCtx.shapeNode; 
+                
+            }
+            else if (parentNode && ownerCtx && ownerCtx.shapeNode && parentNode === ownerCtx.shapeNode) {
+
+                if (!ownerCtx.originNode) {
+                    ownerCtx.originNode = ownerCtx.domInterface.htmlRect();
+                    ownerCtx.shapeNode.appendChild(ownerCtx.originNode);
+                }
+                this.owner.shape.compensateShapeNode(ownerCtx);
+                
+                parentNode = ownerCtx.originNode;
+            }
+        }
+
+        var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
+        //this.insertMorphNodeInHTML(ctx, ctx.shapeNode, parentNode, afterNode);
+        //if (this.originClass) this.setOriginClassHTML(ctx, this.originClass);
+        this.getShape().renderUsing(ctx);
     },
     
 }

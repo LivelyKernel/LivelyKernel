@@ -359,9 +359,11 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         return pt(0,0).extent(this.getExtent())
     },
     getPosition: function() {
-        var ctx = this.renderContext();
-        var p = $(ctx.shapeNode).position();
-        return pt(p.left, p.top);
+            var ctx = this.renderContext();
+            var ownerPos = this.owner.getPosition();
+            var o = $(ctx.shapeNode).offset();
+            return pt(o.left, o.top).subPt(ownerPos);
+    
     },
     setPositionHTML: function(ctx, value) {
         if (!ctx.shapeNode) return undefined;

@@ -14,6 +14,7 @@ cop.create('lively.morphic.TestLayer')
 
 cop.create('lively.morphic.RelativeLayer')
 .refineClass(lively.morphic.Morph, {
+    /*
     htmlDispatchTable: {
         setContent: 'setContentHTML',
         setAttribute: 'setAttributeHTML',
@@ -24,7 +25,7 @@ cop.create('lively.morphic.RelativeLayer')
     
     adjustOrigin: function() {}
     
-    
+    */
     
 })
 

@@ -86,7 +86,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
                 upperGradientCenter = pressed ? 0.2  : 0.3,
                 lowerGradientCenter = pressed ? 0.8  : 0.7;
 
-            this.label.setTextColor(this.normalTextColor);
+            this.label && this.label.setTextColor(this.normalTextColor);
             if (this.style && this.style.label && this.style.label.padding) {
                 var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
                 this.setPadding(labelPadding);
@@ -94,7 +94,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
             this.setFill(this.generateFillWith(baseColor, shade, upperGradientCenter, lowerGradientCenter, bottomShade));
         }
         else {
-            this.label.setTextColor(this.disabledTextColor);                
+            this.label && this.label.setTextColor(this.disabledTextColor);                
             this.setFill(this.disabledColor);
         }
     },

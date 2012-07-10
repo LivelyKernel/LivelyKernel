@@ -3,8 +3,17 @@ module('lively.morphic.HTMLExperiments').requires('lively.morphic.HTML').toRun(f
 
 lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 'settings', {
+    tagName: 'div'
+},
+
+'initializing', {
+    initialize: function($super, bounds, tagName) {
+            if (tagName) this.tagName = tagName;
+            
+    }    
     
 }
+
 );
 
 

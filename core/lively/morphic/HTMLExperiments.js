@@ -76,16 +76,7 @@ setExtent: function($super, value) {
     $super(value);
 },
 
-resetExtent: function() {
-    this.renderContextDispatch('resetExtent');     
 
-},
-
-resetExtentHTML: function(ctx){
-    this.extentOverride = null;
-    ctx.morphNode.style.width = null;
-    ctx.morphNode.style.height = null;         
-},
 
 
 setRotationHTML: function(ctx) {

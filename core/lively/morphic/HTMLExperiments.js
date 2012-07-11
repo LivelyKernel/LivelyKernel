@@ -43,7 +43,7 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
         this.suspendSteppingAll();
         if (this.showsHalos) this.removeHalos();
         this.renderContextDispatch('remove');
-        this.withOutLayer('lively.morphic.RelativeLayer');
+        this.addWithoutLayer('lively.morphic.RelativeLayer');
     },
     removeHTML: function(ctx) {
         this.owner && this.owner.removeMorph(this);

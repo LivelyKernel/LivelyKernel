@@ -188,6 +188,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         return $(ctx.shapeNode).attr(attribute);
     },    
     setAttribute: function(attribute, value) {
+        if (!this.attributes) this.attributes = new Object();
         this.attributes = Object.extend(this.attributes, {attribute: value});
         this.renderContextDispatch('setAttribute', attribute, value);  
     },

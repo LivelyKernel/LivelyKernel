@@ -198,6 +198,23 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         if (attrVal.val) $(ctx.shapeNode).attr(attrVal.attr, attrVal.val);
         else ctx.shapeNode.removeAttribute(attrVal.attr);
     },
+    
+    
+    getProp: function(prop) {
+        this.renderContextDispatch('getProp', prop);  
+    },
+    getPropHTML: function(ctx, prop) {
+        return $(ctx.shapeNode).prop(prop);
+    },    
+    setProp: function(prop, value) {
+        if (!this.prop) this.props= [];
+        this.props.push({prop: prop, val: value}); // FIXME! Need a key value list here
+        this.renderContextDispatch('setProp', {prop: prop, val: value});  
+    },
+    setPropHTML: function(ctx, propVal) {
+        $(ctx.shapeNode).prop(propVal.prop, propVal.val);
+    },
+    
 
     morphMenuItems: function($super) {
         var self = this, items = $super();

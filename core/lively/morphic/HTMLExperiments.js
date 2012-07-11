@@ -87,6 +87,9 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 },
 
 'accessing',{
+    resetExtent: function() {
+        this.shape.resetExtent();    
+    },
     setContent: function(content){
         this.renderContextDispatch('setContent', content);
     },

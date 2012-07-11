@@ -29,9 +29,9 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectTest', 'testing', {
     },
     testIsEmpty: function() {
         var obj1 = {}, obj2 = {a:3}, obj3 = Object.create(obj2);
-        this.assertEquals(obj1.isEmpty(), true);
-        this.assertEquals(obj2.isEmpty(), false);
-        this.assertEquals(obj3.isEmpty(), true);
+        this.assertEquals(Object.isEmpty(obj1), true);
+        this.assertEquals(Object.isEmpty(obj2), false);
+        this.assertEquals(Object.isEmpty(obj3), true);
     },
 });
 

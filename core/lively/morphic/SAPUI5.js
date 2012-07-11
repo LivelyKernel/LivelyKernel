@@ -225,7 +225,7 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.OldControls
 }
 );
 
-lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.TextField',
+lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.OldControls.TextField',
 
 'settings',{
     baseClasses: 'sapUiTf sapUiTfBrd',

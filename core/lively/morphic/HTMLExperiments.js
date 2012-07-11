@@ -122,9 +122,10 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         return this.getPosition().extent(this.getExtent());
     },
     addMorph: function($super, morph, optMorphBefore) {
+
+        $super(morph,optMorphBefore);
         // enable Relative Layout Layer
         morph.addWithLayer(lively.morphic.RelativeLayer);
-        $super(morph,optMorphBefore);
     },
     setAttribute: function(attribute, value) {
         this.renderContextDispatch('setAttribute', attribute, value);  

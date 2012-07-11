@@ -96,9 +96,9 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
      },
 },
 'initializing', {
-    initialize: function($super, bounds, tagName) {
+    initialize: function($super, tagName, optBounds) {
             if (tagName) this.tagName = tagName;
-            $super(new lively.morphic.Shapes.HTMLShape(this.tagName, bounds));
+            $super(new lively.morphic.Shapes.HTMLShape(this.tagName, optBounds));
     },
     appendHTML: function($super, ctx) {
         $super(ctx);

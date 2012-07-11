@@ -68,12 +68,12 @@ getRotation: function() {
 getScale: function() {
     return 1;
 },
-
+/*
 setExtent: function(value) {
     this.extentOverride = value;
     return cop.proceed(value);
 },
-
+*/
 setPositionHTML: function(ctx) {},
 
 setRotationHTML: function(ctx) {},

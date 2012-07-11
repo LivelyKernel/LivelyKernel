@@ -122,25 +122,30 @@ Object.subclass('ObjectGraphLinearizer',
     },
 },
 'object registry -- serialization', {
-    register: function(obj) {
-        if (this.isValueObject(obj))
-            return obj;
+    register: function(obj, optAdditionalPath) {
+        if (optAdditionalPath) this.path.push(optAdditionalPath);
+        try {
+            if (this.isValueObject(obj))
+                return obj;
+    
+            if (Object.isArray(obj)) {
+                var result = [];
+                for (var i = 0; i < obj.length; i++) {
+                    this.path.push(i); // for debugging
+                    var item = obj[i];
 
-        if (Object.isArray(obj)) {
-            var result = [];
-            for (var i = 0; i < obj.length; i++) {
-                this.path.push(i); // for debugging
-                var item = obj[i];
-
-                if (this.somePlugin('ignoreProp', [obj, i, item])) continue;
-                result.push(this.register(item));
-                this.path.pop();
+                    if (this.somePlugin('ignoreProp', [obj, i, item])) continue;
+                    result.push(this.register(item));
+                    this.path.pop();
+                }
+                return result;
             }
-            return result;
-        }
 
-        var id = this.addIdAndAddToRegistryIfNecessary(obj);
-        return this.registry[id].ref;
+            var id = this.addIdAndAddToRegistryIfNecessary(obj);
+            return this.registry[id].ref;
+        } finally {
+            this.path.pop();
+        }
     },
     addIdAndAddToRegistryIfNecessary: function(obj) {
         var id = this.getIdFromObject(obj);

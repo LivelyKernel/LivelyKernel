@@ -331,7 +331,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         if (!ctx.shapeNode)
             ctx.shapeNode = XHTMLNS.create(this.tagName);
         if (this.extentOverride) {
-                
+            ctx.domInterface.setExtent(ctx.shapeNode, this.extentOverride);
         }
     },
 

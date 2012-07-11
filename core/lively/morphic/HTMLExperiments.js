@@ -344,7 +344,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         ctx.shapeNode.style.width = null;
         ctx.shapeNode.style.height = null;         
     },
-    getBounds: function($super) {
+    getBounds: function() {
         return pt(0,0).extent(this.getExtent())
     },
     getPosition: function() {

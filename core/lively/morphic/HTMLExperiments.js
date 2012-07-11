@@ -398,10 +398,23 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
 );
 
 lively.morphic.EventHandler.subclass('lively.morphic.ShapeEventHandler',
-'documentation', {
-    documentation: 'a shape that does not get rendered and acts as a proxy to the morph itself',
-}
-);
+    '.', {
+    registerHTMLAndSVG: function(eventSpec) {
+        var handler = this;
+        eventSpec.node = eventSpec.node || this.morph.renderContext().shapeNode;
+        if (!eventSpec.node) {
+            throw new Error('Cannot register Event handler because cannot find '
+                            + 'HTML/SVG morphNode');
+        }
+        eventSpec.doNotSerialize = ['node'];
+        // bind is too expensive here
+        eventSpec.handlerFunc = function(evt) { handler.handleEvent(evt); };
+        eventSpec.unregisterMethodName = 'unregisterHTMLAndSVGAndCANVAS';
+        eventSpec.node.addEventListener(
+            eventSpec.type, eventSpec.handlerFunc, eventSpec.handleOnCapture);
+        this.register(eventSpec);
+    },
+});
 
 
 lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',

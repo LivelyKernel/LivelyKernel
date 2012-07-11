@@ -300,16 +300,6 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
     }
 },
 
-'rendering', {
-
-
-
-    getComponentNodeIdHTML: function(ctx) {
-        return ctx.checkBoxNode.id;
-    },
-    
-},
-
 'accessing', {
     setChecked: function(checked){ 
         this.checkBoxMorph.setAttribute("checked", "checked");

@@ -397,6 +397,12 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
 }
 );
 
+lively.morphic.EventHandler.subclass('lively.morphic.ShapeEventHandler',
+'documentation', {
+    documentation: 'a shape that does not get rendered and acts as a proxy to the morph itself',
+}
+);
+
 
 lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.NullShape',
 'documentation', {

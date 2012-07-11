@@ -97,6 +97,12 @@ Object.extend(Object, {
         return typeof object == "object";
     },
 
+    isEmpty: function(object) {
+        for (var key in object)
+            if (object.hasOwnProperty(key)) return true;
+        return false;
+    },
+
     inherit: function(obj) {
         var constructor = function ProtoConstructor() { return this }
         constructor.prototype = obj;

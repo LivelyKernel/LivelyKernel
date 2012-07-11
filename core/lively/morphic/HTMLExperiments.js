@@ -194,6 +194,9 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         this.renderContextDispatch('setAttribute', attribute, value);  
     },
     setAttributeHTML: function(ctx, attribute, value) {
+        console.log("Setting "+attribute+" to "+value+" for");
+        console.log(ctx.shapeNode);
+        
         if (value) $(ctx.shapeNode).attr(attribute, value);
         else ctx.shapeNode.removeAttribute(attribute);
     },

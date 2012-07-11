@@ -33,8 +33,6 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
             }
         }
 
-        
-        //if (this.originClass) this.setOriginClassHTML(ctx, this.originClass);
         this.getShape().renderUsing(ctx);
     },
     

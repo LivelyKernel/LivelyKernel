@@ -337,9 +337,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
 'updating', {
     resetExtent: function() {
         this.renderContextDispatch('resetExtent');     
-
     },
-
     resetExtentHTML: function(ctx){
         this.extentOverride = null;
         ctx.shapeNode.style.width = null;

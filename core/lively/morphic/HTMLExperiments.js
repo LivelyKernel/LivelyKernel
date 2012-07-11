@@ -110,8 +110,8 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     this.renderContextDispatch('setAttribute', attribute, value);  
 },
 setAttributeHTML: function(ctx, attribute, value) {
-    if (value) $(ctx.morphNode).attr(attribute, value);
-    else ctx.morphNode.removeAttribute(attribute);
+    if (value) $(shapeNode).attr(attribute, value);
+    else ctx.shapeNode.removeAttribute(attribute);
 },
 
  morphMenuItems: function($super) {

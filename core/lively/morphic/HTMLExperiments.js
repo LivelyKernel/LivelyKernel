@@ -58,7 +58,7 @@ getBounds: function() {
 getPosition: function() {
     var ctx = this.renderContext();
     var ownerPos = (this.owner && this.owner.getPosition()) || pt(0,0);
-    var o = $(ctx.shapeNode).offset();
+    var o = (ctx.shapeNode && $(ctx.shapeNode).offset()) || pt(0,0);
     return pt(o.left, o.top).subPt(ownerPos);
 },
 

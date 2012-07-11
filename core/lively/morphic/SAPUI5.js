@@ -313,7 +313,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
         this.labelMorph.getContent();        
     },
     setChecked: function(checked){ 
-        this.checkBoxMorph.setProp("checked", true);
+        this.checkBoxMorph.setProp("checked", checked);
         this.updateAppearance();
     },
     isChecked: function(){

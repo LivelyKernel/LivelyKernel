@@ -39,7 +39,16 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 
         this.getShape().renderUsing(ctx);
     },
-    
+    remove: function() {
+        this.suspendSteppingAll();
+        if (this.showsHalos) this.removeHalos();
+        this.renderContextDispatch('remove');
+        this.withOutLayer('lively.morphic.RelativeLayer');
+    },
+    removeHTML: function(ctx) {
+        this.owner && this.owner.removeMorph(this);
+        ctx.removeNode(ctx.shapeNode);
+    },
 getBounds: function() {
     var p = this.getPosition();
     var e = this.getExtent();

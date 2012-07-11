@@ -6,5 +6,255 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.Control',
 );
 
 
+lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Button',
+
+'settings',{
+    classes: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnStd',    
+    activeClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnAct',
+    disabledClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnDsbl',
+    label: "Button",
+    tagName: 'button',
+    fixedHeight: true
+},
+
+'initializing', {
+    initialize: function($super, bounds, optLabel) {
+        $super(bounds, this.tagName);
+        if (optLabel) this.setLabel(optLabel);
+        this.value = false;
+        this.toggle = false;
+        this.isActive = true;
+    }
+},
+'accessing', {
+    setActive: function(active) {
+        this.isActive = active;
+        if (active) this.pressed = false;
+        this.changeAppearanceFor(false);
+    },
+    setLabel: function(label) {
+        this.setContent(label);    
+    },
+    getLabel: function(){
+        this.getContent();    
+    }
+    
+},
+'event handling', {
+    changeAppearanceFor: function(pressed) {
+        if (pressed) {
+            this.setNodeClass(this.activeClasses);
+        } else {
+            this.setNodeClass(this.isActive?this.classes:this.disabledClasses);
+        }
+  
+    },
+
+    onMouseOut: function (evt) {
+        this.isPressed && this.changeAppearanceFor(false);
+    },
+
+    onMouseOver: function (evt) {
+        if (evt.isLeftMouseButtonDown()) {
+            this.isPressed && this.changeAppearanceFor(true);
+        } else {
+            this.isPressed = false;
+        }
+    },
+
+    onMouseDown: function (evt) {
+        if (this.isValidClick (evt)) {
+                this.isPressed = true;
+                this.changeAppearanceFor(true);
+        }
+        return false;
+    },
+
+    onMouseUp: function(evt) {
+        if (this.isValidClick (evt) && this.isPressed) {
+            var newValue = this.toggle ? !this.value : false;
+            this.setValue(newValue);
+            this.changeAppearanceFor(false);
+            this.isPressed = false;
+        }
+        return false;
+    },
+    isValidClick: function(evt) {
+        return this.isActive && evt.isLeftMouseButtonDown() && !evt.isCommandKey();
+    },
+    setValue: function(bool) {
+        this.value = bool;
+        // buttons should fire on mouse up
+        if (!bool || this.toggle) lively.bindings.signal(this, 'fire', bool);
+    },
+
+}
+);
+lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
+
+'settings',{
+    baseClasses: 'sapUiTf sapUiTfBrd',
+    normalClass: 'sapUiTfStd',
+    readOnlyClass: 'sapUiTfRo',
+    focusClass: 'sapUiTfFoc',
+    disabledClass: 'sapUiTfDsbl',
+    warningClass: 'sapUiTfWarn',
+    errorClass: 'sapUiTfErr', 
+    successClass: 'sapUiTfSucc',
+    defaultValue: "",
+    fixedHeight: true,
+    tagName: 'input'
+},
+'HTML render settings', {
+    htmlDispatchTable: {
+        getValue: 'getValueHTML',        
+        setValue: 'setValueHTML',        
+        setMaxLength: 'setMaxLengthHTML',
+        getMaxLength: 'getMaxLengthHTML',
+        updateAppearance: 'updateAppearanceHTML'
+    },
+},
+'initializing', {
+    initialize: function($super, bounds, optValue) {
+        $super(bounds, this.tagName);
+        this.hasFocus = false;
+        this.active = true;
+        this.value = optValue || this.defaultValue();
+    }
+},
+
+'rendering', {
+    initHTML: function($super, ctx) {
+        $super(ctx);
+        if (this.shape) this.setValueHTML(ctx, (this.value || this.defaultValue));
+    },
+
+    getValueHTML: function(ctx) {
+        if (ctx.shapeNode) return ctx.shapeNode.value;
+        else return "";  
+    },
+    setValueHTML: function(ctx, value) {
+        if (ctx.shapeNode) ctx.shapeNode.value = value;
+    },
+    getMaxLengthHTML: function(ctx) {
+        if (ctx.shapeNode) {
+            var m = ctx.shapeNode.getAttribute('maxlength');
+            if (m && m !="") return m;
+        }
+        return null;  
+    },
+    setMaxLengthHTML: function(ctx, value) {
+        if (ctx.shapeNode) {
+            if (value) ctx.shapeNode.maxLength = value;
+            else ctx.shapeNode.removeAttribute('maxlength');
+        }
+    },
+    updateAppearanceHTML: function(ctx) {
+        var classNames = this.baseClasses;
+        
+        if (!this.active){
+            ctx.shapeNode.disabled = true;
+            classNames+=' '+this.disabledClass;
+        } else {
+            classNames+=' '+this.normalClass;
+            ctx.shapeNode.disabled = false;            
+        }
+        
+        if (this.warning) {
+            classNames+=' '+this.warningClass;
+        }
+        if (this.error) {
+            classNames+=' '+this.errorClass;
+        }    
+        if (this.success) {
+            classNames+=' '+this.successClass;
+        } 
+        
+        if (this.readOnly) {
+            ctx.shapeNode.readOnly= true;  
+            classNames+=' '+this.readOnlyClass;  
+        } else {
+            ctx.shapeNode.readOnly=false;        
+        }    
+        
+        if (this.hasFocus ) {
+            classNames+=' '+this.focusClass;
+        }
+        this.setNodeClass(classNames ); 
+        
+    }
+    
+},
+
+'accessing', {
+    setFixedHeight: function(f) {
+        this.fixedHeight = f;
+        this.resizeComponent();
+    },
+    getValue: function() {
+        return this.renderContextDispatch('getValue');
+    },
+    setValue: function(value) {
+        return this.renderContextDispatch('setValue', value);
+    },
+    clearState: function(){
+        this.warning = false;
+        this.error = false;
+        this.success = false;    
+    },
+    setReadOnly: function(value) {
+        this.readOnly = value;
+        this.updateAppearance();
+    },
+    setWarning: function(value) {
+        this.clearState();
+        this.warning= value;
+        this.updateAppearance();
+    },
+    setError: function(value) {
+        this.clearState();
+        this.error= value;
+        this.updateAppearance();
+    },
+    setSuccess: function(value) {
+        this.clearState();
+        this.success= value;
+        this.updateAppearance();
+    },
+    
+    getMaxLength: function() {
+        return this.renderContextDispatch('getMaxLength');
+    },
+    setMaxLength: function(value) {
+        return this.renderContextDispatch('setMaxLength', value);
+    },
+    setActive: function(active) {
+        this.active = active;
+        if (!active) this.focus= false;
+        this.updateAppearance();
+    },
+
+    
+},
+'event handling', {
+   
+    onFocus: function($super, evt) {
+        this.hasFocus = true;
+        this.updateAppearance();
+        $super(evt);
+    },
+    onBlur: function($super, evt) {
+        this.hasFocus = false;
+        this.updateAppearance();
+        $super(evt);        
+    },
+    
+    updateAppearance: function() {
+        return this.renderContextDispatch('updateAppearance');
+    },
+ 
+
+}
+);
 
 }) // end of module

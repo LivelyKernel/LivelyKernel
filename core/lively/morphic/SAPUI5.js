@@ -266,4 +266,138 @@ lively.morphic.SAPUI5.TextField.subclass('lively.morphic.SAPUI5.TextArea',
 );
 
 
+lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
+
+'settings',{
+    baseClass:'sapUiCb',
+    activeClass: 'sapUiCbInteractive sapUiCbStd', 
+    checkedClass: 'sapUiCbChk',
+    disabledClass: 'sapUiCbDis',
+    readOnlyClass: 'sapUiCbRo',
+    label: "Checkbox"
+},
+'HTML render settings', {
+    htmlDispatchTable: {
+        updateInputTag: 'updateInputTagHTML',
+        isChecked: 'isCheckedHTML',
+        setChecked: 'setCheckedHTML'
+    },
+},
+'initializing', {
+    initialize: function($super, bounds, optLabel) {
+        $super(bounds, "span");
+        this.checkBoxMorph = this.addMorph(new lively.morphic.HTMLMorph(null, 'input'));
+        this.labelMorph = this.addMorph(new lively.morphic.HTMLMorph(null, 'label'));        
+        if (optLabel) this.setLabel(optLabel);
+        this.readOnly = false;
+        this.checked = false;
+        this.active = true;
+        this.updateAppearance();
+    }
+},
+
+'rendering', {
+    initHTML: function($super, ctx) {
+        if (!ctx.componentNode) ctx.componentNode= XHTMLNS.create('span');
+        if (!ctx.checkBoxNode) this.setupCheckBoxNodeHTML(ctx);
+        if (!ctx.labelNode) this.setupLabelNodeHTML(ctx);
+        this.setCheckedHTML(ctx, this.checked);        
+        this.updateAppearance();        
+
+        ctx.subNodes = [];
+        $super(ctx);
+        if (this.shape) this.updateLabel(this.label || "Label")
+    },
+    setupCheckBoxNodeHTML: function(ctx){
+        var c = XHTMLNS.create('input');
+        c.type = "checkbox";
+        c.id = 'checkbox-'+this.id;
+        ctx.checkBoxNode = c;
+    },    
+    setupLabelNodeHTML: function(ctx){
+        var l = XHTMLNS.create('label');
+        l.htmlFor = 'checkbox-'+this.id;
+        ctx.labelNode = l;
+    },
+    appendHTML: function($super, ctx, optMorphAfter) {
+        ctx.componentNode.appendChild(ctx.checkBoxNode);
+        ctx.componentNode.appendChild(ctx.labelNode);
+        $super(ctx, optMorphAfter);
+    },
+
+    updateLabelHTML: function(ctx, label) {
+        ctx.labelNode.innerHTML = label;
+        ctx.checkBoxNode.title = label;
+    },
+
+    getComponentNodeIdHTML: function(ctx) {
+        return ctx.checkBoxNode.id;
+    },
+    
+    updateInputTagHTML: function(ctx) {
+        //ctx.checkBoxNode.checked = (this.checked)?"checked":null;
+        ctx.checkBoxNode.disabled= (this.active)?null:"disabled";        
+        ctx.checkBoxNode.readOnly= (this.readOnly)?"readOnly":null;   
+    },
+    isCheckedHTML: function(ctx){
+        return ctx.checkBoxNode.checked;    
+    },
+    setCheckedHTML: function(ctx, checked) {
+        //this.checked = checked;
+        ctx.checkBoxNode.checked = checked;
+    },
+    
+},
+
+'accessing', {
+    setChecked: function(checked){ 
+        this.renderContextDispatch('setChecked');
+        this.updateAppearance();
+    },
+    isChecked: function(){
+        return this.renderContextDispatch('isChecked');
+    },
+    
+    setActive: function(active) {
+        this.active = active;
+        this.updateAppearance();
+    },
+    setReadOnly: function(readOnly ) {
+        this.readOnly = readOnly ;
+        this.updateAppearance();
+    },
+    updateInputTag: function(idx) {
+        return this.renderContextDispatch('updateInputTag');
+    },
+    
+},
+'event handling', {
+    updateAppearance: function() {
+
+        var classNames = this.baseClass;
+        
+        if (this.isChecked()) { classNames+=' '+this.checkedClass}
+        if (this.readOnly) {classNames+=' '+this.readOnlyClass}
+            else if (this.active) {classNames+=' '+this.activeClass}
+            else {classNames+=' '+this.disabledClass}
+        this.setComponentNodeClass(classNames);
+        this.updateInputTag();
+        this.checked = this.isChecked();
+    },
+
+    onChange: function(evt){
+           if (this.active && !this.readOnly) {
+                lively.bindings.signal(this, 'fire', true);
+            } 
+            this.updateAppearance();
+    },
+
+    onClick: function(evt) {
+         if (!this.active || this.readOnly) evt.stop();
+  
+    },
+
+}
+);
+
 }) // end of module

@@ -58,9 +58,9 @@ getScale: function() {
     return 1;
 },
 
-setExtent: function($super, value) {
+setExtent: function(value) {
     this.extentOverride = value;
-    $super(value);
+    return cop.proceed(value);
 },
 
 setPositionHTML: function(ctx) {},

@@ -1552,52 +1552,49 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
     },
 },
 'initializing', {
-    initialize: function($super, bounds) {
+    initialize: function($super, bounds, optValue) {
         $super(bounds, this.tagName);
         this.hasFocus = false;
         this.active = true;
+        this.value = optValue || this.defaultValue();
     }
 },
 
 'rendering', {
-    initHTML: function($super, ctx, optValue) {
-        if (!ctx.componentNode)
-            ctx.componentNode= XHTMLNS.create('input');
-         this.setComponentNodeClass(this.classes);
-         this.setComponentNodeId();
+    initHTML: function($super, ctx) {
         $super(ctx);
-        if (this.shape) this.setValueHTML(ctx, (optValue || this.defaultValue));
+        if (this.shape) this.setValueHTML(ctx, (this.value || this.defaultValue));
     },
 
     getValueHTML: function(ctx) {
-        if (ctx.componentNode) return ctx.componentNode.value;
+        if (ctx.shapeNode) return ctx.shapeNode.value;
         else return "";  
     },
     setValueHTML: function(ctx, value) {
-        if (ctx.componentNode) ctx.componentNode.value = value;
+        if (ctx.shapeNode) ctx.shapeNode.value = value;
     },
     getMaxLengthHTML: function(ctx) {
-        if (ctx.componentNode) {
-            var m = ctx.componentNode.getAttribute('maxlength');
+        if (ctx.shapeNode) {
+            var m = ctx.shapeNode.getAttribute('maxlength');
             if (m && m !="") return m;
         }
         return null;  
     },
     setMaxLengthHTML: function(ctx, value) {
-        if (ctx.componentNode) {
-            if (value) ctx.componentNode.maxLength = value;
-            else ctx.componentNode.removeAttribute('maxlength');
+        if (ctx.shapeNode) {
+            if (value) ctx.shapeNode.maxLength = value;
+            else ctx.shapeNode.removeAttribute('maxlength');
         }
     },
     updateAppearanceHTML: function(ctx) {
         var classNames = this.baseClasses;
         
         if (!this.active){
-            ctx.componentNode.disabled = true;
+            ctx.shapeNode.disabled = true;
             classNames+=' '+this.disabledClass;
         } else {
             classNames+=' '+this.normalClass;
-            ctx.componentNode.disabled = false;            
+            ctx.shapeNode.disabled = false;            
         }
         
         if (this.warning) {
@@ -1611,16 +1608,16 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
         } 
         
         if (this.readOnly) {
-            ctx.componentNode.readOnly= true;  
+            ctx.shapeNode.readOnly= true;  
             classNames+=' '+this.readOnlyClass;  
         } else {
-            ctx.componentNode.readOnly=false;        
+            ctx.shapeNode.readOnly=false;        
         }    
         
         if (this.hasFocus ) {
             classNames+=' '+this.focusClass;
         }
-        this.setComponentNodeClassHTML(ctx, classNames ); 
+        this.setNodeClass(classNames ); 
         
     }
     

@@ -311,7 +311,11 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     documentation: 'an HTMLMorph shape',
 },
 'initializing', {
-    
+
+    htmlDispatchTable: {
+        resetExtent: 'resetExtentHTML',
+     },
+
     initialize: function($super, tagName, optBounds){
         this.tagName = tagName;
         $super(optBounds);

@@ -103,7 +103,9 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     appendHTML: function($super, ctx) {
         $super(ctx);
         if (this.content) this.setContentHTML(ctx, this.content);
-
+        if (this.attributes) for (var x in this.attributes) {
+            this.setAttribute(x, this.attributes[x]);    
+        }
     }
     
     

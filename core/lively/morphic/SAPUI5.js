@@ -303,16 +303,6 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
 'rendering', {
 
 
-    appendHTML: function($super, ctx, optMorphAfter) {
-        ctx.componentNode.appendChild(ctx.checkBoxNode);
-        ctx.componentNode.appendChild(ctx.labelNode);
-        $super(ctx, optMorphAfter);
-    },
-
-    updateLabelHTML: function(ctx, label) {
-        ctx.labelNode.innerHTML = label;
-        ctx.checkBoxNode.title = label;
-    },
 
     getComponentNodeIdHTML: function(ctx) {
         return ctx.checkBoxNode.id;
@@ -351,7 +341,10 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
         this.updateAppearance();
     },
     updateInputTag: function(idx) {
-        return this.renderContextDispatch('updateInputTag');
+        if (this.active) this.checkBoxMorph.removeAttribute("disabled");
+        else  this.checkBoxMorph.setAttribute("disabled", "disabled");
+        ctx.checkBoxNode.disabled= (this.active)?null:"disabled";        
+        ctx.checkBoxNode.readOnly= (this.readOnly)?"readOnly":null;  
     },
     
 },

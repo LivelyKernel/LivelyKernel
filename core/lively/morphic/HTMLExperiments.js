@@ -94,6 +94,8 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         setContent: 'setContentHTML',
         setAttribute: 'setAttributeHTML',
         getAttribute: 'getAttributeHTML',
+        setProp: 'setPropHTML',
+        getProp: 'getPropHTML',
      },
 },
 'initializing', {

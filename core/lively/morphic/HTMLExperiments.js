@@ -186,7 +186,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         this.renderContextDispatch('setAttribute', attribute, value);  
     },
     setAttributeHTML: function(ctx, attribute, value) {
-        if (value) $(shapeNode).attr(attribute, value);
+        if (value) $(ctx.shapeNode).attr(attribute, value);
         else ctx.shapeNode.removeAttribute(attribute);
     },
 

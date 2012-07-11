@@ -193,12 +193,10 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         this.attributes = Object.extend(this.attributes, {attribute: value});
         this.renderContextDispatch('setAttribute', {attr: attribute, val: value});  
     },
-    setAttributeHTML: function(ctx, attribute, value) {
-        console.log("Setting "+attribute+" to "+value+" for");
-        console.log(ctx.shapeNode);
-        
-        if (value) $(ctx.shapeNode).attr(attribute, value);
-        else ctx.shapeNode.removeAttribute(attribute);
+    setAttributeHTML: function(ctx, attrVal) {
+    
+        if (attrVal.val) $(ctx.shapeNode).attr(attrVal.attr, attrVal.val);
+        else ctx.shapeNode.removeAttribute(attrVal.attr);
     },
 
     morphMenuItems: function($super) {

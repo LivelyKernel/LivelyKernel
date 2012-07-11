@@ -1455,7 +1455,6 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Button',
         this.value = false;
         this.toggle = false;
         this.isActive = true;
-        
     }
 },
 'accessing', {
@@ -1464,6 +1463,12 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Button',
         if (active) this.pressed = false;
         this.changeAppearanceFor(false);
     },
+    setLabel: function(label) {
+        this.setContent(label);    
+    },
+    getLabel: function(){
+        this.getContent();    
+    }
     
 },
 'event handling', {

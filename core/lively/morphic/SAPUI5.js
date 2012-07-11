@@ -286,10 +286,12 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
 'initializing', {
     initialize: function($super, bounds, optLabel) {
         $super(bounds, "span");
+        var checkboxId = 'checkbox-'+this.id;
         this.checkBoxMorph = this.addMorph(new lively.morphic.HTMLMorph(null, 'input'));
         this.checkBoxMorph.setAttribute('type', 'checkbox');
-        this.checkBoxMorph.setAttribute('id', 'checkbox-'+this.id);    
-        this.labelMorph = this.addMorph(new lively.morphic.HTMLMorph(null, 'label'));        
+        this.checkBoxMorph.setAttribute('id', checkboxId);    
+        this.labelMorph = this.addMorph(new lively.morphic.HTMLMorph(null, 'label')); 
+        this.labelMorph.setAttribute('for', checkboxId);      
         if (optLabel) this.setLabel(optLabel);
         this.readOnly = false;
         this.checked = false;
@@ -299,28 +301,8 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
 },
 
 'rendering', {
-    initHTML: function($super, ctx) {
-        if (!ctx.componentNode) ctx.componentNode= XHTMLNS.create('span');
-        if (!ctx.checkBoxNode) this.setupCheckBoxNodeHTML(ctx);
-        if (!ctx.labelNode) this.setupLabelNodeHTML(ctx);
-        this.setCheckedHTML(ctx, this.checked);        
-        this.updateAppearance();        
 
-        ctx.subNodes = [];
-        $super(ctx);
-        if (this.shape) this.updateLabel(this.label || "Label")
-    },
-    setupCheckBoxNodeHTML: function(ctx){
-        var c = XHTMLNS.create('input');
-        c.type = "checkbox";
-        c.id = 'checkbox-'+this.id;
-        ctx.checkBoxNode = c;
-    },    
-    setupLabelNodeHTML: function(ctx){
-        var l = XHTMLNS.create('label');
-        l.htmlFor = 'checkbox-'+this.id;
-        ctx.labelNode = l;
-    },
+
     appendHTML: function($super, ctx, optMorphAfter) {
         ctx.componentNode.appendChild(ctx.checkBoxNode);
         ctx.componentNode.appendChild(ctx.labelNode);

@@ -99,8 +99,8 @@ Object.extend(Object, {
 
     isEmpty: function(object) {
         for (var key in object)
-            if (object.hasOwnProperty(key)) return true;
-        return false;
+            if (object.hasOwnProperty(key)) return false;
+        return true;
     },
 
     inherit: function(obj) {

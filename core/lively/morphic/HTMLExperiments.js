@@ -109,14 +109,14 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         $super(morph,optMorphBefore);
     },
     setAttribute: function(attribute, value) {
-    this.renderContextDispatch('setAttribute', attribute, value);  
-},
-setAttributeHTML: function(ctx, attribute, value) {
-    if (value) $(shapeNode).attr(attribute, value);
-    else ctx.shapeNode.removeAttribute(attribute);
-},
+        this.renderContextDispatch('setAttribute', attribute, value);  
+    },
+    setAttributeHTML: function(ctx, attribute, value) {
+        if (value) $(shapeNode).attr(attribute, value);
+        else ctx.shapeNode.removeAttribute(attribute);
+    },
 
- morphMenuItems: function($super) {
+    morphMenuItems: function($super) {
         var self = this, items = $super();
         items.push([
             'Set content', function(evt) {

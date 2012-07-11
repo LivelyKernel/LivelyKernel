@@ -178,7 +178,6 @@ Object.subclass('lively.morphic.Morph',
 
 
     setNodeClass: function(value) {
-        //console.log("Core.js, Morph, setNodeClass(): Setting style class to "+value);
         var a = [];
         if (value instanceof Array) {
             a = value;
@@ -194,7 +193,7 @@ Object.subclass('lively.morphic.Morph',
         }
 
         var result = [];
-        a.each(function(item){result.push( item.toLowerCase());});
+        a.each(function(item){result.push(item);});
         result = result.uniq();
         return this.shape.setNodeClass(result);
     },

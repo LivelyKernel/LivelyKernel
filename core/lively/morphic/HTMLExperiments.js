@@ -373,7 +373,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         var h = $(ctx.shapeNode).outerHeight(true);
         return pt(w, h);
     },
-
+/*
     setFillHTML: function(ctx, value) {},
 
     setBorderStyleHTML: function(ctx, value) {},
@@ -382,7 +382,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
 
     setOpacityHTML: function(ctx, value) {},
     setPaddingHTML: function(ctx, r) {},
-
+*/
     compensateShapeNode: function(ctx) {},
     
 

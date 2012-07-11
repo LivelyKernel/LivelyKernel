@@ -123,9 +123,6 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     },
     addMorph: function($super, morph, optMorphBefore) {
 
-        // enable Relative Layout Layer
-        
-        
          if (morph.isAncestorOf(this)) {
             alert('addMorph: Circular relationships between morphs not allowed');
             alert('tried to drop ' + morph + ' on ' + this);
@@ -136,7 +133,11 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
             var tfm = morph.transformForNewOwner(this);
             morph.remove();
         }
+        
+        // enable Relative Layout Layer (between removing and adding)
         morph.addWithLayer(lively.morphic.RelativeLayer);
+        
+        
         if (morph.owner !== this) morph.owner = this;
 
         var indexToInsert = optMorphBefore && this.submorphs.indexOf(optMorphBefore);

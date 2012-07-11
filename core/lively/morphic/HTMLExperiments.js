@@ -190,7 +190,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     },    
     setAttribute: function(attribute, value) {
         if (!this.attributes) this.attributes = [];
-        this.attributes.push({attr: attribute, val: value}); // FIXME!
+        this.attributes.push({attr: attribute, val: value}); // FIXME! Need a key value list here
         this.renderContextDispatch('setAttribute', {attr: attribute, val: value});  
     },
     setAttributeHTML: function(ctx, attrVal) {

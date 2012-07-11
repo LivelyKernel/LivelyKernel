@@ -434,7 +434,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         if (!ctx.shapeNode) return undefined;
         var newExtent = value;
         
-        if (ctx.shapeNode.nodeName != "button") {
+        if (ctx.shapeNode.nodeName != "button") { // buttons dont adhere to the normal box model ...
             var outer = this.getExtent();
             var inner = pt($(ctx.shapeNode).width(), $(ctx.shapeNode).height());
             var delta = outer.subPt(inner);

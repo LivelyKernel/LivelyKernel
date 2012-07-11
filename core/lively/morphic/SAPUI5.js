@@ -112,7 +112,7 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.LabelComponent',
 );
 
 
-lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Button',
+lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.OldControls.Button',
 
 'settings',{
     classes: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnStd',    

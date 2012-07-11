@@ -1429,4 +1429,113 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.MatrixLayout',
     },
 }
 );
+
+
+lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Button',
+
+'settings',{
+    classes: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnStd',    
+    activeClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnAct',
+    disabledClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnDsbl',
+    label: "Button",
+    fixedHeight: true
+},
+
+'initializing', {
+    initialize: function($super, bounds, optLabel) {
+        $super(bounds);
+        if (optLabel) this.setLabel(optLabel);
+        this.value = false;
+        this.toggle = false;
+        this.isActive = true;
+        
+    }
+},
+
+'rendering', {
+    initHTML: function($super, ctx) {
+        if (!ctx.componentNode)
+            ctx.componentNode= this.createButtonNodeHTML();
+        this.setComponentNodeClass(this.isActive?this.classes:this.disabledClasses);
+         this.setComponentNodeId();        
+        $super(ctx);
+        if (this.shape) this.updateLabel(this.label || "Button")
+    },
+
+
+},
+
+'node creation', {
+    createButtonNodeHTML: function() {
+        var node = XHTMLNS.create('button');
+        return node;
+    },
+},
+
+'accessing', {
+    setActive: function(active) {
+        this.isActive = active;
+        if (active) this.pressed = false;
+        this.changeAppearanceFor(false);
+    },
+    setExtent: function($super, extent) {
+        $super(extent);
+        this.resizeComponent();
+    },
+ 
+
+
+    
+},
+'event handling', {
+    changeAppearanceFor: function(pressed) {
+        if (pressed) {
+            this.setComponentNodeClass(this.activeClasses);
+        } else {
+            this.setComponentNodeClass(this.isActive?this.classes:this.disabledClasses);
+        }
+  
+    },
+
+    onMouseOut: function (evt) {
+        this.isPressed && this.changeAppearanceFor(false);
+    },
+
+    onMouseOver: function (evt) {
+        if (evt.isLeftMouseButtonDown()) {
+            this.isPressed && this.changeAppearanceFor(true);
+        } else {
+            this.isPressed = false;
+        }
+    },
+
+    onMouseDown: function (evt) {
+        if (this.isValidClick (evt)) {
+                this.isPressed = true;
+                this.changeAppearanceFor(true);
+        }
+        return false;
+    },
+
+    onMouseUp: function(evt) {
+        if (this.isValidClick (evt) && this.isPressed) {
+            var newValue = this.toggle ? !this.value : false;
+            this.setValue(newValue);
+            this.changeAppearanceFor(false);
+            this.isPressed = false;
+        }
+        return false;
+    },
+    isValidClick: function(evt) {
+        return this.isActive && evt.isLeftMouseButtonDown() && !evt.isCommandKey();
+    },
+    setValue: function(bool) {
+        this.value = bool;
+        // buttons should fire on mouse up
+        if (!bool || this.toggle) lively.bindings.signal(this, 'fire', bool);
+    },
+
+}
+);
+
 }) // end of module

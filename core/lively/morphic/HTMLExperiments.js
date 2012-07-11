@@ -180,6 +180,13 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         return morph
 
     },
+    
+    getAttribute: function(attribute) {
+        this.renderContextDispatch('getAttribute', attribute);  
+    },
+    getAttributeHTML: function(ctx, attribute) {
+        return $(ctx.shapeNode).attr(attribute);
+    },    
     setAttribute: function(attribute, value) {
         this.attributes = Object.extend(this.attributes, {attribute: value});
         this.renderContextDispatch('setAttribute', attribute, value);  

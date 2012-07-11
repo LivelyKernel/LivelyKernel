@@ -118,13 +118,9 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     },
     setContentHTML: function(ctx, content){
         this.content = content;
-        if (!ctx.contentNode) {
+        if (ctx.contentNode) $(ctx.contentNode).remove();
             ctx.contentNode = document.createTextNode(content);
             ctx.shapeNode.appendChild(ctx.contentNode);
-        }
-        else {
-            ctx.contentNode.innerHTML = content;
-        }
     },
     getContent: function(){
         return this.content || "";    

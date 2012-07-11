@@ -284,8 +284,8 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
     },
 },
 'initializing', {
-    initialize: function($super, bounds, optLabel) {
-        $super(bounds, "span");
+    initialize: function($super, label, optBounds) {
+        $super("span", optBounds);
         var checkboxId = 'checkbox-'+this.id;
         this.checkBoxMorph = this.addMorph(new lively.morphic.HTMLMorph('input'));
         //this.checkBoxMorph.setAttribute('type', 'checkbox');

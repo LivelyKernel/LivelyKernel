@@ -100,11 +100,12 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
             if (tagName) this.tagName = tagName;
             $super(new lively.morphic.Shapes.HTMLShape(this.tagName, bounds));
     },
-    initHTML: function($super, ctx) {
+    appendHTML: function($super, ctx) {
         $super(ctx);
         if (this.content) this.setContentHTML(ctx, this.content);
 
     }
+    
     
 },
 
@@ -117,8 +118,13 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     },
     setContentHTML: function(ctx, content){
         this.content = content;
-        var textNode = document.createTextNode(content);
-        ctx.shapeNode.appendChild(textNode);
+        if (!ctx.contentNode) {
+            ctx.contentNode = document.createTextNode(content);
+            ctx.shapeNode.appendChild(ctx.contentNode);
+        }
+        else {
+            ctx.contentNode.innerHTML = content;
+        }
     },
     getContent: function(){
         return this.content || "";    

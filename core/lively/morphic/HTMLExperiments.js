@@ -191,7 +191,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     setAttribute: function(attribute, value) {
         if (!this.attributes) this.attributes = new Object();
         this.attributes = Object.extend(this.attributes, {attribute: value});
-        this.renderContextDispatch('setAttribute', attribute, value);  
+        this.renderContextDispatch('setAttribute', {attr: attribute, val: value});  
     },
     setAttributeHTML: function(ctx, attribute, value) {
         console.log("Setting "+attribute+" to "+value+" for");

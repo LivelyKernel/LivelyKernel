@@ -1539,7 +1539,8 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
     errorClass: 'sapUiTfErr', 
     successClass: 'sapUiTfSucc',
     defaultValue: "",
-    fixedHeight: true
+    fixedHeight: true,
+    tagName: 'input'
 },
 'HTML render settings', {
     htmlDispatchTable: {

@@ -359,13 +359,13 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     },
     setExtentHTML: function(ctx, value) {
         if (!ctx.shapeNode) return undefined;
-            
+            this.extentOverride = value;
             var outer = this.getExtent();
             var inner = pt($(ctx.shapeNode).width(), $(ctx.shapeNode).height());
             var delta = outer.subPt(inner);
             var newExtent = value.subPt(delta);
             ctx.domInterface.setExtent(ctx.shapeNode, newExtent);
-            this.extentOverride = newExtent;
+            
         return value;
     },
     getExtent: function(){

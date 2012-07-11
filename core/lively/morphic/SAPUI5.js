@@ -6,13 +6,7 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.Control',
 );
 
 
-lively.morphic.Box.subclass('lively.morphic.SAPUI5.Componen
-
-
-
-
-
-t',
+lively.morphic.Box.subclass('lively.morphic.SAPUI5.Component',
 'rendering', {
     htmlDispatchTable: {
         resizeComponent: 'resizeComponentHTML',

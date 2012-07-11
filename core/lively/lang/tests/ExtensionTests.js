@@ -26,7 +26,13 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectTest', 'testing', {
         f.displayName = "myDisplayFoo"
         Object.extend(obj, {foo: f})
         this.assert(obj.foo.sourceModule, "source module not set")
-    }
+    },
+    testIsEmpty: function() {
+        var obj1 = {}, obj2 = {a:3}, obj3 = Object.create(obj2);
+        this.assertEquals(obj1.isEmpty(), true);
+        this.assertEquals(obj2.isEmpty(), false);
+        this.assertEquals(obj3.isEmpty(), true);
+    },
 });
 
 TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectsTest', 'testing', {

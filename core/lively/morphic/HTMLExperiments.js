@@ -179,6 +179,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 
     },
     setAttribute: function(attribute, value) {
+        this.attributes = Object.extend(this.attributes, {attribute: value});
         this.renderContextDispatch('setAttribute', attribute, value);  
     },
     setAttributeHTML: function(ctx, attribute, value) {

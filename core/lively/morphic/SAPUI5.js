@@ -332,7 +332,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
         if (this.readOnly) {classNames+=' '+this.readOnlyClass}
             else if (this.active) {classNames+=' '+this.activeClass}
             else {classNames+=' '+this.disabledClass}
-        this.setComponentNodeClass(classNames);
+        this.setNodeClass(classNames);
         this.updateInputTag();
         this.checked = this.isChecked();
     },

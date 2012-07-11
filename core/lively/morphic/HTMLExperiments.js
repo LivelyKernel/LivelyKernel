@@ -93,6 +93,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     htmlDispatchTable: {
         setContent: 'setContentHTML',
         setAttribute: 'setAttributeHTML',
+        getAttribute: 'getAttributeHTML',
      },
 },
 'initializing', {

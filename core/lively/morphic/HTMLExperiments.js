@@ -380,7 +380,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     setOpacityHTML: function(ctx, value) {},
     setPaddingHTML: function(ctx, r) {},
 
-
+    compensateShapeNode: function(ctx) {},
     
 
 

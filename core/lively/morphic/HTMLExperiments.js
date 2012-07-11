@@ -101,7 +101,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         return this.content || "";    
     },
     getBounds: function() {
-        return this.position.extend(this.innerBounds());
+        return this.getPosition().extent(this.innerBounds());
     },
     addMorph: function($super, morph, optMorphBefore) {
         // enable Relative Layout Layer

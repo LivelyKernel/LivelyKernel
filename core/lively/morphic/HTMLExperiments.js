@@ -123,9 +123,52 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     },
     addMorph: function($super, morph, optMorphBefore) {
 
-        $super(morph,optMorphBefore);
         // enable Relative Layout Layer
+        
+        
+         if (morph.isAncestorOf(this)) {
+            alert('addMorph: Circular relationships between morphs not allowed');
+            alert('tried to drop ' + morph + ' on ' + this);
+            return;
+        }
+
+        if (morph.owner) {
+            var tfm = morph.transformForNewOwner(this);
+            morph.remove();
+        }
         morph.addWithLayer(lively.morphic.RelativeLayer);
+        if (morph.owner !== this) morph.owner = this;
+
+        var indexToInsert = optMorphBefore && this.submorphs.indexOf(optMorphBefore);
+        if (indexToInsert === undefined || indexToInsert < 0)
+            indexToInsert = this.submorphs.length;
+        this.submorphs.pushAt(morph, indexToInsert);
+
+        // actually this should be done below so that geometry connects works correctly
+        // but for the current Chrome stable (12.0.7) this leads to a render bug (morph is offseted)
+        if (tfm) {
+            morph.setTransform(tfm);
+        }
+
+        var parentRenderCtxt = this.renderContext(),
+            subRenderCtxt = morph.renderContext(),
+            ctx = parentRenderCtxt.constructor !== subRenderCtxt.constructor ?
+                parentRenderCtxt.newForChild() : subRenderCtxt;
+        morph.renderAfterUsing(ctx, optMorphBefore);
+
+        morph.resumeSteppingAll();
+
+        if (this.getLayouter()) {
+            this.getLayouter().onSubmorphAdded(this, morph, this.submorphs);
+        }
+        if (morph.owner.owner) { // Is owner owner a stack?
+            if (morph.owner.owner.pageArray) {
+                morph.pageSpecific = true; // dropped morph is only on this page
+                    // call Stack.beInBackground to place in background
+            }
+        }
+        return morph
+
     },
     setAttribute: function(attribute, value) {
         this.renderContextDispatch('setAttribute', attribute, value);  

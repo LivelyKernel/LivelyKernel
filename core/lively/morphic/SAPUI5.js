@@ -1437,19 +1437,20 @@ lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.MatrixLayout',
 );
 
 
-lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Button',
+lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Button',
 
 'settings',{
     classes: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnStd',    
     activeClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnAct',
     disabledClasses: 'sapUiBtn sapUiBtnNorm sapUiBtnS sapUiBtnDsbl',
     label: "Button",
+    tagName: 'button',
     fixedHeight: true
 },
 
 'initializing', {
     initialize: function($super, bounds, optLabel) {
-        $super(bounds);
+        $super(bounds, this.tagName);
         if (optLabel) this.setLabel(optLabel);
         this.value = false;
         this.toggle = false;
@@ -1457,27 +1458,6 @@ lively.morphic.SAPUI5.LabelComponent.subclass('lively.morphic.SAPUI5.Button',
         
     }
 },
-
-'rendering', {
-    initHTML: function($super, ctx) {
-        if (!ctx.componentNode)
-            ctx.componentNode= this.createButtonNodeHTML();
-        this.setComponentNodeClass(this.isActive?this.classes:this.disabledClasses);
-         this.setComponentNodeId();        
-        $super(ctx);
-        if (this.shape) this.updateLabel(this.label || "Button")
-    },
-
-
-},
-
-'node creation', {
-    createButtonNodeHTML: function() {
-        var node = XHTMLNS.create('button');
-        return node;
-    },
-},
-
 'accessing', {
     setActive: function(active) {
         this.isActive = active;

@@ -3,6 +3,10 @@ module('lively.morphic.HTMLExperiments').requires('lively.morphic.HTML').toRun(f
 cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
     adjustOrigin: function() {},
     
+    triggerEventHTML: function(ctx, evt) {
+        return ctx.shapeNode ? ctx.shapeNode.dispatchEvent(evt) : null;
+    },
+    
     appendHTML: function(ctx, optMorphAfter) {
         if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
 

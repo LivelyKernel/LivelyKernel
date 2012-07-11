@@ -9,7 +9,7 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
     
     appendHTML: function(ctx, optMorphAfter) {
         if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
-
+        console.log("Adding a relative morph!");
         var parentNode = false;//ctx.morphNode.parentNode;
         if (!parentNode) {
             var ownerCtx = this.owner && this.owner.renderContext();

@@ -139,7 +139,13 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
                 self.resetExtent();
         }]);
         return items;
-    }
+    },
+    addEventHandler: function() {
+        if (this.eventHandler) throw new Error('Morph ' + this + ' already has an event handler!');
+        var handler = new lively.morphic.ShapeEventHandler(this);
+        this.eventHandler = handler;
+        return handler;
+    },
     
 
 

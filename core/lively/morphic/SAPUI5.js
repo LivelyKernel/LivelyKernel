@@ -1464,21 +1464,14 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Button',
         if (active) this.pressed = false;
         this.changeAppearanceFor(false);
     },
-    setExtent: function($super, extent) {
-        $super(extent);
-        this.resizeComponent();
-    },
- 
-
-
     
 },
 'event handling', {
     changeAppearanceFor: function(pressed) {
         if (pressed) {
-            this.setComponentNodeClass(this.activeClasses);
+            this.setNodeClass(this.activeClasses);
         } else {
-            this.setComponentNodeClass(this.isActive?this.classes:this.disabledClasses);
+            this.setNodeClass(this.isActive?this.classes:this.disabledClasses);
         }
   
     },

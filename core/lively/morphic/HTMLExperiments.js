@@ -105,6 +105,9 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     },
     addMorph: function($super, morph, optMorphBefore) {
         // enable Relative Layout Layer
+        
+        morph.addWithLayer(lively.morphic.RelativeLayer);
+        
         $super(morph,optMorphBefore); 
     },
     setAttribute: function(attribute, value) {

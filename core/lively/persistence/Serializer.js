@@ -144,7 +144,7 @@ Object.subclass('ObjectGraphLinearizer',
             var id = this.addIdAndAddToRegistryIfNecessary(obj);
             return this.registry[id].ref;
         } finally {
-            this.path.pop();
+            if (optAdditionalPath) this.path.pop();
         }
     },
     addIdAndAddToRegistryIfNecessary: function(obj) {

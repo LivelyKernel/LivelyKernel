@@ -432,10 +432,14 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     },
     setExtentHTML: function(ctx, value) {
         if (!ctx.shapeNode) return undefined;
-        var outer = this.getExtent();
-        var inner = pt($(ctx.shapeNode).width(), $(ctx.shapeNode).height());
-        var delta = outer.subPt(inner);
-        var newExtent = value.subPt(delta);
+        var newExtent = value;
+        
+        if (ctx.shapeNode.nodeName != "button") {
+            var outer = this.getExtent();
+            var inner = pt($(ctx.shapeNode).width(), $(ctx.shapeNode).height());
+            var delta = outer.subPt(inner);
+            newExtent = newExtent.subPt(delta);
+        }
         //ctx.domInterface.setExtent(ctx.shapeNode, newExtent);
         $(ctx.shapeNode).width(newExtent.x);
         $(ctx.shapeNode).height(newExtent.y);

@@ -16,7 +16,7 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
             parentNode = (ownerCtx && ownerCtx.shapeNode) || ctx.parentNode;
             
             if (this.owner.getShape().constructor.name === "HTMLShape") {
-                 
+                this.getShape().renderUsing(ctx);                 
                   parentNode = ownerCtx.shapeNode;
                   parentNode.appendChild(ctx.shapeNode);
                 

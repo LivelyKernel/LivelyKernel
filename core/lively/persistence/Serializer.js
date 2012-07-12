@@ -816,7 +816,7 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
         if (!found) return;
         // if we found closures, serialize closures object, this will also trigger
         // ClosurePlugin>>serializeObj for those closures
-        persistentCopy[this.serializedClosuresProperty] = this.getSerializer().register(closures, this.serializedClosuresProperty);
+        persistentCopy[this.serializedClosuresProperty] = this.getSerializer().register(closures);
     },
     afterDeserializeObj: function(obj) {
         var closures = this.getSerializedClosuresFrom(obj);

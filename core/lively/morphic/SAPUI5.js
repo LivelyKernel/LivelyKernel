@@ -18,8 +18,8 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Button',
 },
 
 'initializing', {
-    initialize: function($super, optLabel, optBounds) {
-        $super(this.tagName, optBounds);
+    initialize: function($super, bounds, optLabel) {
+        $super(bounds, this.tagName);
         if (optLabel) this.setLabel(optLabel);
         this.value = false;
         this.toggle = false;
@@ -385,6 +385,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
         }
         
         this.tbodyMorph = this.addMorph(new lively.morphic.HTMLMorph('tbody'));
+        this.tbodyMorph.setAttribute('style', 'width: 100%; height: 100%');
         for (var r = 0; r < this.rows; r++) {
             var row = new lively.morphic.HTMLMorph('tr');
             this.tbodyMorph.addMorph(row);

@@ -376,22 +376,29 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
         $super(bounds);
         if (cols) this.cols = cols;
         if (rows) this.rows = rows;
-        this.createCellMorphs();
-    },
-    createCellMorphs: function(){
-        this.tbodyMorph = new lively.morphic.RelativeMorph('tbody');
-        this.addMorph(this.tbodyMorph);
+        
+        this.tableMorph = this.addMorph(new lively.morphic.HTMLMorph('table'));
+        
+        this.colgroupMorph = this.tableMorph.addMorph(new lively.morphic.HTMLMorph('colgroup'));
+        
+        for (var i = 0; i < this.cols; i++) {
+           this.colgroupMorph .addMorph(new lively.morphic.HTMLMorph('col'));    
+        }
+        
+        this.tbodyMorph = this.tableMorph.addMorph(new lively.morphic.HTMLMorph('tbody'));
         for (var r = 0; r < this.rows; r++) {
-            var row = new lively.morphic.RelativeMorph('tr');
+            var row = new lively.morphic.HTMLMorph('tr');
             this.tbodyMorph.addMorph(row);
             for (var c = 0; c < this.cols; c++) {
-                var cell = new lively.morphic.RelativeMorph('td');
+                var cell = new lively.morphic.HTMLMorph('td');
                 cell.setNodeClass(this.cellClasses);
                 row.addMorph(cell);
             }
             
         }
-    }
+        
+    },
+
 },
 'rendering', {
     initHTML: function($super, ctx, optValue) {

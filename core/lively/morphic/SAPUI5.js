@@ -363,4 +363,62 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
 }
 );
 
+
+lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
+'settings', {
+   classes: 'sapUiMlt',
+   cellClasses: 'sapUiMltCell sapUiMltPadRight',
+   cols: 2,
+   rows: 3
+},
+'initializing', {
+    initialize: function($super, bounds, cols, rows) {
+        $super(bounds);
+        if (cols) this.cols = cols;
+        if (rows) this.rows = rows;
+        this.createCellMorphs();
+    },
+    createCellMorphs: function(){
+        this.tbodyMorph = new lively.morphic.RelativeMorph('tbody');
+        this.addMorph(this.tbodyMorph);
+        for (var r = 0; r < this.rows; r++) {
+            var row = new lively.morphic.RelativeMorph('tr');
+            this.tbodyMorph.addMorph(row);
+            for (var c = 0; c < this.cols; c++) {
+                var cell = new lively.morphic.RelativeMorph('td');
+                cell.setNodeClass(this.cellClasses);
+                row.addMorph(cell);
+            }
+            
+        }
+    }
+},
+'rendering', {
+    initHTML: function($super, ctx, optValue) {
+        if (!ctx.componentNode)
+            ctx.componentNode= XHTMLNS.create('table');
+        if (!ctx.colgroupNode)
+            ctx.colgroupNode= XHTMLNS.create('colgroup');
+        this.createColgroupHTML(ctx);
+        this.setComponentNodeClass(this.classes);
+        this.setComponentNodeId();
+        $super(ctx);
+    },
+    createColgroupHTML: function(ctx){
+        this.colgroupItems = [];
+        $(ctx.colgroupNode).empty();
+        for (var i = 0; i < this.cols; i++) {
+            this.colgroupItems.push(XHTMLNS.create('col'));
+        }
+        this.colgroupItems.each(function(ea){ctx.colgroupNode.appendChild(ea)});
+    },
+    appendHTML: function($super, ctx, optMorphAfter) {
+        ctx.componentNode.appendChild(ctx.colgroupNode);
+        $super(ctx, optMorphAfter);
+    },
+}
+);
+
+
+
 }) // end of module

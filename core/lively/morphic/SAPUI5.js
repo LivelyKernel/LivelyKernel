@@ -372,20 +372,19 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
    rows: 3
 },
 'initializing', {
-    initialize: function($super, bounds, cols, rows) {
-        $super(bounds);
+    initialize: function($super, cols, rows) {
+        $super('table');
         if (cols) this.cols = cols;
         if (rows) this.rows = rows;
         
-        this.tableMorph = this.addMorph(new lively.morphic.HTMLMorph('table'));
-        
-        this.colgroupMorph = this.tableMorph.addMorph(new lively.morphic.HTMLMorph('colgroup'));
+                
+        this.colgroupMorph = this.addMorph(new lively.morphic.HTMLMorph('colgroup'));
         
         for (var i = 0; i < this.cols; i++) {
-           this.colgroupMorph .addMorph(new lively.morphic.HTMLMorph('col'));    
+           this.colgroupMorph.addMorph(new lively.morphic.HTMLMorph('col'));    
         }
         
-        this.tbodyMorph = this.tableMorph.addMorph(new lively.morphic.HTMLMorph('tbody'));
+        this.tbodyMorph = this.addMorph(new lively.morphic.HTMLMorph('tbody'));
         for (var r = 0; r < this.rows; r++) {
             var row = new lively.morphic.HTMLMorph('tr');
             this.tbodyMorph.addMorph(row);

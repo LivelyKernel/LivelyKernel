@@ -427,7 +427,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
         for (var r = 0; r < this.rows; r++) {
             
             var row = new lively.morphic.SAPUI5.TableRow('tr');
-            row.addWithLayer(lively.morphic.HTMLTableRowPositionFix);
+            row.addWithLayer(lively.morphic.HTMLInnerTablePositionFix);
             this.tbodyMorph.addMorph(row);
             
             for (var c = 0; c < this.cols; c++) {
@@ -435,6 +435,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
                 cell.addPlaceholder(80, 30);
                 cell.setNodeClass(this.cellClasses);
                 row.addMorph(cell);
+                cell.addWithLayer(lively.morphic.HTMLInnerTablePositionFix);
             }
             
         }

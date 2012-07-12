@@ -5,7 +5,7 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.Control',
 '',{}
 );
 
-lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.MatrixLayout.TableCell',
+lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableCell',
 'placeholder',{
     htmlDispatchTable: {
         addPlaceholder: 'addPlaceholderHTML',

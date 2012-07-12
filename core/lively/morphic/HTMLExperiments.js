@@ -208,6 +208,9 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     getPropHTML: function(ctx, prop) {
         console.log("Getting prop "+prop+" from");
         console.log(ctx.shapeNode);
+        
+        console.log("and it is: "+$(ctx.shapeNode).prop(prop));
+        
         return $(ctx.shapeNode).prop(prop);
     },    
     setProp: function(prop, value) {

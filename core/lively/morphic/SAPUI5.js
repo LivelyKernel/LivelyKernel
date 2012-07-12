@@ -5,6 +5,14 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.Control',
 '',{}
 );
 
+lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.MatrixLayout.TableCell',
+'placeholder',{
+    addPlaceholder: function(width, height){
+        
+        
+    }    
+}
+);
 
 lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Button',
 

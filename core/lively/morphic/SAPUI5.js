@@ -11,6 +11,9 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.MatrixLayout.TableCell'
         addPlaceholder: 'addPlaceholderHTML',
         removePlaceholder: 'removePlaceholderHTML',
      },
+     initialize: function($super) {
+            $super('td');
+     },
     addPlaceholder: function(width, height){
         this.renderContextDispatch('addPlaceholder', pt(width, height));        
     },

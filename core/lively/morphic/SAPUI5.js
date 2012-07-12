@@ -397,33 +397,12 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
             
         }
         
+        this.setNodeClass(this.classes);
+        
     },
 
-},
-'rendering', {
-    initHTML: function($super, ctx, optValue) {
-        if (!ctx.componentNode)
-            ctx.componentNode= XHTMLNS.create('table');
-        if (!ctx.colgroupNode)
-            ctx.colgroupNode= XHTMLNS.create('colgroup');
-        this.createColgroupHTML(ctx);
-        this.setComponentNodeClass(this.classes);
-        this.setComponentNodeId();
-        $super(ctx);
-    },
-    createColgroupHTML: function(ctx){
-        this.colgroupItems = [];
-        $(ctx.colgroupNode).empty();
-        for (var i = 0; i < this.cols; i++) {
-            this.colgroupItems.push(XHTMLNS.create('col'));
-        }
-        this.colgroupItems.each(function(ea){ctx.colgroupNode.appendChild(ea)});
-    },
-    appendHTML: function($super, ctx, optMorphAfter) {
-        ctx.componentNode.appendChild(ctx.colgroupNode);
-        $super(ctx, optMorphAfter);
-    },
 }
+
 );
 
 

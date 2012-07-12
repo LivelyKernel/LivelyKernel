@@ -5,6 +5,39 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.Control',
 '',{}
 );
 
+lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableRow',
+'placeholder',{
+    htmlDispatchTable: {
+        addPlaceholder: 'addPlaceholderHTML',
+        removePlaceholder: 'removePlaceholderHTML',
+     },
+     initialize: function($super) {
+            $super('td');
+     },
+    addPlaceholder: function(width, height){
+        this.renderContextDispatch('addPlaceholder', pt(width, height));        
+    },
+    addPlaceholderHTML: function(ctx, size){
+        if (!ctx.placeholderNode) ctx.placeholderNode = XHTMLNS.create('div');
+        $(ctx.placeholderNode).width(size.x);
+        $(ctx.placeholderNode).height(size.y);
+        if (!ctx.placeholderNode.parentNode) ctx.shapeNode.appendChild(ctx.placeholderNode);
+    }, 
+    removePlaceholder: function(){
+        this.renderContextDispatch('removePlaceholder');        
+    },
+    removePlaceholderHTML: function(ctx){
+        if (ctx.placeholderNode && ctx.placeholderNode.parent) 
+            $(ctx.placeholderNode).remove()
+    }, 
+    addMorph: function($super, morph) {
+        this.removePlaceholder();
+        return $super(morph);    
+    }
+        
+}
+);
+
 lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableCell',
 'placeholder',{
     htmlDispatchTable: {

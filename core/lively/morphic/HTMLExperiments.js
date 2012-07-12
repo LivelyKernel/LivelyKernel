@@ -1,5 +1,10 @@
 module('lively.morphic.HTMLExperiments').requires('lively.morphic.HTML').toRun(function() {
 
+cop.create('lively.morphic.HTMLTableRowPositionFix').refineClass(lively.morphic.Morph, {
+
+    }
+);
+
 cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
     adjustOrigin: function() {},
     

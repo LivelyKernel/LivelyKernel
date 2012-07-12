@@ -7,10 +7,27 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.Control',
 
 lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.MatrixLayout.TableCell',
 'placeholder',{
+    htmlDispatchTable: {
+        addPlaceholder: 'addPlaceholderHTML',
+        removePlaceholder: 'removePlaceholderHTML',
+     },
     addPlaceholder: function(width, height){
+        this.renderContextDispatch('addPlaceholder', pt(width, height));        
+    },
+    addPlaceholderHTML: function(ctx, size){
+        if (!ctx.placeholderNode) ctx.placeholderNode = XHTMLNS.create('div');
+        $(ctx.placeholderNode).width(size.x);
+        $(ctx.placeholderNode).height(size.y);
+        if (!ctx.placeholderNode.parentNode) ctx.shapeNode.appendChild(ctx.placeholderNode);
+    }, 
+    removePlaceholder: function(){
+        this.renderContextDispatch('removePlaceholder');        
+    },
+    removePlaceholderHTML: function(ctx){
+        if (ctx.placeholderNode && ctx.placeholderNode.parent) 
+            $(ctx.placeholderNode).remove()
+    }, 
         
-        
-    }    
 }
 );
 

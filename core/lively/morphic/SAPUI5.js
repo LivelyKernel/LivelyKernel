@@ -425,8 +425,11 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
         this.tbodyMorph = this.addMorph(new lively.morphic.HTMLMorph('tbody'));
         this.tbodyMorph.setAttribute('style', 'width: 100%; height: 100%; background-color:gray;');
         for (var r = 0; r < this.rows; r++) {
+            
             var row = new lively.morphic.SAPUI5.TableRow('tr');
             this.tbodyMorph.addMorph(row);
+            this.tbodyMorph.addWithLayer(lively.morphic.HTMLTableRowPositionFix);
+            
             for (var c = 0; c < this.cols; c++) {
                 var cell = new lively.morphic.SAPUI5.TableCell();
                 cell.addPlaceholder(80, 30);

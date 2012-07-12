@@ -30,6 +30,10 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.MatrixLayout.TableCell'
         if (ctx.placeholderNode && ctx.placeholderNode.parent) 
             $(ctx.placeholderNode).remove()
     }, 
+    addMorph: function($super, morph) {
+        this.removePlaceholder();
+        return $super(morph);    
+    }
         
 }
 );

@@ -87,7 +87,8 @@ setScaleHTML: function(ctx) {},
 
 lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 'settings', {
-    tagName: 'div'
+    tagName: 'div',
+    isRelative: true
 },
 'HTML render settings', {
     htmlDispatchTable: {

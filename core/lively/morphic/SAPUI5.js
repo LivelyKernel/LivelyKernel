@@ -435,7 +435,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
                 cell.addPlaceholder(80, 30);
                 cell.setNodeClass(this.cellClasses);
                 row.addMorph(cell);
-                cell.addWithLayer(lively.morphic.HTMLTableCellPositionFix);
+                cell.addWithLayer(lively.morphic.HTMLTableRowPositionFix);
             }
             
         }

@@ -203,7 +203,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     
     
     getProp: function(prop) {
-        this.renderContextDispatch('getProp', prop);  
+        return this.renderContextDispatch('getProp', prop);  
     },
     getPropHTML: function(ctx, prop) {
         console.log("Getting prop "+prop+" from");

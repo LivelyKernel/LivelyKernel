@@ -21,7 +21,9 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableCell',
             $super('td');
      },
     addPlaceholder: function(width, height){
-        this.renderContextDispatch('addPlaceholder', pt(width, height));        
+        if (this.submorphs.length ==0) {
+            this.renderContextDispatch('addPlaceholder', pt(width, height));        
+        }
     },
     addPlaceholderHTML: function(ctx, size){
         if (!ctx.placeholderNode) ctx.placeholderNode = XHTMLNS.create('div');

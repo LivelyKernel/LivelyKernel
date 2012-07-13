@@ -333,10 +333,14 @@ getBounds: function() {
 
 getPosition: function() {
     var ctx = this.renderContext();
-    var ownerPos = this.owner.getPosition();
+    /*var ownerPos = this.owner.getPosition();
     var o = $(ctx.morphNode).offset();
-    return pt(o.left, o.top).subPt(ownerPos);
+    return pt(o.left, o.top).subPt(ownerPos);*/
+    var o = $(ctx.morphNode).position();
+    return pt(o.left, o.top);
+
 },
+
 getRotation: function() {
     return 0;
 },

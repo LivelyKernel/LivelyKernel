@@ -65,7 +65,7 @@ getPosition: function() {
     if (this.owner && ctx.shapeNode && ctx.shapeNode.parentNode) {
 
         var ownerOffset = (this.owner.relativeWrapper && this.owner.relativeWrapper()) ? 
-            $(ctx.shapeNode.parentNode).offset() : 
+            $(ctx.shapeNode.parentNode).offset() :             // take the owner's shapeNode as reference
             $(ctx.shapeNode.parentNode.parentNode).offset(); // look in the morphNode, not in the shapeNode!
 
         var thisOffset = $(ctx.shapeNode).offset();

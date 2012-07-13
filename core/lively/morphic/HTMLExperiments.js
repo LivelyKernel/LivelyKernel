@@ -20,7 +20,7 @@ getPosition: function() {
 cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
     adjustOrigin: function() {},
     
-    isRelative: function() {return true},
+    relativeWrapper: function() {return true},
     
     triggerEventHTML: function(ctx, evt) {
         return ctx.shapeNode ? ctx.shapeNode.dispatchEvent(evt) : null;
@@ -80,7 +80,7 @@ getPosition: function() {
     
     if (this.owner && ctx.shapeNode && ctx.shapeNode.parentNode) {
 
-        var ownerOffset = (this.owner.isRelative && this.owner.isRelative()) ? 
+        var ownerOffset = (this.owner.relativeWrapper && this.owner.relativeWrapper()) ? 
             $(ctx.shapeNode.parentNode).offset() : 
             $(ctx.shapeNode.parentNode.parentNode).offset(); // hope that works!
 

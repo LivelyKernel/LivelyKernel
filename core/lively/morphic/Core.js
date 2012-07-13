@@ -12,16 +12,16 @@ Object.subclass('lively.morphic.Morph',
         this.submorphs = [];
         this.scripts = [];
         this.shape = shape || this.defaultShape();
-        this.setNewId();
         this.prepareForNewRenderContext(this.defaultRenderContext());
+        this.setNewId();
         this.applyStyle(this.getStyle());
         this.setNodeClass(this.getNodeClass());
-        this.setNodeId(this.id);
     },
     setNewId: function(optId) {
         if (this.derivationIds === undefined) this.derivationIds = [];
         if (this.id) this.derivationIds.push(this.id);
         this.id = optId || new UUID().id;
+        this.setNodeId(this.id);
     },
 
     defaultShape: function(optBounds) {

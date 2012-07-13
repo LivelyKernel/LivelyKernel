@@ -79,8 +79,13 @@ getPosition: function() {
     
     
     if (this.owner && ctx.shapeNode && ctx.shapeNode.parentNode) {
-        var r = this.owner.isRelative();
-        var ownerOffset = (r) ? (($(ctx.shapeNode.parentNode).offset()) : ($(ctx.shapeNode.parentNode.parentNode).offset())); // hope that works!
+
+        var ownerOffset;
+        if (this.owner.isRelative()){ 
+            ownerOffset = $(ctx.shapeNode.parentNode).offset() 
+        } else { 
+            $(ctx.shapeNode.parentNode.parentNode).offset() // hope that works!
+        } 
         var thisOffset = $(ctx.shapeNode).offset();
         return pt(thisOffset.left - ownerOffset.left,   thisOffset.top- ownerOffset.top)
     } else { 

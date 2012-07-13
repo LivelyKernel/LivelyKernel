@@ -325,7 +325,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Label',
     fixedHeight: true
 },
 'initializing', {
-    initialize: function($super, bounds, optLabel) {
+    initialize: function($super, optLabel) {
         $super('label');
         if (optLabel) this.setContent(optLabel);
         this.bold = false;

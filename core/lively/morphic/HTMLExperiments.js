@@ -20,7 +20,7 @@ getPosition: function() {
 cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
     adjustOrigin: function() {},
     
-    get isRelative: function() {return true},
+    isRelative: function() {return true},
     
     triggerEventHTML: function(ctx, evt) {
         return ctx.shapeNode ? ctx.shapeNode.dispatchEvent(evt) : null;

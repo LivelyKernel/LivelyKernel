@@ -408,7 +408,9 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
     setupSubmorph: function(morph) {
         morph.disableGrabbing();
         morph.disableDragging();
-        morph.ignoreEvents();        
+        morph.disableEvents();        
+        morph.disableHalos();        
+    
         return morph;    
     }
     

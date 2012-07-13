@@ -385,13 +385,6 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
     readOnlyClass: 'sapUiCbRo',
     label: "Checkbox"
 },
-'HTML render settings', {
-    htmlDispatchTable: {
-        updateInputTag: 'updateInputTagHTML',
-        isChecked: 'isCheckedHTML',
-        setChecked: 'setCheckedHTML'
-    },
-},
 'initializing', {
     initialize: function($super, label, optBounds) {
         $super("span", optBounds);

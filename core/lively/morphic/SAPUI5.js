@@ -427,7 +427,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
         }
         
         this.tbodyMorph = this.addMorph(new lively.morphic.HTMLMorph('tbody'));
-        this.tbodyMorph.setAttribute('style', 'width: 100%; height: 100%; background-color:gray;');
+        this.tbodyMorph.setAttribute('style', 'width: 100%; height: 100%;');
         for (var r = 0; r < this.rows; r++) {
             
             var row = new lively.morphic.SAPUI5.TableRow('tr');

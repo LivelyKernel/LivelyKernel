@@ -80,12 +80,10 @@ getPosition: function() {
     
     if (this.owner && ctx.shapeNode && ctx.shapeNode.parentNode) {
 
-        var ownerOffset;
-        if (this.owner.isRelative()){ 
-            ownerOffset = $(ctx.shapeNode.parentNode).offset() 
-        } else { 
-            ownerOffset = $(ctx.shapeNode.parentNode.parentNode).offset() // hope that works!
-        } 
+        var ownerOffset = (this.owner.isRelative()) ? 
+            $(ctx.shapeNode.parentNode).offset() : 
+            $(ctx.shapeNode.parentNode.parentNode).offset(); // hope that works!
+
         var thisOffset = $(ctx.shapeNode).offset();
         return pt(thisOffset.left - ownerOffset.left,   thisOffset.top- ownerOffset.top)
     } else { 

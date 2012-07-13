@@ -10,11 +10,13 @@ getPosition: function() {
 });
 
 cop.create('lively.morphic.HTMLTableCellPositionFix').refineClass(lively.morphic.Morph, {
+/*
 getPosition: function() {
     var ctx = this.renderContext();
     var pos = $(ctx.shapeNode).offset();
     return pt(pos.left, pos.top);
 }
+*/
 });
 
 cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {

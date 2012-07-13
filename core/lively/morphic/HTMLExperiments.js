@@ -76,10 +76,18 @@ getBounds: function() {
 
 getPosition: function() {
     var ctx = this.renderContext();
-    if (ctx.shapeNode && ctx.shapeNode.parentNode){
-        var ownerOffset = $(ctx.shapeNode.parentNode).offset();
+    
+    
+    if (this.owner && ctx.shapeNode && ctx.shapeNode.parentNode) {
+        var r = this.owner.isRelative();
+        var ownerOffset = (r)? $(ctx.shapeNode.parentNode).offset() : $(ctx.shapeNode.parentNode.parentNode).offset(); // hope that works!
         var thisOffset = $(ctx.shapeNode).offset();
         return pt(thisOffset.left - ownerOffset.left,   thisOffset.top- ownerOffset.top)
+    } else { 
+        console.log('Relative Morph is obviously not ready to get checked for its position. Maybe it does not have an owner morph yet?');
+    return pt(0,0)}
+    
+        
     /*
     var ownerPos = (this.owner && this.owner.getPosition()) || pt(0,0);
     var o = (ctx.shapeNode && $(ctx.shapeNode).offset()) || pt(0,0);

@@ -326,30 +326,17 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Label',
 },
 'initializing', {
     initialize: function($super, bounds, optLabel) {
-        $super(bounds);
-        if (optLabel) this.setLabel(optLabel);
+        $super('label');
+        if (optLabel) this.setContent(optLabel);
         this.bold = false;
         this.required = false;        
+        if (this.htmlFor) this.setFor(this.htmlFor);
+        this.updateAppearance();
     }
 },
 
-'rendering', {
-    initHTML: function($super, ctx) {
-        if (!ctx.componentNode)
-            ctx.componentNode= XHTMLNS.create('label');
-        $super(ctx);
-        if (this.htmlFor) this.setForHTML(ctx,this.htmlFor);
-        if (this.shape) this.updateLabel(this.label || "Label")
-        this.changeAppearance();
-    },
-
-
-
-},
-
-
 'accessing', {
-    changeAppearance: function() {
+    updateAppearance: function() {
         var classNames = this.baseClass;
         if (this.bold){
             classNames+=' '+this.boldClass;
@@ -357,7 +344,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Label',
         if(this.required) {
             classNames+=' '+this.requiredClass;
         }
-        this.setComponentNodeClass(classNames);              
+        this.setNodeClass(classNames);              
     },
     setBold: function(b) {
         this.bold = b;

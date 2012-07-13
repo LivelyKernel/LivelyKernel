@@ -472,12 +472,6 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
 }
 );
 
-lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBoxWithLabel'
-
-
-
-);
-
 
 lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
 'settings', {

@@ -362,15 +362,13 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Label',
             return this.setAttribute('for', id);   
         }  
     },
-    setForHTML: function(ctx, id){
-        ctx.componentNode.htmlFor = id;
-    },
-    
+
+/*    
     setFixedHeight: function(f) {
         this.fixedHeight = f;
         this.resizeComponent();
     },
-
+*/
 
     
 }

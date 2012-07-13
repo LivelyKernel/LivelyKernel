@@ -315,6 +315,80 @@ lively.morphic.SAPUI5.TextField.subclass('lively.morphic.SAPUI5.TextArea',
 }
 );
 
+lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Label',
+
+'settings',{
+    baseClass: 'sapUiLbl sapUiLblNowrap',    
+    boldClass: 'sapUiLblEmph',
+    requiredClass: 'sapUiLblReq',
+    label: "Label",
+    fixedHeight: true
+},
+'initializing', {
+    initialize: function($super, bounds, optLabel) {
+        $super(bounds);
+        if (optLabel) this.setLabel(optLabel);
+        this.bold = false;
+        this.required = false;        
+    }
+},
+
+'rendering', {
+    initHTML: function($super, ctx) {
+        if (!ctx.componentNode)
+            ctx.componentNode= XHTMLNS.create('label');
+        $super(ctx);
+        if (this.htmlFor) this.setForHTML(ctx,this.htmlFor);
+        if (this.shape) this.updateLabel(this.label || "Label")
+        this.changeAppearance();
+    },
+
+
+
+},
+
+
+'accessing', {
+    changeAppearance: function() {
+        var classNames = this.baseClass;
+        if (this.bold){
+            classNames+=' '+this.boldClass;
+        }
+        if(this.required) {
+            classNames+=' '+this.requiredClass;
+        }
+        this.setComponentNodeClass(classNames);              
+    },
+    setBold: function(b) {
+        this.bold = b;
+        this.changeAppearance();        
+    },
+    setRequired: function(b) {
+        this.required = b;
+        this.changeAppearance();        
+    },
+    
+    setFor: function(morph) {
+        if (morph && morph.getComponentNodeId){
+            var id = morph.getComponentNodeId();
+            this.htmlFor = id;
+            return this.renderContextDispatch('setFor', id);    
+        }  
+    },
+    setForHTML: function(ctx, id){
+        ctx.componentNode.htmlFor = id;
+    },
+    
+    setFixedHeight: function(f) {
+        this.fixedHeight = f;
+        this.resizeComponent();
+    },
+
+
+    
+}
+);
+
 
 lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
 

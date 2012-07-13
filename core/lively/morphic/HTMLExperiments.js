@@ -84,13 +84,14 @@ getPosition: function() {
         if (this.owner.isRelative()){ 
             ownerOffset = $(ctx.shapeNode.parentNode).offset() 
         } else { 
-            $(ctx.shapeNode.parentNode.parentNode).offset() // hope that works!
+            ownerOffset = $(ctx.shapeNode.parentNode.parentNode).offset() // hope that works!
         } 
         var thisOffset = $(ctx.shapeNode).offset();
         return pt(thisOffset.left - ownerOffset.left,   thisOffset.top- ownerOffset.top)
     } else { 
         console.log('Relative Morph is obviously not ready to get checked for its position. Maybe it does not have an owner morph yet?');
-    return pt(0,0)}
+        return pt(0,0)
+    }
     
         
     /*

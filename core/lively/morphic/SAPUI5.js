@@ -404,7 +404,12 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
         this.checked = false;
         this.active = true;
         this.updateAppearance();
+    },
+    setupSubmorph: function(morph) {
+        
+    return morph;    
     }
+    
 },
 
 'accessing', {

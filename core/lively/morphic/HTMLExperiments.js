@@ -66,7 +66,7 @@ getPosition: function() {
 
         var ownerOffset = (this.owner.relativeWrapper && this.owner.relativeWrapper()) ? 
             $(ctx.shapeNode.parentNode).offset() : 
-            $(ctx.shapeNode.parentNode.parentNode).offset(); // hope that works!
+            $(ctx.shapeNode.parentNode.parentNode).offset(); // look in the morphNode, not in the shapeNode!
 
         var thisOffset = $(ctx.shapeNode).offset();
         return pt(thisOffset.left - ownerOffset.left,   thisOffset.top- ownerOffset.top)
@@ -74,17 +74,7 @@ getPosition: function() {
         console.log('Relative Morph is obviously not ready to get checked for its position. Maybe it does not have an owner morph yet?');
         return pt(0,0)
     }
-    
-        
-    /*
-    var ownerPos = (this.owner && this.owner.getPosition()) || pt(0,0);
-    var o = (ctx.shapeNode && $(ctx.shapeNode).offset()) || pt(0,0);
-    console.log("RelativeLayer getPosition() says: "+pt(o.left, o.top).subPt(ownerPos));
-    return pt(o.left, o.top).subPt(ownerPos);
-    
-    var o = $(ctx.shapeNode).position();
-    return pt(o.left, o.top);
-    */
+
     
 },
 

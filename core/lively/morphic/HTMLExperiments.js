@@ -80,7 +80,7 @@ getPosition: function() {
     console.log("RelativeLayer getPosition() says: "+pt(o.left, o.top).subPt(ownerPos));
     return pt(o.left, o.top).subPt(ownerPos);
     */
-        var o = $(ctx.morphNode).position();
+        var o = $(ctx.shapeNode).position();
     return pt(o.left, o.top);
 },
 

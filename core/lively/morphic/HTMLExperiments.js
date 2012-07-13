@@ -4,6 +4,7 @@ cop.create('lively.morphic.HTMLTableRowPositionFix').refineClass(lively.morphic.
 getPosition: function() {
     var ctx = this.renderContext();
     var pos = $(ctx.shapeNode).position();
+    console.log('Position with RowFix: '+pos.left+'   '+pos.top);
     return pt(pos.left, pos.top);
 }
 });

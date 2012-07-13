@@ -541,7 +541,16 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
                 td.addPlaceholder(placeholderSize);
             });
         });
-    }
+    },
+    morphMenuItems: function($super) {
+        var self = this, items = $super();
+        items.push([
+            'Add placeholders', function(evt) {
+            self.addPlaceholders()
+        }]);
+     
+        return items;
+    },
 }
 
 );

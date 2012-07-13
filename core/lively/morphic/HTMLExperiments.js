@@ -76,6 +76,7 @@ getPosition: function() {
     var ctx = this.renderContext();
     var ownerPos = (this.owner && this.owner.getPosition()) || pt(0,0);
     var o = (ctx.shapeNode && $(ctx.shapeNode).offset()) || pt(0,0);
+    console.log("RelativeLayer getPosition() says: "+pt(o.left, o.top).subPt(ownerPos));
     return pt(o.left, o.top).subPt(ownerPos);
 },
 

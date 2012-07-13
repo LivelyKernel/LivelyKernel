@@ -392,13 +392,13 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
         this.checkBoxMorph = this.addMorph(new lively.morphic.HTMLMorph('input'));
         this.checkBoxMorph.setAttribute('type', 'checkbox');
         this.checkBoxMorph.setAttribute('id', checkboxId);    
-        this.checkBoxMorph.disableGrabbing();
+        this.setupSubmorph(this.checkBoxMorph);
         
         this.labelMorph = this.addMorph(new lively.morphic.HTMLMorph('label')); 
         this.labelMorph.setAttribute('for', checkboxId);
-        this.labelMorph.disableGrabbing();
-        this.labelMorph.showHalos = this.showHalos;
-        
+
+        this.setupSubmorph(this.labelMorph);
+                
         if (label) this.setLabel(label);
         this.readOnly = false;
         this.checked = false;

@@ -80,7 +80,7 @@ getPosition: function() {
     
     if (this.owner && ctx.shapeNode && ctx.shapeNode.parentNode) {
 
-        var ownerOffset = (this.owner.isRelative) ? 
+        var ownerOffset = (this.owner.isRelative && this.owner.isRelative()) ? 
             $(ctx.shapeNode.parentNode).offset() : 
             $(ctx.shapeNode.parentNode.parentNode).offset(); // hope that works!
 

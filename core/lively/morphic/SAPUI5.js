@@ -55,6 +55,10 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableCell',
             'Remove Placeholder', function(evt) {
             self.removePlaceholder()
         }]);
+         items.push([
+            'Remove row', function(evt) {
+            self.removeRow()
+        }]);
         return items;
     },
         

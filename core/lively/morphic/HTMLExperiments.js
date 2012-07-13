@@ -1,12 +1,14 @@
 module('lively.morphic.HTMLExperiments').requires('lively.morphic.HTML').toRun(function() {
 
 cop.create('lively.morphic.HTMLTableRowPositionFix').refineClass(lively.morphic.Morph, {
+/*
 getPosition: function() {
     var ctx = this.renderContext();
     var pos = $(ctx.shapeNode).position();
     console.log('Position with RowFix: '+pos.left+'   '+pos.top);
     return pt(pos.left, pos.top);
 }
+*/
 });
 
 cop.create('lively.morphic.HTMLTableCellPositionFix').refineClass(lively.morphic.Morph, {

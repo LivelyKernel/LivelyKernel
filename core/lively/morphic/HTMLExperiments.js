@@ -74,14 +74,20 @@ getBounds: function() {
 
 getPosition: function() {
     var ctx = this.renderContext();
-/*
+    if (ctx.shapeNode && ctx.shapeNode.parentNode){
+        var ownerOffset = $(ctx.shapeNode.parentNode).offset();
+        var thisOffset = $(ctx.shapeNode).offset();
+        return pt(thisOffset.left - ownerOffset.left,   thisOffset.top- ownerOffset.top)
+    /*
     var ownerPos = (this.owner && this.owner.getPosition()) || pt(0,0);
     var o = (ctx.shapeNode && $(ctx.shapeNode).offset()) || pt(0,0);
     console.log("RelativeLayer getPosition() says: "+pt(o.left, o.top).subPt(ownerPos));
     return pt(o.left, o.top).subPt(ownerPos);
-    */
-        var o = $(ctx.shapeNode).position();
+    
+    var o = $(ctx.shapeNode).position();
     return pt(o.left, o.top);
+    */
+    }
 },
 
 getRotation: function() {

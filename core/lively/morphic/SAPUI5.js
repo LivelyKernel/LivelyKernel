@@ -43,7 +43,15 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableCell',
     addMorph: function($super, morph) {
         this.removePlaceholder();
         return $super(morph);    
-    }
+    },
+    morphMenuItems: function($super) {
+        var self = this, items = $super();
+        items.push([
+            'Remove Placeholder', function(evt) {
+            self.removePlaceholder()
+        }]);
+        return items;
+    },
         
 }
 );

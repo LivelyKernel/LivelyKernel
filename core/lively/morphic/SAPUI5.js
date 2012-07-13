@@ -27,7 +27,7 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableCell',
         if (!ctx.placeholderNode) ctx.placeholderNode = XHTMLNS.create('div');
         //$(ctx.placeholderNode).width(size.x);
         //$(ctx.placeholderNode).height(size.y);
-        $(ctx.placeholderNode).attr('style', 'width: '+size.x+'px; height: '+size.y+'px;');
+        $(ctx.placeholderNode).attr('style', 'width: '+size.x+'px; height: '+size.y+'px; background-color: gray;');
         if (!ctx.placeholderNode.parentNode) ctx.shapeNode.appendChild(ctx.placeholderNode);
     }, 
     removePlaceholder: function(){

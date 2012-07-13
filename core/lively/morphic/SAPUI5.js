@@ -166,7 +166,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
 },
 'initializing', {
     initialize: function($super, bounds, optValue) {
-        $super(bounds, this.tagName);
+        $super(this.tagName, bounds);
         this.hasFocus = false;
         this.active = true;
         this.value = optValue || this.defaultValue();

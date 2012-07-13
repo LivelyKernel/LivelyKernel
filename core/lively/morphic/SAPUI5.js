@@ -25,8 +25,9 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableCell',
     },
     addPlaceholderHTML: function(ctx, size){
         if (!ctx.placeholderNode) ctx.placeholderNode = XHTMLNS.create('div');
-        $(ctx.placeholderNode).width(size.x);
-        $(ctx.placeholderNode).height(size.y);
+        //$(ctx.placeholderNode).width(size.x);
+        //$(ctx.placeholderNode).height(size.y);
+        $(ctx.placeholderNode).attr('style', 'width: '+size.x+'px; height: '+size.y+'px;');
         if (!ctx.placeholderNode.parentNode) ctx.shapeNode.appendChild(ctx.placeholderNode);
     }, 
     removePlaceholder: function(){

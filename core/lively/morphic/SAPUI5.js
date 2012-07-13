@@ -33,8 +33,11 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableCell',
         this.renderContextDispatch('removePlaceholder');        
     },
     removePlaceholderHTML: function(ctx){
-        if (ctx.placeholderNode && ctx.placeholderNode.parent) 
-            $(ctx.placeholderNode).remove()
+        console.log('remove placeholder!');
+        if (ctx.placeholderNode && ctx.placeholderNode.parent) {
+                console.log('placeholder will be removed!');
+                $(ctx.placeholderNode).remove();
+            }
     }, 
     addMorph: function($super, morph) {
         this.removePlaceholder();

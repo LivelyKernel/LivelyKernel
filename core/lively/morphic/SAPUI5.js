@@ -375,7 +375,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Label',
 );
 
 
-lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
+lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBoxWithLabel',
 
 'settings',{
     baseClass:'sapUiCb',

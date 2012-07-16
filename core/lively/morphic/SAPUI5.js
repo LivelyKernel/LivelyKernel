@@ -2,7 +2,19 @@ module('lively.morphic.SAPUI5').requires('lively.morphic.HTMLExperiments').toRun
 
 
 lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.Control',
-'',{}
+'',{
+    
+setExtent: function($super, extent) {
+    if (this.fixedHeight) {
+        $super(extent.withY(this.getExtent().y));
+    }
+    else {
+        $super(extent);    
+    }    
+        
+}    
+    
+}
 );
 
 lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableRow',

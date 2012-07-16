@@ -509,6 +509,9 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         if (both) {
             $(ctx.shapeNode).height(extent.y); 
         }
+        else {
+            $(ctx.shapeNode).css('height', '');
+        }
         this.extentOverride = (both) ? extent.withY(-1) : extent;
     },
     getExtent: function(){

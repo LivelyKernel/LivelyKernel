@@ -109,11 +109,10 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         $super(ctx);
         if (this.content) this.setContentHTML(ctx, this.content);
         if (this.attributes) for (var x in this.attributes) {
-            this.setAttribute(this.attributes[x].attr, this.attributes[x].val);    
+            this.setAttribute(this.attributes[x].attr, this.attributes[x].val);
         }
     }
-    
-    
+
 },
 
 'accessing',{

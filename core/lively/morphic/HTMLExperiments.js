@@ -500,8 +500,8 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         }
 
         this.setRawExtentHTML(ctx.newExtent);
-        this.extentOverride = newExtent;
-        if (both) this.extentOverride = this.extentOverride.withY(-1);
+        this.extentOverride = (both) ? newExtent.withY(-1) : newExtent;
+
         return value;
     },
     setRawExtentHTML: function(ctx, extent) {

@@ -499,12 +499,15 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
             newExtent = newExtent.subPt(delta);
         }
 
-        $(ctx.shapeNode).width(newExtent.x);         
-        if (both) {
-            $(ctx.shapeNode).height(newExtent.y);         
-        }
+        this.setRawExtent(ctx.newExtent);
         this.extentOverride = newExtent;
         return value;
+    },
+    setRawExtent: function(ctx, extent) {
+        $(ctx.shapeNode).width(extent.x);         
+        if (extent.y >= 0) {
+            $(ctx.shapeNode).height(extent.y); 
+        }
     },
     getExtent: function(){
         var ctx = this.renderContext();

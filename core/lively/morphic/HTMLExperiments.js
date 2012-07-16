@@ -282,11 +282,10 @@ lively.morphic.Morph.subclass('lively.morphic.RelativeMorph',
      },
 },
 'properties', {
-    
 tagName: 'div',
-    
+
 adjustOrigin: function() {
-    
+
 },
 initialize: function($super, tag, optContent) {
     if (tag) this.tagName = tag;
@@ -299,11 +298,11 @@ appendHTML: function(ctx, optMorphAfter) {
         if (!parentNode) {
             var ownerCtx = this.owner && this.owner.renderContext();
             parentNode = (ownerCtx && ownerCtx.shapeNode) || ctx.parentNode;
-            
+
             if (this.owner.getShape().constructor.name === "NullShape") {
-             
-                  parentNode = ownerCtx.morphNode; 
-                
+
+                  parentNode = ownerCtx.morphNode;
+
             }
             else
             if (parentNode && ownerCtx && ownerCtx.shapeNode && parentNode === ownerCtx.shapeNode) {

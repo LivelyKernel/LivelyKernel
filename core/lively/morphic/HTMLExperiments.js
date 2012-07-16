@@ -487,7 +487,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     setExtentHTML: function(ctx, value) {
         if (!ctx.shapeNode) return undefined;
         var newExtent = value;
-        var isPoint = (newExtent.constructor.name === "Point");
+        var both = (newExtent.y < 0);
         
         var n = ctx.shapeNode.nodeName;
         
@@ -496,19 +496,12 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
             var outer = this.getExtent();
             var inner = pt($(ctx.shapeNode).width(), $(ctx.shapeNode).height());
             var delta = outer.subPt(inner);
-            if (isPoint) {
-                newExtent = newExtent.subPt(delta);
-            }
-            else {
-                newExtent -= delta.x;    
-            }
+            newExtent = newExtent.subPt(delta);
         }
-        
-        if (isPoint) {
-            ctx.domInterface.setExtent(ctx.shapeNode, newExtent);
-        }
-        else {
-            $(ctx.shapeNode).width(newExtent);                
+
+        $(ctx.shapeNode).width(newExtent.x);         
+        if (both) {
+            $(ctx.shapeNode).height(newExtent.y);         
         }
         this.extentOverride = newExtent;
         return value;

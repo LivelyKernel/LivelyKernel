@@ -499,7 +499,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
             newExtent = newExtent.subPt(delta);
         }
 
-        this.setRawExtent(ctx.newExtent);
+        this.setRawExtentHTML(ctx.newExtent);
         this.extentOverride = newExtent;
         return value;
     },

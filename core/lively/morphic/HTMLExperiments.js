@@ -328,7 +328,7 @@ appendHTML: function(ctx, optMorphAfter) {
         //if (this.originClass) this.setOriginClassHTML(ctx, this.originClass);
         this.getShape().renderUsing(ctx);
     },
-    
+
 getBounds: function() {
     var p = this.getPosition();
     var e = this.getExtent();
@@ -353,7 +353,7 @@ getScale: function() {
 },
 
 
-    
+
 initHTML: function(ctx) {
         if (!ctx.morphNode) ctx.morphNode = XHTMLNS.create(this.tagName);;
         if (this.content) this.setContentHTML(ctx, this.content);
@@ -376,7 +376,7 @@ initHTML: function(ctx) {
             ctx.morphNode['-moz-user-modify'] = 'read-only'
     },
 setContent: function(content){
-    this.renderContextDispatch('setContent', content);    
+    this.renderContextDispatch('setContent', content);
 },
 setContentHTML: function(ctx, content){
     this.content = content;

@@ -60,22 +60,19 @@ getBounds: function() {
 
 getPosition: function() {
     var ctx = this.renderContext();
-    
-    
     if (this.owner && ctx.shapeNode && ctx.shapeNode.parentNode) {
 
-        var ownerOffset = (this.owner.relativeWrapper && this.owner.relativeWrapper()) ? 
+        var ownerOffset = (this.owner.relativeWrapper && this.owner.relativeWrapper()) ?
             $(ctx.shapeNode.parentNode).offset() :             // take the owner's shapeNode as reference
             $(ctx.shapeNode.parentNode.parentNode).offset(); // look in the morphNode, not in the shapeNode!
 
         var thisOffset = $(ctx.shapeNode).offset();
         return pt(thisOffset.left - ownerOffset.left,   thisOffset.top- ownerOffset.top)
-    } else { 
+    } else {
         console.log('Relative Morph is obviously not ready to get checked for its position. Maybe it does not have an owner morph yet?');
         return pt(0,0)
     }
 
-    
 },
 
 getRotation: function() {

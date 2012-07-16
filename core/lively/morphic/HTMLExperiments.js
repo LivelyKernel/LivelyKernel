@@ -306,10 +306,10 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     setExtentHTML: function(ctx, value) {
         if (!ctx.shapeNode) return undefined;
         var newExtent = value;
-        
+
         var n = ctx.shapeNode.nodeName;
-        
-        if (n != "button" && n != "input" && n != "textarea") { 
+
+        if (n != "button" && n != "input" && n != "textarea") {
         // some nodetypes adhere to the standard box model, some don't ...
             var outer = this.getExtent();
             var inner = pt($(ctx.shapeNode).width(), $(ctx.shapeNode).height());
@@ -318,7 +318,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         }
 
         this.setRawExtentHTML(ctx, newExtent);
-        
+
 
         return value;
     },

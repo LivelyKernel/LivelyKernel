@@ -6,7 +6,7 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.Control',
     
 setExtent: function($super, extent) {
     if (this.fixedHeight) {
-        $super(extent.withY(this.getExtent().y));
+        $super(extent.withY(-1));
     }
     else {
         $super(extent);    

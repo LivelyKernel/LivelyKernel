@@ -25,16 +25,22 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableRow',
 
 lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableCell',
 'placeholder',{
+    
+    defaultPlaceholderHeight: 22,
+    defaultPlaceholderWidth: 60,
+    
     htmlDispatchTable: {
         addPlaceholder: 'addPlaceholderHTML',
         removePlaceholder: 'removePlaceholderHTML',
      },
      initialize: function($super) {
             $super('td');
+            this.addPlaceholder()
      },
     addPlaceholder: function(width, height){
         if (this.submorphs.length ==0) {
-            this.renderContextDispatch('addPlaceholder', pt(width, height));        
+            var size = pt (width || this.defaultPlaceholderWidth, height|| this.defaultPlaceholderHeight);
+            this.renderContextDispatch('addPlaceholder', size);        
         }
     },
     addPlaceholderHTML: function(ctx, size){

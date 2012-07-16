@@ -384,18 +384,18 @@ setContentHTML: function(ctx, content){
     ctx.morphNode.appendChild(textNode);
 },
 getContent: function(){
-    return this.content || "";    
+    return this.content || "";
 },
 
 setAttribute: function(attribute, value) {
-    this.renderContextDispatch('setAttribute', attribute, value);  
+    this.renderContextDispatch('setAttribute', attribute, value);
 },
 setAttributeHTML: function(ctx, attribute, value) {
     if (value) $(ctx.morphNode).attr(attribute, value);
     else ctx.morphNode.removeAttribute(attribute);
 },
 setPositionHTML: function(ctx) {
-    
+
 },
 setExtent: function($super, value) {
     this.extentOverride = value;
@@ -403,24 +403,20 @@ setExtent: function($super, value) {
 },
 
 resetExtent: function() {
-    this.renderContextDispatch('resetExtent');     
+    this.renderContextDispatch('resetExtent');
 
 },
 
 resetExtentHTML: function(ctx){
     this.extentOverride = null;
     ctx.morphNode.style.width = null;
-    ctx.morphNode.style.height = null;         
+    ctx.morphNode.style.height = null;
 },
 
 
-setRotationHTML: function(ctx) {
-    
-},
+setRotationHTML: function(ctx) {},
 
-setScaleHTML: function(ctx) {
-    
-},
+setScaleHTML: function(ctx) {},
 
 
 

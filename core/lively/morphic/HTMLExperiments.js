@@ -312,7 +312,7 @@ appendHTML: function(ctx, optMorphAfter) {
                     ownerCtx.shapeNode.appendChild(ownerCtx.originNode);
                 }
                 this.owner.shape.compensateShapeNode(ownerCtx);
-                
+
                 parentNode = ownerCtx.originNode;
             }
 

@@ -3,13 +3,10 @@ module('lively.morphic.HTMLExperiments').requires('lively.morphic.HTML').toRun(f
 
 cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
     adjustOrigin: function() {},
-    
     relativeWrapper: function() {return true},
-    
     triggerEventHTML: function(ctx, evt) {
         return ctx.shapeNode ? ctx.shapeNode.dispatchEvent(evt) : null;
     },
-    
     appendHTML: function(ctx, optMorphAfter) {
         if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
         console.log("Adding a relative morph!");
@@ -17,12 +14,10 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
         if (!parentNode) {
             var ownerCtx = this.owner && this.owner.renderContext();
             parentNode = (ownerCtx && ownerCtx.shapeNode) || ctx.parentNode;
-            
             if (this.owner.getShape().constructor.name === "HTMLShape") {
-                this.getShape().renderUsing(ctx);                 
+                this.getShape().renderUsing(ctx);
                   parentNode = ownerCtx.shapeNode;
                   parentNode.appendChild(ctx.shapeNode);
-                
             }
             else if (parentNode && ownerCtx && ownerCtx.shapeNode && parentNode === ownerCtx.shapeNode) {
 
@@ -31,16 +26,15 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
                     ownerCtx.shapeNode.appendChild(ownerCtx.originNode);
                 }
                 this.owner.shape.compensateShapeNode(ownerCtx);
-                
                 parentNode = ownerCtx.originNode;
-                
+
                 var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
-                this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode);    
+                this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode);
                 this.getShape().renderUsing(ctx);
             }
         }
 
-        
+
     },
     remove: function() {
         this.suspendSteppingAll();
@@ -93,8 +87,6 @@ setRotationHTML: function(ctx) {},
 
 setScaleHTML: function(ctx) {},
 
-   
-    
  }
 );
 

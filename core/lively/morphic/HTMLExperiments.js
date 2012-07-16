@@ -132,6 +132,16 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 },
 
 'accessing',{
+    setExtent: function(value) {
+
+      this.shape.setExtent(value);
+      if (this.layout && (this.layout.adjustForNewBounds || this.layout.layouter))
+            this.adjustForNewBounds();
+      if (this.owner && (typeof this.owner['submorphResized'] == 'function')) {
+            this.owner.submorphResized(this);
+        }
+      return value;
+    },
     resetExtent: function() {
         this.shape.resetExtent();    
     },

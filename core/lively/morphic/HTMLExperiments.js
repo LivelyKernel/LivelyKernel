@@ -503,7 +503,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         this.extentOverride = newExtent;
         return value;
     },
-    setRawExtent: function(ctx, extent) {
+    setRawExtentHTML: function(ctx, extent) {
         $(ctx.shapeNode).width(extent.x);         
         if (extent.y >= 0) {
             $(ctx.shapeNode).height(extent.y); 

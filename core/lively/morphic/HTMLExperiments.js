@@ -69,7 +69,7 @@ getPosition: function() {
         var thisOffset = $(ctx.shapeNode).offset();
         return pt(thisOffset.left - ownerOffset.left,   thisOffset.top- ownerOffset.top)
     } else {
-        console.log('Relative Morph is obviously not ready to get checked for its position. Maybe it does not have an owner morph yet?');
+        //console.log('Relative Morph is obviously not ready to get checked for its position. Maybe it does not have an owner morph yet?');
         return pt(0,0)
     }
 

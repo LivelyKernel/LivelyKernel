@@ -35,6 +35,10 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableCell',
      },
      initialize: function($super) {
             $super('td');
+         
+     },
+     appendHTML: function($super, ctx) {
+         $super(ctx);
             this.addPlaceholder();
      },
     addPlaceholder: function(width, height){

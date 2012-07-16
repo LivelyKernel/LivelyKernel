@@ -127,7 +127,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
       return value;
     },
     resetExtent: function() {
-        this.shape.resetExtent();    
+        this.shape.resetExtent();
     },
     setContent: function(content){
         this.renderContextDispatch('setContent', content);
@@ -139,7 +139,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
             ctx.shapeNode.appendChild(ctx.contentNode);
     },
     getContent: function(){
-        return this.content || "";    
+        return this.content || "";
     },
     getBounds: function() {
         return this.getPosition().extent(this.getExtent());
@@ -156,11 +156,10 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
             var tfm = morph.transformForNewOwner(this);
             morph.remove();
         }
-        
+
         // enable Relative Layout Layer (between removing and adding)
         morph.addWithLayer(lively.morphic.RelativeLayer);
-        
-        
+
         if (morph.owner !== this) morph.owner = this;
 
         var indexToInsert = optMorphBefore && this.submorphs.indexOf(optMorphBefore);
@@ -194,40 +193,37 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         return morph
 
     },
-    
+
     getAttribute: function(attribute) {
-        this.renderContextDispatch('getAttribute', attribute);  
+        this.renderContextDispatch('getAttribute', attribute);
     },
     getAttributeHTML: function(ctx, attribute) {
         return $(ctx.shapeNode).attr(attribute);
-    },    
+    },
     setAttribute: function(attribute, value) {
         if (!this.attributes) this.attributes = [];
         this.attributes.push({attr: attribute, val: value}); // FIXME! Need a key value list here
-        this.renderContextDispatch('setAttribute', {attr: attribute, val: value});  
+        this.renderContextDispatch('setAttribute', {attr: attribute, val: value});
     },
     setAttributeHTML: function(ctx, attrVal) {
-    
+
         if (attrVal.val) $(ctx.shapeNode).attr(attrVal.attr, attrVal.val);
         else ctx.shapeNode.removeAttribute(attrVal.attr);
     },
-    
-    
     getProp: function(prop) {
-        return this.renderContextDispatch('getProp', prop);  
+        return this.renderContextDispatch('getProp', prop);
     },
     getPropHTML: function(ctx, prop) {
         return $(ctx.shapeNode).prop(prop);
-    },    
+    },
     setProp: function(prop, value) {
         if (!this.prop) this.props= [];
         this.props.push({prop: prop, val: value}); // FIXME! Need a key value list here
-        this.renderContextDispatch('setProp', {prop: prop, val: value});  
+        this.renderContextDispatch('setProp', {prop: prop, val: value});
     },
     setPropHTML: function(ctx, propVal) {
         $(ctx.shapeNode).prop(propVal.prop, propVal.val);
     },
-    
 
     morphMenuItems: function($super) {
         var self = this, items = $super();
@@ -250,8 +246,6 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         this.eventHandler = handler;
         return handler;
     },
-    
-
 
 }
 

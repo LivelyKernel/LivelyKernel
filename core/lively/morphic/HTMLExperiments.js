@@ -504,13 +504,16 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         return value;
     },
     setRawExtentHTML: function(ctx, extent) {
-        $(ctx.shapeNode).width(extent.x);         
+        //$(ctx.shapeNode).width(extent.x);         
+        ctx.shapeNode.style.width = extent.x+"px";
         var both = (extent.y > 0) 
         if (both) {
-            $(ctx.shapeNode).height(extent.y); 
+            //$(ctx.shapeNode).height(extent.y); 
+            ctx.shapeNode.style.height= extent.y+"px";
         }
         else {
-            $(ctx.shapeNode).css('height', '');
+            //$(ctx.shapeNode).css('height', '');
+            ctx.shapeNode.style.height = null;
         }
         this.extentOverride = (both) ?  extent : extent.withY(0);
     },

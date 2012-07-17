@@ -164,7 +164,8 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         this.adaptToChangedContext();
         this.updateOwnerCachedExtent();
     },
-    remove: function(){
+    remove: function($super){
+        $super();
         this.adaptAllToChangedContext();
         this.updateOwnerCachedExtent();
     },

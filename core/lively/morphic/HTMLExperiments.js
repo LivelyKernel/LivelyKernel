@@ -428,6 +428,14 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
             return this.refreshCachedExtent();
         }
     },
+    getInnerExtentHTML: function(ctx) {
+        if (this.cachedInnerExtent && !this.cachedExtentNeedsRefresh) {
+        }
+        else {
+            this.refreshCachedExtent();
+        }
+        return this.cachedInnerExtent;
+    },
     refreshCachedExtent: function() {
         return this.renderContextDispatch('refreshCachedExtent');
     },

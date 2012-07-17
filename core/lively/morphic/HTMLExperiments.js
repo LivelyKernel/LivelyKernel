@@ -266,8 +266,6 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     },
 },
 'updating', {
-    cachedExtent: null,
-    cachedExtentNeedsRefresh: false,
     resetExtent: function() {
         this.renderContextDispatch('resetExtent');
     },
@@ -275,6 +273,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         this.extentOverride = null;
         ctx.shapeNode.style.width = null;
         ctx.shapeNode.style.height = null;
+        this.setCachedExtentOutdated();
     },
 
     setContent: function(content){
@@ -389,7 +388,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
             ctx.shapeNode.style.height = null;
         }
         this.extentOverride = (both) ?  extent : extent.withY(0);
-        this.cachedExtentNeedsRefresh = true;
+        this.setCachedExtentOutdated();
     },
     getExtent: function(forceRefresh){
         if (this.cachedExtent && !forceRefresh && !this.cachedExtentNeedsRefresh) {

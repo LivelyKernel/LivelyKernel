@@ -101,11 +101,6 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
             if (nodeName) this.nodeName= nodeName;
             $super(new lively.morphic.Shapes.HTMLShape(this.nodeName, optBounds));
     },
-    appendHTML: function($super, ctx) {
-        $super(ctx);
-
-    }
-
 },
 
 'accessing',{
@@ -133,6 +128,19 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     },
     getNodeName: function(){
         return this.shape.getNodeName();
+    },
+    getAttribute: function(attribute) {
+        return this.shape.getAttribute(attribute);
+    },
+    setAttribute: function(attribute, value) {
+        this.shape.setAttribute(attribute, value);
+    },
+
+    getProp: function(prop) {
+        return this.shape.getProp(prop);
+    },
+    setProp: function(prop, value) {
+        this.shape.setProp(prop, value);
     },
 
     getBounds: function() {
@@ -187,35 +195,6 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         return morph
 
     },
-
-    getAttribute: function(attribute) {
-        return this.shape.getAttribute(attribute);
-    },
-    setAttribute: function(attribute, value) {
-        this.shape.setAttribute(attribute, value);
-    },
-    setNodeName: function(nodeName){
-        this.shape.setNodeName(nodeName);
-    },
-    getNodeName: function(){
-        return this.shape.getNodeName();
-    },
-    
-    getProp: function(prop) {
-        return this.renderContextDispatch('getProp', prop);
-    },
-    getPropHTML: function(ctx, prop) {
-        return $(ctx.shapeNode).prop(prop);
-    },
-    setProp: function(prop, value) {
-        if (!this.prop) this.props= [];
-        this.props.push({prop: prop, val: value}); // FIXME! Need a key value list here
-        this.renderContextDispatch('setProp', {prop: prop, val: value});
-    },
-    setPropHTML: function(ctx, propVal) {
-        $(ctx.shapeNode).prop(propVal.prop, propVal.val);
-    },
-
     morphMenuItems: function($super) {
         var self = this, items = $super();
         items.push([

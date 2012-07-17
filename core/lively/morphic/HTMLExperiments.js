@@ -369,9 +369,9 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         return value;
     },
     setRawExtentHTML: function(ctx, extent) {
-        //$(ctx.shapeNode).width(extent.x);         
+        //$(ctx.shapeNode).width(extent.x);
         ctx.shapeNode.style.width = extent.x+"px";
-        var both = (extent.y > 0) 
+        var both = (extent.y > 0)
         if (both) {
             //$(ctx.shapeNode).height(extent.y); 
             ctx.shapeNode.style.height= extent.y+"px";

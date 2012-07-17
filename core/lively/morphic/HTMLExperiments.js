@@ -390,9 +390,12 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         this.extentOverride = (both) ?  extent : extent.withY(0);
     },
     getExtent: function(forceRefresh){
-        // check if cached values are available
-        // if not available or if forceRefresh then refreshCachedExtent
-        return pt(0,0);
+        if (this.cachedExtent && !forceRefresh) {
+            return this.cachedExtent;
+        }
+        else {
+            return this.refreshCachedExtent();
+        }
     },
     refreshCachedExtent: function() {
         return this.renderContextDispatch('refreshCachedExtent');

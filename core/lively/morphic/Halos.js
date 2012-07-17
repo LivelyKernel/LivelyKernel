@@ -95,7 +95,7 @@ lively.morphic.World.addMethods(
     },
     getHaloClasses: function() {
         return [
-            lively.morphic.MenuHalo,
+            lively.morphic.MenuHalo, 
             lively.morphic.InspectHalo,
             lively.morphic.ScriptEditorHalo,
             lively.morphic.StyleHalo

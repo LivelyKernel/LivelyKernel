@@ -154,12 +154,19 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     updateSubmorphCachedExtent: function() {
         this.submorphs.each(function(m){m.adaptToChangedContext();});
     },
-    adaptToChangedContent: function() {
-        // called when a submorph's extent has changed
-        this.adaptToChangedContext();
+    updateOwnerCachedExtent: function() {
         if (this.owner && this.owner.adaptToChangedContent) {
             this.owner.adaptToChangedContent();
         }
+    },
+    adaptToChangedContent: function() {
+        // called when a submorph's extent has changed
+        this.adaptToChangedContext();
+        this.updateOwnerCachedExtent();
+    },
+    remove: function(){
+        this.adaptAllToChangedContext();
+        
     },
     addMorph: function($super, morph, optMorphBefore) {
 

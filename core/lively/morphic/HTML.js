@@ -1323,10 +1323,13 @@ lively.morphic.Shapes.Shape.addMethods(
 
 	
 		updateComputedStyles: function() {
-		    if (!this.isRelative) {
+		    if (this.adaptToChangedContext) {
+		        this.adaptToChangedContext();
+		    }
+		    else {
 			this.shape.updateComputedStyles();
 			this.submorphs.each(function(m){m.updateComputedStyles();});
-    		  }	
+    		  }
 		},
 	}
 );

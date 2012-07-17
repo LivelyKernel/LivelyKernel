@@ -230,6 +230,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
 
     htmlDispatchTable: {
         resetExtent: 'resetExtentHTML',
+        refreshCachedExtent: 'refreshCachedExtentHTML',
         getNodeName: 'getNodeNameHTML',
         setNodeName: 'setNodeNameHTML',
         getContent: 'getContentHTML',
@@ -265,6 +266,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     },
 },
 'updating', {
+    cachedExtent: null,
     resetExtent: function() {
         this.renderContextDispatch('resetExtent');
     },
@@ -388,21 +390,19 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         this.extentOverride = (both) ?  extent : extent.withY(0);
     },
     getExtent: function(){
-        var ctx = this.renderContext();
+        // check if cached values are available
+        // if not -> refreshCachedExtent
+        return pt(0,0);
+    },
+    refreshCachedExtent: function() {
+        return this.renderContextDispatch('refreshCachedExtent');
+    },
+    refreshCachedExtentHTML: function(ctx) {
         var w = $(ctx.shapeNode).outerWidth(true);
         var h = $(ctx.shapeNode).outerHeight(true);
-        return pt(w, h);
+        this.cachedExtent = pt(w, h);
+        return this.cachedExtent;
     },
-/*
-    setFillHTML: function(ctx, value) {},
-
-    setBorderStyleHTML: function(ctx, value) {},
-    setBorderWidthHTML: function(ctx, width) {},
-    setBorderHTML: function(ctx, width, fill, opacity) {},
-
-    setOpacityHTML: function(ctx, value) {},
-    setPaddingHTML: function(ctx, r) {},
-*/
     compensateShapeNode: function(ctx) {},
 
 }

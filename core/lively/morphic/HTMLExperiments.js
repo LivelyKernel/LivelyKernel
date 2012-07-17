@@ -98,13 +98,14 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 
 'accessing',{
     setExtent: function(value) {
-
       this.shape.setExtent(value);
       if (this.layout && (this.layout.adjustForNewBounds || this.layout.layouter))
             this.adjustForNewBounds();
       if (this.owner && (typeof this.owner['submorphResized'] == 'function')) {
             this.owner.submorphResized(this);
         }
+        
+    this.ad
       return value;
     },
     resetExtent: function() {
@@ -148,7 +149,10 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     },
     adaptAllToChangedContext: function() {
         this.adaptToChangedContext();
-	this.submorphs.each(function(m){m.adaptToChangedContext();});
+	this.updateSubmorphCachedExtent();
+    },
+    updateSubmorphCachedExtent: function() {
+        this.submorphs.each(function(m){m.adaptToChangedContext();});
     },
     adaptToChangedContent: function() {
         // called when a submorph's extent has changed

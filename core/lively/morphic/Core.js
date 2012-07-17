@@ -187,7 +187,6 @@ Object.subclass('lively.morphic.Morph',
             }
         }
         var type = this.constructor;
-
         while (type != Object) {
             a.unshift(type.name);
             type = type.superclass;

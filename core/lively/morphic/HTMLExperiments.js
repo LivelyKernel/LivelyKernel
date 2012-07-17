@@ -289,7 +289,10 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     },
     setNodeNameHTML: function(ctx, nodeName){
         this.nodeName = nodeName;
-        $(this.shapeNode).replaceWith("<"+nodeName+">");
+        var oldNode = ctx.shapeNode;
+        ctx.shapeNode = XHTMLNS.create(this.nodeName);
+        $(ctx.shapeNode).html( $(oldNode).html() );
+        $(oldNode).replaceWith($(ctx.shapeNode));
     },
     getNodeName: function(){
         return this.nodeName || "";

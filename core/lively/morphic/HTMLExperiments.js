@@ -267,6 +267,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
 },
 'updating', {
     cachedExtent: null,
+    cachedExtentNeedsRefresh: false,
     resetExtent: function() {
         this.renderContextDispatch('resetExtent');
     },
@@ -380,7 +381,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         ctx.shapeNode.style.width = extent.x+"px";
         var both = (extent.y > 0)
         if (both) {
-            //$(ctx.shapeNode).height(extent.y); 
+            //$(ctx.shapeNode).height(extent.y);
             ctx.shapeNode.style.height= extent.y+"px";
         }
         else {
@@ -401,6 +402,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         return this.renderContextDispatch('refreshCachedExtent');
     },
     refreshCachedExtentHTML: function(ctx) {
+        this.cachedExtentNeedsRefresh = false;
         var w = $(ctx.shapeNode).outerWidth(true);
         var h = $(ctx.shapeNode).outerHeight(true);
         this.cachedExtent = pt(w, h);

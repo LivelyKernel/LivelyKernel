@@ -87,7 +87,6 @@ Object.subclass('lively.morphic.Shapes.Shape',
     },
 
     setNodeId: function(value) {
-        //console.log("Shapes.js, setNodeId(): Setting style id to "+value);
         return this.shapeSetter('NodeId', value);
     },
 

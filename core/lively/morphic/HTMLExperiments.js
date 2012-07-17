@@ -189,6 +189,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
                     // call Stack.beInBackground to place in background
             }
         }
+        this.shape.setCachedExtentOutdated();
         return morph
 
     },

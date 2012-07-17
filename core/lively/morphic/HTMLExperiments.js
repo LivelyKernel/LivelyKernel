@@ -409,6 +409,9 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         this.cachedExtent = pt(w, h);
         return this.cachedExtent;
     },
+    setCachedExtentOutdated: function() {
+        this.cachedExtentNeedsRefresh = true;
+    },
     compensateShapeNode: function(ctx) {},
 
 }

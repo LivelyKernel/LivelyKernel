@@ -456,6 +456,58 @@ var Arrays = {
     }
 }
 
+// Intervals are arrays with two elements whose first element
+// should be less or equals the second element
+var Interval = {
+    merge: function(interval1, interval2) {
+        // [1,4], [5,7] => null
+        // [1,4], [3,6] => [1,6]
+        // [3,6], [4,5] => [3, 6]
+        if (interval1[0] > interval2[0]) { // swap to reorder
+            var temp = interval1; interval1 = interval2; interval2 = temp;
+        }
+        if (interval1[1] < interval2[0]) return null;
+        return [interval1[0], Math.max(interval1[1], interval2[1])];
+    },
+
+    mergeAllOverlapping: function(intervals) {
+        // accepts an array of intervals
+        // [[9,10], [1,8], [3, 7], [15, 20], [14, 21]] => [[1, 8], [9, 10], [14, 21]]
+        var condensed = [];
+        while (intervals.length > 0) {
+            var interval = intervals.shift();
+            for (var i = 0, len = intervals.length; i < len; i++) {
+                var otherInterval = intervals[i],
+                    merged = Interval.merge(interval, otherInterval);
+                if (merged) {
+                    interval = merged;
+                    intervals.splice(i, 1);
+                    len--; i--;
+                }
+            }
+            condensed.push(interval);
+        }
+        return condensed.sort(function(a, b) { return a[0] > b[0] });
+    },
+
+    intervalsInbetween: function(start, end, intervals) {
+        // computes "free" intervals between the intervals given in range start - end
+        // currently used for computing text chunks in lively.morphic.TextCore
+        // start = 0, end = 10, intervals = [[1,4], [5,8]]
+        // => [[0,1], [4, 5], [8, 10]]
+        var free = [], merged = Interval.mergeAllOverlapping(intervals.clone()), nextInterval;
+        // merged intervals are already sorted, simply "negate" the interval array;
+        while ((nextInterval = merged.shift())) {
+            var nextStart = end < nextInterval[0] ? end : nextInterval[0];
+            if (start < nextStart) free.push([start, nextStart]);
+            start = nextInterval[1];
+            if (start >= end) break;
+        }
+        if (start < end) free.push([start, end]);
+        return free;
+    }
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Global

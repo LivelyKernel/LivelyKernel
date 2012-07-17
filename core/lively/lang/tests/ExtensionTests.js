@@ -48,7 +48,8 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectTest', 'testing', {
     }
 });
 
-TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectsTest', 'testing', {
+TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectsTest',
+'testing', {
     testTypeStringOf: function() {
         this.assertEquals(Objects.typeStringOf('some string'), 'String');
         this.assertEquals(Objects.typeStringOf(0), 'Number');
@@ -122,6 +123,36 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertiesTest',
             return name.length == 2;
         });
         this.assertMatches(expected, result);
+    }
+});
+
+TestCase.subclass('lively.lang.tests.ExtensionTests.IntervallTest', {
+
+    testMergeTwoOverlappingIntervals: function() {
+        this.assertEqualState(null, Interval.merge([1,4], [5,7]));
+        this.assertEqualState([1, 5], Interval.merge([1,3], [2, 5]));
+        this.assertEqualState([1, 5], Interval.merge([3, 5], [1,3]));
+        this.assertEqualState([1, 5], Interval.merge([1, 5], [2,3]));
+        this.assertEqualState([3,6], Interval.merge([3,6], [4,5]));
+    },
+
+    testMergeOverlappingIntervallsTest: function() {
+        this.assertEqualState([], Interval.mergeAllOverlapping([]));
+        this.assertEqualState([[1, 5]], Interval.mergeAllOverlapping([[1,3], [2, 4], [2, 5]]));
+        this.assertEqualState([[1, 3], [5, 10]], Interval.mergeAllOverlapping([[1,3], [5,9 ], [6, 10]]));
+        this.assertEqualState([[1, 8], [9, 10], [14, 21]],
+                      Interval.mergeAllOverlapping([[9,10], [1,8], [3, 7], [15, 20], [14, 21]]));
+    },
+
+    testFindFreeIntervalsInbetween: function() {
+        this.assertEqualState([[0,10]], Interval.intervalsInbetween(0, 10, []));
+        this.assertEqualState([[5,10]], Interval.intervalsInbetween(0, 10, [[0, 5]]));
+        this.assertEqualState([[0,3], [5,10]], Interval.intervalsInbetween(0, 10, [[3, 5]]));
+        this.assertEqualState([[1,3], [5,8]], Interval.intervalsInbetween(0, 10, [[0, 1], [3, 5], [8, 10]]));
+        this.assertEqualState([[5,8]], Interval.intervalsInbetween(0, 10, [[0, 1], [1, 5], [8, 10]]));
+        this.assertEqualState([[0,5]], Interval.intervalsInbetween(0, 5, [[8, 10]]));
+        this.assertEqualState([[0,3]], Interval.intervalsInbetween(0, 5, [[3, 10]]));
+        this.assertEqualState([], Interval.intervalsInbetween(0, 5, [[0, 6]]));
     }
 });
 

@@ -208,7 +208,10 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
                     // call Stack.beInBackground to place in background
             }
         }
-        this.adaptAllToChangedContext();
+        this.adaptToChangedContext();
+        this.adaptSubmorphsToChangedContext();
+        this.adaptParentToChangedContent();
+
         return morph;
 
     },

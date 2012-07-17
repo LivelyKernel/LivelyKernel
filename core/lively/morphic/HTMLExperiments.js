@@ -157,8 +157,9 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     },
     adaptParentToChangedContent: function() {
         // called when a submorph's extent has changed
-        if (this.owner && this.owner.adaptToChangedContent) {
-            this.owner.adaptToChangedContent();
+        if (this.owner && this.owner.adaptParentToChangedContent) {
+            this.owner.adaptToChangedContext();
+            this.owner.adaptParentToChangedContent();
         }
     },
 

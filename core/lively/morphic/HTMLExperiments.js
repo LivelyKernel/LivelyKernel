@@ -389,9 +389,9 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         }
         this.extentOverride = (both) ?  extent : extent.withY(0);
     },
-    getExtent: function(){
+    getExtent: function(forceRefresh){
         // check if cached values are available
-        // if not -> refreshCachedExtent
+        // if not available or if forceRefresh then refreshCachedExtent
         return pt(0,0);
     },
     refreshCachedExtent: function() {

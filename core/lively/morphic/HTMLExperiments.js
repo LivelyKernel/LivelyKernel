@@ -149,7 +149,11 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     },
     adaptSubmorphsToChangedContext: function() {
         // called when CSS is updated
-        this.submorphs.each(function(m){m.adaptToChangedContext();});
+        this.submorphs.each(function(m){
+            if (m.adaptToChangedContext) {
+                m.adaptToChangedContext(); 
+            }
+        });
     },
     adaptParentToChangedContent: function() {
         // called when a submorph's extent has changed

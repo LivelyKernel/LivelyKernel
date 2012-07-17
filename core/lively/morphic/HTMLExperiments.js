@@ -91,11 +91,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     nodeName: 'div',
     isRelative: true
 },
-'HTML render settings', {
-    htmlDispatchTable: {
 
-     },
-},
 'initializing', {
     initialize: function($super, nodeName, optBounds) {
             if (nodeName) this.nodeName= nodeName;
@@ -146,6 +142,9 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     getBounds: function() {
         return this.getPosition().extent(this.getExtent());
     },
+},
+
+'misc', {
     addMorph: function($super, morph, optMorphBefore) {
 
          if (morph.isAncestorOf(this)) {

@@ -257,7 +257,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         }
 
         if (this.content) this.setContentHTML(ctx, this.content);
-
+        this.setAllAttributes();
 
     },
 

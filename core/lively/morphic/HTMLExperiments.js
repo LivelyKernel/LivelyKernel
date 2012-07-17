@@ -146,6 +146,10 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         // called when CSS is updated
         this.shape.setCachedExtentOutdated();
     },
+    adaptAllToChangedContext: function() {
+        this.adaptToChangedContext();
+	this.submorphs.each(function(m){m.adaptToChangedContext();});
+    },
     addMorph: function($super, morph, optMorphBefore) {
 
          if (morph.isAncestorOf(this)) {
@@ -192,8 +196,8 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
                     // call Stack.beInBackground to place in background
             }
         }
-        this.shape.setCachedExtentOutdated();
-
+        this.adaptToChangedContext();
+        morph.adaptToChangedContext();
         return morph;
 
     },

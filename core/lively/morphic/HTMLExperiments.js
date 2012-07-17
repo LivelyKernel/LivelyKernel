@@ -288,7 +288,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         this.renderContextDispatch('setNodeName', content);
     },
     setNodeNameHTML: function(ctx, nodeType){
-        this.nodeType= nodeType;
+        this.nodeType = nodeType;
         if (ctx.contentNode) $(ctx.contentNode).remove();
             ctx.contentNode = document.createTextNode(content);
             ctx.shapeNode.appendChild(ctx.contentNode);

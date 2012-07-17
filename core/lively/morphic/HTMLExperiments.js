@@ -34,8 +34,6 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 				this.getShape().renderUsing(ctx);
 			}
 		}
-
-
 	},
 	remove: function() {
 		this.suspendSteppingAll();

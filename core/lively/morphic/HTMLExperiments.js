@@ -403,8 +403,6 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     setPaddingHTML: function(ctx, r) {},
 */
     compensateShapeNode: function(ctx) {},
-    
-
 
 }
 );

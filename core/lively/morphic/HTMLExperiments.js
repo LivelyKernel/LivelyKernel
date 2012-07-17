@@ -388,7 +388,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         if (n != "button" && n != "input" && n != "textarea") {
             // some nodetypes adhere to the standard box model, some don't ...
             var outer = this.getExtent();
-            var inner = this.cachedInnerExtent;
+            var inner = this.cachedInnerExtent; // the innerExtent is also refreshed when getExtent is refreshed
             var delta = outer.subPt(inner);
             newExtent = newExtent.subPt(delta);
         }

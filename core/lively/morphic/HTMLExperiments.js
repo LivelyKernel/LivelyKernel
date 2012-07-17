@@ -434,9 +434,8 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     refreshCachedExtentHTML: function(ctx) {
         
         //also refresh inner extent to speed up setExtent()
-        
-        
-        
+        this.cachedInnerExtent = pt($(ctx.shapeNode).width(), $(ctx.shapeNode).height());
+
         this.cachedExtentNeedsRefresh = false;
         var w = $(ctx.shapeNode).outerWidth(true);
         var h = $(ctx.shapeNode).outerHeight(true);

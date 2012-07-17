@@ -142,16 +142,16 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     getContent: function(){
         return this.content || "";
     },
-    setNodeType: function(content){
+    setNodeName: function(content){
         this.renderContextDispatch('setNodeType', content);
     },
-    setNodeTypeHTML: function(ctx, nodeType){
+    setNodeNameHTML: function(ctx, nodeType){
         this.nodeType= nodeType;
         if (ctx.contentNode) $(ctx.contentNode).remove();
             ctx.contentNode = document.createTextNode(content);
             ctx.shapeNode.appendChild(ctx.contentNode);
     },
-    getNodeType: function(){
+    getNodeName: function(){
         return this.nodeType || "";
     },
 

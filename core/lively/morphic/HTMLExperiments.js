@@ -247,7 +247,10 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     initHTML: function(ctx) {
         if (!ctx.shapeNode)
             ctx.shapeNode = XHTMLNS.create(this.nodeName);
-        if (this.extentOverride) {
+       this.setupShapeNodeHTML(ctx);
+    },
+    setupShapeNodeHTML: function(ctx) {
+         if (this.extentOverride) {
             this.setRawExtentHTML(ctx, this.extentOverride);
         }
         this.getNodeClass() && this.setNodeClassHTML(ctx, this.getNodeClass());
@@ -260,7 +263,6 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         this.setAllAttributes();
 
     },
-
 },
 'updating', {
     resetExtent: function() {

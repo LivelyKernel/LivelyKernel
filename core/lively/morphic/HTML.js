@@ -1193,11 +1193,6 @@ Object.subclass('lively.morphic.CSS.Fill',
 
 
 lively.morphic.Shapes.Shape.addMethods(
-    'HTML render settings', {
-    htmlDispatchTable: {
-
-    },
-},
         'stylesheets', {
 
 

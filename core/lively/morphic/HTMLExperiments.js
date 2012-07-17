@@ -293,6 +293,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         ctx.shapeNode = XHTMLNS.create(this.nodeName);
         $(ctx.shapeNode).html( $(oldNode).html() );
         $(oldNode).replaceWith($(ctx.shapeNode));
+        this.setAllAttributes();
     },
     getNodeName: function(){
         return this.nodeName || "";

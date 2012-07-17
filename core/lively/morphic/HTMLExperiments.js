@@ -312,8 +312,9 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     setContentHTML: function(ctx, content){
         this.content = content;
         if (ctx.contentNode) $(ctx.contentNode).remove();
-            ctx.contentNode = document.createTextNode(content);
-            ctx.shapeNode.appendChild(ctx.contentNode);
+        ctx.contentNode = document.createTextNode(content);
+        ctx.shapeNode.appendChild(ctx.contentNode);
+        this.setCachedExtentOutdated();
     },
     getContent: function(){
         return this.content || "";

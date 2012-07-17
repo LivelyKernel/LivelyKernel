@@ -432,6 +432,11 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         return this.renderContextDispatch('refreshCachedExtent');
     },
     refreshCachedExtentHTML: function(ctx) {
+        
+        //also refresh inner extent to speed up setExtent()
+        
+        
+        
         this.cachedExtentNeedsRefresh = false;
         var w = $(ctx.shapeNode).outerWidth(true);
         var h = $(ctx.shapeNode).outerHeight(true);

@@ -143,7 +143,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         return this.content || "";
     },
     setNodeName: function(content){
-        this.renderContextDispatch('setNodeType', content);
+        this.renderContextDispatch('setNodeName', content);
     },
     setNodeNameHTML: function(ctx, nodeType){
         this.nodeType= nodeType;

@@ -296,7 +296,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         $(ctx.shapeNode).html( $(oldNode).html() );
         $(oldNode).replaceWith($(ctx.shapeNode));
         this.setupShapeNodeHTML(ctx);
-        alert('TODO: eventhandlers have to be renewed!');
+        alert('TODO: eventhandlers have to be readded!');
     },
     getNodeName: function(){
         return this.nodeName || "";

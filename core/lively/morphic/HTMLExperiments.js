@@ -8,6 +8,9 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 	triggerEventHTML: function(ctx, evt) {
 		return ctx.shapeNode ? ctx.shapeNode.dispatchEvent(evt) : null;
 	},
+	setUpShapeNode: function(){
+	   this.shape.addWithLayer();    
+	},
 	appendHTML: function(ctx, optMorphAfter) {
 		if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
 		//console.log("Adding a relative morph!");

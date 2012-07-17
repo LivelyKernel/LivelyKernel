@@ -151,7 +151,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         // called when CSS is updated
         this.submorphs.each(function(m){
             if (m.adaptToChangedContext) {
-                m.adaptToChangedContext(); 
+                m.adaptToChangedContext();
             }
         });
     },
@@ -161,11 +161,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
             this.owner.adaptToChangedContent();
         }
     },
-    remove: function($super){
-        $super();
-        this.adaptAllToChangedContext();
-        this.updateOwnerCachedExtent();
-    },
+
     addMorph: function($super, morph, optMorphBefore) {
 
          if (morph.isAncestorOf(this)) {

@@ -217,10 +217,10 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 
     },
     removeHTML: function($super, ctx) {
+        this.adaptParentToChangedContent();
         $super(ctx);
         this.adaptToChangedContext();
         this.adaptSubmorphsToChangedContext();
-        this.adaptParentToChangedContent();
     },
     morphMenuItems: function($super) {
         var self = this, items = $super();

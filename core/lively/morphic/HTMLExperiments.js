@@ -86,84 +86,10 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 
 
 cop.create('lively.morphic.RelativeShapeLayer').refineClass(lively.morphic.Shapes.Shape, {
-	adjustOrigin: function() {},
-	relativeWrapper: function() {return true},
-
-	triggerEventHTML: function(ctx, evt) {
-		return ctx.shapeNode ? ctx.shapeNode.dispatchEvent(evt) : null;
-	},
-	appendHTML: function(ctx, optMorphAfter) {
-		if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
-		console.log("Adding a relative morph!");
-		var parentNode = false;//ctx.morphNode.parentNode;
-		if (!parentNode) {
-			var ownerCtx = this.owner && this.owner.renderContext();
-			parentNode = (ownerCtx && ownerCtx.shapeNode) || ctx.parentNode;
-			if (this.owner.getShape().constructor.name === "HTMLShape") {
-				this.getShape().renderUsing(ctx);
-				  parentNode = ownerCtx.shapeNode;
-				  parentNode.appendChild(ctx.shapeNode);
-			}
-			else if (parentNode && ownerCtx && ownerCtx.shapeNode && parentNode === ownerCtx.shapeNode) {
-
-				if (!ownerCtx.originNode) {
-					ownerCtx.originNode = ownerCtx.domInterface.htmlRect();
-					ownerCtx.shapeNode.appendChild(ownerCtx.originNode);
-				}
-				this.owner.shape.compensateShapeNode(ownerCtx);
-				parentNode = ownerCtx.originNode;
-
-				var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
-				this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode);
-				this.getShape().renderUsing(ctx);
-			}
-		}
-	},
-	remove: function() {
-		this.suspendSteppingAll();
-		if (this.showsHalos) this.removeHalos();
-		this.renderContextDispatch('remove');
-		this.removeWithLayer(lively.morphic.RelativeLayer);
-	},
-	removeHTML: function(ctx) {
-		this.owner && this.owner.removeMorph(this);
-		ctx.removeNode(ctx.shapeNode);
-	},
-	getBounds: function() {
-		var p = this.getPosition();
-		var e = this.getExtent();
-		return new Rectangle(p.x, p.y, e.x, e.y);
-	},
-
-	getPosition: function() {
-		var ctx = this.renderContext();
-		if (this.owner && ctx.shapeNode && ctx.shapeNode.parentNode) {
-
-			var ownerOffset = (this.owner.relativeWrapper && this.owner.relativeWrapper()) ?
-				$(ctx.shapeNode.parentNode).offset() :             // take the owner's shapeNode as reference
-				$(ctx.shapeNode.parentNode.parentNode).offset(); // look in the morphNode, not in the shapeNode!
-
-			var thisOffset = $(ctx.shapeNode).offset();
-			return pt(thisOffset.left - ownerOffset.left,   thisOffset.top- ownerOffset.top)
-		} else {
-			//console.log('Relative Morph is obviously not ready to get checked for its position. Maybe it does not have an owner morph yet?');
-			return pt(0,0)
-		}
-
-	},
-
-	getRotation: function() {
-		return 0;
-	},
-	getScale: function() {
-		return 1;
-	},
-
-	setPositionHTML: function(ctx) {},
-
-	setRotationHTML: function(ctx) {},
-
-	setScaleHTML: function(ctx) {},
+    setPositionHTML: function(ctx, value) {
+        if (!ctx.shapeNode) return undefined;
+        $(ctx.shapeNode)
+    },
 
 }
 );

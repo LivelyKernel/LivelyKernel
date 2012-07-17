@@ -144,6 +144,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 
 'misc', {
     adaptToChangedContext: function() {
+        // called when CSS is updated
         this.shape.setCachedExtentOutdated();
     },
     addMorph: function($super, morph, optMorphBefore) {

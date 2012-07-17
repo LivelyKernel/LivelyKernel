@@ -1185,6 +1185,17 @@ Object.subclass('lively.morphic.CSS.Fill',
 
 
 lively.morphic.Shapes.Shape.addMethods(
+    'HTML render settings', {
+    htmlDispatchTable: {
+        setNodeClass: 'setNodeClassHTML',
+        setNodeId: 'setNodeIdHTML',
+        setStyleSheet: 'setStyleSheetHTML',
+        setAppearanceStylingMode: 'setAppearanceStylingModeHTML',
+        setBorderStylingMode: 'setBorderStylingModeHTML',
+        setComputedStyles: 'setComputedStylesHTML',
+        setComputedBorderWidth: 'setComputedBorderWidthHTML',
+    },
+},
         'stylesheets', {
 
 

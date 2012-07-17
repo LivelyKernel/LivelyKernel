@@ -305,8 +305,35 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     resetExtentHTML: function(ctx){
         this.extentOverride = null;
         ctx.shapeNode.style.width = null;
-        ctx.shapeNode.style.height = null;         
+        ctx.shapeNode.style.height = null;
     },
+
+    setContent: function(content){
+        this.renderContextDispatch('setContent', content);
+    },
+    setContentHTML: function(ctx, content){
+        this.content = content;
+        if (ctx.contentNode) $(ctx.contentNode).remove();
+            ctx.contentNode = document.createTextNode(content);
+            ctx.shapeNode.appendChild(ctx.contentNode);
+    },
+    getContent: function(){
+        return this.content || "";
+    },
+    setNodeName: function(content){
+        this.renderContextDispatch('setNodeName', content);
+    },
+    setNodeNameHTML: function(ctx, nodeType){
+        this.nodeType= nodeType;
+        if (ctx.contentNode) $(ctx.contentNode).remove();
+            ctx.contentNode = document.createTextNode(content);
+            ctx.shapeNode.appendChild(ctx.contentNode);
+    },
+    getNodeName: function(){
+        return this.nodeType || "";
+    },
+
+    
     getBounds: function() {
         return pt(0,0).extent(this.getExtent())
     },

@@ -316,6 +316,12 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
             var delta = outer.subPt(inner);
             newExtent = newExtent.subPt(delta);
         }
+        else if (n == "textarea") {
+            var inner = pt($(ctx.shapeNode).innerWidth(), $(ctx.shapeNode).innerHeight());
+            var inner = pt($(ctx.shapeNode).width(), $(ctx.shapeNode).height());
+            var delta = outer.subPt(inner);
+            newExtent = newExtent.subPt(delta);
+        }
 
         this.setRawExtentHTML(ctx, newExtent);
 

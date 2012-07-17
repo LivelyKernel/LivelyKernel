@@ -44,6 +44,7 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 	removeHTML: function(ctx) {
 		this.owner && this.owner.removeMorph(this);
 		ctx.removeNode(ctx.shapeNode);
+
 	},
 	getBounds: function() {
 		var p = this.getPosition();

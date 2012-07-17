@@ -265,6 +265,9 @@ Object.subclass('TestCase',
                 continue;
               }
             };
+            this.assert(actual && Object.isObject(actual),
+                        name + ' was expected to be ' + expected +
+                        ' but is ' + String(actual) + (msg ? ' -- ' + msg : ''));
             this.assertMatches(expected, actual, msg);
         }
     },

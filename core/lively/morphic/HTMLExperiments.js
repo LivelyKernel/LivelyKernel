@@ -9,7 +9,7 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 		return ctx.shapeNode ? ctx.shapeNode.dispatchEvent(evt) : null;
 	},
 	setUpShapeNode: function(){
-	   this.shape.addWithLayer();    
+	   this.shape.addWithLayer(lively.morphic.RelativeShapeLayer);
 	},
 	appendHTML: function(ctx, optMorphAfter) {
 		if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));

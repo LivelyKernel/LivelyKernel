@@ -87,7 +87,8 @@ Object.subclass('lively.morphic.Shapes.Shape',
     },
 
     setNodeId: function(value) {
-        return this.shapeSetter('NodeId', value);
+        this.shapeSetter('NodeId', value);
+        return value;
     },
 
     getNodeId: function() {

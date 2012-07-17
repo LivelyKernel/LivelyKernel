@@ -88,13 +88,13 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 
 lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 'settings', {
-    tagName: 'div',
+    nodeName: 'div',
     isRelative: true
 },
 'HTML render settings', {
     htmlDispatchTable: {
         setContent: 'setContentHTML',
-        setNodeType: 'setNodeTypeHTML',
+        setNodeName: 'setNodeNameHTML',
         setAttribute: 'setAttributeHTML',
         getAttribute: 'getAttributeHTML',
         setProp: 'setPropHTML',
@@ -102,9 +102,9 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
      },
 },
 'initializing', {
-    initialize: function($super, tagName, optBounds) {
-            if (tagName) this.tagName = tagName;
-            $super(new lively.morphic.Shapes.HTMLShape(this.tagName, optBounds));
+    initialize: function($super, nodeName, optBounds) {
+            if (nodeName) this.nodeName= nodeName;
+            $super(new lively.morphic.Shapes.HTMLShape(this.nodeName, optBounds));
     },
     appendHTML: function($super, ctx) {
         $super(ctx);
@@ -142,6 +142,19 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     getContent: function(){
         return this.content || "";
     },
+    setNodeType: function(content){
+        this.renderContextDispatch('setNodeType', content);
+    },
+    setNodeTypeHTML: function(ctx, nodeType){
+        this.nodeType= nodeType;
+        if (ctx.contentNode) $(ctx.contentNode).remove();
+            ctx.contentNode = document.createTextNode(content);
+            ctx.shapeNode.appendChild(ctx.contentNode);
+    },
+    getNodeType: function(){
+        return this.nodeType || "";
+    },
+
     getBounds: function() {
         return this.getPosition().extent(this.getExtent());
     },

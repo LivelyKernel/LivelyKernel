@@ -101,7 +101,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Button',
 },
 
 'initializing', {
-    initialize: function($super, optBounds, optLabel) {
+    initialize: function($super, optLabel, optBounds) {
         $super(this.tagName, optBounds);
         if (optLabel) this.setLabel(optLabel);
         this.value = false;

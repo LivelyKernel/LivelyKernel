@@ -317,6 +317,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
             newExtent = newExtent.subPt(delta);
         }
         else if (n == "textarea") {
+            // FIXME: with SAPUI5 CSS applied this does not work right
             var outer= this.getExtent();
             var inner = pt($(ctx.shapeNode).width(), $(ctx.shapeNode).height());
             var delta = outer.subPt(inner);

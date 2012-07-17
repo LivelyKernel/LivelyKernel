@@ -94,9 +94,12 @@ lively.morphic.World.addMethods(
         this.currentHaloTarget && this.removeHalosFor(this.currentHaloTarget);
     },
     getHaloClasses: function() {
-        return [lively.morphic.MenuHalo,
-			lively.morphic.InspectHalo,
-            lively.morphic.ScriptEditorHalo];
+        return [
+            lively.morphic.MenuHalo,
+            lively.morphic.InspectHalo,
+            lively.morphic.ScriptEditorHalo,
+            lively.morphic.StyleHalo
+            ];
     },
 });
 

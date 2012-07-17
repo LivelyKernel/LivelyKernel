@@ -87,7 +87,6 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 'settings', {
     nodeName: 'div',
-    isRelative: true
 },
 
 'initializing', {

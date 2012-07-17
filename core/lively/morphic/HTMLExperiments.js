@@ -104,8 +104,8 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
       if (this.owner && (typeof this.owner['submorphResized'] == 'function')) {
             this.owner.submorphResized(this);
         }
-        
-    this.ad
+        this.adaptToChangedContent();
+	this.updateSubmorphCachedExtent();
       return value;
     },
     resetExtent: function() {

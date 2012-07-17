@@ -94,7 +94,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 
 'initializing', {
     initialize: function($super, nodeName, optBounds) {
-            if (nodeName) this.nodeName= nodeName;
+            if (nodeName) this.nodeName = nodeName;
             $super(new lively.morphic.Shapes.HTMLShape(this.nodeName, optBounds));
     },
 },

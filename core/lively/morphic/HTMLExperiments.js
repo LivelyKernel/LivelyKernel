@@ -150,6 +150,13 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         this.adaptToChangedContext();
 	this.submorphs.each(function(m){m.adaptToChangedContext();});
     },
+    adaptToChangedContent: function() {
+        // called when a submorph's extent has changed
+        this.adaptToChangedContext();
+        if (this.owner && this.owner.adaptToChangedContent) {
+            this.owner.adaptToChangedContent();
+        }
+    },
     addMorph: function($super, morph, optMorphBefore) {
 
          if (morph.isAncestorOf(this)) {

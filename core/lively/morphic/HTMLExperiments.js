@@ -12,6 +12,12 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 	   this.shape.addWithLayer(lively.morphic.RelativeShapeLayer);
 	   this.shape.setPosition(pt(0,0));
 	},
+	clearShapeNodePositionHTML: function(ctx) {
+            if (!ctx.shapeNode) return undefined;
+            $(ctx.shapeNode).css('position','');
+            $(ctx.shapeNode).css('left','');
+            $(ctx.shapeNode).css('top','');
+        },
 	appendHTML: function(ctx, optMorphAfter) {
 		if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
 		//console.log("Adding a relative morph!");
@@ -20,7 +26,7 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 			var ownerCtx = this.owner && this.owner.renderContext();
 			parentNode = (ownerCtx && ownerCtx.shapeNode) || ctx.parentNode;
 			if (this.owner.getShape().constructor.name === "HTMLShape") {
-				this.setUpShapeNode();
+				this.clearShapeNodePositionHTML();
 				this.getShape().renderUsing(ctx);
 				  parentNode = ownerCtx.shapeNode;
 				  parentNode.appendChild(ctx.shapeNode);

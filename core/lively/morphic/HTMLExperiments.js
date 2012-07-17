@@ -189,21 +189,18 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     },
 
     getAttribute: function(attribute) {
-        this.renderContextDispatch('getAttribute', attribute);
-    },
-    getAttributeHTML: function(ctx, attribute) {
-        return $(ctx.shapeNode).attr(attribute);
+        return this.shape.getAttribute(attribute);
     },
     setAttribute: function(attribute, value) {
-        if (!this.attributes) this.attributes = [];
-        this.attributes.push({attr: attribute, val: value}); // FIXME! Need a key value list here
-        this.renderContextDispatch('setAttribute', {attr: attribute, val: value});
+        this.shape.setAttribute(attribute, value);
     },
-    setAttributeHTML: function(ctx, attrVal) {
-
-        if (attrVal.val) $(ctx.shapeNode).attr(attrVal.attr, attrVal.val);
-        else ctx.shapeNode.removeAttribute(attrVal.attr);
+    setNodeName: function(nodeName){
+        this.shape.setNodeName(nodeName);
     },
+    getNodeName: function(){
+        return this.shape.getNodeName();
+    },
+    
     getProp: function(prop) {
         return this.renderContextDispatch('getProp', prop);
     },

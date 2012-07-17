@@ -300,7 +300,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
 },
 'updating', {
     resetExtent: function() {
-        this.renderContextDispatch('resetExtent');     
+        this.renderContextDispatch('resetExtent');
     },
     resetExtentHTML: function(ctx){
         this.extentOverride = null;
@@ -333,7 +333,36 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         return this.nodeType || "";
     },
 
-    
+    getAttribute: function(attribute) {
+        this.renderContextDispatch('getAttribute', attribute);
+    },
+    getAttributeHTML: function(ctx, attribute) {
+        return $(ctx.shapeNode).attr(attribute);
+    },
+    setAttribute: function(attribute, value) {
+        if (!this.attributes) this.attributes = [];
+        this.attributes.push({attr: attribute, val: value}); // FIXME! Need a key value list here
+        this.renderContextDispatch('setAttribute', {attr: attribute, val: value});
+    },
+    setAttributeHTML: function(ctx, attrVal) {
+
+        if (attrVal.val) $(ctx.shapeNode).attr(attrVal.attr, attrVal.val);
+        else ctx.shapeNode.removeAttribute(attrVal.attr);
+    },
+    getProp: function(prop) {
+        return this.renderContextDispatch('getProp', prop);
+    },
+    getPropHTML: function(ctx, prop) {
+        return $(ctx.shapeNode).prop(prop);
+    },
+    setProp: function(prop, value) {
+        if (!this.prop) this.props= [];
+        this.props.push({prop: prop, val: value}); // FIXME! Need a key value list here
+        this.renderContextDispatch('setProp', {prop: prop, val: value});
+    },
+    setPropHTML: function(ctx, propVal) {
+        $(ctx.shapeNode).prop(propVal.prop, propVal.val);
+    },
     getBounds: function() {
         return pt(0,0).extent(this.getExtent())
     },

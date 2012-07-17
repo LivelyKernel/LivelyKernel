@@ -230,7 +230,8 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
 
     htmlDispatchTable: {
         resetExtent: 'resetExtentHTML',
-        setNodeName: 'setNodeNameHTML',
+        getNodeName: 'getNodeNameHTML',
+        getContent: 'getContentHTML',
         setContent: 'setContentHTML',
         setAttribute: 'setAttributeHTML',
         getAttribute: 'getAttributeHTML',

@@ -41,12 +41,12 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 		this.renderContextDispatch('remove');
 		this.removeWithLayer(lively.morphic.RelativeLayer);
 	},
-	/*
+	
 	removeHTML: function(ctx) {
 		this.owner && this.owner.removeMorph(this);
 		ctx.removeNode(ctx.shapeNode);
 	},
-	*/
+	
 	getBounds: function() {
 		var p = this.getPosition();
 		var e = this.getExtent();

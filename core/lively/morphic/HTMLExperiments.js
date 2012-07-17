@@ -257,9 +257,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         }
 
         if (this.content) this.setContentHTML(ctx, this.content);
-        if (this.attributes) for (var x in this.attributes) {
-            this.setAttribute(this.attributes[x].attr, this.attributes[x].val);
-        }
+
 
     },
 
@@ -286,6 +284,15 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     getContent: function(){
         return this.content || "";
     },
+    setNodeName: function(nodeName){
+        this.renderContextDispatch('setNodeName', nodeName);
+    },
+    setNodeNameHTML: function(ctx, nodeName){
+        this.nodeName = nodeName;
+        if (ctx.contentNode) $(ctx.contentNode).remove();
+            ctx.contentNode = document.createTextNode(content);
+            ctx.shapeNode.appendChild(ctx.contentNode);
+    },
     getNodeName: function(){
         return this.nodeName || "";
     },
@@ -305,6 +312,11 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
 
         if (attrVal.val) $(ctx.shapeNode).attr(attrVal.attr, attrVal.val);
         else ctx.shapeNode.removeAttribute(attrVal.attr);
+    },
+    setAllAttributes: function() {
+        if (this.attributes) for (var x in this.attributes) {
+            this.setAttribute(this.attributes[x].attr, this.attributes[x].val);
+        }
     },
     getProp: function(prop) {
         return this.renderContextDispatch('getProp', prop);

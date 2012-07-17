@@ -147,22 +147,15 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         // called when CSS is updated
         this.shape.setCachedExtentOutdated();
     },
-    adaptAllToChangedContext: function() {
-        this.adaptToChangedContext();
-	this.updateSubmorphCachedExtent();
-    },
-    updateSubmorphCachedExtent: function() {
+    adaptSubmorphsToChangedContext: function() {
+        // called when CSS is updated
         this.submorphs.each(function(m){m.adaptToChangedContext();});
     },
-    updateOwnerCachedExtent: function() {
+    adaptParentToChangedContent: function() {
+        // called when a submorph's extent has changed
         if (this.owner && this.owner.adaptToChangedContent) {
             this.owner.adaptToChangedContent();
         }
-    },
-    adaptToChangedContent: function() {
-        // called when a submorph's extent has changed
-        this.adaptToChangedContext();
-        this.updateOwnerCachedExtent();
     },
     remove: function($super){
         $super();

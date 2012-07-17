@@ -83,7 +83,7 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 
 	setScaleHTML: function(ctx) {},
 
-	}
+}
 );
 
 lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',

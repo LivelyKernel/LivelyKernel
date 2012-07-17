@@ -123,28 +123,16 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         this.shape.resetExtent();
     },
     setContent: function(content){
-        this.renderContextDispatch('setContent', content);
-    },
-    setContentHTML: function(ctx, content){
-        this.content = content;
-        if (ctx.contentNode) $(ctx.contentNode).remove();
-            ctx.contentNode = document.createTextNode(content);
-            ctx.shapeNode.appendChild(ctx.contentNode);
+        this.shape.setContent(content);
     },
     getContent: function(){
-        return this.content || "";
+        return this.shape.getContent();
     },
-    setNodeName: function(content){
-        this.renderContextDispatch('setNodeName', content);
-    },
-    setNodeNameHTML: function(ctx, nodeType){
-        this.nodeType= nodeType;
-        if (ctx.contentNode) $(ctx.contentNode).remove();
-            ctx.contentNode = document.createTextNode(content);
-            ctx.shapeNode.appendChild(ctx.contentNode);
+    setNodeName: function(nodeName){
+        this.shape.setNodeName(nodeName);
     },
     getNodeName: function(){
-        return this.nodeType || "";
+        return this.shape.getNodeName();
     },
 
     getBounds: function() {

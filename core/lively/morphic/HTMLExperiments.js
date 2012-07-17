@@ -378,7 +378,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     },
     setPositionHTML: function(ctx, value) {
         if (!ctx.shapeNode) return undefined;
-        ctx.domInterface.setPosition(ctx.shapeNode, value);
+        //ctx.domInterface.setPosition(ctx.shapeNode, value);
     },
     setExtentHTML: function(ctx, value) {
         if (!ctx.shapeNode) return undefined;

@@ -279,14 +279,13 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         resetExtent: 'resetExtentHTML',
      },
 
-    initialize: function($super, tagName, optBounds){
-        this.tagName = tagName;
+    initialize: function($super, nodeName, optBounds){
+        this.nodeName = nodeName;
         $super(optBounds);
     },
-    
     initHTML: function(ctx) {
         if (!ctx.shapeNode)
-            ctx.shapeNode = XHTMLNS.create(this.tagName);
+            ctx.shapeNode = XHTMLNS.create(this.nodeName);
         if (this.extentOverride) {
             this.setRawExtentHTML(ctx, this.extentOverride);
         }

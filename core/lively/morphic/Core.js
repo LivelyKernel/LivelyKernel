@@ -178,11 +178,13 @@ Object.subclass('lively.morphic.Morph',
 
     setNodeClass: function(value) {
         var a = [];
-        if (value instanceof Array) {
-            a = value;
-        }
-        else {
-            a = value.split(/[\s,]+/);
+        if (value) {
+            if (value instanceof Array) {
+                a = value;
+            }
+            else {
+                a = value.split(/[\s,]+/);
+            }
         }
         var type = this.constructor;
 

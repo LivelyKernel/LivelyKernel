@@ -143,6 +143,9 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 },
 
 'misc', {
+    adaptToChangedContext: function() {
+        this.shape.setCachedExtentOutdated();
+    },
     addMorph: function($super, morph, optMorphBefore) {
 
          if (morph.isAncestorOf(this)) {
@@ -190,7 +193,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
             }
         }
         this.shape.setCachedExtentOutdated();
-        
+
         return morph;
 
     },

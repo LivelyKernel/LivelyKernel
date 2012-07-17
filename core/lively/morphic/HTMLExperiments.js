@@ -190,7 +190,8 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
             }
         }
         this.shape.setCachedExtentOutdated();
-        return morph
+        
+        return morph;
 
     },
     morphMenuItems: function($super) {

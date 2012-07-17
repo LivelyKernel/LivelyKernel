@@ -88,7 +88,9 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 cop.create('lively.morphic.RelativeShapeLayer').refineClass(lively.morphic.Shapes.Shape, {
     setPositionHTML: function(ctx, value) {
         if (!ctx.shapeNode) return undefined;
-        $(ctx.shapeNode)
+        $(ctx.shapeNode).css('position','');
+        $(ctx.shapeNode).css('left','');
+        $(ctx.shapeNode).css('top','');
     },
 
 }

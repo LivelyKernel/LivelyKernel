@@ -273,6 +273,11 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     htmlDispatchTable: {
         resetExtent: 'resetExtentHTML',
         setNodeName: 'setNodeNameHTML',
+        setContent: 'setContentHTML',
+        setAttribute: 'setAttributeHTML',
+        getAttribute: 'getAttributeHTML',
+        setProp: 'setPropHTML',
+        getProp: 'getPropHTML',
      },
 
     initialize: function($super, nodeName, optBounds){

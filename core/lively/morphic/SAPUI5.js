@@ -737,7 +737,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
     },
     
     updateTicks: function(){
-         return this.renderContextDispatch('updateTicks');
+         
     },
     updateTicksHTML: function(ctx){
         var c = ctx.ticks.length;

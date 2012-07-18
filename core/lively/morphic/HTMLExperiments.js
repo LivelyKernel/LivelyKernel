@@ -272,6 +272,9 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         return handler;
     },
 
+},
+'attributewise manipulation',{
+    
 }
 
 

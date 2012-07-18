@@ -614,15 +614,15 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         this.sliderHilite = this.sliderBar.addMorph(this.createNodeWithClass('sapUiSliHiLi')); 
         this.sliderGrip = this.sliderBar.addMorph(new lively.morphic.SAPUI5.SliderGrip(this));
 
-        this.setExtent(pt(width,0));
+        
         //this.setSliderPos(this.val2pos(this.value));
         this.ticks = [];
         this.labels = [];        
 
         this.generateTicks();
-
+        this.setExtent(pt(width,0));
         this.updateAppearance();
-
+        
     },
     createNodeWithClass: function(className){
         var r = new lively.morphic.HTMLMorph();

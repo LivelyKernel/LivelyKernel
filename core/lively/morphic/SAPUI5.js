@@ -612,6 +612,11 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         this.sliderBar= this.sliderLeft.addMorph(this.createNodeWithClass('sapUiSliBar'));                
         this.sliderHilite= this.sliderBar.addMorph(this.createNodeWithClass('sapUiSliHiLi')); 
         this.sliderGrip= this.sliderBar.addMorph(this.createNodeWithClass('sapUiSliGrip'));
+
+        this.setSliderPos(this.val2pos(this.value));
+        this.addSliderEventsHTML(ctx, ctx.sliderGrip);        
+        this.generateTicksHTML(ctx);
+
         this.updateAppearance();
 
     },
@@ -664,9 +669,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         ctx.sliderBar.appendChild(ctx.sliderHilite);
         ctx.sliderBar.appendChild(ctx.sliderGrip); 
         $super(ctx, optMorphAfter);
-        this.setSliderPos(this.val2pos(this.value));
-        this.addSliderEventsHTML(ctx, ctx.sliderGrip);        
-        this.generateTicksHTML(ctx);
+
     },
     resizeComponentHTML: function($super, ctx) {
         $super(ctx);

@@ -604,7 +604,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
 'initializing', {
     initialize: function($super, width) {
         $super('div');
-        this.setExtent(pt(width,0));
+        
         this.readOnly = false;
         this.disableGrabbing();
         
@@ -614,7 +614,8 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         this.sliderHilite = this.sliderBar.addMorph(this.createNodeWithClass('sapUiSliHiLi')); 
         this.sliderGrip = this.sliderBar.addMorph(new lively.morphic.SAPUI5.SliderGrip(this));
 
-        this.setSliderPos(this.val2pos(this.value));
+        this.setExtent(pt(width,0));
+        //this.setSliderPos(this.val2pos(this.value));
         this.ticks = [];
         this.labels = [];        
 

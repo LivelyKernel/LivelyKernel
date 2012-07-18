@@ -123,7 +123,6 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 'accessing',{
     setExtent: function(value) {
       this.shape.setExtent(value);
-      debugger;
       if (this.layout && (this.layout.adjustForNewBounds || this.layout.layouter))
             this.adjustForNewBounds();
       if (this.owner && (typeof this.owner['submorphResized'] == 'function')) {

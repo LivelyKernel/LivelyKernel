@@ -682,7 +682,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
     },
     
     updateTicks: function(){
-          var c = this.ticks.length;
+        var c = this.ticks.length;
         if (this.tickCount != c || (this.hasLabels && this.labels.length != c)) {
             throw new Error("Slider: Tick count is not synchronized!");
         }

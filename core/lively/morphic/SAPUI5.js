@@ -580,6 +580,282 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
 
 );
 
+lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
+'settings',{
+    normalClasses: 'sapUiSli sapUiSliStd',    
+    readOnlyClasses: 'sapUiSli sapUiSliRo',
+    fixedHeight: true,
+    minValue: 0,
+    maxValue: 100,
+    tickCount: 0,
+    tickPxCorrection: -1,
+    gripPxCorrection: -5,
+    hasLabels: true,
+    value: 0
+},
+'HTML render settings', {
+    htmlDispatchTable: {
+        generateTicks: 'generateTicksHTML',
+        updateTicks: 'updateTicksHTML' ,    
+        getSliderWidth: 'getSliderWidthHTML',
+        setSliderPos: 'setSliderPosHTML'         
+    },
+},
+'initializing', {
+    initialize: function($super, bounds) {
+        $super(bounds);
+        this.readOnly = false;
+        this.disableGrabbing();
+        this.updateAppearance();
+
+    }
+},
+
+'rendering', {
+    initHTML: function($super, ctx) {
+        if (!ctx.componentNode) { 
+            ctx.componentNode= XHTMLNS.create('div');
+        }
+        this.updateAppearance(); 
+        
+        if (!ctx.sliderRight) { 
+            ctx.sliderRight= XHTMLNS.create('div');
+            ctx.sliderRight.className = 'sapUiSliR';
+        }
+        if (!ctx.sliderLeft) { 
+            ctx.sliderLeft= XHTMLNS.create('div');
+            ctx.sliderLeft.className = 'sapUiSliL';
+        }
+        if (!ctx.sliderBar) { 
+            ctx.sliderBar= XHTMLNS.create('div');
+            ctx.sliderBar.className = 'sapUiSliBar';
+        }
+        if (!ctx.sliderHilite) { 
+            ctx.sliderHilite= XHTMLNS.create('div');
+            ctx.sliderHilite.className = 'sapUiSliHiLi';
+        }
+        if (!ctx.sliderGrip) { 
+            ctx.sliderGrip= XHTMLNS.create('div');
+            ctx.sliderGrip.className = 'sapUiSliGrip';
+        }
+        ctx.ticks = [];
+        ctx.labels= [];
+        this.generateTicksHTML(ctx);
+
+        $super(ctx);
+    },
+    
+    appendHTML: function($super, ctx, optMorphAfter) {
+        ctx.componentNode.appendChild(ctx.sliderRight);
+        ctx.sliderRight.appendChild(ctx.sliderLeft);
+        ctx.sliderLeft.appendChild(ctx.sliderBar);
+        ctx.sliderBar.appendChild(ctx.sliderHilite);
+        ctx.sliderBar.appendChild(ctx.sliderGrip); 
+        $super(ctx, optMorphAfter);
+        this.setSliderPos(this.val2pos(this.value));
+        this.addSliderEventsHTML(ctx, ctx.sliderGrip);        
+        this.generateTicksHTML(ctx);
+    },
+    resizeComponentHTML: function($super, ctx) {
+        $super(ctx);
+        this.setSliderPos(this.val2pos(this.value));
+        this.updateTicks();
+    },
+    generateTicks: function(){
+        return this.renderContextDispatch('generateTicks');
+    },
+    generateTicksHTML: function(ctx) {
+        ctx.ticks.each(function(n){n.parentNode.removeChild(n);});
+        ctx.ticks = [];
+        ctx.labels.each(function(n){n.parentNode.removeChild(n);});
+        ctx.labels = [];
+        
+        // create ticks and labels
+        var range = this.maxValue - this.minValue;
+        for (var i = 0; i < this.tickCount; i++) {
+            ctx.ticks[i] = XHTMLNS.create('div');
+            ctx.ticks[i].className = 'sapUiSliTick';
+            ctx.sliderBar.appendChild(ctx.ticks[i]);
+            if  (this.hasLabels) {
+
+                ctx.labels[i] = XHTMLNS.create('div');
+                var labelClass = 'sapUiSliText';
+                if (i == 0) { 
+                    labelClass +=' sapUiSliTextLeft';
+                }
+                else if (i == this.tickCount-1) {
+                    labelClass +=' sapUiSliTextRight';
+                }
+                                
+                var value = range/(this.tickCount-1);
+                value *= i;
+                value += this.minValue;
+                
+                ctx.labels[i].className = labelClass;
+                ctx.labels[i].innerHTML = value;
+                
+                ctx.sliderBar.appendChild(ctx.labels[i]);
+                
+                var s = window.getComputedStyle(ctx.labels[i]);
+                var w = parseInt(s["width"].replace("px",""));
+                ctx.labels[i].pxCorrection = -(w/2);
+                
+            }
+        }
+        
+        // reappend grip and hilite to maintain the desired node order (z-level)
+        var reappend = function(node) {
+            var p = node.parentNode;
+            if (p) {
+                p.removeChild(node);
+                p.appendChild(node);
+            }
+        }
+        
+        reappend(ctx.sliderHilite);
+        reappend(ctx.sliderGrip);
+        
+        this.updateTicksHTML(ctx);
+        
+    },
+    
+    updateTicks: function(){
+         return this.renderContextDispatch('updateTicks');
+    },
+    updateTicksHTML: function(ctx){
+        var c = ctx.ticks.length;
+        if (this.tickCount != c || (this.hasLabels && ctx.labels.length != c)) {
+            throw new Error("Slider: Tick count is not synchronized!");
+        }
+        var w = this.getSliderWidthHTML(ctx);
+        for (var i = 0; i < c; i++){
+             var s = w / (c-1);
+             var pos = s * i;
+             ctx.ticks[i].style.left = (pos+this.tickPxCorrection)+"px";
+             if (i > 0 && i < c-1) {
+                 var o = ctx.labels[i].pxCorrection || 0;
+                ctx.labels[i].style.left = (pos+o)+"px";
+             }
+        }
+    },
+    
+    getSliderWidth: function(){
+       return this.renderContextDispatch('getSliderWidth');
+    },
+    getSliderWidthHTML: function(ctx){
+       var s = window.getComputedStyle(ctx.sliderBar);
+       var r = parseInt(s["width"].replace("px",""));
+       if (r === null || isNaN(r)) r = 0;
+       return r;
+    },
+    
+    setSliderPosHTML: function(ctx, px) {
+        ctx.sliderGrip.style.left = (px+this.gripPxCorrection)+"px";
+        ctx.sliderHilite.style.width = px+"px";
+    },
+    updateComputedStyles: function($super) {
+        this.generateTicks();
+        this.setValue(this.getValue());
+        $super();    
+    }
+    
+    
+},
+'internal calculations',{
+    
+    pos2val: function(pos){
+        var w = this.getSliderWidth();
+        var range = this.maxValue - this.minValue;
+        var s = range / w ;
+        s *= pos;
+        s += this.minValue;
+        return s;
+    },
+    val2pos: function(val) {
+        var w = this.getSliderWidth();
+        var range = this.maxValue - this.minValue;
+        var s = w/ range;
+        s *= (val - this.minValue);
+        return s;
+    }    
+},
+
+'accessing',{
+    setTickCount: function(tickCount){
+        this.tickCount = (tickCount<2) ? 0 : tickCount; // either no ticks or more than one
+        this.generateTicks();
+    },
+    setValueRange: function(min, max) {
+        if (min && max && (min < max)) {
+            this.minValue = min;
+            this.maxValue = max;
+        } else {throw new Error("Please assign both min and max of the slider.")}
+    },
+    setValue: function(value) {
+        this.value = value;
+        this.setSliderPos(this.val2pos(this.value));
+    },
+    getValue: function() {
+        return this.value;
+    },
+    setSliderPos: function(px) {
+        var newPos = px;
+        var maxPos = this.getSliderWidth();
+        if (newPos > maxPos) newPos = maxPos;
+        if (newPos < 0) newPos = 0;
+        this.sliderPos = newPos;
+        return this.renderContextDispatch('setSliderPos', this.sliderPos);
+    },
+    getSliderPos: function(){
+        return this.sliderPos;
+    }
+},
+'events',{
+    updateAppearance: function(){
+        if (this.readOnly) this.setComponentNodeClass(this.readOnlyClasses);
+        else this.setComponentNodeClass(this.normalClasses);
+    },
+    addSliderEventsHTML: function (ctx, sliderNode) {
+        var slider = this;
+        $(sliderNode).mousedown(function (evt) {
+
+            slider.startCoords = {
+                sliderX: slider.getSliderPos(),
+                mouseX: evt.screenX    
+            }
+            $(document).mousemove(function (evt) {
+
+                if (slider.startCoords) { // drag
+
+                    var s = slider.startCoords.sliderX;
+                    var dx = evt.screenX - slider.startCoords.mouseX;
+                    slider.setSliderPos(s + dx);
+                    slider.value = slider.pos2val(slider.getSliderPos());
+                }
+            }).mouseup(function () {
+                slider.startCoords = null;
+                $(document).unbind("mousemove mouseup");
+            });
+
+            /*
+			if (Slider.eventHandlers.getHandle(e)) {	// start drag
+				
+			}
+			else {
+				var lineEl = Slider.eventHandlers.getLine(e);
+				s._mouseX = e.offsetX + (lineEl ? s.line.offsetLeft : 0);
+				s._mouseY = e.offsetY + (lineEl ? s.line.offsetTop : 0);
+				s._increasing = null;
+				s.ontimer();
+			}
+			*/
+
+        });
+    },
+
+}
+);
+
 
 
 }) // end of module

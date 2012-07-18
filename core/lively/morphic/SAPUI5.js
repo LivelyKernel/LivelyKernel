@@ -781,10 +781,11 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.SliderGrip',
     },
     
     onMouseDown: function($super, evt) {
+            console.log('Mouse is down!')
             var slider = this.slider;
             slider.startCoords = {
                 sliderX: slider.getSliderPos(),
-                mouseX: evt.screenX    
+                mouseX: evt.screenX
             };
             $(document).mousemove(function (evt) {
 

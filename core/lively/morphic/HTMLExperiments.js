@@ -275,10 +275,16 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 },
 'manipulation', {
     setLeft: function(value) {
-        
+        this.renderContextDispatch('setLeft', value);
     },
     setLeftHTML: function(ctx, value) {
-        
+        $(ctx.morphNode).css('left', value);
+    },
+    setTop: function(value) {
+        this.renderContextDispatch('setLeft', value);
+    },
+    setTopHTML: function(ctx, value) {
+        $(ctx.morphNode).css('top', value);
     },
 }
 );

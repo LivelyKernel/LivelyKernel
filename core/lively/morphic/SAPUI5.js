@@ -603,9 +603,12 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
 },
 'initializing', {
     initialize: function($super, bounds) {
-        $super(bounds);
+        $super('div', bounds);
         this.readOnly = false;
         this.disableGrabbing();
+        
+        
+        
         this.updateAppearance();
 
     }

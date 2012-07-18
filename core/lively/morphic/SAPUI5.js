@@ -658,19 +658,17 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
                 else if (i == this.tickCount-1) {
                     labelClass +=' sapUiSliTextRight';
                 }
-                                
+               
+
                 var value = range/(this.tickCount-1);
                 value *= i;
                 value += this.minValue;
+
+               this.labels[i] = this.createNodeWithClass(labelClass);
+                this.labels[i],setContent(value);
+                this.sliderBar.addMorph(this.labels[i]);
                 
-                ctx.labels[i].className = labelClass;
-                ctx.labels[i].innerHTML = value;
-                
-                ctx.sliderBar.appendChild(ctx.labels[i]);
-                
-                var s = window.getComputedStyle(ctx.labels[i]);
-                var w = parseInt(s["width"].replace("px",""));
-                ctx.labels[i].pxCorrection = -(w/2);
+                // TODO: set position of the labels to the left so they are in the middle
                 
             }
         }

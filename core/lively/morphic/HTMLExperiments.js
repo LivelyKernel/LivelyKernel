@@ -47,13 +47,7 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 			}
 		}
 	},
-	setLeftHTML: function(ctx, value) {
-            console.log('setting shapenoe to '+value);
-            $(ctx.shapeNode).css('left', value);
-        },
-        setTopHTML: function(ctx, value) {
-            $(ctx.shapeNode).css('top', value);
-        },
+
 	remove: function() {
 		this.suspendSteppingAll();
 		if (this.showsHalos) this.removeHalos();
@@ -103,7 +97,15 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 
 
 }
-);
+).refineClass(lively.morphic.HTMLMorph, {
+    	setLeftHTML: function(ctx, value) {
+            console.log('setting shapenoe to '+value);
+            $(ctx.shapeNode).css('left', value);
+        },
+        setTopHTML: function(ctx, value) {
+            $(ctx.shapeNode).css('top', value);
+        },
+    });
 
 
 cop.create('lively.morphic.RelativeShapeLayer').refineClass(lively.morphic.Shapes.Shape, {

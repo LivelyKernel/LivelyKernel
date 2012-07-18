@@ -1219,7 +1219,7 @@ lively.morphic.Shapes.Shape.addMethods(
 			},
 
 			updateComputedStyles: function() {
-				return this.shapeSetter('ComputedStyles');
+				return this.renderContextDispatch('updateComputedStyles');
 
 			},
   

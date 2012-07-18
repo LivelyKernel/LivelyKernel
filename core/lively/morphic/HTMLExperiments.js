@@ -322,6 +322,8 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         getAttribute: 'getAttributeHTML',
         setProp: 'setPropHTML',
         getProp: 'getPropHTML',
+        setWidth: 'setWidthHTML',
+        setHeight: 'setHeightHTML',
      },
 
     initialize: function($super, nodeName, optBounds){

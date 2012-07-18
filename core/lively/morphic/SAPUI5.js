@@ -604,7 +604,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
 'initializing', {
     initialize: function($super, width) {
         $super('div');
-        this.setExtent(width);
+        this.setExtent(pt(width,0));
         this.readOnly = false;
         this.disableGrabbing();
         

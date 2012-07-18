@@ -701,16 +701,8 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
     getSliderWidth: function(){
        return this.sliderBar.getExtent().x;
     },
-    getSliderWidthHTML: function(ctx){
-       var s = window.getComputedStyle(ctx.sliderBar);
-       var r = parseInt(s["width"].replace("px",""));
-       if (r === null || isNaN(r)) r = 0;
-       return r;
-    },
-    
     setSliderPosHTML: function(ctx, px) {
-        ctx.sliderGrip.style.left = (px+this.gripPxCorrection)+"px";
-        ctx.sliderHilite.style.width = px+"px";
+
     },
     updateComputedStyles: function($super) {
         this.generateTicks();
@@ -763,7 +755,8 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         if (newPos > maxPos) newPos = maxPos;
         if (newPos < 0) newPos = 0;
         this.sliderPos = newPos;
-        return this.renderContextDispatch('setSliderPos', this.sliderPos);
+        this.sliderGrip.setPosition(this.sliderPos);
+        this.sliderHilite.setExtent(px);
     },
     getSliderPos: function(){
         return this.sliderPos;

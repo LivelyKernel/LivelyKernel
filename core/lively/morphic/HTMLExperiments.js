@@ -187,6 +187,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
         this.submorphs.each(function(m){
             if (m.adaptToChangedContext) {
                 m.adaptToChangedContext();
+                m.adaptSubmorphsToChangedContext();
             }
         });
     },

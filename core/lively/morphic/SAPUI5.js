@@ -777,7 +777,8 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.SliderGrip',
     
     initialize: function($super, slider) {
         $super();
-        this.slider = slider;    
+        this.slider = slider;
+        this.setNodeClass('sapUiSliGrip');
     },
     
     onMouseDown: function($super, evt) {

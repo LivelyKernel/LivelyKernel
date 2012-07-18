@@ -580,7 +580,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
 
 );
 
-lively.morphic.SAPUI5.Component.subclass('lively.morphic.SAPUI5.Slider',
+lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
 'settings',{
     normalClasses: 'sapUiSli sapUiSliStd',    
     readOnlyClasses: 'sapUiSli sapUiSliRo',

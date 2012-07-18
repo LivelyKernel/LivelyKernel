@@ -308,7 +308,7 @@ Object.extend(Function, {
 // Global Helper - Functions
 ///////////////////////////////////////////////////////////////////////////////
 
-Functions = {
+var Functions = {
     Empty: function() {},
 
     K: function(arg) {

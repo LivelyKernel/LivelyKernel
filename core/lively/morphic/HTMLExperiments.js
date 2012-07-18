@@ -92,6 +92,13 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 	setRotationHTML: function(ctx) {},
 
 	setScaleHTML: function(ctx) {},
+	
+    setLeftHTML: function(ctx, value) {
+        $(ctx.shapeNode).css('left', value);
+    },
+    setTopHTML: function(ctx, value) {
+        $(ctx.shapeNode).css('top', value);
+    },
 
 }
 );

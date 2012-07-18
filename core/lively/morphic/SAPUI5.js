@@ -690,10 +690,10 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         for (var i = 0; i < c; i++){
              var s = w / (c-1);
              var pos = s * i;
-             this.ticks[i].setPosition(this.ticks[i].getPosition().withX(pos+this.tickPxCorrection));
+             this.ticks[i].setLeft(pos+this.tickPxCorrection);
              if (i > 0 && i < c-1) {
                  var o = this.labels[i].pxCorrection || 0;
-                this.labels[i].setPosition(this.labels[i].getPosition().withX(pos+o));
+                this.labels[i].setLeft((pos+o));
              }
         }
     },

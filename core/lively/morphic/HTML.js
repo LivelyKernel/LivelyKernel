@@ -1323,9 +1323,10 @@ lively.morphic.Shapes.Shape.addMethods(
 
 	
 		updateComputedStyles: function() {
-		    if (this.adaptAllToChangedContext) {
+		    if (this.adaptToChangedContext) {
 		        // if the submorph offers a function to adapt (i.e. HTMLMorph) use it
-		        this.adaptAllToChangedContext();
+		        this.adaptToChangedContext();
+		        this.adaptSubmorphsToChangedContext();
 		    }
 		    else {
 			this.shape.updateComputedStyles();

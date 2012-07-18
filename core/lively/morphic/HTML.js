@@ -1250,7 +1250,7 @@ lively.morphic.Shapes.Shape.addMethods(
 		        // use the resourcePath parameter if the resources addressed
 		        // in the CSS file are in a different directory than the CSS'.
 		        // (use "" to leave the urls untouched)
-		        
+
 		        var absPath = file;
 		        // is the filename absolute? if not then make it absolute.
 		        if (absPath.search('http://')<0) {
@@ -1259,37 +1259,36 @@ lively.morphic.Shapes.Shape.addMethods(
 		          absPath += "/"+file;
 		        }
 		        var url = new URL(absPath);
-		        
+
 		        URL.proxy = null;
-                        
+
 			var webR = new WebResource(url);
                         webR.forceUncached();
 			var webRGet = webR.get();
 			if (webRGet.status.code() == 200) {
 			    // add resource path to all relative urls in the css
 			    var css = webRGet.content;
-			    
+
 			    var resPath = resourcePath;
 			    if (!resPath){
-                                resPath = absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);   
+                                resPath = absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);
 			    }
 			    var urlReplace = "url("+resPath;
 			    var urlReplaceSingle = "url('"+resPath;
-			    var urlReplaceDouble = 'url("'+resPath;			    			    
+			    var urlReplaceDouble = 'url("'+resPath;
 			    css = css.replace(/url\([\s]*\'(?![\s]*http)/g, urlReplaceSingle).replace(/url\([\s]*\"(?![\s]*http)/g, urlReplaceDouble ).replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, urlReplace );
-                            
-                            
+
                             // insert line breaks so the css is more legible
                             css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/g,";\n").replace(/\}(?![\s]*(\r\n|\n|\r))/g,"}\n").replace(/\{(?![\s]*(\r\n|\n|\r))/g,"{\n");
                             console.log(css);
-                            
+
                             // set the style sheet
                             this.setStyleSheet(css);
 			}
 			else {
                             throw new Error("Couldn't load stylesheet at "+absPath+" --> " +webRGet.status.code());
 			}
-			
+
 			return {
 				status: webRGet.status.code(),
 				responseText: webRGet.content

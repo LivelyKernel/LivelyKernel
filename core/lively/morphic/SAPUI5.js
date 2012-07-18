@@ -650,7 +650,6 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
             this.ticks[i] = this.sliderBar.addMorph(this.createNodeWithClass('sapUiSliTick'));
             if  (this.hasLabels) {
 
-                ctx.labels[i] = XHTMLNS.create('div');
                 var labelClass = 'sapUiSliText';
                 if (i == 0) { 
                     labelClass +=' sapUiSliTextLeft';
@@ -665,7 +664,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
                 value += this.minValue;
 
                this.labels[i] = this.createNodeWithClass(labelClass);
-                this.labels[i],setContent(value);
+                this.labels[i].setContent(value);
                 this.sliderBar.addMorph(this.labels[i]);
                 
                 // TODO: set position of the labels to the left so they are in the middle

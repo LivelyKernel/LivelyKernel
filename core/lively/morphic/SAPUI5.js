@@ -607,11 +607,11 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         this.readOnly = false;
         this.disableGrabbing();
         
-        this.sliderRight = this.createNodeWithClass('sapUiSliR');
-        this.sliderLeft= this.createNodeWithClass('sapUiSliL');
-        this.sliderBar= this.createNodeWithClass('sapUiSliBar');                
-        this.sliderHilite= this.createNodeWithClass('sapUiSliHiLi'); 
-        this.sliderGrip= this.createNodeWithClass('sapUiSliGrip');
+        this.sliderRight = this.addMorph(this.createNodeWithClass('sapUiSliR'));
+        this.sliderLeft = this.sliderRight.addMorph(this.createNodeWithClass('sapUiSliL'));
+        this.sliderBar= this.sliderLeft.addMorph(this.createNodeWithClass('sapUiSliBar'));                
+        this.sliderHilite= this.sliderBar.addMorph(this.createNodeWithClass('sapUiSliHiLi')); 
+        this.sliderGrip= this.sliderBar.addMorph(this.createNodeWithClass('sapUiSliGrip'));
         this.updateAppearance();
 
     },

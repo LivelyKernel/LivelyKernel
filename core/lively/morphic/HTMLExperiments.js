@@ -497,6 +497,18 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     compensateShapeNode: function(ctx) {
         this.setCachedExtentOutdated();
     },
+    setWidth: function(value) {
+        this.renderContextDispatch('setWidth', value);
+    },
+    setWidthHTML: function(ctx, value) {
+        $(ctx.shapeNode).css('width', value);
+    },
+    setHeight: function(value) {
+        this.renderContextDispatch('setHeight', value);
+    },
+    setHeightHTML: function(ctx, value) {
+        $(ctx.shapeNode).css('height', value);
+    },
 
 }
 );

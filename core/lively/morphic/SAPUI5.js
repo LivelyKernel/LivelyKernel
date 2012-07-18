@@ -615,6 +615,10 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
 
         this.setSliderPos(this.val2pos(this.value));
         this.addSliderEventsHTML(ctx, ctx.sliderGrip);        
+
+        this.ticks = [];
+        this.labels = [];        
+
         this.generateTicksHTML(ctx);
 
         this.updateAppearance();
@@ -629,55 +633,14 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
 },
 
 'rendering', {
-    initHTML: function($super, ctx) {
-        if (!ctx.componentNode) { 
-            ctx.componentNode= XHTMLNS.create('div');
-        }
-        this.updateAppearance(); 
-        
-        if (!ctx.sliderRight) { 
-            ctx.sliderRight= XHTMLNS.create('div');
-            ctx.sliderRight.className = 'sapUiSliR';
-        }
-        if (!ctx.sliderLeft) { 
-            ctx.sliderLeft= XHTMLNS.create('div');
-            ctx.sliderLeft.className = 'sapUiSliL';
-        }
-        if (!ctx.sliderBar) { 
-            ctx.sliderBar= XHTMLNS.create('div');
-            ctx.sliderBar.className = 'sapUiSliBar';
-        }
-        if (!ctx.sliderHilite) { 
-            ctx.sliderHilite= XHTMLNS.create('div');
-            ctx.sliderHilite.className = 'sapUiSliHiLi';
-        }
-        if (!ctx.sliderGrip) { 
-            ctx.sliderGrip= XHTMLNS.create('div');
-            ctx.sliderGrip.className = 'sapUiSliGrip';
-        }
-        ctx.ticks = [];
-        ctx.labels= [];
-        this.generateTicksHTML(ctx);
 
-        $super(ctx);
-    },
-    
-    appendHTML: function($super, ctx, optMorphAfter) {
-        ctx.componentNode.appendChild(ctx.sliderRight);
-        ctx.sliderRight.appendChild(ctx.sliderLeft);
-        ctx.sliderLeft.appendChild(ctx.sliderBar);
-        ctx.sliderBar.appendChild(ctx.sliderHilite);
-        ctx.sliderBar.appendChild(ctx.sliderGrip); 
-        $super(ctx, optMorphAfter);
-
-    },
     resizeComponentHTML: function($super, ctx) {
         $super(ctx);
         this.setSliderPos(this.val2pos(this.value));
         this.updateTicks();
     },
     generateTicks: function(){
-        return this.renderContextDispatch('generateTicks');
+        this.ticks
     },
     generateTicksHTML: function(ctx) {
         ctx.ticks.each(function(n){n.parentNode.removeChild(n);});

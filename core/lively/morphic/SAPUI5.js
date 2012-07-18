@@ -697,23 +697,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
              }
         }
     },
-    updateTicksHTML: function(ctx){
-        var c = this.ticks.length;
-        if (this.tickCount != c || (this.hasLabels && ctx.labels.length != c)) {
-            throw new Error("Slider: Tick count is not synchronized!");
-        }
-        var w = this.getSliderWidthHTML(ctx);
-        for (var i = 0; i < c; i++){
-             var s = w / (c-1);
-             var pos = s * i;
-             ctx.ticks[i].style.left = (pos+this.tickPxCorrection)+"px";
-             if (i > 0 && i < c-1) {
-                 var o = ctx.labels[i].pxCorrection || 0;
-                ctx.labels[i].style.left = (pos+o)+"px";
-             }
-        }
-    },
-    
+       
     getSliderWidth: function(){
        return this.renderContextDispatch('getSliderWidth');
     },

@@ -738,17 +738,17 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
     
     updateTicks: function(){
           var c = this.ticks.length;
-        if (this.tickCount != c || (this.hasLabels && ctx.labels.length != c)) {
+        if (this.tickCount != c || (this.hasLabels && this.labels.length != c)) {
             throw new Error("Slider: Tick count is not synchronized!");
         }
-        var w = this.getSliderWidthHTML(ctx);
+        var w = this.sliderBar.getExtent().x;
         for (var i = 0; i < c; i++){
              var s = w / (c-1);
              var pos = s * i;
-             ctx.ticks[i].style.left = (pos+this.tickPxCorrection)+"px";
+             this.ticks[i].setPosition(this.ticks[i].getPosition().withX(pos+this.tickPxCorrection));
              if (i > 0 && i < c-1) {
-                 var o = ctx.labels[i].pxCorrection || 0;
-                ctx.labels[i].style.left = (pos+o)+"px";
+                 var o = this.labels[i].pxCorrection || 0;
+                this.labels[i].setPosition(this.labels[i].getPosition().withX(pos+o));
              }
         }
     },

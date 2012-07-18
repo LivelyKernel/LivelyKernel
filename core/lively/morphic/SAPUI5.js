@@ -619,7 +619,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         this.ticks = [];
         this.labels = [];        
 
-        this.generateTicksHTML(ctx);
+        this.generateTicks();
 
         this.updateAppearance();
 

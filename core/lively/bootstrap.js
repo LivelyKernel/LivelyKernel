@@ -619,7 +619,7 @@ var JSLoader = {
                 // Filter out the modules already loaded
                 var realModules = combinedLoader.expectedModules.select(function(ea) {
                     // FIXME, better now throw error in Class.forName
-                    return !ea.include('jquery') && Class.forName(ea) !== undefined;
+                    return !ea.include('lively-libs') && Class.forName(ea) !== undefined;
                 });
                 require(realModules).toRun(callback);
 
@@ -767,7 +767,7 @@ var LivelyLoader = {
     //
     // ------- generic load support ----------
     //
-    jqueryPath: 'lib/jquery-1_7_1.js',
+    libsFile: 'lib/lively-libs.js',
 
     codeBase: (function findCodeBase() {
         // search for script that links to "bootstrap.js" and
@@ -910,7 +910,7 @@ var LivelyLoader = {
         }
 
         var modules = [
-            this.jqueryPath,
+            this.libsFile,
             'lively/Migration.js',
             'lively/JSON.js',
             'lively/lang/Object.js',

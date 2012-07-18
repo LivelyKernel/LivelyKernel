@@ -410,7 +410,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         var newExtent = value;
 
         var n = ctx.shapeNode.nodeName;
-        
+
         var borderBox = $(ctx.shapeNode).css('box-sizing') == 'border-box';
 
         if (!borderBox && n != "button" && n != "input") {

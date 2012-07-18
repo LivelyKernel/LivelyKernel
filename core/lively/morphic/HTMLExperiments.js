@@ -111,6 +111,10 @@ cop.create('lively.morphic.RelativeShapeLayer').refineClass(lively.morphic.Shape
 lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 'settings', {
     nodeName: 'div',
+    htmlDispatchTable: {
+        setLeft: 'setLeftHTML',
+        setTop: 'setTopHTML',
+     },
 },
 
 'initializing', {

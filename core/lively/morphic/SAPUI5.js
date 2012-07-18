@@ -799,7 +799,7 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.SliderGrip',
                 slider.startCoords = null;
                 $(document).unbind("mousemove mouseup");
             });
-        
+        return true;
     },
     
 }

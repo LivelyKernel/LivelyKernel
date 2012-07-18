@@ -342,7 +342,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
 
 lively.morphic.SAPUI5.TextField.subclass('lively.morphic.SAPUI5.TextArea',
 'settings',{
-    baseClasses: 'sapUiTf sapUiTfBack sapUiTfBrd sapUiTxtA', 
+    baseClasses: 'sapUiTf sapUiTfBack sapUiTfBrd sapUiTxtA',
     fixedHeight: false,
     tagName: 'textarea'
 }

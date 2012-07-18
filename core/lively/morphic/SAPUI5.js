@@ -616,7 +616,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
 
     },
     createNodeWithClass: function(className){
-        var r = this.addMorph(new lively.morphic.HTMLMorph());
+        var r = new lively.morphic.HTMLMorph();
         r.setNodeClass(className);
         return r;
     }

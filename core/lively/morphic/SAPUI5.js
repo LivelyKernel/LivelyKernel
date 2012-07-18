@@ -701,9 +701,6 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
     getSliderWidth: function(){
        return this.sliderBar.getExtent().x;
     },
-    setSliderPosHTML: function(ctx, px) {
-
-    },
     updateComputedStyles: function($super) {
         this.generateTicks();
         this.setValue(this.getValue());

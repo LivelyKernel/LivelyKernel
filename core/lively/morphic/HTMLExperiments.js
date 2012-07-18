@@ -410,18 +410,13 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         var newExtent = value;
 
         var n = ctx.shapeNode.nodeName;
+        
+        var borderBox = $(ctx.shapeNode).css('box-sizing') == 'border-box';
 
-        if (n != "button" && n != "input" && n != "textarea") {
+        if (!borderBox && n != "button" && n != "input" && n != "textarea") {
             // some nodetypes adhere to the standard box model, some don't ...
             var outer = this.getExtent();
             var inner = this.cachedInnerExtent; // the innerExtent is also refreshed when getExtent is refreshed
-            var delta = outer.subPt(inner);
-            newExtent = newExtent.subPt(delta);
-        }
-        else if (n == "textarea") {
-            // FIXME: with SAPUI5 CSS applied this does not work right
-            var outer= this.getExtent();
-            var inner = this.cachedInnerExtent;
             var delta = outer.subPt(inner);
             newExtent = newExtent.subPt(delta);
         }

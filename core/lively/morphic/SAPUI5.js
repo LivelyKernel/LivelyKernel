@@ -753,6 +753,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         if (newPos > maxPos) newPos = maxPos;
         if (newPos < 0) newPos = 0;
         this.sliderPos = newPos;
+        debugger;
         this.sliderGrip.setLeft(this.sliderPos);
         this.sliderHilite.setWidth(this.sliderPos);
     },
@@ -781,18 +782,19 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.SliderGrip',
     },
     
     onMouseDown: function($super, evt) {
-            console.log('Mouse is down!')
+            
             var slider = this.slider;
             slider.startCoords = {
                 sliderX: slider.getSliderPos(),
                 mouseX: evt.screenX
             };
             $(document).mousemove(function (evt) {
-
+                
                 if (slider.startCoords) { // drag
-
+                    
                     var s = slider.startCoords.sliderX;
                     var dx = evt.screenX - slider.startCoords.mouseX;
+                    console.log('Slider should move to: '+(s+dx));
                     slider.setSliderPos(s + dx);
                     slider.value = slider.pos2val(slider.getSliderPos());
                 }

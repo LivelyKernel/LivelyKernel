@@ -289,11 +289,11 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     setLeft: function(value) {
         this.renderContextDispatch('setLeft', value);
     },
-    /*
+    
     setLeftHTML: function(ctx, value) {
         $(ctx.morphNode).css('left', value);
     },
-    */
+    
     setTop: function(value) {
         this.renderContextDispatch('setLeft', value);
     },

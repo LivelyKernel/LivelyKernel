@@ -202,7 +202,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
         $super(this.tagName, bounds);
         this.hasFocus = false;
         this.active = true;
-        this.value = optValue || this.defaultValue();
+        this.value = optValue || this.defaultValue;
     }
 },
 

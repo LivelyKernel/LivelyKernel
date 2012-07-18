@@ -672,20 +672,12 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
                 
             }
         }
+
         
-        // reappend grip and hilite to maintain the desired node order (z-level)
-        var reappend = function(node) {
-            var p = node.parentNode;
-            if (p) {
-                p.removeChild(node);
-                p.appendChild(node);
-            }
-        }
+        this.sliderHilite.bringToFront()
+        this.sliderGrip.bringToFront()
         
-        reappend(ctx.sliderHilite);
-        reappend(ctx.sliderGrip);
-        
-        this.updateTicksHTML(ctx);
+        this.updateTicks();
         
         
     },

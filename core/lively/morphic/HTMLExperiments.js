@@ -273,11 +273,14 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     },
 
 },
-'attributewise manipulation',{
-    
+'manipulation', {
+    setLeft: function(value) {
+        
+    },
+    setLeftHTML: function(ctx, value) {
+        
+    },
 }
-
-
 );
 
 

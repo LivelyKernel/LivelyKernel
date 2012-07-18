@@ -607,11 +607,23 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         this.readOnly = false;
         this.disableGrabbing();
         
-        
-        
+        this.sliderRight = this.addMorph(new lively.morphic.HTMLMorph());
+        this.sliderRight.setNodeClass('sapUiSliR');
+        this.sliderLeft= this.addMorph(new lively.morphic.HTMLMorph());
+        this.sliderLeft.setNodeClass('sapUiSliL');
+        this.sliderBar= this.addMorph(new lively.morphic.HTMLMorph());
+        this.sliderBar.setNodeClass('sapUiSliBar');                
+        this.sliderHilite= this.addMorph(new lively.morphic.HTMLMorph());
+        this.sliderHilite.setNodeClass('sapUiSliHiLi'); 
         this.updateAppearance();
 
+    },
+    createNodeWithClass: function(className){
+        var r = this.addMorph(new lively.morphic.HTMLMorph());
+        r.setNodeClass(className);
+        return r;
     }
+    
 },
 
 'rendering', {

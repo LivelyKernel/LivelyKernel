@@ -761,8 +761,8 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
 },
 'events',{
     updateAppearance: function(){
-        if (this.readOnly) this.setComponentNodeClass(this.readOnlyClasses);
-        else this.setComponentNodeClass(this.normalClasses);
+        if (this.readOnly) this.setNodeClass(this.readOnlyClasses);
+        else this.setNodeClass(this.normalClasses);
     },
     
 

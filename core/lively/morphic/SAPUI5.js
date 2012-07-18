@@ -686,7 +686,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         if (this.tickCount != c || (this.hasLabels && this.labels.length != c)) {
             throw new Error("Slider: Tick count is not synchronized!");
         }
-        var w = this.sliderBar.getExtent().x;
+        var w = this.getSliderWidth();
         for (var i = 0; i < c; i++){
              var s = w / (c-1);
              var pos = s * i;
@@ -699,7 +699,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
     },
        
     getSliderWidth: function(){
-       return this.renderContextDispatch('getSliderWidth');
+       return this.sliderBar.getExtent().x;
     },
     getSliderWidthHTML: function(ctx){
        var s = window.getComputedStyle(ctx.sliderBar);

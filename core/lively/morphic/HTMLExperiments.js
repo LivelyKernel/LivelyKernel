@@ -29,6 +29,11 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
             if (nodeName) this.nodeName = nodeName;
             $super(new lively.morphic.Shapes.HTMLShape(this.nodeName, optBounds));
     },
+    appendHTML: function($super, ctx) {
+        if (this.positionLeft) this.setLeftHTML(ctx, this.positionLeft);
+        if (this.positionTop) this.setTopHTML(ctx, this.positionTop);
+        $super(ctx);
+    }
 },
 
 'accessing',{

@@ -93,13 +93,13 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 
 	setScaleHTML: function(ctx) {},
 
-    setLeftHTML: function(ctx, value) {
-        console.log('setting shapenoe to '+value);
-        $(ctx.shapeNode).css('left', value);
-    },
-    setTopHTML: function(ctx, value) {
-        $(ctx.shapeNode).css('top', value);
-    },
+        setLeftHTML: function(ctx, value) {
+            console.log('setting shapenoe to '+value);
+            $(ctx.shapeNode).css('left', value);
+        },
+        setTopHTML: function(ctx, value) {
+            $(ctx.shapeNode).css('top', value);
+        },
 
 }
 );

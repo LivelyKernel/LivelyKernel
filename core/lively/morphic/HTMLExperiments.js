@@ -293,6 +293,12 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     setTopHTML: function(ctx, value) {
         $(ctx.morphNode).css('top', value);
     },
+    setWidth: function(value) {
+        this.shape.setWidth(value);
+    },
+    setHeight: function(value) {
+        this.shape.setHeight(value);        
+    },
 }
 );
 

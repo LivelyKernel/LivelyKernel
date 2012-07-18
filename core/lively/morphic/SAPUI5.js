@@ -767,14 +767,25 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         if (this.readOnly) this.setComponentNodeClass(this.readOnlyClasses);
         else this.setComponentNodeClass(this.normalClasses);
     },
-    addSliderEventsHTML: function (ctx, sliderNode) {
-        var slider = this;
-        $(sliderNode).mousedown(function (evt) {
+    
 
+}
+);
+
+lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.SliderGrip',
+'',{
+    
+    initialize: function($super, slider) {
+        $super();
+        this.slider = slider;    
+    },
+    
+    onMouseDown: function($super, evt) {
+            var slider = this.slider;
             slider.startCoords = {
                 sliderX: slider.getSliderPos(),
                 mouseX: evt.screenX    
-            }
+            };
             $(document).mousemove(function (evt) {
 
                 if (slider.startCoords) { // drag
@@ -788,33 +799,8 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
                 slider.startCoords = null;
                 $(document).unbind("mousemove mouseup");
             });
-
-            /*
-			if (Slider.eventHandlers.getHandle(e)) {	// start drag
-				
-			}
-			else {
-				var lineEl = Slider.eventHandlers.getLine(e);
-				s._mouseX = e.offsetX + (lineEl ? s.line.offsetLeft : 0);
-				s._mouseY = e.offsetY + (lineEl ? s.line.offsetTop : 0);
-				s._increasing = null;
-				s.ontimer();
-			}
-			*/
-
-        });
+        
     },
-
-}
-);
-
-lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.SliderGrip',
-'',{
-    
-    initialize: function($super, slider) {
-        $super();
-        this.slider = slider;    
-    }
     
 }
 );

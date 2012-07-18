@@ -1280,7 +1280,7 @@ lively.morphic.Shapes.Shape.addMethods(
 
                             // insert line breaks so the css is more legible
                             css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/g,";\n").replace(/\}(?![\s]*(\r\n|\n|\r))/g,"}\n").replace(/\{(?![\s]*(\r\n|\n|\r))/g,"{\n");
-                            console.log(css);
+                            //console.log(css);
 
                             // set the style sheet
                             this.setStyleSheet(css);

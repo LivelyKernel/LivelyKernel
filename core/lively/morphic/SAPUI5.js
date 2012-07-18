@@ -808,6 +808,16 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
 }
 );
 
+lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.SliderGrip',
+'',{
+    
+    initialize: function($super, slider) {
+        $super();
+        this.slider = slider;    
+    }
+    
+}
+);
 
 
 }) // end of module

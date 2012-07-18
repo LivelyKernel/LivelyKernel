@@ -640,7 +640,56 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         this.updateTicks();
     },
     generateTicks: function(){
-        this.ticks
+        this.ticks.each(function(n){n.remove();});
+        this.labels.each(function(n){n.remove();});
+        this.ticks = [];
+        this.labels = [];
+        
+        var range = this.maxValue - this.minValue;
+        for (var i = 0; i < this.tickCount; i++) {
+            this.ticks[i] = this.sliderBar.addMorph(this.createNodeWithClass('sapUiSliTick'));
+            if  (this.hasLabels) {
+
+                ctx.labels[i] = XHTMLNS.create('div');
+                var labelClass = 'sapUiSliText';
+                if (i == 0) { 
+                    labelClass +=' sapUiSliTextLeft';
+                }
+                else if (i == this.tickCount-1) {
+                    labelClass +=' sapUiSliTextRight';
+                }
+                                
+                var value = range/(this.tickCount-1);
+                value *= i;
+                value += this.minValue;
+                
+                ctx.labels[i].className = labelClass;
+                ctx.labels[i].innerHTML = value;
+                
+                ctx.sliderBar.appendChild(ctx.labels[i]);
+                
+                var s = window.getComputedStyle(ctx.labels[i]);
+                var w = parseInt(s["width"].replace("px",""));
+                ctx.labels[i].pxCorrection = -(w/2);
+                
+            }
+        }
+        
+        // reappend grip and hilite to maintain the desired node order (z-level)
+        var reappend = function(node) {
+            var p = node.parentNode;
+            if (p) {
+                p.removeChild(node);
+                p.appendChild(node);
+            }
+        }
+        
+        reappend(ctx.sliderHilite);
+        reappend(ctx.sliderGrip);
+        
+        this.updateTicksHTML(ctx);
+        
+        
     },
     generateTicksHTML: function(ctx) {
         ctx.ticks.each(function(n){n.parentNode.removeChild(n);});

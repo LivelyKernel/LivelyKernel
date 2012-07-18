@@ -728,7 +728,7 @@ lively.morphic.Shapes.Shape.addMethods(
         setStyleSheet: 'setStyleSheetHTML',
         setAppearanceStylingMode: 'setAppearanceStylingModeHTML',
         setBorderStylingMode: 'setBorderStylingModeHTML',
-        setComputedStyles: 'setComputedStylesHTML',
+        updateComputedStyles: 'updateComputedStylesHTML',
         setComputedBorderWidth: 'setComputedBorderWidthHTML',
     },
 },

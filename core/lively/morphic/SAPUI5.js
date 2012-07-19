@@ -28,86 +28,7 @@ setExtent: function($super, extent) {
 }
 );
 
-lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableRow',
-'',{
-    
-}
-);
 
-lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableCell',
-'placeholder',{
-    
-    defaultPlaceholderHeight: 22,
-    defaultPlaceholderWidth: 60,
-    
-    htmlDispatchTable: {
-        addPlaceholder: 'addPlaceholderHTML',
-        removePlaceholder: 'removePlaceholderHTML',
-     },
-     initialize: function($super) {
-            $super('td');
-         
-     },
-     appendHTML: function($super, ctx) {
-         $super(ctx);
-            this.addPlaceholder();
-     },
-     removeMorph: function($super, morph){
-        $super(morph);
-        this.addPlaceholder();
-     },
-    addPlaceholder: function(width, height){
-        if (this.submorphs.length ==0) {
-            var size = pt (width || this.defaultPlaceholderWidth, height|| this.defaultPlaceholderHeight);
-            this.renderContextDispatch('addPlaceholder', size);        
-        }
-    },
-    addPlaceholderHTML: function(ctx, size){
-        
-        if (!ctx.placeholderNode) ctx.placeholderNode = XHTMLNS.create('div');
-        
-        $(ctx.placeholderNode).attr('style', 'width: '+size.x+'px; height: '+size.y+'px; background-color: gray;');
-        if (!ctx.placeholderNode.parentNode) ctx.shapeNode.appendChild(ctx.placeholderNode);
-        
-        $(ctx.shapeNode).css('border', '1px dashed #999');
-    }, 
-    removePlaceholder: function(){
-        this.renderContextDispatch('removePlaceholder');        
-    },
-    removePlaceholderHTML: function(ctx){
-        console.log('remove placeholder!');
-        
-        if (ctx.placeholderNode && ctx.placeholderNode.parentNode) {
-                console.log('placeholder will be removed!');
-                $(ctx.placeholderNode).remove();
-            }
-        
-        $(ctx.shapeNode).css('border', '');
-    },
-    
-    removeRow: function() {
-        this.owner.remove();    
-    },
-     
-    addMorph: function($super, morph) {
-        this.removePlaceholder();
-        return $super(morph);    
-    },
-    morphMenuItems: function($super) {
-        var self = this, items = $super();
-        items.push([
-            'Remove Placeholder', function(evt) {
-            self.removePlaceholder()
-        }]);
-         items.push([
-            'Remove row', function(evt) {
-            self.removeRow()
-        }]);
-        return items;
-    },
-        
-}
-);
 
 lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Button',
 
@@ -640,6 +561,82 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
 
 );
 
+
+lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.MatrixLayoutCell',
+'placeholder',{
+    
+    defaultPlaceholderHeight: 22,
+    defaultPlaceholderWidth: 60,
+    
+    htmlDispatchTable: {
+        addPlaceholder: 'addPlaceholderHTML',
+        removePlaceholder: 'removePlaceholderHTML',
+     },
+     initialize: function($super) {
+            $super('td');
+         
+     },
+     appendHTML: function($super, ctx) {
+         $super(ctx);
+            this.addPlaceholder();
+     },
+     removeMorph: function($super, morph){
+        $super(morph);
+        this.addPlaceholder();
+     },
+    addPlaceholder: function(width, height){
+        if (this.submorphs.length ==0) {
+            var size = pt (width || this.defaultPlaceholderWidth, height|| this.defaultPlaceholderHeight);
+            this.renderContextDispatch('addPlaceholder', size);        
+        }
+    },
+    addPlaceholderHTML: function(ctx, size){
+        
+        if (!ctx.placeholderNode) ctx.placeholderNode = XHTMLNS.create('div');
+        
+        $(ctx.placeholderNode).attr('style', 'width: '+size.x+'px; height: '+size.y+'px; background-color: gray;');
+        if (!ctx.placeholderNode.parentNode) ctx.shapeNode.appendChild(ctx.placeholderNode);
+        
+        $(ctx.shapeNode).css('border', '1px dashed #999');
+    }, 
+    removePlaceholder: function(){
+        this.renderContextDispatch('removePlaceholder');        
+    },
+    removePlaceholderHTML: function(ctx){
+        console.log('remove placeholder!');
+        
+        if (ctx.placeholderNode && ctx.placeholderNode.parentNode) {
+                console.log('placeholder will be removed!');
+                $(ctx.placeholderNode).remove();
+            }
+        
+        $(ctx.shapeNode).css('border', '');
+    },
+    
+    removeRow: function() {
+        this.owner.remove();    
+    },
+     
+    addMorph: function($super, morph) {
+        this.removePlaceholder();
+        return $super(morph);    
+    },
+    morphMenuItems: function($super) {
+        var self = this, items = $super();
+        items.push([
+            'Remove Placeholder', function(evt) {
+            self.removePlaceholder()
+        }]);
+         items.push([
+            'Remove row', function(evt) {
+            self.removeRow()
+        }]);
+        return items;
+    },
+        
+}
+);
+
 lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
 'settings',{
     normalClasses: 'sapUiSli sapUiSliStd',    
@@ -869,4 +866,5 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.SliderGrip',
 
 
 }) // end of module
+
 

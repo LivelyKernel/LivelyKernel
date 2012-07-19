@@ -567,6 +567,13 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
             });
         });
     },
+    removePlaceholders: function(size) {
+        this.tbodyMorph.submorphs.each(function(tr){
+            tr.submorphs.each(function(td){
+                td.removePlaceholder();
+            });
+        });
+    },
     morphMenuItems: function($super) {
         var self = this, items = $super();
         items.push([

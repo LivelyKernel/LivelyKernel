@@ -594,7 +594,7 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.MatrixLayoutCell',
         
         if (!ctx.placeholderNode) ctx.placeholderNode = XHTMLNS.create('div');
         
-        $(ctx.placeholderNode).attr('style', 'width: '+size.x+'px; height: '+size.y+'px; border 1px dashed #999;');
+        $(ctx.placeholderNode).attr('style', 'width: '+size.x+'px; height: '+size.y+'px; border: 1px dashed #999;');
         if (!ctx.placeholderNode.parentNode) ctx.shapeNode.appendChild(ctx.placeholderNode);
         
         //$(ctx.shapeNode).css('border', '1px dashed #999');

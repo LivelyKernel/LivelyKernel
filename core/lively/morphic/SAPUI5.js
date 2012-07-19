@@ -41,6 +41,10 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableCell',
          $super(ctx);
             this.addPlaceholder();
      },
+     removeMorph: function($super, morph){
+        $super();
+        this.addPlaceHolder();
+     },
     addPlaceholder: function(width, height){
         if (this.submorphs.length ==0) {
             var size = pt (width || this.defaultPlaceholderWidth, height|| this.defaultPlaceholderHeight);

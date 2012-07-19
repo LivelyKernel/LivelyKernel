@@ -573,6 +573,10 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
             'Add placeholders', function(evt) {
             self.addPlaceholders()
         }]);
+        items.push([
+            'Remove placeholders', function(evt) {
+            self.removePlaceholders()
+        }]);
      
         return items;
     },

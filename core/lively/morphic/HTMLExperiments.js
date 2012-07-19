@@ -188,6 +188,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
 },
 'manipulation', {
     setLeft: function(value) {
+        this.positionLeft = value;
         this.renderContextDispatch('setLeft', value);
     },
     
@@ -196,6 +197,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     },
     
     setTop: function(value) {
+        this.positionTop = value;
         this.renderContextDispatch('setLeft', value);
     },
     setTopHTML: function(ctx, value) {
@@ -345,7 +347,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     },
     setExtentHTML: function(ctx, value) {
         if (!ctx.shapeNode) return undefined;
-              debugger;
+
         var newExtent = value;
 
         var n = ctx.shapeNode.nodeName;

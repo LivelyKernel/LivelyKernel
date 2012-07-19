@@ -513,11 +513,11 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
         this.tbodyMorph.setAttribute('style', 'width: 100%; height: 100%;');
         for (var r = 0; r < this.rows; r++) {
             
-            var row = new lively.morphic.SAPUI5.TableRow('tr');
+            var row = new lively.morphic.HTMLMorph('tr');
             this.tbodyMorph.addMorph(row);
             
             for (var c = 0; c < this.cols; c++) {
-                var cell = new lively.morphic.SAPUI5.TableCell();
+                var cell = new lively.morphic.SAPUI5.MatrixLayoutCell();
                 cell.addPlaceholder(80, 30);
                 cell.setNodeClass(this.cellClasses);
                 row.addMorph(cell);
@@ -866,5 +866,6 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.SliderGrip',
 
 
 }) // end of module
+
 
 

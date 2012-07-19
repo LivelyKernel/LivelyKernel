@@ -12,7 +12,18 @@ setExtent: function($super, extent) {
         $super(extent);    
     }    
         
-}    
+}    ,
+    setActive: function(active) {
+        this.isActive = active;
+        this.updateAppearance();
+    },
+    setLabel: function(label) {
+        this.setContent(label);    
+    },
+    getLabel: function(){
+        this.getContent();    
+    },
+    updateAppearance: function() {}
     
 }
 );
@@ -119,17 +130,10 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Button',
     }
 },
 'accessing', {
-    setActive: function(active) {
-        this.isActive = active;
-        if (active) this.pressed = false;
+    setActive: function($super, active) {
+        $super(active);
         this.changeAppearanceFor(false);
     },
-    setLabel: function(label) {
-        this.setContent(label);    
-    },
-    getLabel: function(){
-        this.getContent();    
-    }
     
 },
 'event handling', {
@@ -212,15 +216,17 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
         this.hasFocus = false;
         this.active = true;
         this.value = optValue || this.defaultValue;
+        this.setValue(this.value);
     }
 },
 
 'rendering', {
+    /*
     initHTML: function($super, ctx) {
         $super(ctx);
         if (this.shape) this.setValueHTML(ctx, (this.value || this.defaultValue));
     },
-
+*/
     getValueHTML: function(ctx) {
         if (ctx.shapeNode) return ctx.shapeNode.value;
         else return "";  
@@ -241,6 +247,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
             else ctx.shapeNode.removeAttribute('maxlength');
         }
     },
+    /*
     updateAppearanceHTML: function(ctx) {
         var classNames = this.baseClasses;
         
@@ -275,6 +282,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
         this.setNodeClass(classNames ); 
         
     }
+    */
     
 },
 
@@ -320,10 +328,9 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
     setMaxLength: function(value) {
         return this.renderContextDispatch('setMaxLength', value);
     },
-    setActive: function(active) {
-        this.active = active;
+    setActive: function($super, active) {
         if (!active) this.focus= false;
-        this.updateAppearance();
+        $super(active)
     },
 
     
@@ -342,7 +349,40 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
     },
     
     updateAppearance: function() {
-        return this.renderContextDispatch('updateAppearance');
+        
+        var classNames = this.baseClasses;
+        
+        if (!this.active){
+            
+            this.setProp('disabled', true);
+            classNames+=' '+this.disabledClass;
+        } else {
+            classNames+=' '+this.normalClass;
+            this.setProp('disabled', false);
+        }
+        
+        if (this.warning) {
+            classNames+=' '+this.warningClass;
+        }
+        if (this.error) {
+            classNames+=' '+this.errorClass;
+        }    
+        if (this.success) {
+            classNames+=' '+this.successClass;
+        } 
+        
+        if (this.readOnly) {
+            this.setProp('readOnly', true);
+            classNames+=' '+this.readOnlyClass;  
+        } else {
+            this.setProp('readOnly', false);    
+        }    
+        
+        if (this.hasFocus ) {
+            classNames+=' '+this.focusClass;
+        }
+        this.setNodeClass(classNames ); 
+
     },
  
 
@@ -611,7 +651,8 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
     tickPxCorrection: -1,
     gripPxCorrection: -5,
     hasLabels: true,
-    value: 0
+    value: 0,
+    defaultWidth: 200
 },
 'HTML render settings', {
     htmlDispatchTable: {
@@ -640,7 +681,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         this.labels = [];        
 
         this.generateTicks();
-        this.setExtent(pt(width,0));
+        this.setExtent(pt( (width || this.defaultWidth),0));
         this.updateAppearance();
         
     },
@@ -828,3 +869,4 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.SliderGrip',
 
 
 }) // end of module
+

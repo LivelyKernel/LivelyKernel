@@ -52,12 +52,12 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableCell',
         }
     },
     addPlaceholderHTML: function(ctx, size){
-        /*
+        
         if (!ctx.placeholderNode) ctx.placeholderNode = XHTMLNS.create('div');
         
         $(ctx.placeholderNode).attr('style', 'width: '+size.x+'px; height: '+size.y+'px; background-color: gray;');
         if (!ctx.placeholderNode.parentNode) ctx.shapeNode.appendChild(ctx.placeholderNode);
-        */
+        
         $(ctx.shapeNode).css('border', '1px dashed #999');
     }, 
     removePlaceholder: function(){
@@ -65,12 +65,12 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableCell',
     },
     removePlaceholderHTML: function(ctx){
         console.log('remove placeholder!');
-        /*
+        
         if (ctx.placeholderNode && ctx.placeholderNode.parentNode) {
                 console.log('placeholder will be removed!');
                 $(ctx.placeholderNode).remove();
             }
-        */
+        
         $(ctx.shapeNode).css('border', '');
     },
     

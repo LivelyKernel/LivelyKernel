@@ -42,7 +42,7 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.TableCell',
             this.addPlaceholder();
      },
      removeMorph: function($super, morph){
-        $super();
+        $super(morph);
         this.addPlaceHolder();
      },
     addPlaceholder: function(width, height){

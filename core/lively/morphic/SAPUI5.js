@@ -603,7 +603,6 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.MatrixLayoutCell',
         this.renderContextDispatch('removePlaceholder');        
     },
     removePlaceholderHTML: function(ctx){
-        console.log('remove placeholder!');
         
         if (ctx.placeholderNode && ctx.placeholderNode.parentNode) {
                 $(ctx.placeholderNode).remove();

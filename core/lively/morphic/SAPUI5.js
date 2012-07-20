@@ -229,12 +229,9 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
     },
     onBlur: function($super, evt) {
         this.hasFocus = false;
+        this.value = this.getValue();
         this.updateAppearance();
         $super(evt);        
-    },
-    onChange: function($super, evt) {
-        this.value = this.getValue();
-        return $super(evt);
     },
     
     updateAppearance: function() {

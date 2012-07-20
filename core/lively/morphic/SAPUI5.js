@@ -143,7 +143,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
 
 'rendering', {
     
-    initHTML: function($super, ctx) {
+    appendHTML: function($super, ctx) {
         $super(ctx);
         if (this.value) this.setValue(this.value);
     },

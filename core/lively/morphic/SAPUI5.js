@@ -358,9 +358,9 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
         $super("span", optBounds);
         this.checkBoxMorph = this.addMorph(new lively.morphic.HTMLMorph('input'));
         this.checkBoxMorph.setAttribute('type', 'checkbox');
-        //this.checkBoxMorph.setAttribute('id', checkboxId);    
+        //this.checkBoxMorph.setAttribute('id', checkboxId);
         this.setupSubmorph(this.checkBoxMorph);
-        this.labelMorph = this.addMorph(new lively.morphic.HTMLMorph('label')); 
+        this.labelMorph = this.addMorph(new lively.morphic.HTMLMorph('label'));
 
         this.setupSubmorph(this.labelMorph);
         if (label) this.setLabel(label);
@@ -371,7 +371,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
     },
     appendHTML : function($super, ctx) {
         $super(ctx);
-        this.labelMorph.setAttribute('for', this.checkBoxMorph.getNodeId());    
+        this.labelMorph.setAttribute('for', this.checkBoxMorph.getNodeId());
     },
     
     setupSubmorph: function(morph) {

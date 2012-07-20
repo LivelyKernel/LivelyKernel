@@ -579,15 +579,14 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.MatrixLayoutCell',
      },
      appendHTML: function($super, ctx) {
         $super(ctx);
-        if (!this.hidePlacehodler)
-            this.addPlaceholder();
+        this.addPlaceholder();
      },
      removeMorph: function($super, morph){
         $super(morph);
         this.addPlaceholder();
      },
     addPlaceholder: function(width, height){
-        if (this.submorphs.length ==0) {
+        if (this.submorphs.length ==0 && !this.hidePlaceholder) {
             var size = pt (width || this.defaultPlaceholderWidth, height|| this.defaultPlaceholderHeight);
             this.renderContextDispatch('addPlaceholder', size);        
         }

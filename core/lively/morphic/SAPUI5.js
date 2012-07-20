@@ -229,7 +229,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
     },
     onBlur: function($super, evt) {
         this.hasFocus = false;
-        this.value = this.getValue();
+        this.value = this.getValue(); // value is updated here since onChange fires on onBlur only anyways
         this.updateAppearance();
         $super(evt);        
     },

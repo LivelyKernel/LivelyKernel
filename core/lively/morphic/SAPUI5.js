@@ -316,11 +316,11 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Label',
     },
     setBold: function(b) {
         this.bold = b;
-        this.changeAppearance();        
+        this.updateAppearance();        
     },
     setRequired: function(b) {
         this.required = b;
-        this.changeAppearance();        
+        this.updateAppearance();        
     },
     
     setFor: function(morph) {

@@ -533,6 +533,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
         var placeholderSize = size || pt(60, 24);
         this.tbodyMorph.submorphs.each(function(tr){
             tr.submorphs.each(function(td){
+                td.hidePlaceholder = false;
                 td.addPlaceholder(placeholderSize.x, placeholderSize.y);
             });
         });
@@ -541,6 +542,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
         this.hidePlaceholders = true;
         this.tbodyMorph.submorphs.each(function(tr){
             tr.submorphs.each(function(td){
+                td.hidePlaceholder = true;
                 td.removePlaceholder();
             });
         });

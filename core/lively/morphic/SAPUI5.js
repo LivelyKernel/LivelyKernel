@@ -145,7 +145,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
     
     initHTML: function($super, ctx) {
         $super(ctx);
-        if (this.value) this.setValue(this.value || this.defaultValue);
+        if (this.value) this.setValue(this.value);
     },
 
     getValueHTML: function(ctx) {

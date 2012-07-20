@@ -435,7 +435,7 @@ Object.extend(Array, {
             results = new Array(length);
         while (length--) results[length] = iterable[length];
         return results;
-    },
+    }
 });
 
 

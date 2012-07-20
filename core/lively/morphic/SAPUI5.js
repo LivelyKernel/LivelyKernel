@@ -777,7 +777,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         if (newPos > maxPos) newPos = maxPos;
         if (newPos < 0) newPos = 0;
         this.sliderPos = newPos;
-        this.sliderGrip.setLeft(this.sliderPos);
+        this.sliderGrip.setLeft(this.sliderPos-this.gripPxCorrection);
         this.sliderHilite.setWidth(this.sliderPos);
     },
     getSliderPos: function(){

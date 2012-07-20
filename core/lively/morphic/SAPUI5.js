@@ -729,7 +729,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         this.setupSubmorph(this.sliderLeft );
         this.setupSubmorph(this.sliderBar );
         this.setupSubmorph(this.sliderHilite );
-        this.setupSubmorph(this.sliderGrip );
+        //this.setupSubmorph(this.sliderGrip );
 
         
         //this.setSliderPos(this.val2pos(this.value));

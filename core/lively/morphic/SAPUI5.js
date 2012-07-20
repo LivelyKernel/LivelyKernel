@@ -725,6 +725,12 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
         this.sliderHilite = this.sliderBar.addMorph(this.createNodeWithClass('sapUiSliHiLi')); 
         this.sliderGrip = this.sliderBar.addMorph(new lively.morphic.SAPUI5.SliderGrip(this));
 
+        this.setupMorph(this.sliderRight);
+        this.setupMorph(this.sliderLeft );
+        this.setupMorph(this.sliderBar );
+        this.setupMorph(this.sliderHilite );
+        this.setupMorph(this.sliderGrip );
+
         
         //this.setSliderPos(this.val2pos(this.value));
         this.ticks = [];

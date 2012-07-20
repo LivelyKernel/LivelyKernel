@@ -502,8 +502,8 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.SimpleCheckBox',
         this.updateAppearance();
     },
     updateInputTag: function(idx) {
-        this.checkBoxMorph.setProp("disabled", (this.active)?null:"disabled");
-        this.checkBoxMorph.setProp("readonly", (this.readOnly)?"readOnly":null);
+        this.setProp("disabled", (this.active)?null:"disabled");
+        this.setProp("readonly", (this.readOnly)?"readOnly":null);
     },
     targetNodeId: function(){
         return this.checkBoxMorph.getNodeId();    

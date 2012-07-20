@@ -142,12 +142,12 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
 },
 
 'rendering', {
-    /*
+    
     initHTML: function($super, ctx) {
         $super(ctx);
-        if (this.shape) this.setValueHTML(ctx, (this.value || this.defaultValue));
+        if (this.value) this.setValue(this.value || this.defaultValue);
     },
-*/
+
     getValueHTML: function(ctx) {
         if (ctx.shapeNode) return ctx.shapeNode.value;
         else return "";  

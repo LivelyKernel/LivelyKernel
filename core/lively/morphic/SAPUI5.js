@@ -232,6 +232,10 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
         this.updateAppearance();
         $super(evt);        
     },
+    onChange: function($super, evt) {
+        this.value = this.getValue();
+        return $super(evt);
+    },
     
     updateAppearance: function() {
         

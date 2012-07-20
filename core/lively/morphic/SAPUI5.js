@@ -453,6 +453,84 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
 }
 );
 
+lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.SimpleCheckBox',
+
+'settings',{
+    baseClass:'sapUiCb',
+    activeClass: 'sapUiCbInteractive sapUiCbStd', 
+    checkedClass: 'sapUiCbChk',
+    disabledClass: 'sapUiCbDis',
+    readOnlyClass: 'sapUiCbRo',
+    label: "Checkbox"
+},
+'initializing', {
+    initialize: function($super) {
+        $super("input");
+        this.setAttribute('type', 'checkbox');
+        this.readOnly = false;
+        this.checked = false;
+        this.active = true;
+        this.updateAppearance();
+    },
+
+    
+},
+
+'accessing', {
+    setChecked: function(checked){ 
+        this.checkBoxMorph.setProp("checked", checked);
+        this.updateAppearance();
+    },
+    isChecked: function(){
+        return this.checkBoxMorph.getProp("checked");
+    },
+    
+    setActive: function(active) {
+        this.active = active;
+        this.updateAppearance();
+    },
+    setReadOnly: function(readOnly ) {
+        this.readOnly = readOnly ;
+        this.updateAppearance();
+    },
+    updateInputTag: function(idx) {
+        this.checkBoxMorph.setProp("disabled", (this.active)?null:"disabled");
+        this.checkBoxMorph.setProp("readonly", (this.readOnly)?"readOnly":null);
+    },
+    targetNodeId: function(){
+        return this.checkBoxMorph.getNodeId();    
+    }
+    
+},
+'event handling', {
+    updateAppearance: function() {
+
+        var classNames = this.baseClass;
+        
+        if (this.isChecked()) { classNames+=' '+this.checkedClass}
+        if (this.readOnly) {classNames+=' '+this.readOnlyClass}
+            else if (this.active) {classNames+=' '+this.activeClass}
+            else {classNames+=' '+this.disabledClass}
+        this.setNodeClass(classNames);
+        this.updateInputTag();
+        this.checked = this.isChecked();
+    },
+
+    onChange: function(evt){
+           if (this.active && !this.readOnly) {
+                lively.bindings.signal(this, 'fire', true);
+            } 
+            this.updateAppearance();
+    },
+
+    onClick: function(evt) {
+         if (!this.active || this.readOnly) evt.stop();
+  
+    },
+
+}
+);
+
 
 lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
 'settings', {
@@ -833,6 +911,9 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.SliderGrip',
 
 
 }) // end of module
+
+
+
 
 
 

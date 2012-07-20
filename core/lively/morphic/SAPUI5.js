@@ -23,7 +23,15 @@ setExtent: function($super, extent) {
     getLabel: function(){
         this.getContent();    
     },
-    updateAppearance: function() {}
+    updateAppearance: function() {},
+    setupSubmorph: function(morph) {
+        morph.disableGrabbing();
+        morph.disableDragging();
+        morph.disableEvents();        
+        morph.disableHalos();        
+    
+        return morph;    
+    }
     
 }
 );

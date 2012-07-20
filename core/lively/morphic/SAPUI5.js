@@ -518,7 +518,9 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
             
             for (var c = 0; c < this.cols; c++) {
                 var cell = new lively.morphic.SAPUI5.MatrixLayoutCell();
-                cell.addPlaceholder(80, 30);
+                if (!this.hidePlaceholders) {
+                    cell.addPlaceholder(80, 30);
+                }
                 cell.setNodeClass(this.cellClasses);
                 row.addMorph(cell);
                 

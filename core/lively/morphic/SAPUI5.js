@@ -168,42 +168,6 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
             else ctx.shapeNode.removeAttribute('maxlength');
         }
     },
-    /*
-    updateAppearanceHTML: function(ctx) {
-        var classNames = this.baseClasses;
-        
-        if (!this.active){
-            ctx.shapeNode.disabled = true;
-            classNames+=' '+this.disabledClass;
-        } else {
-            classNames+=' '+this.normalClass;
-            ctx.shapeNode.disabled = false;            
-        }
-        
-        if (this.warning) {
-            classNames+=' '+this.warningClass;
-        }
-        if (this.error) {
-            classNames+=' '+this.errorClass;
-        }    
-        if (this.success) {
-            classNames+=' '+this.successClass;
-        } 
-        
-        if (this.readOnly) {
-            ctx.shapeNode.readOnly= true;  
-            classNames+=' '+this.readOnlyClass;  
-        } else {
-            ctx.shapeNode.readOnly=false;        
-        }    
-        
-        if (this.hasFocus ) {
-            classNames+=' '+this.focusClass;
-        }
-        this.setNodeClass(classNames ); 
-        
-    }
-    */
     
 },
 

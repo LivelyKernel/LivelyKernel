@@ -436,10 +436,6 @@ Object.extend(Array, {
         while (length--) results[length] = iterable[length];
         return results;
     },
-    equal: function(firstArray, secondArray) {
-        // deprecated, use anArray.equals
-        return firstArray.equals(secondArray);
-    }
 });
 
 

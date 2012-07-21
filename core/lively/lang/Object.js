@@ -154,10 +154,20 @@ Object.extend(Object, {
         return protoObj;
     },
 
-	addScript: function (object, funcOrString, optName) {
-		var func = Function.fromString(funcOrString);
-		return func.asScriptOf(object, optName);
-	}
+    addScript: function (object, funcOrString, optName) {
+        var func = Function.fromString(funcOrString);
+        return func.asScriptOf(object, optName);
+    },
+
+    deepCopy: function (obj) {
+        if (!Object.isObject(obj)) return obj;
+        var result = Array.isArray(obj) ? Array(obj.length) : {};
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key))
+                result[key] = Object.deepCopy(obj[key]);
+        }
+        return result;
+    }
 });
 
 

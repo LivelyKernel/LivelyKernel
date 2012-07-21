@@ -160,7 +160,7 @@ Object.extend(Object, {
     },
 
     deepCopy: function (obj) {
-        if (!Object.isObject(obj)) return obj;
+        if (!obj || !Object.isObject(obj)) return obj;
         var result = Array.isArray(obj) ? Array(obj.length) : {};
         for (var key in obj) {
             if (obj.hasOwnProperty(key))

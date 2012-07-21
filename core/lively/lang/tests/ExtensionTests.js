@@ -34,7 +34,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectTest', 'testing', {
         this.assertEquals(Object.isEmpty(obj3), true);
     },
     testDeepCopy: function() {
-        var obj = {a: 3, b: {c: [{}]}};
+        var obj = {a: 3, b: {c: [{}],d: undefined}, e: null, f: function(){}, g: "string"};
         var copy = Object.deepCopy(obj);
         this.assertMatches(obj, copy);
         this.assertMatches(copy, obj);

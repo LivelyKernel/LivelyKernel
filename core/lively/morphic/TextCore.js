@@ -62,43 +62,82 @@ Trait('TextChunkOwner',
         // useChunkStart == false, idx == 1 returns [chunk[0],1]
         // useChunkStart == false, idx == 2 returns [chunk[1],1]
         // useChunkStart == true, idx == 1 returns [chunk[1],0]
-        var offset = 0, chunks = this.getTextChunks();
-        for (var i = 0; i < chunks.length; i++) {
-            var nextOffset = offset + chunks[i].textString.length;
-            if (!useChunkStart && idx <= nextOffset) return [chunks[i], idx-offset];
-            if (useChunkStart && idx < nextOffset) return [chunks[i], idx-offset];
-            offset = nextOffset;
+        var from = 0, chunks = this.getTextChunks();
+        for (var i = 0, len = chunks.length; i < len; i++) {
+            var to = from + chunks[i].textString.length;
+            if (useChunkStart) {
+                if (idx < to || (from === to && from === idx)) return [chunks[i], idx-from];
+                // if (idx < to) return [chunks[i], idx-from];
+            } else {
+                if (idx <= to) return [chunks[i], idx-from];
+            }
+            from = to;
         }
+        return null;
     },
+
     sliceTextChunks: function(from, to) {
-        // sanitize indexes
+        // When text should be styled we need text chunks that represent the
+        // text ranges that should be styled. This method returns an array of
+        // chunks that represent the text in the range from to. Note that this
+        // cannot be only one chunk since the from-to range can cross existing
+        // style ranges.
+        //
+        // To cleanup unnecessary text chunks (text chunk who have the same
+        // style than their neighbours) call #coalesceChunks
+        //
+        // Example: Given the text "Lively rockz".
+        // Given the styling: "Lively " - none,  ""rockz" - bold
+        // I.e. two text chunks exist already:
+        // [TextChunk(0-7, TextEmphasis({})),
+        //  TextChunk(7-12, TextEmphasis({"fontWeight": "bold"}))]
+        // When we want to underline "ly ro" we first need to create new
+        // chunks that represent that text range (by calling
+        // text.sliceTextChunks(4, 9)). This will create two new text chunks:
+        // [TextChunk(4-7, TextEmphasis({})),
+        //  TextChunk(7-9, TextEmphasis({"fontWeight": "bold"}))]
+        // those will be added to the textChunks list of this text at the right
+        // positions
+
+        // 1. sanitize indexes
         var maxLength = this.textString.length,
             fromSafe = Math.min(from, to),
             toSafe = Math.max(from, to),
             startChunk, endChunk;
         fromSafe = Math.max(0, Math.min(maxLength, fromSafe));
         toSafe = Math.max(0, Math.min(maxLength, toSafe));
-        var zeroLength = fromSafe === toSafe;
-        if (zeroLength) {
+
+        var sliceLength = toSafe - fromSafe,
+            chunkAndIndexAtStart = this.getChunkAndLocalIndex(fromSafe, true);
+
+        // 2. does a text chunk already match from - to?
+        if (chunkAndIndexAtStart
+          && chunkAndIndexAtStart[1] === 0
+          && chunkAndIndexAtStart[0].textString.length === sliceLength) {
+            return [chunkAndIndexAtStart[0]];
+        }
+
+        // 3. special handling of chunks with length 0
+        if (sliceLength === 0) {
             var chunkBeforeSpec = this.getChunkAndLocalIndex(fromSafe);
             if (!chunkBeforeSpec) return [];
             var chunkBefore = chunkBeforeSpec[0].splitBefore(chunkBeforeSpec[1]),
                 chunkAfter = chunkBefore.next(),
                 idxInChunks = this.textChunks.indexOf(chunkBefore),
-                newChunk = new lively.morphic.TextChunk('');
-            this.textChunks.pushAt(newChunk, idxInChunks + 1);
+                newChunk = chunkBefore.createForSplit('');
+            this.textChunks.splice(idxInChunks + 1, 0, newChunk);
             newChunk.addTo(this, chunkAfter);
             return [newChunk];
-        } else {
-            // split the chunks and retrieve chunks inbetween from-to
-            var start = this.getChunkAndLocalIndex(fromSafe);
-            if (!start) return [];
-            startChunk = start[0].splitAfter(start[1]);
-
-            var end = this.getChunkAndLocalIndex(toSafe);
-            if (!end) return [];
-            endChunk = end[0].splitBefore(end[1]);
         }
+
+        // split the chunks and retrieve chunks inbetween from-to
+        var start = this.getChunkAndLocalIndex(fromSafe);
+        if (!start) return [];
+        startChunk = start[0].splitAfter(start[1]);
+
+        var end = this.getChunkAndLocalIndex(toSafe);
+        if (!end) return [];
+        endChunk = end[0].splitBefore(end[1]);
 
         var chunks = this.getTextChunks(),
             startIdx = chunks.indexOf(startChunk),
@@ -1850,13 +1889,13 @@ this. textNodeString()
     },
     emphasizeRegex: function(re, style) {
         var m, counter = 0, string = this.textString;
-        while(m = re.exec(string)) {
+        while ((m = re.exec(string))) {
             counter++; if (counter > 5000) throw new Error('emphasizeRegex endless loop?');
-            var from = m.index, to = m.index + m[0].length;
-            var chunks = this.sliceTextChunks(from, to);
-            for (var i = 0; i < chunks.length; i++)
-                //chunks[i].style.add(style); //
+            var from = m.index, to = m.index + m[0].length,
+                chunks = this.sliceTextChunks(from, to);
+            for (var i = 0; i < chunks.length; i++) {
                 chunks[i].styleText(style);
+            }
         }
         this.coalesceChunks();
     },
@@ -2272,21 +2311,22 @@ Object.subclass('lively.morphic.TextChunk',
         var textNode = chunkOwner.renderContext().textNode,
             chunkNode = this.getChunkNode(),
             otherChunkNode = optChunkAfter && optChunkAfter.getChunkNode();
-        if (!textNode) {
-            // alert('Cannot add text chunk ' + this + ' to '
-            //      + chunkOwner + ' because no textNode is present');
-            return;
-        }
-        if (chunkNode.parentNode) this.remove();
-        if (otherChunkNode && otherChunkNode.parentNode === textNode)
+        if (!textNode) { return; }
+        if (chunkNode.parentNode) { this.remove(); }
+        if (otherChunkNode && otherChunkNode.parentNode === textNode) {
             textNode.insertBefore(chunkNode, otherChunkNode);
-        else textNode.appendChild(chunkNode);
+        } else {
+            textNode.appendChild(chunkNode);
+        }
         this.styleText();
-    },
+    }
 
 },
 'removing', {
     remove: function() {
+        // Note: Currently chunkOwner is expected to remove this
+        // manually from its textChunks list!
+        this.chunkOwner = null;
         var n = this.getChunkNode();
         n.parentNode && n.parentNode.removeChild(n);
     }
@@ -2295,9 +2335,11 @@ Object.subclass('lively.morphic.TextChunk',
     splitAfter: function(localIdx) { return this.split(localIdx, true) },
     splitBefore: function(localIdx) { return this.split(localIdx, false) },
     split: function(localIdx, returnRight) {
-        // remove text from localIdx to textString.length
-        // let morph add new chunk
-        // if returnRight == true return the chunk after localIdx, otherwise before
+        // make two chunks out of me
+        // 1. remove text from localIdx to textString.length
+        // 2. let morph add my new neighbour
+        // 3. if returnRight == true return the chunk after localIdx,
+        //    otherwise before (that's me)
         var str = this.textString,
             myString = str.substring(0, localIdx),
             newString = str.substring(localIdx);
@@ -2315,7 +2357,8 @@ Object.subclass('lively.morphic.TextChunk',
             if (prev) return prev;
         };
 
-        // We dont care we want to have the right so use this as right and dont split
+        // We don't care we want to have the chunk to the right, so
+        // use me as right and don't split
         if (returnRight && myString.length === 0) return this;
         // same thing
         if (!returnRight && newString.length === 0) return this;
@@ -2327,7 +2370,7 @@ Object.subclass('lively.morphic.TextChunk',
             next = chunks[chunkIdx+1];
 
         // add new chunk in chunk collection of morph
-        chunks.pushAt(newChunk, chunkIdx+1);
+        chunks.splice(chunkIdx+1, 0, newChunk);
         newChunk.addTo(this.chunkOwner, next);
 
         return returnRight ? newChunk : this;
@@ -2343,7 +2386,7 @@ Object.subclass('lively.morphic.TextChunk',
             next = chunks[chunkIdx+1];
         if (!next) return false;
         next.remove();
-        chunks.removeAt(chunkIdx+1);
+        chunks.splice(chunkIdx+1, 1);
         this.textString += next.textString;
         return true;
     },

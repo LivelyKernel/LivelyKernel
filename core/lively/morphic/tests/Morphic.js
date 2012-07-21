@@ -603,8 +603,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
 },
 'testing', {
     test01MorphHasTextChunk: function() {
-// this. openMorphsInRealWorld()
-// inspect(this.text)
         var chunks = this.text.getTextChunks();
         this.assertEquals(1, chunks.length);
         this.assertEquals('', chunks[0].textString);
@@ -645,9 +643,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
     test03bCoalesceChunks: function() {
         this.text.setTextString('test');
         this.text.firstTextChunk().splitAfter(2);
-        this.text.coalesceChunks()
+        this.text.coalesceChunks();
         this.assertEquals(1, this.text.getTextChunks().length);
-        this.checkDOM([{tagName: 'span', textContent: 'test', style: {fontWeight: ''}}])
+        this.checkDOM([{tagName: 'span', textContent: 'test', style: {fontWeight: ''}}]);
+    },
+
+    test03bCoalesceChunksOfZeroLength: function() {
+        this.text.setTextString('test');
+        this.text.emphasizeAll({fontWeight: 'bold'});
+        this.text.sliceTextChunks(2,2);
+        this.text.coalesceChunks();
+        this.assertEquals(1, this.text.getTextChunks().length);
     },
 
     test03cSplitAtFrontAndBack: function() {
@@ -666,8 +672,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         var after = this.text.firstTextChunk().splitAfter(3);
         this.assertEquals('bold', after.style.getFontWeight());
     },
-
-
 
     test04SliceTextChunksSimple: function() {
         this.text.setTextString('eintest');
@@ -1090,7 +1094,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.text.insertTextChunksAtCursor([chunk], true, true);
         this.checkDOM([
             {tagName: 'span', textContent: 'ein'},
-            {tagName: 'span', textContent: 'test'},
+            {tagName: 'span', textContent: 'test'}
         ])
     },
 
@@ -1103,15 +1107,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.checkDOM([
             {tagName: 'span', textContent: 'ein'},
             {tagName: 'span', textContent: 'foo'},
-            {tagName: 'span', textContent: 'test'},
+            {tagName: 'span', textContent: 'test'}
         ])
     },
 
     test25SlicingTextChunksWithRangeWithLengthZero: function() {
         this.text.setTextString('ein');
         var newChunk = this.text.sliceTextChunks(3,3);
-        this.assertEquals(2, this.text.textChunks.length)
-        this.assertIdentity(newChunk[0], this.text.textChunks.last())
+        this.assertEquals(2, this.text.textChunks.length);
+        this.assertIdentity(newChunk[0], this.text.textChunks.last());
+        // do it again, it should not change anything
+        this.text.sliceTextChunks(3,3);
+        this.assertEquals(2, this.text.textChunks.length);
     },
 
     test26aUnEmphasize: function() {

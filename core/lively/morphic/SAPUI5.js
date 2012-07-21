@@ -486,11 +486,11 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.SimpleCheckBox',
 
 'accessing', {
     setChecked: function(checked){ 
-        this.checkBoxMorph.setProp("checked", checked);
+        this.setProp("checked", checked);
         this.updateAppearance();
     },
     isChecked: function(){
-        return this.checkBoxMorph.getProp("checked");
+        return this.getProp("checked");
     },
     
     setActive: function(active) {

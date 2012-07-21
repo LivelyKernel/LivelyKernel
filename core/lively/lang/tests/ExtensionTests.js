@@ -33,6 +33,16 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectTest', 'testing', {
         this.assertEquals(Object.isEmpty(obj2), false);
         this.assertEquals(Object.isEmpty(obj3), true);
     },
+    testDeepCopy: function() {
+        var obj = {a: 3, b: {c: [{}]}};
+        var copy = Object.deepCopy(obj);
+        this.assertMatches(obj, copy);
+        this.assertMatches(copy, obj);
+        this.assert(obj !== copy);
+        this.assert(obj.b !== copy.b);
+        this.assert(obj.b.c !== copy.b.c);
+        this.assert(obj.b.c[0] !== copy.b.c[0]);
+    }
 });
 
 TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectsTest', 'testing', {

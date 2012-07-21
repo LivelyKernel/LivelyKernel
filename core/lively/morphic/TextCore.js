@@ -147,9 +147,10 @@ Trait('TextChunkOwner',
     },
 
     coalesceChunks: function () {
+        // see comment in #sliceTextChunks
         var chunk = this.firstTextChunk();
         while (chunk) {
-            chunk = chunk.joinWithNextIfEqualStyle() ? chunk : chunk.next();
+            chunk = chunk.tryJoinWithNext() ? chunk : chunk.next();
         }
     }
 },
@@ -2391,9 +2392,10 @@ Object.subclass('lively.morphic.TextChunk',
         return true;
     },
 
-    joinWithNextIfEqualStyle: function() {
+    tryJoinWithNext: function() {
         var next = this.next();
-        return next && this.getStyle().equals(next.getStyle()) ? this.joinWithNext() : null;
+        return next && (next.textString.length === 0 || this.getStyle().equals(next.getStyle())) ?
+            this.joinWithNext() : null;
     }
 
 },

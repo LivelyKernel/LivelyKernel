@@ -656,6 +656,16 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.assertEquals(1, this.text.getTextChunks().length);
     },
 
+    test03bCoalesceChunksOfZeroLengthThatHasDifferentStyle: function() {
+        this.text.setTextString('test');
+        this.text.sliceTextChunks(2,2);
+        this.text.getTextChunks()[0].styleText({fontWeight: 'bold'});
+        this.text.getTextChunks()[2].styleText({fontWeight: 'bold'});
+        this.assertEquals(3, this.text.getTextChunks().length);
+        this.text.coalesceChunks();
+        this.assertEquals(1, this.text.getTextChunks().length);
+    },
+
     test03cSplitAtFrontAndBack: function() {
         this.text.setTextString('a');
         var after = this.text.firstTextChunk().splitAfter(1);

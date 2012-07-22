@@ -80,7 +80,7 @@ Trait('TextChunkOwner',
         return null;
     },
 
-    sliceTextChunks: function(from, to) {
+    sliceTextChunks: function(from, to, optChunkRanges) {
         // When text should be styled we need text chunks that represent the
         // text ranges that should be styled. This method returns an array of
         // chunks that represent the text in the range from to. Note that this
@@ -112,7 +112,8 @@ Trait('TextChunkOwner',
         toSafe = Math.max(0, Math.min(maxLength, toSafe));
 
         var sliceLength = toSafe - fromSafe,
-            chunkAndIndexAtStart = this.getChunkAndLocalIndex(fromSafe, true);
+            ranges = optChunkRanges || this.getChunkRanges(),
+            chunkAndIndexAtStart = this.getChunkAndLocalIndex(fromSafe, true, ranges);
 
         // 2. does a text chunk already match from - to?
         if (chunkAndIndexAtStart
@@ -123,31 +124,31 @@ Trait('TextChunkOwner',
 
         // 3. special handling of chunks with length 0
         if (sliceLength === 0) {
-            var chunkBeforeSpec = this.getChunkAndLocalIndex(fromSafe);
+            var chunkBeforeSpec = this.getChunkAndLocalIndex(fromSafe, false, ranges);
             if (!chunkBeforeSpec) return [];
-            var chunkBefore = chunkBeforeSpec[0].splitBefore(chunkBeforeSpec[1]),
+            var chunkBefore = chunkBeforeSpec[0].splitBefore(chunkBeforeSpec[1], ranges),
                 chunkAfter = chunkBefore.next(),
-                idxInChunks = this.textChunks.indexOf(chunkBefore),
+                chunks = this.getTextChunks(),
+                idxInChunks = chunks.indexOf(chunkBefore),
                 newChunk = chunkBefore.createForSplit('');
-            this.textChunks.splice(idxInChunks + 1, 0, newChunk);
+            chunks.splice(idxInChunks + 1, 0, newChunk);
             newChunk.addTo(this, chunkAfter);
             return [newChunk];
         }
 
         // split the chunks and retrieve chunks inbetween from-to
-        var start = this.getChunkAndLocalIndex(fromSafe);
+        var start = this.getChunkAndLocalIndex(fromSafe, false, ranges);
         if (!start) return [];
-        startChunk = start[0].splitAfter(start[1]);
-
-        var end = this.getChunkAndLocalIndex(toSafe);
-        if (!end) return [];
-        endChunk = end[0].splitBefore(end[1]);
-
+        startChunk = start[0].splitAfter(start[1], ranges);
         var chunks = this.getTextChunks(),
-            startIdx = chunks.indexOf(startChunk),
-            endIdx = chunks.indexOf(endChunk);
+            startIdx = chunks.indexOf(startChunk);
 
-        return chunks.slice(Math.min(startIdx, endIdx),endIdx+1);
+        var end = this.getChunkAndLocalIndex(toSafe, false, ranges);
+        if (!end) return [];
+        endChunk = end[0].splitBefore(end[1], ranges);
+        var endIdx = chunks.indexOf(endChunk);
+
+        return chunks.slice(Math.min(startIdx, endIdx), endIdx+1);
     },
 
     coalesceChunks: function () {
@@ -2012,7 +2013,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             this.emphasize(emphSpec, emphRange[0], emphRange[1]);
             this.setSelectionRange(selRange[0], selRange[1]);
         } catch(e) {
-            alert('Error when doing  emphasizing' + JSON.stringify(emphSpec) + ': ' + e);
+            console.error('Error emphasizing' + JSON.stringify(emphSpec) + ': ' + e);
             debugger;
         }
     },

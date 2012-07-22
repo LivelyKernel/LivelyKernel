@@ -137,6 +137,11 @@ lively.morphic.Text.addMethods(
     },
 
     howToStyleString: function(string, rules, defaultStyle) {
+        // converts a highlighter regexp rule like
+        // {match: /bar/g, style: {color: 'blue'}}
+        // into intervals with styles for string. If rule = the rule above then calling
+        // text.howToStyleString('foo bar baz', [rule], {})
+        // returns [[0,4, {}], [4,7, {color: blue}], [7, 11, {}]]
         var slices = [];
         for (var ruleName in rules) {
             if (!rules.hasOwnProperty(ruleName)) continue;
@@ -155,11 +160,9 @@ lively.morphic.Text.addMethods(
 
     applyHighlighterRules: function(target, highlighterRules) {
         // take highlighter rules and apply them to my textString. As a result
-        // of that we get text ranges and styles that should be applied to them.
-        // This are then used to style my textChunks. textChunks are reused if
-        // they have the correct ranges already, otherwise they are newly
-        // created. Return true if the DOM tree has changed through applying the
-        // highlight rules, false otherwise
+        // of that we get text ranges and styles that should be applied to
+        // them. Return true if the DOM tree has changed through applying the
+        // highlight rules, false otherwise (see #emphasizeRanges).
         //
         // Unoptimized version:
         // var defaultStyle = {color: Color.black, backgroundColor: null};
@@ -169,35 +172,10 @@ lively.morphic.Text.addMethods(
         //     var rule = highlighterRules[ruleName];
         //     target.emphasizeRegex(rule.match, rule.style)
         // }
-
         var defaultStyle = {color: Color.black, backgroundColor: null},
-            chunks = this.getTextChunks(),
             rulesForString = this.howToStyleString(
                 target.textString, highlighterRules, defaultStyle);
-
-        // 1. find text chunks that can be reused
-        var ranges = target.getChunkRanges(),
-            indexesForExistingChunks = Interval.mapToMatchingIndexes(ranges, rulesForString),
-            leftOverRules = [];
-        indexesForExistingChunks.forEach(function(chunkIndexes, indexOfRule) {
-            var rule = rulesForString[indexOfRule]
-            if (chunkIndexes.length === 0) { leftOverRules.push(rule); return; }
-            false && chunkIndexes.forEach(function(chunkIndex) {
-                chunks[chunkIndex].styleText(rulesForString[2]); })
-        });
-
-        // 2. if any highlighting rules could not be applied before because
-        // textChunks available haven't the correct ranges, then slice new
-        // textChunks here
-        var leftOversExist = leftOverRules.length > 0;
-        if (leftOversExist) {
-            leftOverRules.forEach(function(rule) {
-                var chunksToStyle = target.sliceTextChunks(rule[0], rule[1], ranges);
-                chunksToStyle.forEach(function(ea) { ea.styleText(rule[2]) });
-            });
-        }
-        var domChanged = this.coalesceChunks() || leftOversExist;
-        return domChanged;
+        return target.emphasizeRanges(rulesForString);
     },
 
     highlightSyntaxFromTo: function(from, to, highlighterRules) {

@@ -789,6 +789,27 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
             [{textString: 'so'},
             {textString: 'me more', style: {fontWeight: 'bold'}},
             {textString: ' text'}]);
+    },
+
+    test28aEmphasizeRanges: function() {
+        this.text.setTextString('some text');
+        this.text.emphasizeRanges([
+            [0,4, {fontWeight: 'bold'}],
+            [5,9, {textDecoration: 'underline'}]]);
+        this.checkChunks([
+            {textString: 'some', style: {fontWeight: 'bold'}},
+            {textString: ' ', style: {}},
+            {textString: 'text', style: {textDecoration: 'underline'}}]);
+    },
+
+    test28bEmphasizeRangesWithPrexistingStyle: function() {
+        this.text.setTextString('some text');
+        this.text.emphasize({textDecoration: 'underline'}, 0, 4);
+        debugger;
+        this.text.emphasizeRanges([[0,4, {fontWeight: 'bold'}]]);
+        this.checkChunks([
+            {textString: 'some', style: {fontWeight: 'bold', textDecoration: 'underline'}},
+            {textString: ' text', style: {}}]);
     }
 
 });

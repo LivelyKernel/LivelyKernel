@@ -1887,6 +1887,50 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         }
         this.coalesceChunks();
     },
+
+    emphasizeRanges: function(rangesAndStyles) {
+        // Add style to my text according to ranges. rangesAndStyles is an
+        // array of intervals. An interval is an array with at least two
+        // elements. If the interval has a third element this is expected to
+        // be the style spec.
+        //
+        // Example usage:
+        // text.emphasizeRanges([[5,10, {fontWeight: 'bold'}],
+        //                       [12,25, {textDecoration: 'underline'}]]);
+        //
+        // My textChunks are reused if they have the correct ranges already,
+        // otherwise they are newly created. Return true if the DOM tree has
+        // changed by applying styling (new chunks were created), false
+        // otherwise.
+
+        // 1. find text chunks that can be reused
+        var text = this,
+            existingRanges = this.getChunkRanges(),
+            chunks = this.getTextChunks(),
+            indexesForExistingChunks = Interval.mapToMatchingIndexes(
+                existingRanges, rangesAndStyles),
+            leftOverRules = [];
+        indexesForExistingChunks.forEach(function(chunkIndexes, indexOfRule) {
+            var rangeAndStyle = rangesAndStyles[indexOfRule];
+            if (chunkIndexes.length === 0) { leftOverRules.push(rangeAndStyle); return; }
+            chunkIndexes.forEach(function(chunkIndex) {
+                chunks[chunkIndex].styleText(rangeAndStyle[2]); })
+        });
+
+        // 2. if any highlighting rules could not be applied before because
+        // textChunks available haven't the correct ranges, then slice new
+        // textChunks here
+        var leftOversExist = leftOverRules.length > 0;
+        if (leftOversExist) {
+            leftOverRules.forEach(function(rule) {
+                var chunksToStyle = text.sliceTextChunks(rule[0], rule[1], existingRanges);
+                chunksToStyle.forEach(function(ea) { ea.styleText(rule[2]) });
+            });
+        }
+        var domChanged = text.coalesceChunks() || leftOversExist;
+        return domChanged;
+    },
+
     unEmphasize: function(from, to) {
         var chunks = this.sliceTextChunks(from, to);
         for (var i = 0; i < chunks.length; i++) {
@@ -1895,11 +1939,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         }
         this.coalesceChunks();
     },
+
     unEmphasizeSelection: function() {
         var range = this.getSelectionRange();
         this.unEmphasize(range[0], range[1]);
         this.setSelectionRange(range[0], range[1]);
     },
+
     unEmphasizeAll: function() {
         this.unEmphasize(0, this.textString.length)
     },
@@ -1907,6 +1953,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     emphasizeAll: function(style) {
         this.emphasize(style, 0, this.textString.length);
     },
+
     emphasizeRegex: function(re, style) {
         var m, counter = 0, string = this.textString;
         while ((m = re.exec(string))) {

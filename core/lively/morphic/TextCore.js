@@ -1276,8 +1276,11 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return null;
     },
 
-    selectionString: function() {
+    hasSelection: function() {
+        return this.domSelection() !== null;
+    },
 
+    selectionString: function() {
         // HTML only, works in FF & Chrome
         var sel = this.domSelection();
         if (!sel) { return ''; }
@@ -1353,6 +1356,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         // inconsistent nodes could have been added...
         this.fixChunks()
     },
+
     insertTextChunksAtCursor: function(newChunks, selectIt, overwriteSelection) {
         //console.log('Text>>insertTextChunksAtCursor');
         var selRange = this.getSelectionRange();
@@ -1393,6 +1397,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     removeTextSelection: function() {},
+
     getSelectionOrLineString: function() {
         var sel = this.domSelection(),
             range;
@@ -1427,8 +1432,9 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
     modifySelection: function(extendOrMove, direction, toWhere) {
         var sel = this.domSelection();
-        if (sel.anchorNode)
+        if (sel.anchorNode) {
             sel.modify(extendOrMove, direction, toWhere);
+        }
     },
 
     setSelectionRange: function(start, end) {
@@ -1473,7 +1479,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     getSelectionRange: function() {
-
         // FIXME this only works for textNodes that have the form
         // <div><span></text*></span*></div> or <div></text*></div>
         var parent = this.renderContext().textNode;
@@ -1545,23 +1550,27 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
 
     selectAll: function() {
-        if (this.textString.length > 0)
+        if (this.textString.length > 0) {
             this.setSelectionRange(0, this.textString.length);
-        else
+        } else {
             this.focus();
+        }
     },
+
     hasNullSelection: function() {
         var range = this.getSelectionRange();
         return range && range[0] === range[1]
     },
 
     setNullSelectionAt: function(idx) { this.setSelectionRange(idx, idx) },
+
     getSelectionBounds: function() {
         var r = this.getGlobalSelectionBounds(),
             world = this.world(),
-            transformed = world ? world.transformToMorph(this).transformRectToRect(r):r;
+            transformed = world ? world.transformToMorph(this).transformRectToRect(r) : r;
         return transformed;
     },
+
     getGlobalSelectionBounds: function() {
         var sel = this.domSelection();
         if (!sel) return new Rectangle(0,0,0,0);
@@ -1663,9 +1672,10 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         // for ScrollableTrait
         return this.renderContext().shapeNode
     },
+
     scrollSelectionIntoView: function() {
         this.scrollRectIntoView(this.getSelectionBounds(), true)
-    },
+    }
 },
 'evaluation', {
     evalSelection: function(printIt) {
@@ -1674,6 +1684,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (printIt) this.insertAtCursor(String(result), true);
         return result;
     },
+
     evalAll: function() {
         var str = this.textString,
             result = this.tryBoundEval(str);
@@ -1687,17 +1698,18 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return interactiveEval.call(ctx, str);
     },
     tryBoundEval: function(str) {
-        try { return this.boundEval(str) } catch(e) { this.showError(e) }
+        try { return this.boundEval(str) } catch(e) { this.showError(e); return null }
     },
 
-    getDoitContext: function() { return this.doitContext },
+    getDoitContext: function() { return this.doitContext }
 },
 'testing', {
     hasUnsavedChanges: function() {
         return false;
         // return this.savedTextString !== this.textString;
     },
-    isFocused: function() { return lively.morphic.Text.activeInstance() === this },
+
+    isFocused: function() { return lively.morphic.Text.activeInstance() === this }
 
 },
 'searching', {
@@ -1709,7 +1721,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         this.scrollSelectionIntoView();
         this.lastSearchString = str;
         this.lastFindLoc = i1;
-    },
+    }
 },
 'debugging', {
     showError: function (e, offset) {
@@ -1738,17 +1750,17 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (world)
             world.logError(e)
     },
+
     textNodeString: function() {
         var textNode = this.renderContext().textNode;
         if (!textNode) return 'textNode not yet accessible';
-        var isolatedTextNode = textNode.cloneNode(false/*no children*/)
-        var string = Exporter.stringify(isolatedTextNode);
-        var midIdx = string.indexOf('</div>');
-        var childrenString = $A(textNode.childNodes).collect(function(ea) { return '    ' + Exporter.stringify(ea) }).join('\n');
-        string = string.slice(0, midIdx) + '\n' + childrenString + '\n' + string.slice(midIdx)
+        var isolatedTextNode = textNode.cloneNode(false/*no children*/),
+            string = Exporter.stringify(isolatedTextNode),
+            midIdx = string.indexOf('</div>'),
+            childrenString = $A(textNode.childNodes).collect(function(ea) { return '    ' + Exporter.stringify(ea) }).join('\n');
+        string = string.slice(0, midIdx) + '\n' + childrenString + '\n' + string.slice(midIdx);
         return string;
-this. textNodeString()
-    },
+    }
 
 },
 'experimentation', {
@@ -1821,15 +1833,18 @@ this. textNodeString()
         }
         return [this.renderContext().textNode, 0];
     },
+
     setRichText: function(richText) {
         richText.applyToTextMorph(this);
         return richText;
     },
+
     getRichText: function() {
         var rt = new lively.morphic.RichText(this.textString);
         rt.setTextChunks(this.getTextChunks());
         return rt;
     },
+
     getRichTextFromTo: function(from, to) {
         var string = this.textString.slice(from, to),
             rt = new lively.morphic.RichText(string);
@@ -1843,6 +1858,7 @@ this. textNodeString()
             // this.textStyle = new lively.RunArray([this.textString.length], [new lively.TextEmphasis({})]);
         // return this.textStyle;
     },
+
     getRange: function(from, to) {
         var range = document.createRange(),
             startNodeAndIdx = this.getTextElementAndLocalIndexForGlobalIndex(from),
@@ -1851,17 +1867,15 @@ this. textNodeString()
         range.setEnd(endNodeAndIdx[0], endNodeAndIdx[1]);
         return range
     },
+
     getSelectionBounds: function() {
         // returns bounds of selection in world coordinates
-        var r = this.domSelection().getRangeAt(0).getBoundingClientRect()
-        var s = 1 / this.world().getScale();
-        if (!r) {
-            return undefined;
-        }
-
+        var r = this.domSelection().getRangeAt(0).getBoundingClientRect(),
+            s = 1 / this.world().getScale();
+        if (!r) { return undefined; }
         r = rect(pt(s * r.left , s * r.top), pt(s * r.right, s * r.bottom));
         return r.translatedBy($world.visibleBounds().topLeft());
-    },
+    }
 
 },
 'rich text', {
@@ -1946,6 +1960,7 @@ this. textNodeString()
             }, emph.uri);
         })
     },
+
     toggleDoit: function(from, to) {
         var world = this.world(), text = this;
         this.changeEmphasis(from, to, function(emph, doEmph) {
@@ -1959,6 +1974,7 @@ this. textNodeString()
             }, emph.doit && emph.doit.code);
         })
     },
+
     toggleFont: function(from, to) {
         var world = this.world(), text = this;
         this.changeEmphasis(from, to, function(emph, doEmph) {
@@ -2045,13 +2061,15 @@ this. textNodeString()
         var statusMorph = this._statusMorph;
         if (!statusMorph) {
             statusMorph = new lively.morphic.Text(pt(400,80).extentAsRectangle());
-            statusMorph.applyStyle({borderWidth: 0,
-                                    strokeOpacity: 0,
-                                    fill: Color.gray,
-                                    fontSize: 16,
-                                    fillOpacity: 1,
-                                    fixedWidth: false,
-                                    fixedHeight: false});
+            statusMorph.applyStyle({
+                borderWidth: 0,
+                strokeOpacity: 0,
+                fill: Color.gray,
+                fontSize: 16,
+                fillOpacity: 1,
+                fixedWidth: false,
+                fixedHeight: false
+            });
             statusMorph.isEpiMorph = true;
             this._statusMorph = statusMorph;
         }
@@ -2067,7 +2085,7 @@ this. textNodeString()
             statusMorph.centerAt(this.worldPoint(this.innerBounds().center()));
         };
         (function() { statusMorph.remove() }).delay(delay || 4);
-    },
+    }
 },
 'tab handling', {
     tab: Config.useSoftTabs ? '    ' : '\t',
@@ -2105,7 +2123,7 @@ this. textNodeString()
         var column = this.textString.substring(beginOfLine + 1, cursorPos);
         // alertOK("tab " + column.length)
         return  Strings.indent('', ' ', this.tab.length - column.length % this.tab.length )
-    },
+    }
 },
 'syntax highlighting', {
     highlightJavaScriptSyntax: function() {
@@ -2116,7 +2134,7 @@ this. textNodeString()
         require('lively.ide.SyntaxHighlighting').toRun(function() {
             text.syntaxHighlightingWhileTyping = true;
             connect(text, 'textString', text, 'highlightJavaScriptSyntax');
-            text.highlightJavaScriptSyntax()
+            text.highlightJavaScriptSyntax();
         })
     },
     disableSyntaxHighlighting: function() {
@@ -2134,10 +2152,7 @@ this. textNodeString()
     disableSyntaxHighlightingOnSave: function() {
         this.syntaxHighlightingOnSave = false;
         disconnect(this, 'savedTextString', this, 'highlightJavaScriptSyntax');
-    },
-    hasSelection: function() {
-        return this.domSelection() !== null;
-    },
+    }
 },
 'JavaScript support', {
     varDeclCleaner: function() {
@@ -2166,13 +2181,14 @@ Object.extend(lively.morphic.Text, {
         // returns the text that currently has a focus
         // set in onFocus and onBlur
         return this.prototype.activeInstance;
-    },
+    }
 });
+
 Object.subclass('lively.morphic.Text.ProtocolLister',
 'initializing', {
     initialize: function(textMorph) {
         this.textMorph = textMorph;
-    },
+    }
 },
 'interface', {
     evalSelectionAndOpenListForProtocol: function() {
@@ -2181,8 +2197,7 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
 
         var items = this.getListForProtocolOf(obj);
         lively.morphic.Menu.openAtHand(String(obj), items);
-    },
-
+    }
 },
 'accessing', {
 
@@ -2782,8 +2797,7 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     hasSelection: function() {
         // FIXME look for selection in chunk nodes?
         return false;
-    },
-
+    }
 });
 
 Object.subclass('lively.morphic.RichText2',

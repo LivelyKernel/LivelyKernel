@@ -153,10 +153,17 @@ Trait('TextChunkOwner',
 
     coalesceChunks: function () {
         // see comment in #sliceTextChunks
-        var chunk = this.firstTextChunk();
+        var chunk = this.firstTextChunk(), domChanged = false, last;
         while (chunk) {
-            chunk = chunk.tryJoinWithNext() ? chunk : chunk.next();
+            last = chunk;
+            if (chunk.tryJoinWithNext()) {
+                domChanged = true;
+            } else {
+                chunk = chunk.next();
+            }
         }
+        last.ensureEndsWithBr();
+        return domChanged;
     }
 },
 'garbage collection', {
@@ -166,6 +173,7 @@ Trait('TextChunkOwner',
             domChanged = false;
         domChanged = this.fixTextBeforeAndAfterChunks(chunks);
         domChanged = domChanged || this.removeNonChunkNodes(chunks);
+        chunks.last().ensureEndsWithBr();
         if (domChanged && selRange) {
             this.setSelectionRange(selRange[0], selRange[1]);
         }
@@ -1076,11 +1084,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
                 length = this.textString.length;
             if (range) {
                 endIdx = Math.max(range[0], range[1]);
-            }
-            // when at end insert a br alement if none is there
-            if (length == endIdx) {
-                var chunk = this.getTextChunks().last();
-                chunk.ensureEndsWithBr();
             }
             this.insertAtCursor('\n', false, true)
         }

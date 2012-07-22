@@ -49,6 +49,17 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTMLText.TextAttrib
         this.checkDOM([{tagName: 'span', textContent: 'He', style: {}},
                        {tagName: 'span', textContent: 'y J', style: {color: 'rgb(204,0,0)'}},
                        {tagName: 'span', textContent: 'oe!', style: {}}]);
+    },
+
+    test05MergingTextChunksEnsuresLastBr: function() {
+        this.text.textString = "Test";
+        var chunks = this.text.getTextChunks();
+        chunks.last().ensureEndsWithBr();
+        var lastNode = Array.from(chunks.last().getChunkNode().childNodes).last();
+        this.assertEquals('br', lastNode.tagName);
+        this.text.sliceTextChunks(0,2); this.text.coalesceChunks(); // slice'n fix
+        lastNode = Array.from(chunks.last().getChunkNode().childNodes).last();
+        this.assertEquals('br', lastNode.tagName);
     }
 });
 

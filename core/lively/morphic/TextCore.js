@@ -1335,21 +1335,22 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             // insert new node after current selection
             // after current selection depends on selection direction
             // either focusNode or anchorNode
-            if (selRange[0] < selRange[1])
+            if (selRange[0] < selRange[1]) {
                 range.setStart(sel.focusNode, sel.focusOffset);
-            else
+            } else {
                 range.setStart(sel.anchorNode, sel.anchorOffset);
+            }
         }
         range.insertNode(node);
         sel.removeAllRanges();
 
-        range = document.createRange()
+        range = document.createRange();
 
         if (selectIt) {
-            range.selectNode(node)
+            range.selectNode(node);
         } else { // no real selection but set cursor, FIXME use setCursor or something
-            range.setStartAfter(node)
-            range.setEndAfter(node)
+            range.setStartAfter(node);
+            range.setEndAfter(node);
         }
 
         sel.addRange(range);
@@ -1357,8 +1358,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         // string has changed, removed cached version
         this.cachedTextString = null;
 
-        // inconsistent nodes could have been added...
-        this.fixChunks()
+        // inconsistent nodes could have been added, so clean up
+        this.fixChunks();
     },
 
     insertTextChunksAtCursor: function(newChunks, selectIt, overwriteSelection) {
@@ -2793,7 +2794,7 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     },
     getTextNode: function() {
         return this.firstTextChunk().getChunkNode().parentNode
-    },
+    }
 
 },
 'text morph application', {

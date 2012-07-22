@@ -27,12 +27,17 @@ Trait('TextChunkOwner',
 
     setTextChunksFromTo: function() {},
 
-    getChunkRanges: function() {
-        // only used for debugging
-        var offset = 0;
-        return this.textChunks.collect(function(chunk) {
-            return [offset, offset += chunk.textString.length];
-        });
+    firstTextChunk: function() { return this.getTextChunks()[0]; },
+
+    getChunkRanges: function(chunks) {
+        chunks = chunks || this.getTextChunks();
+        var from = 0, len = chunks.length, result = new Array(chunks.length);
+        for (var i = 0; i < len; i++) {
+            var to = from + chunks[i].textString.length;
+            result[i] = [from, to];
+            from = to;
+        }
+        return result;
     },
 
     getChunkStyles: function() {

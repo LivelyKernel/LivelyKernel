@@ -2352,9 +2352,9 @@ Object.subclass('lively.morphic.TextChunk',
     }
 },
 'splitting', {
-    splitAfter: function(localIdx) { return this.split(localIdx, true) },
-    splitBefore: function(localIdx) { return this.split(localIdx, false) },
-    split: function(localIdx, returnRight) {
+    splitAfter: function(localIdx, optChunkRanges) { return this.split(localIdx, true, optChunkRanges) },
+    splitBefore: function(localIdx, optChunkRanges) { return this.split(localIdx, false, optChunkRanges) },
+    split: function(localIdx, returnRight, optChunkRanges) {
         // make two chunks out of me
         // 1. remove text from localIdx to textString.length
         // 2. let morph add my new neighbour
@@ -2392,6 +2392,16 @@ Object.subclass('lively.morphic.TextChunk',
         // add new chunk in chunk collection of morph
         chunks.splice(chunkIdx+1, 0, newChunk);
         newChunk.addTo(this.chunkOwner, next);
+
+        // if we pass in an array of intervals that represents the chunk ranges
+        // we update that here, too, in order to keep them up-to-date and
+        // reusable elsewhere
+        if (optChunkRanges) {
+            var rangeToFix = optChunkRanges[chunkIdx],
+                splitIndex = rangeToFix[0] + myString.length;
+            optChunkRanges.splice(chunkIdx, 1,
+                      [rangeToFix[0], splitIndex], [splitIndex, rangeToFix[1]]);
+        }
 
         return returnRight ? newChunk : this;
     },

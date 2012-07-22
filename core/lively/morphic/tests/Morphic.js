@@ -619,10 +619,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.checkDOM([{tagName: 'span', textContent: 'foo'}])
     },
 
-    test03SplitAndJoinTextChunks: function() {
+    test03aSplitAndJoinTextChunks: function() {
         this.text.setTextString('eintest');
-        var chunk = this.text.firstTextChunk();
-        var after = chunk.splitAfter(3);
+        var chunk = this.text.firstTextChunk(),
+            after = chunk.splitAfter(3);
         this.assertEquals('test', after.textString, 'after string');
         this.assertEquals('ein', chunk.textString, 'chunk string');
         this.assertEquals(2, this.text.getTextChunks().length);
@@ -673,6 +673,15 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         var before = this.text.firstTextChunk().splitBefore(0);
         this.assertEquals('', before.textString, 'splitBefore');
         this.assertEquals(3, this.text.getTextChunks().length);
+    },
+
+    test03cSplitCanFixRanges: function() {
+        this.text.setTextString('hello');
+        var rangesBefore = this.text.getChunkRanges();
+        this.text.firstTextChunk().splitAfter(1, rangesBefore);
+        var rangesAfter = this.text.getChunkRanges();
+        this.assertEqualState(rangesAfter, rangesBefore);
+        this.assertEqualState([[0,1], [1,5]], rangesBefore);
     },
 
     test03cSplittedChunkGetsStyle: function() {

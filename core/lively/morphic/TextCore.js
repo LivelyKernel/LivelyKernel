@@ -13,8 +13,9 @@ Trait('TextChunkOwner',
         return c;
     },
     getTextChunks: function() {
-        if (!this.textChunks || this.textChunks.length === 0)
+        if (!this.textChunks || this.textChunks.length === 0) {
             this.textChunks = [this.createChunk()];
+        }
         return this.textChunks;
     },
     setTextChunks: function(chunks) {
@@ -23,10 +24,8 @@ Trait('TextChunkOwner',
         this.textChunks = chunks;
         this.cachedTextString = null;
     },
+
     setTextChunksFromTo: function() {},
-    firstTextChunk: function() {
-        return this.getTextChunks()[0];
-    },
 
     getChunkRanges: function() {
         // only used for debugging
@@ -55,23 +54,23 @@ Trait('TextChunkOwner',
     }
 },
 'chunk computations', {
-    getChunkAndLocalIndex: function(idx, useChunkStart) {
+
+    getChunkAndLocalIndex: function(idx, useChunkStart, optRanges) {
         // when useChunkStart = false and a chunk ends at idx then we return that
         // when useChunkStart = true then we return the next chunk if there is one
         // if chunk ranges are [[0, 1], [1, 3], [3, 6]]
         // useChunkStart == false, idx == 1 returns [chunk[0],1]
         // useChunkStart == false, idx == 2 returns [chunk[1],1]
         // useChunkStart == true, idx == 1 returns [chunk[1],0]
-        var from = 0, chunks = this.getTextChunks();
-        for (var i = 0, len = chunks.length; i < len; i++) {
-            var to = from + chunks[i].textString.length;
+        var chunks = this.getTextChunks(), ranges = optRanges || this.getChunkRanges(chunks);
+        for (var i = 0, len = ranges.length; i < len; i++) {
+            var from = ranges[i][0],
+                to = ranges[i][1];
             if (useChunkStart) {
                 if (idx < to || (from === to && from === idx)) return [chunks[i], idx-from];
-                // if (idx < to) return [chunks[i], idx-from];
             } else {
                 if (idx <= to) return [chunks[i], idx-from];
             }
-            from = to;
         }
         return null;
     },

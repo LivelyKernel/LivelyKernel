@@ -469,7 +469,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         this.assert(m.getExtent().x < 100, 'did not shrink to fit text');
     },
 
-
     test05SetSelectionRange: function() {
         var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20));
         this.world.addMorph(m);
@@ -581,6 +580,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
         m.setInputAllowed(false);
         this.assert(!m.inputAllowed(), 'setInputAllowed not working');
     },
+
     test12CleanVarDeclaration: function() {
         var text = new lively.morphic.Text(),
             cleaner = text.varDeclCleaner(),
@@ -589,7 +589,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphTests',
             result = [cleaner(lines[0], 0, lines), cleaner(lines[1], 1, lines)];
         this.assertEqualState(expected, result);
 
-    },
+    }
 
 });
 
@@ -872,16 +872,16 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         expected.forEach(function(expectedFontWeight, i) {
             var emph = this.text.getEmphasisAt(i)
             this.assertEquals(expectedFontWeight, emph.getFontWeight(), i);
-        },this)
+        }, this);
     },
 
-    test15GetChunkAndLocalIndex: function() {
+    test15aGetChunkAndLocalIndex: function() {
         this.text.setTextString('abcdef');
         this.text.sliceTextChunks(1,3);
         this.checkDOM([
             {tagName: 'span', textContent: 'a'},
             {tagName: 'span', textContent: 'bc'},
-            {tagName: 'span', textContent: 'def'},
+            {tagName: 'span', textContent: 'def'}
         ]);
 
         var chunks = this.text.getTextChunks(), result;
@@ -899,6 +899,34 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
         this.assertEquals(1, result[1])
 
         result = this.text.getChunkAndLocalIndex(1, true);
+        this.assertEquals(chunks[1], result[0])
+        this.assertEquals(0, result[1])
+    },
+
+    test15bGetChunkAndLocalIndexWithExisitingRanges: function() {
+        this.text.setTextString('abcdef');
+        this.text.sliceTextChunks(1,3);
+        this.checkDOM([
+            {tagName: 'span', textContent: 'a'},
+            {tagName: 'span', textContent: 'bc'},
+            {tagName: 'span', textContent: 'def'}
+        ]);
+        var ranges = this.text.getChunkRanges(), chunks = this.text.getTextChunks(), result;
+
+        result = this.text.getChunkAndLocalIndex(0, false, ranges);
+        this.assertEquals(chunks[0], result[0]); // test for chunk
+        this.assertEquals(0, result[1]); // test for local index
+
+        // if chunks ends at idx we extend it
+        result = this.text.getChunkAndLocalIndex(1, false, ranges);
+        this.assertEquals(chunks[0], result[0])
+        this.assertEquals(1, result[1])
+
+        result = this.text.getChunkAndLocalIndex(2, false, ranges);
+        this.assertEquals(chunks[1], result[0])
+        this.assertEquals(1, result[1])
+
+        result = this.text.getChunkAndLocalIndex(1, true, ranges);
         this.assertEquals(chunks[1], result[0])
         this.assertEquals(0, result[1])
     },
@@ -1165,7 +1193,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextMorphRichText
             [{textString: 'so'},
             {textString: 'me more', style: {fontWeight: 'bold'}},
             {textString: ' text'}]);
-    },
+    }
 
 });
 
@@ -1232,7 +1260,7 @@ lively.morphic.tests.TextMorphRichTextTests.subclass('lively.morphic.tests.RichT
         var rt = this.text.getRichText(),
             copy = lively.persistence.Serializer.newMorphicCopy(rt);
         this.assertEquals('test', copy.textString);
-    },
+    }
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.RichText2Tests',

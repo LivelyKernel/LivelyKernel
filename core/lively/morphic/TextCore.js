@@ -1881,11 +1881,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 },
 'rich text', {
     emphasize: function(styleSpec, from, to) {
-        var chunks = this.sliceTextChunks(from, to);
-        for (var i = 0; i < chunks.length; i++) {
-            chunks[i].styleText(styleSpec);
-        }
-        this.coalesceChunks();
+        return this.emphasizeRanges([[from, to, styleSpec]]);
     },
 
     emphasizeRanges: function(rangesAndStyles) {

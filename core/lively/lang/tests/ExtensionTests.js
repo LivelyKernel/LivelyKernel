@@ -221,11 +221,26 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.IntervallTest', {
                 1, 5, [[-4,0, 'y'], [0, 2, 'x']],
                 function(interval, isNew) { interval.push(isNew); return interval; }),
             "slice interval in front");
+    },
 
-        // this.assertEqualState(
-        //     [[0,3], [3,5]],
-        //     Interval.withIntervalsInbetween(0, 5, [[3,6]]));
+    testFindMatchingIntervalsDo: function() {
+        var existingIntervals = [[1,4], [4,5], [5,8], [9,20]];
+        var test = this, testTable = [
+            {expected: [[0]],               input: [[1,4]]},
+            {expected: [[0], [0]],          input: [[1,4], [1,4]]},
+            {expected: [[]],                input: [[2,4]]},
+            {expected: [[]],                input: [[4,6]]},
+            {expected: [[1,2], [2,3], []],  input: [[4,8], [5,20], [10,20]]}
+        ]
+
+        testTable.forEach(function(ea) {
+            test.assertEqualState(
+                ea.expected,
+                Interval.mapToMatchingIndexes(existingIntervals, ea.input),
+                'On input: ' + Strings.print(ea.input));
+        });
     }
+
 });
 
 }) // end of module

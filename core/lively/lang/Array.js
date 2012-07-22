@@ -574,6 +574,40 @@ var Interval = {
         // return result;
     },
 
+    mapToMatchingIndexes:  function(intervals, intervalsToFind) {
+        // returns an array of indexes of the items in intervals that match
+        // items in intervalsToFind
+        // Note: we expect intervals and intervals to be sorted according to Interval.compare!
+        // This is the optimized version of:
+        // return intervalsToFind.collect(function findOne(toFind) {
+        //     var startIdx, endIdx;
+        //     var start = intervals.detect(function(ea, i) { startIdx = i; return ea[0] === toFind[0]; });
+        //     if (start === undefined) return [];
+        //     var end = intervals.detect(function(ea, i) { endIdx = i; return ea[1] === toFind[1]; });
+        //     if (end === undefined) return [];
+        //     return Array.range(startIdx, endIdx);
+        // });
+
+        var startIntervalIndex = 0, endIntervalIndex, currentInterval;
+        return intervalsToFind.collect(function(toFind) {
+            while ((currentInterval = intervals[startIntervalIndex])) {
+                if (currentInterval[0] < toFind[0]) { startIntervalIndex++; continue };
+                break;
+            }
+            if (currentInterval && currentInterval[0] === toFind[0]) {
+                endIntervalIndex = startIntervalIndex;
+                while ((currentInterval = intervals[endIntervalIndex])) {
+                    if (currentInterval[1] < toFind[1]) { endIntervalIndex++; continue };
+                    break;
+                }
+                if (currentInterval && currentInterval[1] === toFind[1]) {
+                    return Array.range(startIntervalIndex, endIntervalIndex);
+                }
+            }
+            return [];
+        });
+    },
+
     benchmark: function() {
         // Used for developing the code above. If you change the code, please
         // make sure that you don't worsen the performance!
@@ -585,14 +619,17 @@ var Interval = {
                 Functions.timeToRunN(function() { Interval[name].apply(Interval, args, 100000) }, n));
         }
         return [
-            "Friday, 20. July 2012:\n mergeOverlapping: 0.00032ms\nintervalsInbetween: 0.00231ms",
+            "Friday, 20. July 2012:",
+            "mergeOverlapping: 0.0003ms",
+            "intervalsInbetween: 0.002ms",
+            "mapToMatchingIndexes: 0.02ms",
             'vs.\n' + new Date() + ":",
             benchmarkFunc("mergeOverlapping", [[[9,10], [1,8], [3, 7], [15, 20], [14, 21]]], 100000),
-            benchmarkFunc("intervalsInbetween", [0, 10, [[8, 10], [0, 2], [3, 5]]], 100000)
+            benchmarkFunc("intervalsInbetween", [0, 10, [[8, 10], [0, 2], [3, 5]]], 100000),
+            benchmarkFunc("mapToMatchingIndexes", [Array.range(0, 1000).collect(function(n) { return [n, n+1] }), [[4,8], [500,504], [900,1004]]], 1000)
         ].join('\n');
     }
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Global

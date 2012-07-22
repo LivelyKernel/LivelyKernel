@@ -1460,9 +1460,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (startBoundaryPoint === undefined) startBoundaryPoint = endBoundaryPoint;
         if (endBoundaryPoint === undefined) endBoundaryPoint = startBoundaryPoint;
 
-        // alert('selecting ' + startBoundaryPoint[0].textContent + '[' + startBoundaryPoint[1] + ']-'
-        // + endBoundaryPoint[0].textContent + '[' + endBoundaryPoint[1] + ']')
-
         if (sel.setBaseAndExtent) {
             // setBaseAndExtent supports right-to-left selections (at least in Chrome...)
             sel.setBaseAndExtent(
@@ -1822,9 +1819,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     getTextElementAndLocalIndexForGlobalIndex: function(idx) {
-        // returns a subnode and the index in the subnode that responds to the global index
-        // of the whole text
-        // the index used for lookup is sanitized
+        // returns a subnode and the index in the subnode that responds to the
+        // global index of the whole text the index used for lookup is sanitized
         // example: subnodes: <text>foo</text><text>bar</text>, idx: 5
         // would return [<text>bar</text>, 2] (local idx between a and r)
         idx = Math.max(0, Math.min(idx, this.textString.length));

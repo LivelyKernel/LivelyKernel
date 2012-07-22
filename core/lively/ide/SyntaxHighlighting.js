@@ -195,16 +195,15 @@ lively.morphic.Text.addMethods(
                 var chunksToStyle = target.sliceTextChunks(rule[0], rule[1], ranges);
                 chunksToStyle.forEach(function(ea) { ea.styleText(rule[2]) });
             });
-            // this.coalesceChunks();
         }
-        return leftOversExist;
+        var domChanged = this.coalesceChunks() || leftOversExist;
+        return domChanged;
     },
 
     highlightSyntaxFromTo: function(from, to, highlighterRules) {
         var selRange = this.getSelectionRange(),
             scroll = this.getScroll(),
             domTreeChanged = this.applyHighlighterRules(this, highlighterRules);
-        console.log(selRange);
         selRange && this.setSelectionRange(selRange[0], selRange[1]);
         scroll && this.setScroll(scroll[0], scroll[1]);
     },

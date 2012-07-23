@@ -330,6 +330,7 @@ lively.morphic.TextEditor.addMethods(
 
 lively.morphic.Script.addMethods(
 'serialization', {
+    doNotSerialize: ['currentTimeout'],
     onstore: function(copy) {},
     onrestore: function() {
         this.suspended = true; // resume is triggered from morph

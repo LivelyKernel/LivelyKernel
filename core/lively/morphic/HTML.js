@@ -9,7 +9,7 @@ Trait('LinearGradientCSSTrait',
 'HTML rendering', {
     toCSSStringFirefoxAndOpera: function(bounds, cssPrefix) {
         var str = Strings.format(cssPrefix + 'linear-gradient(%sdeg',
-            this.vector.bottomRight().subPt(this.vector.topLeft()).theta().toDegrees());
+            this.vector.topLeft().subPt(this.vector.bottomRight()).theta().toDegrees());
         for (var i = 0; i < this.stops.length; i++)
             str += ', ' + this.stops[i].color + ' ' + (this.stops[i].offset*100) + '%'
         str += ')';

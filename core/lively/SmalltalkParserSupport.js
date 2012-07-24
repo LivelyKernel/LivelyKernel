@@ -1076,6 +1076,12 @@ Array.addMethods({
 Function.addMethods({
   value: function(/*args*/) {
     return this.apply(Global, arguments);
+  },
+  valuevalue: function(arg1, arg2) {
+      return this.value(arg1, arg2);
+  },
+  valuevaluevalue: function(arg1, arg2, arg3) {
+      return this.value(arg1, arg2, arg3);
   }
 });
 Object.extend(Global, {

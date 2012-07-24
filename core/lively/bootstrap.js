@@ -268,231 +268,6 @@ var LoadingScreen = {
     }
 };
 
-
-function addBrowserPatches() {
-    // add support for commonly used JS methods in all browsers
-
-    var isIE = window.navigator && window.navigator.userAgent.indexOf("MSIE") > -1;
-    if (isIE) {
-        // enable IE9 mode
-        var meta = document.createElement('meta')
-        meta.setAttribute('http-equiv', "X-UA-Compatible")
-        meta.setAttribute('content', "IE=9")
-        document.getElementsByTagName('head')[0].appendChild(meta);
-    }
-
-    (function patchJS() {
-        // ES 3.1 proposed static functions
-        // according to rationale_for_es3_1_static_object_methodsaug26.pdf on wiki.ecmascript.org
-        // implementation uses __defineGetter__/__proto__ logic
-
-        if (!Object.hasOwnProperty('defineProperty') && !Object.prototype.hasOwnProperty('defineProperty')) {
-            Object.defineProperty = function(object, property, descriptor) {
-                if (typeof descriptor  !== 'object') throw new TypeError();
-                if (descriptor.value) {
-                    object[String(property)] = descriptor.value;
-                } else {
-                    if (descriptor.getter)
-                    object.__defineGetter__(property, descriptor.getter);
-                    if (descriptor.setter)
-                    object.__defineSetter__(property, descriptor.setter);
-                }
-                return object;
-            };
-        }
-
-        Object.defineProperties = function(object, descriptorSet) {
-            for (var name in descriptorSet) {
-                     if (!descriptorSet.hasOwnProperty(name)) continue;
-                Object.defineProperty(object, name, descriptorSet[name]);
-            }
-            return object;
-        }
-
-        if (!Object.hasOwnProperty('getOwnPropertyDescriptor') && !Object.prototype.hasOwnProperty('getOwnPropertyDescriptor')) {
-            Object.defineProperties(Object, {
-                getOwnPropertyDescriptor: {
-                    value: function(object, name) {
-                        // FIXME? use $schema?
-                        var descriptor = { enumerable: true, writable: true, flexible: true};
-                        var getter = object.__lookupGetter__(name);
-                        var setter = object.__lookupSetter__(name);
-                        if (getter || setter) {
-                            descriptor.getter = getter;
-                            descriptor.setter = setter;
-                        } else {
-                            descriptor.value = object[name];
-                        }
-                        return descriptor;
-                    }
-                }
-            });
-        }
-
-        if (!Object.hasOwnProperty('__lookupGetter__') && !Object.prototype.hasOwnProperty('__lookupGetter__')) {
-            Object.defineProperties(Object.prototype, {
-                '__lookupGetter__': {
-                    enumerable: false,
-                    value: function(prop) {
-                        var propDef = Object.getOwnPropertyDescriptor(this, prop);
-                        var protoPropDef = Object.getOwnPropertyDescriptor(this.constructor['prototype'], prop);
-                        if (propDef)
-                        return propDef.get;
-                        else if (protoPropDef)
-                        return protoPropDef.get;
-                        else
-                        return;
-                    }
-                }
-            });
-        }
-
-        if (!Object.hasOwnProperty('__lookupSetter__') && !Object.prototype.hasOwnProperty('__lookupSetter__')) {
-            Object.defineProperties(Object.prototype, {
-                '__lookupSetter__': {
-                    enumerable: false,
-                    value: function(prop) {
-                        var propDef = Object.getOwnPropertyDescriptor(this, prop);
-                        var protoPropDef = Object.getOwnPropertyDescriptor(this.constructor['prototype'], prop);
-                        if (propDef)
-                        return propDef.set;
-                        else if (protoPropDef)
-                        return protoPropDef.set;
-                        else
-                            return;
-                    }
-                }
-            });
-        }
-
-        if (!Object.hasOwnProperty('__defineGetter__') && !Object.prototype.hasOwnProperty('__defineGetter__')) {
-            Object.defineProperties(Object.prototype, {
-                '__defineGetter__': {
-                    enumerable: false,
-                    value: function(prop, func) {
-                        if (!this.hasOwnProperty(prop)) this[prop] = undefined;
-                        Object.defineProperty(this, prop, { get: func });
-                    }
-                }
-            });
-        }
-
-        if (!Object.hasOwnProperty('__defineSetter__') && !Object.prototype.hasOwnProperty('__defineSetter__')) {
-            Object.defineProperties(Object.prototype, {
-                '__defineSetter__': {
-                    enumerable: false,
-                    value: function(prop, func) {
-                        if (!this.hasOwnProperty(prop)) this[prop] = undefined;
-                        Object.defineProperty(this, prop, { set: func });
-                    }
-                }
-            });
-        }
-
-        Object.defineProperties(Object, {
-            create: {
-                value: function(proto, descriptorSet) { //descriptor can be undefined
-                    var object = {};
-                    object.__proto__ = proto;
-                    Object.defineProperties(object, descriptorSet);
-                    return object;
-                }
-            },
-
-            keys: {
-                value: function(object, optFast) {
-                    if (typeof object !== 'object') throw new TypeError('not an object');
-                    var names = []; // check behavior wrt arrays
-                    for (var name in object) {
-                        if (object.hasOwnProperty(name))
-                        names.push(name);
-                    }
-                    if (!optFast) names.sort();
-                    return names;
-                }
-            },
-
-            getOwnPropertyNames: {
-                value: function(object) {
-                    // would be different from keys if we could access non-enumerable properties
-                    return Object.keys(object);
-                }
-            },
-
-            getPrototypeOf: {
-                value: function(object) {
-                    if (typeof object !== 'object') throw new TypeError('type ' + (typeof object) + ' does not have a prototype');
-                    return object.__proto__;
-                }
-            },
-
-            seal: {
-                value: function(object) {
-                    // prevent adding and removing properties
-                    // in rhino only see use org.mozilla.javascript.tools.shell.Global.seal
-                    // not implementable yet
-                    return object;
-                }
-            },
-
-            freeze: {
-                value: function(object) {
-                    // like seal, but properties are read-only now
-                    // not implementable yet
-                    return object;
-                }
-            }
-        });
-
-        Object.defineProperties(Function.prototype, {
-            bind: {
-                value: function(self, var_args) {
-                    var thisFunc = this;
-                    if (arguments.length === 0) {
-                        return function() {
-                            return thisFunc.apply(self, arguments);
-                        }
-                    }
-                    var leftArgs = Array.prototype.slice.call(arguments, 1);
-                    return function(var_args) {
-                        var args = leftArgs.concat(Array.prototype.slice.call(arguments, 0));
-                        return thisFunc.apply(self, args);
-                    };
-                }
-            },
-
-            // FIXME redefining,
-            bind: {
-                value: function bind() {
-                    function cdr(iterable) {
-                        var length = iterable.length, results = new Array(length - 1);
-                        while (length--) results[length - 1] = iterable[length];
-                        return results;
-                    }
-                    // this is almost the prototype.js definition
-                    if (arguments.length < 2 && arguments[0] === undefined) return this;
-                    var __method = this, args = cdr(arguments), object = arguments[0],
-                    wrappedFunc = function bound() {
-                        return __method.apply(object, args.concat($A(arguments)));
-                    }
-                    wrappedFunc.isWrapper = true;
-                    wrappedFunc.originalFunction = __method;
-                    return wrappedFunc;
-                }
-            }
-        });
-    })();
-
-    if (isIE) {
-        // support for func.name
-        Function.prototype.__defineGetter__('name', function() {
-            var source = String(this);
-            return source.split(/[\s\(]/g)[1];
-        })
-    }
-}
-
-
 var JSLoader = {
 
     SVGNamespace: 'http:\/\/www.w3.org/2000/svg',
@@ -619,7 +394,7 @@ var JSLoader = {
                 // Filter out the modules already loaded
                 var realModules = combinedLoader.expectedModules.select(function(ea) {
                     // FIXME, better now throw error in Class.forName
-                    return !ea.include('jquery') && Class.forName(ea) !== undefined;
+                    return !ea.include('lively-libs') && Class.forName(ea) !== undefined;
                 });
                 require(realModules).toRun(callback);
 
@@ -767,7 +542,7 @@ var LivelyLoader = {
     //
     // ------- generic load support ----------
     //
-    jqueryPath: 'lib/jquery-1_7_1.js',
+    libsFile: 'lib/lively-libs.js',
 
     codeBase: (function findCodeBase() {
         // search for script that links to "bootstrap.js" and
@@ -910,7 +685,7 @@ var LivelyLoader = {
         }
 
         var modules = [
-            this.jqueryPath,
+            this.libsFile,
             'lively/Migration.js',
             'lively/JSON.js',
             'lively/lang/Object.js',
@@ -1070,8 +845,6 @@ var LivelyMigrationSupport = {
 
 
 (function startWorld(startupFunc) {
-    addBrowserPatches();
-
     window.addEventListener('DOMContentLoaded', function() {
         LivelyMigrationSupport.setDocumentMigrationLevel(document);
         if (LivelyLoader.startFromSerializedWorld(startupFunc)) return;

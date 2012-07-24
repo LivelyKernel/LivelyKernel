@@ -97,6 +97,12 @@ Object.extend(Object, {
         return typeof object == "object";
     },
 
+    isEmpty: function(object) {
+        for (var key in object)
+            if (object.hasOwnProperty(key)) return false;
+        return true;
+    },
+
     inherit: function(obj) {
         var constructor = function ProtoConstructor() { return this }
         constructor.prototype = obj;
@@ -148,10 +154,20 @@ Object.extend(Object, {
         return protoObj;
     },
 
-	addScript: function (object, funcOrString, optName) {
-		var func = Function.fromString(funcOrString);
-		return func.asScriptOf(object, optName);
-	}
+    addScript: function (object, funcOrString, optName) {
+        var func = Function.fromString(funcOrString);
+        return func.asScriptOf(object, optName);
+    },
+
+    deepCopy: function (obj) {
+        if (!obj || !Object.isObject(obj)) return obj;
+        var result = Array.isArray(obj) ? Array(obj.length) : {};
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key))
+                result[key] = Object.deepCopy(obj[key]);
+        }
+        return result;
+    }
 });
 
 

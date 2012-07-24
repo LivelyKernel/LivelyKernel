@@ -200,7 +200,6 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
         });
     },
     applyHighlighterRules: function(target, highlighterRules) {
-        console.log("I am here");
         cop.proceed(target, highlighterRules);
         if (this.specialHighlighting == "none") return;
         try {

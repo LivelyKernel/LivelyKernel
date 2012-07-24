@@ -1042,8 +1042,10 @@ Object.extend(Namespace, {
 
     bootstrapModules: function() {
         // return a string to include in bootstrap.js
-        var urls = this.topologicalSortLoadedModules().collect(function(ea) {
-            return new URL(ea.uri()).relativePathFrom(URL.codeBase) });
+        var urls = this.topologicalSortLoadedModules()
+            .collect(function(ea) { return new URL(ea.uri()).relativePathFrom(URL.codeBase) })
+            // omit modules outside of core
+            .reject(function(path) { return path.startsWith('..') });
         var manual = [LivelyLoader.libsFile,
             'lively/Migration.js',
             'lively/JSON.js',

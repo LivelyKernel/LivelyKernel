@@ -1053,12 +1053,10 @@ lively.morphic.Text.addMethods({
    ======= World support ======
    ============================ */
 Object.addMethods({
-  getVar: function(name) {
-    return this[name];
-  },
-  setVarvalue: function(name, value) {
-    return this[name] = value;
-  },
+    at: function(name) { return this[name]; },
+    atput: function(name, val) { return this[name] = val; },
+    getVar: function(name) { return this.at(name); },
+    setVarvalue: function(name, value) { return this.atput(name, value); }
 });
 Morph.addMethods({
   getSubmorphs: function() {

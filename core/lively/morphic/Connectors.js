@@ -2,17 +2,11 @@ module('lively.morphic.Connectors').requires('lively.morphic.AdditionalMorphs', 
 
 // also includes visual bindings stuff...
 
-lively.morphic.Morph.addMethods(
-'serialization', {
-    // the serialization of magnets is important
-    // doNotSerialize: lively.morphic.Morph.prototype.doNotSerialize.concat(['magnets'])
-});
-
 lively.morphic.Box.subclass('lively.morphic.MagnetHalo',
 'settings', {
     style: {borderWidth: 0, fill: Color.orange, enableDragging: true},
     defaultExtent: pt(12,12),
-    isMagnetHalo: true,
+    isMagnetHalo: true
 },
 'initializing', {
     initialize: function($super) {
@@ -580,33 +574,35 @@ lively.morphic.Box.subclass('lively.morph.ConnectionBuilder',
         menu.push(['Cancel', function() {}]);
         return menu;
     },
+
     createConnectFuncFor: function(targetMorph) {
         var builder = this;
         return (function(propertyName) {
-                var con = lively.bindings.visualConnect(
-                    builder.sourceMorph, builder.connectionPointSourceName,
-                    targetMorph, propertyName);
-                });
-    },
+            var con = lively.bindings.visualConnect(
+                builder.sourceMorph, builder.connectionPointSourceName,
+                targetMorph, propertyName);
+        });
+    }
 
 });
 
 lively.morphic.Path.addMethods({
     showControlPointsHalos: function() {
-        if (!this.world()) return;
+        if (!this.world()) return false;
         if (this.halos && this.halos.length > 0) {
             this.world().showHalosFor(this, this.halos.select(function(ea) {
                 return ea instanceof lively.morphic.PathVertexControlPointHalo
             }));
             this.halos.invoke('alignAtTarget');
-            return true
+            return true;
         }
+        return false;
         // For now, let's display Control Points only when halos are on --
         //   there are some problems with CP alignment when they are off.
         //this.halos = this.getControlPointHalos();
         //this.world().showHalosFor(this, this.halos);
         //this.halos.invoke('alignAtTarget');
-    },
+    }
 });
 
 }) // end of module

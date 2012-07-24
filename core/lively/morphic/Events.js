@@ -1464,7 +1464,6 @@ lively.morphic.World.addMethods(
             // "that" construct from Antero Taivalsaari's Lively Qt
             Global.that = this.clickedOnMorph;
             alertOK('that = ' + Global.that);
-            // return true;
         }
 
         evt.hand.removeOpenMenu(evt);
@@ -2019,7 +2018,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
                 carriedMorph.destroyPlaceholder();
             }
         }
-    },
+    }
 });
 
 Object.extend(lively.morphic.Events, {

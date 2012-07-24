@@ -254,6 +254,11 @@ Object.subclass('lively.Main.Loader',
                 + '  outline: 2px auto ' + (UserAgent.webKitVersion ? '-webkit-focus-ring-color' : 'blue') + ';\n'
                 + '}\n';
         XHTMLNS.addCSSDef(cssDef);
+
+        // disable Firefox spellchecking
+        if (UserAgent.fireFoxVersion) {
+            document.body.spellcheck = false;
+        }
     },
 
     canvasHeightPatch: function(canvas) {

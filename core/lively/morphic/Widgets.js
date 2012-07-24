@@ -2336,11 +2336,11 @@ Object.subclass('lively.morphic.App',
 
 lively.morphic.App.subclass('lively.morphic.AbstractDialog',
 'documentation', {
-    connections: ['result'],
+    connections: ['result']
 },
 'properties', {
     initialViewExtent: pt(300, 90),
-    inset: 4,
+    inset: 4
 },
 'initializing', {
     initialize: function(message, callback) {
@@ -2348,6 +2348,7 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
         this.message = message || '?';
         if (callback) this.setCallback(callback);
     },
+
     buildPanel: function(bounds) {
         this.panel = new lively.morphic.Box(bounds);
         this.panel.applyStyle({
@@ -2355,25 +2356,35 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
             borderColor: Color.gray.darker(),
             borderWidth: 1,
             adjustForNewBounds: true, // layouting
-            lock: true,
+            enableGrabbing: false,
+            enableDragging: false,
+            lock: true
         });
-        this.panel.disableDragging();
-        this.panel.disableGrabbing();
     },
+
     buildLabel: function() {
-        var bounds = new Rectangle(this.inset, this.inset, this.panel.getExtent().x - 2*this.inset, 18);
-        this.label = this.panel.addMorph(new lively.morphic.Text(bounds, this.message));
-        this.label.beLabel({fill: Color.white, fixedHeight: true, fixedWidth: false, padding: Rectangle.inset(0,0)});
-        // FIXME ugly hack for wide dialogs
+        var bounds = new Rectangle(this.inset, this.inset,
+                                   this.panel.getExtent().x - 2*this.inset, 18);
+        this.label = new lively.morphic.Text(bounds, this.message).beLabel({
+            fill: Color.white,
+            fixedHeight: true,
+            fixedWidth: false,
+            padding: Rectangle.inset(0,0),
+            enableGrabbing: false,
+            enableDragging: false
+        });
+        this.panel.addMorph(this.label);
+
+        // FIXME ugly hack for wide dialogs:
+        // wait until dialog opens and text is rendered so that we can
+        // determine its extent
         (function fit() {
             this.label.fit();
             var labelWidth = this.label.getExtent().x, panelExtent = this.panel.getExtent();
             if (labelWidth > panelExtent.x) {
-                this.panel.setExtent(panelExtent.withX(labelWidth));
+                this.panel.setExtent(panelExtent.withX(labelWidth + 2*this.inset));
             }
         }).bind(this).delay(0);
-        this.label.disableDragging();
-        this.label.disableGrabbing();
     },
     buildCancelButton: function() {
         var bounds = new Rectangle(0,0, 60, 30),

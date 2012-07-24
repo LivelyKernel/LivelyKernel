@@ -14,9 +14,9 @@ Object.extend(Function.prototype, {
     curry: function() {
         if (!arguments.length) return this;
         var __method = this,
-            args = $A(arguments),
+            args = Array.from(arguments),
             wrappedFunc = function curried() {
-                return __method.apply(this, args.concat($A(arguments)));
+                return __method.apply(this, args.concat(Array.from(arguments)));
             }
         wrappedFunc.isWrapper = true;
         wrappedFunc.originalFunction = __method;
@@ -25,7 +25,7 @@ Object.extend(Function.prototype, {
 
     delay: function() {
         var __method = this,
-            args = $A(arguments),
+            args = Array.from(arguments),
             timeout = args.shift() * 1000;
         return window.setTimeout(function delayed() {
             return __method.apply(__method, args);
@@ -35,7 +35,7 @@ Object.extend(Function.prototype, {
     wrap: function(wrapper) {
         var __method = this;
         var wrappedFunc = function wrapped() {
-                var wrapperArgs = wrapper.isWrapper ? $A(arguments) : [__method.bind(this)].concat($A(arguments));
+                var wrapperArgs = wrapper.isWrapper ? Array.from(arguments) : [__method.bind(this)].concat(Array.from(arguments));
                 return wrapper.apply(this, wrapperArgs);
             }
         wrappedFunc.isWrapper = true;
@@ -125,7 +125,7 @@ Object.extend(Function.prototype, {
         if (Config.ignoreAdvice) return this;
 
         var advice = function logErrorsAdvice(proceed /*,args*/ ) {
-                var args = $A(arguments);
+                var args = Array.from(arguments);
                 args.shift();
                 try {
                     return proceed.apply(this, args);
@@ -155,7 +155,7 @@ Object.extend(Function.prototype, {
         if (Config.ignoreAdvice) return this;
 
         var advice = function logCompletionAdvice(proceed) {
-                var args = $A(arguments);
+                var args = Array.from(arguments);
                 args.shift();
                 try {
                     var result = proceed.apply(this, args);
@@ -181,7 +181,7 @@ Object.extend(Function.prototype, {
 
         var original = this,
             advice = function logCallsAdvice(proceed) {
-                var args = $A(arguments);
+                var args = Array.from(arguments);
                 args.shift(), result = proceed.apply(this, args);
                 if (isUrgent) {
                     console.warn('%s(%s) -> %s', original.qualifiedMethodName(), args, result);
@@ -201,7 +201,7 @@ Object.extend(Function.prototype, {
 
     traceCalls: function(stack) {
         var advice = function traceCallsAdvice(proceed) {
-                var args = $A(arguments);
+                var args = Array.from(arguments);
                 args.shift();
                 stack.push(args);
                 var result = proceed.apply(this, args);

@@ -6,12 +6,14 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectTest', 'testing', {
         Object.extend(obj, {foo: function() {return "bar"}})
         this.assertEquals(obj.foo.displayName, "foo")
     },
+
     testExtendDoesNotOverrideExistingName: function() {
         var obj = {};
         Object.extend(obj, {foo: function myFoo() {return "bar"}})
         this.assertEquals(obj.foo.name, "myFoo", "name changed")
         this.assert(!obj.foo.displayName, "displayName is set")
     },
+
     testExtendDoesNotOverrideExistingDisplayName: function() {
         var obj = {};
         var f = function() {return "bar"};
@@ -20,6 +22,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectTest', 'testing', {
         this.assertEquals(obj.foo.name, "", "function has a name")
         this.assertEquals(obj.foo.displayName, "myDisplayFoo", "displayName was overridden")
     },
+
     testExtendDoesSourceModule: function() {
         var obj = {};
         var f = function() {return "bar"};
@@ -80,7 +83,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertiesTest',
         var Foo = function() {
             this.a = 1;
             this.aa = 1;
-            this.b = Functions.True;    
+            this.b = Functions.True;
         };
         Foo.prototype.c = 2;
         Foo.prototype.cc = 2;
@@ -92,12 +95,12 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertiesTest',
     testAll: function() {
         var expected, result;
         expected = ["a", "c"];
-        result = Properties.all(this.sut, function (name, object) { 
+        result = Properties.all(this.sut, function (name, object) {
             return name.length == 1;
         });
         this.assertMatches(expected, result);
         expected = ["aa", "cc"];
-        result = Properties.all(this.sut, function (name, object) { 
+        result = Properties.all(this.sut, function (name, object) {
             return name.length == 2;
         });
         this.assertMatches(expected, result);
@@ -110,17 +113,16 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertiesTest',
     testAllProperties: function() {
         var expected, result;
         expected = ["a", "b", "c", "d"];
-        result = Properties.allProperties(this.sut, function (object, name) { 
+        result = Properties.allProperties(this.sut, function (object, name) {
             return name.length == 1;
         });
         this.assertMatches(expected, result);
         expected = ["aa", "cc"];
-        result = Properties.allProperties(this.sut, function (object, name) { 
+        result = Properties.allProperties(this.sut, function (object, name) {
             return name.length == 2;
         });
         this.assertMatches(expected, result);
     }
 });
-
 
 }) // end of module

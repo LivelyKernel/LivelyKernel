@@ -711,13 +711,13 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
         if (this.target.layerName) {
             def = Strings.format('%s(%s, %s, {\n\t%s})',
                 layerCommand, this.target.layerName, this.target.className, this.target.getSourceCode());
-            console.log('Going to eval ' + def);
         } if (this.target.isStatic()) {
             def = 'Object.extend(' + ownerName + ', {\n' + methodString +'\n});';
         } else {
             def = ownerName + ".addMethods({\n" + methodString +'\n});';
         }
         try {
+            console.log('Going to eval ' + def);
             eval(def);
         } catch (er) {
             console.log("error evaluating method " + methodString + ': ' + er);

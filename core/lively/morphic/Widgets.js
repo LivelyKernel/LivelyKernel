@@ -6,6 +6,9 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 
     normalColor: Color.rgbHex('#DDDDDD'),
     toggleColor: Color.rgb(171,215,248),
+    disabledColor: Color.rgbHex('#DDDDDD'),
+    normalTextColor: Color.black,
+    disabledTextColor: Color.rgbHex('#999999'),
 
     style: {
         enableGrabbing: false,
@@ -43,7 +46,8 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.label = new lively.morphic.Text(this.getExtent().extentAsRectangle(), labelString);
         this.addMorph(this.label);
         this.label.beLabel(this.style.label);
-    },
+    }
+
 },
 'accessing', {
     setLabel: function(label) {
@@ -53,7 +57,10 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         return this;
     },
     getLabel: function(label) { return this.label.textString },
-
+    setActive: function(bool) {
+        this.isActive = bool;
+        this.updateAppearance();
+    },
     setValue: function(bool) {
         this.value = bool;
         // buttons should fire on mouse up
@@ -67,20 +74,31 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     setPadding: function(padding) { this.label && this.label.setPadding(padding) },
 },
 'styling', {
-    changeAppearanceFor: function(pressed, toggled) {
-        var isToggled = toggled || this.value,
-            baseColor = isToggled ? this.toggleColor : this.normalColor,
-            shade = pressed ? baseColor.mixedWith(Color.black, 0.9)  : baseColor.lighter(3),
-            bottomShade = pressed ?  baseColor.lighter(3):baseColor.mixedWith(Color.black, 0.9),
-            upperGradientCenter = pressed ? 0.2  : 0.3,
-            lowerGradientCenter = pressed ? 0.8  : 0.7;
-
-        if (this.style && this.style.label && this.style.label.padding) {
-            var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
-            this.setPadding(labelPadding);
-        }
-        this.setFill(this.generateFillWith(baseColor, shade, upperGradientCenter, lowerGradientCenter, bottomShade));
+    updateAppearance: function(){
+        this.changeAppearanceFor(this.isPressed, this.value);
     },
+    changeAppearanceFor: function(pressed, toggled) {
+        if (this.isActive) {
+            var isToggled = toggled || this.value,
+                baseColor = isToggled ? this.toggleColor : this.normalColor,
+                shade = pressed ? baseColor.mixedWith(Color.black, 0.9)  : baseColor.lighter(3),
+                bottomShade = pressed ?  baseColor.lighter(3):baseColor.mixedWith(Color.black, 0.9),
+                upperGradientCenter = pressed ? 0.2  : 0.3,
+                lowerGradientCenter = pressed ? 0.8  : 0.7;
+
+            this.label && this.label.setTextColor(this.normalTextColor);
+            if (this.style && this.style.label && this.style.label.padding) {
+                var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
+                this.setPadding(labelPadding);
+            }
+            this.setFill(this.generateFillWith(baseColor, shade, upperGradientCenter, lowerGradientCenter, bottomShade));
+        }
+        else {
+            this.label && this.label.setTextColor(this.disabledTextColor);
+            this.setFill(this.disabledColor);
+        }
+    },
+
     applyStyle: function($super, spec) {
         $super(spec);
         if (spec.label && this.label) {
@@ -115,7 +133,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     },
 
     onMouseDown: function (evt) {
-        if (this.isValidClick (evt)) {
+        if (this.isValidClick (evt) && this.isActive) {
                 this.isPressed = true;
                 this.changeAppearanceFor(true);
         }

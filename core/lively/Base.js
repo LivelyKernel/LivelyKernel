@@ -36,11 +36,11 @@ function dbgOn(cond, optMessage) {
 // namespace logic adapted from
 // http://higher-order.blogspot.com/2008/02/designing-clientserver-web-applications.html
 function assert(value, message) {
-    if (value) return;
+    if (value) { return; }
     // capture the stack
     var stack;
-    try { throw new Error() } catch(e) { stack = e.stack || ''}
-    alert('Assertion failed' + (message ? ': ' + message : '!') + '\n' + stack)
+    try { throw new Error() } catch(e) { stack = e.stack || '' };
+    alert('Assertion failed' + (message ? ': ' + message : '!') + '\n' + stack);
 };
 
 var using = (function() {

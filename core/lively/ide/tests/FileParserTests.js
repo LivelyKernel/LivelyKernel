@@ -234,16 +234,17 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         this.assertIdentity(descriptor.startIndex, 0);
         this.assertIdentity(descriptor.stopIndex, src.lastIndexOf(';'));
     },
-    testParseFunction3: function() {    // function abc() {...}
+
+    xtestParseFunction3: function() {    // function abc() {...}
+        // TODO: Implement!!!
         var src = 'function bar() {\n\n}';
         this.sut.src = src;
         var descriptor = this.sut.callOMeta('functionDef');
-        this.assert(descriptor, 'no descriptor');
+            this.assert(descriptor, 'no descriptor');
         this.assertEquals(descriptor.name, 'bar');
         this.assertIdentity(descriptor.startIndex, 0);
         this.assertIdentity(descriptor.stopIndex, src.lastIndexOf('}'));
     },
-
 
     testParseExecutedFunction: function() { // (function() {...});
         var src = '(function testModuleLoad() {\n\t\tvar modules = Global.subNamespaces(true);\n\t}).delay(5);';

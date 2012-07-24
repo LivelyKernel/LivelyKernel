@@ -1080,8 +1080,8 @@ Function.addMethods({
     return this(argOrNothing);
   }
 });
-Object.extend(SomeObject, {
-    m1: function() {},
+Object.extend(Global, {
+    get: function(name) { return Class.forName(name) },
 });
 
 });

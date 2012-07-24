@@ -60,7 +60,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     getLabel: function(label) { return this.label.textString },
     setActive: function(bool) {
         this.isActive = bool;
-        this.updateAppearance();    
+        this.updateAppearance();
     },
     setValue: function(bool) {
         this.value = bool;
@@ -79,7 +79,6 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.changeAppearanceFor(this.isPressed, this.value);
     },
     changeAppearanceFor: function(pressed, toggled) {
-        
         if (this.isActive) {
             var isToggled = toggled || this.value,
                 baseColor = isToggled ? this.toggleColor : this.normalColor,
@@ -96,10 +95,11 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
             this.setFill(this.generateFillWith(baseColor, shade, upperGradientCenter, lowerGradientCenter, bottomShade));
         }
         else {
-            this.label && this.label.setTextColor(this.disabledTextColor);                
+            this.label && this.label.setTextColor(this.disabledTextColor);
             this.setFill(this.disabledColor);
         }
     },
+
     applyStyle: function($super, spec) {
         $super(spec);
         if (spec.label && this.label) {

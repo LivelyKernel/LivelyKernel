@@ -1,5 +1,7 @@
 module('lively.morphic.tests.TextUndoTests').requires('lively.morphic.TextUndo', 'lively.morphic.tests.Helper').toRun(function() {
 
+if (!Config.get("textUndoEnabled")) return;
+
 // These tests are testing the change creation from DOM mutations and
 // the undo features based upon that directly. For tests of the
 // morphic level see lively.morphic.tests.TextUndoTests.TextUndoTest

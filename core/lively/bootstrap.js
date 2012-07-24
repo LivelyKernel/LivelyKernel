@@ -268,27 +268,6 @@ var LoadingScreen = {
     }
 };
 
-
-function addBrowserPatches() {
-    // add support for commonly used JS methods in all browsers
-
-    var isIE = window.navigator && window.navigator.userAgent.indexOf("MSIE") > -1;
-    if (isIE) {
-        // enable IE9 mode
-        var meta = document.createElement('meta')
-        meta.setAttribute('http-equiv', "X-UA-Compatible")
-        meta.setAttribute('content', "IE=9")
-        document.getElementsByTagName('head')[0].appendChild(meta);
-
-        // support for func.name
-        Function.prototype.__defineGetter__('name', function() {
-            var source = String(this);
-            return source.split(/[\s\(]/g)[1];
-        })
-    }
-}
-
-
 var JSLoader = {
 
     SVGNamespace: 'http:\/\/www.w3.org/2000/svg',
@@ -866,8 +845,6 @@ var LivelyMigrationSupport = {
 
 
 (function startWorld(startupFunc) {
-    addBrowserPatches();
-
     window.addEventListener('DOMContentLoaded', function() {
         LivelyMigrationSupport.setDocumentMigrationLevel(document);
         if (LivelyLoader.startFromSerializedWorld(startupFunc)) return;

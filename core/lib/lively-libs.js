@@ -1,8 +1,9 @@
 /*
- * This file was compiled on Wed, 18 Jul 2012 23:54:19 GMT with the libs:
+ * This file was compiled on Tue, 24 Jul 2012 06:31:45 GMT with the libs:
  * jquery-1.7.2.min.js
  * es5-shim.min.js
  * requestAnimationFrame.js
+ * IE-fixes.js
  */
 
 // http://code.jquery.com/jquery-1.7.2.min.js
@@ -40,3 +41,21 @@ String.prototype.trim=function(){return String(this).replace(B,"").replace(C,"")
  * @see http://goo.gl/HIovX
  */
 ;(function(){for(var d=0,a=["ms","moz","webkit","o"],b=0;b<a.length&&!window.requestAnimationFrame;++b)window.requestAnimationFrame=window[a[b]+"RequestAnimationFrame"],window.cancelAnimationFrame=window[a[b]+"CancelAnimationFrame"]||window[a[b]+"CancelRequestAnimationFrame"];window.requestAnimationFrame||(window.requestAnimationFrame=function(b){var a=(new Date).getTime(),c=Math.max(0,16-(a-d)),e=window.setTimeout(function(){b(a+c)},c);d=a+c;return e});window.cancelAnimationFrame||(window.cancelAnimationFrame=function(a){clearTimeout(a)})})();
+
+// resources/pre-lib/IE-fixes.js
+(function addIEPatches() {
+    var isIE = window.navigator && window.navigator.userAgent.indexOf("MSIE") > -1;
+    if (!isIE) return;
+
+    // enable IE9 mode
+    var meta = document.createElement('meta')
+    meta.setAttribute('http-equiv', "X-UA-Compatible")
+    meta.setAttribute('content', "IE=9")
+    document.getElementsByTagName('head')[0].appendChild(meta);
+
+    // support for func.name
+    Function.prototype.__defineGetter__('name', function() {
+        var source = String(this);
+        return source.split(/[\s\(]/g)[1];
+    });
+})();

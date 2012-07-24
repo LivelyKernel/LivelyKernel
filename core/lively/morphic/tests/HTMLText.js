@@ -7,7 +7,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTMLText.TextAttrib
         this.createWorld();
         this.text = new lively.morphic.Text(new Rectangle(0,0, 400, 200));
         this.world.addMorph(this.text);
-    },
+    }
 },
 'testing', {
     test01RenderingTextShadow: function() {

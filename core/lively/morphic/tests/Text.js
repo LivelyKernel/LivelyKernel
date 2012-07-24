@@ -11,7 +11,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
             childNodes: [
                 {tagName: 'div', childNodes: [ // shape
                     {tagName: 'div', textContent: 'Foo'}] // text node
-                },
+                }
             ]};
         this.assertNodeMatches(expected, m.renderContext().getMorphNode());
     },

@@ -14,17 +14,11 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.WorldTests',
         } finally {
             world.remove();
         }
-    },
+    }
 });
 
 
-lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
-'running', {
-    setUp: function($super) {
-        $super();
-        this.createWorld();
-    },
-},
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic.BasicFunctionality',
 'testing', {
     test01AddMorph: function() {
         var m = new lively.morphic.Morph()

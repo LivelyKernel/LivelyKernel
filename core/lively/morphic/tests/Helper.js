@@ -124,4 +124,12 @@ TestCase.subclass('lively.morphic.tests.TestCase',
 
 });
 
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
+'running', {
+    setUp: function($super) {
+        $super();
+        this.createWorld();
+    }
+});
+
 });

@@ -113,8 +113,8 @@ Object.subclass("Point",
         acc.y = Math.max(this.y, p.y);
         return acc;
     },
-    newMethod: function() {
-        // enter comment here
+    random: function() {
+        return lively.Point.random(this);
     }
 
 },

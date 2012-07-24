@@ -1044,7 +1044,7 @@ Object.extend(Namespace, {
         // return a string to include in bootstrap.js
         var urls = this.topologicalSortLoadedModules().collect(function(ea) {
             return new URL(ea.uri()).relativePathFrom(URL.codeBase) });
-        var manual = [LivelyLoader.jqueryPath,
+        var manual = [LivelyLoader.libsFile,
             'lively/Migration.js',
             'lively/JSON.js',
             'lively/lang/Object.js',

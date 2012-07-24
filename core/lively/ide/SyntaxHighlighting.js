@@ -1,4 +1,4 @@
-module('lively.ide.SyntaxHighlighting').requires(['lively.morphic', 'lively.ide.BrowserFramework'].concat(Config.isNewMorphic ?  [] : ['lively.deprecated.SyntaxHighlighting'])).toRun(function() {
+module('lively.ide.SyntaxHighlighting').requires(['lively.morphic', 'lively.ide.BrowserFramework']).toRun(function() {
 
 Object.subclass("SyntaxHighlighter", {
 
@@ -62,10 +62,14 @@ Object.extend(SyntaxHighlighter, {
         ml_comment: {
               match: /\/\*[^*]*\*+(?:[^\/][^*]*\*+)*\//g
             , style: {color: Color.web.gray}
-        }
-        , sl_comment: {
+        },
+        sl_comment: {
               match: /\/\/.*/g
             , style: {color: Color.web.green}
+        },
+        trailingWhitespace: {
+            match: /[ \t]+[\n\r]/g,
+            style: {backgroundColor: Color.yellow.withA(0.4)}
         }
     },
     LaTeXRules: {

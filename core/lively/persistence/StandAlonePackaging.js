@@ -4,10 +4,9 @@ Object.subclass('lively.persistence.StandAlonePackaging.Helper',
 'accessing modules', {
     getRelativeURLsFromLoadedModules: function() {
         var relativeURLs = lively.lang.Namespace.bootstrapModules();
-        relativeURLs.unshift(LivelyLoader.jqueryPath);
         relativeURLs.unshift('lively/bootstrap.js');
         return relativeURLs;
-    },
+    }
 },
 'morph creation', {
 

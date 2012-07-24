@@ -113,6 +113,10 @@ Object.subclass("Point",
         acc.y = Math.max(this.y, p.y);
         return acc;
     },
+    newMethod: function() {
+        // enter comment here
+    }
+
 },
 'point functions', {
     normalized: function() {

@@ -47,9 +47,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.addMorph(this.label);
         this.label.beLabel(this.style.label);
     },
-    newMethod: function() {
-        // enter comment here
-    },
+
 
 },
 'accessing', {

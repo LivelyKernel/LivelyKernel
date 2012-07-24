@@ -714,7 +714,9 @@ lively.morphic.Shapes.Shape.addMethods(
         setStrokeOpacity: 'setStrokeOpacityHTML',
         setBorderRadius: 'setBorderRadiusHTML',
         setBorderStyle: 'setBorderStyleHTML',
-        setOpacity: 'setOpacityHTML'
+        setOpacity: 'setOpacityHTML',
+        updateComputedStyles: 'updateComputedStylesHTML',
+        setComputedBorderWidth: 'setComputedBorderWidthHTML'
     },
 },
 'initializing', {
@@ -826,6 +828,26 @@ lively.morphic.Shapes.Shape.addMethods(
         ctx.shapeNode.style.padding = s;
         return r;
     },
+
+    updateComputedStylesHTML: function(ctx) {
+        if (!ctx.shapeNode) return;
+        var style = window.getComputedStyle(ctx.shapeNode),
+            borderWidth = parseInt(style["borderWidth"].replace("px",""));
+        this.shapeSetter('ComputedBorderWidth', borderWidth );
+        if (ctx.originNode) {
+            this.compensateShapeNode(ctx);
+        }
+        this.setExtentHTML(ctx, this.getExtent());
+    },
+
+    setComputedBorderWidthHTML: function(ctx, width) {},
+
+    setBorderStylingModeHTML: function(ctx, value) {
+        this.isStyleSheetBorder = value;
+        this.setBorderHTML(ctx, this.getBorderWidth(), this.getBorderColor(), this.getStrokeOpacity());
+        this.setBorderRadiusHTML(ctx, this.getBorderRadius());
+    }
+
 });
 
 lively.morphic.Shapes.Rectangle.addMethods(
@@ -1052,7 +1074,53 @@ lively.morphic.Shapes.Path.addMethods(
     getPointAtTotalLengthHTML: function(ctx, totalLength) {
         var pathNode = this.getPathNodeHTML(ctx);
         return pathNode && lively.Point.ensure(pathNode.getPointAtLength(totalLength));
+    }
+});
+
+Object.extend(lively.morphic, {
+    CSS: {}
+});
+
+lively.morphic.Shapes.Shape.addMethods(
+'stylesheets', {
+    setBorderStylingMode: function(value) {
+        return this.shapeSetter('BorderStylingMode', value);
     },
+    getBorderStylingMode: function() {
+        return this.shapeGetter('BorderStylingMode');
+    },
+
+	updateComputedStyles: function() {
+		return this.renderContextDispatch('updateComputedStyles');
+	}
+
+});
+
+lively.morphic.Morph.addMethods(
+'stylesheets', {
+
+    setBorderStylingMode: function(value) {
+        // TRUE when border is styled through style sheets,
+        // FALSE when border is styled through style dialog
+        this.shape.setBorderStylingMode(value);
+        this.updateComputedStyles();
+    },
+
+    getBorderStylingMode: function() {
+        return this.shape.getBorderStylingMode();
+    },
+
+    updateComputedStyles: function() {
+        if (this.adaptToChangedContext) {
+            // if the submorph offers a function to adapt (i.e. HTMLMorph) use it
+            this.adaptToChangedContext();
+            this.adaptSubmorphsToChangedContext();
+        } else {
+            this.shape.updateComputedStyles();
+            this.submorphs.forEach(function(m){m.updateComputedStyles();});
+        }
+    }
+
 });
 
 }) // end of module

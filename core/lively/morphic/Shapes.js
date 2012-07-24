@@ -35,6 +35,9 @@ Object.subclass('lively.morphic.Shapes.Shape',
     },
     setBorderWidth: function(width) { return this.shapeSetter('BorderWidth', width) },
     getBorderWidth: function() {
+        if (this.getBorderStylingMode && this.getBorderStylingMode()) {
+            return this.shapeGetter('ComputedBorderWidth') || 0;
+        }
         return this.shapeGetter('BorderWidth')  || 0;
     },
     setBorderColor: function(fill) { return this.shapeSetter('BorderColor', fill) },
@@ -73,6 +76,7 @@ Object.subclass('lively.morphic.Shapes.Shape',
     getPadding: function() {
         return this.shapeGetter('Padding') || this.setPadding(new Rectangle(0,0,0,0));
     }
+
 });
 
 lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Rectangle');

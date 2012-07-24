@@ -1076,8 +1076,8 @@ Array.addMethods({
 });
 
 Function.addMethods({
-  value: function(argOrNothing) {
-    return this(argOrNothing);
+  value: function(/*args*/) {
+    return this.apply(Global, arguments);
   }
 });
 Object.extend(Global, {

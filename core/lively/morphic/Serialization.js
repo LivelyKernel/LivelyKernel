@@ -46,7 +46,7 @@ lively.morphic.Morph.addMethods(
 
 },
 'copying', {
-    doNotSerialize: ['_renderContext', 'halos', '_isRendered'],
+    doNotSerialize: ['_renderContext', 'halos', '_isRendered', 'priorExtent'],
 
     copy: function() {
         var copy = this.basicCopy();
@@ -330,6 +330,7 @@ lively.morphic.TextEditor.addMethods(
 
 lively.morphic.Script.addMethods(
 'serialization', {
+    doNotSerialize: ['currentTimeout'],
     onstore: function(copy) {},
     onrestore: function() {
         this.suspended = true; // resume is triggered from morph

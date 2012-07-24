@@ -889,48 +889,37 @@ handleOnCapture);
     onPageDownPressed: function(evt) { return false },
     onRightPressed: function(evt) {
         if (this.eventsAreIgnored) { return false; }
-        if (!this.showsHalos) return false;
-        evt.stop();
-        var dist = evt.isCommandKey() ? 10 : 1;
-        this.world().withSelectedMorphsDo(function(ea) {
-            ea.moveBy(pt(dist, 0));
-            ea.halos && ea.halos.invoke('alignAtTarget');
-        })
-        return true;
+        return this.interactiveMoveOrResize('right', evt);
     },
     onLeftPressed: function(evt) {
         if (this.eventsAreIgnored) { return false; }
-        if (!this.showsHalos) return false;
-        evt.stop();
-        var dist = evt.isCommandKey() ? 10 : 1;
-        this.world().withSelectedMorphsDo(function(ea) {
-            ea.moveBy(pt(-dist, 0));
-            ea.halos && ea.halos.invoke('alignAtTarget');
-        })
-        return true;
+        return this.interactiveMoveOrResize('left', evt);
     },
     onUpPressed: function(evt) {
         if (this.eventsAreIgnored) { return false; }
-        if (!this.showsHalos) return false;
-        evt.stop();
-        var dist = evt.isCommandKey() ? 10 : 1;
-        this.world().withSelectedMorphsDo(function(ea) {
-            ea.moveBy(pt(0, -dist));
-            ea.halos && ea.halos.invoke('alignAtTarget');
-        })
-        return true;
+        return this.interactiveMoveOrResize('up', evt);
     },
     onDownPressed: function(evt) {
         if (this.eventsAreIgnored) { return false; }
+        return this.interactiveMoveOrResize('down', evt);
+    },
+    interactiveMoveOrResize: function(keyPressed, evt) {
         if (!this.showsHalos) return false;
         evt.stop();
-        var dist = evt.isCommandKey() ? 10 : 1;
+        var dist = evt.isCommandKey() ? 10 : 1,
+            operation = evt.isShiftDown() ? 'resizeBy' : 'moveBy',
+            x = 0, y = 0;
+        if (keyPressed === 'left') x = -dist;
+        if (keyPressed === 'right') x = dist;
+        if (keyPressed === 'up') y = -dist;
+        if (keyPressed === 'down') y = dist;
         this.world().withSelectedMorphsDo(function(ea) {
-            ea.moveBy(pt(0, dist));
+            ea[operation](pt(x, y));
             ea.halos && ea.halos.invoke('alignAtTarget');
-        })
+        });
         return true;
-    },
+    }
+
 
 },
 'touch events', {
@@ -1475,7 +1464,6 @@ lively.morphic.World.addMethods(
             // "that" construct from Antero Taivalsaari's Lively Qt
             Global.that = this.clickedOnMorph;
             alertOK('that = ' + Global.that);
-            return true;
         }
 
         evt.hand.removeOpenMenu(evt);
@@ -2030,7 +2018,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
                 carriedMorph.destroyPlaceholder();
             }
         }
-    },
+    }
 });
 
 Object.extend(lively.morphic.Events, {

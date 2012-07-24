@@ -6,6 +6,9 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 
     normalColor: Color.rgbHex('#DDDDDD'),
     toggleColor: Color.rgb(171,215,248),
+    disabledColor: Color.rgbHex('#DDDDDD'),
+    normalTextColor: Color.black,
+    disabledTextColor: Color.rgbHex('#999999'),
 
     style: {
         enableGrabbing: false,
@@ -43,7 +46,8 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.label = new lively.morphic.Text(this.getExtent().extentAsRectangle(), labelString);
         this.addMorph(this.label);
         this.label.beLabel(this.style.label);
-    },
+    }
+
 },
 'accessing', {
     setLabel: function(label) {
@@ -53,7 +57,10 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         return this;
     },
     getLabel: function(label) { return this.label.textString },
-
+    setActive: function(bool) {
+        this.isActive = bool;
+        this.updateAppearance();
+    },
     setValue: function(bool) {
         this.value = bool;
         // buttons should fire on mouse up
@@ -67,20 +74,31 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     setPadding: function(padding) { this.label && this.label.setPadding(padding) },
 },
 'styling', {
-    changeAppearanceFor: function(pressed, toggled) {
-        var isToggled = toggled || this.value,
-            baseColor = isToggled ? this.toggleColor : this.normalColor,
-            shade = pressed ? baseColor.mixedWith(Color.black, 0.9)  : baseColor.lighter(3),
-            bottomShade = pressed ?  baseColor.lighter(3):baseColor.mixedWith(Color.black, 0.9),
-            upperGradientCenter = pressed ? 0.2  : 0.3,
-            lowerGradientCenter = pressed ? 0.8  : 0.7;
-
-        if (this.style && this.style.label && this.style.label.padding) {
-            var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
-            this.setPadding(labelPadding);
-        }
-        this.setFill(this.generateFillWith(baseColor, shade, upperGradientCenter, lowerGradientCenter, bottomShade));
+    updateAppearance: function(){
+        this.changeAppearanceFor(this.isPressed, this.value);
     },
+    changeAppearanceFor: function(pressed, toggled) {
+        if (this.isActive) {
+            var isToggled = toggled || this.value,
+                baseColor = isToggled ? this.toggleColor : this.normalColor,
+                shade = pressed ? baseColor.mixedWith(Color.black, 0.9)  : baseColor.lighter(3),
+                bottomShade = pressed ?  baseColor.lighter(3):baseColor.mixedWith(Color.black, 0.9),
+                upperGradientCenter = pressed ? 0.2  : 0.3,
+                lowerGradientCenter = pressed ? 0.8  : 0.7;
+
+            this.label && this.label.setTextColor(this.normalTextColor);
+            if (this.style && this.style.label && this.style.label.padding) {
+                var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
+                this.setPadding(labelPadding);
+            }
+            this.setFill(this.generateFillWith(baseColor, shade, upperGradientCenter, lowerGradientCenter, bottomShade));
+        }
+        else {
+            this.label && this.label.setTextColor(this.disabledTextColor);
+            this.setFill(this.disabledColor);
+        }
+    },
+
     applyStyle: function($super, spec) {
         $super(spec);
         if (spec.label && this.label) {
@@ -115,7 +133,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     },
 
     onMouseDown: function (evt) {
-        if (this.isValidClick (evt)) {
+        if (this.isValidClick (evt) && this.isActive) {
                 this.isPressed = true;
                 this.changeAppearanceFor(true);
         }
@@ -904,7 +922,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     offsetForOwnerMenu: function() {
         var owner = this.ownerMenu,
             visibleBounds = this.world().visibleBounds(),
-            localVisibleBounds = this.getTransform().inverse().transformRectToRect(visibleBounds),
+            localVisibleBounds = owner.getTransform().inverse().transformRectToRect(visibleBounds),
             newBounds = this.moveSubMenuBoundsForVisibility(
                 this.innerBounds(),
                 owner.overItemMorph ? owner.overItemMorph.bounds() : new Rectangle(0,0,0,0),
@@ -1083,9 +1101,14 @@ lively.morphic.Text.addMethods(
                 self.remove();
             }
         ]);
-        items.push([
-            (self.isInChunkDebugMode() ? 'disable' : 'enable') + ' text chunk debugging',
-            function() { self.setChunkDebugMode(!self.isInChunkDebugMode()) }]);
+        items.push(['debugging', [
+            [(self.isInChunkDebugMode() ? 'disable' : 'enable') + ' text chunk debugging',
+             function() { self.setChunkDebugMode(!self.isInChunkDebugMode()) }],
+            ['open text inspector', function() {
+                var inspector = $world.openPartItem('TextInspector', 'PartsBin/Debugging');
+                inspector.targetMorph.findAndConnectMorph(self);
+            }]
+        ]]);
         return items;
     },
 
@@ -2318,11 +2341,11 @@ Object.subclass('lively.morphic.App',
 
 lively.morphic.App.subclass('lively.morphic.AbstractDialog',
 'documentation', {
-    connections: ['result'],
+    connections: ['result']
 },
 'properties', {
     initialViewExtent: pt(300, 90),
-    inset: 4,
+    inset: 4
 },
 'initializing', {
     initialize: function(message, callback) {
@@ -2330,6 +2353,7 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
         this.message = message || '?';
         if (callback) this.setCallback(callback);
     },
+
     buildPanel: function(bounds) {
         this.panel = new lively.morphic.Box(bounds);
         this.panel.applyStyle({
@@ -2337,25 +2361,35 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
             borderColor: Color.gray.darker(),
             borderWidth: 1,
             adjustForNewBounds: true, // layouting
-            lock: true,
+            enableGrabbing: false,
+            enableDragging: false,
+            lock: true
         });
-        this.panel.disableDragging();
-        this.panel.disableGrabbing();
     },
+
     buildLabel: function() {
-        var bounds = new Rectangle(this.inset, this.inset, this.panel.getExtent().x - 2*this.inset, 18);
-        this.label = this.panel.addMorph(new lively.morphic.Text(bounds, this.message));
-        this.label.beLabel({fill: Color.white, fixedHeight: true, fixedWidth: false, padding: Rectangle.inset(0,0)});
-        // FIXME ugly hack for wide dialogs
+        var bounds = new Rectangle(this.inset, this.inset,
+                                   this.panel.getExtent().x - 2*this.inset, 18);
+        this.label = new lively.morphic.Text(bounds, this.message).beLabel({
+            fill: Color.white,
+            fixedHeight: true,
+            fixedWidth: false,
+            padding: Rectangle.inset(0,0),
+            enableGrabbing: false,
+            enableDragging: false
+        });
+        this.panel.addMorph(this.label);
+
+        // FIXME ugly hack for wide dialogs:
+        // wait until dialog opens and text is rendered so that we can
+        // determine its extent
         (function fit() {
             this.label.fit();
             var labelWidth = this.label.getExtent().x, panelExtent = this.panel.getExtent();
             if (labelWidth > panelExtent.x) {
-                this.panel.setExtent(panelExtent.withX(labelWidth));
+                this.panel.setExtent(panelExtent.withX(labelWidth + 2*this.inset));
             }
         }).bind(this).delay(0);
-        this.label.disableDragging();
-        this.label.disableGrabbing();
     },
     buildCancelButton: function() {
         var bounds = new Rectangle(0,0, 60, 30),

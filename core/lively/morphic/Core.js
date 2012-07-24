@@ -12,13 +12,13 @@ Object.subclass('lively.morphic.Morph',
         this.submorphs = [];
         this.scripts = [];
         this.shape = shape || this.defaultShape();
-        this.setNewId();
         this.prepareForNewRenderContext(this.defaultRenderContext());
+        this.setNewId();
         this.applyStyle(this.getStyle());
     },
     setNewId: function(optId) {
-        if (this.derivationIds == undefined) this.derivationIds = [];
-        this.derivationIds.push(this.id);
+        if (this.derivationIds === undefined) this.derivationIds = [];
+        if (this.id) this.derivationIds.push(this.id);
         this.id = optId || new UUID().id;
     },
 

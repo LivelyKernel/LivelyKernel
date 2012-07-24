@@ -131,7 +131,6 @@ Object.subclass('ObjectGraphLinearizer',
             for (var i = 0; i < obj.length; i++) {
                 this.path.push(i); // for debugging
                 var item = obj[i];
-
                 if (this.somePlugin('ignoreProp', [obj, i, item])) continue;
                 result.push(this.register(item));
                 this.path.pop();

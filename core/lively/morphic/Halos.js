@@ -94,10 +94,13 @@ lively.morphic.World.addMethods(
         this.currentHaloTarget && this.removeHalosFor(this.currentHaloTarget);
     },
     getHaloClasses: function() {
-        return [lively.morphic.MenuHalo,
-			lively.morphic.InspectHalo,
-            lively.morphic.ScriptEditorHalo];
-    },
+        return [
+            lively.morphic.MenuHalo,
+            lively.morphic.InspectHalo,
+            lively.morphic.ScriptEditorHalo,
+            lively.morphic.StyleHalo
+        ];
+    }
 });
 
 lively.morphic.Box.subclass('lively.morphic.Halo',
@@ -793,19 +796,21 @@ lively.morphic.Halo.subclass('lively.morphic.LockHalo',
         this.updateImage()
     },
 });
+
 lively.morphic.Halo.subclass('lively.morphic.BoundsHalo',
 'settings', {
     style: {fill: null, borderColor: Color.red, borderWidth: 1, borderRadius: 0},
     labelText: '',
-    isBoundsHalo: true,
+    isBoundsHalo: true
 },
 'initializing', {
     initialize: function($super, targetMorph) {
         $super(targetMorph);
         this.ignoreEvents();
-    },
+    }
 },
 'layout', {
+
     computePositionAtTarget: function(targetMorph) {
         targetMorph = targetMorph || this.targetMorph;
         var world = targetMorph.world(),
@@ -815,6 +820,7 @@ lively.morphic.Halo.subclass('lively.morphic.BoundsHalo',
             pos = owner.getGlobalTransform().transformPoint(bounds.topLeft())
         return pos;
     },
+
     alignAtTarget: function() {
 
         var targetMorph = this.targetMorph,
@@ -825,10 +831,10 @@ lively.morphic.Halo.subclass('lively.morphic.BoundsHalo',
             boundsInWorld = targetMorph.owner.getGlobalTransform().transformRectToRect(bounds);
         this.setBounds(boundsInWorld);
     },
+
     onMouseDown: function(evt) {
         return false;
-    },
-
+    }
 
 });
 

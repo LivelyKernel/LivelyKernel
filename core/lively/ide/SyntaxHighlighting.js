@@ -69,7 +69,7 @@ Object.extend(SyntaxHighlighter, {
         },
         trailingWhitespace: {
             match: /[ \t]+[\n\r]/g,
-            style: {backgroundColor: Color.rgba(255, 0, 0, 0.4)}
+            style: {backgroundColor: Color.yellow.withA(0.4)}
         }
     },
     LaTeXRules: {

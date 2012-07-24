@@ -1080,5 +1080,8 @@ Function.addMethods({
     return this(argOrNothing);
   }
 });
+Object.extend(SomeObject, {
+    m1: function() {},
+});
 
 });

@@ -1910,7 +1910,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             var rangeAndStyle = rangesAndStyles[indexOfRule];
             if (chunkIndexes.length === 0) { leftOverRules.push(rangeAndStyle); return; }
             chunkIndexes.forEach(function(chunkIndex) {
-                chunks[chunkIndex].styleText(rangeAndStyle[2]); })
+                var chunk = chunks[chunkIndex], style = rangeAndStyle[2];
+                if (!chunk.includesStyle(style)) chunk.styleText(style); });
         });
 
         // 2. if any highlighting rules could not be applied before because
@@ -1930,7 +1931,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     unEmphasize: function(from, to) {
         var chunks = this.sliceTextChunks(from, to);
         for (var i = 0; i < chunks.length; i++) {
-            chunks[i].styleText({isNullStyle: true})
+            chunks[i].styleText({isNullStyle: true});
             chunks[i].style = new lively.morphic.TextEmphasis();
         }
         this.coalesceChunks();
@@ -2279,6 +2280,7 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
             proto.constructor.type || proto.constructor.name || '';
         return [name, subItems];
     },
+
     createSubMenuItemFromSignature: function(signature, optStartLetters) {
         var textMorph = this.textMorph,
             range = textMorph && textMorph.getSelectionRange();
@@ -2298,7 +2300,6 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
             }).delay(0)
         }]
     },
-
 
     evalCurrentSelection: function(textMorph) {
         var selection = Strings.removeSurroundingWhitespaces(textMorph.getSelectionOrLineString());
@@ -2473,6 +2474,10 @@ Object.subclass('lively.morphic.TextChunk',
 
 },
 'styling', {
+    includesStyle: function(style) {
+        return this.getStyle().include(style);
+    },
+
     styleText: function(styleSpec) {
         this.normalize();
         var style = this.getStyle();
@@ -2601,10 +2606,18 @@ Object.subclass('lively.morphic.TextChunk',
 });
 
 Object.subclass('lively.morphic.TextEmphasis',
+'documentation', {
+    README: function() {
+        // When extending TextEmphasis with new attribute:
+        // 1. add getter / setter for attribute that matches the naming convention
+        // (getAttributeName / setAttributeName)
+        // 2. extend #equals!
+    }
+},
 'initializing', {
     initialize: function(spec) {
         spec && this.add(spec);
-    },
+    }
 },
 'accessing', {
     getFontWeight: function() {
@@ -2647,7 +2660,7 @@ Object.subclass('lively.morphic.TextEmphasis',
     setBackgroundColor: function(color) { return this.backgroundColor = color }
 },
 'cloning', {
-    clone: function() { return new this.constructor(this) },
+    clone: function() { return new this.constructor(this) }
 },
 'changing', {
     add: function(spec) {
@@ -2659,66 +2672,98 @@ Object.subclass('lively.morphic.TextEmphasis',
                 this[name] = spec[name];
             }
         }
-    },
+    }
 },
 'testing', {
     equals: function(other) {
-        if (this.getFontWeight()       ==  other.getFontWeight()
-          && this.getItalics()         ==  other.getItalics()
-          && this.getURI()             ==  other.getURI()
-          && this.getFontFamily()      ==  other.getFontFamily()
-          && this.getColor()           ==  other.getColor()
-          && this.getTextDecoration()  ==  other.getTextDecoration()
-          && this.getTextAlignment()   ==  other.getTextAlignment()
-          && this.getFontSize()        ==  other.getFontSize()
-          && this.getBackgroundColor() ==  other.getBackgroundColor()
-          && this.getTextShadow()      === other.getTextShadow()
-          && !this.getDoit() && !other.getDoit()) return true;
+        var isEqual = this.getFontWeight()     === other.getFontWeight()
+                   && this.getItalics()        === other.getItalics()
+                   && this.getURI()            === other.getURI()
+                   && this.getFontFamily()     === other.getFontFamily()
+                   && this.getTextDecoration() === other.getTextDecoration()
+                   && this.getTextAlignment()  === other.getTextAlignment()
+                   && this.getFontSize()       === other.getFontSize()
+                   && this.getTextShadow()     === other.getTextShadow();
 
-        if (this.getDoit() && other.getDoit() &&
-            this.getDoit().code == other.getDoit().code) return true;
+        if (!isEqual) return false;
 
-        return false;
+        // testing colors with equal
+        var myColor = this.getColor(), otherColor = other.getColor();
+        isEqual = myColor === otherColor ||
+            (myColor && myColor.isColor && myColor.equals(otherColor));
+
+        if (!isEqual) return false;
+
+        myColor = this.getBackgroundColor(); otherColor = other.getBackgroundColor();
+        isEqual = myColor === otherColor ||
+            (myColor && myColor.isColor && myColor.equals(otherColor));
+
+        if (!isEqual) return false;
+
+        // doits
+        var myDoit = this.getDoit(), otherDoit = other.getDoit();
+        return myDoit ? otherDoit && myDoit.code == otherDoit.code : !otherDoit;
     },
+
+    include: function(specOrEmph) {
+        // tests whether I have the attributes of specOrEmph set already
+        for (var key in specOrEmph) {
+            if (!specOrEmph.hasOwnProperty(key)) continue;
+            var myVal = this[key], otherVal = specOrEmph[key];
+            if (key === "color" || key === "backgroundColor") {
+                if (myVal === otherVal) continue;
+                if (myVal.isColor && !myVal.equals(otherVal)) return false;
+            } else {
+                if (myVal !== otherVal) return false;
+            }
+        }
+        return true;
+    }
+
 },
 'rendering', {
-    applyToHTML: function(node, debugMode) {
+    applyDebugStyling: function(node, debugEnabled) {
+        var $ = lively.$,
+            toolTip = $('#textChunkDebug');
 
-        var debugStyle = debugMode ? 'red solid thin' : 'none',
-            $ = lively.$;
-
-        if (debugMode) {
-            var style = this,
-                toolTip = $('#textChunkDebug');
-            if (toolTip.length == 0)
-                toolTip = $('<span id="textChunkDebug"/>');
-            $('body').append(toolTip);
-            toolTip.hide();
-            $(node).mousemove(function(e){
-                toolTip.show();
-                toolTip.text(style.toString());
-                toolTip.css({
-                    position: 'absolute',
-                    top: (e.pageY + 50) + "px",
-                    left: (e.pageX + 15) + "px",
-                    'background-color': 'white',
-                    'font-size': 'tiny'
-                });
-            });
-            $(node).mouseout(function(e){
-                toolTip.hide();
-            });
-        } else {
-            $('#textChunkDebug').remove();
-        }
-
-        if (this.isNullStyle) {
-            var style = 'outline: ' + debugStyle;
-            node.setAttribute('style', style);
+        // debug mode disabled, reset debug state
+        if (!debugEnabled) {
+            toolTip.remove();
+            node.style.outline = 'none';
             return;
         }
 
-        var clickCallbacks = [], cursor, textDecoration, color;
+        // debug mode enabled, show debug infos
+        node.style.outline = 'red solid thin';
+        if (toolTip.length === 0) {
+            $('<span id="textChunkDebug"/>').appendTo('body').hide();
+        }
+        var $node = $(node);
+        if ($node.data('events')) return;
+        var emph = this;
+        $node.mousemove(function(e){
+            $('#textChunkDebug').show()
+                                .text('id:' + $(this).attr('id') + ', ' + emph.toString())
+                                .css({
+                                    position: 'absolute',
+                                    top: (e.pageY + 50) + "px",
+                                    left: (e.pageX + 15) + "px",
+                                    'background-color': 'white',
+                                    'font-size': 'tiny'
+                                });
+        });
+        $node.mouseout(function(e) { $('#textChunkDebug').hide(); });
+    },
+
+    applyToHTML: function(node, debugMode) {
+        // take the styles stored in me and apply them to the DOM node
+
+        // ignore if debugMode was never requested
+        if (debugMode !== undefined) this.applyDebugStyling(node, debugMode);
+
+        if (this.isNullStyle) { node.setAttribute('style', ""); return }
+
+        var style = node.style, clickCallbacks = [], cursor, textDecoration, color;
 
         if (this.doit) {
             var doit = this.doit;
@@ -2749,8 +2794,10 @@ Object.subclass('lively.morphic.TextEmphasis',
 
         if (clickCallbacks.length > 0) {
             node.onclick = function(evt) {
-                for (var i = 0; i < clickCallbacks.length; i++)
+                // Lively event dispatch not used here
+                for (var i = 0; i < clickCallbacks.length; i++) {
                     clickCallbacks[i].call(this, evt);
+                }
                 evt.stopPropagation();
                 evt.preventDefault();
                 return true;
@@ -2759,39 +2806,39 @@ Object.subclass('lively.morphic.TextEmphasis',
             delete node.onmouseup;
         }
 
-        node.style.color = color || '';
-        node.style.textDecoration = textDecoration || 'none';
-        node.style.cursor = cursor || null;
+        style.color = color || '';
+        style.textDecoration = textDecoration || 'none';
+        style.cursor = cursor || null;
 
-
-        for (var name in this) {
-            if (!this.hasOwnProperty(name)) continue;
+        for (var key in this) {
+            if (!this.hasOwnProperty(key)) continue;
             // ignore none style properties
-            if (name == 'uri') continue;
-            if (name == 'doit') continue;
-            var styleName = name;
-            if (name === 'italics') styleName = 'fontStyle';
-            if (name === 'fontSize') { node.style[styleName] = this[name] + 'pt'; continue }
-            node.style[styleName] = this[name];
+            if (key == 'uri' || key == 'doit') continue;
+            var value = this[key];
+            // some CSS attributes are named differently from attributes in
+            // LK, rename those. Some values need conversion like fonts, do
+            // that as well
+            if (key === 'italics') key = 'fontStyle';
+            if (key === 'fontSize') value += 'pt';
+            style[key] = value;
         }
-
-        node.style.outline = debugStyle;
-    },
+    }
 },
 'debugging', {
     toString: function() {
-        var props = {};
+        var propStrings = [];
         Properties.forEachOwn(this, function(key, value) {
             if (key === '__SourceModuleName__') return;
-            props[key] = value;
+            propStrings.push(
+                key + ': ' +  (value && value.isColor ? value.toString() : JSON.stringify(value)));
         })
-        return 'TextEmphasis(' + JSON.prettyPrint(props) + ')'
+        return 'TextEmphasis(' + propStrings.join(',') + ')'
     },
 });
 
 Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
 'settings', {
-    isRichText: true,
+    isRichText: true
 },
 'initializing', {
     initialize: function(string) {
@@ -2803,8 +2850,9 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     emphasize: function(styleSpec, from, to) {
         // FIXME duplication with TextMorph
         var chunks = this.sliceTextChunks(from, to);
-        for (var i = 0; i < chunks.length; i++)
+        for (var i = 0; i < chunks.length; i++) {
             chunks[i].styleText(styleSpec);
+        }
         this.coalesceChunks();
     },
     emphasizeRegex: function(re, style) {
@@ -2814,8 +2862,9 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
             counter++; if (counter > 5000) throw new Error('emphasizeRegex endless loop?');
             var from = m.index, to = m.index + m[0].length;
             var chunks = this.sliceTextChunks(from, to);
-            for (var i = 0; i < chunks.length; i++)
-                chunks[i].style.add(style); // chunks[i].styleText(style);
+            for (var i = 0; i < chunks.length; i++) {
+                chunks[i].style.add(style);
+            }
         }
         this.coalesceChunks();
     },

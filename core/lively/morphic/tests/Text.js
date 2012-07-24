@@ -999,4 +999,68 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.LayoutTests'
 
 });
 
+TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
+'assertion', {
+    createAndTestForEquality: function(emphSpec1, emphSpec2) {
+        var emph1 = new lively.morphic.TextEmphasis(emphSpec1),
+            emph2 = new lively.morphic.TextEmphasis(emphSpec2);
+        return [emph1.equals(emph2), emph1, emph2];
+    },
+    assertTextEmphasisEquals: function(emphSpec1, emphSpec2) {
+        var result = this.createAndTestForEquality(emphSpec1, emphSpec2);
+        this.assert(result[0], result[1] + ' vs. ' + result[2]);
+    },
+    assertTextEmphasisUnEquals: function(emphSpec1, emphSpec2) {
+        var result = this.createAndTestForEquality(emphSpec1, emphSpec2);
+        this.assert(!result[0], result[1] + ' vs. ' + result[2]);
+    }
+},
+'testing', {
+    testEqual: function() {
+        var testTable = [
+            [{color: Color.red}, {color: Color.red}],
+            [{color: Color.red}, {color: Color.rgba(204,0,0,1)}],
+            [{backgroundColor: Color.red}, {backgroundColor: Color.rgba(204,0,0,1)}],
+            [{}, {isNullStyle: true}],
+            [{}, {foobarbaz: Color.green}]
+        ];
+
+       testTable.forEach(function(spec) {
+           this.assertTextEmphasisEquals(spec[0], spec[1]);
+       }, this);
+    },
+
+    testUnEqual: function() {
+        var testTable = [
+            [{color: Color.red}, {color: Color.green}]
+        ];
+
+       testTable.forEach(function(spec) {
+           this.assertTextEmphasisUnEquals(spec[0], spec[1]);
+       }, this);
+    },
+
+    testInclude: function() {
+        var emph = new lively.morphic.TextEmphasis({color: Color.red, fontWeight: 'bold'});
+        this.assert(emph.include(emph), 'itself');
+        this.assert(
+            emph.include(new lively.morphic.TextEmphasis({color: Color.rgba(204,0,0,1)})),
+            "similar emph");
+        this.assert(emph.include({color: Color.red}, "object"))
+        this.assert(emph.include({color: Color.rgba(204,0,0,1)}), "similar object")
+        this.assert(emph.include({}), "empty object");
+
+        this.assert(!emph.include({color: Color.green}));
+    },
+
+    testDoesNotInclude: function() {
+        var emph = new lively.morphic.TextEmphasis({color: Color.red, fontWeight: 'bold'});
+
+        this.assert(
+            !emph.include(new lively.morphic.TextEmphasis({color: Color.rgba(204,204,0,1)})),
+            "emph with different prop value");
+        this.assert(!emph.include({color: Color.green}, 'object with other prop'));
+    }
+});
+
 });

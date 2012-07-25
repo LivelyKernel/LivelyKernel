@@ -80,9 +80,11 @@ TestCase.subclass('lively.morphic.tests.TestCase',
             });
         if (expected.style)
             Properties.forEachOwn(expected.style, function(key, expected) {
-                if (!node.style[key]) {
-                    alert("Warning: " + key + " is falsy in " + node + ".style");
-                }
+                //cs: An undeclared style attribute just returns an empty string.
+                //    See: http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSStyleDeclaration-getPropertyValue
+                //if (!node.style[key]) {
+                //    alert("Warning: " + key + " is falsy in " + node + ".style");
+                //}
                 var actualValue = node.style[key].replace(/ /g, '');
                 if (Object.isFunction(expected)) {
                     self.assert(expected.call(self, actualValue), 'value ' + actualValue + ' did no match')

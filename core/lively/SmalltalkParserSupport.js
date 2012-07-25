@@ -30,13 +30,13 @@ Object.subclass('StNode', {
 	toString: function() {
 		return 'StNode';
 	},
-	
+
 });
 
 StNode.subclass('StAssignmentNode', {
-	
+
 	isAssignment: true,
-	
+
 	initialize: function($super, variable, value) {
 		$super();
 		this.variable = variable;
@@ -49,9 +49,9 @@ StNode.subclass('StAssignmentNode', {
 });
 
 StNode.subclass('StCascadeNode', {
-	
+
 	isCascade: true,
-	
+
 	initialize: function($super, messages, receiver) {
 		$super();
 		this.messages = messages;
@@ -66,23 +66,23 @@ StNode.subclass('StCascadeNode', {
 });
 
 StNode.subclass('StMessageNode', {
-	
+
 	isMessage: true,
-	
+
 	initialize: function($super, messageName, args, receiver) {
 		$super();
 		this.messageName = messageName;
 		this.args = args;
 		this.receiver = receiver;
 	},
-	
+
 	setReceiver: function(receiver) {
 		this.receiver = receiver;
 	},
 });
 
 StMessageNode.subclass('StUnaryMessageNode', {
-	
+
 	isUnary: true,
 
 	toString: function() {
@@ -113,12 +113,12 @@ StMessageNode.subclass('StKeywordMessageNode', {
 			this.receiver.toString(),
 			this.messageName,
 			this.args ? this.args.collect(function(ea) { return ea.toString() }).join(',') : 'no args');
-	},	
+	},
 });
 
 StNode.subclass('StSequenceNode', {
 	isSequence: true,
-	
+
 	initialize: function($super, children) {
 		$super();
 		this.children = children;
@@ -131,19 +131,19 @@ StNode.subclass('StSequenceNode', {
 });
 
 StNode.subclass('StPropertyNode', { /* for JS->St */
-	
+
 	isProperty: true,
-	
+
 	initialize: function($super, assignment) {
 		$super();
 		this.assignment = assignment;
 		this.isMeta = false;
 	},
-	
+
 	setMeta: function(isMeta) {
 		this.isMeta = isMeta;
 	},
-	
+
 	toString: function() {
 	  return Strings.format('Property(%s)',
 			this.assignment.variable.name);
@@ -151,11 +151,11 @@ StNode.subclass('StPropertyNode', { /* for JS->St */
 });
 
 StNode.subclass('StInvokableNode', {
-	
+
 	isMethod: false,
-	
+
 	isBlock: true,
-	
+
 	initialize: function($super, sequence, args, declaredVars) {
 		$super();
 		this.args = args;
@@ -164,7 +164,7 @@ StNode.subclass('StInvokableNode', {
 		this.isMeta = null;
 		this.methodName = null;
 	},
-	
+
 	setMethodName: function(methodName) {
 		this.isBlock = false;
 		this.isMethod = true;
@@ -174,7 +174,7 @@ StNode.subclass('StInvokableNode', {
 	setArgs: function(args) {
 		this.args = args;
 	},
-	
+
 	setMeta: function(isMeta) {
 		if (this.isBlock) throw dbgOn(new Error('StBlockNode cannot be meta/non meta'))
 		this.isMeta = isMeta;
@@ -189,11 +189,11 @@ StNode.subclass('StInvokableNode', {
 });
 
 StInvokableNode.subclass('StPrimitveMethodNode', {
-	
+
 	isMethod: true,
-	
+
 	isPrimitive: true,
-	
+
 	initialize: function($super, methodName, primitiveBody, args) {
 		$super(null, args, null);
 		this.setMethodName(methodName);
@@ -207,9 +207,9 @@ StInvokableNode.subclass('StPrimitveMethodNode', {
 });
 
 StNode.subclass('StClassNode', {
-	
+
 	isClass: true,
-	
+
 	initialize: function($super, className, methodsAndProperties, superclass) {
 		$super();
 		this.className = className;
@@ -224,23 +224,23 @@ StNode.subclass('StClassNode', {
 	toString: function() {
 		return Strings.format('Class(%s)',
 			this.className);
-	},	
+	},
 });
 
 StNode.subclass('StFileNode', {
-  
+
   isFile: true,
-  
+
   initialize: function($super, classes) {
     $super();
     this.classes = classes || [];
   },
-  
+
   toString: function() {
 		return Strings.format('StFileNode(%s, %s classes)',
 		  this.fileName || 'no filename', this.classes.length);
 	},
-	
+
   setFileName: function(fileName) {
     this.fileName = fileName;
     this.classes.forEach(function(klass) {
@@ -250,13 +250,13 @@ StNode.subclass('StFileNode', {
       });
     })
   },
-  
+
 });
-  
+
 StNode.subclass('StVariableNode', {
-	
+
 	isVariable: true,
-	
+
 	initialize: function($super, name) {
 		$super();
 		this.name = name;
@@ -268,15 +268,15 @@ StNode.subclass('StVariableNode', {
 });
 
 StVariableNode.subclass('StInstanceVariableNode', {
-	
+
 	isInstance: true,
 
 });
 
 StNode.subclass('StLiteralNode', {
-	
+
 	isLiteral: true,
-	
+
 	initialize: function($super, value) {
 		$super();
 		this.value = value;
@@ -288,14 +288,14 @@ StNode.subclass('StLiteralNode', {
 });
 
 StNode.subclass('StArrayLiteralNode', {
-	
+
 	isArrayLiteral: true,
-	
+
 	initialize: function($super, sequence) {
 		$super();
 		this.sequence = sequence;
 	},
-	
+
 	toString: function() {
 		return '#{' + this.sequence.toString() + '}';
 	},
@@ -304,7 +304,7 @@ StNode.subclass('StArrayLiteralNode', {
 StNode.subclass('StReturnNode', {
 
 	isReturn: true,
-	
+
 	initialize: function($super, value) {
 		$super();
 		this.value = value;
@@ -328,15 +328,15 @@ StNode.addMethods({
       return ea
     }, this).join('');
   },
-  
+
   mangleBinaryChar: function(character) {
     switch (character) {
       case '+': return '_plus_';
       case '-': return '_minus_';
       default: throw new Error('Cannot mangle binary char ' + character);
-    }  
+    }
   },
-  
+
   toJavaScript: function() {
     return '';
   },
@@ -344,49 +344,54 @@ StNode.addMethods({
   eval: function() {
     return eval(this.toJavaScript());
   },
-  
+
 });
 
 StAssignmentNode.addMethods({
 
-  toSmalltalk: function() {
-    return this.variable.name + ' := ' + this.value.toSmalltalk();
-  },
+    toSmalltalk: function() {
+        return this.variable.name + ' := ' + this.value.toSmalltalk();
+    },
 
-  toJavaScript: function() {
-    return this.variable.toJavaScript() + ' = ' + this.value.toJavaScript();
-  },
+    toJavaScript: function() {
+        var varName = this.variable.toJavaScript();
+        if (this.value.isCascade) {
+            return this.value.toJavaScript(null, false, varName);
+        }
+        return varName + ' = ' + this.value.toJavaScript();
+    }
 
 });
 
 StCascadeNode.addMethods({
 
-  toSmalltalk: function() {
-    var recv = this.receiver.toSmalltalk();
-    var rest = this.messages.collect(function(ea) {
-      var part = ea.toSmalltalk();
-      part = part.slice(recv.length);
-      while (part[0] == ' ') part = part.slice(1);
-      return '\t' + part;
-      }).join(';\n');
-      return recv + '\n' + rest;
+    toSmalltalk: function() {
+        var recv = this.receiver.toSmalltalk(),
+            rest = this.messages.collect(function(ea) {
+                var part = ea.toSmalltalk();
+                part = part.slice(recv.length);
+                while (part[0] == ' ') part = part.slice(1);
+                return '\t' + part;
+            }).join(';\n');
+        return recv + '\n' + rest;
     },
 
-    toJavaScript: function(indent, isReturn) {
-      var messages;
-      var result = '';
-      if (this.receiver.isVariable || this.receiver.isLiteral) {
-        messages = this.messages.collect(function(ea) { return ea.toJavaScript() });
-      } else {
-        var recv = this.receiver.toJavaScript();
-        result = 'var cascadeHelper = ' + recv + ';\n';
-        messages = this.messages.collect(function(ea) { return 'cascadeHelper.' + ea.toJavaScriptWithoutReceiver() })
-      } 
-      var firsts = messages.slice(0,messages.length - 1)
-      var last = messages.last();
-      return result + firsts.join(';\n') + ';\n' + (isReturn ? 'return ' : '') + last + ';\n';
-      // what about return?
-    },
+    toJavaScript: function(indent, isReturn, optAssignmentVarName) {
+        var messages, result = '';
+        if (this.receiver.isVariable || this.receiver.isLiteral) {
+            messages = this.messages.collect(function(ea) { return ea.toJavaScript() });
+        } else {
+            var recv = this.receiver.toJavaScript(),
+                cascadeVarName  = optAssignmentVarName || "cascadeHelper";
+            result = 'var ' + cascadeVarName + ' = ' + recv + ';\n';
+            messages = this.messages.collect(function(ea) {
+                return cascadeVarName + '.' + ea.toJavaScriptWithoutReceiver() });
+        }
+        var firsts = messages.slice(0,messages.length - 1),
+            last = messages.last();
+        return result + firsts.join(';\n') + ';\n' + (isReturn ? 'return ' : '') + last + ';\n';
+        // what about return?
+    }
 
 });
 
@@ -500,7 +505,7 @@ StSequenceNode.addMethods({
     var last = this.children.last();
     var result = firsts.collect(function(ea) { return indent + ea.toJavaScript() }).join(';');
     if (firsts.length > 0) result += ';';
-    result += indent + (returnLast && !last.isCascade ? 'return ' : '') + last.toJavaScript(indent, returnLast);  
+    result += indent + (returnLast && !last.isCascade ? 'return ' : '') + last.toJavaScript(indent, returnLast);
     return result;
   },
 
@@ -755,7 +760,7 @@ StNodeBrowserSupportMixin = {
   },
   subElements: function(depth) {
   if (!depth || depth === 1)
-  	return this.directSubElements(); 
+  	return this.directSubElements();
   return this.directSubElements().inject([], function(all, ea) { return all.push(ea); all.concat(ea.subElements(depth-1)) });
   },
   flattened: function() {
@@ -786,11 +791,11 @@ StNodeBrowserSupportMixin = {
 		}
 		return newMe;
 	},
-  updateIndices: function(newSource, newMe) {    
+  updateIndices: function(newSource, newMe) {
     this.checkConsistency();
     // started parsing at 0
     var prevStop = this.stopIndex;
-    var newStop = this.startIndex + newSource.length - 1; 
+    var newStop = this.startIndex + newSource.length - 1;
     var delta = newStop - prevStop;
 
     this.stopIndex = newStop;    // self
@@ -800,9 +805,9 @@ StNodeBrowserSupportMixin = {
       ea.startIndex += this.startIndex;
       ea.stopIndex += this.startIndex;
     }, this);
-    
+
     this.adoptStateFrom(newMe);
-    
+
     // update fragments which follow after this or where this is a part of
     this.fragmentsOfOwnFile().without(mySubElements).each(function(ea) {
       if (ea.stopIndex < prevStop) return;
@@ -810,7 +815,7 @@ StNodeBrowserSupportMixin = {
       if (ea.startIndex <= prevStop) return;
       ea.startIndex += delta;
     });
-    
+
   },
   getSourceControl: lively.ide.FileFragment.prototype.getSourceControl,
   getFileString: lively.ide.FileFragment.prototype.getFileString, // _fallbackSrc
@@ -849,7 +854,7 @@ StClassNode.addMethods({
   adoptStateFrom: function(other) {
     console.assert(this.constructor == other.constructor);
     this.className = other.className;
-		this.superclass = other.superclass;	
+		this.superclass = other.superclass;
     this.methods = other.methods;
     this.properties = other.properties;
   },
@@ -878,7 +883,7 @@ StPropertyNode.addMethods({
 
 
 lively.ide.CompleteFileFragmentNode.subclass('StBrowserFileNode', {
-	
+
 	childNodes: function() {
 		if (!this.target) return [];
 		var browser = this.browser;
@@ -886,11 +891,11 @@ lively.ide.CompleteFileFragmentNode.subclass('StBrowserFileNode', {
 			return new StBrowserClassNode(ea, browser);
 		});
 	},
-	
+
 	buttonSpecs: function() {
 		return [];
 	},
-	
+
 	loadModule: function($super) {
 		require('lively.SmalltalkParser').toRun(function() { $super() });
 	},
@@ -914,7 +919,7 @@ lively.ide.CompleteFileFragmentNode.subclass('StBrowserFileNode', {
 		sourceControl.putSourceCodeForFile(jsFilename, jsSource);
 		return true;
 	},
-	
+
 	evalSource: function(newSource) {
 		var code = this.target.toJavaScript();
 		console.log('Evaluating:');
@@ -927,9 +932,9 @@ lively.ide.CompleteFileFragmentNode.subclass('StBrowserFileNode', {
 })
 
 lively.ide.CategorizedClassFragmentNode.subclass('StBrowserClassNode', {
-  
+
   isClassNode: true,
-  
+
   childNodes: function() {
     var browser = this.browser;
     var self = this;
@@ -937,13 +942,13 @@ lively.ide.CategorizedClassFragmentNode.subclass('StBrowserClassNode', {
       return new StBrowserMemberNode(ea, browser, self);
     });
   },
-  
+
   menuSpec: function() {
-    
+
   },
-  
+
   saveSource: StBrowserFileNode.prototype.saveSource,
-  
+
   evalSource: function(newSource) {
     var code = this.target.toJavaScript();
     console.log('Evaluating:');
@@ -951,7 +956,7 @@ lively.ide.CategorizedClassFragmentNode.subclass('StBrowserClassNode', {
     eval(code);
     return true;
   },
-      
+
     asString: function() {
       return this.target.className.value;
     },
@@ -960,7 +965,7 @@ lively.ide.CategorizedClassFragmentNode.subclass('StBrowserClassNode', {
 lively.ide.FileFragmentNode.subclass('StBrowserMemberNode', {
 
   isMemberNode: true,
-  
+
   asString: function() {
     //FIXME add lines
     return this.target.simpleName();
@@ -971,9 +976,9 @@ sourceString: function($super) {
 	return $super();
 },
 
-  
+
   saveSource: StBrowserFileNode.prototype.saveSource,
-  
+
   evalSource: function(newSource) {
     var parent = this.target.findOwnerFragment();
     if (!parent)
@@ -984,7 +989,7 @@ sourceString: function($super) {
     eval(code);
     return true;
   },
-  
+
   menuSpec: function($super) {
     return [];
   },
@@ -995,97 +1000,103 @@ sourceString: function($super) {
    ======= Eval ======
    =================== */
 lively.morphic.Text.addMethods({
-  tryBoundEval: function (str, offset, printIt) {
+    tryBoundEval: function (str, offset, printIt) {
+        var result, self = this;
 
-    var result, self = this;
+        function jsEval() {
+		    self.evalSource = str; // For Dan's Demo September 2
+            result = self.boundEval(str);
+            if (printIt) printResult();
+        };
 
-    function jsEval() {
-		self.evalSource = str; // For Dan's Demo September 2
-      result = self.boundEval(str);
-      if (printIt) printResult();
-    };
-
-    function jsCatch(e) {
-      offset = offset || 0;
-    	if (e.expressionEndOffset) {
-    		self.setSelectionRange(e.expressionBeginOffset + offset, e.expressionEndOffset + offset);
-    	} else if (e.line) {
-    		var lineOffset = self.lineNumberForIndex(offset);
-    		var line = self.lines[e.line + lineOffset - 1]
-    		if (line.startIndex)
+        function jsCatch(e) {
+            offset = offset || 0;
+    	    if (e.expressionEndOffset) {
+    		    self.setSelectionRange(e.expressionBeginOffset + offset, e.expressionEndOffset + offset);
+    	    } else if (e.line) {
+    		    var lineOffset = self.lineNumberForIndex(offset);
+    		    var line = self.lines[e.line + lineOffset - 1]
+    		    if (line.startIndex)
     			self.setSelectionRange(line.startIndex, line.getStopIndex());
-    	}
-    	self.setStatusMessage("" + e, Color.red); 
+    	    }
+    	    self.setStatusMessage("" + e, Color.red);
+        }
+
+        function stEval() {
+            var ast = OMetaSupport.matchAllWithGrammar(SmalltalkParser, 'sequence', str, true);
+            console.log('Evaluating: ' + ast.toJavaScript());
+		    self.evalSource = ast.toJavaScript(); // For Dan's Demo September 2
+            result = ast.eval();
+            if (printIt) printResult();
+        };
+
+        function stCatch(e) {
+            self.setStatusMessage("Smalltalk exception " + e.stack, Color.red);
+        };
+
+        function printResult() {
+            self.setNullSelectionAt(self.selectionRange[1] + 1);
+  		    var prevSelection = self.selectionRange[0],
+                replacement = " " + result;
+  		    self.replaceSelectionWith(replacement);
+  		    self.setSelectionRange(prevSelection, prevSelection + replacement.length);
+        }
+
+        var stEnabled = !Config.suppressSmalltalkEval && Global.SmalltalkParser;
+  	    try { jsEval() } catch (e) {
+  	        if (!stEnabled) { jsCatch(e); return undefined; }
+            try { stEval() } catch(stE) { stCatch(stE) }
+  	    }
+  	    return result;
     }
-
-    function stEval() {
-      var ast = OMetaSupport.matchAllWithGrammar(SmalltalkParser, 'sequence', str, true);
-      console.log('Evaluating: ' + ast.toJavaScript());
-		self.evalSource = ast.toJavaScript(); // For Dan's Demo September 2
-      result = ast.eval();
-      if (printIt) printResult();
-    };
-
-    function stCatch(e) {
-      self.setStatusMessage("Smalltalk exception " + e, Color.red); 
-    };
-
-    function printResult() {
-      self.setNullSelectionAt(self.selectionRange[1] + 1);
-  		var prevSelection = self.selectionRange[0];
-  		var replacement = " " + result
-  		self.replaceSelectionWith(replacement);
-  		self.setSelectionRange(prevSelection, prevSelection + replacement.length);
-    }
-
-  	try { jsEval() }
-  	catch (e) {
-  	  if (Config.suppressSmalltalkEval || !Global['SmalltalkParser']) {
-        jsCatch(e);
-        return
-      }
-      try { stEval() } catch(stE) { stCatch(stE) }
-  	}
-  	return result;
-  }
 });
 /* ============================
    ======= World support ======
    ============================ */
-Object.addMethods({
-    at: function(name) { return this[name]; },
-    atput: function(name, val) { return this[name] = val; },
-    getVar: function(name) { return this.at(name); },
-    setVarvalue: function(name, value) { return this.atput(name, value); }
-});
-Morph.addMethods({
-  getSubmorphs: function() {
-    return this.submorphs;
-  },
+
+Object.extend(lively.SmalltalkParserSupport, {
+    prepareObjects: function() {
+        Object.prototype.at = function(name) { return this[name]; };
+        Object.prototype.atput = function(name, val) { return this[name] = val; };
+        Object.prototype.getVar = function(name) { return this.at(name); };
+        Object.prototype.setVarvalue = function(name, value) { return this.atput(name, value); };
+        Object.prototype.ifTrue = function(block) { return this == true ? block() : undefined; };
+        Object.prototype.ifFalse = function(block) { return this == true ? undefined : block(); };
+        Object.prototype.ifTrueifFalse = function(trueBlock, falseBlock) {
+            return this == true ? trueBlock() : falseBlock(); };
+        Object.prototype.onErrorDo = function(block, errorHandler) {
+            try { return block() } catch(e) { return errorHandler(e) }; };
+        Object.prototype.yourself = function() { return this; };
+        Object['new'] = function() { return new Object(); };
+
+        Function.prototype.value = function(/*args*/) { return this.apply(window, arguments); };
+        Function.prototype.valuevalue = function(arg1, arg2) { return this.value(arg1, arg2); };
+        Function.prototype.valuevaluevalue = function(arg1, arg2, arg3) {
+            return this.value(arg1, arg2, arg3); };
+        Function.prototype.onError = function(block) {
+            try { return this() } catch(e) { return block(e) }; };
+        Function.prototype.ensure = function(block) {
+            try { return this() } finally { block() }; };
+
+        Node.prototype.at = Object.prototype.at;
+        Node.prototype.atput = Object.prototype.atput;
+        Node.prototype.yourself = Object.prototype.yourself;
+    },
+
+    prepareLively: function() {
+        Morph.addMethods({
+            getSubmorphs: function() { return this.submorphs; }
+        });
+
+        Object.extend(Global, {
+            get: function(name) { return Class.forName(name) }
+        });
+    }
 });
 
-Array.addMethods({
-  at: function(index) {
-    return this[index];
-  },
-  atput: function(index, object) {
-    return this[index] = object;
-  }
-});
-
-Function.addMethods({
-  value: function(/*args*/) {
-    return this.apply(Global, arguments);
-  },
-  valuevalue: function(arg1, arg2) {
-      return this.value(arg1, arg2);
-  },
-  valuevaluevalue: function(arg1, arg2, arg3) {
-      return this.value(arg1, arg2, arg3);
-  }
-});
-Object.extend(Global, {
-    get: function(name) { return Class.forName(name) },
+(function prepareForSmalltalk() {
+    lively.SmalltalkParserSupport.prepareObjects();
+    lively.SmalltalkParserSupport.prepareLively();
 });
 
 });

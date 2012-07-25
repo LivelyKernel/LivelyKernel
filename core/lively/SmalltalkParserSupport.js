@@ -1097,6 +1097,6 @@ Object.extend(lively.SmalltalkParserSupport, {
 (function prepareForSmalltalk() {
     lively.SmalltalkParserSupport.prepareObjects();
     lively.SmalltalkParserSupport.prepareLively();
-});
+})();
 
 });

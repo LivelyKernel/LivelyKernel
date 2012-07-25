@@ -94,10 +94,13 @@ TestCase.subclass('lively.morphic.tests.TestCase',
                     fail('style ' + key + ' not ' + expected + ' but ' + actualValue);
             });
         if (expected.childNodeLength)
-            this.assertEquals(expected.childNodeLength, node.childNodes.length, 'childNode.length of ' + node)
-        if (expected.childNodes)
+            this.assertEquals(expected.childNodeLength, node.childNodes.length, 'childNode.length of ' + node);
+        if (expected.childNodes) {
+            this.assertEquals(expected.childNodes.length, node.childNodes.length,
+                              'childNode.length of ' + node);
             for (var i = 0; i < expected.childNodes.length; i++)
                 this.assertNodeMatches(expected.childNodes[i], node.childNodes[i]);
+        }
     },
 
     // text HTML test helper

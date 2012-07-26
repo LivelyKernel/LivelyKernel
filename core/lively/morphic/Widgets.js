@@ -383,14 +383,14 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
         var node = XHTMLNS.create('input');
         node.type = 'checkbox';
         return new lively.morphic.Shapes.External(node);
-    },
+    }
 },
 'accessing', {
     setChecked: function(bool) {
         this.checked = bool;
         this.renderContext().shapeNode.checked = bool;
         return bool;
-    },
+    }
 },
 'testing', {
     isChecked: function() {
@@ -415,7 +415,7 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
         // FIXME what about connections to this.isChecked?
         // they would be updated here...
         this.setChecked(this.isChecked());
-    },
+    }
 });
 lively.morphic.Morph.subclass('lively.morphic.PasswordInput',
 'initializing', {

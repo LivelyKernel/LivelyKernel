@@ -1049,17 +1049,15 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
         this.assert(emph.include({color: Color.red}, "object"))
         this.assert(emph.include({color: Color.rgba(204,0,0,1)}), "similar object")
         this.assert(emph.include({}), "empty object");
-
-        this.assert(!emph.include({color: Color.green}));
     },
 
     testDoesNotInclude: function() {
         var emph = new lively.morphic.TextEmphasis({color: Color.red, fontWeight: 'bold'});
-
         this.assert(
             !emph.include(new lively.morphic.TextEmphasis({color: Color.rgba(204,204,0,1)})),
             "emph with different prop value");
         this.assert(!emph.include({color: Color.green}, 'object with other prop'));
+        this.assert(!emph.include({backgroundColor: Color.green}), 'no such prop is exist');
     }
 });
 

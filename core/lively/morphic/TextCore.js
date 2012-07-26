@@ -2712,7 +2712,7 @@ Object.subclass('lively.morphic.TextEmphasis',
             var myVal = this[key], otherVal = specOrEmph[key];
             if (key === "color" || key === "backgroundColor") {
                 if (myVal === otherVal) continue;
-                if (myVal.isColor && !myVal.equals(otherVal)) return false;
+                if (!myVal || (myVal.isColor && !myVal.equals(otherVal))) return false;
             } else {
                 if (myVal !== otherVal) return false;
             }

@@ -227,9 +227,9 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
             r = this.parseJS(src),
             expected = {
                 isTryCatchFinally: true,
-                tryExpr: {},
-                catchExpr: {},
-                finallyExpr: {},
+                trySeq: {},
+                catchSeq: {},
+                finallySeq: {},
             };
         debugger;
         this.assertMatches(expected, r.children[0]);

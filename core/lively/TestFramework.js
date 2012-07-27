@@ -215,8 +215,9 @@ Object.subclass('TestCase',
     assertEqualState: function(leftObj, rightObj, msg) {
         // have leftObj and rightObj equal properties?
         msg = (msg ? msg : ' ') + leftObj + " != " + rightObj + " because ";
-        if (!leftObj && !rightObj) return;
-        if (!leftObj || !rightObj) this.assert(false, msg);
+        if (leftObj === rightObj) return;
+        if ((leftObj !== leftObj) && (rightObj !== rightObj)) return; // both are NaN
+        if (typeof leftObj != typeof rightObj) this.assert(false, msg);
         switch (leftObj.constructor) {
             case String:
             case Boolean:

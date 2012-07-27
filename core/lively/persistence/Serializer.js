@@ -846,8 +846,13 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
         delete obj[this.serializedClosuresProperty];
     },
     deserializationDone: function() {
-        this.objectsMethodNamesAndClosures.forEach(function(ea) {
-            ea.closure.recreateFunc().addToObject(ea.obj, ea.name);
+        this.objectsWithClosures.each(function(ea) {
+            var currentClosures = Functions.own(ea.obj).
+	       select(function(name) { return ea.obj[name].getOriginal().hasLivelyClosure });
+	   for (var name in ea.closures) {
+	       var closure = ea.closures[name];
+	       closure.recreateFunc().addToObject(ea.obj, name);
+	   }
         })
     },
 });

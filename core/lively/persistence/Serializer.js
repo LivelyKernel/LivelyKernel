@@ -124,6 +124,7 @@ Object.subclass('ObjectGraphLinearizer',
 'object registry -- serialization', {
     registerWithPath: function(obj, path) {
         this.path.push(path);
+        if (path == "__serializedLivelyClosures__") debugger;
         try {
             return this.register(obj);
         } finally {

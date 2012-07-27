@@ -792,7 +792,7 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
 'initializing', {
     initialize: function($super) {
         $super();
-        this.objectsMethodNamesAndClosures = [];
+        this.objectsWithClosures = [];
     },
 },
 'accessing', {

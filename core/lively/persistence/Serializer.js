@@ -792,7 +792,7 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
 'initializing', {
     initialize: function($super) {
         $super();
-        this.objectsWithClosures = [];
+        this.objectsMethodNamesAndClosures = [];
     },
 },
 'accessing', {
@@ -826,7 +826,6 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
     afterDeserializeObj: function(obj) {
         var closures = this.getSerializedClosuresFrom(obj);
         if (!closures) return;
-        var deferedClosures = {};
         Properties.forEachOwn(closures, function(name, closure) {
             // we defer the recreation of the actual function so that all of the
             // function's properties are already deserialized
@@ -839,22 +838,14 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
                     // alert('early closure recreation ' + name)
                     return closure.recreateFunc().addToObject(obj, name);
                 })
-                deferedClosures[name] = closure;
+                this.objectsMethodNamesAndClosures.push({obj: obj, name: name, closure: closure});
             }
         }, this);
-        this.objectsWithClosures.push({obj: obj, closures: deferedClosures});
         delete obj[this.serializedClosuresProperty];
     },
     deserializationDone: function() {
-        this.objectsWithClosures.each(function(ea) {
-            var currentClosures = Functions.own(ea.obj).
-	       select(function(name) { return ea.obj[name].getOriginal().hasLivelyClosure });
-	    for (var name in ea.closures) {
-	        var closure = ea.closures[name];
-	        closure.recreateFunc().addToObject(ea.obj, name);
-	        currentClosures.remove(name);
-	    }
-	    currentClosures.each(function(name) { delete ea.obj[name]; });
+        this.objectsMethodNamesAndClosures.forEach(function(ea) {
+            ea.closure.recreateFunc().addToObject(ea.obj, ea.name);
         })
     },
 });

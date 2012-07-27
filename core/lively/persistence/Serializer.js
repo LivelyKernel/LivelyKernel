@@ -125,7 +125,7 @@ Object.subclass('ObjectGraphLinearizer',
     registerWithPath: function(obj, path) {
         this.path.push(path);
         try {
-            return this.register(item);
+            return this.register(obj);
         } finally {
             this.path.pop();
         }

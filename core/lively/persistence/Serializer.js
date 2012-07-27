@@ -122,6 +122,14 @@ Object.subclass('ObjectGraphLinearizer',
     },
 },
 'object registry -- serialization', {
+    registerWithPath: function(obj, path) {
+        this.path.push(path);
+        try {
+            return this.register(item);
+        } finally {
+            this.path.pop();
+        }
+    },
     register: function(obj) {
         if (this.isValueObject(obj))
             return obj;
@@ -129,11 +137,9 @@ Object.subclass('ObjectGraphLinearizer',
         if (Object.isArray(obj)) {
             var result = [];
             for (var i = 0; i < obj.length; i++) {
-                this.path.push(i); // for debugging
                 var item = obj[i];
                 if (this.somePlugin('ignoreProp', [obj, i, item])) continue;
-                result.push(this.register(item));
-                this.path.pop();
+                result.push(this.registerWithPath(item, i));
             }
             return result;
         }
@@ -175,9 +181,7 @@ Object.subclass('ObjectGraphLinearizer',
             if (!source.hasOwnProperty(key) || (key === this.idProperty && !this.keepIds)) continue;
             var value = source[key];
             if (this.somePlugin('ignoreProp', [source, key, value])) continue;
-            this.path.push(key); // for debugging
-            copy[key] = this.register(value);
-            this.path.pop();
+            copy[key] = this.registerWithPath(value, key);
         }
         this.letAllPlugins('additionallySerialize', [source, copy]);
         this.copyDepth--;

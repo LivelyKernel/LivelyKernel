@@ -849,10 +849,12 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
         this.objectsWithClosures.each(function(ea) {
             var currentClosures = Functions.own(ea.obj).
 	       select(function(name) { return ea.obj[name].getOriginal().hasLivelyClosure });
-	   for (var name in ea.closures) {
-	       var closure = ea.closures[name];
-	       closure.recreateFunc().addToObject(ea.obj, name);
-	   }
+	    for (var name in ea.closures) {
+	        var closure = ea.closures[name];
+	        closure.recreateFunc().addToObject(ea.obj, name);
+	        currentClosures.remove(name);
+	    }
+	    currentClosures.each(function(name) { delete ea.obj[name]; });
         })
     },
 });

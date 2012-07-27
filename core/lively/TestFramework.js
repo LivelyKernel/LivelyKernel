@@ -217,7 +217,7 @@ Object.subclass('TestCase',
         msg = (msg ? msg : ' ') + leftObj + " != " + rightObj + " because ";
         if (leftObj === rightObj) return;
         if ((leftObj !== leftObj) && (rightObj !== rightObj)) return; // both are NaN
-        if (typeof leftObj != typeof rightObj) this.assert(false, msg);
+        this.assertEquals(typeof leftObj, typeof rightObj, msg);
         switch (leftObj.constructor) {
             case String:
             case Boolean:
@@ -235,6 +235,8 @@ Object.subclass('TestCase',
             for (var value in left) {
                 if (!(left[value] instanceof Function)) {
                     try {
+                        this.assertEquals(left.hasOwnProperty(value),
+                                          right.hasOwnProperty(value), msg);
                         this.assertEqualState(left[value], right[value], msg);
                     } catch (e) {
                         throw e;

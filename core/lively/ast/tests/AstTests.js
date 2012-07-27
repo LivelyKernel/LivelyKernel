@@ -231,7 +231,6 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
                 catchSeq: {},
                 finallySeq: {},
             };
-        debugger;
         this.assertMatches(expected, r.children[0]);
     },
     test04GetParentFunction: function() {

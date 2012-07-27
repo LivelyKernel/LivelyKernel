@@ -231,6 +231,7 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
                 catchExpr: {},
                 finallyExpr: {},
             };
+        debugger;
         this.assertMatches(expected, r.children[0]);
     },
     test04GetParentFunction: function() {

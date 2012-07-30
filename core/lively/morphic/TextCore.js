@@ -2618,35 +2618,9 @@ Object.subclass('lively.morphic.TextEmphasis',
 'supported styles', {
     styleList: {
 
-        fontWeight: {
-            set: function(value) { return this.fontWeight = value },
-            get: function() { return (this.fontWeight && this.fontWeight !== '') ? this.fontWeight : 'normal' },
-            apply: function(node) { node.style.fontWeight = this.fontWeight }
-        },
-
-        italics: {
-            set: function(value) { return this.italics = value},
-            get: function() { return (this.italics && this.italics !== '') ? this.italics : 'normal' },
-            apply: function(node) { node.style.fontStyle = this.italics }
-        },
-
-        uri: {
-            set: function(value) { return this.uri = value},
-            get: function() { return this.uri },
-            apply: function(node) {
-                var value = this.uri;
-                if (!value) return;
-                this.addCallbackWhenApplyDone(function(evt) { window.open(value) });
-                node.style.cursor = 'pointer';
-                node.style.textDecoration = 'underline';
-                node.style.color = 'blue';
-                LivelyNS.setAttribute(node, 'uri', value);
-            }
-        },
-
-        // getDoit: function() { return this.doit },
         doit: {
             set: function(value) { return this.doit = value },
+            get: function() { return this.doit },
             apply: function(node) {
                 var value = this.doit;
                 if (!value) return;
@@ -2667,30 +2641,68 @@ Object.subclass('lively.morphic.TextEmphasis',
             }
         },
 
-        // getFontFamily: function() { return this.fontFamily },
-        fontFamily: {set: function(value) { return this.fontFamily = value}},
-
-        // getColor: function() { return this.color },
-        color: {
-            set: function(value) { return this.color = value },
+        uri: {
+            set: function(value) { return this.uri = value},
+            get: function() { return this.uri },
             apply: function(node) {
-                node.style.color = this.color;
+                var value = this.uri;
+                if (!value) return;
+                this.addCallbackWhenApplyDone(function(evt) { window.open(value) });
+                node.style.cursor = 'pointer';
+                node.style.textDecoration = 'underline';
+                node.style.color = 'blue';
+                LivelyNS.setAttribute(node, 'uri', value);
             }
         },
 
-        // getBackgroundColor: function() { return this.backgroundColor },
-        backgroundColor: {set: function(value) { return this.backgroundColor = value}},
+        fontWeight: {
+            set: function(value) { return this.fontWeight = value },
+            get: function() { return (this.fontWeight && this.fontWeight !== '') ? this.fontWeight : 'normal' },
+            apply: function(node) { if (this.fontWeight) node.style.fontWeight = this.fontWeight  }
+        },
 
-        // getTextDecoration: function() { return this.textDecoration },
-        textDecoration: {set: function(value) { return this.textDecoration = value}},
+        italics: {
+            set: function(value) { return this.italics = value},
+            get: function() { return (this.italics && this.italics !== '') ? this.italics : 'normal' },
+            apply: function(node) { if (this.italics) node.style.fontStyle = this.italics }
+        },
 
-        // getTextAlignment: function() { return this.textAlign },
-        textAlign: {set: function(value) { return this.textAlign = value}},
+        fontFamily: {
+            set: function(value) { return this.fontFamily = value },
+            get: function() { return this.fontFamily },
+            apply: function(node) { if (this.fontFamily) node.style.fontFamily = this.fontFamily }
+        },
 
-        // getFontSize: function() { return this.fontSize },
-        fontSize: {set: function(value) { return this.fontSize = value}},
+        color: {
+            set: function(value) { return this.color = value },
+            get: function() { return this.color },
+            apply: function(node) { if (this.color) node.style.color = this.color; }
+        },
 
-        // getTextShadow: function() { return this.textShadow },
+        backgroundColor: {
+            set: function(value) { return this.backgroundColor = value },
+            get: function() { return this.backgroundColor },
+            apply: function(node) { if (this.backgroundColor) node.style.backgroundColor = this.backgroundColor }
+        },
+
+        textDecoration: {
+            set: function(value) { return this.textDecoration = value },
+            get: function() { return this.textDecoration },
+            apply: function(node) { if (this.textDecoration) node.style.textDecoration = this.textDecoration }
+        },
+
+        textAlign: {
+            set: function(value) { return this.textAlign = value },
+            get: function() { return this.textAlign },
+            apply: function(node) { if (this.textAlign) node.style.textAlign = this.textAlign }
+        },
+
+        fontSize: {
+            set: function(value) { return this.fontSize = value },
+            get: function() { return this.fontSize },
+            apply: function(node) { if (this.fontSize) node.style.fontSize = this.fontSize + 'pt' }
+        },
+
         textShadow: {
             set: function(value) {
                 if (!value) {
@@ -2706,10 +2718,16 @@ Object.subclass('lively.morphic.TextEmphasis',
                     value += shadowSpec.color.toCSSString();
                 }
                 this.textShadow = value;
-            }
+            },
+            get: function() { return this.textShadow },
+            apply: function(node) { if (this.textShadow) node.style.textShadow = this.textShadow }
         },
 
-        isNullStyle: {set: function(value) { return this.isNullStyle = value }}
+        isNullStyle: {
+            set: function(value) { return this.isNullStyle = value },
+            get: function() { return this.isNullStyle },
+            apply: function(node) { this.isNullStyle && node.setAttribute('style', "") }
+        }
 
     },
 
@@ -2865,30 +2883,21 @@ Object.subclass('lively.morphic.TextEmphasis',
 
         if (this.isNullStyle) { node.setAttribute('style', ""); return }
 
+        var htmlStyler = this.styleList;
+        htmlStyler.doit.apply.call(this, node);
+        htmlStyler.uri.apply.call(this, node);
+        htmlStyler.fontWeight.apply.call(this, node);
+        htmlStyler.italics.apply.call(this, node);
+        htmlStyler.fontFamily.apply.call(this, node);
+        htmlStyler.color.apply.call(this, node);
+        htmlStyler.backgroundColor.apply.call(this, node);
+        htmlStyler.textDecoration.apply.call(this, node);
+        htmlStyler.textAlign.apply.call(this, node);
+        htmlStyler.fontSize.apply.call(this, node);
+        htmlStyler.textShadow.apply.call(this, node);
+        htmlStyler.isNullStyle.apply.call(this, node);
 
-        this.styleList.doit.apply.call(this, node);
-        this.styleList.uri.apply.call(this, node);
         this.installCallbackHandler(node);
-
-        this.styleList.fontWeight.apply.call(this, node);
-        this.styleList.italics.apply.call(this, node);
-        this.styleList.color.apply.call(this, node);
-
-        var style = node.style;
-
-        for (var key in this.styleList) {
-            if (!this.hasOwnProperty(key)) continue;
-            // ignore none style properties
-            if (key == 'uri' || key == 'doit' || key === 'clickCallbacks' ||
-               key === 'fontWeight' || key === 'italics' || key === 'color') continue;
-            var value = this[key];
-            // some CSS attributes are named differently from attributes in
-            // LK, rename those. Some values need conversion like fonts, do
-            // that as well
-            if (key === 'italics') key = 'fontStyle';
-            if (key === 'fontSize') value += 'pt';
-            style[key] = value;
-        }
     },
 
     addCallbackWhenApplyDone: function(cb) {

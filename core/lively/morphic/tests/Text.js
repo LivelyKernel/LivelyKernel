@@ -987,6 +987,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.LayoutTests'
         // text's span is 16 then, but text itself 20
         this.assertEqualsEpsilon(pt(20, 30), this.text.getTextExtent(), 'no line break');
     },
+
     test03aFixedWidthCssProperties: function() {
         this.text.setTextString('aaa');
         this.text.applyStyle({fixedWidth: true, fixedHeight: false});

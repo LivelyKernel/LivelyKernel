@@ -724,12 +724,14 @@ Object.extend(lively.morphic.FunctionScript, {
         return script;
     },
 });
+
 Function.addMethods(
 "morphic delay", {
     morphicDelay: function(time) {
         lively.morphic.FunctionScript.once(this, time);
     },
 });
+
 lively.morphic.Script.subclass('lively.morphic.TargetScript',
 'initializing', {
     initialize: function(target, selector, args) {

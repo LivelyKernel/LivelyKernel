@@ -332,8 +332,7 @@ Object.extend(Array.prototype, {
     },
 
     nestedDelay: function(iterator, waitSecs, endFunc, context, optSynchronChunks) {
-        endFunc = endFunc ||
-        function() {};
+        endFunc = endFunc || function() {};
         return this.reverse().inject(endFunc, function(nextFunc, ea, idx) {
             return function() {
                 iterator.call(context || Global, ea, idx);

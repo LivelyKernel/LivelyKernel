@@ -703,24 +703,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
             {textString: '1', style: {color: Color.red}},
             {textString: 'b', style: {color: null}},
             {textString: '2', style: {color: Color.red}},
-            {textString: 'c', style: {color: null}},
+            {textString: 'c', style: {color: null}}
         ])
     },
 
-    richTextPasteData: '<meta charset=\'utf-8\'><span class=\"Apple-style-span\" style=\"border-collapse: separate; color: rgb(0, 0, 0); font-family: Times; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: -webkit-auto; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; -webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; font-size: medium; \"><span class=\"Apple-style-span\" style=\"font-family: Arial, sans-serif; font-size: 19px; white-space: pre-wrap; \"><span style=\"text-decoration: none; \">ein </span><span style=\"text-decoration: none; font-weight: bold; \">test</span></span></span>',
-
-    test23aRichTextPaste: function() {
-        var pastedText = this.richTextPasteData,
-            rt = lively.morphic.HTMLParser.pastedHTMLToRichText(pastedText);
-        this.assertEquals(2, rt.textChunks.length);
-        this.assertEquals('ein ', rt.textChunks[0].textString);
-        this.assertEquals('test', rt.textChunks[1].textString);
-        this.assertEquals('normal', rt.textChunks[0].style.getFontWeight());
-        this.assertEquals('bold', rt.textChunks[1].style.getFontWeight());
-
-    },
-
-    test24aInsertTextChunks: function() {
+    test24aInsertTextChunksAtEnd: function() {
         this.text.setTextString('ein');
         this.text.setNullSelectionAt(3);
         var chunk = new lively.morphic.TextChunk('test')
@@ -732,7 +719,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
         ])
     },
 
-    test24bInsertTextChunks: function() {
+    test24bInsertTextChunksInside: function() {
         this.text.setTextString('eintest');
         this.text.setNullSelectionAt(3);
         var chunk = new lively.morphic.TextChunk('foo')
@@ -759,10 +746,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
         this.text.setTextString('eintest');
         this.text.emphasize({fontWeight: 'bold'}, 0,3)
         this.text.unEmphasize(0,7);
-        this.checkChunks(
-            [{textString: 'eintest'}])
-        this.checkDOM([
-            {tagName: 'span', textContent: 'eintest', style: {fontWeight: ''}}])
+        this.checkChunks([{textString: 'eintest'}]);
+        this.checkDOM(
+            [{tagName: 'span', textContent: 'eintest', style: {fontWeight: ''}}]);
     },
 
     test26bUnEmphasizePart: function() {
@@ -905,6 +891,54 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.RichText2Tes
         this.assertEqualState(expectedEmph1, m.getEmphasisAt(0));
         this.assertEqualState(expectedEmph1, m.getEmphasisAt(1));
         this.assertEqualState(expectedEmph2, m.getEmphasisAt(2));
+lively.morphic.tests.Text.TextMorphRichTextTests.subclass('lively.morphic.tests.Text.Paste',
+'data', {
+    richTextPasteData: '<meta charset="utf-8">'
+                     + '<span class="Apple-style-span" style="border-collapse: separate; color: rgb(0, 0, 0); font-family: Times; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: -webkit-auto; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; -webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; font-size: medium; ">'
+                     +   '<span class="Apple-style-span" style="font-family: Arial, sans-serif; font-size: 19px; white-space: pre-wrap; orphans: 2">'
+                     +     '<span style="text-decoration: none; ">ein </span>'
+                     +     '<span style="text-decoration: none; font-weight: bold; ">test</span>'
+                     +   '</span>'
+                     + '</span>',
+    createPasteEvent: function(spec) {
+        return {
+            clipboardData: {
+                getData: function(mimeType) {
+                    if (mimeType === 'text/html') { return spec.html }
+                    if (mimeType === 'text/plain') { return spec.text }
+                    return null;
+                }
+            },
+            stop: Functions.Null
+        }
+    }
+},
+"testing", {
+
+    test01RichTestCreationFromPaste: function() {
+        var pastedText = this.richTextPasteData,
+            rt = lively.morphic.HTMLParser.pastedHTMLToRichText(pastedText);
+        this.assertEquals(2, rt.textChunks.length);
+        this.assertEquals('ein ', rt.textChunks[0].textString);
+        this.assertEquals('test', rt.textChunks[1].textString);
+        this.assertEquals('normal', rt.textChunks[0].style.getFontWeight());
+        this.assertEquals('bold', rt.textChunks[1].style.getFontWeight());
+    },
+
+    test02PasteResultPlacedInTextMorph: function() {
+        this.text.textString = 'foobar';
+        this.text.setNullSelectionAt(3);
+        this.text.onPaste(this.createPasteEvent({text: 'ein text', html: this.richTextPasteData}));
+        this.checkChunks([
+            {textString: 'foo', style: {fontWeight: ''}},
+            {textString: 'ein ', style: {fontWeight: ''}},
+            {textString: 'test', style: {fontWeight: 'bold'}},
+            {textString: 'bar', style: {fontWeight: ''}}]);
+        this.checkDOM([
+            {tagName: 'span', textContent: 'foo', style: {fontWeight: ''}},
+            {tagName: 'span', textContent: 'ein ', style: {fontWeight: ''}},
+            {tagName: 'span', textContent: 'test', style: {fontWeight: 'bold'}},
+            {tagName: 'span', textContent: 'bar', style: {fontWeight: ''}}]);
     }
 });
 

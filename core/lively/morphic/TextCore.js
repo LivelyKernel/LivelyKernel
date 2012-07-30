@@ -2982,9 +2982,9 @@ Object.extend(lively.morphic.HTMLParser, {
         // creates DOM node from a snipped of HTML
         if (data.startsWith('<meta charset')) {
             // it's a special apple format?
-            var string = '<?xml version=\'1.0\'?><div xmlns:lively="'
-                       + Namespace.LIVELY + '">' + data + '</div>';
-            string = string.replace("<meta charset='utf-8'>", "");
+            var string = Strings.format('<?xml version="1.0"?><div xmlns:lively="%s">%s</div>',
+                                        Namespace.LIVELY, data);
+            string = string.replace(/<meta charset=['"]utf-8['"]>/, "");
             string = string.replace(/<br(.*?)>/g, "<br $1/>");
             var doc = new DOMParser().parseFromString(string, "text/xml"),
                 errorOccurred = doc.getElementsByTagName('parsererror').length > 0;
@@ -3014,9 +3014,9 @@ Object.extend(lively.morphic.HTMLParser, {
     sanitizeHtml: function(string) {
         // replaces html br with newline
         var s = string
-            .replace(/\<br.*?\>/g        , "<br />")
-            .replace(/\<meta.*?\>/g      , "")
-            .replace(/\&(?![a-zA-Z]+;)/g , '&amp;');
+            .replace(/\<br.*?\>/g       , "<br />")
+            .replace(/\<meta.*?\>/g     , "")
+            .replace(/\&(?![a-zA-Z]+;)/g, '&amp;');
         // now it becomes really ugly... we need some kind of general html parser here
         if (s.match(/<span.*>/g) && !s.match(/<\/span>/g)) {
             s = s.replace(/<\/?span.*>/g,"");
@@ -3025,7 +3025,7 @@ Object.extend(lively.morphic.HTMLParser, {
     },
     sanitizeNode: function (node) {
         // strips node of newlines text nodes, that have no meaning
-        $A(node.childNodes).forEach(function (ea) {
+        Array.from(node.childNodes).forEach(function (ea) {
             if (ea.textContent == "\n" && ea.nodeName == '#text') {
                 node.removeChild(ea);
             }
@@ -3056,7 +3056,6 @@ Object.extend(lively.morphic.HTMLParser, {
                 continue;
             }
 
-
             if (ea.getAttribute && (ea.getAttribute('class') === 'Apple-style-span')) {
                 this.extractStylesAndApplyToRichText(ea, richText, mem)
                 continue;
@@ -3083,8 +3082,7 @@ Object.extend(lively.morphic.HTMLParser, {
             var doit = LivelyNS.getAttribute(ea, 'doit');
             doit && mem.styles.push({doit: lively.persistence.Serializer.deserialize(doit)});
 
-            LivelyNS
-            this.extractStylesAndApplyToRichText(ea, richText, mem)
+            this.extractStylesAndApplyToRichText(ea, richText, mem);
         }
     },
     convertStyleName: function(name) {

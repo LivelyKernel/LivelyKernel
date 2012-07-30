@@ -404,6 +404,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             console.warn('insertTextStringAt failed, found no text chunk!');
             return;
         }
+        this.cachedTextString = null;
         firstChunk.textString += string;
         this.coalesceChunks();
     },

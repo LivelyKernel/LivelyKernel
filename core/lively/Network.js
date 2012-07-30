@@ -1454,6 +1454,7 @@ Object.subclass('WebResource',
         // throw an error when parsing "keywords" as object key names
         var request = this.createNetRequest();
         this.addNoCacheHeader();
+        this.forceUncached();
         request.del(this.getURL());
         return this;
     },

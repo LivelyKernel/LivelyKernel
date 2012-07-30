@@ -2615,6 +2615,111 @@ Object.subclass('lively.morphic.TextEmphasis',
         // 2. extend #equals!
     }
 },
+'supported styles', {
+    styleList: {
+
+        fontWeight: {
+            set: function(value) { return this.fontWeight = value },
+            get: function() { return (this.fontWeight && this.fontWeight !== '') ? this.fontWeight : 'normal' },
+            apply: function(node) { node.style.fontWeight = this.fontWeight }
+        },
+
+        italics: {
+            set: function(value) { return this.italics = value},
+            get: function() { return (this.italics && this.italics !== '') ? this.italics : 'normal' },
+            apply: function(node) { node.style.fontStyle = this.italics }
+        },
+
+        uri: {
+            set: function(value) { return this.uri = value},
+            get: function() { return this.uri },
+            apply: function(node) {
+                var value = this.uri;
+                if (!value) return;
+                this.addCallbackWhenApplyDone(function(evt) { window.open(value) });
+                node.style.cursor = 'pointer';
+                node.style.textDecoration = 'underline';
+                node.style.color = 'blue';
+                LivelyNS.setAttribute(node, 'uri', value);
+            }
+        },
+
+        // getDoit: function() { return this.doit },
+        doit: {
+            set: function(value) { return this.doit = value },
+            apply: function(node) {
+                var value = this.doit;
+                if (!value) return;
+                this.addCallbackWhenApplyDone(function(evt) {
+                    var src = '(function() {\n' + value.code + '\n})';
+                    try {
+                        var func = eval(src);
+                        func.call(value.context || Global);
+                    } catch(e) {
+                        alert('Error in text doit\n' + e.stack);
+                    }
+                    return true
+                });
+                node.style.cursor = 'pointer';
+                node.style.textDecoration = 'underline';
+                node.style.color = 'darkgreen';
+                LivelyNS.setAttribute(node, 'doit', lively.persistence.Serializer.serialize(value));
+            }
+        },
+
+        // getFontFamily: function() { return this.fontFamily },
+        fontFamily: {set: function(value) { return this.fontFamily = value}},
+
+        // getColor: function() { return this.color },
+        color: {
+            set: function(value) { return this.color = value },
+            apply: function(node) {
+                node.style.color = this.color;
+            }
+        },
+
+        // getBackgroundColor: function() { return this.backgroundColor },
+        backgroundColor: {set: function(value) { return this.backgroundColor = value}},
+
+        // getTextDecoration: function() { return this.textDecoration },
+        textDecoration: {set: function(value) { return this.textDecoration = value}},
+
+        // getTextAlignment: function() { return this.textAlign },
+        textAlign: {set: function(value) { return this.textAlign = value}},
+
+        // getFontSize: function() { return this.fontSize },
+        fontSize: {set: function(value) { return this.fontSize = value}},
+
+        // getTextShadow: function() { return this.textShadow },
+        textShadow: {
+            set: function(value) {
+                if (!value) {
+                    value = '';
+                } else if (Object.isString(value)) {
+                    // use it as it is
+                } else {
+                    var shadowSpec = value;
+                    value = "";
+                    value += shadowSpec.offset.x + 'px ';
+                    value += shadowSpec.offset.y + 'px ';
+                    value += shadowSpec.blur ? shadowSpec.blur + 'px ' : "0 ";
+                    value += shadowSpec.color.toCSSString();
+                }
+                this.textShadow = value;
+            }
+        },
+
+        isNullStyle: {set: function(value) { return this.isNullStyle = value }}
+
+    },
+
+    getSupportedStyleNames: function() {
+        if (!this.supportedStyleNames) {
+            this.constructor.prototype.supportedStyleNames = Object.keys(this.constructor.prototype.styleList);
+        }
+        return this.supportedStyleNames;
+    }
+},
 'initializing', {
     initialize: function(spec) {
         spec && this.add(spec);
@@ -2666,12 +2771,8 @@ Object.subclass('lively.morphic.TextEmphasis',
 'changing', {
     add: function(spec) {
         for (var name in spec) {
-            if (!spec.hasOwnProperty(name)) return;
-            if (name === 'textShadow') { // FIXME
-                this.setTextShadow(spec[name]);
-            } else {
-                this[name] = spec[name];
-            }
+            if (!this.styleList[name] || !spec.hasOwnProperty(name)) continue;
+            this.styleList[name].set.call(this, spec[name]);
         }
     }
 },
@@ -2764,57 +2865,22 @@ Object.subclass('lively.morphic.TextEmphasis',
 
         if (this.isNullStyle) { node.setAttribute('style', ""); return }
 
-        var style = node.style, clickCallbacks = [], cursor, textDecoration, color;
 
-        if (this.doit) {
-            var doit = this.doit;
-            clickCallbacks.push(function(evt) {
-                var src = '(function() {\n' + doit.code + '\n})';
-                try {
-                    var func = eval(src);
-                    func.call(doit.context || Global);
-                } catch(e) {
-                    alert('Error in text doit\n' + e.stack);
-                }
-                return true
-            });
-            cursor = 'pointer';
-            textDecoration = 'underline';
-            color = 'darkgreen';
-            LivelyNS.setAttribute(node, 'doit', lively.persistence.Serializer.serialize(doit));
-        }
+        this.styleList.doit.apply.call(this, node);
+        this.styleList.uri.apply.call(this, node);
+        this.installCallbackHandler(node);
 
-        if (this.uri) {
-            var uri = this.uri;
-            clickCallbacks.push(function(evt) { window.open(uri) });
-            cursor = 'pointer';
-            textDecoration = 'underline';
-            color = 'blue';
-            LivelyNS.setAttribute(node, 'uri', uri);
-        }
+        this.styleList.fontWeight.apply.call(this, node);
+        this.styleList.italics.apply.call(this, node);
+        this.styleList.color.apply.call(this, node);
 
-        if (clickCallbacks.length > 0) {
-            node.onclick = function(evt) {
-                // Lively event dispatch not used here
-                for (var i = 0; i < clickCallbacks.length; i++) {
-                    clickCallbacks[i].call(this, evt);
-                }
-                evt.stopPropagation();
-                evt.preventDefault();
-                return true;
-            }
-        } else {
-            delete node.onmouseup;
-        }
+        var style = node.style;
 
-        style.color = color || '';
-        style.textDecoration = textDecoration || 'none';
-        style.cursor = cursor || null;
-
-        for (var key in this) {
+        for (var key in this.styleList) {
             if (!this.hasOwnProperty(key)) continue;
             // ignore none style properties
-            if (key == 'uri' || key == 'doit') continue;
+            if (key == 'uri' || key == 'doit' || key === 'clickCallbacks' ||
+               key === 'fontWeight' || key === 'italics' || key === 'color') continue;
             var value = this[key];
             // some CSS attributes are named differently from attributes in
             // LK, rename those. Some values need conversion like fonts, do
@@ -2823,7 +2889,31 @@ Object.subclass('lively.morphic.TextEmphasis',
             if (key === 'fontSize') value += 'pt';
             style[key] = value;
         }
+    },
+
+    addCallbackWhenApplyDone: function(cb) {
+        if (!this.clickCallbacks) this.clickCallbacks = [];
+        this.clickCallbacks.push(cb);
+    },
+
+    installCallbackHandler: function(node) {
+        if (!this.clickCallbacks || this.clickCallbacks.length === 0) {
+            delete node.onclick;
+            return;
+        };
+        var cbs = this.clickCallbacks;
+        node.onclick = function(evt) {
+            // Lively event dispatch not used here
+            for (var i = 0; i < cbs.length; i++) {
+                cbs[i].call(this, evt);
+            }
+            evt.stopPropagation();
+            evt.preventDefault();
+            return true;
+        }
+        delete this.clickCallbacks;
     }
+
 },
 'debugging', {
     toString: function() {
@@ -2834,7 +2924,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                 key + ': ' +  (value && value.isColor ? value.toString() : JSON.stringify(value)));
         })
         return 'TextEmphasis(' + propStrings.join(',') + ')'
-    },
+    }
 });
 
 Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
@@ -2927,7 +3017,7 @@ Object.subclass('lively.morphic.RichText2',
     }
 },
 'accessing', {
-    getTextEmphasis: function() { return this.textEmphasis; },
+    getTextEmphasis: function() { return this.textEmphasis.select(function(ea) { return !!ea }); },
     getTextString: function() { return this.textString; }
 });
 

@@ -876,7 +876,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.RichText2Tes
         this.assertEquals('eintest', rt.textString);
         var expectedEmphs = [{fontWeight: 'bold'}, {fontWeight: 'bold'}, {fontWeight: 'bold'},
                             {},{},{},{}];
-        this.assertEqualState(expectedEmphs, rt.getTextEmphasis());
+        this.assertEqualOwnState(expectedEmphs, rt.getTextEmphasis());
     },
 
     test02SetIntoText: function() {
@@ -885,12 +885,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.RichText2Tes
                                                       {}]),
             m = new lively.morphic.Text(new Rectangle(0,0,100,100));
         m.setRichText2(rt);
-        this.assertEquals('aab', m.textString);
-        var expectedEmph1 = {fontWeight: 'bold'},
-            expectedEmph2 = {};
-        this.assertEqualState(expectedEmph1, m.getEmphasisAt(0));
-        this.assertEqualState(expectedEmph1, m.getEmphasisAt(1));
-        this.assertEqualState(expectedEmph2, m.getEmphasisAt(2));
+        this.assertEquals('aab', m.textString, 'string');
+        var expectedEmph1 = {fontWeight: 'bold'}, expectedEmph2 = {};
+        this.assertEqualOwnState(expectedEmph1, m.getEmphasisAt(0), 'emph1');
+        this.assertEqualOwnState(expectedEmph1, m.getEmphasisAt(1), 'emph2');
+        this.assertEqualOwnState(expectedEmph2, m.getEmphasisAt(2), 'emph3');
+    }
+});
+
 lively.morphic.tests.Text.TextMorphRichTextTests.subclass('lively.morphic.tests.Text.Paste',
 'data', {
     richTextPasteData: '<meta charset="utf-8">'
@@ -1092,6 +1094,15 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
             "emph with different prop value");
         this.assert(!emph.include({color: Color.green}, 'object with other prop'));
         this.assert(!emph.include({backgroundColor: Color.green}), 'no such prop is exist');
+    },
+
+    testAppliesOnlyWhitelistedAttributes: function() {
+        var emph = new lively.morphic.TextEmphasis({color: Color.red, orphans: '2'}),
+            htmlNode = {style: {}, setAttributeNS: function() {}};
+        emph.applyToHTML(htmlNode);
+        this.assertEquals(Color.red.toString(), htmlNode.style.color, 'no color');
+        this.assert(!htmlNode.style.orphans, 'applied unwanted attr');
+        this.assert(!emph.orphans, 'unwanted attr in emph');
     }
 });
 

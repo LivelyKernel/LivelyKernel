@@ -331,6 +331,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
     test07MakeTextBoldThenUnbold: function() {
         this.text.setTextString('eintest');
         this.text.emphasize({fontWeight: 'bold'}, 0, 2);
+        debugger
         this.text.emphasize({fontWeight: 'normal'}, 0, 2);
         this.checkDOM([{tagName: 'span', textContent: 'eintest'}])
     },
@@ -1058,7 +1059,8 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
             [{color: Color.red}, {color: Color.red}],
             [{color: Color.red}, {color: Color.rgba(204,0,0,1)}],
             [{backgroundColor: Color.red}, {backgroundColor: Color.rgba(204,0,0,1)}],
-            [{}, {isNullStyle: true}],
+            [{isNullStyle: true}, {isNullStyle: true}],
+            [{fontWeight: 'normal'}, {}],
             [{}, {foobarbaz: Color.green}]
         ];
 
@@ -1069,6 +1071,7 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
 
     testUnEqual: function() {
         var testTable = [
+            [{}, {isNullStyle: true}],
             [{color: Color.red}, {color: Color.green}]
         ];
 

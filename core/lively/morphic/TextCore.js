@@ -2615,12 +2615,21 @@ Object.subclass('lively.morphic.TextEmphasis',
         // 2. extend #equals!
     }
 },
-'supported styles', {
-    styleList: {
+'properties', {
+    isTextEmphasis: true
+},
+'style attributes', {
+    styleAttributes: {
 
         doit: {
             set: function(value) { return this.doit = value },
             get: function() { return this.doit },
+            equals: function(other) {
+                if (this.doit) {
+                    return other.doit ? this.doit.code == other.doit.code : false;
+                }
+                return !other.doit;
+            },
             apply: function(node) {
                 var value = this.doit;
                 if (!value) return;
@@ -2644,6 +2653,7 @@ Object.subclass('lively.morphic.TextEmphasis',
         uri: {
             set: function(value) { return this.uri = value},
             get: function() { return this.uri },
+            equals: function(other) { return this.uri == other.uri },
             apply: function(node) {
                 var value = this.uri;
                 if (!value) return;
@@ -2658,48 +2668,64 @@ Object.subclass('lively.morphic.TextEmphasis',
         fontWeight: {
             set: function(value) { return this.fontWeight = value },
             get: function() { return (this.fontWeight && this.fontWeight !== '') ? this.fontWeight : 'normal' },
+            equals: function(other) { return this.get('fontWeight') == other.get("fontWeight") },
             apply: function(node) { if (this.fontWeight) node.style.fontWeight = this.fontWeight  }
         },
 
         italics: {
             set: function(value) { return this.italics = value},
             get: function() { return (this.italics && this.italics !== '') ? this.italics : 'normal' },
+            equals: function(other) { return this.get('italics') == other.get("italics") },
             apply: function(node) { if (this.italics) node.style.fontStyle = this.italics }
         },
 
         fontFamily: {
             set: function(value) { return this.fontFamily = value },
             get: function() { return this.fontFamily },
+            equals: function(other) { return this.fontFamily == other.fontFamily },
             apply: function(node) { if (this.fontFamily) node.style.fontFamily = this.fontFamily }
         },
 
         color: {
             set: function(value) { return this.color = value },
             get: function() { return this.color },
+            equals: function(other) {
+                return this.color == other.color ||
+                    (this.color && this.color.isColor && this.color.equals(other.color));
+            },
             apply: function(node) { if (this.color) node.style.color = this.color; }
         },
 
         backgroundColor: {
             set: function(value) { return this.backgroundColor = value },
             get: function() { return this.backgroundColor },
+            equals: function(other) {
+                return this.backgroundColor == other.backgroundColor ||
+                    (this.backgroundColor &&
+                     this.backgroundColor.isColor &&
+                     this.backgroundColor.equals(other.backgroundColor));
+            },
             apply: function(node) { if (this.backgroundColor) node.style.backgroundColor = this.backgroundColor }
         },
 
         textDecoration: {
             set: function(value) { return this.textDecoration = value },
             get: function() { return this.textDecoration },
+            equals: function(other) { return this.textDecoration == other.textDecoration },
             apply: function(node) { if (this.textDecoration) node.style.textDecoration = this.textDecoration }
         },
 
         textAlign: {
             set: function(value) { return this.textAlign = value },
             get: function() { return this.textAlign },
+            equals: function(other) { return this.textAlign == other.textAlign },
             apply: function(node) { if (this.textAlign) node.style.textAlign = this.textAlign }
         },
 
         fontSize: {
             set: function(value) { return this.fontSize = value },
             get: function() { return this.fontSize },
+            equals: function(other) { return this.fontSize == other.fontSize },
             apply: function(node) { if (this.fontSize) node.style.fontSize = this.fontSize + 'pt' }
         },
 
@@ -2720,12 +2746,14 @@ Object.subclass('lively.morphic.TextEmphasis',
                 this.textShadow = value;
             },
             get: function() { return this.textShadow },
+            equals: function(other) { return this.textShadow == other.textShadow },
             apply: function(node) { if (this.textShadow) node.style.textShadow = this.textShadow }
         },
 
         isNullStyle: {
             set: function(value) { return this.isNullStyle = value },
             get: function() { return this.isNullStyle },
+            equals: function(other) { return this.isNullStyle == other.isNullStyle },
             apply: function(node) { this.isNullStyle && node.setAttribute('style', "") }
         }
 
@@ -2733,7 +2761,7 @@ Object.subclass('lively.morphic.TextEmphasis',
 
     getSupportedStyleNames: function() {
         if (!this.supportedStyleNames) {
-            this.constructor.prototype.supportedStyleNames = Object.keys(this.constructor.prototype.styleList);
+            this.constructor.prototype.supportedStyleNames = Object.keys(this.constructor.prototype.styleAttributes);
         }
         return this.supportedStyleNames;
     }
@@ -2744,44 +2772,30 @@ Object.subclass('lively.morphic.TextEmphasis',
     }
 },
 'accessing', {
-    getFontWeight: function() {
-        return (this.fontWeight && this.fontWeight !== '') ? this.fontWeight : 'normal';
-    },
-    setFontWeight: function(fontWeight) { this.fontWeight = fontWeight },
-    getItalics: function() { return (this.italics && this.italics !== '') ? this.italics : 'normal' },
-    setItalics: function(italics) { this.italics = italics },
-    getURI: function() { return this.uri },
-    setURI: function(link) { return this.uri = link },
-    getDoit: function() { return this.doit },
-    setDoit: function(doit) { return this.doit = doit },
-    getFontFamily: function() { return this.fontFamily },
-    setFontFamily: function(fontFamily) { return this.fontFamily = fontFamily },
-    getColor: function() { return this.color },
-    setColor: function(color) { return this.color = color },
-    getTextDecoration: function() { return this.textDecoration },
-    setTextDecoration: function(textDecoration) { return this.textDecoration = textDecoration },
-    getTextAlignment: function() { return this.textAlign },
-    setTextAlignment: function(textAlign) { return this.textAlign = textAlign },
-    getFontSize: function() { return this.fontSize },
-    setFontSize: function(fontSize) { return this.fontSize = fontSize },
-    getTextShadow: function() { return this.textShadow },
-    setTextShadow: function(textShadow) {
-        if (!textShadow) {
-            textShadow = '';
-        } else if (Object.isString(textShadow)) {
-            // use it as it is
-        } else {
-            var shadowSpec = textShadow;
-            textShadow = "";
-            textShadow += shadowSpec.offset.x + 'px ';
-            textShadow += shadowSpec.offset.y + 'px ';
-            textShadow += shadowSpec.blur ? shadowSpec.blur + 'px ' : "0 ";
-            textShadow += shadowSpec.color.toCSSString();
-        }
-        this.textShadow = textShadow;
-    },
-    getBackgroundColor: function() { return this.backgroundColor },
-    setBackgroundColor: function(color) { return this.backgroundColor = color }
+    get: function(attrName) { return this.styleAttributes[attrName].get.call(this) },
+    set: function(attrName, value) { return this.styleAttributes[attrName].set.call(this, value) },
+    getDoit:             function()      { return this.get('doit'); },
+    setDoit:             function(value) { return this.set('doit', value); },
+    getURI:              function()      { return this.get('uri'); },
+    setURI:              function(value) { return this.set('uri', value); },
+    getFontWeight:       function()      { return this.get('fontWeight'); },
+    setFontWeight:       function(value) { return this.set('fontWeight', value);; },
+    getItalics:          function()      { return this.get('italics'); },
+    setItalics:          function(value) { return this.set('italics', value); },
+    getFontFamily:       function()      { return this.get('fontFamily'); },
+    setFontFamily:       function(value) { return this.set('fontFamily', value);; },
+    getColor:            function()      { return this.get('color'); },
+    setColor:            function(value) { return this.set('color', value); },
+    getBackgroundColor:  function()      { return this.get('backgroundColor'); },
+    setBackgroundColor:  function(value) { return this.set('backgroundColor', value);; },
+    getTextDecoration:   function()      { return this.get('textDecoration');  },
+    setTextDecoration:   function(value) { return this.set('textDecoration', value);; },
+    getTextAlignment:    function()      { return this.get('textAlign'); },
+    setTextAlignment:    function(value) { return this.set('textAlign', value);; },
+    getFontSize:         function()      { return this.get('fontSize'); },
+    setFontSize:         function(value) { return this.set('fontSize', value);; },
+    getTextShadow:       function()      { return this.get('textShadow'); },
+    setTextShadow:       function(value) { return this.set('textShadow', value);; }
 },
 'cloning', {
     clone: function() { return new this.constructor(this) }
@@ -2789,40 +2803,33 @@ Object.subclass('lively.morphic.TextEmphasis',
 'changing', {
     add: function(spec) {
         for (var name in spec) {
-            if (!this.styleList[name] || !spec.hasOwnProperty(name)) continue;
-            this.styleList[name].set.call(this, spec[name]);
+            if (!this.styleAttributes[name] || !spec.hasOwnProperty(name)) continue;
+            this.styleAttributes[name].set.call(this, spec[name]);
         }
     }
 },
 'testing', {
     equals: function(other) {
-        var isEqual = this.getFontWeight()     === other.getFontWeight()
-                   && this.getItalics()        === other.getItalics()
-                   && this.getURI()            === other.getURI()
-                   && this.getFontFamily()     === other.getFontFamily()
-                   && this.getTextDecoration() === other.getTextDecoration()
-                   && this.getTextAlignment()  === other.getTextAlignment()
-                   && this.getFontSize()       === other.getFontSize()
-                   && this.getTextShadow()     === other.getTextShadow();
+        if (!other || !other.isTextEmphasis) return false;
 
-        if (!isEqual) return false;
+        var attrs = this.styleAttributes;
 
-        // testing colors with equal
-        var myColor = this.getColor(), otherColor = other.getColor();
-        isEqual = myColor === otherColor ||
-            (myColor && myColor.isColor && myColor.equals(otherColor));
+        if (attrs.isNullStyle.get.call(this) || attrs.isNullStyle.get.call(other)) {
+            return attrs.isNullStyle.equals.call(this, other);
+        }
 
-        if (!isEqual) return false;
-
-        myColor = this.getBackgroundColor(); otherColor = other.getBackgroundColor();
-        isEqual = myColor === otherColor ||
-            (myColor && myColor.isColor && myColor.equals(otherColor));
-
-        if (!isEqual) return false;
-
-        // doits
-        var myDoit = this.getDoit(), otherDoit = other.getDoit();
-        return myDoit ? otherDoit && myDoit.code == otherDoit.code : !otherDoit;
+        // FIXME refactor
+        return attrs.doit            .equals.call(this, other)
+            && attrs.uri             .equals.call(this, other)
+            && attrs.fontWeight      .equals.call(this, other)
+            && attrs.italics         .equals.call(this, other)
+            && attrs.fontFamily      .equals.call(this, other)
+            && attrs.color           .equals.call(this, other)
+            && attrs.backgroundColor .equals.call(this, other)
+            && attrs.textDecoration  .equals.call(this, other)
+            && attrs.textAlign       .equals.call(this, other)
+            && attrs.fontSize        .equals.call(this, other)
+            && attrs.textShadow      .equals.call(this, other);
     },
 
     include: function(specOrEmph) {
@@ -2876,26 +2883,27 @@ Object.subclass('lively.morphic.TextEmphasis',
     },
 
     applyToHTML: function(node, debugMode) {
-        // take the styles stored in me and apply them to the DOM node
+        // apply my style attributes to the DOM node
 
         // ignore if debugMode was never requested
         if (debugMode !== undefined) this.applyDebugStyling(node, debugMode);
 
         if (this.isNullStyle) { node.setAttribute('style', ""); return }
 
-        var htmlStyler = this.styleList;
-        htmlStyler.doit.apply.call(this, node);
-        htmlStyler.uri.apply.call(this, node);
-        htmlStyler.fontWeight.apply.call(this, node);
-        htmlStyler.italics.apply.call(this, node);
-        htmlStyler.fontFamily.apply.call(this, node);
-        htmlStyler.color.apply.call(this, node);
-        htmlStyler.backgroundColor.apply.call(this, node);
-        htmlStyler.textDecoration.apply.call(this, node);
-        htmlStyler.textAlign.apply.call(this, node);
-        htmlStyler.fontSize.apply.call(this, node);
-        htmlStyler.textShadow.apply.call(this, node);
-        htmlStyler.isNullStyle.apply.call(this, node);
+        // FIXME refactor
+        var attrs = this.styleAttributes;
+        attrs.doit            .apply.call(this, node);
+        attrs.uri             .apply.call(this, node);
+        attrs.fontWeight      .apply.call(this, node);
+        attrs.italics         .apply.call(this, node);
+        attrs.fontFamily      .apply.call(this, node);
+        attrs.color           .apply.call(this, node);
+        attrs.backgroundColor .apply.call(this, node);
+        attrs.textDecoration  .apply.call(this, node);
+        attrs.textAlign       .apply.call(this, node);
+        attrs.fontSize        .apply.call(this, node);
+        attrs.textShadow      .apply.call(this, node);
+        // attrs.isNullStyle.apply.call(this, node);
 
         this.installCallbackHandler(node);
     },

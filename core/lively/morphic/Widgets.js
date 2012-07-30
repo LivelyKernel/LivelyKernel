@@ -3495,6 +3495,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     },
     showMoreChildren: function() {
         this.layoutAfter(function() {
+            debugger
             var childrenToShow = this.item.children.slice(
                 this.childNodes.length,
                 this.childNodes.length + (this.childrenPerPage ? this.childrenPerPage : 100));

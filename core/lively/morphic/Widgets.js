@@ -2020,7 +2020,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
     onMouseUp: Functions.False,
 });
 
-lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph')/*TODO get rid of this*/,
+lively.morphic.Morph.subclass('lively.morphic.Window',
 'documentation', {
     documentation: "Full-fledged windows with title bar, menus, etc",
 },
@@ -2310,6 +2310,9 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('WindowMorph')/*TOD
 
 });
 
+(function applyWindowTrait() {
+    Trait('WindowMorph').applyTo(lively.morphic.Window); /*TODO get rid of this*/,
+})()
 
 Object.subclass('lively.morphic.App',
 'properties', {

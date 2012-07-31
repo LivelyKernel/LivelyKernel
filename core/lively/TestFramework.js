@@ -226,6 +226,12 @@ Object.subclass('TestCase',
                 this.assertEquals(leftObj, rightObj, msg);
                 return;
             }
+            case Array: {
+                this.assertEquals(leftObj.length, rightObj.length, msg);
+                for (var i = 0; i < leftObj.length; i++)
+                    this.assertEquals(leftObj[i], rightObj[i], msg);
+                return;
+            }
         };
         if (leftObj.isEqualNode) {
             this.assert(leftObj.isEqualNode(rightObj), msg);

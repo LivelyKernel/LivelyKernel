@@ -2311,7 +2311,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 });
 
 (function applyWindowTrait() {
-    Trait('WindowMorph').applyTo(lively.morphic.Window); /*TODO get rid of this*/,
+    Trait('WindowMorph').applyTo(lively.morphic.Window); /*TODO get rid of this*/
 })()
 
 Object.subclass('lively.morphic.App',

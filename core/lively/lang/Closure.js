@@ -45,7 +45,7 @@ Object.subclass('lively.Closure',
     setFuncProperties: function(obj) {
         var props = this.getFuncProperties();
         for (var name in obj) {
-            if (obj.hasOwnProperty(name) && !name.startsWith("_")) {
+            if (obj.hasOwnProperty(name) && name != "_cachedAst") {
                 props[name] = obj[name];
             }
         }

@@ -852,7 +852,7 @@ var LivelyMigrationSupport = {
     }, true);
 
     window.addEventListener('beforeunload', function(evt) {
-        if (livelyConfigExists() && window.Config.askBeforeQuit) {
+        if (livelyConfigExists() && (window.Config.askBeforeQuit !== true) {
             var msg = "Lively Kernel data may be lost if not saved.";
             evt.returnValue = msg;
             return msg;

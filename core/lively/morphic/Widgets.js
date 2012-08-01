@@ -3473,6 +3473,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     },
     createNodeAfter: function(item, optOtherNode) {
         var node = new lively.morphic.Tree(item, this);
+        node.childrenPerPage = this.childrenPerPage;
         if (optOtherNode) {
             node.setPosition(optOtherNode.getPosition().addXY(0,1));
         }

@@ -256,6 +256,7 @@ Object.subclass('ObjectGraphLinearizer',
         return simplified;
     },
     addIdToObject: function(obj) {
+        if (obj === this.registry) debugger;
         return obj[this.idProperty] = this.newId()
     },
     stringifyJSO: function(jso) {

@@ -605,35 +605,23 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         var htmlData = evt.clipboardData && evt.clipboardData.getData("text/html"),
             textData = evt.clipboardData && evt.clipboardData.getData("text/plain");
 
-        if ((!htmlData && !textData) || htmlData === textData/*when html text is pasted*/) {
+        if ((!htmlData && !textData) || htmlData === textData /*when html text is pasted*/) {
             this.fixChunksDelayed();
             return false; // let HTML magic handle paste
         }
 
         // try to process own rich text
-        var data = htmlData || lively.morphic.HTMLParser.stringToHTML(textData),
-            richText = lively.morphic.HTMLParser.pastedHTMLToRichText(data);
-        if (!richText) {
-            this.insertAtCursor(textData, true, true);
-            evt.stop()
-            return true;
-        }
+        var success = false;
         try {
-            richText.replaceSelectionInMorph(this);
-        } catch(e) {
-            var world = this.world();
-            if (!world) { evt.stop(); return true; }
-            var selRange = this.getSelectionRange(),
-                text = this,
-                inspectCb = lively.morphic.inspect.curry({
-                    richText: richText,
-                    text: text,
-                    selecitonRange: selRange
-                });
-            world.setStatusMessage("Error in Text>>onPaste() @ replaceSelelectionInMorph",
-                                   Color.red, undefined, inspectCb);
-            world.logError(e);
+            var data = htmlData || lively.morphic.HTMLParser.stringToHTML(textData);
+            success = lively.morphic.HTMLParser.insertPasteDataIntoText(data, this);
+        } catch (e) {}
+
+        // if rich-text paste does not work then at least insert text string
+        if (!success) {
+            this.insertAtCursor(textData, true, true);
         }
+
         evt.stop()
         return true;
     },
@@ -3155,6 +3143,22 @@ Object.extend(lively.morphic.HTMLParser, {
         return richText;
     },
 
+    insertPasteDataIntoText: function(data, text) {
+        // creates a rich text object from HTML snippet
+        var node = this.sourceToNode(data);
+        if (!node) return false;
+        this.sanitizeNode(node);
+        var selRange = text.getSelectionRange(),
+            selStart = selRange ? Math.min.apply(null, selRange) : 0,
+            newSelRange = [selStart + node.textContent.length, selStart + node.textContent.length],
+            styledRanges = this.createIntervalsWithStyle(
+                node, {styles: [], styleStart: selStart || 0, intervals: []});
+        text.insertAtCursor(node.textContent, false, true);
+        text.emphasizeRanges(styledRanges);
+        text.setSelectionRange(newSelRange[0], newSelRange[1]);
+        return true;
+    },
+
     extractStylesAndApplyToRichText: function(element, richText, mem) {
         // private
         for (var i = 0; i < element.childNodes.length; i++) {
@@ -3198,6 +3202,53 @@ Object.extend(lively.morphic.HTMLParser, {
             this.extractStylesAndApplyToRichText(ea, richText, mem);
         }
     },
+
+    createIntervalsWithStyle: function(element, mem) {
+        // private
+        mem = mem || {styles: [], styleStart: 0, intervals: []};
+        for (var i = 0; i < element.childNodes.length; i++) {
+            var ea = element.childNodes[i];
+
+            if (ea.nodeName === '#text') {
+                var string = element.textContent,
+                    styleEnd = mem.styleStart + string.length;
+                mem.intervals.push([mem.styleStart, styleEnd, Object.merge(mem.styles)]);
+                mem.styles = [];
+                mem.styleStart = styleEnd;
+                continue;
+            }
+
+            if (ea.getAttribute && (ea.getAttribute('class') === 'Apple-style-span')) {
+                this.createIntervalsWithStyle(ea, mem)
+                continue;
+            }
+            if (!ea.getAttribute) {
+                // comments etc
+                continue;
+            }
+            var css = ea.getAttribute('style');
+            if (css) {
+                var style = {};
+                css.split(";").forEach(function(ea) {
+                    if (ea.match(":")) {
+                        var pair = ea.replace(/ /g,"").split(":")
+                        style[this.convertStyleName(pair[0])] = pair[1]
+                    }
+                }, this)
+                mem.styles.push(style);
+            }
+
+            var link = LivelyNS.getAttribute(ea, 'uri');
+            link && mem.styles.push({uri: link});
+
+            var doit = LivelyNS.getAttribute(ea, 'doit');
+            doit && mem.styles.push({doit: lively.persistence.Serializer.deserialize(doit)});
+
+            this.createIntervalsWithStyle(ea, mem);
+        }
+        return mem.intervals;
+    },
+
     convertStyleName: function(name) {
         var s = name.split("-").invoke('capitalize').join("")
         return s.charAt(0).toLowerCase() + s.substring(1);

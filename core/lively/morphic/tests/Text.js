@@ -929,19 +929,26 @@ lively.morphic.tests.Text.TextMorphRichTextTests.subclass('lively.morphic.tests.
     },
 
     test02PasteResultPlacedInTextMorph: function() {
-        this.text.textString = 'foobar';
-        this.text.setNullSelectionAt(3);
-        this.text.onPaste(this.createPasteEvent({text: 'ein text', html: this.richTextPasteData}));
+        this.text.textString = '';
+        var pasteEvent = this.createPasteEvent({text: 'ein text', html: this.richTextPasteData})
+        this.text.onPaste(pasteEvent);
+        this.assertEquals('ein test', this.text.textString, 'string not ok');
         this.checkChunks([
-            {textString: 'foo', style: {fontWeight: ''}},
-            {textString: 'ein ', style: {fontWeight: ''}},
-            {textString: 'test', style: {fontWeight: 'bold'}},
-            {textString: 'bar', style: {fontWeight: ''}}]);
+            {textString: 'ein ', style: {}},
+            {textString: 'test', style: {fontWeight: 'bold'}}]);
         this.checkDOM([
-            {tagName: 'span', textContent: 'foo', style: {fontWeight: ''}},
             {tagName: 'span', textContent: 'ein ', style: {fontWeight: ''}},
-            {tagName: 'span', textContent: 'test', style: {fontWeight: 'bold'}},
-            {tagName: 'span', textContent: 'bar', style: {fontWeight: ''}}]);
+            {tagName: 'span', textContent: 'test', style: {fontWeight: 'bold'}}]);
+    },
+
+    test03ExtractStyles: function() {
+        var node = lively.morphic.HTMLParser.sourceToNode(this.richTextPasteData);
+        lively.morphic.HTMLParser.sanitizeNode(node);
+        var intervals = lively.morphic.HTMLParser.createIntervalsWithStyle(
+                node, {styles: [], styleStart: 0, intervals: []}),
+            expected = [[0, 4, {textDecoration: 'none'}],
+                        [4, 8, {textDecoration: 'none', fontWeight: 'bold'}]];
+        this.assertEqualState(expected, intervals);
     }
 });
 

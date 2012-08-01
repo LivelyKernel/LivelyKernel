@@ -255,7 +255,9 @@ Object.subclass('ObjectGraphLinearizer',
             simplified[id] = this.getRegisteredObjectFromId(id)
         return simplified;
     },
-    addIdToObject: function(obj) { return obj[this.idProperty] = this.newId() },
+    addIdToObject: function(obj) {
+        return obj[this.idProperty] = this.newId()
+    },
     stringifyJSO: function(jso) {
         var str = this.prettyPrint ? JSON.prettyPrint(jso) : JSON.stringify(jso),
             regex = new RegExp(this.CDATAEnd, 'g');

@@ -1042,9 +1042,11 @@ Object.extend(Namespace, {
 
     bootstrapModules: function() {
         // return a string to include in bootstrap.js
-        var urls = this.topologicalSortLoadedModules().collect(function(ea) {
-            return new URL(ea.uri()).relativePathFrom(URL.codeBase) });
-        var manual = [LivelyLoader.jqueryPath,
+        var urls = this.topologicalSortLoadedModules()
+            .collect(function(ea) { return new URL(ea.uri()).relativePathFrom(URL.codeBase) })
+            // omit modules outside of core
+            .reject(function(path) { return path.startsWith('..') });
+        var manual = [LivelyLoader.libsFile,
             'lively/Migration.js',
             'lively/JSON.js',
             'lively/lang/Object.js',
@@ -1052,6 +1054,7 @@ Object.extend(Namespace, {
             'lively/lang/String.js',
             'lively/lang/Array.js',
             'lively/lang/Number.js',
+            'lively/lang/Date.js',
             'lively/defaultconfig.js',
             'lively/localconfig.js',
             'lively/Base.js',

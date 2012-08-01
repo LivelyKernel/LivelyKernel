@@ -308,6 +308,12 @@ Object.extend(Array.prototype, {
         this.splice(index, 1);
     },
 
+    remove: function(item) {
+        var index = this.indexOf(item);
+        if (index >= 0) this.removeAt(index);
+        return item;
+    },
+
     pushAll: function(items) {
         for (var i = 0; i < items.length; i++)
         this.push(items[i]);

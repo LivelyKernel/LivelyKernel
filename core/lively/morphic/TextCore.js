@@ -1318,11 +1318,21 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             selRange = this.getSelectionRange(),
             sel = this.domSelection(),
             range;
+
+        function cleanup(text) {
+            // string has changed, removed cached version
+            text.cachedTextString = null;
+            // inconsistent nodes could have been added, so clean up
+            text.fixChunks();
+        }
+
         if (!sel) {
             // FIXME: This fixes the empty workspace bug. What else is needed?
             this.renderContext().textNode.appendChild(element);
+            cleanup(this);
             return;
         }
+
         range = sel.getRangeAt(0);
 
         if (overwriteSelection) {
@@ -1356,11 +1366,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         sel.addRange(range);
 
-        // string has changed, removed cached version
-        this.cachedTextString = null;
-
-        // inconsistent nodes could have been added, so clean up
-        this.fixChunks();
+        cleanup(this);
     },
 
     insertTextChunksAtCursor: function(newChunks, selectIt, overwriteSelection) {

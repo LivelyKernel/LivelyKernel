@@ -2785,6 +2785,10 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             x += m.innerBounds().width + separation;
         });
     },
+    newMethod: function() {
+        // enter comment here
+    }
+
 },
 'grabbing', {
     grabByHand: function(hand) {

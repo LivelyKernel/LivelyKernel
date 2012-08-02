@@ -974,7 +974,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SelectionTest',
         this.assertEquals(oldMorph1Pos, newMorph1Pos, 'oldMorph1Pos changed')
     },
     testAlginToGrid: function() {
-        // enter comment here
+        var selection = new lively.morphic.Selection();
+        
     }
 
 });

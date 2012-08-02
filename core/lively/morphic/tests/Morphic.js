@@ -982,8 +982,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SelectionTest',
         container.addMorph(m2);
         selection.selectedMorphs = [m1, m2];
         selection.alignToGrid();
-        this.assertEquals(m1.getPostion(), pt(50,50), "round down broken");
-        this.assertEquals(m2.getPostion(), pt(60,60), "round up broken");
+        this.assertEquals(m1.getPosition(), pt(50,50), "round down broken");
+        this.assertEquals(m2.getPosition(), pt(60,60), "round up broken");
   },
 
 });

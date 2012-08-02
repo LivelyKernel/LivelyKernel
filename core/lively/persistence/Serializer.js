@@ -847,18 +847,39 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
         this.objectsWithClosures.push({obj: obj, closures: deferedClosures});
         delete obj[this.serializedClosuresProperty];
     },
+
     deserializationDone: function() {
-        this.objectsWithClosures.each(function(ea) {
-            var currentClosures = Functions.own(ea.obj).select(function(name) {
-                return ea.obj[name].getOriginal().hasLivelyClosure; });
-	        for (var name in ea.closures) {
-	            var closure = ea.closures[name];
-	            closure.recreateFunc().addToObject(ea.obj, name);
+        // FIXME!
+        //
+        // Additionally to deserializing closures this code also takes care of
+        // synchronizing the state of objects, i.e. if an object currently has
+        // a closure then this code will remove this closures if the
+        // deserialization data does not carry such a closure. This should
+        // actually be seperate step in the deserialization
+        // process. @cschuster can you please refactor?!
+        //
+        // The original code:
+		// this.objectsMethodNamesAndClosures.forEach(function(ea) {
+		// 	ea.closure.recreateFunc().addToObject(ea.obj, ea.name);
+
+        this.objectsWithClosures.forEach(function(objectAndClosures) {
+            var obj = objectAndClosures.obj,
+                closures = objectAndClosures.closures,
+                currentClosures = Functions.own(obj).select(function(name) {
+                    return obj[name].getOriginal().hasLivelyClosure
+                        // This gets ugly... Not all closures should be
+                        // removed, there are exceptions, e.g. the closure
+                        // objects that are used for method connections
+                        && !obj[name].isConnectionWrapper; });
+	        for (var name in closures) {
+	            var closure = closures[name];
+	            closure.recreateFunc().addToObject(obj, name);
 	            currentClosures.remove(name);
 	        }
-	        currentClosures.forEach(function(name) { delete ea.obj[name]; });
-        })
-    },
+	        currentClosures.forEach(function(name) { delete obj[name]; });
+        });
+    }
+
 });
 
 ObjectLinearizerPlugin.subclass('lively.persistence.TraitPlugin',

@@ -229,7 +229,7 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
                 isTryCatchFinally: true,
                 trySeq: {},
                 catchSeq: {},
-                finallySeq: {},
+                finallySeq: {}
             };
         this.assertMatches(expected, r.children[0]);
     },

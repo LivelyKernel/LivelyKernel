@@ -257,6 +257,8 @@ Object.subclass('TestCase',
     },
     assertMatches: function(expectedSpec, obj, msg) {
         // are all properties in expectedSpec also in and equal in obj?
+        if (expectedSpec === obj) return;
+        this.assert(obj && Object.isObject(obj), String(obj) + " was expected to be an object");
         for (var name in expectedSpec) {
             var expected = expectedSpec[name], actual = obj[name];
             if (expected === undefined || expected === null) {
@@ -274,6 +276,9 @@ Object.subclass('TestCase',
                 continue;
               }
             };
+            this.assert(actual && Object.isObject(actual),
+                        name + ' was expected to be ' + expected +
+                        ' but is ' + String(actual) + (msg ? ' -- ' + msg : ''));
             this.assertMatches(expected, actual, msg);
         }
     },

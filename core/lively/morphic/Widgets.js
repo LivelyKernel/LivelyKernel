@@ -2785,8 +2785,12 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             x += m.innerBounds().width + separation;
         });
     },
-    newMethod: function() {
-        // enter comment here
+    alignToGrid: function() {
+        this.selectedMorphs.forEach(function(ea) {
+            var grid = pt(5,5);
+            // var p = ea.getPosition().addPt(grid.scaleBy(0.5));
+            // m.setPosition(pt(p.x - 2 ) 
+        });
     }
 
 },

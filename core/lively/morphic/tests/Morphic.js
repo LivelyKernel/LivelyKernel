@@ -973,11 +973,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SelectionTest',
         var newMorph1Pos = morph1.worldPoint(pt(0,0))
         this.assertEquals(oldMorph1Pos, newMorph1Pos, 'oldMorph1Pos changed')
     },
-    testAlginToGrid: function() {
+    testAlignToGrid: function() {
         var selection = new lively.morphic.Selection();
         var container = lively.morphic.Morph.makeRectangle(0,0,1000,1000);
-        
-    }
+        var m1 = lively.morphic.Morph.makeRectangle(54,54,100,100)
+        var m2 = lively.morphic.Morph.makeRectangle(58,58,100,100)
+        container.addMorph(m1);
+        container.addMorph(m2);
+        selection.selectedMorphs = [m1, m2];
+        selection.alignToGrid();
+        this.assertEquals(m1.getPostion(), pt(50,50), "round down broken");
+        this.assertEquals(m2.getPostion(), pt(60,60), "round up broken");
+  },
 
 });
 

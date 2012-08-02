@@ -975,6 +975,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SelectionTest',
     },
     testAlginToGrid: function() {
         var selection = new lively.morphic.Selection();
+        var container = lively.morphic.Morph.makeRectangle(0,0,1000,1000);
         
     }
 

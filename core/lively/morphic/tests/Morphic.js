@@ -974,7 +974,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SelectionTest',
         this.assertEquals(oldMorph1Pos, newMorph1Pos, 'oldMorph1Pos changed')
     },
     testAlignToGrid: function() {
-        var selection = new lively.morphic.Selection();
+        var selection = new lively.morphic.Selection(new Rectangle(0,0,0,0));
         var container = lively.morphic.Morph.makeRectangle(0,0,1000,1000);
         var m1 = lively.morphic.Morph.makeRectangle(54,54,100,100)
         var m2 = lively.morphic.Morph.makeRectangle(58,58,100,100)

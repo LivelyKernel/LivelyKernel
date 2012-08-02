@@ -230,7 +230,7 @@ Object.subclass('TestCase',
                 this.assertEquals(leftObj.length, rightObj.length, msg +
                                   Strings.format(' (length %s vs. %s)', leftObj.length, rightObj.length));
                 for (var i = 0; i < leftObj.length; i++) {
-                    this.assertEqualState(leftObj[i], rightObj[i], msg);
+                    this.assertEqualState(leftObj[i], rightObj[i], msg, noProtoLookup);
                 }
                 return;
             }

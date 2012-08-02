@@ -386,15 +386,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
             {tagName: 'span', textContent: 'einfootest', childNodes: [
                 {tagName: undefined, textContent: 'ein'},
                 {tagName: undefined, textContent: 'foo'},
-                {tagName: undefined, textContent: 'test'}
-            ]},
+                {tagName: undefined, textContent: 'test'},
+                {tagName: 'br', textContent: ''}
+            ]}
         ])
 
         this.text.toggleBoldness(1, 9);
         this.checkDOM([
             {tagName: 'span', textContent: 'e', childNodes: [{textContent: 'e'}]},
             {tagName: 'span', textContent: 'infootes', childNodes: [{textContent: 'infootes'}]},
-            {tagName: 'span', textContent: 't', childNodes: [{textContent: 't'}]}
+            {tagName: 'span', textContent: 't', childNodes: [{textContent: 't'},
+                                                             {tagName: 'br', textContent: ''}]}
         ])
     },
 
@@ -406,7 +408,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
         this.text.fixChunks();
         this.checkDOM([
             {tagName: 'span', textContent: 'eintesttest', childNodes: [
-                {tagName: undefined, textContent: 'eintesttest'}
+                {tagName: undefined, textContent: 'eintesttest'},
+                {tagName: 'br', textContent: ''}
             ]}
         ]);
         var range = this.text.getSelectionRange();
@@ -420,7 +423,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
         this.text.fixChunks();
         this.checkDOM([
             {tagName: 'span', textContent: 'eintest', childNodes: [
-                {tagName: undefined, textContent: 'eintest'}
+                {tagName: undefined, textContent: 'eintest'},
+                {tagName: 'br', textContent: ''}
             ]}
         ]);
         var range = this.text.getSelectionRange();

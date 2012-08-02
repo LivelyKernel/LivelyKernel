@@ -859,8 +859,8 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
         // process. @cschuster can you please refactor?!
         //
         // The original code:
-		// this.objectsMethodNamesAndClosures.forEach(function(ea) {
-		// 	ea.closure.recreateFunc().addToObject(ea.obj, ea.name);
+        // this.objectsMethodNamesAndClosures.forEach(function(ea) {
+        //   ea.closure.recreateFunc().addToObject(ea.obj, ea.name);
 
         this.objectsWithClosures.forEach(function(objectAndClosures) {
             var obj = objectAndClosures.obj,
@@ -871,12 +871,12 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
                         // removed, there are exceptions, e.g. the closure
                         // objects that are used for method connections
                         && !obj[name].isConnectionWrapper; });
-	        for (var name in closures) {
-	            var closure = closures[name];
-	            closure.recreateFunc().addToObject(obj, name);
-	            currentClosures.remove(name);
-	        }
-	        currentClosures.forEach(function(name) { delete obj[name]; });
+            for (var name in closures) {
+                var closure = closures[name];
+                closure.recreateFunc().addToObject(obj, name);
+                currentClosures.remove(name);
+            }
+            currentClosures.forEach(function(name) { delete obj[name]; });
         });
     }
 

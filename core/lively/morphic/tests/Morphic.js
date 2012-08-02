@@ -31,14 +31,14 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
         this.world.addMorph(m);
         this.assert(this.world.submorphs.include(m), 'not in submorphs');
         this.assertIdentity(this.world, m.owner, 'owner');
-
         var expected = {
             tagName: 'div', // world morph
-            childNodes: [
+            childNodes: [{tagName: 'div', childNodes: [ // origin node
                 {tagName: 'div', childNodes: [ // world shape
-                    {tagName: 'div', childNodes: [{tagName: 'div'}]} // m and its shape
+                    {tagName: 'div', childNodes: [{tagName: 'div'}]}, // m and its shape
+                    {tagName: 'div', childNodes: [{tagName: 'div'}]}  // hand and its shape
                 ]}
-            ]};
+            ]}]};
         this.assertNodeMatches(expected, this.world.renderContext().getMorphNode());
     },
 
@@ -54,7 +54,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphTests',
                     {tagName: 'div'}, // hand
                     {tagName: 'svg', // submorph
                         childNodes: [{tagName: 'g', childNodes: [{tagName: 'rect'}]}]}
-                ]}, // world's shape
+                ]} // world's shape
             ]
         };
         this.assertNodeMatches(expected, this.world.renderContext().getMorphNode());

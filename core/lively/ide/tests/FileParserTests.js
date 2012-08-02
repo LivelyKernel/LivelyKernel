@@ -1109,11 +1109,17 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
     },
 
     testSourceWithErrorsWillNotBeSaved: function() {
-        var fragment = this.fragmentNamed('ClassA');
-        var newName = 'ClassAEdited';
+        var fragment = this.fragmentNamed('ClassA'),
+            newName = 'ClassAEdited',
+            // FIXME test behavior depending on additionally loaded layer / system Config
+            shouldRaiseError = Global.AdvancedSyntaxHighlighting && AdvancedSyntaxHighlighting.isGlobal();
+        if (shouldRaiseError) {
         this.assertRaises(function() {
             fragment.putSourceCode('Object.subclass(\'' + newName + '\', \{\n');
         });
+        } else {
+            fragment.putSourceCode('Object.subclass(\'' + newName + '\', \{\n');
+        }
         this.assert(!this.db.getCachedText('foo.js').include('ClassAEdited'));
     },
 

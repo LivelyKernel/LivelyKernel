@@ -215,14 +215,23 @@ Object.subclass('TestCase',
     assertEqualState: function(leftObj, rightObj, msg) {
         // have leftObj and rightObj equal properties?
         msg = (msg ? msg : ' ') + leftObj + " != " + rightObj + " because ";
-        if (!leftObj && !rightObj) return;
-        if (!leftObj || !rightObj) this.assert(false, msg);
+        this.assertEquals(typeof leftObj, typeof rightObj, msg + ' object types differ');
+        if (leftObj == rightObj) return;
+        if ((leftObj !== leftObj) && (rightObj !== rightObj)) return; // both are NaN
         switch (leftObj.constructor) {
             case String:
             case Boolean:
             case Boolean:
             case Number: {
                 this.assertEquals(leftObj, rightObj, msg);
+                return;
+            }
+            case Array: {
+                this.assertEquals(leftObj.length, rightObj.length, msg +
+                                  Strings.format(' (length %s vs. %s)', leftObj.length, rightObj.length));
+                for (var i = 0; i < leftObj.length; i++) {
+                    this.assertEqualState(leftObj[i], rightObj[i], msg);
+                }
                 return;
             }
         };
@@ -234,6 +243,8 @@ Object.subclass('TestCase',
             for (var value in left) {
                 if (!(left[value] instanceof Function)) {
                     try {
+                        this.assertEquals(left.hasOwnProperty(value),
+                                          right.hasOwnProperty(value), msg);
                         this.assertEqualState(left[value], right[value], msg);
                     } catch (e) {
                         throw e;

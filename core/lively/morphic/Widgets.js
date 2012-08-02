@@ -2612,7 +2612,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             items.push(["group", this.makeGroup.bind(this)]);
         }
 
-        // items.push(["align to grid...", this.alignToGrid.bind(this)]);
+        items.push(["align to grid...", this.alignToGrid.bind(this)]);
 
         return items;
     },

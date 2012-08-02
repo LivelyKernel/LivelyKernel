@@ -2788,8 +2788,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
     alignToGrid: function() {
         this.selectedMorphs.forEach(function(ea) {
             var grid = pt(5,5);
-            // var p = ea.getPosition().addPt(grid.scaleBy(0.5));
-            // m.setPosition(pt(p.x - 2 ) 
+            ea.setPosition(ea.getPosition().roundTo(grid))
         });
     }
 

@@ -2748,7 +2748,7 @@ Object.subclass('lively.morphic.RichText2',
         this.textString = textMorph.textString;
         this.textEmphasis = Array.range(0, this.textString.length).collect(function(i) {
             return textMorph.getEmphasisAt(i);
-        });
+        }).compact();
         return this;
     },
 

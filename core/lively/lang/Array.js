@@ -332,8 +332,7 @@ Object.extend(Array.prototype, {
     },
 
     nestedDelay: function(iterator, waitSecs, endFunc, context, optSynchronChunks) {
-        endFunc = endFunc ||
-        function() {};
+        endFunc = endFunc || function() {};
         return this.reverse().inject(endFunc, function(nextFunc, ea, idx) {
             return function() {
                 iterator.call(context || Global, ea, idx);
@@ -456,6 +455,180 @@ var Arrays = {
     }
 }
 
+// Intervals are arrays whose first two elements are numbers and the
+// first element should be less or equal the second element, see
+// #isInterval
+var Interval = {
+
+    isInterval: function(object) {
+        return Object.isArray(object) && object.length >= 2 && object[0] <= object[1];
+    },
+
+    compare: function(a, b) {
+        // we assume that a[0] <= a[1] and b[0] <= b[1]
+        // -2: a < b and non-overlapping, e.g [1,2] and [3,4]
+        // -1: a < b and overlapping, e.g, [1,2] and [2,3]
+        //  0: a = b, e.g. [1,2] and [1,2]
+        //  1: a > b and overlapping, e.g. [2,4] and [1,3]
+        //  2: a > b and non-overlapping, e.g [2,4] and [0,1]
+        if (a[0] < b[0] && a[1] < b[0])     return -2;
+        if (a[0] < b[0] && a[1] >= b[0])    return -1;
+        if (a[0] === b[0] && a[1] === b[1]) return  0;
+        // we know a[0] > b[0]
+        if (a[0] <= b[1])                   return  1;
+        return                                      2;
+    },
+
+    sort: function(intervals) { return intervals.sort(Interval.compare); },
+
+    merge: function(interval1, interval2, optMergeCallback) {
+        // [1,4], [5,7] => null
+        // [1,4], [3,6] => [1,6]
+        // [3,6], [4,5] => [3, 6]
+        switch (this.compare(interval1, interval2)) {
+            case -2:
+            case  2: return null;
+            case  0:
+                optMergeCallback && optMergeCallback(interval1, interval2, interval1);
+                return interval1;
+            case  1: var temp = interval1; interval1 = interval2; interval2 = temp; // swap
+            case -1:
+                var merged = [interval1[0], Math.max(interval1[1], interval2[1])];
+                optMergeCallback && optMergeCallback(interval1, interval2, merged);
+                return merged;
+            default: throw new Error("Interval compare failed");
+        }
+    },
+
+    mergeOverlapping: function(intervals, mergeFunc) {
+        // accepts an array of intervals
+        // [[9,10], [1,8], [3, 7], [15, 20], [14, 21]] => [[1, 8], [9, 10], [14, 21]]
+        var condensed = [], len = intervals.length;
+        while (len > 0) {
+            var interval = intervals.shift(); len--;
+            for (var i = 0; i < len; i++) {
+                var otherInterval = intervals[i],
+                    merged = Interval.merge(interval, otherInterval, mergeFunc);
+                if (merged) {
+                    interval = merged;
+                    intervals.splice(i, 1);
+                    len--; i--;
+                }
+            }
+            condensed.push(interval);
+        }
+        return this.sort(condensed);
+    },
+
+    intervalsInRangeDo: function(start, end, intervals, iterator, context) {
+        /*
+         * merges and iterates through sorted intervals. Will "fill up" intervals, example:
+           Strings.print(Interval.intervalsInRangeDo(
+                         2, 10, [[0, 1], [5,8], [2,4]],
+                         function(i, isNew) { i.push(isNew); return i; }));
+         *  => "[[2,4,false],[4,5,true],[5,8,false],[8,10,true]]"
+         * this is currently used for computing text chunks in lively.morphic.TextCore
+         */
+        context = context || Global;
+        intervals = this.sort(intervals); // need to be sorted for the algorithm below
+        var free = [], nextInterval, collected = [];
+        // merged intervals are already sorted, simply "negate" the interval array;
+        while ((nextInterval = intervals.shift())) {
+            if (nextInterval[1] < start) continue;
+            if (nextInterval[0] < start) {
+                nextInterval = nextInterval.clone();
+                nextInterval[0] = start;
+            };
+            var nextStart = end < nextInterval[0] ? end : nextInterval[0];
+            if (start < nextStart) {
+                collected.push(iterator.call(context, [start, nextStart], true));
+            };
+            if (end < nextInterval[1]) {
+                nextInterval = nextInterval.clone();
+                nextInterval[1] = end;
+            }
+            collected.push(iterator.call(context, nextInterval, false));
+            start = nextInterval[1];
+            if (start >= end) break;
+        }
+        if (start < end) collected.push(iterator.call(context, [start, end], true));
+        return collected;
+    },
+
+    intervalsInbetween: function(start, end, intervals) {
+        // computes "free" intervals between the intervals given in range start - end
+        // currently used for computing text chunks in lively.morphic.TextCore
+        // start = 0, end = 10, intervals = [[1,4], [5,8]]
+        // => [[0,1], [4, 5], [8, 10]]
+        //
+        var merged = Interval.mergeOverlapping(intervals.clone());
+        return this.intervalsInRangeDo(start, end, merged, function(intervall, isNew) {
+            return isNew ? intervall : null
+        }).select(function(ea) { return !!ea });
+
+        // var result = [], merged = Interval.mergeOverlapping(intervals.clone());
+        // return this.intervalsInRangeDo(start, end, merged, function(intervall, isNew) {
+        //     if (isNew) result.push(intervall);
+        // }).select(function(ea) { return !!ea });
+        // return result;
+    },
+
+    mapToMatchingIndexes:  function(intervals, intervalsToFind) {
+        // returns an array of indexes of the items in intervals that match
+        // items in intervalsToFind
+        // Note: we expect intervals and intervals to be sorted according to Interval.compare!
+        // This is the optimized version of:
+        // return intervalsToFind.collect(function findOne(toFind) {
+        //     var startIdx, endIdx;
+        //     var start = intervals.detect(function(ea, i) { startIdx = i; return ea[0] === toFind[0]; });
+        //     if (start === undefined) return [];
+        //     var end = intervals.detect(function(ea, i) { endIdx = i; return ea[1] === toFind[1]; });
+        //     if (end === undefined) return [];
+        //     return Array.range(startIdx, endIdx);
+        // });
+
+        var startIntervalIndex = 0, endIntervalIndex, currentInterval;
+        return intervalsToFind.collect(function(toFind) {
+            while ((currentInterval = intervals[startIntervalIndex])) {
+                if (currentInterval[0] < toFind[0]) { startIntervalIndex++; continue };
+                break;
+            }
+            if (currentInterval && currentInterval[0] === toFind[0]) {
+                endIntervalIndex = startIntervalIndex;
+                while ((currentInterval = intervals[endIntervalIndex])) {
+                    if (currentInterval[1] < toFind[1]) { endIntervalIndex++; continue };
+                    break;
+                }
+                if (currentInterval && currentInterval[1] === toFind[1]) {
+                    return Array.range(startIntervalIndex, endIntervalIndex);
+                }
+            }
+            return [];
+        });
+    },
+
+    benchmark: function() {
+        // Used for developing the code above. If you change the code, please
+        // make sure that you don't worsen the performance!
+        // See also lively.lang.tests.ExtensionTests.IntervallTest
+        function benchmarkFunc(name, args, n) {
+            return Strings.format(
+                '%s: %sms',
+                name,
+                Functions.timeToRunN(function() { Interval[name].apply(Interval, args, 100000) }, n));
+        }
+        return [
+            "Friday, 20. July 2012:",
+            "mergeOverlapping: 0.0003ms",
+            "intervalsInbetween: 0.002ms",
+            "mapToMatchingIndexes: 0.02ms",
+            'vs.\n' + new Date() + ":",
+            benchmarkFunc("mergeOverlapping", [[[9,10], [1,8], [3, 7], [15, 20], [14, 21]]], 100000),
+            benchmarkFunc("intervalsInbetween", [0, 10, [[8, 10], [0, 2], [3, 5]]], 100000),
+            benchmarkFunc("mapToMatchingIndexes", [Array.range(0, 1000).collect(function(n) { return [n, n+1] }), [[4,8], [500,504], [900,1004]]], 1000)
+        ].join('\n');
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Global

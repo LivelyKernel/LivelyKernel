@@ -13,8 +13,9 @@ Trait('TextChunkOwner',
         return c;
     },
     getTextChunks: function() {
-        if (!this.textChunks || this.textChunks.length === 0)
+        if (!this.textChunks || this.textChunks.length === 0) {
             this.textChunks = [this.createChunk()];
+        }
         return this.textChunks;
     },
     setTextChunks: function(chunks) {
@@ -23,17 +24,20 @@ Trait('TextChunkOwner',
         this.textChunks = chunks;
         this.cachedTextString = null;
     },
-    setTextChunksFromTo: function() {},
-    firstTextChunk: function() {
-        return this.getTextChunks()[0];
-    },
 
-    getChunkRanges: function() {
-        // only used for debugging
-        var offset = 0;
-        return this.textChunks.collect(function(chunk) {
-            return [offset, offset += chunk.textString.length];
-        });
+    setTextChunksFromTo: function() {},
+
+    firstTextChunk: function() { return this.getTextChunks()[0]; },
+
+    getChunkRanges: function(chunks) {
+        chunks = chunks || this.getTextChunks();
+        var from = 0, len = chunks.length, result = new Array(chunks.length);
+        for (var i = 0; i < len; i++) {
+            var to = from + chunks[i].textString.length;
+            result[i] = [from, to];
+            from = to;
+        }
+        return result;
     },
 
     getChunkStyles: function() {
@@ -55,63 +59,111 @@ Trait('TextChunkOwner',
     }
 },
 'chunk computations', {
-    getChunkAndLocalIndex: function(idx, useChunkStart) {
+
+    getChunkAndLocalIndex: function(idx, useChunkStart, optRanges) {
         // when useChunkStart = false and a chunk ends at idx then we return that
         // when useChunkStart = true then we return the next chunk if there is one
         // if chunk ranges are [[0, 1], [1, 3], [3, 6]]
         // useChunkStart == false, idx == 1 returns [chunk[0],1]
         // useChunkStart == false, idx == 2 returns [chunk[1],1]
         // useChunkStart == true, idx == 1 returns [chunk[1],0]
-        var offset = 0, chunks = this.getTextChunks();
-        for (var i = 0; i < chunks.length; i++) {
-            var nextOffset = offset + chunks[i].textString.length;
-            if (!useChunkStart && idx <= nextOffset) return [chunks[i], idx-offset];
-            if (useChunkStart && idx < nextOffset) return [chunks[i], idx-offset];
-            offset = nextOffset;
+        var chunks = this.getTextChunks(), ranges = optRanges || this.getChunkRanges(chunks);
+        for (var i = 0, len = ranges.length; i < len; i++) {
+            var from = ranges[i][0],
+                to = ranges[i][1];
+            if (useChunkStart) {
+                if (idx < to || (from === to && from === idx)) return [chunks[i], idx-from];
+            } else {
+                if (idx <= to) return [chunks[i], idx-from];
+            }
         }
+        return null;
     },
-    sliceTextChunks: function(from, to) {
-        // sanitize indexes
+
+    sliceTextChunks: function(from, to, optChunkRanges) {
+        // When text should be styled we need text chunks that represent the
+        // text ranges that should be styled. This method returns an array of
+        // chunks that represent the text in the range from to. Note that this
+        // cannot be only one chunk since the from-to range can cross existing
+        // style ranges.
+        //
+        // To cleanup unnecessary text chunks (text chunk who have the same
+        // style than their neighbours) call #coalesceChunks
+        //
+        // Example: Given the text "Lively rockz".
+        // Given the styling: "Lively " - none,  ""rockz" - bold
+        // I.e. two text chunks exist already:
+        // [TextChunk(0-7, TextEmphasis({})),
+        //  TextChunk(7-12, TextEmphasis({"fontWeight": "bold"}))]
+        // When we want to underline "ly ro" we first need to create new
+        // chunks that represent that text range (by calling
+        // text.sliceTextChunks(4, 9)). This will create two new text chunks:
+        // [TextChunk(4-7, TextEmphasis({})),
+        //  TextChunk(7-9, TextEmphasis({"fontWeight": "bold"}))]
+        // those will be added to the textChunks list of this text at the right
+        // positions
+
+        // 1. sanitize indexes
         var maxLength = this.textString.length,
             fromSafe = Math.min(from, to),
             toSafe = Math.max(from, to),
             startChunk, endChunk;
         fromSafe = Math.max(0, Math.min(maxLength, fromSafe));
         toSafe = Math.max(0, Math.min(maxLength, toSafe));
-        var zeroLength = fromSafe === toSafe;
-        if (zeroLength) {
-            var chunkBeforeSpec = this.getChunkAndLocalIndex(fromSafe);
-            if (!chunkBeforeSpec) return [];
-            var chunkBefore = chunkBeforeSpec[0].splitBefore(chunkBeforeSpec[1]),
-                chunkAfter = chunkBefore.next(),
-                idxInChunks = this.textChunks.indexOf(chunkBefore),
-                newChunk = new lively.morphic.TextChunk('');
-            this.textChunks.pushAt(newChunk, idxInChunks + 1);
-            newChunk.addTo(this, chunkAfter);
-            return [newChunk];
-        } else {
-            // split the chunks and retrieve chunks inbetween from-to
-            var start = this.getChunkAndLocalIndex(fromSafe);
-            if (!start) return [];
-            startChunk = start[0].splitAfter(start[1]);
 
-            var end = this.getChunkAndLocalIndex(toSafe);
-            if (!end) return [];
-            endChunk = end[0].splitBefore(end[1]);
+        var sliceLength = toSafe - fromSafe,
+            ranges = optChunkRanges || this.getChunkRanges(),
+            chunkAndIndexAtStart = this.getChunkAndLocalIndex(fromSafe, true, ranges);
+
+        // 2. does a text chunk already match from - to?
+        if (chunkAndIndexAtStart
+          && chunkAndIndexAtStart[1] === 0
+          && chunkAndIndexAtStart[0].textString.length === sliceLength) {
+            return [chunkAndIndexAtStart[0]];
         }
 
-        var chunks = this.getTextChunks(),
-            startIdx = chunks.indexOf(startChunk),
-            endIdx = chunks.indexOf(endChunk);
+        // 3. special handling of chunks with length 0
+        if (sliceLength === 0) {
+            var chunkBeforeSpec = this.getChunkAndLocalIndex(fromSafe, false, ranges);
+            if (!chunkBeforeSpec) return [];
+            var chunkBefore = chunkBeforeSpec[0].splitBefore(chunkBeforeSpec[1], ranges),
+                chunkAfter = chunkBefore.next(),
+                chunks = this.getTextChunks(),
+                idxInChunks = chunks.indexOf(chunkBefore),
+                newChunk = chunkBefore.createForSplit('');
+            chunks.splice(idxInChunks + 1, 0, newChunk);
+            newChunk.addTo(this, chunkAfter);
+            return [newChunk];
+        }
 
-        return chunks.slice(Math.min(startIdx, endIdx),endIdx+1);
+        // split the chunks and retrieve chunks inbetween from-to
+        var start = this.getChunkAndLocalIndex(fromSafe, false, ranges);
+        if (!start) return [];
+        startChunk = start[0].splitAfter(start[1], ranges);
+        var chunks = this.getTextChunks(),
+            startIdx = chunks.indexOf(startChunk);
+
+        var end = this.getChunkAndLocalIndex(toSafe, false, ranges);
+        if (!end) return [];
+        endChunk = end[0].splitBefore(end[1], ranges);
+        var endIdx = chunks.indexOf(endChunk);
+
+        return chunks.slice(Math.min(startIdx, endIdx), endIdx+1);
     },
 
     coalesceChunks: function () {
-        var chunk = this.firstTextChunk();
+        // see comment in #sliceTextChunks
+        var chunk = this.firstTextChunk(), domChanged = false, last;
         while (chunk) {
-            chunk = chunk.joinWithNextIfEqualStyle() ? chunk : chunk.next();
+            last = chunk;
+            if (chunk.tryJoinWithNext()) {
+                domChanged = true;
+            } else {
+                chunk = chunk.next();
+            }
         }
+        last.ensureEndsWithBr();
+        return domChanged;
     }
 },
 'garbage collection', {
@@ -121,6 +173,7 @@ Trait('TextChunkOwner',
             domChanged = false;
         domChanged = this.fixTextBeforeAndAfterChunks(chunks);
         domChanged = domChanged || this.removeNonChunkNodes(chunks);
+        chunks.last().ensureEndsWithBr();
         if (domChanged && selRange) {
             this.setSelectionRange(selRange[0], selRange[1]);
         }
@@ -351,6 +404,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             console.warn('insertTextStringAt failed, found no text chunk!');
             return;
         }
+        this.cachedTextString = null;
         firstChunk.textString += string;
         this.coalesceChunks();
     },
@@ -551,35 +605,23 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         var htmlData = evt.clipboardData && evt.clipboardData.getData("text/html"),
             textData = evt.clipboardData && evt.clipboardData.getData("text/plain");
 
-        if ((!htmlData && !textData) || htmlData === textData/*when html text is pasted*/) {
+        if ((!htmlData && !textData) || htmlData === textData /*when html text is pasted*/) {
             this.fixChunksDelayed();
             return false; // let HTML magic handle paste
         }
 
         // try to process own rich text
-        var data = htmlData || lively.morphic.HTMLParser.stringToHTML(textData),
-            richText = lively.morphic.HTMLParser.pastedHTMLToRichText(data);
-        if (!richText) {
-            this.insertAtCursor(textData, true, true);
-            evt.stop()
-            return true;
-        }
+        var success = false;
         try {
-            richText.replaceSelectionInMorph(this);
-        } catch(e) {
-            var world = this.world();
-            if (!world) { evt.stop(); return true; }
-            var selRange = this.getSelectionRange(),
-                text = this,
-                inspectCb = lively.morphic.inspect.curry({
-                    richText: richText,
-                    text: text,
-                    selecitonRange: selRange
-                });
-            world.setStatusMessage("Error in Text>>onPaste() @ replaceSelelectionInMorph",
-                                   Color.red, undefined, inspectCb);
-            world.logError(e);
+            var data = htmlData || lively.morphic.HTMLParser.stringToHTML(textData);
+            success = lively.morphic.HTMLParser.insertPasteDataIntoText(data, this);
+        } catch (e) {}
+
+        // if rich-text paste does not work then at least insert text string
+        if (!success) {
+            this.insertAtCursor(textData, true, true);
         }
+
         evt.stop()
         return true;
     },
@@ -1032,11 +1074,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             if (range) {
                 endIdx = Math.max(range[0], range[1]);
             }
-            // when at end insert a br alement if none is there
-            if (length == endIdx) {
-                var chunk = this.getTextChunks().last();
-                chunk.ensureEndsWithBr();
-            }
             this.insertAtCursor('\n', false, true)
         }
         evt.stop();
@@ -1232,8 +1269,11 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return null;
     },
 
-    selectionString: function() {
+    hasSelection: function() {
+        return this.domSelection() !== null;
+    },
 
+    selectionString: function() {
         // HTML only, works in FF & Chrome
         var sel = this.domSelection();
         if (!sel) { return ''; }
@@ -1266,11 +1306,21 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             selRange = this.getSelectionRange(),
             sel = this.domSelection(),
             range;
+
+        function cleanup(text) {
+            // string has changed, removed cached version
+            text.cachedTextString = null;
+            // inconsistent nodes could have been added, so clean up
+            text.fixChunks();
+        }
+
         if (!sel) {
             // FIXME: This fixes the empty workspace bug. What else is needed?
             this.renderContext().textNode.appendChild(element);
+            cleanup(this);
             return;
         }
+
         range = sel.getRangeAt(0);
 
         if (overwriteSelection) {
@@ -1284,31 +1334,29 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             // insert new node after current selection
             // after current selection depends on selection direction
             // either focusNode or anchorNode
-            if (selRange[0] < selRange[1])
+            if (selRange[0] < selRange[1]) {
                 range.setStart(sel.focusNode, sel.focusOffset);
-            else
+            } else {
                 range.setStart(sel.anchorNode, sel.anchorOffset);
+            }
         }
         range.insertNode(node);
         sel.removeAllRanges();
 
-        range = document.createRange()
+        range = document.createRange();
 
         if (selectIt) {
-            range.selectNode(node)
+            range.selectNode(node);
         } else { // no real selection but set cursor, FIXME use setCursor or something
-            range.setStartAfter(node)
-            range.setEndAfter(node)
+            range.setStartAfter(node);
+            range.setEndAfter(node);
         }
 
         sel.addRange(range);
 
-        // string has changed, removed cached version
-        this.cachedTextString = null;
-
-        // inconsistent nodes could have been added...
-        this.fixChunks()
+        cleanup(this);
     },
+
     insertTextChunksAtCursor: function(newChunks, selectIt, overwriteSelection) {
         //console.log('Text>>insertTextChunksAtCursor');
         var selRange = this.getSelectionRange();
@@ -1349,6 +1397,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     removeTextSelection: function() {},
+
     getSelectionOrLineString: function() {
         var sel = this.domSelection(),
             range;
@@ -1383,8 +1432,9 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
     modifySelection: function(extendOrMove, direction, toWhere) {
         var sel = this.domSelection();
-        if (sel.anchorNode)
+        if (sel.anchorNode) {
             sel.modify(extendOrMove, direction, toWhere);
+        }
     },
 
     setSelectionRange: function(start, end) {
@@ -1404,9 +1454,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (startBoundaryPoint === undefined && endBoundaryPoint === undefined) return;
         if (startBoundaryPoint === undefined) startBoundaryPoint = endBoundaryPoint;
         if (endBoundaryPoint === undefined) endBoundaryPoint = startBoundaryPoint;
-
-        // alert('selecting ' + startBoundaryPoint[0].textContent + '[' + startBoundaryPoint[1] + ']-'
-        // + endBoundaryPoint[0].textContent + '[' + endBoundaryPoint[1] + ']')
 
         if (sel.setBaseAndExtent) {
             // setBaseAndExtent supports right-to-left selections (at least in Chrome...)
@@ -1429,7 +1476,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     getSelectionRange: function() {
-
         // FIXME this only works for textNodes that have the form
         // <div><span></text*></span*></div> or <div></text*></div>
         var parent = this.renderContext().textNode;
@@ -1501,23 +1547,27 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
 
     selectAll: function() {
-        if (this.textString.length > 0)
+        if (this.textString.length > 0) {
             this.setSelectionRange(0, this.textString.length);
-        else
+        } else {
             this.focus();
+        }
     },
+
     hasNullSelection: function() {
         var range = this.getSelectionRange();
         return range && range[0] === range[1]
     },
 
     setNullSelectionAt: function(idx) { this.setSelectionRange(idx, idx) },
+
     getSelectionBounds: function() {
         var r = this.getGlobalSelectionBounds(),
             world = this.world(),
-            transformed = world ? world.transformToMorph(this).transformRectToRect(r):r;
+            transformed = world ? world.transformToMorph(this).transformRectToRect(r) : r;
         return transformed;
     },
+
     getGlobalSelectionBounds: function() {
         var sel = this.domSelection();
         if (!sel) return new Rectangle(0,0,0,0);
@@ -1619,9 +1669,10 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         // for ScrollableTrait
         return this.renderContext().shapeNode
     },
+
     scrollSelectionIntoView: function() {
         this.scrollRectIntoView(this.getSelectionBounds(), true)
-    },
+    }
 },
 'evaluation', {
     evalSelection: function(printIt) {
@@ -1630,6 +1681,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (printIt) this.insertAtCursor(String(result), true);
         return result;
     },
+
     evalAll: function() {
         var str = this.textString,
             result = this.tryBoundEval(str);
@@ -1643,17 +1695,18 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return interactiveEval.call(ctx, str);
     },
     tryBoundEval: function(str) {
-        try { return this.boundEval(str) } catch(e) { this.showError(e) }
+        try { return this.boundEval(str) } catch(e) { this.showError(e); return null }
     },
 
-    getDoitContext: function() { return this.doitContext },
+    getDoitContext: function() { return this.doitContext }
 },
 'testing', {
     hasUnsavedChanges: function() {
         return false;
         // return this.savedTextString !== this.textString;
     },
-    isFocused: function() { return lively.morphic.Text.activeInstance() === this },
+
+    isFocused: function() { return lively.morphic.Text.activeInstance() === this }
 
 },
 'searching', {
@@ -1665,7 +1718,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         this.scrollSelectionIntoView();
         this.lastSearchString = str;
         this.lastFindLoc = i1;
-    },
+    }
 },
 'debugging', {
     showError: function (e, offset) {
@@ -1694,17 +1747,17 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (world)
             world.logError(e)
     },
+
     textNodeString: function() {
         var textNode = this.renderContext().textNode;
         if (!textNode) return 'textNode not yet accessible';
-        var isolatedTextNode = textNode.cloneNode(false/*no children*/)
-        var string = Exporter.stringify(isolatedTextNode);
-        var midIdx = string.indexOf('</div>');
-        var childrenString = $A(textNode.childNodes).collect(function(ea) { return '    ' + Exporter.stringify(ea) }).join('\n');
-        string = string.slice(0, midIdx) + '\n' + childrenString + '\n' + string.slice(midIdx)
+        var isolatedTextNode = textNode.cloneNode(false/*no children*/),
+            string = Exporter.stringify(isolatedTextNode),
+            midIdx = string.indexOf('</div>'),
+            childrenString = $A(textNode.childNodes).collect(function(ea) { return '    ' + Exporter.stringify(ea) }).join('\n');
+        string = string.slice(0, midIdx) + '\n' + childrenString + '\n' + string.slice(midIdx);
         return string;
-this. textNodeString()
-    },
+    }
 
 },
 'experimentation', {
@@ -1761,9 +1814,8 @@ this. textNodeString()
     },
 
     getTextElementAndLocalIndexForGlobalIndex: function(idx) {
-        // returns a subnode and the index in the subnode that responds to the global index
-        // of the whole text
-        // the index used for lookup is sanitized
+        // returns a subnode and the index in the subnode that responds to the
+        // global index of the whole text the index used for lookup is sanitized
         // example: subnodes: <text>foo</text><text>bar</text>, idx: 5
         // would return [<text>bar</text>, 2] (local idx between a and r)
         idx = Math.max(0, Math.min(idx, this.textString.length));
@@ -1777,15 +1829,18 @@ this. textNodeString()
         }
         return [this.renderContext().textNode, 0];
     },
+
     setRichText: function(richText) {
         richText.applyToTextMorph(this);
         return richText;
     },
+
     getRichText: function() {
         var rt = new lively.morphic.RichText(this.textString);
         rt.setTextChunks(this.getTextChunks());
         return rt;
     },
+
     getRichTextFromTo: function(from, to) {
         var string = this.textString.slice(from, to),
             rt = new lively.morphic.RichText(string);
@@ -1799,6 +1854,7 @@ this. textNodeString()
             // this.textStyle = new lively.RunArray([this.textString.length], [new lively.TextEmphasis({})]);
         // return this.textStyle;
     },
+
     getRange: function(from, to) {
         var range = document.createRange(),
             startNodeAndIdx = this.getTextElementAndLocalIndexForGlobalIndex(from),
@@ -1807,40 +1863,81 @@ this. textNodeString()
         range.setEnd(endNodeAndIdx[0], endNodeAndIdx[1]);
         return range
     },
+
     getSelectionBounds: function() {
         // returns bounds of selection in world coordinates
-        var r = this.domSelection().getRangeAt(0).getBoundingClientRect()
-        var s = 1 / this.world().getScale();
-        if (!r) {
-            return undefined;
-        }
-
+        var r = this.domSelection().getRangeAt(0).getBoundingClientRect(),
+            s = 1 / this.world().getScale();
+        if (!r) { return undefined; }
         r = rect(pt(s * r.left , s * r.top), pt(s * r.right, s * r.bottom));
         return r.translatedBy($world.visibleBounds().topLeft());
-    },
+    }
 
 },
 'rich text', {
     emphasize: function(styleSpec, from, to) {
-        var chunks = this.sliceTextChunks(from, to);
-        for (var i = 0; i < chunks.length; i++) {
-            chunks[i].styleText(styleSpec);
-        }
-        this.coalesceChunks();
+        return this.emphasizeRanges([[from, to, styleSpec]]);
     },
+
+    emphasizeRanges: function(rangesAndStyles) {
+        // Add style to my text according to ranges. rangesAndStyles is an
+        // array of intervals. An interval is an array with at least two
+        // elements. If the interval has a third element this is expected to
+        // be the style spec.
+        //
+        // Example usage:
+        // text.emphasizeRanges([[5,10, {fontWeight: 'bold'}],
+        //                       [12,25, {textDecoration: 'underline'}]]);
+        //
+        // My textChunks are reused if they have the correct ranges already,
+        // otherwise they are newly created. Return true if the DOM tree has
+        // changed by applying styling (new chunks were created), false
+        // otherwise.
+
+        // 1. find text chunks that can be reused
+        var text = this,
+            existingRanges = this.getChunkRanges(),
+            chunks = this.getTextChunks(),
+            indexesForExistingChunks = Interval.mapToMatchingIndexes(
+                existingRanges, rangesAndStyles),
+            leftOverRules = [];
+        indexesForExistingChunks.forEach(function(chunkIndexes, indexOfRule) {
+            var rangeAndStyle = rangesAndStyles[indexOfRule];
+            if (chunkIndexes.length === 0) { leftOverRules.push(rangeAndStyle); return; }
+            chunkIndexes.forEach(function(chunkIndex) {
+                var chunk = chunks[chunkIndex], style = rangeAndStyle[2];
+                if (!chunk.includesStyle(style)) chunk.styleText(style); });
+        });
+
+        // 2. if any highlighting rules could not be applied before because
+        // textChunks available haven't the correct ranges, then slice new
+        // textChunks here
+        var leftOversExist = leftOverRules.length > 0;
+        if (leftOversExist) {
+            leftOverRules.forEach(function(rule) {
+                var chunksToStyle = text.sliceTextChunks(rule[0], rule[1], existingRanges);
+                chunksToStyle.forEach(function(ea) { ea.styleText(rule[2]) });
+            });
+        }
+        var domChanged = text.coalesceChunks() || leftOversExist;
+        return domChanged;
+    },
+
     unEmphasize: function(from, to) {
         var chunks = this.sliceTextChunks(from, to);
         for (var i = 0; i < chunks.length; i++) {
-            chunks[i].styleText({isNullStyle: true})
+            chunks[i].styleText({isNullStyle: true});
             chunks[i].style = new lively.morphic.TextEmphasis();
         }
         this.coalesceChunks();
     },
+
     unEmphasizeSelection: function() {
         var range = this.getSelectionRange();
         this.unEmphasize(range[0], range[1]);
         this.setSelectionRange(range[0], range[1]);
     },
+
     unEmphasizeAll: function() {
         this.unEmphasize(0, this.textString.length)
     },
@@ -1848,15 +1945,16 @@ this. textNodeString()
     emphasizeAll: function(style) {
         this.emphasize(style, 0, this.textString.length);
     },
+
     emphasizeRegex: function(re, style) {
         var m, counter = 0, string = this.textString;
-        while(m = re.exec(string)) {
+        while ((m = re.exec(string))) {
             counter++; if (counter > 5000) throw new Error('emphasizeRegex endless loop?');
-            var from = m.index, to = m.index + m[0].length;
-            var chunks = this.sliceTextChunks(from, to);
-            for (var i = 0; i < chunks.length; i++)
-                //chunks[i].style.add(style); //
+            var from = m.index, to = m.index + m[0].length,
+                chunks = this.sliceTextChunks(from, to);
+            for (var i = 0; i < chunks.length; i++) {
                 chunks[i].styleText(style);
+            }
         }
         this.coalesceChunks();
     },
@@ -1902,6 +2000,7 @@ this. textNodeString()
             }, emph.uri);
         })
     },
+
     toggleDoit: function(from, to) {
         var world = this.world(), text = this;
         this.changeEmphasis(from, to, function(emph, doEmph) {
@@ -1915,6 +2014,7 @@ this. textNodeString()
             }, emph.doit && emph.doit.code);
         })
     },
+
     toggleFont: function(from, to) {
         var world = this.world(), text = this;
         this.changeEmphasis(from, to, function(emph, doEmph) {
@@ -1952,7 +2052,7 @@ this. textNodeString()
             this.emphasize(emphSpec, emphRange[0], emphRange[1]);
             this.setSelectionRange(selRange[0], selRange[1]);
         } catch(e) {
-            alert('Error when doing  emphasizing' + JSON.stringify(emphSpec) + ': ' + e);
+            console.error('Error emphasizing' + JSON.stringify(emphSpec) + ': ' + e);
             debugger;
         }
     },
@@ -2001,13 +2101,15 @@ this. textNodeString()
         var statusMorph = this._statusMorph;
         if (!statusMorph) {
             statusMorph = new lively.morphic.Text(pt(400,80).extentAsRectangle());
-            statusMorph.applyStyle({borderWidth: 0,
-                                    strokeOpacity: 0,
-                                    fill: Color.gray,
-                                    fontSize: 16,
-                                    fillOpacity: 1,
-                                    fixedWidth: false,
-                                    fixedHeight: false});
+            statusMorph.applyStyle({
+                borderWidth: 0,
+                strokeOpacity: 0,
+                fill: Color.gray,
+                fontSize: 16,
+                fillOpacity: 1,
+                fixedWidth: false,
+                fixedHeight: false
+            });
             statusMorph.isEpiMorph = true;
             this._statusMorph = statusMorph;
         }
@@ -2023,7 +2125,7 @@ this. textNodeString()
             statusMorph.centerAt(this.worldPoint(this.innerBounds().center()));
         };
         (function() { statusMorph.remove() }).delay(delay || 4);
-    },
+    }
 },
 'tab handling', {
     tab: Config.useSoftTabs ? '    ' : '\t',
@@ -2061,7 +2163,7 @@ this. textNodeString()
         var column = this.textString.substring(beginOfLine + 1, cursorPos);
         // alertOK("tab " + column.length)
         return  Strings.indent('', ' ', this.tab.length - column.length % this.tab.length )
-    },
+    }
 },
 'syntax highlighting', {
     highlightJavaScriptSyntax: function() {
@@ -2072,7 +2174,7 @@ this. textNodeString()
         require('lively.ide.SyntaxHighlighting').toRun(function() {
             text.syntaxHighlightingWhileTyping = true;
             connect(text, 'textString', text, 'highlightJavaScriptSyntax');
-            text.highlightJavaScriptSyntax()
+            text.highlightJavaScriptSyntax();
         })
     },
     disableSyntaxHighlighting: function() {
@@ -2090,10 +2192,7 @@ this. textNodeString()
     disableSyntaxHighlightingOnSave: function() {
         this.syntaxHighlightingOnSave = false;
         disconnect(this, 'savedTextString', this, 'highlightJavaScriptSyntax');
-    },
-    hasSelection: function() {
-        return this.domSelection() !== null;
-    },
+    }
 },
 'JavaScript support', {
     varDeclCleaner: function() {
@@ -2122,13 +2221,14 @@ Object.extend(lively.morphic.Text, {
         // returns the text that currently has a focus
         // set in onFocus and onBlur
         return this.prototype.activeInstance;
-    },
+    }
 });
+
 Object.subclass('lively.morphic.Text.ProtocolLister',
 'initializing', {
     initialize: function(textMorph) {
         this.textMorph = textMorph;
-    },
+    }
 },
 'interface', {
     evalSelectionAndOpenListForProtocol: function() {
@@ -2137,8 +2237,7 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
 
         var items = this.getListForProtocolOf(obj);
         lively.morphic.Menu.openAtHand(String(obj), items);
-    },
-
+    }
 },
 'accessing', {
 
@@ -2176,6 +2275,7 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
             proto.constructor.type || proto.constructor.name || '';
         return [name, subItems];
     },
+
     createSubMenuItemFromSignature: function(signature, optStartLetters) {
         var textMorph = this.textMorph,
             range = textMorph && textMorph.getSelectionRange();
@@ -2195,7 +2295,6 @@ Object.subclass('lively.morphic.Text.ProtocolLister',
             }).delay(0)
         }]
     },
-
 
     evalCurrentSelection: function(textMorph) {
         var selection = Strings.removeSurroundingWhitespaces(textMorph.getSelectionOrLineString());
@@ -2272,32 +2371,35 @@ Object.subclass('lively.morphic.TextChunk',
         var textNode = chunkOwner.renderContext().textNode,
             chunkNode = this.getChunkNode(),
             otherChunkNode = optChunkAfter && optChunkAfter.getChunkNode();
-        if (!textNode) {
-            // alert('Cannot add text chunk ' + this + ' to '
-            //      + chunkOwner + ' because no textNode is present');
-            return;
-        }
-        if (chunkNode.parentNode) this.remove();
-        if (otherChunkNode && otherChunkNode.parentNode === textNode)
+        if (!textNode) { return; }
+        if (chunkNode.parentNode) { this.remove(); }
+        if (otherChunkNode && otherChunkNode.parentNode === textNode) {
             textNode.insertBefore(chunkNode, otherChunkNode);
-        else textNode.appendChild(chunkNode);
+        } else {
+            textNode.appendChild(chunkNode);
+        }
         this.styleText();
-    },
+    }
 
 },
 'removing', {
     remove: function() {
+        // Note: Currently chunkOwner is expected to remove this
+        // manually from its textChunks list!
+        this.chunkOwner = null;
         var n = this.getChunkNode();
         n.parentNode && n.parentNode.removeChild(n);
     }
 },
 'splitting', {
-    splitAfter: function(localIdx) { return this.split(localIdx, true) },
-    splitBefore: function(localIdx) { return this.split(localIdx, false) },
-    split: function(localIdx, returnRight) {
-        // remove text from localIdx to textString.length
-        // let morph add new chunk
-        // if returnRight == true return the chunk after localIdx, otherwise before
+    splitAfter: function(localIdx, optChunkRanges) { return this.split(localIdx, true, optChunkRanges) },
+    splitBefore: function(localIdx, optChunkRanges) { return this.split(localIdx, false, optChunkRanges) },
+    split: function(localIdx, returnRight, optChunkRanges) {
+        // make two chunks out of me
+        // 1. remove text from localIdx to textString.length
+        // 2. let morph add my new neighbour
+        // 3. if returnRight == true return the chunk after localIdx,
+        //    otherwise before (that's me)
         var str = this.textString,
             myString = str.substring(0, localIdx),
             newString = str.substring(localIdx);
@@ -2315,7 +2417,8 @@ Object.subclass('lively.morphic.TextChunk',
             if (prev) return prev;
         };
 
-        // We dont care we want to have the right so use this as right and dont split
+        // We don't care we want to have the chunk to the right, so
+        // use me as right and don't split
         if (returnRight && myString.length === 0) return this;
         // same thing
         if (!returnRight && newString.length === 0) return this;
@@ -2327,8 +2430,18 @@ Object.subclass('lively.morphic.TextChunk',
             next = chunks[chunkIdx+1];
 
         // add new chunk in chunk collection of morph
-        chunks.pushAt(newChunk, chunkIdx+1);
+        chunks.splice(chunkIdx+1, 0, newChunk);
         newChunk.addTo(this.chunkOwner, next);
+
+        // if we pass in an array of intervals that represents the chunk ranges
+        // we update that here, too, in order to keep them up-to-date and
+        // reusable elsewhere
+        if (optChunkRanges) {
+            var rangeToFix = optChunkRanges[chunkIdx],
+                splitIndex = rangeToFix[0] + myString.length;
+            optChunkRanges.splice(chunkIdx, 1,
+                      [rangeToFix[0], splitIndex], [splitIndex, rangeToFix[1]]);
+        }
 
         return returnRight ? newChunk : this;
     },
@@ -2343,18 +2456,23 @@ Object.subclass('lively.morphic.TextChunk',
             next = chunks[chunkIdx+1];
         if (!next) return false;
         next.remove();
-        chunks.removeAt(chunkIdx+1);
+        chunks.splice(chunkIdx+1, 1);
         this.textString += next.textString;
         return true;
     },
 
-    joinWithNextIfEqualStyle: function() {
+    tryJoinWithNext: function() {
         var next = this.next();
-        return next && this.getStyle().equals(next.getStyle()) ? this.joinWithNext() : null;
+        return next && (next.textString.length === 0 || this.getStyle().equals(next.getStyle())) ?
+            this.joinWithNext() : null;
     }
 
 },
 'styling', {
+    includesStyle: function(style) {
+        return this.getStyle().include(style);
+    },
+
     styleText: function(styleSpec) {
         this.normalize();
         var style = this.getStyle();
@@ -2483,197 +2601,346 @@ Object.subclass('lively.morphic.TextChunk',
 });
 
 Object.subclass('lively.morphic.TextEmphasis',
+'documentation', {
+    README: function() {
+        // When extending TextEmphasis with new attribute:
+        // 1. add getter / setter for attribute that matches the naming convention
+        // (getAttributeName / setAttributeName)
+        // 2. extend #equals!
+    }
+},
+'properties', {
+    isTextEmphasis: true
+},
+'style attributes', {
+    styleAttributes: {
+
+        doit: {
+            set: function(value) { return this.doit = value },
+            get: function() { return this.doit },
+            equals: function(other) {
+                if (this.doit) {
+                    return other.doit ? this.doit.code == other.doit.code : false;
+                }
+                return !other.doit;
+            },
+            apply: function(node) {
+                var value = this.doit;
+                if (!value) return;
+                this.addCallbackWhenApplyDone(function(evt) {
+                    var src = '(function() {\n' + value.code + '\n})';
+                    try {
+                        var func = eval(src);
+                        func.call(value.context || Global);
+                    } catch(e) {
+                        alert('Error in text doit\n' + e.stack);
+                    }
+                    return true
+                });
+                node.style.cursor = 'pointer';
+                node.style.textDecoration = 'underline';
+                node.style.color = 'darkgreen';
+                LivelyNS.setAttribute(node, 'doit', lively.persistence.Serializer.serialize(value));
+            }
+        },
+
+        uri: {
+            set: function(value) { return this.uri = value},
+            get: function() { return this.uri },
+            equals: function(other) { return this.uri == other.uri },
+            apply: function(node) {
+                var value = this.uri;
+                if (!value) return;
+                this.addCallbackWhenApplyDone(function(evt) { window.open(value) });
+                node.style.cursor = 'pointer';
+                node.style.textDecoration = 'underline';
+                node.style.color = 'blue';
+                LivelyNS.setAttribute(node, 'uri', value);
+            }
+        },
+
+        fontWeight: {
+            set: function(value) { return this.fontWeight = value },
+            get: function() { return (this.fontWeight && this.fontWeight !== '') ? this.fontWeight : 'normal' },
+            equals: function(other) { return this.get('fontWeight') == other.get("fontWeight") },
+            apply: function(node) { if (this.fontWeight) node.style.fontWeight = this.fontWeight  }
+        },
+
+        italics: {
+            set: function(value) { return this.italics = value},
+            get: function() { return (this.italics && this.italics !== '') ? this.italics : 'normal' },
+            equals: function(other) { return this.get('italics') == other.get("italics") },
+            apply: function(node) { if (this.italics) node.style.fontStyle = this.italics }
+        },
+
+        fontFamily: {
+            set: function(value) { return this.fontFamily = value },
+            get: function() { return this.fontFamily },
+            equals: function(other) { return this.fontFamily == other.fontFamily },
+            apply: function(node) { if (this.fontFamily) node.style.fontFamily = this.fontFamily }
+        },
+
+        color: {
+            set: function(value) { return this.color = value },
+            get: function() { return this.color },
+            equals: function(other) {
+                return this.color == other.color ||
+                    (this.color && this.color.isColor && this.color.equals(other.color));
+            },
+            apply: function(node) { if (this.color) node.style.color = this.color; }
+        },
+
+        backgroundColor: {
+            set: function(value) { return this.backgroundColor = value },
+            get: function() { return this.backgroundColor },
+            equals: function(other) {
+                return this.backgroundColor == other.backgroundColor ||
+                    (this.backgroundColor &&
+                     this.backgroundColor.isColor &&
+                     this.backgroundColor.equals(other.backgroundColor));
+            },
+            apply: function(node) { if (this.backgroundColor) node.style.backgroundColor = this.backgroundColor }
+        },
+
+        textDecoration: {
+            set: function(value) { return this.textDecoration = value },
+            get: function() { return this.textDecoration },
+            equals: function(other) { return this.textDecoration == other.textDecoration },
+            apply: function(node) { if (this.textDecoration) node.style.textDecoration = this.textDecoration }
+        },
+
+        textAlign: {
+            set: function(value) { return this.textAlign = value },
+            get: function() { return this.textAlign },
+            equals: function(other) { return this.textAlign == other.textAlign },
+            apply: function(node) { if (this.textAlign) node.style.textAlign = this.textAlign }
+        },
+
+        fontSize: {
+            set: function(value) { return this.fontSize = value },
+            get: function() { return this.fontSize },
+            equals: function(other) { return this.fontSize == other.fontSize },
+            apply: function(node) { if (this.fontSize) node.style.fontSize = this.fontSize + 'pt' }
+        },
+
+        textShadow: {
+            set: function(value) {
+                if (!value) {
+                    value = '';
+                } else if (Object.isString(value)) {
+                    // use it as it is
+                } else {
+                    var shadowSpec = value;
+                    value = "";
+                    value += shadowSpec.offset.x + 'px ';
+                    value += shadowSpec.offset.y + 'px ';
+                    value += shadowSpec.blur ? shadowSpec.blur + 'px ' : "0 ";
+                    value += shadowSpec.color.toCSSString();
+                }
+                this.textShadow = value;
+            },
+            get: function() { return this.textShadow },
+            equals: function(other) { return this.textShadow == other.textShadow },
+            apply: function(node) { if (this.textShadow) node.style.textShadow = this.textShadow }
+        },
+
+        isNullStyle: {
+            set: function(value) { return this.isNullStyle = value },
+            get: function() { return this.isNullStyle },
+            equals: function(other) { return this.isNullStyle == other.isNullStyle },
+            apply: function(node) { this.isNullStyle && node.setAttribute('style', "") }
+        }
+
+    },
+
+    getSupportedStyleNames: function() {
+        if (!this.supportedStyleNames) {
+            this.constructor.prototype.supportedStyleNames = Object.keys(this.constructor.prototype.styleAttributes);
+        }
+        return this.supportedStyleNames;
+    }
+},
 'initializing', {
     initialize: function(spec) {
         spec && this.add(spec);
-    },
+    }
 },
 'accessing', {
-    getFontWeight: function() {
-        return (this.fontWeight && this.fontWeight !== '') ? this.fontWeight : 'normal';
-    },
-    setFontWeight: function(fontWeight) { this.fontWeight = fontWeight },
-    getItalics: function() { return (this.italics && this.italics !== '') ? this.italics : 'normal' },
-    setItalics: function(italics) { this.italics = italics },
-    getURI: function() { return this.uri },
-    setURI: function(link) { return this.uri = link },
-    getDoit: function() { return this.doit },
-    setDoit: function(doit) { return this.doit = doit },
-    getFontFamily: function() { return this.fontFamily },
-    setFontFamily: function(fontFamily) { return this.fontFamily = fontFamily },
-    getColor: function() { return this.color },
-    setColor: function(color) { return this.color = color },
-    getTextDecoration: function() { return this.textDecoration },
-    setTextDecoration: function(textDecoration) { return this.textDecoration = textDecoration },
-    getTextAlignment: function() { return this.textAlign },
-    setTextAlignment: function(textAlign) { return this.textAlign = textAlign },
-    getFontSize: function() { return this.fontSize },
-    setFontSize: function(fontSize) { return this.fontSize = fontSize },
-    getTextShadow: function() { return this.textShadow },
-    setTextShadow: function(textShadow) {
-        if (!textShadow) {
-            textShadow = '';
-        } else if (Object.isString(textShadow)) {
-            // use it as it is
-        } else {
-            var shadowSpec = textShadow;
-            textShadow = "";
-            textShadow += shadowSpec.offset.x + 'px ';
-            textShadow += shadowSpec.offset.y + 'px ';
-            textShadow += shadowSpec.blur ? shadowSpec.blur + 'px ' : "0 ";
-            textShadow += shadowSpec.color.toCSSString();
-        }
-        this.textShadow = textShadow;
-    },
-    getBackgroundColor: function() { return this.backgroundColor },
-    setBackgroundColor: function(color) { return this.backgroundColor = color }
+    get: function(attrName) { return this.styleAttributes[attrName].get.call(this) },
+    set: function(attrName, value) { return this.styleAttributes[attrName].set.call(this, value) },
+    getDoit:             function()      { return this.get('doit'); },
+    setDoit:             function(value) { return this.set('doit', value); },
+    getURI:              function()      { return this.get('uri'); },
+    setURI:              function(value) { return this.set('uri', value); },
+    getFontWeight:       function()      { return this.get('fontWeight'); },
+    setFontWeight:       function(value) { return this.set('fontWeight', value);; },
+    getItalics:          function()      { return this.get('italics'); },
+    setItalics:          function(value) { return this.set('italics', value); },
+    getFontFamily:       function()      { return this.get('fontFamily'); },
+    setFontFamily:       function(value) { return this.set('fontFamily', value);; },
+    getColor:            function()      { return this.get('color'); },
+    setColor:            function(value) { return this.set('color', value); },
+    getBackgroundColor:  function()      { return this.get('backgroundColor'); },
+    setBackgroundColor:  function(value) { return this.set('backgroundColor', value);; },
+    getTextDecoration:   function()      { return this.get('textDecoration');  },
+    setTextDecoration:   function(value) { return this.set('textDecoration', value);; },
+    getTextAlignment:    function()      { return this.get('textAlign'); },
+    setTextAlignment:    function(value) { return this.set('textAlign', value);; },
+    getFontSize:         function()      { return this.get('fontSize'); },
+    setFontSize:         function(value) { return this.set('fontSize', value);; },
+    getTextShadow:       function()      { return this.get('textShadow'); },
+    setTextShadow:       function(value) { return this.set('textShadow', value);; }
 },
 'cloning', {
-    clone: function() { return new this.constructor(this) },
+    clone: function() { return new this.constructor(this) }
 },
 'changing', {
     add: function(spec) {
         for (var name in spec) {
-            if (!spec.hasOwnProperty(name)) return;
-            if (name === 'textShadow') { // FIXME
-                this.setTextShadow(spec[name]);
-            } else {
-                this[name] = spec[name];
-            }
+            if (!this.styleAttributes[name] || !spec.hasOwnProperty(name)) continue;
+            this.styleAttributes[name].set.call(this, spec[name]);
         }
-    },
+    }
 },
 'testing', {
     equals: function(other) {
-        if (this.getFontWeight()       ==  other.getFontWeight()
-          && this.getItalics()         ==  other.getItalics()
-          && this.getURI()             ==  other.getURI()
-          && this.getFontFamily()      ==  other.getFontFamily()
-          && this.getColor()           ==  other.getColor()
-          && this.getTextDecoration()  ==  other.getTextDecoration()
-          && this.getTextAlignment()   ==  other.getTextAlignment()
-          && this.getFontSize()        ==  other.getFontSize()
-          && this.getBackgroundColor() ==  other.getBackgroundColor()
-          && this.getTextShadow()      === other.getTextShadow()
-          && !this.getDoit() && !other.getDoit()) return true;
+        if (!other || !other.isTextEmphasis) return false;
 
-        if (this.getDoit() && other.getDoit() &&
-            this.getDoit().code == other.getDoit().code) return true;
+        var attrs = this.styleAttributes;
 
-        return false;
-    },
-},
-'rendering', {
-    applyToHTML: function(node, debugMode) {
-
-        var debugStyle = debugMode ? 'red solid thin' : 'none',
-            $ = lively.$;
-
-        if (debugMode) {
-            var style = this,
-                toolTip = $('#textChunkDebug');
-            if (toolTip.length == 0)
-                toolTip = $('<span id="textChunkDebug"/>');
-            $('body').append(toolTip);
-            toolTip.hide();
-            $(node).mousemove(function(e){
-                toolTip.show();
-                toolTip.text(style.toString());
-                toolTip.css({
-                    position: 'absolute',
-                    top: (e.pageY + 50) + "px",
-                    left: (e.pageX + 15) + "px",
-                    'background-color': 'white',
-                    'font-size': 'tiny'
-                });
-            });
-            $(node).mouseout(function(e){
-                toolTip.hide();
-            });
-        } else {
-            $('#textChunkDebug').remove();
+        if (attrs.isNullStyle.get.call(this) || attrs.isNullStyle.get.call(other)) {
+            return attrs.isNullStyle.equals.call(this, other);
         }
 
-        if (this.isNullStyle) {
-            var style = 'outline: ' + debugStyle;
-            node.setAttribute('style', style);
+        // FIXME refactor
+        return attrs.doit            .equals.call(this, other)
+            && attrs.uri             .equals.call(this, other)
+            && attrs.fontWeight      .equals.call(this, other)
+            && attrs.italics         .equals.call(this, other)
+            && attrs.fontFamily      .equals.call(this, other)
+            && attrs.color           .equals.call(this, other)
+            && attrs.backgroundColor .equals.call(this, other)
+            && attrs.textDecoration  .equals.call(this, other)
+            && attrs.textAlign       .equals.call(this, other)
+            && attrs.fontSize        .equals.call(this, other)
+            && attrs.textShadow      .equals.call(this, other);
+    },
+
+    include: function(specOrEmph) {
+        // tests whether I have the attributes of specOrEmph set already
+        for (var key in specOrEmph) {
+            if (!specOrEmph.hasOwnProperty(key)) continue;
+            var myVal = this[key], otherVal = specOrEmph[key];
+            if (key === "color" || key === "backgroundColor") {
+                if (myVal === otherVal) continue;
+                if (!myVal || (myVal.isColor && !myVal.equals(otherVal))) return false;
+            } else {
+                if (myVal !== otherVal) return false;
+            }
+        }
+        return true;
+    }
+
+},
+'rendering', {
+    applyDebugStyling: function(node, debugEnabled) {
+        var $ = lively.$,
+            toolTip = $('#textChunkDebug');
+
+        // debug mode disabled, reset debug state
+        if (!debugEnabled) {
+            toolTip.remove();
+            node.style.outline = 'none';
             return;
         }
 
-        var clickCallbacks = [], cursor, textDecoration, color;
-
-        if (this.doit) {
-            var doit = this.doit;
-            clickCallbacks.push(function(evt) {
-                var src = '(function() {\n' + doit.code + '\n})';
-                try {
-                    var func = eval(src);
-                    func.call(doit.context || Global);
-                } catch(e) {
-                    alert('Error in text doit\n' + e.stack);
-                }
-                return true
-            });
-            cursor = 'pointer';
-            textDecoration = 'underline';
-            color = 'darkgreen';
-            LivelyNS.setAttribute(node, 'doit', lively.persistence.Serializer.serialize(doit));
+        // debug mode enabled, show debug infos
+        node.style.outline = 'red solid thin';
+        if (toolTip.length === 0) {
+            $('<span id="textChunkDebug"/>').appendTo('body').hide();
         }
-
-        if (this.uri) {
-            var uri = this.uri;
-            clickCallbacks.push(function(evt) { window.open(uri) });
-            cursor = 'pointer';
-            textDecoration = 'underline';
-            color = 'blue';
-            LivelyNS.setAttribute(node, 'uri', uri);
-        }
-
-        if (clickCallbacks.length > 0) {
-            node.onclick = function(evt) {
-                for (var i = 0; i < clickCallbacks.length; i++)
-                    clickCallbacks[i].call(this, evt);
-                evt.stopPropagation();
-                evt.preventDefault();
-                return true;
-            }
-        } else {
-            delete node.onmouseup;
-        }
-
-        node.style.color = color || '';
-        node.style.textDecoration = textDecoration || 'none';
-        node.style.cursor = cursor || null;
-
-
-        for (var name in this) {
-            if (!this.hasOwnProperty(name)) continue;
-            // ignore none style properties
-            if (name == 'uri') continue;
-            if (name == 'doit') continue;
-            var styleName = name;
-            if (name === 'italics') styleName = 'fontStyle';
-            if (name === 'fontSize') { node.style[styleName] = this[name] + 'pt'; continue }
-            node.style[styleName] = this[name];
-        }
-
-        node.style.outline = debugStyle;
+        var $node = $(node);
+        if ($node.data('events')) return;
+        var emph = this;
+        $node.mousemove(function(e){
+            $('#textChunkDebug').show()
+                                .text('id:' + $(this).attr('id') + ', ' + emph.toString())
+                                .css({
+                                    position: 'absolute',
+                                    top: (e.pageY + 50) + "px",
+                                    left: (e.pageX + 15) + "px",
+                                    'background-color': 'white',
+                                    'font-size': 'tiny'
+                                });
+        });
+        $node.mouseout(function(e) { $('#textChunkDebug').hide(); });
     },
+
+    applyToHTML: function(node, debugMode) {
+        // apply my style attributes to the DOM node
+
+        // ignore if debugMode was never requested
+        if (debugMode !== undefined) this.applyDebugStyling(node, debugMode);
+
+        if (this.isNullStyle) { node.setAttribute('style', ""); return }
+
+        // FIXME refactor
+        var attrs = this.styleAttributes;
+        attrs.doit            .apply.call(this, node);
+        attrs.uri             .apply.call(this, node);
+        attrs.fontWeight      .apply.call(this, node);
+        attrs.italics         .apply.call(this, node);
+        attrs.fontFamily      .apply.call(this, node);
+        attrs.color           .apply.call(this, node);
+        attrs.backgroundColor .apply.call(this, node);
+        attrs.textDecoration  .apply.call(this, node);
+        attrs.textAlign       .apply.call(this, node);
+        attrs.fontSize        .apply.call(this, node);
+        attrs.textShadow      .apply.call(this, node);
+        // attrs.isNullStyle.apply.call(this, node);
+
+        this.installCallbackHandler(node);
+    },
+
+    addCallbackWhenApplyDone: function(cb) {
+        if (!this.clickCallbacks) this.clickCallbacks = [];
+        this.clickCallbacks.push(cb);
+    },
+
+    installCallbackHandler: function(node) {
+        if (!this.clickCallbacks || this.clickCallbacks.length === 0) {
+            delete node.onclick;
+            return;
+        };
+        var cbs = this.clickCallbacks;
+        node.onclick = function(evt) {
+            // Lively event dispatch not used here
+            for (var i = 0; i < cbs.length; i++) {
+                cbs[i].call(this, evt);
+            }
+            evt.stopPropagation();
+            evt.preventDefault();
+            return true;
+        }
+        delete this.clickCallbacks;
+    }
+
 },
 'debugging', {
     toString: function() {
-        var props = {};
+        var propStrings = [];
         Properties.forEachOwn(this, function(key, value) {
             if (key === '__SourceModuleName__') return;
-            props[key] = value;
+            propStrings.push(
+                key + ': ' +  (value && value.isColor ? value.toString() : JSON.stringify(value)));
         })
-        return 'TextEmphasis(' + JSON.prettyPrint(props) + ')'
-    },
+        return 'TextEmphasis(' + propStrings.join(',') + ')'
+    }
 });
 
 Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
 'settings', {
-    isRichText: true,
+    isRichText: true
 },
 'initializing', {
     initialize: function(string) {
@@ -2685,8 +2952,9 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     emphasize: function(styleSpec, from, to) {
         // FIXME duplication with TextMorph
         var chunks = this.sliceTextChunks(from, to);
-        for (var i = 0; i < chunks.length; i++)
+        for (var i = 0; i < chunks.length; i++) {
             chunks[i].styleText(styleSpec);
+        }
         this.coalesceChunks();
     },
     emphasizeRegex: function(re, style) {
@@ -2696,8 +2964,9 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
             counter++; if (counter > 5000) throw new Error('emphasizeRegex endless loop?');
             var from = m.index, to = m.index + m[0].length;
             var chunks = this.sliceTextChunks(from, to);
-            for (var i = 0; i < chunks.length; i++)
-                chunks[i].style.add(style); // chunks[i].styleText(style);
+            for (var i = 0; i < chunks.length; i++) {
+                chunks[i].style.add(style);
+            }
         }
         this.coalesceChunks();
     },
@@ -2715,7 +2984,7 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     },
     getTextNode: function() {
         return this.firstTextChunk().getChunkNode().parentNode
-    },
+    }
 
 },
 'text morph application', {
@@ -2733,8 +3002,7 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     hasSelection: function() {
         // FIXME look for selection in chunk nodes?
         return false;
-    },
-
+    }
 });
 
 Object.subclass('lively.morphic.RichText2',
@@ -2760,7 +3028,7 @@ Object.subclass('lively.morphic.RichText2',
     }
 },
 'accessing', {
-    getTextEmphasis: function() { return this.textEmphasis; },
+    getTextEmphasis: function() { return this.textEmphasis.select(function(ea) { return !!ea }); },
     getTextString: function() { return this.textString; }
 });
 
@@ -2815,9 +3083,9 @@ Object.extend(lively.morphic.HTMLParser, {
         // creates DOM node from a snipped of HTML
         if (data.startsWith('<meta charset')) {
             // it's a special apple format?
-            var string = '<?xml version=\'1.0\'?><div xmlns:lively="'
-                       + Namespace.LIVELY + '">' + data + '</div>';
-            string = string.replace("<meta charset='utf-8'>", "");
+            var string = Strings.format('<?xml version="1.0"?><div xmlns:lively="%s">%s</div>',
+                                        Namespace.LIVELY, data);
+            string = string.replace(/<meta charset=['"]utf-8['"]>/, "");
             string = string.replace(/<br(.*?)>/g, "<br $1/>");
             var doc = new DOMParser().parseFromString(string, "text/xml"),
                 errorOccurred = doc.getElementsByTagName('parsererror').length > 0;
@@ -2847,9 +3115,9 @@ Object.extend(lively.morphic.HTMLParser, {
     sanitizeHtml: function(string) {
         // replaces html br with newline
         var s = string
-            .replace(/\<br.*?\>/g        , "<br />")
-            .replace(/\<meta.*?\>/g      , "")
-            .replace(/\&(?![a-zA-Z]+;)/g , '&amp;');
+            .replace(/\<br.*?\>/g       , "<br />")
+            .replace(/\<meta.*?\>/g     , "")
+            .replace(/\&(?![a-zA-Z]+;)/g, '&amp;');
         // now it becomes really ugly... we need some kind of general html parser here
         if (s.match(/<span.*>/g) && !s.match(/<\/span>/g)) {
             s = s.replace(/<\/?span.*>/g,"");
@@ -2858,7 +3126,7 @@ Object.extend(lively.morphic.HTMLParser, {
     },
     sanitizeNode: function (node) {
         // strips node of newlines text nodes, that have no meaning
-        $A(node.childNodes).forEach(function (ea) {
+        Array.from(node.childNodes).forEach(function (ea) {
             if (ea.textContent == "\n" && ea.nodeName == '#text') {
                 node.removeChild(ea);
             }
@@ -2875,6 +3143,22 @@ Object.extend(lively.morphic.HTMLParser, {
         return richText;
     },
 
+    insertPasteDataIntoText: function(data, text) {
+        // creates a rich text object from HTML snippet
+        var node = this.sourceToNode(data);
+        if (!node) return false;
+        this.sanitizeNode(node);
+        var selRange = text.getSelectionRange(),
+            selStart = selRange ? Math.min.apply(null, selRange) : 0,
+            newSelRange = [selStart + node.textContent.length, selStart + node.textContent.length],
+            styledRanges = this.createIntervalsWithStyle(
+                node, {styles: [], styleStart: selStart || 0, intervals: []});
+        text.insertAtCursor(node.textContent, false, true);
+        text.emphasizeRanges(styledRanges);
+        text.setSelectionRange(newSelRange[0], newSelRange[1]);
+        return true;
+    },
+
     extractStylesAndApplyToRichText: function(element, richText, mem) {
         // private
         for (var i = 0; i < element.childNodes.length; i++) {
@@ -2888,7 +3172,6 @@ Object.extend(lively.morphic.HTMLParser, {
                 mem.styleStart = styleEnd;
                 continue;
             }
-
 
             if (ea.getAttribute && (ea.getAttribute('class') === 'Apple-style-span')) {
                 this.extractStylesAndApplyToRichText(ea, richText, mem)
@@ -2916,10 +3199,56 @@ Object.extend(lively.morphic.HTMLParser, {
             var doit = LivelyNS.getAttribute(ea, 'doit');
             doit && mem.styles.push({doit: lively.persistence.Serializer.deserialize(doit)});
 
-            LivelyNS
-            this.extractStylesAndApplyToRichText(ea, richText, mem)
+            this.extractStylesAndApplyToRichText(ea, richText, mem);
         }
     },
+
+    createIntervalsWithStyle: function(element, mem) {
+        // private
+        mem = mem || {styles: [], styleStart: 0, intervals: []};
+        for (var i = 0; i < element.childNodes.length; i++) {
+            var ea = element.childNodes[i];
+
+            if (ea.nodeName === '#text') {
+                var string = element.textContent,
+                    styleEnd = mem.styleStart + string.length;
+                mem.intervals.push([mem.styleStart, styleEnd, Object.merge(mem.styles)]);
+                mem.styles = [];
+                mem.styleStart = styleEnd;
+                continue;
+            }
+
+            if (ea.getAttribute && (ea.getAttribute('class') === 'Apple-style-span')) {
+                this.createIntervalsWithStyle(ea, mem)
+                continue;
+            }
+            if (!ea.getAttribute) {
+                // comments etc
+                continue;
+            }
+            var css = ea.getAttribute('style');
+            if (css) {
+                var style = {};
+                css.split(";").forEach(function(ea) {
+                    if (ea.match(":")) {
+                        var pair = ea.replace(/ /g,"").split(":")
+                        style[this.convertStyleName(pair[0])] = pair[1]
+                    }
+                }, this)
+                mem.styles.push(style);
+            }
+
+            var link = LivelyNS.getAttribute(ea, 'uri');
+            link && mem.styles.push({uri: link});
+
+            var doit = LivelyNS.getAttribute(ea, 'doit');
+            doit && mem.styles.push({doit: lively.persistence.Serializer.deserialize(doit)});
+
+            this.createIntervalsWithStyle(ea, mem);
+        }
+        return mem.intervals;
+    },
+
     convertStyleName: function(name) {
         var s = name.split("-").invoke('capitalize').join("")
         return s.charAt(0).toLowerCase() + s.substring(1);

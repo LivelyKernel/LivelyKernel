@@ -410,7 +410,7 @@ Object.subclass('AnotherSourceDatabase', {
             var webR = new WebResource(url).beSync(),
                 fileURLs = webR.getSubElements().subDocuments.collect(function(ea) { return ea.getURL() }),
                 fileNames = fileURLs.collect(function(ea) { return ea.relativePathFrom(URL.codeBase) }),
-                acceptedFileNames = /.*\.(st|js|lkml|ometa)/,
+                acceptedFileNames = /.*\.(st|js|lkml|ometa)$/,
                 rejects = ['JSON.js'];
 
             fileNames = fileNames

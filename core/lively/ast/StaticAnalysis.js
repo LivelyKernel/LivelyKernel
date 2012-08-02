@@ -229,7 +229,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
     onSourceStringUpdate: function(methodString, source) {
         var node = this.selectedNode();
         var textMorph = this.panel.sourcePane.innerMorph();
-        if (node && node.target.specialHighlighting) {
+        if (node && node.target && node.target.specialHighlighting) {
             textMorph.specialHighlighting = node.target.specialHighlighting();
         } else {
             textMorph.specialHighlighting = "none";

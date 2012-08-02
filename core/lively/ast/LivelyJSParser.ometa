@@ -9,8 +9,9 @@ whereAreYou -> {
 	alert(msg);
 	true
 },
-fromTo :x :y = seq(x) (~seq(y) char)* seq(y), 
-space = ^space | fromTo('//', '\n') | fromTo('//', #end) | fromTo('/*', '*/'),
+fromTo :x :y = seq(x) (~seq(y) char)* seq(y),
+fromToWithout :x :y = seq(x) (~seq(y) char)*,
+space = ^space | fromToWithout('//', '\n') | fromTo('//', #end) | fromTo('/*', '*/'),
 nameFirst    = letter | '$' | '_',
 nameRest     = nameFirst | digit,
 iName =
@@ -18,7 +19,7 @@ iName =
 isKeyword :x = ?LivelyJSParser._isKeyword(x),
 name =
 	pos:p1 iName:n ~isKeyword(n) pos:p2 -> [#name, [p1, p2], n],
-keyword	= 
+keyword	=
 	pos:p1 iName:k isKeyword(k) pos:p2 -> [k, [p1, p2], k],
 hexDigit
 	= char:x {this.hexDigits.indexOf(x.toLowerCase())}:v ?(v >= 0)
@@ -46,7 +47,7 @@ special =
 	| '?'     | ':'     | ``!=='' | ``!=''  | ``==='' | ``=='' | ``=''   | ``>>>''
 	| ``>>='' | ``>=''  | ``>>''  | '>'     | ``<<='' | ``<='' | ``<<''  | '<'
 	| ``++''  | ``+=''  | '+'     | ``--''  | ``-=''  | '-'    | ``*=''  | '*'
-	| ``/=''  | '/'     | ``%=''  | '%'     | ``&&='' | ``&&'' | ``||='' | ``||''  
+	| ``/=''  | '/'     | ``%=''  | '%'     | ``&&='' | ``&&'' | ``||='' | ``||''
 	| '.'     | '!'     | '&'     | '|'     | '^'):s pos:p2
 	-> [s, [p1, p2], s],
 tok =
@@ -60,7 +61,7 @@ expr =
 	pos:p1 expr:f ',' exprPart:s pos:p2	-> [#begin, [p1, p2], f,s]
         | exprPart,
 exprPart =
-	pos:p1 orExpr:e (
+	pos:p1 ternaryExpr:e (
 		"?" exprPart:t ":" exprPart:f pos:p2			-> [#condExpr, [p1, p2], e, t, f]
 		| "="    exprPart:rhs pos:p2			-> [#set,  [p1, p2], e, rhs]
 		| "+="   exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, "+",   rhs]
@@ -78,14 +79,25 @@ exprPart =
 		| ">>>=" exprPart:rhs pos:p2			-> [#mset, [p1, p2], e, ">>>", rhs]
 		| empty									-> e
 	),
+ternaryExpr =
+	pos:p1 orExpr:e (
+	    "?" orExpr:t ":" orExpr:f pos:p2	-> [#condExpr, [p1, p2], e, t, f]
+		| empty								-> e
+	),
 orExpr =
 	pos:p1 orExpr:x "||" andExpr:y pos:p2 -> [#binop, [p1, p2], "||", x, y]
 	| andExpr,
 andExpr =
-	pos:p1 andExpr:x "&&" bitExpr:y pos:p2 -> [#binop, [p1, p2], "&&", x, y]
-	| bitExpr,
-bitExpr =
-	pos:p1 relExpr:x ("&" | "|" | "^"):op eqExpr:y pos:p2 -> [#binop, [p1, p2], op, x, y]
+	pos:p1 andExpr:x "&&" bitOrExpr:y pos:p2 -> [#binop, [p1, p2], "&&", x, y]
+	| bitOrExpr,
+bitOrExpr =
+	pos:p1 bitXorExpr:x "|" bitOrExpr:y pos:p2 -> [#binop, [p1, p2], "|", x, y]
+	| bitXorExpr,
+bitXorExpr =
+	pos:p1 bitAndExpr:x "^" bitXorExpr:y pos:p2 -> [#binop, [p1, p2], "^", x, y]
+	| bitAndExpr,
+bitAndExpr =
+	pos:p1 eqExpr:x "&" bitAndExpr:y pos:p2 -> [#binop, [p1, p2], "&", x, y]
 	| eqExpr,
 eqExpr =
 	pos:p1 eqExpr:x ("==" | "!=" | "===" | "!=="):op relExpr:y pos:p2 -> [#binop, [p1, p2], op, x, y]
@@ -135,7 +147,7 @@ memberExpr =
 	| primExpr,
 primExpr =
 	"(" expr:e ")" -> e
-	| pos:p1 (
+	| spaces pos:p1 (
 		"this" pos:p2											-> [#this, [p1, p2]]
 		| "new" pos:p3 memberExpr:e (args | empty -> []):as pos:p2	-> [#new, [p1, p2], [#call, [p3, p2], e].concat(as)]
 		| "name":n pos:p2										-> [#get, [p1, p2], n]
@@ -155,6 +167,9 @@ jsonBinding =
 	pos:p1 jsonPropName:n ":" exprPart:v pos:p2
 	-> [#binding, [p1, p2], n, v],
 jsonPropName = "name" | "number" | "string",
+memberFragment = spaces jsonBinding:jb (',' | empty) spaces end -> jb,
+categoryFragment = spaces pos:p1 listOf(#exprPart, ','):es pos:p2 ("," | empty) spaces end -> [#arr, [p1, p2]].concat(es),
+traitFragment = spaces pos:p1 "name" "(" spaces listOf(#exprPart, ','):es spaces ")" spaces sc pos:p2 spaces end -> [#arr, [p1, p2]].concat(es),
 formal = spaces pos:p1 "name":n pos:p2 -> [#get, [p1, p2], n],
 funcRest =
 	pos: p1 "(" listOf(#formal, ','):args ")" "{" srcElems:body "}" pos:p2
@@ -171,7 +186,7 @@ block =
 	-> ss,
 stmt =
 	block
-	| pos:p1 (
+	| spaces pos:p1 (
 		"var" bindingList:bs sc pos:p2	-> bs
 		| "if" "(" expr:c ")" stmt:t
 			( "else" stmt
@@ -183,7 +198,7 @@ stmt =
 			( "var" bindingList | expr | empty pos:p -> [#get, [p, p], 'undefined'] ):i
 			";" ( expr | empty pos:p -> [#get, [p, p], 'true'] ):c
 			";" ( expr | empty pos:p -> [#get, [p, p], 'undefined'] ):u
-			")" stmt:s pos:p2						-> [#for, [p1, p2], i, c, u, s]
+			")" stmt:s pos:p2						-> [#for, [p1, p2], i, c, s, u]
 		| "for" "("
 			( pos:p3 ( "var" "name":n pos:p4 -> [#var, [p3, p4], n, [#get, [p3, p3], 'undefined']] ) | "name":n pos:p4 -> [#get, [p3, p4], n] ):v
 			"in" expr:e ")" stmt:s pos:p2			-> [#forIn, [p1, p2], v, e, s]
@@ -196,16 +211,21 @@ stmt =
 		| "continue" sc pos:p2						-> [#continue, [p1, p2]]
 		| "throw" spacesNoNl expr:e sc pos:p2		-> [#throw, [p1, p2], e]
 		| "try" block:t
-			( "catch" "(" "name":e ")" block | empty pos:p -> [#get, [p,p], 'undefined'] ):c
-			( "finally" block | empty pos:p -> [#get, [p,p], 'undefined'] ):f sc pos:p2
+			( "catch" "(" formal:e ")" block | ( empty pos:p -> [#get, [p,p], 'undefined'] ):e ):c
+			( "finally" block | empty pos:p -> [#get, [p,p], 'undefined'] ):f pos:p2
 			-> [#try, [p1, p2], t, e, c, f]
 		| "return" ( expr | empty pos:p -> [#get, [p,p], 'undefined'] ):e sc pos:p2 -> [#return, [p1, p2], e]
 		| "with" "(" expr:x ")" stmt:s pos:p2		-> [#with, [p1, p2], x, s]
 		| expr:e sc									-> e
 		| ";" pos:p2								-> [#get, [p1, p2], "undefined"]),
+functionDef =
+	pos:p1 "function" "name":n funcRest:f pos:p2 -> [#var, [p1,p2], n, f],
+functionDefFragment =
+	functionDef:f spaces end -> f,
+functionDefsFragment =
+	pos:p1 functionDef*:fs pos:p2 spaces end -> [#arr, [p1, p2]].concat(fs),
 srcElem =
-	pos:p1 "function" "name":n funcRest:f pos:p2 -> [#var, [p1,p2], n, f]
-	| stmt,
+	functionDef | stmt,
 srcElems =
 	pos:p1 srcElem*:ss pos:p2
 	-> [#begin, [p1,p2]].concat(ss),

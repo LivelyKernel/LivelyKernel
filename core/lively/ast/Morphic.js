@@ -23,14 +23,22 @@
 
 module('lively.ast.Morphic').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.ast.Interpreter','lively.Tracing').toRun(function() {
 
-Object.extend(lively.morphic.Morph, {
+Object.extend(lively.ast, {
+    halt: function(frame) {
+        (function() {
+            lively.ast.openDebugger(frame, "Debugger");
+        }).delay(0);
+        return true;
+    },
     openDebugger: function openDebugger(frame, title) {
         var part = lively.PartsBin.getPart("Debugger", "PartsBin/Debugging");
-        part.setTopFrame(frame);
+        part.targetMorph.setTopFrame(frame);
         if (title) part.setTitle(title);
         part.openInWorld();
         var m = part;
-        m.align(m.bounds().topCenter().addPt(pt(0,-20)), $world.visibleBounds().topCenter());
+        m.align(
+            m.bounds().topCenter().addPt(pt(0,-20)),
+            lively.morphic.World.current().visibleBounds().topCenter());
     },
 });
 
@@ -40,30 +48,29 @@ cop.create('DebugScriptsLayer')
         var func = Function.fromString(funcOrString),
             name = func.name || optName;
         if (func.containsDebugger()) {
-            func = func.forDebugging("lively.morphic.Morph.openDebugger");
+            func = func.forInterpretation();
         }
         var script = func.asScriptOf(this, name);
         var source = script.livelyClosure.source = funcOrString.toString();
         script.toString = function() { return source };
         return script;
     },
-});
+}).beGlobal();
 cop.create('DebugMethodsLayer').refineObject(Function.prototype, {
     addCategorizedMethods: function(categoryName, source) {
-        console.log("sppp" + categoryName);
         for (var property in source) {
             var func = source[property];
             if (Object.isFunction(func)) {
+                console.log('parsing ' + property);
                 if (func.containsDebugger()) {
-                    var origSource = func.toString();
-                    source[property] = func.forDebugging("lively.morphic.Morph.openDebugger");
-                    source[property].toString = function() { return origSource; };
+                    console.log('interpreting ' + property);
+                    source[property] = func.forInterpretation();
                 }
             }
         }
         return cop.proceed(categoryName, source);
     },
-});
+}).beGlobal();
 
 lively.morphic.Text.addMethods(
 'debugging', {
@@ -72,11 +79,9 @@ lively.morphic.Text.addMethods(
             fun = Function.fromString(str).forInterpretation(),
             ctx = this.getDoitContext() || this;
         try {
-            return fun.apply(ctx, [], {breakAtCalls:true});
+            return fun.startHalted().apply(ctx, []);
         } catch(e) {
-            if (e.isUnwindException) {
-                lively.morphic.Morph.openDebugger(e.topFrame);
-            } else {
+            if (!e.isUnwindException) {
                 this.showError(e);
             }
         }
@@ -90,13 +95,14 @@ cop.create('DebugGlobalErrorHandlerLayer')
     logError: function(err, optName) {
         if (err.simStack) {
             var frame = lively.ast.Interpreter.Frame.fromTraceNode(err.simStack);
-            lively.morphic.Morph.openDebugger(frame, err.toString());
+            lively.ast.openDebugger(frame, err.toString());
             return false;
-        } else {
+        } else if (!err.isUnwindException) {
             return cop.proceed(err, optName);
         }
-    },
-});
+    }
+})
+
 Object.extend(lively.Tracing, {
     startGlobalDebugging: function() {
         var root = new TracerStackNode(null, {
@@ -114,15 +120,14 @@ Object.extend(lively.Tracing, {
             lively.Tracing.globalTracingEnabled = false;
             lively.Tracing.setCurrentContext(null);
         }).delay(0.2);
-    },
-});
-cop.create('DeepInterpretationLayer')
-.refineClass(lively.ast.FunctionCaller, {
-    shouldInterpret: function(frame, func) {
-        return !this.isNative(func);
     }
 });
 
-
+cop.create('DeepInterpretationLayer')
+.refineClass(lively.ast.InterpreterVisitor, {
+    shouldInterpret: function(func) {
+        return !this.isNative(func);
+    }
+});
 
 }) // end of module

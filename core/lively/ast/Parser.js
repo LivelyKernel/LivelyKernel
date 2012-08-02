@@ -50,13 +50,13 @@ Object.extend(lively.ast.Parser, {
     basicParse: function(source, rule) {
         // first call the LKJSParser. this will result in a synbolic AST tree.
         // translate this into real AST objects using JSTranslator
-        function errorHandler() { alert(OMetaSupport.handleErrorDebug.apply(OMetaSupport, arguments)) }
+        var errorHandler = function() { throw $A(arguments) };
         var intermediate = OMetaSupport.matchAllWithGrammar(this.jsParser, rule, source, errorHandler);
         if (!intermediate || Object.isString(intermediate))
-            throw new Error('Could not parse JS source code: ' + intermediate);
+            throw [source, rule, 'Could not parse JS source code', 0, intermediate];
         var ast = OMetaSupport.matchWithGrammar(this.astTranslator, 'trans', intermediate);
         if (!ast || Object.isString(ast))
-            throw new Error('Could not translate symbolic AST tree: ' + ast);
+            throw [source, rule, 'Could not translate symbolic AST tree', 0, intermediate, ast];
         return ast;
     },
 
@@ -149,7 +149,6 @@ lively.ast.Node.addMethods(
     isAfter: function(other) {
         var that = this, first = null;
         this.parentFunction().body.withAllChildNodesDo(function(node) {
-            if (node.isFor || node.isForIn || node.isWhile || node.isDoWhile) return false;
             if (!first) {
                 if (node === that) first = that;
                 if (node === other) first = other;
@@ -255,21 +254,58 @@ lively.ast.Node.addMethods(
 
 },
 'stepping', {
-
     firstStatement: function() {
         return this;
     },
-
     nextStatement: function(node) {
-        var stmt = this.getParent().parentComposite().nextStatement(this)
+        var stmt = this.getParent().nextStatement(this);
         return stmt ? stmt.firstStatement() : null;
-    },
-
-    parentComposite: function() {
-        return this.isComposite() ? this : this.getParent().parentComposite();
     },
     isComposite: function() {
         return false;
+    }
+},
+'matching', {
+    match: function(patternAst) {
+        var matchedPlaceholder = true;
+        for (var key in patternAst) {
+            var result = this.matchVal(key, this[key], patternAst[key]);
+            if (result !== true) matchedPlaceholder = result;
+        }
+        return matchedPlaceholder;
+    },
+    matchVal: function(key, value, pattern) {
+        if (pattern === lively.ast.Node.placeholder) return value;
+        if (value == pattern) return true;
+        if (Object.isString(pattern)) {
+            if (value.toString() == pattern) return true;
+            if (value.value == pattern) return true;
+            if (value.name == pattern) return true;
+        }
+        if (Object.isArray(pattern) && Object.isArray(value)) {
+            var matchedPlaceholder = true;
+            for (var i = 0; i < pattern.length; i++) {
+                var success = false;
+                var lastError = null;
+                for (var j = 0; j < value.length; j++) {
+                    try {
+                        var res = this.matchVal(key, value[j], pattern[i]);
+                        if (res !== true) matchedPlaceholder = res;
+                        success = true;
+                    } catch(e) { lastError = e; }
+                }
+                if (!success) throw lastError;
+            }
+            if (value.length !== pattern.length) {
+                throw {key: key, err: "count",
+                       expected: pattern.length, actual: value.length};
+            }
+            return matchedPlaceholder;
+        }
+        if (Object.isObject(pattern) && value.isASTNode) {
+            return value.match(pattern);
+        }
+        throw {key: key, err: "missmatch", expected: String(pattern), actual: String(value)};
     }
 });
 
@@ -453,6 +489,23 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
                     this.condExpr.asJS(depth), this.body.asJS(depth));
             },
         },
+        stepping: {
+            firstStatement: function() {
+                return this.condExpr.firstStatement();
+            },
+            nextStatement: function($super, node) {
+                if (node === this.condExpr) {
+                    return this.body;
+                } else if (node === this.body) {
+                    return this.condExpr;
+                } else {
+                    return $super(this);
+                }
+            },
+            isComposite: function() {
+                return true;
+            }
+        },
     },
 
     'doWhile': {
@@ -470,12 +523,29 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
                     this.body.asJS(depth), this.condExpr.asJS(depth));
             },
         },
+        stepping: {
+            firstStatement: function() {
+                return this.body.firstStatement();
+            },
+            nextStatement: function($super, node) {
+                if (node === this.condExpr) {
+                    return this.body;
+                } else if (node === this.body) {
+                    return this.condExpr;
+                } else {
+                    return $super(this);
+                }
+            },
+            isComposite: function() {
+                return true;
+            }
+        },
     },
 
     'for': {
-        className: 'For', rules: [':pos', 'trans:init', 'trans:condExpr', 'trans:upd', 'trans:body'],
+        className: 'For', rules: [':pos', 'trans:init', 'trans:condExpr', 'trans:body', 'trans:upd'],
         debugging: {
-            printConstruction: function() { return this.printConstructorCall(this.pos, this.init, this.condExpr, this.upd, this.body) },
+            printConstruction: function() { return this.printConstructorCall(this.pos, this.init, this.condExpr, this.body, this.upd) },
             toString: function() { return Strings.format(
                 '%s(%s;%s;%s do %s)',
                 this.constructor.name, this.init, this.condExpr, this.upd, this.body) },
@@ -804,9 +874,9 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
     },
 
     'try': {
-        className: 'TryCatchFinally', rules: [':pos', 'trans:trySeq', ':errName', 'trans:catchSeq', 'trans:finallySeq'],
+        className: 'TryCatchFinally', rules: [':pos', 'trans:trySeq', 'trans:err', 'trans:catchSeq', 'trans:finallySeq'],
         debugging: {
-            printConstruction: function() { return this.printConstructorCall(this.pos, this.trySeq, '"'+this.errName+'"', this.catchSeq, this.finallySeq) },
+            printConstruction: function() { return this.printConstructorCall(this.pos, this.trySeq, '"'+this.err.name+'"', this.catchSeq, this.finallySeq) },
             toString: function() {
                 return Strings.format(
                     '%s(%s %s %s)',
@@ -819,7 +889,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
                     indent = this.indent(depth),
                 str = 'try {\n' + indent + this.trySeq.asJS(depth) + '\n' + baseIndent + '}';
                 if (!this.isUndefined(this.catchSeq))
-                    str += ' catch(' + this.errName + ') {\n' +
+                    str += ' catch(' + this.err.name + ') {\n' +
                     indent + this.catchSeq.asJS(depth) + '\n' + baseIndent + '}';
                 if (!this.isUndefined(this.finallySeq))
                     str += ' finally {\n' + indent + this.finallySeq.asJS(depth) + '\n' + baseIndent + '}';
@@ -834,24 +904,38 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
             printConstruction: function() { return this.printConstructorCall(this.pos, this.args.collect(function(ea) { return '"' + ea.name + '"' }), this.body) },
             toString: function() {
                 return Strings.format(
-                    '%s(function(%s) %s)',
-                    this.constructor.name, this.argNames().join(','), this.body)
+                    '%s(function %s(%s) %s)',
+                    this.constructor.name, this.name(), this.argNames().join(','), this.body)
             },
         },
         conversion: {
             asJS: function(depth) {
                 return Strings.format('function%s(%s) {\n%s\n}',
-                                      this.name ? ' ' + this.name : '',this.argNames().join(','),
+                                      this.name() ? ' ' + this.name() : '', this.argNames().join(','),
                                       this.indent(depth+1) + this.body.asJS(depth+1));
             },
         },
         accessing: {
-            setName: function(name) { this.name = name },
-            getName: function() { return this.name },
+            name: function() {
+                if (this._parent && this._parent.isVarDeclaration) {
+                    this._parent.name;
+                }
+                return undefined;
+            },
             parentFunction: function() { return this },
             argNames: function() { return this.args.collect(function(a){ return a.name }); },
             statements: function() { return this.body.children },
         },
+        stepping: {
+            firstStatement: function() { return this.body.firstStatement(); },
+            nextStatement: function(node) { return null; },
+            isComposite: function() { return true; }
+        },
+        evaluation: {
+            eval: function() {
+                return new Function(this.argNames().join(","), this.body.asJS());
+            },
+        }
     },
 
     json: {
@@ -1021,7 +1105,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
         eval(translated);
         var content = Strings.format(
             'module(\'lively.ast.generated.Translator\').' +
-                'requires().toRun(function() {\n%s\n});', translated)
+                'requires(\'ometa.parser\').toRun(function() {\n%s\n});', translated)
         this.writeToFile('Translator.ometa', source);
         this.writeToFile('Translator.js', content);
     },
@@ -1162,7 +1246,6 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
         return src;
     },
 
-
     visitingCategoryForNode: function(ruleSpec) {
         var category = '\'visiting\', {\n\taccept: function(visitor) {\n';
         category += '\t\treturn visitor.visit' + ruleSpec.className + '(this);';
@@ -1173,23 +1256,8 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
 });
 
 
-Function.addMethods(
-'ast', {
-    ast: function() {
-        var parseResult = lively.ast.Parser.parse(this.toString(), 'topLevel');
-        if (!parseResult || Object.isString(parseResult)) return parseResult;
-        parseResult = parseResult.children[0];
-        if (parseResult.isVarDeclaration && parseResult.val.isFunction) {
-            parseResult.val.setName(parseResult.name);
-            parseResult.val.realFunction = this;
-            return parseResult.val;
-        } else if (parseResult.isFunction) {
-            parseResult.realFunction = this;
-        }
-        return parseResult;
-    },
+Object.extend(lively.ast.Node, {
+    placeholder: {}
 });
-
-
 
 }) // end of module

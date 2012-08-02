@@ -38,7 +38,7 @@ TestCase.subclass('lively.tests.ClassTests.ClassTest', {
 	    TestCase.subclass('A', {});
 		A.subclass('B', {});
 		var result = A.superclasses();
-		this.assertEqualState(result, [Object, TestCase, A]);
+		this.assertEqualState(result, [Object, TestCase]);
 	},
 	
 	testSuperMethodsAreAssignedCorrectly: function() {

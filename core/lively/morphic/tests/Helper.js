@@ -80,22 +80,26 @@ TestCase.subclass('lively.morphic.tests.TestCase',
             });
         if (expected.style)
             Properties.forEachOwn(expected.style, function(key, expected) {
-                if (!node.style[key]) {
-                    alert("Warning: " + key + " is falsy in " + node + ".style");
-                }
+                // cs: An undeclared style attribute just returns an empty
+                // string. See: http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSStyleDeclaration-getPropertyValue
                 var actualValue = node.style[key].replace(/ /g, '');
                 if (Object.isFunction(expected)) {
-                    self.assert(expected.call(self, actualValue), 'value ' + actualValue + ' did no match')
-                    return
+                    self.assert(expected.call(self, actualValue)
+                               , 'value ' + actualValue + ' did no match');
+                    return;
                 }
-                if (expected != actualValue)
+                if (expected != actualValue) {
                     fail('style ' + key + ' not ' + expected + ' but ' + actualValue);
+                }
             });
         if (expected.childNodeLength)
-            this.assertEquals(expected.childNodeLength, node.childNodes.length, 'childNode.length of ' + node)
-        if (expected.childNodes)
+            this.assertEquals(expected.childNodeLength, node.childNodes.length, 'childNode.length of ' + node);
+        if (expected.childNodes) {
+            this.assertEquals(expected.childNodes.length, node.childNodes.length,
+                              'childNode.length of ' + node);
             for (var i = 0; i < expected.childNodes.length; i++)
                 this.assertNodeMatches(expected.childNodes[i], node.childNodes[i]);
+        }
     },
 
     // text HTML test helper
@@ -116,7 +120,7 @@ TestCase.subclass('lively.morphic.tests.TestCase',
             childNodes: expectedTextNodes
         };
         this.assertNodeMatches(expected, this.text.renderContext().textNode);
-    },
+    }
 
 });
 

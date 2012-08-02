@@ -1,4 +1,4 @@
-module('lively.ast.generated.Translator').requires().toRun(function() {
+module('lively.ast.generated.Translator').requires('ometa.parser').toRun(function() {
 JSTranslator=Object.delegated(Parser,{
 "trans":function(){var $elf=this,t,ans;return (function(){this._form((function(){return (function(){t=this._apply("anything");return ans=this._applyWithArgs("apply",t)}).call(this)}));return ans}).call(this)},
 "begin":function(){var $elf=this,pos,children;return (function(){pos=this._apply("anything");children=this._many((function(){return this._apply("trans")}));this._apply("end");return new lively.ast.Sequence(pos,children)}).call(this)},
@@ -8,7 +8,7 @@ JSTranslator=Object.delegated(Parser,{
 "if":function(){var $elf=this,pos,condExpr,trueExpr,falseExpr;return (function(){pos=this._apply("anything");condExpr=this._apply("trans");trueExpr=this._apply("trans");falseExpr=this._apply("trans");return new lively.ast.If(pos,condExpr,trueExpr,falseExpr)}).call(this)},
 "while":function(){var $elf=this,pos,condExpr,body;return (function(){pos=this._apply("anything");condExpr=this._apply("trans");body=this._apply("trans");return new lively.ast.While(pos,condExpr,body)}).call(this)},
 "doWhile":function(){var $elf=this,pos,body,condExpr;return (function(){pos=this._apply("anything");body=this._apply("trans");condExpr=this._apply("trans");return new lively.ast.DoWhile(pos,body,condExpr)}).call(this)},
-"for":function(){var $elf=this,pos,init,condExpr,upd,body;return (function(){pos=this._apply("anything");init=this._apply("trans");condExpr=this._apply("trans");upd=this._apply("trans");body=this._apply("trans");return new lively.ast.For(pos,init,condExpr,upd,body)}).call(this)},
+"for":function(){var $elf=this,pos,init,condExpr,body,upd;return (function(){pos=this._apply("anything");init=this._apply("trans");condExpr=this._apply("trans");body=this._apply("trans");upd=this._apply("trans");return new lively.ast.For(pos,init,condExpr,body,upd)}).call(this)},
 "forIn":function(){var $elf=this,pos,name,obj,body;return (function(){pos=this._apply("anything");name=this._apply("trans");obj=this._apply("trans");body=this._apply("trans");return new lively.ast.ForIn(pos,name,obj,body)}).call(this)},
 "set":function(){var $elf=this,pos,left,right;return (function(){pos=this._apply("anything");left=this._apply("trans");right=this._apply("trans");return new lively.ast.Set(pos,left,right)}).call(this)},
 "mset":function(){var $elf=this,pos,left,name,right;return (function(){pos=this._apply("anything");left=this._apply("trans");name=this._apply("anything");right=this._apply("trans");return new lively.ast.ModifyingSet(pos,left,name,right)}).call(this)},
@@ -30,7 +30,7 @@ JSTranslator=Object.delegated(Parser,{
 "new":function(){var $elf=this,pos,clsExpr;return (function(){pos=this._apply("anything");clsExpr=this._apply("trans");return new lively.ast.New(pos,clsExpr)}).call(this)},
 "var":function(){var $elf=this,pos,name,val;return (function(){pos=this._apply("anything");name=this._apply("anything");val=this._apply("trans");return new lively.ast.VarDeclaration(pos,name,val)}).call(this)},
 "throw":function(){var $elf=this,pos,expr;return (function(){pos=this._apply("anything");expr=this._apply("trans");return new lively.ast.Throw(pos,expr)}).call(this)},
-"try":function(){var $elf=this,pos,trySeq,errName,catchSeq,finallySeq;return (function(){pos=this._apply("anything");trySeq=this._apply("trans");errName=this._apply("anything");catchSeq=this._apply("trans");finallySeq=this._apply("trans");return new lively.ast.TryCatchFinally(pos,trySeq,errName,catchSeq,finallySeq)}).call(this)},
+"try":function(){var $elf=this,pos,trySeq,err,catchSeq,finallySeq;return (function(){pos=this._apply("anything");trySeq=this._apply("trans");err=this._apply("trans");catchSeq=this._apply("trans");finallySeq=this._apply("trans");return new lively.ast.TryCatchFinally(pos,trySeq,err,catchSeq,finallySeq)}).call(this)},
 "func":function(){var $elf=this,pos,body,args;return (function(){pos=this._apply("anything");body=this._apply("trans");args=this._many((function(){return this._apply("trans")}));return new lively.ast.Function(pos,body,args)}).call(this)},
 "json":function(){var $elf=this,pos,properties;return (function(){pos=this._apply("anything");properties=this._many((function(){return this._apply("trans")}));return new lively.ast.ObjectLiteral(pos,properties)}).call(this)},
 "binding":function(){var $elf=this,pos,name,property;return (function(){pos=this._apply("anything");name=this._apply("anything");property=this._apply("trans");return new lively.ast.ObjProperty(pos,name,property)}).call(this)},

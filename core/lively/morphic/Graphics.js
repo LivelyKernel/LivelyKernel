@@ -112,7 +112,11 @@ Object.subclass("Point",
         acc.x = Math.max(this.x, p.x);
         acc.y = Math.max(this.y, p.y);
         return acc;
+    },
+    random: function() {
+        return lively.Point.random(this);
     }
+
 },
 'point functions', {
     normalized: function() {

@@ -215,14 +215,23 @@ Object.subclass('TestCase',
     assertEqualState: function(leftObj, rightObj, msg) {
         // have leftObj and rightObj equal properties?
         msg = (msg ? msg : ' ') + leftObj + " != " + rightObj + " because ";
-        if (!leftObj && !rightObj) return;
-        if (!leftObj || !rightObj) this.assert(false, msg);
+        this.assertEquals(typeof leftObj, typeof rightObj, msg + ' object types differ');
+        if (leftObj == rightObj) return;
+        if ((leftObj !== leftObj) && (rightObj !== rightObj)) return; // both are NaN
         switch (leftObj.constructor) {
             case String:
             case Boolean:
             case Boolean:
             case Number: {
                 this.assertEquals(leftObj, rightObj, msg);
+                return;
+            }
+            case Array: {
+                this.assertEquals(leftObj.length, rightObj.length, msg +
+                                  Strings.format(' (length %s vs. %s)', leftObj.length, rightObj.length));
+                for (var i = 0; i < leftObj.length; i++) {
+                    this.assertEqualState(leftObj[i], rightObj[i], msg);
+                }
                 return;
             }
         };
@@ -233,12 +242,10 @@ Object.subclass('TestCase',
         var cmp = function(left, right) {
             for (var value in left) {
                 if (!(left[value] instanceof Function)) {
-                    try {
-                        this.assertEqualState(left[value], right[value], msg);
-                    } catch (e) {
-                        throw e;
-                    }
-                };
+                    this.assertEquals(left.hasOwnProperty(value),
+                                      right.hasOwnProperty(value), msg);
+                    this.assertEqualState(left[value], right[value], msg);
+                }
             };
         }.bind(this);
         cmp(leftObj, rightObj);
@@ -246,6 +253,8 @@ Object.subclass('TestCase',
     },
     assertMatches: function(expectedSpec, obj, msg) {
         // are all properties in expectedSpec also in and equal in obj?
+        if (expectedSpec === obj) return;
+        this.assert(obj && Object.isObject(obj), String(obj) + " was expected to be an object");
         for (var name in expectedSpec) {
             var expected = expectedSpec[name], actual = obj[name];
             if (expected === undefined || expected === null) {
@@ -263,6 +272,9 @@ Object.subclass('TestCase',
                 continue;
               }
             };
+            this.assert(actual && Object.isObject(actual),
+                        name + ' was expected to be ' + expected +
+                        ' but is ' + String(actual) + (msg ? ' -- ' + msg : ''));
             this.assertMatches(expected, actual, msg);
         }
     },

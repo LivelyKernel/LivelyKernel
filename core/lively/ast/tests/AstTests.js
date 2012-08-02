@@ -47,16 +47,16 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
             result = this.parseJS(src, 'number');
         this.assertMatches(expected, result);
     },
-    // test03SingleLineCommentWithoutSemicolon: function() {
-    //     // FIXME, not implemented yet
-    //     var src = '23 // comment\n42',
-    //         expected = ['begin', [0, 16],
-    //             ['number', [0, 2], 23],
-    //             ['number', [3, 16], 42]
-    //         ],
-    //         result = this.parseJS(src);
-    //     this.assertMatches(expected, result, 'single line comment without semicolon cannot be parsed');
-    // },
+    test03SingleLineCommentWithoutSemicolon: function() {
+        var src = '23 // comment\n42',
+            expected = ['begin', [0, 16],
+                ['number', [0, 2], 23],
+                ['number', [14, 16], 42]
+            ],
+             result = this.parseJS(src);
+        this.assertMatches(expected, result,
+            'single line comment without semicolon cannot be parsed');
+    },
     // test04AssignmentOperators: function() {
     //     // FIXME, not implemented yet
     //     var src1 = 'a >>= 12',
@@ -78,9 +78,9 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
         var src1 = '5 & 3', // = 1
             src2 = '5 | 3', // = 7
             src3 = '5 ^ 3', // = 6
-            expected1 = ['binop', [0, 5], '&', ['number', [0, 1], '5'], ['number', [3, 5], 3]],
-            expected2 = ['binop', [0, 5], '|', ['number', [0, 1], '5'], ['number', [3, 5], 3]],
-            expected3 = ['binop', [0, 5], '^', ['number', [0, 1], '5'], ['number', [3, 5], 3]],
+            expected1 = ['binop', [0, 5], '&', ['number', [0, 1], '5'], ['number', [4, 5], 3]],
+            expected2 = ['binop', [0, 5], '|', ['number', [0, 1], '5'], ['number', [4, 5], 3]],
+            expected3 = ['binop', [0, 5], '^', ['number', [0, 1], '5'], ['number', [4, 5], 3]],
             result;
 
         result = this.parseJS(src1, 'expr');
@@ -117,10 +117,69 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
             expected = ["forIn",
                         [0, 22],
                         ["get", [5, 9], "name"],
-                        ["get", [12, 16], "obj"]],
+                        ["get", [13, 16], "obj"]],
             result = this.parseJS(src, 'stmt');
         this.assertMatches(expected, result);
     },
+    test09ParseMemberFragment: function() {
+        var src1 = 'method: 23',
+            src2 = 'method: 23,',
+            expected = ["binding", [0, 10], "method", ["number", [8, 10]]],
+            result1 = this.parseJS(src1, 'memberFragment'),
+            result2 = this.parseJS(src2, 'memberFragment');
+        this.assertMatches(expected, result1);
+        this.assertMatches(expected, result2);
+    },
+    test10ParseCategoryFragment: function() {
+        var src1 = '"accessing", { method: 23 }',
+            src2 = '"accessing", { method: 23 },',
+            expected = ["arr", [0, 27], ["string", [0, 11], "accessing"],
+                     ["json", [12, 27], ["binding", [14, 25], "method", ["number", [23, 25]]]]],
+            result1 = this.parseJS(src1, 'categoryFragment'),
+            result2 = this.parseJS(src2, 'categoryFragment');
+        this.assertMatches(expected, result1);
+        this.assertMatches(expected, result2);
+    },
+    test11ParseVarDecl: function() {
+        var src = 'var /*bla*/s = 23;',
+            expected = ["begin", [3, 17], ["var", [3, 17], "s", ["number", [15, 17], 23]]],
+            result = this.parseJS(src, 'stmt');
+        this.assertMatches(expected, result);
+    },
+    test12ParseSet: function() {
+        var src = 'v = /*bla*/s;',
+            expected = ["set", [0, 12], ["get", [0, 1], "v"], ["get", [11, 12], "s"]],
+            result = this.parseJS(src, 'stmt');
+        this.assertMatches(expected, result);
+    },
+    test13ParseBinary: function() {
+        var src = '1&1|1',
+            expected = ['binop', [0, 5], '|',
+                ['binop', [0, 3], '&', ['number', [0, 1], 1], ['number', [2, 3], 1]],
+                ['number', [4, 5], 1]],
+            result = this.parseJS(src, 'expr');
+        this.assertMatches(expected, result);
+    },
+    test14ParseQuotes: function() {
+        var src1 = "'\\'''",
+            expected1 = ['string', [0, 4], "'"],
+            result1 = this.parseJS(src1, 'expr'),
+            src2 = '"\\""',
+            expected2 = ['string', [0, 4], '"'],
+            result2 = this.parseJS(src2, 'expr');
+        this.assertMatches(expected1, result1);
+        this.assertMatches(expected2, result2);
+    },
+    test15StatementAfterCatchBlock: function() {
+        var src = 'try{} catch(e) {}a.b',
+            expected = ["begin", [0, 20],
+                ["try", [0, 17],
+                    ["begin", [4, 4]], ["get", [12, 13], "e"], ["begin", [16, 16]],
+                    ["get", [17, 17], "undefined"]],
+                ["getp", [17, 20], ["string", [19, 20], "b"], ["get", [17, 18], "a"]]],
+            result = this.parseJS(src, 'topLevel');
+        this.assertMatches(expected, result);
+    }
 });
 
 
@@ -161,7 +220,6 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
                     }]
                 },
             };
-        console.log(r.toString());
         this.assertMatches(expected, r.children[0]);
     },
     test03TryCatch: function() {
@@ -169,14 +227,14 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
             r = this.parseJS(src),
             expected = {
                 isTryCatchFinally: true,
-                tryExpr: {},
-                catchExpr: {},
-                finallyExpr: {},
+                trySeq: {},
+                catchSeq: {},
+                finallySeq: {}
             };
         this.assertMatches(expected, r.children[0]);
     },
     test04GetParentFunction: function() {
-        var funcAst = function() { if (true) return 1 + m(); foo() }.ast();
+        var funcAst = function(a) { if (a) return 1 + m(); foo() }.ast();
         this.assertIdentity(funcAst,
             funcAst.body.children[0]
                 .trueExpr.children[0]
@@ -185,22 +243,22 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
     },
 
     test05aEnumerateASTNodes: function() {
-        var funcAst = function() { if (true) return 1 + m(); foo() }.ast();
+        var funcAst = function(a) { if (a) return 1 + m(); foo() }.ast();
         // funcAst.printTree(true) gives a tree in post order, just enumerate it
-        // 0    Variable(condExpr)
-        // 1       Number(left)
-        // 2        Variable(fn)
-        // 3       Call(right)
-        // 4      BinaryOp(expr)
-        // 5     Return(children)
-        // 6    Sequence(trueExpr)
-        // 7     Variable(children)
-        // 8    Sequence(falseExpr)
-        // 9   If(children)
-        // 10    Variable(fn)
-        // 11   Call(children)
-        // 12  Sequence(body)
-        // 13 Function(undefined)
+        // 0     Variable(condExpr)
+        // 1        Number(left)
+        // 2         Variable(fn)
+        // 3        Call(right)
+        // 4       BinaryOp(expr)
+        // 5      Return(children)
+        // 6     Sequence(trueExpr)
+        // 7     Variable(falseExpr)
+        // 8    If(children)
+        // 9    Variable(fn)
+        // 10   Call(children)
+        // 11  Sequence(body)
+        // 12  Variable(arguments)
+        // 13 Function
         this.assertEquals(0, funcAst.body.children[0].condExpr.astIndex());
         this.assertEquals(1, funcAst.body.children[0].trueExpr.children[0].expr.left.astIndex());
         this.assertEquals(2, funcAst.body.children[0].trueExpr.children[0].expr.right.fn.astIndex());
@@ -213,10 +271,11 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         this.assertEquals(9, funcAst.body.children[1].fn.astIndex());
         this.assertEquals(10, funcAst.body.children[1].astIndex());
         this.assertEquals(11, funcAst.body.astIndex());
-        this.assertEquals(12, funcAst.astIndex());
+        this.assertEquals(12, funcAst.args[0].astIndex());
+        this.assertEquals(13, funcAst.astIndex());
     },
     test05bEnumerateASTNodesButNotNestedFunctions: function() {
-        var funcAst = function() { (function() { return 3 }); foo() }.ast();
+        var funcAst = function() { function f() { return 3 } foo() }.ast();
         // funcAst.printTree(true) gives a tree in post order, just enumerate it
         // x      Number(expr)
         // x     Return(children)
@@ -226,14 +285,11 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         // 1   Call(children)
         // 2  Sequence(body)
         // 3 Function(undefined)
-        this.assertEquals(3, funcAst.astIndex());
-        this.assertEquals(2, funcAst.body.astIndex());
-        // this.assertEquals(0, funcAst.body.children[0].astIndex());
-        // this.assertEquals(1, funcAst.body.children[0].body.astIndex());
-        // this.assertEquals(2, funcAst.body.children[0].body.children[0].astIndex());
-        // this.assertEquals(3, funcAst.body.children[0].body.children[0].expr.astIndex());
-        this.assertEquals(1, funcAst.body.children[1].astIndex());
-        this.assertEquals(0, funcAst.body.children[1].fn.astIndex());
+        this.assertEquals(4, funcAst.astIndex());
+        this.assertEquals(3, funcAst.body.astIndex());
+        this.assertEquals(2, funcAst.body.children[1].astIndex());
+        this.assertEquals(1, funcAst.body.children[1].fn.astIndex());
+        this.assertEquals(0, funcAst.body.children[0].astIndex());
     },
 
 
@@ -574,6 +630,11 @@ TestCase.subclass('lively.ast.tests.AstTests.InterpreterTest',
         var result = func.forInterpretation().call();
         this.assertEquals(23, result);
     },
+    test37NativeConstructor: function() {
+        var func = function(){return typeof new Date()};
+        var result = func.forInterpretation().call();
+        this.assertEquals("object", result);
+    },
 });
 
 TestCase.subclass('lively.ast.tests.AstTests.ExecutionStateReifierTest',
@@ -756,18 +817,18 @@ TestCase.subclass('lively.ast.tests.AstTests.VariableAnalyzerTest',
 },
 'testing', {
     test01FindFreeVariable: function() {
-        var f = function() { var x = 3; return x + y },
-            result = new lively.ast.VariableAnalyzer().findGlobalVariablesIn(String(f));
-        this.assertVarsFound(f, [['y', 35, 37]], result);
+        var src = 'function f() { var x = 3; return x + y }',
+            result = new lively.ast.VariableAnalyzer().findGlobalVariablesIn(src);
+        this.assertVarsFound(eval(src), [['y', 37, 38]], result);
     },
     testFindSimpleGlobalRead: function() {
         var codeAndExpected = [
             ["Foo.bar()", [["Foo", 0, 3]]],
-            ["var Foo = x(); Foo.bar()", [["x", 9, 11]]],
+            ["var Foo = x(); Foo.bar()", [["x", 10, 11]]],
             ["Foo = false;", [["Foo", 0, 3]]],
-            ["function() { function() { Foo = 3 }}", [["Foo", 25, 29]]],
+            ["function() { function() { Foo = 3 }}", [["Foo", 26, 29]]],
             ["function(arg) { return arg + 1 }", []],
-            ["function() { function(arg) {}; return arg }", [['arg', 37, 41]]]
+            ["function() { function(arg) {}; return arg }", [['arg', 38, 41]]]
         ];
 
         for (var i = 0; i < codeAndExpected.length; i++) {
@@ -944,8 +1005,28 @@ Object.subclass('lively.ast.tests.AstTests.Examples',
         for (var i = 0; i < 4; i++) {
             a += i;
         }
+        var b = 2;
         return a;
     },
+    whileloop: function(i) {
+        var a = 4;
+        debugger;
+        while (a > 1) {
+            a--;
+        }
+        var b = a + 4;
+        return b;
+    },
+    dowhileloop: function() {
+        var a = 3;
+        debugger;
+        do {
+            a--;
+        } while (a > 0);
+        var b = a + 2;
+        return b;
+    },
+
     restart: function() {
         var i = 0;
         i++;
@@ -998,7 +1079,13 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
     setUp: function($super) {
         $super();
         this.examples = new lively.ast.tests.AstTests.Examples();
+        this.oldHalt = lively.ast.halt;
+        lively.ast.halt = Functions.True;
     },
+    tearDown: function($super) {
+        $super();
+        lively.ast.halt = this.oldHalt;
+    }
 },
 'helping', {
     assertBreaks: function(cb) {
@@ -1094,9 +1181,7 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
     testStartsHalted: function() {
         var that = this;
         var fun = (function() {var i=23}).forInterpretation();
-        var frame = this.assertBreaks(function() {
-           fun.apply(null, [], {breakAtCalls:true});
-        });
+        var frame = this.assertBreaks(fun.startHalted());
         this.assertEquals(frame.mapping["i"], null);
         this.assertBreaks(function() {
             that.assert(frame.stepToNextStatement());
@@ -1120,7 +1205,7 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         this.assertEquals(outer,
             this.assertBreaks(function() { inner.stepToNextStatement(); })
         );
-        //outer.stepToNextStatement();
+        outer.stepToNextStatement();
     },
     testStepInto: function() {
         var that = this;
@@ -1191,7 +1276,7 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         var that = this;
         var fun = this.examples.factorial.forInterpretation();
         var fac3 = this.assertBreaks(function() {
-           fun.apply(that.examples, [3], {breakAtCalls:true});
+           fun.startHalted().apply(that.examples, [3]);
         });
         this.assertEquals(fac3.mapping.n, 3);
         this.assertBreaks(function() {
@@ -1239,6 +1324,8 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         this.assertStep(frame,{a:3,i:3});
         this.assertStep(frame,{a:6,i:3});
         this.assertStep(frame,{a:6,i:4});
+        this.assertStep(frame,{a:6,i:4});
+        this.assertStep(frame,{a:6,b:2,i:4});
         this.assertEquals(frame.resume(),6);
     },
     testSimpleRestart: function() {
@@ -1265,6 +1352,31 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
             that.assert(frame.resume());
         });
         this.assertEquals(frame.mapping.i, 3);
+    },
+    testWhileLoop: function() {
+        var frame = this.assertBreaksWhenInterpretated(this.examples.whileloop);
+        this.assertStep(frame,{a:4});
+        this.assertStep(frame,{a:4});
+        this.assertStep(frame,{a:3});
+        this.assertStep(frame,{a:3});
+        this.assertStep(frame,{a:2});
+        this.assertStep(frame,{a:2});
+        this.assertStep(frame,{a:1});
+        this.assertStep(frame,{a:1});
+        this.assertStep(frame,{a:1,b:5});
+        this.assertEquals(frame.resume(),5);
+    },
+    testDoWhileLoop: function() {
+        var frame = this.assertBreaksWhenInterpretated(this.examples.dowhileloop);
+        this.assertStep(frame,{a:3});
+        this.assertStep(frame,{a:2});
+        this.assertStep(frame,{a:2});
+        this.assertStep(frame,{a:1});
+        this.assertStep(frame,{a:1});
+        this.assertStep(frame,{a:0});
+        this.assertStep(frame,{a:0});
+        this.assertStep(frame,{a:0,b:2});
+        this.assertEquals(frame.resume(),2);
     }
 });
 
@@ -1339,6 +1451,46 @@ TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
         node = node.nextStatement(); //i<4
         this.assert(node.isBinaryOp);
     },
+    testWhileLoop: function() {
+        var fun = function() {var i=4;while(i>1){i--};var b=2};
+        var ast = fun.ast();
+        var node = ast.firstStatement(); //var i=4
+        this.assert(node.isVarDeclaration);
+        node = node.nextStatement(); //i>1
+        this.assert(node.isBinaryOp);
+        node = node.nextStatement(); //i--
+        this.assert(node.isPostOp);
+        node = node.nextStatement(); //i>1
+        this.assert(node.isBinaryOp);
+    },
+    testDoWhileLoop: function() {
+        var fun = function() {var a=3;do{a--}while(a>0);var b=2};
+        var ast = fun.ast();
+        var node = ast.firstStatement(); //var a=3
+        this.assert(node.isVarDeclaration);
+        node = node.nextStatement(); //a--
+        this.assert(node.isPostOp);
+        node = node.nextStatement(); //a>0
+        this.assert(node.isBinaryOp);
+        node = node.nextStatement(); //a--
+        this.assert(node.isPostOp);
+    },
+    testForLoopIsAfter: function() {
+        var fun = function() {var a=0;for(var i=1;i<4;i++){a=i;}var b;return b;};
+        var ast = fun.ast();
+        var node = ast.firstStatement().nextStatement(); //var i=1
+        var set = node._parent._parent.body.children[0];
+        var decl = ast.body.children[2].children[0];
+        this.assert(decl.isVarDeclaration);
+        this.assert(decl.isAfter(set), "declaration should be after set");
+    },
+    testPostOpStatements: function() {
+        var src = "i++;a++";
+        var ast = lively.ast.Parser.parse(src, "topLevel");
+        this.assert(ast.children[0].isPostOp);
+        this.assert(ast.children[0].nextStatement().isPostOp);
+        this.assert(ast.children[0].expr.nextStatement().isPostOp);
+    }
 });
 
 }) // end of module

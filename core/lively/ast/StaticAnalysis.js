@@ -1,11 +1,12 @@
-module('lively.ast.StaticAnalysis').requires('lively.ast.Parser').toRun(function() {
+module('lively.ast.StaticAnalysis').requires('lively.ast.Parser', 'lively.ide.BrowserFramework', 'lively.ide.FileParsing').toRun(function() {
 
 lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
 'analyzing helper', {
     knownGlobals: ["true", "false", "null", "undefined",
                    "Object", "Function", "String", "Date", "Math", "parseFloat", "isNaN",
-                   "eval", "window", "document", "Node",
-                   "HTMLCanvasElement", "Image"],
+                   "eval", "alert", "window", "document", "Node",
+                   "HTMLCanvasElement", "Image", "Error",
+                   "lively", "pt", "rect", "rgb"],
     newScope: function() {
         return this.current = this.current
             ? this.current.newScope()
@@ -28,7 +29,7 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
 'visiting', {
     visitVariable: function(node) {
         if (this.knownGlobals.include(node.name)) return;
-        if (node._parent.isFunction) {
+        if (this.current.isDeclaration(node)) {
             this.current.define(node);
         } else if (node._parent.isSet) {
             this.current.define(node);
@@ -72,9 +73,15 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
     visitCall: function(node) { this.visitParts(node, ['fn', 'args*']) },
     visitNew: function(node) { this.visitParts(node, ['clsExpr']) },
     visitThrow: function(node) { this.visitParts(node, ['expr']) },
-    visitTryCatchFinally: function(node) { this.visitParts(node, ['trySeq', 'catchSeq', 'finallySeq']) },
+    visitTryCatchFinally: function(node) {
+        this.visitParts(node, ['trySeq']);
+        this.current = this.newScope();
+        this.visitParts(node, ['err', 'catchSeq']);
+        this.current = this.current.parent;
+        this.visitParts(node, ['finallySeq']);
+    },
     visitFunction: function(node) {
-        var funcScope = this.newScope();
+        this.current = this.newScope();
         this.visitParts(node, ['args*', 'body']);
         this.current = this.current.parent;
     },
@@ -95,7 +102,7 @@ Object.subclass('lively.ast.DFAScope',
 },
 'helping', {
     isDeclaration: function(node) {
-        return node.isVarDeclaration || node._parent.isFunction;
+        return node.isVarDeclaration || node._parent.isFunction || node._parent.isTryCatchFinally;
     },
 },
 'accessing', {
@@ -144,7 +151,8 @@ Object.subclass('lively.ast.DFAScope',
         var chain = this.lookup_def(varnode.name);
         if (chain) {
             chain.push(varnode);
-        } else {
+        }
+        if (!this.lookup_decl(varnode.name)) {
             this.global_uses.push(varnode);
         }
     },
@@ -152,7 +160,7 @@ Object.subclass('lively.ast.DFAScope',
         var res = [];
         res.pushAll(this.global_uses);
         this.scopes.each(function(s) {
-            res.pushAll(s.allGlobalUses()); 
+            res.pushAll(s.allGlobalUses());
         });
         return res;
     },
@@ -160,7 +168,7 @@ Object.subclass('lively.ast.DFAScope',
         var res = [];
         res.pushAll(this.global_defs);
         this.scopes.each(function(s) {
-            res.pushAll(s.allGlobalDefs()); 
+            res.pushAll(s.allGlobalDefs());
         });
         return res;
     },
@@ -183,5 +191,77 @@ Object.subclass('lively.ast.VariableAnalyzer',
         return this.findGlobalVariablesInAST(this.parse(source));
     },
 });
+cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
+    highlightGlobals: function(target, ast) {
+        var analyzer = new lively.ast.VariableAnalyzer();
+        var globals = analyzer.findGlobalVariablesInAST(ast);
+        globals.each(function(g) {
+            target.emphasize(AdvancedSyntaxHighlighting.globalStyle, g.pos[0], g.pos[1]);
+        });
+    },
+    applyHighlighterRules: function(target, highlighterRules) {
+        cop.proceed(target, highlighterRules);
+        if (this.specialHighlighting == "none") return;
+        try {
+            var rule = this.specialHighlighting ? this.specialHighlighting : 'topLevel';
+            var ast = lively.ast.Parser.parse(this.textString, rule);
+            this.parseErrors = null;
+            this.highlightGlobals(target, ast);
+        } catch (e) {
+            this.parseErrors = [e];
+            this.doNotSerialize.push('parseErrors');
+            target.emphasize(AdvancedSyntaxHighlighting.errorStyle, e[3], this.textString.length);
+        }
+    },
+    boundEval: function(str) {
+        if (this.specialHighlighting == "none") return cop.proceed(str);
+        try {
+            var rule = this.specialHighlighting ? this.specialHighlighting : 'topLevel';
+            lively.ast.Parser.parse(str, rule);
+        } catch (e) {
+            var st = this.setStatus || this.displayStatus;
+            if (st) st.apply(this, OMetaSupport.handleErrorDebug(e[0], e[1], e[2], e[3]));
+            return null;
+        }
+        return cop.proceed(str);
+    },
+}).refineClass(lively.ide.BasicBrowser, {
+    onSourceStringUpdate: function(methodString, source) {
+        var node = this.selectedNode();
+        var textMorph = this.panel.sourcePane.innerMorph();
+        if (node && node.target && node.target.specialHighlighting) {
+            textMorph.specialHighlighting = node.target.specialHighlighting();
+        } else {
+            textMorph.specialHighlighting = "none";
+        }
+        cop.proceed(methodString, source);
+    },
+}).refineClass(lively.ide.FileFragment, {
+    specialHighlighting: function() {
+        if (["klassDef", "objectDef", "klassExtensionDef", "moduleDef"].include(this.type))
+            return "topLevel";
+        if (this.type == "propertyDef") return "memberFragment";
+        if (this.type == "categoryDef") return "categoryFragment";
+        if (this.type == "traitDef") return "traitFragment";
+        return "none";
+    },
+    reparseAndCheck: function(newSource) {
+        try {
+            var highlighting = this.specialHighlighting()
+            if (highlighting != "none")
+                lively.ast.Parser.parse(newSource, highlighting);
+        } catch (e) {
+            throw OMetaSupport.handleErrorDebug(e[0], e[1], e[2], e[3]/*src, rule, msg, idx*/);
+        }
+        var newFragment = cop.proceed(newSource);
+        return newFragment;
+    }
+})
+.beGlobal();
 
-}) // end of module
+Object.extend(AdvancedSyntaxHighlighting, {
+    errorStyle: { backgroundColor: Color.web.salmon.lighter() },
+    globalStyle: { color: Color.red }
+});
+
+});

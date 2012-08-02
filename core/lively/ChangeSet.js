@@ -765,7 +765,7 @@ Object.subclass('AnotherCodeMarkupParser',
 },
 'change creation', {
 	createChange: function(xmlElement) {
-		if (xmlElement.nodeType == NodeFactory.TextType() || xmlElement.nodeType == NodeFactory.CDATAType())
+		if (!xmlElement || xmlElement.nodeType == NodeFactory.TextType() || xmlElement.nodeType == NodeFactory.CDATAType())
 			return null;
 		for (var i = 0; i < this.changeClasses.length; i++) {
 			var klass = this.changeClasses[i];

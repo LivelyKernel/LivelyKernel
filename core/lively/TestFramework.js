@@ -212,7 +212,10 @@ Object.subclass('TestCase',
         if(firstValue === secondValue) return
         this.assert(false, (msg ? msg : '') + ' (' + firstValue +' !== ' + secondValue +')');
     },
-    assertEqualState: function(leftObj, rightObj, msg) {
+    assertEqualOwnState: function(leftObj, rightObj, msg) {
+        return this.assertEqualState(leftObj, rightObj, msg, true);
+    },
+    assertEqualState: function(leftObj, rightObj, msg, noProtoLookup) {
         // have leftObj and rightObj equal properties?
         msg = (msg ? msg : ' ') + leftObj + " != " + rightObj + " because ";
         this.assertEquals(typeof leftObj, typeof rightObj, msg + ' object types differ');
@@ -239,17 +242,18 @@ Object.subclass('TestCase',
             this.assert(leftObj.isEqualNode(rightObj), msg);
             return;
         };
-        var cmp = function(left, right) {
+        function cmp(left, right) {
             for (var value in left) {
+                if (noProtoLookup && !left.hasOwnProperty(value)) continue;
                 if (!(left[value] instanceof Function)) {
                     this.assertEquals(left.hasOwnProperty(value),
                                       right.hasOwnProperty(value), msg);
                     this.assertEqualState(left[value], right[value], msg);
                 }
             };
-        }.bind(this);
-        cmp(leftObj, rightObj);
-        cmp(rightObj, leftObj);
+        }
+        cmp.call(this, leftObj, rightObj);
+        cmp.call(this, rightObj, leftObj);
     },
     assertMatches: function(expectedSpec, obj, msg) {
         // are all properties in expectedSpec also in and equal in obj?

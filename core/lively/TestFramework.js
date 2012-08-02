@@ -215,7 +215,7 @@ Object.subclass('TestCase',
     assertEqualState: function(leftObj, rightObj, msg) {
         // have leftObj and rightObj equal properties?
         msg = (msg ? msg : ' ') + leftObj + " != " + rightObj + " because ";
-        this.assertEquals(typeof leftObj, typeof rightObj, msg);
+        this.assertEquals(typeof leftObj, typeof rightObj, msg + ' object types differ');
         if (leftObj == rightObj) return;
         if ((leftObj !== leftObj) && (rightObj !== rightObj)) return; // both are NaN
         switch (leftObj.constructor) {
@@ -227,9 +227,11 @@ Object.subclass('TestCase',
                 return;
             }
             case Array: {
-                this.assertEquals(leftObj.length, rightObj.length, msg);
-                for (var i = 0; i < leftObj.length; i++)
+                this.assertEquals(leftObj.length, rightObj.length, msg +
+                                  Strings.format(' (length %s vs. %s)', leftObj.length, rightObj.length));
+                for (var i = 0; i < leftObj.length; i++) {
                     this.assertEqualState(leftObj[i], rightObj[i], msg);
+                }
                 return;
             }
         };
@@ -727,8 +729,8 @@ Object.subclass('TestResult', {
 
     failuresToString: function(withError) {
         return this.failed.collect(function(ea) {
-            return Strings.format("%s>>%s%s", ea.classname, ea.selector,
-                                  withError ? '\n\t--> ' + ea.err.message : "");
+            var errString = withError ? "\n\t--> " + (ea.err.stack || ea.err.message || ea.err) : "";
+            return Strings.format("%s>>%s%s", ea.classname, ea.selector, errString);
         });
     },
 

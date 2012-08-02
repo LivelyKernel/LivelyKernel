@@ -75,6 +75,23 @@ Object.subclass('lively.morphic.Shapes.Shape',
     setPadding: function(rect) { return this.shapeSetter('Padding', rect) },
     getPadding: function() {
         return this.shapeGetter('Padding') || this.setPadding(new Rectangle(0,0,0,0));
+    },
+
+    setNodeClass: function(value) {
+        return this.shapeSetter('NodeClass', value);
+    },
+
+    getNodeClass: function() {
+        return this.shapeGetter('NodeClass') || [];
+    },
+
+    setNodeId: function(value) {
+        this.shapeSetter('NodeId', value);
+        return value;
+    },
+
+    getNodeId: function() {
+        return this.shapeGetter('NodeId') || "";
     }
 
 });

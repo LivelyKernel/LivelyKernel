@@ -973,6 +973,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SelectionTest',
         var newMorph1Pos = morph1.worldPoint(pt(0,0))
         this.assertEquals(oldMorph1Pos, newMorph1Pos, 'oldMorph1Pos changed')
     },
+    newMethod: function() {
+        // enter comment here
+    }
+
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.RenderingTest',

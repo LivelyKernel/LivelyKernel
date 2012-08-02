@@ -242,14 +242,10 @@ Object.subclass('TestCase',
         var cmp = function(left, right) {
             for (var value in left) {
                 if (!(left[value] instanceof Function)) {
-                    try {
-                        this.assertEquals(left.hasOwnProperty(value),
-                                          right.hasOwnProperty(value), msg);
-                        this.assertEqualState(left[value], right[value], msg);
-                    } catch (e) {
-                        throw e;
-                    }
-                };
+                    this.assertEquals(left.hasOwnProperty(value),
+                                      right.hasOwnProperty(value), msg);
+                    this.assertEqualState(left[value], right[value], msg);
+                }
             };
         }.bind(this);
         cmp(leftObj, rightObj);

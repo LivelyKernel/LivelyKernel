@@ -2619,7 +2619,7 @@ Object.subclass('lively.morphic.TextEmphasis',
             set: function(value) { return this.doit = value },
             get: function() { return this.doit },
             equals: function(other) {
-                if (this.doit) {
+                if (this.hasOwnProperty("doit")) {
                     return other.doit ? this.doit.code == other.doit.code : false;
                 }
                 return !other.doit;
@@ -2663,21 +2663,21 @@ Object.subclass('lively.morphic.TextEmphasis',
             set: function(value) { return this.fontWeight = value },
             get: function() { return (this.fontWeight && this.fontWeight !== '') ? this.fontWeight : 'normal' },
             equals: function(other) { return this.get('fontWeight') == other.get("fontWeight") },
-            apply: function(node) { if (this.fontWeight) node.style.fontWeight = this.fontWeight  }
+            apply: function(node) { if (this.hasOwnProperty("fontWeight")) node.style.fontWeight = this.fontWeight  }
         },
 
         italics: {
             set: function(value) { return this.italics = value},
             get: function() { return (this.italics && this.italics !== '') ? this.italics : 'normal' },
             equals: function(other) { return this.get('italics') == other.get("italics") },
-            apply: function(node) { if (this.italics) node.style.fontStyle = this.italics }
+            apply: function(node) { if (this.hasOwnProperty("italics")) node.style.fontStyle = this.italics }
         },
 
         fontFamily: {
             set: function(value) { return this.fontFamily = value },
             get: function() { return this.fontFamily },
             equals: function(other) { return this.fontFamily == other.fontFamily },
-            apply: function(node) { if (this.fontFamily) node.style.fontFamily = this.fontFamily }
+            apply: function(node) { if (this.hasOwnProperty("fontFamily")) node.style.fontFamily = this.fontFamily }
         },
 
         color: {
@@ -2687,7 +2687,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                 return this.color == other.color ||
                     (this.color && this.color.isColor && this.color.equals(other.color));
             },
-            apply: function(node) { if (this.color) node.style.color = this.color; }
+            apply: function(node) { if (this.hasOwnProperty("color")) node.style.color = this.color; }
         },
 
         backgroundColor: {
@@ -2699,28 +2699,32 @@ Object.subclass('lively.morphic.TextEmphasis',
                      this.backgroundColor.isColor &&
                      this.backgroundColor.equals(other.backgroundColor));
             },
-            apply: function(node) { if (this.backgroundColor) node.style.backgroundColor = this.backgroundColor }
+            apply: function(node) {
+                if (this.hasOwnProperty('backgroundColor')) {
+                    node.style.backgroundColor = this.backgroundColor || '';
+                }
+            }
         },
 
         textDecoration: {
             set: function(value) { return this.textDecoration = value },
             get: function() { return this.textDecoration },
             equals: function(other) { return this.textDecoration == other.textDecoration },
-            apply: function(node) { if (this.textDecoration) node.style.textDecoration = this.textDecoration }
+            apply: function(node) { if (this.hasOwnProperty("textDecoration")) node.style.textDecoration = this.textDecoration }
         },
 
         textAlign: {
             set: function(value) { return this.textAlign = value },
             get: function() { return this.textAlign },
             equals: function(other) { return this.textAlign == other.textAlign },
-            apply: function(node) { if (this.textAlign) node.style.textAlign = this.textAlign }
+            apply: function(node) { if (this.hasOwnProperty("textAlign")) node.style.textAlign = this.textAlign }
         },
 
         fontSize: {
             set: function(value) { return this.fontSize = value },
             get: function() { return this.fontSize },
             equals: function(other) { return this.fontSize == other.fontSize },
-            apply: function(node) { if (this.fontSize) node.style.fontSize = this.fontSize + 'pt' }
+            apply: function(node) { if (this.hasOwnProperty("fontSize")) node.style.fontSize = this.fontSize + 'pt' }
         },
 
         textShadow: {
@@ -2741,7 +2745,7 @@ Object.subclass('lively.morphic.TextEmphasis',
             },
             get: function() { return this.textShadow },
             equals: function(other) { return this.textShadow == other.textShadow },
-            apply: function(node) { if (this.textShadow) node.style.textShadow = this.textShadow }
+            apply: function(node) { if (this.hasOwnProperty("textShadow")) node.style.textShadow = this.textShadow }
         },
 
         isNullStyle: {

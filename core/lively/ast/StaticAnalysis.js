@@ -214,7 +214,7 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
         }
     },
     boundEval: function(str) {
-        console.log("boundEval");
+        console.log("boundEval2");
         if (this.specialHighlighting == "none") return cop.proceed(str);
         try {
             var rule = this.specialHighlighting ? this.specialHighlighting : 'topLevel';

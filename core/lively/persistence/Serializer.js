@@ -860,7 +860,7 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
         //
         // The original code:
         // this.objectsMethodNamesAndClosures.forEach(function(ea) {
-        // 	ea.closure.recreateFunc().addToObject(ea.obj, ea.name);
+        //   ea.closure.recreateFunc().addToObject(ea.obj, ea.name);
 
         this.objectsWithClosures.forEach(function(objectAndClosures) {
             var obj = objectAndClosures.obj,

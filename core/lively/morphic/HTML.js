@@ -1,4 +1,4 @@
-module('lively.morphic.HTML').requires('lively.morphic.Rendering', 'lively.morphic.PathShapes', 'lively.Traits', 'apps.Less').toRun(function() {
+module('lively.morphic.HTML').requires('lively.morphic.Rendering', 'lively.morphic.PathShapes', 'lively.Traits').toRun(function() {
 
 Color.addMethods(
 'HTML rendering', {
@@ -142,8 +142,6 @@ lively.morphic.Morph.addMethods(
         focus: 'focusHTML',
         blur: 'blurHTML',
         setFocusable: 'setFocusableHTML',
-        setStyleSheet: 'setStyleSheetHTML',
-        setOriginClass: 'setOriginClassHTML'
     },
 },
 'udpating', {
@@ -228,11 +226,6 @@ lively.morphic.Morph.addMethods(
         if (ctxt.morphNode)
             ctxt.morphNode.setAttribute('title', string)
     },
-
-    setStyleSheetHTML: function(ctx, css) {
-
-    }
-
 },
 'rendering', {
     renderWithHTML: function() {
@@ -270,7 +263,7 @@ lively.morphic.Morph.addMethods(
                     ownerCtx.shapeNode.appendChild(ownerCtx.originNode);
                 }
                 this.owner.shape.compensateShapeNode(ownerCtx);
-                
+
                 parentNode = ownerCtx.originNode;
             }
 
@@ -283,7 +276,7 @@ lively.morphic.Morph.addMethods(
 
         var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
         this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode, ctx.shapeNode);
-        if (this.originClass) this.setOriginClassHTML(ctx, this.originClass);
+
         this.getShape().renderUsing(ctx);
     },
     insertMorphNodeInHTML: function(ctx, morphNode, parentNode, optAfterNode) {
@@ -341,8 +334,7 @@ lively.morphic.Morph.addMethods(
 lively.morphic.World.addMethods(
 'HTML render settings', {
     htmlDispatchTable: {
-        setScroll: 'setScrollHTML',
-
+        setScroll: 'setScrollHTML'
     }
 },
 'scrolling', {
@@ -352,7 +344,7 @@ lively.morphic.World.addMethods(
             xDiff = x - window.scrollX,
             yDiff = y - window.scrollY;
         window.scrollBy(xDiff, yDiff);
-    },
+    }
 });
 
 lively.morphic.Text.addMethods(
@@ -723,13 +715,8 @@ lively.morphic.Shapes.Shape.addMethods(
         setBorderRadius: 'setBorderRadiusHTML',
         setBorderStyle: 'setBorderStyleHTML',
         setOpacity: 'setOpacityHTML',
-        setNodeClass: 'setNodeClassHTML',
-        setNodeId: 'setNodeIdHTML',
-        setStyleSheet: 'setStyleSheetHTML',
-        setAppearanceStylingMode: 'setAppearanceStylingModeHTML',
-        setBorderStylingMode: 'setBorderStylingModeHTML',
         updateComputedStyles: 'updateComputedStylesHTML',
-        setComputedBorderWidth: 'setComputedBorderWidthHTML',
+        setComputedBorderWidth: 'setComputedBorderWidthHTML'
     },
 },
 'initializing', {
@@ -744,13 +731,6 @@ lively.morphic.Shapes.Shape.addMethods(
         this.setBorderWidthHTML(ctx, this.getBorderWidth()); // The other border props are initialized there as well
         this.setBorderStyleHTML(ctx, this.getBorderStyle());
         this.setPaddingHTML(ctx, this.getPadding()); // also sets extent
-
-        this.getNodeClass() && this.setNodeClassHTML(ctx, this.getNodeClass());
-        if (this.getNodeId()) {
-            this.setNodeIdHTML(ctx, this.getNodeId());
-            this.getStyleSheet && this.setStyleSheetHTML(ctx, this.getStyleSheet());
-        }
-
         if (UserAgent.fireFoxVersion)
             ctx.shapeNode['-moz-user-modify'] = 'read-only'
     },
@@ -786,11 +766,7 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     setFillHTML: function(ctx, value) {
         if (!ctx.shapeNode) return;
-        if (this.isStyleSheetAppearance) {
-            ctx.domInterface.setFill(ctx.shapeNode, null, this.getBounds());
-        } else {
-            ctx.domInterface.setFill(ctx.shapeNode, value, this.getBounds());
-        }
+        ctx.domInterface.setFill(ctx.shapeNode, value, this.getBounds());
     },
     setBorderColorHTML: function(ctx, fill) {
         var alpha;
@@ -802,10 +778,7 @@ lively.morphic.Shapes.Shape.addMethods(
         return this.setBorderHTML(ctx, this.getBorderWidth(), fill, alpha)
     },
     setBorderStyleHTML: function(ctx, value) {
-        if (ctx.shapeNode) {
-            var style = this.isStyleSheetBorder ? null : value;
-            ctx.shapeNode.style.borderStyle = style;
-        }
+        if (ctx.shapeNode) ctx.shapeNode.style.borderStyle = value;
     },
     setBorderWidthHTML: function(ctx, width) {
         this.setBorderHTML(ctx, width, this.getBorderColor(), this.getStrokeOpacity());
@@ -821,14 +794,10 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     setBorderHTML: function(ctx, width, fill, opacity) {
         if (!ctx.shapeNode) return;
-        if (this.isStyleSheetBorder) {
-             ctx.shapeNode.style['border'] = null;
-        } else {
-            if ((fill instanceof Color) && opacity) fill = fill.withA(opacity);
-            if (!fill) fill = Color.rgba(0,0,0,0);
-            ctx.shapeNode.style['border'] = this.getBorderStyle() + ' ' + width + 'px ' +
-                fill.toCSSString(this.getBounds(), ctx.domInterface.html5CssPrefix);
-        }
+        if ((fill instanceof Color) && opacity) fill = fill.withA(opacity);
+        if (!fill) fill = Color.rgba(0,0,0,0);
+        ctx.shapeNode.style['border'] = this.getBorderStyle() + ' ' + width + 'px ' +
+            fill.toCSSString(this.getBounds(), ctx.domInterface.html5CssPrefix);
         if (ctx.originNode) {
             this.compensateShapeNode(ctx);
         }
@@ -849,7 +818,7 @@ lively.morphic.Shapes.Shape.addMethods(
         ctx.originNode.style.setProperty('margin-left', -this.getBorderWidth() + 'px', 'important');
     },
     setOpacityHTML: function(ctx, value) {
-        if (ctx.shapeNode) ctx.shapeNode.style.opacity = this.isStyleSheetAppearance ? null : value;
+        ctx.shapeNode.style.opacity = value;
     },
     setPaddingHTML: function(ctx, r) {
         if (r === undefined || !ctx.shapeNode) return r;
@@ -859,88 +828,25 @@ lively.morphic.Shapes.Shape.addMethods(
         ctx.shapeNode.style.padding = s;
         return r;
     },
-    setNodeClassHTML: function(ctx, value) {
-        var a = value;
-        if (value instanceof Array) {
-            a = value.join(" ");
-        }
-        ctx.shapeNode.className = a;
-    },
-
-    setNodeIdHTML: function(ctx, value) {
-        //console.log("HTML.js, setStyleIdHTML(): Ok, got it, setting shape HTML id to "+value);
-        ctx.shapeNode.id = value;
-    },
-
-    setStyleSheetHTML: function(ctx, value) {
-        var morphId = ctx.shapeNode.id;
-        if (!morphId) {
-            alert("Cannot set morph specific style sheet. Shape node was not assigned any id.");
-            return;
-        }
-
-        var styleTagId = "style-for-"+morphId;
-
-	    var css = $('#' + styleTagId);
-	    css.remove();
-
-        if (value && value.length > 1) {
-
-    	    //console.log("Setting CSS for shape "+morphId+" to "+value);
-            var specificCss = "#"+morphId+" { "+value+" }";
-
-            // syntax fixes for the sap gold reflection css
-            specificCss = specificCss.replace(/[\s]*=[\s]*/g,"=");
-            specificCss = specificCss.replace(/alpha[\s]*\([\s]*opacity[\s]*\:/g,"alpha(opacity=");
-            specificCss = specificCss.replace(".dev-datepicker/jQuery",".dev-datepicker.jQuery");
-
-
-            if (less) {
-                new less.Parser().parse(specificCss, function(e, tree) {
-                    console.log(e);
-                    specificCss = tree.toCSS();
-                });
-                console.log(specificCss);
-            }
-
-
-	        css = $('<style type="text/css" id="' + styleTagId + '"></style>');
-	        css.text(specificCss);
-	        css.appendTo(document.head);
-        }
-
-    },
 
     updateComputedStylesHTML: function(ctx) {
-        
         if (!ctx.shapeNode) return;
-        
         var style = window.getComputedStyle(ctx.shapeNode),
             borderWidth = parseInt(style["borderWidth"].replace("px",""));
         this.shapeSetter('ComputedBorderWidth', borderWidth );
-
         if (ctx.originNode) {
             this.compensateShapeNode(ctx);
         }
         this.setExtentHTML(ctx, this.getExtent());
-        
     },
 
     setComputedBorderWidthHTML: function(ctx, width) {},
-
-    setAppearanceStylingModeHTML: function(ctx, value) {
-        this.isStyleSheetAppearance = value;
-        this.setFillHTML(ctx, this.shapeGetter("Fill"));
-        this.setOpacityHTML(ctx, this.shapeGetter("Opacity"));
-    },
 
     setBorderStylingModeHTML: function(ctx, value) {
         this.isStyleSheetBorder = value;
         this.setBorderHTML(ctx, this.getBorderWidth(), this.getBorderColor(), this.getStrokeOpacity());
         this.setBorderRadiusHTML(ctx, this.getBorderRadius());
     }
-
-
 
 });
 
@@ -955,12 +861,11 @@ lively.morphic.Shapes.Rectangle.addMethods(
 },
 'updating', {
     setBorderRadiusHTML: function(ctx, value) {
-        var borderRadius = (this.isStyleSheetBorder) ? null : value;
         if (Object.isString(value)) {
             // irregular border radius for windows e.g.
-            ctx.getShapeNode().style.borderRadius = borderRadius ;
+            ctx.getShapeNode().style.borderRadius = value
         } else {
-             ctx.domInterface.setHTMLBorderRadius(ctx.getShapeNode(), borderRadius , borderRadius);
+             ctx.domInterface.setHTMLBorderRadius(ctx.getShapeNode(), value, value)
         }
     },
 });
@@ -1169,212 +1074,53 @@ lively.morphic.Shapes.Path.addMethods(
     getPointAtTotalLengthHTML: function(ctx, totalLength) {
         var pathNode = this.getPathNodeHTML(ctx);
         return pathNode && lively.Point.ensure(pathNode.getPointAtLength(totalLength));
-    },
+    }
 });
+
 Object.extend(lively.morphic, {
     CSS: {}
 });
 
-Object.subclass('lively.morphic.CSS.Fill',
-'settings', {
-    isCSSFill: true
-},
-'initializing', {
-    initialize: function(cssBackgroundString) {
-        this.cssBackgroundString = cssBackgroundString || "";
-    }
-},
-'rendering', {
-    applyToNode: function(node) {
-        if (node.style) {
-            node.style.background = this.cssBackgroundString;
-        }
-    }
+lively.morphic.Shapes.Shape.addMethods(
+'stylesheets', {
+    setBorderStylingMode: function(value) {
+        return this.shapeSetter('BorderStylingMode', value);
+    },
+    getBorderStylingMode: function() {
+        return this.shapeGetter('BorderStylingMode');
+    },
+
+	updateComputedStyles: function() {
+		return this.renderContextDispatch('updateComputedStyles');
+	}
+
 });
 
+lively.morphic.Morph.addMethods(
+'stylesheets', {
 
-lively.morphic.Shapes.Shape.addMethods(
-        'stylesheets', {
+    setBorderStylingMode: function(value) {
+        // TRUE when border is styled through style sheets,
+        // FALSE when border is styled through style dialog
+        this.shape.setBorderStylingMode(value);
+        this.updateComputedStyles();
+    },
 
+    getBorderStylingMode: function() {
+        return this.shape.getBorderStylingMode();
+    },
 
-			setStyleSheet: function(value) {
-				return this.shapeSetter('StyleSheet', value);
-			},
-			getStyleSheet: function() {
-				return this.shapeGetter('StyleSheet') || "";
-			},
-
-			setAppearanceStylingMode: function(value) {
-				return this.shapeSetter('AppearanceStylingMode', value);
-			},
-			getAppearanceStylingMode: function() {
-				return this.shapeGetter('AppearanceStylingMode');
-			},
-
-			setBorderStylingMode: function(value) {
-				return this.shapeSetter('BorderStylingMode', value);
-			},
-			getBorderStylingMode: function() {
-				return this.shapeGetter('BorderStylingMode');
-			},
-
-			updateComputedStyles: function() {
-				return this.renderContextDispatch('updateComputedStyles');
-
-			},
-  
-            
+    updateComputedStyles: function() {
+        if (this.adaptToChangedContext) {
+            // if the submorph offers a function to adapt (i.e. HTMLMorph) use it
+            this.adaptToChangedContext();
+            this.adaptSubmorphsToChangedContext();
+        } else {
+            this.shape.updateComputedStyles();
+            this.submorphs.forEach(function(m){m.updateComputedStyles();});
         }
-    );
-    
+    }
 
-    lively.morphic.Morph.addMethods(
-	'stylesheets', {
-	        setOriginClass: function(className) {
-                    this.originClass = className;
-                    return this.renderContextDispatch('setOriginClass',className);
-                },
-                setOriginClassHTML: function(ctx, className) {
-                    var o = ctx.originNode;
-                    if (o) o.className = className;
-                },
-		applyStyleSheet: function(style) {
-			this.setStyleSheet(style);
-		},
-		setAppearanceStylingMode: function(value) {
-			// TRUE when appearance is styled through style sheets,
-			// FALSE when appearance is styled through style dialog
-			this.shape.setAppearanceStylingMode(value);
-			this.updateComputedStyles();
-		},
-		applyStyleSheetFromFile: function(file, resourcePath){
-		        // use the resourcePath parameter if the resources addressed
-		        // in the CSS file are in a different directory than the CSS'.
-		        // (use "" to leave the urls untouched)
-
-		        var absPath = file;
-		        // is the filename absolute? if not then make it absolute.
-		        if (absPath.search('http://')<0) {
-		          absPath = document.location.href.toString().split('?')[0];
-		          absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);
-		          absPath += "/"+file;
-		        }
-		        var url = new URL(absPath);
-
-		        URL.proxy = null;
-
-			var webR = new WebResource(url);
-                        webR.forceUncached();
-			var webRGet = webR.get();
-			if (webRGet.status.code() == 200) {
-			    // add resource path to all relative urls in the css
-			    var css = webRGet.content;
-
-			    var resPath = resourcePath;
-			    if (!resPath){
-                                resPath = absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);
-			    }
-			    var urlReplace = "url("+resPath;
-			    var urlReplaceSingle = "url('"+resPath;
-			    var urlReplaceDouble = 'url("'+resPath;
-			    css = css.replace(/url\([\s]*\'(?![\s]*http)/g, urlReplaceSingle).replace(/url\([\s]*\"(?![\s]*http)/g, urlReplaceDouble ).replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, urlReplace );
-
-                            // insert line breaks so the css is more legible
-                            css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/g,";\n").replace(/\}(?![\s]*(\r\n|\n|\r))/g,"}\n").replace(/\{(?![\s]*(\r\n|\n|\r))/g,"{\n");
-                            //console.log(css);
-
-                            // set the style sheet
-                            this.setStyleSheet(css);
-			}
-			else {
-                            throw new Error("Couldn't load stylesheet at "+absPath+" --> " +webRGet.status.code());
-			}
-
-			return {
-				status: webRGet.status.code(),
-				responseText: webRGet.content
-			};
-		},
-					
-		setStyleSheet: function(value) {
-			this.setNodeId();
-			this.shape.setStyleSheet(value);
-			this.updateComputedStyles();
-		},
-		getStyleSheet: function() {
-			var r = this.shape.getStyleSheet();
-			//this.updateComputedStyles();
-			return r;
-		},    
-	
-		getAppearanceStylingMode: function() {
-			return this.shape.getAppearanceStylingMode();
-		},
-
-		setBorderStylingMode: function(value) {
-			// TRUE when border is styled through style sheets,
-			// FALSE when border is styled through style dialog
-			this.shape.setBorderStylingMode(value);
-			this.updateComputedStyles();
-		},
-		getBorderStylingMode: function() {
-			return this.shape.getBorderStylingMode();
-		},
-
-	
-		updateComputedStyles: function() {
-		    if (this.adaptToChangedContext) {
-		        // if the submorph offers a function to adapt (i.e. HTMLMorph) use it
-		        this.adaptToChangedContext();
-		        this.adaptSubmorphsToChangedContext();
-		    }
-		    else {
-			this.shape.updateComputedStyles();
-			this.submorphs.each(function(m){m.updateComputedStyles();});
-    		  }
-		},
-	}
-);
-
-lively.morphic.Box.subclass('lively.morphic.SimpleText',
-'simple text', {
-    htmlDispatchTable: {
-        setText: 'setTextHTML'
-    },
-    
-    initialize: function($super, bounds, optText){
-        $super(bounds);
-        this.text = optText || "Simple Text";
-    },
-    setText: function(text){
-        this.text = text; 
-        return this.renderContextDispatch('setText', text);   
-    },
-    setTextHTML: function(ctx, text){
-        ctx.shapeNode.innerHTML = text;   
-    },
-    
-    appendHTML: function($super, ctx) {
-        $super(ctx);
-        if (ctx.shapeNode) {
-            this.setTextHTML(ctx, this.text);
-        }
-    },
-    morphMenuItems: function($super) {
-        var self = this, items = $super();
-        items.push([
-            'Set text', function(evt) {
-            $world.prompt('Set text', function(input) {
-                if (input !== null)
-                    self.setText(input || '');
-            }, this.text);
-        }])
-        return items;
-    },
-    
-}
-
-);
-
+});
 
 }) // end of module

@@ -11,7 +11,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
             childNodes: [
                 {tagName: 'div', childNodes: [ // shape
                     {tagName: 'div', textContent: 'Foo'}] // text node
-                },
+                }
             ]};
         this.assertNodeMatches(expected, m.renderContext().getMorphNode());
     },
@@ -56,7 +56,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         this.assert(m.getExtent().x < 100, 'did not shrink to fit text');
     },
 
-
     test05SetSelectionRange: function() {
         var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20));
         this.world.addMorph(m);
@@ -74,6 +73,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20));
         this.world.addMorph(m);
         m.setTextString('123\t567\n9');
+        m.focus();
         m.setSelectionRange(3, 0);
         this.assertEquals('123', m.selectionString());
         this.assertEqualState([3,0], m.getSelectionRange());
@@ -85,19 +85,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         this.world.addMorph(m);
         m.setTextString('This\nis\na\ntest');
         m.setSelectionRange(0,9);
-        this.assertEquals('This\nis\na', m.selectionString());
-    },
-    test05dSelectionStringWorksForUnfocusedMorphs: function() {
-        var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20));
-        this.world.addMorph(m);
-        m.setTextString('This\nis\na\ntest');
-        m.setSelectionRange(2,7);
-        m.blur();
-        this.assertEquals('is\nis', m.selectionString());
+        this.assert(m.textString.indexOf(m.selectionString()) != -1);
     },
 
-
-    test06aModifySelectedLinesInsertsAtCorrectPosition: function() {
+    test06ModifySelectedLinesInsertsAtCorrectPosition: function() {
         var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20));
         this.world.addMorph(m);
         m.setTextString('This\nis\na\ntest');
@@ -106,16 +97,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         m.modifySelectedLines(function(ea) { return '+' + ea });
         this.assertEquals('+This\n+is\n+a\ntest', m.textString);
     },
-    test06bModifySelectedLinesUsesSavedASelectionWhenUnfocused: function() {
-        var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20));
-        this.world.addMorph(m);
-        m.setTextString('This\nis\na\ntest');
-        m.setSelectionRange(0,9);
-        m.blur();
-        m.modifySelectedLines(function(ea) { return '+' + ea });
-        this.assertEquals('+This\n+is\n+a\ntest', m.textString);
-    },
-
 
     test07aSplitText: function() {
         var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20));
@@ -186,6 +167,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         m.setInputAllowed(false);
         this.assert(!m.inputAllowed(), 'setInputAllowed not working');
     },
+
     test12CleanVarDeclaration: function() {
         var text = new lively.morphic.Text(),
             cleaner = text.varDeclCleaner(),
@@ -194,7 +176,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
             result = [cleaner(lines[0], 0, lines), cleaner(lines[1], 1, lines)];
         this.assertEqualState(expected, result);
 
-    },
+    }
 
 });
 
@@ -208,8 +190,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
 },
 'testing', {
     test01MorphHasTextChunk: function() {
-// this. openMorphsInRealWorld()
-// inspect(this.text)
         var chunks = this.text.getTextChunks();
         this.assertEquals(1, chunks.length);
         this.assertEquals('', chunks[0].textString);
@@ -226,10 +206,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
         this.checkDOM([{tagName: 'span', textContent: 'foo'}])
     },
 
-    test03SplitAndJoinTextChunks: function() {
+    test03aSplitAndJoinTextChunks: function() {
         this.text.setTextString('eintest');
-        var chunk = this.text.firstTextChunk();
-        var after = chunk.splitAfter(3);
+        var chunk = this.text.firstTextChunk(),
+            after = chunk.splitAfter(3);
         this.assertEquals('test', after.textString, 'after string');
         this.assertEquals('ein', chunk.textString, 'chunk string');
         this.assertEquals(2, this.text.getTextChunks().length);
@@ -250,9 +230,27 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
     test03bCoalesceChunks: function() {
         this.text.setTextString('test');
         this.text.firstTextChunk().splitAfter(2);
-        this.text.coalesceChunks()
+        this.text.coalesceChunks();
         this.assertEquals(1, this.text.getTextChunks().length);
-        this.checkDOM([{tagName: 'span', textContent: 'test', style: {fontWeight: ''}}])
+        this.checkDOM([{tagName: 'span', textContent: 'test', style: {fontWeight: ''}}]);
+    },
+
+    test03bCoalesceChunksOfZeroLength: function() {
+        this.text.setTextString('test');
+        this.text.emphasizeAll({fontWeight: 'bold'});
+        this.text.sliceTextChunks(2,2);
+        this.text.coalesceChunks();
+        this.assertEquals(1, this.text.getTextChunks().length);
+    },
+
+    test03bCoalesceChunksOfZeroLengthThatHasDifferentStyle: function() {
+        this.text.setTextString('test');
+        this.text.sliceTextChunks(2,2);
+        this.text.getTextChunks()[0].styleText({fontWeight: 'bold'});
+        this.text.getTextChunks()[2].styleText({fontWeight: 'bold'});
+        this.assertEquals(3, this.text.getTextChunks().length);
+        this.text.coalesceChunks();
+        this.assertEquals(1, this.text.getTextChunks().length);
     },
 
     test03cSplitAtFrontAndBack: function() {
@@ -264,6 +262,15 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
         this.assertEquals(3, this.text.getTextChunks().length);
     },
 
+    test03cSplitCanFixRanges: function() {
+        this.text.setTextString('hello');
+        var rangesBefore = this.text.getChunkRanges();
+        this.text.firstTextChunk().splitAfter(1, rangesBefore);
+        var rangesAfter = this.text.getChunkRanges();
+        this.assertEqualState(rangesAfter, rangesBefore);
+        this.assertEqualState([[0,1], [1,5]], rangesBefore);
+    },
+
     test03cSplittedChunkGetsStyle: function() {
         this.text.setTextString('abcdef');
         var chunk = this.text.firstTextChunk();
@@ -271,8 +278,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
         var after = this.text.firstTextChunk().splitAfter(3);
         this.assertEquals('bold', after.style.getFontWeight());
     },
-
-
 
     test04SliceTextChunksSimple: function() {
         this.text.setTextString('eintest');
@@ -326,6 +331,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
     test07MakeTextBoldThenUnbold: function() {
         this.text.setTextString('eintest');
         this.text.emphasize({fontWeight: 'bold'}, 0, 2);
+        debugger
         this.text.emphasize({fontWeight: 'normal'}, 0, 2);
         this.checkDOM([{tagName: 'span', textContent: 'eintest'}])
     },
@@ -380,32 +386,50 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
             {tagName: 'span', textContent: 'einfootest', childNodes: [
                 {tagName: undefined, textContent: 'ein'},
                 {tagName: undefined, textContent: 'foo'},
-                {tagName: undefined, textContent: 'test'}
-            ]},
+                {tagName: undefined, textContent: 'test'},
+                {tagName: 'br', textContent: ''}
+            ]}
         ])
 
         this.text.toggleBoldness(1, 9);
         this.checkDOM([
             {tagName: 'span', textContent: 'e', childNodes: [{textContent: 'e'}]},
             {tagName: 'span', textContent: 'infootes', childNodes: [{textContent: 'infootes'}]},
-            {tagName: 'span', textContent: 't', childNodes: [{textContent: 't'}]},
+            {tagName: 'span', textContent: 't', childNodes: [{textContent: 't'},
+                                                             {tagName: 'br', textContent: ''}]}
         ])
     },
 
-    test11FixChunksShouldKeepSlection: function() {
+    test11aFixChunksThatChangesDOMShouldKeepSelection: function() {
         this.text.setTextString('eintest');
         // add a text outside of chunks manually
         this.text.renderContext().textNode.appendChild(document.createTextNode('test'))
-        this.text.setSelectionRange(2,5)
-        this.text.fixChunks()
+        this.text.setSelectionRange(2,5);
+        this.text.fixChunks();
         this.checkDOM([
             {tagName: 'span', textContent: 'eintesttest', childNodes: [
                 {tagName: undefined, textContent: 'eintesttest'},
-            ]},
-        ])
-        var range = this.text.getSelectionRange()
-        this.assert(range, 'no selection range after fixChunks!')
-        this.assertMatches([2, 5], range) // Inconsistency with selection ranges?
+                {tagName: 'br', textContent: ''}
+            ]}
+        ]);
+        var range = this.text.getSelectionRange();
+        this.assert(range, 'no selection range after fixChunks!');
+        this.assertMatches([2, 5], range); // Inconsistency with selection ranges?
+    },
+
+    test11bFixChunksThatDoesNothingShouldKeepSelection: function() {
+        this.text.setTextString('eintest');
+        this.text.setSelectionRange(2,5);
+        this.text.fixChunks();
+        this.checkDOM([
+            {tagName: 'span', textContent: 'eintest', childNodes: [
+                {tagName: undefined, textContent: 'eintest'},
+                {tagName: 'br', textContent: ''}
+            ]}
+        ]);
+        var range = this.text.getSelectionRange();
+        this.assert(range, 'no selection range after fixChunks!');
+        this.assertMatches([2, 5], range);
     },
 
     test12GetAndSetSelectionRangeHaveEqualValues: function() {
@@ -449,16 +473,16 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
         expected.forEach(function(expectedFontWeight, i) {
             var emph = this.text.getEmphasisAt(i)
             this.assertEquals(expectedFontWeight, emph.getFontWeight(), i);
-        },this)
+        }, this);
     },
 
-    test15GetChunkAndLocalIndex: function() {
+    test15aGetChunkAndLocalIndex: function() {
         this.text.setTextString('abcdef');
         this.text.sliceTextChunks(1,3);
         this.checkDOM([
             {tagName: 'span', textContent: 'a'},
             {tagName: 'span', textContent: 'bc'},
-            {tagName: 'span', textContent: 'def'},
+            {tagName: 'span', textContent: 'def'}
         ]);
 
         var chunks = this.text.getTextChunks(), result;
@@ -476,6 +500,34 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
         this.assertEquals(1, result[1])
 
         result = this.text.getChunkAndLocalIndex(1, true);
+        this.assertEquals(chunks[1], result[0])
+        this.assertEquals(0, result[1])
+    },
+
+    test15bGetChunkAndLocalIndexWithExisitingRanges: function() {
+        this.text.setTextString('abcdef');
+        this.text.sliceTextChunks(1,3);
+        this.checkDOM([
+            {tagName: 'span', textContent: 'a'},
+            {tagName: 'span', textContent: 'bc'},
+            {tagName: 'span', textContent: 'def'}
+        ]);
+        var ranges = this.text.getChunkRanges(), chunks = this.text.getTextChunks(), result;
+
+        result = this.text.getChunkAndLocalIndex(0, false, ranges);
+        this.assertEquals(chunks[0], result[0]); // test for chunk
+        this.assertEquals(0, result[1]); // test for local index
+
+        // if chunks ends at idx we extend it
+        result = this.text.getChunkAndLocalIndex(1, false, ranges);
+        this.assertEquals(chunks[0], result[0])
+        this.assertEquals(1, result[1])
+
+        result = this.text.getChunkAndLocalIndex(2, false, ranges);
+        this.assertEquals(chunks[1], result[0])
+        this.assertEquals(1, result[1])
+
+        result = this.text.getChunkAndLocalIndex(1, true, ranges);
         this.assertEquals(chunks[1], result[0])
         this.assertEquals(0, result[1])
     },
@@ -656,24 +708,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
             {textString: '1', style: {color: Color.red}},
             {textString: 'b', style: {color: null}},
             {textString: '2', style: {color: Color.red}},
-            {textString: 'c', style: {color: null}},
+            {textString: 'c', style: {color: null}}
         ])
     },
 
-    richTextPasteData: '<meta charset=\'utf-8\'><span class=\"Apple-style-span\" style=\"border-collapse: separate; color: rgb(0, 0, 0); font-family: Times; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: -webkit-auto; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; -webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; font-size: medium; \"><span class=\"Apple-style-span\" style=\"font-family: Arial, sans-serif; font-size: 19px; white-space: pre-wrap; \"><span style=\"text-decoration: none; \">ein </span><span style=\"text-decoration: none; font-weight: bold; \">test</span></span></span>',
-
-    test23aRichTextPaste: function() {
-        var pastedText = this.richTextPasteData,
-            rt = lively.morphic.HTMLParser.pastedHTMLToRichText(pastedText);
-        this.assertEquals(2, rt.textChunks.length);
-        this.assertEquals('ein ', rt.textChunks[0].textString);
-        this.assertEquals('test', rt.textChunks[1].textString);
-        this.assertEquals('normal', rt.textChunks[0].style.getFontWeight());
-        this.assertEquals('bold', rt.textChunks[1].style.getFontWeight());
-
-    },
-
-    test24aInsertTextChunks: function() {
+    test24aInsertTextChunksAtEnd: function() {
         this.text.setTextString('ein');
         this.text.setNullSelectionAt(3);
         var chunk = new lively.morphic.TextChunk('test')
@@ -681,11 +720,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
         this.text.insertTextChunksAtCursor([chunk], true, true);
         this.checkDOM([
             {tagName: 'span', textContent: 'ein'},
-            {tagName: 'span', textContent: 'test'},
+            {tagName: 'span', textContent: 'test'}
         ])
     },
 
-    test24bInsertTextChunks: function() {
+    test24bInsertTextChunksInside: function() {
         this.text.setTextString('eintest');
         this.text.setNullSelectionAt(3);
         var chunk = new lively.morphic.TextChunk('foo')
@@ -694,25 +733,27 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
         this.checkDOM([
             {tagName: 'span', textContent: 'ein'},
             {tagName: 'span', textContent: 'foo'},
-            {tagName: 'span', textContent: 'test'},
+            {tagName: 'span', textContent: 'test'}
         ])
     },
 
     test25SlicingTextChunksWithRangeWithLengthZero: function() {
         this.text.setTextString('ein');
         var newChunk = this.text.sliceTextChunks(3,3);
-        this.assertEquals(2, this.text.textChunks.length)
-        this.assertIdentity(newChunk[0], this.text.textChunks.last())
+        this.assertEquals(2, this.text.textChunks.length);
+        this.assertIdentity(newChunk[0], this.text.textChunks.last());
+        // do it again, it should not change anything
+        this.text.sliceTextChunks(3,3);
+        this.assertEquals(2, this.text.textChunks.length);
     },
 
     test26aUnEmphasize: function() {
         this.text.setTextString('eintest');
         this.text.emphasize({fontWeight: 'bold'}, 0,3)
         this.text.unEmphasize(0,7);
-        this.checkChunks(
-            [{textString: 'eintest'}])
-        this.checkDOM([
-            {tagName: 'span', textContent: 'eintest', style: {fontWeight: ''}}])
+        this.checkChunks([{textString: 'eintest'}]);
+        this.checkDOM(
+            [{tagName: 'span', textContent: 'eintest', style: {fontWeight: ''}}]);
     },
 
     test26bUnEmphasizePart: function() {
@@ -741,9 +782,30 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
             {textString: ' text'}]);
     },
 
+    test28aEmphasizeRanges: function() {
+        this.text.setTextString('some text');
+        this.text.emphasizeRanges([
+            [0,4, {fontWeight: 'bold'}],
+            [5,9, {textDecoration: 'underline'}]]);
+        this.checkChunks([
+            {textString: 'some', style: {fontWeight: 'bold'}},
+            {textString: ' ', style: {}},
+            {textString: 'text', style: {textDecoration: 'underline'}}]);
+    },
+
+    test28bEmphasizeRangesWithPrexistingStyle: function() {
+        this.text.setTextString('some text');
+        this.text.emphasize({textDecoration: 'underline'}, 0, 4);
+        debugger;
+        this.text.emphasizeRanges([[0,4, {fontWeight: 'bold'}]]);
+        this.checkChunks([
+            {textString: 'some', style: {fontWeight: 'bold', textDecoration: 'underline'}},
+            {textString: ' text', style: {}}]);
+    }
+
 });
 
-lively.morphic.tests.TextMorphRichTextTests.subclass('lively.morphic.tests.Text.RichTextTests',
+lively.morphic.tests.Text.TextMorphRichTextTests.subclass('lively.morphic.tests.Text.RichTextTests',
 'testing', {
     test01CreateRichText: function() {
         var rt = new lively.morphic.RichText('test');
@@ -819,7 +881,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.RichText2Tes
         this.assertEquals('eintest', rt.textString);
         var expectedEmphs = [{fontWeight: 'bold'}, {fontWeight: 'bold'}, {fontWeight: 'bold'},
                             {},{},{},{}];
-        this.assertEqualState(expectedEmphs, rt.getTextEmphasis());
+        this.assertEqualOwnState(expectedEmphs, rt.getTextEmphasis());
     },
 
     test02SetIntoText: function() {
@@ -828,12 +890,234 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.RichText2Tes
                                                       {}]),
             m = new lively.morphic.Text(new Rectangle(0,0,100,100));
         m.setRichText2(rt);
-        this.assertEquals('aab', m.textString);
-        var expectedEmph1 = {fontWeight: 'bold'},
-            expectedEmph2 = {};
-        this.assertEqualState(expectedEmph1, m.getEmphasisAt(0));
-        this.assertEqualState(expectedEmph1, m.getEmphasisAt(1));
-        this.assertEqualState(expectedEmph2, m.getEmphasisAt(2));
+        this.assertEquals('aab', m.textString, 'string');
+        var expectedEmph1 = {fontWeight: 'bold'}, expectedEmph2 = {};
+        this.assertEqualOwnState(expectedEmph1, m.getEmphasisAt(0), 'emph1');
+        this.assertEqualOwnState(expectedEmph1, m.getEmphasisAt(1), 'emph2');
+        this.assertEqualOwnState(expectedEmph2, m.getEmphasisAt(2), 'emph3');
+    }
+});
+
+lively.morphic.tests.Text.TextMorphRichTextTests.subclass('lively.morphic.tests.Text.Paste',
+'data', {
+    richTextPasteData: '<meta charset="utf-8">'
+                     + '<span class="Apple-style-span" style="border-collapse: separate; color: rgb(0, 0, 0); font-family: Times; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: -webkit-auto; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: 0px; -webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; font-size: medium; ">'
+                     +   '<span class="Apple-style-span" style="font-family: Arial, sans-serif; font-size: 19px; white-space: pre-wrap; orphans: 2">'
+                     +     '<span style="text-decoration: none; ">ein </span>'
+                     +     '<span style="text-decoration: none; font-weight: bold; ">test</span>'
+                     +   '</span>'
+                     + '</span>',
+    createPasteEvent: function(spec) {
+        return {
+            clipboardData: {
+                getData: function(mimeType) {
+                    if (mimeType === 'text/html') { return spec.html }
+                    if (mimeType === 'text/plain') { return spec.text }
+                    return null;
+                }
+            },
+            stop: Functions.Null
+        }
+    }
+},
+"testing", {
+
+    test01RichTestCreationFromPaste: function() {
+        var pastedText = this.richTextPasteData,
+            rt = lively.morphic.HTMLParser.pastedHTMLToRichText(pastedText);
+        this.assertEquals(2, rt.textChunks.length);
+        this.assertEquals('ein ', rt.textChunks[0].textString);
+        this.assertEquals('test', rt.textChunks[1].textString);
+        this.assertEquals('normal', rt.textChunks[0].style.getFontWeight());
+        this.assertEquals('bold', rt.textChunks[1].style.getFontWeight());
+    },
+
+    test02PasteResultPlacedInTextMorph: function() {
+        this.text.textString = '';
+        var pasteEvent = this.createPasteEvent({text: 'ein text', html: this.richTextPasteData})
+        this.text.onPaste(pasteEvent);
+        this.assertEquals('ein test', this.text.textString, 'string not ok');
+        this.checkChunks([
+            {textString: 'ein ', style: {}},
+            {textString: 'test', style: {fontWeight: 'bold'}}]);
+        this.checkDOM([
+            {tagName: 'span', textContent: 'ein ', style: {fontWeight: ''}},
+            {tagName: 'span', textContent: 'test', style: {fontWeight: 'bold'}}]);
+    },
+
+    test03ExtractStyles: function() {
+        var node = lively.morphic.HTMLParser.sourceToNode(this.richTextPasteData);
+        lively.morphic.HTMLParser.sanitizeNode(node);
+        var intervals = lively.morphic.HTMLParser.createIntervalsWithStyle(
+                node, {styles: [], styleStart: 0, intervals: []}),
+            expected = [[0, 4, {textDecoration: 'none'}],
+                        [4, 8, {textDecoration: 'none', fontWeight: 'bold'}]];
+        this.assertEqualState(expected, intervals);
+    }
+});
+
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.LayoutTests',
+'running', {
+    setUp: function($super) {
+        $super();
+        this.text = new lively.morphic.Text(new Rectangle(0,0,100,100), '')
+            .applyStyle({
+                padding: new Rectangle(0,0,0,0),
+                borderWidth: 0,
+                fontSize: 10,
+                fontFamily: 'monospace',
+                fixedWidth: false, fixedHeight: false
+            });
+        this.world.addMorph(this.text);
+    },
+},
+'testing', {
+    test01ComputVisibleTextBounds: function() {
+        this.assertEquals(this.text.innerBounds(), this.text.visibleTextBounds());
+        this.text.applyStyle({padding: Rectangle.inset(2,2)});
+        this.assertEquals(this.text.innerBounds().insetBy(2), this.text.visibleTextBounds());
+
+        // FIXME: text bounds are not correct at the moment, not specified
+
+        // IMO: in contrast to other morphs the border of a text should not grow inwards, i.e. should not decrease extent and font size of a text.
+        // i especially don't want to resize text after i added a border.
+
+        // this.text.applyStyle({borderWidth: 3});
+        // this.assertEquals(this.text.innerBounds().insetBy(2+3), this.text.visibleTextBounds());
+    },
+    test02ExtentIsNotChangedWhenPaddingIsSet: function() {
+        this.text.setPadding(Rectangle.inset(2,2));
+        this.assertEquals(this.text.getExtent(), this.text.getScrollExtent(), 'visible extent not equal to logical extent');
+    },
+
+    test03FixedWidthForcesLineBreaks: function() {
+        this.text.setTextString('aaa');
+        this.epsilon = 4;
+        this.assertEqualsEpsilon(pt(24, 15), this.text.getTextExtent(), 'setup does not work');
+        this.text.applyStyle({fixedWidth: true, fixedHeight: false});
+        this.text.setExtent(pt(20,15));
+        // text's span is 16 then, but text itself 20
+        this.assertEqualsEpsilon(pt(20, 30), this.text.getTextExtent(), 'no line break');
+    },
+
+    test03aFixedWidthCssProperties: function() {
+        this.text.setTextString('aaa');
+        this.text.applyStyle({fixedWidth: true, fixedHeight: false});
+        this.text.setExtent(pt(20,15));
+        var expected = {
+            tagName: 'div', // world morph
+            childNodes: [
+                {tagName: 'div', childNodes: [ // world shape
+                    {tagName: 'div',
+                     childNodes: [{tagName: 'span'}],
+                     style: {maxWidth: '20px'}} // m and its shape
+                ]},
+            ]};
+
+        this.assertNodeMatches(expected, this.text.renderContext().getMorphNode());
+    },
+
+    test04FixedWidthIncreasesTextExtent: function() {
+        this.epsilon = 2;
+        this.text.setTextString('aaa');
+
+        this.text.fit();
+
+        this.assertEqualsEpsilon(pt(24, 15), this.text.getTextExtent(), 'hmm setup does not work');
+        this.text.applyStyle({fixedWidth: true, fixedHeight: false});
+        this.text.setExtent(pt(40,15))
+        this.assertEqualsEpsilon(pt(40, 15), this.text.getTextExtent(), 'text extent didnt grow');
+    },
+    test05FillWithBigAndThenWithSmallTextResizesTextBounds: function() {
+        this.text.applyStyle({fixedWidth: true, fixedHeight: true, clipMode: 'visible'});
+        this.text.setExtent(pt(50,50)); // actually should not be neccessary, but this is the feature we want to implement...
+        this.epsilon = 2;
+        this.text.textString = 'aaa';
+        this.assertEqualsEpsilon(pt(50,15), this.text.getTextExtent(), 'hmm setup does not work');
+
+        // make text big, should grow vertically
+        this.text.setTextString('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+        //this.assertEquals(pt(50.0,75.0), this.text.getTextExtent(), 'hmm setup does not work 2');
+        this.assertEquals(this.text.getTextExtent().x, 50.0, 'text should not have grown horizontally');
+        this.assert(this.text.getTextExtent().y >= 75.0, 'text should have grown vertically (actual height: ' + this.text.getTextExtent().y + '), was expected to be at least 75.0');
+
+        // make text small, vertical extent should shrink
+        this.text.textString = 'aaa';
+        this.assertEqualsEpsilon(pt(50,15), this.text.getTextExtent(), 'text extent did not shrink');
+    }
+
+});
+
+TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
+'assertion', {
+    createAndTestForEquality: function(emphSpec1, emphSpec2) {
+        var emph1 = new lively.morphic.TextEmphasis(emphSpec1),
+            emph2 = new lively.morphic.TextEmphasis(emphSpec2);
+        return [emph1.equals(emph2), emph1, emph2];
+    },
+    assertTextEmphasisEquals: function(emphSpec1, emphSpec2) {
+        var result = this.createAndTestForEquality(emphSpec1, emphSpec2);
+        this.assert(result[0], result[1] + ' vs. ' + result[2]);
+    },
+    assertTextEmphasisUnEquals: function(emphSpec1, emphSpec2) {
+        var result = this.createAndTestForEquality(emphSpec1, emphSpec2);
+        this.assert(!result[0], result[1] + ' vs. ' + result[2]);
+    }
+},
+'testing', {
+    testEqual: function() {
+        var testTable = [
+            [{color: Color.red}, {color: Color.red}],
+            [{color: Color.red}, {color: Color.rgba(204,0,0,1)}],
+            [{backgroundColor: Color.red}, {backgroundColor: Color.rgba(204,0,0,1)}],
+            [{isNullStyle: true}, {isNullStyle: true}],
+            [{fontWeight: 'normal'}, {}],
+            [{}, {foobarbaz: Color.green}]
+        ];
+
+       testTable.forEach(function(spec) {
+           this.assertTextEmphasisEquals(spec[0], spec[1]);
+       }, this);
+    },
+
+    testUnEqual: function() {
+        var testTable = [
+            [{}, {isNullStyle: true}],
+            [{color: Color.red}, {color: Color.green}]
+        ];
+
+       testTable.forEach(function(spec) {
+           this.assertTextEmphasisUnEquals(spec[0], spec[1]);
+       }, this);
+    },
+
+    testInclude: function() {
+        var emph = new lively.morphic.TextEmphasis({color: Color.red, fontWeight: 'bold'});
+        this.assert(emph.include(emph), 'itself');
+        this.assert(
+            emph.include(new lively.morphic.TextEmphasis({color: Color.rgba(204,0,0,1)})),
+            "similar emph");
+        this.assert(emph.include({color: Color.red}, "object"))
+        this.assert(emph.include({color: Color.rgba(204,0,0,1)}), "similar object")
+        this.assert(emph.include({}), "empty object");
+    },
+
+    testDoesNotInclude: function() {
+        var emph = new lively.morphic.TextEmphasis({color: Color.red, fontWeight: 'bold'});
+        this.assert(
+            !emph.include(new lively.morphic.TextEmphasis({color: Color.rgba(204,204,0,1)})),
+            "emph with different prop value");
+        this.assert(!emph.include({color: Color.green}, 'object with other prop'));
+        this.assert(!emph.include({backgroundColor: Color.green}), 'no such prop is exist');
+    },
+
+    testAppliesOnlyWhitelistedAttributes: function() {
+        var emph = new lively.morphic.TextEmphasis({color: Color.red, orphans: '2'}),
+            htmlNode = {style: {}, setAttributeNS: function() {}};
+        emph.applyToHTML(htmlNode);
+        this.assertEquals(Color.red.toString(), htmlNode.style.color, 'no color');
+        this.assert(!htmlNode.style.orphans, 'applied unwanted attr');
+        this.assert(!emph.orphans, 'unwanted attr in emph');
     }
 });
 

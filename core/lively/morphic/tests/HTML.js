@@ -1,5 +1,16 @@
 module('lively.morphic.tests.HTML').requires('lively.morphic.tests.Helper').toRun(function() {
 
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.HTML.jQueryTests', {
+    test01jQueryReturnsjQueryObject: function() {
+        var m = new lively.morphic.Morph();
+        this.assert(m.jQuery() instanceof jQuery);
+    },
+    test02jQueryReturnsWrappedShapeNode: function() {
+        var m = new lively.morphic.Morph();
+        this.assertEquals(m.jQuery()[0], m.renderContext().shapeNode)
+    }
+});
+
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.RenderingTest',
 'running', {
     setUp: function($super) {
@@ -91,25 +102,6 @@ AsyncTestCase.subclass('lively.morphic.tests.HTML.ClipModeAsyncRenderingTest',
         }, 0.2);
     }
 
-});
-lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.Fill',
-'testing', {
-    test01SetCSSFill: function() {
-        this.morph.setFill(new lively.morphic.CSS.Fill('red'));
-        this.assertDOMState({
-            tagName: 'div',
-            childNodes: [{tagName: 'div', style: {background: 'red'}}]
-        }, this.morph);
-    },
-
-    test02CSSFillResetsPreviousFill: function() {
-        this.morph.setFill(Color.green);
-        this.morph.setFill(new lively.morphic.CSS.Fill('red'));
-        this.assertDOMState({
-            tagName: 'div',
-            childNodes: [{tagName: 'div', style: {backgroundColor: 'red', background: 'red'}}]
-        }, this.morph);
-    }
 });
 
 });

@@ -1,4 +1,4 @@
-module('lively.ide.SyntaxHighlighting').requires(['lively.morphic', 'lively.ide.BrowserFramework']).toRun(function() {
+module('lively.ide.SyntaxHighlighting').requires('lively.morphic', 'lively.ide.BrowserFramework').toRun(function() {
 
 Object.subclass("SyntaxHighlighter", {
 
@@ -8,64 +8,60 @@ Object.extend(SyntaxHighlighter, {
     JavaScriptRules: {
         // based on http://code.google.com/p/jquery-chili-js/ regex and colors
         num: {
-              match: /\b[+-]?(?:\d*\.?\d+|\d+\.?\d*)(?:[eE][+-]?\d+)?\b/g
-            , style: {color: Color.web.blue}
+            match: /\b[+-]?(?:\d*\.?\d+|\d+\.?\d*)(?:[eE][+-]?\d+)?\b/g,
+            style: {color: Color.web.blue, backgroundColor: null}
         },
         reg_exp: {
-              match: /\/[^\/\\\n]*(?:\\.[^\/\\\n]*)*\/[gim]*/g
-            , style: {color: Color.web.maroon}
+            match: /\/[^\/\\\n]*(?:\\.[^\/\\\n]*)*\/[gim]*/g,
+            style: {color: Color.web.maroon, backgroundColor: null}
         },
         brace: {
-              match: /[\{\}]/g
-            , style: {color: Color.web.green}
+            match: /[\{\}]/g,
+            style: {color: Color.web.green, backgroundColor: null}
         },
         statement: {
-              match: /\b(with|while|var|try|throw|switch|return|if|for|finally|else|do|default|continue|const|catch|case|break)\b/g
-            , style: {color: Color.web.navy}
+            match: /\b(with|while|var|try|throw|switch|return|if|for|finally|else|do|default|continue|const|catch|case|break)\b/g,
+            style: {color: Color.web.navy, backgroundColor: null}
         },
         object: {
-              match: /\b(String|RegExp|Object|Number|Math|Function|Date|Boolean|Array)\b/g
-            , style: {color: Color.web.deeppink}
+            match: /\b(String|RegExp|Object|Number|Math|Function|Date|Boolean|Array)\b/g,
+            style: {color: Color.web.deeppink, backgroundColor: null}
         },
         superclassOrLayer: {
-              match: /([A-Za-z.]+)(?=\.(subclass|refineClass|addMethods|extend))/g
-            , style: {color: Color.web.navy}
+            match: /([A-Za-z.]+)(?=\.(subclass|refineClass|addMethods|extend))/g,
+            style: {color: Color.web.navy, backgroundColor: null}
         },
         methodName: {
-              match: /([A-Za-z0-9_$]+:)/g   // (?= function)
-            , style: {color: Color.web.darkred}
+            match: /([A-Za-z0-9_$]+:)/g,   // (?= function)
+            style: {color: Color.web.darkred, backgroundColor: null}
         },
         lively: {
-              match: /\b(subclass|refineClass|addMethods|extend)\b/g
-            , style: {color: Color.web.gray}
+            match: /\b(subclass|refineClass|addMethods|extend)\b/g,
+            style: {color: Color.web.gray, backgroundColor: null}
         },
         error: {
-              match: /\b(URIError|TypeError|SyntaxError|ReferenceError|RangeError|EvalError|Error)\b/g
-            , style: {color: Color.web.coral}
+            match: /\b(URIError|TypeError|SyntaxError|ReferenceError|RangeError|EvalError|Error)\b/g,
+            style: {color: Color.web.coral, backgroundColor: null}
         },
         property: {
-              match: /\b(undefined|arguments|NaN|Infinity)\b/g
-            , style: {color: Color.web.purple}
-        },
-        'function': {
-              match: /\b(parseInt|parseFloat|isNaN|isFinite|eval|encodeURIComponent|encodeURI|decodeURIComponent|decodeURI)\b/g
-            , style: {color: Color.web.olive}
+            match: /\b(undefined|arguments|NaN|Infinity)\b/g,
+            style: {color: Color.web.purple, backgroundColor: null}
         },
         operator: {
-              match: /\b(void|typeof|this|new|instanceof|in|function|delete)\b/g
-            , style: {color: Color.web.darkblue}
+            match: /\b(void|typeof|this|new|instanceof|in|function|delete)\b/g,
+            style: {color: Color.web.darkblue, backgroundColor: null}
         },
         string: {
-              match: /(?:\'[^\'\\\n]*(?:\\.[^\'\\\n]*)*\')|(?:\"[^\"\\\n]*(?:\\.[^\"\\\n]*)*\")/g
-            , style: {color: Color.web.teal}
+            match: /(?:\'[^\'\\\n]*(?:\\.[^\'\\\n]*)*\')|(?:\"[^\"\\\n]*(?:\\.[^\"\\\n]*)*\")/g,
+            style: {color: Color.web.teal, backgroundColor: null}
         },
         ml_comment: {
-              match: /\/\*[^*]*\*+(?:[^\/][^*]*\*+)*\//g
-            , style: {color: Color.web.gray}
+            match: /\/\*[^*]*\*+(?:[^\/][^*]*\*+)*\//g,
+            style: {color: Color.web.gray, backgroundColor: null}
         },
         sl_comment: {
-              match: /\/\/.*/g
-            , style: {color: Color.web.green}
+              match: /\/\/.*/g,
+              style: {color: Color.web.green, backgroundColor: null}
         },
         trailingWhitespace: {
             match: /[ \t]+[\n\r]/g,
@@ -74,90 +70,122 @@ Object.extend(SyntaxHighlighter, {
     },
     LaTeXRules: {
         num: {
-              match: /\b[+-]?(?:\d*\.?\d+|\d+\.?\d*)(?:[eE][+-]?\d+)?\b/g
-            , style: {color: Color.web.blue}
+            match: /\b[+-]?(?:\d*\.?\d+|\d+\.?\d*)(?:[eE][+-]?\d+)?\b/g,
+            style: {color: Color.web.blue}
         },
         brace: {
-              match: /[\{\}]/g,
-              style: {color: Color.web.deeppink}
+            match: /[\{\}]/g,
+            style: {color: Color.web.deeppink}
         },
         braceContents: {
-              match: /\{([^\}]+)\}/g,
-              style: {fontStyle: 'italic'}
+            match: /\{([^\}]+)\}/g,
+            style: {color: Color.black, fontStyle: 'italic'}
         },
         parameters: {
-              match: /\[[^\]]+\]/g
-            , style: {color: Color.web.mediumvioletred}
+            match: /\[[^\]]+\]/g,
+            style: {color: Color.web.mediumvioletred}
         },
         command: {
-              match: /\\[^{\s\[]+/g
-            , style: {color: Color.web.sandybrown}
+            match: /\\[^{\s\[]+/g,
+            style: {color: Color.web.sandybrown}
         },
         string: {
-              match: /(?:\'[^\'\\\n]*(?:\\.[^\'\\\n]*)*\')|(?:\"[^\"\\\n]*(?:\\.[^\"\\\n]*)*\")/g
-            , style: {color: Color.web.teal}
+            match: /(?:\'[^\'\\\n]*(?:\\.[^\'\\\n]*)*\')|(?:\"[^\"\\\n]*(?:\\.[^\"\\\n]*)*\")/g,
+            style: {color: Color.web.teal}
         },
         comment: {
-              match: /[^\\]%[^\n]+/g,
-                style: {color: Color.web.green}
-        },
+            match: /[^\\]%[^\n]+/g,
+            style: {color: Color.web.green}
+        }
     }
-
 });
-
-if (!Config.isNewMorphic) return;
 
 lively.morphic.Text.addMethods(
 'syntax highlighting', {
     syntaxHighlightingCharLimit: 8000,
     syntaxHighlightingMinDelay: 300,
     syntaxHighlightingMaxDelay: 10000,
+
     highlightJavaScriptSyntax: function() {
         // FIXME use defaultconfig
-        if (URL.source && URL.source.toString().include('disableSyntaxHighlighting=true')) return;
-        if (!this.renderContext().textNode) return; // FIXME
+        if (URL.source && URL.source.toString().include('disableSyntaxHighlighting=true')) return false;
+        if (!this.renderContext().textNode) return false; // FIXME
         var length = this.textString.length;
-        if (length > this.syntaxHighlightingCharLimit) return;
-        clearTimeout(this._syntaxHighlightTimeout);
-        var later = function() {
-            this._syntaxHighlightTimeout = null;
+        if (length > this.syntaxHighlightingCharLimit) return false;
+        Global.clearTimeout(this._syntaxHighlightTimeout);
+        var self = this;
+        function later() {
+            self._syntaxHighlightTimeout = null;
             var start = Date.now();
-            this.highlightSyntaxFromTo(0, this.textString.length,
-                SyntaxHighlighter.JavaScriptRules);
-            this.lastSyntaxHighlightTime = Date.now() - start;
-        }.bind(this);
+            self.highlightSyntaxFromTo(0, self.textString.length,
+                                       SyntaxHighlighter.JavaScriptRules);
+            self.lastSyntaxHighlightTime = Date.now() - start;
+
+            if (!self.lastSyntaxHighlightTimes) self.lastSyntaxHighlightTimes = new Array(10);
+            self.lastSyntaxHighlightTimes.pop();
+            self.lastSyntaxHighlightTimes.unshift(self.lastSyntaxHighlightTime);
+        };
         if (this.lastSyntaxHighlightTime >= 0) {
             var time = this.lastSyntaxHighlightTime * 2;
             time = Math.max(this.syntaxHighlightingMinDelay, time);
             time = Math.min(this.syntaxHighlightingMaxDelay, time);
-            this._syntaxHighlightTimeout = setTimeout(later, time);
+            this._syntaxHighlightTimeout = Global.setTimeout(later, time);
         } else {
             later();
         }
         return true;
     },
-    applyHighlighterRules: function(target, highlighterRules) {
-        for (var ruleName in highlighterRules) {
-            if (!highlighterRules.hasOwnProperty(ruleName)) continue;
-            var rule = highlighterRules[ruleName];
-            target.emphasizeRegex(rule.match, rule.style)
+
+    howToStyleString: function(string, rules, defaultStyle) {
+        // converts a highlighter regexp rule like
+        // {match: /bar/g, style: {color: 'blue'}}
+        // into intervals with styles for string. If rule = the rule above then calling
+        // text.howToStyleString('foo bar baz', [rule], {})
+        // returns [[0,4, {}], [4,7, {color: blue}], [7, 11, {}]]
+        var slices = [];
+        for (var ruleName in rules) {
+            if (!rules.hasOwnProperty(ruleName)) continue;
+            var rule = rules[ruleName],
+                m, re = rule.match, counter = 0;
+            while ((m = re.exec(string))) {
+                if (++counter > 9999) throw new Error('endless loop?');
+                var from = m.index, to = m.index + m[0].length;
+                slices.push([from, to, rule.style]);
+            }
         }
+        return Interval.intervalsInRangeDo(0, string.length, slices, function(slice, isNew) {
+            if (isNew) { slice[2] = defaultStyle }; return slice;
+        });
+    },
+
+    applyHighlighterRules: function(target, highlighterRules) {
+        // take highlighter rules and apply them to my textString. As a result
+        // of that we get text ranges and styles that should be applied to
+        // them. Return true if the DOM tree has changed through applying the
+        // highlight rules, false otherwise (see #emphasizeRanges).
+        //
+        // Unoptimized version:
+        // var defaultStyle = {color: Color.black, backgroundColor: null};
+        // this.emphasizeAll(defaultStyle)
+        // for (var ruleName in highlighterRules) {
+        //     if (!highlighterRules.hasOwnProperty(ruleName)) continue;
+        //     var rule = highlighterRules[ruleName];
+        //     target.emphasizeRegex(rule.match, rule.style)
+        // }
+        var defaultStyle = {color: Color.black, backgroundColor: null},
+            rulesForString = this.howToStyleString(
+                target.textString, highlighterRules, defaultStyle);
+        return target.emphasizeRanges(rulesForString);
     },
 
     highlightSyntaxFromTo: function(from, to, highlighterRules) {
         var selRange = this.getSelectionRange(),
-            scroll = this.getScroll();
-        if (false) {
-            this.emphasize({color: Color.black, fontWeight: 'normal'}, from, to);
-            this.applyHighlighterRules(this, highlighterRules);
-        } else {
-            var rt = new lively.morphic.RichText(this.textString);
-            this.applyHighlighterRules(rt, highlighterRules);
-            this.setRichText(rt);
-        }
+            scroll = this.getScroll(),
+            domTreeChanged = this.applyHighlighterRules(this, highlighterRules);
         selRange && this.setSelectionRange(selRange[0], selRange[1]);
         scroll && this.setScroll(scroll[0], scroll[1]);
     },
+
     highlightLaTeXSyntax: function() {
         // FIXME use defaultconfig
         if (URL.source && URL.source.toString().include('disableSyntaxHighlighting=true')) return;
@@ -169,7 +197,7 @@ lively.morphic.Text.addMethods(
         }.bind(this);
         clearTimeout(this._syntaxHighlightTimeout);
         this._syntaxHighlightTimeout = setTimeout(later, 300);
-    },
+    }
 
 })
 

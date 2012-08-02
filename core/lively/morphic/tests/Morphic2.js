@@ -261,7 +261,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
 
 });
 
-
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ScrollTests',
 'running', {
     setUp: function($super) {
@@ -401,7 +400,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ClipMorphTest',
         this.assertEquals(pt(-15,-15), m2.getPosition(), 'pos sub');
     },
 
-
     test06OriginAffectsInnerBoundsButNotBounds: function() {
         var morph = lively.morphic.Morph.makeRectangle(0, 0, 100, 20);
         this.assertEquals(new Rectangle(0, 0, 100, 20), morph.bounds(), 'bounds before')
@@ -410,211 +408,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ClipMorphTest',
         morph.adjustOrigin(pt(10,10));
         this.assertEquals(new Rectangle(0, 0, 100, 20), morph.bounds(), 'bounds after')
         this.assertEquals(new Rectangle(-10, -10, 100, 20), morph.innerBounds(), 'innerbounds after');
-    },
-
-
-});
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TextLayoutTests',
-'running', {
-    setUp: function($super) {
-        $super();
-        this.text = new lively.morphic.Text(new Rectangle(0,0,100,100), '')
-            .applyStyle({
-                padding: new Rectangle(0,0,0,0),
-                borderWidth: 0,
-                fontSize: 10,
-                fontFamily: 'monospace',
-                fixedWidth: false, fixedHeight: false
-            });
-        this.world.addMorph(this.text);
-    },
-},
-'testing', {
-    test01ComputVisibleTextBounds: function() {
-        this.assertEquals(this.text.innerBounds(), this.text.visibleTextBounds());
-        this.text.applyStyle({padding: Rectangle.inset(2,2)});
-        this.assertEquals(this.text.innerBounds().insetBy(2), this.text.visibleTextBounds());
-
-        // FIXME: text bounds are not correct at the moment, not specified
-
-        // IMO: in contrast to other morphs the border of a text should not grow inwards, i.e. should not decrease extent and font size of a text.
-        // i especially don't want to resize text after i added a border.
-
-        // this.text.applyStyle({borderWidth: 3});
-        // this.assertEquals(this.text.innerBounds().insetBy(2+3), this.text.visibleTextBounds());
-    },
-    test02ExtentIsNotChangedWhenPaddingIsSet: function() {
-        this.text.setPadding(Rectangle.inset(2,2));
-        this.assertEquals(this.text.getExtent(), this.text.getScrollExtent(), 'visible extent not equal to logical extent');
-    },
-
-    test03FixedWidthForcesLineBreaks: function() {
-        this.text.setTextString('aaa');
-        this.epsilon = 4;
-        this.assertEqualsEpsilon(pt(24, 15), this.text.getTextExtent(), 'setup does not work');
-        this.text.applyStyle({fixedWidth: true, fixedHeight: false});
-        this.text.setExtent(pt(20,15));
-        // text's span is 16 then, but text itself 20
-        this.assertEqualsEpsilon(pt(20, 30), this.text.getTextExtent(), 'no line break');
-    },
-    test03aFixedWidthCssProperties: function() {
-        this.text.setTextString('aaa');
-        this.text.applyStyle({fixedWidth: true, fixedHeight: false});
-        this.text.setExtent(pt(20,15));
-        var expected = {
-            tagName: 'div', // world morph
-            childNodes: [
-                {tagName: 'div', childNodes: [ // world shape
-                    {tagName: 'div',
-                     childNodes: [{tagName: 'span'}],
-                     style: {maxWidth: '20px'}} // m and its shape
-                ]},
-            ]};
-
-        this.assertNodeMatches(expected, this.text.renderContext().getMorphNode());
-    },
-
-    test04FixedWidthIncreasesTextExtent: function() {
-        this.epsilon = 2;
-        this.text.setTextString('aaa');
-
-        this.text.fit();
-
-        this.assertEqualsEpsilon(pt(24, 15), this.text.getTextExtent(), 'hmm setup does not work');
-        this.text.applyStyle({fixedWidth: true, fixedHeight: false});
-        this.text.setExtent(pt(40,15))
-        this.assertEqualsEpsilon(pt(40, 15), this.text.getTextExtent(), 'text extent didnt grow');
-    },
-    test05FillWithBigAndThenWithSmallTextResizesTextBounds: function() {
-        this.text.applyStyle({fixedWidth: true, fixedHeight: true, clipMode: 'visible'});
-        this.text.setExtent(pt(50,50)); // actually should not be neccessary, but this is the feature we want to implement...
-        this.epsilon = 2;
-        this.text.textString = 'aaa';
-        this.assertEqualsEpsilon(pt(50,15), this.text.getTextExtent(), 'hmm setup does not work');
-
-        // make text big, should grow vertically
-        this.text.setTextString('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
-        //this.assertEquals(pt(50.0,75.0), this.text.getTextExtent(), 'hmm setup does not work 2');
-        this.assertEquals(this.text.getTextExtent().x, 50.0, 'text should not have grown horizontally');
-        this.assert(this.text.getTextExtent().y >= 75.0, 'text should have grown vertically (actual height: ' + this.text.getTextExtent().y + '), was expected to be at least 75.0');
-
-        // make text small, vertical extent should shrink
-        this.text.textString = 'aaa';
-        this.assertEqualsEpsilon(pt(50,15), this.text.getTextExtent(), 'text extent did not shrink');
     }
 
-});
-
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic2.HtmlParserTests',
-'running', {
-    setUp: function($super) {
-        $super();
-        this.sut = lively.morphic.HTMLParser
-    },
-},
-'testing', {
-    testSanitizeHtml: function() {
-        var s1 = "a<br>b"
-        var r1 = this.sut.sanitizeHtml(s1)
-        this.assertEquals(r1, "a<br />b")
-    },
-    testSanitizeHtmlReplaceAmp: function() {
-        var s1 = "a&b"
-        var r1 = this.sut.sanitizeHtml(s1)
-        this.assertEquals(r1, "a&amp;b")
-    },
-    testSanitizeHtmlUnbalancedTags: function() {
-        var s1 = "<span>abc",
-            r1 = this.sut.sanitizeHtml(s1);
-        this.assertEquals(r1, "abc");
-    },
-
-    testSourceCodeToNodeStrippedBRs: function() {
-      var node = lively.morphic.HTMLParser.sourceToNode('a<br />b')
-      lively.morphic.HTMLParser.sanitizeNode(node);
-      this.assertEquals(node.textContent, "ab", "wrong node")
-
-      richText = new lively.morphic.RichText(node.textContent);
-      this.assertEquals(richText.textString, "ab", "wrong text string")
-    },
-
-    testSanitizeNode: function() {
-        var s = "<html>\n<body>\n<!--StartFragment-->\n"
-              + "<span>a\nb</span>\n"
-              + "<!--EndFragment-->\n</body>\n</html>",
-            node = lively.morphic.HTMLParser.sourceToNode(s);
-        lively.morphic.HTMLParser.sanitizeNode(node);
-        this.assertEquals(node.textContent, "a\nb", "too many newlines");
-    },
-    testSanitizeNodeWithNewlineInSpan: function() {
-        var s = '<span>a</span><span>\n</span><span>b</span>';
-        var node = lively.morphic.HTMLParser.sourceToNode(s);
-        lively.morphic.HTMLParser.sanitizeNode(node);
-        this.assertEquals(node.textContent, "a\nb", "wrong newlines");
-    },
-    testSanitizeNodeWindowsChromeWithNewLine: function() {
-        var s = '<html>\n<body>\n<!--StartFragment-->\n<span>hello\n</span><br class="Apple-interchange-newline">\n<!--EndFragment-->\n</body>\n</html>';
-        var node = lively.morphic.HTMLParser.sourceToNode(s);
-        lively.morphic.HTMLParser.sanitizeNode(node);
-        this.assertEquals(node.textContent, "hello\n", "wrong newlines");
-    },
-    testSanitizeNodeLinuxWithMetaTag: function() {
-        var s = '<meta ><span>bombs</span>';
-        var node = lively.morphic.HTMLParser.sourceToNode(s);
-        lively.morphic.HTMLParser.sanitizeNode(node);
-        this.assertEquals(node.textContent, "bombs", "linux meta tag brakes it");
-    },
-
-    testSourceToNodeCallsAlert: function(data) {
-        var orgAlert = Global.alert;
-        try {
-            var here=false;
-            alert = function() { here=true}
-            var s = 'hello<badtag>bla'
-            var node = lively.morphic.HTMLParser.sourceToNode(s);
-            this.assert(here,"alert did not get called")
-        } finally {
-            Global.alert = orgAlert
-        }
-    },
-    testSanitizeNodeWithAmp: function() {
-        var s = '<a href="http://host/p?a=1&b=2">bla</a>';
-        var node = lively.morphic.HTMLParser.sourceToNode(s);
-        lively.morphic.HTMLParser.sanitizeNode(node);
-        this.assertEquals(node.textContent, "bla", "pasting with & is broken");
-    },
-    testSanitizeNodeWithAmp2: function() {
-        var s = '<a href="http://host/p?a=1%26b=2">H&amp;M</a>';
-        var node = lively.morphic.HTMLParser.sourceToNode(s);
-        lively.morphic.HTMLParser.sanitizeNode(node);
-        this.assertEquals(node.textContent, "H&M", "pasting with & is broken");
-    },
-    testSanitizeNodeWithLt: function() {
-        var s = '1&lt;2';
-        var node = lively.morphic.HTMLParser.sourceToNode(s);
-        lively.morphic.HTMLParser.sanitizeNode(node);
-        this.assertEquals(node.textContent, "1<2", "pasting with & is broken");
-    },
-
-    testSanitizeNodeWithLt2: function() {
-        var s = '<span>&lt;</span>';
-        var node = lively.morphic.HTMLParser.sourceToNode(s);
-        lively.morphic.HTMLParser.sanitizeNode(node);
-        this.assertEquals(node.textContent, "<", "pasting with < is broken");
-    },
-
-
-});
-
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.jQueryTests', {
-    test01jQueryReturnsjQueryObject: function() {
-        var m = new lively.morphic.Morph();
-        this.assert(m.jQuery() instanceof jQuery);
-    },
-    test02jQueryReturnsWrappedShapeNode: function() {
-        var m = new lively.morphic.Morph();
-        this.assertEquals(m.jQuery()[0], m.renderContext().shapeNode)
-    }
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
@@ -631,7 +426,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
         this.assertEquals(m1.findById(m1_1_1.id), m1_1_1, 'Submorph of submorph not found.')
         this.assertEquals(m1.findById(m1_2.id), m1_2, 'Second Submorph not found.')
     },
-
 
     testFindParentPartVersion: function() {
         var getPartItemFactory = function () {
@@ -653,7 +447,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.DiffMergeTests',
 
         this.assert(!m2.findParentPartVersion().getPartsBinMetaInfo().revisionOnLoad, "Should't have found a match");
     },
-
 
     testFindCurrentPartVersion: function() {
         var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100),

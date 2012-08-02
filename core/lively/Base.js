@@ -33,8 +33,6 @@ function dbgOn(cond, optMessage) {
     return cond;
 }
 
-// namespace logic adapted from
-// http://higher-order.blogspot.com/2008/02/designing-clientserver-web-applications.html
 function assert(value, message) {
     if (value) { return; }
     // capture the stack
@@ -43,6 +41,8 @@ function assert(value, message) {
     alert('Assertion failed' + (message ? ': ' + message : '!') + '\n' + stack);
 };
 
+// namespace logic adapted from
+// http://higher-order.blogspot.com/2008/02/designing-clientserver-web-applications.html
 var using = (function() {
 
     function Util(args) {  // args is an escaping arguments array
@@ -1097,6 +1097,9 @@ Object.extend(Namespace, {
     delete Global.Namespace;
 })(Global);
 
+(function addUsefulStuffToLivelyNS(Global, lively) {
+    lively.assert = Global.assert;
+})(Global, lively);
 
 Object.extend(lively.Module, {
     findAllInThenDo: function(url, callback) {
@@ -1162,7 +1165,7 @@ function printStack() {
 };
 
 function logStack() {
-    this.console.log(printStack())
+    this.console.log(printStack());
 };
 
 (function setupjQuery(Global) {
@@ -1173,5 +1176,3 @@ function logStack() {
     // so we will restrict "our" to lively.$ in the future
     Global.$ = lively.$ = jQuery.noConflict(/*true -- really removes $*/);
 })(Global);
-
-namespace('lively');

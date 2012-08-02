@@ -15,7 +15,6 @@ Object.subclass('lively.morphic.Morph',
         this.prepareForNewRenderContext(this.defaultRenderContext());
         this.setNewId();
         this.applyStyle(this.getStyle());
-        this.setNodeClass(this.getNodeClass());
     },
     setNewId: function(optId) {
         if (this.derivationIds === undefined) this.derivationIds = [];
@@ -176,50 +175,6 @@ Object.subclass('lively.morphic.Morph',
     setOpacity: function(o) { return this.shape.setOpacity(o) },
 
 
-    setNodeClass: function(value) {
-        var a = [];
-        if (value) {
-            if (value instanceof Array) {
-                a = value;
-            }
-            else {
-                a = value.split(/[\s,]+/);
-            }
-        }
-        var type = this.constructor;
-        while (type != Object) {
-            a.unshift(type.name);
-            type = type.superclass;
-        }
-
-        var result = [];
-        a.each(function(item){result.push(item);});
-        result = result.uniq();
-        return this.shape.setNodeClass(result);
-    },
-    getNodeClass: function() {
-        return this.shape.getNodeClass();
-    },
-    setNodeId: function(id) {
-        if (id) {
-            return this.shape.setNodeId(id);
-        }
-        else {
-            return this.shape.setNodeId("morph-"+this.id.toLowerCase());
-        }
-    },
-    getNodeId: function() {
-        var id = this.shape.getNodeId();
-        if (id) {
-            return id;
-        }
-        else {
-            return this.setNodeId();
-        }
-
-    },
-
-
     setVertices: function(v) { this.shape.setVertices(v) },
 
 },
@@ -268,12 +223,6 @@ Object.subclass('lively.morphic.Morph',
 
         if (this.getLayouter()) {
             this.getLayouter().onSubmorphAdded(this, morph, this.submorphs);
-        }
-        if (morph.owner.owner) { // Is owner owner a stack?
-            if (morph.owner.owner.pageArray) {
-                morph.pageSpecific = true; // dropped morph is only on this page
-                    // call Stack.beInBackground to place in background
-            }
         }
         return morph
     },
@@ -641,13 +590,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         // the bounds call seems to slow down halos...
         // return this.windowBounds().intersection(this.bounds());
         return this.windowBounds().intersection(this.innerBounds());
-    },
-    setNodeId: function() {
-        // FIXME: maybe it would be more intelligent to really
-        // generate an ID for the world so we avoid conflicts
-        // when multiple worlds are displayed in the same browser window
-        return this.shape.setNodeId("the-world");
-    },
+    }
 },
 'rendering', {
     displayOnCanvas: function(domElement) {
@@ -781,12 +724,14 @@ Object.extend(lively.morphic.FunctionScript, {
         return script;
     },
 });
+
 Function.addMethods(
 "morphic delay", {
     morphicDelay: function(time) {
         lively.morphic.FunctionScript.once(this, time);
     },
 });
+
 lively.morphic.Script.subclass('lively.morphic.TargetScript',
 'initializing', {
     initialize: function(target, selector, args) {

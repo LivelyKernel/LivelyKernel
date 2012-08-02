@@ -2,7 +2,7 @@ module('lively.morphic.Graphics').requires().toRun(function() {
 
 Object.subclass("Point",
 'documentation', {
-    documentation: "2D Point",
+    documentation: "2D Point"
 },
 'initializing', {
     initialize: function(x, y) {
@@ -923,10 +923,10 @@ Object.subclass('lively.morphic.Similitude',
 
 Object.subclass("Color",
 'documentation', {
-    documentation: "Fully portable support for RGB colors. A bit of rgba support is also included.",
+    documentation: "Fully portable support for RGBA colors."
 },
 'settings', {
-    isColor: true,
+    isColor: true
 },
 'initializing', {
     initialize: function(r, g, b, a) {
@@ -938,12 +938,12 @@ Object.subclass("Color",
 },
 'accessing', {
     grayValue: function() {
-        return (this.r + this.g + this.b) / 3
+        return (this.r + this.g + this.b) / 3;
     }
 },
 'comparing', {
     equals: function(other) {
-        if(!other) return false;
+        if (!other) return false;
         return this.r === other.r && this.g === other.g && this.b === other.b && this.a === other.a;
     }
 },
@@ -963,9 +963,7 @@ Object.subclass("Color",
 'printing', {
     toString: function() {
         function floor(x) { return Math.floor(x*255.99) };
-        if (this.a && this.a != 1)
-            return this.toRGBAString();
-
+        if (this.a && this.a != 1) return this.toRGBAString();
         return "rgb(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + ")";
     },
 
@@ -979,28 +977,26 @@ Object.subclass("Color",
         return [this.r, this.g, this.b, this.a];
     },
     toHSB: function() {
-        var max = Math.max(this.r, this.g, this.b);
-        var min = Math.min(this.r, this.g, this.b);
-        var h, s, b = max;
-        if (max == min)
+        var max = Math.max(this.r, this.g, this.b),
+            min = Math.min(this.r, this.g, this.b),
+            h, s, b = max;
+        if (max == min) {
             h = 0;
-        else if (max == this.r)
+        } else if (max == this.r) {
             h = 60 * (0 + ((this.g - this.b) / (max - min)));
-        else if (max == this.g)
+        } else if (max == this.g) {
             h = 60 * (2 + ((this.b - this.r) / (max - min)));
-        else if (max == this.b)
+        } else if (max == this.b) {
             h = 60 * (4 + ((this.r - this.g) / (max - min)));
-        h = (h + 360) % 360;
-        if (max == 0)
-            s = 0
-        else
-            s = (max - min) / max;
+            h = (h + 360) % 360;
+        }
+        s = max == 0 ? 0 : (max - min) / max;
         return [h, s, b];
     }
 },
 'instance creation', {
     withA: function(a) {
-        return new Color(this.r, this.g, this.b, a)
+        return new Color(this.r, this.g, this.b, a);
     },
 
     mixedWith: function(other, proportion) {
@@ -1014,48 +1010,33 @@ Object.subclass("Color",
     invert: function() {
         return Color.rgb(255 * (1 - this.r), 255 * (1 - this.g), 255 * (1 - this.b));
     }
-},
-'serializing', {
-    deserialize: function(importer, colorStringOrTuple) {
-        if (!colorStringOrTuple) return null;
-        var color;
-        if (colorStringOrTuple instanceof Color) color = colorStringOrTuple;
-        else if (colorStringOrTuple instanceof String) color = Color.fromString(colorStringOrTuple)
-        else color = Color.fromTuple(colorStringOrTuple);
-        this.r = color.r;
-        this.g = color.g;
-        this.b = color.b;
-        if (!color.a && color.a !== 0) color.a = 1;
-        this.a = color.a;
-    }
-}
-);
+});
 
 Object.extend(Color, {
     random: function() {
-        return new Color(Math.random(),Math.random(),Math.random());
+        return new Color(Math.random(), Math.random(), Math.random());
     },
 
     hsb: function(hue,sat,brt) {
-        var s = sat;
-        var b = brt;
+        var s = sat,
+            b = brt;
         // zero saturation yields gray with the given brightness
         if (sat == 0) return new Color(b,b,b);
-        var h = hue % 360;
-        var h60 = h / 60;
-        var i = Math.floor(h60); // integer part of hue
-        var f = h60 - i; // fractional part of hue
-        var p = (1.0 - s) * b;
-        var q = (1.0 - (s * f)) * b;
-        var t = (1.0 - (s * (1.0 - f))) * b;
+        var h = hue % 360,
+            h60 = h / 60,
+            i = Math.floor(h60), // integer part of hue
+            f = h60 - i, // fractional part of hue
+            p = (1.0 - s) * b,
+            q = (1.0 - (s * f)) * b,
+            t = (1.0 - (s * (1.0 - f))) * b;
 
         switch (i) {
-            case 0:     return new Color(b,t,p);
-            case 1:     return new Color(q,b,p);
-            case 2:     return new Color(p,b,t);
-            case 3:     return new Color(p,q,b);
-            case 4:     return new Color(t,p,b);
-            case 5:     return new Color(b,p,q);
+            case 0:  return new Color(b,t,p);
+            case 1:  return new Color(q,b,p);
+            case 2:  return new Color(p,b,t);
+            case 3:  return new Color(p,q,b);
+            case 4:  return new Color(t,p,b);
+            case 5:  return new Color(b,p,q);
             default: return new Color(0,0,0);
         }
     },
@@ -1066,12 +1047,11 @@ Object.extend(Color, {
 
     wheelHsb: function(n,hue,sat,brt) {
         // Return an array of n colors of varying hue
-        var a = new Array(n);
-        var step = 360.0 / (Math.max(n,1));
-
-        for (var i = 0; i < n; i++)
-        a[i] = Color.hsb(hue + i*step, sat, brt);
-
+        var a = new Array(n),
+            step = 360.0 / (Math.max(n,1));
+        for (var i = 0; i < n; i++) {
+            a[i] = Color.hsb(hue + i*step, sat, brt);
+        }
         return a;
     },
 
@@ -1145,52 +1125,52 @@ Object.extend(Color, {
         } else {
             return null
         }
-        var r = parseInt(rHex, 16)/255;
-        var g = parseInt(gHex, 16)/255;
-        var b = parseInt(bHex, 16)/255;
+        var r = parseInt(rHex, 16)/255,
+            g = parseInt(gHex, 16)/255,
+            b = parseInt(bHex, 16)/255;
         return [r, g, b];
-    },
+    }
 });
 
 Object.extend(Color, {
     // extended again to make use of Color.rgb
-    black: new Color(0,0,0),
-    white: new Color(1,1,1),
-    gray: new Color(0.8,0.8,0.8),
-    red: new Color(0.8,0,0),
-    green: new Color(0,0.8,0),
-    yellow: new Color(0.8,0.8,0),
-    blue:  new Color(0,0,0.8),
-    purple: new Color(1,0,1),
-    magenta: new Color(1,0,1),
-    pink: Color.rgb(255, 30, 153),
-    turquoise: Color.rgb(0, 240, 255),
-    tangerine: Color.rgb(242, 133, 0),
-    orange: Color.rgb(255, 153, 0),
-    cyan: Color.rgb(0, 255, 255),
-    brown: Color.rgb(182, 67, 0),
-    limeGreen: Color.rgb(51, 255, 0),
-    darkGray: Color.rgb(102,102,102),
-    lightGray: Color.rgb(230,230,230),
+    black:         new Color(0,0,0),
+    white:         new Color(1,1,1),
+    gray:          new Color(0.8,0.8,0.8),
+    red:           new Color(0.8,0,0),
+    green:         new Color(0,0.8,0),
+    yellow:        new Color(0.8,0.8,0),
+    blue:          new Color(0,0,0.8),
+    purple:        new Color(1,0,1),
+    magenta:       new Color(1,0,1),
+    pink:          Color.rgb(255,30,153),
+    turquoise:     Color.rgb(0,240,255),
+    tangerine:     Color.rgb(242,133,0),
+    orange:        Color.rgb(255,153,0),
+    cyan:          Color.rgb(0,255,255),
+    brown:         Color.rgb(182,67,0),
+    limeGreen:     Color.rgb(51,255,0),
+    darkGray:      Color.rgb(102,102,102),
+    lightGray:     Color.rgb(230,230,230),
     veryLightGray: Color.rgb(243,243,243),
 
     // FIXME: are the following palettes used!?
     primary: {
         // Sun palette
-        blue: Color.rgb(0x53, 0x82, 0xA1),
+        blue:   Color.rgb(0x53, 0x82, 0xA1),
         orange: Color.rgb(0xef, 0x6f, 0x00),
-        green: Color.rgb(0xb2, 0xbc, 00),
+        green:  Color.rgb(0xb2, 0xbc, 00),
         yellow: Color.rgb(0xff, 0xc7, 0x26)
     },
     secondary: {
-        blue: Color.rgb(0x35, 0x55, 0x6b),
+        blue:   Color.rgb(0x35, 0x55, 0x6b),
         orange: Color.rgb(0xc0, 0x66, 0x00),
-        green: Color.rgb(0x7f, 0x79, 0x00),
+        green:  Color.rgb(0x7f, 0x79, 0x00),
         yellow: Color.rgb(0xc6, 0x92, 0x00)
     },
     neutral: {
         lightGray: Color.rgb(0xbd, 0xbe, 0xc0),
-        gray: Color.rgb(0x80, 0x72, 0x77)
+        gray:      Color.rgb(0x80, 0x72, 0x77)
     }
 });
 

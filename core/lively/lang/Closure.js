@@ -6,10 +6,10 @@ module('lively.lang.Closure').requires().toRun(function() {
 
 Object.subclass('lively.Closure',
 'documentation', {
-    documentation: 'represents a function and its bound values'  
+    documentation: 'represents a function and its bound values'
 },
 'settings', {
-    isLivelyClosure: true,
+    isLivelyClosure: true
 },
 'initializing', {
     initialize: function(func, varMapping, source, funcProperties) {
@@ -18,33 +18,40 @@ Object.subclass('lively.Closure',
         this.source = source;
         this.setFuncProperties(func || funcProperties);
     }
-}, 
+},
 'accessing', {
     setFuncSource: function(src) {
         this.source = src
     },
-    
+
     getFuncSource: function() {
         return this.source || String(this.originalFunc)
     },
-    
+
     hasFuncSource: function() {
         return this.source && true
     },
-    
+
     getFunc: function() {
         return this.originalFunc || this.recreateFunc()
     },
-    
+
     getFuncProperties: function() {
         // a function may have state attached
         if (!this.funcProperties) this.funcProperties = {};
         return this.funcProperties;
     },
-    
+
     setFuncProperties: function(obj) {
         var props = this.getFuncProperties();
         for (var name in obj) {
+            // The AST implementation assumes that Function objects are some
+            // kind of value object. When their identity changes cached state
+            // should not be carried over to new function instances. This is a
+            // pretty intransparent way to invalidate attributes that are used
+            // for caches.
+            // @cschuster, can you please fix this by making invalidation more
+            // explicit?
             if (obj.hasOwnProperty(name) && name != "_cachedAst") {
                 props[name] = obj[name];
             }
@@ -54,7 +61,7 @@ Object.subclass('lively.Closure',
     lookup: function(name) {
         return this.varMapping[name]
     },
-    
+
     parameterNames: function(methodString) {
         var parameterRegex = /function\s*\(([^\)]*)\)/,
             regexResult = parameterRegex.exec(methodString);
@@ -66,16 +73,16 @@ Object.subclass('lively.Closure',
         }, this);
         return parameters;
     },
-    
+
     firstParameter: function(src) {
         return this.parameterNames(src)[0] || null
     },
-}, 
-'function creation', {    
+},
+'function creation', {
     recreateFunc: function() {
         return this.recreateFuncFromSource(this.getFuncSource())
     },
-    
+
     recreateFuncFromSource: function(funcSource) {
         // what about objects that are copied by value, e.g. numbers?
         // when those are modified after the originalFunc we captured
@@ -106,14 +113,14 @@ Object.subclass('lively.Closure',
             throw e
         };
     },
-    
+
     addFuncProperties: function(func) {
         var props = this.getFuncProperties();
         for (var name in props)
         if (props.hasOwnProperty(name)) func[name] = props[name];
         this.addClosureInformation(func);
     },
-   
+
     couldNotCreateFunc: function(src) {
         var msg = 'Could not recreate closure from source: \n' + src;
         console.error(msg);
@@ -123,7 +130,7 @@ Object.subclass('lively.Closure',
             alert(msg)
         };
     },
-}, 
+},
 'conversion', {
     asFunction: function() {
         return this.recreateFunc()
@@ -144,7 +151,7 @@ Object.extend(lively.Closure, {
 
     fromSource: function(source, varMapping) {
         return new this(null, varMapping || {}, source);
-    },
+    }
 });
 
 }); // end of module

@@ -315,7 +315,6 @@ lively.morphic.Morph.addMethods(
             if (owner.submorphs.length == 0 && owner.renderContext().originNode) {
                 owner.renderContext().removeNode(owner.renderContext().originNode);
                 delete owner.renderContext().originNode;
-                return;
             }
         }
         ctx.removeNode(ctx.morphNode);

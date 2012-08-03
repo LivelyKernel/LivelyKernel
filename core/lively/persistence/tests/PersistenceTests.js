@@ -365,6 +365,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         var m2 = new lively.morphic.Morph();
         lively.bindings.connect(m1, 'rotation', m2, 'setRotation');
         var oldCount = m1.attributeConnections[0].dependendConnections.length;
+        debugger;
         var copy = this.serializer.copy(m1);
         var newCount = copy.attributeConnections[0].dependendConnections.length;
         this.assertEquals(oldCount, newCount, 'serialization adds additional dependent connection');

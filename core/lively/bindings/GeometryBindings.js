@@ -6,7 +6,7 @@ AttributeConnection.subclass('lively.morphic.GeometryConnection',
         c.dependedBy = this;
         if (!this.dependendConnections)
             this.dependendConnections = [];
-        this.dependendConnections.push(c)
+        this.dependendConnections.pushIfNotIncluded(c)
     },
 
     removeDependConnection: function(c) {

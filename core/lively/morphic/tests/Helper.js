@@ -70,7 +70,7 @@ TestCase.subclass('lively.morphic.tests.TestCase',
             if (expected instanceof Element) {
                 for (var i = 0; i < expected.attributes.length; i++) {
                     var attribute = expected.attributes[i];
-                    this.assert(attribute.isEqualNode(node.getAttribute(attribute.nodeName)));
+                    this.assertEquals(attribute.nodeValue, node.getAttribute(attribute.nodeName));
                 }
             } else {
                 Properties.forEachOwn(expected.attributes, function(key, expectedValue) {

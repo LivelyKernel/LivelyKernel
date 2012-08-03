@@ -76,7 +76,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.ClipMode',
     },
 
     test05ClippingNode: function() {
-        this.morph.setClipMode('hidden');
+        this.morph.addMorph(lively.morphic.Morph.makeRectangle(rect(0,0,10,10)));
         this.assertDOMState({tagName: 'div',
             childNodes: [{tagName: 'div', 
                 childNodes: [{tagName: 'div'}]

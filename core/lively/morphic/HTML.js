@@ -309,7 +309,13 @@ lively.morphic.Morph.addMethods(
 },
 'removing', {
     removeHTML: function(ctx) {
-        this.owner && this.owner.removeMorph(this);
+        if (this.owner) {
+            this.owner.removeMorph(this);
+            if (this.owner.submorphs.length == 0) {
+                var on = this.owner.renderContext().originNode;
+                if (on) return this.owner.renderContext().removeNode(on);
+            }
+        }
         ctx.removeNode(ctx.morphNode);
     },
 },

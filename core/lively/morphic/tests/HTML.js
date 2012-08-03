@@ -73,7 +73,16 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.ClipMode',
             tagName: 'div',
             childNodes: [{tagName: 'div', style: {"overflow-x": 'scroll', "overflow-y": 'visible'}}]
         }, this.morph);
-    }
+    },
+
+    test05ClippingNode: function() {
+        this.morph.setClipMode('hidden');
+        this.assertDOMState({tagName: 'div',
+            childNodes: [{tagName: 'div', 
+                childNodes: [{tagName: 'div'}]
+            }]
+        }, this.morph);
+    },
 
 });
 

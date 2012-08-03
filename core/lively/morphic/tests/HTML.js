@@ -75,7 +75,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.ClipMode',
         }, this.morph);
     },
 
-    test05ClippingNode: function() {
+    test05RemoveClippingNodeAfterRemoveMorph: function() {
         var z = lively.morphic.Morph.makeRectangle(rect(0,0,10,10));
         this.morph.addMorph(z);
         z.remove();

@@ -11,6 +11,9 @@ Object.subclass('lively.Closure',
 'settings', {
     isLivelyClosure: true
 },
+'serialization', {
+    doNotSerialize: ['originalFunc']
+},
 'initializing', {
     initialize: function(func, varMapping, source, funcProperties) {
         this.originalFunc = func;

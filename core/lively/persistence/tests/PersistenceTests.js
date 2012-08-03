@@ -323,6 +323,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         var obj = {foo: function() { return 23 }.asScript()};
         var copy = this.serializer.copy(obj);
         this.assertEquals(23, copy.foo());
+        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
         (function() { return 42 }).asScriptOf(obj, 'foo');
         var copy2 = this.serializer.copy(obj);
         this.assertEquals(42, copy2.foo(), 'copy 2 deserialized wrong function');
@@ -358,6 +359,16 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
 
         this.assert(obj2Copy.o !== undefined, "weak ref was not serialized");
     },
+    testSerializeDependendConnections: function() {
+        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        var m1 = new lively.morphic.Morph();
+        var m2 = new lively.morphic.Morph();
+        lively.bindings.connect(m1, 'rotation', m2, 'setRotation');
+        var oldCount = m1.attributeConnections[0].dependendConnections.length;
+        var copy = this.serializer.copy(m1);
+        var newCount = copy.attributeConnections[0].dependendConnections.length;
+        this.assertEquals(oldCount, newCount, 'serialization adds additional dependent connection');
+    }
 });
 
 TestCase.subclass('lively.persistence.tests.PersistenceTests.RestoreTest',
@@ -494,16 +505,16 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.PrototypeInstanceSe
 
     testDontSerializeConstructorForSimpleObjects: function() {
         var obj = {};
-        this.serializer.serialize(obj);
-        var serialized = this.serializer.getRegisteredObjectFromId(0);
+        var id = this.serializer.serializeToJso(obj).id;
+        var serialized = this.serializer.getRegisteredObjectFromId(id);
         this.assert(!serialized[this.plugin.constructorProperty],
                     'serialized constr for simple obj');
     },
 
     testDontSerializeLivelyClass: function() {
         var obj = pt(3,2);;
-        this.serializer.serialize(obj);
-        var serialized = this.serializer.getRegisteredObjectFromId(0);
+        var id = this.serializer.serializeToJso(obj).id;
+        var serialized = this.serializer.getRegisteredObjectFromId(id);
         this.assert(!serialized[this.plugin.constructorProperty],
                     'serialized constr for Lively Point');
     }

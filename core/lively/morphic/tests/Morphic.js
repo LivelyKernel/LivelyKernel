@@ -325,7 +325,7 @@ this. openMorphsInRealWorld()
         this.assert(!m.hasOwnProperty("_Rotation"), 'new morph has no rotation initially');
         this.assertEquals(0, m.getRotation(), 'new morph has no rotation initially');
         o.addMorph(m); // same owner
-        this.assert(m.hasOwnProperty("_Rotation"), 'has still no rotation after adding');
+        this.assert(!m.hasOwnProperty("_Rotation"), 'has still no rotation after adding');
         this.assertEquals(0, m.getRotation(), 'has still no rotation after adding');
     },
     

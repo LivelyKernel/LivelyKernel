@@ -311,8 +311,8 @@ lively.morphic.Morph.addMethods(
     removeHTML: function(ctx) {
         if (this.owner) {
             var owner = this.owner;
-            this.owner.removeMorph(this);
-            if (owner.submorphs.length == 1) {
+            owner.removeMorph(this);
+            if (owner.submorphs.length == 0) {
                 var on = owner.renderContext().originNode;
                 if (on) return owner.renderContext().removeNode(on);
             }

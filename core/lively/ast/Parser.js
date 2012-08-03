@@ -50,13 +50,15 @@ Object.extend(lively.ast.Parser, {
     basicParse: function(source, rule) {
         // first call the LKJSParser. this will result in a synbolic AST tree.
         // translate this into real AST objects using JSTranslator
-        var errorHandler = function() { throw $A(arguments) };
-        var intermediate = OMetaSupport.matchAllWithGrammar(this.jsParser, rule, source, errorHandler);
-        if (!intermediate || Object.isString(intermediate))
+        var errorHandler = function() { throw $A(arguments) },
+            intermediate = OMetaSupport.matchAllWithGrammar(this.jsParser, rule, source, errorHandler);
+        if (!intermediate || Object.isString(intermediate)) {
             throw [source, rule, 'Could not parse JS source code', 0, intermediate];
+        }
         var ast = OMetaSupport.matchWithGrammar(this.astTranslator, 'trans', intermediate);
-        if (!ast || Object.isString(ast))
+        if (!ast || Object.isString(ast)) {
             throw [source, rule, 'Could not translate symbolic AST tree', 0, intermediate, ast];
+        }
         return ast;
     },
 
@@ -970,6 +972,38 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
             },
         },
     },
+    jsonGetter: {
+        className: 'ObjPropertyGet', rules: [':pos', ':name', 'trans:body'],
+        debugging: {
+            printConstruction: function() { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.body) },
+      toString: function() {
+          return Strings.format(
+              '%s(%s() { %s })',
+              this.constructor.name, this.name, this.body) },
+        },
+        conversion: {
+            asJS: function(depth) {
+                return Strings.format('get "%s"() { %s }', this.name, this.body.asJS(depth));
+            },
+        },
+    },
+    jsonSetter: {
+        className: 'ObjPropertySet', rules: [':pos', ':name', 'trans:body', ':arg'],
+        debugging: {
+            printConstruction: function() { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.body, this.arg) },
+      toString: function() {
+          return Strings.format(
+              '%s(%s(%s) { %s })',
+              this.constructor.name, this.name, this.arg, this.body) },
+        },
+        conversion: {
+            asJS: function(depth) {
+                return Strings.format('set "%s"(%s) { %s }', this.name, this.arg, this.body.asJS(depth));
+            },
+        },
+    },
+
+
     'switch': {
         className: 'Switch', rules: [':pos', 'trans:expr', 'trans*:cases'],
         debugging: {
@@ -1169,7 +1203,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
         categories.push(this.visitingCategoryForNode(ruleSpec));
 
         var body = categories.join(','),
-        def = Strings.format('%s.subclass(\'%s\', %s)', superclassName, className, body);
+        def = Strings.format('%s.subclass(\'%s\',%s)', superclassName, className, body);
 
         return def
     },
@@ -1247,10 +1281,11 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
     },
 
     visitingCategoryForNode: function(ruleSpec) {
-        var category = '\'visiting\', {\n\taccept: function(visitor) {\n';
-        category += '\t\treturn visitor.visit' + ruleSpec.className + '(this);';
-        category += '\n\t},\n}';
-        return category;
+        return "\n'visiting', {\n"
+             + "    accept: function(visitor) {\n"
+             + "        return visitor.visit" + ruleSpec.className + "(this);\n"
+             + "    }\n"
+             + " }";
     },
 
 });

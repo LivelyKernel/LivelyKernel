@@ -1,7 +1,7 @@
 module('lively.ast.generated.Nodes').requires().toRun(function() {
 Object.subclass('lively.ast.Node');
 
-lively.ast.Node.subclass('lively.ast.Sequence', 
+lively.ast.Node.subclass('lively.ast.Sequence',
 'testing', {
 	isSequence: true,
 },
@@ -61,13 +61,14 @@ lively.ast.Node.subclass('lively.ast.Sequence',
 	isComposite: function () {
                 return true;
             },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitSequence(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitSequence(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Number', 
+lively.ast.Node.subclass('lively.ast.Number',
 'testing', {
 	isNumber: true,
 },
@@ -84,13 +85,14 @@ lively.ast.Node.subclass('lively.ast.Number',
 },
 'conversion', {
 	asJS: function (depth) { return this.value },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitNumber(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitNumber(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.String', 
+lively.ast.Node.subclass('lively.ast.String',
 'testing', {
 	isString: true,
 },
@@ -107,13 +109,14 @@ lively.ast.Node.subclass('lively.ast.String',
 },
 'conversion', {
 	asJS: function (depth) { return '"' + this.value + '"' },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitString(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitString(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Cond', 
+lively.ast.Node.subclass('lively.ast.Cond',
 'testing', {
 	isCond: true,
 },
@@ -140,13 +143,14 @@ lively.ast.Node.subclass('lively.ast.Cond',
                     '(%s) ? (%s) : (%s)',
                     this.condExpr.asJS(depth), this.trueExpr.asJS(depth), this.falseExpr.asJS(depth));
             },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitCond(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitCond(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.If', 
+lively.ast.Node.subclass('lively.ast.If',
 'testing', {
 	isIf: true,
 },
@@ -188,13 +192,14 @@ lively.ast.Node.subclass('lively.ast.If',
                 return node === this.condExpr ? this.trueExpr : $super(this);
             },
 	isComposite: function () { return true; },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitIf(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitIf(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.While', 
+lively.ast.Node.subclass('lively.ast.While',
 'testing', {
 	isWhile: true,
 },
@@ -236,13 +241,14 @@ lively.ast.Node.subclass('lively.ast.While',
 	isComposite: function () {
                 return true;
             },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitWhile(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitWhile(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.DoWhile', 
+lively.ast.Node.subclass('lively.ast.DoWhile',
 'testing', {
 	isDoWhile: true,
 },
@@ -284,13 +290,14 @@ lively.ast.Node.subclass('lively.ast.DoWhile',
 	isComposite: function () {
                 return true;
             },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitDoWhile(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitDoWhile(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.For', 
+lively.ast.Node.subclass('lively.ast.For',
 'testing', {
 	isFor: true,
 },
@@ -338,13 +345,14 @@ lively.ast.Node.subclass('lively.ast.For',
 	isComposite: function () {
                 return true;
             },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitFor(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitFor(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.ForIn', 
+lively.ast.Node.subclass('lively.ast.ForIn',
 'testing', {
 	isForIn: true,
 },
@@ -373,13 +381,14 @@ lively.ast.Node.subclass('lively.ast.ForIn',
                     'for (var %s in %s) {%s}',
                     this.name.asJS(depth), this.obj.asJS(depth), this.body.asJS(depth));
             },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitForIn(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitForIn(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Set', 
+lively.ast.Node.subclass('lively.ast.Set',
 'testing', {
 	isSet: true,
 },
@@ -400,13 +409,14 @@ lively.ast.Node.subclass('lively.ast.Set',
 },
 'conversion', {
 	asJS: function (depth) { return this.left.asJS(depth) + ' = ' + this.right.asJS(depth) },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitSet(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitSet(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.ModifyingSet', 
+lively.ast.Node.subclass('lively.ast.ModifyingSet',
 'testing', {
 	isModifyingSet: true,
 },
@@ -428,13 +438,14 @@ lively.ast.Node.subclass('lively.ast.ModifyingSet',
 },
 'conversion', {
 	asJS: function (depth) { return this.left.asJS(depth) + ' ' + this.name + '= ' + this.right.asJS(depth) },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitModifyingSet(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitModifyingSet(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.BinaryOp', 
+lively.ast.Node.subclass('lively.ast.BinaryOp',
 'testing', {
 	isBinaryOp: true,
 },
@@ -456,13 +467,14 @@ lively.ast.Node.subclass('lively.ast.BinaryOp',
 },
 'conversion', {
 	asJS: function (depth) { return this.left.asJS(depth) + ' ' + this.name + ' ' + this.right.asJS(depth) },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitBinaryOp(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitBinaryOp(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.UnaryOp', 
+lively.ast.Node.subclass('lively.ast.UnaryOp',
 'testing', {
 	isUnaryOp: true,
 },
@@ -482,13 +494,14 @@ lively.ast.Node.subclass('lively.ast.UnaryOp',
 },
 'conversion', {
 	asJS: function (depth) { return this.name + this.expr.asJS(depth) },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitUnaryOp(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitUnaryOp(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.PreOp', 
+lively.ast.Node.subclass('lively.ast.PreOp',
 'testing', {
 	isPreOp: true,
 },
@@ -508,13 +521,14 @@ lively.ast.Node.subclass('lively.ast.PreOp',
 },
 'conversion', {
 	asJS: function (depth) { return this.name + this.expr.asJS(depth) },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitPreOp(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitPreOp(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.PostOp', 
+lively.ast.Node.subclass('lively.ast.PostOp',
 'testing', {
 	isPostOp: true,
 },
@@ -534,13 +548,14 @@ lively.ast.Node.subclass('lively.ast.PostOp',
 },
 'conversion', {
 	asJS: function (depth) { return this.expr.asJS(depth) + this.name },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitPostOp(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitPostOp(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.This', 
+lively.ast.Node.subclass('lively.ast.This',
 'testing', {
 	isThis: true,
 },
@@ -556,13 +571,14 @@ lively.ast.Node.subclass('lively.ast.This',
 },
 'conversion', {
 	asJS: function (depth) { return 'this' },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitThis(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitThis(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Variable', 
+lively.ast.Node.subclass('lively.ast.Variable',
 'testing', {
 	isVariable: true,
 },
@@ -581,13 +597,14 @@ lively.ast.Node.subclass('lively.ast.Variable',
 },
 'conversion', {
 	asJS: function (depth) { return this.name },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitVariable(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitVariable(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.GetSlot', 
+lively.ast.Node.subclass('lively.ast.GetSlot',
 'testing', {
 	isGetSlot: true,
 },
@@ -612,13 +629,14 @@ lively.ast.Node.subclass('lively.ast.GetSlot',
                 if (this.obj.isFunction) objJS = '(' + objJS + ')';
                 return objJS + '[' + this.slotName.asJS(depth) + ']';
             },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitGetSlot(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitGetSlot(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Break', 
+lively.ast.Node.subclass('lively.ast.Break',
 'testing', {
 	isBreak: true,
 },
@@ -633,13 +651,14 @@ lively.ast.Node.subclass('lively.ast.Break',
 },
 'conversion', {
 	asJS: function (depth) { return 'break' },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitBreak(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitBreak(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Debugger', 
+lively.ast.Node.subclass('lively.ast.Debugger',
 'testing', {
 	isDebugger: true,
 },
@@ -654,13 +673,14 @@ lively.ast.Node.subclass('lively.ast.Debugger',
 },
 'conversion', {
 	asJS: function (depth) { return 'debugger' },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitDebugger(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitDebugger(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Continue', 
+lively.ast.Node.subclass('lively.ast.Continue',
 'testing', {
 	isContinue: true,
 },
@@ -675,13 +695,14 @@ lively.ast.Node.subclass('lively.ast.Continue',
 },
 'conversion', {
 	asJS: function (depth) { return 'continue' },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitContinue(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitContinue(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.ArrayLiteral', 
+lively.ast.Node.subclass('lively.ast.ArrayLiteral',
 'testing', {
 	isArrayLiteral: true,
 },
@@ -700,13 +721,14 @@ lively.ast.Node.subclass('lively.ast.ArrayLiteral',
 },
 'conversion', {
 	asJS: function (depth) { return '[' + this.elements.invoke('asJS').join(',') + ']' },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitArrayLiteral(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitArrayLiteral(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Return', 
+lively.ast.Node.subclass('lively.ast.Return',
 'testing', {
 	isReturn: true,
 },
@@ -725,13 +747,14 @@ lively.ast.Node.subclass('lively.ast.Return',
 },
 'conversion', {
 	asJS: function (depth) { return 'return ' + this.expr.asJS(depth) },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitReturn(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitReturn(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.With', 
+lively.ast.Node.subclass('lively.ast.With',
 'testing', {
 	isWith: true,
 },
@@ -752,13 +775,14 @@ lively.ast.Node.subclass('lively.ast.With',
 },
 'conversion', {
 	asJS: function (depth) { return 'with (' + this.obj.asJS(depth) + ') {' + this.body.asJS(depth) + '}' },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitWith(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitWith(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Send', 
+lively.ast.Node.subclass('lively.ast.Send',
 'testing', {
 	isSend: true,
 },
@@ -793,13 +817,14 @@ lively.ast.Node.subclass('lively.ast.Send',
 },
 'accessing', {
 	getName: function () { return this.property },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitSend(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitSend(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Call', 
+lively.ast.Node.subclass('lively.ast.Call',
 'testing', {
 	isCall: true,
 },
@@ -826,13 +851,14 @@ lively.ast.Node.subclass('lively.ast.Call',
 },
 'accessing', {
 	getName: function () { return this.fn.name },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitCall(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitCall(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.New', 
+lively.ast.Node.subclass('lively.ast.New',
 'testing', {
 	isNew: true,
 },
@@ -853,13 +879,14 @@ lively.ast.Node.subclass('lively.ast.New',
 	asJS: function (depth) {
                 return 'new ' + this.clsExpr.asJS(depth);
             },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitNew(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitNew(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.VarDeclaration', 
+lively.ast.Node.subclass('lively.ast.VarDeclaration',
 'testing', {
 	isVarDeclaration: true,
 },
@@ -881,13 +908,14 @@ lively.ast.Node.subclass('lively.ast.VarDeclaration',
 	asJS: function (depth) {
                 return Strings.format('var %s = %s', this.name, this.val.asJS(depth));
             },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitVarDeclaration(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitVarDeclaration(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Throw', 
+lively.ast.Node.subclass('lively.ast.Throw',
 'testing', {
 	isThrow: true,
 },
@@ -908,13 +936,14 @@ lively.ast.Node.subclass('lively.ast.Throw',
 },
 'conversion', {
 	asJS: function (depth) { return 'throw ' + this.expr.asJS(depth) },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitThrow(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitThrow(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.TryCatchFinally', 
+lively.ast.Node.subclass('lively.ast.TryCatchFinally',
 'testing', {
 	isTryCatchFinally: true,
 },
@@ -951,13 +980,14 @@ lively.ast.Node.subclass('lively.ast.TryCatchFinally',
                     str += ' finally {\n' + indent + this.finallySeq.asJS(depth) + '\n' + baseIndent + '}';
                 return str;
             },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitTryCatchFinally(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitTryCatchFinally(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Function', 
+lively.ast.Node.subclass('lively.ast.Function',
 'testing', {
 	isFunction: true,
 },
@@ -1000,13 +1030,19 @@ lively.ast.Node.subclass('lively.ast.Function',
 	firstStatement: function () { return this.body.firstStatement(); },
 	nextStatement: function (node) { return null; },
 	isComposite: function () { return true; },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitFunction(this);
-	},
-})
+},
+'evaluation', {
+	eval: function () {
+                return new Function(this.argNames().join(","), this.body.asJS());
+            },
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitFunction(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.ObjectLiteral', 
+lively.ast.Node.subclass('lively.ast.ObjectLiteral',
 'testing', {
 	isObjectLiteral: true,
 },
@@ -1029,13 +1065,14 @@ lively.ast.Node.subclass('lively.ast.ObjectLiteral',
 	asJS: function (depth) {
                 return '{' + this.properties.invoke('asJS').join(',') + '}';
             },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitObjectLiteral(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitObjectLiteral(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.ObjProperty', 
+lively.ast.Node.subclass('lively.ast.ObjProperty',
 'testing', {
 	isObjProperty: true,
 },
@@ -1058,13 +1095,14 @@ lively.ast.Node.subclass('lively.ast.ObjProperty',
 	asJS: function (depth) {
                 return Strings.format('"%s": %s', this.name, this.property.asJS(depth));
             },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitObjProperty(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitObjProperty(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Switch', 
+lively.ast.Node.subclass('lively.ast.Switch',
 'testing', {
 	isSwitch: true,
 },
@@ -1087,13 +1125,14 @@ lively.ast.Node.subclass('lively.ast.Switch',
                 return Strings.format('switch (%s) {%s}',
                                       this.expr.asJS(depth), this.cases.invoke('asJS').join('\n'));
             },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitSwitch(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitSwitch(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Case', 
+lively.ast.Node.subclass('lively.ast.Case',
 'testing', {
 	isCase: true,
 },
@@ -1117,13 +1156,14 @@ lively.ast.Node.subclass('lively.ast.Case',
 	asJS: function (depth) {
                 return 'case ' + this.condExpr.asJS(depth) + ': ' + this.thenExpr.asJS(depth);
             },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitCase(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitCase(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Default', 
+lively.ast.Node.subclass('lively.ast.Default',
 'testing', {
 	isDefault: true,
 },
@@ -1142,13 +1182,14 @@ lively.ast.Node.subclass('lively.ast.Default',
 },
 'conversion', {
 	asJS: function (depth) { return 'default: ' + this.defaultExpr.asJS(depth) },
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitDefault(this);
-	},
-})
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitDefault(this);
+    }
+ })
 
-lively.ast.Node.subclass('lively.ast.Regex', 
+lively.ast.Node.subclass('lively.ast.Regex',
 'testing', {
 	isRegex: true,
 },
@@ -1166,11 +1207,73 @@ lively.ast.Node.subclass('lively.ast.Regex',
 },
 'conversion', {
 	asJS: function (depth) { return '/' + this.exprString + '/' + this.flags},
-},'visiting', {
-	accept: function(visitor) {
-		return visitor.visitRegex(this);
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitRegex(this);
+    }
+ })
+
+lively.ast.Node.subclass('lively.ast.ObjPropertyGet',
+'testing', {
+	isObjPropertyGet: true,
+},
+'initializing', {
+	initialize: function($super, pos, name, body) {
+		this.pos = pos;
+		this.name = name;
+		this.body = body;
+		body.setParent(this);
 	},
-})
+},
+'debugging', {
+	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.body) },
+	toString: function () {
+          return Strings.format(
+              '%s(%s() { %s })',
+              this.constructor.name, this.name, this.body) },
+},
+'conversion', {
+	asJS: function (depth) {
+                return Strings.format('get "%s"() { %s }', this.name, this.body.asJS(depth));
+            },
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitObjPropertyGet(this);
+    }
+ })
+
+lively.ast.Node.subclass('lively.ast.ObjPropertySet',
+'testing', {
+	isObjPropertySet: true,
+},
+'initializing', {
+	initialize: function($super, pos, name, body, arg) {
+		this.pos = pos;
+		this.name = name;
+		this.body = body;
+		this.arg = arg;
+		body.setParent(this);
+	},
+},
+'debugging', {
+	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.body, this.arg) },
+	toString: function () {
+          return Strings.format(
+              '%s(%s(%s) { %s })',
+              this.constructor.name, this.name, this.arg, this.body) },
+},
+'conversion', {
+	asJS: function (depth) {
+                return Strings.format('set "%s"(%s) { %s }', this.name, this.arg, this.body.asJS(depth));
+            },
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitObjPropertySet(this);
+    }
+ })
 Object.subclass('lively.ast.Visitor', 
 'visiting', {
 	visit: function(node) { return node.accept(this) },
@@ -1211,6 +1314,8 @@ Object.subclass('lively.ast.Visitor',
 	visitCase: function(node) {},
 	visitDefault: function(node) {},
 	visitRegex: function(node) {},
+	visitObjPropertyGet: function(node) {},
+	visitObjPropertySet: function(node) {},
 
 })
 });

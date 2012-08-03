@@ -177,7 +177,10 @@ Object.subclass('ObjectGraphLinearizer',
         this.copyDepth++;
         var copy = {},
             source = this.somePlugin('serializeObj', [obj, copy]) || obj;
-        for (var key in source) {
+        // go through references in alphabetical order
+        var keys = Object.keys(source).sort();
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
             if (!source.hasOwnProperty(key) || (key === this.idProperty && !this.keepIds)) continue;
             var value = source[key];
             if (this.somePlugin('ignoreProp', [source, key, value])) continue;

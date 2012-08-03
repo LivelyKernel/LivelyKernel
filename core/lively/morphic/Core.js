@@ -240,11 +240,12 @@ Object.subclass('lively.morphic.Morph',
             return;
         }
 
+        if (morph.owner) {
+            var tfm = morph.transformForNewOwner(this);
+            morph.remove();
+        }
+
         if (morph.owner !== this) {
-            if (morph.owner) {
-                var tfm = morph.transformForNewOwner(this);
-                morph.remove();
-            }
             morph.owner = this;
         }
 

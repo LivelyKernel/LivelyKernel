@@ -310,10 +310,11 @@ lively.morphic.Morph.addMethods(
 'removing', {
     removeHTML: function(ctx) {
         if (this.owner) {
+            var owner = this.owner;
             this.owner.removeMorph(this);
-            if (this.owner.submorphs.length == 0) {
-                var on = this.owner.renderContext().originNode;
-                if (on) return this.owner.renderContext().removeNode(on);
+            if (owner.submorphs.length == 1) {
+                var on = owner.renderContext().originNode;
+                if (on) return owner.renderContext().removeNode(on);
             }
         }
         ctx.removeNode(ctx.morphNode);

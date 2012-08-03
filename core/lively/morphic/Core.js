@@ -240,12 +240,13 @@ Object.subclass('lively.morphic.Morph',
             return;
         }
 
-        if (morph.owner) {
-            var tfm = morph.transformForNewOwner(this);
-            morph.remove();
+        if (morph.owner !== this) {
+            if (morph.owner) {
+                var tfm = morph.transformForNewOwner(this);
+                morph.remove();
+            }
+            morph.owner = this;
         }
-
-        if (morph.owner !== this) morph.owner = this;
 
         var indexToInsert = optMorphBefore && this.submorphs.indexOf(optMorphBefore);
         if (indexToInsert === undefined || indexToInsert < 0)

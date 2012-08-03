@@ -52,13 +52,13 @@ TestCase.subclass('lively.morphic.tests.TestCase',
     assertDOMState: function(expected, morph, msg) {
         this.assertNodeMatches(expected, morph.renderContext().getMorphNode(), msg);
     },
-    assertNodeMatches: function(expected, node) {
+    assertNodeMatches: function(expected, node, ignoreParent) {
         var self = this,
             fail = function fail(msg) { self.assert(false, msg) };
         if (!expected) fail('expected is null');
         if (!node) fail('node is null but should be ' + expected.tagName);
         if (expected.tagName != node.tagName) fail(expected.tagName + '!=' + node.tagName);
-        if (expected.parentNode && (expected.parentNode !== node.parentNode))
+        if (!ignoreParent && expected.parentNode && (expected.parentNode !== node.parentNode))
             fail('parent is ' + node.parentNode + ' but should be ' + expected.parentNode);
 
         if (expected.textContent) {

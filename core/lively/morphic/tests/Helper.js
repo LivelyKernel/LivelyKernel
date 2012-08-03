@@ -87,19 +87,28 @@ TestCase.subclass('lively.morphic.tests.TestCase',
             }
         }
         if (expected.style)
-            Properties.forEachOwn(expected.style, function(key, expected) {
-                // cs: An undeclared style attribute just returns an empty
-                // string. See: http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSStyleDeclaration-getPropertyValue
-                var actualValue = node.style[key].replace(/ /g, '');
-                if (Object.isFunction(expected)) {
-                    self.assert(expected.call(self, actualValue)
-                               , 'value ' + actualValue + ' did no match');
-                    return;
+            if (expected instanceof Element) {
+                for (var i = 0; i < expected.style.length; i++) {
+                    var propName = expected.style.item(i);
+                    this.assertEquals(expected.style.getPropertyValue(propName),
+                                      node.style.getPropertyValue(propName));
                 }
-                if (expected != actualValue) {
-                    fail('style ' + key + ' not ' + expected + ' but ' + actualValue);
-                }
-            });
+            } else {
+                Properties.forEachOwn(expected.style, function(key, expected) {
+                    // cs: An undeclared style attribute just returns an empty
+                    // string.
+                    // See: http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSStyleDeclaration-getPropertyValue
+                    var actualValue = node.style[key].replace(/ /g, '');
+                    if (Object.isFunction(expected)) {
+                        self.assert(expected.call(self, actualValue)
+                                   , 'value ' + actualValue + ' did no match');
+                        return;
+                    }
+                    if (expected != actualValue) {
+                        fail('style ' + key + ' not ' + expected + ' but ' + actualValue);
+                    }
+                });
+            }
         if (expected.childNodeLength)
             this.assertEquals(expected.childNodeLength, node.childNodes.length, 'childNode.length of ' + node);
         if (expected.childNodes) {

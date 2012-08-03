@@ -66,18 +66,26 @@ TestCase.subclass('lively.morphic.tests.TestCase',
                 fail('textContent ' + expected.textContent + ' != ' + node.textContent);
         }
 
-        if (expected.attributes)
-            Properties.forEachOwn(expected.attributes, function(key, expectedValue) {
-                var actualValue = node.getAttribute(key);
-                if (expectedValue instanceof RegExp) {
-                    if (!expectedValue.test(actualValue))
-                        fail('attribute ' + key + ' was ' + actualValue + ' and didn\'t match ' + expectedValue);
-                    return
+        if (expected.attributes) {
+            if (expected instanceof Element) {
+                for (var i = 0; i < expected.attributes.length; i++) {
+                    var attribute = expected.attributes[i];
+                    this.assert(attribute.isEqualNode(node.getAttribute(attribute.nodeName)));
                 }
-                if (expectedValue != actualValue) {
-                    fail('attribute ' + key + ' not ' + expectedValue + ' but ' + actualValue);
-                }
-            });
+            } else {
+                Properties.forEachOwn(expected.attributes, function(key, expectedValue) {
+                    var actualValue = node.getAttribute(key);
+                    if (expectedValue instanceof RegExp) {
+                        if (!expectedValue.test(actualValue))
+                            fail('attribute ' + key + ' was ' + actualValue + ' and didn\'t match ' + expectedValue);
+                        return
+                    }
+                    if (expectedValue != actualValue) {
+                        fail('attribute ' + key + ' not ' + expectedValue + ' but ' + actualValue);
+                    }
+                });
+            }
+        }
         if (expected.style)
             Properties.forEachOwn(expected.style, function(key, expected) {
                 // cs: An undeclared style attribute just returns an empty

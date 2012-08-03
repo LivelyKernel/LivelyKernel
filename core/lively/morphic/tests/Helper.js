@@ -115,7 +115,7 @@ TestCase.subclass('lively.morphic.tests.TestCase',
             this.assertEquals(expected.childNodes.length, node.childNodes.length,
                               'childNode.length of ' + node);
             for (var i = 0; i < expected.childNodes.length; i++)
-                this.assertNodeMatches(expected.childNodes[i], node.childNodes[i]);
+                this.assertNodeMatches(expected.childNodes[i], node.childNodes[i], ignoreParent);
         }
     },
 

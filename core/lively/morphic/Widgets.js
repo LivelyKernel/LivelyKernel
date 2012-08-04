@@ -2618,7 +2618,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             items.push(["group", this.makeGroup.bind(this)]);
         }
 
-        // items.push(["align to grid...", this.alignToGrid.bind(this)]);
+        items.push(["align to grid...", this.alignToGrid.bind(this)]);
 
         return items;
     },
@@ -2791,6 +2791,12 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             x += m.innerBounds().width + separation;
         });
     },
+    alignToGrid: function() {
+        this.selectedMorphs.forEach(function(ea) {
+            ea.setPosition(ea.getPosition().roundTo(10));
+        });
+    }
+
 },
 'grabbing', {
     grabByHand: function(hand) {

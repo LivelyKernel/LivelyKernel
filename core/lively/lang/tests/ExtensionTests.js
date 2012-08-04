@@ -126,7 +126,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertiesTest',
     }
 });
 
-TestCase.subclass('lively.lang.tests.ExtensionTests.IntervallTest', {
+TestCase.subclass('lively.lang.tests.ExtensionTests.IntervalTest', {
 
     testIsInterval: function() {
         this.assert(Interval.isInterval([1,2]));
@@ -189,6 +189,10 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.IntervallTest', {
             function(a, b, merged) { merged.push(a[2] + b[2]) });
         this.assertEqualState([[1,5, 'ab'], [8, 10, 'c']], result);
     },
+    testMergeIdenticalIntervallsTest: function() {
+        this.assertEqualState([[1,3]], Interval.mergeOverlapping([[1,3], [1, 3]]));
+    },
+
 
     testFindFreeIntervalsInbetween: function() {
         this.assertEqualState([[0,10]], Interval.intervalsInbetween(0, 10, []));
@@ -201,7 +205,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.IntervallTest', {
         this.assertEqualState([], Interval.intervalsInbetween(0, 5, [[0, 6]]));
     },
 
-    testWithIntervallsInbetween: function() {
+    testWithIntervalsInRangeDo: function() {
         this.assertEqualState(
             [[0,2, false], [2,3, true], [3,5, false], [5,8, true], [8,10, false]],
             Interval.intervalsInRangeDo(
@@ -221,6 +225,14 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.IntervallTest', {
                 1, 5, [[-4,0, 'y'], [0, 2, 'x']],
                 function(interval, isNew) { interval.push(isNew); return interval; }),
             "slice interval in front");
+
+        this.assertEqualState(
+            [[0,1, 'ab'], [1,2, 'c']],
+            Interval.intervalsInRangeDo(
+                0, 2, [[0,1, 'a'], [0,1, 'b'], [1,2, 'c']],
+                function(interval, isNew) { return interval; },
+                function(a, b, merged) { merged[2] = a[2] + b[2] }),
+            "identical intervals not merged");
     },
 
     testFindMatchingIntervalsDo: function() {

@@ -105,7 +105,7 @@ var Enumerable = {
     },
 
     max: function(iterator, context) {
-        iterator = iterator ? iterator.bind(context) : Prototype.K;
+        iterator = iterator ? iterator.bind(context) : Functions.K;
         var result;
         this.each(function(value, index) {
             value = iterator(value, index);
@@ -520,7 +520,7 @@ var Interval = {
         return this.sort(condensed);
     },
 
-    intervalsInRangeDo: function(start, end, intervals, iterator, context) {
+    intervalsInRangeDo: function(start, end, intervals, iterator, mergeFunc, context) {
         /*
          * merges and iterates through sorted intervals. Will "fill up" intervals, example:
            Strings.print(Interval.intervalsInRangeDo(
@@ -530,7 +530,8 @@ var Interval = {
          * this is currently used for computing text chunks in lively.morphic.TextCore
          */
         context = context || Global;
-        intervals = this.sort(intervals); // need to be sorted for the algorithm below
+        // need to be sorted for the algorithm below
+        intervals = this.sort(intervals);
         var free = [], nextInterval, collected = [];
         // merged intervals are already sorted, simply "negate" the interval array;
         while ((nextInterval = intervals.shift())) {
@@ -547,7 +548,17 @@ var Interval = {
                 nextInterval = nextInterval.clone();
                 nextInterval[1] = end;
             }
-            collected.push(iterator.call(context, nextInterval, false));
+            // special case, the newly constructed interval has length 0,
+            // happens when intervals contains doubles at the start
+            if (nextInterval[0] === nextInterval[1]) {
+                var prevInterval;
+                if (mergeFunc && (prevInterval = collected.last())) {
+                    // arguments: a, b, merged, like in the callback of #merge
+                    mergeFunc.call(context, prevInterval, nextInterval, prevInterval);
+                }
+            } else {
+                collected.push(iterator.call(context, nextInterval, false));
+            }
             start = nextInterval[1];
             if (start >= end) break;
         }

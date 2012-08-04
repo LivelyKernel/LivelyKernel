@@ -52,13 +52,13 @@ TestCase.subclass('lively.morphic.tests.TestCase',
     assertDOMState: function(expected, morph, msg) {
         this.assertNodeMatches(expected, morph.renderContext().getMorphNode(), msg);
     },
-    assertNodeMatches: function(expected, node) {
+    assertNodeMatches: function(expected, node, ignoreParent) {
         var self = this,
             fail = function fail(msg) { self.assert(false, msg) };
         if (!expected) fail('expected is null');
         if (!node) fail('node is null but should be ' + expected.tagName);
         if (expected.tagName != node.tagName) fail(expected.tagName + '!=' + node.tagName);
-        if (expected.parentNode && (expected.parentNode !== node.parentNode))
+        if (!ignoreParent && expected.parentNode && (expected.parentNode !== node.parentNode))
             fail('parent is ' + node.parentNode + ' but should be ' + expected.parentNode);
 
         if (expected.textContent) {
@@ -66,39 +66,57 @@ TestCase.subclass('lively.morphic.tests.TestCase',
                 fail('textContent ' + expected.textContent + ' != ' + node.textContent);
         }
 
-        if (expected.attributes)
-            Properties.forEachOwn(expected.attributes, function(key, expectedValue) {
-                var actualValue = node.getAttribute(key);
-                if (expectedValue instanceof RegExp) {
-                    if (!expectedValue.test(actualValue))
-                        fail('attribute ' + key + ' was ' + actualValue + ' and didn\'t match ' + expectedValue);
-                    return
+        if (expected.attributes) {
+            if (expected instanceof Element) {
+                for (var i = 0; i < expected.attributes.length; i++) {
+                    var attribute = expected.attributes[i];
+                    if (attribute.nodeName != "style")
+                        this.assertEquals(attribute.nodeValue, node.getAttribute(attribute.nodeName));
                 }
-                if (expectedValue != actualValue) {
-                    fail('attribute ' + key + ' not ' + expectedValue + ' but ' + actualValue);
-                }
-            });
+            } else {
+                Properties.forEachOwn(expected.attributes, function(key, expectedValue) {
+                    var actualValue = node.getAttribute(key);
+                    if (expectedValue instanceof RegExp) {
+                        if (!expectedValue.test(actualValue))
+                            fail('attribute ' + key + ' was ' + actualValue + ' and didn\'t match ' + expectedValue);
+                        return
+                    }
+                    if (expectedValue != actualValue) {
+                        fail('attribute ' + key + ' not ' + expectedValue + ' but ' + actualValue);
+                    }
+                });
+            }
+        }
         if (expected.style)
-            Properties.forEachOwn(expected.style, function(key, expected) {
-                // cs: An undeclared style attribute just returns an empty
-                // string. See: http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSStyleDeclaration-getPropertyValue
-                var actualValue = node.style[key].replace(/ /g, '');
-                if (Object.isFunction(expected)) {
-                    self.assert(expected.call(self, actualValue)
-                               , 'value ' + actualValue + ' did no match');
-                    return;
+            if (expected instanceof Element) {
+                for (var i = 0; i < expected.style.length; i++) {
+                    var propName = expected.style.item(i);
+                    this.assertEquals(expected.style.getPropertyValue(propName),
+                                      node.style.getPropertyValue(propName));
                 }
-                if (expected != actualValue) {
-                    fail('style ' + key + ' not ' + expected + ' but ' + actualValue);
-                }
-            });
+            } else {
+                Properties.forEachOwn(expected.style, function(key, expected) {
+                    // cs: An undeclared style attribute just returns an empty
+                    // string.
+                    // See: http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSStyleDeclaration-getPropertyValue
+                    var actualValue = node.style[key].replace(/ /g, '');
+                    if (Object.isFunction(expected)) {
+                        self.assert(expected.call(self, actualValue)
+                                   , 'value ' + actualValue + ' did no match');
+                        return;
+                    }
+                    if (expected != actualValue) {
+                        fail('style ' + key + ' not ' + expected + ' but ' + actualValue);
+                    }
+                });
+            }
         if (expected.childNodeLength)
             this.assertEquals(expected.childNodeLength, node.childNodes.length, 'childNode.length of ' + node);
         if (expected.childNodes) {
             this.assertEquals(expected.childNodes.length, node.childNodes.length,
                               'childNode.length of ' + node);
             for (var i = 0; i < expected.childNodes.length; i++)
-                this.assertNodeMatches(expected.childNodes[i], node.childNodes[i]);
+                this.assertNodeMatches(expected.childNodes[i], node.childNodes[i], ignoreParent);
         }
     },
 

@@ -107,9 +107,10 @@ TestCase.subclass('lively.morphic.tests.TestCase',
         this.assertMatches(expectedRunArray.asArray(), this.text.textStyle.asArray());
     },
 
-    checkChunks: function(expectedChunks, optTextChunkOwner) {
-        var textChunkOwner = optTextChunkOwner || this.text;
-        this.assertMatches(expectedChunks, textChunkOwner.getTextChunks());
+    checkChunks: function(expectedChunks, optChunkOwnerOrMsg, optMsg) {
+        var msg = Object.isString(optChunkOwnerOrMsg) ? optChunkOwnerOrMsg : optMsg,
+            textChunkOwner = Object.isObject(optChunkOwnerOrMsg) ? optChunkOwnerOrMsg : this.text;
+        this.assertMatches(expectedChunks, textChunkOwner.getTextChunks(), msg);
     },
 
     checkDOM: function(expectedTextNodes) {

@@ -316,7 +316,7 @@ this. openMorphsInRealWorld()
         this.assert(/scale.+2.+3/, ctxt.morphNode.style[transformProp],
                     'css transform prop does not match');
     },
-    
+
     test21addMorphSameOwner: function() {
         var m = lively.morphic.Morph.makeRectangle(rect(0,0,3,3));
         var o = lively.morphic.Morph.makeRectangle(rect(0,0,10,10));
@@ -328,7 +328,7 @@ this. openMorphsInRealWorld()
         this.assert(!m.hasOwnProperty("_Rotation"), 'has still no rotation after adding');
         this.assertEquals(0, m.getRotation(), 'has still no rotation after adding');
     },
-    
+
     test22addMorphDifferentOwner: function() {
         var m = lively.morphic.Morph.makeRectangle(rect(0,0,3,3));
         var o = lively.morphic.Morph.makeRectangle(rect(0,0,10,10));

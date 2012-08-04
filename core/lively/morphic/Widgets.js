@@ -838,14 +838,26 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         m.setVisible(false); // we hide it because it is first shown at the wrong position
         m.offsetForOwnerMenu();
         (function() {
+            if (!m.ownerMenu) return; // we might have removed that submenu already again
             m.offsetForOwnerMenu()
             m.setVisible(true);
         }).delay(0);
 
         return m;
     },
-    removeSubMenu: function() { if (this.subMenu) { var m = this.subMenu; m.ownerMenu = null; this.subMenu = null; m.remove() } },
-    removeOwnerMenu: function() { if (this.ownerMenu) { var m = this.ownerMenu; this.ownerMenu = null; m.remove() } },
+    removeSubMenu: function() {
+        if (!this.subMenu) return;
+        var m = this.subMenu;
+        m.ownerMenu = null;
+        this.subMenu = null;
+        m.remove();
+    },
+    removeOwnerMenu: function() {
+        if (!this.ownerMenu) return;
+        var m = this.ownerMenu;
+        this.ownerMenu = null;
+        m.remove();
+    },
 },
 'removal', {
     remove: function($super) {

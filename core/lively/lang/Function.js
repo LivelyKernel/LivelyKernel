@@ -382,16 +382,44 @@ var Functions = {
         return result;
     },
 
-    debounce: function(minDelay, func) {
+    // these last two methods are Underscore.js 1.3.3 and are slightly adapted
+    // Underscore.js license:
+    // (c) 2009-2012 Jeremy Ashkenas, DocumentCloud Inc.
+    // Underscore is distributed under the MIT license.
+
+    throttle: function(func, wait) {
+        var context, args, timeout, throttling, more, result,
+            whenDone = Functions.debounce(wait, function() { more = throttling = false; });
+        return function() {
+            context = this; args = arguments;
+            var later = function() {
+                timeout = null;
+                if (more) func.apply(context, args);
+                whenDone();
+            };
+            if (!timeout) timeout = Global.setTimeout(later, wait);
+            if (throttling) {
+                more = true;
+            } else {
+                result = func.apply(context, args);
+            }
+            whenDone();
+            throttling = true;
+            return result;
+        };
+    },
+
+    debounce: function(wait, func, immediate) {
         var timeout;
         return function() {
-            var that = this, args = arguments;
-            function later() {
+            var context = this, args = arguments;
+            var later = function() {
                 timeout = null;
-                func.apply(that, args);
+                if (!immediate) func.apply(context, args);
             };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, minDelay);
+            if (immediate && !timeout) func.apply(context, args);
+            Global.clearTimeout(timeout);
+            timeout = Global.setTimeout(later, wait);
         };
     }
 };

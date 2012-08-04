@@ -233,32 +233,29 @@ Object.subclass('lively.morphic.Morph',
     },
 
     addMorph: function (morph, optMorphBefore) {
-
         if (morph.isAncestorOf(this)) {
             alert('addMorph: Circular relationships between morphs not allowed');
             alert('tried to drop ' + morph + ' on ' + this);
-            return;
+            return null;
         }
 
-        if (morph.owner && morph.owner !== this)
-            var tfm = morph.transformForNewOwner(this);
+        var tfm = morph.owner
+               && morph.owner !== this
+               && morph.transformForNewOwner(this);
 
-        if (morph.owner)
-            morph.remove();
+        if (morph.owner) { morph.remove(); }
 
-        if (morph.owner !== this)
-            morph.owner = this;
+        if (morph.owner !== this) { morph.owner = this; }
 
         var indexToInsert = optMorphBefore && this.submorphs.indexOf(optMorphBefore);
-        if (indexToInsert === undefined || indexToInsert < 0)
+        if (indexToInsert === undefined || indexToInsert < 0) {
             indexToInsert = this.submorphs.length;
+        }
         this.submorphs.pushAt(morph, indexToInsert);
 
         // actually this should be done below so that geometry connects works correctly
         // but for the current Chrome stable (12.0.7) this leads to a render bug (morph is offseted)
-        if (tfm) {
-            morph.setTransform(tfm);
-        }
+        if (tfm) { morph.setTransform(tfm); }
 
         var parentRenderCtxt = this.renderContext(),
             subRenderCtxt = morph.renderContext(),
@@ -783,12 +780,14 @@ Object.extend(lively.morphic.FunctionScript, {
         return script;
     },
 });
+
 Function.addMethods(
 "morphic delay", {
     morphicDelay: function(time) {
         lively.morphic.FunctionScript.once(this, time);
     },
 });
+
 lively.morphic.Script.subclass('lively.morphic.TargetScript',
 'initializing', {
     initialize: function(target, selector, args) {

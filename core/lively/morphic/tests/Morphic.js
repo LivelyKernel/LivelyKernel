@@ -315,7 +315,30 @@ this. openMorphsInRealWorld()
             transformProp = ctxt.domInterface.html5TransformProperty;
         this.assert(/scale.+2.+3/, ctxt.morphNode.style[transformProp],
                     'css transform prop does not match');
+    },
+
+    test21addMorphSameOwner: function() {
+        var m = lively.morphic.Morph.makeRectangle(rect(0,0,3,3));
+        var o = lively.morphic.Morph.makeRectangle(rect(0,0,10,10));
+        o.rotateBy(1);
+        o.addMorph(m);
+        this.assert(!m.hasOwnProperty("_Rotation"), 'new morph has no rotation initially');
+        this.assertEquals(0, m.getRotation(), 'new morph has no rotation initially');
+        o.addMorph(m); // same owner
+        this.assert(!m.hasOwnProperty("_Rotation"), 'has still no rotation after adding');
+        this.assertEquals(0, m.getRotation(), 'has still no rotation after adding');
+    },
+
+    test22addMorphDifferentOwner: function() {
+        var m = lively.morphic.Morph.makeRectangle(rect(0,0,3,3));
+        var o = lively.morphic.Morph.makeRectangle(rect(0,0,10,10));
+        o.rotateBy(1);
+        this.world.addMorph(m);
+        o.addMorph(m); // different owner
+        this.assert(m.hasOwnProperty("_Rotation"), 'morph has a rotation after adding');
+        this.assertEquals(-1, m.getRotation(), 'morph has inverse rotation after adding');
     }
+
 });
 
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphInterfaceTests',

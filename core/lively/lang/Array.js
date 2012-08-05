@@ -488,7 +488,7 @@ var Interval = {
 
     sort: function(intervals) { return intervals.sort(Interval.compare); },
 
-    merge: function(interval1, interval2, optMergeCallback) {
+    coalesce: function(interval1, interval2, optMergeCallback) {
         // turns two arrays into one iff compare(interval1, interval2) ∈ [-2, -1,0,1, 2]
         // otherwise returns null
         // optionally uses merge function
@@ -514,7 +514,7 @@ var Interval = {
         }
     },
 
-    mergeOverlapping: function(intervals, mergeFunc) {
+    coalesceOverlapping: function(intervals, mergeFunc) {
         // accepts an array of intervals
         // [[9,10], [1,8], [3, 7], [15, 20], [14, 21]] => [[1, 8], [9, 10], [14, 21]]
         var condensed = [], len = intervals.length;
@@ -522,9 +522,86 @@ var Interval = {
             var interval = intervals.shift(); len--;
             for (var i = 0; i < len; i++) {
                 var otherInterval = intervals[i],
-                    merged = Interval.merge(interval, otherInterval, mergeFunc);
-                if (merged) {
-                    interval = merged;
+                    coalesced = Interval.coalesce(interval, otherInterval, mergeFunc);
+                if (coalesced) {
+                    interval = coalesced;
+                    intervals.splice(i, 1);
+                    len--; i--;
+                }
+            }
+            condensed.push(interval);
+        }
+        return this.sort(condensed);
+    },
+
+    mergeOverlapping: function(intervalsA, intervalsB, mergeFunc) {
+        var result = [];
+        while (intervalsA.length > 0) {
+            var intervalA = intervalsA.shift();
+
+            var toMerge = intervalsB.collect(function(intervalB) {
+                var cmp = Interval.compare(intervalA, intervalB);
+                return cmp === -1 || cmp === 0 || cmp === 1;
+            });
+
+            result.push(mergeFunc(intervalA, toMerge[0]))
+
+            result.push(intervalA);
+
+        }
+        return result;
+        // intervalsB.forEach(function(intervalB) {
+        //     var overlapping = intervalsA.select(function(intervalA) {
+        //         var cmp = Interval.compare(intervalA, intervalB);
+        //         if (cmp == -1 || cmp == 0 || cmp == 1) {
+
+        //         }
+        //     });
+        // });
+
+        return intervalsA;
+
+        if (!mergeFunc) return intervals;
+        // return intervals.collect(function);
+
+        var condensed = [], len = intervals.length;
+        while (len > 0) {
+            var interval = intervals.shift(); len--;
+            for (var i = 0; i < len; i++) {
+                var otherInterval = intervals[i],
+                    overlap = this.compare(otherInterval, interval),
+                    merged;
+                if (overlap === -1 || overlap === 1 || overlap === 0) {
+                    merged = mergeFunc(interval, otherInterval);
+                    // remove otherInterval and add merged
+                    intervals.splice(i, 1, merged);
+                    len += merged.length - 1;
+                    i--;
+                    interval = merged[i];
+                } else {
+                    // condensed.push(interval);
+                }
+                interval = otherInterval;
+            }
+        }
+        return this.sort(condensed);
+
+        // // accepts an array of intervals
+        // // [[9,10], [1,8], [3, 7], [15, 20], [14, 21]] => [[1, 8], [9, 10], [14, 21]]
+        var merged = [], len = intervals.length,
+            unshiftAll = merged.splice.bind(merged, 0, 0);
+        while (len > 0) {
+            var interval = intervals.pop(); len--;
+            for (var i = len-1; i >= 0; i--) {
+                var otherInterval = intervals[i],
+                    overlap = this.compare(otherInterval, interval);
+                if (overlap === -1 || overlap === 1 || overlap === 0) {
+                    unshiftAll(mergeFunc(otherInterval, interval));
+                } else {
+                    merged.unshift(interval);
+                }
+                if (coalesced) {
+                    interval = coalesced;
                     intervals.splice(i, 1);
                     len--; i--;
                 }
@@ -586,16 +663,10 @@ var Interval = {
         // start = 0, end = 10, intervals = [[1,4], [5,8]]
         // => [[0,1], [4, 5], [8, 10]]
         //
-        var merged = Interval.mergeOverlapping(intervals.clone());
+        var merged = Interval.coalesceOverlapping(intervals.clone());
         return this.intervalsInRangeDo(start, end, merged, function(intervall, isNew) {
             return isNew ? intervall : null
         }).select(function(ea) { return !!ea });
-
-        // var result = [], merged = Interval.mergeOverlapping(intervals.clone());
-        // return this.intervalsInRangeDo(start, end, merged, function(intervall, isNew) {
-        //     if (isNew) result.push(intervall);
-        // }).select(function(ea) { return !!ea });
-        // return result;
     },
 
     mapToMatchingIndexes:  function(intervals, intervalsToFind) {
@@ -605,9 +676,11 @@ var Interval = {
         // This is the optimized version of:
         // return intervalsToFind.collect(function findOne(toFind) {
         //     var startIdx, endIdx;
-        //     var start = intervals.detect(function(ea, i) { startIdx = i; return ea[0] === toFind[0]; });
+        //     var start = intervals.detect(function(ea, i) {
+        //         startIdx = i; return ea[0] === toFind[0]; });
         //     if (start === undefined) return [];
-        //     var end = intervals.detect(function(ea, i) { endIdx = i; return ea[1] === toFind[1]; });
+        //     var end = intervals.detect(function(ea, i) {
+        //         endIdx = i; return ea[1] === toFind[1]; });
         //     if (end === undefined) return [];
         //     return Array.range(startIdx, endIdx);
         // });
@@ -644,11 +717,11 @@ var Interval = {
         }
         return [
             "Friday, 20. July 2012:",
-            "mergeOverlapping: 0.0003ms",
+            "coalesceOverlapping: 0.0003ms",
             "intervalsInbetween: 0.002ms",
             "mapToMatchingIndexes: 0.02ms",
             'vs.\n' + new Date() + ":",
-            benchmarkFunc("mergeOverlapping", [[[9,10], [1,8], [3, 7], [15, 20], [14, 21]]], 100000),
+            benchmarkFunc("coalesceOverlapping", [[[9,10], [1,8], [3, 7], [15, 20], [14, 21]]], 100000),
             benchmarkFunc("intervalsInbetween", [0, 10, [[8, 10], [0, 2], [3, 5]]], 100000),
             benchmarkFunc("mapToMatchingIndexes", [Array.range(0, 1000).collect(function(n) { return [n, n+1] }), [[4,8], [500,504], [900,1004]]], 1000)
         ].join('\n');

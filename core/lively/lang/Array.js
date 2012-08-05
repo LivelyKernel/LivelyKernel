@@ -466,36 +466,50 @@ var Interval = {
 
     compare: function(a, b) {
         // we assume that a[0] <= a[1] and b[0] <= b[1]
-        // -2: a < b and non-overlapping, e.g [1,2] and [3,4]
-        // -1: a < b and overlapping, e.g, [1,2] and [2,3]
+        // -3: a < b and non-overlapping, e.g [1,2] and [3,4]
+        // -2: a < b and intervals border at each other, e.g [1,3] and [3,4]
+        // -1: a < b and overlapping, e.g, [1,3] and [2,4] or [1,3] and [1,4]
         //  0: a = b, e.g. [1,2] and [1,2]
         //  1: a > b and overlapping, e.g. [2,4] and [1,3]
-        //  2: a > b and non-overlapping, e.g [2,4] and [0,1]
-        if (a[0] < b[0] && a[1] < b[0])     return -2;
-        if (a[0] < b[0] && a[1] >= b[0])    return -1;
-        if (a[0] === b[0] && a[1] === b[1]) return  0;
-        // we know a[0] > b[0]
-        if (a[0] <= b[1])                   return  1;
-        return                                      2;
+        //  2: a > b and share border, e.g [1,4] and [0,1]
+        //  3: a > b and non-overlapping, e.g [2,4] and [0,1]
+        if (a[0] < b[0]) { // -3 || -2 || -1
+            if (a[1] < b[0]) return -3;
+            if (a[1] === b[0]) return -2;
+            return -1;
+        }
+        if (a[0] === b[0]) { // -1 || 0 || 1
+            if (a[1] === b[1]) return 0;
+            return a[1] < b[1] ? -1 : 1;
+        }
+        // we know a[0] > b[0], 1 || 2 || 3
+        return -1 * Interval.compare(b, a);
     },
 
     sort: function(intervals) { return intervals.sort(Interval.compare); },
 
     merge: function(interval1, interval2, optMergeCallback) {
+        // turns two arrays into one iff compare(interval1, interval2) ∈ [-2, -1,0,1, 2]
+        // otherwise returns null
+        // optionally uses merge function
         // [1,4], [5,7] => null
+        // [1,2], [1,2] => [1,2]
         // [1,4], [3,6] => [1,6]
-        // [3,6], [4,5] => [3, 6]
-        switch (this.compare(interval1, interval2)) {
-            case -2:
-            case  2: return null;
+        // [3,6], [4,5] => [3,6]
+        var cmpResult = this.compare(interval1, interval2);
+        switch (cmpResult) {
+            case -3:
+            case  3: return null;
             case  0:
                 optMergeCallback && optMergeCallback(interval1, interval2, interval1);
                 return interval1;
+            case  2:
             case  1: var temp = interval1; interval1 = interval2; interval2 = temp; // swap
+            case -2:
             case -1:
-                var merged = [interval1[0], Math.max(interval1[1], interval2[1])];
-                optMergeCallback && optMergeCallback(interval1, interval2, merged);
-                return merged;
+                var coalesced = [interval1[0], Math.max(interval1[1], interval2[1])];
+                optMergeCallback && optMergeCallback(interval1, interval2, coalesced);
+                return coalesced;
             default: throw new Error("Interval compare failed");
         }
     },

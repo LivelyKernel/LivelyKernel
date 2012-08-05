@@ -265,8 +265,9 @@ lively.ide.JSSyntaxHighlighter.subclass('lively.ast.JSSyntaxHighlighter',
 },
 'styling', {
 
-    stylesForGlobals: function(string) {
-        var ast = lively.ast.Parser.parse(string),
+    stylesForGlobals: function(target) {
+        var rule = target.specialHighlighting ? target.specialHighlighting : 'topLevel',
+            ast = lively.ast.Parser.parse(target.textString, rule),
             globals = this.globalAnalyzer.findGlobalVariablesInAST(ast),
             globalStyles = globals.collect(function(g) {
                 return [g.pos[0], g.pos[1], AdvancedSyntaxHighlighting.globalStyle]
@@ -287,8 +288,20 @@ lively.ide.JSSyntaxHighlighter.subclass('lively.ast.JSSyntaxHighlighter',
 
     styleTextMorph: function($super, target) {
         // see comment in #howToStyleString
-        var domChangedPass1 = $super(target),
-            domChangedPass2 = target.emphasizeRanges(this.stylesForGlobals(target.textString));
+        var domChangedPass1 = $super(target);
+
+        if (target.specialHighlighting == "none") return domChangedPass1;
+
+        var globalStyles, domChangedPass2;
+        try {
+            globalStyles = this.stylesForGlobals(target);
+            target.parseErrors = null;
+            domChangedPass2 = target.emphasizeRanges(globalStyles);
+        } catch (e) {
+            target.parseErrors = [e];
+            target.doNotSerialize.push('parseErrors');
+            target.emphasize(AdvancedSyntaxHighlighting.errorStyle, e[3], target.textString.length);
+        }
         return domChangedPass1 || domChangedPass2;
     }
 

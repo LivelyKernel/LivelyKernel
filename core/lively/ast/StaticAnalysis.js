@@ -1,4 +1,4 @@
-module('lively.ast.StaticAnalysis').requires('lively.ast.Parser', 'lively.ide.BrowserFramework', 'lively.ide.FileParsing').toRun(function() {
+module('lively.ast.StaticAnalysis').requires('lively.ast.Parser', 'lively.ide.SyntaxHighlighting', 'lively.ide.BrowserFramework', 'lively.ide.FileParsing').toRun(function() {
 
 lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
 'analyzing helper', {
@@ -8,10 +8,8 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
                    "HTMLCanvasElement", "Image", "Error",
                    "lively", "pt", "rect", "rgb"],
     newScope: function() {
-        return this.current = this.current
-            ? this.current.newScope()
-            : new lively.ast.DFAScope();
-    },
+        return this.current = this.current ? this.current.newScope() : new lively.ast.DFAScope();
+    }
 },
 'analyzing', {
 
@@ -88,8 +86,9 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
     visitObjProperty: function(node) { this.visitParts(node, ['property']) },
     visitSwitch: function(node) { this.visitParts(node, ['expr']) },
     visitCase: function(node) { this.visitParts(node, ['condExpr', 'thenExpr']) },
-    visitDefault: function(node) { this.visitParts(node, ['defaultExpr']) },
+    visitDefault: function(node) { this.visitParts(node, ['defaultExpr']) }
 });
+
 Object.subclass('lively.ast.DFAScope',
 'initializing', {
     initialize: function() {
@@ -157,12 +156,8 @@ Object.subclass('lively.ast.DFAScope',
         }
     },
     allGlobalUses: function() {
-        var res = [];
-        res.pushAll(this.global_uses);
-        this.scopes.each(function(s) {
-            res.pushAll(s.allGlobalUses());
-        });
-        return res;
+        return [].concat(this.global_uses)
+                 .concat(this.scopes.invoke('allGlobalUses').flatten());
     },
     allGlobalDefs: function() {
         var res = [];
@@ -173,6 +168,7 @@ Object.subclass('lively.ast.DFAScope',
         return res;
     },
 });
+
 Object.subclass('lively.ast.VariableAnalyzer',
 'helping', {
     parse: function(source) {
@@ -193,8 +189,8 @@ Object.subclass('lively.ast.VariableAnalyzer',
 });
 cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
     highlightGlobals: function(target, ast) {
-        var analyzer = new lively.ast.VariableAnalyzer();
-        var globals = analyzer.findGlobalVariablesInAST(ast);
+        var analyzer = new lively.ast.VariableAnalyzer(),
+            globals = analyzer.findGlobalVariablesInAST(ast);
         globals.each(function(g) {
             target.emphasize(AdvancedSyntaxHighlighting.globalStyle, g.pos[0], g.pos[1]);
         });
@@ -261,6 +257,46 @@ cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
 Object.extend(AdvancedSyntaxHighlighting, {
     errorStyle: { backgroundColor: Color.web.salmon.lighter() },
     globalStyle: { color: Color.red }
+});
+
+lively.ide.JSSyntaxHighlighter.subclass('lively.ast.JSSyntaxHighlighter',
+'settings', {
+    globalAnalyzer: new lively.ast.VariableAnalyzer()
+},
+'styling', {
+
+    stylesForGlobals: function(string) {
+        var ast = lively.ast.Parser.parse(string),
+            globals = this.globalAnalyzer.findGlobalVariablesInAST(ast),
+            globalStyles = globals.collect(function(g) {
+                return [g.pos[0], g.pos[1], AdvancedSyntaxHighlighting.globalStyle]
+            });
+        return globalStyles;
+    },
+
+    howToStyleString: function($super, string, rules, defaultStyle) {
+        return $super(string, rules, defaultStyle);
+
+        // This is the proper and more efficient way of extending the syntax
+        // highlighter isntead of overwriting #styleTextMorph. Since the style
+        // array currently is not merged correctly we use the less efficient
+        // approach
+        var intervalsWithStyle = $super(string, rules, defaultStyle);
+        return intervalsWithStyle.concat(this.stylesForGlobals(string));
+    },
+
+    styleTextMorph: function($super, target) {
+        // see comment in #howToStyleString
+        var domChangedPass1 = $super(target),
+            domChangedPass2 = target.emphasizeRanges(this.stylesForGlobals(target.textString));
+        return domChangedPass1 || domChangedPass2;
+    }
+
+});
+
+lively.morphic.Text.addMethods(
+'settings for syntax highlighting', {
+    syntaxHighlighters: [new lively.ast.JSSyntaxHighlighter()]
 });
 
 });

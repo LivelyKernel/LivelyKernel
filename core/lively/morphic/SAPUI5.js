@@ -132,8 +132,6 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
 },
 'HTML render settings', {
     htmlDispatchTable: {
-        getValue: 'getValueHTML',        
-        setValue: 'setValueHTML',        
         setMaxLength: 'setMaxLengthHTML',
         getMaxLength: 'getMaxLengthHTML',
         updateAppearance: 'updateAppearanceHTML'

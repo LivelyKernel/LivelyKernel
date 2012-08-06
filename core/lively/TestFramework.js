@@ -310,6 +310,7 @@ Object.subclass('TestCase',
 },
 'world test support', {
     answerPromptsDuring: function(func, questionsAndAnswers) {
+        // cs: this should be moved to lively.morphic.tests TestCase
         // for providing sunchronous answers when world.prompt is used
         var oldPrompt = lively.morphic.World.prototype.prompt;
         lively.morphic.World.prototype.prompt = function(msg, cb, defaultInput) {
@@ -339,6 +340,7 @@ Object.subclass('TestCase',
 'event test support', {
     // event simulation methods
     createMouseEvent: function(type, pos, button) {
+        // cs: this should be moved to lively.morphic.tests.TestCase
         // event.initMouseEvent(type, canBubble, cancelable, view,
         // detail, screenX, screenY, clientX, clientY,
         // ctrlKey, altKey, shiftKey, metaKey,
@@ -353,6 +355,7 @@ Object.subclass('TestCase',
         return simulatedEvent;
     },
     doMouseEvent: function(spec) {
+        // cs: this should be moved to lively.morphic.tests.TestCase
         // type one of click, mousedown, mouseup, mouseover, mousemove, mouseout.
         if (!spec.type) spec.type = 'mousedown';
         if (!spec.pos) spec.pos = pt(0,0);
@@ -374,11 +377,13 @@ Object.subclass('TestCase',
         targetMorphOrNode.dispatchEvent(evt)
     },
     createKeyboardEvent: function(spec) {
+        // cs: this should be moved to lively.morphic.tests.TestCase
         // FIXME depends on jQuery
         return lively.morphic.EventHandler.prototype.patchEvent(
             jQuery.Event(spec.type, {keyCode: spec.charCode, ctrlKey: spec.ctrl}));
     },
     doKeyboardEvent: function(spec, morph) {
+        // cs: this should be moved to lively.morphic.tests.TestCase
         spec.targetMorph = morph || spec.targetMorph;
         return lively.morphic.EventSimulator.doKeyboardEvent(spec);
     },

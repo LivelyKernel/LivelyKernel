@@ -166,7 +166,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
         return this.getProp('value');
     },
     
-    set textString(string){
+    set textString(value){
         return this.setProp('value', value);
     },
     

@@ -10,8 +10,7 @@ setExtent: function($super, extent) {
     }
     else {
         $super(extent);    
-    }    
-        
+    }
 }    ,
     setActive: function(active) {
         this.isActive = active;

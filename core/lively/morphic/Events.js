@@ -1925,7 +1925,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     }
 },
 'accessing -- morphic relationship', {
-    world: function() { return this._world },
+
     hand: function() { return this },
     morphsContainingPoint: function(point, list) {
         return list || [];

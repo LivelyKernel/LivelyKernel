@@ -223,6 +223,12 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
         $super(evt);        
     },
     
+    onChange: function($super, evt){
+        if (this.attributeConnections) {
+            lively.bindings.signal(this, 'textString', this.textString);
+        }    
+    },
+    
     updateAppearance: function() {
         
         var classNames = this.baseClasses;

@@ -132,8 +132,10 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
 },
 'HTML render settings', {
     htmlDispatchTable: {
+        /*
         setMaxLength: 'setMaxLengthHTML',
         getMaxLength: 'getMaxLengthHTML',
+        */
         updateAppearance: 'updateAppearanceHTML'
     },
 },
@@ -153,7 +155,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
         $super(ctx);
         if (this.value) this.setValue(this.value);
     },
-
+    /*
     getMaxLengthHTML: function(ctx) {
         if (ctx.shapeNode) {
             var m = ctx.shapeNode.getAttribute('maxlength');
@@ -167,6 +169,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
             else ctx.shapeNode.removeAttribute('maxlength');
         }
     },
+    */
     
 },
 

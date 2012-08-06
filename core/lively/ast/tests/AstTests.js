@@ -179,7 +179,17 @@ TestCase.subclass('lively.ast.tests.AstTests.ParserTest',
                 ["getp", [17, 20], ["string", [19, 20], "b"], ["get", [17, 18], "a"]]],
             result = this.parseJS(src, 'topLevel');
         this.assertMatches(expected, result);
-    }
+    },
+    test16ParseGetterAndSetter: function() {
+        var src = '{get foo() { return this.x }, set foo(x) { return this.x = x }}',
+            expected = ['json', [0, 63],
+                ['jsonGetter', [1, 28], 'foo', ['begin', [12, 27]]],
+                ['jsonSetter', [30, 62], 'foo', ['begin', [42, 61]], 'x']],
+            result = this.parseJS(src, 'json');
+        this.assertMatches(expected, result);
+    },
+
+
 });
 
 
@@ -291,9 +301,27 @@ TestCase.subclass('lively.ast.tests.AstTests.JSToAstTest',
         this.assertEquals(1, funcAst.body.children[1].fn.astIndex());
         this.assertEquals(0, funcAst.body.children[0].astIndex());
     },
-
-
-
+    test06ParseObjWithGetter: function() {
+        var src = '{get x() { return 3 }}',
+            r = this.parseJS(src, 'json'),
+            expected = {
+                isObjectLiteral: true,
+                properties: [{
+                    isObjPropertyGet: true,
+                    body: {
+                        isSequence: true,
+                        children: [{
+                            isReturn: true,
+                            expr: {
+                                isNumber: true,
+                                value: 3
+                            }
+                        }]
+                    }
+                }]
+            };
+        this.assertMatches(expected, r);
+    },
 })
 
 
@@ -832,8 +860,10 @@ TestCase.subclass('lively.ast.tests.AstTests.VariableAnalyzerTest',
         ];
 
         for (var i = 0; i < codeAndExpected.length; i++) {
-            var result = new lively.ast.VariableAnalyzer().findGlobalVariablesIn(codeAndExpected[i][0]);
-            this.assertVarsFound(codeAndExpected[i][0], codeAndExpected[i][1], result);
+            var code = codeAndExpected[i][0],
+                expected = codeAndExpected[i][1],
+                result = new lively.ast.VariableAnalyzer().findGlobalVariablesIn(code);
+            this.assertVarsFound(code, expected, result);
         }
     },
 

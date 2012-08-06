@@ -134,7 +134,7 @@ Object.extend(lively.ast.IDESupport, {
     enable: function() {
         lively.morphic.Text.addMethods(
         'settings for syntax highlighting', {
-            syntaxHighlighters: [new lively.ast.JSSyntaxHighlighter()]
+            syntaxHighlighter: new lively.ast.JSSyntaxHighlighter()
         });
         AdvancedSyntaxHighlighting.beGlobal();
         lively.ast.IDESupport.isEnabled = true;
@@ -142,7 +142,7 @@ Object.extend(lively.ast.IDESupport, {
     disable: function() {
         lively.morphic.Text.addMethods(
         'settings for syntax highlighting', {
-            syntaxHighlighters: [lively.ide.SyntaxHighlighter.forJS()]
+            syntaxHighlighter: lively.ide.SyntaxHighlighter.forJS()
         });
         AdvancedSyntaxHighlighting.beNotGlobal();
         lively.ast.IDESupport.isEnabled = false;

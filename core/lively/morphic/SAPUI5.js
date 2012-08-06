@@ -485,23 +485,23 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
 
         this.tbodyMorph = this.addMorph(new lively.morphic.HTMLMorph('tbody'));
         this.tbodyMorph.setAttribute('style', 'width: 100%; height: 100%;');
+
         for (var r = 0; r < this.rows; r++) {
-            
-            var row = new lively.morphic.HTMLMorph('tr');
-            this.tbodyMorph.addMorph(row);
-            
-            for (var c = 0; c < this.cols; c++) {
-                var cell = new lively.morphic.SAPUI5.MatrixLayoutCell();
-                cell.addPlaceholder(80, 30);
-                cell.setNodeClass(this.cellClasses);
-                row.addMorph(cell);
-                
-            }
-            
+            this.addRow();
         }
-        
+
         this.setNodeClass(this.classes);
-        
+    },
+    addRow: function(){
+        var row = new lively.morphic.HTMLMorph('tr');
+        this.tbodyMorph.addMorph(row);
+
+        for (var c = 0; c < this.cols; c++) {
+            var cell = new lively.morphic.SAPUI5.MatrixLayoutCell();
+            cell.addPlaceholder(80, 30);
+            cell.setNodeClass(this.cellClasses);
+            row.addMorph(cell);
+        }
     },
     addPlaceholders: function(size) {
         var placeholderSize = size || pt(60, 24);

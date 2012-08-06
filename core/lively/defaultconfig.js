@@ -506,7 +506,8 @@ Config.addOptions(
     'lively.morphic.Debugging', [
         ["ignoreAdvice", UserAgent.isRhino, "Ignore function logging through the prototype.js wrap mechanism rhino will give more useful exception info"],
         ["showLivelyConsole", false, "Open up our console"],
-        ["debugExtras", false, "Enable advanced debugging options"]
+        ["debugExtras", false, "Enable advanced debugging options"],
+        ["advancedSyntaxHighlighting", false, "Enable ast-based source code highlighting and error checking"]
     ],
 
     'lively.morphic.Text', [

@@ -34,6 +34,8 @@ if (lively.Config.get("textUndoEnabled")) {
     lively.Config.add("modulesBeforeWorldLoad", 'lively.morphic.TextUndo');
 }
 
+lively.Config.add("modulesOnWorldLoad", 'lively.ide');
+
 lively.Config.set("loadUserConfig", true);
 
 lively.Config.urlQueryOverride();

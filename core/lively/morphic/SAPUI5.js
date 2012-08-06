@@ -128,7 +128,9 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
     successClass: 'sapUiTfSucc',
     defaultValue: "",
     fixedHeight: true,
-    tagName: 'input'
+    tagName: 'input',
+    connections: {textString:{}}
+
 },
 
 'initializing', {

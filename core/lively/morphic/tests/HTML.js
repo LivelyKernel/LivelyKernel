@@ -1,5 +1,16 @@
 module('lively.morphic.tests.HTML').requires('lively.morphic.tests.Helper').toRun(function() {
 
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.HTML.jQueryTests', {
+    test01jQueryReturnsjQueryObject: function() {
+        var m = new lively.morphic.Morph();
+        this.assert(m.jQuery() instanceof jQuery);
+    },
+    test02jQueryReturnsWrappedShapeNode: function() {
+        var m = new lively.morphic.Morph();
+        this.assertEquals(m.jQuery()[0], m.renderContext().shapeNode)
+    }
+});
+
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.RenderingTest',
 'running', {
     setUp: function($super) {

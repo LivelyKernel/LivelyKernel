@@ -24,16 +24,30 @@ lively.morphic.tests.MorphTests.subclass('lively.ide.tests.SyntaxHighlighting.Ba
         // install highlighter obj
         this.text.syntaxHighlighters = [this.barHighlighter];
         this.text.highlightSyntax();
-                this.checkChunks([{textString: 'foo'},
+        this.checkChunks([{textString: 'foo'},
                           {textString: 'bar'}]);
         this.checkChunks([{textString: 'foo', style: {}},
                           {textString: 'bar', style: {fontWeight: 'bold'}}]);
-     },
-    test3SyntaxHighlightingCanProduceJSHighlighter: function() {
+    },
+    test03SyntaxHighlightingCanProduceJSHighlighter: function() {
         var jsHighlighter1 = lively.ide.SyntaxHighlighter.forJS(),
             jsHighlighter2 = lively.ide.SyntaxHighlighter.forJS();
         this.assertIdentity(jsHighlighter1, jsHighlighter2, 'not identical highlighters');
-     }
+    },
+
+    test04DontHighlightIfCharLimitIsExceeded: function() {
+        this.text = new lively.morphic.Text(new Rectangle(0,0,100,100), '');
+        this.text.syntaxHighlighters = [this.barHighlighter];
+        this.barHighlighter.charLimit = 20;
+        this.text.textString = 'bar '.times(4); // 16 chars
+        this.text.highlightSyntax();
+        this.assertEquals(4*2, this.text.getTextChunks().length,
+                          'not highlighting when less than max chars');
+        this.text.textString = 'bar '.times(6); // 20 chars
+        this.text.highlightSyntax();
+        this.assertEquals(1, this.text.getTextChunks().length,
+                         'highlighting when more than max chars');
+    }
 });
 
 AsyncTestCase.subclass('lively.ide.tests.SyntaxHighlighting.Timing',

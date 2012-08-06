@@ -910,8 +910,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.SelectionTest',
 'testing', {
     testGrabByHand: function() {
-        LastWorld = this.world;
-
         var hand = this.world.hands.first();
         hand.setPosition(pt(10,10))
         this.world.resetSelection()

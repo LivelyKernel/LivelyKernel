@@ -337,4 +337,9 @@ lively.morphic.Script.addMethods(
     },
 });
 
+lively.morphic.HandMorph.addMethods(
+'serialization', {
+    doNotSerialize: ['scrollFocusMorph']
+});
+
 }) // end of module

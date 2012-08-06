@@ -11,6 +11,9 @@ Object.subclass('lively.Closure',
 'settings', {
     isLivelyClosure: true
 },
+'serialization', {
+    doNotSerialize: ['originalFunc']
+},
 'initializing', {
     initialize: function(func, varMapping, source, funcProperties) {
         this.originalFunc = func;
@@ -107,6 +110,7 @@ Object.subclass('lively.Closure',
         try {
             var func = eval(src) || this.couldNotCreateFunc(src);
             this.addFuncProperties(func);
+            this.originalFunc = func;
             return func;
         } catch (e) {
             alert('Cannot create function ' + e + ' src: ' + src);

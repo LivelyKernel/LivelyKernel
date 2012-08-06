@@ -170,13 +170,13 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         this.assertEquals(lively.persistence.tests.PersistenceTests.
             SmartRefTestDummy.prototype.someProperty, result.someProperty, 'proto prop');
 
-        this.assertIdentity(lively.persistence.tests.PersistenceTests.SmartRefTestDummy, 
+        this.assertIdentity(lively.persistence.tests.PersistenceTests.SmartRefTestDummy,
             result.constructor, 'constructor 1');
-        this.assertIdentity(lively.persistence.tests.PersistenceTests.SmartRefTestDummy, 
+        this.assertIdentity(lively.persistence.tests.PersistenceTests.SmartRefTestDummy,
             result.friend.constructor, 'constructor 2');
-        this.assert(result instanceof lively.persistence.tests.PersistenceTests.SmartRefTestDummy, 
+        this.assert(result instanceof lively.persistence.tests.PersistenceTests.SmartRefTestDummy,
             'instanceof 1');
-        this.assert(result.friend instanceof lively.persistence.tests.PersistenceTests.SmartRefTestDummy, 
+        this.assert(result.friend instanceof lively.persistence.tests.PersistenceTests.SmartRefTestDummy,
             'instanceof 2');
     },
     testSerializeObjectSpecificLayers: function() {
@@ -239,7 +239,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         var string = this.serializer.serialize(morph1),
             jso = JSON.parse(string),
             result = lively.persistence.Serializer.sourceModulesIn(jso);
-        this.assertEqualState(['Global.lively.morphic.Core', 'Global.lively.morphic.Shapes', 
+        this.assertEqualState(['Global.lively.morphic.Core', 'Global.lively.morphic.Shapes',
                 'Global.lively.morphic.Graphics', 'Global.lively.morphic.Events'], result);
     },
 

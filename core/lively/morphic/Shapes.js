@@ -91,7 +91,7 @@ Object.subclass('lively.morphic.Shapes.Shape',
     },
 
     getNodeId: function() {
-        return this.shapeGetter('NodeId') || "";
+        return this.renderContextDispatch('setNodeId'); 
     }
 
 });

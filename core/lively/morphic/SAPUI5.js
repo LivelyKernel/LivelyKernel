@@ -156,9 +156,6 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
         if (this.value) this.setValue(this.value);
     },
 
-    setValueHTML: function(ctx, value) {
-        if (ctx.shapeNode) ctx.shapeNode.value = value;
-    },
     getMaxLengthHTML: function(ctx) {
         if (ctx.shapeNode) {
             var m = ctx.shapeNode.getAttribute('maxlength');

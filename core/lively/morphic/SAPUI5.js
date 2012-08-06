@@ -211,10 +211,10 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
     },
     
     getMaxLength: function() {
-        return this.getProp('maxlength');
+        return this.getAttribute('maxlength');
     },
     setMaxLength: function(value) {
-        return this.setProp('maxlength', value);
+        return this.setAttribute('maxlength', value);
     },
     setActive: function($super, active) {
         if (!active) this.focus= false;

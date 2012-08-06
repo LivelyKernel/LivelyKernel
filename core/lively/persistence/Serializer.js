@@ -431,6 +431,8 @@ ObjectLinearizerPlugin.subclass('ClassPlugin',
     removeClassInfoIfPresent: function(obj) {
         if (obj[this.classNameProperty])
             delete obj[this.classNameProperty];
+        if (obj[this.sourceModuleNameProperty])
+            delete obj[this.sourceModuleNameProperty];
     },
 },
 'searching', {

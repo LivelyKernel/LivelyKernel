@@ -523,6 +523,10 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
     morphMenuItems: function($super) {
         var self = this, items = $super();
         items.push([
+            'Add row', function(evt) {
+            self.addRow()
+        }]);
+        items.push([
             'Add placeholders', function(evt) {
             self.addPlaceholders()
         }]);

@@ -170,13 +170,13 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         this.assertEquals(lively.persistence.tests.PersistenceTests.
             SmartRefTestDummy.prototype.someProperty, result.someProperty, 'proto prop');
 
-        this.assertIdentity(lively.persistence.tests.PersistenceTests.SmartRefTestDummy, 
+        this.assertIdentity(lively.persistence.tests.PersistenceTests.SmartRefTestDummy,
             result.constructor, 'constructor 1');
-        this.assertIdentity(lively.persistence.tests.PersistenceTests.SmartRefTestDummy, 
+        this.assertIdentity(lively.persistence.tests.PersistenceTests.SmartRefTestDummy,
             result.friend.constructor, 'constructor 2');
-        this.assert(result instanceof lively.persistence.tests.PersistenceTests.SmartRefTestDummy, 
+        this.assert(result instanceof lively.persistence.tests.PersistenceTests.SmartRefTestDummy,
             'instanceof 1');
-        this.assert(result.friend instanceof lively.persistence.tests.PersistenceTests.SmartRefTestDummy, 
+        this.assert(result.friend instanceof lively.persistence.tests.PersistenceTests.SmartRefTestDummy,
             'instanceof 2');
     },
     testSerializeObjectSpecificLayers: function() {
@@ -239,7 +239,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         var string = this.serializer.serialize(morph1),
             jso = JSON.parse(string),
             result = lively.persistence.Serializer.sourceModulesIn(jso);
-        this.assertEqualState(['Global.lively.morphic.Core', 'Global.lively.morphic.Shapes', 
+        this.assertEqualState(['Global.lively.morphic.Core', 'Global.lively.morphic.Shapes',
                 'Global.lively.morphic.Graphics', 'Global.lively.morphic.Events'], result);
     },
 
@@ -323,6 +323,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         var obj = {foo: function() { return 23 }.asScript()};
         var copy = this.serializer.copy(obj);
         this.assertEquals(23, copy.foo());
+        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
         (function() { return 42 }).asScriptOf(obj, 'foo');
         var copy2 = this.serializer.copy(obj);
         this.assertEquals(42, copy2.foo(), 'copy 2 deserialized wrong function');
@@ -358,6 +359,16 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
 
         this.assert(obj2Copy.o !== undefined, "weak ref was not serialized");
     },
+    testSerializeDependendConnections: function() {
+        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        var m1 = new lively.morphic.Morph();
+        var m2 = new lively.morphic.Morph();
+        lively.bindings.connect(m1, 'rotation', m2, 'setRotation');
+        var oldCount = m1.attributeConnections[0].dependendConnections.length;
+        var copy = this.serializer.copy(m1);
+        var newCount = copy.attributeConnections[0].dependendConnections.length;
+        this.assertEquals(oldCount, newCount, 'serialization adds additional dependent connection');
+    }
 });
 
 TestCase.subclass('lively.persistence.tests.PersistenceTests.RestoreTest',
@@ -494,16 +505,16 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.PrototypeInstanceSe
 
     testDontSerializeConstructorForSimpleObjects: function() {
         var obj = {};
-        this.serializer.serialize(obj);
-        var serialized = this.serializer.getRegisteredObjectFromId(0);
+        var id = this.serializer.serializeToJso(obj).id;
+        var serialized = this.serializer.getRegisteredObjectFromId(id);
         this.assert(!serialized[this.plugin.constructorProperty],
                     'serialized constr for simple obj');
     },
 
     testDontSerializeLivelyClass: function() {
         var obj = pt(3,2);;
-        this.serializer.serialize(obj);
-        var serialized = this.serializer.getRegisteredObjectFromId(0);
+        var id = this.serializer.serializeToJso(obj).id;
+        var serialized = this.serializer.getRegisteredObjectFromId(id);
         this.assert(!serialized[this.plugin.constructorProperty],
                     'serialized constr for Lively Point');
     }

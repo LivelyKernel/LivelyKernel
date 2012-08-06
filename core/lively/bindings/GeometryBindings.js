@@ -6,14 +6,14 @@ AttributeConnection.subclass('lively.morphic.GeometryConnection',
         c.dependedBy = this;
         if (!this.dependendConnections)
             this.dependendConnections = [];
-        this.dependendConnections.push(c)
+        this.dependendConnections.pushIfNotIncluded(c)
     },
 
     removeDependConnection: function(c) {
         c.disconnect();
         if (!this.dependendConnections)
             return;
-        this.dependendConnections = this.dependendConnections.without(c)        
+        this.dependendConnections = this.dependendConnections.without(c);
     },
 },
 'connecting', {
@@ -37,14 +37,14 @@ AttributeConnection.subclass('lively.morphic.GeometryConnection',
             newSourceObj = this.sourceObj;
 
         // resolve the path by walking the attributes
-        if (!newSourceAttr) throw new Error(this.constructor.type 
+        if (!newSourceAttr) throw new Error(this.constructor.type
                 + ' cannot connect from ' + this.sourceAttrName);
         path.forEach(function(ea) {
             newSourceObj = newSourceObj[ea];
-            if (!newSourceObj) throw new Error(this.constructor.type 
+            if (!newSourceObj) throw new Error(this.constructor.type
                 + ' cannot walk path ' + ea + ' for ' + this);
         })
-        
+
         var c = connect(newSourceObj, newSourceAttr, this.targetObj, this. targetMethodName);
         this.addDependConnection(c);
 
@@ -75,7 +75,7 @@ lively.morphic.GeometryConnection.subclass('lively.morphic.GeometryTransformConn
 
     startObserveTransformationIn: function(morph) {
         this.addDependConnection(
-            connect(morph, '_Position', this, 'signalTarget'));        
+            connect(morph, '_Position', this, 'signalTarget'));
         this.addDependConnection(
             connect(morph, '_Scale', this, 'signalTarget'));
         this.addDependConnection(
@@ -87,7 +87,7 @@ lively.morphic.GeometryConnection.subclass('lively.morphic.GeometryTransformConn
                 converter: function(newOwner, oldOwner) {
                     return [newOwner, oldOwner]
                 }}));
-    }, 
+    },
 
     stopObserveTransformationIn: function(morph) {
         if (!morph.attributeConnections) return;
@@ -95,14 +95,14 @@ lively.morphic.GeometryConnection.subclass('lively.morphic.GeometryTransformConn
         morph.attributeConnections
             .select(function(ea) {return ea.dependedBy === self})
             .each(function(ea) {self.removeDependConnection(ea)})
-    },     
+    },
 
 
     withAllOwnersDo: function(startMorph,func) {
         if (!startMorph) return;
         var world = startMorph.world();
         for (var m = startMorph; (m != world) && (m != undefined); m = m.owner) {
-            func(m)    
+            func(m)
         }
     },
 
@@ -112,7 +112,7 @@ lively.morphic.GeometryConnection.subclass('lively.morphic.GeometryTransformConn
         // alert("disconnect old owner" +     oldAndNewOwnerPair[1])
         var oldOwner = oldAndNewOwnerPair[1];
         var newOwner = oldAndNewOwnerPair[0];
-        
+
         if (oldOwner === newOwner) return;
 
         this.withAllOwnersDo(oldOwner, function(ea) {
@@ -146,15 +146,15 @@ lively.morphic.Morph.addMethods(
         rotation: { map: '_Rotation'},
         scale: { map: '_Scale'},
         setScale: {},
-        
+
         borderWidth: { map: 'shape._BorderWidth'},
         borderColor: { map: 'shape._BorderColor'},
-        
+
         fill: { map: 'shape._Fill'},
-    
+
         extent: { map: 'shape._Extent'},
 
-        globalTransform: { 
+        globalTransform: {
             connectionClassType: 'lively.morphic.GeometryTransformConnection'}},
 });
 lively.morphic.Text.addMethods(
@@ -181,8 +181,8 @@ cop.create('lively.morphic.BindingsExtensionLayer').refineObject(lively.bindings
         if (!sourceObj.connections) return proceed();
         var connectionPoint = sourceObj.getConnectionPoints && sourceObj.getConnectionPoints()[attrName]
         if (!connectionPoint) return proceed();
-        var klass;    
-        if (connectionPoint.map) 
+        var klass;
+        if (connectionPoint.map)
             klass = lively.morphic.GeometryConnection
         else if (connectionPoint.connectionClassType)
             klass = Class.forName(connectionPoint.connectionClassType);
@@ -190,7 +190,7 @@ cop.create('lively.morphic.BindingsExtensionLayer').refineObject(lively.bindings
             klass = AttributeConnection
         if (!klass) throw new Error('cannot create customized connection without connectionClassType')
         return new klass(sourceObj, attrName, targetObj, targetMethodName, specOrConverter).connect()
-    },
+    }
 }).beGlobal();
 
 // connect is not late bound, so we have to reinitialize it after layering
@@ -199,99 +199,3 @@ Object.extend(Global, {
 })
 
 }) // end of module
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

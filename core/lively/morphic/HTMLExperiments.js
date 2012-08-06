@@ -32,6 +32,7 @@ lively.morphic.Morph.subclass('lively.morphic.HTMLMorph',
     appendHTML: function($super, ctx) {
         if (this.positionLeft) this.setLeftHTML(ctx, this.positionLeft);
         if (this.positionTop) this.setTopHTML(ctx, this.positionTop);
+        this.shape.setNodeId(this.id);
         $super(ctx);
     }
 },

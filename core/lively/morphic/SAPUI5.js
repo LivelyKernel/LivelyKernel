@@ -149,16 +149,28 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
 },
 
 'accessing', {
+    /* 
     setFixedHeight: function(f) {
         this.fixedHeight = f;
         this.resizeComponent();
     },
+    */
     getValue: function() {
-        return this.getProp('value');
+        return this.textString;
     },
     setValue: function(value) {
         return this.setProp('value', value);
     },
+    
+    get textString() {
+        return this.getProp('value');
+    },
+    
+    set textString(string){
+        return this.setProp('value', value);
+    },
+    
+    
     clearState: function(){
         this.warning = false;
         this.error = false;

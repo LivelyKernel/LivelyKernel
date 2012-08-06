@@ -610,8 +610,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         // my first hand is almost the topmost morph
         var r = $super(morph, optMorphBefore);
         $super(this.firstHand());
-        // do not change focus when a morph gets added
-        // this.updateScrollFocus();
+        this.updateScrollFocus();
         return r;
     },
     topMorph: function() { return this.submorphs.withoutAll(this.hands).last() }

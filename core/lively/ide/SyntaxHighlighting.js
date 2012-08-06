@@ -2,7 +2,7 @@ module('lively.ide.SyntaxHighlighting').requires('lively.morphic', 'lively.ide.B
 
 Object.subclass("lively.ide.SyntaxHighlighter",
 'settings', {
-    syntaxHighlightingCharLimit: null,
+    charLimit: null,
     minDelay: 100,
     maxDelay: 10000,
     defaultStyle: {color: Color.black, backgroundColor: null},
@@ -158,7 +158,7 @@ Object.extend(lively.ide.SyntaxHighlighter, {
 
 lively.morphic.Text.addMethods(
 'syntax highlighter settings', {
-    syntaxHighlighters: [lively.ide.SyntaxHighlighter.forJS()]
+    syntaxHighlighter: lively.ide.SyntaxHighlighter.forJS()
 });
 
 cop.create("SyntaxHighlightLayer")

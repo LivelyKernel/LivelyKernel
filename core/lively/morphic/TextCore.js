@@ -2170,24 +2170,18 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 'syntax highlighting', {
     highlightSyntax: function() {
         if (Config.get('disableSyntaxHighlighting')) return null;
-        var syntaxHighlighters = this.syntaxHighlighters;
-        if (!syntaxHighlighters || syntaxHighlighters.length == 0) return null;
+        var syntaxHighlighter = this.syntaxHighlighter;
+        if (!syntaxHighlighter) return null;
 
-        var maxLimit = Infinity;
-        this.syntaxHighlighters.forEach(function(ea) {
-            if (ea.charLimit) maxLimit = ea.charLimit < maxLimit ? ea.charLimit : maxLimit })
-        if (maxLimit !== Infinity) {
-            if (this.textString.length >= maxLimit) return null;
+        if (syntaxHighlighter.charLimit && this.textString.length >= syntaxHighlighter.charLimit) {
+            return null;
         }
 
         var text = this,
             startTime = Date.now(),
-            domChanged = false,
             selRange = this.getSelectionRange(),
-            scroll = this.getScroll();
-        syntaxHighlighters.forEach(function(ea) {
-            domChanged = ea.styleTextMorph(text) || domChanged;
-        });
+            scroll = this.getScroll(),
+            domChanged = syntaxHighlighter.styleTextMorph(text);
         if (domChanged) {
             selRange && this.setSelectionRange(selRange[0], selRange[1]);
             scroll && this.setScroll(scroll[0], scroll[1]);
@@ -2202,7 +2196,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     highlightSyntaxDebounced: function(waitTime) {
-        waitTime = waitTime || this.syntaxHighlighters.pluck('minDelay').max();
+        waitTime = waitTime || this.syntaxHighlighter.minDelay || 0;
         // replaces this function in the instance object
         this.highlightSyntaxDebounced = Functions.debounce(waitTime, this.highlightSyntax);
         this.highlightSyntaxDebounced();

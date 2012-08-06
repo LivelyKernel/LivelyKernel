@@ -22,7 +22,7 @@ lively.morphic.tests.MorphTests.subclass('lively.ide.tests.SyntaxHighlighting.Ba
         this.checkChunks([{textString: 'foobar', style: {}}]);
 
         // install highlighter obj
-        this.text.syntaxHighlighters = [this.barHighlighter];
+        this.text.syntaxHighlighter = this.barHighlighter;
         this.text.highlightSyntax();
         this.checkChunks([{textString: 'foo'},
                           {textString: 'bar'}]);
@@ -37,7 +37,7 @@ lively.morphic.tests.MorphTests.subclass('lively.ide.tests.SyntaxHighlighting.Ba
 
     test04DontHighlightIfCharLimitIsExceeded: function() {
         this.text = new lively.morphic.Text(new Rectangle(0,0,100,100), '');
-        this.text.syntaxHighlighters = [this.barHighlighter];
+        this.text.syntaxHighlighter = this.barHighlighter;
         this.barHighlighter.charLimit = 20;
         this.text.textString = 'bar '.times(4); // 16 chars
         this.text.highlightSyntax();
@@ -59,7 +59,7 @@ AsyncTestCase.subclass('lively.ide.tests.SyntaxHighlighting.Timing',
         this.barHighlighter.minDelay = 50;
         this.barHighlighter.maxDelay = 250;
         this.text = new lively.morphic.Text(new Rectangle(0,0,100,100), 'foobar');
-        this.text.syntaxHighlighters = [this.barHighlighter];
+        this.text.syntaxHighlighter = this.barHighlighter;
     },
     checkChunks: lively.morphic.tests.MorphTests.prototype.checkChunks
 },
@@ -70,7 +70,7 @@ AsyncTestCase.subclass('lively.ide.tests.SyntaxHighlighting.Timing',
         this.text.enableSyntaxHighlighting();
         this.checkChunks([{textString: 'foobar'}]);
 
-        var delay = this.text.syntaxHighlighters.pluck('minDelay').max() + 40;
+        var delay = this.text.syntaxHighlighter.minDelay + 40;
         this.delay(function() {
             this.checkChunks([{textString: 'foo'}, {textString: 'bar'}],
                 'enableSyntaxHighlighting not working');

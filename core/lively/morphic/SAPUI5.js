@@ -185,7 +185,9 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
         this.resizeComponent();
     },
     getValue: function() {
-        return this.renderContextDispatch('getValue');
+        return this.getProp('value');
+        
+        //return this.renderContextDispatch('getValue');
     },
     setValue: function(value) {
         return this.renderContextDispatch('setValue', value);

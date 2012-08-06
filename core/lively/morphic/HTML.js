@@ -753,11 +753,14 @@ lively.morphic.Shapes.Shape.addMethods(
         this.setPaddingHTML(ctx, this.getPadding()); // also sets extent
 
         this.getNodeClass() && this.setNodeClassHTML(ctx, this.getNodeClass());
+        
+        /*
         if (this.getNodeId()) {
             this.setNodeIdHTML(ctx, this.getNodeId());
-            this.getStyleSheet && this.setStyleSheetHTML(ctx, this.getStyleSheet());
+            
         }
-
+        */
+        this.getStyleSheet && this.setStyleSheetHTML(ctx, this.getStyleSheet());
         if (UserAgent.fireFoxVersion)
             ctx.shapeNode['-moz-user-modify'] = 'read-only'
     },

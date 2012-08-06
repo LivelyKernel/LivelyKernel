@@ -814,6 +814,7 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
     additionallySerialize: function(original, persistentCopy) {
         var closures = {}, found = false;
         Functions.own(original).forEach(function(funcName) {
+            if (original.doNotSerialize && original.doNotSerialize.include(funcName)) return;
             var func = original[funcName];
             if (!func || !func.hasLivelyClosure) return;
             found = true;

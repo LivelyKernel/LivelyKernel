@@ -6,7 +6,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OldEventTests',
     xtest05DropMorph: function() {
         var morph1 = new lively.morphic.Morph(),
             morph2 = new lively.morphic.Morph();
-        // this.world.addHandMorph();
         this.world.addMorph(morph1);
         this.world.addMorph(morph2);
         morph1.setBounds(new Rectangle(0,0, 100, 100));

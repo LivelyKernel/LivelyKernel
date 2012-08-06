@@ -135,8 +135,9 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
         /*
         setMaxLength: 'setMaxLengthHTML',
         getMaxLength: 'getMaxLengthHTML',
-        */
+        
         updateAppearance: 'updateAppearanceHTML'
+        */
     },
 },
 'initializing', {

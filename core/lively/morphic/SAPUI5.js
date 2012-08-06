@@ -503,12 +503,11 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
             row.addMorph(cell);
         }
     },
-    addPlaceholders: function(size) {
-        var placeholderSize = size || pt(60, 24);
+    addPlaceholders: function(width, height) {
         this.tbodyMorph.submorphs.each(function(tr){
-            tr.submorphs.each(function(td){
+            tr.submorphs.each(function(td){ 
                 td.hidePlaceholder = false;
-                td.addPlaceholder(placeholderSize.x, placeholderSize.y);
+                td.addPlaceholder(width, height || width);
             });
         });
     },

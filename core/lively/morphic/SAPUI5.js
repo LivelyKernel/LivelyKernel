@@ -145,7 +145,6 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
     appendHTML: function($super, ctx) {
         $super(ctx);
         if (this.value) this.setValue(this.value);
-        $(ctx.shapeNode).change(function(){alert('asdf')}/*this.onChange*/);
     },
 },
 
@@ -219,18 +218,21 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
     },
     onBlur: function($super, evt) {
         this.hasFocus = false;
-        this.value = this.getValue(); // value is updated here since onChange only fires on onBlur anyways
         this.updateAppearance();
+      this.updateTextString();
         $super(evt);        
     },
     
-    onChange: function($super, evt){
-        if (this.attributeConnections) {
-            lively.bindings.signal(this, 'textString', this.textString);
-        }    
+    onKeyUp: function($super, evt){
+        //
+          this.updateTextString();
         return true;
     },
-    
+    updateTextString: function() {
+        if (this.attributeConnections) {
+            lively.bindings.signal(this, 'textString', this.textString);
+        }  
+    },
     updateAppearance: function() {
         
         var classNames = this.baseClasses;

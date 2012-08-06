@@ -156,10 +156,6 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
         if (this.value) this.setValue(this.value);
     },
 
-    getValueHTML: function(ctx) {
-        if (ctx.shapeNode) return ctx.shapeNode.value;
-        else return "";  
-    },
     setValueHTML: function(ctx, value) {
         if (ctx.shapeNode) ctx.shapeNode.value = value;
     },
@@ -186,11 +182,9 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
     },
     getValue: function() {
         return this.getProp('value');
-        
-        //return this.renderContextDispatch('getValue');
     },
     setValue: function(value) {
-        return this.renderContextDispatch('setValue', value);
+        return this.setProp('value', value);
     },
     clearState: function(){
         this.warning = false;

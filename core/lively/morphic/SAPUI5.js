@@ -130,16 +130,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
     fixedHeight: true,
     tagName: 'input'
 },
-'HTML render settings', {
-    htmlDispatchTable: {
-        /*
-        setMaxLength: 'setMaxLengthHTML',
-        getMaxLength: 'getMaxLengthHTML',
-        
-        updateAppearance: 'updateAppearanceHTML'
-        */
-    },
-},
+
 'initializing', {
     initialize: function($super, bounds, optValue) {
         $super(this.tagName, bounds);
@@ -151,27 +142,10 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
 },
 
 'rendering', {
-    
     appendHTML: function($super, ctx) {
         $super(ctx);
         if (this.value) this.setValue(this.value);
     },
-    /*
-    getMaxLengthHTML: function(ctx) {
-        if (ctx.shapeNode) {
-            var m = ctx.shapeNode.getAttribute('maxlength');
-            if (m && m !="") return m;
-        }
-        return null;  
-    },
-    setMaxLengthHTML: function(ctx, value) {
-        if (ctx.shapeNode) {
-            if (value) ctx.shapeNode.maxLength = value;
-            else ctx.shapeNode.removeAttribute('maxlength');
-        }
-    },
-    */
-    
 },
 
 'accessing', {

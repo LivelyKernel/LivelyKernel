@@ -228,6 +228,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
         if (this.attributeConnections) {
             lively.bindings.signal(this, 'textString', this.textString);
         }    
+        return true;
     },
     
     updateAppearance: function() {

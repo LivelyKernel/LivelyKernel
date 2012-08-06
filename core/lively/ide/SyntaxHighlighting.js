@@ -1,11 +1,56 @@
 module('lively.ide.SyntaxHighlighting').requires('lively.morphic', 'lively.ide.BrowserFramework').toRun(function() {
 
-Object.subclass("SyntaxHighlighter", {
+Object.subclass("lively.ide.SyntaxHighlighter",
+'settings', {
+    syntaxHighlightingCharLimit: null,
+    minDelay: 100,
+    maxDelay: 10000,
+    defaultStyle: {color: Color.black, backgroundColor: null},
+    rules: {}
+},
+'styling', {
+
+    howToStyleString: function(string, rules, defaultStyle) {
+        // converts a highlighter regexp rule like
+        // {match: /bar/g, style: {color: 'blue'}}
+        // into intervals with styles for string. If rule = the rule above then calling
+        // text.howToStyleString('foo bar baz', [rule], {})
+        // returns [[0,4, {}], [4,7, {color: blue}], [7, 11, {}]]
+        var slices = [];
+        for (var ruleName in rules) {
+            if (!rules.hasOwnProperty(ruleName)) continue;
+            var rule = rules[ruleName],
+                m, re = rule.match, counter = 0;
+            while ((m = re.exec(string))) {
+                if (!m || !m[0]) continue;
+                if (++counter > 9999) throw new Error('endless loop?');
+                var from = m.index, to = m.index + m[0].length;
+                slices.push([from, to, rule.style]);
+            }
+        }
+        return Interval.intervalsInRangeDo(0, string.length, slices, function(slice, isNew) {
+            if (isNew) { slice[2] = defaultStyle }; return slice;
+        });
+    },
+
+    styleTextMorph: function(target) {
+        // take highlighter rules and apply them to target's textString. As a result
+        // of that we get text ranges and styles that cab be used to emphasize text
+        // interval in target . Return true if styling the text has changed the DOM,
+        // false otherwise (see #emphasizeRanges).
+        var rulesForString = this.howToStyleString(
+                target.textString, this.rules, this.defaultStyle);
+        // rulesForString should be sorted!!!
+        return target.emphasizeRanges(Interval.sort(rulesForString));
+    }
 
 });
 
-Object.extend(SyntaxHighlighter, {
-    JavaScriptRules: {
+lively.ide.SyntaxHighlighter.subclass('lively.ide.JSSyntaxHighlighter',
+'settings', {
+    minDelay: 300, // ms
+    charLimit: 6000,
+    rules: {
         // based on http://code.google.com/p/jquery-chili-js/ regex and colors
         num: {
             match: /\b[+-]?(?:\d*\.?\d+|\d+\.?\d*)(?:[eE][+-]?\d+)?\b/g,
@@ -67,8 +112,12 @@ Object.extend(SyntaxHighlighter, {
             match: /[ \t]+[\n\r]/g,
             style: {backgroundColor: Color.yellow.withA(0.4)}
         }
-    },
-    LaTeXRules: {
+    }
+});
+
+lively.ide.SyntaxHighlighter.subclass('lively.ide.LaTeXSyntaxHighlighter',
+'settings', {
+    rules: {
         num: {
             match: /\b[+-]?(?:\d*\.?\d+|\d+\.?\d*)(?:[eE][+-]?\d+)?\b/g,
             style: {color: Color.web.blue}
@@ -100,106 +149,17 @@ Object.extend(SyntaxHighlighter, {
     }
 });
 
-lively.morphic.Text.addMethods(
-'syntax highlighting', {
-    syntaxHighlightingCharLimit: 8000,
-    syntaxHighlightingMinDelay: 300,
-    syntaxHighlightingMaxDelay: 10000,
-
-    highlightJavaScriptSyntax: function() {
-        // FIXME use defaultconfig
-        if (URL.source && URL.source.toString().include('disableSyntaxHighlighting=true')) return false;
-        if (!this.renderContext().textNode) return false; // FIXME
-        var length = this.textString.length;
-        if (length > this.syntaxHighlightingCharLimit) return false;
-        Global.clearTimeout(this._syntaxHighlightTimeout);
-        var self = this;
-        function later() {
-            self._syntaxHighlightTimeout = null;
-            var start = Date.now();
-            self.highlightSyntaxFromTo(0, self.textString.length,
-                                       SyntaxHighlighter.JavaScriptRules);
-            self.lastSyntaxHighlightTime = Date.now() - start;
-
-            if (!self.lastSyntaxHighlightTimes) self.lastSyntaxHighlightTimes = new Array(10);
-            self.lastSyntaxHighlightTimes.pop();
-            self.lastSyntaxHighlightTimes.unshift(self.lastSyntaxHighlightTime);
-        };
-        if (this.lastSyntaxHighlightTime >= 0) {
-            var time = this.lastSyntaxHighlightTime * 2;
-            time = Math.max(this.syntaxHighlightingMinDelay, time);
-            time = Math.min(this.syntaxHighlightingMaxDelay, time);
-            this._syntaxHighlightTimeout = Global.setTimeout(later, time);
-        } else {
-            later();
-        }
-        return true;
-    },
-
-    howToStyleString: function(string, rules, defaultStyle) {
-        // converts a highlighter regexp rule like
-        // {match: /bar/g, style: {color: 'blue'}}
-        // into intervals with styles for string. If rule = the rule above then calling
-        // text.howToStyleString('foo bar baz', [rule], {})
-        // returns [[0,4, {}], [4,7, {color: blue}], [7, 11, {}]]
-        var slices = [];
-        for (var ruleName in rules) {
-            if (!rules.hasOwnProperty(ruleName)) continue;
-            var rule = rules[ruleName],
-                m, re = rule.match, counter = 0;
-            while ((m = re.exec(string))) {
-                if (++counter > 9999) throw new Error('endless loop?');
-                var from = m.index, to = m.index + m[0].length;
-                slices.push([from, to, rule.style]);
-            }
-        }
-        return Interval.intervalsInRangeDo(0, string.length, slices, function(slice, isNew) {
-            if (isNew) { slice[2] = defaultStyle }; return slice;
-        });
-    },
-
-    applyHighlighterRules: function(target, highlighterRules) {
-        // take highlighter rules and apply them to my textString. As a result
-        // of that we get text ranges and styles that should be applied to
-        // them. Return true if the DOM tree has changed through applying the
-        // highlight rules, false otherwise (see #emphasizeRanges).
-        //
-        // Unoptimized version:
-        // var defaultStyle = {color: Color.black, backgroundColor: null};
-        // this.emphasizeAll(defaultStyle)
-        // for (var ruleName in highlighterRules) {
-        //     if (!highlighterRules.hasOwnProperty(ruleName)) continue;
-        //     var rule = highlighterRules[ruleName];
-        //     target.emphasizeRegex(rule.match, rule.style)
-        // }
-        var defaultStyle = {color: Color.black, backgroundColor: null},
-            rulesForString = this.howToStyleString(
-                target.textString, highlighterRules, defaultStyle);
-        return target.emphasizeRanges(rulesForString);
-    },
-
-    highlightSyntaxFromTo: function(from, to, highlighterRules) {
-        var selRange = this.getSelectionRange(),
-            scroll = this.getScroll(),
-            domTreeChanged = this.applyHighlighterRules(this, highlighterRules);
-        selRange && this.setSelectionRange(selRange[0], selRange[1]);
-        scroll && this.setScroll(scroll[0], scroll[1]);
-    },
-
-    highlightLaTeXSyntax: function() {
-        // FIXME use defaultconfig
-        if (URL.source && URL.source.toString().include('disableSyntaxHighlighting=true')) return;
-        if (!this.renderContext().textNode) return; // FIXME
-        var later = function() {
-            this._syntaxHighlightTimeout = null;
-            this.highlightSyntaxFromTo(0, this.textString.length,
-                SyntaxHighlighter.LaTeXRules);
-        }.bind(this);
-        clearTimeout(this._syntaxHighlightTimeout);
-        this._syntaxHighlightTimeout = setTimeout(later, 300);
+Object.extend(lively.ide.SyntaxHighlighter, {
+    forJS: function() {
+        // js highlighter has no state, so simply reuse on instance
+        return this._jsHighlighter = this._jsHighlighter || new lively.ide.JSSyntaxHighlighter();
     }
+});
 
-})
+lively.morphic.Text.addMethods(
+'syntax highlighter settings', {
+    syntaxHighlighters: [lively.ide.SyntaxHighlighter.forJS()]
+});
 
 cop.create("SyntaxHighlightLayer")
 .refineClass(lively.ide.BasicBrowser, {
@@ -235,5 +195,10 @@ cop.create("SyntaxHighlightLayer")
         return morph
     }
 });
+
+Object.extend(Global, {
+    SyntaxHighlighter: lively.ide.SyntaxHighlighter
+});
+
 
 }) // end of module

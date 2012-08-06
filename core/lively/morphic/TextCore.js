@@ -1880,6 +1880,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     emphasizeRanges: function(rangesAndStyles) {
+        // Note! rangesAndStyles should be sorted according to Interval.sort
+        //
         // Add style to my text according to ranges. rangesAndStyles is an
         // array of intervals. An interval is an array with at least two
         // elements. If the interval has a third element this is expected to
@@ -2166,32 +2168,72 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     }
 },
 'syntax highlighting', {
-    highlightJavaScriptSyntax: function() {
-        // can be overwritten
+    highlightSyntax: function() {
+        if (Config.get('disableSyntaxHighlighting')) return null;
+        var syntaxHighlighters = this.syntaxHighlighters;
+        if (!syntaxHighlighters || syntaxHighlighters.length == 0) return null;
+
+        var maxLimit = Infinity;
+        this.syntaxHighlighters.forEach(function(ea) {
+            if (ea.charLimit) maxLimit = ea.charLimit < maxLimit ? ea.charLimit : maxLimit })
+        if (maxLimit !== Infinity) {
+            if (this.textString.length >= maxLimit) return null;
+        }
+
+        var text = this,
+            startTime = Date.now(),
+            domChanged = false,
+            selRange = this.getSelectionRange(),
+            scroll = this.getScroll();
+        syntaxHighlighters.forEach(function(ea) {
+            domChanged = ea.styleTextMorph(text) || domChanged;
+        });
+        if (domChanged) {
+            selRange && this.setSelectionRange(selRange[0], selRange[1]);
+            scroll && this.setScroll(scroll[0], scroll[1]);
+        }
+        this._lastSyntaxHighlightTime = Date.now() - startTime;
+        return true;
     },
+
+    highlightJavaScriptSyntax: function() {
+        // DEPRECATED!
+        this.highlightSyntaxDebounced();
+    },
+
+    highlightSyntaxDebounced: function(waitTime) {
+        waitTime = waitTime || this.syntaxHighlighters.pluck('minDelay').max();
+        // replaces this function in the instance object
+        this.highlightSyntaxDebounced = Functions.debounce(waitTime, this.highlightSyntax);
+        this.highlightSyntaxDebounced();
+    },
+
     enableSyntaxHighlighting: function() {
         var text = this;
         require('lively.ide.SyntaxHighlighting').toRun(function() {
             text.syntaxHighlightingWhileTyping = true;
-            connect(text, 'textString', text, 'highlightJavaScriptSyntax');
-            text.highlightJavaScriptSyntax();
+            text.highlightSyntaxDebounced();
+            connect(text, 'textString', text, 'highlightSyntaxDebounced');
         })
     },
+
     disableSyntaxHighlighting: function() {
         this.syntaxHighlightingWhileTyping = false;
-        disconnect(this, 'textString', this, 'highlightJavaScriptSyntax');
+        delete this.highlightSyntaxDebounced;
+        disconnect(this, 'textString', this, 'highlightSyntaxDebounced');
     },
 
     enableSyntaxHighlightingOnSave: function() {
         var text = this;
         require('lively.ide.SyntaxHighlighting').toRun(function() {
             text.syntaxHighlightingOnSave = true;
-            connect(text, 'savedTextString', text, 'highlightJavaScriptSyntax');
+            connect(text, 'savedTextString', text, 'highlightSyntaxDebounced');
         });
     },
+
     disableSyntaxHighlightingOnSave: function() {
         this.syntaxHighlightingOnSave = false;
-        disconnect(this, 'savedTextString', this, 'highlightJavaScriptSyntax');
+        disconnect(this, 'savedTextString', this, 'highlightSyntaxDebounced');
     }
 },
 'JavaScript support', {

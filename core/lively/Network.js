@@ -406,7 +406,14 @@ Object.subclass('NetRequestStatus',
     },
 
     isSuccess: function() {
-        var code = this.transport.status;
+        var code;
+        try {
+            code = this.transport.status;
+        } catch (e) {
+            // sometimes the browser throws an error when trying
+            // to access transport.status too early
+            return false;
+        }
         return code >= 200 && code < 300;
     },
 },

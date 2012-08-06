@@ -1398,15 +1398,17 @@ lively.morphic.World.addMethods(
                 });
             }]);
         }
-        if (Global.AdvancedSyntaxHighlighting && AdvancedSyntaxHighlighting.isGlobal()) {
+        if (module('lively.ast.IDESupport').isEnabled) {
             items.push(['[X] Advanced Syntax Highlighting', function() {
-                AdvancedSyntaxHighlighting.beNotGlobal();
+                require('lively.ast.IDESupport').toRun(function() {
+                    lively.ast.IDESupport.disable();
+                });
             }]);
         } else {
             items.push(['[  ] Advanced Syntax Highlighting', function() {
-                require('lively.ast.StaticAnalysis').toRun(function() {
-                    AdvancedSyntaxHighlighting.beGlobal();
-                });
+                require('lively.ast.IDESupport').toRun(function() {
+                    lively.ast.IDESupport.enable();
+                })
             }]);
         }
         if (Global.AutoIndentLayer && AutoIndentLayer.isGlobal()) {

@@ -383,14 +383,14 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
         var node = XHTMLNS.create('input');
         node.type = 'checkbox';
         return new lively.morphic.Shapes.External(node);
-    },
+    }
 },
 'accessing', {
     setChecked: function(bool) {
         this.checked = bool;
         this.renderContext().shapeNode.checked = bool;
         return bool;
-    },
+    }
 },
 'testing', {
     isChecked: function() {
@@ -415,7 +415,7 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
         // FIXME what about connections to this.isChecked?
         // they would be updated here...
         this.setChecked(this.isChecked());
-    },
+    }
 });
 lively.morphic.Morph.subclass('lively.morphic.PasswordInput',
 'initializing', {
@@ -1075,12 +1075,6 @@ lively.morphic.Morph.addMethods(
             items.push(['Reset', this.reset.bind(this)]);
         }
 
-        if (this.owner.owner) { // Is owner owner a Stack?
-            if (this.owner.owner.pageArray) {
-                this.owner.owner.stackMenuItems(this, items)    // move between page and background
-            }
-        }
-
         return items;
     },
     getWindow: function() {
@@ -1404,15 +1398,17 @@ lively.morphic.World.addMethods(
                 });
             }]);
         }
-        if (Global.AdvancedSyntaxHighlighting && AdvancedSyntaxHighlighting.isGlobal()) {
+        if (module('lively.ast.IDESupport').isEnabled) {
             items.push(['[X] Advanced Syntax Highlighting', function() {
-                AdvancedSyntaxHighlighting.beNotGlobal();
+                require('lively.ast.IDESupport').toRun(function() {
+                    lively.ast.IDESupport.disable();
+                });
             }]);
         } else {
             items.push(['[  ] Advanced Syntax Highlighting', function() {
-                require('lively.ast.StaticAnalysis').toRun(function() {
-                    AdvancedSyntaxHighlighting.beGlobal();
-                });
+                require('lively.ast.IDESupport').toRun(function() {
+                    lively.ast.IDESupport.enable();
+                })
             }]);
         }
         if (Global.AutoIndentLayer && AutoIndentLayer.isGlobal()) {

@@ -2172,9 +2172,14 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (Config.get('disableSyntaxHighlighting')) return null;
         var syntaxHighlighters = this.syntaxHighlighters;
         if (!syntaxHighlighters || syntaxHighlighters.length == 0) return null;
-        // var length = this.textString.length;
-        // if (length > this.syntaxHighlightingCharLimit) return null;
-            // stringLength = this.textString.length,
+
+        var maxLimit = Infinity;
+        this.syntaxHighlighters.forEach(function(ea) {
+            if (ea.charLimit) maxLimit = ea.charLimit < maxLimit ? ea.charLimit : maxLimit })
+        if (maxLimit !== Infinity) {
+            if (this.textString.length >= maxLimit) return null;
+        }
+
         var text = this,
             startTime = Date.now(),
             domChanged = false,

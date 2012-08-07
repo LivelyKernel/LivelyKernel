@@ -1024,8 +1024,12 @@ handleOnCapture);
         shadow.addScript(function remove() {
             $super();
             this.connections.invoke('disconnect');
-            this.submorphs.invoke('remove')
-        })
+            this.submorphs.invoke('remove');
+            lively.bindings.callWhenNotNull(this, 'owner', this, 'reconnect');
+        });
+        shadow.addScript(function reconnect(newOwner) {
+            this.connections.invoke('connect');
+        });
         shadow.setTransform(local ? this.getTransform() : this.getGlobalTransform());
         shadow.disableDropping();
         //shadow.originalMorph = this;

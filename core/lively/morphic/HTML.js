@@ -324,7 +324,6 @@ lively.morphic.Morph.addMethods(
 
         // remove the style node if there is any
         if (ctx.styleNode) {
-            //$('#style-for-'+ctx.shapeNode.id).remove();
             $(ctx.styleNode).remove();
         }
     },

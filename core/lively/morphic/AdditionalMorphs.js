@@ -781,11 +781,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         this.setExtent(this.getTabContainer().getTabBarStrategy().
             tabBarExtent(this.getTabContainer()));
 
-    },
-
-
-
-
+    }
 
 });
 lively.morphic.Morph.subclass('lively.morphic.Tab',

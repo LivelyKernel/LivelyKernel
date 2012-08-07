@@ -147,6 +147,18 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.EventTests.LockingT
         this.dragFromTo(m2, pt(55,55), pt(65,55));
         this.assertEquals(pt(0,0), m1.getPosition(), 'owner dragged');
         this.assertEquals(pt(60,50), m2.getPosition(), 'submorph not dragged');
+    },
+    test08AddingShadowMorphKeepsConnections: function() {
+        var morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20);
+        var shadow = morph.getGrabShadow();
+        this.createWorld();
+        this.world.addMorph(morph);
+        this.world.addMorph(shadow);
+        morph.rotateBy(1);
+        this.asserEquals(1, morph.getRotation());
+        this.world.addMorph(shadow); // adding morph again should have no effect
+        morph.rotateBy(1);           // on the connections
+        this.asserEquals(2, morph.getRotation());
     }
 });
 

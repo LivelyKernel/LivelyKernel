@@ -320,7 +320,7 @@ lively.morphic.Morph.addMethods(
             }
         }
         ctx.removeNode(ctx.morphNode);
-        this.shape && this.shape.setStyleSheetHTML(ctx);
+        this.setStyleSheet();
     },
 },
 'events', {

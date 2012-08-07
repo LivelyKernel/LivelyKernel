@@ -1024,6 +1024,7 @@ handleOnCapture);
         shadow.addScript(function remove() {
             $super();
             this.connections.invoke('disconnect');
+            this.submorphsForReconnect = this.submorphs.clone();
             this.submorphs.invoke('remove');
             lively.bindings.callWhenNotNull(this, 'owner', this, 'reconnect');
         });

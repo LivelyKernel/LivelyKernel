@@ -120,7 +120,7 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
         lively.bindings.connect(morph2, 'rotation', morph3, 'setRotation');
         morph2.rotateBy(1);
         this.assertEquals(1, morph3.getRotation());
-        //debugger;
+        debugger;
         morph.addMorph(morph2); // adding morph to same owner
         morph2.rotateBy(1);
         this.assertEquals(2, morph3.getRotation());

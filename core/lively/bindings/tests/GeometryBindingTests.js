@@ -119,10 +119,10 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
         var observer = {extentChanged: function(ext) { this.extent = ext }};
         lively.bindings.connect(morph2, 'extent', observer, 'extentChanged');
         morph2.setExtent(pt(50,50));
-        this.assertEquals(pt(50,50), observer.extent, '1');
+        this.assertEquals(pt(50,50), observer.extent);
         morph.addMorph(morph2); // adding morph to same owner
         morph2.setExtent(pt(40,40));
-        this.assertEquals(pt(40,40), observer.extent, '2');
+        this.assertEquals(pt(40,40), observer.extent);
     },
 
 });

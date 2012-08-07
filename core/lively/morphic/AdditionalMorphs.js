@@ -948,18 +948,25 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
 
 });
 lively.morphic.Morph.subclass('lively.morphic.TabPane',
-'default category', {
+'settings', {
+    style: {
+        fill: Color.white,
+        borderWidth: 1,
+        borderColor: Color.gray,
+        enableDragging: false,
+        enableGrabbing: false,
+        adjustForNewBounds: true,
+        resizeWidth: true,
+        resizeHeight: true
+    }
+},
+'initializing', {
+
     initialize: function($super, tab, extent) {
         $super();
         this.tab = tab;
         this.tabBar = tab.getTabBar();
-        this.setFill(Color.white);
-        this.setBorderWidth(1);
-        this.setBorderColor(Color.gray);
         this.setExtent(extent);
-        this.layout = {adjustForNewBounds: true, resizeWidth: true, resizeHeight: true};
-        this.draggingEnabled = this.grabbingEnabled = false;
-
     },
     getTab: function() {
         return this.tab;

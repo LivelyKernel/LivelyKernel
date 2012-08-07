@@ -313,7 +313,6 @@ lively.morphic.Morph.addMethods(
 },
 'removing', {
     removeHTML: function(ctx) {
-        console.log('HTML: Remove');
         if (this.owner) {
             var owner = this.owner;
             owner.removeMorph(this);
@@ -324,6 +323,7 @@ lively.morphic.Morph.addMethods(
         }
         ctx.removeNode(ctx.morphNode);
         
+        // 
         if (ctx.shapeNode && ctx.shapeNode.id) {
             $('#style-for-'+ctx.shapeNode.id).remove();
         }

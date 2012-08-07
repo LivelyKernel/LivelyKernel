@@ -155,7 +155,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests.Shadow
     testAddingShadowMorphKeepsConnections: function() {
         var morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20);
         var shadow = morph.getGrabShadow();
-        this.createWorld();
         this.world.addMorph(morph);
         this.world.addMorph(shadow);
         morph.rotateBy(1);

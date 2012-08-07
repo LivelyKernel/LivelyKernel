@@ -771,6 +771,16 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionJSONSerializatio
         this.assertEquals(23, newObj2.ref.b, 'connection not working after deserialization');
     },
 
+    test02SourcePropertyGetsSetWhenSerialized: function() {
+        var obj1 = {},
+            obj2 = {};
+        connect(obj1, 'a', obj2, 'a')
+        this.assert(!obj1.hasOwnProperty('a'));
+        var jso = lively.persistence.Serializer.serialize(obj1);
+        var newObj1 = lively.persistence.Serializer.deserialize(jso);
+        newObj1.a = 23;
+        this.assert(!newObj1.hasOwnProperty('a'), 'connection sets property when serialized');
+    }
 
 });
 

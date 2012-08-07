@@ -886,7 +886,9 @@ lively.morphic.Shapes.Shape.addMethods(
     },
 
     setStyleSheetHTML: function(ctx, value) {
-        var morphId = ctx.shapeNode.id;
+        
+        
+        var morphId = ctx.shapeNode && ctx.shapeNode.id;
         if (!morphId) {
             console.log("Cannot set morph specific style sheet. Shape node was not assigned any id.");
             return;

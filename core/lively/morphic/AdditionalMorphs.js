@@ -667,12 +667,8 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
     initialize: function($super, tabContainer) {
         $super();
         this.tabContainer = tabContainer;
-        this.setFill(Color.gray);
-        this.setBorderWidth(1);
-        this.setBorderColor(Color.gray);
         var width = tabContainer.getTabBarStrategy().getTabBarWidth(tabContainer);
         this.setExtent(pt(width, this.getDefaultHeight()));
-        this.draggingEnabled = this.grabbingEnabled = false;
         this.tabs = [];
     },
     getDefaultHeight: function() {

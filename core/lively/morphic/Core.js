@@ -202,7 +202,8 @@ Object.subclass('lively.morphic.Morph',
         return this.shape.getNodeClass();
     },
     setNodeId: function(id) {
-            return this.shape.setNodeId("morph-" + (id || this.id).toLowerCase() );
+        var idToSet = id || this.id;
+        return this.shape.setNodeId("morph-" + idToSet.toLowerCase() );
     },
     getNodeId: function() {
         var id = this.shape.getNodeId();

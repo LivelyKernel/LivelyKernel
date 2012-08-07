@@ -257,7 +257,6 @@ lively.morphic.Morph.addMethods(
             ctx.morphNode['-moz-user-modify'] = 'read-only'
     },
     appendHTML: function(ctx, optMorphAfter) {
-        console.log('HTML: Append');
         if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
         var parentNode = ctx.morphNode.parentNode;
         if (!parentNode) {

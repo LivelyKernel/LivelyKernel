@@ -897,8 +897,7 @@ lively.morphic.Shapes.Shape.addMethods(
 
         var styleTagId = "style-for-"+morphId;
 
-	    var css = $('#' + styleTagId);
-	    css.remove();
+	$('#'+styleTagId).remove();
 
         if (value && value.length > 1) {
 
@@ -924,7 +923,6 @@ lively.morphic.Shapes.Shape.addMethods(
 	        css.text(specificCss);
 	        css.appendTo(document.head);
         } else {
-            $('#'+styleTagId).remove();
             delete this._StyleSheet;
         }
 

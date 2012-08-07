@@ -163,7 +163,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests.Shadow
         morph.rotateBy(1);           // on the connections
         this.assertEquals(2, shadow.getRotation());
     },
-    testAddingShadowMorphKeepsConnections: function() {
+    testAddingShadowMorphKeepsSubmorphs: function() {
         var morph = lively.morphic.Morph.makeRectangle(0, 0, 20, 20);
         morph.addMorph(lively.morphic.Morph.makeRectangle(0, 0, 4, 4));
         var shadow = morph.getGrabShadow();

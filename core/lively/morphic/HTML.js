@@ -924,6 +924,7 @@ lively.morphic.Shapes.Shape.addMethods(
 	        css.appendTo(document.head);
         } else {
             $('#'+styleTagId).remove();
+            delete this._StyleSheet;
         }
 
     },

@@ -156,7 +156,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.EventTests.LockingT
         this.world.addMorph(shadow);
         morph.rotateBy(1);
         this.assertEquals(1, shadow.getRotation());
-        //this.world.addMorph(shadow); // adding morph again should have no effect
+        this.world.addMorph(shadow); // adding morph again should have no effect
         morph.rotateBy(1);           // on the connections
         this.assertEquals(2, shadow.getRotation());
     }

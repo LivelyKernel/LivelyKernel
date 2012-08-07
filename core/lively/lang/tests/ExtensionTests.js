@@ -364,7 +364,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
     testRepair: function() {
         var arr = ["a", "b", "c"];
         delete arr[1];
-        arr.repair();
+        //arr.repair();
         this.assertEqualState(["a", "c"], arr);
     }
 });

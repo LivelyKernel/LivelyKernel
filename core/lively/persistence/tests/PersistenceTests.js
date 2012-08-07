@@ -239,8 +239,9 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         var string = this.serializer.serialize(morph1),
             jso = JSON.parse(string),
             result = lively.persistence.Serializer.sourceModulesIn(jso);
-        this.assertEqualState(['Global.lively.morphic.Core', 'Global.lively.morphic.Graphics',
-                               'Global.lively.morphic.Events', 'Global.lively.morphic.Shapes'],
+                    this.assertEqualState(
+            [Global.lively.morphic.Core, Global.lively.morphic.Graphics, Global.lively.morphic.Events, Global.lively.morphic.Shapes]
+            ,
                               result);
     },
 

@@ -115,15 +115,15 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
     test10MorphKeepsConnected: function() {
         var morph  = lively.morphic.Morph.makeRectangle(0,0, 20, 20);
         var morph2 = lively.morphic.Morph.makeRectangle(0,0, 30, 30);
+        var morph3 = lively.morphic.Morph.makeRectangle(0,0, 40, 40);
         morph.addMorph(morph2);
-        var observer = {rotationChanged: function(rot) { this.rotation = rot }};
-        lively.bindings.connect(morph2, 'rotation', observer, 'rotationChanged');
+        lively.bindings.connect(morph2, 'rotation', morph3, 'rotation');
         morph2.rotateBy(1);
-        this.assertEquals(1, observer.rotation);
-        debugger;
-        morph.addMorph(morph2); // adding morph to same owner
+        this.assertEquals(1, morph3.getRotation());
+        //debugger;
+        //morph.addMorph(morph2); // adding morph to same owner
         morph2.rotateBy(1);
-        this.assertEquals(2, observer.rotation);
+        this.assertEquals(2, morph3.getRotation());
     },
 
 });

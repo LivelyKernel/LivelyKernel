@@ -662,7 +662,16 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
 });
 
 lively.morphic.Morph.subclass('lively.morphic.TabBar',
-'default category', {
+'settings', {
+    style: {
+        fill: Color.gray,
+        borderWidth: 1,
+        borderColor: Color.gray,
+        enableDragging: false,
+        enableGrabbing: false
+    }
+},
+'initializing', {
 
     initialize: function($super, tabContainer) {
         $super();
@@ -670,7 +679,10 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         var width = tabContainer.getTabBarStrategy().getTabBarWidth(tabContainer);
         this.setExtent(pt(width, this.getDefaultHeight()));
         this.tabs = [];
-    },
+    }
+
+},
+'accessing', {
     getDefaultHeight: function() {
         return 30;
     },

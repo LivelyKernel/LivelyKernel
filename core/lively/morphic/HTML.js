@@ -285,7 +285,7 @@ lively.morphic.Morph.addMethods(
         this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode, ctx.shapeNode);
         if (this.originClass) this.setOriginClassHTML(ctx, this.originClass);
         this.getShape().renderUsing(ctx);
-        this.setNodeId(this.id);
+        this.getShape().setNodeIdHTML(ctx, this.id);
         this.getShape().setStyleSheetHTML(ctx, this.getShape().getStyleSheet());
     },
     insertMorphNodeInHTML: function(ctx, morphNode, parentNode, optAfterNode) {

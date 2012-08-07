@@ -904,6 +904,7 @@ lively.morphic.Shapes.Shape.addMethods(
 	if (ctx.styleNode) {
 	   $(ctx.styleNode).remove();
         }
+        
         if (value && value.length > 1) {
 
     	    //console.log("Setting CSS for shape "+morphId+" to "+value);

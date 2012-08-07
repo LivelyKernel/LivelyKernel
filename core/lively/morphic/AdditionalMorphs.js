@@ -705,16 +705,23 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         tab.setLabel(aLabelString);
         return this.addTab(tab);
     },
+
     removeTab: function(aTab) {
         aTab.getPane().remove();
         aTab.remove();
         this.unregisterTab(aTab);
     },
+
+    getTabContainer: function() {
+        return this.tabContainer;
+    }
+},
+'tab handling', {
+
     unregisterTab: function(aTab) {
         this.tabs = this.tabs.without(aTab);
         this.rearrangeTabs();
     },
-
 
     rearrangeTabs: function() {
         var offset = 0;
@@ -723,6 +730,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
             offset = ea.getNextTabBarOffset();
         });
     },
+
     getTabByName: function(aString) {
         // alternative implementation: in TabStrategyHide>>adjustTabBar
         //   do not set TabBar extent to pt(0,0) but call remove. In this case,
@@ -730,6 +738,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         //aTab = this.getTabs().detect(function (ea) { return aTab === ea.getName(); });
         return this.get(aString);
     },
+
     activateTab: function(aTab) {
         this.getTabs().forEach(function(ea) {
             ea.deactivate();});
@@ -738,9 +747,12 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         }
         aTab.activate();
     },
+
     deactivateTab: function(aTab) {
         aTab.deactivate();
     },
+},
+'menu', {
     morphMenuItems: function($super) {
         var self = this, items = $super();
         items.push([
@@ -749,6 +761,9 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         }])
         return items;
     },
+},
+'layouting', {
+
     onResizePane: function(initiator, newExtent, deltaX) {
         // Tabs call this method when their pane's extent has changed.
         // All other tabs in the group will be resized accordingly.
@@ -767,9 +782,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         var bounds = initiator.getBounds();
         this.setExtent(pt(this.getExtent().x, bounds.bottomRight().subPt(bounds.topLeft()).y ));*/
     },
-    getTabContainer: function() {
-        return this.tabContainer;
-    },
+
     adjustTabSizes: function(aPoint) {
         if (!this.adjustedTabSizes) {
             var self = this;

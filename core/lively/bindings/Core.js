@@ -140,10 +140,10 @@ Object.subclass('AttributeConnection',
 		obj.attributeConnections = obj.attributeConnections.reject(function(con) {
 			return this.isSimilarConnection(con);
 		}, this);
-		if (obj.attributeConnections.length == 0) delete obj.attributeConnections;
 		var connectionsWithSameSourceAttr = obj.attributeConnections.select(function(con) {
 			return this.getSourceAttrName() == con.getSourceAttrName();
 		}, this);
+		if (obj.attributeConnections.length == 0) delete obj.attributeConnections;
 		if (connectionsWithSameSourceAttr.length == 0)
 			this.removeSourceObjGetterAndSetter();
 	},

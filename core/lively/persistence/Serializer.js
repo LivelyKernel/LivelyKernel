@@ -171,7 +171,6 @@ Object.subclass('ObjectGraphLinearizer',
     },
     copyPropertiesAndRegisterReferences: function(source, copy) {
         for (var key in source) {
-            var key = keys[i];
             if (!source.hasOwnProperty(key) || (key === this.idProperty && !this.keepIds)) continue;
             var value = source[key];
             if (this.somePlugin('ignoreProp', [source, key, value])) continue;

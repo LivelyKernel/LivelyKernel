@@ -323,7 +323,10 @@ lively.morphic.Morph.addMethods(
             }
         }
         ctx.removeNode(ctx.morphNode);
-        $('#style-for-'+this.id).remove();
+        
+        if (ctx.shapeNode && ctx.shapeNode.id) {
+            $('#style-for-'+ctx.shapeNode.id).remove();
+        }
     },
 },
 'events', {

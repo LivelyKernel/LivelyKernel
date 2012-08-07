@@ -169,10 +169,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests.Shadow
         var shadow = morph.getGrabShadow();
         this.world.addMorph(morph);
         this.world.addMorph(shadow);
-        this.assertEquals(morph.submorphs.length, shadow.submorphs.length);
+        this.assertEquals(morph.submorphs.length, shadow.submorphs.length, 'before addMorph again');
         this.world.addMorph(shadow); // adding morph again should have no effect
                                      // on the submorphs of the shadow
-        this.assertEquals(morph.submorphs.length, shadow.submorphs.length);
+        this.assertEquals(morph.submorphs.length, shadow.submorphs.length, 'after addMorph again');
     }
 });
 

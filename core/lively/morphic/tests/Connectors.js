@@ -10,7 +10,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
             morph.moveBy(pt(10,10))
             var currentCtrlPtPos = ctrlPt.getGlobalPos();
             this.assertEquals(prevCtrlPtPos, currentCtrlPtPos, 'when morph moved connector moved also');
-            this.assertEquals(0, morph.attributeConnections.length, "morph has attributeConnections");
+            this.assert(!morph.hasOwnProperty("attributeConnections"),
+                        "morph has attributeConnections");
 
             this.assert(!ctrlPt.connectedMagnet, 'control point still has a magnet')
         } finally {

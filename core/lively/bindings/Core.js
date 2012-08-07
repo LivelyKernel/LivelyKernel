@@ -307,10 +307,14 @@ Object.subclass('AttributeConnection',
             srcObj[realAttrName] = srcObj[realAttrName].originalFunction
         }
 
-        if (srcObj.doNotSerialize && srcObj.doNotSerialize.include(helperAttrName))
+        if (srcObj.doNotSerialize && srcObj.doNotSerialize.include(helperAttrName)) {
             srcObj.doNotSerialize = srcObj.doNotSerialize.without(helperAttrName);
-        if (srcObj.doNotCopyProperties && srcObj.doNotCopyProperties.include(helperAttrName))
+            if (srcObj.doNotSerialize.length == 0) delete srcObj.doNotSerialize;
+        }
+        if (srcObj.doNotCopyProperties && srcObj.doNotCopyProperties.include(helperAttrName)) {
             srcObj.doNotCopyProperties = srcObj.doNotCopyProperties.without(helperAttrName);
+            if (srcObj.doNotCopyProperties.length == 0) delete srcObj.doNotCopyProperties;
+        }
     },
 
 	addAttributeConnection: function() {

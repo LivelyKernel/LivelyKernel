@@ -1306,11 +1306,11 @@ lively.morphic.Shapes.Shape.addMethods(
 			};
 		},
 					
-		setStyleSheet: function(value) {
-			this.setNodeId();
-			this.shape.setStyleSheet(value);
-			this.updateComputedStyles();
-		},
+    setStyleSheet: function(value) {
+        this.setNodeId();
+        this.shape.setStyleSheet(value);
+        this.updateComputedStyles();
+    },
 		getStyleSheet: function() {
 			var r = this.shape.getStyleSheet();
 			//this.updateComputedStyles();

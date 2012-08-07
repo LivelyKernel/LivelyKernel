@@ -178,14 +178,7 @@ Object.subclass('ObjectGraphLinearizer',
         var copy = {},
             source = this.somePlugin('serializeObj', [obj, copy]) || obj;
         // go through references in alphabetical order
-        var keys = Object.keys(source).sort();
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            if (!source.hasOwnProperty(key) || (key === this.idProperty && !this.keepIds)) continue;
-            var value = source[key];
-            if (this.somePlugin('ignoreProp', [source, key, value])) continue;
-            copy[key] = this.registerWithPath(value, key);
-        }
+        this.copyPropertiesAndRegisterReferences(source, copy);
         this.letAllPlugins('additionallySerialize', [source, copy]);
         this.copyDepth--;
         return copy;

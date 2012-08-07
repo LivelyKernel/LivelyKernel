@@ -313,6 +313,7 @@ lively.morphic.Morph.addMethods(
 },
 'removing', {
     removeHTML: function(ctx) {
+        console.log('HTML: Remove');
         if (this.owner) {
             var owner = this.owner;
             owner.removeMorph(this);

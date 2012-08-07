@@ -758,7 +758,6 @@ lively.morphic.Shapes.Shape.addMethods(
         /*
         if (this.getNodeId()) {
             this.setNodeIdHTML(ctx, this.getNodeId());
-            
         }
         */
 

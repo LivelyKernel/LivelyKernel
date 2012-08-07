@@ -123,7 +123,7 @@ lively.ide.JSSyntaxHighlighter.subclass('lively.ast.JSSyntaxHighlighter',
         } catch (e) {
             target.parseErrors = [e];
             target.doNotSerialize.push('parseErrors');
-            target.emphasize(this.errorStyle, e[3], target.textString.length);
+            domChangedPass2 = target.emphasize(this.errorStyle, e[3], target.textString.length);
         }
         return domChangedPass1 || domChangedPass2;
     }

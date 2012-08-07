@@ -360,4 +360,13 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.IntervalTest', {
 
 });
 
+TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
+    testRepair: function() {
+        var arr = ["a", "b", "c"];
+        delete arr[1];
+        arr.repair();
+        this.assertEqualState(["a", "c"], arr);
+    }
+});
+
 }) // end of module

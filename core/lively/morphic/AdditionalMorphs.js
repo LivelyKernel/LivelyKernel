@@ -980,9 +980,6 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         this.getTabContainer().activateTab(aTab);
     },
 
-
-
-
     setExtent: function($super, aPoint) {
         $super(aPoint);
         var container = this.getTabContainer();

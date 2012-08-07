@@ -1030,6 +1030,7 @@ handleOnCapture);
         });
         shadow.addScript(function reconnect(newOwner) {
             this.connections.invoke('connect');
+            this.submorphsForReconnect.forEach(function(ea) { this.addMorph(ea) }, this);
         });
         shadow.setTransform(local ? this.getTransform() : this.getGlobalTransform());
         shadow.disableDropping();

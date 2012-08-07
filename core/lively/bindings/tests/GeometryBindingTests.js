@@ -112,18 +112,7 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
         this.assertEquals(0, morph.attributeConnections.length, 'attributeConnections not empty');
     },
 
-    test10MorphKeepsConnected: function() {
-        var morph  = lively.morphic.Morph.makeRectangle(0,0, 20, 20);
-        var morph2 = morph.getGrabShadow();
-        //morph.addMorph(morph2);
-        //lively.bindings.connect(morph2, 'rotation', morph3, 'setRotation');
-        //morph2.rotateBy(1);
-        //this.assertEquals(1, morph3.getRotation());
-        debugger;
-        //morph.addMorph(morph2); // adding morph to same owner
-        //morph2.rotateBy(1);
-        //this.assertEquals(2, morph3.getRotation());
-    },
+
 
 });
 

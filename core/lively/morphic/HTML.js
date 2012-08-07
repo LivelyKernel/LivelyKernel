@@ -929,7 +929,7 @@ lively.morphic.Shapes.Shape.addMethods(
 	        ctx.styleNode = $('<style type="text/css" id="' + styleTagId + '"></style>');
 	        ctx.styleNode.text(specificCss);
 	        ctx.styleNode.appendTo(document.head);
-	        ctx.styleNode = css;
+
         } else {
             delete this._StyleSheet;
         }

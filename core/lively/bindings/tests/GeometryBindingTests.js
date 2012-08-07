@@ -117,7 +117,7 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
         var morph2 = lively.morphic.Morph.makeRectangle(0,0, 30, 30);
         var morph3 = lively.morphic.Morph.makeRectangle(0,0, 40, 40);
         morph.addMorph(morph2);
-        lively.bindings.connect(morph2, 'rotation', morph3, 'rotation');
+        lively.bindings.connect(morph2, 'rotation', morph3, 'setRotation');
         morph2.rotateBy(1);
         this.assertEquals(1, morph3.getRotation());
         //debugger;

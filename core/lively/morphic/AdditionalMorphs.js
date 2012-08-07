@@ -1024,14 +1024,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
     removeMorph: function($super, aMorph) {
         $super(aMorph);
         this.adjustClipping(this.getExtent());
-    },
-
-
-
-
-
-
-
+    }
 
 });
 

@@ -761,7 +761,7 @@ lively.morphic.Shapes.Shape.addMethods(
         }
         */
 
-        this.setStyleSheetHTML(ctx, this.getStyleSheet());
+        
         if (UserAgent.fireFoxVersion)
             ctx.shapeNode['-moz-user-modify'] = 'read-only'
     },

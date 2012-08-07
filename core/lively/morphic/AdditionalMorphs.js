@@ -524,7 +524,14 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
 
 
 lively.morphic.Morph.subclass('lively.morphic.TabContainer',
-'default category', {
+'settings', {
+    style: {
+        borderWidth: 1,
+        borderColor: Color.gray,
+        adjustForNewBounds: true
+    }
+},
+'initializing', {
 
     initialize: function($super, tabBarStrategy) {
         $super();
@@ -537,9 +544,6 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
         var newExtent = this.getTabBarStrategy().
             calculateInitialExtent(this.tabBar, this.tabPaneExtent);
         this.setExtent(newExtent);
-        this.setBorderWidth(1);
-        this.setBorderColor(Color.gray);
-        this.layout = {adjustForNewBounds: true};
         tabBarStrategy.applyTo(this);
     },
 

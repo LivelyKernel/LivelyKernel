@@ -253,6 +253,7 @@ lively.morphic.Morph.addMethods(
             this.setVisibleHTML(ctx, false);
         var tooltip = this.morphicGetter('ToolTip');
         tooltip && this.setToolTipHTML(ctx, tooltip);
+        this.setNodeId();
         if (UserAgent.fireFoxVersion)
             ctx.morphNode['-moz-user-modify'] = 'read-only'
     },
@@ -761,7 +762,7 @@ lively.morphic.Shapes.Shape.addMethods(
             
         }
         */
-        this.getStyleSheet && this.setStyleSheetHTML(ctx, this.getStyleSheet());
+        this.setStyleSheetHTML(ctx, this.getStyleSheet());
         if (UserAgent.fireFoxVersion)
             ctx.shapeNode['-moz-user-modify'] = 'read-only'
     },

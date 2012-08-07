@@ -251,11 +251,12 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
             this.setRawExtentHTML(ctx, this.extentOverride);
         }
         this.getNodeClass() && this.setNodeClassHTML(ctx, this.getNodeClass());
+        /*
         if (this.getNodeId()) {
             this.setNodeIdHTML(ctx, this.getNodeId());
             this.getStyleSheet && this.setStyleSheetHTML(ctx, this.getStyleSheet());
         }
-
+        */
         if (this.content) this.setContentHTML(ctx, this.content);
         this.setAllAttributes();
 

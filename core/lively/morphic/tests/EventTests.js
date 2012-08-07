@@ -159,10 +159,20 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests.Shadow
         this.world.addMorph(shadow);
         morph.rotateBy(1);
         this.assertEquals(1, shadow.getRotation());
-        debugger;
         this.world.addMorph(shadow); // adding morph again should have no effect
         morph.rotateBy(1);           // on the connections
         this.assertEquals(2, shadow.getRotation());
+    },
+    testAddingShadowMorphKeepsConnections: function() {
+        var morph = lively.morphic.Morph.makeRectangle(0, 0, 20, 20);
+        morph.addMorph(lively.morphic.Morph.makeRectangle(0, 0, 4, 4));
+        var shadow = morph.getGrabShadow();
+        this.world.addMorph(morph);
+        this.world.addMorph(shadow);
+        this.assertEquals(morph.submorphs.length, shadow.submorphs.length);
+        this.world.addMorph(shadow); // adding morph again should have no effect
+                                     // on the submorphs of the shadow
+        this.assertEquals(morph.submorphs.length, shadow.submorphs.length);
     }
 });
 

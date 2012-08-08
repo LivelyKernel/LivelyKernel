@@ -1174,4 +1174,7 @@ Object.extend(Color, {
     }
 });
 
+(function addColorsToConfig() {
+    
+})();
 });

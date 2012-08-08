@@ -485,7 +485,6 @@ ObjectLinearizerPlugin.subclass('LayerPlugin',
         if (!layers || layers.length == 0) return;
         module('cop.Layers').load(true); // FIXME
         obj[propname] = layers.collect(function(ea) {
-            console.log(ea)
             return Object.isString(ea) ? cop.create(ea, true) : ea;
         });
     },

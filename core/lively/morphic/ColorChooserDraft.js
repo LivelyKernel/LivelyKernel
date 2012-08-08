@@ -308,8 +308,9 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
         if (!bool) {
             var chooser = new lively.morphic.RGBColorChooser();
             var menu = new lively.morphic.SimpleColorMenu(chooser);
-            var pos = this.getPosition();
-            var menuPos = pos.addPt(pt(0, this.bounds().height));
+            var bounds = this.globalBounds();
+            var pos = pt(bounds.x, bounds.y);
+            var menuPos = pos.addPt(pt(0, bounds.height));
             menu.open(lively.morphic.World.current(), menuPos, false);
             menu.setCallback(this, 'setColor');
         }

@@ -265,7 +265,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         allowInput: true,
         clipMode: 'visible',
         fontFamily: 'Helvetica',
-        textColor: Color.rgb(64,64,64),
+        textColor: Color.rgb(32,32,32),
         fontSize: 10,
         padding: Rectangle.inset(4, 2)
     },

@@ -918,7 +918,7 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
     },
     deactivate: function() {
         this.setFill(Color.gray);
-        this.label.applyStyle({fontWeight:'bold'});
+        this.label.applyStyle({fontWeight:'normal'});
         this.label.fit();
         this.isActive = false;
     },

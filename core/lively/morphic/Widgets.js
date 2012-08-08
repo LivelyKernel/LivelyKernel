@@ -714,7 +714,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                     enableGrabbing: false,
                     allowInput: false,
                     fontSize: 10,
-                    textColor: Color.darkGray.darker(),
+                    textColor: Color.rgb(64,64,64),
                     padding: Rectangle.inset(3,2)
                 });
                 itemMorph.addMorph(arrowMorph);

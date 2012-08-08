@@ -785,7 +785,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                 // if the item is a submenu, set its textColor back to black
                 var arrow = this.submorphs.first();
                 if (arrow) {
-                    arrow.applyStyle({textColor: arrow.getTextColor().invert()});
+                    arrow.applyStyle({textColor: Color.rgb(64,64,64)});
                 }
             })
             y += itemHeight;

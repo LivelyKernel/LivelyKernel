@@ -702,7 +702,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             // If an item has a sub menu, add an arrow icon to it
             if (item.isSubMenu) {
                 var arrowMorph = new lively.morphic.Text(
-                    new Rectangle(0, 0, 10, itemHeight), "▶");
+                    new Rectangle(0, 0, 10, itemHeight), "...");
                     arrowMorph.setPosition(pt(this.getExtent().x, y));
                 arrowMorph.applyStyle({
                     clipMode: 'hidden',

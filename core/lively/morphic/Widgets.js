@@ -731,6 +731,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                 enableGrabbing: false,
                 allowInput: false,
                 fontSize: 10.5,
+                textColor: Config.get('textColor'),
                 padding: Rectangle.inset(3,2) });
             itemMorph.onMouseUp = function(evt) {
                   if((evt.world.clickedOnMorph !== itemMorph)
@@ -778,12 +779,12 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             });
             itemMorph.addScript(function deselect(evt) {
                 this.isSelected = false;
-                this.applyStyle({fill: null, textColor: Color.black});
+                this.applyStyle({fill: null, textColor: Config.get('textColor')});
 
                 // if the item is a submenu, set its textColor back to black
                 var arrow = this.submorphs.first();
                 if (arrow) {
-                    arrow.applyStyle({textColor: Color.black});
+                    arrow.applyStyle({textColor: Config.get('textColor')});
                 }
             })
             y += itemHeight;

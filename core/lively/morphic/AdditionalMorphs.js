@@ -910,6 +910,8 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         this.getPane().remove();
         this.getTabContainer().addTabPane(this.getPane());
         this.setFill(Color.white);
+        this.label.applyStyle({fontWeight:'bold'});
+        this.label.fit();
         delete this.isInActivationCycle;
         this.isActive = true;
         this.getPane().onActivate();

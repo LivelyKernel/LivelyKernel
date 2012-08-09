@@ -12,7 +12,7 @@ lively.morphic.CanvasMorph.addMethods(
     createCanvasNodeHTML: function(ctx) {
         return XHTMLNS.create('canvas');
     },
-}   
+}
 );
 
 Color.addMethods(

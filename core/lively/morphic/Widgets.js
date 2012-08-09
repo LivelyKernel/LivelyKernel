@@ -419,6 +419,11 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
         this.setChecked(this.isChecked());
     }
 });
+
+lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
+'initializing', { }
+);
+
 lively.morphic.Morph.subclass('lively.morphic.PasswordInput',
 'initializing', {
     initialize: function($super, isChecked) {

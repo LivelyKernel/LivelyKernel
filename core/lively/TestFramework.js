@@ -251,7 +251,8 @@ Object.subclass('TestCase',
             this.assertEqualState(leftObj[key], rightObj[key], msg);
             rightKeys.remove(key);
         }
-        for (var key in rightKeys) this.assert(false, msg + " no " + key + " in " + rightObj);
+        if (rightKeys.length > 0) this.assert(false,
+            msg + " no " + rightKeys[0] + " in " + rightObj);
     },
     assertMatches: function(expectedSpec, obj, msg) {
         // are all properties in expectedSpec also in and equal in obj?

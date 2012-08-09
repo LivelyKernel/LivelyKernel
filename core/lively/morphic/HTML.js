@@ -1,5 +1,20 @@
 module('lively.morphic.HTML').requires('lively.morphic.Rendering', 'lively.morphic.PathShapes', 'lively.Traits', 'apps.Less').toRun(function() {
 
+lively.morphic.CanvasMorph.addMethods(
+ 'HTML rendering', {
+    htmlDispatchTable: {
+       createCanvasNode: 'createCanvasNodeHTML',
+       getContext: 'getContextHTML',
+    },
+    getContextHTML: function(ctx, optContext) {
+       return ctx.shapeNode.getContext(optContext|| '2d');
+    },
+    createCanvasNodeHTML: function(ctx) {
+        return XHTMLNS.create('canvas');
+    },
+}   
+);
+
 Color.addMethods(
 'HTML rendering', {
     toCSSString: Color.prototype.toRGBAString

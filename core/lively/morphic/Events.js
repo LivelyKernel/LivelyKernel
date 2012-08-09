@@ -262,6 +262,11 @@ Object.subclass('lively.morphic.EventHandler',
             }
             return evt.scaledPos;
         };
+        evt.getPositionIn = function(aMorph) {
+            // returns the event position localized to aMorph
+            var pos = this.getPosition();
+            return aMorph.localize(pos);
+        };
         evt.mousePoint = evt.mousePoint
                       || pt(evt.pageX || evt.clientX || 0,
                             evt.pageY || evt.clientY || 0);

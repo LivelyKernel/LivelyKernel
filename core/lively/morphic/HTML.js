@@ -1,4 +1,4 @@
-module('lively.morphic.HTML').requires('lively.morphic.Rendering', 'lively.morphic.Widgets', 'lively.morphic.PathShapes', 'lively.Traits', 'apps.Less').toRun(function() {
+module('lively.morphic.HTML').requires('lively.morphic.Rendering', 'lively.morphic.AdditionalMorphs', 'lively.morphic.PathShapes', 'lively.Traits', 'apps.Less').toRun(function() {
 
 lively.morphic.CanvasMorph.addMethods(
  'HTML rendering', {

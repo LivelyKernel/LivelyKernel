@@ -380,6 +380,7 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
         this.setChecked(isChecked);
     },
     createShape: function() {
+        // FIXME: render context dependent
         var node = XHTMLNS.create('input');
         node.type = 'checkbox';
         return new lively.morphic.Shapes.External(node);

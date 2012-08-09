@@ -1,5 +1,20 @@
 module('lively.morphic.AdditionalMorphs').requires('lively.morphic.Halos', 'lively.morphic.Grid').toRun(function() {
 
+lively.morphic.CanvasMorph.addMethods(
+ 'HTML rendering', {
+    htmlDispatchTable: {
+       createCanvasNode: 'createCanvasNodeHTML',
+       getContext: 'getContextHTML',
+    },
+    getContextHTML: function(ctx, optContext) {
+       return ctx.shapeNode.getContext(optContext|| '2d');
+    },
+    createCanvasNodeHTML: function(ctx) {
+        return XHTMLNS.create('canvas');
+    },
+}
+);
+
 lively.morphic.Morph.subclass('lively.morphic.Path',
 'properties', {
     isPath: true,

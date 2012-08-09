@@ -437,8 +437,8 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         createCanvasNode: 'createCanvasNodeHTML',
         getContext: 'getContextHTML',
      },
-     getContextHTML: function(ctx, optParam) {
-        return ctx.shapeNode.getContext(optParam || '2d');
+     getContextHTML: function(ctx, optContext) {
+        return ctx.shapeNode.getContext(optContext|| '2d');
      }
 }
 );

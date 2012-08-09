@@ -2574,7 +2574,7 @@ cop.create('lively.morphic.ModalLayer').refineClass(lively.morphic.Morph, {
         var owner = this.owner;
         
         if (this.backPanel) {
-            
+            this.removeBackPanel();
         }
                      
     },

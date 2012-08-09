@@ -3,9 +3,10 @@ module('lively.ast.StaticAnalysis').requires('lively.ast.Parser').toRun(function
 lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
 'analyzing helper', {
     knownGlobals: ["true", "false", "null", "undefined",
-                   "Object", "Function", "String", "Date", "Math", "parseFloat", "isNaN",
-                   "eval", "alert", "window", "document", "Node",
-                   "HTMLCanvasElement", "Image", "Error",
+                   "Object", "Function", "String", "Array", "Date", "Math", "Error",
+                   "parseFloat", "isNaN", "eval", "alert",
+                   "window", "document",
+                   "Node", "HTMLCanvasElement", "Image",
                    "lively", "pt", "rect", "rgb"],
     newScope: function() {
         return this.current = this.current ? this.current.newScope() : new lively.ast.DFAScope();

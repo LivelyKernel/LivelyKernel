@@ -426,7 +426,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         $super(this.createShape());
     },
     createShape: function() {
-        
+        return this.renderContextDispatch('createCanvasNode');
     }
 },
 'HTML rendering', {

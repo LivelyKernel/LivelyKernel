@@ -714,7 +714,6 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                     enableGrabbing: false,
                     allowInput: false,
                     fontSize: 10,
-                    textColor: Color.rgb(64,64,64),
                     padding: Rectangle.inset(3,2)
                 });
                 itemMorph.addMorph(arrowMorph);
@@ -732,7 +731,6 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                 enableGrabbing: false,
                 allowInput: false,
                 fontSize: 10.5,
-                textColor: Config.get('textColor').darker(),
                 padding: Rectangle.inset(3,2) });
             itemMorph.onMouseUp = function(evt) {
                   if((evt.world.clickedOnMorph !== itemMorph)
@@ -780,12 +778,12 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             });
             itemMorph.addScript(function deselect(evt) {
                 this.isSelected = false;
-                this.applyStyle({fill: null, textColor: Config.get('textColor').darker()});
+                this.applyStyle({fill: null, textColor: Color.black});
 
                 // if the item is a submenu, set its textColor back to black
                 var arrow = this.submorphs.first();
                 if (arrow) {
-                    arrow.applyStyle({textColor: Color.rgb(64,64,64)});
+                    arrow.applyStyle({textColor: Color.black});
                 }
             })
             y += itemHeight;
@@ -2569,6 +2567,23 @@ lively.morphic.App.subclass('lively.morphic.WindowedApp',
     },
 });
 
+cop.create('lively.morphic.ModalLayer').refineClass(lively.morphic.Morph, {
+    // makes a morph 'modal' by adding a backpane to the world 
+    // which is not removed as long as the morph is still there
+    beModal: function() {
+        var owner = this.owner;
+        
+        if (this.backPanel) {
+            
+        }
+                     
+    },
+    removeBackPanel: function() {
+        this.backPanel.remove();
+        this.backPanel = null;
+    }
+    
+});
 
 // COPIED from Widgets.js SelectionMorph
 lively.morphic.Box.subclass('lively.morphic.Selection',

@@ -2576,6 +2576,8 @@ cop.create('lively.morphic.ModalLayer').refineClass(lively.morphic.Morph, {
         }
         this.backPanel = this.createBackPanel(optBackgroundColor);
         this.owner.addMorph(this.backPanel);
+        this.backPanel.bringToFront();
+        this.bringToFront();
     },
     createBackpanel: function(optColor) {
         var backPanel,
@@ -2585,7 +2587,11 @@ cop.create('lively.morphic.ModalLayer').refineClass(lively.morphic.Morph, {
         if (optColor) {
             optColorbackPanel.applyStyle({fill: optColor});
         }
-        
+        backPanel.ignoreEvents();
+        backPanel.disableGrabbing();
+        backPanel.disableDragging();
+        backPanel.disableHalos();
+
         return backPanel;
     },
     removeBackPanel: function() {

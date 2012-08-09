@@ -1412,7 +1412,7 @@ lively.morphic.CanvasMorph.addMethods(
      createCanvasNodeHTML: function(ctx) {
         return XHTMLNS.create('canvas');
      }
-}   
+}
 );
 
 }) // end of module

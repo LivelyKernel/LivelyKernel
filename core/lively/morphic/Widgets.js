@@ -432,8 +432,8 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         var node = this.renderContextDispatch('createCanvasNode');
         return new lively.morphic.Shapes.External(node);
     },
-    getContext: function() {
-        return this.renderContextDispatch('getContext');
+    getContext: function(optContext) {
+        return this.renderContextDispatch('getContext', optContext);
     }
 },
 'HTML rendering', {

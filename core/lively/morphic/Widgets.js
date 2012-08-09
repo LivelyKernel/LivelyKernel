@@ -444,7 +444,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         return ctx.shapeNode.getContext(optContext|| '2d');
      },
      createCanvasNodeHTML: function(ctx) {
-        return XHTMLNS.create('canvas')
+        return XHTMLNS.create('canvas');
      },
 }
 );

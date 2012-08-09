@@ -242,18 +242,16 @@ Object.subclass('TestCase',
             this.assert(leftObj.isEqualNode(rightObj), msg);
             return;
         };
-        function cmp(left, right) {
-            for (var value in left) {
-                if (noProtoLookup && !left.hasOwnProperty(value)) continue;
-                if (!(left[value] instanceof Function)) {
-                    this.assertEquals(left.hasOwnProperty(value),
-                                      right.hasOwnProperty(value), msg);
-                    this.assertEqualState(left[value], right[value], msg);
-                }
-            };
+        var rightKeys = Object.keys(rightObj);
+        for (var key in leftObj) {
+            if (noProtoLookup && !leftObj.hasOwnProperty(key)) continue;
+            if (leftObj[key] instanceof Function) continue;
+            this.assertEquals(leftObj.hasOwnProperty(key),
+                              rightObj.hasOwnProperty(key), msg);
+            this.assertEqualState(leftObj[key], rightObj[key], msg);
+            rightKeys.remove(key);
         }
-        cmp.call(this, leftObj, rightObj);
-        cmp.call(this, rightObj, leftObj);
+        for (var key in rightKeys) this.failure(msg + " no " + key + " in " + rightObj);
     },
     assertMatches: function(expectedSpec, obj, msg) {
         // are all properties in expectedSpec also in and equal in obj?

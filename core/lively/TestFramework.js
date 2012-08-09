@@ -242,7 +242,12 @@ Object.subclass('TestCase',
             this.assert(leftObj.isEqualNode(rightObj), msg);
             return;
         };
-        var rightKeys = Object.keys(rightObj);
+        var rightKeys = [];
+        for (var key in rightObj) {
+            if (noProtoLookup && !rightObj.hasOwnProperty(key)) continue;
+            if (rightObj[key] instanceof Function) continue;
+            rightKeys.push(key);
+        }
         for (var key in leftObj) {
             if (noProtoLookup && !leftObj.hasOwnProperty(key)) continue;
             if (leftObj[key] instanceof Function) continue;
@@ -251,8 +256,7 @@ Object.subclass('TestCase',
             this.assertEqualState(leftObj[key], rightObj[key], msg);
             rightKeys.remove(key);
         }
-        if (rightKeys.length > 0) this.assert(false,
-            msg + " no " + rightKeys[0] + " in " + rightObj);
+        this.assertEquals(0, rightKeys.length, msg + " no " + rightKeys[0] + " in " + rightObj);
     },
     assertMatches: function(expectedSpec, obj, msg) {
         // are all properties in expectedSpec also in and equal in obj?

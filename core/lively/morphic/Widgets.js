@@ -427,10 +427,19 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     },
     createShape: function() {
         return this.renderContextDispatch('createCanvasNode');
+    },
+    getContext: function() {
+        return this.renderContextDispatch('getContext');
     }
 },
 'HTML rendering', {
-    
+    htmlDispatchTable: {
+        createCanvasNode: 'createCanvasNodeHTML',
+        getContext: 'getContextHTML',
+     },
+     getContextHTML: function(ctx, optParams) {
+        return ctx.shapeNode.getContext(optParams || '2d');
+     }
 }
 );
 

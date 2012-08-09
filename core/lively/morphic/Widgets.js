@@ -429,7 +429,8 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         this.setExtent(optBounds || this.defaultBounds);
     },
     createShape: function() {
-        return this.renderContextDispatch('createCanvasNode');
+        var node = this.renderContextDispatch('createCanvasNode');
+        return new lively.morphic.Shapes.External(node);
     },
     getContext: function() {
         return this.renderContextDispatch('getContext');

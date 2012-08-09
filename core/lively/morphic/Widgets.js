@@ -2581,8 +2581,8 @@ cop.create('lively.morphic.ModalLayer').refineClass(lively.morphic.Morph, {
     createBackpanel: function(optColor) {
         var backPanel,
             backPanelExtent = this.owner.getExtent();
-        backPanel = new lively.morphic.Box();
-            
+        backPanel = new lively.morphic.Box(backPanelExtent.extentAsRectangle());
+        return backPanel;
     },
     removeBackPanel: function() {
         this.backPanel && this.backPanel.remove && this.backPanel.remove();

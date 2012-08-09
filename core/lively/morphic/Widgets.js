@@ -2568,8 +2568,18 @@ lively.morphic.App.subclass('lively.morphic.WindowedApp',
 });
 
 cop.create('lively.morphic.ModalLayer').refineClass(lively.morphic.Morph, {
-    // makes a morph 'modal' by adding a backpane to the world 
-    // which is not removed as long as the morph is still there
+    /*  
+        Makes a morph 'modal' by adding a backpane to the world 
+        which is not removed as long as the morph is still there.
+        
+        Usage: 
+        
+        morph.addWithLayer(lively.morphic.ModalLayer);
+        morph.beModal(Color.rgba(0,0,0,0.5);
+        
+        Enjoy
+    */
+    
     beModal: function(optBackgroundColor) {
         if (this.backPanel) {
             this.removeBackPanel();

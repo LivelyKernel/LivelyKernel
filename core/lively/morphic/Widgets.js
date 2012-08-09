@@ -421,7 +421,7 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
 });
 
 lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
-'initializing', {
+'canvas', {
     defaultBounds: pt(300, 300),
     
     initialize: function($super, optBounds) {

@@ -1,17 +1,19 @@
 module('lively.morphic.AdditionalMorphs').requires('lively.morphic.Halos', 'lively.morphic.Grid').toRun(function() {
 
-lively.morphic.CanvasMorph.addMethods(
- 'HTML rendering', {
-    htmlDispatchTable: {
-       createCanvasNode: 'createCanvasNodeHTML',
-       getContext: 'getContextHTML',
+lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
+'canvas', {
+    defaultBounds: pt(300, 300),
+    initialize: function($super, optBounds) {
+        $super(this.createShape());
+        this.setExtent(optBounds || this.defaultBounds);
     },
-    getContextHTML: function(ctx, optContext) {
-       return ctx.shapeNode.getContext(optContext|| '2d');
+    createShape: function() {
+        var node = this.renderContextDispatch('createCanvasNode');
+        return new lively.morphic.Shapes.External(node);
     },
-    createCanvasNodeHTML: function(ctx) {
-        return XHTMLNS.create('canvas');
-    },
+    getContext: function(optContext) {
+        return this.renderContextDispatch('getContext', optContext);
+    }
 }
 );
 

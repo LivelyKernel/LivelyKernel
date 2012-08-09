@@ -2571,12 +2571,11 @@ cop.create('lively.morphic.ModalLayer').refineClass(lively.morphic.Morph, {
     // makes a morph 'modal' by adding a backpane to the world 
     // which is not removed as long as the morph is still there
     beModal: function(optBackgroundColor) {
-        var owner = this.owner;
-        
         if (this.backPanel) {
             this.removeBackPanel();
         }
         this.backPanel = this.createBackPanel(optBackgroundColor);
+        this.owner.addMorph(this.backPanel);
     },
     createBackpanel: function(optColor) {
         var backPanel,

@@ -1507,6 +1507,13 @@ lively.morphic.World.addMethods(
         return false;
     },
     onMouseMove: function(evt) {
+        // how dragging works:
+        // Basically, we detect onMouseDowns and remember which morph was clicked.
+        // There is a dragTriggerDistance attribute on every morph. if the hand moves
+        // more than that distance and still is down (move started in the morph) than
+        // morph.onDragStart is called. moving further triggers morph.onDrag. Releasing
+        // mouse button triggers morph.onDragEnd.
+
         evt.hand.move(evt);
 
         // dargging was initiated before, just call onDrag

@@ -2580,7 +2580,9 @@ cop.create('lively.morphic.ModalLayer').refineClass(lively.morphic.Morph, {
         //this.bringToFront();
     },
     remove: function(){
-        this.removeBackPanel();
+        if (backPanelCanBeRemoved) {
+            this.removeBackPanel();
+        }
         cop.proceed();
     },
     createBackPanel: function(optColor) {

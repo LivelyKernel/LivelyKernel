@@ -1464,7 +1464,7 @@ lively.morphic.World.addMethods(
         this.eventStartPos = evt.getPosition();
 
         // remove the selection when clicking into the world...
-         if (this.selectionMorph && $world.selectionMorph.owner
+         if (this.selectionMorph && this.selectionMorph.owner
             && (this.morphsContainingPoint(this.eventStartPos).length == 1)) {
             this.resetSelection()
         }

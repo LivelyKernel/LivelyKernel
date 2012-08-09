@@ -420,22 +420,6 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
     }
 });
 
-lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
-'canvas', {
-    defaultBounds: pt(300, 300),
-    initialize: function($super, optBounds) {
-        $super(this.createShape());
-        this.setExtent(optBounds || this.defaultBounds);
-    },
-    createShape: function() {
-        var node = this.renderContextDispatch('createCanvasNode');
-        return new lively.morphic.Shapes.External(node);
-    },
-    getContext: function(optContext) {
-        return this.renderContextDispatch('getContext', optContext);
-    }
-}
-);
 
 lively.morphic.Morph.subclass('lively.morphic.PasswordInput',
 'initializing', {

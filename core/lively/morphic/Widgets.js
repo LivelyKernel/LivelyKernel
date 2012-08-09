@@ -2579,7 +2579,7 @@ cop.create('lively.morphic.ModalLayer').refineClass(lively.morphic.Morph, {
                      
     },
     removeBackPanel: function() {
-        this.backPanel.remove();
+        this.backPanel && this.backPanel.remove && this.backPanel.remove();
         this.backPanel = null;
     }
     

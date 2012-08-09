@@ -2589,7 +2589,7 @@ cop.create('lively.morphic.ModalLayer').refineClass(lively.morphic.Morph, {
         
         backPanel = new lively.morphic.Box(backPanelExtent.extentAsRectangle());
         if (optColor) {
-            optColorbackPanel.applyStyle({fill: optColor});
+            this.backPanel.applyStyle({fill: optColor});
         }
         backPanel.ignoreEvents();
         backPanel.disableGrabbing();

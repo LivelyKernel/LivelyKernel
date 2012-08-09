@@ -13,6 +13,10 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     },
     getContext: function(optContext) {
         return this.renderContextDispatch('getContext', optContext);
+    },
+    setExtent: function($super, extent) {
+        $super(extent);
+        this.renderContextDispatch('adaptCanvasSize');
     }
 },
  'HTML rendering', {

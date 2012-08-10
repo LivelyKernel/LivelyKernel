@@ -970,6 +970,10 @@ Object.subclass("Color",
     toRGBAString: function() {
         function floor(x) { return Math.floor(x*255.99) };
         return "rgba(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + "," + this.a + ")";
+    },
+    toHexString: function() {
+        function floor(x) { return Math.floor(x*255.99) };
+        return floor(this.r).toString(16) + floor(this.g).toString(16) + floor(this.b).toString(16);
     }
 },
 'converting', {

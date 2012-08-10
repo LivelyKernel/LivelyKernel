@@ -1250,7 +1250,7 @@ lively.morphic.Shapes.Shape.addMethods(
 			},
 
 			updateComputedStyles: function() {
-				return this.renderContextDispatch('updateComputedStyles');
+				//return this.renderContextDispatch('updateComputedStyles');
 
 			},
   

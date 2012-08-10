@@ -482,7 +482,7 @@ lively.morphic.SimpleColorField.subclass('lively.morphic.AwesomeColorField',
         this.value = bool;
         // buttons should fire on mouse up
         if (!bool) {
-            var menu = this.loadPartItem('ColorPicker', 'PartsBin/Tools');
+            var menu = this.world().loadPartItem('ColorPicker', 'PartsBin/Tools');
             var bounds = this.globalBounds();
             var pos = pt(bounds.x, bounds.y);
             var menuPos = pos.addPt(pt(0, bounds.height));

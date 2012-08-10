@@ -940,6 +940,12 @@ lively.morphic.Shapes.Shape.addMethods(
         var width = $(ctx.shapenode).css("border-left-width");
         return width || 0;
     },
+    
+    getBorderWidthHTML: function(ctx) {
+        var width = $(ctx.shapenode).outerWidth() || 0,
+            height = $(ctx.shapenode).outerHeight() || 0;
+        return pt(width, height);
+    },
 
 
     setAppearanceStylingModeHTML: function(ctx, value) {

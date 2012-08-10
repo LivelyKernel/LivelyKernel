@@ -1062,7 +1062,7 @@ Object.extend(Color, {
     rgbHex: function(colorHexString) {
         var colorData = this.parseHex(colorHexString);
         if (colorData && colorData[0] && colorData[1] && colorData[2]) {
-            return new Color(colorData [0],colorData [1],colorData [2]);
+            return new Color(colorData[0], colorData[1], colorData[2]);
         } else {
             return null;    
         }

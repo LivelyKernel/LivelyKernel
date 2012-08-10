@@ -1253,7 +1253,7 @@ lively.morphic.Shapes.Shape.addMethods(
 			// TRUE when appearance is styled through style sheets,
 			// FALSE when appearance is styled through style dialog
 			this.shape.setAppearanceStylingMode(value);
-			this.updateComputedStyles();
+			
 		},
 		applyStyleSheetFromFile: function(file, resourcePath){
 		        // use the resourcePath parameter if the resources addressed

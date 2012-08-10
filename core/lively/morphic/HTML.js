@@ -937,12 +937,12 @@ lively.morphic.Shapes.Shape.addMethods(
     },
 
     getBorderWidthHTML: function(ctx) {
-        var width = $(ctx.shapenode).css("border-left-width");
+        var width = $(ctx.shapeNode).css("border-left-width");
         return width || 0;
     },
     
     getExtentHTML: function(ctx) {
-        var width = $(ctx.shapenode).outerWidth() || 0,
+        var width = $(ctx.shapeNode).outerWidth() || 0,
             height = $(ctx.shapenode).outerHeight() || 0;
         return pt(width, height);
     },

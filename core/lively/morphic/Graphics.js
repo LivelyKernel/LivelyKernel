@@ -980,7 +980,9 @@ Object.subclass("Color",
             }
             return s;
         }
-        return floor(this.r).toString(16) + floor(this.g).toString(16) + floor(this.b).toString(16);
+        return addLeadingZero(floor(this.r).toString(16)) +
+                addLeadingZero(floor(this.g).toString(16)) +
+                addLeadingZero(floor(this.b).toString(16));
     }
 },
 'converting', {

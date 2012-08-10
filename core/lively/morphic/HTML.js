@@ -937,7 +937,7 @@ lively.morphic.Shapes.Shape.addMethods(
     },
 
     getBorderWidthHTML: function(ctx) {
-
+        return $(ctx.shapenode).css("border-left-width");
         
     },
 

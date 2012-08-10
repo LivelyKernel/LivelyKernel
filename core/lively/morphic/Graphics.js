@@ -973,6 +973,13 @@ Object.subclass("Color",
     },
     toHexString: function() {
         function floor(x) { return Math.floor(x*255.99) };
+        function addLeadingZero(string){
+            var s = string;
+            while (s.length < 2) {
+                s = '0' + s;
+            }
+            return s;
+        }
         return floor(this.r).toString(16) + floor(this.g).toString(16) + floor(this.b).toString(16);
     }
 },

@@ -12,11 +12,17 @@ Object.subclass('lively.morphic.Shapes.Shape',
     setExtent: function(extent, scrollBarExtent) { return this.shapeSetter('Extent', extent) },
     getExtent: function() { 
         if (this.getBorderStylingMode && this.getBorderStylingMode()) {
-            return this.renderContextDispatch('getExtent');
-            //return this.shapeGetter('ComputedBorderWidth') || 0;
+            var extent = this.renderContextDispatch('getExtent');
+            if (extent) {
+                return extent;
+            } else {
+                return this.shapeGetter('Extent') || pt(0,0)
+            }
+        }else {
+            return this.shapeGetter('Extent') || pt(0,0)
         }
 
-        return this.shapeGetter('Extent') || pt(0,0)
+        
         
     },
     setClipMode: function (modeString) { return this.shapeSetter('ClipMode', modeString) },

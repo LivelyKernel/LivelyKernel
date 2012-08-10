@@ -746,7 +746,6 @@ lively.morphic.Shapes.Shape.addMethods(
         setAppearanceStylingMode: 'setAppearanceStylingModeHTML',
         setBorderStylingMode: 'setBorderStylingModeHTML',
         getBorderWidth: 'getBorderWidthHTML',
-        updateComputedStyles: 'updateComputedStylesHTML',
     },
 },
 'initializing', {
@@ -941,23 +940,6 @@ lively.morphic.Shapes.Shape.addMethods(
         return width || 0;
     },
 
-    updateComputedStylesHTML: function(ctx) {
-        
-        if (!ctx.shapeNode) return;
-        
-        var style = window.getComputedStyle(ctx.shapeNode),
-            borderWidth = parseInt(style["borderWidth"].replace("px",""));
-        //var borderWidth = $(ctx.shapeNode).
-        //this.shapeSetter('ComputedBorderWidth', borderWidth );
-
-        if (ctx.originNode) {
-            this.compensateShapeNode(ctx);
-        }
-        this.setExtentHTML(ctx, this.getExtent());
-        
-    },
-
-    setComputedBorderWidthHTML: function(ctx, width) {},
 
     setAppearanceStylingModeHTML: function(ctx, value) {
         this.isStyleSheetAppearance = value;

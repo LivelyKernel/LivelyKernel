@@ -17,6 +17,16 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     setExtent: function($super, extent) {
         $super(extent);
         this.renderContextDispatch('adaptCanvasSize');
+    },
+    clear: function() {
+        var ctx = this.getContext(),
+            extent = this.getExtent(),
+            height = extent.y,
+            width = extent.x;
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, width, height);
+        ctx.restore();    
     }
 },
  'HTML rendering', {

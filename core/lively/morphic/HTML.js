@@ -1249,11 +1249,6 @@ lively.morphic.Shapes.Shape.addMethods(
 				return this.shapeGetter('BorderStylingMode');
 			},
 
-			updateComputedStyles: function() {
-				//return this.renderContextDispatch('updateComputedStyles');
-
-			},
-  
             
         }
     );

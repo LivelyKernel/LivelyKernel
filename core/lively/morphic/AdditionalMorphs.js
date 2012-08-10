@@ -46,9 +46,10 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         return XHTMLNS.create('canvas');
     },
     adaptCanvasSizeHTML: function(ctx) {
-        var extent = this.getExtent();
-        $(ctx.shapeNode).attr('width', extent.x);
-        $(ctx.shapeNode).attr('height', extent.y);
+        var x = $(ctx.shapeNode).width(),
+            y = $(ctx.shapeNode).height();
+        $(ctx.shapeNode).attr('width', x);
+        $(ctx.shapeNode).attr('height', y);
     },
 }
 );

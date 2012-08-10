@@ -945,9 +945,13 @@ lively.morphic.Shapes.Shape.addMethods(
     
     getExtentHTML: function(ctx) {
         if (ctx.shapeNode) {
-            var width = $(ctx.shapeNode).outerWidth() || 0,
-                height = $(ctx.shapeNode).outerHeight() || 0;
+            var width = $(ctx.shapeNode).outerWidth(),
+                height = $(ctx.shapeNode).outerHeight();
+            if (height >=0 && width >=0) {
                 return pt(width, height);
+            } else {
+                return null;    
+            }
         } else {
             return null;
         }

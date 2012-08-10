@@ -316,7 +316,6 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
         }
     },
     setColor: function(color){
-        console.log('Change color to '+color.toString());
          this.colorDisplay.setFill(color);
     }
 

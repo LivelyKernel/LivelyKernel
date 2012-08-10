@@ -478,7 +478,18 @@ lively.morphic.ColorChooser.subclass('lively.morphic.SimpleColorChooser',
 
 lively.morphic.SimpleColorField.subclass('lively.morphic.AwesomeColorField',
 'init', {
-
+    setValue: function(bool) {
+        this.value = bool;
+        // buttons should fire on mouse up
+        if (!bool) {
+            var menu = new lively.morphic.SimpleColorMenu(chooser);
+            var bounds = this.globalBounds();
+            var pos = pt(bounds.x, bounds.y);
+            var menuPos = pos.addPt(pt(0, bounds.height));
+            menu.open(lively.morphic.World.current(), menuPos, false);
+            menu.setCallback(this, 'setColor');
+        }
+    },
 });
 
 }) // end of module

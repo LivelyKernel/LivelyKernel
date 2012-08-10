@@ -16,10 +16,10 @@ Object.subclass('lively.morphic.Shapes.Shape',
             if (extent) {
                 return extent;
             } else {
-                return this.shapeGetter('Extent') || pt(0,0)
+                return this.shapeGetter('Extent') || pt(100,0)
             }
         }else {
-            return this.shapeGetter('Extent') || pt(0,0)
+            return this.shapeGetter('Extent') || pt(0,100)
         }
 
     },

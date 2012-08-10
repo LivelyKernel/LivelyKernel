@@ -36,7 +36,8 @@ Object.subclass('lively.morphic.Shapes.Shape',
     setBorderWidth: function(width) { return this.shapeSetter('BorderWidth', width) },
     getBorderWidth: function() {
         if (this.getBorderStylingMode && this.getBorderStylingMode()) {
-            return this.shapeGetter('ComputedBorderWidth') || 0;
+            return this.renderContextDispatch('getBorderWidth');
+            //return this.shapeGetter('ComputedBorderWidth') || 0;
         }
         return this.shapeGetter('BorderWidth')  || 0;
     },

@@ -30,9 +30,10 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     createCanvasNodeHTML: function(ctx) {
         return XHTMLNS.create('canvas');
     },
-    adaptCanvasSizeHTML: function(ctx, value) {
-        if (ctx.morphNode)
-            ctx.domInterface.setExtent(ctx.morphNode, value);
+    adaptCanvasSizeHTML: function(ctx) {
+        var extent = this.getExtent();
+        $(ctx.shapeNode).attr('width', extent.x);
+        $(ctx.shapeNode).attr('height', extent.y);
     },
 }
 );

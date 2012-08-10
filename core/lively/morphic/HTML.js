@@ -1335,10 +1335,6 @@ lively.morphic.Shapes.Shape.addMethods(
 		        this.adaptToChangedContext();
 		        this.adaptSubmorphsToChangedContext();
 		    }
-		    else {
-			this.shape.updateComputedStyles();
-			this.submorphs.each(function(m){m.updateComputedStyles();});
-    		  }
 		},
 	}
 );

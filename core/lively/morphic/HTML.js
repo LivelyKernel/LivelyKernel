@@ -790,6 +790,7 @@ lively.morphic.Shapes.Shape.addMethods(
         }
     },
     setExtentHTML: function(ctx, value) {
+        debugger;
         if (!ctx.shapeNode) return undefined;
         var padding = this.getPadding(),
             paddingWidth = padding.left() + padding.right(),

@@ -22,8 +22,6 @@ Object.subclass('lively.morphic.Shapes.Shape',
             return this.shapeGetter('Extent') || pt(0,0)
         }
 
-        
-        
     },
     setClipMode: function (modeString) { return this.shapeSetter('ClipMode', modeString) },
     getClipMode: function () { return this.shapeGetter('ClipMode') || 'visible' },

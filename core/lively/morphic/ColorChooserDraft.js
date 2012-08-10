@@ -325,6 +325,7 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
 
 );
 
+
 lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
 'settings', {
     style: {
@@ -473,6 +474,11 @@ lively.morphic.ColorChooser.subclass('lively.morphic.SimpleColorChooser',
             m = this.submorphs.detect(function(ea) { return ea.bounds().containsPoint(pos) });
         return m ? m.getFill() : Color.black;
     }
+});
+
+lively.morphic.SimpleColorField.subclass('lively.morphic.AwesomeColorField',
+'init', {
+
 });
 
 }) // end of module

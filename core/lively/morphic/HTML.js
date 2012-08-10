@@ -936,6 +936,11 @@ lively.morphic.Shapes.Shape.addMethods(
 
     },
 
+    getBorderWidthHTML: function(ctx) {
+
+        
+    },
+
     updateComputedStylesHTML: function(ctx) {
         
         if (!ctx.shapeNode) return;

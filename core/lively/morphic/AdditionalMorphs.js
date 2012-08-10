@@ -23,6 +23,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     htmlDispatchTable: {
        createCanvasNode: 'createCanvasNodeHTML',
        getContext: 'getContextHTML',
+       adaptCanvasSize: 'adaptCanvasSizeHTML'
     },
     getContextHTML: function(ctx, optContext) {
        return ctx.shapeNode.getContext(optContext|| '2d');

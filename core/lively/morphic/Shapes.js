@@ -44,10 +44,10 @@ Object.subclass('lively.morphic.Shapes.Shape',
     setBorderWidth: function(width) { return this.shapeSetter('BorderWidth', width) },
     getBorderWidth: function() {
         if (this.getBorderStylingMode && this.getBorderStylingMode()) {
-            return this.renderContextDispatch('getBorderWidth');
-            //return this.shapeGetter('ComputedBorderWidth') || 0;
+            return this.renderContextDispatch('getBorderWidth') || 0;
+        } else {
+            return this.shapeGetter('BorderWidth')  || 0;
         }
-        return this.shapeGetter('BorderWidth')  || 0;
     },
     setBorderColor: function(fill) { return this.shapeSetter('BorderColor', fill) },
     getBorderColor: function() {

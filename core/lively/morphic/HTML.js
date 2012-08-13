@@ -180,7 +180,7 @@ lively.morphic.Morph.addMethods(
         /*
         Sets the overflow property of the morph node.
         
-        Clipmode can be either 'visible', 'hidden', 'scroll', 'auto' or 'inherit'
+        Clipmode can be either 'visible', 'hidden', 'scroll', 'auto' or 'inherit'.
         */
         
         

@@ -1192,6 +1192,7 @@ lively.morphic.Shapes.Path.addMethods(
     },
 
     getPathBoundsHTML: function (ctx) {
+       debugger
         var vertices = this.vertices(),
             minX = vertices.min(function(ea) { return ea.x; }),
             minY = vertices.min(function(ea) { return ea.y; }),

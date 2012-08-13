@@ -1148,6 +1148,7 @@ lively.morphic.Shapes.Path.addMethods(
     },
 
     setExtentHTML: function(ctx, value) {
+        debugger
         ctx.domInterface.setExtent(ctx.svgNode, value);
     },
     setFillHTML: function(ctx, value) {

@@ -950,6 +950,7 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     
     getExtentHTML: function(ctx) {
+        /*
         if (ctx.shapeNode) {
             var width = $(ctx.shapeNode).outerWidth(),
                 height = $(ctx.shapeNode).outerHeight();
@@ -961,7 +962,7 @@ lively.morphic.Shapes.Shape.addMethods(
         } else {
             return null;
         }
-        
+        */
 
     },
 

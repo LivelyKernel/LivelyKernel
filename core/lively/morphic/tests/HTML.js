@@ -97,6 +97,8 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.ClipMode',
         this.assertDOMState({tagName: 'div', childNodes: [ // morphNode
             {tagName: 'div', childNodes: []}] // shapeNode
         }, this.morph);
+        originNode = this.morph.renderContext().originNode;
+        this.assert(!originNode, 'originNode not removed');
     },
 
 });

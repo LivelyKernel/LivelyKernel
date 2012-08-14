@@ -136,7 +136,7 @@ Object.subclass('AttributeConnection',
 
 	disconnect: function() {
 		var obj = this.sourceObj;
-		if (!obj.attributeConnections) return;
+		if (!obj.attributeConnections) return this.removeSourceObjGetterAndSetter();
 		obj.attributeConnections = obj.attributeConnections.reject(function(con) {
 			return this.isSimilarConnection(con);
 		}, this);

@@ -330,8 +330,10 @@ lively.morphic.Morph.addMethods(
             $(ctx.styleNode).remove();
         }
     },
-    newMethod: function() {
-        // enter comment here
+    removeMorphHTML: function(ctx) {
+        if (this.submorphs.length != 0 || !ctx.originNode) return;
+        ctx.originNode.parentNode.removeNode(ctx.originNode);
+        delete ctx.originNode;
     },
 
 },

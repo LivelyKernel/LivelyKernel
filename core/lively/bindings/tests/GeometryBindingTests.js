@@ -109,7 +109,7 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
         c.disconnect();
         morph.setPosition(pt(60,60));
         this.assertEquals(pt(50,50), observer.pos, 'not disconnected');
-        this.assertEquals(0, morph.attributeConnections.length, 'attributeConnections not empty');
+        this.assert(!morph.attributeConnections, 'attributeConnections not empty');
     },
 
 

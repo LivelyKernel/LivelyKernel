@@ -39,7 +39,6 @@ lively.morphic.Morph.addMethods(
                 this.submorphs[i] = errorMorph;
             }
         }
-        // this.prepareForNewRenderContext(this.renderContext());
     },
 
     onstore: function() {},

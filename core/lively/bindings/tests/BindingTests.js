@@ -298,11 +298,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         result = obj1.m1();
         this.assertEquals(3, result, 'double method connection not working 3');
 
-
-        var connectionsWithSameSourceAttr = obj1.attributeConnections.select(function(con) {
-			return this.getSourceAttrName() == con.getSourceAttrName();
-		}, this);
-        this.assertEquals(connectionsWithSameSourceAttr.length, 0, 'there are others still left')
+        this.assert(!obj1.attributeConnections, 'there are still connections left')
 
         this.assertIdentity(m1, obj1.m1, 'original method was not restored after method connection');
     },

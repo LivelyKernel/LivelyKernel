@@ -69,8 +69,8 @@ Object.subclass('AttributeConnection',
             this.getSourceObj(), this.getSourceAttrName(),
             this.getTargetObj(), this.getTargetMethodName(),
             {
-                updater: this.updater,
-                converter: this.converter,
+                updater: this.getUpdater(),
+                converter: this.getConverter(),
                 removeAfterUpdate: this.removeAfterUpdate
             }
         );

@@ -89,6 +89,10 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.ClipMode',
     test05RemoveOriginNodeAfterRemoveMorph: function() {
         var z = lively.morphic.Morph.makeRectangle(rect(0,0,10,10));
         this.morph.addMorph(z);
+        var originNode = this.morph.renderContext().originNode,
+            subMorphNode = z.renderContext().morphNode;
+        this.assertIdentity(originNode, subMorphNode.parentNode,
+            'originNode is not parent of submorph node');
         z.remove();
         this.assertDOMState({tagName: 'div', childNodes: [ // morphNode
             {tagName: 'div', childNodes: []}] // shapeNode

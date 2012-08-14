@@ -1198,8 +1198,8 @@ lively.morphic.Shapes.Path.addMethods(
             maxX = vertices.max(function(ea) { return ea.x; }),
             maxY = vertices.max(function(ea) { return ea.y; }),
             halfStroke = Math.floor(this.getBorderWidth() / 2);
-        var r = rect(pt(minX - 1 - halfStroke, minY - 1 - halfStroke),
-                    pt(maxX + halfStroke, maxY + halfStroke));     
+        var r = rect(pt(minX.x - 1 - halfStroke, minY.y - 1 - halfStroke),
+                    pt(maxX.x + halfStroke, maxY.y + halfStroke));     
         return r;
     },
 

@@ -99,7 +99,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.ClipMode',
         }, this.morph);
         originNode = this.morph.renderContext().originNode;
         this.assert(!originNode, 'originNode not removed');
-    },
+    }
 
 });
 

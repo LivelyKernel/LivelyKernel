@@ -944,7 +944,6 @@ lively.morphic.Shapes.Shape.addMethods(
     },
 
     getComputedBorderWidthHTML: function(ctx) {
-        debugger;
         var width = ($(ctx.shapeNode).outerWidth() - $(ctx.shapeNode).width()) / 2;
         return width || 0;
     },

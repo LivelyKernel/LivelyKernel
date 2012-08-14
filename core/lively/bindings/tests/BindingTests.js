@@ -675,7 +675,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.BindingsDuplicateTest', {
 
     testDuplicateBinding: function() {
         var p = pt(50,50);
-        copy = this.sut.duplicate();
+        var copy = this.sut.duplicate();
         this.assertEquals(copy.attributeConnections.length, this.sut.attributeConnections.length,
                  " number of attributes connections is broken");
         this.assert(copy.attributeConnections[1].getTargetObj(), "no source object in copy");

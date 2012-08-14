@@ -769,5 +769,14 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionJSONSerializatio
 
 });
 
+TestCase.subclass('lively.bindings.tests.BindingTests.CloneTest', {
+    testClone: function() {
+        var obj1 = {}, obj2 = {};
+        connect(obj1, 'a', obj2, 'a')
+        var orig = obj2.attributeConnections[0];
+        var clone = orig.clone();
+        this.assert(clone.isSimilarConnection(orig));
+    }
+});
 
 }); // end of module

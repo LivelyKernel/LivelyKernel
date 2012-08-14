@@ -64,8 +64,17 @@ Object.subclass('AttributeConnection',
 		// alert("removed connection: "  + this)
 		this.disconnect()
 	},
-
-
+    clone: function() {
+        return new AttributeConnection(
+            this.getSourceObj(), this.getSourceAttrName(),
+            this.getTargetObj(), this.getTargetMethodName(),
+            {
+                updater: this.updater,
+                converter: this.converter,
+                removeAfterUpdate: this.removeAfterUpdate
+            }
+        );
+    }
 },
 'accessing', {
 

@@ -330,6 +330,10 @@ lively.morphic.Morph.addMethods(
             $(ctx.styleNode).remove();
         }
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 },
 'events', {
     triggerEventHTML: function(ctx, evt) {

@@ -357,7 +357,7 @@ Object.subclass('lively.morphic.Morph',
         if (this.getLayouter()) {
             this.getLayouter().onSubmorphRemoved(this, morph, this.submorphs);
         }
-        this.renderContextDispatch('removeMorph');
+        // this.renderContextDispatch('removeMorph');
     },
 
 },

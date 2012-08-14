@@ -943,13 +943,13 @@ lively.morphic.Shapes.Shape.addMethods(
 
     },
 
-    getBorderWidthHTML: function(ctx) {
+    getComputedBorderWidthHTML: function(ctx) {
         debugger;
         var width = ($(ctx.shapeNode).outerWidth() - $(ctx.shapeNode).width()) / 2;
         return width || 0;
     },
     
-    getExtentHTML: function(ctx) {
+    getComputedExtentHTML: function(ctx) {
         debugger
         if (ctx.shapeNode) {
             var width = $(ctx.shapeNode).outerWidth(),

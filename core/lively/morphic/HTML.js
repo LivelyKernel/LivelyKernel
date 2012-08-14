@@ -319,7 +319,14 @@ lively.morphic.Morph.addMethods(
 },
 'removing', {
     removeHTML: function(ctx) {
-        if (this.owner) this.owner.removeMorph(this);
+        if (this.owner) {
+            var owner = this.owner;
+            owner.removeMorph(this);
+            if (owner.submorphs.length == 0 && owner.renderContext().originNode) {
+                owner.renderContext().removeNode(owner.renderContext().originNode);
+                delete owner.renderContext().originNode;
+            }
+        }
         ctx.removeNode(ctx.morphNode);
 
         // remove the style node if there is any

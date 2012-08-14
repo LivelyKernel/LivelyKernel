@@ -333,7 +333,7 @@ lively.morphic.Morph.addMethods(
     },
     removeMorphHTML: function(ctx) {
         if (this.submorphs.length != 0 || !ctx.originNode) return;
-        ctx.originNode.parentNode.removeNode(ctx.originNode);
+        ctx.removeNode(ctx.originNode);
         delete ctx.originNode;
     },
 

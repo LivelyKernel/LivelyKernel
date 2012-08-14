@@ -65,15 +65,20 @@ Object.subclass('AttributeConnection',
 		this.disconnect()
 	},
     clone: function() {
-        return new AttributeConnection(
-            this.getSourceObj(), this.getSourceAttrName(),
-            this.getTargetObj(), this.getTargetMethodName(),
-            {
+        var spec;
+        var hasSpec = this.converter || this.updater || this.removeAfterUpdate;
+        if (hasSpec) {
+            spec = {
                 updater: this.getUpdater(),
                 converter: this.getConverter(),
                 removeAfterUpdate: this.removeAfterUpdate
-            }
-        );
+            };
+        }
+        var con = new AttributeConnection(
+            this.getSourceObj(), this.getSourceAttrName(),
+            this.getTargetObj(), this.getTargetMethodName(), spec);
+        if (this.dependedBy) con.dependedBy = this.dependedBy;
+        return con;
     }
 },
 'accessing', {

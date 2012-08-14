@@ -347,6 +347,9 @@ Object.subclass('lively.morphic.Morph',
     remove: function() {
         this.suspendSteppingAll();
         if (this.showsHalos) this.removeHalos();
+        if (this.owner) {
+            this.owner.removeMorph(this);
+        }
         this.renderContextDispatch('remove');
     },
 

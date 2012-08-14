@@ -74,7 +74,7 @@ Object.subclass('AttributeConnection',
                 removeAfterUpdate: this.removeAfterUpdate
             };
         }
-        var con = new AttributeConnection(
+        var con = new this.constructor(
             this.getSourceObj(), this.getSourceAttrName(),
             this.getTargetObj(), this.getTargetMethodName(), spec);
         if (this.dependedBy) con.dependedBy = this.dependedBy;

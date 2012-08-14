@@ -776,6 +776,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.CloneTest', {
         var orig = obj1.attributeConnections[0];
         var clone = orig.clone();
         this.assert(clone.isSimilarConnection(orig));
+        this.assertEqualState(orig, clone);
     }
 });
 

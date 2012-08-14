@@ -323,8 +323,8 @@ lively.morphic.Morph.addMethods(
             var owner = this.owner;
             owner.removeMorph(this);
             if (owner.submorphs.length == 0 && owner.renderContext().originNode) {
-                owner.renderContext().removeNode(owner.renderContext().originNode);
-                delete owner.renderContext().originNode;
+                // owner.renderContext().removeNode(owner.renderContext().originNode);
+                // delete owner.renderContext().originNode;
             }
         }
         ctx.removeNode(ctx.morphNode);

@@ -86,11 +86,12 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.ClipMode',
         }, this.morph);
     },
 
-    test05RemoveClippingNodeAfterRemoveMorph: function() {
+    test05RemoveOriginNodeAfterRemoveMorph: function() {
         var z = lively.morphic.Morph.makeRectangle(rect(0,0,10,10));
         this.morph.addMorph(z);
         z.remove();
-        this.assertDOMState({tagName: 'div', childNodes: [{tagName: 'div', childNodes: []}]
+        this.assertDOMState({tagName: 'div', childNodes: [ // morphNode
+            {tagName: 'div', childNodes: []}] // shapeNode
         }, this.morph);
     },
 

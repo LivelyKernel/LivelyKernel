@@ -2097,9 +2097,9 @@ debugger;
         var nMaxMin;
         for (i= 0; i< arrDataSet.length; i++) {
             if (bDown){
-                nMaxMin= arrDataSet[i].arrY.min(function(obj) { return obj});
+                nMaxMin= arrDataSet[i].arrY.min();
             }else{
-                nMaxMin= arrDataSet[i].arrY.max(function(obj) { return obj});
+                nMaxMin= arrDataSet[i].arrY.max();
             }
             arrDataSet[i].oDataCell = this.grid.arrData[nMaxMin][arrDataSet[i].x];
             for (j= 0; j< arrDataSet[i].arrY.length; j++) { 
@@ -2154,9 +2154,9 @@ debugger;
         //get min (top row) and use this value to change all value
         for (i= 0; i< arrDataSet.length; i++) {
             if (bRight){
-                nMaxMin= arrDataSet[i].arrX.min(function(obj) { return obj});
+                nMaxMin= arrDataSet[i].arrX.min();
             }else{
-                nMaxMin= arrDataSet[i].arrX.max(function(obj) { return obj});
+                nMaxMin= arrDataSet[i].arrX.max();
             }
             arrDataSet[i].oDataCell = this.grid.arrData[arrDataSet[i].y][nMaxMin];
             for (j= 0; j< arrDataSet[i].arrX.length; j++) { 

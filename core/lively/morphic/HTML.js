@@ -123,6 +123,7 @@ lively.morphic.Morph.addMethods(
         init: 'initHTML',
         append: 'appendHTML',
         remove: 'removeHTML',
+        removeMorph: 'removeMorphHTML',
         onRenderFinished: 'onRenderFinishedHTML',
         triggerEvent: 'triggerEventHTML',
         setTransform: 'setTransformHTML',

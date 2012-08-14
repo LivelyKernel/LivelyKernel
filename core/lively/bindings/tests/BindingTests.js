@@ -37,7 +37,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         this.assert(!obj1.__lookupSetter__('x'), 'disconnect cleanup failure');
         this.assertEquals(obj1.x, 3, 'disconnect cleanup failure 2');
         this.assert(!obj1['$$x'], 'disconnect cleanup failure 3');
-        this.assert(!obj1.doNotSerialize.include('$$x'), 'disconnect cleanup failure doNotSerialize');
+        this.assert(!obj1['doNotSerialize'], 'disconnect cleanup failure doNotSerialize');
     },
 
     test04BidirectionalConnect: function() {

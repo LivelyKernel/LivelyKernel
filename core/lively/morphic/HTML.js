@@ -1193,13 +1193,13 @@ lively.morphic.Shapes.Path.addMethods(
     getPathBoundsHTML: function (ctx) {
        debugger
         var vertices = this.vertices(),
-            minX = vertices.min(function(ea) { return ea.x; }),
-            minY = vertices.min(function(ea) { return ea.y; }),
-            maxX = vertices.max(function(ea) { return ea.x; }),
-            maxY = vertices.max(function(ea) { return ea.y; }),
+            minX = vertices.min(function(ea) { return ea.x; }).x,
+            minY = vertices.min(function(ea) { return ea.y; }).y,
+            maxX = vertices.max(function(ea) { return ea.x; }).x,
+            maxY = vertices.max(function(ea) { return ea.y; }).y,
             halfStroke = Math.floor(this.getBorderWidth() / 2);
-        var r = rect(pt(minX.x - 1 - halfStroke, minY.y - 1 - halfStroke),
-                    pt(maxX.x + halfStroke, maxY.y + halfStroke));     
+        var r = rect(pt(minX - 1 - halfStroke, minY - 1 - halfStroke),
+                    pt(maxX + halfStroke, maxY + halfStroke));
         return r;
     },
 

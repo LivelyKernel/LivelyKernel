@@ -447,6 +447,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
     },
     
     test39ConnectingNonexistentPropertyDoesNotAssignNewProperty: function() {
+        debugger;
         var obj = {m: function() {}};
         connect(obj, 'x', obj, 'm');
         this.assert(!obj.hasOwnProperty('x'), 'connecting assigns non-existent property value');

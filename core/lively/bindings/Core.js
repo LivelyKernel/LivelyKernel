@@ -254,7 +254,7 @@ Object.subclass('AttributeConnection',
 			sourceObj.__defineSetter__(newAttrName, existingSetter);
 
 		// assign old value to new slot
-		if (!existingGetter && !existingSetter)
+		if (!existingGetter && !existingSetter && sourceObj.hasOwnProperty(sourceAttrName))
 			sourceObj[newAttrName] = sourceObj[sourceAttrName];
 
 		this.sourceObj.__defineSetter__(sourceAttrName, function(newVal) {

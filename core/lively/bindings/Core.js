@@ -223,60 +223,63 @@ Object.subclass('AttributeConnection',
 },
 'private helper', {
 
-	addSourceObjGetterAndSetter: function(existingGetter, existingSetter) {
-		if ((existingGetter && existingGetter.isAttributeConnectionGetter) ||
-			(existingSetter && existingSetter.isAttributeConnectionSetter))
-				return;
+    addSourceObjGetterAndSetter: function(existingGetter, existingSetter) {
+        if ((existingGetter && existingGetter.isAttributeConnectionGetter) ||
+            (existingSetter && existingSetter.isAttributeConnectionSetter))
+                return;
 
-		// if (existingGetter || existingSetter)
-		// 	debugger
+        // if (existingGetter || existingSetter)
+        //     debugger
 
-		var sourceObj = this.sourceObj,
-			sourceAttrName = this.sourceAttrName,
-			newAttrName = this.privateAttrName(sourceAttrName);
+        var sourceObj = this.sourceObj,
+            sourceAttrName = this.sourceAttrName,
+            newAttrName = this.privateAttrName(sourceAttrName);
 
-		if (sourceObj[newAttrName])
-			console.warn('newAttrName ' + newAttrName + ' already exists. Are there already other connections?');
+        if (sourceObj[newAttrName])
+            console.warn('newAttrName ' + newAttrName + ' already exists.' +
+                         'Are there already other connections?');
 
-		// add new attr to the serialization ignore list
-		if (!sourceObj.hasOwnProperty('doNotSerialize'))
-			sourceObj.doNotSerialize = [];
-		sourceObj.doNotSerialize.pushIfNotIncluded(newAttrName);
+        // add new attr to the serialization ignore list
+        if (!sourceObj.hasOwnProperty('doNotSerialize'))
+            sourceObj.doNotSerialize = [];
+        sourceObj.doNotSerialize.pushIfNotIncluded(newAttrName);
 
-		if (!sourceObj.hasOwnProperty('doNotCopyProperties'))
-			sourceObj.doNotCopyProperties = [];
-		sourceObj.doNotCopyProperties.pushIfNotIncluded(newAttrName);
+        if (!sourceObj.hasOwnProperty('doNotCopyProperties'))
+            sourceObj.doNotCopyProperties = [];
+        sourceObj.doNotCopyProperties.pushIfNotIncluded(newAttrName);
 
 
-		if (existingGetter)
-			sourceObj.__defineGetter__(newAttrName, existingGetter);
-		if (existingSetter)
-			sourceObj.__defineSetter__(newAttrName, existingSetter);
+        if (existingGetter)
+            sourceObj.__defineGetter__(newAttrName, existingGetter);
+        if (existingSetter)
+            sourceObj.__defineSetter__(newAttrName, existingSetter);
 
-		// assign old value to new slot
-		if (!existingGetter && !existingSetter && sourceObj.hasOwnProperty(sourceAttrName))
-			sourceObj[newAttrName] = sourceObj[sourceAttrName];
+        // assign old value to new slot
+        if (!existingGetter && !existingSetter && sourceObj.hasOwnProperty(sourceAttrName))
+            sourceObj[newAttrName] = sourceObj[sourceAttrName];
 
-		this.sourceObj.__defineSetter__(sourceAttrName, function(newVal) {
-			var oldVal = sourceObj[newAttrName];
-			sourceObj[newAttrName] = newVal;
-			if (sourceObj.attributeConnections === undefined)
-				throw new Error('Sth wrong with sourceObj, has no attributeConnections');
-			var conns = sourceObj.attributeConnections.clone();
-			for (var i = 0; i < conns.length; i++) {
-				var c = conns[i];
-				if (c.getSourceAttrName() === sourceAttrName)
-					c.update(newVal, oldVal);
-			}
-			return newVal;
-		});
-		this.sourceObj.__lookupSetter__(sourceAttrName).isAttributeConnectionSetter = true;
+        this.sourceObj.__defineSetter__(sourceAttrName, function(newVal) {
+            var oldVal = sourceObj[newAttrName];
+            sourceObj[newAttrName] = newVal;
+            if (sourceObj.attributeConnections === undefined) {
+                console.error('Sth wrong with sourceObj, has no attributeConnections');
+                return;
+            }
+            var conns = sourceObj.attributeConnections.clone();
+            for (var i = 0; i < conns.length; i++) {
+                var c = conns[i];
+                if (c.getSourceAttrName() === sourceAttrName)
+                    c.update(newVal, oldVal);
+            }
+            return newVal;
+        });
+        this.sourceObj.__lookupSetter__(sourceAttrName).isAttributeConnectionSetter = true;
 
-		this.sourceObj.__defineGetter__(this.sourceAttrName, function() {
-			return sourceObj[newAttrName];
-		});
-		this.sourceObj.__lookupGetter__(sourceAttrName).isAttributeConnectionGetter = true;
-	},
+        this.sourceObj.__defineGetter__(this.sourceAttrName, function() {
+            return sourceObj[newAttrName];
+        });
+        this.sourceObj.__lookupGetter__(sourceAttrName).isAttributeConnectionGetter = true;
+    },
 
 	addConnectionWrapper: function(sourceObj, methodName, origMethod) {
 		if (!Object.isFunction(origMethod))

@@ -1121,8 +1121,13 @@ Object.extend(Color, {
         return null;
     },
 
-    parseHex: function(str) {
-        var rHex, gHex, bHex;
+    parseHex: function(colStr) {
+        var rHex, gHex, bHex, str;
+        
+        for (var i = 0; (c = colStr[i]); i++) {
+            
+        }
+    
         if (str.length == 7) {
             // like #CC0000
             rHex = str.substring(1,3);

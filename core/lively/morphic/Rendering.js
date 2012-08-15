@@ -2,8 +2,8 @@ module('lively.morphic.Rendering').requires('lively.morphic.Core', 'lively.morph
 
 Trait('lively.morphic.Renderable',
 'accessing', {
-    renderAttributeSetter: function(propName, value, defaultValue) {
-        if (value === defaultValue) {
+    renderAttributeSetter: function(propName, value) {
+        if (value === undefined) {
             delete this['_' + propName];
         } else {
             this['_' + propName] = value;

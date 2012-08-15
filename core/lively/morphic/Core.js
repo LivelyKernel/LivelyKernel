@@ -42,7 +42,7 @@ Object.subclass('lively.morphic.Morph',
     getPosition: function() { return this.morphicGetter('Position') || pt(0,0) },
     setRotation: function(value) { return this.morphicSetter('Rotation', value, 0) },
     getRotation: function() { return this.morphicGetter('Rotation') || 0 },
-    setScale: function(value) { return this.morphicSetter('Scale', value) },
+    setScale: function(value) { return this.morphicSetter('Scale', value, 1) },
     getScale: function() { return this.morphicGetter('Scale') || 1 },
     setBounds: function(bounds) {
         this.setPosition(bounds.topLeft().addPt(this.getOrigin()));

@@ -100,7 +100,7 @@ Object.subclass('lively.morphic.Morph',
         return this.morphicGetter('PivotPoint') || pt(0,0);
     },
     setClipMode: function(modeString) {
-        return this.morphicSetter('ClipMode', modeString, 'visible');
+        return this.morphicSetter('ClipMode', modeString);
     },
     getClipMode: function() { return this.morphicGetter('ClipMode') || 'visible' },
     beClip: function(bool) {

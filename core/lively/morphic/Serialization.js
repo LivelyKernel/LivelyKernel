@@ -95,7 +95,7 @@ lively.morphic.Morph.addMethods(
 
 lively.morphic.Text.addMethods(
 'serialization', {
-    doNotSerialize: ['charsTyped'],
+    doNotSerialize: ['charsTyped', 'priorSelectionRange'],
     onstore: function($super) {
         $super();
 

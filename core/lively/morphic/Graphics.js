@@ -1122,18 +1122,17 @@ Object.extend(Color, {
     },
 
     parseHex: function(colStr) {
-        var rHex, gHex, bHex, str;
+        var rHex, gHex, bHex, str = '';
         
-        for (var i = 0; (c = colStr[i]); i++) {
-            
+        for (var i = 0; i < colStr.length; i++) {
+            var c = colStr[i].toLowerCase();
+            if (c=='a' ||c=='b' ||c=='c' ||c=='d' ||c=='e' ||c=='f' ||c=='0' ||c=='1' ||
+                c=='2' ||c=='3' ||c=='4' ||c=='5' ||c=='6' ||c=='7' ||c=='8' ||c=='9') {
+                str += c;
+            }
         }
     
-        if (str.length == 7) {
-            // like #CC0000
-            rHex = str.substring(1,3);
-            gHex = str.substring(3,5);
-            bHex = str.substring(5,7);
-        } else if (str.length == 6) {
+         if (str.length == 6) {
             rHex = str.substring(0,2);
             gHex = str.substring(2,4);
             bHex = str.substring(4,6);
@@ -1145,15 +1144,7 @@ Object.extend(Color, {
             gHex += gHex;
             bHex = str.substring(2,3);
             bHex += bHex;
-        } else if (str.length == 4) {
-            // short form like #C00
-            rHex = str.substring(1,2);
-            rHex += rHex;
-            gHex = str.substring(2,3);
-            gHex += gHex;
-            bHex = str.substring(3,4);
-            bHex += bHex;
-        } else {
+        }  else {
             return null
         }
         var r = parseInt(rHex, 16)/255,

@@ -445,6 +445,12 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         this.assertEquals(obj.b, 123, "first connection was not triggered");
         this.assertEquals(obj.c, 123, "second connection was not triggered");
     },
+    
+    test39ConnectingNonexistentPropertyDoesNotAssignNewProperty: function() {
+        var obj = {m: function() {}};
+        connect(obj, 'x', obj, 'm');
+        this.assert(!obj.hasOwnProperty('x'), 'connecting assigns non-existent property value');
+    },
 });
 
 TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionSerializationTest', {

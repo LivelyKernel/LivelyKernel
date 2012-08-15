@@ -1132,6 +1132,14 @@ Object.extend(Color, {
             rHex = str.substring(0,2);
             gHex = str.substring(2,4);
             bHex = str.substring(4,6);
+        } else if (str.length == 3) {
+            // short form like #C00
+            rHex = str.substring(0,1);
+            rHex += rHex;
+            gHex = str.substring(1,2);
+            gHex += gHex;
+            bHex = str.substring(2,3);
+            bHex += bHex;
         } else if (str.length == 4) {
             // short form like #C00
             rHex = str.substring(1,2);

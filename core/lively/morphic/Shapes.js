@@ -12,7 +12,7 @@ Object.subclass('lively.morphic.Shapes.Shape',
     setExtent: function(extent, scrollBarExtent) { return this.shapeSetter('Extent', extent) },
     getExtent: function() { 
         if (this.getBorderStylingMode && this.getBorderStylingMode()) {
-            var extent = this.renderContextDispatch('getExtent');
+            var extent = this.renderContextDispatch('getComputedExtent');
             if (extent) {
                 return extent;
             } else {

@@ -40,6 +40,7 @@ Object.subclass('lively.ide.ModuleWrapper',
         //    works for non-core modules only:
         //    return new URL(Config.rootPath).withFilename(this.fileName());
         //    might work for both, but slower
+        debugger
         return new URL(module(this._moduleName).findUri(this.type()));
     },
 

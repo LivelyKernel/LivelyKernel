@@ -726,9 +726,9 @@ var isXML = Sizzle.isXML = function( elem ) {
 
     getText: function( elem ) {
     /**
- * Utility function for retrieving the text value of an array of DOM nodes
- * @param {Array|Element} elem
- */
+    * Utility function for retrieving the text value of an array of DOM nodes
+    * @param {Array|Element} elem
+    */
 	var node,
 		ret = "",
 		i = 0,
@@ -743,7 +743,7 @@ var isXML = Sizzle.isXML = function( elem ) {
 			} else {
 				// Traverse its children
 				for ( elem = elem.firstChild; elem; elem = elem.nextSibling ) {
-					ret += getText( elem );
+					ret += this.getText( elem );
 				}
 			}
 		} else if ( nodeType === 3 || nodeType === 4 ) {
@@ -755,7 +755,7 @@ var isXML = Sizzle.isXML = function( elem ) {
 		// If no nodeType, this is expected to be an array
 		for ( ; (node = elem[i]); i++ ) {
 			// Do not traverse comment nodes
-			ret += getText( node );
+			ret += this.getText( node );
 		}
 	}
 	return ret;

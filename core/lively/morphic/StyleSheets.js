@@ -1156,11 +1156,6 @@ Object.subclass("Selector",
 	
 	
 	
-	/*
-	
-	#########
-	Commented because Lively won't save it ...
-	#########
 	
 	// Whitespace characters http://www.w3.org/TR/css3-selectors/#whitespace
 	whitespace: "[\\x20\\t\\r\\n\\f]",
@@ -1221,7 +1216,7 @@ Object.subclass("Selector",
 		// For use in libraries implementing .is()
 		"needsContext": new RegExp( "^" + whitespace + "*[>+~]|" + pos, "i" )
 	},
-        */
+
 	classCache: {},
 	cachedClasses: [],
 	compilerCache: {},

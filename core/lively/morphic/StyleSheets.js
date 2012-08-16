@@ -28,11 +28,11 @@ lively.morphic.Morph.addMethods(
     },
     getSubmorphsByAttribute: function(attr, value) {
          var resultMorphs = []
-        if (this.isOfClass(classNames)){
+        if (this[attr] && this[attr] == value){
             resultMorphs.push(this);
         }
         for (var i = 0; i < this.submorphs.length; i++) {
-            resultMorphs.concat(this.submorphs[i].getSubmorphsByClassName(classNames));
+            resultMorphs.concat(this.submorphs[i].getSubmorphsByAttribute(attr, value));
         }
         return resultMorphs;
     },

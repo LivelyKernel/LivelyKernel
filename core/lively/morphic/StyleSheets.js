@@ -430,8 +430,8 @@ Object.subclass("Selector",
 				return results;
 
 			// Speed-up: Sizzle(".CLASS")
-			} else if ( (m = match[3]) && assertUsableClassName && context.getElementsByClassName ) {
-				push.apply( results, slice.call(context.getElementsByClassName( m ), 0) );
+			} else if ( (m = match[3]) && context.getSubmorphsByClassName ) {
+				this.push.apply( results, this.slice.call(context.getSubmorphsByClassName ( m ), 0) );
 				return results;
 			}
 		}

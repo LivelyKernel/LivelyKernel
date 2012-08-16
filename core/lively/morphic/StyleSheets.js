@@ -8,7 +8,8 @@ Object.subclass("Selector",
 
 },
 'initializing', {
-    initialize: function(r, g, b, a) {
+    initialize: function(selector, context, results, seed) {
+        
     }
 }
 )

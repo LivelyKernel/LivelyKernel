@@ -89,7 +89,8 @@ Object.subclass("Selector",
 	cachedClasses: [],
 	compilerCache: {},
 	cachedSelectors: []
-},'helpers',{
+},
+'helpers',{
     // Mark a function for use in filtering
 	markFunction: function( fn ) {
 		fn.sizzleFilter = true;

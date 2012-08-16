@@ -15,6 +15,20 @@ lively.morphic.Morph.addMethods(
             }
             return null;
         }
+    },
+    getSubmorphsByClassName: function(classNames) {
+        if (this.className == className){
+            return this;
+        } else {
+            for (var i = 0; i < this.submorphs.length; i++) {
+                var m = this.submorphs[i],
+                    hit = m.getMorphById(id);
+                if (hit) {
+                    return hit;
+                }
+            }
+            return null;
+        }
     }
 });
 

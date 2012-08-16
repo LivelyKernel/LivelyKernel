@@ -534,7 +534,7 @@ Object.subclass("Selector",
 	if ( this.assertAttributes || xml ) {
 		return elem[name];
 	}
-	attr = elem.getAttributeNode( name );
+	attr = elem[name];
 	return attr ?
 		typeof elem[ name ] === "boolean" ?
 			elem[ name ] ? name : null :

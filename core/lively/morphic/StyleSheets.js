@@ -129,16 +129,16 @@ var isXML = Sizzle.isXML = function( elem ) {
     },
     uberselect: function( selector, context, results, seed, xml ) {
 	// Remove excessive whitespace
-	selector = selector.replace( rtrim, "$1" );
+	selector = selector.replace( this.rtrim, "$1" );
 	var elements, matcher, i, len, elem, token,
 		type, findContext, notTokens,
-		match = selector.match( rgroups ),
-		tokens = selector.match( rtokens ),
+		match = selector.match( this.rgroups ),
+		tokens = selector.match( this.rtokens ),
 		contextNodeType = context.nodeType;
 
 	// POS handling
-	if ( matchExpr["POS"].test(selector) ) {
-		return handlePOS( selector, context, results, seed, match );
+	if ( this.matchExpr["POS"].test(selector) ) {
+		return this.handlePOS( selector, context, results, seed, match );
 	}
 
 	if ( seed ) {
@@ -150,9 +150,9 @@ var isXML = Sizzle.isXML = function( elem ) {
 
 		// Take a shortcut and set the context if the root selector is an ID
 		if ( tokens.length > 1 && contextNodeType === 9 && !xml &&
-				(match = matchExpr["ID"].exec( tokens[0] )) ) {
+				(match = this.matchExpr["ID"].exec( tokens[0] )) ) {
 
-			context = Expr.find["ID"]( match[1], context, xml )[0];
+			context = this.selectors.find["ID"]( match[1], context, xml )[0];
 			if ( !context ) {
 				return results;
 			}
@@ -160,17 +160,17 @@ var isXML = Sizzle.isXML = function( elem ) {
 			selector = selector.slice( tokens.shift().length );
 		}
 
-		findContext = ( (match = rsibling.exec( tokens[0] )) && !match.index && context.parentNode ) || context;
+		findContext = ( (match = this.rsibling.exec( tokens[0] )) && !match.index && context.parentNode ) || context;
 
 		// Get the last token, excluding :not
 		notTokens = tokens.pop();
 		token = notTokens.split(":not")[0];
 
-		for ( i = 0, len = Expr.order.length; i < len; i++ ) {
-			type = Expr.order[i];
+		for ( i = 0, len = this.selectors.order.length; i < len; i++ ) {
+			type = this.selectors.order[i];
 
-			if ( (match = matchExpr[ type ].exec( token )) ) {
-				elements = Expr.find[ type ]( (match[1] || "").replace( rbackslash, "" ), findContext, xml );
+			if ( (match = this.matchExpr[ type ].exec( token )) ) {
+				elements = this.selectors.find[ type ]( (match[1] || "").replace( this.rbackslash, "" ), findContext, xml );
 
 				if ( elements == null ) {
 					continue;
@@ -178,7 +178,7 @@ var isXML = Sizzle.isXML = function( elem ) {
 
 				if ( token === notTokens ) {
 					selector = selector.slice( 0, selector.length - notTokens.length ) +
-						token.replace( matchExpr[ type ], "" );
+						token.replace( this.matchExpr[ type ], "" );
 
 					if ( !selector ) {
 						push.apply( results, slice.call(elements, 0) );

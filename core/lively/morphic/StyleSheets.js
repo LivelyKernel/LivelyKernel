@@ -333,21 +333,21 @@ Object.subclass("Selector",
                     anchor = lastIndex;
                     currentContexts = [ context ];
 
-                    if ( rcombinators.test(part) ) {
+                    if ( this.rcombinators.test(part) ) {
                         if ( elements ) {
                             currentContexts = elements;
                         }
                         elements = seed;
                     }
 
-                    if ( (not = rendsWithNot.test( part )) ) {
-                        part = part.slice( 0, -5 ).replace( rcombinators, "$&*" );
+                    if ( (not = this.rendsWithNot.test( part )) ) {
+                        part = part.slice( 0, -5 ).replace( this.rcombinators, "$&*" );
                     }
 
                     if ( match.length > 1 ) {
                         match[0].replace( rposgroups, setUndefined );
                     }
-                    elements = handlePOSGroup( part, match[1], match[2], currentContexts, elements, not );
+                    elements = this.handlePOSGroup( part, match[1], match[2], currentContexts, elements, not );
                 }
             }
 
@@ -355,16 +355,16 @@ Object.subclass("Selector",
                 ret = ret.concat( elements );
 
                 if ( (part = selector.slice( anchor )) && part !== ")" ) {
-                    if ( rcombinators.test(part) ) {
-                        multipleContexts( part, ret, results, seed );
+                    if ( this.rcombinators.test(part) ) {
+                        this.multipleContexts( part, ret, results, seed );
                     } else {
-                        Sizzle( part, context, results, seed ? seed.concat(elements) : elements );
+                        this.select( part, context, results, seed ? seed.concat(elements) : elements );
                     }
                 } else {
-                    push.apply( results, ret );
+                    this.push.apply( results, ret );
                 }
             } else {
-                Sizzle( selector, context, results, seed );
+                this.select( selector, context, results, seed );
             }
         }
 

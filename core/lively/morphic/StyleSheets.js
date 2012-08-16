@@ -46,8 +46,6 @@ lively.morphic.Morph.addMethods(
             }
         }
         return true;
-        
-        
     }
 });
 

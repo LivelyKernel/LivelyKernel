@@ -306,8 +306,6 @@ Object.subclass("Selector",
 	results = results || [];
 	context = context || $world();
 
-
-
 	var match, elem, xml, m,
 		nodeType = context.nodeType;
 
@@ -1340,4 +1338,4 @@ var isXML = Sizzle.isXML = function( elem ) {
 )
 
 })
-// end of module
+// end of module// end of module

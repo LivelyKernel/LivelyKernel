@@ -523,15 +523,15 @@ Object.subclass("Selector",
     },
     attr: function( elem, name ) {
 	var attr,
-		xml = isXML( elem );
+		xml = false;
 
 	if ( !xml ) {
 		name = name.toLowerCase();
 	}
-	if ( Expr.attrHandle[ name ] ) {
-		return Expr.attrHandle[ name ]( elem );
+	if ( this.selectors.attrHandle[ name ] ) {
+		return this.selectors.attrHandle[ name ]( elem );
 	}
-	if ( assertAttributes || xml ) {
+	if ( this.assertAttributes || xml ) {
 		return elem.getAttribute( name );
 	}
 	attr = elem.getAttributeNode( name );

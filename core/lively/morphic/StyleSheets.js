@@ -31,7 +31,7 @@ lively.morphic.Morph.addMethods(
         }
     },
     isOfClass: function(className) {
-        var classNames = className.toLowerCase().split(' '),
+        var classNames = className.toLowerCase().split(/[\s,]+/),
             morphClasses = this.getClassNames() || [];
         for (var i = 0; i < classNames.length; i++) {
             var innerLoopRet = false;

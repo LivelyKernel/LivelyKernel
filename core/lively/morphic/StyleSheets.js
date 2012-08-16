@@ -125,7 +125,7 @@ Object.subclass("Selector",
 
                 // Combinators
                 if ( (match = this.rcombinators.exec( soFar )) ) {
-                    soFar = soFar.slice( match[0].length );
+                    soFar = soFar.slice( this.matchExpr[0].length );
 
                     // Cast descendant combinators to space
                     matched = tokens.push({ part: match.pop().replace( this.trim, " " ), captures: match });
@@ -320,7 +320,7 @@ Object.subclass("Selector",
                     len = arguments.length - 2;
                 for ( ; i < len; i++ ) {
                     if ( arguments[i] === undefined ) {
-                        match[i] = undefined;
+                        this.matchExpr[i] = undefined;
                     }
                 }
             };
@@ -333,7 +333,7 @@ Object.subclass("Selector",
             anchor = 0;
             elements = seed;
             while ( (match = rpos.exec( selector )) ) {
-                lastIndex = rpos.lastIndex = match.index + match[0].length;
+                lastIndex = rpos.lastIndex = match.index + this.matchExpr[0].length;
                 if ( lastIndex > anchor ) {
                     part = selector.slice( anchor, match.index );
                     anchor = lastIndex;
@@ -351,9 +351,9 @@ Object.subclass("Selector",
                     }
 
                     if ( match.length > 1 ) {
-                        match[0].replace( rposgroups, setUndefined );
+                        this.matchExpr[0].replace( rposgroups, setUndefined );
                     }
-                    elements = this.handlePOSGroup( part, match[1], match[2], currentContexts, elements, not );
+                    elements = this.handlePOSGroup( part, this.matchExpr[1], this.matchExpr[2], currentContexts, elements, not );
                 }
             }
 
@@ -395,7 +395,7 @@ Object.subclass("Selector",
 	if (!seed ) {
 		if ( (match = this.rquickExpr.exec( selector )) ) {
 			// Speed-up: Sizzle("#ID")
-			if ( (m = match[1]) ) {
+			if ( (m = this.matchExpr[1]) ) {
 				if ( nodeType === 9 ) {
 					elem = context.getSubmorphById(m);
 					// Check parentNode to catch when Blackberry 4.6 returns
@@ -420,12 +420,12 @@ Object.subclass("Selector",
 				}
 
 			// Speed-up: Sizzle("TAG")
-			} else if ( match[2] ) {
+			} else if ( this.matchExpr[2] ) {
 				this.push.apply( results, this.slice.call(context.getSubmorphsByAttribute('tag', selector, true ), 0) );
 				return results;
 
 			// Speed-up: Sizzle(".CLASS")
-			} else if ( (m = match[3]) && context.getSubmorphsByClassName ) {
+			} else if ( (m = this.matchExpr[3]) && context.getSubmorphsByClassName ) {
 				this.push.apply( results, this.slice.call(context.getSubmorphsByClassName ( m ), 0) );
 				return results;
 			}
@@ -460,7 +460,7 @@ Object.subclass("Selector",
 		if ( tokens.length > 1 && contextNodeType === 9 &&
 				(match = this.matchExpr["ID"].exec( tokens[0] )) ) {
 
-			context = this.selectors.find["ID"]( match[1], context)[0];
+			context = this.selectors.find["ID"]( this.matchExpr[1], context)[0];
 			if ( !context ) {
 				return results;
 			}
@@ -478,7 +478,7 @@ Object.subclass("Selector",
 			type = this.selectors.order[i];
 
 			if ( (match = this.matchExpr[ type ].exec( token )) ) {
-				elements = this.selectors.find[ type ]( (match[1] || "").replace( this.rbackslash, "" ), findContext);
+				elements = this.selectors.find[ type ]( (this.matchExpr[1] || "").replace( this.rbackslash, "" ), findContext);
 
 				if ( elements == null ) {
 					continue;
@@ -544,13 +544,10 @@ Object.subclass("Selector",
 	// Can be adjusted by the user
 	cacheLength: 50,
 
-	match: this.matchExpr,
 
 	order: [ "ID", "TAG" ],
 
 	attrHandle: {},
-
-	createPseudo: this.markFunction,
 
 	find: {
 		"ID": this.assertGetIdNotName ?
@@ -610,13 +607,13 @@ Object.subclass("Selector",
 
 	preFilter: {
 		"ATTR": function( match ) {
-			match[1] = match[1].replace( rbackslash, "" );
+			this.matchExpr[1] = this.matchExpr[1].replace( rbackslash, "" );
 
-			// Move the given value to match[3] whether quoted or unquoted
-			match[3] = ( match[4] || match[5] || "" ).replace( rbackslash, "" );
+			// Move the given value to this.matchExpr[3] whether quoted or unquoted
+			this.matchExpr[3] = ( this.matchExpr[4] || this.matchExpr[5] || "" ).replace( rbackslash, "" );
 
-			if ( match[2] === "~=" ) {
-				match[3] = " " + match[3] + " ";
+			if ( this.matchExpr[2] === "~=" ) {
+				this.matchExpr[3] = " " + this.matchExpr[3] + " ";
 			}
 
 			return match.slice( 0, 4 );
@@ -632,22 +629,22 @@ Object.subclass("Selector",
 				6 sign of y-component
 				7 y of y-component
 			*/
-			match[1] = match[1].toLowerCase();
+			this.matchExpr[1] = this.matchExpr[1].toLowerCase();
 
-			if ( match[1] === "nth" ) {
+			if ( this.matchExpr[1] === "nth" ) {
 				// nth-child requires argument
-				if ( !match[2] ) {
-					Sizzle.error( match[0] );
+				if ( !this.matchExpr[2] ) {
+					Sizzle.error( this.matchExpr[0] );
 				}
 
 				// numeric x and y parameters for Expr.filter.CHILD
 				// remember that false/true cast respectively to 0/1
-				match[3] = +( match[3] ? match[4] + (match[5] || 1) : 2 * ( match[2] === "even" || match[2] === "odd" ) );
-				match[4] = +( ( match[6] + match[7] ) || match[2] === "odd" );
+				this.matchExpr[3] = +( this.matchExpr[3] ? this.matchExpr[4] + (this.matchExpr[5] || 1) : 2 * ( this.matchExpr[2] === "even" || this.matchExpr[2] === "odd" ) );
+				this.matchExpr[4] = +( ( this.matchExpr[6] + this.matchExpr[7] ) || this.matchExpr[2] === "odd" );
 
 			// other types prohibit arguments
-			} else if ( match[2] ) {
-				Sizzle.error( match[0] );
+			} else if ( this.matchExpr[2] ) {
+				Sizzle.error( this.matchExpr[0] );
 			}
 
 			return match;
@@ -655,22 +652,22 @@ Object.subclass("Selector",
 
 		"PSEUDO": function( match ) {
 			var argument,
-				unquoted = match[4];
+				unquoted = this.matchExpr[4];
 
-			if ( matchExpr["CHILD"].test( match[0] ) ) {
+			if ( matchExpr["CHILD"].test( this.matchExpr[0] ) ) {
 				return null;
 			}
 
 			// Relinquish our claim on characters in `unquoted` from a closing parenthesis on
 			if ( unquoted && (argument = rselector.exec( unquoted )) && argument.pop() ) {
 
-				match[0] = match[0].slice( 0, argument[0].length - unquoted.length - 1 );
+				this.matchExpr[0] = this.matchExpr[0].slice( 0, argument[0].length - unquoted.length - 1 );
 				unquoted = argument[0].slice( 0, -1 );
 			}
 
 			// Quoted or unquoted, we have the full argument
 			// Return only captures needed by the pseudo filter method (type and argument)
-			match.splice( 2, 3, unquoted || match[3] );
+			match.splice( 2, 3, unquoted || this.matchExpr[3] );
 			return match;
 		}
 	},

@@ -144,7 +144,41 @@ Object.subclass("Selector",
 	}
 
 	return results;
-}
+},
+    compile: function( selector, context, xml ) {
+	var tokens, group, i,
+		cached = compilerCache[ selector ];
+
+	// Return a cached group function if already generated (context dependent)
+	if ( cached && cached.context === context ) {
+		return cached;
+	}
+
+	// Generate a function of recursive functions that can be used to check each element
+	group = tokenize( selector, context, xml );
+	for ( i = 0; (tokens = group[i]); i++ ) {
+		group[i] = matcherFromTokens( tokens, context, xml );
+	}
+
+	// Cache the compiled function
+	cached = compilerCache[ selector ] = matcherFromGroupMatchers( group );
+	cached.context = context;
+	cached.runs = cached.dirruns = 0;
+	cachedSelectors.push( selector );
+	// Ensure only the most recent are cached
+	if ( cachedSelectors.length > Expr.cacheLength ) {
+		delete compilerCache[ cachedSelectors.shift() ];
+	}
+	return cached;
+    },
+
+    matches: function( expr, elements ) {
+	return Sizzle( expr, null, null, elements );
+    },
+
+    matchesSelector: function( elem, expr ) {
+	return Sizzle( expr, null, null, [ elem ] ).length > 0;
+    }
 },
 'helpers',{
         // Mark a function for use in filtering

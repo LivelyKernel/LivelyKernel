@@ -42,7 +42,7 @@ lively.morphic.Morph.addMethods(
                     }
             }
             if (!innerLoopRet) {
-                return false;    
+                return false;
             }
         }
         return true;

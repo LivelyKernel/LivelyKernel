@@ -1229,23 +1229,6 @@ Object.subclass("Selector",
 },
 'sort order', {
 sortOrder: function(a,b){
-    //compareDocumentPosition is a browser dependent function
-    // ... doesn't matter for morphic
-    if ( docElem.compareDocumentPosition ) {
-	sortOrder = function( a, b ) {
-		if ( a === b ) {
-			hasDuplicate = true;
-			return 0;
-		}
-
-		return ( !a.compareDocumentPosition || !b.compareDocumentPosition ?
-			a.compareDocumentPosition :
-			a.compareDocumentPosition(b) & 4
-		) ? -1 : 1;
-	};
-
-    } else {
-	sortOrder = function( a, b ) {
 		// The nodes are identical, we can exit early
 		if ( a === b ) {
 			hasDuplicate = true;
@@ -1303,27 +1286,9 @@ sortOrder: function(a,b){
 		return i === al ?
 			siblingCheck( a, bp[i], -1 ) :
 			siblingCheck( ap[i], b, 1 );
-	};
+	},
 
-	siblingCheck = function( a, b, ret ) {
-		if ( a === b ) {
-			return ret;
-		}
 
-		var cur = a.nextSibling;
-
-		while ( cur ) {
-			if ( cur === b ) {
-				return -1;
-			}
-
-			cur = cur.nextSibling;
-		}
-
-		return 1;
-	};
-    }
-    },
 
 
     uniqueSort: function( results ) {

@@ -447,7 +447,7 @@ Object.subclass("Selector",
 		type, findContext, notTokens,
 		match = selector.match( this.rgroups ),
 		tokens = selector.match( this.rtokens ),
-		contextNodeType = context.nodeType;
+		contextNodeType = (context.isWorld) ? 9 : 1;
 
 	// POS handling
 	if ( this.matchExpr["POS"].test(selector) ) {

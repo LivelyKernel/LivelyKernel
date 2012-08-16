@@ -52,9 +52,10 @@ lively.morphic.Morph.addMethods(
         
         var type = this.constructor;
         while (type != Object) {
-            classNames .unshift(type.name);
+            classNames.unshift(type.name);
             type = type.superclass;
         }
+        return classNames.uniq();
     }
 });
 

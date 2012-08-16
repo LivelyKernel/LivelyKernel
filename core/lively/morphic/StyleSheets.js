@@ -174,8 +174,7 @@ Object.subclass("Selector",
 	assertUsableClassName: assert(function( div ) {
 		// Opera can't find a second classname (in 9.6)
 		div.innerHTML = "<div class='hidden e'></div><div class='hidden'></div>";
-		if ( !div.getElementsByClassName || div.getElementsByClassName("e").length === 0 ) {
-			return false;
+		if ( !div.getElementsByClassName || div.getElementsByClassName("e").length === 0 )                            { return false;
 		}
 
 		// Safari caches class attributes, doesn't catch changes (in 3.2)

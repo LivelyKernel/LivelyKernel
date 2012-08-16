@@ -532,7 +532,7 @@ Object.subclass("Selector",
 		return this.selectors.attrHandle[ name ]( elem );
 	}
 	if ( this.assertAttributes || xml ) {
-		return elem.getAttribute( name );
+		return elem[name];
 	}
 	attr = elem.getAttributeNode( name );
 	return attr ?

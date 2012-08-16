@@ -494,7 +494,7 @@ Object.subclass("Selector",
 						token.replace( this.matchExpr[ type ], "" );
 
 					if ( !selector ) {
-						push.apply( results, slice.call(elements, 0) );
+						this.push.apply( results, this.slice.call(elements, 0) );
 					}
 				}
 				break;
@@ -505,7 +505,7 @@ Object.subclass("Selector",
 	// Only loop over the given elements once
 	// If selector is empty, we're already done
 	if ( selector ) {
-		matcher = compile( selector, context, xml );
+		matcher = this.compile( selector, context);
 		dirruns = matcher.dirruns++;
 
 		if ( elements == null ) {

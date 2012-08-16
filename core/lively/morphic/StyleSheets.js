@@ -307,7 +307,7 @@ Object.subclass("Selector",
 	context = context || $world();
 
 	var match, elem, xml, m,
-		nodeType = context.nodeType;
+		nodeType = (context.isWorld) ? 9 : 1;
 
 	if ( !selector || typeof selector !== "string" ) {
 	   return results;

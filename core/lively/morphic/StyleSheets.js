@@ -65,7 +65,8 @@ lively.morphic.Morph.addMethods(
         
         // each class has to be in the return array only once
         return classNames.uniq();
-    }
+    },
+
 });
 
 

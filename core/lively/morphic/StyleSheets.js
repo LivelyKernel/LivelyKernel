@@ -8,7 +8,7 @@ lively.morphic.Morph.addMethods(
         } else {
             for (var i = 0; i < this.submorphs.length; i++) {
                 var m = this.submorphs[i],
-                    hit = m.getMorphById(id);
+                    hit = m.getSubmorphById(id);
                 if (hit) {
                     return hit;
                 }

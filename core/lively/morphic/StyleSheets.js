@@ -46,7 +46,7 @@ lively.morphic.Morph.addMethods(
         }
 
         for (var i = 0; i < this.submorphs.length; i++) {
-            resultMorphs.concat(this.submorphs[i].getSubmorphsByAttribute(attr, value));
+            resultMorphs = resultMorphs.concat(this.submorphs[i].getSubmorphsByAttribute(attr, value));
         }
         return resultMorphs;
     },

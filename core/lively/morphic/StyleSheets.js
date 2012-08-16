@@ -281,7 +281,7 @@ Object.subclass("Selector",
         var i = 0,
             len = contexts.length;
         for ( ; i < len; i++ ) {
-            Sizzle( selector, contexts[i], results, seed );
+            this.select( selector, contexts[i], results, seed );
         }
     },
 

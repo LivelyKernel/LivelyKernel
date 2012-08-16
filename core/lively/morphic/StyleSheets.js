@@ -4,7 +4,7 @@ lively.morphic.Morph.addMethods(
 'Morph selection methods', {
     getSubmorphById: function(id) {
         if (this.id == id){
-            return this;
+            return this; 
         } else {
             for (var i = 0; i < this.submorphs.length; i++) {
                 var m = this.submorphs[i],
@@ -1397,4 +1397,4 @@ var isXML = Sizzle.isXML = function( elem ) {
 )
 
 })
-// end of module// end of module// end of module// end of module// end of module// end of module
+// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module

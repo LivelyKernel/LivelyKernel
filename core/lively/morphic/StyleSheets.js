@@ -48,7 +48,19 @@ lively.morphic.Morph.addMethods(
         return true;
     }, 
     getClassNames: function() {
+        var classNames = this.classNames,
+            uniqCaseInsensitive = function(array) {
+                return this.inject([], function(array, value, index) {
+                    if (0 == index || (sorted ? array.last() != value : !array.include(value))) array.push(value);
+                return array;
+        });
+            };
         
+        var type = this.constructor;
+        while (type != Object) {
+            a.unshift(type.name);
+            type = type.superclass;
+        }
     }
 });
 

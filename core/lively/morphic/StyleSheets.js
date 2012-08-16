@@ -3,6 +3,9 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
 Object.subclass("Selector",
 'documentation', {
     documentation: "Sizzle port for morphic."
+},'settings',
+{
+    asdf: 'test'    
 },
 'helpers',{
         // Mark a function for use in filtering
@@ -194,4 +197,4 @@ Object.subclass("Selector",
 )
 
 })
-// end of module
+// end of module// end of module

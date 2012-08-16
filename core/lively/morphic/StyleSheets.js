@@ -304,9 +304,9 @@ Object.subclass("Selector",
         var match, not, anchor, ret, elements, currentContexts, part, lastIndex,
             i = 0,
             len = groups.length,
-            rpos = matchExpr["POS"],
+            rpos = this.matchExpr["POS"],
             // This is generated here in case matchExpr["POS"] is extended
-            rposgroups = new RegExp( "^" + rpos.source + "(?!" + whitespace + ")", "i" ),
+            rposgroups = new RegExp( "^" + rpos.source + "(?!" + this.whitespace + ")", "i" ),
             // This is for making sure non-participating
             // matching groups are represented cross-browser (IE6-8)
             setUndefined = function() {

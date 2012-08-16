@@ -97,12 +97,12 @@ Object.subclass("Selector",
 
             // Catch obvious selector issues: terminal ")"; nonempty fallback match
             // rselector never fails to match *something*
-            match = rselector.exec( selector ),
+            match = this.rselector.exec( selector ),
             matched = !match.pop() && !match.pop(),
-            selectorGroups = matched && selector.match( rgroups ) || [""],
+            selectorGroups = matched && selector.match( this.rgroups ) || [""],
 
-            preFilters = Expr.preFilter,
-            filters = Expr.filter,
+            preFilters = this.selectors.preFilter,
+            filters = this.selectors.filter,
             checkContext = !xml && context !== document;
 
         for ( ; (soFar = selectorGroups[i]) != null && matched; i++ ) {
@@ -118,16 +118,16 @@ Object.subclass("Selector",
                 matched = false;
 
                 // Combinators
-                if ( (match = rcombinators.exec( soFar )) ) {
+                if ( (match = this.rcombinators.exec( soFar )) ) {
                     soFar = soFar.slice( match[0].length );
 
                     // Cast descendant combinators to space
-                    matched = tokens.push({ part: match.pop().replace( rtrim, " " ), captures: match });
+                    matched = tokens.push({ part: match.pop().replace( this.trim, " " ), captures: match });
                 }
 
                 // Filters
                 for ( type in filters ) {
-                    if ( (match = matchExpr[ type ].exec( soFar )) && (!preFilters[ type ] ||
+                    if ( (match = this.matchExpr[ type ].exec( soFar )) && (!preFilters[ type ] ||
                         (match = preFilters[ type ]( match, context, xml )) ) ) {
 
                         soFar = soFar.slice( match.shift().length );

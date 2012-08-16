@@ -397,7 +397,7 @@ Object.subclass("Selector",
 	   return results;
 	}
 
-	if ( !xml && !seed ) {
+	if (!seed ) {
 		if ( (match = this.rquickExpr.exec( selector )) ) {
 			// Speed-up: Sizzle("#ID")
 			if ( (m = match[1]) ) {

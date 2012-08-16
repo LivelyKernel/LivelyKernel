@@ -6,7 +6,9 @@ Object.subclass("Selector",
 },
 'sort order', {
 sortOrder: function(a,b){
-if ( docElem.compareDocumentPosition ) {
+    //compareDocumentPosition is a browser dependent function
+    // ... doesn't matter for morphic
+    if ( docElem.compareDocumentPosition ) {
 	sortOrder = function( a, b ) {
 		if ( a === b ) {
 			hasDuplicate = true;
@@ -19,7 +21,7 @@ if ( docElem.compareDocumentPosition ) {
 		) ? -1 : 1;
 	};
 
-} else {
+    } else {
 	sortOrder = function( a, b ) {
 		// The nodes are identical, we can exit early
 		if ( a === b ) {

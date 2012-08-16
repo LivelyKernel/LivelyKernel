@@ -546,13 +546,13 @@ Object.subclass("Selector",
 			},
 
 			"CLASS": function( className ) {
-				var pattern = classCache[ className ];
+				var pattern = this.classCache[ className ];
 				if ( !pattern ) {
-					pattern = classCache[ className ] = new RegExp( "(^|" + whitespace + ")" + className + "(" + whitespace + "|$)" );
+					pattern = this.classCache[ className ] = new RegExp( "(^|" + whitespace + ")" + className + "(" + whitespace + "|$)" );
 					cachedClasses.push( className );
 					// Avoid too large of a cache
 					if ( cachedClasses.length > Expr.cacheLength ) {
-						delete classCache[ cachedClasses.shift() ];
+						delete this.classCache[ cachedClasses.shift() ];
 					}
 				}
 				return function( elem ) {

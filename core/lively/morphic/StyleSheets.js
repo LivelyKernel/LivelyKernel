@@ -509,7 +509,7 @@ Object.subclass("Selector",
 		this.dirruns = matcher.dirruns++;
 
 		if ( elements == null ) {
-			elements = Expr.find["TAG"]( "*", (this.rsibling.test( selector ) && context.parentNode) || context );
+			elements = this.selectors.find["TAG"]( "*", (this.rsibling.test( selector ) && context.parentNode) || context );
 		}
 		for ( i = 0; (elem = elements[i]); i++ ) {
 			this.cachedruns = matcher.runs++;

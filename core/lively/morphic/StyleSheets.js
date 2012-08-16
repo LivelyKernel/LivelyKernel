@@ -3,7 +3,12 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
 Object.subclass("Selector",
 'documentation', {
     documentation: "Sizzle port for morphic."
-},'selection',
+},
+'stuff we probably wont need',{
+    
+},
+
+'selection',
 {
     select: function( selector, context, results, seed ) {
 	results = results || [];
@@ -829,4 +834,4 @@ Object.subclass("Selector",
 )
 
 })
-// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module
+// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module

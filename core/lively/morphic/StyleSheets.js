@@ -413,7 +413,7 @@ Object.subclass("Selector",
 
 			// Speed-up: Sizzle("TAG")
 			} else if ( match[2] ) {
-				this.push.apply( results, this.slice.call(context.getSubmorphsByAttribute('tag', selector.toLowerCase() ), 0) );
+				this.push.apply( results, this.slice.call(context.getSubmorphsByAttribute('tag', selector, true ), 0) );
 				return results;
 
 			// Speed-up: Sizzle(".CLASS")

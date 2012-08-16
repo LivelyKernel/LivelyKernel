@@ -3,7 +3,7 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
 Object.subclass("Selector",
 'documentation', {
     documentation: "Sizzle port for morphic."
-},'settings',
+},'selection',
 {
     asdf: 'test'    
 },
@@ -197,4 +197,4 @@ Object.subclass("Selector",
 )
 
 })
-// end of module// end of module
+// end of module// end of module// end of module// end of module

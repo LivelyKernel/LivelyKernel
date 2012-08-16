@@ -142,7 +142,7 @@ Object.subclass("Selector",
         }
 
         if ( !matched ) {
-            Sizzle.error( selector );
+            this.error( selector );
         }
 
         return groups;

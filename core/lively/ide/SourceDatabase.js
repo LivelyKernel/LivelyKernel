@@ -41,6 +41,8 @@ Object.subclass('lively.ide.ModuleWrapper',
         //    return new URL(Config.rootPath).withFilename(this.fileName());
         //    might work for both, but slower
         debugger
+        var m = module(this._moduleName);
+        var u = m.findUri(this.type());
         return new URL(module(this._moduleName).findUri(this.type()));
     },
 

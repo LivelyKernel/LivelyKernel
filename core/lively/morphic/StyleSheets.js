@@ -27,10 +27,23 @@ lively.morphic.Morph.addMethods(
         return resultMorphs;
     },
     getSubmorphsByAttribute: function(attr, value, caseInsensitive) {
-         var resultMorphs = []
-        if (this[attr] && this[attr] == value){
-            resultMorphs.push(this);
+        var resultMorphs = [],
+            realVal = this[attr],
+            val = value + '';
+
+        if (realVal) {
+            realVal +='';
+
+            if (caseInsensitive) {
+                realVal = realVal.toLowerCase();
+                val = val.toLowerCase();
+            }
+
+            if (realVal  === val ){
+                resultMorphs.push(this);
+            }
         }
+
         for (var i = 0; i < this.submorphs.length; i++) {
             resultMorphs.concat(this.submorphs[i].getSubmorphsByAttribute(attr, value));
         }

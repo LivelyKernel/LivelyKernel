@@ -1178,15 +1178,15 @@ Object.subclass("Selector",
 		// Loosely modeled on CSS identifier characters
 		// An unquoted value should be a CSS identifier (http://www.w3.org/TR/css3-selectors/#attribute-selectors)
 		// Proper syntax: http://www.w3.org/TR/CSS21/syndata.html#value-def-identifier
-		this.identifier = characterEncoding.replace( "w", "w#" );
+		this.identifier = this.characterEncoding.replace( "w", "w#" );
 		// Acceptable operators http://www.w3.org/TR/selectors/#attribute-selectors
 		this.operators= "([*^$|!~]?=)";
 		this.attributes= "\\[" + this.whitespace + "*(" + this.characterEncoding + ")" + this.whitespace +
-			"*(?:" + operators + this.whitespace + "*(?:(['\"])((?:\\\\.|[^\\\\])*?)\\3|(" + identifier + ")|)|)" + this.whitespace + "*\\]";
+			"*(?:" + operators + this.whitespace + "*(?:(['\"])((?:\\\\.|[^\\\\])*?)\\3|(" + this.identifier + ")|)|)" + this.whitespace + "*\\]";
 		this.pseudos= ":(" + this.characterEncoding + ")(?:\\((?:(['\"])((?:\\\\.|[^\\\\])*?)\\2|((?:[^,]|\\\\,|(?:,(?=[^\\[]*\\]))|(?:,(?=[^\\(]*\\))))*))\\)|)";
 		this.pos= ":(nth|eq|gt|lt|first|last|even|odd)(?:\\((\\d*)\\)|)(?=[^-]|$)";
 		this.combinators= this.whitespace + "*([\\x20\\t\\r\\n\\f>+~])" + this.whitespace + "*";
-		this.groups= "(?=[^\\x20\\t\\r\\n\\f])(?:\\\\.|" + attributes + "|" + pseudos.replace( 2, 7 ) + "|[^\\\\(),])+";
+		this.groups= "(?=[^\\x20\\t\\r\\n\\f])(?:\\\\.|" + this.attributes + "|" + this.pseudos.replace( 2, 7 ) + "|[^\\\\(),])+";
 		
 		// Leading and non-escaped trailing whitespace, capturing some non-whitespace characters preceding the latter
 		this.rtrim= new RegExp( "^" + this.whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + this.whitespace + "+$", "g" );
@@ -1194,14 +1194,14 @@ Object.subclass("Selector",
 		this.rcombinators= new RegExp( "^" + this.combinators );
 
 		// All simple (non-comma) selectors, excluding insignifant trailing whitespace
-		this.rgroups= new RegExp( groups + "?(?=" + this.whitespace + "*,|$)", "g" );
+		this.rgroups= new RegExp( this.groups + "?(?=" + this.whitespace + "*,|$)", "g" );
 
 		// A selector, or everything after leading whitespace
 		// Optionally followed in either case by a ")" for terminating sub-selectors
-		this.rselector= new RegExp( "^(?:(?!,)(?:(?:^|,)" + this.whitespace + "*" + groups + ")*?|" + this.whitespace + "*(.*?))(\\)|$)" );
+		this.rselector= new RegExp( "^(?:(?!,)(?:(?:^|,)" + this.whitespace + "*" + this.groups + ")*?|" + this.whitespace + "*(.*?))(\\)|$)" );
 
 		// All combinators and selector components (attribute test, tag, pseudo, etc.), the latter appearing together when consecutive
-		this.rtokens= new RegExp( groups.slice( 19, -6 ) + "\\x20\\t\\r\\n\\f>+~])+|" + this.combinators, "g" );
+		this.rtokens= new RegExp( this.groups.slice( 19, -6 ) + "\\x20\\t\\r\\n\\f>+~])+|" + this.combinators, "g" );
 
 		// Easily-parseable/retrievable ID or TAG or CLASS selectors
 		this.rquickExpr= /^(?:#([\w\-]+)|(\w+)|\.([\w\-]+))$/;
@@ -1224,9 +1224,9 @@ Object.subclass("Selector",
 			"CHILD": new RegExp( "^:(only|nth|last|first)-child(?:\\(" + this.whitespace +
 				"*(even|odd|(([+-]|)(\\d*)n|)" + this.whitespace + "*(?:([+-]|)" + this.whitespace +
 				"*(\\d+)|))" + this.whitespace + "*\\)|)", "i" ),
-			"POS": new RegExp( pos, "ig" ),
+			"POS": new RegExp( this.pos, "ig" ),
 			// For use in libraries implementing .is()
-			"needsContext": new RegExp( "^" + this.whitespace + "*[>+~]|" + pos, "i" )
+			"needsContext": new RegExp( "^" + this.whitespace + "*[>+~]|" + this.pos, "i" )
 		};
 		
 		

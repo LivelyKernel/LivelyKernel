@@ -89,6 +89,11 @@ Object.subclass("Selector",
 'documentation', {
     documentation: "Sizzle port for morphic."
 },
+'init',{
+    initialize: function(){
+        
+    }    
+},
 
 'tokenizing and matching',{
     tokenize: function( selector, context, xml ) {

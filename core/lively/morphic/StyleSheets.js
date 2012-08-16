@@ -544,7 +544,7 @@ Object.subclass("Selector",
 	// Can be adjusted by the user
 	cacheLength: 50,
 
-	match: matchExpr,
+	match: this.matchExpr,
 
 	order: [ "ID", "TAG" ],
 

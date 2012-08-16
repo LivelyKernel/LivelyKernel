@@ -163,7 +163,7 @@ Object.subclass("Selector",
 	rinputs: /input|select|textarea|button/i,
 
 	rbackslash: /\\(?!\\)/g,
-
+        /*
 	matchExpr: {
 		"ID": new RegExp( "^#(" + characterEncoding + ")" ),
 		"CLASS": new RegExp( "^\\.(" + characterEncoding + ")" ),
@@ -178,7 +178,7 @@ Object.subclass("Selector",
 		// For use in libraries implementing .is()
 		"needsContext": new RegExp( "^" + whitespace + "*[>+~]|" + pos, "i" )
 	},
-
+        */
 	classCache: {},
 	cachedClasses: [],
 	compilerCache: {},
@@ -188,9 +188,7 @@ Object.subclass("Selector",
 
 )
 
-}) odule('lively.morphic.StyleSheets').requires().toRun(function() {
-
-Object.subclass("Selector",
+})bject.subclass("Selector",
 'documentation', {
     documentation: "Sizzle port for morphic."
 },

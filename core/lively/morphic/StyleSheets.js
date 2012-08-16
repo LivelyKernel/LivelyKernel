@@ -36,7 +36,7 @@ lively.morphic.Morph.addMethods(
         for (var i = 0; i < classNames.length; i++) {
             var innerLoopRet = false;
             for (var j = 0; j < morphClasses.length; j++) {
-                if (morphClasses[j] === classNames[i]){
+                if (morphClasses[j].toLowerCase() === classNames[i]){
                         innerLoopRet = true;
                         continue;
                     }
@@ -46,6 +46,9 @@ lively.morphic.Morph.addMethods(
             }
         }
         return true;
+    }, 
+    getClassNames: function() {
+        
     }
 });
 

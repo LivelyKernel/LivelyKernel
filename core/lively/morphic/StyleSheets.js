@@ -636,7 +636,7 @@ Object.subclass("Selector",
     },
 
     matchesSelector: function( elem, expr ) {
-	return Sizzle( expr, null, null, [ elem ] ).length > 0;
+	return this.select( expr, null, null, [ elem ] ).length > 0;
     }
 },
 'helpers',{

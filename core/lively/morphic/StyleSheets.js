@@ -266,24 +266,13 @@ Object.subclass("Selector",
     },
     
     contains: function(a,b){
-        return this.docElem.compareDocumentPosition ?
-            function( a, b ) {
-            return !!( a.compareDocumentPosition( b ) & 16 );
-        } :
-        this.docElem.contains ?
-        function( a, b ) {
-            var adown = a.nodeType === 9 ? a.documentElement : a,
-                bup = b.parentNode;
-            return a === bup || !!( bup && bup.nodeType === 1 && adown.contains && adown.contains(bup) );
-        } :
-        function( a, b ) {
-            while ( (b = b.parentNode) ) {
+            while ( (b = b.owner) ) {
                 if ( b === a ) {
                     return true;
                 }
             }
             return false;
-        }
+
     },
 
 },

@@ -6,11 +6,6 @@ Object.subclass("Selector",
 },
 'settings', {
 
-},
-'initializing', {
-    initialize: function(selector, context, results, seed) {
-        
-    }
 }
 )
 

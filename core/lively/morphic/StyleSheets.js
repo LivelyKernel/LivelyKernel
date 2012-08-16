@@ -5,11 +5,15 @@ lively.morphic.Morph.addMethods(
     getMorphById: function(id) {
         if (this.id == id){
             return this;
-        }
-        for (var i = 0; i < this.submorphs.length; i++) {
-            var m = this.submorphs[i],
-                hit = m.getMorphById(id);
-            
+        } else {
+            for (var i = 0; i < this.submorphs.length; i++) {
+                var m = this.submorphs[i],
+                    hit = m.getMorphById(id);
+                if (hit) {
+                    return hit;
+                }
+            }
+            return null;
         }
 
     }

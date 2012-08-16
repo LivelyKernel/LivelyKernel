@@ -127,7 +127,7 @@ Object.subclass("Selector",
 
                 // Combinators
                 if ( (match = this.rcombinators.exec( soFar )) ) {
-                    soFar = soFar.slice( this.matchExpr[0].length );
+                    soFar = soFar.slice( match[0].length );
 
                     // Cast descendant combinators to space
                     matched = tokens.push({ part: match.pop().replace( this.trim, " " ), captures: match });
@@ -453,13 +453,13 @@ Object.subclass("Selector",
 
 		preFilter: {
 			"ATTR": function( match ) {
-				this.matchExpr[1] = this.matchExpr[1].replace( rbackslash, "" );
+				match[1] = match[1].replace( rbackslash, "" );
 
 				// Move the given value to this.matchExpr[3] whether quoted or unquoted
-				this.matchExpr[3] = ( this.matchExpr[4] || this.matchExpr[5] || "" ).replace( rbackslash, "" );
+				match[3] = ( match[4] || match[5] || "" ).replace( rbackslash, "" );
 
-				if ( this.matchExpr[2] === "~=" ) {
-					this.matchExpr[3] = " " + this.matchExpr[3] + " ";
+				if ( match[2] === "~=" ) {
+					match[3] = " " + match[3] + " ";
 				}
 
 				return match.slice( 0, 4 );
@@ -475,22 +475,22 @@ Object.subclass("Selector",
 					6 sign of y-component
 					7 y of y-component
 				*/
-				this.matchExpr[1] = this.matchExpr[1].toLowerCase();
+				match[1] = match[1].toLowerCase();
 
-				if ( this.matchExpr[1] === "nth" ) {
+				if ( match[1] === "nth" ) {
 					// nth-child requires argument
-					if ( !this.matchExpr[2] ) {
-						Sizzle.error( this.matchExpr[0] );
+					if ( !match[2] ) {
+						this.error( match[0] );
 					}
 
 					// numeric x and y parameters for Expr.filter.CHILD
 					// remember that false/true cast respectively to 0/1
-					this.matchExpr[3] = +( this.matchExpr[3] ? this.matchExpr[4] + (this.matchExpr[5] || 1) : 2 * ( this.matchExpr[2] === "even" || this.matchExpr[2] === "odd" ) );
-					this.matchExpr[4] = +( ( this.matchExpr[6] + this.matchExpr[7] ) || this.matchExpr[2] === "odd" );
+					match[3] = +( match[3] ? match[4] + (match[5] || 1) : 2 * ( match[2] === "even" || match[2] === "odd" ) );
+					match[4] = +( ( match[6] + match[7] ) || match[2] === "odd" );
 
 				// other types prohibit arguments
 				} else if ( this.matchExpr[2] ) {
-					Sizzle.error( this.matchExpr[0] );
+					this.error( this.matchExpr[0] );
 				}
 
 				return match;
@@ -498,22 +498,22 @@ Object.subclass("Selector",
 
 			"PSEUDO": function( match ) {
 				var argument,
-					unquoted = this.matchExpr[4];
+					unquoted = match[4];
 
-				if ( matchExpr["CHILD"].test( this.matchExpr[0] ) ) {
+				if ( matchExpr["CHILD"].test( match[0] ) ) {
 					return null;
 				}
 
 				// Relinquish our claim on characters in `unquoted` from a closing parenthesis on
 				if ( unquoted && (argument = rselector.exec( unquoted )) && argument.pop() ) {
 
-					this.matchExpr[0] = this.matchExpr[0].slice( 0, argument[0].length - unquoted.length - 1 );
+					match[0] = match[0].slice( 0, argument[0].length - unquoted.length - 1 );
 					unquoted = argument[0].slice( 0, -1 );
 				}
 
 				// Quoted or unquoted, we have the full argument
 				// Return only captures needed by the pseudo filter method (type and argument)
-				match.splice( 2, 3, unquoted || this.matchExpr[3] );
+				match.splice( 2, 3, unquoted || match[3] );
 				return match;
 			}
 		},

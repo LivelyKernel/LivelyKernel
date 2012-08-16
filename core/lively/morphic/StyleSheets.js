@@ -369,7 +369,7 @@ Object.subclass("Selector",
         }
 
         // Do not sort if this is a single filter
-        return len === 1 ? results : Sizzle.uniqueSort( results );
+        return len === 1 ? results : this.uniqueSort( results );
     }
 },
 

@@ -92,7 +92,8 @@ Object.subclass("Selector",
 'init',{
     initialize: function(){
         
-    }    
+    },
+	
 },
 
 'tokenizing and matching',{
@@ -381,6 +382,468 @@ Object.subclass("Selector",
 
 'selection',
 {
+
+	setupSelectors: function(){
+		this.selectors = {
+
+		// Can be adjusted by the user
+		cacheLength: 50,
+
+
+		order: [ "ID", "TAG" ],
+
+		attrHandle: {},
+
+		find: {
+			"ID": this.assertGetIdNotName ?
+				function( id, context, xml ) {
+					if ( typeof context.getSubmorphById !== strundefined && !xml ) {
+						var m = context.getSubmorphById( id );
+						// Check parentNode to catch when Blackberry 4.6 returns
+						// nodes that are no longer in the document #6963
+						return m && m.parentNode ? [m] : [];
+					}
+				} :
+				function( id, context, xml ) {
+					if ( typeof context.getSubmorphById!== strundefined && !xml ) {
+						var m = context.getSubmorphById( id );
+
+						return m ?
+							m.id === id || typeof m.getAttributeNode !== strundefined && m.getAttributeNode("id").value === id ?
+								[m] :
+								undefined :
+							[];
+					}
+				},
+
+			"TAG": this.assertTagNameNoComments ?
+				function( tag, context ) {
+					if ( typeof context.getElementsByTagName !== strundefined ) {
+						return context.getElementsByTagName( tag );
+					}
+				} :
+				function( tag, context ) {
+					var results = context.getElementsByTagName( tag );
+
+					// Filter out possible comments
+					if ( tag === "*" ) {
+						var elem,
+							tmp = [],
+							i = 0;
+
+						for ( ; (elem = results[i]); i++ ) {
+							if ( elem.nodeType === 1 ) {
+								tmp.push( elem );
+							}
+						}
+
+						return tmp;
+					}
+					return results;
+				}
+		},
+
+		relative: {
+			">": { dir: "parentNode", first: true },
+			" ": { dir: "parentNode" },
+			"+": { dir: "previousSibling", first: true },
+			"~": { dir: "previousSibling" }
+		},
+
+		preFilter: {
+			"ATTR": function( match ) {
+				this.matchExpr[1] = this.matchExpr[1].replace( rbackslash, "" );
+
+				// Move the given value to this.matchExpr[3] whether quoted or unquoted
+				this.matchExpr[3] = ( this.matchExpr[4] || this.matchExpr[5] || "" ).replace( rbackslash, "" );
+
+				if ( this.matchExpr[2] === "~=" ) {
+					this.matchExpr[3] = " " + this.matchExpr[3] + " ";
+				}
+
+				return match.slice( 0, 4 );
+			},
+
+			"CHILD": function( match ) {
+				/* matches from matchExpr.CHILD
+					1 type (only|nth|...)
+					2 argument (even|odd|\d*|\d*n([+-]\d+)?|...)
+					3 xn-component of xn+y argument ([+-]?\d*n|)
+					4 sign of xn-component
+					5 x of xn-component
+					6 sign of y-component
+					7 y of y-component
+				*/
+				this.matchExpr[1] = this.matchExpr[1].toLowerCase();
+
+				if ( this.matchExpr[1] === "nth" ) {
+					// nth-child requires argument
+					if ( !this.matchExpr[2] ) {
+						Sizzle.error( this.matchExpr[0] );
+					}
+
+					// numeric x and y parameters for Expr.filter.CHILD
+					// remember that false/true cast respectively to 0/1
+					this.matchExpr[3] = +( this.matchExpr[3] ? this.matchExpr[4] + (this.matchExpr[5] || 1) : 2 * ( this.matchExpr[2] === "even" || this.matchExpr[2] === "odd" ) );
+					this.matchExpr[4] = +( ( this.matchExpr[6] + this.matchExpr[7] ) || this.matchExpr[2] === "odd" );
+
+				// other types prohibit arguments
+				} else if ( this.matchExpr[2] ) {
+					Sizzle.error( this.matchExpr[0] );
+				}
+
+				return match;
+			},
+
+			"PSEUDO": function( match ) {
+				var argument,
+					unquoted = this.matchExpr[4];
+
+				if ( matchExpr["CHILD"].test( this.matchExpr[0] ) ) {
+					return null;
+				}
+
+				// Relinquish our claim on characters in `unquoted` from a closing parenthesis on
+				if ( unquoted && (argument = rselector.exec( unquoted )) && argument.pop() ) {
+
+					this.matchExpr[0] = this.matchExpr[0].slice( 0, argument[0].length - unquoted.length - 1 );
+					unquoted = argument[0].slice( 0, -1 );
+				}
+
+				// Quoted or unquoted, we have the full argument
+				// Return only captures needed by the pseudo filter method (type and argument)
+				match.splice( 2, 3, unquoted || this.matchExpr[3] );
+				return match;
+			}
+		},
+
+		filter: {
+			"ID": this.assertGetIdNotName ?
+				function( id ) {
+					id = id.replace( rbackslash, "" );
+					return function( elem ) {
+						return elem.getAttribute("id") === id;
+					};
+				} :
+				function( id ) {
+					id = id.replace( rbackslash, "" );
+					return function( elem ) {
+						var node = typeof elem.getAttributeNode !== strundefined && elem.getAttributeNode("id");
+						return node && node.value === id;
+					};
+				},
+
+			"TAG": function( nodeName ) {
+				if ( nodeName === "*" ) {
+					return function() { return true; };
+				}
+				nodeName = nodeName.replace( rbackslash, "" ).toLowerCase();
+
+				return function( elem ) {
+					return elem.nodeName && elem.nodeName.toLowerCase() === nodeName;
+				};
+			},
+
+			"CLASS": function( className ) {
+				var pattern = classCache[ className ];
+				if ( !pattern ) {
+					pattern = classCache[ className ] = new RegExp( "(^|" + whitespace + ")" + className + "(" + whitespace + "|$)" );
+					cachedClasses.push( className );
+					// Avoid too large of a cache
+					if ( cachedClasses.length > Expr.cacheLength ) {
+						delete classCache[ cachedClasses.shift() ];
+					}
+				}
+				return function( elem ) {
+					return pattern.test( elem.className || (typeof elem.getAttribute !== strundefined && elem.getAttribute("class")) || "" );
+				};
+			},
+
+			"ATTR": function( name, operator, check ) {
+				if ( !operator ) {
+					return function( elem ) {
+						return Sizzle.attr( elem, name ) != null;
+					};
+				}
+
+				return function( elem ) {
+					var result = Sizzle.attr( elem, name ),
+						value = result + "";
+
+					if ( result == null ) {
+						return operator === "!=";
+					}
+
+					switch ( operator ) {
+						case "=":
+							return value === check;
+						case "!=":
+							return value !== check;
+						case "^=":
+							return check && value.indexOf( check ) === 0;
+						case "*=":
+							return check && value.indexOf( check ) > -1;
+						case "$=":
+							return check && value.substr( value.length - check.length ) === check;
+						case "~=":
+							return ( " " + value + " " ).indexOf( check ) > -1;
+						case "|=":
+							return value === check || value.substr( 0, check.length + 1 ) === check + "-";
+					}
+				};
+			},
+
+			"CHILD": function( type, argument, first, last ) {
+
+				if ( type === "nth" ) {
+					var doneName = done++;
+
+					return function( elem ) {
+						var parent, diff,
+							count = 0,
+							node = elem;
+
+						if ( first === 1 && last === 0 ) {
+							return true;
+						}
+
+						parent = elem.parentNode;
+
+						if ( parent && (parent[ expando ] !== doneName || !elem.sizset) ) {
+							for ( node = parent.firstChild; node; node = node.nextSibling ) {
+								if ( node.nodeType === 1 ) {
+									node.sizset = ++count;
+									if ( node === elem ) {
+										break;
+									}
+								}
+							}
+
+							parent[ expando ] = doneName;
+						}
+
+						diff = elem.sizset - last;
+
+						if ( first === 0 ) {
+							return diff === 0;
+
+						} else {
+							return ( diff % first === 0 && diff / first >= 0 );
+						}
+					};
+				}
+
+				return function( elem ) {
+					var node = elem;
+
+					switch ( type ) {
+						case "only":
+						case "first":
+							while ( (node = node.previousSibling) ) {
+								if ( node.nodeType === 1 ) {
+									return false;
+								}
+							}
+
+							if ( type === "first" ) {
+								return true;
+							}
+
+							node = elem;
+
+							/* falls through */
+						case "last":
+							while ( (node = node.nextSibling) ) {
+								if ( node.nodeType === 1 ) {
+									return false;
+								}
+							}
+
+							return true;
+					}
+				};
+			},
+
+			"PSEUDO": function( pseudo, argument, context, xml ) {
+				// pseudo-class names are case-insensitive
+				// http://www.w3.org/TR/selectors/#pseudo-classes
+				// Prioritize by case sensitivity in case custom pseudos are added with uppercase letters
+				var fn = Expr.pseudos[ pseudo ] || Expr.pseudos[ pseudo.toLowerCase() ];
+
+				if ( !fn ) {
+					Sizzle.error( "unsupported pseudo: " + pseudo );
+				}
+
+				// The user may set fn.sizzleFilter to indicate
+				// that arguments are needed to create the filter function
+				// just as Sizzle does
+				if ( !fn.sizzleFilter ) {
+					return fn;
+				}
+
+				return fn( argument, context, xml );
+			}
+		},
+
+		pseudos: {
+			"not": this.markFunction(function( selector, context, xml ) {
+				// Trim the selector passed to compile
+				// to avoid treating leading and trailing
+				// spaces as combinators
+				var matcher = compile( selector.replace( rtrim, "$1" ), context, xml );
+				return function( elem ) {
+					return !matcher( elem );
+				};
+			}),
+
+			"enabled": function( elem ) {
+				return elem.disabled === false;
+			},
+
+			"disabled": function( elem ) {
+				return elem.disabled === true;
+			},
+
+			"checked": function( elem ) {
+				// In CSS3, :checked should return both checked and selected elements
+				// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
+				var nodeName = elem.nodeName.toLowerCase();
+				return (nodeName === "input" && !!elem.checked) || (nodeName === "option" && !!elem.selected);
+			},
+
+			"selected": function( elem ) {
+				// Accessing this property makes selected-by-default
+				// options in Safari work properly
+				if ( elem.parentNode ) {
+					elem.parentNode.selectedIndex;
+				}
+
+				return elem.selected === true;
+			},
+
+			"parent": function( elem ) {
+				return !Expr.pseudos["empty"]( elem );
+			},
+
+			"empty": function( elem ) {
+				// http://www.w3.org/TR/selectors/#empty-pseudo
+				// :empty is only affected by element nodes and content nodes(including text(3), cdata(4)),
+				//   not comment, processing instructions, or others
+				// Thanks to Diego Perini for the nodeName shortcut
+				//   Greater than "@" means alpha characters (specifically not starting with "#" or "?")
+				var nodeType;
+				elem = elem.firstChild;
+				while ( elem ) {
+					if ( elem.nodeName > "@" || (nodeType = elem.nodeType) === 3 || nodeType === 4 ) {
+						return false;
+					}
+					elem = elem.nextSibling;
+				}
+				return true;
+			},
+
+			"contains": this.markFunction(function( text ) {
+				return function( elem ) {
+					return ( elem.textContent || elem.innerText || getText( elem ) ).indexOf( text ) > -1;
+				};
+			}),
+
+			"has": this.markFunction(function( selector ) {
+				return function( elem ) {
+					return this.select( selector, elem ).length > 0;
+				};
+			}),
+
+			"header": function( elem ) {
+				return this.rheader.test( elem.nodeName );
+			},
+
+			"text": function( elem ) {
+				var type, attr;
+				// IE6 and 7 will map elem.type to 'text' for new HTML5 types (search, etc)
+				// use getAttribute instead to test this case
+				return elem.nodeName.toLowerCase() === "input" &&
+					(type = elem.type) === "text" &&
+					( (attr = elem.getAttribute("type")) == null || attr.toLowerCase() === type );
+			},
+
+			// Input types
+			"radio": createInputFunction("radio"),
+			"checkbox": createInputFunction("checkbox"),
+			"file": createInputFunction("file"),
+			"password": createInputFunction("password"),
+			"image": createInputFunction("image"),
+
+			"submit": createButtonFunction("submit"),
+			"reset": createButtonFunction("reset"),
+
+			"button": function( elem ) {
+				var name = elem.nodeName.toLowerCase();
+				return name === "input" && elem.type === "button" || name === "button";
+			},
+
+			"input": function( elem ) {
+				return rinputs.test( elem.nodeName );
+			},
+
+			"focus": function( elem ) {
+				var doc = elem.ownerDocument;
+				return elem === doc.activeElement && (!doc.hasFocus || doc.hasFocus()) && !!(elem.type || elem.href);
+			},
+
+			"active": function( elem ) {
+				return elem === elem.ownerDocument.activeElement;
+			}
+		},
+
+		setFilters: {
+			"first": function( elements, argument, not ) {
+				return not ? elements.slice( 1 ) : [ elements[0] ];
+			},
+
+			"last": function( elements, argument, not ) {
+				var elem = elements.pop();
+				return not ? elements : [ elem ];
+			},
+
+			"even": function( elements, argument, not ) {
+				var results = [],
+					i = not ? 1 : 0,
+					len = elements.length;
+				for ( ; i < len; i = i + 2 ) {
+					results.push( elements[i] );
+				}
+				return results;
+			},
+
+			"odd": function( elements, argument, not ) {
+				var results = [],
+					i = not ? 0 : 1,
+					len = elements.length;
+				for ( ; i < len; i = i + 2 ) {
+					results.push( elements[i] );
+				}
+				return results;
+			},
+
+			"lt": function( elements, argument, not ) {
+				return not ? elements.slice( +argument ) : elements.slice( 0, +argument );
+			},
+
+			"gt": function( elements, argument, not ) {
+				return not ? elements.slice( 0, +argument + 1 ) : elements.slice( +argument + 1 );
+			},
+
+			"eq": function( elements, argument, not ) {
+				var elem = elements.splice( +argument, 1 );
+				return not ? elements : elem;
+			}
+		}
+    }
+    },
+    
+
+
     select: function( selector, context, results, seed ) {
 	results = results || [];
 	context = context || $world();
@@ -539,504 +1002,49 @@ Object.subclass("Selector",
     error: function( msg ) {
 	throw new Error( "Syntax error, unrecognized expression: " + msg );
     },
-    selectors: {
-
-	// Can be adjusted by the user
-	cacheLength: 50,
-
-
-	order: [ "ID", "TAG" ],
-
-	attrHandle: {},
-
-	find: {
-		"ID": this.assertGetIdNotName ?
-			function( id, context, xml ) {
-				if ( typeof context.getSubmorphById !== strundefined && !xml ) {
-					var m = context.getSubmorphById( id );
-					// Check parentNode to catch when Blackberry 4.6 returns
-					// nodes that are no longer in the document #6963
-					return m && m.parentNode ? [m] : [];
-				}
-			} :
-			function( id, context, xml ) {
-				if ( typeof context.getSubmorphById!== strundefined && !xml ) {
-					var m = context.getSubmorphById( id );
-
-					return m ?
-						m.id === id || typeof m.getAttributeNode !== strundefined && m.getAttributeNode("id").value === id ?
-							[m] :
-							undefined :
-						[];
-				}
-			},
-
-		"TAG": this.assertTagNameNoComments ?
-			function( tag, context ) {
-				if ( typeof context.getElementsByTagName !== strundefined ) {
-					return context.getElementsByTagName( tag );
-				}
-			} :
-			function( tag, context ) {
-				var results = context.getElementsByTagName( tag );
-
-				// Filter out possible comments
-				if ( tag === "*" ) {
-					var elem,
-						tmp = [],
-						i = 0;
-
-					for ( ; (elem = results[i]); i++ ) {
-						if ( elem.nodeType === 1 ) {
-							tmp.push( elem );
-						}
-					}
-
-					return tmp;
-				}
-				return results;
-			}
-	},
-
-	relative: {
-		">": { dir: "parentNode", first: true },
-		" ": { dir: "parentNode" },
-		"+": { dir: "previousSibling", first: true },
-		"~": { dir: "previousSibling" }
-	},
-
-	preFilter: {
-		"ATTR": function( match ) {
-			this.matchExpr[1] = this.matchExpr[1].replace( rbackslash, "" );
-
-			// Move the given value to this.matchExpr[3] whether quoted or unquoted
-			this.matchExpr[3] = ( this.matchExpr[4] || this.matchExpr[5] || "" ).replace( rbackslash, "" );
-
-			if ( this.matchExpr[2] === "~=" ) {
-				this.matchExpr[3] = " " + this.matchExpr[3] + " ";
-			}
-
-			return match.slice( 0, 4 );
-		},
-
-		"CHILD": function( match ) {
-			/* matches from matchExpr.CHILD
-				1 type (only|nth|...)
-				2 argument (even|odd|\d*|\d*n([+-]\d+)?|...)
-				3 xn-component of xn+y argument ([+-]?\d*n|)
-				4 sign of xn-component
-				5 x of xn-component
-				6 sign of y-component
-				7 y of y-component
-			*/
-			this.matchExpr[1] = this.matchExpr[1].toLowerCase();
-
-			if ( this.matchExpr[1] === "nth" ) {
-				// nth-child requires argument
-				if ( !this.matchExpr[2] ) {
-					Sizzle.error( this.matchExpr[0] );
-				}
-
-				// numeric x and y parameters for Expr.filter.CHILD
-				// remember that false/true cast respectively to 0/1
-				this.matchExpr[3] = +( this.matchExpr[3] ? this.matchExpr[4] + (this.matchExpr[5] || 1) : 2 * ( this.matchExpr[2] === "even" || this.matchExpr[2] === "odd" ) );
-				this.matchExpr[4] = +( ( this.matchExpr[6] + this.matchExpr[7] ) || this.matchExpr[2] === "odd" );
-
-			// other types prohibit arguments
-			} else if ( this.matchExpr[2] ) {
-				Sizzle.error( this.matchExpr[0] );
-			}
-
-			return match;
-		},
-
-		"PSEUDO": function( match ) {
-			var argument,
-				unquoted = this.matchExpr[4];
-
-			if ( matchExpr["CHILD"].test( this.matchExpr[0] ) ) {
-				return null;
-			}
-
-			// Relinquish our claim on characters in `unquoted` from a closing parenthesis on
-			if ( unquoted && (argument = rselector.exec( unquoted )) && argument.pop() ) {
-
-				this.matchExpr[0] = this.matchExpr[0].slice( 0, argument[0].length - unquoted.length - 1 );
-				unquoted = argument[0].slice( 0, -1 );
-			}
-
-			// Quoted or unquoted, we have the full argument
-			// Return only captures needed by the pseudo filter method (type and argument)
-			match.splice( 2, 3, unquoted || this.matchExpr[3] );
-			return match;
-		}
-	},
-
-	filter: {
-		"ID": this.assertGetIdNotName ?
-			function( id ) {
-				id = id.replace( rbackslash, "" );
-				return function( elem ) {
-					return elem.getAttribute("id") === id;
-				};
-			} :
-			function( id ) {
-				id = id.replace( rbackslash, "" );
-				return function( elem ) {
-					var node = typeof elem.getAttributeNode !== strundefined && elem.getAttributeNode("id");
-					return node && node.value === id;
-				};
-			},
-
-		"TAG": function( nodeName ) {
-			if ( nodeName === "*" ) {
-				return function() { return true; };
-			}
-			nodeName = nodeName.replace( rbackslash, "" ).toLowerCase();
-
-			return function( elem ) {
-				return elem.nodeName && elem.nodeName.toLowerCase() === nodeName;
-			};
-		},
-
-		"CLASS": function( className ) {
-			var pattern = classCache[ className ];
-			if ( !pattern ) {
-				pattern = classCache[ className ] = new RegExp( "(^|" + whitespace + ")" + className + "(" + whitespace + "|$)" );
-				cachedClasses.push( className );
-				// Avoid too large of a cache
-				if ( cachedClasses.length > Expr.cacheLength ) {
-					delete classCache[ cachedClasses.shift() ];
-				}
-			}
-			return function( elem ) {
-				return pattern.test( elem.className || (typeof elem.getAttribute !== strundefined && elem.getAttribute("class")) || "" );
-			};
-		},
-
-		"ATTR": function( name, operator, check ) {
-			if ( !operator ) {
-				return function( elem ) {
-					return Sizzle.attr( elem, name ) != null;
-				};
-			}
-
-			return function( elem ) {
-				var result = Sizzle.attr( elem, name ),
-					value = result + "";
-
-				if ( result == null ) {
-					return operator === "!=";
-				}
-
-				switch ( operator ) {
-					case "=":
-						return value === check;
-					case "!=":
-						return value !== check;
-					case "^=":
-						return check && value.indexOf( check ) === 0;
-					case "*=":
-						return check && value.indexOf( check ) > -1;
-					case "$=":
-						return check && value.substr( value.length - check.length ) === check;
-					case "~=":
-						return ( " " + value + " " ).indexOf( check ) > -1;
-					case "|=":
-						return value === check || value.substr( 0, check.length + 1 ) === check + "-";
-				}
-			};
-		},
-
-		"CHILD": function( type, argument, first, last ) {
-
-			if ( type === "nth" ) {
-				var doneName = done++;
-
-				return function( elem ) {
-					var parent, diff,
-						count = 0,
-						node = elem;
-
-					if ( first === 1 && last === 0 ) {
-						return true;
-					}
-
-					parent = elem.parentNode;
-
-					if ( parent && (parent[ expando ] !== doneName || !elem.sizset) ) {
-						for ( node = parent.firstChild; node; node = node.nextSibling ) {
-							if ( node.nodeType === 1 ) {
-								node.sizset = ++count;
-								if ( node === elem ) {
-									break;
-								}
-							}
-						}
-
-						parent[ expando ] = doneName;
-					}
-
-					diff = elem.sizset - last;
-
-					if ( first === 0 ) {
-						return diff === 0;
-
-					} else {
-						return ( diff % first === 0 && diff / first >= 0 );
-					}
-				};
-			}
-
-			return function( elem ) {
-				var node = elem;
-
-				switch ( type ) {
-					case "only":
-					case "first":
-						while ( (node = node.previousSibling) ) {
-							if ( node.nodeType === 1 ) {
-								return false;
-							}
-						}
-
-						if ( type === "first" ) {
-							return true;
-						}
-
-						node = elem;
-
-						/* falls through */
-					case "last":
-						while ( (node = node.nextSibling) ) {
-							if ( node.nodeType === 1 ) {
-								return false;
-							}
-						}
-
-						return true;
-				}
-			};
-		},
-
-		"PSEUDO": function( pseudo, argument, context, xml ) {
-			// pseudo-class names are case-insensitive
-			// http://www.w3.org/TR/selectors/#pseudo-classes
-			// Prioritize by case sensitivity in case custom pseudos are added with uppercase letters
-			var fn = Expr.pseudos[ pseudo ] || Expr.pseudos[ pseudo.toLowerCase() ];
-
-			if ( !fn ) {
-				Sizzle.error( "unsupported pseudo: " + pseudo );
-			}
-
-			// The user may set fn.sizzleFilter to indicate
-			// that arguments are needed to create the filter function
-			// just as Sizzle does
-			if ( !fn.sizzleFilter ) {
-				return fn;
-			}
-
-			return fn( argument, context, xml );
-		}
-	},
-
-	pseudos: {
-		"not": this.markFunction(function( selector, context, xml ) {
-			// Trim the selector passed to compile
-			// to avoid treating leading and trailing
-			// spaces as combinators
-			var matcher = compile( selector.replace( rtrim, "$1" ), context, xml );
-			return function( elem ) {
-				return !matcher( elem );
-			};
-		}),
-
-		"enabled": function( elem ) {
-			return elem.disabled === false;
-		},
-
-		"disabled": function( elem ) {
-			return elem.disabled === true;
-		},
-
-		"checked": function( elem ) {
-			// In CSS3, :checked should return both checked and selected elements
-			// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
-			var nodeName = elem.nodeName.toLowerCase();
-			return (nodeName === "input" && !!elem.checked) || (nodeName === "option" && !!elem.selected);
-		},
-
-		"selected": function( elem ) {
-			// Accessing this property makes selected-by-default
-			// options in Safari work properly
-			if ( elem.parentNode ) {
-				elem.parentNode.selectedIndex;
-			}
-
-			return elem.selected === true;
-		},
-
-		"parent": function( elem ) {
-			return !Expr.pseudos["empty"]( elem );
-		},
-
-		"empty": function( elem ) {
-			// http://www.w3.org/TR/selectors/#empty-pseudo
-			// :empty is only affected by element nodes and content nodes(including text(3), cdata(4)),
-			//   not comment, processing instructions, or others
-			// Thanks to Diego Perini for the nodeName shortcut
-			//   Greater than "@" means alpha characters (specifically not starting with "#" or "?")
-			var nodeType;
-			elem = elem.firstChild;
-			while ( elem ) {
-				if ( elem.nodeName > "@" || (nodeType = elem.nodeType) === 3 || nodeType === 4 ) {
-					return false;
-				}
-				elem = elem.nextSibling;
-			}
-			return true;
-		},
-
-		"contains": this.markFunction(function( text ) {
-			return function( elem ) {
-				return ( elem.textContent || elem.innerText || getText( elem ) ).indexOf( text ) > -1;
-			};
-		}),
-
-		"has": this.markFunction(function( selector ) {
-			return function( elem ) {
-				return Sizzle( selector, elem ).length > 0;
-			};
-		}),
-
-		"header": function( elem ) {
-			return rheader.test( elem.nodeName );
-		},
-
-		"text": function( elem ) {
-			var type, attr;
-			// IE6 and 7 will map elem.type to 'text' for new HTML5 types (search, etc)
-			// use getAttribute instead to test this case
-			return elem.nodeName.toLowerCase() === "input" &&
-				(type = elem.type) === "text" &&
-				( (attr = elem.getAttribute("type")) == null || attr.toLowerCase() === type );
-		},
-
-		// Input types
-		"radio": createInputFunction("radio"),
-		"checkbox": createInputFunction("checkbox"),
-		"file": createInputFunction("file"),
-		"password": createInputFunction("password"),
-		"image": createInputFunction("image"),
-
-		"submit": createButtonFunction("submit"),
-		"reset": createButtonFunction("reset"),
-
-		"button": function( elem ) {
-			var name = elem.nodeName.toLowerCase();
-			return name === "input" && elem.type === "button" || name === "button";
-		},
-
-		"input": function( elem ) {
-			return rinputs.test( elem.nodeName );
-		},
-
-		"focus": function( elem ) {
-			var doc = elem.ownerDocument;
-			return elem === doc.activeElement && (!doc.hasFocus || doc.hasFocus()) && !!(elem.type || elem.href);
-		},
-
-		"active": function( elem ) {
-			return elem === elem.ownerDocument.activeElement;
-		}
-	},
-
-	setFilters: {
-		"first": function( elements, argument, not ) {
-			return not ? elements.slice( 1 ) : [ elements[0] ];
-		},
-
-		"last": function( elements, argument, not ) {
-			var elem = elements.pop();
-			return not ? elements : [ elem ];
-		},
-
-		"even": function( elements, argument, not ) {
-			var results = [],
-				i = not ? 1 : 0,
-				len = elements.length;
-			for ( ; i < len; i = i + 2 ) {
-				results.push( elements[i] );
-			}
-			return results;
-		},
-
-		"odd": function( elements, argument, not ) {
-			var results = [],
-				i = not ? 0 : 1,
-				len = elements.length;
-			for ( ; i < len; i = i + 2 ) {
-				results.push( elements[i] );
-			}
-			return results;
-		},
-
-		"lt": function( elements, argument, not ) {
-			return not ? elements.slice( +argument ) : elements.slice( 0, +argument );
-		},
-
-		"gt": function( elements, argument, not ) {
-			return not ? elements.slice( 0, +argument + 1 ) : elements.slice( +argument + 1 );
-		},
-
-		"eq": function( elements, argument, not ) {
-			var elem = elements.splice( +argument, 1 );
-			return not ? elements : elem;
-		}
-	}
-    },
-    
+	
     getText: function( elem ) {
-    /**
-    * Utility function for retrieving the text value of an array of DOM nodes
-    * @param {Array|Element} elem
-    */
-    
-    // morphs usually don't have something like 'text', so ...
-    return '';
-    
-    
-	var node,
-		ret = "",
-		i = 0,
-		nodeType = elem.nodeType;
+		/**
+		* Utility function for retrieving the text value of an array of DOM nodes
+		* @param {Array|Element} elem
+		*/
+		
+		// morphs usually don't have something like 'text', so ...
+		return '';
+		
+		
+		var node,
+			ret = "",
+			i = 0,
+			nodeType = elem.nodeType;
 
-	if ( nodeType ) {
-		if ( nodeType === 1 || nodeType === 9 || nodeType === 11 ) {
-			// Use textContent for elements
-			// innerText usage removed for consistency of new lines (see #11153)
-			if ( typeof elem.textContent === "string" ) {
-				return elem.textContent;
-			} else {
-				// Traverse its children
-				for ( elem = elem.firstChild; elem; elem = elem.nextSibling ) {
-					ret += this.getText( elem );
+		if ( nodeType ) {
+			if ( nodeType === 1 || nodeType === 9 || nodeType === 11 ) {
+				// Use textContent for elements
+				// innerText usage removed for consistency of new lines (see #11153)
+				if ( typeof elem.textContent === "string" ) {
+					return elem.textContent;
+				} else {
+					// Traverse its children
+					for ( elem = elem.firstChild; elem; elem = elem.nextSibling ) {
+						ret += this.getText( elem );
+					}
 				}
+			} else if ( nodeType === 3 || nodeType === 4 ) {
+				return elem.nodeValue;
 			}
-		} else if ( nodeType === 3 || nodeType === 4 ) {
-			return elem.nodeValue;
-		}
-		// Do not include comment or processing instruction nodes
-	} else {
+			// Do not include comment or processing instruction nodes
+		} else {
 
-		// If no nodeType, this is expected to be an array
-		for ( ; (node = elem[i]); i++ ) {
-			// Do not traverse comment nodes
-			ret += this.getText( node );
+			// If no nodeType, this is expected to be an array
+			for ( ; (node = elem[i]); i++ ) {
+				// Do not traverse comment nodes
+				ret += this.getText( node );
+			}
 		}
-	}
-	return ret;
-    }
+		return ret;
+	
+	},
     
 },
 'helpers',{

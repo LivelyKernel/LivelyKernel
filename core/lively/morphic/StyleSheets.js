@@ -769,14 +769,14 @@ Object.subclass("Selector",
 			},
 
 			// Input types
-			"radio": createInputFunction("radio"),
-			"checkbox": createInputFunction("checkbox"),
-			"file": createInputFunction("file"),
-			"password": createInputFunction("password"),
-			"image": createInputFunction("image"),
+			"radio": this.createInputFunction("radio"),
+			"checkbox": this.createInputFunction("checkbox"),
+			"file": this.createInputFunction("file"),
+			"password": this.createInputFunction("password"),
+			"image": this.createInputFunction("image"),
 
-			"submit": createButtonFunction("submit"),
-			"reset": createButtonFunction("reset"),
+			"submit": this.createButtonFunction("submit"),
+			"reset": this.createButtonFunction("reset"),
 
 			"button": function( elem ) {
 				var name = elem.nodeName.toLowerCase();

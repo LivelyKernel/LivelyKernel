@@ -185,4 +185,6 @@ Object.subclass("Selector",
 
 )
 
-}) // end of module
+}) 
+selection
+// end of module

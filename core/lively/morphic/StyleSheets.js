@@ -338,10 +338,10 @@ Object.subclass("Selector",
 			// Speed-up: Sizzle("#ID")
 			if ( (m = match[1]) ) {
 				if ( nodeType === 9 ) {
-					elem = context.getElementById( m );
+					elem = context.getSubmorphById(m);
 					// Check parentNode to catch when Blackberry 4.6 returns
 					// nodes that are no longer in the document #6963
-					if ( elem && elem.parentNode ) {
+					if ( elem && elem.owner) {
 						// Handle the case where IE, Opera, and Webkit return items
 						// by name instead of ID
 						if ( elem.id === m ) {
@@ -353,7 +353,7 @@ Object.subclass("Selector",
 					}
 				} else {
 					// Context is not a document
-					if ( context.ownerDocument && (elem = context.ownerDocument.getElementById( m )) &&
+					if ( context.world() && (elem = context.world().getSubmorphById( m )) &&
 						this.contains( context, elem ) && elem.id === m ) {
 						results.push( elem );
 						return results;

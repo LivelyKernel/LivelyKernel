@@ -22,7 +22,7 @@ lively.morphic.Morph.addMethods(
             resultMorphs.push(this);
         }
         for (var i = 0; i < this.submorphs.length; i++) {
-            resultMorphs.concat(this.submorphs[i].getSubmorphsByClassName(classNames));
+            resultMorphs = resultMorphs.concat(this.submorphs[i].getSubmorphsByClassName(classNames));
         }
         return resultMorphs;
     },

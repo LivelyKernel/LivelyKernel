@@ -4,7 +4,7 @@ Object.subclass("Selector",
 'documentation', {
     documentation: "Sizzle port for morphic."
 },
-'blah',{asdf:'asdf'},
+
 'settings', {
         cachedruns: null,
 	dirruns: null,

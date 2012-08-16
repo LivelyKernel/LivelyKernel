@@ -406,7 +406,7 @@ Object.subclass("Selector",
 
 			// Speed-up: Sizzle("TAG")
 			} else if ( match[2] ) {
-				push.apply( results, slice.call(context.getElementsByTagName( selector ), 0) );
+				this.push.apply( results, slice.call(context.getElementsByTagName( selector ), 0) );
 				return results;
 
 			// Speed-up: Sizzle(".CLASS")

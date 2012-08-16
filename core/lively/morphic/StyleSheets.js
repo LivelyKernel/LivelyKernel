@@ -455,7 +455,7 @@ Object.subclass("Selector",
 	}
 
 	if ( seed ) {
-		elements = slice.call( seed, 0 );
+		elements = this.slice.call( seed, 0 );
 
 	// To maintain document order, only narrow the
 	// set if there is one group

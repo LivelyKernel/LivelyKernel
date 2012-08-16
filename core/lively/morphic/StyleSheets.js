@@ -440,7 +440,7 @@ Object.subclass("Selector",
 	// All others
 	return this.uberselect( selector, context, results, seed, xml );
     },
-    uberselect: function( selector, context, results, seed, xml ) {
+    uberselect: function( selector, context, results, seed) {
 	// Remove excessive whitespace
 	selector = selector.replace( this.rtrim, "$1" );
 	var elements, matcher, i, len, elem, token,
@@ -462,10 +462,10 @@ Object.subclass("Selector",
 	} else if ( match && match.length === 1 ) {
 
 		// Take a shortcut and set the context if the root selector is an ID
-		if ( tokens.length > 1 && contextNodeType === 9 && !xml &&
+		if ( tokens.length > 1 && contextNodeType === 9 &&
 				(match = this.matchExpr["ID"].exec( tokens[0] )) ) {
 
-			context = this.selectors.find["ID"]( match[1], context, xml )[0];
+			context = this.selectors.find["ID"]( match[1], context)[0];
 			if ( !context ) {
 				return results;
 			}

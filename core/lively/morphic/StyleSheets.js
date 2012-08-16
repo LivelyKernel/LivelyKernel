@@ -206,11 +206,11 @@ Object.subclass("Selector",
             i = 0;
 
         for ( ; (token = tokens[i]); i++ ) {
-            if ( Expr.relative[ token.part ] ) {
-                matcher = addCombinator( matcher, Expr.relative[ token.part ], context );
+            if ( this.selectors.relative[ token.part ] ) {
+                matcher = this.addCombinator( matcher, this.selectors.relative[ token.part ], context );
             } else {
                 token.captures.push( context, xml );
-                matcher = addMatcher( matcher, Expr.filter[ token.part ].apply( null, token.captures ) );
+                matcher = this.addMatcher( matcher, this.selectors.filter[ token.part ].apply( null, token.captures ) );
             }
         }
 

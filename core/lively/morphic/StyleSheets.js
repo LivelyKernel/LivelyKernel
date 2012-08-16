@@ -90,6 +90,7 @@ Object.subclass("Selector",
 	compilerCache: {},
 	cachedSelectors: [],
 }
+
 )
 
 }) // end of module

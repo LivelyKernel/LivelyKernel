@@ -844,7 +844,7 @@ Object.subclass("Selector",
 	},
 
 	pseudos: {
-		"not": markFunction(function( selector, context, xml ) {
+		"not": this.markFunction(function( selector, context, xml ) {
 			// Trim the selector passed to compile
 			// to avoid treating leading and trailing
 			// spaces as combinators

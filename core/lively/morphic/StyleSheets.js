@@ -506,13 +506,13 @@ Object.subclass("Selector",
 	// If selector is empty, we're already done
 	if ( selector ) {
 		matcher = this.compile( selector, context);
-		dirruns = matcher.dirruns++;
+		this.dirruns = matcher.dirruns++;
 
 		if ( elements == null ) {
-			elements = Expr.find["TAG"]( "*", (rsibling.test( selector ) && context.parentNode) || context );
+			elements = Expr.find["TAG"]( "*", (this.rsibling.test( selector ) && context.parentNode) || context );
 		}
 		for ( i = 0; (elem = elements[i]); i++ ) {
-			cachedruns = matcher.runs++;
+			this.cachedruns = matcher.runs++;
 			if ( matcher(elem, context) ) {
 				results.push( elem );
 			}

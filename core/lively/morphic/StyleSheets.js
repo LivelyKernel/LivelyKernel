@@ -287,14 +287,14 @@ Object.subclass("Selector",
 
     handlePOSGroup: function( selector, posfilter, argument, contexts, seed, not ) {
         var results,
-            fn = Expr.setFilters[ posfilter.toLowerCase() ];
+            fn = this.selectors.setFilters[ posfilter.toLowerCase() ];
 
         if ( !fn ) {
-            Sizzle.error( posfilter );
+            this.error( posfilter );
         }
 
         if ( selector || !(results = seed) ) {
-            multipleContexts( selector || "*", contexts, (results = []), seed );
+            this.multipleContexts( selector || "*", contexts, (results = []), seed );
         }
 
         return results.length > 0 ? fn( results, argument, not ) : [];

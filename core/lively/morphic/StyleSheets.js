@@ -1304,8 +1304,6 @@ siblingCheck: function( a, b, ret ) {
 		}
 
 		return 1;
-	
-    
     },
 
 

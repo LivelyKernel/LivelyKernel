@@ -483,7 +483,7 @@ Object.subclass("Selector",
 			type = this.selectors.order[i];
 
 			if ( (match = this.matchExpr[ type ].exec( token )) ) {
-				elements = this.selectors.find[ type ]( (match[1] || "").replace( this.rbackslash, "" ), findContext, xml );
+				elements = this.selectors.find[ type ]( (match[1] || "").replace( this.rbackslash, "" ), findContext);
 
 				if ( elements == null ) {
 					continue;

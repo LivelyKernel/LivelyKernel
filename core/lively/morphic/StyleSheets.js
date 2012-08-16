@@ -258,7 +258,7 @@ Object.subclass("Selector",
     },
 
     matches: function( expr, elements ) {
-        return Sizzle( expr, null, null, elements );
+        return this.select( expr, null, null, elements );
     },
 
     matchesSelector: function( elem, expr ) {

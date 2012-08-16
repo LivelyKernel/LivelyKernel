@@ -546,6 +546,7 @@ Object.subclass("Selector",
 			},
 
 			"CLASS": function( className ) {
+				debugger
 				var pattern = this.classCache[ className ];
 				if ( !pattern ) {
 					pattern = this.classCache[ className ] = new RegExp( "(^|" + whitespace + ")" + className + "(" + whitespace + "|$)" );

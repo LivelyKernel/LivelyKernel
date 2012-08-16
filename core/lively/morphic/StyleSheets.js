@@ -5,7 +5,7 @@ Object.subclass("Selector",
     documentation: "Sizzle port for morphic."
 },
 'helpers',{
-
+documentation: "Sizzle port for morphic."
 },
 'settings', {
         cachedruns: null,

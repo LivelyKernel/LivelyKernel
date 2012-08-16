@@ -88,7 +88,7 @@ Object.subclass("Selector",
 	classCache: {},
 	cachedClasses: [],
 	compilerCache: {},
-	cachedSelectors: [],
+	cachedSelectors: []
 },
 'helpers',
 {

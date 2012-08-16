@@ -26,7 +26,7 @@ lively.morphic.Morph.addMethods(
         }
         return resultMorphs;
     },
-    getSubmorphsByAttribute: function(attr, value) {
+    getSubmorphsByAttribute: function(attr, value, caseInsensitive) {
          var resultMorphs = []
         if (this[attr] && this[attr] == value){
             resultMorphs.push(this);

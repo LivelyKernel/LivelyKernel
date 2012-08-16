@@ -27,18 +27,14 @@ lively.morphic.Morph.addMethods(
         return resultMorphs;
     },
     getSubmorphsByAttribute: function(attr, value) {
-        if (this.className == className){
-            return this;
-        } else {
-            for (var i = 0; i < this.submorphs.length; i++) {
-                var m = this.submorphs[i],
-                    hit = m.getMorphById(id);
-                if (hit) {
-                    return hit;
-                }
-            }
-            return null;
+         var resultMorphs = []
+        if (this.isOfClass(classNames)){
+            resultMorphs.push(this);
         }
+        for (var i = 0; i < this.submorphs.length; i++) {
+            resultMorphs.concat(this.submorphs[i].getSubmorphsByClassName(classNames));
+        }
+        return resultMorphs;
     },
     isOfClass: function(className) {
         var classNames = className.toLowerCase().split(/[\s,]+/),

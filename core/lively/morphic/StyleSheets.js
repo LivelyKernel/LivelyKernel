@@ -2,7 +2,7 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
 
 lively.morphic.Morph.addMethods(
 'Morph selection methods', {
-    getMorphById: function(id) {
+    getSubmorphById: function(id) {
         if (this.id == id){
             return this;
         } else {
@@ -15,7 +15,6 @@ lively.morphic.Morph.addMethods(
             }
             return null;
         }
-
     }
 });
 

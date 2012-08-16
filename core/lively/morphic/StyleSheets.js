@@ -310,11 +310,11 @@ Object.subclass("Selector",
 		nodeType = context.nodeType;
 
 	if ( nodeType !== 1 && nodeType !== 9 ) {
-		return [];
+	   return [];
 	}
 
 	if ( !selector || typeof selector !== "string" ) {
-		return results;
+	   return results;
 	}
 
 	xml = isXML( context );
@@ -1338,4 +1338,4 @@ var isXML = Sizzle.isXML = function( elem ) {
 )
 
 })
-// end of module// end of module
+// end of module// end of module// end of module

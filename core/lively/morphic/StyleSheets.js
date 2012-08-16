@@ -398,7 +398,7 @@ Object.subclass("Selector",
 		find: {
 			"ID": this.assertGetIdNotName ?
 				function( id, context, xml ) {
-					if ( typeof context.getSubmorphById !== strundefined && !xml ) {
+					if ( typeof context.getSubmorphById !== this.strundefined && !xml ) {
 						var m = context.getSubmorphById( id );
 						// Check parentNode to catch when Blackberry 4.6 returns
 						// nodes that are no longer in the document #6963
@@ -406,11 +406,11 @@ Object.subclass("Selector",
 					}
 				} :
 				function( id, context, xml ) {
-					if ( typeof context.getSubmorphById!== strundefined && !xml ) {
+					if ( typeof context.getSubmorphById!== this.strundefined && !xml ) {
 						var m = context.getSubmorphById( id );
 
 						return m ?
-							m.id === id || typeof m.getAttributeNode !== strundefined && m.getAttributeNode("id").value === id ?
+							m.id === id || typeof m.getAttributeNode !== this.strundefined && m.getAttributeNode("id").value === id ?
 								[m] :
 								undefined :
 							[];
@@ -419,7 +419,7 @@ Object.subclass("Selector",
 
 			"TAG": this.assertTagNameNoComments ?
 				function( tag, context ) {
-					if ( typeof context.getElementsByTagName !== strundefined ) {
+					if ( typeof context.getElementsByTagName !== this.strundefined ) {
 						return context.getElementsByTagName( tag );
 					}
 				} :

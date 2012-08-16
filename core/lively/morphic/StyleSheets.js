@@ -85,7 +85,7 @@ var isXML = Sizzle.isXML = function( elem ) {
 	xml = isXML( context );
 
 	if ( !xml && !seed ) {
-		if ( (match = rquickExpr.exec( selector )) ) {
+		if ( (match = this.rquickExpr.exec( selector )) ) {
 			// Speed-up: Sizzle("#ID")
 			if ( (m = match[1]) ) {
 				if ( nodeType === 9 ) {
@@ -105,7 +105,7 @@ var isXML = Sizzle.isXML = function( elem ) {
 				} else {
 					// Context is not a document
 					if ( context.ownerDocument && (elem = context.ownerDocument.getElementById( m )) &&
-						contains( context, elem ) && elem.id === m ) {
+						this.contains( context, elem ) && elem.id === m ) {
 						results.push( elem );
 						return results;
 					}

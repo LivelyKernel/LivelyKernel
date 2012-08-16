@@ -3,9 +3,12 @@ module('lively.morphic.StyleSheets').requires().toRun(function() {
 lively.morphic.Morph.addMethods(
 'Morph selection methods', {
     getMorphById: function(id) {
+        if ((this.id+'').toLowerCase() === (id+'').toLowerCase()){
+            return this;
+        }
         for (var i = 0; i < this.submorphs.length; i++) {
             var m = this.submorphs[i];
-                
+            
         }
 
     }

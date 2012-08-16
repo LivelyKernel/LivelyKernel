@@ -305,6 +305,9 @@ Object.subclass("Selector",
     select: function( selector, context, results, seed ) {
 	results = results || [];
 	context = context || $world();
+	
+
+	
 	var match, elem, xml, m,
 		nodeType = context.nodeType;
 

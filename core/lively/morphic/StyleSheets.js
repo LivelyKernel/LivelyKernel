@@ -550,7 +550,7 @@ Object.subclass("Selector",
 
 	attrHandle: {},
 
-	createPseudo: markFunction,
+	createPseudo: this.markFunction,
 
 	find: {
 		"ID": assertGetIdNotName ?
@@ -900,13 +900,13 @@ Object.subclass("Selector",
 			return true;
 		},
 
-		"contains": markFunction(function( text ) {
+		"contains": this.markFunction(function( text ) {
 			return function( elem ) {
 				return ( elem.textContent || elem.innerText || getText( elem ) ).indexOf( text ) > -1;
 			};
 		}),
 
-		"has": markFunction(function( selector ) {
+		"has": this.markFunction(function( selector ) {
 			return function( elem ) {
 				return Sizzle( selector, elem ).length > 0;
 			};

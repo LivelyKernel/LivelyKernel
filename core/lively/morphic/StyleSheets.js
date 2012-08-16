@@ -232,7 +232,7 @@ Object.subclass("Selector",
     
     compile: function( selector, context, xml ) {
         var tokens, group, i,
-            cached = compilerCache[ selector ];
+            cached = this.compilerCache[ selector ];
 
         // Return a cached group function if already generated (context dependent)
         if ( cached && cached.context === context ) {
@@ -240,19 +240,19 @@ Object.subclass("Selector",
         }
 
         // Generate a function of recursive functions that can be used to check each element
-        group = tokenize( selector, context, xml );
+        group = this.tokenize( selector, context, xml );
         for ( i = 0; (tokens = group[i]); i++ ) {
-            group[i] = matcherFromTokens( tokens, context, xml );
+            group[i] = this.matcherFromTokens( tokens, context, xml );
         }
 
         // Cache the compiled function
-        cached = compilerCache[ selector ] = matcherFromGroupMatchers( group );
+        cached = this.compilerCache[ selector ] = this.matcherFromGroupMatchers( group );
         cached.context = context;
         cached.runs = cached.dirruns = 0;
-        cachedSelectors.push( selector );
+        this.cachedSelectors.push( selector );
         // Ensure only the most recent are cached
-        if ( cachedSelectors.length > Expr.cacheLength ) {
-            delete compilerCache[ cachedSelectors.shift() ];
+        if ( this.cachedSelectors.length > this.selectors.cacheLength ) {
+            delete this.compilerCache[ this.cachedSelectors.shift() ];
         }
         return cached;
     },

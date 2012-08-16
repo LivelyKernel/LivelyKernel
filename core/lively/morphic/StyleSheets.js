@@ -218,7 +218,7 @@ Object.subclass("Selector",
                 matcher = this.addCombinator( matcher, this.selectors.relative[ token.part ], context );
             } else {
                 token.captures.push( context, xml );
-                matcher = this.addMatcher( matcher, this.selectors.filter[ token.part ].apply( null, token.captures ) );
+                matcher = this.addMatcher( matcher, this.selectors.filter[ token.part ].apply( this, token.captures ) );
             }
         }
 

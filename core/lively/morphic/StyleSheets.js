@@ -1168,7 +1168,7 @@ Object.subclass("Selector",
 	setupRegexs: function(){
 	
 	
-		this.expando: ( "sizcache" + Math.random() ).replace( ".", "" ),
+		this.expando = ( "sizcache" + Math.random() ).replace( ".", "" );
 	
 	
 		// Whitespace characters http://www.w3.org/TR/css3-selectors/#whitespace

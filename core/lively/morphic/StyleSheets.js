@@ -31,7 +31,11 @@ lively.morphic.Morph.addMethods(
         }
     },
     isOfClass: function(className) {
-        var classNames = className.split(' ');
+        var classNames = className.split(' '),
+            morphClasses = this.getClassNames() || [];
+        
+        
+        
     }
 });
 

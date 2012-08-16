@@ -553,7 +553,7 @@ Object.subclass("Selector",
 	createPseudo: this.markFunction,
 
 	find: {
-		"ID": assertGetIdNotName ?
+		"ID": this.assertGetIdNotName ?
 			function( id, context, xml ) {
 				if ( typeof context.getSubmorphById !== strundefined && !xml ) {
 					var m = context.getSubmorphById( id );
@@ -676,7 +676,7 @@ Object.subclass("Selector",
 	},
 
 	filter: {
-		"ID": assertGetIdNotName ?
+		"ID": this.assertGetIdNotName ?
 			function( id ) {
 				id = id.replace( rbackslash, "" );
 				return function( elem ) {
@@ -1099,7 +1099,7 @@ Object.subclass("Selector",
 			document.getElementsByName( expando ).length ===
 			// buggy browsers will return more than the correct 0
 			2 + document.getElementsByName( expando + 0 ).length;
-		assertGetIdNotName = !document.getElementById( expando );
+		this.assertGetIdNotName = !document.getElementById( expando );
 
 		// Cleanup
 		docElem.removeChild( div );

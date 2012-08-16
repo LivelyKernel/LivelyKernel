@@ -90,7 +90,7 @@ Object.subclass("Selector",
 	compilerCache: {},
 	cachedSelectors: [],
 },
-'Helpers',
+'helpers',
 {
     // Mark a function for use in filtering
 	markFunction: function( fn ) {

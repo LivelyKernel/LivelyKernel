@@ -1,5 +1,18 @@
 module('lively.morphic.StyleSheets').requires().toRun(function() {
 
+lively.morphic.Morph.addMethods(
+'Morph selection methods', {
+    getMorphById: function(id) {
+        for (var i = 0; i < this.submorphs.length; i++) {
+            var m = this.submorphs[i];
+                
+        }
+
+    }
+});
+
+
+
 Object.subclass("Selector",
 'documentation', {
     documentation: "Sizzle port for morphic."
@@ -1332,4 +1345,4 @@ var isXML = Sizzle.isXML = function( elem ) {
 )
 
 })
-// end of module// end of module// end of module
+// end of module// end of module// end of module// end of module// end of module// end of module

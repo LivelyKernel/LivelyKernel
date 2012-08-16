@@ -998,6 +998,11 @@ Object.subclass("Selector",
     * Utility function for retrieving the text value of an array of DOM nodes
     * @param {Array|Element} elem
     */
+    
+    // morphs usually don't have something like 'text', so ...
+    return '';
+    
+    
 	var node,
 		ret = "",
 		i = 0,

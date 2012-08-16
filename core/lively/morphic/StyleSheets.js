@@ -5,7 +5,7 @@ Object.subclass("Selector",
     documentation: "Sizzle port for morphic."
 },'selection',
 {
-    sizzleSelect: function( selector, context, results, seed ) {
+    select: function( selector, context, results, seed ) {
 	results = results || [];
 	context = context || $world();
 	var match, elem, xml, m,
@@ -62,9 +62,9 @@ Object.subclass("Selector",
 	}
 
 	// All others
-	return this.select( selector, context, results, seed, xml );
+	return this.uberselect( selector, context, results, seed, xml );
     },
-    select: function( selector, context, results, seed, xml ) {
+    uberselect: function( selector, context, results, seed, xml ) {
 	// Remove excessive whitespace
 	selector = selector.replace( rtrim, "$1" );
 	var elements, matcher, i, len, elem, token,

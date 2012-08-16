@@ -309,15 +309,9 @@ Object.subclass("Selector",
 	var match, elem, xml, m,
 		nodeType = context.nodeType;
 
-	if ( nodeType !== 1 && nodeType !== 9 ) {
-	   return [];
-	}
-
 	if ( !selector || typeof selector !== "string" ) {
 	   return results;
 	}
-
-	xml = isXML( context );
 
 	if ( !xml && !seed ) {
 		if ( (match = this.rquickExpr.exec( selector )) ) {

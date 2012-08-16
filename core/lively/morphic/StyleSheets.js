@@ -549,16 +549,16 @@ Object.subclass("Selector",
 	find: {
 		"ID": assertGetIdNotName ?
 			function( id, context, xml ) {
-				if ( typeof context.getElementById !== strundefined && !xml ) {
-					var m = context.getElementById( id );
+				if ( typeof context.getSubmorphById !== strundefined && !xml ) {
+					var m = context.getSubmorphById( id );
 					// Check parentNode to catch when Blackberry 4.6 returns
 					// nodes that are no longer in the document #6963
 					return m && m.parentNode ? [m] : [];
 				}
 			} :
 			function( id, context, xml ) {
-				if ( typeof context.getElementById !== strundefined && !xml ) {
-					var m = context.getElementById( id );
+				if ( typeof context.getSubmorphById!== strundefined && !xml ) {
+					var m = context.getSubmorphById( id );
 
 					return m ?
 						m.id === id || typeof m.getAttributeNode !== strundefined && m.getAttributeNode("id").value === id ?

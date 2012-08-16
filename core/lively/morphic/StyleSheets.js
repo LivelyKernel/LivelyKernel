@@ -5,7 +5,7 @@ Object.subclass("Selector",
     documentation: "Sizzle port for morphic."
 },'selection',
 {
-    sizzleSelect: function( selector, context, results, seed ) {
+    sizzaleSelect: function( selector, context, results, seed ) {
 	results = results || [];
 	context = context || $world();
 	var match, elem, xml, m,

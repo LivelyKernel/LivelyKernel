@@ -1288,7 +1288,25 @@ sortOrder: function(a,b){
 			siblingCheck( ap[i], b, 1 );
 	},
 
+siblingCheck: function( a, b, ret ) {
+		if ( a === b ) {
+			return ret;
+		}
 
+		var cur = a.nextSibling;
+
+		while ( cur ) {
+			if ( cur === b ) {
+				return -1;
+			}
+
+			cur = cur.nextSibling;
+		}
+
+		return 1;
+	
+    
+    },
 
 
     uniqueSort: function( results ) {

@@ -150,7 +150,7 @@ Object.subclass("Selector",
 
     addCombinator: function( matcher, combinator, context ) {
         var dir = combinator.dir,
-            doneName = done++;
+            doneName = this.done++;
 
         if ( !matcher ) {
             // If there is no matcher to check, check against the context
@@ -168,18 +168,18 @@ Object.subclass("Selector",
             } :
             function( elem, context ) {
                 var cache,
-                    dirkey = doneName + "." + dirruns,
-                    cachedkey = dirkey + "." + cachedruns;
+                    dirkey = doneName + "." + this.dirruns,
+                    cachedkey = dirkey + "." + this.cachedruns;
                 while ( (elem = elem[ dir ]) ) {
                     if ( elem.nodeType === 1 ) {
-                        if ( (cache = elem[ expando ]) === cachedkey ) {
+                        if ( (cache = elem[ this.expando ]) === cachedkey ) {
                             return elem.sizset;
                         } else if ( typeof cache === "string" && cache.indexOf(dirkey) === 0 ) {
                             if ( elem.sizset ) {
                                 return elem;
                             }
                         } else {
-                            elem[ expando ] = cachedkey;
+                            elem[ this.expando ] = cachedkey;
                             if ( matcher( elem, context ) ) {
                                 elem.sizset = true;
                                 return elem;

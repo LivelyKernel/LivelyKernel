@@ -703,11 +703,11 @@ var isXML = Sizzle.isXML = function( elem ) {
     },
     
     contains: function(a,b){
-        return docElem.compareDocumentPosition ?
+        return this.docElem.compareDocumentPosition ?
         function( a, b ) {
 		return !!( a.compareDocumentPosition( b ) & 16 );
 	} :
-	docElem.contains ?
+	this.docElem.contains ?
 	function( a, b ) {
 		var adown = a.nodeType === 9 ? a.documentElement : a,
 			bup = b.parentNode;

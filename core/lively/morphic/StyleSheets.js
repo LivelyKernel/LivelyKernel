@@ -91,7 +91,8 @@ Object.subclass("Selector",
 },
 'init',{
     initialize: function(){
-        
+        this.setupSelectors();
+		this.setupRegexs();
     },
 	
 },
@@ -1160,7 +1161,7 @@ Object.subclass("Selector",
 	classCache: {},
 	cachedClasses: [],
 	compilerCache: {},
-	cachedSelectors: []
+	cachedSelectors: [],
 
 	// Regex
 	

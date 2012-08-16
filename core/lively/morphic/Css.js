@@ -1,4 +1,4 @@
-module('lively.morphic.Css').requires().toRun(function() {
+module('lively.morphic.CSS').requires().toRun(function() {
 
 // Enter your code here
 

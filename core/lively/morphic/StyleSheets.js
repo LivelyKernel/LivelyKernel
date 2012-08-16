@@ -574,7 +574,7 @@ Object.subclass("Selector",
 				}
 			},
 
-		"TAG": assertTagNameNoComments ?
+		"TAG": this.assertTagNameNoComments ?
 			function( tag, context ) {
 				if ( typeof context.getElementsByTagName !== strundefined ) {
 					return context.getElementsByTagName( tag );
@@ -1078,7 +1078,7 @@ Object.subclass("Selector",
 	},
 
 	// Check if attributes should be retrieved by attribute nodes
-	assertAttributes: assert(function( div ) {
+	assertAttributes: this.assert(function( div ) {
 		div.innerHTML = "<select></select>";
 		var type = typeof div.lastChild.getAttribute("multiple");
 		// IE8 returns a string for some attributes even when not present
@@ -1087,7 +1087,7 @@ Object.subclass("Selector",
 
 	// Check if getElementById returns elements by name
 	// Check if getElementsByName privileges form controls or returns elements by ID
-	assertUsableName: assert(function( div ) {
+	assertUsableName: this.assert(function( div ) {
 		// Inject content
 		div.id = expando + 0;
 		div.innerHTML = "<a name='" + expando + "'></a><div name='" + expando + "'></div>";
@@ -1109,20 +1109,20 @@ Object.subclass("Selector",
 
 	// Check if the browser returns only elements
 	// when doing getElementsByTagName("*")
-	assertTagNameNoComments: assert(function( div ) {
+	assertTagNameNoComments: this.assert(function( div ) {
 		div.appendChild( document.createComment("") );
 		return div.getElementsByTagName("*").length === 0;
 	}),
 
 	// Check if getAttribute returns normalized href attributes
-	assertHrefNotNormalized: assert(function( div ) {
+	assertHrefNotNormalized: this.assert(function( div ) {
 		div.innerHTML = "<a href='#'></a>";
 		return div.firstChild && typeof div.firstChild.getAttribute !== strundefined &&
 			div.firstChild.getAttribute("href") === "#";
 	}),
 
 	// Check if getElementsByClassName can be trusted
-	assertUsableClassName: assert(function( div ) {
+	assertUsableClassName: this.assert(function( div ) {
 		// Opera can't find a second classname (in 9.6)
 		div.innerHTML = "<div class='hidden e'></div><div class='hidden'></div>";
 		if ( !div.getElementsByClassName || div.getElementsByClassName("e").length === 0 )                            { return false;

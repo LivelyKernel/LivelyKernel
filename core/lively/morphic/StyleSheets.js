@@ -5,7 +5,7 @@ Object.subclass("Selector",
     documentation: "Sizzle port for morphic."
 },'selection',
 {
-    sizzaleSelect: function( selector, context, results, seed ) {
+    sizzleSelect: function( selector, context, results, seed ) {
 	results = results || [];
 	context = context || $world();
 	var match, elem, xml, m,
@@ -255,4 +255,4 @@ Object.subclass("Selector",
 )
 
 })
-// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module
+// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module

@@ -1032,7 +1032,7 @@ Object.subclass("lively.morphic.Sizzle",
 		for ( i = 0; (elem = elements[i]); i++ ) {
 		    debugger
 			this.cachedruns = matcher.runs++;
-			if ( matcher(elem, context) ) {
+			if ( matcher.call(this, elem, context) ) {
 				results.push( elem );
 			}
 		}

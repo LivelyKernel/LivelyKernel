@@ -398,13 +398,13 @@ Object.subclass("Selector",
 		find: {
 		    
 		    "CLASS": function( className, context, xml ) {
-		          if     ( typeof context.getSubmorphsByClassName !== strundefined && !xml ) {
+		          if     ( typeof context.getSubmorphsByClassName !== this.strundefined && !xml ) {
 			         return context.getSubmorphsByClassName ( className );
 		              } 
 		      },
 		
 		    "NAME": function( name, context ) {
-            		if ( typeof context.getSubmorphsByAttribute!== strundefined ) {
+            		if ( typeof context.getSubmorphsByAttribute!== this.strundefined ) {
 			     return context.getSubmorphsByAttribute( this.nameAttr, name );
 		          }
 	               },

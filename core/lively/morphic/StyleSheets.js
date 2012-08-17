@@ -524,7 +524,6 @@ Object.subclass("lively.morphic.Sizzle",
 			"PSEUDO": function( match ) {
 				var argument,
 					unquoted = match[4];
-                                debugger
 				if ( this.matchExpr["CHILD"].test( match[0] ) ) {
 					return null;
 				}

@@ -95,7 +95,7 @@ lively.morphic.Morph.addMethods(
 
 lively.morphic.Text.addMethods(
 'serialization', {
-    doNotSerialize: ['charsTyped', 'priorSelectionRange'],
+    doNotSerialize: ['charsTyped'],
     onstore: function($super) {
         $super();
 
@@ -123,7 +123,7 @@ lively.morphic.Text.addMethods(
     },
     prepareForNewRenderContext: function($super,renderCtx) {
         $super(renderCtx);
-        // FIXME cachedTextString is sued for compatiblity before rich text was implemented
+        // FIXME cachedTextString is used for compatiblity before rich text was implemented
         if (this.cachedTextString) {
             this.textString = this.cachedTextString;
             return;

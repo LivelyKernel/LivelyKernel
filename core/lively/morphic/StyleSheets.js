@@ -552,7 +552,7 @@ Object.subclass("Selector",
 					pattern = this.classCache[ className ] = new RegExp( "(^|" + this.whitespace + ")" + className + "(" + this.whitespace + "|$)" );
 					this.cachedClasses.push( className );
 					// Avoid too large of a cache
-					if ( this.cachedClasses.length > this.selector.cacheLength ) {
+					if ( this.cachedClasses.length > this.cacheLength ) {
 						delete this.classCache[ this.cachedClasses.shift() ];
 					}
 				}

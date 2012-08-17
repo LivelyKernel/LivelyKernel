@@ -478,10 +478,10 @@ Object.subclass("lively.morphic.Sizzle",
 
 		preFilter: {
 			"ATTR": function( match ) {
-				match[1] = match[1].replace( rbackslash, "" );
+				match[1] = match[1].replace( this.rbackslash, "" );
 
 				// Move the given value to this.matchExpr[3] whether quoted or unquoted
-				match[3] = ( match[4] || match[5] || "" ).replace( rbackslash, "" );
+				match[3] = ( match[4] || match[5] || "" ).replace( this.rbackslash, "" );
 
 				if ( match[2] === "~=" ) {
 					match[3] = " " + match[3] + " ";

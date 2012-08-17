@@ -26,7 +26,7 @@ lively.morphic.Morph.addMethods(
         }
         return resultMorphs;
     },
-    getSubmorphsByAttribute: function(attr, value, caseInsensitive) {
+    getSubmorphsByAttribute: function(attr, value, optCaseInsensitive) {
         
         var resultMorphs = [],
             realVal = this[attr],
@@ -35,7 +35,7 @@ lively.morphic.Morph.addMethods(
         if (realVal) {
             realVal +='';
 
-            if (caseInsensitive) {
+            if (optCaseInsensitive) {
                 realVal = realVal.toLowerCase();
                 val = val.toLowerCase();
             }
@@ -47,6 +47,29 @@ lively.morphic.Morph.addMethods(
 
         for (var i = 0; i < this.submorphs.length; i++) {
             resultMorphs = resultMorphs.concat(this.submorphs[i].getSubmorphsByAttribute(attr, value));
+        }
+        return resultMorphs;
+    },
+    getSubmorphsByTagName: function(tag, optTagNameAttribute) {
+        var resultMorphs = [],
+            tagNameAttr = optTagNameAttribute || 'tagName',
+            thisTagName = this[tagNameAttr];
+        
+        if (tag.trim() === '*') {
+            resultMorphs.push(this);
+        } else if (thisTagName) {
+            thisTagName +='';
+
+            thisTagName = thisTagName .toLowerCase();
+            tag= tag.toLowerCase();
+
+            if (thisTagName === tag){
+                resultMorphs.push(this);
+            }
+        }
+
+        for (var i = 0; i < this.submorphs.length; i++) {
+            resultMorphs = resultMorphs.concat(this.submorphs[i].getSubmorphsByTagName(tag, optTagNameAttribute));
         }
         return resultMorphs;
     },

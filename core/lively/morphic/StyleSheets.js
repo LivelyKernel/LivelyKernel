@@ -391,7 +391,7 @@ Object.subclass("Selector",
 		cacheLength: 50,
 
 
-		order: [ "ID", "TAG" ],
+		order: [ "ID", "CLASS", "TAG", "NAME" ],
 
 		attrHandle: {},
 

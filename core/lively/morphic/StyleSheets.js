@@ -861,7 +861,7 @@ Object.subclass("Selector",
 	if (!seed ) {
 		if ( (match = this.rquickExpr.exec( selector )) ) {
 			// Speed-up: Sizzle("#ID")
-			if ( (m = this.matchExpr[1]) ) {
+			if ( (m = match[1]) ) {
 				if ( nodeType === 9 ) {
 					elem = context.getSubmorphById(m);
 					// Check parentNode to catch when Blackberry 4.6 returns
@@ -886,12 +886,12 @@ Object.subclass("Selector",
 				}
 
 			// Speed-up: Sizzle("TAG")
-			} else if ( this.matchExpr[2] ) {
+			} else if ( match[2] ) {
 				this.push.apply( results, this.slice.call(context.getSubmorphsByAttribute('tag', selector, true ), 0) );
 				return results;
 
 			// Speed-up: Sizzle(".CLASS")
-			} else if ( (m = this.matchExpr[3]) && context.getSubmorphsByClassName ) {
+			} else if ( (m = match[3]) && context.getSubmorphsByClassName ) {
 				this.push.apply( results, this.slice.call(context.getSubmorphsByClassName ( m ), 0) );
 				return results;
 			}

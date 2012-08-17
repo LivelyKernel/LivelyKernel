@@ -265,7 +265,7 @@ Object.subclass("lively.morphic.Sizzle",
             var matcher,
                 j = 0;
             for ( ; (matcher = matchers[j]); j++ ) {
-                if ( matcher(elem, context) ) {
+                if ( matcher.call(this, elem, context) ) {
                     return true;
                 }
             }

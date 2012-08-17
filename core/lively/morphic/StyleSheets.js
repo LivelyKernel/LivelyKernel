@@ -1030,6 +1030,7 @@ Object.subclass("lively.morphic.Sizzle",
 			elements = this.selectors.find["TAG"].call(this, "*", (this.rsibling.test( selector ) && context.owner) || context );
 		}
 		for ( i = 0; (elem = elements[i]); i++ ) {
+		    debugger
 			this.cachedruns = matcher.runs++;
 			if ( matcher(elem, context) ) {
 				results.push( elem );

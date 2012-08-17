@@ -237,8 +237,8 @@ Object.subclass("lively.morphic.Sizzle",
     addMatcher: function( higher, deeper ) {
         return higher ?
             function( elem, context ) {
-                var result = deeper( elem, context );
-                return result && higher( result === true ? elem : result, context );
+                var result = deeper.call(this, elem, context );
+                return result && higher.call(this, result === true ? elem : result, context );
             } :
             deeper;
     },

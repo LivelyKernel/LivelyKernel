@@ -116,6 +116,7 @@ lively.morphic.Morph.addMethods(
         return classNames.uniq();
     },
     getPreviousSibling: function() {
+        debugger
         if (!this.owner || !this.owner.submorphs || this.owner.submorphs.length <= 1) {
             return null;
         } else {
@@ -125,7 +126,7 @@ lively.morphic.Morph.addMethods(
                 if (this.owner.submorphs[i] === this) {
                     pos = i;
                     continue;
-					i++;
+		      i++;
                 }
             }
 

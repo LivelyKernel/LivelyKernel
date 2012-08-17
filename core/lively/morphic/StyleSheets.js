@@ -125,6 +125,7 @@ lively.morphic.Morph.addMethods(
                 if (this.owner.submorphs[i] === this) {
                     pos = i;
                     continue;
+					i++;
                 }
             }
 
@@ -144,6 +145,7 @@ lively.morphic.Morph.addMethods(
                     pos = i;
                     continue;
                 }
+				i++;
             }
 
             if (pos && this.owner.submorphs[pos + 1]) {

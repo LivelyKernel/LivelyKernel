@@ -67,6 +67,12 @@ lively.morphic.Morph.addMethods(
         }
         return true;
     }, 
+    
+    getAttribute: function(attr) {
+        return this[attr];    
+        
+    },
+    
     getClassNames: function() {
         var classNames = this.classNames || [];
         

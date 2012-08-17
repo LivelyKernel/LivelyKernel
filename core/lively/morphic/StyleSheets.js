@@ -1051,6 +1051,11 @@ Object.subclass("lively.morphic.Sizzle",
 	if ( this.selectors.attrHandle[ name ] ) {
 		return this.selectors.attrHandle[ name ]( elem );
 	}
+	
+	// just give back the attr value in morphic ...
+	return elem[name];
+	
+	/*
 	if ( this.assertAttributes || xml ) {
 		return elem[name];
 	}
@@ -1060,6 +1065,7 @@ Object.subclass("lively.morphic.Sizzle",
 			elem[ name ] ? name : null :
 			attr.specified ? attr.value : null :
 		null;
+	*/
     },
     error: function( msg ) {
 	throw new Error( "Syntax error, unrecognized expression: " + msg );

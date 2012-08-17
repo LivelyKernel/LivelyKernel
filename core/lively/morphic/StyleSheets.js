@@ -424,7 +424,7 @@ Object.subclass("Selector",
 					}
 				} :
 				function( tag, context ) {
-					var results = context.getElementsByTagName( tag );
+					var results = context.getSubmorphsByAttr('tagName', tag);
 
 					// Filter out possible comments
 					if ( tag === "*" ) {

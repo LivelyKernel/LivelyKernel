@@ -408,7 +408,7 @@ Object.subclass("Selector",
 		    
 		    "CLASS": function( className, context, xml ) {
 		          if     ( typeof context.getSubmorphsByClassName !== this.strundefined && !xml ) {
-			         return context.getSubmorphsByClassName ( className );
+			         return context.getSubmorphsByClassName( className );
 		              } 
 		      },
 		

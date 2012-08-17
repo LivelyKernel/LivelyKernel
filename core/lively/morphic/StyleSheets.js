@@ -1156,6 +1156,7 @@ Object.subclass("Selector",
 'settings', {
     
     tagNameAttr: 'tagName',
+    nameAttr: 'name',
     
     cachedruns: null,
 	dirruns: null,
@@ -1420,4 +1421,4 @@ var isXML = Sizzle.isXML = function( elem ) {
 )
 
 })
-// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module
+// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module

@@ -926,7 +926,7 @@ Object.subclass("Selector",
 		if ( tokens.length > 1 && contextNodeType === 9 &&
 				(match = this.matchExpr["ID"].exec( tokens[0] )) ) {
 
-			context = this.selectors.find["ID"]( this.matchExpr[1], context)[0];
+			context = this.selectors.find["ID"]( match[1], context)[0];
 			if ( !context ) {
 				return results;
 			}

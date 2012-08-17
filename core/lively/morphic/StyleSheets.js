@@ -521,15 +521,15 @@ Object.subclass("Selector",
 		filter: {
 			"ID": this.assertGetIdNotName ?
 				function( id ) {
-					id = id.replace( rbackslash, "" );
+					id = id.replace( this.rbackslash, "" );
 					return function( elem ) {
 						return elem.getAttribute("id") === id;
 					};
 				} :
 				function( id ) {
-					id = id.replace( rbackslash, "" );
+					id = id.replace( this.rbackslash, "" );
 					return function( elem ) {
-						var node = typeof elem.getAttributeNode !== strundefined && elem.getAttributeNode("id");
+						var node = typeof elem.getAttributeNode !== this.strundefined && elem.getAttributeNode("id");
 						return node && node.value === id;
 					};
 				},
@@ -538,7 +538,7 @@ Object.subclass("Selector",
 				if ( nodeName === "*" ) {
 					return function() { return true; };
 				}
-				nodeName = nodeName.replace( rbackslash, "" ).toLowerCase();
+				nodeName = nodeName.replace( this.rbackslash, "" ).toLowerCase();
 
 				return function( elem ) {
 					return elem.nodeName && elem.nodeName.toLowerCase() === nodeName;
@@ -549,27 +549,27 @@ Object.subclass("Selector",
 				debugger
 				var pattern = this.classCache[ className ];
 				if ( !pattern ) {
-					pattern = this.classCache[ className ] = new RegExp( "(^|" + whitespace + ")" + className + "(" + whitespace + "|$)" );
-					cachedClasses.push( className );
+					pattern = this.classCache[ className ] = new RegExp( "(^|" + this.whitespace + ")" + className + "(" + this.whitespace + "|$)" );
+					this.cachedClasses.push( className );
 					// Avoid too large of a cache
-					if ( cachedClasses.length > Expr.cacheLength ) {
-						delete this.classCache[ cachedClasses.shift() ];
+					if ( this.cachedClasses.length > this.selector.cacheLength ) {
+						delete this.classCache[ this.cachedClasses.shift() ];
 					}
 				}
 				return function( elem ) {
-					return pattern.test( elem.className || (typeof elem.getAttribute !== strundefined && elem.getAttribute("class")) || "" );
+					return pattern.test( elem.className || (typeof elem.getAttribute !== this.strundefined && elem.getAttribute("class")) || "" );
 				};
 			},
 
 			"ATTR": function( name, operator, check ) {
 				if ( !operator ) {
 					return function( elem ) {
-						return Sizzle.attr( elem, name ) != null;
+						return this.attr( elem, name ) != null;
 					};
 				}
 
 				return function( elem ) {
-					var result = Sizzle.attr( elem, name ),
+					var result = this.attr( elem, name ),
 						value = result + "";
 
 					if ( result == null ) {
@@ -611,7 +611,7 @@ Object.subclass("Selector",
 
 						parent = elem.parentNode;
 
-						if ( parent && (parent[ expando ] !== doneName || !elem.sizset) ) {
+						if ( parent && (parent[ this.expando ] !== doneName || !elem.sizset) ) {
 							for ( node = parent.firstChild; node; node = node.nextSibling ) {
 								if ( node.nodeType === 1 ) {
 									node.sizset = ++count;
@@ -621,7 +621,7 @@ Object.subclass("Selector",
 								}
 							}
 
-							parent[ expando ] = doneName;
+							parent[ this.expando ] = doneName;
 						}
 
 						diff = elem.sizset - last;
@@ -670,7 +670,7 @@ Object.subclass("Selector",
 				// pseudo-class names are case-insensitive
 				// http://www.w3.org/TR/selectors/#pseudo-classes
 				// Prioritize by case sensitivity in case custom pseudos are added with uppercase letters
-				var fn = Expr.pseudos[ pseudo ] || Expr.pseudos[ pseudo.toLowerCase() ];
+				var fn = this.pseudos[ pseudo ] || this.pseudos[ pseudo.toLowerCase() ];
 
 				if ( !fn ) {
 					Sizzle.error( "unsupported pseudo: " + pseudo );
@@ -692,7 +692,7 @@ Object.subclass("Selector",
 				// Trim the selector passed to compile
 				// to avoid treating leading and trailing
 				// spaces as combinators
-				var matcher = compile( selector.replace( rtrim, "$1" ), context, xml );
+				var matcher = compile( selector.replace( this.rtrim, "$1" ), context, xml );
 				return function( elem ) {
 					return !matcher( elem );
 				};
@@ -724,7 +724,7 @@ Object.subclass("Selector",
 			},
 
 			"parent": function( elem ) {
-				return !Expr.pseudos["empty"]( elem );
+				return !this.pseudos["empty"]( elem );
 			},
 
 			"empty": function( elem ) {
@@ -785,7 +785,7 @@ Object.subclass("Selector",
 			},
 
 			"input": function( elem ) {
-				return rinputs.test( elem.nodeName );
+				return this.rinputs.test( elem.nodeName );
 			},
 
 			"focus": function( elem ) {

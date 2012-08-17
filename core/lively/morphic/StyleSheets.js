@@ -1043,10 +1043,11 @@ Object.subclass("lively.morphic.Sizzle",
     attr: function( elem, name ) {
 	var attr,
 		xml = false;
-
+        /*
 	if ( !xml ) {
 		name = name.toLowerCase();
 	}
+	*/
 	if ( this.selectors.attrHandle[ name ] ) {
 		return this.selectors.attrHandle[ name ]( elem );
 	}

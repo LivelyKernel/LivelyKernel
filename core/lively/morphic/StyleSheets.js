@@ -586,6 +586,7 @@ Object.subclass("lively.morphic.Sizzle",
 			},
 
 			"ATTR": function( name, operator, check ) {
+				debugger
 				if ( !operator ) {
 					return function( elem ) {
 						return this.attr( elem, name ) != null;
@@ -694,6 +695,7 @@ Object.subclass("lively.morphic.Sizzle",
 				// pseudo-class names are case-insensitive
 				// http://www.w3.org/TR/selectors/#pseudo-classes
 				// Prioritize by case sensitivity in case custom pseudos are added with uppercase letters
+				debugger
 				var fn = this.pseudos[ pseudo ] || this.pseudos[ pseudo.toLowerCase() ];
 
 				if ( !fn ) {

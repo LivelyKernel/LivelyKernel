@@ -728,6 +728,7 @@ Object.subclass("lively.morphic.Sizzle",
 
 					switch ( type ) {
 						case "only":
+						    debugger
 						case "first":
 							while ( (node = node.getPreviousSibling()) ) {
 								if ( node && node.isMorph ) {

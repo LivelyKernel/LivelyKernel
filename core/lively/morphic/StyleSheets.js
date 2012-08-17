@@ -410,7 +410,7 @@ Object.subclass("lively.morphic.Sizzle",
 		find: {
 		    
 		    "CLASS": function( className, context, xml ) {
-		        debugger
+		        
 		          if     ( typeof context.getSubmorphsByClassName !== this.strundefined && !xml ) {
 			         return context.getSubmorphsByClassName( className );
 		              } 

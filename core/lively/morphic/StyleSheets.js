@@ -125,9 +125,10 @@ lively.morphic.Morph.addMethods(
             while (this.owner.submorphs[i]) {
                 if (this.owner.submorphs[i] === this) {
                     pos = i;
-		      i++;
+		      
 		  break;
                 }
+                i++;
             }
 
             if (pos && this.owner.submorphs[pos - 1]) {

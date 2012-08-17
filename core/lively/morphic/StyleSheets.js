@@ -97,7 +97,7 @@ lively.morphic.Morph.addMethods(
 
 
 
-Object.subclass("Selector",
+Object.subclass("lively.morphic.Sizzle",
 'documentation', {
     documentation: "Sizzle port for morphic."
 },

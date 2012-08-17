@@ -514,8 +514,8 @@ Object.subclass("lively.morphic.Sizzle",
 					match[4] = +( ( match[6] + match[7] ) || match[2] === "odd" );
 
 				// other types prohibit arguments
-				} else if ( this.matchExpr[2] ) {
-					this.error( this.matchExpr[0] );
+				} else if ( match[2] ) {
+					this.error( match[0] );
 				}
 
 				return match;

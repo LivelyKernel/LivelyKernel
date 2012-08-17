@@ -137,7 +137,7 @@ lively.morphic.Morph.addMethods(
         }
     },
 	getNextSibling: function() {
-        debugger
+        
         if (!this.owner || !this.owner.submorphs || this.owner.submorphs.length <= 1) {
             return null;
         } else {

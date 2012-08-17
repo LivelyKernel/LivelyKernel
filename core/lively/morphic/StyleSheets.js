@@ -696,7 +696,7 @@ Object.subclass("lively.morphic.Sizzle",
 				// http://www.w3.org/TR/selectors/#pseudo-classes
 				// Prioritize by case sensitivity in case custom pseudos are added with uppercase letters
 				debugger
-				var fn = this.selectors.pseudos[ pseudo ] || this.selectors.pseudos[ pseudo.toLowerCase() ];
+				var fn = this.selectors.pseudos[ pseudo ] || this.selectors.pseudos[ pseudo.toLowerCase()];
 
 				if ( !fn ) {
 					this.error( "unsupported pseudo: " + pseudo );
@@ -709,7 +709,7 @@ Object.subclass("lively.morphic.Sizzle",
 					return fn;
 				}
 
-				return fn( argument, context, xml );
+				return fn.call(this, argument, context, xml );
 			}
 		},
 

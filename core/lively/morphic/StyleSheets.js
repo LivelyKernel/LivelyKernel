@@ -419,12 +419,12 @@ Object.subclass("Selector",
 
 			"TAG": this.assertTagNameNoComments ?
 				function( tag, context ) {
-					if ( typeof context.getSubmorphsByAttr !== this.strundefined ) {
-						return context.getSubmorphsByAttr('tagName', tag);
+					if ( typeof context.getSubmorphsByAttribute !== this.strundefined ) {
+						return context.getSubmorphsByAttribute('tagName', tag);
 					}
 				} :
 				function( tag, context ) {
-					var results = context.getSubmorphsByAttr('tagName', tag);
+					var results = context.getSubmorphsByAttribute('tagName', tag);
 
 					// Filter out possible comments
 					if ( tag === "*" ) {

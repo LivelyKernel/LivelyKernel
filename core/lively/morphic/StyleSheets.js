@@ -404,8 +404,8 @@ Object.subclass("Selector",
 		      },
 		
 		    "NAME": function( name, context ) {
-            		if ( typeof context.getElementsByName !== strundefined ) {
-			     return context.getElementsByName( name );
+            		if ( typeof context.getSubmorphsByAttribute!== strundefined ) {
+			     return context.getSubmorphsByAttribute( this.nameAttr, name );
 		          }
 	               },
 			"ID": this.assertGetIdNotName ?

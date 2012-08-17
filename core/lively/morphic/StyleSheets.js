@@ -148,7 +148,7 @@ Object.subclass("lively.morphic.Sizzle",
                 // Filters
                 for ( type in filters ) {
                     if ( (match = this.matchExpr[ type ].exec( soFar )) && (!preFilters[ type ] ||
-                        (match = preFilters[ type ]( match, context, xml )) ) ) {
+                        (match = preFilters[ type ].call(this, match, context, xml )) ) ) {
 
                         soFar = soFar.slice( match.shift().length );
                         matched = tokens.push({ part: type, captures: match });

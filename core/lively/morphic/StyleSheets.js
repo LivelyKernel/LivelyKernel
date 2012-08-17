@@ -529,7 +529,7 @@ Object.subclass("lively.morphic.Sizzle",
 				}
 
 				// Relinquish our claim on characters in `unquoted` from a closing parenthesis on
-				if ( unquoted && (argument = rselector.exec( unquoted )) && argument.pop() ) {
+				if ( unquoted && (argument = this.rselector.exec( unquoted )) && argument.pop() ) {
 
 					match[0] = match[0].slice( 0, argument[0].length - unquoted.length - 1 );
 					unquoted = argument[0].slice( 0, -1 );

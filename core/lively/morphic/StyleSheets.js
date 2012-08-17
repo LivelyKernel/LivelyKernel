@@ -70,7 +70,10 @@ lively.morphic.Morph.addMethods(
     
     getAttribute: function(attr) {
         return this[attr];    
-        
+    },
+    
+    getAttributeNode: function(attr) {
+        return { value : this.getAttribute(attr) };
     },
     
     getClassNames: function() {

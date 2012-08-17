@@ -702,7 +702,7 @@ Object.subclass("lively.morphic.Sizzle",
 						parent = elem.owner;
 
 						if ( parent && (parent[ this.expando ] !== doneName || !elem.sizset) ) {
-							for ( node = parent.submorphs.first(); node; node = node.nextSibling ) {
+							for ( node = parent.submorphs.first(); node; node = node.getNextSibling()) {
 								if ( node.isMorph ) {
 									node.sizset = ++count;
 									if ( node === elem ) {

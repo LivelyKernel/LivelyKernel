@@ -467,12 +467,12 @@ Object.subclass("lively.morphic.Sizzle",
 
 			"TAG": this.assertTagNameNoComments ?
 				function( tag, context ) {
-					if ( typeof context.getSubmorphsByAttribute !== this.strundefined ) {
-						return context.getSubmorphsByAttribute(this.tagNameAttr, tag);
+					if ( typeof context.getSubmorphsByTagName !== this.strundefined ) {
+						return context.getSubmorphsByTagName(tag);
 					}
 				} :
 				function( tag, context ) {
-					var results = context.getSubmorphsByAttribute(this.tagNameAttr, tag);
+					var results = context.getSubmorphsByTagName( tag);
 
 					// Filter out possible comments
 					if ( tag === "*" ) {
@@ -944,7 +944,7 @@ Object.subclass("lively.morphic.Sizzle",
 
 			// Speed-up: Sizzle("TAG")
 			} else if ( match[2] ) {
-				this.push.apply( results, this.slice.call(context.getSubmorphsByAttribute(this.tagNameAttr, selector, true ), 0) );
+				this.push.apply( results, this.slice.call(context.getSubmorphsByTagName(selector), 0) );
 				return results;
 
 			// Speed-up: Sizzle(".CLASS")

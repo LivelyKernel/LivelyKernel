@@ -1004,7 +1004,7 @@ Object.subclass("lively.morphic.Sizzle",
 		this.dirruns = matcher.dirruns++;
 
 		if ( elements == null ) {
-			elements = this.selectors.find["TAG"]( "*", (this.rsibling.test( selector ) && context.owner) || context );
+			elements = this.selectors.find["TAG"].call(this, "*", (this.rsibling.test( selector ) && context.owner) || context );
 		}
 		for ( i = 0; (elem = elements[i]); i++ ) {
 			this.cachedruns = matcher.runs++;

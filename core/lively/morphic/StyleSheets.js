@@ -403,7 +403,11 @@ Object.subclass("Selector",
 		              } 
 		      },
 		
-		    
+		    "NAME": function( name, context ) {
+            		if ( typeof context.getElementsByName !== strundefined ) {
+			     return context.getElementsByName( name );
+		          }
+	               },
 			"ID": this.assertGetIdNotName ?
 				function( id, context, xml ) {
 					if ( typeof context.getSubmorphById !== this.strundefined && !xml ) {

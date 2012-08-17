@@ -115,6 +115,24 @@ lively.morphic.Morph.addMethods(
         // each class has to be in the return array only once
         return classNames.uniq();
     },
+    getPreviousSibling: function() {
+        if (!this.owner || !this.owner.submorphs || this.owner.submorphs.length <= 1) {
+            return null;
+        } else {
+            var i = 0,
+                pos;
+            while (this.owner.submorphs[i]) {
+                if (this.owner.submorphs[i] === this) {
+                    pos = i;
+                    continue;
+                }
+            }
+
+            if (pos && this.owner.submorphs[pos - 1]) {
+                return this.owner.submorphs[pos - 1];
+            }
+        }
+    }
 
 });
 
@@ -783,9 +801,9 @@ Object.subclass("lively.morphic.Sizzle",
 				// Thanks to Diego Perini for the nodeName shortcut
 				//   Greater than "@" means alpha characters (specifically not starting with "#" or "?")
 				if (elem.submorphs && elem.submorphs.length > 0){
-					return false;
-				} else {
 					return true;
+				} else {
+					return false;
 				}
 				
 				/*

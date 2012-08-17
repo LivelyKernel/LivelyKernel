@@ -1142,6 +1142,9 @@ Object.subclass("Selector",
 	}) 
 },
 'settings', {
+    
+    tagNameAttr: 'tagName',
+    
     cachedruns: null,
 	dirruns: null,
 	sortOrder: null,

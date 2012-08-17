@@ -68,7 +68,7 @@ lively.morphic.Morph.addMethods(
         return true;
     }, 
     getClassNames: function() {
-        var classNames = this.classNames;
+        var classNames = this.classNames || [];
         
         // add real class types to the classnames too
         var type = this.constructor;

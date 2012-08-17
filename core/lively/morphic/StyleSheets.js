@@ -73,7 +73,7 @@ lively.morphic.Morph.addMethods(
         // add real class types to the classnames too
         var type = this.constructor;
         while (type != Object) {
-            classNames.unshift(type.name+'');
+            classNames.unshift(type.name);
             type = type.superclass;
         }
         

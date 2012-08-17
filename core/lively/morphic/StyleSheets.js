@@ -396,6 +396,14 @@ Object.subclass("Selector",
 		attrHandle: {},
 
 		find: {
+		    
+		    "CLASS": function( className, context, xml ) {
+		          if     ( typeof context.getSubmorphsByClassName !== strundefined && !xml ) {
+			         return context.getSubmorphsByClassName ( className );
+		              } 
+		      },
+		
+		    
 			"ID": this.assertGetIdNotName ?
 				function( id, context, xml ) {
 					if ( typeof context.getSubmorphById !== this.strundefined && !xml ) {

@@ -424,7 +424,7 @@ Object.subclass("Selector",
 						var m = context.getSubmorphById( id );
 						// Check parentNode to catch when Blackberry 4.6 returns
 						// nodes that are no longer in the document #6963
-						return m && m.parentNode ? [m] : [];
+						return m && m.owner ? [m] : [];
 					}
 				} :
 				function( id, context, xml ) {
@@ -467,8 +467,8 @@ Object.subclass("Selector",
 		},
 
 		relative: {
-			">": { dir: "parentNode", first: true },
-			" ": { dir: "parentNode" },
+			">": { dir: "owner", first: true },
+			" ": { dir: "owner" },
 			"+": { dir: "previousSibling", first: true },
 			"~": { dir: "previousSibling" }
 		},
@@ -631,7 +631,7 @@ Object.subclass("Selector",
 							return true;
 						}
 
-						parent = elem.parentNode;
+						parent = elem.owner;
 
 						if ( parent && (parent[ this.expando ] !== doneName || !elem.sizset) ) {
 							for ( node = parent.firstChild; node; node = node.nextSibling ) {
@@ -738,8 +738,8 @@ Object.subclass("Selector",
 			"selected": function( elem ) {
 				// Accessing this property makes selected-by-default
 				// options in Safari work properly
-				if ( elem.parentNode ) {
-					elem.parentNode.selectedIndex;
+				if ( elem.owner ) {
+					elem.owner.selectedIndex;
 				}
 
 				return elem.selected === true;
@@ -956,7 +956,7 @@ Object.subclass("Selector",
 			selector = selector.slice( tokens.shift().length );
 		}
 
-		findContext = ( (match = this.rsibling.exec( tokens[0] )) && !match.index && context.parentNode ) || context;
+		findContext = ( (match = this.rsibling.exec( tokens[0] )) && !match.index && context.owner ) || context;
 
 		// Get the last token, excluding :not
 		notTokens = tokens.pop();
@@ -992,7 +992,7 @@ Object.subclass("Selector",
 		this.dirruns = matcher.dirruns++;
 
 		if ( elements == null ) {
-			elements = this.selectors.find["TAG"]( "*", (this.rsibling.test( selector ) && context.parentNode) || context );
+			elements = this.selectors.find["TAG"]( "*", (this.rsibling.test( selector ) && context.owner) || context );
 		}
 		for ( i = 0; (elem = elements[i]); i++ ) {
 			this.cachedruns = matcher.runs++;
@@ -1276,8 +1276,8 @@ sortOrder: function(a,b){
 		var al, bl,
 			ap = [],
 			bp = [],
-			aup = a.parentNode,
-			bup = b.parentNode,
+			aup = a.owner,
+			bup = b.owner,
 			cur = aup;
 
 		// If the nodes are siblings (or identical) we can do a quick check
@@ -1296,14 +1296,14 @@ sortOrder: function(a,b){
 		// to build up a full list of the parentNodes for comparison
 		while ( cur ) {
 			ap.unshift( cur );
-			cur = cur.parentNode;
+			cur = cur.owner;
 		}
 
 		cur = bup;
 
 		while ( cur ) {
 			bp.unshift( cur );
-			cur = cur.parentNode;
+			cur = cur.owner;
 		}
 
 		al = ap.length;

@@ -54,7 +54,7 @@ lively.morphic.Morph.addMethods(
         var resultMorphs = [],
             tagNameAttr = optTagNameAttribute || 'tagName',
             thisTagName = this[tagNameAttr];
-        
+
         if (tag.trim() === '*') {
             resultMorphs.push(this);
         } else if (thisTagName) {

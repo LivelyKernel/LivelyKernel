@@ -77,15 +77,18 @@ lively.morphic.Morph.addMethods(
     },
     
     getClassNames: function() {
-        var classNames = this.classNames || [];
-        
+        var classNames = [];
+
+        if (this.classNames) {
+            classNames = classNames.concat(this.classNames);
+        }
         // add real class types to the classnames too
         var type = this.constructor;
         while (type != Object) {
             classNames.unshift(type.name);
             type = type.superclass;
         }
-        
+
         // each class has to be in the return array only once
         return classNames.uniq();
     },

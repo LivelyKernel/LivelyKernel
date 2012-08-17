@@ -569,7 +569,7 @@ Object.subclass("Selector",
 					}
 				}
 				return function( elem ) {
-					return pattern.test( elem.className || (typeof elem.getAttribute !== this.strundefined && elem.getAttribute("class")) || "" );
+					return pattern.test( elem.getClassNames().join(' ') || "" );
 				};
 			},
 

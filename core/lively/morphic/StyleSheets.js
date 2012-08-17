@@ -744,7 +744,7 @@ Object.subclass("lively.morphic.Sizzle",
 							/* falls through */
 						case "last":
 							while ( (node = node.getNextSibling()) ) {
-								if ( node.isMorph ) {
+								if (node && node.isMorph ) {
 									return false;
 								}
 							}

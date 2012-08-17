@@ -419,8 +419,8 @@ Object.subclass("Selector",
 
 			"TAG": this.assertTagNameNoComments ?
 				function( tag, context ) {
-					if ( typeof context.getElementsByTagName !== this.strundefined ) {
-						return context.getElementsByTagName( tag );
+					if ( typeof context.getSubmorphsByAttr !== this.strundefined ) {
+						return context.getSubmorphsByAttr('tagName', tag);
 					}
 				} :
 				function( tag, context ) {

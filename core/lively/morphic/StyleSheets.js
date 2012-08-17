@@ -687,7 +687,7 @@ Object.subclass("lively.morphic.Sizzle",
 			"CHILD": function( type, argument, first, last ) {
 
 				if ( type === "nth" ) {
-				    
+				        debugger
 					var doneName = this.done++;
 
 					return function( elem ) {

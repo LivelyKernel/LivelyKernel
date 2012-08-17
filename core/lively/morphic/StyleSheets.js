@@ -264,7 +264,7 @@ Object.subclass("lively.morphic.Sizzle",
                             }
                         } else {
                             elem[ this.expando ] = cachedkey;
-                            if ( matcher( elem, context ) ) {
+                            if ( matcher.call(this, elem, context ) ) {
                                 elem.sizset = true;
                                 return elem;
                             }

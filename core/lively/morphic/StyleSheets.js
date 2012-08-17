@@ -104,7 +104,7 @@ Object.subclass("lively.morphic.Sizzle",
 'init',{
     initialize: function(){
         this.setupSelectors();
-		this.setupRegexs();
+	this.setupRegexs();
     },
 	
 },

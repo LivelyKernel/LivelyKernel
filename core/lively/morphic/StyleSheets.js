@@ -132,6 +132,24 @@ lively.morphic.Morph.addMethods(
                 return this.owner.submorphs[pos - 1];
             }
         }
+    },
+	getNextSibling: function() {
+        if (!this.owner || !this.owner.submorphs || this.owner.submorphs.length <= 1) {
+            return null;
+        } else {
+            var i = 0,
+                pos;
+            while (this.owner.submorphs[i]) {
+                if (this.owner.submorphs[i] === this) {
+                    pos = i;
+                    continue;
+                }
+            }
+
+            if (pos && this.owner.submorphs[pos + 1]) {
+                return this.owner.submorphs[pos + 1];
+            }
+        }
     }
 
 });
@@ -707,8 +725,8 @@ Object.subclass("lively.morphic.Sizzle",
 					switch ( type ) {
 						case "only":
 						case "first":
-							while ( (node = node.previousSibling) ) {
-								if ( node.isMorph ) {
+							while ( (node = node.getPreviousSibling()) ) {
+								if ( node && node.isMorph ) {
 									return false;
 								}
 							}
@@ -721,7 +739,7 @@ Object.subclass("lively.morphic.Sizzle",
 
 							/* falls through */
 						case "last":
-							while ( (node = node.nextSibling) ) {
+							while ( (node = node.getNextSibling()) ) {
 								if ( node.isMorph ) {
 									return false;
 								}

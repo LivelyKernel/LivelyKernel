@@ -178,7 +178,7 @@ Object.subclass("Selector",
         return combinator.first ?
             function( elem, context ) {
                 while ( (elem = elem[ dir ]) ) {
-                    if ( elem.nodeType === 1 ) {
+                    if ( elem.isMorph ) {
                         return matcher( elem, context ) && elem;
                     }
                 }
@@ -188,7 +188,7 @@ Object.subclass("Selector",
                     dirkey = doneName + "." + this.dirruns,
                     cachedkey = dirkey + "." + this.cachedruns;
                 while ( (elem = elem[ dir ]) ) {
-                    if ( elem.nodeType === 1 ) {
+                    if ( elem.isMorph ) {
                         if ( (cache = elem[ this.expando ]) === cachedkey ) {
                             return elem.sizset;
                         } else if ( typeof cache === "string" && cache.indexOf(dirkey) === 0 ) {
@@ -455,7 +455,7 @@ Object.subclass("Selector",
 							i = 0;
 
 						for ( ; (elem = results[i]); i++ ) {
-							if ( elem.nodeType === 1 ) {
+							if ( elem.isMorph ) {
 								tmp.push( elem );
 							}
 						}
@@ -635,7 +635,7 @@ Object.subclass("Selector",
 
 						if ( parent && (parent[ this.expando ] !== doneName || !elem.sizset) ) {
 							for ( node = parent.firstChild; node; node = node.nextSibling ) {
-								if ( node.nodeType === 1 ) {
+								if ( node.isMorph ) {
 									node.sizset = ++count;
 									if ( node === elem ) {
 										break;
@@ -664,7 +664,7 @@ Object.subclass("Selector",
 						case "only":
 						case "first":
 							while ( (node = node.previousSibling) ) {
-								if ( node.nodeType === 1 ) {
+								if ( node.isMorph ) {
 									return false;
 								}
 							}
@@ -678,7 +678,7 @@ Object.subclass("Selector",
 							/* falls through */
 						case "last":
 							while ( (node = node.nextSibling) ) {
-								if ( node.nodeType === 1 ) {
+								if ( node.isMorph ) {
 									return false;
 								}
 							}
@@ -755,6 +755,13 @@ Object.subclass("Selector",
 				//   not comment, processing instructions, or others
 				// Thanks to Diego Perini for the nodeName shortcut
 				//   Greater than "@" means alpha characters (specifically not starting with "#" or "?")
+				if (elem.submorphs && elem.submorphs.length > 0){
+					return true;
+				} else {
+					return false;
+				}
+				
+				/*
 				var nodeType;
 				elem = elem.firstChild;
 				while ( elem ) {
@@ -764,6 +771,7 @@ Object.subclass("Selector",
 					elem = elem.nextSibling;
 				}
 				return true;
+				*/
 			},
 
 			"contains": this.markFunction(function( text ) {
@@ -1037,7 +1045,7 @@ Object.subclass("Selector",
 		// morphs usually don't have something like 'text', so ...
 		return '';
 		
-		
+		/*
 		var node,
 			ret = "",
 			i = 0,
@@ -1068,7 +1076,7 @@ Object.subclass("Selector",
 			}
 		}
 		return ret;
-	
+		*/
 	},
     
 },

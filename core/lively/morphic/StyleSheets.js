@@ -944,7 +944,7 @@ Object.subclass("Selector",
 			type = this.selectors.order[i];
 
 			if ( (match = this.matchExpr[ type ].exec( token )) ) {
-				elements = this.selectors.find[ type ]( (this.matchExpr[1] || "").replace( this.rbackslash, "" ), findContext);
+				elements = this.selectors.find[ type ]( (match[1] || "").replace( this.rbackslash, "" ), findContext);
 
 				if ( elements == null ) {
 					continue;

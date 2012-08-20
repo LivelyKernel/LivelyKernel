@@ -62,7 +62,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
         this.assertEquals('color', rules[0].declarations[0].property,
             'First declaration in rule is not for color');
         var decl = rules[0].declarations[0];
-        this.assertEquals('red', decl .valueText,
+        this.assertEquals('red', decl.valueText,
             'First declaration in rule is not color red but ' + Strings.print(decl.valueText));
 
     },    

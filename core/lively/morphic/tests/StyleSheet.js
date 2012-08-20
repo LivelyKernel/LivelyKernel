@@ -141,7 +141,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         this.morph.addClassName('some-class');
         var selection = this.sizzle.select('.some-class', this.morph);
         this.assertEqualState([this.morph], selection, 'selection should include morph');
-    }
+    },
 });
 TestCase.subclass('lively.morphic.tests.StyleSheet.CSSRuleInterface',
 'testing', {

@@ -59,6 +59,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
         var rules = this.morph.styleSheetRules;
         this.assertEquals(1, rules.length, 'no rule assigned');
         this.assertEquals('.some-class', rules[0].selectorText, 'Selector of first rule is not .blue');
+        this.assertEquals('color', rules[0].declarations[0].property, 'First declaration in rule is not for color');
+        this.assertEquals('red', rules[0].declarations[0].valueText, 'First declaration in rule is not color red');
+        
     },    
     test02FindCSSRulesForMorph: function() {
         return;

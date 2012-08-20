@@ -70,8 +70,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
             ".blue:nth-child(2) {"+
             "    border: 1px solid yellow;    "+
             "}";
+            debugger
         this.yellowRectangle.processStyleSheet(css);
-        debugger
+        
         this.assert(this.blueRectangle1.styleSheetRules, 'Blue Rectangle 1 has no rule attribute');
         var b1css = this.blueRectangle1.styleSheetRules;
         this.assertEquals(1, b1css.length, 'Blue Rectangle 1 has not exactly 1 rule');

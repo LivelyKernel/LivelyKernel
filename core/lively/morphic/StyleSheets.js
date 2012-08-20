@@ -167,22 +167,8 @@ lively.morphic.Morph.addMethods(
     
     processStyleSheet: function(styleSheet) {
         var sizzle = new lively.morphic.Sizzle(),
-            parsedStyleSheet = apps.cssParser.parse(styleSheet);
+            styleSheetRules = apps.cssParser.parse(styleSheet);
 
-        var styleSheetRules = parsedStyleSheet.cssRules.collect(function(rule) {
-            return {
-                selectorText: rule.selectorText(),
-                declarations: rule.declarations/*.collect(function(decl){
-                    return {
-                        valueText: decl.valueText.trim(),
-                        property: decl.property
-                    }
-                })
-                */
-            }; 
-        });
-        
-        
         styleSheetRules.each(function(rule){
             sizzle.select(rule.selectorText, this).each(function(morph){
                 if (!morph.styleSheetRules) {

@@ -181,8 +181,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         var selection = this.sizzle.select('.red .blue', this.world);
         this.assertEqualState([this.blueRectangle1,this.blueRectangle2], selection, 'selection for ".red .blue" should return both blue rectangles');
         
-        selection = this.sizzle.select('[testAttribute="theYellowRectangle"]', this.world);
-        this.assertEqualState([this.yellowRectangle], selection, 'selection for attribute "testAttribute=theYellowRectangle" should return yellow rectangle');
+        selection = this.sizzle.select('.red > .blue', this.world);
+        this.assertEqualState([this.blueRectangle1,this.blueRectangle2], selection, 'selection for ".red > .blue" should return both blue rectangles');
         
         selection = this.sizzle.select('[testAttribute^="the"]', this.world);
         this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 'selection for attribute "testAttribute^=the" should return yellow and red rectangles');

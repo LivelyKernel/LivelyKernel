@@ -149,7 +149,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         selection = this.sizzle.select('*.red', this.redRectangle);
         this.assertEqualState([this.redRectangle], selection, 'selection by combined selector only should include Red Rectangle');
     },
-    testMorphSelectById: function() {
+    testSelectMorphById: function() {
         var selection = this.sizzle.select('#the-red-rectangle', this.world);
         this.assertEqualState([this.redRectangle], selection, 'selection by id should include red rectangle morph');
     },

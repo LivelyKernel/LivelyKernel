@@ -276,6 +276,25 @@ Object.subclass("lively.morphic.Sizzle",
 		
 	},
 },
+'specificity',{
+    getCSSRuleSpecificity: function(selector)
+    {
+        
+        // code taken from Firebug lite
+        var match = selector.match(reSelectorTag);
+        var tagCount = match ? match.length : 0;
+    
+        match = selector.match(reSelectorClass);
+        var classCount = match ? match.length : 0;
+    
+        match = selector.match(reSelectorId);
+        var idCount = match ? match.length : 0;
+    
+        return tagCount + 10*classCount + 100*idCount;
+    }    
+    
+},
+
 
 'selection',
 {

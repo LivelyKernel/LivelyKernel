@@ -91,7 +91,7 @@ lively.morphic.Morph.addMethods(
         return true;
     },
     addClass: function(className) {
-        this.className.push(className);
+        this.classNames.push(className);
     },
  
     

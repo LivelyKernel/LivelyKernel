@@ -37,8 +37,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
     test01FindCSSRulesForMorph: function() {
         this.assert(this.blueRectangle2.styleSheetRules, 'Blue Rectangle has no rule attribute');
         var css = this.blueRectangle2.styleSheetRules;
-        this.assertEquals(2, css.length, 'Blue Rectangle has not exactly 2 rules');
-        
+        this.assertEquals(2, css.length, 'Blue Rectangle has not exactly 3 rules');
+        this.assertEquals('.blue', css[0].selectorText, 'Selector of first rule is not .blue');
+
     }
 });
 

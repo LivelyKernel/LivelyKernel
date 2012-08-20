@@ -61,14 +61,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
     },
     test03MorphsHaveOnlyMatchingCSSRules: function() {
         this.createSomeMorphs(); // sets up a hierarchy of morphs
-        var css = ".blue {"+
+        var css = ".red {"+
             "    border: 1px solid red;"+
             "}"+
-
-            ".red > .blue {"+
-            "    border: 1px solid green;"+
+            ".blue:nth-child(1) {"+
+            "    border: 1px solid black;    "+
             "}"+
-
             ".blue:nth-child(2) {"+
             "    border: 1px solid yellow;    "+
             "}";

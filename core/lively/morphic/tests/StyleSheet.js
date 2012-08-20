@@ -74,7 +74,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
         this.assert(this.blueRectangle2.styleSheetRules, 'Blue Rectangle has no rule attribute');
         var b2css = this.blueRectangle2.styleSheetRules;
         this.assertEquals(1, b2css.length, 'Blue Rectangle has not exactly 1 rule');
-        this.assertEquals('.blue:nth-child(2)', css[0].selectorText, 'Selector of first rule is not .blue');
+        this.assertEquals('.blue:nth-child(2)', css[0].selectorText, 'Selector of first rule in blueRectangle2 is not .blue:nth-child(2)');
     }
 });
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.SizzleMorphicSelection',

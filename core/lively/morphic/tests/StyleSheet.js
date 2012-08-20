@@ -55,10 +55,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
         var css = ".some-class { color: red; }";
         this.morph.addClassName('some-class');
 
-        var sizzle = new lively.morphic.Sizzle()
-        var selection = sizzle.select(this.world, '.some-class');
-        debugger
-        this.assertMatches([this.morph], selection);
         
         this.world.processStyleSheet(css);
 

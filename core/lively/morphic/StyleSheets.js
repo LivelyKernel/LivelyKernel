@@ -869,6 +869,7 @@ Object.subclass("lively.morphic.Sizzle",
 	
     uberselect: function( selector, context, results, seed) {
 	// Remove excessive whitespace
+	debugger
 	selector = selector.replace( this.rtrim, "$1" );
 	var elements, matcher, i, len, elem, token,
 		type, findContext, notTokens,

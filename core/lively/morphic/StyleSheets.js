@@ -169,7 +169,7 @@ lively.morphic.Morph.addMethods(
         var parser = new CSSParser(),
             parsedStyleSheet = parser.parse(styleSheet, false, true);
         this.styleSheetRules = parsedStyleSheet.cssRules.collect(function(rule) {
-            return {selectorTexxt: rule.selectorText()}; });
+            return {selectorText: rule.selectorText()}; });
     }
     
 

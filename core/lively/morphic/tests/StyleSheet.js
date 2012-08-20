@@ -16,17 +16,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
 
         var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
         redRectangle.applyStyle({fill: Color.red});
-        redRectangle.addClass('red');
+        redRectangle.addClassName('red');
         yellowRectangle.addMorph(redRectangle);
 
         var blueRectangle1 = lively.morphic.Morph.makeRectangle(10, 10, 150, 100);
         blueRectangle1.applyStyle({fill: Color.blue});
-        blueRectangle1.addClass('blue');
+        blueRectangle1.addClassName('blue');
         redRectangle.addMorph(blueRectangle1);
 
         var blueRectangle2 = lively.morphic.Morph.makeRectangle(10, 160, 150, 80);
         blueRectangle2.applyStyle({fill: Color.blue});
-        blueRectangle2.addClass('blue');
+        blueRectangle2.addClassName('blue');
         redRectangle.addMorph(blueRectangle2);
         
         this.yellowRectangle = yellowRectangle;

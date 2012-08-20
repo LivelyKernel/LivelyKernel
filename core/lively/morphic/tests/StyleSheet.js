@@ -66,22 +66,22 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
         var decl = rules[0].declarations[0];
         this.assertEquals('red', decl.valueText,
             'First declaration in rule is not color red but ' + Strings.print(decl.valueText));
-    },    
-    test02FindCSSRulesForMorph: function() {
-        return;
-        this.assert(this.blueRectangle2.styleSheetRules, 'Blue Rectangle has no rule attribute');
-        var css = this.blueRectangle2.styleSheetRules;
-        this.assertEquals(2, css.length, 'Blue Rectangle has not exactly 3 rules');
-        this.assertEquals('.blue', css[0].selectorText, 'Selector of first rule is not .blue');
-
     },
-    test03FindCSSRulesForMorphWithMorphItselfAsSizzleContext: function() {
+    test02FindCSSRulesForMorphWithMorphItselfAsSizzleContext: function() {
         var css = ".some-class { color: red; }";
         this.morph.addClassName('some-class');
         this.morph.processStyleSheet(css);
         var rules = this.morph.styleSheetRules;
         this.assertEquals('.some-class', rules[0].selectorText, 'Selector of first rule is not .blue');
-    },});
+    },
+    xtest02FindCSSRulesForMorph: function() {
+        return;
+        this.assert(this.blueRectangle2.styleSheetRules, 'Blue Rectangle has no rule attribute');
+        var css = this.blueRectangle2.styleSheetRules;
+        this.assertEquals(2, css.length, 'Blue Rectangle has not exactly 3 rules');
+        this.assertEquals('.blue', css[0].selectorText, 'Selector of first rule is not .blue');
+    }
+});
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.SizzleMorphicSelection',
 'running', {
     setUp: function($super) {

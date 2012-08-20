@@ -4,7 +4,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
 'testing', {
     
     test01FindCSSRulesForMorph: function() {
-        this.assert(false);
+        this.assert(false, 'something went wrong');
     }
 });
 

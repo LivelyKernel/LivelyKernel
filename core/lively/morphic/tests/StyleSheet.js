@@ -105,7 +105,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
 TestCase.subclass('lively.morphic.tests.StyleSheet.CSSRuleInterface',
 'testing', {
     test01RuleOfCSSClassDef: function() {
-        
+        var css = ".some-class { color: red; }";
     },
 });
 

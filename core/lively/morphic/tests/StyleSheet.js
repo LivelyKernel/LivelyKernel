@@ -51,7 +51,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
 },
 'testing', {
     test01ProcessStyleSheet: function() {
-        this.openMorphsInRealWorld();
+        //this.openMorphsInRealWorld();
         var css = ".some-class { color: red; }";
         this.morph.addClassName('some-class');
         this.world.processStyleSheet(css);

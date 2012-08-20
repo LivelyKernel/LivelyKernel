@@ -193,7 +193,7 @@ lively.morphic.Morph.addMethods(
             }, this);
         }, this);
         
-        //this.styleSheetRules = styleSheetRules;
+        if (!this.styleSheetRules) {this.styleSheetRules = [];}
     }
     
 

@@ -1098,7 +1098,7 @@ Object.subclass("lively.morphic.Sizzle",
             function( elem, context ) {
                 while ( (elem = elem[ dir ]) ) {
                     if ( elem.isMorph ) {
-                        return matcher( elem, context ) && elem;
+                        return matcher.call(this, elem, context ) && elem;
                     }
                 }
             } :

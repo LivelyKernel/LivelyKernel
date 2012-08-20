@@ -167,22 +167,25 @@ lively.morphic.Morph.addMethods(
     
     processStyleSheet: function(styleSheet) {
         var parser = new CSSParser(),
+            sizzle = new lively.morphic.Sizzle(),
             parsedStyleSheet = parser.parse(styleSheet, false, true);
 
-        this.styleSheetRules = parsedStyleSheet.cssRules.collect(function(rule) {
+        var styleSheetRules = parsedStyleSheet.cssRules.collect(function(rule) {
             return {
                 selectorText: rule.selectorText(),
                 declarations: rule.declarations/*.collect(function(decl){
-                    
                     return {
                         valueText: decl.valueText.trim(),
                         property: decl.property
                     }
-                    
                 })
                 */
             }; 
         });
+        
+        styleSheetRules.each(function(rule){
+            sizzle.select(rule.selectorText())
+        }, this);
     }
     
 

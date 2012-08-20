@@ -51,7 +51,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
 },
 'testing', {
     test01ProcessStyleSheet: function() {
-        
+        var css = ".some-class { color: red }";
+        this.morph.processStyleSheet(css);
     },    
     test02FindCSSRulesForMorph: function() {
         this.assert(this.blueRectangle2.styleSheetRules, 'Blue Rectangle has no rule attribute');

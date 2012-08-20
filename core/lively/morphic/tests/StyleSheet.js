@@ -104,7 +104,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
 });
 TestCase.subclass('lively.morphic.tests.StyleSheet.CSSRuleInterface',
 'testing', {
-    test01RuleOfCSSClassDef: function() {},
+    test01RuleOfCSSClassDef: function() {
+        
+    },
 });
 
 }) // end of module

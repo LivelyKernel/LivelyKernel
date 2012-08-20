@@ -174,7 +174,8 @@ lively.morphic.Morph.addMethods(
                 selectorText: rule.selectorText(),
                 declarations: rule.declarations.collect(function(decl){
                     return {
-                        valueText: decl.valueText.trim()
+                        valueText: decl.valueText.trim(),
+                        property: decl.property
                     }
                 })
             }; 

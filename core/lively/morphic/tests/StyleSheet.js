@@ -4,6 +4,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
 'running', {
     setUp: function($super) {
         $super();
+        this.createSomeMorphs();
     }
 },
 'testing', {

@@ -166,9 +166,8 @@ lively.morphic.Morph.addMethods(
     },
     
     processStyleSheet: function(styleSheet) {
-        var parser = new CSSParser(),
-            sizzle = new lively.morphic.Sizzle(),
-            parsedStyleSheet = parser.parse(styleSheet, false, true);
+        var sizzle = new lively.morphic.Sizzle(),
+            parsedStyleSheet = apps.cssParser.parse(styleSheet);
 
         var styleSheetRules = parsedStyleSheet.cssRules.collect(function(rule) {
             return {

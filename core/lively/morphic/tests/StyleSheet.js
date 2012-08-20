@@ -34,8 +34,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
     },
     
     addStyleSheet: function() {
-        
-        
+        var css = ".blue {"+
+            "    border: 1px solid red;"+
+            "}"+
+
+            ".red > .blue {"+
+            "    border: 1px solid green;"+
+            "}"+
+
+            ".blue:nth-child(2) {"+
+            "    border: 1px solid yellow;    "+
+            "}";
+        this.yellowRectangle.setStyleSheet(css);
     }
     
 },

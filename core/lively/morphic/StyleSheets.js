@@ -172,7 +172,7 @@ lively.morphic.Morph.addMethods(
         this.styleSheetRules = parsedStyleSheet.cssRules.collect(function(rule) {
             return {
                 selectorText: rule.selectorText(),
-                declarations: rule.declaration.collect(function(decl){
+                declarations: rule.declarations.collect(function(decl){
                     return {
                         valueText: decl.valueText.trim()
                     }

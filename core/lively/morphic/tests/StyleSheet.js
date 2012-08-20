@@ -48,10 +48,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
         this.assertEquals('.blue', css[0].selectorText, 'Selector of first rule is not .blue');
 
     },
-    newMethod: function() {
-        // enter comment here
-    }
-
 });
 
 }) // end of module

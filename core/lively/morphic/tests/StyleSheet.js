@@ -149,12 +149,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         var selection = this.sizzle.select('#red-rectangle', this.world);
         this.assertEqualState([this.redRectangle], selection, 'selection by id should include red rectangle morph');
     },
-    newMethod: function() {
-        // enter comment here
-    }
-
-
-});
+    testMorphSelectByClassName: function() {
+        var selection = this.sizzle.select('.blue', this.world);
+        this.assertEqualState([this.redRectangle], selection, 'selection by id should include red rectangle morph');
+    }});
 TestCase.subclass('lively.morphic.tests.StyleSheet.CSSRuleInterface',
 'testing', {
     test01RuleOfCSSClassDef: function() {

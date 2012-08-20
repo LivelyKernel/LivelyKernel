@@ -1106,6 +1106,12 @@ Object.subclass("lively.morphic.Sizzle",
                 var cache,
                     dirkey = doneName + "." + this.dirruns,
                     cachedkey = dirkey + "." + this.cachedruns;
+                
+                if  ( matcher.call(this, elem, context ) ) {
+                                elem.sizset = true;
+                                return elem;
+                }
+                
                 while ( (elem = elem[ dir ]) ) {
                     if ( elem.isMorph ) {
                         if ( (cache = elem[ this.expando ]) === cachedkey ) {

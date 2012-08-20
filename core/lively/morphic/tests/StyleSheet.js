@@ -52,16 +52,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
 'testing', {
     test01ProcessStyleSheet: function() {
         this.openMorphsInRealWorld();
-        var css = ".some-class { color: red; }"+
-            ".some-other-class { color: blue; }";
+        var css = ".some-class { color: red; }";
         this.morph.addClassName('some-class');
         this.morph.processStyleSheet(css);
 
         var rules = this.morph.styleSheetRules;
         this.assert(( 0 < rules.length), 'no rule assigned');
-        rules.each(function(rule){
-            this.assert((rule.selectorText != '.some-other-class'), 'Morph should not have the some-other-class rule');
-        }, this);
+
         this.assertEquals('.some-class', rules[0].selectorText, 'Selector of first rule is not .blue');
         this.assertEquals('color', rules[0].declarations[0].property,
             'First declaration in rule is not for color');

@@ -50,14 +50,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
     
 },
 'testing', {
-    
-    test01FindCSSRulesForMorph: function() {
+    test01ProcessStyleSheet: function() {
+        
+    },    
+    test02FindCSSRulesForMorph: function() {
         this.assert(this.blueRectangle2.styleSheetRules, 'Blue Rectangle has no rule attribute');
         var css = this.blueRectangle2.styleSheetRules;
         this.assertEquals(2, css.length, 'Blue Rectangle has not exactly 3 rules');
         this.assertEquals('.blue', css[0].selectorText, 'Selector of first rule is not .blue');
 
     },
+
 });
 
 }) // end of module

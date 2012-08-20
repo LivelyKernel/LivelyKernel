@@ -66,7 +66,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
         var decl = rules[0].declarations[0];
         this.assertEquals('red', decl.valueText,
             'First declaration in rule is not color red but ' + Strings.print(decl.valueText));
-
     },    
     test02FindCSSRulesForMorph: function() {
         return;

@@ -188,6 +188,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         selection = this.sizzle.select('[testAttribute$="Rectangle"]', this.world);
         this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 'selection for attribute "testAttribute$=Rectangle" should return yellow and red rectangles');
     },
+    
+    testDoNotSelectMorphByClass: function() {
+        var selection = this.sizzle.select('not(.blue)', this.yellowRectangle);
+        this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 'selection by not-class should return yellow and red rectangles');
+    },
+    
     testSelectMorphByOwnership: function() {
         var selection = this.sizzle.select('.red .blue', this.world);
         this.assertEqualState([this.blueRectangle1,this.blueRectangle2], selection, 'selection for ".red .blue" should return both blue rectangles');

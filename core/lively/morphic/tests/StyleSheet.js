@@ -47,7 +47,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
         this.assertEquals(2, css.length, 'Blue Rectangle has not exactly 3 rules');
         this.assertEquals('.blue', css[0].selectorText, 'Selector of first rule is not .blue');
 
-    }
+    },
 });
 
 }) // end of module

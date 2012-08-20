@@ -146,7 +146,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         this.assertEqualState([this.morph], selection, 'selection should include morph');
     },
     testMorphSelectById: function() {
-        this
+        var selection = this.sizzle.select('#red-rectangle', this.world);
+        this.assertEqualState([this.redRectangle], selection, 'selection should include morph');
     }
 
 });

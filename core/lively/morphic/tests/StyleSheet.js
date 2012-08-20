@@ -89,7 +89,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         var sizzle = new lively.morphic.Sizzle();
         var selection = sizzle.select('.some-class', this.world);
         this.assertMatches([this.morph], selection, 'selection should include morph');
-    }
+    },
 });
 
 }) // end of module

@@ -151,8 +151,11 @@ Object.subclass('RealTrait',
         // We also store the trait name and options in the object
         // itself for serialization
         var myName = this.name,
-            traitsList = obj[this.objectTraitConfig] || [],
-            objTraitOptions = traitsList.detect(function(ea) { return ea.traitName === myName });
+            traitsList = obj[this.objectTraitConfig] || [];
+        // FIXME
+        // obj[this.objectTraitConfig] on old objects is not a list, ignore it
+        if (!Object.isArray(traitsList)) traitsList = [];
+        var objTraitOptions = traitsList.detect(function(ea) { return ea.traitName === myName });
         if (objTraitOptions) {
             objTraitOptions.options = options;
         } else {

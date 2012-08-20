@@ -811,7 +811,7 @@ Object.subclass("lively.morphic.Sizzle",
     },
     
     select: function( selector, context, results, seed ) {
-	debugger
+	
 	results = results || [];
 	context = context || $world;
 

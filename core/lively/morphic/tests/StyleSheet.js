@@ -168,6 +168,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         
         selection = this.sizzle.select(':only-child', this.yellowRectangle);
         this.assertEqualState([this.redRectangle], selection, 'selection by only-child relation should include only red rectangle');
+        
+        selection = this.sizzle.select(':empty', this.yellowRectangle);
+        this.assertEqualState([this.blueRectangle1, this.blueRectangle2], selection, 'selection by only-child relation should include both blue rectangles');
     },
     testSelectMorphByAttributes: function() {
         var selection = this.sizzle.select('[testAttribute]', this.world);

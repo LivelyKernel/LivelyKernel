@@ -82,9 +82,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.SizzleMorphicSelection',
 'testing', {
     testWorldFindsMorphByClassName: function() {
-        this.morph.addClassName('some-class')
+        this.morph.addClassName('some-class');
+        this.world.addMorph(this.morph);
         var sizzle = new lively.morphic.Sizzle();
-        debugger
         var selection = sizzle.select('.some-class', this.world);
         this.assertMatches([this.morph], selection, 'selection should include morph');
     }

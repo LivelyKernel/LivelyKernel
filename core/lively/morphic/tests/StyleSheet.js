@@ -60,7 +60,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
         this.assertEquals('.some-class', rules[0].selectorText, 'Selector of first rule is not .blue');
     },
     test03MorphsHaveOnlyMatchingCSSRules: function() {
-        thiss.createSomeMorphs(); // sets up a hierarchy of morphs
+        this.createSomeMorphs(); // sets up a hierarchy of morphs
         var css = ".blue {"+
             "    border: 1px solid red;"+
             "}"+

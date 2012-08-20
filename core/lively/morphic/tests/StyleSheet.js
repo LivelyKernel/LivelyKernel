@@ -163,7 +163,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         
         selection = this.sizzle.select(':nth-child(2)', this.redRectangle);
         this.assertEqualState([this.blueRectangle2], selection, 'selection by sibling relation should include only blue rectangle 2');
-    },});
+    },
+    newMethod: function() {
+        // enter comment here
+    }
+});
 TestCase.subclass('lively.morphic.tests.StyleSheet.CSSRuleInterface',
 'testing', {
     test01RuleOfCSSClassDef: function() {

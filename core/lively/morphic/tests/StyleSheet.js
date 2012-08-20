@@ -7,21 +7,26 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
         this.createSomeMorphs();
     },
     createSomeMorphs: function() {
-        yellowRectangle = lively.morphic.Morph.makeRectangle(0,0, 300, 300);
-yellowRectangle.applyStyle({fill: Color.yellow});
-yellowRectangle.openInWorld();
+        var yellowRectangle = lively.morphic.Morph.makeRectangle(0,0, 300, 300);
+        yellowRectangle.applyStyle({fill: Color.yellow});
+        yellowRectangle.openInWorld();
 
-redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
-redRectangle.applyStyle({fill: Color.red});
-yellowRectangle.addMorph(redRectangle);
+        var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
+        redRectangle.applyStyle({fill: Color.red});
+        yellowRectangle.addMorph(redRectangle);
 
-blueRectangle1 = lively.morphic.Morph.makeRectangle(10, 10, 150, 100);
-blueRectangle1 .applyStyle({fill: Color.blue});
-redRectangle.addMorph(blueRectangle1);
+        var blueRectangle1 = lively.morphic.Morph.makeRectangle(10, 10, 150, 100);
+        blueRectangle1 .applyStyle({fill: Color.blue});
+        redRectangle.addMorph(blueRectangle1);
 
-blueRectangle2 = lively.morphic.Morph.makeRectangle(10, 160, 150, 80);
-blueRectangle2 .applyStyle({fill: Color.blue});
-redRectangle.addMorph(blueRectangle2);
+        var blueRectangle2 = lively.morphic.Morph.makeRectangle(10, 160, 150, 80);
+        blueRectangle2 .applyStyle({fill: Color.blue});
+        redRectangle.addMorph(blueRectangle2);
+        
+        this.yellowRectangle = yellowRectangle;
+        this.redRectangle = redRectangle;
+        this.blueRectangle1 = blueRectangle1;
+        this.blueRectangle2 = blueRectangle2;
     },
 },
 'testing', {

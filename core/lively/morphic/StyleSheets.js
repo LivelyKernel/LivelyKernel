@@ -89,7 +89,11 @@ lively.morphic.Morph.addMethods(
             }
         }
         return true;
-    }, 
+    },
+    newMethod: function() {
+        // enter comment here
+    },
+ 
     
     getAttribute: function(attr) {
         return this[attr];    

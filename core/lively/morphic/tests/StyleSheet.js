@@ -1,4 +1,4 @@
-module('lively.morphic.tests.StyleSheet').requires('lively.morphic.tests.Morphic').toRun(function() {
+module('lively.morphic.tests.StyleSheet').requires('lively.morphic.tests.Helper').toRun(function() {
 
 
 

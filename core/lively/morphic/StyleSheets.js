@@ -279,11 +279,11 @@ Object.subclass("lively.morphic.Sizzle",
 'specificity',{
     getCSSRuleSpecificity: function(selector)
     {
-        
         /* 
         Code taken from Firebug Lite 1.4.0
         Copyright (c) 2007, Parakey Inc.
          */
+
         var match = selector.match(reSelectorTag);
         var tagCount = match ? match.length : 0;
     

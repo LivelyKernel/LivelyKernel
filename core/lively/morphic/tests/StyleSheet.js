@@ -58,7 +58,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
         this.morph.processStyleSheet(css);
 
         var rules = this.morph.styleSheetRules;
-        this.assertEquals(1, rules.length, 'no rule assigned');
+        this.assert(( 0 < rules.length), 'no rule assigned');
         rules.each(function(rule){
             this.assert((rule.selectorText != '.some-other-class'), 'Morph should not have the some-other-class rule');
         }, this);

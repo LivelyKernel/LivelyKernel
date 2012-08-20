@@ -80,7 +80,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
 
 });
 Object.subclass('lively.morphic.tests.StyleSheet.SizzleMorphic',
-'default category', {
+'testing', {
     m1: function() {},
 });
 

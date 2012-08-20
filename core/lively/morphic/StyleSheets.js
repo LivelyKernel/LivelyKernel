@@ -283,6 +283,10 @@ Object.subclass("lively.morphic.Sizzle",
         Code taken from Firebug Lite 1.4.0
         Copyright (c) 2007, Parakey Inc.
          */
+         
+        var reSelectorTag = /(^|\s)(?:\w+)/g,
+            reSelectorClass = /\.[\w\d_-]+/g,
+            reSelectorId = /#[\w\d_-]+/g;
 
         var match = selector.match(reSelectorTag);
         var tagCount = match ? match.length : 0;

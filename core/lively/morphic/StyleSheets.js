@@ -183,9 +183,11 @@ lively.morphic.Morph.addMethods(
             }; 
         });
         
+        /*
         styleSheetRules.each(function(rule){
             sizzle.select(rule.selectorText())
         }, this);
+        */
     }
     
 

@@ -99,6 +99,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         $super();
         this.sizzle = new lively.morphic.Sizzle();
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 },
 'testing', {
     testWorldFindsMorphByClassName: function() {

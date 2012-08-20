@@ -153,10 +153,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         var selection = this.sizzle.select('.blue', this.world);
         this.assertEqualState([this.blueRectangle1, this.blueRectangle2], selection, 'selection by class should include both blue rectangle morphs');
     },
-    newMethod: function() {
-        // enter comment here
-    }
-});
+    testMorphSelectBySiblingRelation: function() {
+        var selection = this.sizzle.select('.blue:nth-child(1)', this.world);
+        this.assertEqualState([this.blueRectangle1], selection, 'selection by class and sibling relation should include only blue rectangle 1');
+    }});
 TestCase.subclass('lively.morphic.tests.StyleSheet.CSSRuleInterface',
 'testing', {
     test01RuleOfCSSClassDef: function() {

@@ -90,8 +90,8 @@ lively.morphic.Morph.addMethods(
         }
         return true;
     },
-    newMethod: function() {
-        // enter comment here
+    addClass: function(className) {
+        this.className.push(className);
     },
  
     

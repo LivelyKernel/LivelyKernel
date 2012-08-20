@@ -188,6 +188,7 @@ lively.morphic.Morph.addMethods(
             sizzle.select(rule.selectorText())
         }, this);
         */
+        this.styleSheetRules = styleSheetRules;
     }
     
 

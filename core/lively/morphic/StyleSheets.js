@@ -90,7 +90,7 @@ lively.morphic.Morph.addMethods(
         }
         return true;
     },
-    addClass: function(className) {
+    addClassName: function(className) {
         this.classNames.push(className);
         this.classNames = this.classNames.uniq();
     },

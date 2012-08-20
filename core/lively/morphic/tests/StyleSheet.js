@@ -79,5 +79,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
     },
 
 });
+Object.subclass('MyClass',
+'default category', {
+    m1: function() {},
+});
 
 }) // end of module

@@ -7,6 +7,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
         this.createSomeMorphs();
     },
     createSomeMorphs: function() {
+        // this method creates 4 morphs: yellowRectange is the ouyter parent
+        // redRectangle its embedded submorph, blueRectangle1, blueRectangle1
+        // are its submorphs
         var yellowRectangle = lively.morphic.Morph.makeRectangle(0,0, 300, 300);
         yellowRectangle.applyStyle({fill: Color.yellow});
         yellowRectangle.openInWorld();

@@ -75,12 +75,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
         this.assertEquals('.blue', css[0].selectorText, 'Selector of first rule is not .blue');
 
     },
-    newMethod: function() {
-        // enter comment here
-    }
-
-
-});
+    test03FindCSSRulesForMorphWithMorphItselfAsSizzleContext: function() {
+        var css = ".some-class { color: red; }";
+        this.morph.addClassName('some-class');
+        this.morph.processStyleSheet(css);
+        var rules = this.morph.styleSheetRules;
+        this.assertEquals('.some-class', rules[0].selectorText, 'Selector of first rule is not .blue');
+    },});
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.SizzleMorphicSelection',
 'running', {
     setUp: function($super) {

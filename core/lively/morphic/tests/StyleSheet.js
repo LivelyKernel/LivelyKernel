@@ -90,10 +90,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         var selection = sizzle.select('.some-class', this.world);
         this.assertMatches([this.morph], selection, 'selection should include morph');
     },
-    newMethod: function() {
-        // enter comment here
+    testMorphSelectsItself: function() {
+        this.morph.addClassName('some-class');
+        var sizzle = new lively.morphic.Sizzle();
+        var selection = sizzle.select('.some-class', this.morph);
+        this.assertEqualState([this.morph], selection, 'selection should include morph');
     }
-
 });
 
 }) // end of module

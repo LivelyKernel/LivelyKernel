@@ -32,6 +32,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
         this.blueRectangle2 = blueRectangle2;
         
     },
+    
+    addStyleSheet: function() {
+        
+        
+    }
+    
 },
 'testing', {
     

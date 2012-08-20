@@ -82,6 +82,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
 
 });
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.SizzleMorphicSelection',
+'running', {
+    setUp: function($super) {
+        $super();
+        this.sizzle = new lively.morphic.Sizzle();
+    }
+},
 'testing', {
     testWorldFindsMorphByClassName: function() {
         this.morph.addClassName('some-class');

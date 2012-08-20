@@ -164,10 +164,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         selection = this.sizzle.select(':nth-child(2)', this.redRectangle);
         this.assertEqualState([this.blueRectangle2], selection, 'selection by sibling relation should include only blue rectangle 2');
     },
-    newMethod: function() {
-        // enter comment here
-    }
-});
+    testMorphSelectByAttributes: function() {
+        var selection = this.sizzle.select('[testAttribute]', this.world);
+        this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 'selection for attribute "testAttribute" should return yellow rectangle and red rectangle');
+        
+        selection = this.sizzle.select('[testAttribute="theYellowRectangle]', this.world);
+        this.assertEqualState([this.yellowRectangle], selection, 'selection for attribute "testAttribute=theYellowRectangle" should return yellow rectangle');
+    }});
 TestCase.subclass('lively.morphic.tests.StyleSheet.CSSRuleInterface',
 'testing', {
     test01RuleOfCSSClassDef: function() {

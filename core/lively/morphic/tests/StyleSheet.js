@@ -79,7 +79,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
     },
 
 });
-Object.subclass('lively.morphic.tests.StyleSheet.SizzleMorphicSelection',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.SizzleMorphicSelection',
 'testing', {
     testWorldFindsMorphByClassName: function() {
         var sizzle = new lively.morphic.Sizzle()

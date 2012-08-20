@@ -281,7 +281,7 @@ Object.subclass("lively.morphic.Sizzle",
     {
         
         /* 
-        Code taken from the Firebug Lite project
+        Code taken from Firebug Lite 1.4.0
         Copyright (c) 2007, Parakey Inc.
          */
         var match = selector.match(reSelectorTag);

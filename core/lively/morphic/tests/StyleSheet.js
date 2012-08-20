@@ -35,7 +35,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
 'testing', {
     
     test01FindCSSRulesForMorph: function() {
-        this.assert(false, 'something went wrong');
+        this.assert(!!this.yellowRectangle, 'something went wrong');
     }
 });
 

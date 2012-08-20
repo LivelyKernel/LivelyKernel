@@ -102,9 +102,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         this.assertEqualState([this.morph], selection, 'selection should include morph');
     }
 });
-Object.subclass('MyClass',
-'default category', {
-    m1: function() {},
+TestCase.subclass('lively.morphic.tests.StyleSheet.CSSRuleInterface',
+'testing', {
+    test01RuleOfCSSClassDef: function() {},
 });
 
 }) // end of module

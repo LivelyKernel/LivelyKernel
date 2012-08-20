@@ -692,9 +692,9 @@ Object.subclass("lively.morphic.Sizzle",
 				// Thanks to Diego Perini for the nodeName shortcut
 				//   Greater than "@" means alpha characters (specifically not starting with "#" or "?")
 				if (elem.submorphs && elem.submorphs.length > 0){
-					return true;
-				} else {
 					return false;
+				} else {
+					return true;
 				}
 				
 				/*

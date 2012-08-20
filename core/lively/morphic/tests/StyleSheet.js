@@ -4,7 +4,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.CSSFor
 'running', {
     setUp: function($super) {
         $super();
-        // this.createSomeMorphs();
+        this.createSomeMorphs();
     },
     createSomeMorphs: function() {
         // this method creates 4 morphs: yellowRectange is the ouyter parent

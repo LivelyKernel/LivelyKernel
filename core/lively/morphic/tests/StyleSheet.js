@@ -106,6 +106,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         // are its submorphs
         var yellowRectangle = lively.morphic.Morph.makeRectangle(0,0, 300, 300);
         yellowRectangle.applyStyle({fill: Color.yellow});
+        yellowRectangle.tagName = 'YellowRectangle';
         yellowRectangle.openInWorld();
 
         var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);

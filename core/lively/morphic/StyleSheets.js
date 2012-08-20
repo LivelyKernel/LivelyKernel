@@ -185,7 +185,7 @@ lively.morphic.Morph.addMethods(
         
         
         styleSheetRules.each(function(rule){
-            sizzle.select(this, rule.selectorText).each(function(morph){
+            sizzle.select(rule.selectorText, this).each(function(morph){
                 if (!morph.styleSheetRules) {
                     morph.styleSheetRules = [];
                 }

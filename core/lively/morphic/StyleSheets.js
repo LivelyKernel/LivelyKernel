@@ -1609,8 +1609,7 @@ function MorphGroup(optMorphs){
                 console.log(this.morphs);
                 return this.morphs[name]; 
             },
-        },
-        Object.getPrototypeOf(this.morphs));
+        },[]);
 };
 
 

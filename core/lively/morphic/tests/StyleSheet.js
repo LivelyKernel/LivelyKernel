@@ -155,6 +155,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         var selection = this.sizzle.select(':not(.blue)', this.yellowRectangle);
         this.assertEqualState([this.yellowRectangle, this.redRectangle], selection,
             'selection by not-class should return yellow and red rectangles');
+            
+            
+        this.assertSizzleSelect([this.yellowRectangle, this.redRectangle],
+            ':not(.blue)',
+            this.yellowRectangle,
+            'selection by not-class should return yellow and red rectangles');
     },
     
     testSelectMorphByOwnership: function() {

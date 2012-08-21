@@ -55,13 +55,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
             this.redRectangle.getSubmorphsByClassName('red'),
             'selection by class only should include Red Rectangle'
         );
-
-        this.assertSizzleSelect(
-            [this.redRectangle],
-            '*.red',
-            this.redRectangle,
-            'selection by combined selector only should include Red Rectangle'
+        
+        this.assertEqualState(this.redRectangle, 
+            this.redRectangle.getSubmorphById('the-red-rectangle'),
+            'selection by id only should include Red Rectangle'
         );
+
 
     },
 

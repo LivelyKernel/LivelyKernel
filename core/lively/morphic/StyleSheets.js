@@ -2,7 +2,26 @@ module('lively.morphic.StyleSheets').requires('apps.cssParser').toRun(function()
 
 lively.morphic.Morph.addMethods(
 'Style sheet interpretation', {
-  
+    processStyleSheet: function(styleSheet) {
+
+        var sizzle = new lively.morphic.Sizzle(),
+            styleSheetRules = apps.cssParser.parse(styleSheet);
+
+        styleSheetRules.each(function(rule){
+            
+            if (rule.type === 1) {
+                rule.originMorph = this;
+                sizzle.select(rule.selectorText(), this).each(function(morph){
+                    if (!morph.styleSheetRules) {
+                        morph.styleSheetRules = [];
+                    }
+                    morph.styleSheetRules.push(rule);
+                }, this);
+            }
+        }, this);
+
+        if (!this.styleSheetRules) {this.styleSheetRules = [];}
+    },  
 },
 'Morph selection methods', {
     getSubmorphById: function(id) {
@@ -171,26 +190,7 @@ lively.morphic.Morph.addMethods(
         }
     },
     
-    processStyleSheet: function(styleSheet) {
 
-        var sizzle = new lively.morphic.Sizzle(),
-            styleSheetRules = apps.cssParser.parse(styleSheet);
-
-        styleSheetRules.each(function(rule){
-            
-            if (rule.type === 1) {
-                rule.originMorph = this;
-                sizzle.select(rule.selectorText(), this).each(function(morph){
-                    if (!morph.styleSheetRules) {
-                        morph.styleSheetRules = [];
-                    }
-                    morph.styleSheetRules.push(rule);
-                }, this);
-            }
-        }, this);
-
-        if (!this.styleSheetRules) {this.styleSheetRules = [];}
-    },
 },
 'specificity check', {
     isRuleMoreSpecific: function(a, b) {

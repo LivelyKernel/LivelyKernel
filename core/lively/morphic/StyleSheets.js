@@ -185,6 +185,7 @@ lively.morphic.Morph.addMethods(
     isRuleMoreSpecific: function(a, b) {
         // is rule a more specific than rule b?
         if (a.originMorph !== b.originMorph) {
+            // child's css is more specific than parent's
             return b.originMorph.isAncestorOf(a.originMorph);
         } else {
             /* 

@@ -82,9 +82,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
     },
     testSelectMorphByTagName: function() {
 
-        this.assertEqualState([this.blueRectangle1, this.blueRectangle2], 
-            this.world.getSubmorphsByClassName('blue'),
-            'selection by class should include both blue rectangle morphs');
+        this.assertEqualState([this.blueRectangle2], 
+            this.world.getSubmorphsByTagName('blueRectangleTag'),
+            'selection by tag should include the 2nd blue rectangle morph');
 
     },
 

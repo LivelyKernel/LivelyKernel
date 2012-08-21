@@ -54,13 +54,13 @@ lively.morphic.Morph.addMethods(
     getSubmorphsByTagName: function(tag, optTagNameAttribute) {
         var resultMorphs = [],
             tagNameAttr = optTagNameAttribute || 'tagName',
-            thisTagName = this[tagNameAttr],
             selectAll = (tag.trim() === '*');
 
 
 
         this.withAllSubmorphsDo(function(morph){
-                if (selectAll ) {
+                var thisTagName = this[tagNameAttr];
+                if (selectAll) {
                     resultMorphs.push(morph);
                 } else if (thisTagName) {
                     thisTagName +='';

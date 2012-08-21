@@ -23,11 +23,11 @@ lively.morphic.Morph.addMethods(
         if (!this.styleSheetRules) {this.styleSheetRules = [];}
     },
     getStyleDeclarations: function(){
-        var result = [];
+        var styles = [];
         
         // TODO: insert code for style aggregation here
         
-        return result;
+        return styles;
     }
 },
 'Morph selection methods', {

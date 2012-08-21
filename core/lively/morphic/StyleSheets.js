@@ -48,7 +48,7 @@ lively.morphic.Morph.addMethods(
         
         // TODO: insert code for style aggregation here
         
-        return styles;
+        return aggregatedStyle;
     }
 },
 'Morph selection methods', {

@@ -18,6 +18,10 @@ lively.morphic.Morph.addMethods(
     },
     getSubmorphsByClassName: function(classNames) {
         var resultMorphs = []
+        this.withAllSubmorphsDo(function(morph){
+            
+        })
+
         if (this.isOfClass(classNames)){
             resultMorphs.push(this);
         }

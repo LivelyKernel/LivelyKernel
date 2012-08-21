@@ -90,6 +90,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         */
     },
     testSelectMorphByClassName: function() {
+        
+        this.assertSizzleSelect([this.blueRectangle1, this.blueRectangle2],
+            '.blue',
+            this.world,
+            'selection by class should include both blue rectangle morphs');
+        
         var selection = this.sizzle.select('.blue', this.world);
         this.assertEqualState(
             [this.blueRectangle1, this.blueRectangle2], 

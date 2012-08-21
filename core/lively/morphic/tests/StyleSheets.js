@@ -88,31 +88,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
             'selection by class should include both blue rectangle morphs');
 
     },
-    testSelectMorphBySiblingRelation: function() {
-        
-        
-        this.assertSizzleSelect([this.redRectangle, this.blueRectangle1],
-            ':nth-child(1)',
-            this.redRectangle,
-            'selection by sibling relation should include red rectangle and blue rectangle 1');
-            
-            
-        this.assertSizzleSelect([this.blueRectangle2],
-            ':nth-child(2)',
-            this.redRectangle,
-            'selection by sibling relation should include only blue rectangle 2');    
-            
-        this.assertSizzleSelect([this.redRectangle],
-            ':only-child',
-            this.yellowRectangle,
-            'selection by sibling relation should include only red rectangle');   
-            
-        this.assertSizzleSelect([this.blueRectangle1, this.blueRectangle2],
-            ':empty',
-            this.yellowRectangle,
-            'selection by only-child relation should include both blue rectangles');  
-      
-    },
+
     testSelectMorphByAttributes: function() {
         
         this.assertSizzleSelect([this.yellowRectangle, this.redRectangle],

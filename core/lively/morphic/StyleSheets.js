@@ -1606,6 +1606,10 @@ Object.subclass('lively.morphic.MorphGroup',
     initialize: function() {
 
     },
+    getProxy: function() {
+        this.morphs = [];
+        return Proxy.create(this.makeHandler(this.morphs), []);
+    },
     makeHandler: function(obj) {
       return {
        getOwnPropertyDescriptor: function(name) {
@@ -1662,6 +1666,7 @@ Object.subclass('lively.morphic.MorphGroup',
 'default category', {
     m1: function() {},
 });
+
 
 
 

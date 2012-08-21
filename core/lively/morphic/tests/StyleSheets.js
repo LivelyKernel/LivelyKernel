@@ -403,15 +403,20 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.morph.setNewId('some-id');
         this.world.addMorph(this.morph);
         this.world.processStyleSheet(css);
-        
+
         var classOnlyRule = this.morph.styleSheetRules.filter(function(rule){
                 return (rule.selectorText() === '.some-class');
             }).first(),
             classAndIdRule = this.morph.styleSheetRules.filter(function(rule){
                 return (rule.selectorText() === '#some-id.some-class');
             }).first();
-        
-        
+
+        this.assert(this.isRuleMoreSpecific(classAndIdRule, classOnlyRule),
+            '#some-id.some-class is more specific than .some-class');
+        this.assert(!this.isRuleMoreSpecific(classOnlyRule, classAndIdRule),
+            '.some-class is not more specific than #some-id.some-class');
+        this.assert(!this.isRuleMoreSpecific(classOnlyRule, classOnlyRule),
+            '.some-class is not more specific than .some-class');
     }
 
 

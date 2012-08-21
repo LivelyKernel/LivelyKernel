@@ -418,6 +418,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assert(!this.morph.isRuleMoreSpecific(classOnlyRule, classOnlyRule),
             '.some-class is not more specific than .some-class');
     },
+    newMethod: function() {
+        // enter comment here
+    }
+
 
 
 });

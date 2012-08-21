@@ -61,7 +61,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
             this.redRectangle,
             'selection by class only should include Red Rectangle');
 
-         this.assertSizzleSelect([this.redRectangle],
+        this.assertSizzleSelect([this.redRectangle],
             '*.red',
             this.redRectangle,
             'selection by combined selector only should include Red Rectangle');

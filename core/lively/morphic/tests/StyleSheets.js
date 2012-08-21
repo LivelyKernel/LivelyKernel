@@ -376,8 +376,25 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals('.red', rcss[0].selectorText(), 'Selector of first rule in RedRectangle is not .red');
         
     },
-    newMethod: function() {
-        // enter comment here
+    test04CalculateSpecificity: function() {
+        this.assertEquals(100,
+            this.morph.calculateCSSRuleSpecificity('#test'),
+            '#test should be specificity 100');
+        this.assertEquals(10,
+            this.morph.calculateCSSRuleSpecificity('.test'),
+            '.test should be specificity 10');
+        this.assertEquals(1,
+            this.morph.calculateCSSRuleSpecificity('test'),
+            '"test" should be specificity 1');
+        this.assertEquals(111,
+            this.morph.calculateCSSRuleSpecificity('test.test#test'),
+            'test.test#test should be specificity 111');
+        this.assertEquals(110,
+            this.morph.calculateCSSRuleSpecificity('.test#test'),
+            '.test#test should be specificity 110');
+        this.assertEquals(222,
+            this.morph.calculateCSSRuleSpecificity('test.test#test asdf.asdf#asdf'),
+            'test.test#test asdf.asdf#asdf should be specificity 222');
     }
 
 });

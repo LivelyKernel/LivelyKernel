@@ -25,6 +25,8 @@ lively.morphic.Morph.addMethods(
     getStyleSheetDeclarations: function(){
         var styles = [];
         
+        this.styleSheetRules.sort(this.isRuleMoreSpecific);
+        this.styleSheetRules.reverse();
         // TODO: insert code for style aggregation here
         
         return styles;

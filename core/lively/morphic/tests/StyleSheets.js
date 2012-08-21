@@ -419,6 +419,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             '.some-class is not more specific than .some-class');
     },
     test06GetStyleSheetDeclarations: function() {
+        this.createSomeMorphs(); // sets up a hierarchy of morphs
         var css = '.blue { background-color: blue; }'+
                 '.blue:nth-child(2) { important!background-color: yellow; }'+
                 '.red { color: red; background-color: green;}'+

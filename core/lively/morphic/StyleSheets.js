@@ -21,7 +21,10 @@ lively.morphic.Morph.addMethods(
         }, this);
 
         if (!this.styleSheetRules) {this.styleSheetRules = [];}
-    },  
+    },
+    getStyleDeclarations: function(){
+        return [];
+    }
 },
 'Morph selection methods', {
     getSubmorphById: function(id) {

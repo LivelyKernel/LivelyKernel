@@ -375,7 +375,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals(1, rcss.length, 'RedRectangle has not exactly 1 rule');
         this.assertEquals('.red', rcss[0].selectorText(), 'Selector of first rule in RedRectangle is not .red');
         
-    }
+    },
 });
 
 TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',

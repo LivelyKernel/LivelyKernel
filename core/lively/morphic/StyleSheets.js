@@ -1601,6 +1601,14 @@ var isXML = Sizzle.isXML = function( elem ) {
 
 );
 Object.subclass('lively.morphic.MorphGroup',
+'init',
+{
+    initialize: function() {
+
+    }
+},
+
+
 'default category', {
     m1: function() {},
 });

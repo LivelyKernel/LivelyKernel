@@ -51,11 +51,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
     
     testMorphSelectsItself: function() {
         
-        this.assertEqualState();
-        this.assertSizzleSelect(
-            [this.redRectangle],
-            '.red',
-            this.redRectangle,
+        this.assertEqualState([this.redRectangle], 
+            this.redRectangle.getSubmorphsByClassName('red'),
             'selection by class only should include Red Rectangle'
         );
 

@@ -345,7 +345,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.morph.addClassName('some-class');
         this.morph.processStyleSheet(css);
         var rules = this.morph.styleSheetRules;
-        this.assertEquals('.some-class', rules[0].selectorText, 'Selector of first rule is not .blue');
+        this.assertEquals('.some-class', rules[0].selectorText(), 'Selector of first rule is not .blue');
     },
     test03MorphsHaveOnlyMatchingCSSRules: function() {
         this.createSomeMorphs(); // sets up a hierarchy of morphs

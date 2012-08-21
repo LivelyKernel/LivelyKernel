@@ -66,14 +66,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         );
 
     },
-    assertSizzleSelect: function(expected, selector, context, msg) {
-        var selection = this.sizzle.select(selector, context),
-            sizeEquals = (expected.length === selection.length);
 
-        this.assert(sizeEquals && expected.all(function(ea) {
-                return selection.include(ea);
-            }), msg);
-    },
 
     
     

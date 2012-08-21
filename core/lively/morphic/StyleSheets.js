@@ -188,6 +188,8 @@ lively.morphic.Morph.addMethods(
             // child's css is more specific than parent's
             return b.originMorph.isAncestorOf(a.originMorph);
         } else {
+            // if both rules are declared in the same morph
+            // calculate specificity through selector
             /* 
             Code taken from Firebug Lite 1.4.0
             Copyright (c) 2007, Parakey Inc.

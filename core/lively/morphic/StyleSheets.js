@@ -1605,7 +1605,10 @@ var isXML = Sizzle.isXML = function( elem ) {
 function MorphGroup(optMorphs){
     this.morphs = optMorphs || [];
     return Proxy.create({
-            get: function(rcvr,name) { return this.morphs[name]; },
+            get: function(rcvr,name) {
+                console.log(this.morphs);
+                return this.morphs[name]; 
+            },
         },
         Object.getPrototypeOf(this.morphs));
 };

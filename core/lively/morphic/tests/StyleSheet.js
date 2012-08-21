@@ -115,6 +115,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
             ':only-child',
             this.yellowRectangle,
             'selection by sibling relation should include only red rectangle');   
+            
+        this.assertSizzleSelect([this.blueRectangle1, this.blueRectangle2],
+            ':empty',
+            this.yellowRectangle,
+            'selection by only-child relation should include both blue rectangles');  
         /*
         var selection = this.sizzle.select(':nth-child(1)', this.redRectangle);
         this.assertEqualState([this.redRectangle, this.blueRectangle1], selection, 

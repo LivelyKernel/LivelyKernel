@@ -54,20 +54,27 @@ lively.morphic.Morph.addMethods(
     getSubmorphsByTagName: function(tag, optTagNameAttribute) {
         var resultMorphs = [],
             tagNameAttr = optTagNameAttribute || 'tagName',
-            thisTagName = this[tagNameAttr];
+            thisTagName = this[tagNameAttr],
+            selectAll = (tag.trim() === '*');
 
-        if (tag.trim() === '*') {
-            resultMorphs.push(this);
-        } else if (thisTagName) {
-            thisTagName +='';
 
-            thisTagName = thisTagName .toLowerCase();
-            tag= tag.toLowerCase();
 
-            if (thisTagName === tag){
-                resultMorphs.push(this);
-            }
-        }
+        this.withAllSubmorphsDo(function(morph){
+                if (selectAll ) {
+                    resultMorphs.push(morph);
+                } else if (thisTagName) {
+                    thisTagName +='';
+
+                    thisTagName = thisTagName .toLowerCase();
+                    tag= tag.toLowerCase();
+
+                    if (thisTagName === tag){
+                        resultMorphs.push(morph);
+                    }
+                }
+            });
+
+        
 
         for (var i = 0; i < this.submorphs.length; i++) {
             resultMorphs = resultMorphs.concat(this.submorphs[i].getSubmorphsByTagName(tag, optTagNameAttribute));

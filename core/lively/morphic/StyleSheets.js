@@ -166,7 +166,7 @@ lively.morphic.Morph.addMethods(
     },
     
     processStyleSheet: function(styleSheet) {
-        
+
         var sizzle = new lively.morphic.Sizzle(),
             styleSheetRules = apps.cssParser.parse(styleSheet);
 
@@ -179,10 +179,10 @@ lively.morphic.Morph.addMethods(
                 morph.styleSheetRules.push(rule);
             }, this);
         }, this);
-        
+
         if (!this.styleSheetRules) {this.styleSheetRules = [];}
     }
-    
+
 
 });
 

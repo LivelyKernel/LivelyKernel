@@ -1600,6 +1600,10 @@ var isXML = Sizzle.isXML = function( elem ) {
 }
 
 );
+Object.subclass('MyClass',
+'default category', {
+    m1: function() {},
+});
 
 
 function MorphGroup(optMorphs){

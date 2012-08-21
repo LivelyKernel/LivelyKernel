@@ -55,8 +55,7 @@ lively.morphic.Morph.addMethods(
         var resultMorphs = [],
             tagNameAttr = optTagNameAttribute || 'tagName',
             selectAll = (tag.trim() === '*');
-
-
+        tag = tag.toLowerCase();
 
         this.withAllSubmorphsDo(function(morph){
                 var thisTagName = this[tagNameAttr];
@@ -66,7 +65,6 @@ lively.morphic.Morph.addMethods(
                     thisTagName +='';
 
                     thisTagName = thisTagName .toLowerCase();
-                    tag= tag.toLowerCase();
 
                     if (thisTagName === tag){
                         resultMorphs.push(morph);
@@ -74,11 +72,6 @@ lively.morphic.Morph.addMethods(
                 }
             });
 
-        
-
-        for (var i = 0; i < this.submorphs.length; i++) {
-            resultMorphs = resultMorphs.concat(this.submorphs[i].getSubmorphsByTagName(tag, optTagNameAttribute));
-        }
         return resultMorphs;
     },
     isOfClass: function(className) {

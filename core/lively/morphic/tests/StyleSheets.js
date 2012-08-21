@@ -407,9 +407,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         
         var redStyles = this.redRectangle.getStyleSheetDeclarations(),
             redBackgroundColorValue =
-                blue1Styles['background-color'].values.first().value;
-        this.assertEquals('blue', blueStyles1BackgroundColorValue,
-            'background-color of blue1 should be blue');
+                redStyles['background-color'].values.first().value,
+            redTextColorValue =
+                redStyles['color'].values.first().value;
+        this.assertEquals('red', redBackgroundColorValue ,
+            'background-color of red should be red');
+        this.assertEquals('red', redTextColorValue ,
+            'color of red should be red');
     },
 
 

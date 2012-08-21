@@ -212,7 +212,7 @@ lively.morphic.Morph.addMethods(
             return tagCount + 10*classCount + 100*idCount;
         }
     },
-    newMethod: function() {
+   calculateCSSRuleSpecificity: function(selector) {
         /* 
         Code taken from Firebug Lite 1.4.0
         Copyright (c) 2007, Parakey Inc.

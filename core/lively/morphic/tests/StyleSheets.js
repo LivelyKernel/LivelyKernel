@@ -396,8 +396,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             this.morph.calculateCSSRuleSpecificity('test.test#test asdf.asdf#asdf'),
             'test.test#test asdf.asdf#asdf should be specificity 222');
     },
-    newMethod: function() {
-        // enter comment here
+    test05CompareSpecificity: function() {
+
     }
 
 

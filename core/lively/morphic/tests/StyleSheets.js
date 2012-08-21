@@ -35,6 +35,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         blueRectangle2.applyStyle({fill: Color.blue});
         blueRectangle2.addClassName('blue');
         blueRectangle2.setNewId('b2');
+        blueRectangle2.tagName = 'blueRectangleTag';
         redRectangle.addMorph(blueRectangle2);
         
         this.yellowRectangle = yellowRectangle;

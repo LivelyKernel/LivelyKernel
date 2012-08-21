@@ -32,6 +32,8 @@ lively.morphic.Morph.addMethods(
             val = optCaseInsensitive ? (value + '').toLowerCase() : (value + ''),
             isEqual = function(a, b) {
                 if (a) {
+                    if (value == null) return true;
+                    
                     a +='';
 
                     if (optCaseInsensitive) {

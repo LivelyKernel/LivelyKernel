@@ -420,11 +420,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
     },
     test06GetStyleSheetDeclarations: function() {
         var css = '.blue { background-color: blue; }'+
-                '.blue:nth-child(2) { background-color: yellow; }'+
+                '.blue:nth-child(2) { important!background-color: yellow; }'+
                 '.red { color: red; background-color: green;}'+
                 '#the-red-rectangle { background-color: red; }';
 
         this.world.processStyleSheet(css);
+        
+        var blue1Styles = this.blueRectangle1.getStyleSheetDeclarations();
         
     },
 

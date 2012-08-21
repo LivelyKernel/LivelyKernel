@@ -187,7 +187,25 @@ lively.morphic.Morph.addMethods(
         if (a.originMorph !== b.originMorph) {
             return b.originMorph.isAncestorOf(a.originMorph);
         } else {
-            
+            /* 
+            Code taken from Firebug Lite 1.4.0
+            Copyright (c) 2007, Parakey Inc.
+             */
+
+            var reSelectorTag = /(^|\s)(?:\w+)/g,
+                reSelectorClass = /\.[\w\d_-]+/g,
+                reSelectorId = /#[\w\d_-]+/g;
+
+            var match = selector.match(reSelectorTag);
+            var tagCount = match ? match.length : 0;
+
+            match = selector.match(reSelectorClass);
+            var classCount = match ? match.length : 0;
+
+            match = selector.match(reSelectorId);
+            var idCount = match ? match.length : 0;
+
+            return tagCount + 10*classCount + 100*idCount;
         }
     }
 

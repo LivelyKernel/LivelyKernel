@@ -60,7 +60,7 @@ lively.morphic.Morph.addMethods(
         tag = tag.toLowerCase();
 
         this.withAllSubmorphsDo(function(morph){
-                var thisTagName = this[tagNameAttr];
+                var thisTagName = morph[tagNameAttr];
                 if (selectAll) {
                     resultMorphs.push(morph);
                 } else if (thisTagName) {

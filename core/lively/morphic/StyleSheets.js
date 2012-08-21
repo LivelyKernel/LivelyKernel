@@ -25,7 +25,7 @@ lively.morphic.Morph.addMethods(
             if (morph.isOfClass(classNames)) {
                 resultMorphs.push(morph);
             }
-        })
+        });
 
         return resultMorphs;
     },

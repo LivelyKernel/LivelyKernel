@@ -22,7 +22,7 @@ lively.morphic.Morph.addMethods(
 
         if (!this.styleSheetRules) {this.styleSheetRules = [];}
     },
-    getStyleDeclarations: function(){
+    getStyleSheetDeclarations: function(){
         var styles = [];
         
         // TODO: insert code for style aggregation here

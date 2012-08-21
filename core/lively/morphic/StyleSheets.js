@@ -29,7 +29,6 @@ lively.morphic.Morph.addMethods(
             };
         debugger
         this.styleSheetRules.sort(apps.cssParser.isRuleMoreSpecific);
-        this.styleSheetRules.reverse();
 
         for (var i = 0; i < this.styleSheetRules.length; i++) {
             var rule = this.styleSheetRules[i];

@@ -34,20 +34,39 @@ lively.morphic.Morph.addMethods(
     getSubmorphsByAttribute: function(attr, value, optCaseInsensitive) {
         var resultMorphs = [],
             realVal = this[attr],
-            val = value + '';
+            val = optCaseInsensitive ? (value + '').toLowerCase() : (value + ''),
+            isEqual = function(a, b) {
+                if (a) {
+                    a +='';
 
-        if (realVal) {
+                    if (optCaseInsensitive) {
+                        a = a.toLowerCase();
+                    }
+
+                    if (realVal  === val ){
+                        resultMorphs.push(this);
+                    }
+                }
+            };
+
+        
+        
+        
+        this.withAllSubmorphsDo(function(morph) {
+            
+            if (realVal) {
             realVal +='';
 
             if (optCaseInsensitive) {
                 realVal = realVal.toLowerCase();
-                val = val.toLowerCase();
             }
 
             if (realVal  === val ){
                 resultMorphs.push(this);
             }
         }
+        });
+        
 
         for (var i = 0; i < this.submorphs.length; i++) {
             resultMorphs = resultMorphs.concat(this.submorphs[i].getSubmorphsByAttribute(attr, value));

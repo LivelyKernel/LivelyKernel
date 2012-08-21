@@ -381,26 +381,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         // test pushed over to cssParser
     },
     test05CompareSpecificity: function() {
-        var css = '.some-class { color: red; }'+
-            '#some-id.some-class { color: blue; }';
-        this.morph.addClassName('some-class');
-        this.morph.setNewId('some-id');
-        this.world.addMorph(this.morph);
-        this.world.processStyleSheet(css);
-
-        var classOnlyRule = this.morph.styleSheetRules.filter(function(rule){
-                return (rule.selectorText() === '.some-class');
-            }).first(),
-            classAndIdRule = this.morph.styleSheetRules.filter(function(rule){
-                return (rule.selectorText() === '#some-id.some-class');
-            }).first();
-
-        this.assert(this.morph.isRuleMoreSpecific(classAndIdRule, classOnlyRule),
-            '#some-id.some-class is more specific than .some-class');
-        this.assert(!this.morph.isRuleMoreSpecific(classOnlyRule, classAndIdRule),
-            '.some-class is not more specific than #some-id.some-class');
-        this.assert(!this.morph.isRuleMoreSpecific(classOnlyRule, classOnlyRule),
-            '.some-class is not more specific than .some-class');
+        // pushed over to CSSparser tests
     },
     test06GetStyleSheetDeclarations: function() {
 

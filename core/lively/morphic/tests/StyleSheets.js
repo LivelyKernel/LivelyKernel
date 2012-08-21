@@ -399,7 +399,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
     test05CompareSpecificity: function() {
         var css = '.some-class { color: red; }'+
             '#some-id.some-class { color: blue; }';
-        this.morph.addClass('some-class');
+        this.morph.addClassName('some-class');
         this.morph.setNewId('some-id');
         this.world.addMorph(this.morph);
         this.world.processStyleSheet(css);

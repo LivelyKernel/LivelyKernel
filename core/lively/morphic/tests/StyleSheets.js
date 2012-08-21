@@ -108,19 +108,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
     
 
     
-    testSelectMorphByOwnership: function() {
-        this.assertSizzleSelect([this.blueRectangle1,this.blueRectangle2],
-            '.red .blue',
-            this.world,
-            'selection for ".red .blue" should return both blue rectangles');
-            
-        this.assertSizzleSelect([this.blueRectangle1,this.blueRectangle2],
-            '.red > .blue',
-            this.world,
-            'selection for ".red > .blue" should return both blue rectangles');
-
-    }
-    
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.SizzleMorphicSelection',

@@ -66,7 +66,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
     
     testSelectMorphById: function() {
         var selection = this.sizzle.select('#the-red-rectangle', this.world);
-        this.assertEqualState([this.redRectangle], selection, 
+        this.assertEqualState([this.redRectangle], selection,
             'selection by id should include red rectangle morph');
     },
     testSelectMorphByClassName: function() {

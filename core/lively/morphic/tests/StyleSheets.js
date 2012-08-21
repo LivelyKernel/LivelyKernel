@@ -428,7 +428,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 
         this.world.processStyleSheet(css);
         
-        var blue1Styles = this.blueRectangle1.getStyleSheetDeclarations();
+        //var blue1Styles = this.blueRectangle1.getStyleSheetDeclarations();
         console.log(this.redRectangle.getStyleSheetDeclarations());
     },
 

@@ -182,8 +182,9 @@ lively.morphic.Morph.addMethods(
 
         if (!this.styleSheetRules) {this.styleSheetRules = [];}
     },
-    newMethod: function() {
-        // enter comment here
+    isRuleMoreSpecific: function(a, b) {
+        // is rule a more specific than rule b?
+        
     }
 
 

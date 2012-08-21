@@ -23,7 +23,8 @@ lively.morphic.Morph.addMethods(
         if (!this.styleSheetRules) {this.styleSheetRules = [];}
     },
     getStyleSheetDeclarations: function(){
-        var styles = [];
+        var styles = [],
+            rule;
         
         this.styleSheetRules.sort(this.isRuleMoreSpecific);
         this.styleSheetRules.reverse();

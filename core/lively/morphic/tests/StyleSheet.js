@@ -139,6 +139,15 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
             this.world,
             'selection for attribute "testAttribute^=the" should return yellow and red rectangles');
         
+        this.assertSizzleSelect([this.yellowRectangle, this.redRectangle],
+            '[testAttribute*="ectan"]',
+            this.world,
+            'selection for attribute "testAttribute*=ectan" should return yellow and red rectangles');
+        
+        this.assertSizzleSelect([this.yellowRectangle, this.redRectangle],
+            '[testAttribute$="Rectangle"]',
+            this.world,
+            'selection for attribute "testAttribute$=Rectangle" should return yellow and red rectangles');
         /*
         var selection = this.sizzle.select('[testAttribute]', this.world);
         this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 
@@ -147,7 +156,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         selection = this.sizzle.select('[testAttribute="theYellowRectangle"]', this.world);
         this.assertEqualState([this.yellowRectangle], selection, 
             'selection for attribute "testAttribute=theYellowRectangle" should return yellow rectangle');
-        */
+        
         selection = this.sizzle.select('[testAttribute^="the"]', this.world);
         this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 
             'selection for attribute "testAttribute^=the" should return yellow and red rectangles');
@@ -155,7 +164,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         selection = this.sizzle.select('[testAttribute*="ectan"]', this.world);
         this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 
             'selection for attribute "testAttribute*=ectan" should return yellow and red rectangles');
-        
+        */
         selection = this.sizzle.select('[testAttribute$="Rectangle"]', this.world);
         this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 
             'selection for attribute "testAttribute$=Rectangle" should return yellow and red rectangles');

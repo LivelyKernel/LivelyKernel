@@ -160,14 +160,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
     },
     
     testSelectMorphByOwnership: function() {
-        var selection = this.sizzle.select('.red .blue', this.world);
-        this.assertEqualState([this.blueRectangle1,this.blueRectangle2], selection, 
-            'selection for ".red .blue" should return both blue rectangles');
-
-        selection = this.sizzle.select('.red > .blue', this.world);
-        this.assertEqualState([this.blueRectangle1,this.blueRectangle2], selection, 
-            'selection for ".red > .blue" should return both blue rectangles');
-            
         this.assertSizzleSelect([this.blueRectangle1,this.blueRectangle2],
             '.red .blue',
             this.world,

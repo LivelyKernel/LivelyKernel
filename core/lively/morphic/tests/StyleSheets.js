@@ -397,7 +397,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             'test.test#test asdf.asdf#asdf should be specificity 222');
     },
     test05CompareSpecificity: function() {
-
+        var css = ".some-class { color: red; }"+
+            "#some-id.some-class { color: blue; }";
+        this.morph.addClass('some-class');
+        this.morph.setNewId('some-id');
+        this.world.addMorph(this.morph);
+        this.world.processStyleSheet(css);
     }
 
 

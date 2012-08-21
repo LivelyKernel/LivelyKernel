@@ -17,15 +17,18 @@ lively.morphic.Morph.addMethods(
         }
     },
     getSubmorphsByClassName: function(classNames) {
-        var resultMorphs = []
+        var resultMorphs = [];
+        
         if (this.isOfClass(classNames)){
             resultMorphs.push(this);
         }
+        
         this.withAllSubmorphsDo(function(morph){
             if (morph.isOfClass(classNames)) {
                 resultMorphs.push(morph);
             }
         });
+        
         return resultMorphs;
     },
     getSubmorphsByAttribute: function(attr, value, optCaseInsensitive) {

@@ -1,4 +1,4 @@
-module('lively.morphic.tests.StyleSheets').requires('lively.morphic.tests.Helper').toRun(function() {
+module('lively.morphic.tests.StyleSheets').requires('lively.morphic.tests.Helper', 'lively.morphic.StyleSheets').toRun(function() {
 
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.MorphSelection',

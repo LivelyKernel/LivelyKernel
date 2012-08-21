@@ -1605,7 +1605,7 @@ var isXML = Sizzle.isXML = function( elem ) {
 Object.extend(SomeObject, {
     m1: function() {},
 });
-Object.subclass('MyClass',
+Proxy.subclass('lively.morphic.MorghGroupProxy',
 'default category', {
     m1: function() {},
 });

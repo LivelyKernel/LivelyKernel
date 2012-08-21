@@ -220,7 +220,9 @@ lively.morphic.Morph.addMethods(
 
         match = selector.match(reSelectorId);
         var idCount = match ? match.length : 0;
-
+        
+        // FIXME: like that, tag count and class count can't
+        // exceed 9 in one selector without tampering the result
         return tagCount + 10*classCount + 100*idCount;
     }
 

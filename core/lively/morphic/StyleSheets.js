@@ -26,7 +26,6 @@ lively.morphic.Morph.addMethods(
                 resultMorphs.push(morph);
             }
         });
-
         return resultMorphs;
     },
     getSubmorphsByAttribute: function(attr, value, optCaseInsensitive) {

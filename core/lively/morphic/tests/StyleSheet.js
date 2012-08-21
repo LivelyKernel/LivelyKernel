@@ -123,6 +123,23 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
       
     },
     testSelectMorphByAttributes: function() {
+        
+        this.assertSizzleSelect([this.yellowRectangle, this.redRectangle],
+            '[testAttribute]',
+            this.world,
+            'selection for attribute "testAttribute" should return yellow rectangle and red rectangle');
+        
+        this.assertSizzleSelect([this.yellowRectangle],
+            '[testAttribute="theYellowRectangle"]',
+            this.world,
+            'selection for attribute "testAttribute=theYellowRectangle" should return yellow rectangle');
+        
+        this.assertSizzleSelect([this.yellowRectangle, this.redRectangle],
+            '[testAttribute^="the"]',
+            this.world,
+            'selection for attribute "testAttribute^=the" should return yellow and red rectangles');
+        
+        /*
         var selection = this.sizzle.select('[testAttribute]', this.world);
         this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 
             'selection for attribute "testAttribute" should return yellow rectangle and red rectangle');
@@ -130,7 +147,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         selection = this.sizzle.select('[testAttribute="theYellowRectangle"]', this.world);
         this.assertEqualState([this.yellowRectangle], selection, 
             'selection for attribute "testAttribute=theYellowRectangle" should return yellow rectangle');
-        
+        */
         selection = this.sizzle.select('[testAttribute^="the"]', this.world);
         this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 
             'selection for attribute "testAttribute^=the" should return yellow and red rectangles');

@@ -16,7 +16,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         yellowRectangle.tagName = 'YellowRectangle';
         yellowRectangle.testAttribute = 'theYellowRectangle';
         yellowRectangle.openInWorld();
-        
+
 
         var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
         redRectangle.applyStyle({fill: Color.red});

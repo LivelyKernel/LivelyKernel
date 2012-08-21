@@ -329,9 +329,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.world.addMorph(this.morph);
         debugger
         this.world.processStyleSheet(css);
-        
 
-        
         var rules = this.morph.styleSheetRules;
         this.assert( 0 < rules.length, 'no rule assigned');
 

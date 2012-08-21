@@ -417,7 +417,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             '.some-class is not more specific than #some-id.some-class');
         this.assert(!this.morph.isRuleMoreSpecific(classOnlyRule, classOnlyRule),
             '.some-class is not more specific than .some-class');
-    }
+    },
 
 
 });

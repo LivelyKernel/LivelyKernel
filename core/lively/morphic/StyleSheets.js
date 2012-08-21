@@ -44,7 +44,7 @@ lively.morphic.Morph.addMethods(
                     }
 
                     if (realVal  === val ){
-                        resultMorphs.push(this);
+                        return true;
                     }
                 }
             };

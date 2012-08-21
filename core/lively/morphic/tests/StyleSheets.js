@@ -467,6 +467,10 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
         this.assertEquals(222,
             apps.cssParser.calculateCSSRuleSpecificity('test.test#test asdf.asdf#asdf'),
             'test.test#test asdf.asdf#asdf should be specificity 222');
-    },});
+    },
+    newMethod: function() {
+        // enter comment here
+    }
+});
 
 }) // end of module

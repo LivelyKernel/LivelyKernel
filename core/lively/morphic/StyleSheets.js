@@ -48,7 +48,7 @@ lively.morphic.Morph.addMethods(
 
         this.withAllSubmorphsDo(function(morph) {
             if (isEqual(morph[attr]), val) {
-                resultMorphs.push(this);
+                resultMorphs.push(morph);
             }
         });
 

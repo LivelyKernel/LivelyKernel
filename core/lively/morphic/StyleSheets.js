@@ -219,44 +219,6 @@ lively.morphic.Morph.addMethods(
     },
     
 
-},
-'specificity check', {
-    isRuleMoreSpecific: function(a, b) {
-        // is rule a more specific than rule b?
-
-        if (a.originMorph !== b.originMorph) {
-            // child's css is more specific than parent's
-            return b.originMorph.isAncestorOf(a.originMorph);
-        } else {
-            // if both rules are declared in the same morph
-            // calculate specificity through selector
-            return (this.calculateCSSRuleSpecificity(a.selectorText()) > 
-                this.calculateCSSRuleSpecificity(b.selectorText()));
-        }
-    },
-   calculateCSSRuleSpecificity: function(selector) {
-        /* 
-        Code taken from Firebug Lite 1.4.0
-        Copyright (c) 2007, Parakey Inc.
-        */
-
-        var reSelectorTag = /(^|\s)(?:\w+)/g,
-            reSelectorClass = /\.[\w\d_-]+/g,
-            reSelectorId = /#[\w\d_-]+/g;
-
-        var match = selector.match(reSelectorTag);
-        var tagCount = match ? match.length : 0;
-
-        match = selector.match(reSelectorClass);
-        var classCount = match ? match.length : 0;
-
-        match = selector.match(reSelectorId);
-        var idCount = match ? match.length : 0;
-
-        // FIXME: like that, tag count and class count can't
-        // exceed 9 in one selector without distort the result
-        return tagCount + 10*classCount + 100*idCount;
-    }
 });
 
 Object.subclass("lively.morphic.Sizzle",

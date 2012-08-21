@@ -1370,7 +1370,7 @@ Object.subclass("lively.morphic.Sizzle",
 },
 
 'sort order', {
-sortOrder: function(a,b){
+    sortOrder: function(a,b){
 		// The nodes are identical, we can exit early
 		if ( a === b ) {
 			hasDuplicate = true;
@@ -1430,7 +1430,7 @@ sortOrder: function(a,b){
 			siblingCheck( ap[i], b, 1 );
 	},
 
-siblingCheck: function( a, b, ret ) {
+    siblingCheck: function( a, b, ret ) {
 		if ( a === b ) {
 			return ret;
 		}
@@ -1470,7 +1470,7 @@ siblingCheck: function( a, b, ret ) {
 	return results;
     }
     
-},
+}
 
 );
 

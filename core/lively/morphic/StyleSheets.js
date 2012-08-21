@@ -198,8 +198,8 @@ lively.morphic.Morph.addMethods(
         } else {
             // if both rules are declared in the same morph
             // calculate specificity through selector
-            return (this.calculateCSSRuleSpecificity(a.selectorText) > 
-                this.calculateCSSRuleSpecificity(b.selectorText));
+            return (this.calculateCSSRuleSpecificity(a.selectorText()) > 
+                this.calculateCSSRuleSpecificity(b.selectorText()));
         }
     },
    calculateCSSRuleSpecificity: function(selector) {

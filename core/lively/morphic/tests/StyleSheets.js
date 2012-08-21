@@ -50,7 +50,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
     
     
     testMorphSelectsItself: function() {
-
+        
+        this.assertEqualState();
         this.assertSizzleSelect(
             [this.redRectangle],
             '.red',

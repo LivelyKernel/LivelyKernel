@@ -211,7 +211,7 @@ lively.morphic.Morph.addMethods(
 
             return tagCount + 10*classCount + 100*idCount;
         }
-    }
+    },
 
 
 

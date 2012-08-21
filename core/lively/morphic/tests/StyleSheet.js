@@ -63,8 +63,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         this.assertEqualState([this.redRectangle], selection,
             'selection by combined selector only should include Red Rectangle');
     },
-    newMethod: function() {
-        // enter comment here
+    assertSizzleSelect: function(expected, selector, context, msg) {
+        
     },
 
     

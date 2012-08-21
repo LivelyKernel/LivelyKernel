@@ -475,10 +475,10 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
             rules = parsedCSS.cssRules;
         
 
-        var classOnlyRule = this.morph.styleSheetRules.filter(function(rule){
+        var classOnlyRule = rules.filter(function(rule){
                 return (rule.selectorText() === '.some-class');
             }).first(),
-            classAndIdRule = this.morph.styleSheetRules.filter(function(rule){
+            classAndIdRule = rules.filter(function(rule){
                 return (rule.selectorText() === '#some-id.some-class');
             }).first();
 

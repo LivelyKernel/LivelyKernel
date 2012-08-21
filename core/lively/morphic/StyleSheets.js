@@ -29,7 +29,7 @@ lively.morphic.Morph.addMethods(
         this.styleSheetRules.sort(this.isRuleMoreSpecific);
         this.styleSheetRules.reverse();
         
-        for (var i = 0; (rule = this.styleSheetRules[i]); i++) {
+        for (var i = 0; i < this.styleSheetRules.length; i++) {
             
         }
         

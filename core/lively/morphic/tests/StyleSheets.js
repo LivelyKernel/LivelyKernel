@@ -481,11 +481,11 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
                 return (rule.selectorText() === '#some-id.some-class');
             }).first();
 
-        this.assert(this.morph.isRuleMoreSpecific(classAndIdRule, classOnlyRule),
+        this.assert(apps.cssParser.isRuleMoreSpecific(classAndIdRule, classOnlyRule),
             '#some-id.some-class is more specific than .some-class');
-        this.assert(!this.morph.isRuleMoreSpecific(classOnlyRule, classAndIdRule),
+        this.assert(!apps.cssParser.isRuleMoreSpecific(classOnlyRule, classAndIdRule),
             '.some-class is not more specific than #some-id.some-class');
-        this.assert(!this.morph.isRuleMoreSpecific(classOnlyRule, classOnlyRule),
+        this.assert(!apps.cssParser.isRuleMoreSpecific(classOnlyRule, classOnlyRule),
             '.some-class is not more specific than .some-class');
     },});
 

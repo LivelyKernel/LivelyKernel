@@ -419,11 +419,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             '.some-class is not more specific than .some-class');
     },
     test06GetStyleSheetDeclarations: function() {
-        var css = '.some-class { color: red; }'+
-            '#some-id.some-class { color: blue; }';
+        var css = '.blue { background-color: blue; }'+
+            '.red { color: red; background-color: green;}'+
+            '#the-red-rectangle { background-color: red; }';
         this.morph.addClassName('some-class');
         this.morph.setNewId('some-id');
         this.world.addMorph(this.morph);
+
+
         this.world.processStyleSheet(css);
 
         var classOnlyRule = this.morph.styleSheetRules.filter(function(rule){
@@ -440,6 +443,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assert(!this.morph.isRuleMoreSpecific(classOnlyRule, classOnlyRule),
             '.some-class is not more specific than .some-class');
     },
+
+
+
+
 
 
 

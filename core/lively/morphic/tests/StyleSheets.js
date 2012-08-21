@@ -465,10 +465,15 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
         };
         this.assertMatches(expected, rules[0], 'rules don\'t match');
     },
-    newMethod: function() {
-        // enter comment here
-    }
-
-});
+    test02GetRuleSpecificity: function() {
+        var css = ".some-class { color: red; }",
+            rules = apps.cssParser.parse(css);
+        this.assertEquals(1, rules.length, 'no rule parsed');
+        var expected = {
+            selectorText: '.some-class',
+            declarations: [{property: 'color', valueText: 'red'}]
+        };
+        this.assertMatches(expected, rules[0], 'rules don\'t match');
+    },});
 
 }) // end of module

@@ -55,6 +55,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
     
     
     testMorphSelectsItself: function() {
+        
+        this.assertSizzleSelect([this.redRectangle],
+            '.red',
+            this.redRectangle,
+            'selection by class only should include Red Rectangle');
+            
+         this.assertSizzleSelect([this.redRectangle],
+            '*.red',
+            this.redRectangle,
+            'selection by combined selector only should include Red Rectangle');
+        
+        /*
         var selection = this.sizzle.select('.red', this.redRectangle);
         this.assertEqualState([this.redRectangle], selection,
             'selection by class only should include Red Rectangle');
@@ -62,6 +74,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         selection = this.sizzle.select('*.red', this.redRectangle);
         this.assertEqualState([this.redRectangle], selection,
             'selection by combined selector only should include Red Rectangle');
+            */
     },
     assertSizzleSelect: function(expected, selector, context, msg) {
         var selection = this.sizzle.select(selector, context),

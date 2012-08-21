@@ -460,7 +460,7 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
             rules = apps.cssParser.parse(css);
         this.assertEquals(1, rules.length, 'no rule parsed');
         var expected = {
-            selectorText: '.some-class',
+            mSelectorText: '.some-class',
             declarations: [{property: 'color', valueText: 'red'}]
         };
         this.assertMatches(expected, rules[0], 'rules don\'t match');

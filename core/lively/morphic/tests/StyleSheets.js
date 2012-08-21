@@ -420,8 +420,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
     },
     test06GetStyleSheetDeclarations: function() {
         var css = '.blue { background-color: blue; }'+
-            '.red { color: red; background-color: green;}'+
-            '#the-red-rectangle { background-color: red; }';
+                '.blue:nth-child(2) { background-color: yellow; }'+
+                '.red { color: red; background-color: green;}'+
+                '#the-red-rectangle { background-color: red; }';
         this.morph.addClassName('some-class');
         this.morph.setNewId('some-id');
         this.world.addMorph(this.morph);
@@ -443,6 +444,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assert(!this.morph.isRuleMoreSpecific(classOnlyRule, classOnlyRule),
             '.some-class is not more specific than .some-class');
     },
+
+
+
+
 
 
 

@@ -33,7 +33,6 @@ lively.morphic.Morph.addMethods(
     },
     getSubmorphsByAttribute: function(attr, value, optCaseInsensitive) {
         var resultMorphs = [],
-            realVal = this[attr],
             val = optCaseInsensitive ? (value + '').toLowerCase() : (value + ''),
             isEqual = function(a, b) {
                 if (a) {
@@ -43,35 +42,23 @@ lively.morphic.Morph.addMethods(
                         a = a.toLowerCase();
                     }
 
-                    if (realVal  === val ){
+                    if (a === b ){
                         return true;
                     }
                 }
             };
 
         
-        
+        if (isEqual(this[attr]), val) {
+            resultMorphs.push(this);
+        }
         
         this.withAllSubmorphsDo(function(morph) {
-            
-            if (realVal) {
-            realVal +='';
-
-            if (optCaseInsensitive) {
-                realVal = realVal.toLowerCase();
-            }
-
-            if (realVal  === val ){
+            if (isEqual(morph[attr]), val) {
                 resultMorphs.push(this);
             }
-        }
         });
-        
 
-        for (var i = 0; i < this.submorphs.length; i++) {
-            resultMorphs = resultMorphs.concat(this.submorphs[i].getSubmorphsByAttribute(attr, value));
-        }
-        return resultMorphs;
     },
     getSubmorphsByTagName: function(tag, optTagNameAttribute) {
         var resultMorphs = [],

@@ -32,7 +32,6 @@ lively.morphic.Morph.addMethods(
         return resultMorphs;
     },
     getSubmorphsByAttribute: function(attr, value, optCaseInsensitive) {
-        
         var resultMorphs = [],
             realVal = this[attr],
             val = value + '';

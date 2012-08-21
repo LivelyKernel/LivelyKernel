@@ -182,6 +182,10 @@ lively.morphic.Morph.addMethods(
 
         if (!this.styleSheetRules) {this.styleSheetRules = [];}
     },
+    newMethod: function() {
+        // enter comment here
+    }
+
 
 
 });

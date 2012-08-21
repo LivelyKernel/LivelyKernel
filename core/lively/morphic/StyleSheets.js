@@ -171,13 +171,15 @@ lively.morphic.Morph.addMethods(
             styleSheetRules = apps.cssParser.parse(styleSheet);
 
         styleSheetRules.each(function(rule){
-            rule.originMorph = this;
-            sizzle.select(rule.selectorText, this).each(function(morph){
-                if (!morph.styleSheetRules) {
-                    morph.styleSheetRules = [];
-                }
-                morph.styleSheetRules.push(rule);
-            }, this);
+            if (rule.type === 1) {
+                rule.originMorph = this;
+                sizzle.select(rule.selectorText, this).each(function(morph){
+                    if (!morph.styleSheetRules) {
+                        morph.styleSheetRules = [];
+                    }
+                    morph.styleSheetRules.push(rule);
+                }, this);
+            }
         }, this);
 
         if (!this.styleSheetRules) {this.styleSheetRules = [];}

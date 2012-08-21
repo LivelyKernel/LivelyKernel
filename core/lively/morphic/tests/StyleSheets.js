@@ -465,6 +465,10 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
         };
         this.assertMatches(expected, rules[0], 'rules don\'t match');
     },
+    newMethod: function() {
+        // enter comment here
+    }
+
 });
 
 }) // end of module

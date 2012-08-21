@@ -36,8 +36,7 @@ lively.morphic.Morph.addMethods(
             if (a) {
                     if (value == null) {
                         resultMorphs.push(morph);
-                    }    
-                    
+                    }
                     a +='';
 
                     if (optCaseInsensitive) {

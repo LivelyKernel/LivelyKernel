@@ -466,14 +466,24 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
         this.assertMatches(expected, rules[0], 'rules don\'t match');
     },
     test02GetRuleSpecificity: function() {
-        var css = ".some-class { color: red; }",
-            rules = apps.cssParser.parse(css);
-        this.assertEquals(1, rules.length, 'no rule parsed');
-        var expected = {
-            selectorText: '.some-class',
-            declarations: [{property: 'color', valueText: 'red'}]
-        };
-        this.assertMatches(expected, rules[0], 'rules don\'t match');
+        this.assertEquals(100,
+            apps.cssParser.calculateCSSRuleSpecificity('#test'),
+            '#test should be specificity 100');
+        this.assertEquals(10,
+            apps.cssParser.calculateCSSRuleSpecificity('.test'),
+            '.test should be specificity 10');
+        this.assertEquals(1,
+            apps.cssParser.calculateCSSRuleSpecificity('test'),
+            '"test" should be specificity 1');
+        this.assertEquals(111,
+            apps.cssParser.calculateCSSRuleSpecificity('test.test#test'),
+            'test.test#test should be specificity 111');
+        this.assertEquals(110,
+            apps.cssParser.calculateCSSRuleSpecificity('.test#test'),
+            '.test#test should be specificity 110');
+        this.assertEquals(222,
+            apps.cssParser.calculateCSSRuleSpecificity('test.test#test asdf.asdf#asdf'),
+            'test.test#test asdf.asdf#asdf should be specificity 222');
     },});
 
 }) // end of module

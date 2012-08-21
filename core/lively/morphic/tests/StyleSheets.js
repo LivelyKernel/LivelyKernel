@@ -79,6 +79,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
             'selection by class should include both blue rectangle morphs');
 
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
     testSelectMorphByAttributes: function() {
         

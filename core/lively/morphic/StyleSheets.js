@@ -188,6 +188,8 @@ lively.morphic.Morph.addMethods(
 
         if (!this.styleSheetRules) {this.styleSheetRules = [];}
     },
+},
+'specificity check', {
     isRuleMoreSpecific: function(a, b) {
         // is rule a more specific than rule b?
         if (a.originMorph !== b.originMorph) {

@@ -1606,8 +1606,10 @@ Object.extend(SomeObject, {
     m1: function() {},
 });
 Proxy.subclass('lively.morphic.MorghGroupProxy',
-'default category', {
-    m1: function() {},
+'initialize', {
+    initialize: function(optArray) {
+        this.morphs = optArray || [];
+    },
 });
 })
 // end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module// end of module

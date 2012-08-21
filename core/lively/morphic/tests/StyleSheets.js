@@ -53,6 +53,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         
         this.redRectangle.withAllSubmorphsDo(function(morph){console.log(morph.id)});
         
+        console.log(this.redRectangle.submorphs);
         
         this.assertEqualState([this.redRectangle], 
             this.redRectangle.getSubmorphsByClassName('red'),

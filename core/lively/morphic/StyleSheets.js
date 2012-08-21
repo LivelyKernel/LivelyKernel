@@ -44,11 +44,6 @@ lively.morphic.Morph.addMethods(
                 }
             };
 
-        
-        if (isEqual(this[attr]), val) {
-            resultMorphs.push(this);
-        }
-        
         this.withAllSubmorphsDo(function(morph) {
             if (isEqual(morph[attr]), val) {
                 resultMorphs.push(this);

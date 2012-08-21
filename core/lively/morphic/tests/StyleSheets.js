@@ -471,8 +471,7 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
     test03CompareSpecificity: function() {
         var css = '.some-class { color: red; }'+
             '#some-id.some-class { color: blue; }',
-            parsedCSS = apps.cssParser.parse(css),
-            rules = parsedCSS.cssRules;
+            rules = apps.cssParser.parse(css);
         
 
         var classOnlyRule = rules.filter(function(rule){

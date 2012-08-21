@@ -50,6 +50,8 @@ lively.morphic.Morph.addMethods(
 
         });
 
+        return resultMorphs;
+
     },
     getSubmorphsByTagName: function(tag, optTagNameAttribute) {
         var resultMorphs = [],

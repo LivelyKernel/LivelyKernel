@@ -1608,7 +1608,7 @@ function MorphGroup(optMorphs){
             get: function(rcvr,name) { return this.morphs[name]; },
         },
         Object.getPrototypeOf(this.morphs));
-};    
+};
 
 
 })

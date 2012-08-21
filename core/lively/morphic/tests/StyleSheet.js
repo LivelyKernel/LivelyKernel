@@ -52,63 +52,85 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheet.Sizzle
         var selection = this.sizzle.select('.some-class', this.world);
         this.assertMatches([this.morph], selection, 'selection should include morph');
     },
+    
+    
     testMorphSelectsItself: function() {
         var selection = this.sizzle.select('.red', this.redRectangle);
-        this.assertEqualState([this.redRectangle], selection, 'selection by class only should include Red Rectangle');
+        this.assertEqualState([this.redRectangle], selection, 
+            'selection by class only should include Red Rectangle');
         selection = this.sizzle.select('*.red', this.redRectangle);
-        this.assertEqualState([this.redRectangle], selection, 'selection by combined selector only should include Red Rectangle');
+        this.assertEqualState([this.redRectangle], selection, 
+            'selection by combined selector only should include Red Rectangle');
     },
+    
+    
     testSelectMorphById: function() {
         var selection = this.sizzle.select('#the-red-rectangle', this.world);
-        this.assertEqualState([this.redRectangle], selection, 'selection by id should include red rectangle morph');
+        this.assertEqualState([this.redRectangle], selection, 
+            'selection by id should include red rectangle morph');
     },
     testSelectMorphByClassName: function() {
         var selection = this.sizzle.select('.blue', this.world);
-        this.assertEqualState([this.blueRectangle1, this.blueRectangle2], selection, 'selection by class should include both blue rectangle morphs');
+        this.assertEqualState([this.blueRectangle1, this.blueRectangle2], selection, 
+            'selection by class should include both blue rectangle morphs');
     },
     testSelectMorphBySiblingRelation: function() {
         var selection = this.sizzle.select(':nth-child(1)', this.redRectangle);
-        this.assertEqualState([this.redRectangle, this.blueRectangle1], selection, 'selection by sibling relation should include red rectangle and blue rectangle 1');
+        this.assertEqualState([this.redRectangle, this.blueRectangle1], selection, 
+            'selection by sibling relation should include red rectangle and blue rectangle 1');
         
         selection = this.sizzle.select(':nth-child(2)', this.redRectangle);
-        this.assertEqualState([this.blueRectangle2], selection, 'selection by sibling relation should include only blue rectangle 2');
+        this.assertEqualState([this.blueRectangle2], selection, 
+            'selection by sibling relation should include only blue rectangle 2');
         
         selection = this.sizzle.select(':only-child', this.yellowRectangle);
-        this.assertEqualState([this.redRectangle], selection, 'selection by only-child relation should include only red rectangle');
+        this.assertEqualState([this.redRectangle], selection, 
+            'selection by only-child relation should include only red rectangle');
         
         selection = this.sizzle.select(':empty', this.yellowRectangle);
-        this.assertEqualState([this.blueRectangle1, this.blueRectangle2], selection, 'selection by only-child relation should include both blue rectangles');
+        this.assertEqualState([this.blueRectangle1, this.blueRectangle2], selection, 
+            'selection by only-child relation should include both blue rectangles');
     },
     testSelectMorphByAttributes: function() {
         var selection = this.sizzle.select('[testAttribute]', this.world);
-        this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 'selection for attribute "testAttribute" should return yellow rectangle and red rectangle');
+        this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 
+            'selection for attribute "testAttribute" should return yellow rectangle and red rectangle');
         
         selection = this.sizzle.select('[testAttribute="theYellowRectangle"]', this.world);
-        this.assertEqualState([this.yellowRectangle], selection, 'selection for attribute "testAttribute=theYellowRectangle" should return yellow rectangle');
+        this.assertEqualState([this.yellowRectangle], selection, 
+            'selection for attribute "testAttribute=theYellowRectangle" should return yellow rectangle');
         
         selection = this.sizzle.select('[testAttribute^="the"]', this.world);
-        this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 'selection for attribute "testAttribute^=the" should return yellow and red rectangles');
+        this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 
+            'selection for attribute "testAttribute^=the" should return yellow and red rectangles');
         
         selection = this.sizzle.select('[testAttribute*="ectan"]', this.world);
-        this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 'selection for attribute "testAttribute*=ectan" should return yellow and red rectangles');
+        this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 
+            'selection for attribute "testAttribute*=ectan" should return yellow and red rectangles');
         
         selection = this.sizzle.select('[testAttribute$="Rectangle"]', this.world);
-        this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 'selection for attribute "testAttribute$=Rectangle" should return yellow and red rectangles');
+        this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 
+            'selection for attribute "testAttribute$=Rectangle" should return yellow and red rectangles');
     },
     
     testDoNotSelectMorphByClass: function() {
         var selection = this.sizzle.select('not(.blue)', this.yellowRectangle);
-        this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 'selection by not-class should return yellow and red rectangles');
+        this.assertEqualState([this.yellowRectangle, this.redRectangle], selection, 
+            'selection by not-class should return yellow and red rectangles');
     },
     
     testSelectMorphByOwnership: function() {
         var selection = this.sizzle.select('.red .blue', this.world);
-        this.assertEqualState([this.blueRectangle1,this.blueRectangle2], selection, 'selection for ".red .blue" should return both blue rectangles');
+        this.assertEqualState([this.blueRectangle1,this.blueRectangle2], selection, 
+            'selection for ".red .blue" should return both blue rectangles');
 
         selection = this.sizzle.select('.red > .blue', this.world);
-        this.assertEqualState([this.blueRectangle1,this.blueRectangle2], selection, 'selection for ".red > .blue" should return both blue rectangles');
+        this.assertEqualState([this.blueRectangle1,this.blueRectangle2], selection, 
+            'selection for ".red > .blue" should return both blue rectangles');
 
-    }});
+    }
+    
+});
 
 
 

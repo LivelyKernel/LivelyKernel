@@ -23,7 +23,10 @@ lively.morphic.Morph.addMethods(
         if (!this.styleSheetRules) {this.styleSheetRules = [];}
     },
     getStyleSheetDeclarations: function(){
-        var styles = [];
+        var styles = [],
+            declForSameAttr = function(a, b) {
+                return (a.property === b.property);
+            };
         
         this.styleSheetRules.sort(this.isRuleMoreSpecific);
         this.styleSheetRules.reverse();

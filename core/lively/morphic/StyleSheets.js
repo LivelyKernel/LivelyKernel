@@ -23,16 +23,26 @@ lively.morphic.Morph.addMethods(
         if (!this.styleSheetRules) {this.styleSheetRules = [];}
     },
     getStyleSheetDeclarations: function(){
-        var styles = [],
-            declForSameAttr = function(a, b) {
+        var aggregatedStyle = {},
+            d = function(a, b) {
                 return (a.property === b.property);
             };
-        
+
         this.styleSheetRules.sort(this.isRuleMoreSpecific);
         this.styleSheetRules.reverse();
-        
+
         for (var i = 0; i < this.styleSheetRules.length; i++) {
             var rule = this.styleSheetRules[i];
+            rule.declarations.each(function(decl){
+                if (aggregatedStyle[decl.property] &&
+                    aggregatedStyle[decl.property].priority &&
+                    !decl.priority) {
+                    // if the declaration is more '!important' than
+                    // the more specific one, do not override
+                } else {
+                    aggregatedStyle[decl.property] = decl;
+                }
+            });
             
         }
         

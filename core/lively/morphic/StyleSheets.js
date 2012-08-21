@@ -27,7 +27,7 @@ lively.morphic.Morph.addMethods(
             d = function(a, b) {
                 return (a.property === b.property);
             };
-
+        debugger
         this.styleSheetRules.sort(this.isRuleMoreSpecific);
         this.styleSheetRules.reverse();
 

@@ -396,13 +396,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                 },
             sortedRules;
         this.createSomeMorphs(); // sets up a hierarchy of morphs
-        
+
         this.world.processStyleSheet(worldCss);
         this.yellowRectangle.processStyleSheet(yellowCss);
         sortedRules = this.redRectangle.sortStyleSheetRules();
-        
+
         this.assertEquals(4, sortedRules.length, 'redRectangle should have 4 rules');
-        
+
         this.assertEquals('red', getVal(sortedRules[0]),
             'rule 0 should have color red');
         this.assertEquals('green', getVal(sortedRules[1]),

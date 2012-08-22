@@ -387,10 +387,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
     },
     test04GetSortedRules: function() {
 
-        var worldCss = '.red { color: red;}'+
-                '#the-red-rectangle.red {color: blue;}' +
-                '#the-red-rectangle, #the-blue-rectangle, #the-blue-rectangle { color: green }',
-            yellowCss = '.red { color: black;}',
+        var worldCss = '.red { color: red;}'+ //1
+                '#the-red-rectangle.red {color: blue;}' + //3
+                '#the-red-rectangle, #the-blue-rectangle, #the-blue-rectangle { color: green }', //2
+            yellowCss = '.red { color: black;}', //4
             sortedRules;
         this.createSomeMorphs(); // sets up a hierarchy of morphs
         

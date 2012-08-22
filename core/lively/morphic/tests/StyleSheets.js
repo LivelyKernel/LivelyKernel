@@ -378,13 +378,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals('.red', rcss[0].selectorText(), 'Selector of first rule in RedRectangle is not .red');
         
     },
-    test04CalculateSpecificity: function() {
-        // test pushed over to cssParser
-    },
-    test05CompareSpecificity: function() {
-        // pushed over to CSSparser tests
-    },
-    test06GetStyleSheetDeclarations: function() {
+    test04GetStyleSheetDeclarations: function() {
 
         var css = '.blue { background-color: blue; }'+
                 '#blue2.blue { background-color: black; }'+

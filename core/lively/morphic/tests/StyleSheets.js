@@ -390,21 +390,26 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
     test04GetSortedRules: function() {
 
         var css = '.red { color: red; background-color: green;}'+
-                '#the-red-rectangle.red, #the-blue-rectangle, #the-blue-rectangle {color: blue;}'
-                '#the-red-rectangle { background-color: red; }';
+                '#the-red-rectangle.red {color: blue;}'
+                '#the-red-rectangle, #the-blue-rectangle, #the-blue-rectangle { background-color: red; }';
         this.createSomeMorphs(); // sets up a hierarchy of morphs
         
         this.world.processStyleSheet(css);
+
+        var classOnlyRule = this.morph.styleSheetRules.filter(function(rule){
+                return (rule.selectorText() === '.some-class');
+            }).first(),
+            classAndIdRule = this.morph.styleSheetRules.filter(function(rule){
+                return (rule.selectorText() === '#some-id.some-class');
+            }).first();
+
+        this.assert(this.morph.isRuleMoreSpecific(classAndIdRule, classOnlyRule),
+            '#some-id.some-class is more specific than .some-class');
+        this.assert(!this.morph.isRuleMoreSpecific(classOnlyRule, classAndIdRule),
+            '.some-class is not more specific than #some-id.some-class');
+        this.assert(!this.morph.isRuleMoreSpecific(classOnlyRule, classOnlyRule),
+            '.some-class is not more specific than .some-class');
      
-        var redStyles = this.redRectangle.getStyleSheetDeclarations(),
-            redBackgroundColorValue =
-                redStyles['background-color'].values.first().value,
-            redTextColorValue =
-                redStyles['color'].values.first().value;
-        this.assertEquals('red', redBackgroundColorValue ,
-            'background-color of red should be red');
-        this.assertEquals('red', redTextColorValue ,
-            'color of red should be red');
     },
     test05GetRuleSpecificityOnMorph: function() {
         var css = ".blue, #the-red-rectangle.red, #the-red-rectangle, .red { color: red; }",

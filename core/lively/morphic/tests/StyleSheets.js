@@ -486,29 +486,6 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
             'test.test#test asdf.asdf#asdf should be specificity 222');
     },
 
-    test04SplitCombinedRules: function() {
-        var css = '.some-class, .some-other-class { color: red; }',
-            rules = apps.cssParser.parse(css),
-            splittedRules = apps.cssParser.splitCombinedRules(rules);
-        
-
-        var classOnlyRule = splittedRules.filter(function(rule){
-                return (rule.selectorText() === '.some-class');
-            }).first(),
-            classOtherRule = splittedRules.filter(function(rule){
-                return (rule.selectorText() === '.some-other-class');
-            }).first();
-        this.assert(classOnlyRule != null,
-            'a rule with selector .some-class has to exist');
-        this.assert(classOtherRule != null,
-            'a rule with selector .some-other-class has to exist');
-        this.assertEquals('red',
-            classOnlyRule.declarations.first().values.first().value,
-            'rule declaration value has to be red');
-        this.assertEquals('red',
-            classOtherRule.declarations.first().values.first().value,
-            'rule declaration value has to be red');
-
-    },});
+});
 
 }) // end of module

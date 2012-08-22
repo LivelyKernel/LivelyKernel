@@ -391,6 +391,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                 '#the-red-rectangle.red {color: blue;}' + //3
                 '#the-red-rectangle, #the-blue-rectangle, #the-blue-rectangle { color: green }', //2
             yellowCss = '.red { color: black;}', //4
+            getVal = function(rule) {
+                    return rule.declarations.first().values.first().value;
+                },
             sortedRules;
         this.createSomeMorphs(); // sets up a hierarchy of morphs
         
@@ -400,7 +403,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         
         this.assertEquals(4, sortedRules.length, 'redRectangle should have 4 rules');
         
-        this.assertEquals('.red')
+        this.assertEquals('.red', getVal(sortedRules[0]),
+        'rule 0 should have color red');
     },
     test05GetRuleSpecificityOnMorph: function() {
         var css = ".blue, #the-red-rectangle.red, #the-red-rectangle, .red { color: red; }",

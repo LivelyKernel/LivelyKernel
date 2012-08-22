@@ -564,7 +564,6 @@ Object.subclass("lively.morphic.Sizzle",
 			},
 
 			"CLASS": function( className ) {
-				debugger
 				var pattern = this.classCache[ className ];
 				if ( !pattern ) {
 					pattern = this.classCache[ className ] = new RegExp( "(^|" + this.whitespace + ")" + className + "(" + this.whitespace + "|$)" );
@@ -580,7 +579,7 @@ Object.subclass("lively.morphic.Sizzle",
 			},
 
 			"ATTR": function( name, operator, check ) {
-				debugger
+
 				if ( !operator ) {
 					return function( elem ) {
 						return this.attr( elem, name ) != null;

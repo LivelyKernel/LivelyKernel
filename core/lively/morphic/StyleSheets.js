@@ -9,10 +9,12 @@ lively.morphic.Morph.addMethods(
 
         // get rid of the old rules in all submorphs
         this.withAllSubmorphsDo(function(morph){
-                morph.styleSheetRules =
-                    morph.styleSheetRules.filter(function(rule){
-                        return (rule.originMorph !== this);
-                    },this);
+                if (morph.styleSheetRules) {
+                    morph.styleSheetRules =
+                        morph.styleSheetRules.filter(function(rule){
+                            return (rule.originMorph !== this);
+                        },this);
+                }
             }, this);
 
         styleSheetRules.each(function(rule){

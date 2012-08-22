@@ -38,15 +38,11 @@ lively.morphic.Morph.addMethods(
                     // if the declaration is more '!important' than
                     // the more specific one, do not override
                 } else {
-                    // override declarations from less specific rules
+                    // otherwise override declarations from less specific rules
                     aggregatedStyle[decl.property] = decl;
                 }
             });
-            
         }
-        
-        // TODO: insert code for style aggregation here
-        
         return aggregatedStyle;
     }
 },

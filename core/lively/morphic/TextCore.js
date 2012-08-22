@@ -2085,7 +2085,15 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return chunkAndIdx && chunkAndIdx[0].style;
     },
 
-	insertRichTextAt: function(string, style, index) {
+    appendRichText: function(string, style) {
+        var newChunk = this.createChunk().addTo(this);
+        newChunk.textString = string;
+        newChunk.styleText(style);
+        this.coalesceChunks();
+        this.cachedTextString = null;
+    },
+
+    insertRichTextAt: function(string, style, index) {
         var newChunk = this.sliceTextChunks(index, index)[0];
         if (!newChunk) {
             console.warn('insertRichtTextAt failed, found no text chunk!');

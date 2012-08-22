@@ -207,7 +207,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
 
     },
     testSelectMorphByClassWithSeed: function() {
-        // enter comment here
+        var selection = this.sizzle.select(selector, context),
+            sizeEquals = (expected.length === selection.length);
+
+        this.assert(sizeEquals && expected.all(function(ea) {
+                return selection.include(ea);
+            }), msg);
     },
 
     testSelectMorphBySiblingRelation: function() {

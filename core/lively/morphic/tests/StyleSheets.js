@@ -486,22 +486,18 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
     },
     test04SplitCombinedRules: function() {
         var css = '.some-class, .some-other-class { color: red; }',
-            rules = apps.cssParser.parse(css);
+            rules = apps.cssParser.parse(css),
+            splittedRules = apps.cssParser.splitCombinedRules(rules);
         
 
         var classOnlyRule = rules.filter(function(rule){
                 return (rule.selectorText() === '.some-class');
             }).first(),
             classAndIdRule = rules.filter(function(rule){
-                return (rule.selectorText() === '#some-id.some-class');
+                return (rule.selectorText() === '.some-other-class');
             }).first();
 
-        this.assert(apps.cssParser.isRuleMoreSpecific(classAndIdRule, classOnlyRule),
-            '#some-id.some-class is more specific than .some-class');
-        this.assert(!apps.cssParser.isRuleMoreSpecific(classOnlyRule, classAndIdRule),
-            '.some-class is not more specific than #some-id.some-class');
-        this.assert(!apps.cssParser.isRuleMoreSpecific(classOnlyRule, classOnlyRule),
-            '.some-class is not more specific than .some-class');
+        
     },});
 
 }) // end of module

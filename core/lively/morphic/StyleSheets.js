@@ -30,8 +30,7 @@ lively.morphic.Morph.addMethods(
         // and the respective declaration objects as values.
         //
         // i.e. {'background-color': <declaration>, 'border-width': <declaration>}
-        
-        
+
         var aggregatedStyle = {};
         this.styleSheetRules.sort(apps.cssParser.isRuleMoreSpecific);
 

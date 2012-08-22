@@ -410,7 +410,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var css = ".blue, #the-red-rectangle.red, #the-red-rectangle, .red { color: red; }",
             rules = apps.cssParser.parse(css);
         
-        
+        this.assertEquals(10, this.blueRectangle1.getStyleSheetRuleSpecificity(rules))
     },
 
     test05GetStyleSheetDeclarations: function() {

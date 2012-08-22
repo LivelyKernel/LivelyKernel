@@ -78,7 +78,7 @@ lively.morphic.Morph.addMethods(
                 sel, spec, mostSpecificSelector;
             debugger
             // loop over all selectors in the group
-            for (var j, len = selectors.length; j < len; j++)
+            for (var j = 1, len = selectors.length; j < len; j++)
             {
                 sel = selectors[j];
 

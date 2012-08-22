@@ -389,27 +389,20 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
     },
     test04GetSortedRules: function() {
 
-        var css = '.red { color: red;}'+
-                '#the-red-rectangle.red {color: blue;}'
-                '#the-red-rectangle, #the-blue-rectangle, #the-blue-rectangle { color: green }';
+        var worldCss = '.red { color: red;}'+
+                '#the-red-rectangle.red {color: blue;}' +
+                '#the-red-rectangle, #the-blue-rectangle, #the-blue-rectangle { color: green }',
+            yellowCss = '.red { color: black;}',
+            sortedRules;
         this.createSomeMorphs(); // sets up a hierarchy of morphs
         
-        this.world.processStyleSheet(css);
-
-        var classOnlyRule = this.morph.styleSheetRules.filter(function(rule){
-                return (rule.selectorText() === '.some-class');
-            }).first(),
-            classAndIdRule = this.morph.styleSheetRules.filter(function(rule){
-                return (rule.selectorText() === '#some-id.some-class');
-            }).first();
-
-        this.assert(this.morph.isRuleMoreSpecific(classAndIdRule, classOnlyRule),
-            '#some-id.some-class is more specific than .some-class');
-        this.assert(!this.morph.isRuleMoreSpecific(classOnlyRule, classAndIdRule),
-            '.some-class is not more specific than #some-id.some-class');
-        this.assert(!this.morph.isRuleMoreSpecific(classOnlyRule, classOnlyRule),
-            '.some-class is not more specific than .some-class');
-     
+        this.world.processStyleSheet(worldCss);
+        this.yellowRectangle.processStyleSheet(yellowCss);
+        sortedRules = this.redRectangle.sortStyleSheetRules();
+        
+        this.assertEquals(3, sortedRules.length, 'redRectangle should have 3 rules');
+        
+        this.assertEquals('.red')
     },
     test05GetRuleSpecificityOnMorph: function() {
         var css = ".blue, #the-red-rectangle.red, #the-red-rectangle, .red { color: red; }",

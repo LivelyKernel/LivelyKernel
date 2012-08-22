@@ -490,10 +490,10 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
             splittedRules = apps.cssParser.splitCombinedRules(rules);
         
 
-        var classOnlyRule = rules.filter(function(rule){
+        var classOnlyRule = splittedRules.filter(function(rule){
                 return (rule.selectorText() === '.some-class');
             }).first(),
-            classAndIdRule = rules.filter(function(rule){
+            classAndIdRule = splittedRules.filter(function(rule){
                 return (rule.selectorText() === '.some-other-class');
             }).first();
 

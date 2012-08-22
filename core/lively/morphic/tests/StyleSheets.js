@@ -385,7 +385,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals('.red', rcss[0].selectorText(), 'Selector of first rule in RedRectangle is not .red');
         
     },
-    test04MorphsHaveOnlyCurrentCSSRules: function() {
+    test05MorphsHaveOnlyCurrentCSSRules: function() {
         this.createSomeMorphs(); // sets up a hierarchy of morphs
         var firstCSS = ".red { color: red; }",
             secondCSS = "#the-red-rectangle { color: green; }",

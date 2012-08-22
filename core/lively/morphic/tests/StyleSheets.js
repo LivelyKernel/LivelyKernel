@@ -393,7 +393,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             
 
         this.yellowRectangle.processStyleSheet(firstCSS);
-        
+        this.world.processStyleSheet(worldCSS );
 
 
         this.assert(this.redRectangle.styleSheetRules, 'Red Rectangle has no rule attribute');

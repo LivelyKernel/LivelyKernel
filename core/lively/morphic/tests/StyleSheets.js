@@ -410,7 +410,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var css = ".blue, #the-red-rectangle.red, #the-red-rectangle, .red { color: red; }",
             rules = apps.cssParser.parse(css);
         
-        this.assertEquals(10, this.blueRectangle1.getStyleSheetRuleSpecificity(rules))
+        this.assertEquals(10,
+            this.blueRectangle1.getStyleSheetRuleSpecificity(rules.first()),
+            'rule specificity on blue rect has to be 10');
+        this.assertEquals(110,
+            this.redRectangle.getStyleSheetRuleSpecificity(rules.first()),
+            'rule specificity on red rect has to be 110');
     },
 
     test05GetStyleSheetDeclarations: function() {

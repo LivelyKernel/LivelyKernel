@@ -385,7 +385,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals('.red', rcss[0].selectorText(), 'Selector of first rule in RedRectangle is not .red');
         
     },
-    test04GetSortedRules: function() {
+    test05GetSortedRules: function() {
 
         var worldCss = '.red { color: red;}'+ //1
                 '#the-red-rectangle.red {color: blue;}' + //3

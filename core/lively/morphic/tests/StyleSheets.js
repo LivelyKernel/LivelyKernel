@@ -410,7 +410,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             'Selector of 2nd rule in RedRectangle is not #the-red-rectangle');
     },
 
-    test05GetSortedRules: function() {
+    test06GetSortedRules: function() {
 
         var worldCss = '.red { color: red;}'+ //1
                 '#the-red-rectangle.red {color: blue;}' + //3

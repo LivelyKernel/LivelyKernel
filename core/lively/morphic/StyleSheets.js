@@ -52,7 +52,7 @@ lively.morphic.Morph.addMethods(
             });
         }
         return aggregatedStyle;
-    }
+    },
 },
 'Morph selection methods', {
     getSubmorphById: function(id) {

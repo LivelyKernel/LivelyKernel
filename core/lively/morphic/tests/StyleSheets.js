@@ -420,30 +420,39 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals('red', redTextColorValue ,
             'color of red should be red');
     },
-    newMethod: function() {
-        // enter comment here
-    }
+    test05GetStyleSheetDeclarations: function() {
 
+        var css = '.blue{ background-color: blue; }'+
+                '#blue2.blue { background-color: black; }'+
+                '.blue:nth-child(2) { background-color: yellow!important; }'+
+                '.red { color: red; background-color: green;}'+
+                '#the-red-rectangle { background-color: red; }';
+        this.createSomeMorphs(); // sets up a hierarchy of morphs
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-});
+        this.world.processStyleSheet(css);
+        
+        var blue1Styles = this.blueRectangle1.getStyleSheetDeclarations(),
+            blueStyles1BackgroundColorValue =
+                blue1Styles['background-color'].values.first().value;
+        this.assertEquals('blue', blueStyles1BackgroundColorValue,
+            'background-color of blue1 should be blue');
+            
+        var blue2Styles = this.blueRectangle2.getStyleSheetDeclarations(),
+            blueStyles2BackgroundColorValue =
+                blue2Styles['background-color'].values.first().value;
+        this.assertEquals('yellow', blueStyles2BackgroundColorValue,
+            'background-color of blue2 should be yellow');
+        
+        var redStyles = this.redRectangle.getStyleSheetDeclarations(),
+            redBackgroundColorValue =
+                redStyles['background-color'].values.first().value,
+            redTextColorValue =
+                redStyles['color'].values.first().value;
+        this.assertEquals('red', redBackgroundColorValue ,
+            'background-color of red should be red');
+        this.assertEquals('red', redTextColorValue ,
+            'color of red should be red');
+    },});
 
 TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
 'testing', {

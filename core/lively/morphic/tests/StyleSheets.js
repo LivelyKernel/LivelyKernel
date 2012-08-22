@@ -207,12 +207,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
 
     },
     testSelectMorphByClassWithSeed: function() {
-        var selection = this.sizzle.select(selector, context),
-            sizeEquals = (expected.length === selection.length);
+        var selection = this.sizzle.select('.blue', this.world, null, [this.blueRectangle1]),
+            sizeEquals = (1 === selection.length);
 
-        this.assert(sizeEquals && expected.all(function(ea) {
+        this.assert(sizeEquals && [this.blueRectangle1].all(function(ea) {
                 return selection.include(ea);
-            }), msg);
+            }), 'selection by with seed should include only blueRectangle1');
     },
 
     testSelectMorphBySiblingRelation: function() {

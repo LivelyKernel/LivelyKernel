@@ -23,10 +23,16 @@ lively.morphic.Morph.addMethods(
         if (!this.styleSheetRules) {this.styleSheetRules = [];}
     },
     getStyleSheetDeclarations: function(){
-        var aggregatedStyle = {},
-            d = function(a, b) {
-                return (a.property === b.property);
-            };
+        // Returns the morph's aggregated style declarations
+        // from all applicable css rules.
+        //
+        // Comes as an object with property names as keys
+        // and the respective declaration objects as values.
+        //
+        // i.e. {'background-color': <declaration>, 'border-width': <declaration>}
+        
+        
+        var aggregatedStyle = {};
         this.styleSheetRules.sort(apps.cssParser.isRuleMoreSpecific);
 
         for (var i = 0; i < this.styleSheetRules.length; i++) {

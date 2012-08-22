@@ -63,7 +63,10 @@ lively.morphic.Morph.addMethods(
                 }
             });
         }
-        return aggregatedStyle;
+        for (var x in aggregatedStyle) {
+            result.push(aggregatedStyle[x]);
+        }
+        return result;
     },
     sortStyleSheetRules: function() {
         // Returns an array of all rules matching to

@@ -10,82 +10,17 @@ Integration status of the master branch using [Travis-CI](http://www.travis-ci.o
 
 ## Installation
 
-Get Lively Kernel *core* up and running.
+In order to use Lively you do not have to install anything. The
+[Lively Kernel webwerkstatt](http://lively-kernel.org/webwerkstatt) is an
+online wiki and development environment that can be used by everyone who wants
+to experiment and develop applications with Lively.
 
-### Prerequisites
-
-1. node.js: In a terminal try running `node -v`. If that fails [install node.js](http://nodejs.org/#download).
-
-2. npm: Try running `npm -v`. If that fails run `curl http://npmjs.org/install.sh | sh` in your terminal to install it.
-
-### Running Lively
-
-1. Clone the Lively Kernel repository.
-
-    ```
-    git clone git@github.com:rksm/LivelyKernel.git ~/LivelyKernel
-    ```
-
-2. Go into the Lively Kernel directory and run npm:
-
-    ```
-    cd ~/LivelyKernel
-    npm install
-    ```
-
-3. In that directory start the minimal server
-
-    ```
-    lk server
-    ```
-
-
-That's it. You can now visit the empty starting page [blank.xhtml](http://localhost:9001/blank.xhtml) or run the tests with `lk test`.
-
-
-### Setup an apache server
-
-*Note 1* You only need to do this if you want to run a full-fletched Lively Kernel installation that provides the functionality to run a [Lively Wiki](http://www.hpi.uni-potsdam.de/hirschfeld/projects/livelywiki/index.html).
-
-*Note 2* We are currently working on a pure node.js solution to get rid of apache and the complicated setup process.
-
-See [installation notes for apache on Debian and Mac OS x](https://github.com/rksm/LivelyKernel/wiki/Lively-kernel-installation-on-debian-and-mac-os-x) for details.
-
-
-### Using livelykernel-scripts
-
-We will shortly publish an automated installer. In the meantime you may want to try out:
-
-```sh
-npm install -g livelykernel-scripts
-lk workspace --checkout-lk
-echo "Lively Kernel core is now installed in `lk scripts-dir`/workspace/lk/"
-lk server
-```
-
-You can now use `lk test` to run the tests and visit [blank.xhtml](http://localhost:9001/blank.xhtml).
+If you want to run your own Lively Kernel server or contribute to the core
+development, please see the [Installation Guide](https://github.com/rksm/LivelyKernel/wiki/Install-Guide).
 
 ## Running the tests
 
-### Command line tests
-
-Note: Make sure you have all required node.js modules installed. Run `npm install` to do so.
-To start the Lively tests from the command line first start the server:
-
-    lk server
-
-To initiate a test run do
-
-    lk test
-
-This runs tests in the browser you specified in testing/config.js. See `lk test --help` for all [the test runner options](https://github.com/rksm/LivelyKernel/wiki/Lk-script-test).
-
-
-### Continuous Integration
-
-[Travis-CI](http://www.travis-ci.org) runs tests continuously on every commit into the master branch:
-[![Build Status](https://secure.travis-ci.org/rksm/LivelyKernel.png?branch=master)](http://travis-ci.org/rksm/LivelyKernel)
-
+Please see the [Testing wiki page](https://github.com/rksm/LivelyKernel/wiki/Testing).
 
 ## Contributing
 

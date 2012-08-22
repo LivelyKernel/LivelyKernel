@@ -483,6 +483,10 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
             '.some-class is not more specific than #some-id.some-class');
         this.assert(!apps.cssParser.isRuleMoreSpecific(classOnlyRule, classOnlyRule),
             '.some-class is not more specific than .some-class');
-    },});
+    },
+    newMethod: function() {
+        // enter comment here
+    }
+});
 
 }) // end of module

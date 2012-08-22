@@ -467,18 +467,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.world.processStyleSheet(css);
 
         var blue1Styles = this.blueRectangle1.getStyleSheetDeclarations(),
-            blueStyles1BackgroundColorValue =
-                blue1Styles.filter(function(d){
-                    return (d.property === 'background-color')
-                }).first().values.first().value;
+            blueStyles1BackgroundColorValue = getDecl(blue1Styles, 'background-color');
         this.assertEquals('blue', blueStyles1BackgroundColorValue,
             'background-color of blue1 should be blue');
 
         var blue2Styles = this.blueRectangle2.getStyleSheetDeclarations(),
-            blueStyles2BackgroundColorValue =
-                blue2Styles.filter(function(d){
-                    return (d.property === 'background-color')
-                }).first().values.first().value;
+            blueStyles2BackgroundColorValue = getDecl(blue2Styles, 'background-color');
+
         this.assertEquals('yellow', blueStyles2BackgroundColorValue,
             'background-color of blue2 should be yellow');
 

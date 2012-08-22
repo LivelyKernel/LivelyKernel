@@ -450,7 +450,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             'rule specificity on red rect has to be 110');
     },
 
-    test06GetStyleSheetDeclarations: function() {
+    test07GetStyleSheetDeclarations: function() {
 
         var css = '.blue{ background-color: blue; }'+
                 '#blue2.blue { background-color: black; }'+

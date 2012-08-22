@@ -393,21 +393,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                 '#the-red-rectangle.red, #the-blue-rectangle, #the-blue-rectangle {color: blue;}'
                 '#the-red-rectangle { background-color: red; }';
         this.createSomeMorphs(); // sets up a hierarchy of morphs
-
+        
         this.world.processStyleSheet(css);
-        
-        var blue1Styles = this.blueRectangle1.getStyleSheetDeclarations(),
-            blueStyles1BackgroundColorValue =
-                blue1Styles['background-color'].values.first().value;
-        this.assertEquals('blue', blueStyles1BackgroundColorValue,
-            'background-color of blue1 should be blue');
-            
-        var blue2Styles = this.blueRectangle2.getStyleSheetDeclarations(),
-            blueStyles2BackgroundColorValue =
-                blue2Styles['background-color'].values.first().value;
-        this.assertEquals('yellow', blueStyles2BackgroundColorValue,
-            'background-color of blue2 should be yellow');
-        
+     
         var redStyles = this.redRectangle.getStyleSheetDeclarations(),
             redBackgroundColorValue =
                 redStyles['background-color'].values.first().value,

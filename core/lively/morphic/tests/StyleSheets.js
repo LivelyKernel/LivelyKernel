@@ -412,7 +412,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals('black', getVal(sortedRules[3]),
             'rule 3 should have color black');
     },
-    test05GetRuleSpecificityOnMorph: function() {
+    test04GetRuleSpecificityOnMorph: function() {
         var css = ".blue, #the-red-rectangle.red, #the-red-rectangle, .red { color: red; }",
             rules = apps.cssParser.parse(css);
         this.createSomeMorphs(); // sets up a hierarchy of morphs

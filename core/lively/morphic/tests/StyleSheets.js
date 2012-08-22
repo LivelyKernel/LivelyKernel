@@ -485,26 +485,7 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
             apps.cssParser.calculateCSSRuleSpecificity('test.test#test asdf.asdf#asdf'),
             'test.test#test asdf.asdf#asdf should be specificity 222');
     },
-    test03CompareSpecificity: function() {
-        var css = '.some-class { color: red; }'+
-            '#some-id.some-class { color: blue; }',
-            rules = apps.cssParser.parse(css);
-        
 
-        var classOnlyRule = rules.filter(function(rule){
-                return (rule.selectorText() === '.some-class');
-            }).first(),
-            classAndIdRule = rules.filter(function(rule){
-                return (rule.selectorText() === '#some-id.some-class');
-            }).first();
-
-        this.assert(apps.cssParser.isRuleMoreSpecific(classAndIdRule, classOnlyRule),
-            '#some-id.some-class is more specific than .some-class');
-        this.assert(!apps.cssParser.isRuleMoreSpecific(classOnlyRule, classAndIdRule),
-            '.some-class is not more specific than #some-id.some-class');
-        this.assert(!apps.cssParser.isRuleMoreSpecific(classOnlyRule, classOnlyRule),
-            '.some-class is not more specific than .some-class');
-    },
     test04SplitCombinedRules: function() {
         var css = '.some-class, .some-other-class { color: red; }',
             rules = apps.cssParser.parse(css),

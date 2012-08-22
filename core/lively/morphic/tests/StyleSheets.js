@@ -456,7 +456,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                 '#blue2.blue { background-color: black; }'+
                 '.blue:nth-child(2) { background-color: yellow!important; }'+
                 '.red { color: red; background-color: green;}'+
-                '#the-red-rectangle { background-color: red; }';
+                '#the-red-rectangle { background-color: red; }',
+            getDecl = function(decls, property){
+                    return decls.filter(function(d){
+                            return (d.property === property)
+                        }).first().values.first().value;
+                };
         this.createSomeMorphs(); // sets up a hierarchy of morphs
 
         this.world.processStyleSheet(css);

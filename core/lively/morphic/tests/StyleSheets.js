@@ -496,8 +496,16 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
             classOtherRule = splittedRules.filter(function(rule){
                 return (rule.selectorText() === '.some-other-class');
             }).first();
-        this.assert(classOnlyRule != null, 'a rule with selector .some-class has to exist');
-        this.assert(classOtherRule != null, 'a rule with selector .some-other-class has to exist');
+        this.assert(classOnlyRule != null,
+            'a rule with selector .some-class has to exist');
+        this.assert(classOtherRule != null,
+            'a rule with selector .some-other-class has to exist');
+        this.assertEquals('red',
+            classOnlyRule.declarations.first().values.first().value,
+            'rule declaration value has to be red');
+        this.assertEquals('red',
+            classOtherRule.declarations.first().values.first().value,
+            'rule declaration value has to be red');
 
     },});
 

@@ -465,7 +465,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             blueStyles1BackgroundColorValue =
                 blue1Styles.filter(function(d){
                     return (d.property === 'background-color')
-                }).values.first().value;
+                }).first().values.first().value;
         this.assertEquals('blue', blueStyles1BackgroundColorValue,
             'background-color of blue1 should be blue');
 

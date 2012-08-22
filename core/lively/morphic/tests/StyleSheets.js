@@ -380,7 +380,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
     },
     test04GetStyleSheetDeclarations: function() {
 
-        var css = '.blue, yellow { background-color: blue; }'+
+        var css = '.blue{ background-color: blue; }'+
                 '#blue2.blue { background-color: black; }'+
                 '.blue:nth-child(2) { background-color: yellow!important; }'+
                 '.red { color: red; background-color: green;}'+

@@ -53,6 +53,10 @@ lively.morphic.Morph.addMethods(
         }
         return aggregatedStyle;
     },
+    newMethod: function() {
+        // enter comment here
+    }
+
 },
 'Morph selection methods', {
     getSubmorphById: function(id) {

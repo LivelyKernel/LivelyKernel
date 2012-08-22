@@ -493,11 +493,12 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
         var classOnlyRule = splittedRules.filter(function(rule){
                 return (rule.selectorText() === '.some-class');
             }).first(),
-            classAndIdRule = splittedRules.filter(function(rule){
+            classOtherRule = splittedRules.filter(function(rule){
                 return (rule.selectorText() === '.some-other-class');
             }).first();
+        this.assert(classOnlyRule != null, 'a rule with selector .some-class has to exist');
+        this.assert(classOtherRule != null, 'a rule with selector .some-other-class has to exist');
 
-        
     },});
 
 }) // end of module

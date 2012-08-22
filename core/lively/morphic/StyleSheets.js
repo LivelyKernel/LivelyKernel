@@ -111,7 +111,7 @@ lively.morphic.Morph.addMethods(
         if (rule.selectorText().indexOf(",") != -1) {
             var selectors = rule.selectorText().split(","),
                 maxSpecificity = -1,
-                sizzle = new lively.morphic.Sizzle();
+                sizzle = new lively.morphic.Sizzle(),
                 sel, spec, mostSpecificSelector;
 
             // loop over all selectors in the group

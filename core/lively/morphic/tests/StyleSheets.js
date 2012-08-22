@@ -400,7 +400,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var rcss = this.redRectangle.styleSheetRules;
         this.assertEquals(2, rcss.length, 
             'RedRectangle has not exactly 2 rules before 2nd processing');
-        
+        debugger
         this.yellowRectangle.processStyleSheet(secondCSS);
         this.assertEquals(2, rcss.length, 
            'RedRectangle has not exactly 2 rules after 2nd processing');

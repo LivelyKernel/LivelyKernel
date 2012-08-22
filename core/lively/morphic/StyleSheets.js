@@ -65,7 +65,7 @@ lively.morphic.Morph.addMethods(
                     return b.originMorph.isAncestorOf(a.originMorph);
                 } else {
                     return (thisMorph.getStyleSheetRuleSpecificity(a) >
-                        apps.cssParser.calculateCSSRuleSpecificity(b()));
+                        thisMorph.getStyleSheetRuleSpecificity(b));
                 }
             });
     },

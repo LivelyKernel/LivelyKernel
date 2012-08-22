@@ -32,8 +32,11 @@ lively.morphic.Morph.addMethods(
         // i.e. {'background-color': <declaration>, 'border-width': <declaration>}
 
         var aggregatedStyle = {};
+        
+        // sort the rules for specificity
         this.styleSheetRules.sort(apps.cssParser.isRuleMoreSpecific);
 
+        // iterate over the ordered rules
         for (var i = 0; i < this.styleSheetRules.length; i++) {
             var rule = this.styleSheetRules[i];
             rule.declarations.each(function(decl){

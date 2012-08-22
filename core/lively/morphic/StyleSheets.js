@@ -106,6 +106,10 @@ lively.morphic.Morph.addMethods(
                 
             });
     },
+    newMethod: function() {
+        // enter comment here
+    }
+
 
 },
 'Morph selection methods', {

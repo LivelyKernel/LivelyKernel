@@ -409,8 +409,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             'rule 1 should have color green');
         this.assertEquals('blue', getVal(sortedRules[2]),
             'rule 2 should have color blue');
-        this.assertEquals('.red', getVal(sortedRules[0]),
-            'rule 0 should have color red');
+        this.assertEquals('black', getVal(sortedRules[3]),
+            'rule 3 should have color black');
     },
     test05GetRuleSpecificityOnMorph: function() {
         var css = ".blue, #the-red-rectangle.red, #the-red-rectangle, .red { color: red; }",

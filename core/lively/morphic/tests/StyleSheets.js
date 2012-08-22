@@ -387,12 +387,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals('.red', rcss[0].selectorText(), 'Selector of first rule in RedRectangle is not .red');
         
     },
-    test04GetStyleSheetDeclarations: function() {
+    test04GetSortedRules: function() {
 
-        var css = '.blue{ background-color: blue; }'+
-                '#blue2.blue { background-color: black; }'+
-                '.blue:nth-child(2) { background-color: yellow!important; }'+
-                '.red { color: red; background-color: green;}'+
+        var css = '.red { color: red; background-color: green;}'+
+                '#the-red-rectangle.red, #the-blue-rectangle, #the-blue-rectangle {color: blue;}'
                 '#the-red-rectangle { background-color: red; }';
         this.createSomeMorphs(); // sets up a hierarchy of morphs
 

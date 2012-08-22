@@ -119,12 +119,12 @@ lively.morphic.Morph.addMethods(
             {
                 sel = selectors[j];
                 var morphs = sizzle.select(sel, this)
-                
+
                 // find if the selector matches the element
                 if (sizzle.select(sel, this, null, [this]).length == 1)
                 {
                     spec = apps.cssParser.calculateCSSRuleSpecificity(sel);
-                    
+
                     // find the most specific selector that macthes the element
                     if (spec > maxSpecificity)
                     {
@@ -133,7 +133,6 @@ lively.morphic.Morph.addMethods(
                     }
                 }
             }
-            
             return maxSpecificity;
         } else {
             return apps.cssParser.calculateCSSRuleSpecificity(rule.selectorText());

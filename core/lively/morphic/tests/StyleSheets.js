@@ -389,8 +389,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.createSomeMorphs(); // sets up a hierarchy of morphs
         var firstCSS = ".red { color: red; }",
             secondCSS = "#the-red-rectangle { color: green; }",
-            worldCSS = "#the-red-rectangle { color: black; }";;
-            
+            worldCSS = "#the-red-rectangle { color: black; }";
 
         this.yellowRectangle.processStyleSheet(firstCSS);
         this.world.processStyleSheet(worldCSS );
@@ -398,18 +397,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 
         this.assert(this.redRectangle.styleSheetRules, 'Red Rectangle has no rule attribute');
         var rcss = this.redRectangle.styleSheetRules;
-        this.assertEquals(2, rcss.length, 
+        this.assertEquals(2, rcss.length,
             'RedRectangle has not exactly 2 rules before 2nd processing');
         debugger
         this.yellowRectangle.processStyleSheet(secondCSS);
         rcss = this.redRectangle.styleSheetRules;
-        this.assertEquals(2, rcss.length, 
+        this.assertEquals(2, rcss.length,
            'RedRectangle has not exactly 2 rules after 2nd processing');
-        this.assertEquals('#the-red-rectangle', rcss[0].selectorText(), 
+        this.assertEquals('#the-red-rectangle', rcss[0].selectorText(),
             'Selector of first rule in RedRectangle is not #the-red-rectangle');
-        this.assertEquals('#the-red-rectangle', rcss[1].selectorText(), 
+        this.assertEquals('#the-red-rectangle', rcss[1].selectorText(),
             'Selector of 2nd rule in RedRectangle is not #the-red-rectangle');
-        
     },
 
     test05GetSortedRules: function() {

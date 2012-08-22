@@ -64,8 +64,8 @@ lively.morphic.Morph.addMethods(
                     // child's css is more specific than parent's
                     return b.originMorph.isAncestorOf(a.originMorph);
                 } else {
-                    return (thisMorph.getStyleSheetRuleSpecificity(a.selectorText()) > 
-                        apps.cssParser.calculateCSSRuleSpecificity(b.selectorText()));
+                    return (thisMorph.getStyleSheetRuleSpecificity(a) >
+                        apps.cssParser.calculateCSSRuleSpecificity(b()));
                 }
             
             

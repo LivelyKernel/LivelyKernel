@@ -64,41 +64,7 @@ lively.morphic.Morph.addMethods(
                     // child's css is more specific than parent's
                     return b.originMorph.isAncestorOf(a.originMorph);
                 } else {
-                    // if both rules are declared in the same morph
-                    // calculate specificity through selector
-                    var aSpecificity = thisMorph.getStyleSheetRuleSpecificity(a),
-                        bSpecificity = thisMorph.getStyleSheetRuleSpecificity(b);
-                    // check if it is a grouped selector
-                    if (rule.selector.indexOf(",") != -1)
-                    {
-                        var selectors = rule.selector.split(",");
-                        var maxSpecificity = -1;
-                        var sel, spec, mostSpecificSelector;
-                        
-                        // loop over all selectors in the group
-                        for (var j, len = selectors.length; j < len; j++)
-                        {
-                            sel = selectors[j];
-                            
-                            // find if the selector matches the element
-                            if (Selector.matches(sel, arr).length == 1)
-                            {
-                                spec = getCSSRuleSpecificity(sel);
-                                
-                                // find the most specific selector that macthes the element
-                                if (spec > maxSpecificity)
-                                {
-                                    maxSpecificity = spec;
-                                    mostSpecificSelector = sel;
-                                }
-                            }
-                        }
-                        
-                        rule.specificity = maxSpecificity;
-                    }
-                    
-            
-                    return (apps.cssParser.calculateCSSRuleSpecificity(a.selectorText()) > 
+                    return (thisMorph.getStyleSheetRuleSpecificity(a.selectorText()) > 
                         apps.cssParser.calculateCSSRuleSpecificity(b.selectorText()));
                 }
             

@@ -76,7 +76,7 @@ lively.morphic.Morph.addMethods(
                 maxSpecificity = -1,
                 sizzle = new lively.morphic.Sizzle(),
                 sel, spec, mostSpecificSelector;
-            debugger
+
             // loop over all selectors in the group
             for (var j = 0, len = selectors.length; j < len; j++)
             {

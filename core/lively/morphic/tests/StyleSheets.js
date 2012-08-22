@@ -406,7 +406,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals('red', redTextColorValue ,
             'color of red should be red');
     },
-    newMethod: function() {
+    test05GetRuleSpecificityOnMorph: function() {
         // enter comment here
     },
 

@@ -58,7 +58,7 @@ lively.morphic.Morph.addMethods(
         // Returns an array of all rules matching to
         // the morph, sorted by their specificity (low to high).
         var thisMorph = this;
-        
+
         return this.styleSheetRules.sort(function(a, b) {
                 if (a.originMorph !== b.originMorph) {
                     // child's css is more specific than parent's
@@ -67,9 +67,6 @@ lively.morphic.Morph.addMethods(
                     return (thisMorph.getStyleSheetRuleSpecificity(a) >
                         apps.cssParser.calculateCSSRuleSpecificity(b()));
                 }
-            
-            
-                
             });
     },
     getStyleSheetRuleSpecificity: function(rule) {

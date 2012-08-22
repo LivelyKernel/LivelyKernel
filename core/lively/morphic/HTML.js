@@ -948,20 +948,17 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     
     getComputedExtentHTML: function(ctx) {
-        debugger
         if (ctx.shapeNode) {
             var width = $(ctx.shapeNode).outerWidth(),
                 height = $(ctx.shapeNode).outerHeight();
             if (height >0 && width >0) {
                 return pt(width, height);
             } else {
-                return null;    
+                return null;
             }
         } else {
             return null;
         }
-        
-
     },
 
 

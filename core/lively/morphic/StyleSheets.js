@@ -42,7 +42,8 @@ lively.morphic.Morph.addMethods(
         // i.e. {'background-color': <declaration>, 'border-width': <declaration>}
 
         var aggregatedStyle = {},
-            rules;
+            rules,
+            result = [];
         
         // sort the rules for specificity
         rules = this.sortStyleSheetRules();

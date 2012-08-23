@@ -719,7 +719,7 @@ Object.subclass("lively.morphic.Sizzle",
 				// spaces as combinators
 				var matcher = this.compile( selector.replace( this.rtrim, "$1" ), context, xml );
 				return function( elem ) {
-					return !matcher.call(this, elem );
+					return !matcher.call(this, elem, context);
 				};
 			}),
 

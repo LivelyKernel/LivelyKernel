@@ -2598,7 +2598,7 @@ Object.subclass('lively.morphic.TextChunk',
         var chunkNode = this.getChunkNode();
         for (var i = 0; i < chunkNode.childNodes.length; i++) {
             var node = chunkNode.childNodes[i];
-            if (node.tagName === 'br') { chunkNode.removeNode(node); };
+            if (node.tagName === 'br') { chunkNode.removeChild(node); };
         }
     },
     removeNonChunkNodes: function() {

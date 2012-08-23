@@ -570,7 +570,7 @@ Object.subclass("lively.morphic.Sizzle",
 			"CLASS": function( className ) {
 				var pattern = this.classCache[ className ];
 				if ( !pattern ) {
-					pattern = this.classCache[ className ] = new RegExp( "(^|" + this.whitespace + ")" + className + "(" + this.whitespace + "|$)/i" );
+					pattern = this.classCache[ className ] = new RegExp( "(^|" + this.whitespace + ")" + className + "(" + this.whitespace + "|$)" );
 					this.cachedClasses.push( className );
 					// Avoid too large of a cache
 					if ( this.cachedClasses.length > this.cacheLength ) {

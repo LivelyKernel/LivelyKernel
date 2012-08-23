@@ -209,7 +209,7 @@ Widget.subclass('lively.ide.BasicBrowser',
                 cmd.button = btn; // used in onPaneXUpdate, to be removed!!!
                 morph.addMorph(btn);
                 btn.applyStyle({padding: Rectangle.inset(0,4),
-                                scaleProportional: true,
+                                scaleProportional: false,
                                 label: {fontSize: 9}})
             })
         this.buttonCommands = cmds;

@@ -2584,7 +2584,6 @@ Object.subclass('lively.morphic.TextChunk',
         }
         return nodes;
     },
-
     ensureEndsWithBr: function() {
         var chunkNode = this.getChunkNode(),
             lastBrFound = false;
@@ -2594,6 +2593,13 @@ Object.subclass('lively.morphic.TextChunk',
             if (node.textContent.length > 0) { lastBrFound = false; };
         }
         if (!lastBrFound) { chunkNode.appendChild(XHTMLNS.create('br')); };
+    },
+    ensureDoesNotEndWithBr: function() {
+        var chunkNode = this.getChunkNode();
+        for (var i = 0; i < chunkNode.childNodes.length; i++) {
+            var node = chunkNode.childNodes[i];
+            if (node.tagName === 'br') { chunkNode.removeNode(node); };
+        }
     },
     removeNonChunkNodes: function() {
         var node = this.getChunkNode(),

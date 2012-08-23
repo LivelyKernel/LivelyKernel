@@ -885,6 +885,7 @@ Object.subclass("lively.morphic.Sizzle",
         if (context.isMorph && !seed) {
             seed = [];
             context.withAllSubmorphsDo(function(m){seed.push(m)});
+            context = context.world();
         }
         debugger
 	var match, elem, xml, m,

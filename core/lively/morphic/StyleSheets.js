@@ -878,10 +878,10 @@ Object.subclass("lively.morphic.Sizzle",
     },
     
     select: function( selector, context, results, seed ) {
-	
+
 	results = results || [];
 	context = context || $world;
-        
+
         // Different to normal selection in HTML, we want the context
         // to be included in the search field.
         // Thus, to keep the Sizzle algorithm as untouched as possible,

@@ -2596,10 +2596,9 @@ Object.subclass('lively.morphic.TextChunk',
     },
     ensureDoesNotEndWithBr: function() {
         var chunkNode = this.getChunkNode();
-        for (var i = 0; i < chunkNode.childNodes.length; i++) {
-            var node = chunkNode.childNodes[i];
-            if (node.tagName === 'br') { chunkNode.removeChild(node); };
-        }
+        if (chunkNode.childNodes.length == 0) return;
+        var node = chunkNode.childNodes[chunkNode.childNodes.length - 1];
+        if (node.tagName === 'br') { chunkNode.removeChild(node); };
     },
     removeNonChunkNodes: function() {
         var node = this.getChunkNode(),

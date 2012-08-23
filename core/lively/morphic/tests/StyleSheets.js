@@ -305,7 +305,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             this.world,
             'selection for ".red > .blue" should return both blue rectangles');
 
-    }
+    },
     
 });
 

@@ -2964,13 +2964,13 @@ Object.subclass('lively.morphic.TextEmphasis',
     },
 
     installCallbackHandler: function(node) {
-        debugger;
         if (!this.clickCallbacks || this.clickCallbacks.length === 0) {
             delete node.onmousedown;
             return;
         };
         var cbs = this.clickCallbacks;
         node.onmousedown = function(evt) {
+            debugger;
             // Lively event dispatch not used here
             for (var i = 0; i < cbs.length; i++) {
                 cbs[i].call(this, evt);

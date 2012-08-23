@@ -1155,7 +1155,7 @@ Object.subclass("lively.morphic.Sizzle",
     addCombinator: function( matcher, combinator, context ) {
         var dir = combinator.dir,
             doneName = this.done++;
-
+        debugger
         if ( !matcher ) {
             // If there is no matcher to check, check against the context
             matcher = function( elem ) {

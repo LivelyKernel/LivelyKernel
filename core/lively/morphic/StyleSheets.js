@@ -882,12 +882,17 @@ Object.subclass("lively.morphic.Sizzle",
 	results = results || [];
 	context = context || $world;
         
+        // Different to normal selection in HTML, we want the context
+        // to be included in the search field.
+        // Thus, to keep the Sizzle algorithm as untouched as possible,
+        // the context is set to the world, while the searchfield is
+        // represented by the 'seed'.
         if (context.isMorph && !seed) {
             seed = [];
             context.withAllSubmorphsDo(function(m){seed.push(m)});
             context = context.world();
         }
-        debugger
+
 	var match, elem, xml, m,
 		nodeType = (context.isWorld) ? 9 : 1;
 

@@ -306,6 +306,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             'selection for ".red > .blue" should return both blue rectangles');
 
     },
+    newMethod: function() {
+        // enter comment here
+    }
+
     
 });
 

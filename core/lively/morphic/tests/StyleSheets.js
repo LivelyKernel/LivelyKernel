@@ -199,6 +199,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
         */
     },
     testSelectMorphByClassName: function() {
+        debugger
         this.assertSizzleSelect([this.blueRectangle1, this.blueRectangle2],
             '.blue',
             this.world,

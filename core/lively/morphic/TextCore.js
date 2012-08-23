@@ -2087,6 +2087,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
     appendRichText: function(string, style) {
         var newChunk = this.createChunk();
+        this.textChunks.push(newChunk);
         newChunk.textString = string;
         newChunk.styleText(style);
         this.coalesceChunks();

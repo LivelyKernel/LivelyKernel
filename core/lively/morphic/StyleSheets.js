@@ -1245,6 +1245,43 @@ Object.subclass("lively.morphic.Sizzle",
         if (firstCombinator) {
             // First combinator in selector should include context
             // (different in morphic than in HTML).
+            
+            return function( elem, context ) {
+                var cache,
+                    dirkey = doneName + "." + this.dirruns,
+                    cachedkey = dirkey + "." + this.cachedruns;
+
+                if  ( matcher.call(this, elem, context ) ) {
+                                elem.sizset = true;
+                                return elem;
+                }
+
+                /*
+                if (context.owner) {
+                    context = context.owner;
+                }
+                */
+                while ( (elem = elem[ dir ]) ) {
+                    if ( elem.isMorph ) {
+                        if ( (cache = elem[ this.expando ]) === cachedkey ) {
+                            return elem.sizset;
+                        } else if ( typeof cache === "string" && cache.indexOf(dirkey) === 0 ) {
+                            if ( elem.sizset ) {
+                                return elem;
+                            }
+                        } else {
+                            elem[ this.expando ] = cachedkey;
+                            if ( matcher.call(this, elem, context ) ) {
+                                elem.sizset = true;
+                                return elem;
+                            }
+                            elem.sizset = false;
+                        }
+                    }
+                }
+            };
+            
+            
         } else if (combinator.first) {
             return function( elem, context ) {
                 while ( (elem = elem[ dir ]) ) {

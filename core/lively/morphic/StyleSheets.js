@@ -225,7 +225,7 @@ lively.morphic.Morph.addMethods(
             this.classNames = [];
         }
         this.classNames.push(className);
-        this.classNames = this.classNames.uniq();
+        this.classNames = this.makeUniqueClassNamesList(this.classNames);
     },
     removeClassName: function(className) {
         var pattern = this.makeClassNameRegExp(className),

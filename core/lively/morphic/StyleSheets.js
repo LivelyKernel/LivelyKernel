@@ -254,6 +254,10 @@ lively.morphic.Morph.addMethods(
             return null;
         }
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
     
     getAttribute: function(attr) {
         return this[attr];    

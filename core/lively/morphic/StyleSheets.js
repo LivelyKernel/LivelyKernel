@@ -119,7 +119,7 @@ lively.morphic.Morph.addMethods(
 },
 'Morph selection', {
     getSubmorphById: function(id, optIdAttributeName) {
-        if (this.id == id){
+        if (this[optIdAttributeName || 'id'] == id){
             return this;
         } else {
             for (var i = 0; i < this.submorphs.length; i++) {

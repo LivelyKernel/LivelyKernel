@@ -247,7 +247,7 @@ lively.morphic.Morph.addMethods(
     
     setClassNames: function(classNames) {
         if (classNames && Array.isArray(classNames)) {
-            
+            this.classNames = this.makeUniqueClassNamesList(classNames);
         } else {
             return null;
         }

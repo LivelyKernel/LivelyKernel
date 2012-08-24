@@ -35,9 +35,8 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                     morphPrefixId = '#'+this.getDomId();
                     
                 rules.each(function(rule) {
-                    
-                        var selectors = rule.selectorText().split(
-                            /[\x20\t\r\n\f]*,[\x20\t\r\n\f]*/);
+                        var selectors = this.splitGroupedSelector(rule);
+
                     });
             },
     splitGroupedSelector: function(selector) {

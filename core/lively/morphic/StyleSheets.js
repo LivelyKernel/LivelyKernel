@@ -1288,11 +1288,8 @@ Object.subclass("lively.morphic.Sizzle",
                     }
                 }
             };
-            
+
         }
-        
-       
-            
     },
 
     addMatcher: function( higher, deeper ) {

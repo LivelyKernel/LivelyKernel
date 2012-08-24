@@ -260,7 +260,7 @@ lively.morphic.Morph.addMethods(
                 
             });
     },
-    newMethod: function() {
+    makeClassNameRegExp: function(className) {
         // enter comment here
     },
 

@@ -41,8 +41,9 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                     });
             },
     splitGroupedSelector: function(selector) {
-        return selector.
+        var selectorList = selector.
             split(/[\x20\t\r\n\f]*,[\x20\t\r\n\f]*/);
+        return selectorList
     },
 
             

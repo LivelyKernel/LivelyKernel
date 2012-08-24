@@ -9,7 +9,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                 this.shape.setStyleSheet(value);
             },
             getDomId: function() {
-                // TODO: trim the result!
+                // TODO: dont forget to trim the result!
                 
             },
             generateAncestorPrefixString: function() {

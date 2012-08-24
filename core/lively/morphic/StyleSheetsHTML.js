@@ -82,8 +82,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                         var selectors = this.splitGroupedSelector(rule),
                             newSelector = '';
                         selectors.each(function(s) {
-                                var combinator =
-                                    /[\x20\t\r\n\f]*([\x20\t\r\n\f>+~])[\x20\t\r\n\f]*/;
+                                
                                 
                                 
                                 

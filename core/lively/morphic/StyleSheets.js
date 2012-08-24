@@ -117,7 +117,7 @@ lively.morphic.Morph.addMethods(
 
 
 },
-'Morph selection methods', {
+'Morph selection', {
     getSubmorphById: function(id) {
         if (this.id == id){
             return this; 

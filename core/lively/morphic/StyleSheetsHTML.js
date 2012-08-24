@@ -4,6 +4,50 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
         
     });
     lively.morphic.Morph.addMethods(
+    'RegExp', {
+        /*
+	whitespace : "[\\x20\\t\\r\\n\\f]",
+	characterEncoding : "(?:\\\\.|[-\\w]|[^\\x00-\\xa0])+",
+	identifier : characterEncoding.replace( "w", "w#" ),
+
+	operators : "([*^$|!~]?=)",
+	attributes : "\\[" + whitespace + "*(" + characterEncoding + ")" + whitespace +
+		"*(?:" + operators + whitespace + "*(?:(['\"])((?:\\\\.|[^\\\\])*?)\\3|(" + identifier + ")|)|)" + whitespace + "*\\]",
+	pseudos : ":(" + characterEncoding + ")(?:\\((?:(['\"])((?:\\\\.|[^\\\\])*?)\\2|((?:[^,]|\\\\,|(?:,(?=[^\\[]*\\]))|(?:,(?=[^\\(]*\\))))*))\\)|)",
+	pos : ":(nth|eq|gt|lt|first|last|even|odd)(?:\\((\\d*)\\)|)(?=[^-]|$)",
+	combinators : whitespace + "*([\\x20\\t\\r\\n\\f>+~])" + whitespace + "*",
+	groups = "(?=[^\\x20\\t\\r\\n\\f])(?:\\\\.|" + attributes + "|" + pseudos.replace( 2, 7 ) + "|[^\\\\(),])+",
+
+	// Leading and non-escaped trailing whitespace, capturing some non-whitespace characters preceding the latter
+	rtrim = new RegExp( "^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$", "g" ),
+
+	rcombinators = new RegExp( "^" + combinators ),
+
+	// All simple (non-comma) selectors, excluding insignifant trailing whitespace
+	rgroups = new RegExp( groups + "?(?=" + whitespace + "*,|$)", "g" ),
+
+	// A selector, or everything after leading whitespace
+	// Optionally followed in either case by a ")" for terminating sub-selectors
+	rselector = new RegExp( "^(?:(?!,)(?:(?:^|,)" + whitespace + "*" + groups + ")*?|" + whitespace + "*(.*?))(\\)|$)" ),
+
+	// All combinators and selector components (attribute test, tag, pseudo, etc.), the latter appearing together when consecutive
+	rtokens = new RegExp( groups.slice( 19, -6 ) + "\\x20\\t\\r\\n\\f>+~])+|" + combinators, "g" ),
+
+	// Easily-parseable/retrievable ID or TAG or CLASS selectors
+	rquickExpr = /^(?:#([\w\-]+)|(\w+)|\.([\w\-]+))$/,
+
+	rsibling = /[\x20\t\r\n\f]*[+~]/,
+	rendsWithNot = /:not\($/,
+
+	rheader = /h\d/i,
+	rinputs = /input|select|textarea|button/i,
+
+	rbackslash = /\\(?!\\)/g,
+    
+        */
+        
+    },
+    
         'stylesheets', {
             setStyleSheet: function(value) {
                 this.shape.setStyleSheet(value);

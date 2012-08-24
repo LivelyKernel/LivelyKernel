@@ -1,5 +1,7 @@
 module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(function() {
 
-// Enter your code here
+Object.extend(lively.morphic.Morph.prototype.htmlDispatchTable, {
+        
+    });
 
 }) // end of module

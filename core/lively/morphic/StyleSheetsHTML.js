@@ -101,9 +101,10 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
 
         // Include the morph itself ...
         extendedSelector += ', ';
-
         extendedSelector += morphPrefix;
-
+        extendedSelector += selector;
+        
+        return extendedSelector;
     },
 
     splitGroupedSelector: function(selector) {

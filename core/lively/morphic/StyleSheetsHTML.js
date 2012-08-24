@@ -5,7 +5,9 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
     });
     lively.morphic.Morph.addMethods(
         'stylesheets', {
-            
+            setStyleSheet: function(value) {
+                this.shape.setStyleSheet(value);
+            },
         }
     )
 }) // end of module

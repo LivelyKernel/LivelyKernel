@@ -35,9 +35,16 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                     morphPrefixId = '#'+this.getDomId();
 
                 rules.each(function(rule) {
-                        var selectors = this.splitGroupedSelector(rule);
-
-                    });
+                        var selectors = this.splitGroupedSelector(rule),
+                            newSelector = '';
+                        selectors.each(function(s) {
+                                
+                                
+                                
+                                
+                            });
+                        
+                    }, this);
             },
     splitGroupedSelector: function(selector) {
         var selectorList = selector.

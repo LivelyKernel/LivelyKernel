@@ -6,7 +6,7 @@ lively.morphic.Morph.addMethods(
 
         var sizzle = new lively.morphic.Sizzle(),
             styleSheetRules = apps.cssParser.parse(styleSheet);
-
+debugger
         // get rid of the old rules in all submorphs
         this.withAllSubmorphsDo(function(morph){
                 if (morph.styleSheetRules) {
@@ -16,7 +16,7 @@ lively.morphic.Morph.addMethods(
                         },this);
                 }
             }, this);
-
+        
         styleSheetRules.each(function(rule){
 
             if (rule.type === 1) {

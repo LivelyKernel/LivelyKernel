@@ -193,6 +193,11 @@ lively.morphic.Morph.addMethods(
         return resultMorphs;
     },
     isOfClass: function(className) {
+        // Tests if a morph has a specific class.
+        // Argument can be a single class name or a
+        // string containing multiple classnames
+        // separated by blanks.
+
         var classNames = className.toLowerCase().split(/[\s,]+/),
             morphClasses = this.getClassNames() || [];
 

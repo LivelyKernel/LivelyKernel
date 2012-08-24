@@ -161,7 +161,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
     },
     test03MorphSetClassNames: function() {
         this.morph.classNames = [];
-        this.morph.addClassName('test');
+        this.morph.setClassNames(['test']);
 
         this.assertEquals(1, this.morph.classNames.length,
             'Class names array in morph is not 1');

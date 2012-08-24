@@ -211,6 +211,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
     },
     test05MorphRemoveClassName: function() {
         this.morph.setClassNames(['test', 'CrAzYmOrPh']);
+        
+        this.morph.removeClassName('Test');
+        thi
     }
 
 

@@ -74,7 +74,6 @@ lively.morphic.Morph.addMethods(
         var thisMorph = this;
 
         return this.styleSheetRules.sort(function(a, b) {
-                debugger
                 if (a.originMorph !== b.originMorph) {
                     // child's css is more specific than parent's
                     return b.originMorph.isAncestorOf(a.originMorph);

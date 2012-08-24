@@ -26,7 +26,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                             ((ancestorPrefix)?(' '+ancestorPrefix):'');
                     }
                 }
-                
+
                 rules.each
             },
             

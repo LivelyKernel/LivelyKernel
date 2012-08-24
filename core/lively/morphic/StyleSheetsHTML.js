@@ -22,7 +22,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
         	if (ctx.styleNode) {
         	   $(ctx.styleNode).remove();
                 }
-                if (value && value.length > 1) {
+                if (styleSheet && styleSheet.length > 1) {
 
             	    //console.log("Setting CSS for shape "+morphId+" to "+value);
                     var specificCss = "#"+morphId+" { "+value+" }";

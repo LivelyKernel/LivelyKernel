@@ -260,7 +260,7 @@ lively.morphic.Morph.addMethods(
     },
 },
 'Morph class names', {
-        isOfClass: function(className) {
+    isOfClass: function(className) {
         // Tests if a morph has a specific class.
         // Argument can be a single class name or a
         // string containing multiple classnames

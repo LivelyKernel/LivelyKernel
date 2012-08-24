@@ -196,7 +196,8 @@ lively.morphic.Morph.addMethods(
         var classNames = className.toLowerCase().split(/[\s,]+/),
             morphClasses = this.getClassNames() || [];
         classNames = classNames.collect(function(c) {
-                return new Reg
+                return new RegExp( "(^|[\\x20\\t\\r\\n\\f])" +
+                    c + "([\\x20\\t\\r\\n\\f]|$)", "i" );
             });
         for (var i = 0; i < classNames.length; i++) {
             var innerLoopRet = false;

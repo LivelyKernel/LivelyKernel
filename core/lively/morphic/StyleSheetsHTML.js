@@ -95,19 +95,24 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                 /[\x20\t\r\n\f]*([\x20\t\r\n\f>+~])[\x20\t\r\n\f]*/,
             firstToken = selector.split(combinator).first(),
             extendedSelector = '',
-            firstTokeHasId = (firstToken.indexOf('#') >= 0);
+            firstTokenHasId = (firstToken.indexOf('#') >= 0);
             
-        // Includes the childs of the morph ...
+        // Include the childs of the morph ...
         extendedSelector += ancestorPrefix;
         extendedSelector += ' ';
-        if (!firstTokeHasId) {
+        if (!firstTokenHasId ) {
             extendedSelector += morphPrefix;
         }
         extendedSelector += ' ';
         extendedSelector += selector;
         
+        // Include the morph itself ...
         extendedSelector += ', ';
-        extendedSelector += ancestorPrefix;        
+        extendedSelector += ancestorPrefix;
+        extendedSelector += ' ';
+        if (!firstTokenHasId ) {
+            extendedSelector += morphPrefix;
+        }
     },
 
     splitGroupedSelector: function(selector) {

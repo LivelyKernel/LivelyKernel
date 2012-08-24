@@ -124,7 +124,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         );
     },
     test02MorphAddClassNames: function() {
-        this.morph.addMorph
+        this.morph.classNames = [];
+        this.morph.addClassName('test');
     }
 
     

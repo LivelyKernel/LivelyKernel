@@ -1330,7 +1330,7 @@ Object.subclass("lively.morphic.Sizzle",
             cached = this.compilerCache[ selector ];
 
         // Return a cached group function if already generated (context dependent)
-        if ( cached && cached.context === context ) {
+        if ( this.caching && cached && cached.context === context ) {
             return cached;
         }
 

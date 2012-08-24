@@ -8,6 +8,10 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
             setStyleSheet: function(value) {
                 this.shape.setStyleSheet(value);
             },
+            getDomId: function() {
+                // TODO: trim the result!
+                
+            },
             generateAncestorPrefixString: function() {
                 var ancestorPrefix = '';
                 if (!this.isWorld) {

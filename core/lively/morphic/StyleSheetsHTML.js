@@ -1,4 +1,4 @@
-module('lively.morphic.StyleSheetsHTML').requires().toRun(function() {
+module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(function() {
 
 // Enter your code here
 

@@ -230,7 +230,7 @@ lively.morphic.Morph.addMethods(
             } else {
                 this.classNames.push(className);
             }
-            this.classNames = this.makeUniqueClassNamesList(this.classNames);
+            this.setClassNames(this.classNames);
         }
     },
     removeClassName: function(className) {

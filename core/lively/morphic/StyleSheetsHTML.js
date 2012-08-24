@@ -33,7 +33,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                 var output = '',
                     ancestorPrefixId = this.generateAncestorPrefixString(),
                     morphPrefixId = '#'+this.getDomId();
-                    
+
                 rules.each(function(rule) {
                         var selectors = this.splitGroupedSelector(rule);
 

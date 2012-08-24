@@ -201,22 +201,6 @@ lively.morphic.Morph.addMethods(
         return { value : this.getAttribute(attr) };
     },
     
-    getClassNames: function() {
-        var classNames = [];
-
-        if (this.classNames) {
-            classNames = classNames.concat(this.classNames);
-        }
-        // add real class types to the classnames too
-        var type = this.constructor;
-        while (type != Object) {
-            classNames.unshift(type.name);
-            type = type.superclass;
-        }
-
-        // each class has to be in the return array only once
-        return this.makeUniqueClassNamesList(classNames);
-    },
     getPreviousSibling: function() {
         
         if (!this.owner || !this.owner.submorphs || this.owner.submorphs.length <= 1) {
@@ -260,6 +244,22 @@ lively.morphic.Morph.addMethods(
     },
 },
 'Morph class names', {
+    getClassNames: function() {
+        var classNames = [];
+
+        if (this.classNames) {
+            classNames = classNames.concat(this.classNames);
+        }
+        // add real class types to the classnames too
+        var type = this.constructor;
+        while (type != Object) {
+            classNames.unshift(type.name);
+            type = type.superclass;
+        }
+
+        // each class has to be in the return array only once
+        return this.makeUniqueClassNamesList(classNames);
+    },
     isOfClass: function(className) {
         // Tests if a morph has a specific class.
         // Argument can be a single class name or a

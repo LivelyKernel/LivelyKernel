@@ -25,7 +25,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                 if (styleSheet && styleSheet.length > 1) {
 
             	    //console.log("Setting CSS for shape "+morphId+" to "+value);
-                    var specificCss = "#"+morphId+" { "+value+" }";
+                    var specificCss = "#"+morphId+" { "+styleSheet+" }";
 
                     // syntax fixes for the sap gold reflection css
                     specificCss = specificCss.replace(/[\s]*=[\s]*/g,"=");

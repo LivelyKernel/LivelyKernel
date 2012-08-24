@@ -1242,15 +1242,19 @@ Object.subclass("lively.morphic.Sizzle",
                 return elem === context;
             };
         }
-        return combinator.first ?
-            function( elem, context ) {
+        if (firstCombinator) {
+            // First combinator in selector should include context
+            // (different in morphic than in HTML).
+        } else if (combinator.first) {
+            return function( elem, context ) {
                 while ( (elem = elem[ dir ]) ) {
                     if ( elem.isMorph ) {
                         return matcher.call(this, elem, context ) && elem;
                     }
                 }
-            } :
-            function( elem, context ) {
+            }
+        } else {
+            return function( elem, context ) {
                 var cache,
                     dirkey = doneName + "." + this.dirruns,
                     cachedkey = dirkey + "." + this.cachedruns;
@@ -1284,6 +1288,11 @@ Object.subclass("lively.morphic.Sizzle",
                     }
                 }
             };
+            
+        }
+        
+       
+            
     },
 
     addMatcher: function( higher, deeper ) {

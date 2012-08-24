@@ -123,7 +123,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
             'Morph does not have class names "morph" and "box"'
         );
     },
-    newMethod: function() {
+    test02MorphAddClassNames: function() {
         // enter comment here
     }
 

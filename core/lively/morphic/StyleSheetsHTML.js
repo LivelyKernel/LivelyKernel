@@ -8,7 +8,17 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
             setStyleSheet: function(value) {
                 this.shape.setStyleSheet(value);
             },
-            
+            generatedAncestorPrefixString: function() {
+                var ancestorPrefix = '';
+                if (!this.isWorld) {
+                    var m = this;
+                    while ((m = m.owner)) {
+                        ancestorPrefix = '#'+m.getDomId()+
+                            ((ancestorPrefix)?(' '+ancestorPrefix):'');
+                    }
+                }
+                return
+            },
             compileStyleSheet: function(rules) {
                 // Takes a list of css rules and assembles a style
                 // sheet which can be injected into the DOM.
@@ -19,13 +29,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                     ancestorPrefix = '',
                     morphPrefix = '';
 
-                if (!this.isWorld) {
-                    var m = this;
-                    while ((m = m.owner)) {
-                        ancestorPrefix = '#'+m.getDomId()+
-                            ((ancestorPrefix)?(' '+ancestorPrefix):'');
-                    }
-                }
+                
 
                 rules.each
             },

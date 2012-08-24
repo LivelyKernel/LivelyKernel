@@ -120,7 +120,7 @@ lively.morphic.Morph.addMethods(
 'Morph selection', {
     getSubmorphById: function(id) {
         if (this.id == id){
-            return this; 
+            return this;
         } else {
             for (var i = 0; i < this.submorphs.length; i++) {
                 var m = this.submorphs[i],
@@ -1246,7 +1246,6 @@ Object.subclass("lively.morphic.Sizzle",
             if (firstCombinator) {
                 return function( elem, context ) {
                     if  ( matcher.call(this, elem, context ) ) {
-                                    elem.sizset = true;
                                     return elem;
                     }
                     while ( (elem = elem[ dir ]) ) {

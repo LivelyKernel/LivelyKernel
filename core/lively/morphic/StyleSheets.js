@@ -218,7 +218,21 @@ lively.morphic.Morph.addMethods(
     },
     removeClassName: function(className) {
         var pattern = new RegExp( "(^|[\\x20\\t\\r\\n\\f])" +
-                className + "([\\x20\\t\\r\\n\\f]|$)", "i" )
+                className + "([\\x20\\t\\r\\n\\f]|$)", "i" ),
+            newClassList = [],
+            result = false;
+        if (this.classNames && Array.isArray(this.classNames)) {
+            this.classNames.each(function (c){
+                    if (pattern.test(c)) {
+                        result = true;
+                    } else {
+                        newClassList.push(c);
+                    }
+                });
+            this.classNames = newClassList;
+        } else {
+            return false;
+        }
     },
     
     getAttribute: function(attr) {

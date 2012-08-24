@@ -108,9 +108,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
 
     
 });
-Object.extend(SomeObject, {
-    m1: function() {},
-});
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.SizzleMorphicSelection',
 'running', {

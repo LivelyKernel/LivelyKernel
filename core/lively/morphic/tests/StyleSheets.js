@@ -91,7 +91,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
 
     testSelectMorphByAttributes: function() {
         
-        debugger
         this.assertEqualState([this.yellowRectangle, this.redRectangle], 
             this.world.getSubmorphsByAttribute('testAttribute'),
             'selection by attribute should include the yellow and the red morph');

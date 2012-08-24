@@ -91,7 +91,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                         
                     }, this);
             },
-    newMethod: function() {
+    addSelectorPrefixes: function(selector, ancestorPrefix, morphPrefix) {
         // enter comment here
     },
 

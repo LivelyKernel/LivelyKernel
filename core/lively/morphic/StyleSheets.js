@@ -217,8 +217,8 @@ lively.morphic.Morph.addMethods(
         this.classNames = this.classNames.uniq();
     },
     removeClassName: function(className) {
-        var pattern = new RegExp( "(^|" + this.whitespace + ")" +
-                className + "(" + this.whitespace + "|$)", "i" )
+        var pattern = new RegExp( "(^|[\\x20\\t\\r\\n\\f])" +
+                className + "([\\x20\\t\\r\\n\\f]|$)", "i" )
     },
     
     getAttribute: function(attr) {

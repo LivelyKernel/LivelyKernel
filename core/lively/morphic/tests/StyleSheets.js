@@ -124,7 +124,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         );
     },
     test02MorphAddClassNames: function() {
-        // enter comment here
+        this.morph.addMorph
     }
 
     

@@ -8,7 +8,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
             setStyleSheet: function(value) {
                 this.shape.setStyleSheet(value);
             },
-            generatedAncestorPrefixString: function() {
+            generateAncestorPrefixString: function() {
                 var ancestorPrefix = '';
                 if (!this.isWorld) {
                     var m = this;
@@ -27,7 +27,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                 // are extended so the rules may not be applied
                 // to morphs outside the addressed hierarchy.
                 var output = '',
-                    ancestorPrefix = '',
+                    ancestorPrefix = this.generateAncestorPrefixString(),
                     morphPrefix = '';
 
                 
@@ -80,4 +80,4 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
             }
         }
     )
-}) // end of module
+}) // end of module()

@@ -88,12 +88,8 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                     }, this);
             },
     addSelectorPrefixes: function(selector, ancestorPrefix, morphPrefix) {
-        var combinator =
-                /[\x20\t\r\n\f]*([\x20\t\r\n\f>+~])[\x20\t\r\n\f]*/,
-            firstToken = selector.split(combinator).first(),
-            extendedSelector = '',
-            firstTokenHasId = (firstToken.indexOf('#') >= 0);
-
+        var extendedSelector = '';
+        
         // Include the childs of the morph ...
         extendedSelector += morphPrefix;
         extendedSelector += ' ';

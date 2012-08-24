@@ -548,7 +548,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
     },
 
     test06GetSortedRules: function() {
-        debugger
+        
         var worldCss = '.red { color: red;}'+ //1
                 '#the-red-rectangle.red {color: blue;}' + //3
                 '#the-red-rectangle, #the-blue-rectangle, #the-blue-rectangle { color: green }', //2

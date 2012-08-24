@@ -183,6 +183,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         this.assertEquals(['morph', 'test'], this.morph.getClassNames(),
             'Class names array should contain "morph" and "test"');
     },
+    newMethod: function() {
+        // enter comment here
+    }
+
 
 
 });

@@ -209,7 +209,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         this.assert(this.morph.isOfClass('crazymorph test morph'),
             'Morph should be of class "crazymorph test morph"');
     },
-    newMethod: function() {
+    test05MorphRemoveClassName: function() {
         // enter comment here
     }
 

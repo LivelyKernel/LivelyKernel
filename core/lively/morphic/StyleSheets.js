@@ -192,7 +192,75 @@ lively.morphic.Morph.addMethods(
 
         return resultMorphs;
     },
-    isOfClass: function(className) {
+    
+    getAttribute: function(attr) {
+        return this[attr];    
+    },
+    
+    getAttributeNode: function(attr) {
+        return { value : this.getAttribute(attr) };
+    },
+    
+    getClassNames: function() {
+        var classNames = [];
+
+        if (this.classNames) {
+            classNames = classNames.concat(this.classNames);
+        }
+        // add real class types to the classnames too
+        var type = this.constructor;
+        while (type != Object) {
+            classNames.unshift(type.name);
+            type = type.superclass;
+        }
+
+        // each class has to be in the return array only once
+        return this.makeUniqueClassNamesList(classNames);
+    },
+    getPreviousSibling: function() {
+        
+        if (!this.owner || !this.owner.submorphs || this.owner.submorphs.length <= 1) {
+            return null;
+        } else {
+            var i = 0,
+                pos;
+            while (this.owner.submorphs[i]) {
+                if (this.owner.submorphs[i] === this) {
+                    pos = i;
+		      
+		  break;
+                }
+                i++;
+            }
+
+            if (pos >=0 && this.owner.submorphs[pos - 1]) {
+                return this.owner.submorphs[pos - 1];
+            }
+        }
+    },
+    getNextSibling: function() {
+        
+        if (!this.owner || !this.owner.submorphs || this.owner.submorphs.length <= 1) {
+            return null;
+        } else {
+            var i = 0,
+                pos;
+            while (this.owner.submorphs[i]) {
+                if (this.owner.submorphs[i] === this) {
+                    pos = i;
+                    break;
+                }
+				i++;
+            }
+
+            if (pos >=0 && this.owner.submorphs[pos + 1]) {
+                return this.owner.submorphs[pos + 1];
+            }
+        }
+    },
+},
+'Morph class names', {
+        isOfClass: function(className) {
         // Tests if a morph has a specific class.
         // Argument can be a single class name or a
         // string containing multiple classnames
@@ -276,77 +344,10 @@ lively.morphic.Morph.addMethods(
         return new RegExp( "(^|[\\x20\\t\\r\\n\\f])" +
                 className + "([\\x20\\t\\r\\n\\f]|$)", "i" );
     },
-
-
     
-    getAttribute: function(attr) {
-        return this[attr];    
-    },
+}
     
-    getAttributeNode: function(attr) {
-        return { value : this.getAttribute(attr) };
-    },
-    
-    getClassNames: function() {
-        var classNames = [];
-
-        if (this.classNames) {
-            classNames = classNames.concat(this.classNames);
-        }
-        // add real class types to the classnames too
-        var type = this.constructor;
-        while (type != Object) {
-            classNames.unshift(type.name);
-            type = type.superclass;
-        }
-
-        // each class has to be in the return array only once
-        return this.makeUniqueClassNamesList(classNames);
-    },
-    getPreviousSibling: function() {
-        
-        if (!this.owner || !this.owner.submorphs || this.owner.submorphs.length <= 1) {
-            return null;
-        } else {
-            var i = 0,
-                pos;
-            while (this.owner.submorphs[i]) {
-                if (this.owner.submorphs[i] === this) {
-                    pos = i;
-		      
-		  break;
-                }
-                i++;
-            }
-
-            if (pos >=0 && this.owner.submorphs[pos - 1]) {
-                return this.owner.submorphs[pos - 1];
-            }
-        }
-    },
-	getNextSibling: function() {
-        
-        if (!this.owner || !this.owner.submorphs || this.owner.submorphs.length <= 1) {
-            return null;
-        } else {
-            var i = 0,
-                pos;
-            while (this.owner.submorphs[i]) {
-                if (this.owner.submorphs[i] === this) {
-                    pos = i;
-                    break;
-                }
-				i++;
-            }
-
-            if (pos >=0 && this.owner.submorphs[pos + 1]) {
-                return this.owner.submorphs[pos + 1];
-            }
-        }
-    },
-    
-
-});
+);
 
 Object.subclass("lively.morphic.Sizzle",
 'documentation', {

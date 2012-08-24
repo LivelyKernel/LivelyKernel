@@ -265,9 +265,8 @@ lively.morphic.Morph.addMethods(
                 if (notInListYet) {
                     uniqueClassNames.push(c);
                 }
-                
-                
             });
+        return uniqueClassNames;
     },
     makeClassNameRegExp: function(className) {
         return new RegExp( "(^|[\\x20\\t\\r\\n\\f])" +

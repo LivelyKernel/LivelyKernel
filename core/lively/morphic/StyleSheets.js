@@ -1292,12 +1292,18 @@ Object.subclass("lively.morphic.Sizzle",
                                     return elem;
                                 }
                             } else {
-                                elem[ this.expando ] = cachedkey;
+                                if (this.caching) {
+                                    elem[ this.expando ] = cachedkey;
+                                }
                                 if ( matcher.call(this, elem, context ) ) {
-                                    elem.sizset = true;
+                                    if (this.caching) {
+                                        elem.sizset = true;
+                                    }
                                     return elem;
                                 }
-                                elem.sizset = false;
+                                if (this.caching) {
+                                    elem.sizset = false;
+                                }
                             }
                         }
                     }

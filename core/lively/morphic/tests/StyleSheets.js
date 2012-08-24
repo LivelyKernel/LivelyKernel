@@ -413,7 +413,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             '.red .blue',
             this.world,
             'selection for ".red .blue" should return both blue rectangles');
-            debugger
         this.assertSizzleSelect([this.blueRectangle1,this.blueRectangle2],
             '.red .box',
             this.world,

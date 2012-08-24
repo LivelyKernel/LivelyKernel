@@ -195,14 +195,17 @@ lively.morphic.Morph.addMethods(
     isOfClass: function(className) {
         var classNames = className.toLowerCase().split(/[\s,]+/),
             morphClasses = this.getClassNames() || [];
+
+        // Generate a RegExp for each className
         classNames = classNames.collect(function(c) {
                 return new RegExp( "(^|[\\x20\\t\\r\\n\\f])" +
                     c + "([\\x20\\t\\r\\n\\f]|$)", "i" );
             });
+
         for (var i = 0; i < classNames.length; i++) {
             var innerLoopRet = false;
             for (var j = 0; j < morphClasses.length; j++) {
-                if (morphClasses[j].toLowerCase() === classNames[i]){
+                if (classNames[i].test(morphClasses[j])){
                         innerLoopRet = true;
                         continue;
                     }

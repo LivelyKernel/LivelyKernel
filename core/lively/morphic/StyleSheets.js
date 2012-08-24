@@ -204,7 +204,7 @@ lively.morphic.Morph.addMethods(
         // Generate a RegExp for each className
         classNames = classNames.collect(function(c) {
                 return this.makeClassNameRegExp(c);
-            });
+            }, this);
 
         for (var i = 0; i < classNames.length; i++) {
             var innerLoopRet = false;

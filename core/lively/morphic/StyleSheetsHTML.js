@@ -95,21 +95,15 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
             firstTokenHasId = (firstToken.indexOf('#') >= 0);
             
         // Include the childs of the morph ...
-        extendedSelector += ancestorPrefix;
-        extendedSelector += ' ';
-        if (!firstTokenHasId ) {
-            extendedSelector += morphPrefix;
-        }
+        extendedSelector += morphPrefix;
         extendedSelector += ' ';
         extendedSelector += selector;
-        
+
         // Include the morph itself ...
         extendedSelector += ', ';
-        extendedSelector += ancestorPrefix;
-        extendedSelector += ' ';
-        if (!firstTokenHasId ) {
-            extendedSelector += morphPrefix;
-        }
+
+        extendedSelector += morphPrefix;
+
     },
 
     splitGroupedSelector: function(selector) {

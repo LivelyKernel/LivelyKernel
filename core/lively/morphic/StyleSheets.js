@@ -261,7 +261,8 @@ lively.morphic.Morph.addMethods(
             });
     },
     makeClassNameRegExp: function(className) {
-        // enter comment here
+        return new RegExp( "(^|[\\x20\\t\\r\\n\\f])" +
+                className + "([\\x20\\t\\r\\n\\f]|$)", "i" );
     },
 
 

@@ -93,7 +93,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
             firstToken = selector.split(combinator).first(),
             extendedSelector = '',
             firstTokenHasId = (firstToken.indexOf('#') >= 0);
-            
+
         // Include the childs of the morph ...
         extendedSelector += morphPrefix;
         extendedSelector += ' ';
@@ -103,7 +103,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
         extendedSelector += ', ';
         extendedSelector += morphPrefix;
         extendedSelector += selector;
-        
+
         return extendedSelector;
     },
 

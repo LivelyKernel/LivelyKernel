@@ -22,7 +22,8 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                 if (!this.isWorld) {
                     var m = this;
                     while ((m = m.owner)) {
-                        ancestorPrefix = '#'+m.getDomId()+((ancestorPrefix)?(' '+ancestorPrefix):'');
+                        ancestorPrefix = '#'+m.getDomId()+
+                            ((ancestorPrefix)?(' '+ancestorPrefix):'');
                     }
                 }
                 

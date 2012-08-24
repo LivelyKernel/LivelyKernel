@@ -42,7 +42,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                                 
                                 
                                 
-                            });
+                            }, this);
                         
                     }, this);
             },

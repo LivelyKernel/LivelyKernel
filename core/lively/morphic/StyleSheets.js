@@ -3,7 +3,7 @@ module('lively.morphic.StyleSheets').requires('apps.cssParser').toRun(function()
 lively.morphic.Morph.addMethods(
 'Style sheet interpretation', {
     processStyleSheet: function(styleSheet) {
-    debugger
+        debugger
         var sizzle = new lively.morphic.Sizzle(),
             styleSheetRules = apps.cssParser.parse(styleSheet);
 

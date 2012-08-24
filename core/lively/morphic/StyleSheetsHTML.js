@@ -91,9 +91,23 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                     }, this);
             },
     addSelectorPrefixes: function(selector, ancestorPrefix, morphPrefix) {
-        var combinator = /[\x20\t\r\n\f]*([\x20\t\r\n\f>+~])[\x20\t\r\n\f]*/,
-            firstToken = selector.split(combinator).first();
+        var combinator =
+                /[\x20\t\r\n\f]*([\x20\t\r\n\f>+~])[\x20\t\r\n\f]*/,
+            firstToken = selector.split(combinator).first(),
+            extendedSelector = '',
+            firstTokeHasId = (firstToken.indexOf('#') >= 0);
+            
+        // Includes the childs of the morph ...
+        extendedSelector += ancestorPrefix;
+        extendedSelector += ' ';
+        if (!firstTokeHasId) {
+            extendedSelector += morphPrefix;
+        }
+        extendedSelector += ' ';
+        extendedSelector += selector;
         
+        extendedSelector += ', ';
+        extendedSelector += ancestorPrefix;        
     },
 
     splitGroupedSelector: function(selector) {

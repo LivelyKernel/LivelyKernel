@@ -256,7 +256,9 @@ lively.morphic.Morph.addMethods(
     },
     makeUniqueClassNamesList: function(classNames) {
         var result = [];
-        
+        classNames.each(function(c){
+                
+            });
     },
 
     

@@ -1245,9 +1245,25 @@ Object.subclass("lively.morphic.Sizzle",
         
         if (combinator.first) {
             if (firstCombinator) {
-                
+                return function( elem, context ) {
+                    if  ( matcher.call(this, elem, context ) ) {
+                                    elem.sizset = true;
+                                    return elem;
+                    }
+                    while ( (elem = elem[ dir ]) ) {
+                        if ( elem.isMorph ) {
+                            return matcher.call(this, elem, context ) && elem;
+                        }
+                    }
+                }
             } else {
-                
+                return function( elem, context ) {
+                    while ( (elem = elem[ dir ]) ) {
+                        if ( elem.isMorph ) {
+                            return matcher.call(this, elem, context ) && elem;
+                        }
+                    }
+                }
             }
             
         } else {

@@ -203,8 +203,7 @@ lively.morphic.Morph.addMethods(
 
         // Generate a RegExp for each className
         classNames = classNames.collect(function(c) {
-                return new RegExp( "(^|[\\x20\\t\\r\\n\\f])" +
-                    c + "([\\x20\\t\\r\\n\\f]|$)", "i" );
+                return this.makeClassNameRegExp(c);
             });
 
         for (var i = 0; i < classNames.length; i++) {

@@ -409,7 +409,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
     },
     
     testDoNotSelectMorphByClass: function() {
-
+        debugger
         this.assertSizzleSelect([this.yellowRectangle, this.redRectangle],
             ':not(.blue)',
             this.yellowRectangle,

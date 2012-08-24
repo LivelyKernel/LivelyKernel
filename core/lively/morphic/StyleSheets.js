@@ -225,12 +225,11 @@ lively.morphic.Morph.addMethods(
             if (!this.classNames) {
                 this.classNames = [];
             }
-            
             if (Array.isArray(className) ){
-                
+                this.classNames = this.classNames.concat(className);
+            } else {
+                this.classNames.push(className);
             }
-            
-            this.classNames.push(className);
             this.classNames = this.makeUniqueClassNamesList(this.classNames);
         }
     },

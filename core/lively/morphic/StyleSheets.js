@@ -253,8 +253,19 @@ lively.morphic.Morph.addMethods(
         }
     },
     makeUniqueClassNamesList: function(classNames) {
-        var result = [];
+        var uniqueClassNames = [];
         classNames.each(function(c){
+                var name = this.makeClassNameRegExp(c),
+                    notInListYet = true;
+                uniqueClassNames.each(function(u) {
+                        if (name.test(u)) {
+                            notInListYet = false;
+                        }
+                    });
+                if (notInListYet) {
+                    uniqueClassNames.push(c);
+                }
+                
                 
             });
     },

@@ -1274,7 +1274,9 @@ Object.subclass("lively.morphic.Sizzle",
                         cachedkey = dirkey + "." + this.cachedruns;
 
                     if  ( matcher.call(this, elem, context ) ) {
-                                    elem.sizset = true;
+                                    if (this.caching) {
+                                        elem.sizset = true;
+                                    }
                                     return elem;
                     }
 

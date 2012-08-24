@@ -147,8 +147,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
             'Class names array should contain "test" and "morph"');
     }
 
-    
-    
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.SizzleMorphicSelection',

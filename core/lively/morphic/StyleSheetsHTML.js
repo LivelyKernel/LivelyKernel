@@ -61,7 +61,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                 if (!this.isWorld) {
                     var m = this;
                     while ((m = m.owner)) {
-                        ancestorPrefix = '*[morphid="'+this.id()+'"]' +
+                        ancestorPrefix = '*[morphid="'+this.id+'"]' +
                             ((ancestorPrefix.length > 0) ?
                             (' '+ancestorPrefix) : '');
                     }

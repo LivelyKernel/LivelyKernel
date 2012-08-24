@@ -247,6 +247,14 @@ lively.morphic.Morph.addMethods(
         }
     },
     
+    setClassNames: function(classNames) {
+        if (classNames && Array.isArray(classNames)) {
+            
+        } else {
+            return null;
+        }
+    },
+    
     getAttribute: function(attr) {
         return this[attr];    
     },

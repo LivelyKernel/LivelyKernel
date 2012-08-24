@@ -8,6 +8,16 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
             setStyleSheet: function(value) {
                 this.shape.setStyleSheet(value);
             },
+            
+            compileStyleSheet: function(rules) {
+                // Takes a list of css rules and assembles a style
+                // sheet which can be injected into the DOM.
+                // If this morph is not the world, the selectors
+                // are extended so the rules may not be applied
+                // to morphs outside the addressed hierarchy.
+                
+            },
+            
         },
         'HTML DOM', {
             setStyleSheetHTML: function(ctx, styleSheet) {

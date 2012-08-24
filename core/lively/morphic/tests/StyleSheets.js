@@ -243,6 +243,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
         yellowRectangle.applyStyle({fill: Color.yellow});
         yellowRectangle.tagName = 'YellowRectangle';
         yellowRectangle.testAttribute = 'theYellowRectangle';
+        yellowRectangle.addClassName('yellow');
         yellowRectangle.openInWorld();
         
 

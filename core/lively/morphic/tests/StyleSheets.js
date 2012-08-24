@@ -185,11 +185,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         
         this.morph.setClassNames();
         this.assert(!this.morph.classNames,
-            'Morph shouldn\'t have a classNames attribute');
+            'Morph shouldn\'t have a classNames attribute after resetting');
         this.assertEquals(1, this.morph.getClassNames().length,
-            'Class names getter does not return 1');
+            'Class names getter does not return 1 after resetting');
         this.assertEquals(['morph'], this.morph.getClassNames(),
-            'Class names array should contain "morph"');
+            'Class names array should contain "morph" after resetting');
     },
     test04MorphIsOfClass: function() {
         

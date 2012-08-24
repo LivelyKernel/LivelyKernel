@@ -1344,6 +1344,7 @@ Object.subclass("lively.morphic.Sizzle",
                 token.captures.push( context, xml );
                 matcher = this.addMatcher( matcher, this.selectors.filter[ token.part ].apply( this, token.captures ) );
             }
+            firstCombinator = false;
         }
 
         return matcher;

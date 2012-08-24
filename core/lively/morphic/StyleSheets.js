@@ -1244,7 +1244,11 @@ Object.subclass("lively.morphic.Sizzle",
         }
         
         if (combinator.first) {
-            
+            if (firstCombinator) {
+                
+            } else {
+                
+            }
             
         } else {
             if (firstCombinator) {

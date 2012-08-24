@@ -221,11 +221,13 @@ lively.morphic.Morph.addMethods(
         return true;
     },
     addClassName: function(className) {
-        if (!this.classNames) {
-            this.classNames = [];
+        if (className) {
+            if (!this.classNames) {
+                this.classNames = [];
+            }
+            this.classNames.push(className);
+            this.classNames = this.makeUniqueClassNamesList(this.classNames);
         }
-        this.classNames.push(className);
-        this.classNames = this.makeUniqueClassNamesList(this.classNames);
     },
     removeClassName: function(className) {
         var pattern = this.makeClassNameRegExp(className),

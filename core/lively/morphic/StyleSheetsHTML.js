@@ -91,7 +91,9 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                     }, this);
             },
     addSelectorPrefixes: function(selector, ancestorPrefix, morphPrefix) {
-        var combinator = /[\x20\t\r\n\f]*([\x20\t\r\n\f>+~])[\x20\t\r\n\f]*/;
+        var combinator = /[\x20\t\r\n\f]*([\x20\t\r\n\f>+~])[\x20\t\r\n\f]*/,
+            firstToken = selector.split(combinator).first();
+        
     },
 
     splitGroupedSelector: function(selector) {

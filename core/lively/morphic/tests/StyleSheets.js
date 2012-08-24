@@ -122,7 +122,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
             this.morph.getClassNames(),
             'Morph does not have class names "morph" and "box"'
         );
-        
     },
     
     

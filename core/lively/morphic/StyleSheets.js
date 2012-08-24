@@ -1242,7 +1242,6 @@ Object.subclass("lively.morphic.Sizzle",
                 return elem === context;
             };
         }
-        
         if (combinator.first) {
             if (firstCombinator) {
                 return function( elem, context ) {
@@ -1265,12 +1264,10 @@ Object.subclass("lively.morphic.Sizzle",
                     }
                 }
             }
-            
         } else {
             if (firstCombinator) {
                 // First combinator in selector should include context
                 // (different in morphic than in HTML).
-                
                 return function( elem, context ) {
                     var cache,
                         dirkey = doneName + "." + this.dirruns,

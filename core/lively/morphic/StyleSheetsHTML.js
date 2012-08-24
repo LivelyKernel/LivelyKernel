@@ -27,11 +27,9 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                 // are extended so the rules may not be applied
                 // to morphs outside the addressed hierarchy.
                 var output = '',
-                    ancestorPrefix = this.generateAncestorPrefixString(),
-                    morphPrefix = '';
-
-                
-
+                    ancestorPrefixId = this.generateAncestorPrefixString(),
+                    morphPrefixId = '#'+this.getDomId();
+                    
                 rules.each
             },
             

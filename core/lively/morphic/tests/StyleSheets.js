@@ -279,6 +279,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
     
     testMorphSelectsItself: function() {
         debugger
+        
+        this.assertSizzleSelect(
+            [this.blueRectangle1],
+            '*',
+            this.blueRectangle1,
+            'selection by asterisk should include only Blue Rectangle 1'
+        );
+        
         this.assertSizzleSelect(
             [this.redRectangle],
             '.red',

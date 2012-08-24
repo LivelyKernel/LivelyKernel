@@ -172,7 +172,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         this.assertEquals(['morph', 'test'], this.morph.getClassNames(),
             'Class names array should contain "morph" and "test"');
 
-        this.morph.setClassNames(['test', 'morph']);
+        this.morph.setClassNames(['test', 'morph', 'tEsT']);
 
         this.assertEquals(2, this.morph.classNames.length,
             'Class names array in morph is not 2');

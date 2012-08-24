@@ -116,7 +116,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
 },
 'testing', {
 
-    testMorphGetObjectSpecificClassNames: function() {
+    test01MorphGetObjectSpecificClassNames: function() {
         this.morph.classNames = [];
         this.assertEqualState(['morph', 'box'],
             this.morph.getClassNames(),

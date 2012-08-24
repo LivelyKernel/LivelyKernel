@@ -433,6 +433,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             '.red > .blue',
             this.world,
             'selection for ".red > .blue" should return both blue rectangles');
+        this.assertSizzleSelect([this.redRectangle],
+            '.yellow > .box',
+            this.world,
+            'selection for ".yellow > .box" should return only the red rect');
 
     },
 });

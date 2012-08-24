@@ -221,16 +221,14 @@ lively.morphic.Morph.addMethods(
         return true;
     },
     addClassName: function(className) {
+        var classNames = this.classNames || [];
         if (className) {
-            if (!this.classNames) {
-                this.classNames = [];
-            }
             if (Array.isArray(className) ){
-                this.classNames = this.classNames.concat(className);
+                classNames = classNames.concat(className);
             } else {
-                this.classNames.push(className);
+                classNames.push(className);
             }
-            this.setClassNames(this.classNames);
+            this.setClassNames(classNames);
         }
     },
     removeClassName: function(className) {

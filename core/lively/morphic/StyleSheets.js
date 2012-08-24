@@ -201,6 +201,10 @@ lively.morphic.Morph.addMethods(
         return { value : this.getAttribute(attr) };
     },
     
+    get previousSibling() { 
+        return this.getPreviousSibling();
+    },
+    
     getPreviousSibling: function() {
         
         if (!this.owner || !this.owner.submorphs || this.owner.submorphs.length <= 1) {

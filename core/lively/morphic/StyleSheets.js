@@ -1232,7 +1232,7 @@ Object.subclass("lively.morphic.Sizzle",
         return groups;
     },
 
-    addCombinator: function( matcher, combinator, context ) {
+    addCombinator: function( matcher, combinator, context, firstCombinator) {
         var dir = combinator.dir,
             doneName = this.done++;
         

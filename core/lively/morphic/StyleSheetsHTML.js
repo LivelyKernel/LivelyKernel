@@ -84,7 +84,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                         selectors.each(function(s) {
                                 newSelector += this.addSelectorPrefixes(s);
                             }, this);
-
+                        
                     }, this);
             },
     addSelectorPrefixes: function(selector, ancestorPrefix, morphPrefix) {

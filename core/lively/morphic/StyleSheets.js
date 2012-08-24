@@ -269,7 +269,7 @@ lively.morphic.Morph.addMethods(
                 if (notInListYet) {
                     uniqueClassNames.push(c);
                 }
-            });
+            }, this);
         return uniqueClassNames;
     },
     makeClassNameRegExp: function(className) {

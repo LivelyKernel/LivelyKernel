@@ -1298,11 +1298,15 @@ Object.subclass("lively.morphic.Sizzle",
     // ["TAG", ">", "ID", " ", "CLASS"]
     matcherFromTokens: function( tokens, context, xml ) {
         var token, matcher,
-            i = 0;
+            i = 0,
+            firstCombinator = true;
 
         for ( ; (token = tokens[i]); i++ ) {
             if ( this.selectors.relative[ token.part ] ) {
-                matcher = this.addCombinator( matcher, this.selectors.relative[ token.part ], context );
+                matcher = this.addCombinator( matcher,
+                    this.selectors.relative[ token.part ],
+                    context,
+                    firstCombinator);
             } else {
                 token.captures.push( context, xml );
                 matcher = this.addMatcher( matcher, this.selectors.filter[ token.part ].apply( this, token.captures ) );

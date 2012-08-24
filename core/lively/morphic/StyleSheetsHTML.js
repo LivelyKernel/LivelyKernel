@@ -18,7 +18,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                             (' '+ancestorPrefix) : '');
                     }
                 }
-                return
+                return ancestorPrefix;
             },
             compileStyleSheet: function(rules) {
                 // Takes a list of css rules and assembles a style

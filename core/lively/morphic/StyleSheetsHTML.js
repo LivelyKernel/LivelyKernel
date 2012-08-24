@@ -91,6 +91,10 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                         
                     }, this);
             },
+    newMethod: function() {
+        // enter comment here
+    },
+
     splitGroupedSelector: function(selector) {
         var selectorList = selector.
             split(/[\x20\t\r\n\f]*,[\x20\t\r\n\f]*/);

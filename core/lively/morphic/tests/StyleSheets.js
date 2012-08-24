@@ -208,7 +208,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
             'Morph should be of class "morph test crazymorph"');
         this.assert(this.morph.isOfClass('crazymorph test morph'),
             'Morph should be of class "crazymorph test morph"');
-    }
+    },
 
 
 

@@ -210,7 +210,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
             'Morph should be of class "crazymorph test morph"');
     },
     test05MorphRemoveClassName: function() {
-        // enter comment here
+        this.morph.setClassNames(['test', 'CrAzYmOrPh']);
     }
 
 

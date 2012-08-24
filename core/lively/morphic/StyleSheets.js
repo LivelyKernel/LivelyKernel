@@ -245,7 +245,7 @@ lively.morphic.Morph.addMethods(
                         newClassList.push(c);
                     }
                 });
-            this.classNames = newClassList;
+            this.setClassNames(newClassList);
         } else {
             return false;
         }

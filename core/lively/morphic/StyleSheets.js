@@ -1278,11 +1278,6 @@ Object.subclass("lively.morphic.Sizzle",
                                     return elem;
                     }
 
-                    /*
-                    if (context.owner) {
-                        context = context.owner;
-                    }
-                    */
                     while ( (elem = elem[ dir ]) ) {
                         if ( elem.isMorph ) {
                             if ( (cache = elem[ this.expando ]) === cachedkey ) {

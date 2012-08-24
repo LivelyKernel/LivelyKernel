@@ -369,6 +369,8 @@ Object.subclass("lively.morphic.Sizzle",
     tagNameAttr: 'tagName',
     nameAttr: 'name',
     
+    caching: false,
+    
     cachedruns: null,
 	dirruns: null,
 	sortOrder: null,

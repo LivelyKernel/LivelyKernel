@@ -3,7 +3,7 @@ module('lively.morphic.StyleSheets').requires('apps.cssParser').toRun(function()
 lively.morphic.Morph.addMethods(
 'Style sheet interpretation', {
     processStyleSheet: function(styleSheet) {
-        debugger
+        
         var sizzle = new lively.morphic.Sizzle(),
             styleSheetRules = apps.cssParser.parse(styleSheet);
 
@@ -725,7 +725,7 @@ Object.subclass("lively.morphic.Sizzle",
 
 					switch ( type ) {
 						case "only":
-						    debugger
+						    //debugger
 						case "first":
 							while ( (node = node.getPreviousSibling()) ) {
 								if ( node && node.isMorph ) {
@@ -756,7 +756,7 @@ Object.subclass("lively.morphic.Sizzle",
 				// pseudo-class names are case-insensitive
 				// http://www.w3.org/TR/selectors/#pseudo-classes
 				// Prioritize by case sensitivity in case custom pseudos are added with uppercase letters
-				debugger
+				
 				var fn = this.selectors.pseudos[ pseudo ] || this.selectors.pseudos[ pseudo.toLowerCase()];
 
 				if ( !fn ) {
@@ -1080,7 +1080,7 @@ Object.subclass("lively.morphic.Sizzle",
 			elements = this.selectors.find["TAG"].call(this, "*", (this.rsibling.test( selector ) && context.owner) || context );
 		}
 		for ( i = 0; (elem = elements[i]); i++ ) {
-		    debugger
+		    
 			this.cachedruns = matcher.runs++;
 			if ( matcher.call(this, elem, context) ) {
 				results.push( elem );
@@ -1228,7 +1228,7 @@ Object.subclass("lively.morphic.Sizzle",
     addCombinator: function( matcher, combinator, context ) {
         var dir = combinator.dir,
             doneName = this.done++;
-        debugger
+        
         if ( !matcher ) {
             // If there is no matcher to check, check against the context
             matcher = function( elem ) {

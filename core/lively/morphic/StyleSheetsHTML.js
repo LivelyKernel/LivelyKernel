@@ -40,8 +40,8 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                             /[\x20\t\r\n\f]*,[\x20\t\r\n\f]*/);
                     });
             },
-    newMethod: function() {
-        // enter comment here
+    splitGroupedSelector: function(selector) {
+        return 
     },
 
             

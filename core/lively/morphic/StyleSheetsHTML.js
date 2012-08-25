@@ -82,7 +82,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                         var selectors = this.splitGroupedSelector(rule),
                             newSelector = '';
                         for (var i = 0; i < selectors.length; i++) {
-                            newSelector += this.addSelectorPrefixes(selectors[i]) + ', ';
+                            newSelector += this.addSelectorPrefixes(selectors[i]);
                             if (i < selectors.length - 1) {
                                 newSelector += ', ';
                             }

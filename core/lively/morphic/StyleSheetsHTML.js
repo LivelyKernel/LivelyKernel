@@ -87,7 +87,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                                 newSelector += ', ';
                             }
                         }
-                        output += newSelector + '{';
+                        output += newSelector + ' {';
                         output += '\n';
                         rule.declarations.each(function(d) {
                                 output += d.parsedCssText;

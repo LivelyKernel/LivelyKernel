@@ -76,7 +76,10 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                 // to morphs outside the addressed hierarchy.
                 var output = '',
                     ancestorPrefixId = this.generateAncestorPrefixString(),
-                    morphPrefixId = '*[morphid="'+this.id+'"]';
+                    morphPrefixId = '*[morphid="'+this.id+'"]',
+                    newline = function(s) {
+                            return s + '\n';
+                        };
 
                 rules.each(function(rule) {
                         var selectors = this.splitGroupedSelector(rule),
@@ -87,9 +90,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                                 newSelector += ', ';
                             }
                         }
-                        selectors.each(function(s) {
-                                
-                            }, this);
+                        output
                         
                     }, this);
             },

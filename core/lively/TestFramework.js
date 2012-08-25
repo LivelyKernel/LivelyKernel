@@ -215,9 +215,9 @@ Object.subclass('TestCase',
     assertEqualOwnState: function(leftObj, rightObj, msg) {
         return this.assertEqualState(leftObj, rightObj, msg, true);
     },
-    assertEqualState: function(leftObj, rightObj, origMsg, noProtoLookup) {
+    assertEqualState: function(leftObj, rightObj, msg, noProtoLookup) {
         // have leftObj and rightObj equal properties?
-        var msg = (origMsg ? origMsg : '') + leftObj + " != " + rightObj + " because ";
+        msg = msg ? msg : leftObj + " != " + rightObj + " because ";
         this.assertEquals(typeof leftObj, typeof rightObj, msg + ' object types differ');
         if (leftObj == rightObj) return;
         if ((leftObj !== leftObj) && (rightObj !== rightObj)) return; // both are NaN
@@ -233,7 +233,8 @@ Object.subclass('TestCase',
                 this.assertEquals(leftObj.length, rightObj.length, msg +
                                   Strings.format(' (length %s vs. %s)', leftObj.length, rightObj.length));
                 for (var i = 0; i < leftObj.length; i++) {
-                    this.assertEqualState(leftObj[i], rightObj[i], msg, noProtoLookup);
+                    this.assertEqualState(leftObj[i], rightObj[i],
+                                          msg + " [" + i + "]", noProtoLookup);
                 }
                 return;
             }
@@ -253,7 +254,7 @@ Object.subclass('TestCase',
             if (leftObj[key] instanceof Function) continue;
             this.assertEquals(leftObj.hasOwnProperty(key),
                               rightObj.hasOwnProperty(key), msg + " [" + key + "] ");
-            this.assertEqualState(leftObj[key], rightObj[key], (origMsg ? origMsg : msg) + " [" + key + "] ");
+            this.assertEqualState(leftObj[key], rightObj[key], msg + " [" + key + "] ");
             rightKeys.remove(key);
         }
         this.assertEquals(0, rightKeys.length, msg + " no " + rightKeys[0] + " in " + rightObj);

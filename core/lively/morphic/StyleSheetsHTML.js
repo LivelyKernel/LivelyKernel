@@ -56,18 +56,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                 // TODO: dont forget to trim the result!
                 
             },
-            generateAncestorPrefixString: function() {
-                var ancestorPrefix = '';
-                if (!this.isWorld) {
-                    var m = this;
-                    while ((m = m.owner)) {
-                        ancestorPrefix = '*[morphid="'+this.id+'"]' +
-                            ((ancestorPrefix.length > 0) ?
-                            (' '+ancestorPrefix) : '');
-                    }
-                }
-                return ancestorPrefix;
-            },
+
             compileStyleSheet: function(rules) {
                 // Takes a list of css rules and assembles a style
                 // sheet which can be injected into the DOM.

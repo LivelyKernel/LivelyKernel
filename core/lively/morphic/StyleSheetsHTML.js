@@ -94,8 +94,9 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                                 output += '\n';
                             });
                         output += '}\n';
-                        
                     }, this);
+
+                return output;
             },
     addSelectorPrefixes: function(selector, ancestorPrefix, morphPrefix) {
         var extendedSelector = '';

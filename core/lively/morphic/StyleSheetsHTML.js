@@ -152,7 +152,6 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                 } else {
                     delete this._StyleSheet;
                 }
-                
             }
         }
     )

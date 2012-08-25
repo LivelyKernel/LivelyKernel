@@ -98,7 +98,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
 
                 return output;
             },
-    addSelectorPrefixes: function(selector, ancestorPrefix, morphPrefix) {
+    addSelectorPrefixes: function(selector, morphPrefix) {
         var extendedSelector = '';
         
         // Include the childs of the morph ...

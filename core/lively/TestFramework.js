@@ -252,8 +252,8 @@ Object.subclass('TestCase',
             if (noProtoLookup && !leftObj.hasOwnProperty(key)) continue;
             if (leftObj[key] instanceof Function) continue;
             this.assertEquals(leftObj.hasOwnProperty(key),
-                              rightObj.hasOwnProperty(key), msg);
-            this.assertEqualState(leftObj[key], rightObj[key], msg);
+                              rightObj.hasOwnProperty(key), msg + " (property " + key + ") ");
+            this.assertEqualState(leftObj[key], rightObj[key], msg + "(property " + key + ") ");
             rightKeys.remove(key);
         }
         this.assertEquals(0, rightKeys.length, msg + " no " + rightKeys[0] + " in " + rightObj);

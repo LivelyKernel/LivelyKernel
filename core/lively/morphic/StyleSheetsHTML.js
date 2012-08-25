@@ -88,7 +88,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
     addSelectorPrefixes: function(selector, morphPrefix) {
         var extendedSelector = '',
             morphPrefix = '*[morphid="'+this.id+'"]';
-        
+
         // Include the childs of the morph ...
         extendedSelector += morphPrefix;
         extendedSelector += ' ';

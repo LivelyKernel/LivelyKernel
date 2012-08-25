@@ -63,9 +63,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                 // If this morph is not the world, the selectors
                 // are extended so the rules may not be applied
                 // to morphs outside the addressed hierarchy.
-                var output = '',
-                    ancestorPrefixId = this.generateAncestorPrefixString(),
-                    morphPrefixId = '*[morphid="'+this.id+'"]';
+                var output = '';
 
                 rules.each(function(rule) {
                         var selectors = this.splitGroupedSelector(rule.selectorText()),

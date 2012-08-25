@@ -79,7 +79,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                     morphPrefixId = '*[morphid="'+this.id+'"]';
 
                 rules.each(function(rule) {
-                        var selectors = this.splitGroupedSelector(rule),
+                        var selectors = this.splitGroupedSelector(rule.selectorText()),
                             newSelector = '';
                         for (var i = 0; i < selectors.length; i++) {
                             newSelector += this.addSelectorPrefixes(selectors[i]);

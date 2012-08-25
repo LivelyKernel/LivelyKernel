@@ -93,7 +93,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                                 output += d.parsedCssText;
                                 output += '\n';
                             });
-                        
+                        output += '}\n';
                         
                     }, this);
             },

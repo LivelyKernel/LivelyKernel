@@ -215,9 +215,9 @@ Object.subclass('TestCase',
     assertEqualOwnState: function(leftObj, rightObj, msg) {
         return this.assertEqualState(leftObj, rightObj, msg, true);
     },
-    assertEqualState: function(leftObj, rightObj, msg, noProtoLookup) {
+    assertEqualState: function(leftObj, rightObj, origMsg, noProtoLookup) {
         // have leftObj and rightObj equal properties?
-        msg = (msg ? msg : ' ') + leftObj + " != " + rightObj + " because ";
+        var msg = (origMsg ? origMsg : ' ') + leftObj + " != " + rightObj + " because ";
         this.assertEquals(typeof leftObj, typeof rightObj, msg + ' object types differ');
         if (leftObj == rightObj) return;
         if ((leftObj !== leftObj) && (rightObj !== rightObj)) return; // both are NaN
@@ -252,11 +252,11 @@ Object.subclass('TestCase',
             if (noProtoLookup && !leftObj.hasOwnProperty(key)) continue;
             if (leftObj[key] instanceof Function) continue;
             this.assertEquals(leftObj.hasOwnProperty(key),
-                              rightObj.hasOwnProperty(key), msg + " (property " + key + ") ");
-            this.assertEqualState(leftObj[key], rightObj[key], msg + "(property " + key + ") ");
+                              rightObj.hasOwnProperty(key), origMsg + " because " + key + ": ");
+            this.assertEqualState(leftObj[key], rightObj[key], origMsg + " because " + key + ": ");
             rightKeys.remove(key);
         }
-        this.assertEquals(0, rightKeys.length, msg + " no " + rightKeys[0] + " in " + rightObj);
+        this.assertEquals(0, rightKeys.length, origMsg + " because no " + rightKeys[0] + " in " + rightObj);
     },
     assertMatches: function(expectedSpec, obj, msg) {
         // are all properties in expectedSpec also in and equal in obj?

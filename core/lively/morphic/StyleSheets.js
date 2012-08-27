@@ -94,12 +94,15 @@ lively.morphic.Morph.addMethods(
             matchingRules = [],
             ancestorRules = [],
             morphInLoop = this;
-
+        
+        // Collect matching rules from ancestors (and self)
         while (morphInLoop) {
             if (morphInLoop.styleSheetRules) {
-                morphInLoop.styleSheetRules.each(function(rule) {
-                        if (sizzle.select(rule.selectorText(), this, null, [this]).length == 1) {
-                            ancestorRules.push(rule);
+                morphInLoop.styleSheetRules.each(
+                    function(rule) {
+                        if (sizzle.select(rule.selectorText(),
+                            this, null, [this]).length == 1) {
+                                ancestorRules.push(rule);
                         }
                     });
             }

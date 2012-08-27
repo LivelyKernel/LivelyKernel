@@ -102,13 +102,13 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                 });
         },
 
-},
-'HTML DOM', {
-    setStyleSheetHTML: function(ctx,rules) {
-                var styleTagId = "style-for-"+this.id,
-                    compiledCss = this.compileStyleSheet(rules);
+    },
+    'HTML DOM', {
+        setStyleSheetHTML: function(ctx,rules) {
+            var styleTagId = "style-for-"+this.id,
+            compiledCss = this.compileStyleSheet(rules);
 
-        	if (ctx.styleNode) {
+    	    if (ctx.styleNode) {
         	   $(ctx.styleNode).remove();
                 }
                 if (rules.length && rules.length > 0 &&
@@ -119,6 +119,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
     	           ctx.styleNode.text(compiledCss);
     	           ctx.styleNode.appendTo(document.head);
     	        }
-            }}
+            }
+    }
     )
 }) // end of module()

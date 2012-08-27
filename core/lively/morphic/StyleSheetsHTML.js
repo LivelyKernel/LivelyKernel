@@ -100,7 +100,8 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
         setStyleClassNamesHTML: function(ctx, classes) {},
         setStyleIdHTML: function(ctx, id) {
             if (id && id.length && id.length > 0) {
-                
+                $(ctx.morphNode).attr('id');
+                $(ctx.shapeNode).attr('id');
             } else {
                 $(ctx.morphNode).removeAttr('id');
                 $(ctx.shapeNode).removeAttr('id');

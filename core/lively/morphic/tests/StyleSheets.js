@@ -210,16 +210,16 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
             'Morph should be of class "crazymorph test morph"');
     },
     test05MorphRemoveClassName: function() {
-        this.morph.setClassNames(['test', 'CrAzYmOrPh']);
+        this.morph.setStyleClassNames(['test', 'CrAzYmOrPh']);
 
-        this.morph.removeClassName('Test');
-        this.assert(!this.morph.isOfClass('test'),
+        this.morph.removeStyleClassName('Test');
+        this.assert(!this.morph.isOfStyleClass('test'),
             'Morph should NOT be of class "test"');
-        this.assert(this.morph.isOfClass('crazymorph'),
+        this.assert(this.morph.isOfStyleClass('crazymorph'),
             'Morph should be of class "crazymorph"');
 
-        this.morph.removeClassName('morph');
-        this.assert(this.morph.isOfClass('crazymorph'),
+        this.morph.removeStyleClassName('morph');
+        this.assert(this.morph.isOfStyleClass('crazymorph'),
             'Morph should still be of class "morph"');
     }
 

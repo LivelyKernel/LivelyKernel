@@ -8,7 +8,11 @@ lively.morphic.Morph.addMethods(
     },
     setStyleSheetRules: function(styleSheetRules) {
         return this.morphicSetter('StyleSheetRules', styleSheetRules);
-    },  
+    },
+    newMethod: function() {
+        // enter comment here
+    }
+  
 },
 
 'Style sheet interpretation', {

@@ -75,7 +75,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
             // HTML specific style sheet and adds this
             // to the DOM.
             // Called when a new style sheet was applied to
-            // the morph (i.e. through setStyleSheet), or
+            // the morph (i.e. through setStyleSheet) and
             // in the initHTML method of the morph.
 
             var styleTagId = "style-for-"+this.id,

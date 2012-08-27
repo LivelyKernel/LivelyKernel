@@ -72,7 +72,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML', 'lively
                 });
         },
 
-        setStyleSheetRulesHTML: function(ctx,rules) {
+        setStyleSheetHTML: function(ctx, styleSheet) {
             // Compiles the input style rules to an 
             // HTML specific style sheet and adds this
             // to the DOM.

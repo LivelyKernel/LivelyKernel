@@ -114,7 +114,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
         },
         'HTML DOM', {
             setStyleSheetHTML: function(ctx, styleSheet) {
-                var rules = this.processStyleSheet(styleSheet);
+                var rules = this.processStyleSheet(styleSheet); // that is not renderEngine dependent
 
                 if (rules) {
                     // TODO: compile style sheet

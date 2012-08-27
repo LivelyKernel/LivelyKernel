@@ -77,30 +77,30 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
 
             return output;
         },
-    addSelectorPrefixes: function(selector, morphPrefix) {
-        var extendedSelector = '',
-            morphPrefix = '*[morphid="'+this.id+'"]';
+        addSelectorPrefixes: function(selector, morphPrefix) {
+            var extendedSelector = '',
+                morphPrefix = '*[morphid="'+this.id+'"]';
 
-        // Include the childs of the morph ...
-        extendedSelector += morphPrefix;
-        extendedSelector += ' ';
-        extendedSelector += selector;
+            // Include the childs of the morph ...
+            extendedSelector += morphPrefix;
+            extendedSelector += ' ';
+            extendedSelector += selector;
 
-        // Include the morph itself ...
-        extendedSelector += ', ';
-        extendedSelector += morphPrefix;
-        extendedSelector += selector;
+            // Include the morph itself ...
+            extendedSelector += ', ';
+            extendedSelector += morphPrefix;
+            extendedSelector += selector;
 
-        return extendedSelector;
-    },
+            return extendedSelector;
+        },
 
-    splitGroupedSelector: function(selector) {
-        var selectorList = selector.
-            split(/[\x20\t\r\n\f]*,[\x20\t\r\n\f]*/);
-        return selectorList.collect(function(s) {
-                return s.trim();
-            });
-    },
+        splitGroupedSelector: function(selector) {
+            var selectorList = selector.
+                split(/[\x20\t\r\n\f]*,[\x20\t\r\n\f]*/);
+            return selectorList.collect(function(s) {
+                    return s.trim();
+                });
+        },
 
 },
 'HTML DOM', {

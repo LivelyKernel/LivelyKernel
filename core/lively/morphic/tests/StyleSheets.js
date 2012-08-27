@@ -192,21 +192,21 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
             'Class names array should only contain "morph" after resetting');
     },
     test04MorphIsOfClass: function() {
-        this.morph.setClassNames(['test', 'CrAzYmOrPh']);
+        this.morph.setStyleClassNames(['test', 'CrAzYmOrPh']);
 
-        this.assert(this.morph.isOfClass('morph'),
+        this.assert(this.morph.isOfStyleClass('morph'),
             'Morph should be of class "morph"');
-        this.assert(!this.morph.isOfClass('orph'),
+        this.assert(!this.morph.isOfStyleClass('orph'),
             'Morph should NOT be of class "orph"');
-        this.assert(this.morph.isOfClass('test'),
+        this.assert(this.morph.isOfStyleClass('test'),
             'Morph should be of class "test"');
-        this.assert(this.morph.isOfClass('Test'),
+        this.assert(this.morph.isOfStyleClass('Test'),
             'Morph should be of class "Test"');
-        this.assert(this.morph.isOfClass('crazymorph'),
+        this.assert(this.morph.isOfStyleClass('crazymorph'),
             'Morph should be of class "crazymorph"');
-        this.assert(this.morph.isOfClass('morph test crazymorph'),
+        this.assert(this.morph.isOfStyleClass('morph test crazymorph'),
             'Morph should be of class "morph test crazymorph"');
-        this.assert(this.morph.isOfClass('crazymorph test morph'),
+        this.assert(this.morph.isOfStyleClass('crazymorph test morph'),
             'Morph should be of class "crazymorph test morph"');
     },
     test05MorphRemoveClassName: function() {

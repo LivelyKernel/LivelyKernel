@@ -45,15 +45,8 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
 	rbackslash = /\\(?!\\)/g,
     
         */
-        
     },
-    
         'stylesheets', {
-
-            getDomId: function() {
-                // TODO: dont forget to trim the result!
-                
-            },
 
             compileStyleSheet: function(rules) {
                 // Takes a list of CSS rules and assembles a style

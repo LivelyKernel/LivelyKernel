@@ -339,7 +339,7 @@ lively.morphic.Morph.addMethods(
         }
     },
     setStyleId: function(id) {
-        return this.morphicSetter('StyleId', id);
+        return this.morphicSetter('StyleId', id.trim());
     },
     getStyleId: function() {
         return this.morphicGetter('StyleId');

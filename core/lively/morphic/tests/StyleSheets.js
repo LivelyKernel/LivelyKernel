@@ -460,7 +460,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 
         var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
         redRectangle.applyStyle({fill: Color.red});
-        redRectangle.addClassName('red');
+        redRectangle.addStyleClassName('red');
         redRectangle.setNewId('the-red-rectangle');
         yellowRectangle.addMorph(redRectangle);
 

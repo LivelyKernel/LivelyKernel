@@ -3,7 +3,9 @@ module('lively.morphic.StyleSheets').requires('apps.cssParser').toRun(function()
 lively.morphic.Morph.addMethods(
 'Style sheet interpretation', {
     processStyleSheet: function(styleSheet) {
-        
+        // Extracts the CSS rules out of a style sheet.
+        // Returns the rules in an array
+
         var sizzle = new lively.morphic.Sizzle(),
             styleSheetRules = apps.cssParser.parse(styleSheet);
 
@@ -16,7 +18,7 @@ lively.morphic.Morph.addMethods(
                         },this);
                 }
             }, this);
-        
+
         styleSheetRules.each(function(rule){
 
             if (rule.type === 1) {
@@ -31,6 +33,7 @@ lively.morphic.Morph.addMethods(
         }, this);
 
         if (!this.styleSheetRules) {this.styleSheetRules = [];}
+        return styleSheetRules;
     },
     getStyleSheetDeclarations: function(){
         // Returns the morph's aggregated style declarations

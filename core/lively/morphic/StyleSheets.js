@@ -11,6 +11,8 @@ lively.morphic.Morph.addMethods(
         return this.morphicSetter('StyleSheetRules', styleSheetRules);
     },
     getStyleSheetRules: function() {
+        var rules = this.processStyleSheet(this.morphicGetter('StyleSheet'));
+        return this.setStyleSheetRules(rules);
         return this.morphicGetter('StyleSheetRules');
     }
   

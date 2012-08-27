@@ -503,7 +503,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
     },
     test02FindCSSRulesForMorphWithMorphItselfAsSizzleContext: function() {
         var css = ".some-class { color: red; }";
-        this.morph.addClassName('some-class');
+        this.morph.addStyleClassName('some-class');
 
         this.morph.setStyleSheet(css);
         var rules = this.morph.getMatchingStyleSheetRules;

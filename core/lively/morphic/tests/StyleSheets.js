@@ -521,7 +521,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             "    border: 1px solid yellow;    "+
             "}";
 
-        this.yellowRectangle.processStyleSheet(css);
+        this.yellowRectangle.setStyleSheet(css);
         
         this.assert(this.blueRectangle1.styleSheetRules, 'Blue Rectangle 1 has no rule attribute');
         var b1css = this.blueRectangle1.styleSheetRules;

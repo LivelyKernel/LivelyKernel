@@ -341,6 +341,9 @@ lively.morphic.Morph.addMethods(
     setStyleId: function(id) {
         return this.morphicSetter('StyleId', id);
     },
+    getStyleId: function() {
+        return this.morphicGetter('StyleId');
+    },
 
     removeStyleClassName: function(className) {
         var pattern = this.makeStyleClassNameRegExp(className),

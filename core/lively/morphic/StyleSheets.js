@@ -38,9 +38,7 @@ lively.morphic.Morph.addMethods(
     processStyleSheet: function(styleSheet) {
         // Extracts the CSS rules out of a style sheet.
         // Returns the rules as an array.
-
-        var styleSheetRules = apps.cssParser.parse(styleSheet);
-        return styleSheetRules;
+        return apps.cssParser.parse(styleSheet);
     },
 
 

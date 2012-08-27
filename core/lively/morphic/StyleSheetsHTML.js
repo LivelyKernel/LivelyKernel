@@ -47,36 +47,36 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
     
         */
     },
-        'stylesheets', {
+    'stylesheets', {
 
-            compileStyleSheet: function(rules) {
-                // Takes a list of CSS rules and assembles a style
-                // sheet which can be injected into the DOM.
-                // If this morph is not the world, the selectors
-                // are extended so the rules may not be applied
-                // to morphs outside the addressed hierarchy.
-                var output = '';
+        compileStyleSheet: function(rules) {
+            // Takes a list of CSS rules and assembles a style
+            // sheet which can be injected into the DOM.
+            // If this morph is not the world, the selectors
+            // are extended so the rules may not be applied
+            // to morphs outside the addressed hierarchy.
+            var output = '';
 
-                rules.each(function(rule) {
-                        var selectors = this.splitGroupedSelector(rule.selectorText()),
-                            newSelector = '';
-                        for (var i = 0; i < selectors.length; i++) {
-                            newSelector += this.addSelectorPrefixes(selectors[i]);
-                            if (i < selectors.length - 1) {
-                                newSelector += ', ';
-                            }
+            rules.each(function(rule) {
+                    var selectors = this.splitGroupedSelector(rule.selectorText()),
+                        newSelector = '';
+                    for (var i = 0; i < selectors.length; i++) {
+                        newSelector += this.addSelectorPrefixes(selectors[i]);
+                        if (i < selectors.length - 1) {
+                            newSelector += ', ';
                         }
-                        output += newSelector + ' {';
-                        output += '\n';
-                        rule.declarations.each(function(d) {
-                                output += '\t'+d.parsedCssText;
-                                output += '\n';
-                            });
-                        output += '}\n';
-                    }, this);
+                    }
+                    output += newSelector + ' {';
+                    output += '\n';
+                    rule.declarations.each(function(d) {
+                            output += '\t'+d.parsedCssText;
+                            output += '\n';
+                        });
+                    output += '}\n';
+                }, this);
 
-                return output;
-            },
+            return output;
+        },
     addSelectorPrefixes: function(selector, morphPrefix) {
         var extendedSelector = '',
             morphPrefix = '*[morphid="'+this.id+'"]';

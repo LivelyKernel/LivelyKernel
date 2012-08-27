@@ -112,16 +112,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
         },
         'HTML DOM', {
             setStyleSheetHTML: function(ctx,rules) {
-                
 
-                if (rules) {
-                    // TODO: compile style sheet
-                    // TODO: set style sheet through morph setter
-                    // TODO: delete old style tag
-                    // TODO: append new style tag with compiled style sheet
-                }
-                
-                
                 var morphId = ctx.shapeNode && ctx.shapeNode.id;
                 if (!morphId) {
                     //console.log('Warning, morph has no shape node or shape node was not given any id.');

@@ -92,7 +92,6 @@ lively.morphic.Morph.addMethods(
     getMatchingStyleSheetRules: function() {
         var sizzle = new lively.morphic.Sizzle(),
             matchingRules = [],
-            ancestorRules = [],
             morphInLoop = this;
         
         // Collect matching rules from ancestors (and self)
@@ -102,7 +101,7 @@ lively.morphic.Morph.addMethods(
                     function(rule) {
                         if (sizzle.select(rule.selectorText(),
                             this, null, [this]).length == 1) {
-                                ancestorRules.push(rule);
+                                matchingRules.push(rule);
                         }
                     });
             }

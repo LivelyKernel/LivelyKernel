@@ -121,7 +121,8 @@ setStyleSheetHTML: function(ctx,rules) {
                 if (rules.length && rules.length > 0 &&
                     compiledCss && compiledCss.length &&
                     compiledCss.length > 0) {
-    	           ctx.styleNode = $('<style type="text/css" id="' + styleTagId + '"></style>');
+    	           ctx.styleNode = $('<style type="text/css" id="' +
+    	               styleTagId + '"></style>');
     	           ctx.styleNode.text(compiledCss);
     	           ctx.styleNode.appendTo(document.head);
     	        }

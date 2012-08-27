@@ -49,9 +49,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
     },
     
         'stylesheets', {
-            setStyleSheet: function(value) {
-                this.shape.setStyleSheet(value);
-            },
+
             getDomId: function() {
                 // TODO: dont forget to trim the result!
                 

@@ -3,8 +3,9 @@ module('lively.morphic.StyleSheets').requires('apps.cssParser').toRun(function()
 lively.morphic.Morph.addMethods(
 'Style sheet interpretation', {
     processStyleSheet: function(styleSheet) {
-        // Extracts the CSS rules out of a style sheet.
-        // Returns the rules in an array
+        // Extracts the CSS rules out of a style sheet and
+        // copies matching rules into the morph's submorphs.
+        // Returns the rules in an array.
 
         var sizzle = new lively.morphic.Sizzle(),
             styleSheetRules = apps.cssParser.parse(styleSheet);
@@ -33,7 +34,7 @@ lively.morphic.Morph.addMethods(
         }, this);
 
         if (!this.styleSheetRules) {this.styleSheetRules = [];}
-        
+
         return styleSheetRules;
     },
     getStyleSheetDeclarations: function(){

@@ -339,7 +339,7 @@ lively.morphic.Morph.addMethods(
         }
     },
     removeStyleClassName: function(className) {
-        var pattern = this.makeClassNameRegExp(className),
+        var pattern = this.makeStyleClassNameRegExp(className),
             newClassList = [],
             result = false;
         if (this.classNames && Array.isArray(this.classNames)) {

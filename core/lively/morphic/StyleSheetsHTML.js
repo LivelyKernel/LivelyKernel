@@ -107,7 +107,6 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                 $(ctx.morphNode).removeAttr('class');
                 $(ctx.shapeNode).removeAttr('class');
             }
-            
         },
         setStyleIdHTML: function(ctx, id) {
             if (id && id.length && id.length > 0) {

@@ -10,7 +10,7 @@ lively.morphic.Morph.addMethods(
 
 'Style sheet interpretation', {
     clearStyleRulesInSubmorphs: function() {
-        // get rid of the old rules in all submorphs
+        // Get rid of the old rules in all submorphs.
         this.withAllSubmorphsDo(function(morph){
                 if (morph.styleSheetRules) {
                     morph.styleSheetRules =

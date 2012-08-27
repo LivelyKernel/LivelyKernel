@@ -21,6 +21,26 @@ lively.morphic.Shapes.Shape.addMethods(
 
 lively.morphic.Morph.addMethods(
 'Style sheet getters and setters',{
+    
+    getAppearanceStylingMode: function() {
+			return this.shape.getAppearanceStylingMode();
+		},
+                setAppearanceStylingMode: function(value) {
+			// TRUE when appearance is styled through style sheets,
+			// FALSE when appearance is styled through style dialog
+			this.shape.setAppearanceStylingMode(value);
+			
+		},
+		setBorderStylingMode: function(value) {
+			// TRUE when border is styled through style sheets,
+			// FALSE when border is styled through style dialog
+			this.shape.setBorderStylingMode(value);
+		
+		},
+		getBorderStylingMode: function() {
+			return this.shape.getBorderStylingMode();
+		},
+
     setStyleSheet: function(styleSheet) {
         if (styleSheet && styleSheet.length && styleSheet.length > 0) {
             return this.morphicSetter('StyleSheet', styleSheet);

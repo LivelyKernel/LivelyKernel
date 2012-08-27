@@ -24,8 +24,9 @@ lively.morphic.Morph.addMethods(
 
         if (styleSheet && styleSheet.length && styleSheet.length > 0) {
             return this.processStyleSheet(styleSheet).collect(function(rule) {
-                
-                });
+                    rule.originMorph = this;
+                    return rule;
+                }, this);
         } else {
             return [];
         }

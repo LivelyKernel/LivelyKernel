@@ -13,23 +13,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         return this.assertEqual(targetValue, $(morphNode).attr(attributeName), msg);
     },
     
-    test01AddStyleClass: function() {
+    test01SetStyleClassNames: function() {
         
         this.morph.addStyleClass('test-class');
         this.assertDOMMorphNodeAttribute('Morph test-class', 'class',
             'Morph has not class names "Morph test-class"');
         
-        this.assertEqualState([this.redRectangle], 
-            this.redRectangle.getSubmorphsByStyleClassName('red'),
-            'selection by class only should include Red Rectangle'
-        );
-        
-        this.assertEqualState(this.redRectangle, 
-            this.redRectangle.getSubmorphByStyleId('the-red-rectangle'),
-            'selection by id only should include Red Rectangle'
-        );
-
-
     },
 
 

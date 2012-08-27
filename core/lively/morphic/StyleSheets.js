@@ -346,27 +346,11 @@ lively.morphic.Morph.addMethods(
     },
     hasStyleId: function(id) {
         // Tests if a morph has a specific style id.
+        var styleId = this.getStyleId().toLowerCase();
 
-        var styleId = this.getStyleId();
+        id = id.trim().toLowerCase();
 
-        // Generate a RegExp for each className
-        classNames = classNames.collect(function(c) {
-                return this.makeClassNameRegExp(c);
-            }, this);
-
-        for (var i = 0; i < classNames.length; i++) {
-            var innerLoopRet = false;
-            for (var j = 0; j < morphClasses.length; j++) {
-                if (classNames[i].test(morphClasses[j])){
-                        innerLoopRet = true;
-                        continue;
-                    }
-            }
-            if (!innerLoopRet) {
-                return false;
-            }
-        }
-        return true;
+        return (styleId === id);
     },  
 
     removeStyleClassName: function(className) {

@@ -101,10 +101,9 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
             });
     },
 
-            
-        },
-        'HTML DOM', {
-setStyleSheetHTML: function(ctx,rules) {
+},
+'HTML DOM', {
+    setStyleSheetHTML: function(ctx,rules) {
                 var styleTagId = "style-for-"+this.id,
                     compiledCss = this.compileStyleSheet(rules);
 

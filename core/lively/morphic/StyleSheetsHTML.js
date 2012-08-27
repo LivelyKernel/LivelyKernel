@@ -58,7 +58,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
             },
 
             compileStyleSheet: function(rules) {
-                // Takes a list of css rules and assembles a style
+                // Takes a list of CSS rules and assembles a style
                 // sheet which can be injected into the DOM.
                 // If this morph is not the world, the selectors
                 // are extended so the rules may not be applied

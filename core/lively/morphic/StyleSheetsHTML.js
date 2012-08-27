@@ -98,6 +98,10 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
     }, 
     'Style Classes and Ids', {
         setStyleClassNamesHTML: function(classes) {},
+    newMethod: function() {
+        // enter comment here
+    }
+
     }
     )
 ) // end of module()

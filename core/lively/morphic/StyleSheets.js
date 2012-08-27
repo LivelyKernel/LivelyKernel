@@ -9,7 +9,8 @@ lively.morphic.Morph.addMethods(
 
         var sizzle = new lively.morphic.Sizzle(),
             styleSheetRules = apps.cssParser.parse(styleSheet);
-
+        
+       
         // get rid of the old rules in all submorphs
         this.withAllSubmorphsDo(function(morph){
                 if (morph.styleSheetRules) {
@@ -20,22 +21,23 @@ lively.morphic.Morph.addMethods(
                 }
             }, this);
 
-        styleSheetRules.each(function(rule){
+        if (styleSheetRules) {
+            styleSheetRules.each(function(rule){
+                if (rule.type === 1) {
+                    rule.originMorph = this;
+                    sizzle.select(rule.selectorText(), this).each(function(morph){
+                        if (!morph.styleSheetRules) {
+                            morph.styleSheetRules = [];
+                        }
+                        morph.styleSheetRules.push(rule);
+                    }, this);
+                }
+            }, this);
 
-            if (rule.type === 1) {
-                rule.originMorph = this;
-                sizzle.select(rule.selectorText(), this).each(function(morph){
-                    if (!morph.styleSheetRules) {
-                        morph.styleSheetRules = [];
-                    }
-                    morph.styleSheetRules.push(rule);
-                }, this);
-            }
-        }, this);
+            if (!this.styleSheetRules) {this.styleSheetRules = [];}
 
-        if (!this.styleSheetRules) {this.styleSheetRules = [];}
-
-        return styleSheetRules;
+            return styleSheetRules;
+        }
     },
     getStyleSheetDeclarations: function(){
         // Returns the morph's aggregated style declarations

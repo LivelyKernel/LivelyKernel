@@ -284,10 +284,11 @@ lively.morphic.Morph.addMethods(
 },
 'Style classes and ids', {
     getStyleClassNames: function() {
-        var styleClassNames = [];
+        var styleClassNames = [],
+            theStyleClassNames = this.morphicGetter('StyleClassNames');
 
-        if (this.styleClassNames) {
-            styleClassNames = styleClassNames.concat(this.styleClassNames);
+        if (theStyleClassNames) {
+            styleClassNames = styleClassNames.concat(theStyleClassNames);
         }
         // add real class types to the classnames too
         var type = this.constructor;

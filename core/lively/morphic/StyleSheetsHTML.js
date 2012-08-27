@@ -103,8 +103,8 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
                 $(ctx.morphNode).attr('class', classNames);
                 $(ctx.shapeNode).attr('class', classNames);
             } else {
-                $(ctx.morphNode).removeAttr('id');
-                $(ctx.shapeNode).removeAttr('id');
+                $(ctx.morphNode).removeAttr('class');
+                $(ctx.shapeNode).removeAttr('class');
             }
             
         },

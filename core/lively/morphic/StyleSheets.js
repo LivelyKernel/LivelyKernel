@@ -338,8 +338,8 @@ lively.morphic.Morph.addMethods(
             this.setStyleClassNames(classNames);
         }
     },
-    newMethod: function() {
-        // enter comment here
+    setStyleId: function(id) {
+        return this.morphicSetter('StyleId', id);
     },
 
     removeStyleClassName: function(className) {

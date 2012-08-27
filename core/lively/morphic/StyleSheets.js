@@ -9,8 +9,7 @@ lively.morphic.Morph.addMethods(
 
         var sizzle = new lively.morphic.Sizzle(),
             styleSheetRules = apps.cssParser.parse(styleSheet);
-        
-       
+
         // get rid of the old rules in all submorphs
         this.withAllSubmorphsDo(function(morph){
                 if (morph.styleSheetRules) {

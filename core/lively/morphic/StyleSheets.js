@@ -14,6 +14,8 @@ lively.morphic.Morph.addMethods(
 'Style sheet interpretation', {
     clearStyleRulesInSubmorphs: function() {
         // Get rid of the old rules in all submorphs.
+        // DEPRECATED!
+        
         this.withAllSubmorphsDo(function(morph){
                 if (morph.styleSheetRules) {
                     morph.styleSheetRules =

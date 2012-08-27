@@ -41,7 +41,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         if (ctx.shapeNode) {
             return ctx.shapeNode.getContext(optContext|| '2d');
         } else {
-            return null;    
+            return null;
         }
     },
     appendHTML: function($super, ctx) {

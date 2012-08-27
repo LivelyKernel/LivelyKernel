@@ -86,8 +86,8 @@ lively.morphic.Morph.addMethods(
         }
         return result;
     },
-    newMethod: function() {
-        // enter comment here
+    getMatchingStyleSheetRules: function() {
+        // asdf
     },
 
     sortStyleSheetRules: function(rules) {

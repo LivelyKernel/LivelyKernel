@@ -1094,7 +1094,7 @@ Object.subclass("lively.morphic.Sizzle",
 					if ( elem && elem.owner) {
 						// Handle the case where IE, Opera, and Webkit return items
 						// by name instead of ID
-						if ( elem.id === m ) {
+						if ( elem.getStyleId() === m ) {
 							results.push( elem );
 							return results;
 						}

@@ -111,7 +111,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
             
         },
         'HTML DOM', {
-            setStyleSheetHTML: function(ctx,rules) {
+setStyleSheetHTML: function(ctx,rules) {
     
                 var styleTagId = "style-for-"+this.id,
                     compiledCSS = this.compileStyleSheet(rules);
@@ -119,46 +119,9 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
         	if (ctx.styleNode) {
         	   $(ctx.styleNode).remove();
                 }
-                
-                
-                
     	        ctx.styleNode = $('<style type="text/css" id="' + styleTagId + '"></style>');
-    	        ctx.styleNode.text(specificCss);
+    	        ctx.styleNode.text(compiledCSS);
     	        ctx.styleNode.appendTo(document.head);
-                
-                
-                
-                
-                
-                
-                if (styleSheet && styleSheet.length > 1) {
-
-            	    //console.log("Setting CSS for shape "+morphId+" to "+value);
-                    var specificCss = "#"+morphId+" { "+styleSheet+" }";
-
-                    // syntax fixes for the sap gold reflection css
-                    specificCss = specificCss.replace(/[\s]*=[\s]*/g,"=");
-                    specificCss = specificCss.replace(/alpha[\s]*\([\s]*opacity[\s]*\:/g,"alpha(opacity=");
-                    specificCss = specificCss.replace(".dev-datepicker/jQuery",".dev-datepicker.jQuery");
-
-
-                    if (less) {
-                        new less.Parser().parse(specificCss, function(e, tree) {
-                            //console.log(e);
-                            specificCss = tree.toCSS();
-                        });
-                        console.log(specificCss);
-                    }
-
-
-        	        ctx.styleNode = $('<style type="text/css" id="' + styleTagId + '"></style>');
-        	        ctx.styleNode.text(specificCss);
-        	        ctx.styleNode.appendTo(document.head);
-
-                } else {
-                    delete this._StyleSheet;
-                }
-            }
-        }
+            }}
     )
 }) // end of module()

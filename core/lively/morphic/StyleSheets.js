@@ -98,10 +98,9 @@ lively.morphic.Morph.addMethods(
         while (morphInLoop) {
             if (morphInLoop.styleSheetRules) {
                 morphInLoop.styleSheetRules.each(function(rule) {
-                        sizzle.select(rule.selectorText(), this).each(function(morph){
+                        if (sizzle.select(rule.selectorText(), this, [this]).length == 1) {
                             ancestorRules.push(rule);
-                        }, this);
-                        
+                        }
                     });
             }
             morphInLoop = morphInLoop.owner;

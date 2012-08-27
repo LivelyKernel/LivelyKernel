@@ -156,7 +156,9 @@ lively.morphic.Morph.addMethods(
         // the morph, sorted by their specificity (low to high).
 
         var thisMorph = this,
-            styleSheetRules = rules.splice();
+            styleSheetRules = (rules) ?
+                rules.splice() :
+                this.getMatchingStyleSheetRules();
 
         return styleSheetRules.sort(function(a, b) {
                 if (a.originMorph !== b.originMorph) {

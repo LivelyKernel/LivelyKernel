@@ -297,7 +297,7 @@ lively.morphic.Morph.addMethods(
         }
 
         // each class has to be in the return array only once
-        return this.makeUniqueClassNamesList(styleClassNames);
+        return this.makeUniqueStyleClassNamesList(styleClassNames);
     },
     isOfStyleClass: function(className) {
         // Tests if a morph has a specific class.

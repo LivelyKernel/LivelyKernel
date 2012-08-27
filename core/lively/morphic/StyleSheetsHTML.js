@@ -97,7 +97,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
             }
     }, 
     'Style Classes and Ids', {
-        setStyleClassNamesHTML: function(classes) {}
+        setStyleClassNamesHTML: function(classes) {},
     }
     )
 ) // end of module()

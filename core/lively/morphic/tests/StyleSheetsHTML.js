@@ -15,7 +15,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
     
     test01SetStyleClassNames: function() {
         
-        this.morph.addStyleClass('test-class');
+        this.morph.addStyleClassName('test-class');
         this.assertDOMMorphNodeAttribute('Morph test-class', 'class',
             'Morph has not class names "Morph test-class"');
         

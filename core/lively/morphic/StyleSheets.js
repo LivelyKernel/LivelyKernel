@@ -29,8 +29,7 @@ lively.morphic.Morph.addMethods(
         // Extracts the CSS rules out of a style sheet.
         // Returns the rules as an array.
 
-        var sizzle = new lively.morphic.Sizzle(),
-            styleSheetRules = apps.cssParser.parse(styleSheet);
+        var styleSheetRules = apps.cssParser.parse(styleSheet);
         /*
         this.clearStyleRulesInSubmorphs();
 

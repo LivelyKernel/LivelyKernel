@@ -335,7 +335,7 @@ lively.morphic.Morph.addMethods(
             } else {
                 classNames.push(className);
             }
-            this.setClassNames(classNames);
+            this.setStyleClassNames(classNames);
         }
     },
     removeStyleClassName: function(className) {

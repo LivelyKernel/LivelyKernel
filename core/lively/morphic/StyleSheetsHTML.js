@@ -93,6 +93,9 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
     	           ctx.styleNode.appendTo(document.head);
     	        }
             }
+    }, 
+    'Style Classes and Ids', {
+        
     }
     )
 ) // end of module()

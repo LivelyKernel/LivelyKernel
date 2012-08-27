@@ -87,7 +87,27 @@ lively.morphic.Morph.addMethods(
         return result;
     },
     getMatchingStyleSheetRules: function() {
-        // asdf
+        var sizzle = new lively.morphic.Sizzle(),
+            rules = [];
+
+
+        if (styleSheetRules) {
+            styleSheetRules.each(function(rule){
+                if (rule.type === 1) {
+                    rule.originMorph = this;
+                    sizzle.select(rule.selectorText(), this).each(function(morph){
+                        if (!morph.styleSheetRules) {
+                            morph.styleSheetRules = [];
+                        }
+                        morph.styleSheetRules.push(rule);
+                    }, this);
+                }
+            }, this);
+
+            if (!this.styleSheetRules) {this.styleSheetRules = [];}
+
+            return styleSheetRules;
+        }
     },
 
     sortStyleSheetRules: function(rules) {

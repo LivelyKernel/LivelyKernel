@@ -21,13 +21,12 @@ lively.morphic.Morph.addMethods(
     },
     getStyleSheetRules: function() {
         var styleSheet = this.morphicGetter('StyleSheet');
-        
+
         if (styleSheet && styleSheet.length && styleSheet.length > 0) {
             return this.processStyleSheet(styleSheet);
         } else {
             return [];
         }
-        
     }
   
 },

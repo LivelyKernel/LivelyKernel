@@ -546,7 +546,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 
         var rcss = this.redRectangle.getMatchingStyleSheetRules();
         this.assert(rcss, 'Red Rectangle has no rule attribute');
-        
         this.assertEquals(2, rcss.length,
             'RedRectangle has not exactly 2 rules before 2nd processing');
 

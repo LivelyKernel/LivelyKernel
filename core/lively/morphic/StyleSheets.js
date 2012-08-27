@@ -103,11 +103,8 @@ lively.morphic.Morph.addMethods(
         // i.e. {'background-color': <declaration>, 'border-width': <declaration>}
 
         var aggregatedStyle = {},
-            rules = this.getMatchingStyleSheetRules(),
+            rules = this.sortStyleSheetRules(),
             result = [];
-
-        // sort the rules for specificity
-        rules = this.sortStyleSheetRules(rules);
 
         // iterate over the ordered rules
         for (var i = 0; i < rules.length; i++) {
@@ -411,7 +408,7 @@ lively.morphic.Morph.addMethods(
     hasStyleId: function(id) {
         // Tests if a morph has a specific style id.
         var styleId = this.getStyleId();
-        
+
         if (styleId && id) {
             styleId = styleId.toLowerCase();
             id = id.trim().toLowerCase();
@@ -419,10 +416,6 @@ lively.morphic.Morph.addMethods(
         } else {
             return false;
         }
-        
-        
-
-        
     },  
 
     removeStyleClassName: function(className) {

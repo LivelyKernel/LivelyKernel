@@ -274,20 +274,20 @@ lively.morphic.Morph.addMethods(
 },
 'Morph class names', {
     getStyleClassNames: function() {
-        var classNames = [];
+        var styleClassNames = [];
 
-        if (this.classNames) {
-            classNames = classNames.concat(this.classNames);
+        if (this.styleClassNames) {
+            styleClassNames = styleClassNames.concat(this.styleClassNames);
         }
         // add real class types to the classnames too
         var type = this.constructor;
         while (type != Object) {
-            classNames.unshift(type.name);
+            styleClassNames.unshift(type.name);
             type = type.superclass;
         }
 
         // each class has to be in the return array only once
-        return this.makeUniqueClassNamesList(classNames);
+        return this.makeUniqueClassNamesList(styleClassNames);
     },
     isOfClass: function(className) {
         // Tests if a morph has a specific class.

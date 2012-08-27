@@ -76,7 +76,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
     testSelectMorphByClassName: function() {
 
         this.assertEqualState([this.blueRectangle1, this.blueRectangle2], 
-            this.world.getSubmorphsByClassName('blue'),
+            this.world.getSubmorphsByStyleClassName('blue'),
             'selection by class should include both blue rectangle morphs');
 
     },

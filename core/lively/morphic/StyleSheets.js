@@ -92,9 +92,20 @@ lively.morphic.Morph.addMethods(
     getMatchingStyleSheetRules: function() {
         var sizzle = new lively.morphic.Sizzle(),
             matchingRules = [],
-            ancestorRules = this.morphicGetter('StyleSheetRules');
+            ancestorRules = [],
+            morphInLoop = this;
 
-        
+        while (morphInLoop) {
+            if (morphInLoop.styleSheetRules) {
+                morphInLoop.styleSheetRules.each(function(rule) {
+                        sizzle.select(rule.selectorText(), this).each(function(morph){
+                            ancestorRules.push(rule);
+                        }, this);
+                        
+                    });
+            }
+            morphInLoop = morphInLoop.owner;
+        }
         if (styleSheetRules) {
             styleSheetRules.each(function(rule){
                 if (rule.type === 1) {

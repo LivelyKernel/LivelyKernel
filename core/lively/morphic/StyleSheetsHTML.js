@@ -60,6 +60,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
         splitGroupedSelector: function(selector) {
             // Splits a grouped selector and returns
             // its single selectors as an array.
+            // Helper function for compileStyleSheet.
 
             var selectorList = selector.
                     split(/[\x20\t\r\n\f]*,[\x20\t\r\n\f]*/);

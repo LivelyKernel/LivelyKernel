@@ -130,7 +130,7 @@ lively.morphic.Morph.addMethods(
         } else {
             return apps.cssParser.calculateCSSRuleSpecificity(rule.selectorText());
         }
-    }
+    },
 
 
 },

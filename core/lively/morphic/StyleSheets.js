@@ -339,6 +339,8 @@ lively.morphic.Morph.addMethods(
         }
     },
     setStyleId: function(id) {
+        // TODO: warn if another morph in the world
+        // already has the same id.
         return this.morphicSetter('StyleId', id.trim());
     },
     getStyleId: function() {

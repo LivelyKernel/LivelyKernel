@@ -545,8 +545,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             secondCSS = "#the-red-rectangle { color: green; }",
             worldCSS = "#the-red-rectangle { color: black; }";
 
-        this.yellowRectangle.processStyleSheet(firstCSS);
-        this.world.processStyleSheet(worldCSS );
+        this.yellowRectangle.setStyleSheet(firstCSS);
+        this.world.setStyleSheet(worldCSS );
 
 
         this.assert(this.redRectangle.styleSheetRules, 'Red Rectangle has no rule attribute');

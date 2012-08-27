@@ -54,6 +54,7 @@ lively.morphic.Morph.addMethods(
         }
         
         */
+        return styleSheetRules;
     },
 
 

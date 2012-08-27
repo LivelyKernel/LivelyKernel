@@ -613,7 +613,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                 };
         this.createSomeMorphs(); // sets up a hierarchy of morphs
 
-        this.world.processStyleSheet(css);
+        this.world.setStyleSheet(css);
 
         var blue1Styles = this.blueRectangle1.getStyleSheetDeclarations(),
             blueStyles1BackgroundColorValue = getDecl(blue1Styles, 'background-color');

@@ -3,6 +3,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
     Object.extend(lively.morphic.Morph.prototype.htmlDispatchTable, {
         setStyleSheet: 'setStyleSheetHTML'
     });
+    
     lively.morphic.Morph.addMethods(
     'RegExp', {
         /*

@@ -488,7 +488,7 @@ lively.morphic.SimpleColorField.subclass('lively.morphic.AwesomeColorField',
             var menuPos = pos.addPt(pt(0, bounds.height));
             menu.open(lively.morphic.World.current(), menuPos, false);
             menu.setColor(this.color);
-            connect(menu, 'selectedColor', this, 'setColor');
+            connect(menu, 'color', this, 'setColor');
         }
     },
 });

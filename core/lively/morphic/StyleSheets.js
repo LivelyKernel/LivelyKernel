@@ -86,10 +86,11 @@ lively.morphic.Morph.addMethods(
         }
         return result;
     },
-    sortStyleSheetRules: function() {
+    sortStyleSheetRules: function(rules) {
         // Returns an array of all rules matching to
         // the morph, sorted by their specificity (low to high).
-        var thisMorph = this;
+        var thisMorph = this,
+            styleSheetRules = rules.splice();
 
         return this.styleSheetRules.sort(function(a, b) {
                 if (a.originMorph !== b.originMorph) {

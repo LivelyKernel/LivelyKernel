@@ -114,7 +114,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
 setStyleSheetHTML: function(ctx,rules) {
     
                 var styleTagId = "style-for-"+this.id,
-                    compiledCSS = this.compileStyleSheet(rules);
+                    compiledCss = this.compileStyleSheet(rules);
 
         	if (ctx.styleNode) {
         	   $(ctx.styleNode).remove();
@@ -123,7 +123,7 @@ setStyleSheetHTML: function(ctx,rules) {
                     compiledCss && compiledCss.length &&
                     compiledCss.length > 0) {
     	           ctx.styleNode = $('<style type="text/css" id="' + styleTagId + '"></style>');
-    	           ctx.styleNode.text(compiledCSS);
+    	           ctx.styleNode.text(compiledCss);
     	           ctx.styleNode.appendTo(document.head);
     	        }
             }}

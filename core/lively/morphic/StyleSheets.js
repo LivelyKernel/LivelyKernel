@@ -103,7 +103,7 @@ lively.morphic.Morph.addMethods(
         // i.e. {'background-color': <declaration>, 'border-width': <declaration>}
 
         var aggregatedStyle = {},
-            rules = this.sortStyleSheetRules(this.getMatchingStyleSheetRules()),
+            rules = this.sortStyleSheetRules(),
             result = [];
 
         // iterate over the ordered rules

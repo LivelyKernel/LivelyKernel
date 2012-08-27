@@ -385,7 +385,7 @@ lively.morphic.Morph.addMethods(
                 this.makeUniqueClassNamesList(classNames));
         } else {
             this.morphicSetter(this.makeUniqueClassNamesList(classNames));
-            delete this.classNames;
+            delete this._StyleClassNames;
         }
     },
     makeUniqueStyleClassNamesList: function(classNames) {

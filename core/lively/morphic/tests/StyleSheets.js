@@ -506,7 +506,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.morph.addClassName('some-class');
 
         this.morph.processStyleSheet(css);
-        var rules = this.morph.styleSheetRules;
+        var rules = this.morph.getMatchingStyleSheetRules;
         this.assertEquals('.some-class', rules[0].selectorText(), 'Selector of first rule is not .some-class');
     },
     test03MorphsHaveOnlyMatchingCSSRules: function() {

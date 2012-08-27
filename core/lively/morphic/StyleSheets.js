@@ -179,13 +179,13 @@ lively.morphic.Morph.addMethods(
     },
     getSubmorphsByClassName: function(classNames) {
         var resultMorphs = [];
-        
+
         this.withAllSubmorphsDo(function(morph){
             if (morph.isOfStyleClass(classNames)) {
                 resultMorphs.push(morph);
             }
         });
-        
+
         return resultMorphs;
     },
     getSubmorphsByAttribute: function(attr, value, optCaseInsensitive) {

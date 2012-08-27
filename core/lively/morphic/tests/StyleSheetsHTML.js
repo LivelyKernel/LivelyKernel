@@ -8,7 +8,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
 },
 'testing', {
 
-    assertDOMMorphNodeAttribute: function(targetValue, actualValue, attributeName, msg) {
+    assertDOMMorphNodeAttribute: function(targetValue, attributeName, msg) {
         var morphNode = this.renderContext().morphNode;
         return this.assertEqual(targetValue, $(morphNode).attr(attributeName), msg);
     },
@@ -16,7 +16,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
     test01AddStyleClass: function() {
         
         this.morph.addStyleClass('test-class');
-        
+        this.assertDOMMorphNodeAttribute('Morph test-class', 'class',
+            'Morph has not class names "Morph test-class"');
         
         this.assertEqualState([this.redRectangle], 
             this.redRectangle.getSubmorphsByStyleClassName('red'),

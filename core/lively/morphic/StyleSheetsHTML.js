@@ -100,8 +100,8 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
         setStyleClassNamesHTML: function(ctx, classes) {
             if (classes && classes.length && classes.length > 0) {
                 var classNames = classes.join(' ');
-                $(ctx.morphNode).attr('class', classes.join(' '));
-                $(ctx.shapeNode).attr('class', id);
+                $(ctx.morphNode).attr('class', classNames);
+                $(ctx.shapeNode).attr('class', classNames);
             } else {
                 $(ctx.morphNode).removeAttr('id');
                 $(ctx.shapeNode).removeAttr('id');

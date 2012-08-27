@@ -131,6 +131,10 @@ lively.morphic.Morph.addMethods(
             return apps.cssParser.calculateCSSRuleSpecificity(rule.selectorText());
         }
     },
+    newMethod: function() {
+        // enter comment here
+    }
+
 
 
 },

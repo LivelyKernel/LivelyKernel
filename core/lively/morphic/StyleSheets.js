@@ -5,7 +5,10 @@ lively.morphic.Morph.addMethods(
     setStyleSheet: function(styleSheet) {
         var rules = this.processStyleSheet(styleSheet);
         return this.morphicSetter('StyleSheetRules', rules);
-    }  
+    },
+    setStyleSheetRules: function(styleSheetRules) {
+        return this.morphicSetter('StyleSheetRules', styleSheetRules);
+    },  
 },
 
 'Style sheet interpretation', {

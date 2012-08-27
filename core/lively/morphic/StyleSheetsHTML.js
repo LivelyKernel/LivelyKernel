@@ -68,6 +68,9 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
     },
     'HTML DOM', {
         setStyleSheetHTML: function(ctx,rules) {
+            // Compiles the input style rules to an 
+            // HTML specific style sheet and adds this
+            // to the DOM.
             var styleTagId = "style-for-"+this.id,
             compiledCss = this.compileStyleSheet(rules);
 

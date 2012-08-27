@@ -573,8 +573,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 
         this.world.setStyleSheet(worldCss);
         this.yellowRectangle.setStyleSheet(yellowCss);
-        sortedRules = this.redRectangle.getMatchingStyleSheetRules();
-        sortedRules = this.redRectangle.sortStyleSheetRules(sortedRules);
+        sortedRules = this.redRectangle.sortStyleSheetRules();
 
         this.assertEquals(4, sortedRules.length, 'redRectangle should have 4 rules');
 

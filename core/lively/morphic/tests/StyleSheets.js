@@ -279,7 +279,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
     
     
     testMorphSelectsItself: function() {
-        debugger
         
         this.assertSizzleSelect(
             [this.blueRectangle1],

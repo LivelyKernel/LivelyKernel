@@ -5,7 +5,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
     });
     
     lively.morphic.Morph.addMethods(
-    'stylesheets', {
+    'Stylesheets', {
 
         compileStyleSheet: function(rules) {
             // Takes a list of CSS rules and assembles a style

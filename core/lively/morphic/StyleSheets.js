@@ -81,8 +81,9 @@ lively.morphic.Morph.addMethods(
 
         // Collect matching rules from ancestors (and self)
         while (morphInLoop) {
-            if (morphInLoop.getStyleSheetRules()) {
-                morphInLoop.getStyleSheetRules().each(
+            var styleSheetRules = morphInLoop.getStyleSheetRules();
+            if (styleSheetRules) {
+                styleSheetRules.each(
                     function(rule) {
                         if (sizzle.select(rule.selectorText(),
                             this, null, [this]).length == 1) {

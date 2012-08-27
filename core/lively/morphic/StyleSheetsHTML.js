@@ -74,6 +74,9 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
             // Compiles the input style rules to an 
             // HTML specific style sheet and adds this
             // to the DOM.
+            // Called when a new style sheet was applied to
+            // the morph (i.e. through setStyleSheet), or
+            // in the initHTML method of the morph.
 
             var styleTagId = "style-for-"+this.id,
             compiledCss = this.compileStyleSheet(rules);

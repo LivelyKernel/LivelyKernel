@@ -3,7 +3,12 @@ module('lively.morphic.StyleSheets').requires('apps.cssParser').toRun(function()
 lively.morphic.Morph.addMethods(
 'Style sheet getters and setters',{
     setStyleSheet: function(styleSheet) {
-        return this.morphicSetter('StyleSheet', styleSheet);
+        if (styleSheet && styleSheet.length && styleSheet.length > 0) {
+            return this.morphicSetter('StyleSheet', styleSheet);
+        } else {
+            this.morphicSetter('StyleSheet', null);
+            delete this._StyleSheet;
+        }
     },
     getStyleSheet: function() {
         this.morphicGetter('StyleSheet');

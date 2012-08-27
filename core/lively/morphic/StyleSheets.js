@@ -26,8 +26,7 @@ lively.morphic.Morph.addMethods(
             }, this);
     },
     processStyleSheet: function(styleSheet) {
-        // Extracts the CSS rules out of a style sheet and
-        // copies matching rules into the morph's submorphs.
+        // Extracts the CSS rules out of a style sheet.
         // Returns the rules as an array.
 
         var sizzle = new lively.morphic.Sizzle(),

@@ -344,6 +344,31 @@ lively.morphic.Morph.addMethods(
     getStyleId: function() {
         return this.morphicGetter('StyleId');
     },
+    hasStyleId: function(id) {
+        // Tests if a morph has a specific style id.
+
+        var classNames = className.toLowerCase().split(/[\s,]+/),
+            morphClasses = this.getClassNames() || [];
+
+        // Generate a RegExp for each className
+        classNames = classNames.collect(function(c) {
+                return this.makeClassNameRegExp(c);
+            }, this);
+
+        for (var i = 0; i < classNames.length; i++) {
+            var innerLoopRet = false;
+            for (var j = 0; j < morphClasses.length; j++) {
+                if (classNames[i].test(morphClasses[j])){
+                        innerLoopRet = true;
+                        continue;
+                    }
+            }
+            if (!innerLoopRet) {
+                return false;
+            }
+        }
+        return true;
+    },  
 
     removeStyleClassName: function(className) {
         var pattern = this.makeStyleClassNameRegExp(className),

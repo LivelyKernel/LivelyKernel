@@ -240,5 +240,6 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML', 'lively
             }
         },
     }
-    )
-) // end of module()
+    );
+	
+}) // end of module()

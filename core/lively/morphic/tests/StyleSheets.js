@@ -544,7 +544,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var firstCSS = ".red { color: red; }",
             secondCSS = "#the-red-rectangle { color: green; }",
             worldCSS = "#the-red-rectangle { color: black; }";
-
+        debugger
         this.yellowRectangle.setStyleSheet(firstCSS);
         this.world.setStyleSheet(worldCSS );
 

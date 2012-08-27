@@ -99,7 +99,11 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
     'Style Classes and Ids', {
         setStyleClassNamesHTML: function(ctx, classes) {},
         setStyleIdHTML: function(ctx, id) {
-            ctx.morphNode.id = value;
+            if (id && id.length && id.length > 0) {
+                
+            } else {
+                ctx.morphNode.id = value;
+            }
         },
     }
     )

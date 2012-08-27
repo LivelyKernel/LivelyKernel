@@ -1,5 +1,24 @@
 module('lively.morphic.StyleSheets').requires('apps.cssParser').toRun(function() {
 
+
+lively.morphic.Shapes.Shape.addMethods(
+'Styling', {
+    setAppearanceStylingMode: function(value) {
+        return this.shapeSetter('AppearanceStylingMode', value);
+    },
+    getAppearanceStylingMode: function() {
+        return this.shapeGetter('AppearanceStylingMode');
+    },
+
+    setBorderStylingMode: function(value) {
+        return this.shapeSetter('BorderStylingMode', value);
+    },
+    getBorderStylingMode: function() {
+        return this.shapeGetter('BorderStylingMode');
+    },    
+}
+);
+
 lively.morphic.Morph.addMethods(
 'Style sheet getters and setters',{
     setStyleSheet: function(styleSheet) {

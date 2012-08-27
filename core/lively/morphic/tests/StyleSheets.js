@@ -314,6 +314,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
     
     
     testSelectMorphById: function() {
+        debugger
         this.assertSizzleSelect([this.redRectangle],
             '#the-red-rectangle',
             this.world,

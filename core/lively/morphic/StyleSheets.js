@@ -5,8 +5,8 @@ lively.morphic.Morph.addMethods(
     setStyleSheet: function(styleSheet) {
         return this.morphicSetter('StyleSheet', styleSheet);
     },
-    newMethod: function() {
-        // enter comment here
+    getStyleSheet: function() {
+        this.morphicGetter('StyleSheet')
     },
 
     setStyleSheetRules: function(styleSheetRules) {

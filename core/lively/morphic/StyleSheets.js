@@ -419,8 +419,8 @@ lively.morphic.Morph.addMethods(
         var pattern = this.makeStyleClassNameRegExp(className),
             newClassList = [],
             result = false;
-        if (this.classNames && Array.isArray(this.classNames)) {
-            this.classNames.each(function (c){
+        if (this.getStyleClassNames()) {
+            this.getStyleClassNames().each(function (c){
                     if (pattern.test(c)) {
                         result = true;
                     } else {

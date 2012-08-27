@@ -112,18 +112,25 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
         },
         'HTML DOM', {
             setStyleSheetHTML: function(ctx,rules) {
-
-                var morphId = ctx.shapeNode && ctx.shapeNode.id;
-                if (!morphId) {
-                    //console.log('Warning, morph has no shape node or shape node was not given any id.');
-                    return;
-                }
-
-                var styleTagId = "style-for-"+morphId;
+    
+                var styleTagId = "style-for-"+this.id,
+                    compiledCSS = this.compileStyleSheet(rules);
 
         	if (ctx.styleNode) {
         	   $(ctx.styleNode).remove();
                 }
+                
+                
+                
+    	        ctx.styleNode = $('<style type="text/css" id="' + styleTagId + '"></style>');
+    	        ctx.styleNode.text(specificCss);
+    	        ctx.styleNode.appendTo(document.head);
+                
+                
+                
+                
+                
+                
                 if (styleSheet && styleSheet.length > 1) {
 
             	    //console.log("Setting CSS for shape "+morphId+" to "+value);

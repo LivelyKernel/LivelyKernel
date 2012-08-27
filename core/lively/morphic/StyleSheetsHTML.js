@@ -1,7 +1,7 @@
 module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML', 'lively.morphic.StyleSheets').toRun(function() {
 
     Object.extend(lively.morphic.Morph.prototype.htmlDispatchTable, {
-        setStyleSheetRules: 'setStyleSheetRulesHTML',
+        setStyleSheet: 'setStyleSheetHTML',
         setStyleClassNames: 'setStyleClassNamesHTML',
         setStyleId: 'setStyleIdHTML',
     });

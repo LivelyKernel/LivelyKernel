@@ -418,15 +418,16 @@ lively.morphic.Morph.addMethods(
     removeStyleClassName: function(className) {
         var pattern = this.makeStyleClassNameRegExp(className),
             newClassList = [],
-            result = false;
-        if (this.getStyleClassNames()) {
-            this.getStyleClassNames().each(function (c){
+            result = false,
+            classNames = this.morphicGetter('StyleClassNames');
+        if (classNames) {
+            classNames.each(function (c){
                     if (pattern.test(c)) {
                         result = true;
                     } else {
                         newClassList.push(c);
                     }
-                });
+                }, this);
             this.setStyleClassNames(newClassList);
         } else {
             return false;

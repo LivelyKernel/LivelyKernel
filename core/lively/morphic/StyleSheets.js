@@ -410,11 +410,19 @@ lively.morphic.Morph.addMethods(
     },
     hasStyleId: function(id) {
         // Tests if a morph has a specific style id.
-        var styleId = this.getStyleId().toLowerCase();
+        var styleId = this.getStyleId();
         
-        id = id.trim().toLowerCase();
+        if (styleId && id) {
+            styleId = styleId.toLowerCase();
+            id = id.trim().toLowerCase();
+            return (styleId === id);
+        } else {
+            return false;
+        }
+        
+        
 
-        return (styleId === id);
+        
     },  
 
     removeStyleClassName: function(className) {

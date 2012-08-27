@@ -347,8 +347,7 @@ lively.morphic.Morph.addMethods(
     hasStyleId: function(id) {
         // Tests if a morph has a specific style id.
 
-        var classNames = className.toLowerCase().split(/[\s,]+/),
-            morphClasses = this.getClassNames() || [];
+        var styleId = this.getStyleId();
 
         // Generate a RegExp for each className
         classNames = classNames.collect(function(c) {

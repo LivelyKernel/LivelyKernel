@@ -81,6 +81,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML', 'lively
             // in the initHTML method of the morph.
 
             var styleTagId = "style-for-"+this.id,
+			rules = this.processStyleSheet(styleSheet),
             compiledCss = this.compileStyleSheet(rules);
 
     	    if (ctx.styleNode) {

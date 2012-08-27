@@ -119,7 +119,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
     test01MorphGetObjectSpecificClassNames: function() {
         this.morph.classNames = [];
         this.assertEqualState(['Morph'],
-            this.morph.getClassNames(),
+            this.morph.getStyleClassNames(),
             'Morph does not have class name "morph"'
         );
     },

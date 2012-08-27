@@ -728,7 +728,7 @@ Object.subclass("lively.morphic.Sizzle",
 				function( id ) {
 					id = id.replace( this.rbackslash, "" );
 					return function( elem ) {
-						return elem.getAttribute("id") === id;
+						return elem.hasStyleId(id);
 					};
 				} :
 				function( id ) {

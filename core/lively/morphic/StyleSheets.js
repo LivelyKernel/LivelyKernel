@@ -88,9 +88,10 @@ lively.morphic.Morph.addMethods(
     },
     getMatchingStyleSheetRules: function() {
         var sizzle = new lively.morphic.Sizzle(),
-            rules = [];
+            matchingRules = [],
+            ancestorRules = this.morphicGetter('StyleSheet');
 
-
+        
         if (styleSheetRules) {
             styleSheetRules.each(function(rule){
                 if (rule.type === 1) {

@@ -161,34 +161,34 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
     },
     test03MorphSetClassNames: function() {
         this.morph.classNames = [];
-        this.morph.setClassNames(['test']);
+        this.morph.setStyleClassNames(['test']);
 
-        this.assertEquals(1, this.morph.classNames.length,
+        this.assertEquals(1, this.morph._StyleClassNames.length,
             'Class names array in morph is not 1');
-        this.assertEquals('test', this.morph.classNames.first(),
+        this.assertEquals('test', this.morph._StyleClassNames.first(),
             'Class names array should contain "test"');
-        this.assertEquals(2, this.morph.getClassNames().length,
+        this.assertEquals(2, this.morph.getStyleClassNames().length,
             'Class names getter does not return 2');
-        this.assertEqualState(['Morph', 'test'], this.morph.getClassNames(),
+        this.assertEqualState(['Morph', 'test'], this.morph.getStyleClassNames(),
             'Class names array should contain "morph" and "test"');
 
-        this.morph.setClassNames(['test', 'morph', 'tEsT']);
+        this.morph.setStyleClassNames(['test', 'morph', 'tEsT']);
 
-        this.assertEquals(2, this.morph.classNames.length,
+        this.assertEquals(2, this.morph._StyleClassNames.length,
             'Class names array in morph is not 2 after adding "morph"');
-        this.assertEqualState(['test', 'morph'], this.morph.classNames,
+        this.assertEqualState(['test', 'morph'], this.morph._StyleClassNames,
             'Class names array should contain "test" and "morph" after adding "morph"');
-        this.assertEquals(2, this.morph.getClassNames().length,
+        this.assertEquals(2, this.morph.getStyleClassNames().length,
             'Class names getter does not return 2 after adding "morph"');
-        this.assertEqualState(['Morph', 'test'], this.morph.getClassNames(),
+        this.assertEqualState(['Morph', 'test'], this.morph.getStyleClassNames(),
             'Class names array should contain "morph" and "test" after adding "morph"');
         
-        this.morph.setClassNames();
-        this.assert(!this.morph.classNames,
+        this.morph.setStyleClassNames();
+        this.assert(!this.morph._StyleClassNames,
             'Morph shouldn\'t have a classNames attribute after resetting');
-        this.assertEquals(1, this.morph.getClassNames().length,
+        this.assertEquals(1, this.morph.getStyleClassNames().length,
             'Class names getter does not return 1 after resetting');
-        this.assertEqualState(['Morph'], this.morph.getClassNames(),
+        this.assertEqualState(['Morph'], this.morph.getStyleClassNames(),
             'Class names array should only contain "morph" after resetting');
     },
     test04MorphIsOfClass: function() {

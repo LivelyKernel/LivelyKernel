@@ -32,7 +32,7 @@ lively.morphic.Morph.addMethods(
 
         var sizzle = new lively.morphic.Sizzle(),
             styleSheetRules = apps.cssParser.parse(styleSheet);
-
+        /*
         this.clearStyleRulesInSubmorphs();
 
         if (styleSheetRules) {
@@ -52,6 +52,8 @@ lively.morphic.Morph.addMethods(
 
             return styleSheetRules;
         }
+        
+        */
     },
 
 

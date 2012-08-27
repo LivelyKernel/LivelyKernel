@@ -30,28 +30,6 @@ lively.morphic.Morph.addMethods(
         // Returns the rules as an array.
 
         var styleSheetRules = apps.cssParser.parse(styleSheet);
-        /*
-        this.clearStyleRulesInSubmorphs();
-
-        if (styleSheetRules) {
-            styleSheetRules.each(function(rule){
-                if (rule.type === 1) {
-                    rule.originMorph = this;
-                    sizzle.select(rule.selectorText(), this).each(function(morph){
-                        if (!morph.styleSheetRules) {
-                            morph.styleSheetRules = [];
-                        }
-                        morph.styleSheetRules.push(rule);
-                    }, this);
-                }
-            }, this);
-
-            if (!this.styleSheetRules) {this.styleSheetRules = [];}
-
-            return styleSheetRules;
-        }
-        
-        */
         return styleSheetRules;
     },
 

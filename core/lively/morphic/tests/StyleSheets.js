@@ -243,14 +243,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
         yellowRectangle.applyStyle({fill: Color.yellow});
         yellowRectangle.tagName = 'YellowRectangle';
         yellowRectangle.testAttribute = 'theYellowRectangle';
-        yellowRectangle.addClassName('yellow');
+        yellowRectangle.addStyleClassName('yellow');
         yellowRectangle.openInWorld();
         
 
         var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
         redRectangle.applyStyle({fill: Color.red});
-        redRectangle.addClassName('red');
-        redRectangle.setNewId('the-red-rectangle');
+        redRectangle.addStyleClassName('red');
+        redRectangle.setStyleId('the-red-rectangle');
         redRectangle.testAttribute = 'theRedRectangle';
         yellowRectangle.addMorph(redRectangle);
 

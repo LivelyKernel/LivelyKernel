@@ -366,7 +366,7 @@ lively.morphic.Morph.addMethods(
     makeUniqueStyleClassNamesList: function(classNames) {
         var uniqueClassNames = [];
         classNames.each(function(c){
-                var name = this.makeClassNameRegExp(c),
+                var name = this.makeStyleClassNameRegExp(c),
                     notInListYet = true;
                 uniqueClassNames.each(function(u) {
                         if (name.test(u)) {

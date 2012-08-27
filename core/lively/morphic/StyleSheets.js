@@ -282,7 +282,7 @@ lively.morphic.Morph.addMethods(
         }
     },
 },
-'Morph class names', {
+'Style classes and ids', {
     getStyleClassNames: function() {
         var styleClassNames = [];
 

@@ -523,18 +523,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 
         this.yellowRectangle.setStyleSheet(css);
         
-        this.assert(this.blueRectangle1.styleSheetRules, 'Blue Rectangle 1 has no rule attribute');
-        var b1css = this.blueRectangle1.styleSheetRules;
+        this.assert(this.blueRectangle1.getMatchingStyleSheetRules(), 'Blue Rectangle 1 has no rule attribute');
+        var b1css = this.blueRectangle1.getMatchingStyleSheetRules();
         this.assertEquals(1, b1css.length, 'Blue Rectangle 1 has not exactly 1 rule');
         this.assertEquals('.blue:nth-child(1)', b1css [0].selectorText(), 'Selector of first rule in blueRectangle2 is not .blue:nth-child(1)');
         
-        this.assert(this.blueRectangle2.styleSheetRules, 'Blue Rectangle 2 has no rule attribute');
-        var b2css = this.blueRectangle2.styleSheetRules;
+        this.assert(this.blueRectangle2.getMatchingStyleSheetRules(), 'Blue Rectangle 2 has no rule attribute');
+        var b2css = this.blueRectangle2.getMatchingStyleSheetRules();
         this.assertEquals(1, b2css.length, 'Blue Rectangle 2 has not exactly 1 rule');
         this.assertEquals('.blue:nth-child(2)', b2css[0].selectorText(), 'Selector of first rule in blueRectangle2 is not .blue:nth-child(2)');
 
-        this.assert(this.redRectangle.styleSheetRules, 'Red Rectangle has no rule attribute');
-        var rcss = this.redRectangle.styleSheetRules;
+        this.assert(this.redRectangle.getMatchingStyleSheetRules(), 'Red Rectangle has no rule attribute');
+        var rcss = this.redRectangle.getMatchingStyleSheetRules();
         this.assertEquals(1, rcss.length, 'RedRectangle has not exactly 1 rule');
         this.assertEquals('.red', rcss[0].selectorText(), 'Selector of first rule in RedRectangle is not .red');
         

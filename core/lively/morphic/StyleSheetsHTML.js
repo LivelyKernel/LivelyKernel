@@ -102,7 +102,8 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
             if (id && id.length && id.length > 0) {
                 
             } else {
-                ctx.morphNode.id = value;
+                $(ctx.morphNode).removeAttr('id');
+                $(ctx.shapeNode).removeAttr('id');
             }
         },
     }

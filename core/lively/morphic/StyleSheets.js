@@ -5,6 +5,10 @@ lively.morphic.Morph.addMethods(
     setStyleSheet: function(styleSheet) {
         return this.morphicSetter('StyleSheet', styleSheet);
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
     setStyleSheetRules: function(styleSheetRules) {
         // DEPRECATED
         alert('setStyleSheetRules is deprecated!');

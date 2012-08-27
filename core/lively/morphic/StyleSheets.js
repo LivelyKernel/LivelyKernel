@@ -33,6 +33,7 @@ lively.morphic.Morph.addMethods(
         }, this);
 
         if (!this.styleSheetRules) {this.styleSheetRules = [];}
+        
         return styleSheetRules;
     },
     getStyleSheetDeclarations: function(){

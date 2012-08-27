@@ -8,7 +8,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
 },
 'testing', {
 
-    assertDOMNodeAttribute: function(targetValue, actualValue, attributeName, msg) {
+    assertDOMMorphNodeAttribute: function(targetValue, actualValue, attributeName, msg) {
         
     },
     

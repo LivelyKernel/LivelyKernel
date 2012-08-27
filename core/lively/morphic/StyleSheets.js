@@ -161,7 +161,7 @@ lively.morphic.Morph.addMethods(
         var resultMorphs = [];
         
         this.withAllSubmorphsDo(function(morph){
-            if (morph.isOfClass(classNames)) {
+            if (morph.isOfStyleClass(classNames)) {
                 resultMorphs.push(morph);
             }
         });
@@ -317,7 +317,7 @@ lively.morphic.Morph.addMethods(
         }
         return true;
     },
-    addClassName: function(className) {
+    addStyleClassName: function(className) {
         var classNames = this.classNames || [];
         if (className) {
             if (Array.isArray(className) ){
@@ -328,7 +328,7 @@ lively.morphic.Morph.addMethods(
             this.setClassNames(classNames);
         }
     },
-    removeClassName: function(className) {
+    removeStyleClassName: function(className) {
         var pattern = this.makeClassNameRegExp(className),
             newClassList = [],
             result = false;
@@ -346,14 +346,14 @@ lively.morphic.Morph.addMethods(
         }
     },
     
-    setClassNames: function(classNames) {
+    setStyleClassNames: function(classNames) {
         if (classNames && Array.isArray(classNames) && classNames.length > 0) {
             this.classNames = this.makeUniqueClassNamesList(classNames);
         } else {
             delete this.classNames;
         }
     },
-    makeUniqueClassNamesList: function(classNames) {
+    makeUniqueStyleClassNamesList: function(classNames) {
         var uniqueClassNames = [];
         classNames.each(function(c){
                 var name = this.makeClassNameRegExp(c),
@@ -369,7 +369,7 @@ lively.morphic.Morph.addMethods(
             }, this);
         return uniqueClassNames;
     },
-    makeClassNameRegExp: function(className) {
+    makeStyleClassNameRegExp: function(className) {
         return new RegExp( "(^|[\\x20\\t\\r\\n\\f])" +
                 className + "([\\x20\\t\\r\\n\\f]|$)", "i" );
     },

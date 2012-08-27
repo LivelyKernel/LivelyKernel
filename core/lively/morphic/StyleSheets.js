@@ -9,14 +9,7 @@ lively.morphic.Morph.addMethods(
 },
 
 'Style sheet interpretation', {
-    processStyleSheet: function(styleSheet) {
-        // Extracts the CSS rules out of a style sheet and
-        // copies matching rules into the morph's submorphs.
-        // Returns the rules as an array.
-
-        var sizzle = new lively.morphic.Sizzle(),
-            styleSheetRules = apps.cssParser.parse(styleSheet);
-
+    clearStyleRulesInSubmorphs: function() {
         // get rid of the old rules in all submorphs
         this.withAllSubmorphsDo(function(morph){
                 if (morph.styleSheetRules) {
@@ -26,6 +19,16 @@ lively.morphic.Morph.addMethods(
                         },this);
                 }
             }, this);
+    },
+    processStyleSheet: function(styleSheet) {
+        // Extracts the CSS rules out of a style sheet and
+        // copies matching rules into the morph's submorphs.
+        // Returns the rules as an array.
+
+        var sizzle = new lively.morphic.Sizzle(),
+            styleSheetRules = apps.cssParser.parse(styleSheet);
+
+        this.clearStyleRulesInSubmorphs();
 
         if (styleSheetRules) {
             styleSheetRules.each(function(rule){
@@ -131,10 +134,6 @@ lively.morphic.Morph.addMethods(
             return apps.cssParser.calculateCSSRuleSpecificity(rule.selectorText());
         }
     },
-    newMethod: function() {
-        // enter comment here
-    }
-
 
 
 },

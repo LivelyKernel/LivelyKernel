@@ -20,21 +20,21 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
 
         var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
         redRectangle.applyStyle({fill: Color.red});
-        redRectangle.addClassName('red');
-        redRectangle.setNewId('the-red-rectangle');
+        redRectangle.addStyleClassName('red');
+        redRectangle.setStyleId('the-red-rectangle');
         redRectangle.testAttribute = 'theRedRectangle';
         yellowRectangle.addMorph(redRectangle);
 
         var blueRectangle1 = lively.morphic.Morph.makeRectangle(10, 10, 150, 100);
         blueRectangle1.applyStyle({fill: Color.blue});
-        blueRectangle1.addClassName('blue');
-        blueRectangle1.setNewId('b1');
+        blueRectangle1.addStyleClassName('blue');
+        blueRectangle1.setStyleId('b1');
         redRectangle.addMorph(blueRectangle1);
 
         var blueRectangle2 = lively.morphic.Morph.makeRectangle(10, 160, 150, 80);
         blueRectangle2.applyStyle({fill: Color.blue});
-        blueRectangle2.addClassName('blue');
-        blueRectangle2.setNewId('b2');
+        blueRectangle2.addStyleClassName('blue');
+        blueRectangle2.setStyleId('b2');
         blueRectangle2.tagName = 'blueRectangleTag';
         redRectangle.addMorph(blueRectangle2);
         

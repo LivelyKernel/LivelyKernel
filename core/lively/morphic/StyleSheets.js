@@ -86,6 +86,10 @@ lively.morphic.Morph.addMethods(
         }
         return result;
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
     sortStyleSheetRules: function(rules) {
         // Returns an array of all rules matching to
         // the morph, sorted by their specificity (low to high).

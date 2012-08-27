@@ -590,7 +590,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var css = ".blue, #the-red-rectangle.red, #the-red-rectangle, .red { color: red; }",
             rules = apps.cssParser.parse(css);
         this.createSomeMorphs(); // sets up a hierarchy of morphs
-
+        debugger
         this.assertEquals(10,
             this.blueRectangle1.getStyleSheetRuleSpecificity(rules.first()),
             'rule specificity on blue rect has to be 10');

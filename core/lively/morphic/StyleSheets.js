@@ -203,13 +203,16 @@ lively.morphic.Morph.addMethods(
 
 },
 'Morph selection', {
-    getSubmorphById: function(id, optIdAttributeName) {
-        if (this[optIdAttributeName || 'id'] == id){
+    getSubmorphByStyleId: function(id, optIdAttributeName) {
+        var styleId = (optIdAttributeName) ?
+				this[optIdAttributeName] : 
+				this.getStyleId();
+		if (styleId === id){
             return this;
         } else {
             for (var i = 0; i < this.submorphs.length; i++) {
                 var m = this.submorphs[i],
-                    hit = m.getSubmorphById(id);
+                    hit = m.getSubmorphByStyleId(id);
                 if (hit) {
                     return hit;
                 }
@@ -217,7 +220,7 @@ lively.morphic.Morph.addMethods(
             return null;
         }
     },
-    getSubmorphsByClassName: function(classNames) {
+    getSubmorphsByStyleClassName: function(classNames) {
         var resultMorphs = [];
 
         this.withAllSubmorphsDo(function(morph){
@@ -357,7 +360,7 @@ lively.morphic.Morph.addMethods(
         // separated by blanks.
 
         var classNames = className.toLowerCase().split(/[\s,]+/),
-            morphClasses = this.getClassNames() || [];
+            morphClasses = this.getStyleClassNames() || [];
 
         // Generate a RegExp for each className
         classNames = classNames.collect(function(c) {
@@ -588,8 +591,8 @@ Object.subclass("lively.morphic.Sizzle",
 		    
 		    "CLASS": function( className, context, xml ) {
 		        
-		          if     ( typeof context.getSubmorphsByClassName !== this.strundefined && !xml ) {
-			         return context.getSubmorphsByClassName( className );
+		          if     ( typeof context.getSubmorphsByStyleClassName !== this.strundefined && !xml ) {
+			         return context.getSubmorphsByStyleClassName( className );
 		              } 
 		      },
 		
@@ -600,16 +603,16 @@ Object.subclass("lively.morphic.Sizzle",
 	               },
 			"ID": this.assertGetIdNotName ?
 				function( id, context, xml ) {
-					if ( typeof context.getSubmorphById !== this.strundefined && !xml ) {
-						var m = context.getSubmorphById( id );
+					if ( typeof context.getSubmorphByStyleId !== this.strundefined && !xml ) {
+						var m = context.getSubmorphByStyleId( id );
 						// Check parentNode to catch when Blackberry 4.6 returns
 						// nodes that are no longer in the document #6963
 						return m && m.owner ? [m] : [];
 					}
 				} :
 				function( id, context, xml ) {
-					if ( typeof context.getSubmorphById!== this.strundefined && !xml ) {
-						var m = context.getSubmorphById( id );
+					if ( typeof context.getSubmorphByStyleId!== this.strundefined && !xml ) {
+						var m = context.getSubmorphByStyleId( id );
 
 						return m ?
 							m.id === id || typeof m.getAttributeNode !== this.strundefined && m.getAttributeNode("id").value === id ?
@@ -757,7 +760,7 @@ Object.subclass("lively.morphic.Sizzle",
 					}
 				}
 				return function( elem ) {
-					return pattern.test( elem.getClassNames().join(' ') || "" );
+					return pattern.test( elem.getStyleClassNames().join(' ') || "" );
 				};
 			},
 
@@ -1085,7 +1088,7 @@ Object.subclass("lively.morphic.Sizzle",
 			// Speed-up: Sizzle("#ID")
 			if ( (m = match[1]) ) {
 				if ( nodeType === 9 ) {
-					elem = context.getSubmorphById(m);
+					elem = context.getSubmorphByStyleId(m);
 					// Check parentNode to catch when Blackberry 4.6 returns
 					// nodes that are no longer in the document #6963
 					if ( elem && elem.owner) {
@@ -1100,7 +1103,7 @@ Object.subclass("lively.morphic.Sizzle",
 					}
 				} else {
 					// Context is not a document
-					if ( context.world() && (elem = context.world().getSubmorphById( m )) &&
+					if ( context.world() && (elem = context.world().getSubmorphByStyleId( m )) &&
 						this.contains( context, elem ) && elem.id === m ) {
 						results.push( elem );
 						return results;
@@ -1113,8 +1116,8 @@ Object.subclass("lively.morphic.Sizzle",
 				return results;
 
 			// Speed-up: Sizzle(".CLASS")
-			} else if ( (m = match[3]) && context.getSubmorphsByClassName ) {
-				this.push.apply( results, this.slice.call(context.getSubmorphsByClassName ( m ), 0) );
+			} else if ( (m = match[3]) && context.getSubmorphsByStyleClassName ) {
+				this.push.apply( results, this.slice.call(context.getSubmorphsByStyleClassName ( m ), 0) );
 				return results;
 			}
 		}

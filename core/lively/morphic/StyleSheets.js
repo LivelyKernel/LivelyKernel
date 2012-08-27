@@ -724,18 +724,10 @@ Object.subclass("lively.morphic.Sizzle",
 		},
 
 		filter: {
-			"ID": this.assertGetIdNotName ?
-				function( id ) {
+			"ID": 	function( id ) {
 					id = id.replace( this.rbackslash, "" );
 					return function( elem ) {
 						return elem.hasStyleId(id);
-					};
-				} :
-				function( id ) {
-					id = id.replace( this.rbackslash, "" );
-					return function( elem ) {
-						var node = typeof elem.getAttributeNode !== this.strundefined && elem.getAttributeNode("id");
-						return node && node.value === id;
 					};
 				},
 

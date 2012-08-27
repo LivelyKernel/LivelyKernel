@@ -4,7 +4,6 @@ lively.morphic.Morph.addMethods(
 'Style sheet getters and setters',{
     setStyleSheet: function(styleSheet) {
         return this.morphicSetter('StyleSheet', styleSheet);
-
     },
     setStyleSheetRules: function(styleSheetRules) {
         // DEPRECATED

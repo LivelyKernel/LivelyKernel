@@ -93,7 +93,7 @@ lively.morphic.Morph.addMethods(
         var sizzle = new lively.morphic.Sizzle(),
             matchingRules = [],
             morphInLoop = this;
-        
+
         // Collect matching rules from ancestors (and self)
         while (morphInLoop) {
             if (morphInLoop.styleSheetRules) {

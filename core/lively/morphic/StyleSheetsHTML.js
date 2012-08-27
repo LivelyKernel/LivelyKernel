@@ -97,7 +97,16 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(f
             }
     }, 
     'Style Classes and Ids', {
-        setStyleClassNamesHTML: function(ctx, classes) {},
+        setStyleClassNamesHTML: function(ctx, classes) {
+            if (classes && classes.length && classes.length > 0) {
+                $(ctx.morphNode).attr('id', id);
+                $(ctx.shapeNode).attr('id', id);
+            } else {
+                $(ctx.morphNode).removeAttr('id');
+                $(ctx.shapeNode).removeAttr('id');
+            }
+            
+        },
         setStyleIdHTML: function(ctx, id) {
             if (id && id.length && id.length > 0) {
                 $(ctx.morphNode).attr('id', id);

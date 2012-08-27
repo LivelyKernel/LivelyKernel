@@ -59,8 +59,8 @@ lively.morphic.Morph.addMethods(
         rules = this.sortStyleSheetRules(rules);
 
         // iterate over the ordered rules
-        for (var i = 0; i < this.styleSheetRules.length; i++) {
-            var rule = this.styleSheetRules[i];
+        for (var i = 0; i < rules.length; i++) {
+            var rule = rules[i];
             rule.declarations.each(function(decl){
                 if (aggregatedStyle[decl.property] &&
                     aggregatedStyle[decl.property].priority &&

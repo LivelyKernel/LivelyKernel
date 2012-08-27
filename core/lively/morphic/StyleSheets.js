@@ -3,8 +3,8 @@ module('lively.morphic.StyleSheets').requires('apps.cssParser').toRun(function()
 lively.morphic.Morph.addMethods(
 'Style sheet getters and setters',{
     setStyleSheet: function(styleSheet) {
-        var rules = this.processStyleSheet(styleSheet);
-        return this.setStyleSheetRules(rules);
+        return this.morphicSetter('StyleSheet', styleSheet);
+
     },
     setStyleSheetRules: function(styleSheetRules) {
         return this.morphicSetter('StyleSheetRules', styleSheetRules);

@@ -1,6 +1,6 @@
 module('lively.morphic.tests.StyleSheetsHTML').requires('lively.morphic.tests.Helper', 'lively.morphic.HTML', 'lively.morphic.StyleSheetsHTML').toRun(function() {
 
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.MorphSelection',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.StyleSheets',
 'running', {
     setUp: function($super) {
         $super();
@@ -10,8 +10,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
 
     
     
-    testMorphSelectsItself: function() {
-
+    test01AddStyleClass: function() {
+        
+        
+        
         this.assertEqualState([this.redRectangle], 
             this.redRectangle.getSubmorphsByStyleClassName('red'),
             'selection by class only should include Red Rectangle'

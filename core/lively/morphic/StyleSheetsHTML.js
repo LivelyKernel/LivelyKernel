@@ -119,9 +119,13 @@ setStyleSheetHTML: function(ctx,rules) {
         	if (ctx.styleNode) {
         	   $(ctx.styleNode).remove();
                 }
-    	        ctx.styleNode = $('<style type="text/css" id="' + styleTagId + '"></style>');
-    	        ctx.styleNode.text(compiledCSS);
-    	        ctx.styleNode.appendTo(document.head);
+                if (rules.length && rules.length > 0 &&
+                    compiledCss && compiledCss.length &&
+                    compiledCss.length > 0) {
+    	           ctx.styleNode = $('<style type="text/css" id="' + styleTagId + '"></style>');
+    	           ctx.styleNode.text(compiledCSS);
+    	           ctx.styleNode.appendTo(document.head);
+    	        }
             }}
     )
 }) // end of module()

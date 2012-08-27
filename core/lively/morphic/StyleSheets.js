@@ -411,7 +411,7 @@ lively.morphic.Morph.addMethods(
     hasStyleId: function(id) {
         // Tests if a morph has a specific style id.
         var styleId = this.getStyleId().toLowerCase();
-
+        
         id = id.trim().toLowerCase();
 
         return (styleId === id);

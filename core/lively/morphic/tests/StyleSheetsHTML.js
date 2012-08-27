@@ -8,11 +8,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
 },
 'testing', {
 
-    
+    assertDOMNodeAttribute: function(targetValue, actualValue, attributeName, msg) {
+        
+    },
     
     test01AddStyleClass: function() {
         
-        
+        this.morph.addStyleClass()
         
         this.assertEqualState([this.redRectangle], 
             this.redRectangle.getSubmorphsByStyleClassName('red'),

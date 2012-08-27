@@ -107,7 +107,7 @@ lively.morphic.Morph.addMethods(
             }
             morphInLoop = morphInLoop.owner;
         }
-        
+        return matchingRules;
     },
 
     sortStyleSheetRules: function(rules) {

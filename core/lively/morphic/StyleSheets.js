@@ -45,6 +45,10 @@ lively.morphic.Morph.addMethods(
             return styleSheetRules;
         }
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
     getStyleSheetDeclarations: function(){
         // Returns the morph's aggregated style declarations
         // from all applicable css rules.

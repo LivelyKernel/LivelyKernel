@@ -144,7 +144,7 @@ lively.morphic.Morph.addMethods(
                             this, null, [this]).length == 1) {
                                 matchingRules.push(rule);
                         }
-                    });
+                    }, this);
             }
             morphInLoop = morphInLoop.owner;
         }

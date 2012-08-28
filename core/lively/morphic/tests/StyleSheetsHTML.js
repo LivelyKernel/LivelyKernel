@@ -25,7 +25,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         this.assertEquals(
             '*[morphid="'+this.morph.id+'"] test, test[morphid="'+this.morph.id+'"]',
             this.morph.addSelectorPrefixes('test'),
-            'Prefix were not added correctly');
+            'Tagname did not go first when the selector prefixes are added');
 
     }
 });

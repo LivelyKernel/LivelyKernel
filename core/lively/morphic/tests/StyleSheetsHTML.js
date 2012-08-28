@@ -97,6 +97,4 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
     },
 });
 
-});
-
-}) // end of module
+})// end of module

@@ -48,7 +48,7 @@ lively.morphic.Morph.addMethods(
         }
     },
     getStyleSheet: function() {
-        this.morphicGetter('StyleSheet');
+        return this.morphicGetter('StyleSheet');
     },
 
     setStyleSheetRules: function(styleSheetRules) {

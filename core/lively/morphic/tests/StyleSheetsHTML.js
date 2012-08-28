@@ -95,12 +95,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         this.assert(styleNodeContent.indexOf('color') >= 0,
             'Style node content is missing the declaration');
     },
-    
-    
-    
-    
-
-    
 });
 
 }) // end of module

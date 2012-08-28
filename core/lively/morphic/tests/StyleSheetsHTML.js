@@ -44,6 +44,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         this.assert(styleNode, 'There is no style node in the render context');
         this.assertEquals('style-for-'+this.morph.id, $(styleNode).attr('id'),
             'id of style node is wrong');
+        var styleNodeContent = $(styleNode).html()
         
     },
     

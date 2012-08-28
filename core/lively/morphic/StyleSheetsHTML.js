@@ -53,13 +53,19 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML', 'lively
                 tagRx = /^((?:\\.|[-\*\w]|[^\x00-\xa0])+)/,
                 tokens = selector.match(tokensRx);
 
-    
-            
-
             // Include the childs of the morph ...
             extendedSelector += morphPrefix;
             extendedSelector += ' ';
             extendedSelector += selector;
+
+            if (tagRx.exec(tokens.first())) {
+                extendedSelector += tokens.first();
+                
+                
+            }
+            
+
+
 
             // Include the morph itself ...
             extendedSelector += ', ';

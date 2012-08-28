@@ -39,9 +39,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
             comp = this.compileStyleSheet(rules),
             decomp = this.processStyleSheet(comp);
 
-        this.assert((comp && comp.length > 0), 
+        this.assert((comp && comp.length > 0),
             'Compiled style sheet has to be longer than 0');
-        
+        this.assertEquals(2, decomp.length,
+            'Decompiled style sheet has to have 2 rules');
     }
 });
 

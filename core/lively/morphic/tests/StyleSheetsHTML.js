@@ -46,7 +46,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
             'id of style node is wrong');
         var styleNodeContent = $(styleNode).html()
         console.log(styleNodeContent);
-        this.assert(styleNodeContent.indexOf('[morphid="'+this.id+'"]') >= 0,
+        this.assert(styleNodeContent.indexOf('[morphid="'+this.id.toUpperCase()+'"]') >= 0,
             'Style node content has no ref to morph');
         this.assert(styleNodeContent.indexOf('.test-class') >= 0,
             'Style node content is missing the selector');

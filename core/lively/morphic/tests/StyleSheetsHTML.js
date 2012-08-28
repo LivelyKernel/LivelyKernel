@@ -60,7 +60,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
     },
     
     test01SetStyleClassNames: function() {
-        
         this.morph.addStyleClassName('test-class');
         this.assertDOMMorphNodeAttribute('Morph test-class', 'class',
             this.morph,

@@ -361,6 +361,13 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.IntervalTest', {
 });
 
 TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
+    testWithout: function() {
+        var arr = ["a"];
+        this.assertEqualState([], arr.without("a"));
+        this.assertEqualState(["a"], arr.without("c"));
+        delete arr[0];
+        this.assertEqualState([], arr.without("a"));
+    },
     testRepair: function() {
         var arr = ["a", "b", "c"];
         delete arr[1];

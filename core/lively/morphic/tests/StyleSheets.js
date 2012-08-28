@@ -128,35 +128,35 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         this.morph.addStyleClassName('test');
 
         this.assertEquals(1, this.morph._StyleClassNames.length,
-            'Class names array in morph is not 1');
+            'Class names array in morph is not 1 after first add');
         this.assertEquals('test', this.morph._StyleClassNames.first(),
-            'Class names array should contain "test"');
+            'Class names array should contain "test" after first add');
         this.assertEquals(2, this.morph.getStyleClassNames().length,
-            'Class names getter does not return 2');
+            'Class names getter does not return 2 after first add');
         this.assertEqualState(['Morph', 'test'], this.morph.getStyleClassNames(),
-            'Class names array should contain "Morph" and "test"');
+            'Class names array should contain "Morph" and "test" after first add');
 
         this.morph.addStyleClassName('test');
 
         this.assertEquals(1, this.morph._StyleClassNames.length,
-            'Class names array in morph is not 1');
+            'Class names array in morph is not 1 after second add');
         this.assertEquals('test', this.morph._StyleClassNames.first(),
-            'Class names array should contain "test"');
+            'Class names array should contain "test" after second add');
         this.assertEquals(2, this.morph.getStyleClassNames().length,
-            'Class names getter does not return 2');
+            'Class names getter does not return 2 after second add');
         this.assertEqualState(['Morph', 'test'], this.morph.getStyleClassNames(),
-            'Class names array should contain "Morph" and "test"');
+            'Class names array should contain "Morph" and "test" after second add');
 
         this.morph.addStyleClassName('morph');
 
         this.assertEquals(3, this.morph._StyleClassNames.length,
-            'Class names array in morph is not 3');
+            'Class names array in morph is not 3 after third add');
         this.assertEqualState(['test', 'morph'], this.morph._StyleClassNames,
-            'Class names array should contain "test" and "morph"');
+            'Class names array should contain "test" and "morph" after third add');
         this.assertEquals(3, this.morph.getStyleClassNames().length,
-            'Class names getter does not return 3');
+            'Class names getter does not return 3 after third add');
         this.assertEqualState(['Morph', 'test'], this.morph.getStyleClassNames(),
-            'Class names array should contain "morph" and "test"');
+            'Class names array should contain "morph" and "test" after third add');
         
     },
     test03MorphSetClassNames: function() {

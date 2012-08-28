@@ -45,7 +45,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML', 'lively
             // Helper function for compileStyleSheet.
             
             // TODO: if first token in selector is tag or *
-            // let the prefix be inserted after the tag
+            // let the prefix be inserted after the tagname
 
             var extendedSelector = '',
                 morphPrefix = '*[morphid="'+this.id+'"]';

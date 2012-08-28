@@ -8,11 +8,11 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets').
 
     Trait('StyleSheetsHTMLTrait',
     'initializing', {
-        initHTML: lively.morphic.Morph.prototype.initHTML.wrap(function(proceed, ctx) {
-            proceed(ctx);
+        appendHTML: lively.morphic.Morph.prototype.initHTML.wrap(function(proceed, ctx, optMorphAfter) {
+            proceed(ctx, optMorphAfter);
             this.prepareDOMForStyleSheetsHTML(ctx);
         })
-    }).applyTo(lively.morphic.Morph, {override: 'initHTML'});
+    }).applyTo(lively.morphic.Morph, {override: 'appendHTML'});
 
     lively.morphic.Morph.addMethods(
     'Stylesheets', {

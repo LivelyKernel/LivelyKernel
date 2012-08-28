@@ -27,6 +27,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
             this.morph.addSelectorPrefixes('test'),
             'Tagname did not go first when the selector prefixes are added');
 
+    },
+    test03CompileStyleSheet: function() {
+        // TODO: add test for compileStyleSheet
     }
 });
 

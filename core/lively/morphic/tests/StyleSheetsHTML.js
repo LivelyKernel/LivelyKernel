@@ -29,7 +29,15 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
 
     },
     test03CompileStyleSheet: function() {
-        // TODO: add test for compileStyleSheet
+        var css = '.test {'+
+                'color: purple;'+
+                '}'+
+                'test, *#test, #test-two.test3 {'+
+                'border: 1px solid red;'+
+                '}',
+            rules = this.processStyleSheet(css),
+            compiledRules = this.compileStyleSheet(rules);
+        
     }
 });
 

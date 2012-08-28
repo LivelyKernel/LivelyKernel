@@ -240,10 +240,6 @@ lively.morphic.Morph.addMethods(
             ctxt.morphNode.setAttribute('title', string)
     },
 
-    setStyleSheetHTML: function(ctx, css) {
-
-    }
-
 },
 'rendering', {
     renderWithHTML: function() {

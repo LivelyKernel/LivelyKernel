@@ -10,17 +10,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
     test01SplitGroupedSelector: function() {
         this.assertEqualState(
             ['.test test'],
-            this.splitGroupedSelector('.test test'),
+            this.morph.splitGroupedSelector('.test test'),
             'Splitting did not produce the same selector for non grouped selector');
         this.assertEqualState(
             ['.test test', 'test', '*#test > test', '.test'],
-            this.splitGroupedSelector('.test test, test,*#test > test   ,.test'),
+            this.morph.splitGroupedSelector('.test test, test,*#test > test   ,.test'),
             'Splitting did not work alright');
     },
     test02AddSelectorPrefixes: function() {
-        this.assertEqualState(
-            ['.test test'],
-            this.splitGroupedSelector('.test test'),
+        this.assertEquals(
+            '*[morphid="'+this.morph.id+'"]',
+            this.morph.addSelectorPrefixes('.test test'),
             'Splitting did not produce the same selector for non grouped selector');
         this.assertEqualState(
             ['.test test', 'test', '*#test > test', '.test'],

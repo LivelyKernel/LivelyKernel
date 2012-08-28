@@ -336,11 +336,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             '.red .blue',
             this.world,
             'selection by class should include both blue rectangle morphs');
-        this.assertSizzleSelect([this.blueRectangle1, this.blueRectangle2],
+        this.assertSizzleSelect([],
             '.Red .BLuE',
             this.world,
-            'selection by class should not be case sensitive and '+
-                'include both blue rectangle morphs');
+            'selection by class should BE case sensitive and '+
+                'include no morphs');
     },
     testSelectMorphByClassWithSeed: function() {
         var selection = this.sizzle.select('.blue', this.world, null, [this.blueRectangle1]),

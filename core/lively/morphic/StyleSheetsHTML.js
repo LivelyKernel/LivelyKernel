@@ -11,6 +11,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets').
         appendHTML: lively.morphic.Morph.prototype.appendHTML.wrap(function(proceed, ctx, optMorphAfter) {
             proceed(ctx, optMorphAfter);
             this.prepareDOMForStyleSheetsHTML(ctx);
+			this.setStyleSheetHTML(ctx, this.getStyleSheet());
         })
     }).applyTo(lively.morphic.Morph, {override: 'appendHTML'});
 
@@ -124,8 +125,6 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets').
 			
 			this.setStyleClassNamesHTML(ctx);
             this.setStyleIdHTML(ctx, this.getStyleId());
-			$(ctx.morphNode).attr('test', 'morph test');
-			$(ctx.shapeNode).attr('test', 'shape test');
 			$(ctx.shapeNode).attr('morphid', this.id);
 		
 		},

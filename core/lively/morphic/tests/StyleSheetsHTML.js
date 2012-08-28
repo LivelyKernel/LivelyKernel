@@ -40,7 +40,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
     test03SetStyleSheet: function() {
         
         this.morph.setStyleSheet('.test-class { color: black;}');
-        
+        var styleNode = this.morph.renderContext().styleNode;
+        return this.assertEquals(targetValue, $(morphNode).attr(attributeName), msg);
         
     },
     

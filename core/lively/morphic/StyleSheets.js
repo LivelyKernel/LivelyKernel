@@ -260,7 +260,6 @@ lively.morphic.Morph.addMethods(
         var resultMorphs = [],
             tagNameAttr = optTagNameAttribute || 'tagName',
             selectAll = (tag.trim() === '*');
-        tag = tag.toLowerCase();
 
         this.withAllSubmorphsDo(function(morph){
                 var thisTagName = morph[tagNameAttr];
@@ -268,8 +267,6 @@ lively.morphic.Morph.addMethods(
                     resultMorphs.push(morph);
                 } else if (thisTagName) {
                     thisTagName +='';
-
-                    thisTagName = thisTagName .toLowerCase();
 
                     if (thisTagName === tag){
                         resultMorphs.push(morph);
@@ -358,7 +355,7 @@ lively.morphic.Morph.addMethods(
         // string containing multiple classnames
         // separated by blanks.
 
-        var classNames = className.toLowerCase().split(/[\s,]+/),
+        var classNames = className.split(/[\s,]+/),
             morphClasses = this.getStyleClassNames() || [];
 
         // Generate a RegExp for each className
@@ -464,7 +461,7 @@ lively.morphic.Morph.addMethods(
     },
     makeStyleClassNameRegExp: function(className) {
         return new RegExp( "(^|[\\x20\\t\\r\\n\\f])" +
-                className + "([\\x20\\t\\r\\n\\f]|$)", "i" );
+                className + "([\\x20\\t\\r\\n\\f]|$)", "" );
     },
     
 }
@@ -619,7 +616,7 @@ Object.subclass("lively.morphic.Sizzle",
 						var m = context.getSubmorphByStyleId( id );
 
 						return m ?
-							m.id === id || typeof m.getAttributeNode !== this.strundefined && m.getAttributeNode("id").value === id ?
+							m.getStyleId() === id ?
 								[m] :
 								undefined :
 							[];
@@ -748,7 +745,7 @@ Object.subclass("lively.morphic.Sizzle",
 			"CLASS": function( className ) {
 				var pattern = this.classCache[ className ];
 				if ( !pattern ) {
-					pattern = this.classCache[ className ] = new RegExp( "(^|" + this.whitespace + ")" + className + "(" + this.whitespace + "|$)", "i" );
+					pattern = this.classCache[ className ] = new RegExp( "(^|" + this.whitespace + ")" + className + "(" + this.whitespace + "|$)", "" );
 					this.cachedClasses.push( className );
 					// Avoid too large of a cache
 					if ( this.cachedClasses.length > this.cacheLength ) {

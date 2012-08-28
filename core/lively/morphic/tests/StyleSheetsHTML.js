@@ -45,6 +45,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         this.assertEquals('style-for-'+this.morph.id, $(styleNode).attr('id'),
             'id of style node is wrong');
         var styleNodeContent = $(styleNode).html()
+        console.log(styleNodeContent);
         
     },
     

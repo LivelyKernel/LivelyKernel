@@ -74,9 +74,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
             this.morph,
             'Morph has not class names "Morph test-class" after re-set');
     },
-    
+
     test02SetStyleId: function() {
-        
         this.morph.setStyleId('test-id');
         this.assertDOMMorphNodeAttribute('test-id', 'id',
             this.morph,

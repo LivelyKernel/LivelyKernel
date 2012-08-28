@@ -58,7 +58,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         var morphNode = morph.renderContext().morphNode;
         return this.assertEquals(targetValue, $(morphNode).attr(attributeName), msg);
     },
-    
+
     test01SetStyleClassNames: function() {
         this.morph.addStyleClassName('test-class');
         this.assertDOMMorphNodeAttribute('Morph test-class', 'class',
@@ -95,6 +95,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         this.assert(styleNodeContent.indexOf('color') >= 0,
             'Style node content is missing the declaration');
     },
+});
+
+    
+    
+    
+
+    
 });
 
 }) // end of module

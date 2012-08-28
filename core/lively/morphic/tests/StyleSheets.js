@@ -211,7 +211,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
     },
     test05MorphRemoveClassName: function() {
         this.morph.setStyleClassNames(['test', 'CrAzYmOrPh']);
-        debugger
+        
         this.morph.removeStyleClassName('Test');
         this.assert(!this.morph.isOfStyleClass('test'),
             'Morph should NOT be of class "test"');
@@ -314,7 +314,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
     
     
     testSelectMorphById: function() {
-        debugger
+        
         this.assertSizzleSelect([this.redRectangle],
             '#the-red-rectangle',
             this.world,
@@ -322,7 +322,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
 
     },
     testSelectMorphByClassName: function() {
-        debugger
+        
         this.assertSizzleSelect([this.blueRectangle1, this.blueRectangle2],
             '.blue',
             this.world,
@@ -430,7 +430,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             '.red > .blue',
             this.world,
             'selection for ".red > .blue" should return both blue rectangles');
-        debugger
+        
         this.assertSizzleSelect([this.redRectangle],
             '.yellow > .box',
             this.world,
@@ -486,7 +486,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.morph.addStyleClassName('some-class');
         this.world.addMorph(this.morph);
         this.world.setStyleSheet(css);
-        debugger
+        
         var rules = this.morph.getMatchingStyleSheetRules();
         this.assert( 0 < rules.length, 'no rule assigned');
 
@@ -590,7 +590,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var css = ".blue, #the-red-rectangle.red, #the-red-rectangle, .red { color: red; }",
             rules = apps.cssParser.parse(css);
         this.createSomeMorphs(); // sets up a hierarchy of morphs
-        debugger
+        
         this.assertEquals(10,
             this.blueRectangle1.getStyleSheetRuleSpecificity(rules.first()),
             'rule specificity on blue rect has to be 10');

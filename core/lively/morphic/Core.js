@@ -174,47 +174,6 @@ Object.subclass('lively.morphic.Morph',
     getOpacity: function() { return this.shape.getOpacity() },
     setOpacity: function(o) { return this.shape.setOpacity(o) },
 
-
-    setNodeClass: function(value) {
-        var a = [];
-        if (value) {
-            if (value instanceof Array) {
-                a = value;
-            }
-            else {
-                a = value.split(/[\s,]+/);
-            }
-        }
-        var type = this.constructor;
-        while (type != Object) {
-            a.unshift(type.name);
-            type = type.superclass;
-        }
-
-        var result = [];
-        a.each(function(item){result.push(item);});
-        result = result.uniq();
-        return this.shape.setNodeClass(result);
-    },
-    getNodeClass: function() {
-        return this.shape.getNodeClass();
-    },
-    setNodeId: function(id) {
-        var idToSet = (id || this.id) + '';
-        return this.shape.setNodeId("morph-" + idToSet.toLowerCase() );
-    },
-    getNodeId: function() {
-        var id = this.shape.getNodeId();
-        if (id) {
-            return id;
-        }
-        else {
-            return this.setNodeId();
-        }
-
-    },
-
-
     setVertices: function(v) { this.shape.setVertices(v) },
 
 },

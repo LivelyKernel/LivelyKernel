@@ -39,7 +39,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML', 'lively
 
             return output;
         },
-        addSelectorPrefixes: function(selector, morphPrefix) {
+        addSelectorPrefixes: function(selector) {
             // Doubles a selector to include its child and
             // itself and adds an attribute selector prefix.
             // Helper function for compileStyleSheet.

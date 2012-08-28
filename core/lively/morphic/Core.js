@@ -15,7 +15,6 @@ Object.subclass('lively.morphic.Morph',
         this.prepareForNewRenderContext(this.defaultRenderContext());
         this.setNewId();
         this.applyStyle(this.getStyle());
-        this.setNodeClass(this.getNodeClass());
     },
     setNewId: function(optId) {
         if (this.derivationIds === undefined) this.derivationIds = [];

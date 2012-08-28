@@ -378,7 +378,7 @@ lively.morphic.Morph.addMethods(
         return true;
     },
     addStyleClassName: function(className) {
-        var classNames = this.getStyleClassNames() || [];
+        var classNames = this.morphicGetter('StyleClassNames') || [];
         if (className) {
             if (Array.isArray(className) ){
                 classNames = classNames.concat(className);

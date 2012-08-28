@@ -479,6 +479,9 @@ Object.subclass("lively.morphic.Sizzle",
     initialize: function(){
         this.setupSelectors();
 	this.setupRegexs();
+		
+	console.log('rtokens: '+this.rtokens);
+	console.log('tag: '+this.matchExpr["TAG"]);
     },
 	
 },

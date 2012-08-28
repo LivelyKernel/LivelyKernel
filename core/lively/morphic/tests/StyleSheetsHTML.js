@@ -55,7 +55,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
 'testing', {
 
     assertDOMMorphNodeAttribute: function(targetValue, attributeName, morph, msg) {
-        var morphNode = morph.renderContext().morphNode;
+        var shapeNode= morph.renderContext().shapeNode;
         return this.assertEquals(targetValue, $(shapeNode).attr(attributeName), msg);
     },
 

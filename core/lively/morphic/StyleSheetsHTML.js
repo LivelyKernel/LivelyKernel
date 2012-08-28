@@ -48,7 +48,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML', 'lively
             // let the prefix be inserted after the tagname
 
             var extendedSelector = '',
-                morphPrefix = '*[morphid="'+this.id+'"]',
+                morphPrefix = '[morphid="'+this.id+'"]',
                 tokensRx = /(?:\\.|\[[\x20\t\r\n\f]*((?:\\.|[-\w]|[^\x00-\xa0])+)[\x20\t\r\n\f]*(?:([*^$|!~]?=)[\x20\t\r\n\f]*(?:(['"])((?:\\.|[^\\])*?)\3|((?:\\.|[-\w#]|[^\x00-\xa0])+)|)|)[\x20\t\r\n\f]*\]|:((?:\\.|[-\w]|[^\x00-\xa0])+)(?:\((?:(['"])((?:\\.|[^\\])*?)\7|((?:[^,]|\\,|(?:,(?=[^\[]*\]))|(?:,(?=[^\(]*\))))*))\)|)|[^\\\x20\t\r\n\f>+~])+|[\x20\t\r\n\f]*([\x20\t\r\n\f>+~])[\x20\t\r\n\f]*/g,
                 tagRx = /^((?:\\.|[-\*\w]|[^\x00-\xa0])+)/,
                 tokens = selector.match(tokensRx);
@@ -56,7 +56,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML', 'lively
             debugger
             
             // Include the childs of the morph ...
-            extendedSelector += morphPrefix;
+            extendedSelector += '*' + morphPrefix;
             extendedSelector += ' ';
             extendedSelector += selector;
             extendedSelector += ', ';
@@ -70,7 +70,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML', 'lively
                     extendedSelector += tokens[i];
                 }
             } else {
-                extendedSelector += morphPrefix;
+                extendedSelector += '*' + morphPrefix;
                 extendedSelector += selector;
             }
 

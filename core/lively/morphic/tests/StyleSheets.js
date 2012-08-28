@@ -156,7 +156,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         this.assertEquals(3, this.morph.getStyleClassNames().length,
             'Class names getter does not return 3 after third add');
         this.assertEqualState(['Morph', 'test', 'morph'], this.morph.getStyleClassNames(),
-            'Class names array should contain "morph" and "test" after third add');
+            'Class names array should contain "Morph", "morph" and "test" after third add');
         
     },
     test03MorphSetClassNames: function() {

@@ -22,6 +22,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
             '*[morphid="'+this.morph.id+'"] .test test, *[morphid="'+this.morph.id+'"].test test, ',
             this.morph.addSelectorPrefixes('.test test'),
             'Prefix were not added correctly');
+        this.assertEquals(
+            '*[morphid="'+this.morph.id+'"] test, test[morphid="'+this.morph.id+'"]',
+            this.morph.addSelectorPrefixes('test'),
+            'Prefix were not added correctly');
 
     }
 });

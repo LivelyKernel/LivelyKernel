@@ -52,7 +52,9 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML', 'lively
                 tokensRx = /(?:\\.|\[[\x20\t\r\n\f]*((?:\\.|[-\w]|[^\x00-\xa0])+)[\x20\t\r\n\f]*(?:([*^$|!~]?=)[\x20\t\r\n\f]*(?:(['"])((?:\\.|[^\\])*?)\3|((?:\\.|[-\w#]|[^\x00-\xa0])+)|)|)[\x20\t\r\n\f]*\]|:((?:\\.|[-\w]|[^\x00-\xa0])+)(?:\((?:(['"])((?:\\.|[^\\])*?)\7|((?:[^,]|\\,|(?:,(?=[^\[]*\]))|(?:,(?=[^\(]*\))))*))\)|)|[^\\\x20\t\r\n\f>+~])+|[\x20\t\r\n\f]*([\x20\t\r\n\f>+~])[\x20\t\r\n\f]*/g,
                 tagRx = /^((?:\\.|[-\*\w]|[^\x00-\xa0])+)/,
                 tokens = selector.match(tokensRx);
-
+            
+            debugger
+            
             // Include the childs of the morph ...
             extendedSelector += morphPrefix;
             extendedSelector += ' ';

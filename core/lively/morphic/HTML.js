@@ -893,9 +893,6 @@ lively.morphic.Shapes.Shape.addMethods(
         ctx.shapeNode.className = a;
     },
 
-    setNodeIdHTML: function(ctx, value) {
-        ctx.shapeNode.id = value;
-    },
 
     setStyleSheetHTML: function(ctx, value) {
         

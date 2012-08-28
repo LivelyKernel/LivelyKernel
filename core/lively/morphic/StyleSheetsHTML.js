@@ -43,6 +43,9 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML', 'lively
             // Doubles a selector to include its child and
             // itself and adds an attribute selector prefix.
             // Helper function for compileStyleSheet.
+            
+            // TODO: if first token in selector is tag or *
+            // let the prefix be inserted after it
 
             var extendedSelector = '',
                 morphPrefix = '*[morphid="'+this.id+'"]';

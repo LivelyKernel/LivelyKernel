@@ -885,14 +885,6 @@ lively.morphic.Shapes.Shape.addMethods(
         ctx.shapeNode.style.padding = s;
         return r;
     },
-    setNodeClassHTML: function(ctx, value) {
-        var a = value;
-        if (value instanceof Array) {
-            a = value.join(" ");
-        }
-        ctx.shapeNode.className = a;
-    },
-
 
     setStyleSheetHTML: function(ctx, value) {
         

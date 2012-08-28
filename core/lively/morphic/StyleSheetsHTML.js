@@ -57,20 +57,27 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML', 'lively
             extendedSelector += morphPrefix;
             extendedSelector += ' ';
             extendedSelector += selector;
-
+            extendedSelector += ', ';
+            
+            // Include the morph itself ...            
+            // If first token is a tagname then put prefix after tagname
             if (tagRx.exec(tokens.first())) {
                 extendedSelector += tokens.first();
-                
-                
+                extendedSelector += morphPrefix;
+                for (var i = 1; i < tokens.length; i++) {
+                    extendedSelector += tokens[i];
+                }
+            } else {
+                extendedSelector += morphPrefix;
+                extendedSelector += selector;
             }
             
 
 
 
-            // Include the morph itself ...
-            extendedSelector += ', ';
-            extendedSelector += morphPrefix;
-            extendedSelector += selector;
+
+
+            
 
             return extendedSelector;
         },

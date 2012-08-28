@@ -419,22 +419,22 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             this.world,
             'selection for ".red .blue" should return both blue rectangles');
         this.assertSizzleSelect([this.blueRectangle1,this.blueRectangle2],
-            '.red .box',
+            '.red .Box',
             this.world,
-            'selection for ".red .box" should only return the blue rectangles');
+            'selection for ".red .Box" should only return the blue rectangles');
         this.assertSizzleSelect([],
-            '.red .box .box',
+            '.red .Box .Box',
             this.world,
-            'selection for ".red .box .box" should return nothing');
+            'selection for ".red .Box .Box" should return nothing');
         this.assertSizzleSelect([this.blueRectangle1,this.blueRectangle2],
             '.red > .blue',
             this.world,
             'selection for ".red > .blue" should return both blue rectangles');
         
         this.assertSizzleSelect([this.redRectangle],
-            '.yellow > .box',
+            '.yellow > .Box',
             this.world,
-            'selection for ".yellow > .box" should return only the red rect');
+            'selection for ".yellow > .Box" should return only the red rect');
 
     },
 });

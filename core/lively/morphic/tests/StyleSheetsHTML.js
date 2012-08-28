@@ -7,6 +7,16 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
     },
 },
 'testing', {
+    
+});
+
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.StyleSheets',
+'running', {
+    setUp: function($super) {
+        $super();
+    },
+},
+'testing', {
 
     assertDOMMorphNodeAttribute: function(targetValue, attributeName, morph, msg) {
         var morphNode = morph.renderContext().morphNode;

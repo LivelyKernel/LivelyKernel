@@ -36,7 +36,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
                 'border: 1px solid red;'+
                 '}',
             rules = this.processStyleSheet(css),
-            compiledRules = this.compileStyleSheet(rules);
+            comp = this.compileStyleSheet(rules),
+            decomp = this.processStyleSheet(comp);
+
+        this.assert((comp && comp.length > 0), 
+            'Compiled style sheet has to be longer than 0');
         
     }
 });

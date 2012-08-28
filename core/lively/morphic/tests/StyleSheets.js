@@ -220,7 +220,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
 
         this.morph.removeStyleClassName('Morph');
         this.assert(this.morph.isOfStyleClass('CrAzYmOrPh'),
-            'Morph should still be of class "morph"');
+            'Morph should still be of class "Morph"');
     }
 
 

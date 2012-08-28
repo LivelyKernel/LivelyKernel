@@ -8,7 +8,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets').
 
     Trait('StyleSheetsHTMLTrait',
     'initializing', {
-        appendHTML: lively.morphic.Morph.prototype.initHTML.wrap(function(proceed, ctx, optMorphAfter) {
+        appendHTML: lively.morphic.Morph.prototype.appendHTML.wrap(function(proceed, ctx, optMorphAfter) {
             proceed(ctx, optMorphAfter);
             this.prepareDOMForStyleSheetsHTML(ctx);
         })

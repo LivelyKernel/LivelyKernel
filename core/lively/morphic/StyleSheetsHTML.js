@@ -6,6 +6,14 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets').
         setStyleId: 'setStyleIdHTML',
     });
 
+    Trait('StyleSheetsHTMLTrait',
+    'initializing', {
+        initHTML: lively.morphic.Morph.prototype.initHTML.wrap(function(proceed, ctx) {
+            proceed(ctx);
+            console.log('Trait>>initHTML');
+        })
+    }).applyTo(lively.morphic.Morph, {override: 'initHTML'});
+	
     lively.morphic.Morph.addMethods(
     'Stylesheets', {
 

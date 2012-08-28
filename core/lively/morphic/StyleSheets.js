@@ -355,7 +355,7 @@ lively.morphic.Morph.addMethods(
         // string containing multiple classnames
         // separated by blanks.
 
-        var classNames = className.split(/[\s,]+/),
+        var classNames = className.trim().split(/[\s,]+/),
             morphClasses = this.getStyleClassNames() || [];
 
         // Generate a RegExp for each className

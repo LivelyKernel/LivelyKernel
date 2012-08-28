@@ -176,12 +176,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
 
         this.assertEquals(3, this.morph._StyleClassNames.length,
             'Class names array in morph is not 3 after adding "morph"');
-        this.assertEqualState(['Morph', 'test', 'morph'], this.morph._StyleClassNames,
-            'Class names array should contain "test" "Morph" and "morph" after adding "morph"');
+        this.assertEqualState(['test', 'morph'], this.morph._StyleClassNames,
+            'Class names array should contain "test"  and "morph" after adding "morph"');
         this.assertEquals(2, this.morph.getStyleClassNames().length,
             'Class names getter does not return 2 after adding "morph"');
-        this.assertEqualState(['Morph', 'test'], this.morph.getStyleClassNames(),
-            'Class names array should contain "morph" and "test" after adding "morph"');
+        this.assertEqualState(['Morph', 'test', 'morph'], this.morph.getStyleClassNames(),
+            'Class names array should contain "Morph", "morph" and "test" after adding "morph"');
         
         this.morph.setStyleClassNames();
         this.assert(!this.morph._StyleClassNames,

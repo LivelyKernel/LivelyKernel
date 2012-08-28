@@ -735,10 +735,7 @@ lively.morphic.Shapes.Shape.addMethods(
         setBorderRadius: 'setBorderRadiusHTML',
         setBorderStyle: 'setBorderStyleHTML',
         setOpacity: 'setOpacityHTML',
-        setNodeClass: 'setNodeClassHTML',
-        setNodeId: 'setNodeIdHTML',
-        setStyleSheet: 'setStyleSheetHTML',
-        removeStyleSheet: 'removeStyleSheetHTML',
+
         setAppearanceStylingMode: 'setAppearanceStylingModeHTML',
         setBorderStylingMode: 'setBorderStylingModeHTML',
         getComputedBorderWidth: 'getComputedBorderWidthHTML',

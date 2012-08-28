@@ -9,6 +9,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
 'testing', {
     test01SplitGroupedSelector: function() {
         this.assertEqualState(
+            ['.test test'],
+            this.splitGroupedSelector('.test test'),
+            'Splitting did not work alright');
+        this.assertEqualState(
             ['.test test', 'test', '*#test > test', '.test'],
             this.splitGroupedSelector('.test test, test,*#test > test   ,.test'),
             'Splitting did not work alright');

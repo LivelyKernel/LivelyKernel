@@ -19,9 +19,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
     },
     test02AddSelectorPrefixes: function() {
         this.assertEquals(
-            '*[morphid="'+this.morph.id+'"].test',
+            '*[morphid="'+this.morph.id+'"] .test test, *[morphid="'+this.morph.id+'"].test test, ',
             this.morph.addSelectorPrefixes('.test test'),
-            'Splitting did not produce the same selector for non grouped selector');
+            'Prefix were not added correctly');
 
     }
 });

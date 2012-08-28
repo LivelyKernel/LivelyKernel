@@ -5,6 +5,47 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
         setStyleClassNames: 'setStyleClassNamesHTML',
         setStyleId: 'setStyleIdHTML',
     });
+	
+	Object.extend(lively.morphic.Shapes.Shape.prototype.htmlDispatchTable, {
+        setAppearanceStylingMode: 'setAppearanceStylingModeHTML',
+        setBorderStylingMode: 'setBorderStylingModeHTML',
+        getComputedBorderWidth: 'getComputedBorderWidthHTML',
+        getComputedExtent: 'getComputedExtentHTML',
+    });
+
+    lively.morphic.Shapes.Shape.addMethods(
+	'Stylesheets', {
+		getComputedBorderWidthHTML: function(ctx) {
+			var width = ($(ctx.shapeNode).outerWidth() - $(ctx.shapeNode).width()) / 2;
+			return width || 0;
+		},
+		
+		getComputedExtentHTML: function(ctx) {
+			if (ctx.shapeNode) {
+				var width = $(ctx.shapeNode).outerWidth(),
+					height = $(ctx.shapeNode).outerHeight();
+				if (height >0 && width >0) {
+					return pt(width, height);
+				} else {
+					return null;
+				}
+			} else {
+				return null;
+			}
+		},
+
+		setAppearanceStylingModeHTML: function(ctx, value) {
+			this.setFillHTML(ctx, this.shapeGetter("Fill"));
+			this.setOpacityHTML(ctx, this.shapeGetter("Opacity"));
+		},
+
+		setBorderStylingModeHTML: function(ctx, value) {
+			this.setBorderHTML(ctx, this.getBorderWidth(), this.getBorderColor(), this.getStrokeOpacity());
+			this.setBorderRadiusHTML(ctx, this.getBorderRadius());
+		}	
+	});
+	
+	
 
     Trait('StyleSheetsHTMLTrait',
     'initializing', {

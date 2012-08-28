@@ -42,7 +42,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         this.morph.setStyleSheet('.test-class { color: black;}');
         var styleNode = this.morph.renderContext().styleNode;
         this.assert(styleNode, 'There is no style node in the render context');
-        this.assertEquals('style-for- '+this.morph.id, $(styleNode).attr('id'),
+        this.assertEquals('style-for-'+this.morph.id, $(styleNode).attr('id'),
             'id of style node is wrong');
         
     },

@@ -1228,16 +1228,23 @@ Object.subclass('lively.morphic.CSS.Fill',
 
 
 lively.morphic.Shapes.Shape.addMethods(
-        'stylesheets', {
+    'stylesheets', {
 
 
-			setStyleSheet: function(value) {
-				return this.shapeSetter('StyleSheet', value);
-			},
+        setStyleSheet: function(value) {
+            // DEPRECATED
+            // Use lively.morph.Morph.setStyleSheet instead
+            return this.shapeSetter('StyleSheet', value);
+	},
 			getStyleSheet: function() {
+            // DEPRECATED
+            // Use lively.morph.Morph.getStyleSheet instead
 				return this.shapeGetter('StyleSheet') || "";
 			},
-
+    /*
+     ######
+     These functions are now defined in lively.morphic.StyleSheets
+     ######
 			setAppearanceStylingMode: function(value) {
 				return this.shapeSetter('AppearanceStylingMode', value);
 			},
@@ -1251,7 +1258,7 @@ lively.morphic.Shapes.Shape.addMethods(
 			getBorderStylingMode: function() {
 				return this.shapeGetter('BorderStylingMode');
 			},
-
+*/
             
         }
     );

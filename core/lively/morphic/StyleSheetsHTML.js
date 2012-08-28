@@ -58,7 +58,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML', 'lively
             extendedSelector += ' ';
             extendedSelector += selector;
             extendedSelector += ', ';
-            
+
             // Include the morph itself ...            
             // If first token is a tagname then put prefix after tagname
             if (tagRx.exec(tokens.first())) {
@@ -71,13 +71,6 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML', 'lively
                 extendedSelector += morphPrefix;
                 extendedSelector += selector;
             }
-            
-
-
-
-
-
-            
 
             return extendedSelector;
         },

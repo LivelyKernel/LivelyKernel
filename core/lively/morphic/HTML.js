@@ -144,8 +144,6 @@ lively.morphic.Morph.addMethods(
         focus: 'focusHTML',
         blur: 'blurHTML',
         setFocusable: 'setFocusableHTML',
-        setStyleSheet: 'setStyleSheetHTML',
-        setOriginClass: 'setOriginClassHTML'
     },
 },
 'udpating', {

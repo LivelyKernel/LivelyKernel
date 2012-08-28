@@ -864,37 +864,6 @@ lively.morphic.Shapes.Shape.addMethods(
 
 
 
-    getComputedBorderWidthHTML: function(ctx) {
-        var width = ($(ctx.shapeNode).outerWidth() - $(ctx.shapeNode).width()) / 2;
-        return width || 0;
-    },
-    
-    getComputedExtentHTML: function(ctx) {
-        if (ctx.shapeNode) {
-            var width = $(ctx.shapeNode).outerWidth(),
-                height = $(ctx.shapeNode).outerHeight();
-            if (height >0 && width >0) {
-                return pt(width, height);
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
-    },
-
-
-    setAppearanceStylingModeHTML: function(ctx, value) {
-        this.isStyleSheetAppearance = value;
-        this.setFillHTML(ctx, this.shapeGetter("Fill"));
-        this.setOpacityHTML(ctx, this.shapeGetter("Opacity"));
-    },
-
-    setBorderStylingModeHTML: function(ctx, value) {
-        this.isStyleSheetBorder = value;
-        this.setBorderHTML(ctx, this.getBorderWidth(), this.getBorderColor(), this.getStrokeOpacity());
-        this.setBorderRadiusHTML(ctx, this.getBorderRadius());
-    }
 
 
 

@@ -37,7 +37,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
             'Morph has not id "test-id"');
     },
 
-
+    test03SetStyleSheet: function() {
+        
+        this.morph.setStyleId('test-id');
+        this.assertDOMMorphNodeAttribute('test-id', 'id',
+            this.morph,
+            'Morph has not id "test-id"');
+    },
     
     
     

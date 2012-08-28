@@ -124,6 +124,8 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets').
 			
 			this.setStyleClassNamesHTML(ctx);
             this.setStyleIdHTML(ctx, this.getStyleId());
+			$(ctx.morphNode).attr('test', 'morph test');
+			$(ctx.shapeNode).attr('test', 'shape test');
 			$(ctx.shapeNode).attr('morphid', this.id);
 		
 		},

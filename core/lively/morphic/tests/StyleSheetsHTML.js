@@ -105,7 +105,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         // TODO: more asserts?
 
     },
-    newMethod: function() {
+    assertStyleNode: function() {
         // enter comment here
     }
 

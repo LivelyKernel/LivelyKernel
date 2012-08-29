@@ -46,9 +46,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
     },
     test04AppendStyleNode: function() {
         var appendStyleNode = function(morph){
+                    var ctx = morph.renderContext();
+                    ctx.styleNode = $('<style id="' + morph.id + '"></style>');
                     morph.appendStyleNodeHTML(
-                        morph.renderContext(),
-                        $('<style id="' + morph.id + '"></style>'));
+                        ctx,
+                        ctx.styleNode);
+
                 },
             assertStyleNode = function(higherMorph, lowerMorph, msg) {
                     var hCtx = higherMorph.renderContext(),

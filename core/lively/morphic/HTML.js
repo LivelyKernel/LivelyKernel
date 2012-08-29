@@ -823,7 +823,7 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     setBorderHTML: function(ctx, width, fill, opacity) {
         if (!ctx.shapeNode) return;
-        if (this.isStyleSheetBorder) {
+        if (this.shapeGetter('BorderStylingMode')) {
              ctx.shapeNode.style['border'] = null;
         } else {
             if ((fill instanceof Color) && opacity) fill = fill.withA(opacity);

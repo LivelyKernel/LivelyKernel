@@ -178,14 +178,15 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 			
 			// If no upward morphs have any CSS applied,
 			// search for sister morph style nodes ...
-			this.owner.submorphs.each(function(m) {
-				var mCtx = m.renderContext();
-				if (mCtx.styleNode && m !== this) {
-					$(mCtx.styleNode).after(styleNode);
-					return;
-				}
-			}, this);
-			
+			if (this.owner && this.owner.submorphs) {
+				this.owner.submorphs.each(function(m) {
+					var mCtx = m.renderContext();
+					if (mCtx.styleNode && m !== this) {
+						$(mCtx.styleNode).after(styleNode);
+						return;
+					}
+				}, this);
+			}
 			// If still no styleNode was found
 			// search downward in morph hierarchy ...
 			while (submorphs.length > 0) {

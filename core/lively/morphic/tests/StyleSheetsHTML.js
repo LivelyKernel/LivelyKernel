@@ -47,7 +47,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
     test04AppendStyleNode: function() {
         var createStyleNode = function(id){
                     return $('<style id="' + id + '"></style>');
-                };
+                },
+            morph1Level1 = new lively.morphic.Morph();
         
     }
 });

@@ -91,21 +91,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         morph1Level1.appendStyleNodeHTML(
             morph1Level1.renderContext(),
             createStyleNode('11'));
-        this.assertEquals(
-            morph1Level1.renderContext().styleNode,
-            morph3Level3.renderContext().styleNode.previousSibling,
+        assertStyleNode(morph1Level1, morph3Level3,
             'Style node of 11 is not before 33');
         morph2Level2.appendStyleNodeHTML(
             morph2Level2.renderContext(),
             createStyleNode('22'));
-        this.assertEquals(
-            morph2Level2.renderContext().styleNode,
-            morph3Level3.renderContext().styleNode.previousSibling,
-            'Style node of 22 is not before 33');
-        this.assertEquals(
-            morph1Level1.renderContext().styleNode,
-            morph2Level2.renderContext().styleNode.previousSibling,
-            'Style node of 11 is not before 22');
+
+        assertStyleNode(morph2Level2, morph3Level3,
+             'Style node of 22 is not before 33');
+         assertStyleNode(morph1Level1, morph2Level2,
+             'Style node of 11 is not before 22');
+
+  
 
         // TODO: more asserts?
 

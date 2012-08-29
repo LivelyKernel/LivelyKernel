@@ -21,6 +21,7 @@ lively.morphic.Shapes.Shape.addMethods(
 
 lively.morphic.Morph.addMethods(
 'Style sheet getters and setters',{
+    cssIsEnabled: true,
     
     getAppearanceStylingMode: function() {
         return this.shape.getAppearanceStylingMode();
@@ -67,59 +68,7 @@ lively.morphic.Morph.addMethods(
         } else {
             return [];
         }
-    },
-	loadStyleSheetFromFile: function(file, resourcePath){
-		// use the resourcePath parameter if the resources addressed
-		// in the CSS file are in a different directory than the CSS'.
-		// (use "" to leave the urls untouched)
-
-		var absPath = file;
-		// is the filename absolute? if not then make it absolute.
-		if (absPath.search('http://')<0) {
-		  absPath = document.location.href.toString().split('?')[0];
-		  absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);
-		  absPath += "/"+file;
-		}
-		var url = new URL(absPath);
-
-		URL.proxy = null;
-
-		var webR = new WebResource(url);
-					webR.forceUncached();
-		var webRGet = webR.get();
-		if (webRGet.status.code() == 200) {
-			// add resource path to all relative urls in the css
-			var css = webRGet.content;
-
-			var resPath = resourcePath;
-			if (!resPath){
-							resPath = absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);
-			}
-			var urlReplace = "url("+resPath;
-			var urlReplaceSingle = "url('"+resPath;
-			var urlReplaceDouble = 'url("'+resPath;
-			css = css.replace(/url\([\s]*\'(?![\s]*http)/g, urlReplaceSingle).
-				replace(/url\([\s]*\"(?![\s]*http)/g, urlReplaceDouble ).
-				replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, urlReplace );
-
-			// insert line breaks so the css is more legible
-			css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/g,";\n").
-				replace(/\}(?![\s]*(\r\n|\n|\r))/g,"}\n").
-				replace(/\{(?![\s]*(\r\n|\n|\r))/g,"{\n");
-			//console.log(css);
-
-			// set the style sheet
-			this.setStyleSheet(css);
-		}
-		else {
-			throw new Error("Couldn't load stylesheet at "+absPath+" --> " +webRGet.status.code());
-		}
-
-		return {
-			status: webRGet.status.code(),
-			responseText: webRGet.content
-		};
-	},
+    }
   
 },
 

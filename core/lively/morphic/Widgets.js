@@ -1449,8 +1449,13 @@ lively.morphic.World.addMethods(
                 ['Stop stepping', function() { world.submorphs.each(
                         function(ea) {ea.stopStepping && ea.stopStepping()})}],
             ]],
-            ['Preferences', [
-                ['Set username', this.askForUserName.bind(this)],
+            ['Preferences', this.cssIsEnabled ?
+                [['Set username', this.askForUserName.bind(this)],
+                ['My user config', this.showUserConfig.bind(this)],
+                ['Set extent', this.askForNewWorldExtent.bind(this)],
+                ['Set background color', this.askForNewBackgroundColor.bind(this)],
+                ['Edit world CSS', this.openWorldCSSEditor.bind(this)]]:
+                [['Set username', this.askForUserName.bind(this)],
                 ['My user config', this.showUserConfig.bind(this)],
                 ['Set extent', this.askForNewWorldExtent.bind(this)],
                 ['Set background color', this.askForNewBackgroundColor.bind(this)]]

@@ -805,7 +805,7 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     setBorderStyleHTML: function(ctx, value) {
         if (ctx.shapeNode) {
-            var style = this.isStyleSheetBorder ? null : value;
+            var style = this.shapeGetter('BorderStylingMode') ? null : value;
             ctx.shapeNode.style.borderStyle = style;
         }
     },

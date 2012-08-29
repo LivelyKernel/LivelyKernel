@@ -179,11 +179,11 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 			// search for sister morph style nodes ...
 			this.owner.submorphs.each(function(m) {
 				var mCtx = m.renderContext();
-				if (mCtx.styleNode && mCtx.styleNode !== styleNode) {
+				if (mCtx.styleNode && m !== this) {
 					$(mCtx.styleNode).after(styleNode);
 					return;
 				}
-			});
+			}, this);
 			
 			// If still no styleNode was found
 			// search downward in morph hierarchy ...

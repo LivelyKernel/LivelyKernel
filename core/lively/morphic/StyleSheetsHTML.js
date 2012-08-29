@@ -209,7 +209,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 			
 			// If appearantly none of the other morphs in the hierarchy
 			// have a css applied, just add the stylenode to the head
-			styleNode.appendTo(document.head);
+			document.getElementsByTagName("head")[0].appendChild(styleNode);
 		}
 
     },

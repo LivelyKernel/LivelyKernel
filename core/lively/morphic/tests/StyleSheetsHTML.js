@@ -47,13 +47,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
     test04AppendStyleNode: function() {
         var appendStyleNode = function(morph){
                     var ctx = morph.renderContext();
+                    $(ctx.styleNode).remove();
                     ctx.styleNode = $('<style id="' + morph.id + '"></style>').get(0);
                     morph.appendStyleNodeHTML(
                         ctx,
                         ctx.styleNode);
 
                 },
-            
+
             morph1Level1 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
             morph2Level1 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
             morph1Level2 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),

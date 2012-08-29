@@ -163,7 +163,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 			// Adds the morph's style node to the DOM
 			// and reflects the morph hierarchy in the
 			// node order.
-			debugger
+			
 			var parent = child = this,
 				submorphs = this.submorphs || [];
 			

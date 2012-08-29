@@ -43,6 +43,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
             'Compiled style sheet has to be longer than 0');
         this.assertEquals(2, decomp.length,
             'Decompiled style sheet has to have 2 rules');
+    },
+    test04AppendStyleNode: function() {
+        var createStyleNode = function(id){
+                    return $('<style id="' + id + '"></style>');
+                };
+        
     }
 });
 

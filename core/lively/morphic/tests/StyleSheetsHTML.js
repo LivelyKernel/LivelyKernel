@@ -96,8 +96,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         // TODO: more asserts?
 
     },
-    newMethod: function() {
-        // enter comment here
+    assertStyleNode: function(higherMorph, lowerMorph, msg) {
+                var hCtx = higherMorph.renderContext(),
+                        hStyleNode = hCtx.styleNode,
+                        lCtx = lowerMorph.renderContext(),
+                        lStyleNode = lCtx.styleNode;
+                    this.assertEquals(
+                        hStyleNode,
+                        lStyleNode.previousSibling,
+                        msg);
+
+
     }
 
 });

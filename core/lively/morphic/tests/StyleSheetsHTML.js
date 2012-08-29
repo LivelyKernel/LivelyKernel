@@ -96,6 +96,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
             morph2Level2.renderContext().styleNode.previousSibling,
             'Style node of 11 is not before 22');
 
+        // TODO: more asserts?
 
     }
 });

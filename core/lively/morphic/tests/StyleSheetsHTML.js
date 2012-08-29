@@ -48,7 +48,54 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         var createStyleNode = function(id){
                     return $('<style id="' + id + '"></style>');
                 },
-            morph1Level1 = new lively.morphic.Morph();
+            morph1Level1 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
+            morph2Level1 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
+            morph1Level2 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
+            morph2Level2 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
+            morph3Level2 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
+            morph1Level3 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
+            morph2Level3 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
+            morph3Level3 = lively.morphic.Morph.makeRectangle(0,0, 300, 300);
+
+        /*
+                11            21
+              /    \          |
+            12      22        32
+            |      /  \
+            13    23  33
+        */
+
+        morph1Level1.addMorph(morph1Level2);
+        morph1Level1.addMorph(morph2Level2);
+        morph2Level1.addMorph(morph3Level2);
+
+        morph1Level2.addMorph(morph1Level3);
+        morph2Level2.addMorph(morph2Level3);
+        morph2Level2.addMorph(morph3Level3);
+
+        morph1Level1.openInWorld();
+        morph3Level3.appendStyleNodeHTML(
+            morph3Level3.renderContext(),
+            createStyleNode('33'));
+        morph1Level1.appendStyleNodeHTML(
+            morph1Level1.renderContext(),
+            createStyleNode('11'));
+        this.assertEquals(
+            morph1Level1.renderContext().styleNode,
+            morph3Level3.renderContext().styleNode.previousSibling,
+            'Style node of 11 is not before 33');
+        morph2Level2.appendStyleNodeHTML(
+            morph2Level2.renderContext(),
+            createStyleNode('22'));
+        this.assertEquals(
+            morph2Level2.renderContext().styleNode,
+            morph3Level3.renderContext().styleNode.previousSibling,
+            'Style node of 22 is not before 33');
+        this.assertEquals(
+            morph1Level1.renderContext().styleNode,
+            morph2Level2.renderContext().styleNode.previousSibling,
+            'Style node of 11 is not before 22');
+
 
     }
 });

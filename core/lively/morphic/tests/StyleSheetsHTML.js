@@ -45,8 +45,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
             'Decompiled style sheet has to have 2 rules');
     },
     test04AppendStyleNode: function() {
-        var createStyleNode = function(id){
-                    return $('<style id="' + id + '"></style>');
+        var appendStyleNode = function(morph){
+                    morph.appendStyleNodeHTML(
+                        morph.renderContext(),
+                        $('<style id="' + morph.id + '"></style>'));
                 },
             assertStyleNode = function(higherMorph, lowerMorph, msg) {
                     var hCtx = higherMorph.renderContext(),

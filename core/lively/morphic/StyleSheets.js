@@ -19,6 +19,14 @@ lively.morphic.Shapes.Shape.addMethods(
 }
 );
 
+lively.morphic.World.addMethods(
+'CSS editor',{
+    openWorldCSSEditor: function() {
+        
+    }
+    
+});
+
 lively.morphic.Morph.addMethods(
 'Style sheet getters and setters',{
     cssIsEnabled: true,

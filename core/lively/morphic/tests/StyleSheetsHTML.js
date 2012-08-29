@@ -49,10 +49,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
                     return $('<style id="' + id + '"></style>');
                 },
             assertStyleNode = function(higherMorph, lowerMorph, msg) {
-                    var hCtx = higherMorph.renderContext()
+                    var hCtx = higherMorph.renderContext(),
                         hStyleNode = hCtx.styleNode,
                         lCtx = lowerMorph.renderContext()
                         lStyleNode = lCtx.styleNode;
+                        
                 },
             morph1Level1 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
             morph2Level1 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),

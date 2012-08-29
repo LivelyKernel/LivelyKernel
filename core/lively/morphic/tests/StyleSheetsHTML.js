@@ -53,16 +53,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
                         ctx.styleNode);
 
                 },
-            assertStyleNode = function(higherMorph, lowerMorph, msg) {
-                    var hCtx = higherMorph.renderContext(),
-                        hStyleNode = hCtx.styleNode,
-                        lCtx = lowerMorph.renderContext(),
-                        lStyleNode = lCtx.styleNode;
-                    this.assertEquals(
-                        hStyleNode,
-                        lStyleNode.previousSibling,
-                        msg);
-                },
+            
             morph1Level1 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
             morph2Level1 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
             morph1Level2 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
@@ -105,7 +96,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         // TODO: more asserts?
 
     },
-    assertStyleNode: function() {
+    newMethod: function() {
         // enter comment here
     }
 

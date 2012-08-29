@@ -49,7 +49,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
                     return $('<style id="' + id + '"></style>');
                 },
             morph1Level1 = new lively.morphic.Morph();
-        
+
     }
 });
 

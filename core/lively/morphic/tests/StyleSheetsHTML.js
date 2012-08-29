@@ -87,17 +87,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         morph2Level2.addMorph(morph3Level3);
 
         morph1Level1.openInWorld();
-        morph3Level3.appendStyleNodeHTML(
-            morph3Level3.renderContext(),
-            createStyleNode('33'));
-        morph1Level1.appendStyleNodeHTML(
-            morph1Level1.renderContext(),
-            createStyleNode('11'));
+        appendStyleNode(morph3Level3);
+        appendStyleNode(morph1Level1);
         assertStyleNode(morph1Level1, morph3Level3,
             'Style node of 11 is not before 33');
-        morph2Level2.appendStyleNodeHTML(
-            morph2Level2.renderContext(),
-            createStyleNode('22'));
+        appendStyleNode(morph2Level2);
 
         assertStyleNode(morph2Level2, morph3Level3,
              'Style node of 22 is not before 33');

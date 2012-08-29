@@ -1062,7 +1062,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         $super();
         var tab = this.getTab();
         if (!tab.isInActivationCycle) {
-            this.tab.remove();
+            //this.tab.remove();
         }
     },
     adjustToNewContainerSize: function(aPoint) {

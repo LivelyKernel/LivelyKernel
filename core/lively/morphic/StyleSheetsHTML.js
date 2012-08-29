@@ -154,7 +154,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                 compiledCss && compiledCss.length &&
                 compiledCss.length > 0) {
     	       ctx.styleNode = $('<style type="text/css" id="' +
-    	           styleTagId + '"></style>');
+    	           styleTagId + '"></style>').get(0);
     	       ctx.styleNode.text(compiledCss);
 			   this.appendStyleNodeHTML(ctx, ctx.styleNode);
     	    }

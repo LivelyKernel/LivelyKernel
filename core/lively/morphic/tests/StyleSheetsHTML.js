@@ -70,7 +70,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
             |      /  \
             13    23  33
         */
-        
+        debugger
         morph1Level1.addMorph(morph1Level2);
         morph1Level1.addMorph(morph2Level2);
         morph2Level1.addMorph(morph3Level2);

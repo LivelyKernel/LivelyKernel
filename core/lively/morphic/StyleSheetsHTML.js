@@ -179,31 +179,33 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 			// If no upward morphs have any CSS applied,
 			// search for sister morph style nodes ...
 			if (this.owner && this.owner.submorphs) {
-				this.owner.submorphs.each(function(m) {
-					var mCtx = m.renderContext();
+				for (var i = 0; i < this.owner.submorphs.length; i++) {
+					var m = this.owner.submorphs[i],
+						mCtx = m.renderContext();
 					if (mCtx.styleNode && m !== this) {
 						$(mCtx.styleNode).after(styleNode);
 						return;
 					}
-				}, this);
+				}
 			}
 			// If still no styleNode was found
 			// search downward in morph hierarchy ...
 			while (submorphs.length > 0) {
 				var nextLevelSubmorphs = [];
-				submorphs.each(function(m) {
-						var mCtx = m.renderContext();
-						if (mCtx.styleNode && mCtx.styleNode !== styleNode) {
-							$(mCtx.styleNode).before(styleNode);
-							return;
-						}
-						if (m.submorphs) {
-							m.submorphs.each(function(ms) {
-									nextLevelSubmorphs.push(ms);
-								});
-						}
+				for (var i = 0; i < submorphs.length; i++) {
+					var m = submorphs[i],
+						mCtx = m.renderContext();
+					if (mCtx.styleNode && mCtx.styleNode !== styleNode) {
+						$(mCtx.styleNode).before(styleNode);
+						return;
+					}
+					if (m.submorphs) {
+						m.submorphs.each(function(ms) {
+								nextLevelSubmorphs.push(ms);
+							});
+					}
 						
-					});
+				}
 				submorphs = nextLevelSubmorphs;
 			}
 			

@@ -196,7 +196,10 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 							$(mCtx.styleNode).after(styleNode);
 							return;
 						}
-						nextLevelSubmorphs.push(m);
+						m.submorphs.each(function(ms) {
+								nextLevelSubmorphs.push(ms);
+							});
+						
 					});
 				submorphs = nextLevelSubmorphs;
 			}

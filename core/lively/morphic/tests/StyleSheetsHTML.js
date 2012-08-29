@@ -62,7 +62,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
                         hStyleNode,
                         lStyleNode.previousSibling,
                         msg);
-                        
                 },
             morph1Level1 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),
             morph2Level1 = lively.morphic.Morph.makeRectangle(0,0, 300, 300),

@@ -148,6 +148,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 
     	    if (ctx.styleNode) {
                 $(ctx.styleNode).remove();
+				delete ctx.styleNode;
             }
             if (rules.length && rules.length > 0 &&
                 compiledCss && compiledCss.length &&
@@ -155,9 +156,54 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
     	       ctx.styleNode = $('<style type="text/css" id="' +
     	           styleTagId + '"></style>');
     	       ctx.styleNode.text(compiledCss);
-    	       ctx.styleNode.appendTo(document.head);
+			   this.appendStyleNodeHTML(ctx, ctx.styleNode);
     	    }
-        }
+        },
+		appendStyleNodeHTML: function(ctx, styleNode) {
+			// Adds the morph's style node to the DOM
+			// and reflects the morph hierarchy in the
+			// node order.
+			var parent = child = this,
+				submorphs = this.submorphs;
+			
+			// Search upward in morph hierarchy ...
+			while ((parent = parent.owner)) {
+				var parentCtx = parent.renderContext();
+				if (parentCtx.styleNode) {
+					$(parentCtx.styleNode).after(styleNode);
+					return;
+				}
+			}
+			
+			// If no upward morphs have any CSS applied,
+			// search for sister morph style nodes ...
+			this.owner.submorphs.each(function(m) {
+				var mCtx = m.renderContext();
+				if (mCtx.styleNode && mCtx.styleNode !== styleNode) {
+					$(mCtx.styleNode).after(styleNode);
+					return;
+				}
+			});
+			
+			// If still no styleNode was found
+			// search downward in morph hierarchy ...
+			while (submorphs.length > 0) {
+				var nextLevelSubmorphs = [];
+				submorphs.each(function(m) {
+						var mCtx = m.renderContext();
+						if (mCtx.styleNode && mCtx.styleNode !== styleNode) {
+							$(mCtx.styleNode).after(styleNode);
+							return;
+						}
+						nextLevelSubmorphs.push(m);
+					});
+				submorphs = nextLevelSubmorphs;
+			}
+			
+			// If appearantly none of the other morphs in the hierarchy
+			// have a css applied, just add the stylenode to the head
+			styleNode.appendTo(document.head);
+		}
 
     },
     'Style Classes and Ids', {

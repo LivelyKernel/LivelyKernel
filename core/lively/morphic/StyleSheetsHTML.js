@@ -164,7 +164,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 			// and reflects the morph hierarchy in the
 			// node order.
 			var parent = child = this,
-				submorphs = this.submorphs;
+				submorphs = this.submorphs || [];
 			
 			// Search upward in morph hierarchy ...
 			while ((parent = parent.owner)) {
@@ -195,9 +195,11 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 							$(mCtx.styleNode).after(styleNode);
 							return;
 						}
-						m.submorphs.each(function(ms) {
-								nextLevelSubmorphs.push(ms);
-							});
+						if (m.submorphs) {
+							m.submorphs.each(function(ms) {
+									nextLevelSubmorphs.push(ms);
+								});
+						}
 						
 					});
 				submorphs = nextLevelSubmorphs;

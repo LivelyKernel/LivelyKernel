@@ -485,6 +485,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var css = ".some-class { color: red; }";
         this.morph.addStyleClassName('some-class');
         this.world.addMorph(this.morph);
+        debugger
         this.world.setStyleSheet(css);
         
         var rules = this.morph.getMatchingStyleSheetRules();

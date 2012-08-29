@@ -788,7 +788,7 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     setFillHTML: function(ctx, value) {
         if (!ctx.shapeNode) return;
-        if (this.isStyleSheetAppearance) {
+        if (this.shapeGetter('AppearanceStylingMode')) {
             ctx.domInterface.setFill(ctx.shapeNode, null, this.getBounds());
         } else {
             ctx.domInterface.setFill(ctx.shapeNode, value, this.getBounds());

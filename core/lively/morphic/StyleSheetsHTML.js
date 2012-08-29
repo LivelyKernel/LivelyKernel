@@ -194,7 +194,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 				submorphs.each(function(m) {
 						var mCtx = m.renderContext();
 						if (mCtx.styleNode && mCtx.styleNode !== styleNode) {
-							$(mCtx.styleNode).after(styleNode);
+							$(mCtx.styleNode).before(styleNode);
 							return;
 						}
 						if (m.submorphs) {

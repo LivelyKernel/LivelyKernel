@@ -22,7 +22,7 @@ lively.morphic.Shapes.Shape.addMethods(
 lively.morphic.World.addMethods(
 'CSS editor',{
     openWorldCSSEditor: function() {
-        
+        return this.openPartItem('WorldCSS', 'PartsBin/Tools');
     }
     
 });

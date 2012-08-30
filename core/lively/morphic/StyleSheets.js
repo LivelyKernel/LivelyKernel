@@ -170,6 +170,14 @@ lively.morphic.Morph.addMethods(
         return styleSheetRules.sort(function(a, b) {
                 var specA = thisMorph.getStyleSheetRuleSpecificity(a),
                     specB = thisMorph.getStyleSheetRuleSpecificity(b);
+                if (specA === specB) {
+                    if (a.originMorph !== b.originMorph) {
+                        return b.originMorph.isAncestorOf(a.originMorph);
+                    } else {
+                        return true;
+                        // order ok like this?
+                    }
+                }
                 /*
                 if (a.originMorph !== b.originMorph) {
                     // child's css is more specific than parent's

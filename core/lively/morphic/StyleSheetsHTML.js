@@ -45,7 +45,17 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 		}	
 	});
 	
-	
+	Trait('StyleSheetsHTMLShapeTrait',
+    'updating', {
+        setFillHTML: lively.morphic.Shapes.Shape.prototype.setFillHTML.wrap(function(proceed, ctx, value) {
+			if (!ctx.shapeNode) return;
+			if (this.shapeGetter('AppearanceStylingMode')) {
+				ctx.domInterface.setFill(ctx.shapeNode, null, this.getBounds());
+			} else {
+				proceed(ctx, value);
+			}
+        })
+    }).applyTo(lively.morphic.Shapes.Shape, {override: 'setFillHTML'});
 
     Trait('StyleSheetsHTMLTrait',
     'initializing', {

@@ -166,7 +166,7 @@ lively.morphic.Morph.addMethods(
             styleSheetRules = (rules) ?
                 rules.splice() :
                 this.getMatchingStyleSheetRules();
-        debugger
+        
         return styleSheetRules.sort(function(a, b) {
                 var specA = thisMorph.getStyleSheetRuleSpecificity(a),
                     specB = thisMorph.getStyleSheetRuleSpecificity(b);

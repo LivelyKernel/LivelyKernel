@@ -177,18 +177,9 @@ lively.morphic.Morph.addMethods(
                         return true;
                         // order ok like this?
                     }
-                }
-                /*
-                if (a.originMorph !== b.originMorph) {
-                    // child's css is more specific than parent's
-                    return b.originMorph.isAncestorOf(a.originMorph);
                 } else {
-                */
-                    return (thisMorph.getStyleSheetRuleSpecificity(a) >
-                        thisMorph.getStyleSheetRuleSpecificity(b));
-                /*
+                    return (specA > specB);
                 }
-                */
             });
     },
     getStyleSheetRuleSpecificity: function(rule) {

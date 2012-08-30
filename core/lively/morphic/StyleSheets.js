@@ -174,7 +174,7 @@ lively.morphic.Morph.addMethods(
                     if (a.originMorph !== b.originMorph) {
                         return b.originMorph.isAncestorOf(a.originMorph);
                     } else {
-                        return false;
+                        return true;
                         // order ok like this?
                     }
                 } else {

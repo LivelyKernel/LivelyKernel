@@ -788,16 +788,9 @@ lively.morphic.Shapes.Shape.addMethods(
         return realExtent;
     },
     setFillHTML: function(ctx, value) {
-        if (!ctx.shapeNode) return;
-        /*
-		if (this.shapeGetter('AppearanceStylingMode')) {
-            ctx.domInterface.setFill(ctx.shapeNode, null, this.getBounds());
-        } else {
-		*/
-            ctx.domInterface.setFill(ctx.shapeNode, value, this.getBounds());
-			/*
-        }
-		*/
+        if (ctx.shapeNode) {
+			ctx.domInterface.setFill(ctx.shapeNode, value, this.getBounds());
+		}
     },
     setBorderColorHTML: function(ctx, fill) {
         var alpha;
@@ -810,8 +803,7 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     setBorderStyleHTML: function(ctx, value) {
         if (ctx.shapeNode) {
-            var style = this.shapeGetter('BorderStylingMode') ? null : value;
-            ctx.shapeNode.style.borderStyle = style;
+            ctx.shapeNode.style.borderStyle = value;
         }
     },
     setBorderWidthHTML: function(ctx, width) {

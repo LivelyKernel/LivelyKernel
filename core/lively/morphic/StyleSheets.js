@@ -168,13 +168,17 @@ lively.morphic.Morph.addMethods(
                 this.getMatchingStyleSheetRules();
 
         return styleSheetRules.sort(function(a, b) {
+                /*
                 if (a.originMorph !== b.originMorph) {
                     // child's css is more specific than parent's
                     return b.originMorph.isAncestorOf(a.originMorph);
                 } else {
+                */
                     return (thisMorph.getStyleSheetRuleSpecificity(a) >
                         thisMorph.getStyleSheetRuleSpecificity(b));
+                /*
                 }
+                */
             });
     },
     getStyleSheetRuleSpecificity: function(rule) {

@@ -48,21 +48,50 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 	Trait('StyleSheetsHTMLShapeTrait',
     'updating', {
         setFillHTML: lively.morphic.Shapes.Shape.prototype.setFillHTML.wrap(function(proceed, ctx, value) {
-			if (!ctx.shapeNode) return;
 			if (this.shapeGetter('AppearanceStylingMode')) {
-				ctx.domInterface.setFill(ctx.shapeNode, null, this.getBounds());
+				proceed(ctx, null);
 			} else {
 				proceed(ctx, value);
 			}
         }),
-		setBorderStyleHTML: lively.morphic.Shapes.Shape.prototype.setBorderStyleHTML.wrap(function(proceed, ctx, value) {
+		setOpacityHTML: lively.morphic.Shapes.Shape.prototype.setOpacityHTML.wrap(function(proceed, ctx, value) {
+			if (this.shapeGetter('AppearanceStylingMode')){
+				proceed(ctx, null);
+			} else {
+				proceed(ctx, value);
+			}
+        }),
+		setBorderStyleHTML: lively.morphic.Shapes.Shape.prototype.setBorderStyleHTML.wrap(function(proceed, ctx, value)
+		{
 			if (ctx.shapeNode && this.shapeGetter('BorderStylingMode')) {
-				ctx.shapeNode.style.borderStyle = null;
+				proceed(ctx, null);
 			} else {
 				proceed(ctx, value);
 			}
         }),
-    }).applyTo(lively.morphic.Shapes.Shape, {override: ['setFillHTML', 'setBorderStyleHTML']});
+		setBorderHTML: lively.morphic.Shapes.Shape.prototype.setBorderHTML.wrap(function(proceed, ctx, width, fill, opacity) {
+			if (ctx.shapeNode && this.shapeGetter('BorderStylingMode')) {
+				ctx.shapeNode.style['border'] = null;
+				// compensate shapenode here?
+			} else {
+				proceed(ctx, width, fill, opacity);
+			}
+			
+        }),
+    }).applyTo(lively.morphic.Shapes.Shape, {override: ['setFillHTML', 'setOpacityHTML', 'setBorderStyleHTML', 'setBorderHTML']});
+	
+	Trait('StyleSheetsHTMLRectangleTrait',
+    'updating', {
+        setBorderRadiusHTML: lively.morphic.Shapes.Rectangle.prototype.setBorderRadiusHTML.wrap(function(proceed, ctx, value) {
+            if (ctx.shapeNode && this.shapeGetter('BorderStylingMode')) {
+				proceed(ctx, null);
+			} else {
+				proceed(ctx, value);
+			}
+        })
+    }).applyTo(lively.morphic.Shapes.Rectangle, {override: 'setBorderRadiusHTML'});
+	
+	
 
     Trait('StyleSheetsHTMLTrait',
     'initializing', {

@@ -820,14 +820,11 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     setBorderHTML: function(ctx, width, fill, opacity) {
         if (!ctx.shapeNode) return;
-        if (this.shapeGetter('BorderStylingMode')) {
-             ctx.shapeNode.style['border'] = null;
-        } else {
-            if ((fill instanceof Color) && opacity) fill = fill.withA(opacity);
-            if (!fill) fill = Color.rgba(0,0,0,0);
-            ctx.shapeNode.style['border'] = this.getBorderStyle() + ' ' + width + 'px ' +
-                fill.toCSSString(this.getBounds(), ctx.domInterface.html5CssPrefix);
-        }
+        if ((fill instanceof Color) && opacity) fill = fill.withA(opacity);
+        if (!fill) fill = Color.rgba(0,0,0,0);
+        ctx.shapeNode.style['border'] = this.getBorderStyle() + ' ' + width + 'px ' +
+            fill.toCSSString(this.getBounds(), ctx.domInterface.html5CssPrefix);
+        
         if (ctx.originNode) {
             this.compensateShapeNode(ctx);
         }
@@ -848,7 +845,9 @@ lively.morphic.Shapes.Shape.addMethods(
         ctx.originNode.style.setProperty('margin-left', -this.getBorderWidth() + 'px', 'important');
     },
     setOpacityHTML: function(ctx, value) {
-        if (ctx.shapeNode) ctx.shapeNode.style.opacity = this.shapeGetter('AppearanceStylingMode') ? null : value;
+        if (ctx.shapeNode) {
+			ctx.shapeNode.style.opacity = value;
+		}
     },
     setPaddingHTML: function(ctx, r) {
         if (r === undefined || !ctx.shapeNode) return r;
@@ -877,12 +876,11 @@ lively.morphic.Shapes.Rectangle.addMethods(
 },
 'updating', {
     setBorderRadiusHTML: function(ctx, value) {
-        var borderRadius = (this.shapeGetter('BorderStylingMode')) ? null : value;
         if (Object.isString(value)) {
             // irregular border radius for windows e.g.
-            ctx.getShapeNode().style.borderRadius = borderRadius ;
+            ctx.getShapeNode().style.borderRadius = value ;
         } else {
-             ctx.domInterface.setHTMLBorderRadius(ctx.getShapeNode(), borderRadius , borderRadius);
+             ctx.domInterface.setHTMLBorderRadius(ctx.getShapeNode(), borderRadius , value);
         }
     },
 });

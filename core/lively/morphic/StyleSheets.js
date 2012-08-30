@@ -38,7 +38,7 @@ Trait('WorldStyleSheetMenuTrait',
         }
 		return menuItems;
 	})
-}).applyTo(lively.morphic.Morph, {override: 'appendHTML'});
+}).applyTo(lively.morphic.World, {override: 'morphMenuItems'});
 
 lively.morphic.Morph.addMethods(
 'Style sheet getters and setters',{

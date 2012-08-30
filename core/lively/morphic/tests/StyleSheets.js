@@ -565,7 +565,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var worldCss = '.red { color: red;}'+ //1
                 '.red.Box { color: purple;}'+ //3
                 '#the-red-rectangle.red {color: blue;}' + //5
-                '#the-red-rectangle, #the-blue-rectangle, #the-blue-rectangle { color: green }', //4
+                '#the-red-rectangle, #the-blue-rectangle, #the-blue-rectangle { color: green; }', //4
             yellowCss = '.red { color: black;}', //2
             getVal = function(rule) {
                     return rule.declarations.first().values.first().value;

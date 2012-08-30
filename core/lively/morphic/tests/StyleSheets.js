@@ -585,7 +585,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             'rule 1 should have color black');
         this.assertEquals('purple', getVal(sortedRules[2]),
             'rule 2 should have color purple');
-        this.assertEquals('green ', getVal(sortedRules[3]),
+        this.assertEquals('green', getVal(sortedRules[3]),
             'rule 3 should have color green ');
         this.assertEquals('blue', getVal(sortedRules[4]),
             'rule 4 should have color blue');

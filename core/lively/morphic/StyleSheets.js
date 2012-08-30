@@ -27,6 +27,19 @@ lively.morphic.World.addMethods(
     
 });
 
+Trait('WorldStyleSheetMenuTrait',
+'menu items', {
+	morphMenuItems: lively.morphic.World.prototype.morphMenuItems.wrap(function(proceed) {
+		var menuItems = proceed();
+		for(var i = 0; i < items.length; i++) {
+            if (items[i][0] === "Preferences") {
+				items[i][1].push(['Edit world CSS', this.openWorldCSSEditor.bind(this)]);
+            }
+        }
+		return menuItems;
+	})
+}).applyTo(lively.morphic.Morph, {override: 'appendHTML'});
+
 lively.morphic.Morph.addMethods(
 'Style sheet getters and setters',{
     cssIsEnabled: true,

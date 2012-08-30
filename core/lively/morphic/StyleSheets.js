@@ -15,7 +15,7 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     getBorderStylingMode: function() {
         return this.shapeGetter('BorderStylingMode');
-    },    
+    },
 }
 );
 

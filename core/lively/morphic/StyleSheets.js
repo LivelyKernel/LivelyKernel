@@ -24,7 +24,6 @@ lively.morphic.World.addMethods(
     openWorldCSSEditor: function() {
         return this.openPartItem('WorldCSS', 'PartsBin/Tools');
     }
-    
 });
 
 Trait('WorldStyleSheetMenuTrait',

@@ -880,7 +880,7 @@ lively.morphic.Shapes.Rectangle.addMethods(
             // irregular border radius for windows e.g.
             ctx.getShapeNode().style.borderRadius = value ;
         } else {
-             ctx.domInterface.setHTMLBorderRadius(ctx.getShapeNode(), borderRadius , value);
+             ctx.domInterface.setHTMLBorderRadius(ctx.getShapeNode(), value , value);
         }
     },
 });

@@ -1104,9 +1104,11 @@ Object.extend(Color, {
     rgbaRegex: new RegExp('\\s*rgba?\\s*\\(\\s*(\\d+)(%?)\\s*,\\s*(\\d+)(%?)\\s*,\\s*(\\d+)(%?)\\s*(?:,\\s*([0-9\\.]+)\\s*)?\\)\\s*'),
 
     parse: function(str) {
+        /*
         // FIXME handle keywords
         if (!str || str == 'none') return null;
         return str.startsWith('#') ? this.parseHex(str) : this.parseRGB(str);
+        */
     },
 
     parseRGB: function(str) {

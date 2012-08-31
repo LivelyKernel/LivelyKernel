@@ -1106,7 +1106,7 @@ Object.extend(Color, {
     parse: function(str) {
         var color;
 
-        if (!str || str == 'none') {
+        if (!str || str === 'none') {
             return null;
         } else {
             color = apps.ColorParser.getColorFromString(str);

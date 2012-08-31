@@ -136,11 +136,7 @@ Object.subclass('lively.morphic.Morph',
         return value;
       },
     setMinExtent: function(minExtent) {
-        if (minExtent) {
-            this.morphSetter('MinExtent', minExtent || pt)
-        } else {
-
-        }
+        this.morphSetter('MinExtent', minExtent || undefined);
     },
 
     getExtent: function() { return this.shape.getExtent() },

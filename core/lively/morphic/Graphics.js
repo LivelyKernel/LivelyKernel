@@ -1098,8 +1098,11 @@ Object.extend(Color, {
         var tuple = Color.parse(str);
         return tuple && Color.fromTuple(tuple);
     },
-    newMethod: function() {
-        // enter comment here
+    fromName: function(name) {
+        var colors = {
+            
+            
+        }
     },
 
 

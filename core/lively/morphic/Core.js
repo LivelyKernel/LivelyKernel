@@ -150,7 +150,7 @@ Object.subclass('lively.morphic.Morph',
     getBorderColor: function() { return this.shape.getBorderColor() },
     setBorderWidth: function(value) { return this.shape.setBorderWidth(value) },
     getMinExtent:function () {
-        return this.morphicGetter('MinExtent') || pt(0,0);
+        return this.minExtent || pt(0,0);
     },
     getBorderWidth: function() { return this.shape.getBorderWidth() },
     setStrokeWidth: function(newWidth) {

@@ -1104,18 +1104,14 @@ Object.extend(Color, {
     rgbaRegex: new RegExp('\\s*rgba?\\s*\\(\\s*(\\d+)(%?)\\s*,\\s*(\\d+)(%?)\\s*,\\s*(\\d+)(%?)\\s*(?:,\\s*([0-9\\.]+)\\s*)?\\)\\s*'),
 
     parse: function(str) {
-        var color; 
-        
-        if (!str || str == 'none') { 
+        var color;
+
+        if (!str || str == 'none') {
             return null;
         } else {
-        
             color = apps.ColorParser.getColorFromString(str);
             return [color.red(),color.green(),color.blue(),color.alpha()];
         }
-        //return str.startsWith('#') ? this.parseHex(str) : this.parseRGB(str);
-        
-        
     },
 
     parseRGB: function(str) {

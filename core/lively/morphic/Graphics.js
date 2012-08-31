@@ -1098,12 +1098,7 @@ Object.extend(Color, {
         var tuple = Color.parse(str);
         return tuple && Color.fromTuple(tuple);
     },
-    fromName: function(name) {
-        var colors = {
-            
-            
-        }
-    },
+
 
 
     rgbaRegex: new RegExp('\\s*rgba?\\s*\\(\\s*(\\d+)(%?)\\s*,\\s*(\\d+)(%?)\\s*,\\s*(\\d+)(%?)\\s*(?:,\\s*([0-9\\.]+)\\s*)?\\)\\s*'),

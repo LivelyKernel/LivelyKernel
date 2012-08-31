@@ -1098,6 +1098,10 @@ Object.extend(Color, {
         var tuple = Color.parse(str);
         return tuple && Color.fromTuple(tuple);
     },
+    newMethod: function() {
+        // enter comment here
+    },
+
 
     rgbaRegex: new RegExp('\\s*rgba?\\s*\\(\\s*(\\d+)(%?)\\s*,\\s*(\\d+)(%?)\\s*,\\s*(\\d+)(%?)\\s*(?:,\\s*([0-9\\.]+)\\s*)?\\)\\s*'),
 

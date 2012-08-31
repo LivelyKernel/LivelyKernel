@@ -135,6 +135,10 @@ Object.subclass('lively.morphic.Morph',
         }
         return value;
       },
+    newMethod: function() {
+        // enter comment here
+    },
+
     getExtent: function() { return this.shape.getExtent() },
     setFill: function(value) { return this.shape.setFill(value) },
     getFill: function() { return this.shape.getFill() },

@@ -1095,8 +1095,11 @@ Object.extend(Color, {
     },
 
     fromString: function(str) {
-        var tuple = Color.parse(str);
-        return tuple && Color.fromTuple(tuple);
+        if (!str || str === 'none') {
+            return null;
+        } else {
+            return apps.ColorParser.getColorFromString(str);
+        }
     },
 
 

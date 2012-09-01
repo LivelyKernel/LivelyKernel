@@ -1133,7 +1133,7 @@ Object.extend(Color, {
 
     parseHex: function(colStr) {
         var rHex, gHex, bHex, str = '';
-        
+
         for (var i = 0; i < colStr.length; i++) {
             var c = colStr[i].toLowerCase();
             if (c=='a' ||c=='b' ||c=='c' ||c=='d' ||c=='e' ||c=='f' ||c=='0' ||c=='1' ||
@@ -1141,7 +1141,7 @@ Object.extend(Color, {
                 str += c;
             }
         }
-    
+
          if (str.length == 6) {
             rHex = str.substring(0,2);
             gHex = str.substring(2,4);

@@ -217,7 +217,7 @@ Object.subclass('TestCase',
     },
     assertEqualState: function(leftObj, rightObj, msg, noProtoLookup) {
         // have leftObj and rightObj equal properties?
-        msg = (msg ? msg : ' ') + leftObj + " != " + rightObj + " because ";
+        msg = msg ? msg : leftObj + " != " + rightObj + " because ";
         this.assertEquals(typeof leftObj, typeof rightObj, msg + ' object types differ');
         if (leftObj == rightObj) return;
         if ((leftObj !== leftObj) && (rightObj !== rightObj)) return; // both are NaN
@@ -233,7 +233,8 @@ Object.subclass('TestCase',
                 this.assertEquals(leftObj.length, rightObj.length, msg +
                                   Strings.format(' (length %s vs. %s)', leftObj.length, rightObj.length));
                 for (var i = 0; i < leftObj.length; i++) {
-                    this.assertEqualState(leftObj[i], rightObj[i], msg, noProtoLookup);
+                    this.assertEqualState(leftObj[i], rightObj[i],
+                                          msg + " [" + i + "]", noProtoLookup);
                 }
                 return;
             }
@@ -242,18 +243,21 @@ Object.subclass('TestCase',
             this.assert(leftObj.isEqualNode(rightObj), msg);
             return;
         };
-        function cmp(left, right) {
-            for (var value in left) {
-                if (noProtoLookup && !left.hasOwnProperty(value)) continue;
-                if (!(left[value] instanceof Function)) {
-                    this.assertEquals(left.hasOwnProperty(value),
-                                      right.hasOwnProperty(value), msg);
-                    this.assertEqualState(left[value], right[value], msg);
-                }
-            };
+        var rightKeys = [];
+        for (var key in rightObj) {
+            if (noProtoLookup && !rightObj.hasOwnProperty(key)) continue;
+            if (rightObj[key] instanceof Function) continue;
+            rightKeys.push(key);
         }
-        cmp.call(this, leftObj, rightObj);
-        cmp.call(this, rightObj, leftObj);
+        for (var key in leftObj) {
+            if (noProtoLookup && !leftObj.hasOwnProperty(key)) continue;
+            if (leftObj[key] instanceof Function) continue;
+            this.assertEquals(leftObj.hasOwnProperty(key),
+                              rightObj.hasOwnProperty(key), msg + " [" + key + "] ");
+            this.assertEqualState(leftObj[key], rightObj[key], msg + " [" + key + "] ");
+            rightKeys.remove(key);
+        }
+        this.assertEquals(0, rightKeys.length, msg + " no " + rightKeys[0] + " in " + rightObj);
     },
     assertMatches: function(expectedSpec, obj, msg) {
         // are all properties in expectedSpec also in and equal in obj?

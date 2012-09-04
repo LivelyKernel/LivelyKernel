@@ -93,8 +93,7 @@ lively.ide.JSSyntaxHighlighter.subclass('lively.ast.JSSyntaxHighlighter',
             globals = this.globalAnalyzer.findGlobalVariablesInAST(ast),
             style = this.globalStyle,
             globalStyles = globals.collect(function(g) {
-                return [g.pos[0], g.pos[1], style]
-            });
+                return [g.pos[0], g.pos[1], style]; });
         return globalStyles;
     },
 
@@ -104,7 +103,8 @@ lively.ide.JSSyntaxHighlighter.subclass('lively.ast.JSSyntaxHighlighter',
         // This is the proper and more efficient way of extending the syntax
         // highlighter isntead of overwriting #styleTextMorph. Since the style
         // array currently is not merged correctly we use the less efficient
-        // approach
+        // approach.
+        // Actually we shouldn't use concat but merge the interval list.
         var intervalsWithStyle = $super(string, rules, defaultStyle);
         return intervalsWithStyle.concat(this.stylesForGlobals(string));
     },

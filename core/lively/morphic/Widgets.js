@@ -420,7 +420,6 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
     }
 });
 
-
 lively.morphic.Morph.subclass('lively.morphic.PasswordInput',
 'initializing', {
     initialize: function($super, isChecked) {
@@ -1449,8 +1448,8 @@ lively.morphic.World.addMethods(
                 ['Stop stepping', function() { world.submorphs.each(
                         function(ea) {ea.stopStepping && ea.stopStepping()})}],
             ]],
-            ['Preferences', 
-                [['Set username', this.askForUserName.bind(this)],
+            ['Preferences', [
+                ['Set username', this.askForUserName.bind(this)],
                 ['My user config', this.showUserConfig.bind(this)],
                 ['Set extent', this.askForNewWorldExtent.bind(this)],
                 ['Set background color', this.askForNewBackgroundColor.bind(this)]]
@@ -2572,18 +2571,18 @@ lively.morphic.App.subclass('lively.morphic.WindowedApp',
 });
 
 cop.create('lively.morphic.ModalLayer').refineClass(lively.morphic.Morph, {
-    /*  
-        Makes a morph 'modal' by adding a backpane to the world 
+    /*
+        Makes a morph 'modal' by adding a backpane to the world
         which is not removed as long as the morph is still there.
-        
-        Usage: 
-        
+
+        Usage:
+
         morph.addWithLayer(lively.morphic.ModalLayer);
         morph.beModal(Color.rgba(0,0,0,0.5);
-        
+
         Enjoy
     */
-    
+
     beModal: function(optBackgroundColor) {
         if (this.backPanel) {
             this.removeBackPanel();
@@ -2604,7 +2603,7 @@ cop.create('lively.morphic.ModalLayer').refineClass(lively.morphic.Morph, {
     createBackPanel: function(optColor) {
         var backPanel,
             backPanelExtent = this.owner.getExtent();
-        
+
         backPanel = new lively.morphic.Box(backPanelExtent.extentAsRectangle());
         if (optColor) {
             backPanel.applyStyle({fill: optColor});
@@ -2620,7 +2619,7 @@ cop.create('lively.morphic.ModalLayer').refineClass(lively.morphic.Morph, {
         this.backPanel && this.backPanel.remove && this.backPanel.remove();
         this.backPanel = null;
     }
-    
+
 });
 
 // COPIED from Widgets.js SelectionMorph

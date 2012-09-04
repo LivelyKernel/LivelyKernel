@@ -2970,7 +2970,6 @@ Object.subclass('lively.morphic.TextEmphasis',
         };
         var cbs = this.clickCallbacks;
         node.onmousedown = function(evt) {
-            debugger;
             // Lively event dispatch not used here
             for (var i = 0; i < cbs.length; i++) {
                 cbs[i].call(this, evt);

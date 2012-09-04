@@ -162,7 +162,10 @@ lively.morphic.Morph.addMethods(
     },
     setScaleHTML: function(ctx, scale) {
         if (ctx.morphNode)
-            ctx.domInterface.setHTMLTransform(ctx.morphNode, this.getRotation(), scale, this.getPivotPoint());
+            ctx.domInterface.setHTMLTransform(ctx.morphNode,
+                                              this.getRotation(),
+                                              scale === undefined ? 1 : scale,
+                                              this.getPivotPoint());
     },
     setVisibleHTML: function(ctx, bool) {
         if (ctx.morphNode)

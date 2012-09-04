@@ -306,25 +306,21 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
         this.value = bool;
         // buttons should fire on mouse up
         if (!bool) {
-            var chooser = new lively.morphic.RGBColorChooser();
-            var menu = new lively.morphic.SimpleColorMenu(chooser);
-            var bounds = this.globalBounds();
-            var pos = pt(bounds.x, bounds.y);
-            var menuPos = pos.addPt(pt(0, bounds.height));
+            var chooser = new lively.morphic.RGBColorChooser(),
+                menu = new lively.morphic.SimpleColorMenu(chooser),
+                bounds = this.globalBounds(),
+                pos = pt(bounds.x, bounds.y),
+                menuPos = pos.addPt(pt(0, bounds.height));
             menu.open(lively.morphic.World.current(), menuPos, false);
             menu.setCallback(this, 'setColor');
         }
     },
     setColor: function(color){
         this.color = color;
-         this.colorDisplay.setFill(color);
+        this.colorDisplay.setFill(color);
     }
 
-
-}
-
-);
-
+});
 
 lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
 'settings', {
@@ -490,7 +486,7 @@ lively.morphic.SimpleColorField.subclass('lively.morphic.AwesomeColorField',
             menu.setColor(this.color);
             connect(menu, 'color', this, 'setColor');
         }
-    },
+    }
 });
 
 }) // end of module

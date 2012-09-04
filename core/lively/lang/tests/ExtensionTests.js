@@ -361,4 +361,34 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.IntervalTest', {
 
 });
 
+TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
+    testWithout: function() {
+        var arr = ["a"];
+        this.assertEqualState([], arr.without("a"));
+        this.assertEqualState(["a"], arr.without("c"));
+        delete arr[0];
+        this.assertEqualState([], arr.without("a"));
+    },
+    testRepair: function() {
+        var arr = ["a", "b", "c"];
+        delete arr[1];
+        arr = arr.compact();
+        this.assertEqualState(["a", "c"], arr);
+    },
+    testMin: function() {
+        var arr = [{x:2,y:12},{x:5,y:6},{x:9,y:4}];
+        this.assertEquals(2, arr.pluck('x').min());
+        this.assertEquals(4, arr.pluck('y').min());
+        this.assertEqualState({x:2,y:12}, arr.min(function(ea) { return ea.x }));
+        this.assertEqualState({x:9,y:4}, arr.min(function(ea) { return ea.y }));
+    },
+    testMax: function() {
+        var arr = [{x:2,y:12},{x:5,y:6},{x:9,y:4}];
+        this.assertEquals(9, arr.pluck('x').max());
+        this.assertEquals(12, arr.pluck('y').max());
+        this.assertEqualState({x:9,y:4}, arr.max(function(ea) { return ea.x }));
+        this.assertEqualState({x:2,y:12}, arr.max(function(ea) { return ea.y }));
+    }
+});
+
 }) // end of module

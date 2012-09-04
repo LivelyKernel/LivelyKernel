@@ -178,6 +178,8 @@ lively.morphic.Morph.addMethods(
     },
 
     setClipModeHTML: function(ctx, clipMode) {
+        // Sets the overflow property of the morph node.
+        // Clipmode can be either 'visible', 'hidden', 'scroll', 'auto' or 'inherit'.
         if (!ctx.shapeNode || this.delayedClipMode) {
             this.delayedClipMode = clipMode;
             return;
@@ -229,7 +231,8 @@ lively.morphic.Morph.addMethods(
     setToolTipHTML: function(ctxt, string) {
         if (ctxt.morphNode)
             ctxt.morphNode.setAttribute('title', string)
-    },
+    }
+
 },
 'rendering', {
     renderWithHTML: function() {
@@ -280,7 +283,6 @@ lively.morphic.Morph.addMethods(
 
         var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
         this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode, ctx.shapeNode);
-
         this.getShape().renderUsing(ctx);
     },
     insertMorphNodeInHTML: function(ctx, morphNode, parentNode, optAfterNode) {

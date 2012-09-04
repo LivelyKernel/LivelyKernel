@@ -1,5 +1,4 @@
-module('lively.morphic.StyleSheets').requires('apps.cssParser').toRun(function() {
-
+module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssParser').toRun(function() {
 
 lively.morphic.Shapes.Shape.addMethods(
 'Styling', {
@@ -15,9 +14,8 @@ lively.morphic.Shapes.Shape.addMethods(
     },
     getBorderStylingMode: function() {
         return this.shapeGetter('BorderStylingMode');
-    },
-}
-);
+    }
+});
 
 lively.morphic.World.addMethods(
 'CSS editor',{
@@ -134,7 +132,7 @@ A value is of a certain type:
 lively.morphic.Morph.addMethods(
 'Style sheet getters and setters',{
     cssIsEnabled: true,
-    
+
     getAppearanceStylingMode: function() {
         return this.shape.getAppearanceStylingMode();
     },
@@ -181,14 +179,12 @@ lively.morphic.Morph.addMethods(
             return [];
         }
     }
-  
-},
 
+},
 'Style sheet interpretation', {
     clearStyleRulesInSubmorphs: function() {
         // Get rid of the old rules in all submorphs.
         // DEPRECATED!
-
         alert('clearStyleRulesInSubmorphs is deprecated!');
         this.withAllSubmorphsDo(function(morph){
                 if (morph.styleSheetRules) {
@@ -315,14 +311,12 @@ lively.morphic.Morph.addMethods(
         } else {
             return apps.cssParser.calculateCSSRuleSpecificity(rule.selectorText());
         }
-    },
-
-
+    }
 },
 'Morph selection', {
     getSubmorphByStyleId: function(id, optIdAttributeName) {
         var styleId = (optIdAttributeName) ?
-				this[optIdAttributeName] : 
+				this[optIdAttributeName] :
 				this.getStyleId();
 		if (styleId === id){
             return this;
@@ -394,21 +388,21 @@ lively.morphic.Morph.addMethods(
 
         return resultMorphs;
     },
-    
+
     getAttribute: function(attr) {
-        return this[attr];    
+        return this[attr];
     },
-    
+
     getAttributeNode: function(attr) {
         return { value : this.getAttribute(attr) };
     },
-    
-    get previousSibling() { 
+
+    get previousSibling() {
         return this.getPreviousSibling();
     },
-    
+
     getPreviousSibling: function() {
-        
+
         if (!this.owner || !this.owner.submorphs || this.owner.submorphs.length <= 1) {
             return null;
         } else {
@@ -417,7 +411,7 @@ lively.morphic.Morph.addMethods(
             while (this.owner.submorphs[i]) {
                 if (this.owner.submorphs[i] === this) {
                     pos = i;
-		      
+
 		  break;
                 }
                 i++;
@@ -429,7 +423,6 @@ lively.morphic.Morph.addMethods(
         }
     },
     getNextSibling: function() {
-        
         if (!this.owner || !this.owner.submorphs || this.owner.submorphs.length <= 1) {
             return null;
         } else {
@@ -447,7 +440,7 @@ lively.morphic.Morph.addMethods(
                 return this.owner.submorphs[pos + 1];
             }
         }
-    },
+    }
 },
 'Style classes and ids', {
     getStyleClassNames: function() {
@@ -531,7 +524,7 @@ lively.morphic.Morph.addMethods(
         } else {
             return false;
         }
-    },  
+    },
 
     removeStyleClassName: function(className) {
         var pattern = this.makeStyleClassNameRegExp(className),
@@ -551,7 +544,7 @@ lively.morphic.Morph.addMethods(
             return false;
         }
     },
-    
+
     setStyleClassNames: function(classNames) {
         if (classNames && Array.isArray(classNames) && classNames.length > 0) {
             return this.morphicSetter('StyleClassNames',
@@ -580,11 +573,8 @@ lively.morphic.Morph.addMethods(
     makeStyleClassNameRegExp: function(className) {
         return new RegExp( "(^|[\\x20\\t\\r\\n\\f])" +
                 className + "([\\x20\\t\\r\\n\\f]|$)", "" );
-    },
-    
-}
-    
-);
+    }
+});
 
 Object.subclass("lively.morphic.Sizzle",
 /*!
@@ -599,16 +589,15 @@ Object.subclass("lively.morphic.Sizzle",
     initialize: function(){
         this.setupSelectors();
 	this.setupRegexs();
-    },
-	
+    }
 },
 'settings', {
-    
+
     tagNameAttr: 'tagName',
     nameAttr: 'name',
-    
+
     caching: false,
-    
+
     cachedruns: null,
 	dirruns: null,
 	sortOrder: null,
@@ -625,7 +614,7 @@ Object.subclass("lively.morphic.Sizzle",
 	slice: [].slice,
 	push: [].push,
 
-	
+
 
 	classCache: {},
 	cachedClasses: [],
@@ -633,7 +622,7 @@ Object.subclass("lively.morphic.Sizzle",
 	cachedSelectors: [],
 
 	// Regex
-	
+
 	setupRegexs: function(){
 		this.expando = ( "sizcache" + Math.random() ).replace( ".", "" );
 
@@ -653,7 +642,7 @@ Object.subclass("lively.morphic.Sizzle",
 		this.pos= ":(nth|eq|gt|lt|first|last|even|odd)(?:\\((\\d*)\\)|)(?=[^-]|$)";
 		this.combinators= this.whitespace + "*([\\x20\\t\\r\\n\\f>+~])" + this.whitespace + "*";
 		this.groups= "(?=[^\\x20\\t\\r\\n\\f])(?:\\\\.|" + this.attributes + "|" + this.pseudos.replace( 2, 7 ) + "|[^\\\\(),])+";
-		
+
 		// Leading and non-escaped trailing whitespace, capturing some non-whitespace characters preceding the latter
 		this.rtrim= new RegExp( "^" + this.whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + this.whitespace + "+$", "g" );
 
@@ -679,7 +668,7 @@ Object.subclass("lively.morphic.Sizzle",
 		this.rinputs= /input|select|textarea|button/i;
 
 		this.rbackslash= /\\(?!\\)/g;
-			
+
 		this.matchExpr= {
 			"ID": new RegExp( "^#(" + this.characterEncoding + ")" ),
 			"CLASS": new RegExp( "^\\.(" + this.characterEncoding + ")" ),
@@ -695,11 +684,9 @@ Object.subclass("lively.morphic.Sizzle",
 			"needsContext": new RegExp( "^" + this.whitespace + "*[>+~]|" + this.pos, "i" )
 		};
 
-	},
+	}
 },
-
-'selection',
-{
+'selection', {
 	setupSelectors: function(){
 		this.selectors = {
 
@@ -712,14 +699,14 @@ Object.subclass("lively.morphic.Sizzle",
 		attrHandle: {},
 
 		find: {
-		    
+
 		    "CLASS": function( className, context, xml ) {
-		        
+
 		          if     ( typeof context.getSubmorphsByStyleClassName !== this.strundefined && !xml ) {
 			         return context.getSubmorphsByStyleClassName( className );
-		              } 
+		              }
 		      },
-		
+
 		    "NAME": function( name, context ) {
             		if ( typeof context.getSubmorphsByAttribute!== this.strundefined ) {
 			     return context.getSubmorphsByAttribute( this.nameAttr, name );
@@ -918,7 +905,7 @@ Object.subclass("lively.morphic.Sizzle",
 			"CHILD": function( type, argument, first, last ) {
 
 				if ( type === "nth" ) {
-				        
+
 					var doneName = this.done++;
 
 					return function( elem ) {
@@ -992,7 +979,7 @@ Object.subclass("lively.morphic.Sizzle",
 				// pseudo-class names are case-insensitive
 				// http://www.w3.org/TR/selectors/#pseudo-classes
 				// Prioritize by case sensitivity in case custom pseudos are added with uppercase letters
-				
+
 				var fn = this.selectors.pseudos[ pseudo ] || this.selectors.pseudos[ pseudo.toLowerCase()];
 
 				if ( !fn ) {
@@ -1061,7 +1048,7 @@ Object.subclass("lively.morphic.Sizzle",
 				} else {
 					return true;
 				}
-				
+
 				/*
 				var nodeType;
 				elem = elem.firstChild;
@@ -1174,12 +1161,12 @@ Object.subclass("lively.morphic.Sizzle",
 		}
     }
     },
-    
+
     select: function( selector, context, results, seed ) {
 
 	results = results || [];
 	context = context || $world;
-        
+
         /*
         // Different to normal selection in HTML, we want the context
         // to be included in the search field.
@@ -1242,11 +1229,11 @@ Object.subclass("lively.morphic.Sizzle",
 	// All others
 	return this.uberselect( selector, context, results, seed, xml );
     },
-	
-	
+
+
     uberselect: function( selector, context, results, seed) {
 	// Remove excessive whitespace
-	
+
 	selector = selector.replace( this.rtrim, "$1" );
 	var elements, matcher, i, len, elem, token,
 		type, findContext, notTokens,
@@ -1317,7 +1304,7 @@ Object.subclass("lively.morphic.Sizzle",
 			elements = this.selectors.find["TAG"].call(this, "*", (this.rsibling.test( selector ) && context.owner) || context );
 		}
 		for ( i = 0; (elem = elements[i]); i++ ) {
-		    
+
 			this.cachedruns = matcher.runs++;
 			if ( matcher.call(this, elem, context) ) {
 				results.push( elem );
@@ -1338,10 +1325,10 @@ Object.subclass("lively.morphic.Sizzle",
 	if ( this.selectors.attrHandle[ name ] ) {
 		return this.selectors.attrHandle[ name ]( elem );
 	}
-	
+
 	// just give back the attr value in morphic ...
 	return elem[name];
-	
+
 	/*
 	if ( this.assertAttributes || xml ) {
 		return elem[name];
@@ -1357,17 +1344,17 @@ Object.subclass("lively.morphic.Sizzle",
     error: function( msg ) {
 	throw new Error( "Syntax error, unrecognized expression: " + msg );
     },
-	
+
     getText: function( elem ) {
 		/**
 		* Utility function for retrieving the text value of an array of DOM nodes
 		* @param {Array|Element} elem
 		*/
-		
-		// normal morphs usually don't have something like 'text', 
+
+		// normal morphs usually don't have something like 'text',
 		// text morphs return their textString attribute
 		return elem.textString || '';
-		
+
 		/*
 		var node,
 			ret = "",
@@ -1401,7 +1388,7 @@ Object.subclass("lively.morphic.Sizzle",
 		return ret;
 		*/
 	},
-    
+
 },
 'tokenizing and matching',{
     tokenize: function( selector, context, xml ) {
@@ -1465,7 +1452,7 @@ Object.subclass("lively.morphic.Sizzle",
     addCombinator: function( matcher, combinator, context, firstCombinator) {
         var dir = combinator.dir,
             doneName = this.done++;
-        
+
         if ( !matcher ) {
             // If there is no matcher to check, check against the context
             matcher = function( elem ) {
@@ -1615,7 +1602,7 @@ Object.subclass("lively.morphic.Sizzle",
             return false;
         };
     },
-    
+
     compile: function( selector, context, xml ) {
         var tokens, group, i,
             cached = this.compilerCache[ selector ];
@@ -1650,7 +1637,7 @@ Object.subclass("lively.morphic.Sizzle",
     matchesSelector: function( elem, expr ) {
         return this.select( expr, null, null, [ elem ] ).length > 0;
     },
-    
+
     contains: function(a,b){
             while ( (b = b.owner) ) {
                 if ( b === a ) {
@@ -1885,7 +1872,7 @@ Object.subclass("lively.morphic.Sizzle",
 
 	return results;
     }
-    
+
 }
 
 );
@@ -1904,4 +1891,4 @@ Trait('WorldStyleSheetMenuTrait',
 }).applyTo(lively.morphic.World, {override: 'morphMenuItems'});
 
 
-}) // end of module
+}); // end of module

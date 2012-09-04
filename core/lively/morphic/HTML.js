@@ -970,7 +970,7 @@ lively.morphic.Shapes.External.addMethods(
 'accessing', {
     getExtentHTML: function(ctx) {
         var $node = $(ctx.shapeNode);
-        return pt($node.width() || 0, $node.height() || 0);
+        return pt($node.outerWidth() || 0, $node.outerHeight() || 0);
     },
     setOpacityHTML: function(ctx, value) { if (ctx.shapeNode.style) ctx.shapeNode.style.opacity = value; },
 

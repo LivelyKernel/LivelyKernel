@@ -225,8 +225,13 @@ Object.subclass('lively.morphic.Morph',
         if (this.getLayouter()) {
             this.getLayouter().onSubmorphAdded(this, morph, this.submorphs);
         }
-
-        return morph;
+        if (morph.owner.owner) { // Is owner owner a stack?
+            if (morph.owner.owner.pageArray) {
+                morph.pageSpecific = true; // dropped morph is only on this page
+                    // call Stack.beInBackground to place in background
+            }
+        }
+        return morph
     },
     withAllSubmorphsDo: function(func, context, depth) {
         if (!depth) depth = 0;
@@ -302,6 +307,9 @@ Object.subclass('lively.morphic.Morph',
     remove: function() {
         this.suspendSteppingAll();
         if (this.showsHalos) this.removeHalos();
+        if (this.owner) {
+            this.owner.removeMorph(this);
+        }
         this.renderContextDispatch('remove');
     },
 
@@ -312,6 +320,7 @@ Object.subclass('lively.morphic.Morph',
         if (this.getLayouter()) {
             this.getLayouter().onSubmorphRemoved(this, morph, this.submorphs);
         }
+        this.renderContextDispatch('removeMorph');
     },
 
 },

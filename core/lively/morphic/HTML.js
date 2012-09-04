@@ -777,8 +777,9 @@ lively.morphic.Shapes.Shape.addMethods(
         return realExtent;
     },
     setFillHTML: function(ctx, value) {
-        if (!ctx.shapeNode) return;
-        ctx.domInterface.setFill(ctx.shapeNode, value, this.getBounds());
+        if (ctx.shapeNode) {
+			ctx.domInterface.setFill(ctx.shapeNode, value, this.getBounds());
+		}
     },
     setBorderColorHTML: function(ctx, fill) {
         var alpha;
@@ -790,7 +791,9 @@ lively.morphic.Shapes.Shape.addMethods(
         return this.setBorderHTML(ctx, this.getBorderWidth(), fill, alpha)
     },
     setBorderStyleHTML: function(ctx, value) {
-        if (ctx.shapeNode) ctx.shapeNode.style.borderStyle = value;
+        if (ctx.shapeNode) {
+            ctx.shapeNode.style.borderStyle = value;
+        }
     },
     setBorderWidthHTML: function(ctx, width) {
         this.setBorderHTML(ctx, width, this.getBorderColor(), this.getStrokeOpacity());
@@ -830,7 +833,9 @@ lively.morphic.Shapes.Shape.addMethods(
         ctx.originNode.style.setProperty('margin-left', -this.getBorderWidth() + 'px', 'important');
     },
     setOpacityHTML: function(ctx, value) {
-        ctx.shapeNode.style.opacity = value;
+        if (ctx.shapeNode) {
+			ctx.shapeNode.style.opacity = value;
+		}
     },
     setPaddingHTML: function(ctx, r) {
         if (r === undefined || !ctx.shapeNode) return r;
@@ -856,9 +861,9 @@ lively.morphic.Shapes.Rectangle.addMethods(
     setBorderRadiusHTML: function(ctx, value) {
         if (Object.isString(value)) {
             // irregular border radius for windows e.g.
-            ctx.getShapeNode().style.borderRadius = value
+            ctx.getShapeNode().style.borderRadius = value;
         } else {
-             ctx.domInterface.setHTMLBorderRadius(ctx.getShapeNode(), value, value)
+             ctx.domInterface.setHTMLBorderRadius(ctx.getShapeNode(), value , value);
         }
     },
 });

@@ -106,26 +106,32 @@ var Enumerable = {
 
     max: function(iterator, context) {
         iterator = iterator ? iterator.bind(context) : Functions.K;
-        var result;
-        this.each(function(value, index) {
-            value = iterator(value, index);
-            if (result == undefined || value >= result) result = value;
+        var result, resultValue;
+        this.each(function(element, index) {
+            value = iterator(element, index);
+            if (result == undefined || value >= resultValue) {
+            	result = element;
+            	resultValue = value;
+            }
         });
         return result;
     },
 
     min: function(iterator, context) {
-        iterator = iterator ? iterator.bind(context) : Prototype.K;
-        var result;
-        this.each(function(value, index) {
-            value = iterator(value, index);
-            if (result == undefined || value < result) result = value;
+        iterator = iterator ? iterator.bind(context) : Functions.K;
+        var result, resultValue;
+        this.each(function(element, index) {
+            value = iterator(element, index);
+            if (result == undefined || value < resultValue) {
+            	result = element;
+            	resultValue = value;
+            }
         });
         return result;
     },
 
     partition: function(iterator, context) {
-        iterator = iterator ? (context ? iterator.bind(context) : iterator) : Prototype.K;
+        iterator = iterator ? (context ? iterator.bind(context) : iterator) : Functions.K;
         var trues = [],
             falses = [];
         this.each(function(value, index) {

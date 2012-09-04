@@ -58,7 +58,7 @@ Object.extend(Object, {
     },
 
     clone: function(object) {
-        return Object.extend({}, object);
+        return Array.isArray(object) ? object.clone() : Object.extend({}, object);
     },
 
     isElement: function(object) {

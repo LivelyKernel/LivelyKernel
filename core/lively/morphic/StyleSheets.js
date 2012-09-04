@@ -27,7 +27,6 @@ lively.morphic.World.addMethods(
 });
 
 Object.subclass('CSSProperties', 
-
 /*
 Information to interpret and manipulate CSS properties.
 Since there are a lot of CSS properties out there, this
@@ -44,6 +43,13 @@ A value is of a certain type:
 3: Color (i.e. color; edit with color chooser)
 4: Shadow (i.e. box-shadow; edit with shadow dialog)
 */
+
+'Getter', {
+	get: function(prop) {
+		return this[prop];
+	}
+},
+
 'Basic Properties',
 {
 	'background-color': {

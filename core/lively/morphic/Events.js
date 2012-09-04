@@ -1922,15 +1922,15 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     isHand: true,
 },
 'initializing', {
-    addToWorld: function(world) {
-        this._world = world;
+    initialize: function($super) {
+        $super()
         this.ignoreEvents();
         this.setFill(Color.red);
-        this.setBounds(new Rectangle(0,0, 2, 2));
+        this.setBounds(new Rectangle(0, 0, 2, 2));
     }
 },
 'accessing -- morphic relationship', {
-    world: function() { return this._world },
+
     hand: function() { return this },
     morphsContainingPoint: function(point, list) {
         return list || [];

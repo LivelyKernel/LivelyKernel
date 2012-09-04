@@ -614,7 +614,6 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         var hand = new lively.morphic.HandMorph();
         if (!this.hands) this.hands = [];
         this.hands.push(hand);
-        hand.addToWorld(this);
         this.addMorph(hand);
     }
 },

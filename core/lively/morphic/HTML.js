@@ -395,6 +395,7 @@ lively.morphic.Text.addMethods(
         $super(ctx);
         this.setFontSizeHTML(ctx, this.getFontSize());
         this.setFontFamilyHTML(ctx, this.getFontFamily());
+        this.setFontWeightHTML(ctx, this.getFontWeight());
         this.setAlignHTML(ctx, this.getAlign());
         this.setVerticalAlignHTML(ctx, this.getVerticalAlign());
         this.setDisplayHTML(ctx, this.getDisplay());

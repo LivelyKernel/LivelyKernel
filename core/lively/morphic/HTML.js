@@ -1,6 +1,5 @@
 module('lively.morphic.HTML').requires('lively.morphic.Rendering', 'lively.morphic.PathShapes', 'lively.Traits').toRun(function() {
 
-
 Color.addMethods(
 'HTML rendering', {
     toCSSString: Color.prototype.toRGBAString
@@ -179,12 +178,8 @@ lively.morphic.Morph.addMethods(
     },
 
     setClipModeHTML: function(ctx, clipMode) {
-        /*
-        Sets the overflow property of the morph node.
-        Clipmode can be either 'visible', 'hidden', 'scroll', 'auto' or 'inherit'.
-        */
-        
-        
+        // Sets the overflow property of the morph node.
+        // Clipmode can be either 'visible', 'hidden', 'scroll', 'auto' or 'inherit'.
         if (!ctx.shapeNode || this.delayedClipMode) {
             this.delayedClipMode = clipMode;
             return;
@@ -236,7 +231,7 @@ lively.morphic.Morph.addMethods(
     setToolTipHTML: function(ctxt, string) {
         if (ctxt.morphNode)
             ctxt.morphNode.setAttribute('title', string)
-    },
+    }
 
 },
 'rendering', {
@@ -275,7 +270,7 @@ lively.morphic.Morph.addMethods(
                     ownerCtx.shapeNode.appendChild(ownerCtx.originNode);
                 }
                 this.owner.shape.compensateShapeNode(ownerCtx);
-                
+
                 parentNode = ownerCtx.originNode;
             }
 
@@ -289,7 +284,6 @@ lively.morphic.Morph.addMethods(
         var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
         this.insertMorphNodeInHTML(ctx, ctx.morphNode, parentNode, afterNode, ctx.shapeNode);
         this.getShape().renderUsing(ctx);
-
     },
     insertMorphNodeInHTML: function(ctx, morphNode, parentNode, optAfterNode) {
         if (!optAfterNode || !$A(parentNode.childNodes).include(optAfterNode)) {
@@ -322,7 +316,7 @@ lively.morphic.Morph.addMethods(
         if (this.submorphs.length != 0 || !ctx.originNode) return;
         ctx.removeNode(ctx.originNode);
         delete ctx.originNode;
-    },
+    }
 
 },
 'events', {
@@ -353,8 +347,7 @@ lively.morphic.Morph.addMethods(
 lively.morphic.World.addMethods(
 'HTML render settings', {
     htmlDispatchTable: {
-        setScroll: 'setScrollHTML',
-
+        setScroll: 'setScrollHTML'
     }
 },
 'scrolling', {
@@ -364,7 +357,7 @@ lively.morphic.World.addMethods(
             xDiff = x - window.scrollX,
             yDiff = y - window.scrollY;
         window.scrollBy(xDiff, yDiff);
-    },
+    }
 });
 
 lively.morphic.Text.addMethods(
@@ -735,8 +728,7 @@ lively.morphic.Shapes.Shape.addMethods(
         setStrokeOpacity: 'setStrokeOpacityHTML',
         setBorderRadius: 'setBorderRadiusHTML',
         setBorderStyle: 'setBorderStyleHTML',
-        setOpacity: 'setOpacityHTML',
-
+        setOpacity: 'setOpacityHTML'
     },
 },
 'initializing', {
@@ -751,8 +743,6 @@ lively.morphic.Shapes.Shape.addMethods(
         this.setBorderWidthHTML(ctx, this.getBorderWidth()); // The other border props are initialized there as well
         this.setBorderStyleHTML(ctx, this.getBorderStyle());
         this.setPaddingHTML(ctx, this.getPadding()); // also sets extent
-
-
         if (UserAgent.fireFoxVersion)
             ctx.shapeNode['-moz-user-modify'] = 'read-only'
     },
@@ -772,7 +762,6 @@ lively.morphic.Shapes.Shape.addMethods(
         }
     },
     setExtentHTML: function(ctx, value) {
-        
         if (!ctx.shapeNode) return undefined;
         var padding = this.getPadding(),
             paddingWidth = padding.left() + padding.right(),
@@ -824,7 +813,6 @@ lively.morphic.Shapes.Shape.addMethods(
         if (!fill) fill = Color.rgba(0,0,0,0);
         ctx.shapeNode.style['border'] = this.getBorderStyle() + ' ' + width + 'px ' +
             fill.toCSSString(this.getBounds(), ctx.domInterface.html5CssPrefix);
-        
         if (ctx.originNode) {
             this.compensateShapeNode(ctx);
         }
@@ -856,12 +844,7 @@ lively.morphic.Shapes.Shape.addMethods(
         var s = r.top() + "px " + r.right() + "px " + r.bottom() + "px " + r.left() + "px";
         ctx.shapeNode.style.padding = s;
         return r;
-    },
-
-
-
-
-
+    }
 
 });
 
@@ -878,7 +861,7 @@ lively.morphic.Shapes.Rectangle.addMethods(
     setBorderRadiusHTML: function(ctx, value) {
         if (Object.isString(value)) {
             // irregular border radius for windows e.g.
-            ctx.getShapeNode().style.borderRadius = value ;
+            ctx.getShapeNode().style.borderRadius = value;
         } else {
              ctx.domInterface.setHTMLBorderRadius(ctx.getShapeNode(), value , value);
         }
@@ -1089,8 +1072,9 @@ lively.morphic.Shapes.Path.addMethods(
     getPointAtTotalLengthHTML: function(ctx, totalLength) {
         var pathNode = this.getPathNodeHTML(ctx);
         return pathNode && lively.Point.ensure(pathNode.getPointAtLength(totalLength));
-    },
+    }
 });
+
 Object.extend(lively.morphic, {
     CSS: {}
 });
@@ -1111,51 +1095,5 @@ Object.subclass('lively.morphic.CSS.Fill',
         }
     }
 });
-
-
-    
-
-    
-lively.morphic.Box.subclass('lively.morphic.SimpleText',
-'simple text', {
-    htmlDispatchTable: {
-        setText: 'setTextHTML'
-    },
-    
-    initialize: function($super, bounds, optText){
-        $super(bounds);
-        this.text = optText || "Simple Text";
-    },
-    setText: function(text){
-        this.text = text; 
-        return this.renderContextDispatch('setText', text);   
-    },
-    setTextHTML: function(ctx, text){
-        ctx.shapeNode.innerHTML = text;   
-    },
-    
-    appendHTML: function($super, ctx) {
-        $super(ctx);
-        if (ctx.shapeNode) {
-            this.setTextHTML(ctx, this.text);
-        }
-    },
-    morphMenuItems: function($super) {
-        var self = this, items = $super();
-        items.push([
-            'Set text', function(evt) {
-            $world.prompt('Set text', function(input) {
-                if (input !== null)
-                    self.setText(input || '');
-            }, this.text);
-        }])
-        return items;
-    },
-    
-}
-
-);
-
-
 
 }) // end of module

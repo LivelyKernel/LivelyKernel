@@ -1077,9 +1077,9 @@ Object.extend(Color, {
         if (colorData && colorData[0] >= 0 && colorData[1] >= 0 && colorData[2] >= 0) {
             return new Color(colorData[0], colorData[1], colorData[2]);
         } else {
-            return null;    
+            return null;
         }
-        
+
     },
 
     rgba: function(r, g, b, a) {
@@ -1102,13 +1102,10 @@ Object.extend(Color, {
         }
     },
 
-
-
     rgbaRegex: new RegExp('\\s*rgba?\\s*\\(\\s*(\\d+)(%?)\\s*,\\s*(\\d+)(%?)\\s*,\\s*(\\d+)(%?)\\s*(?:,\\s*([0-9\\.]+)\\s*)?\\)\\s*'),
 
     parse: function(str) {
         var color;
-
         if (!str || str === 'none') {
             return null;
         } else {
@@ -1133,7 +1130,6 @@ Object.extend(Color, {
 
     parseHex: function(colStr) {
         var rHex, gHex, bHex, str = '';
-
         for (var i = 0; i < colStr.length; i++) {
             var c = colStr[i].toLowerCase();
             if (c=='a' ||c=='b' ||c=='c' ||c=='d' ||c=='e' ||c=='f' ||c=='0' ||c=='1' ||
@@ -1141,7 +1137,6 @@ Object.extend(Color, {
                 str += c;
             }
         }
-
          if (str.length == 6) {
             rHex = str.substring(0,2);
             gHex = str.substring(2,4);
@@ -1214,4 +1209,5 @@ Config.addOptions(
 ]);
 
 })();
+
 });

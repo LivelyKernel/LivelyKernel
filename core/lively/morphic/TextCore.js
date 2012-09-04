@@ -2207,7 +2207,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
 
     highlightSyntaxDebounced: function(waitTime) {
-        waitTime = waitTime || this.syntaxHighlighter.minDelay || 0;
+        waitTime = waitTime || (this.syntaxHighlighter ? this.syntaxHighlighter.minDelay : 0);
         // replaces this function in the instance object
         this.highlightSyntaxDebounced = Functions.debounce(waitTime, this.highlightSyntax);
         this.highlightSyntaxDebounced();
@@ -2584,7 +2584,6 @@ Object.subclass('lively.morphic.TextChunk',
         }
         return nodes;
     },
-
     ensureEndsWithBr: function() {
         var chunkNode = this.getChunkNode(),
             lastBrFound = false;

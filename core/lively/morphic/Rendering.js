@@ -169,6 +169,9 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
         return node.setAttributeNS(null, name, String(value));
     },
     setFill: function(node, fill, shapeBounds) {
+        if (this.isSVG(node)) {
+            this.setSVGFillOrStrokePaint(node, 'fill', fill);
+        }
         if (!fill) {
             node.style.background = null;
         } else if (this.isHTML(node)) {
@@ -180,10 +183,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
             }
             alert('cannot deal with fill ' + fill);
             return;
-        } else if (this.isSVG(node)) {
-            this.setSVGFillOrStrokePaint(node, 'fill', fill);
         }
-
     },
     setSVGFillOrStrokePaint: function(node, propName, paint) {
         var cachedProperty = '_' + propName; // like _fill

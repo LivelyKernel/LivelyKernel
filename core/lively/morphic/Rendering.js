@@ -229,7 +229,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
     },
 
     setHTMLTransform: function(node, rotationInRad, scale, pivot) {
-        var scaleX = 1, scaleY = 1;
+        var scaleX = 1, scaleY = 1, degree;
         if (typeof scale == "number") {
             scaleX = scale;
             scaleY = scale;
@@ -237,7 +237,9 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
             scaleX = scale.x;
             scaleY = scale.y;
         }
-        var transformString = 'rotate(' + rotationInRad.toDegrees() + 'deg) ';
+        // treat 'null' rotation as 0
+        var degrees = typeof rotationInRad == 'number' ? rotationInRad.toDegrees() : 0;
+        var transformString = 'rotate(' + degrees + 'deg) ';
         transformString += 'scale(' + scaleX + ',' + scaleY + ')';
         if (this.html5CssPrefix === '-moz-') {
             node.setAttribute('style', node.style.cssText + '-moz-transform: ' + transformString);

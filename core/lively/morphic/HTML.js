@@ -122,6 +122,7 @@ lively.morphic.Morph.addMethods(
         init: 'initHTML',
         append: 'appendHTML',
         remove: 'removeHTML',
+        removeMorph: 'removeMorphHTML',
         onRenderFinished: 'onRenderFinishedHTML',
         triggerEvent: 'triggerEventHTML',
         setTransform: 'setTransformHTML',
@@ -302,16 +303,16 @@ lively.morphic.Morph.addMethods(
 },
 'removing', {
     removeHTML: function(ctx) {
-        if (this.owner) {
-            var owner = this.owner;
-            owner.removeMorph(this);
-            if (owner.submorphs.length == 0 && owner.renderContext().originNode) {
-                owner.renderContext().removeNode(owner.renderContext().originNode);
-                delete owner.renderContext().originNode;
-            }
-        }
         ctx.removeNode(ctx.morphNode);
+        // remove the style node if there is any
+        if (ctx.styleNode) { ctx.removeNode(ctx.styleNode); }
     },
+    removeMorphHTML: function(ctx) {
+        if (this.submorphs.length != 0 || !ctx.originNode) return;
+        ctx.removeNode(ctx.originNode);
+        delete ctx.originNode;
+    }
+
 },
 'events', {
     triggerEventHTML: function(ctx, evt) {

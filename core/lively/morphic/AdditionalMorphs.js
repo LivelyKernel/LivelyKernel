@@ -1,5 +1,65 @@
 module('lively.morphic.AdditionalMorphs').requires('lively.morphic.Halos', 'lively.morphic.Grid').toRun(function() {
 
+lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
+'canvas', {
+    defaultBounds: pt(300, 300),
+    initialize: function($super, optBounds) {
+        $super(this.createShape());
+        this.setExtent(optBounds || this.defaultBounds);
+    },
+    createShape: function() {
+        var node = this.renderContextDispatch('createCanvasNode');
+        return new lively.morphic.Shapes.External(node);
+    },
+    getContext: function(optContext) {
+        return this.renderContextDispatch('getContext', optContext);
+    },
+    setExtent: function($super, extent) {
+        $super(extent);
+        this.renderContextDispatch('adaptCanvasSize');
+    },
+    clear: function() {
+        var ctx = this.getContext(),
+            extent = this.getExtent(),
+            height = extent.y,
+            width = extent.x;
+        if (ctx) {
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, width, height);
+            ctx.restore();
+        }
+    }
+},
+ 'HTML rendering', {
+    htmlDispatchTable: {
+       createCanvasNode: 'createCanvasNodeHTML',
+       getContext: 'getContextHTML',
+       adaptCanvasSize: 'adaptCanvasSizeHTML'
+    },
+    getContextHTML: function(ctx, optContext) {
+        if (ctx.shapeNode) {
+            return ctx.shapeNode.getContext(optContext|| '2d');
+        } else {
+            return null;
+        }
+    },
+    appendHTML: function($super, ctx) {
+       $super(ctx);
+       this.adaptCanvasSizeHTML(ctx);
+    },
+    createCanvasNodeHTML: function(ctx) {
+        return XHTMLNS.create('canvas');
+    },
+    adaptCanvasSizeHTML: function(ctx) {
+        var x = $(ctx.shapeNode).width(),
+            y = $(ctx.shapeNode).height();
+        $(ctx.shapeNode).attr('width', x);
+        $(ctx.shapeNode).attr('height', y);
+    },
+}
+);
+
 lively.morphic.Morph.subclass('lively.morphic.Path',
 'properties', {
     isPath: true,

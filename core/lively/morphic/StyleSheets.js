@@ -26,6 +26,115 @@ lively.morphic.World.addMethods(
     }
 });
 
+Object.subclass('CSSProperties', 
+
+/*
+Information to interpret and manipulate CSS properties.
+Since there are a lot of CSS properties out there, this
+is only a selection.
+Feel free to add missing properties!
+
+A property can have several value counts (i.e. the value of 
+border-color could be 'black', but it could also be 'black black black blue').
+
+A value is of a certain type:
+0: Plain text (i.e. font-family; edit through text field)
+1: Number (i.e. width; edit through slider)
+2: Option (i.e. border-style; edit with drop-down box)
+3: Color (i.e. color; edit with color chooser)
+4: Shadow (i.e. box-shadow; edit with shadow dialog)
+*/
+'Basic Properties',
+{
+	'background-color': {
+		1 : { // only one value for this property
+			1 : {
+				type: 3
+			}
+		}
+	},
+	'border-color': {
+		1: { // either one value ...
+			1 : {
+				type: 3
+			}
+		},
+		4: { // ... or four
+			1 : {
+				type: 3
+			},
+			2 : {
+				type: 3
+			},
+			3: {
+				type: 3
+			},
+			4 : {
+				type: 3
+			}
+		}
+	},
+	
+	'border-top-color': {
+		1 : { // only one value for this property
+			1 : {
+				type: 3
+			}
+		}
+	},
+	'border-bottom-color': {
+		1 : { // only one value for this property
+			1 : {
+				type: 3
+			}
+		}
+	},
+	'border-left-color': {
+		1 : { // only one value for this property
+			1 : {
+				type: 3
+			}
+		}
+	},
+	'border-right-color': {
+		1 : { // only one value for this property
+			1 : {
+				type: 3
+			}
+		}
+	},
+	'border-radius': {
+		1: { // either one value ...
+			1 : {
+				type: 1
+			}
+		},
+		4: { // ... or four
+			1 : {
+				type: 1
+			},
+			2 : {
+				type: 1
+			},
+			3: {
+				type: 1
+			},
+			4 : {
+				type: 1
+			}
+		}
+	},
+	'color': {
+		type: 3
+	},
+	
+	
+	
+	
+
+
+});
+
 
 
 lively.morphic.Morph.addMethods(
@@ -484,6 +593,11 @@ lively.morphic.Morph.addMethods(
 );
 
 Object.subclass("lively.morphic.Sizzle",
+/*!
+ * Uses parts from the Sizzle CSS Selector Engine
+ * Copyright 2012 jQuery Foundation and other contributors
+ * http://sizzlejs.com/
+ */
 'documentation', {
     documentation: "Sizzle port for morphic."
 },

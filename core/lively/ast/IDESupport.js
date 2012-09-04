@@ -111,10 +111,13 @@ lively.ide.JSSyntaxHighlighter.subclass('lively.ast.JSSyntaxHighlighter',
 
     styleTextMorph: function($super, target) {
         // see comment in #howToStyleString
-        var domChangedPass1 = $super(target), domChangedPass2 = false;
+        var domChangedPass1 = $super(target);
+
         if (target.specialHighlighting == "none") return domChangedPass1;
+
+        var globalStyles, domChangedPass2;
         try {
-            var globalStyles = this.stylesForGlobals(target);
+            globalStyles = this.stylesForGlobals(target);
             target.parseErrors = null;
             domChangedPass2 = target.emphasizeRanges(globalStyles);
         } catch (e) {

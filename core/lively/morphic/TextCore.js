@@ -2085,7 +2085,17 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return chunkAndIdx && chunkAndIdx[0].style;
     },
 
-	insertRichTextAt: function(string, style, index) {
+    appendRichText: function(string, style) {
+        this.textChunks.last().ensureDoesNotEndWithBr();
+        var newChunk = this.createChunk();
+        this.textChunks.push(newChunk);
+        newChunk.textString = string;
+        newChunk.styleText(style);
+        this.coalesceChunks();
+        this.cachedTextString = null;
+    },
+
+    insertRichTextAt: function(string, style, index) {
         var newChunk = this.sliceTextChunks(index, index)[0];
         if (!newChunk) {
             console.warn('insertRichtTextAt failed, found no text chunk!');
@@ -2584,6 +2594,12 @@ Object.subclass('lively.morphic.TextChunk',
             if (node.textContent.length > 0) { lastBrFound = false; };
         }
         if (!lastBrFound) { chunkNode.appendChild(XHTMLNS.create('br')); };
+    },
+    ensureDoesNotEndWithBr: function() {
+        var chunkNode = this.getChunkNode();
+        if (chunkNode.childNodes.length == 0) return;
+        var node = chunkNode.childNodes[chunkNode.childNodes.length - 1];
+        if (node.tagName === 'br') { chunkNode.removeChild(node); };
     },
     removeNonChunkNodes: function() {
         var node = this.getChunkNode(),

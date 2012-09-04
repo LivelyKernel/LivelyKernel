@@ -169,6 +169,14 @@ Object.subclass('ObjectGraphLinearizer',
             ref: {__isSmartRef__: true, id: id},
         }
     },
+    copyPropertiesAndRegisterReferences: function(source, copy) {
+        for (var key in source) {
+            if (!source.hasOwnProperty(key) || (key === this.idProperty && !this.keepIds)) continue;
+            var value = source[key];
+            if (this.somePlugin('ignoreProp', [source, key, value])) continue;
+            copy[key] = this.registerWithPath(value, key);
+        }
+    },
     copyObjectAndRegisterReferences: function(obj) {
         if (this.copyDepth > this.defaultCopyDepth) {
             alert("Error in copyObjectAndRegisterReferences, path: " + this.path);
@@ -178,14 +186,7 @@ Object.subclass('ObjectGraphLinearizer',
         var copy = {},
             source = this.somePlugin('serializeObj', [obj, copy]) || obj;
         // go through references in alphabetical order
-        var keys = Object.keys(source).sort();
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            if (!source.hasOwnProperty(key) || (key === this.idProperty && !this.keepIds)) continue;
-            var value = source[key];
-            if (this.somePlugin('ignoreProp', [source, key, value])) continue;
-            copy[key] = this.registerWithPath(value, key);
-        }
+        this.copyPropertiesAndRegisterReferences(source, copy);
         this.letAllPlugins('additionallySerialize', [source, copy]);
         this.copyDepth--;
         return copy;
@@ -431,6 +432,8 @@ ObjectLinearizerPlugin.subclass('ClassPlugin',
     removeClassInfoIfPresent: function(obj) {
         if (obj[this.classNameProperty])
             delete obj[this.classNameProperty];
+        if (obj[this.sourceModuleNameProperty])
+            delete obj[this.sourceModuleNameProperty];
     },
 },
 'searching', {
@@ -482,7 +485,6 @@ ObjectLinearizerPlugin.subclass('LayerPlugin',
         if (!layers || layers.length == 0) return;
         module('cop.Layers').load(true); // FIXME
         obj[propname] = layers.collect(function(ea) {
-            console.log(ea)
             return Object.isString(ea) ? cop.create(ea, true) : ea;
         });
     },

@@ -142,10 +142,13 @@ Object.subclass('lively.morphic.Morph',
     getBorderColor: function() { return this.shape.getBorderColor() },
     setBorderWidth: function(value) { return this.shape.setBorderWidth(value) },
     getMinExtent:function () {
-        if (this.minExtent) {
-            return this.minExtent;
+        return this.minExtent || pt(0,0);
+    },
+    setMinExtent: function(minExtent) {
+        if (minExtent) {
+            this.minExtent = minExtent;
         } else {
-            return pt(0,0);
+            delete this.minExtent;
         }
     },
     getBorderWidth: function() { return this.shape.getBorderWidth() },
@@ -173,7 +176,6 @@ Object.subclass('lively.morphic.Morph',
 
     getOpacity: function() { return this.shape.getOpacity() },
     setOpacity: function(o) { return this.shape.setOpacity(o) },
-
 
     setVertices: function(v) { this.shape.setVertices(v) },
 

@@ -39,7 +39,6 @@ lively.morphic.Morph.addMethods(
                 this.submorphs[i] = errorMorph;
             }
         }
-        // this.prepareForNewRenderContext(this.renderContext());
     },
 
     onstore: function() {},
@@ -119,12 +118,12 @@ lively.morphic.Text.addMethods(
         this.charsTyped = '';
         var chunks = this.getTextChunks();
         chunks.forEach(function(ea) {
-            ea.textString = ea.storedString;
+            if (ea.storedString) ea.textString = ea.storedString;
         });
     },
     prepareForNewRenderContext: function($super,renderCtx) {
         $super(renderCtx);
-        // FIXME cachedTextString is sued for compatiblity before rich text was implemented
+        // FIXME cachedTextString is used for compatiblity before rich text was implemented
         if (this.cachedTextString) {
             this.textString = this.cachedTextString;
             return;
@@ -335,6 +334,11 @@ lively.morphic.Script.addMethods(
     onrestore: function() {
         this.suspended = true; // resume is triggered from morph
     },
+});
+
+lively.morphic.HandMorph.addMethods(
+'serialization', {
+    doNotSerialize: ['internalClickedOnMorph', 'scrollFocusMorph']
 });
 
 }) // end of module

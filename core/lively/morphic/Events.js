@@ -1457,7 +1457,7 @@ lively.morphic.World.addMethods(
         this.eventStartPos = evt.getPosition();
 
         // remove the selection when clicking into the world...
-         if (this.selectionMorph && $world.selectionMorph.owner
+         if (this.selectionMorph && this.selectionMorph.owner
             && (this.morphsContainingPoint(this.eventStartPos).length == 1)) {
             this.resetSelection()
         }
@@ -1500,6 +1500,13 @@ lively.morphic.World.addMethods(
         return false;
     },
     onMouseMove: function(evt) {
+        // how dragging works:
+        // Basically, we detect onMouseDowns and remember which morph was clicked.
+        // There is a dragTriggerDistance attribute on every morph. if the hand moves
+        // more than that distance and still is down (move started in the morph) than
+        // morph.onDragStart is called. moving further triggers morph.onDrag. Releasing
+        // mouse button triggers morph.onDragEnd.
+
         evt.hand.move(evt);
 
         // dargging was initiated before, just call onDrag
@@ -1511,13 +1518,9 @@ lively.morphic.World.addMethods(
         // try to initiate dragging and call onDragStart
         var targetMorph = this.clickedOnMorph;
         if (!targetMorph) return false;
-
-
         var minDragDistReached = this.eventStartPos &&
             (this.eventStartPos.dist(evt.getPosition()) > targetMorph.dragTriggerDistance);
-
         if (!minDragDistReached) return false;
-
         if (evt.isCommandKey() && !targetMorph.isEpiMorph && evt.isLeftMouseButtonDown()) {
             if (evt.hand.submorphs.length > 0) return;
             if (!targetMorph.isGrabbable(evt)) return;  // Don't drag world, etc
@@ -1525,22 +1528,21 @@ lively.morphic.World.addMethods(
             return;
         }
 
+        // handle copy on shift+move
         if (evt.isShiftDown() && !targetMorph.isEpiMorph && evt.isLeftMouseButtonDown()) {
             if (evt.hand.submorphs.length > 0) return;
             if (!targetMorph.owner) return;
-              if (targetMorph instanceof lively.morphic.World) return
+            if (targetMorph instanceof lively.morphic.World) return;
 
             targetMorph.removeHalos();
-            // alertOK("copy " + targetMorph);
-
             var copy = targetMorph.copy();
-
             targetMorph.owner.addMorph(copy); // FIXME for setting the right position
             evt.hand.grabMorph(copy);
             targetMorph = copy;
             return;
         }
 
+        // handle dragStart
         if (targetMorph.isGrabbable()) { // world is never grabbable ...
             // morphs that do not have a selection can be dragged
             // (Lists, Texts, Boxes inside a window cannot be dragged by just clicking and moving)

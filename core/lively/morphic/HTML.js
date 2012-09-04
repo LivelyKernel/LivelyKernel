@@ -486,7 +486,7 @@ lively.morphic.Text.addMethods(
     setAlignHTML: function(ctx, alignMode) {
         if (!ctx.textNode) return;
         ctx.textNode.style.textAlign = alignMode;
-        this.setWhiteSpaceHandling(alignMode === 'justify' ? 'pre-line' : 'pre-wrap');
+        this.setWhiteSpaceHandling(alignMode === 'justify' ? 'pre-line' : this.getWhiteSpaceHandling());
     },
     setVerticalAlignHTML: function(ctx, valignMode) {
         if (ctx.textNode)

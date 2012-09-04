@@ -306,23 +306,21 @@ lively.morphic.Button.subclass('lively.morphic.SimpleColorField',
         this.value = bool;
         // buttons should fire on mouse up
         if (!bool) {
-            var chooser = new lively.morphic.RGBColorChooser();
-            var menu = new lively.morphic.SimpleColorMenu(chooser);
-            var pos = this.getPosition();
-            var menuPos = pos.addPt(pt(0, this.bounds().height));
+            var chooser = new lively.morphic.RGBColorChooser(),
+                menu = new lively.morphic.SimpleColorMenu(chooser),
+                bounds = this.globalBounds(),
+                pos = pt(bounds.x, bounds.y),
+                menuPos = pos.addPt(pt(0, bounds.height));
             menu.open(lively.morphic.World.current(), menuPos, false);
             menu.setCallback(this, 'setColor');
         }
     },
     setColor: function(color){
-        console.log('Change color to '+color.toString());
-         this.colorDisplay.setFill(color);
+        this.color = color;
+        this.colorDisplay.setFill(color);
     }
 
-
-}
-
-);
+});
 
 lively.morphic.Box.subclass('lively.morphic.SimpleColorMenu',
 'settings', {
@@ -471,6 +469,23 @@ lively.morphic.ColorChooser.subclass('lively.morphic.SimpleColorChooser',
             pos = r.closestPointToPt(pos),
             m = this.submorphs.detect(function(ea) { return ea.bounds().containsPoint(pos) });
         return m ? m.getFill() : Color.black;
+    }
+});
+
+lively.morphic.SimpleColorField.subclass('lively.morphic.AwesomeColorField',
+'init', {
+    setValue: function(bool) {
+        this.value = bool;
+        // buttons should fire on mouse up
+        if (!bool) {
+            var menu = this.world().loadPartItem('ColorPicker', 'PartsBin/Tools');
+            var bounds = this.globalBounds();
+            var pos = pt(bounds.x, bounds.y);
+            var menuPos = pos.addPt(pt(0, bounds.height));
+            menu.open(lively.morphic.World.current(), menuPos, false);
+            menu.setColor(this.color);
+            connect(menu, 'color', this, 'setColor');
+        }
     }
 });
 

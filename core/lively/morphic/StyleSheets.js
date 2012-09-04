@@ -26,7 +26,7 @@ lively.morphic.World.addMethods(
     }
 });
 
-Object.extend('CSSProperties', 
+lively.morphic.CSSProperties = {
 /*
 Information to interpret and manipulate CSS properties.
 Since there are a lot of CSS properties out there, this
@@ -44,14 +44,6 @@ A value is of a certain type:
 4: Shadow (i.e. box-shadow; edit with shadow dialog)
 */
 
-'Getter', {
-	get: function(prop) {
-		return this[prop];
-	}
-},
-
-'Basic Properties',
-{
 	'background-color': {
 		1 : { // only one value for this property
 			1 : {
@@ -135,11 +127,7 @@ A value is of a certain type:
 	},
 	
 	
-	
-	
-
-
-});
+};
 
 
 

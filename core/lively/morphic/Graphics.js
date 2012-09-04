@@ -1,4 +1,4 @@
-module('lively.morphic.Graphics').requires().toRun(function() {
+module('lively.morphic.Graphics').requires('apps.ColorParser').toRun(function() {
 
 Object.subclass("Point",
 'documentation', {
@@ -970,6 +970,19 @@ Object.subclass("Color",
     toRGBAString: function() {
         function floor(x) { return Math.floor(x*255.99) };
         return "rgba(" + floor(this.r) + "," + floor(this.g) + "," + floor(this.b) + "," + this.a + ")";
+    },
+    toHexString: function() {
+        function floor(x) { return Math.floor(x*255.99) };
+        function addLeadingZero(string){
+            var s = string;
+            while (s.length < 2) {
+                s = '0' + s;
+            }
+            return s;
+        }
+        return addLeadingZero(floor(this.r).toString(16)) +
+                addLeadingZero(floor(this.g).toString(16)) +
+                addLeadingZero(floor(this.b).toString(16));
     }
 },
 'converting', {
@@ -1059,9 +1072,14 @@ Object.extend(Color, {
         return new Color(r/255, g/255, b/255);
     },
 
-    rgbHex: function(str) {
-        var c = this.parseHex(str);
-        return new Color(c[0],c[1],c[2]);
+    rgbHex: function(colorHexString) {
+        var colorData = this.parseHex(colorHexString);
+        if (colorData && colorData[0] >= 0 && colorData[1] >= 0 && colorData[2] >= 0) {
+            return new Color(colorData[0], colorData[1], colorData[2]);
+        } else {
+            return null;
+        }
+
     },
 
     rgba: function(r, g, b, a) {
@@ -1077,16 +1095,23 @@ Object.extend(Color, {
     },
 
     fromString: function(str) {
-        var tuple = Color.parse(str);
-        return tuple && Color.fromTuple(tuple);
+        if (!str || str === 'none') {
+            return null;
+        } else {
+            return apps.ColorParser.getColorFromString(str);
+        }
     },
 
     rgbaRegex: new RegExp('\\s*rgba?\\s*\\(\\s*(\\d+)(%?)\\s*,\\s*(\\d+)(%?)\\s*,\\s*(\\d+)(%?)\\s*(?:,\\s*([0-9\\.]+)\\s*)?\\)\\s*'),
 
     parse: function(str) {
-        // FIXME handle keywords
-        if (!str || str == 'none') return null;
-        return str.startsWith('#') ? this.parseHex(str) : this.parseRGB(str);
+        var color;
+        if (!str || str === 'none') {
+            return null;
+        } else {
+            color = apps.ColorParser.getColorFromString(str);
+            return [color.red(),color.green(),color.blue(),color.alpha()];
+        }
     },
 
     parseRGB: function(str) {
@@ -1103,26 +1128,28 @@ Object.extend(Color, {
         return null;
     },
 
-    parseHex: function(str) {
-        var rHex, gHex, bHex;
-        if (str.length == 7) {
-            // like #CC0000
-            rHex = str.substring(1,3);
-            gHex = str.substring(3,5);
-            bHex = str.substring(5,7);
-        } else if (str.length == 6) {
+    parseHex: function(colStr) {
+        var rHex, gHex, bHex, str = '';
+        for (var i = 0; i < colStr.length; i++) {
+            var c = colStr[i].toLowerCase();
+            if (c=='a' ||c=='b' ||c=='c' ||c=='d' ||c=='e' ||c=='f' ||c=='0' ||c=='1' ||
+                c=='2' ||c=='3' ||c=='4' ||c=='5' ||c=='6' ||c=='7' ||c=='8' ||c=='9') {
+                str += c;
+            }
+        }
+         if (str.length == 6) {
             rHex = str.substring(0,2);
             gHex = str.substring(2,4);
             bHex = str.substring(4,6);
-        } else if (str.length == 4) {
+        } else if (str.length == 3) {
             // short form like #C00
-            rHex = str.substring(1,2);
+            rHex = str.substring(0,1);
             rHex += rHex;
-            gHex = str.substring(2,3);
+            gHex = str.substring(1,2);
             gHex += gHex;
-            bHex = str.substring(3,4);
+            bHex = str.substring(2,3);
             bHex += bHex;
-        } else {
+        }  else {
             return null
         }
         var r = parseInt(rHex, 16)/255,

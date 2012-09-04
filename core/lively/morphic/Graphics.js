@@ -1201,4 +1201,13 @@ Object.extend(Color, {
     }
 });
 
+(function addColorsToConfig() {
+
+Config.addOptions(
+"default colors", [
+    ["textColor", Color.rgb(64,64,64), "Default text color. Better than black..."]
+]);
+
+})();
+
 });

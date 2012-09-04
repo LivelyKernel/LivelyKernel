@@ -728,9 +728,7 @@ lively.morphic.Shapes.Shape.addMethods(
         setStrokeOpacity: 'setStrokeOpacityHTML',
         setBorderRadius: 'setBorderRadiusHTML',
         setBorderStyle: 'setBorderStyleHTML',
-        setOpacity: 'setOpacityHTML',
-        updateComputedStyles: 'updateComputedStylesHTML',
-        setComputedBorderWidth: 'setComputedBorderWidthHTML'
+        setOpacity: 'setOpacityHTML'
     },
 },
 'initializing', {
@@ -841,25 +839,6 @@ lively.morphic.Shapes.Shape.addMethods(
         var s = r.top() + "px " + r.right() + "px " + r.bottom() + "px " + r.left() + "px";
         ctx.shapeNode.style.padding = s;
         return r;
-    },
-
-    updateComputedStylesHTML: function(ctx) {
-        if (!ctx.shapeNode) return;
-        var style = window.getComputedStyle(ctx.shapeNode),
-            borderWidth = parseInt(style["borderWidth"].replace("px",""));
-        this.shapeSetter('ComputedBorderWidth', borderWidth );
-        if (ctx.originNode) {
-            this.compensateShapeNode(ctx);
-        }
-        this.setExtentHTML(ctx, this.getExtent());
-    },
-
-    setComputedBorderWidthHTML: function(ctx, width) {},
-
-    setBorderStylingModeHTML: function(ctx, value) {
-        this.isStyleSheetBorder = value;
-        this.setBorderHTML(ctx, this.getBorderWidth(), this.getBorderColor(), this.getStrokeOpacity());
-        this.setBorderRadiusHTML(ctx, this.getBorderRadius());
     }
 
 });
@@ -1095,46 +1074,21 @@ Object.extend(lively.morphic, {
     CSS: {}
 });
 
-lively.morphic.Shapes.Shape.addMethods(
-'stylesheets', {
-    setBorderStylingMode: function(value) {
-        return this.shapeSetter('BorderStylingMode', value);
-    },
-    getBorderStylingMode: function() {
-        return this.shapeGetter('BorderStylingMode');
-    },
-
-	updateComputedStyles: function() {
-		return this.renderContextDispatch('updateComputedStyles');
-	}
-
-});
-
-lively.morphic.Morph.addMethods(
-'stylesheets', {
-
-    setBorderStylingMode: function(value) {
-        // TRUE when border is styled through style sheets,
-        // FALSE when border is styled through style dialog
-        this.shape.setBorderStylingMode(value);
-        this.updateComputedStyles();
-    },
-
-    getBorderStylingMode: function() {
-        return this.shape.getBorderStylingMode();
-    },
-
-    updateComputedStyles: function() {
-        if (this.adaptToChangedContext) {
-            // if the submorph offers a function to adapt (i.e. HTMLMorph) use it
-            this.adaptToChangedContext();
-            this.adaptSubmorphsToChangedContext();
-        } else {
-            this.shape.updateComputedStyles();
-            this.submorphs.forEach(function(m){m.updateComputedStyles();});
+Object.subclass('lively.morphic.CSS.Fill',
+'settings', {
+    isCSSFill: true
+},
+'initializing', {
+    initialize: function(cssBackgroundString) {
+        this.cssBackgroundString = cssBackgroundString || "";
+    }
+},
+'rendering', {
+    applyToNode: function(node) {
+        if (node.style) {
+            node.style.background = this.cssBackgroundString;
         }
     }
-
 });
 
 }) // end of module

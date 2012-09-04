@@ -53,6 +53,7 @@ var Enumerable = {
     findAll: function(iterator, context) {
         var results = [];
         for (var i = 0; i < this.length; i++) {
+            if (!this.hasOwnProperty(i)) continue;
             var value = this[i];
             if (iterator.call(context, value, i)) results.push(value);
         }

@@ -401,6 +401,18 @@ Object.extend(Array.prototype, {
             groups[hash].push(this[i]);
         }
         return groups;
+    },
+
+    repair: function() {
+        // fix gaps that were created with 'delete'
+        var i = 0, j = 0, len = this.length;
+        while (i < len) {
+            if (this.hasOwnProperty(i)) {
+                this[j++] = this[i];
+            }
+            i++;
+        }
+        while (j++ < len) this.pop();
     }
 
 });

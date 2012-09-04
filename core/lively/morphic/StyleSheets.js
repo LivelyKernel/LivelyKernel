@@ -26,7 +26,7 @@ lively.morphic.World.addMethods(
     }
 });
 
-Object.subclass('CSSProperties', 
+Object.extend('CSSProperties', 
 /*
 Information to interpret and manipulate CSS properties.
 Since there are a lot of CSS properties out there, this

@@ -332,8 +332,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             this.setMaxTextWidth(width);
             this.setMinTextWidth(width);
         } else {
-            this.setMaxTextWidth(undefined);
-            this.setMinTextWidth(undefined);
+            this.setMaxTextWidth(null);
+            this.setMinTextWidth(null);
         }
 
         if (this.fixedHeight) {
@@ -347,8 +347,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             this.setMaxTextHeight(height);
             this.setMinTextHeight(height);
         } else {
-            this.setMaxTextHeight(undefined);
-            this.setMinTextHeight(undefined);
+            this.setMaxTextHeight(null);
+            this.setMinTextHeight(null);
         }
     },
 

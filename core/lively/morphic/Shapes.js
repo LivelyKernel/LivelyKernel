@@ -10,7 +10,7 @@ Object.subclass('lively.morphic.Shapes.Shape',
     setPosition: function(position) { return this.shapeSetter('Position', position) },
     getPosition: function() { return this.shapeGetter('Position') || pt(0,0) },
     setExtent: function(extent, scrollBarExtent) { return this.shapeSetter('Extent', extent) },
-    getExtent: function() { return this.shapeGetter('Extent') || pt(0,0)},
+    getExtent: function() { return this.shapeGetter('Extent') || pt(0,0); },
     setClipMode: function (modeString) { return this.shapeSetter('ClipMode', modeString) },
     getClipMode: function () { return this.shapeGetter('ClipMode') || 'visible' },
 
@@ -36,9 +36,10 @@ Object.subclass('lively.morphic.Shapes.Shape',
     setBorderWidth: function(width) { return this.shapeSetter('BorderWidth', width) },
     getBorderWidth: function() {
         if (this.getBorderStylingMode && this.getBorderStylingMode()) {
-            return this.shapeGetter('ComputedBorderWidth') || 0;
+            return this.renderContextDispatch('getComputedBorderWidth') || 0;
+        } else {
+            return this.shapeGetter('BorderWidth')  || 0;
         }
-        return this.shapeGetter('BorderWidth')  || 0;
     },
     setBorderColor: function(fill) { return this.shapeSetter('BorderColor', fill) },
     getBorderColor: function() {
@@ -75,6 +76,23 @@ Object.subclass('lively.morphic.Shapes.Shape',
     setPadding: function(rect) { return this.shapeSetter('Padding', rect) },
     getPadding: function() {
         return this.shapeGetter('Padding') || this.setPadding(new Rectangle(0,0,0,0));
+    },
+
+    setNodeClass: function(value) {
+        return this.shapeSetter('NodeClass', value);
+    },
+
+    getNodeClass: function() {
+        return this.shapeGetter('NodeClass') || [];
+    },
+
+    setNodeId: function(value) {
+       this.renderContextDispatch('setNodeId', value);
+        return value;
+    },
+
+    getNodeId: function() {
+        return this.renderContextDispatch('setNodeId');
     }
 
 });

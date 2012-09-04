@@ -584,7 +584,14 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
 
 
 lively.morphic.Morph.subclass('lively.morphic.TabContainer',
-'default category', {
+'settings', {
+    style: {
+        borderWidth: 1,
+        borderColor: Color.gray,
+        adjustForNewBounds: true
+    }
+},
+'initializing', {
 
     initialize: function($super, tabBarStrategy) {
         $super();
@@ -597,9 +604,6 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
         var newExtent = this.getTabBarStrategy().
             calculateInitialExtent(this.tabBar, this.tabPaneExtent);
         this.setExtent(newExtent);
-        this.setBorderWidth(1);
-        this.setBorderColor(Color.gray);
-        this.layout = {adjustForNewBounds: true};
         tabBarStrategy.applyTo(this);
     },
 
@@ -718,19 +722,27 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
 });
 
 lively.morphic.Morph.subclass('lively.morphic.TabBar',
-'default category', {
+'settings', {
+    style: {
+        fill: Color.gray,
+        borderWidth: 1,
+        borderColor: Color.gray,
+        enableDragging: false,
+        enableGrabbing: false
+    }
+},
+'initializing', {
 
     initialize: function($super, tabContainer) {
         $super();
         this.tabContainer = tabContainer;
-        this.setFill(Color.gray);
-        this.setBorderWidth(1);
-        this.setBorderColor(Color.gray);
         var width = tabContainer.getTabBarStrategy().getTabBarWidth(tabContainer);
         this.setExtent(pt(width, this.getDefaultHeight()));
-        this.draggingEnabled = this.grabbingEnabled = false;
         this.tabs = [];
-    },
+    }
+
+},
+'accessing', {
     getDefaultHeight: function() {
         return 30;
     },
@@ -753,16 +765,23 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         tab.setLabel(aLabelString);
         return this.addTab(tab);
     },
+
     removeTab: function(aTab) {
         aTab.getPane().remove();
         aTab.remove();
         this.unregisterTab(aTab);
     },
+
+    getTabContainer: function() {
+        return this.tabContainer;
+    }
+},
+'tab handling', {
+
     unregisterTab: function(aTab) {
         this.tabs = this.tabs.without(aTab);
         this.rearrangeTabs();
     },
-
 
     rearrangeTabs: function() {
         var offset = 0;
@@ -771,6 +790,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
             offset = ea.getNextTabBarOffset();
         });
     },
+
     getTabByName: function(aString) {
         // alternative implementation: in TabStrategyHide>>adjustTabBar
         //   do not set TabBar extent to pt(0,0) but call remove. In this case,
@@ -778,6 +798,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         //aTab = this.getTabs().detect(function (ea) { return aTab === ea.getName(); });
         return this.get(aString);
     },
+
     activateTab: function(aTab) {
         this.getTabs().forEach(function(ea) {
             ea.deactivate();});
@@ -786,9 +807,12 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         }
         aTab.activate();
     },
+
     deactivateTab: function(aTab) {
         aTab.deactivate();
     },
+},
+'menu', {
     morphMenuItems: function($super) {
         var self = this, items = $super();
         items.push([
@@ -797,6 +821,9 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         }])
         return items;
     },
+},
+'layouting', {
+
     onResizePane: function(initiator, newExtent, deltaX) {
         // Tabs call this method when their pane's extent has changed.
         // All other tabs in the group will be resized accordingly.
@@ -815,9 +842,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         var bounds = initiator.getBounds();
         this.setExtent(pt(this.getExtent().x, bounds.bottomRight().subPt(bounds.topLeft()).y ));*/
     },
-    getTabContainer: function() {
-        return this.tabContainer;
-    },
+
     adjustTabSizes: function(aPoint) {
         if (!this.adjustedTabSizes) {
             var self = this;
@@ -829,11 +854,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
         this.setExtent(this.getTabContainer().getTabBarStrategy().
             tabBarExtent(this.getTabContainer()));
 
-    },
-
-
-
-
+    }
 
 });
 lively.morphic.Morph.subclass('lively.morphic.Tab',
@@ -949,12 +970,16 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         this.getPane().remove();
         this.getTabContainer().addTabPane(this.getPane());
         this.setFill(Color.white);
+        this.label.applyStyle({fontWeight:'bold'});
+        this.label.fit();
         delete this.isInActivationCycle;
         this.isActive = true;
         this.getPane().onActivate();
     },
     deactivate: function() {
         this.setFill(Color.gray);
+        this.label.applyStyle({fontWeight:null});
+        this.label.fit();
         this.isActive = false;
     },
     addCloseButton: function() {
@@ -987,18 +1012,25 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
 
 });
 lively.morphic.Morph.subclass('lively.morphic.TabPane',
-'default category', {
+'settings', {
+    style: {
+        fill: Color.white,
+        borderWidth: 1,
+        borderColor: Color.gray,
+        enableDragging: false,
+        enableGrabbing: false,
+        adjustForNewBounds: true,
+        resizeWidth: true,
+        resizeHeight: true
+    }
+},
+'initializing', {
+
     initialize: function($super, tab, extent) {
         $super();
         this.tab = tab;
         this.tabBar = tab.getTabBar();
-        this.setFill(Color.white);
-        this.setBorderWidth(1);
-        this.setBorderColor(Color.gray);
         this.setExtent(extent);
-        this.layout = {adjustForNewBounds: true, resizeWidth: true, resizeHeight: true};
-        this.draggingEnabled = this.grabbingEnabled = false;
-
     },
     getTab: function() {
         return this.tab;
@@ -1011,9 +1043,6 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         // this.owner.activateTab(...) to navigate
         this.getTabContainer().activateTab(aTab);
     },
-
-
-
 
     setExtent: function($super, aPoint) {
         $super(aPoint);
@@ -1059,14 +1088,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
     removeMorph: function($super, aMorph) {
         $super(aMorph);
         this.adjustClipping(this.getExtent());
-    },
-
-
-
-
-
-
-
+    }
 
 });
 

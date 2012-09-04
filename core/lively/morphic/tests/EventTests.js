@@ -6,7 +6,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OldEventTests',
     xtest05DropMorph: function() {
         var morph1 = new lively.morphic.Morph(),
             morph2 = new lively.morphic.Morph();
-        // this.world.addHandMorph();
         this.world.addMorph(morph1);
         this.world.addMorph(morph2);
         morph1.setBounds(new Rectangle(0,0, 100, 100));
@@ -148,6 +147,32 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.EventTests.LockingT
         this.dragFromTo(m2, pt(55,55), pt(65,55));
         this.assertEquals(pt(0,0), m1.getPosition(), 'owner dragged');
         this.assertEquals(pt(60,50), m2.getPosition(), 'submorph not dragged');
+    }
+});
+
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests.ShadowTests',
+'testing', {
+    testAddingShadowMorphKeepsConnections: function() {
+        var morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20);
+        var shadow = morph.getGrabShadow();
+        this.world.addMorph(morph);
+        this.world.addMorph(shadow);
+        morph.rotateBy(1);
+        this.assertEquals(1, shadow.getRotation());
+        this.world.addMorph(shadow); // adding morph again should have no effect
+        morph.rotateBy(1);           // on the connections
+        this.assertEquals(2, shadow.getRotation());
+    },
+    testAddingShadowMorphKeepsSubmorphs: function() {
+        var morph = lively.morphic.Morph.makeRectangle(0, 0, 20, 20);
+        morph.addMorph(lively.morphic.Morph.makeRectangle(0, 0, 4, 4));
+        var shadow = morph.getGrabShadow();
+        this.world.addMorph(morph);
+        this.world.addMorph(shadow);
+        this.assertEquals(morph.submorphs.length, shadow.submorphs.length, 'before addMorph again');
+        this.world.addMorph(shadow); // adding morph again should have no effect
+                                     // on the submorphs of the shadow
+        this.assertEquals(morph.submorphs.length, shadow.submorphs.length, 'after addMorph again');
     }
 });
 

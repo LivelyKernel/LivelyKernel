@@ -3,7 +3,11 @@ module('lively.morphic.Rendering').requires('lively.morphic.Core', 'lively.morph
 Trait('lively.morphic.Renderable',
 'accessing', {
     renderAttributeSetter: function(propName, value) {
-        this['_' + propName] = value;
+        if (value === undefined) {
+            delete this['_' + propName];
+        } else {
+            this['_' + propName] = value;
+        }
         return this.renderContextDispatch('set' + propName, value);
     },
     renderAttributeGetter: function(propName) { return this['_' + propName] },

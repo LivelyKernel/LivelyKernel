@@ -402,7 +402,6 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
     },
     
     setChecked: function(checked){ 
-        debugger
         this.checkBoxMorph.setProp("checked", checked);
         this.updateAppearance();
     },
@@ -431,7 +430,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
     updateAppearance: function() {
 
         var classNames = this.baseClass;
-        debugger
+    
         if (this.isChecked()) { classNames+=' '+this.checkedClass}
         if (this.readOnly) {classNames+=' '+this.readOnlyClass}
             else if (this.active) {classNames+=' '+this.activeClass}
@@ -449,6 +448,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
     },
 
     onClick: function(evt) {
+        debugger
          if (!this.active || this.readOnly) evt.stop();
   
     },

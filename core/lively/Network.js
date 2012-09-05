@@ -1313,7 +1313,6 @@ Object.subclass('WebResource',
         // this.enableShowingProgress();
         // var labelFunc = Object.isString(labelOrFunc) ?
             // function() { return labelOrFunc } : labelOrFunc;
-		if (!Config.isNewMorphic) return this;
         var progressBar = lively.morphic.World.current().addStatusProgress(label);
         connect(this, 'progressEvent', progressBar, 'setValue',
             {converter: function(rpe) { return (rpe.loaded / rpe.total) }});
@@ -1336,7 +1335,7 @@ Object.subclass('WebResource',
     statusMessage: function(successMsg, failureMessage, onlyOnce) {
         this.successMsg = successMsg;
         this.failureMessage = failureMessage;
-        var world = Config.isNewMorphic ? lively.morphic.World.current() : lively.morphic.World.current();
+        var world = lively.morphic.World.current();
         if (!world) return this;
         lively.bindings.connect(this, 'status', world, 'setStatusMessage', {
             updater: function($upd, status) {

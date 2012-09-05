@@ -19,11 +19,11 @@ Object.subclass('lively.persistence.StandAlonePackaging.Helper',
     },
 
     createProgressBar: function() {
-        var progressBar = new ProgressBarMorph(new Rectangle(0,0, 400, 50))
-        progressBar.openInWorld()
+        var progressBar = new lively.morphic.ProgressBar(new Rectangle(0,0, 400, 50))
+        progressBar.openInWorld();
         progressBar.align(progressBar.getCenter(), progressBar.world().visibleBounds().center());
         return progressBar;
-    },
+    }
 },
 'document manipulation', {
     addScriptTagTo: function(parent, src, attributes) {
@@ -37,17 +37,14 @@ Object.subclass('lively.persistence.StandAlonePackaging.Helper',
     },
     removeExisitingScripts: function(doc) {
         var existingScripts = doc.getElementsByTagName('script');
-        $A(existingScripts).forEach(function(script) { script.parentNode.removeChild(script) });
+        Array.from(existingScripts).forEach(function(script) { script.parentNode.removeChild(script) });
     },
 
     addConfig: function(doc) {
         // TODO: make generic to include all original configs
-        var configStr = 'var documentDir = document.URL.substring(0, document.URL.lastIndexOf('/') + 1); Config = {standAlone: true, codeBase: documentDir, rootPath: documentDir';
-        if (Config.isNewMorphic)
-            configStr += ', isNewMorphic: true';
-        this.addScriptTagTo(
-            doc.getElementsByTagName('head')[0],
-            configStr + '}');
+        var configStr = 'var documentDir = document.URL.substring(0, document.URL.lastIndexOf('/') + 1); '
+                      + 'Config = {standAlone: true, codeBase: documentDir, rootPath: documentDir, isNewMorphic: true}';
+        this.addScriptTagTo(doc.getElementsByTagName('head')[0], configStr);
     },
 
     embedModulesIn: function(doc, relativeModuleURLs, progressBar, thenDo) {
@@ -62,7 +59,7 @@ Object.subclass('lively.persistence.StandAlonePackaging.Helper',
                 self.addScriptTagTo(parent, srcContent, {id: relativeURL});
                 // script.setAttribute('defer', 'true');
             }, Functions.K, thenDo)
-    },
+    }
 },
 'data uri related', {
     openDocWithDataUri: function(doc) {

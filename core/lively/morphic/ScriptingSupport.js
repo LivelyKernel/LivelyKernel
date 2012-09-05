@@ -257,9 +257,7 @@ Trait('lively.PartsBin.PartTrait').applyTo(lively.morphic.Morph);
 
 Object.extend(Global, {
     $morph: function getMorphNamedShortcut(name) {
-        return Config.isNewMorphic ?
-            lively.morphic.World.current().getMorphNamed(name) :
-            WorldMorph.current().getMorphNamed(name);
+        return lively.morphic.World.current().getMorphNamed(name);
     },
     get $world() { return lively.morphic.World.current() },
     $m: function getMorphWrappedObject(name){

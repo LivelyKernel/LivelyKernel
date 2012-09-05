@@ -1,6 +1,4 @@
-var reqs = Config.isNewMorphic ? [] : ['lively.oldCore.Morphs']; // FIXME
-
-module('lively.PartsBin').requires(['lively.Traits'].concat(reqs)).toRun(function() {
+module('lively.PartsBin').requires('lively.Traits').toRun(function() {
 
 Object.subclass('lively.PartsBin.PartItem',
 'initializing', {
@@ -65,9 +63,7 @@ Object.subclass('lively.PartsBin.PartItem',
         if (this.loadedMetaInfo)
             return this.loadedMetaInfo;
         return this.loadPart().part.getPartsBinMetaInfo()
-    },
-
-
+    }
 
 },
 'naming', {
@@ -85,15 +81,12 @@ Object.subclass('lively.PartsBin.PartItem',
     },
     escapedName: function() {
         return this.escapePartName(this.name);
-    },
-
+    }
 
 },
 'serialization', {
     getSerializer: function() {
-        return Config.isNewMorphic ?
-            ObjectGraphLinearizer.forNewLivelyCopy() :
-            ObjectGraphLinearizer.forLivelyCopy();
+        return ObjectGraphLinearizer.forNewLivelyCopy();
     },
     deserializePart: function(json, optMetaInfo) {
         // FIXME cleanup
@@ -119,18 +112,10 @@ Object.subclass('lively.PartsBin.PartItem',
 
         // ensure
         metaInfo.setPartsSpace(this.getPartsSpace());
-
         requiredModules.forEach(function(ea) { var m = module(ea); if (m != Global && !m.isLoaded()) m.load(true) });
-
-        if (Config.isNewMorphic)
-            part.withAllSubmorphsDo(function(ea) { ea.setNewId(); });
-        else
-            part.withAllSubmorphsDo(function() { if (typeof this.setNewId == 'function') this.setNewId(); });
-
+        part.withAllSubmorphsDo(function(ea) { ea.setNewId(); });
         part.setPartsBinMetaInfo(metaInfo);
-
         this.runAfterDeserializationHooks(part);
-
         return part;
     },
     runAfterDeserializationHooks: function(part) {
@@ -365,26 +350,17 @@ Object.subclass('lively.PartsBin.PartItem',
             function (answer) {
                 answer && self.uploadPart()
             })
-    },
-
-
-
-
-
-
+    }
 },
 'converting', {
     asPartsBinItem: function() {
-        var klass = Config.isNewMorphic ? lively.morphic.PartsBinItem : lively.Scripting.PartPinItem;
-        return new klass(this.getPartsSpace().getURL(), this.name, this)
-    },
+        return new lively.morphic.PartsBinItem(this.getPartsSpace().getURL(), this.name, this);
+    }
 },
 'debugging', {
     toString: function() {
         return 'PartsItem(' + this.name + ',' + this.getPartsSpace() + ')';
-    },
-
-
+    }
 });
 
 Object.subclass('lively.PartsBin.PartsBinMetaInfo',

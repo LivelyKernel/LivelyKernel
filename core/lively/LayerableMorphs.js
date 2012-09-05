@@ -21,12 +21,11 @@
  * THE SOFTWARE.
  */
 
-// The owner <-> submorph relationships of morphs can be used to propagate layer activations 
+// The owner <-> submorph relationships of morphs can be used to propagate layer activations
 
 module('lively.LayerableMorphs').requires('cop.Layers', 'lively.morphic').toRun(function() {
 
-var morphClass = Config.isNewMorphic ? lively.morphic.Morph : Morph;
-morphClass.addMethods(LayerableObjectTrait);
-morphClass.prototype.lookupLayersIn = ["owner"];
+lively.morphic.Morph.addMethods(LayerableObjectTrait);
+lively.morphic.Morph.prototype.lookupLayersIn = ["owner"];
 
 });

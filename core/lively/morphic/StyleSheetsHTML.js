@@ -202,7 +202,7 @@ lively.morphic.Morph.addMethods(
                styleTagId + '"></style>').get(0);
            $(ctx.styleNode).text(compiledCss);
 		   
-		   console.log(compliedCss);
+		   console.log(compiledCss);
 		   
            this.appendStyleNodeHTML(ctx, ctx.styleNode);
         }

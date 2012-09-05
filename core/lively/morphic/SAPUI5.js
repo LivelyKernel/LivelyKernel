@@ -440,10 +440,10 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
     },
 
     onChange: function(evt){
-           if (this.active && !this.readOnly) {
-                lively.bindings.signal(this, 'fire', true);
-            } 
-            this.updateAppearance();
+        if (this.active && !this.readOnly) {
+            lively.bindings.signal(this, 'fire', true);
+        }
+        this.updateAppearance();
     },
 
     onClick: function(evt) {

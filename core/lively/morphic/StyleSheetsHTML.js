@@ -126,12 +126,11 @@ lively.morphic.Morph.addMethods(
                     output += newSelector + ' {';
                     output += '\n';
                     rule.declarations.each(function(d) {
-                            output += '\t'+d.cssText();
-                            output += '\n';
+                            output += '\t' + d.cssText()+'\n';
                         });
                     output += '}\n';
-                }, this);
-
+				}
+            }, this);
         return output;
     },
     addSelectorPrefixes: function(selector) {

@@ -15,6 +15,13 @@ AttributeConnection.subclass('lively.morphic.GeometryConnection',
             return;
         this.dependendConnections = this.dependendConnections.without(c);
     },
+    clone: function($super) {
+        var con = $super();
+        if (this.dependendConnections) {
+            con.dependendConnections = this.dependendConnections.clone();
+        }
+        return con;
+    }
 },
 'connecting', {
     ensureExistence: function() {

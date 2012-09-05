@@ -31,7 +31,7 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
     },
     test05TransformConnectionsTheGarbageOut: function() {
 
-        var parent =lively.morphic.Morph.makeRectangle(0,0, 100, 100); 
+        var parent =lively.morphic.Morph.makeRectangle(0,0, 100, 100);
         parent.setPosition(pt(10,10))
 
         var morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
@@ -43,14 +43,14 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
         var numberOfOldConnections = (parent.attributeConnections || []).length;
         var c =  lively.bindings.connect(morph, 'globalTransform', observer, 'transformationChange');
 
-        this.assert((parent.attributeConnections || []).length > numberOfOldConnections, 
+        this.assert((parent.attributeConnections || []).length > numberOfOldConnections,
             "no new connections?")
         morph.remove();
-        this.assertEquals((parent.attributeConnections || []).length, 
-            numberOfOldConnections, "garbage is still there")        
+        this.assertEquals((parent.attributeConnections || []).length,
+            numberOfOldConnections, "garbage is still there")
     },
     test06ConnectToGlobalPositionOfAMorph: function() {
-        var parent =lively.morphic.Morph.makeRectangle(0,0, 100, 100); 
+        var parent =lively.morphic.Morph.makeRectangle(0,0, 100, 100);
         parent.setPosition(pt(10,10))
 
         var morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
@@ -63,18 +63,18 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
         parent.setPosition(pt(20,20));
 
         this.assert(observer.source);
-            
+
     },
 
     test07DuplicateMorphsWithTransformConnections: function() {
-        var parent =lively.morphic.Morph.makeRectangle(0,0, 100, 100); 
+        var parent =lively.morphic.Morph.makeRectangle(0,0, 100, 100);
         parent.setPosition(pt(10,10))
 
         var morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
             observer = {transformationChange: function(source) { this.source = source }};
         parent.addMorph(morph)
 
-        var c =  lively.bindings.connect(morph, 'globalTransform', 
+        var c =  lively.bindings.connect(morph, 'globalTransform',
             observer, 'transformationChange');
 
         var numberOfOldConnections = morph.attributeConnections.length;
@@ -87,15 +87,15 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
     test08removeSourceObjGetterAndSetter: function() {
         var obj1 = {a: 3}, obj2 = {b: 3};
         var c = connect(obj1, 'a', obj2, 'b');
- 
+
         this.assert(obj1['$$a'], 'no alternative prop');
 
         c.removeSourceObjGetterAndSetter()
 
         this.assert(!obj1['$$a'], 'alternative prop is still there');
- 
+
         this.assertEquals(obj1.a, 3, " old prop not there" );
- 
+
         c.removeSourceObjGetterAndSetter()
         this.assertEquals(obj1.a, 3, " prop is deleted" );
 
@@ -109,8 +109,8 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
         c.disconnect();
         morph.setPosition(pt(60,60));
         this.assertEquals(pt(50,50), observer.pos, 'not disconnected');
-        this.assertEquals(0, morph.attributeConnections.length, 'attributeConnections not empty');
-    },
+        this.assert(!morph.attributeConnections, 'attributeConnections not empty');
+    }
 
 });
 

@@ -86,14 +86,20 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.ClipMode',
         }, this.morph);
     },
 
-    test05RemoveClippingNodeAfterRemoveMorph: function() {
+    test05RemoveOriginNodeAfterRemoveMorph: function() {
         var z = lively.morphic.Morph.makeRectangle(rect(0,0,10,10));
-        debugger;
         this.morph.addMorph(z);
+        var originNode = this.morph.renderContext().originNode,
+            subMorphNode = z.renderContext().morphNode;
+        this.assertIdentity(originNode, subMorphNode.parentNode,
+            'originNode is not parent of submorph node');
         z.remove();
-        this.assertDOMState({tagName: 'div', childNodes: [{tagName: 'div', childNodes: []}]
+        this.assertDOMState({tagName: 'div', childNodes: [ // morphNode
+            {tagName: 'div', childNodes: []}] // shapeNode
         }, this.morph);
-    },
+        originNode = this.morph.renderContext().originNode;
+        this.assert(!originNode, 'originNode not removed');
+    }
 
 });
 
@@ -111,6 +117,25 @@ AsyncTestCase.subclass('lively.morphic.tests.HTML.ClipModeAsyncRenderingTest',
         }, 0.2);
     }
 
+});
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.Fill',
+'testing', {
+    test01SetCSSFill: function() {
+        this.morph.setFill(new lively.morphic.CSS.Fill('red'));
+        this.assertDOMState({
+            tagName: 'div',
+            childNodes: [{tagName: 'div', style: {background: 'red'}}]
+        }, this.morph);
+    },
+
+    test02CSSFillResetsPreviousFill: function() {
+        this.morph.setFill(Color.green);
+        this.morph.setFill(new lively.morphic.CSS.Fill('red'));
+        this.assertDOMState({
+            tagName: 'div',
+            childNodes: [{tagName: 'div', style: {backgroundColor: 'red', background: 'red'}}]
+        }, this.morph);
+    }
 });
 
 });

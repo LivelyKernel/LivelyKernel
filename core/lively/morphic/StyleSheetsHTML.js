@@ -123,15 +123,14 @@ lively.morphic.Morph.addMethods(
                     if (i < selectors.length - 1) {
                         newSelector += ', ';
                     }
-                }
-                output += newSelector + ' {';
-                output += '\n';
-                rule.declarations.each(function(d) {
-                        output += '\t'+d.parsedCssText;
-                        output += '\n';
-                    });
-                output += '}\n';
-            }, this);
+                    output += newSelector + ' {';
+                    output += '\n';
+                    rule.declarations.each(function(d) {
+                            output += '\t'+d.cssText();
+                            output += '\n';
+                        });
+                    output += '}\n';
+                }, this);
 
         return output;
     },

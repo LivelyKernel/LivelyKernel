@@ -163,7 +163,7 @@ lively.morphic.Morph.addMethods(
         }
     },
 	
-	applyStyleSheetFromFile: function(file, resourcePath){
+	loadStyleSheetFromFile: function(file, resourcePath){
 		// use the resourcePath parameter if the resources addressed
 		// in the CSS file are in a different directory than the CSS'.
 		// (use "" to leave the urls untouched)

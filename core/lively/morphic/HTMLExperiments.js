@@ -250,7 +250,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
          if (this.extentOverride) {
             this.setRawExtentHTML(ctx, this.extentOverride);
         }
-        this.getNodeClass() && this.setNodeClassHTML(ctx, this.getNodeClass());
+        //this.setStyleClassHTML(ctx, this.getNodeClass());
         /*
         if (this.getNodeId()) {
             this.setNodeIdHTML(ctx, this.getNodeId());

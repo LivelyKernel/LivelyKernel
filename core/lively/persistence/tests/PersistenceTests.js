@@ -408,32 +408,6 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.RestoreTest',
         this.assertEquals(43, result.ref.y, 'connect not serialized');
     },
 
-    test02aCopyRelayDEPRECATED: function() {
-        if (Config.isNewMorphic) return // no old models in new lively...
-        var morph = new ButtonMorph(new Rectangle(0,0,100,20)),
-            model = { onValueUpdate: function(val) { this.wasCalled = val }.asScript() };
-
-        morph.manualModel = model
-        morph.relayToModel(model, {Value: '!Value'});
-        this.assert(!morph.manualModel.wasCalled, 'strange')
-        morph.setValue(true);
-        this.assert(morph.manualModel.wasCalled, 'relay connection not working')
-        morph.setValue(false);
-        var result = this.serializeAndDeserialize(morph);
-
-        result.setValue(true);
-        this.assert(!morph.manualModel.wasCalled, 'wrong update')
-        this.assert(result.formalModel.setValue, 'formal model has no relay setter');
-        this.assert(result.manualModel.wasCalled, 'relay after serialization not working')
-    },
-    test02bSerializePlainRecordDEPRECATED: function() {
-        if (Config.isNewMorphic) return // no old models in new lively...
-        var record = Record.newPlainInstance({Foo: 10}),
-            result = this.serializeAndDeserialize(record);
-        this.assertEquals(10, result.getFoo());
-        result.setFoo(12)
-        this.assertEquals(12, result.getFoo());
-    },
     test03aSerializeMorphScript: function() {
         var morph = lively.morphic.Morph.makeRectangle(0,0,0,0)
         morph.addScript(function someScript(val) { this.val = val });

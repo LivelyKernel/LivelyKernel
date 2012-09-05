@@ -367,18 +367,10 @@ Object.subclass('TestCase',
         var targetMorphOrNode = spec.target;
 
         var evt = this.createMouseEvent(spec.type, spec.pos, spec.button);
-        if (!Config.isNewMorphic && targetMorphOrNode.isMorph) {
-            if (spec.shouldFocus) {
-                var hand = targetMorphOrNode.world().firstHand()
-                hand.setMouseFocus(targetMorphOrNode);
-            }
-            targetMorphOrNode.world().rawNode.dispatchEvent(evt);
-            return
+        if (targetMorphOrNode.isMorph) {
+            targetMorphOrNode = targetMorphOrNode.renderContext().morphNode;
         }
-        if (Config.isNewMorphic && targetMorphOrNode.isMorph) {
-                    targetMorphOrNode = targetMorphOrNode.renderContext().morphNode;
-                }
-        targetMorphOrNode.dispatchEvent(evt)
+        targetMorphOrNode.dispatchEvent(evt);
     },
     createKeyboardEvent: function(spec) {
         // cs: this should be moved to lively.morphic.tests.TestCase

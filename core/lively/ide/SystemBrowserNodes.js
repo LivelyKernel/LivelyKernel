@@ -282,10 +282,8 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
 
     sourceString: function($super) {
         this.loadModule();
-        var src = this.target.getFileString();
-        if (Config.isNewMorphic) return src;
-        return !this.showAll && src.length > this.maxStringLength ? '' : src;
-    },
+        return this.target.getFileString();
+    }
 },
 'conversion', {
 

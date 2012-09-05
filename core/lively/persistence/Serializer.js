@@ -1163,11 +1163,11 @@ Object.extend(lively.persistence.Serializer, {
     changeSetElementId: 'WorldChangeSet',
 
     createObjectGraphLinearizer: function() {
-        return Config.isNewMorphic ? ObjectGraphLinearizer.forNewLively() : ObjectGraphLinearizer.forLively()
+        return ObjectGraphLinearizer.forNewLively();
     },
 
     createObjectGraphLinearizerForCopy: function() {
-        return Config.isNewMorphic ? ObjectGraphLinearizer.forNewLivelyCopy() : ObjectGraphLinearizer.forLivelyCopy()
+        return ObjectGraphLinearizer.forNewLivelyCopy();
     },
 
     serialize: function(obj, optPlugins, optSerializer) {

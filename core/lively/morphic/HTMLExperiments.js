@@ -492,8 +492,8 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 			}
 
 		}
-	   this.setNodeId(this.id);
-            this.getShape().setStyleSheetHTML(ctx, this.getShape().getStyleSheet());
+	   //this.setNodeId(this.id);
+            //this.getShape().setStyleSheetHTML(ctx, this.getShape().getStyleSheet());
 	},
 
 	remove: function() {

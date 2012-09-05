@@ -448,7 +448,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
     },
 
     onClick: function(evt) {
-        debugger
+        
          if (!this.active || this.readOnly) evt.stop();
   
     },

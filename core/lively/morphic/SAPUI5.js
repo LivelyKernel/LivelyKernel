@@ -268,7 +268,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',
         if (this.hasFocus ) {
             classNames+=' '+this.focusClass;
         }
-        this.setNodeClass(classNames ); 
+        this.setStyleClassNames(classNames ); 
 
     },
  
@@ -435,7 +435,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
         if (this.readOnly) {classNames+=' '+this.readOnlyClass}
             else if (this.active) {classNames+=' '+this.activeClass}
             else {classNames+=' '+this.disabledClass}
-        this.setNodeClass(classNames);
+        this.setStyleClassNames(classNames);
         this.updateInputTag();
         this.checked = this.isChecked();
     },
@@ -484,7 +484,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
             this.addRow();
         }
 
-        this.setNodeClass(this.classes);
+        this.setStyleClassNames(this.classes);
     },
     addRow: function(){
         var row = new lively.morphic.HTMLMorph('tr');
@@ -493,7 +493,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
         for (var c = 0; c < this.cols; c++) {
             var cell = new lively.morphic.SAPUI5.MatrixLayoutCell();
             cell.addPlaceholder();
-            cell.setNodeClass(this.cellClasses);
+            cell.setStyleClassNames(this.cellClasses);
             row.addMorph(cell);
         }
     },
@@ -663,7 +663,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
     },
     createNodeWithClass: function(className){
         var r = new lively.morphic.HTMLMorph();
-        r.setNodeClass(className);
+        r.setStyleClassNames(className);
         r.disableGrabbing();
         return r;
     }
@@ -798,8 +798,8 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Slider',
 },
 'events',{
     updateAppearance: function(){
-        if (this.readOnly) this.setNodeClass(this.readOnlyClasses);
-        else this.setNodeClass(this.normalClasses);
+        if (this.readOnly) this.setStyleClassNames(this.readOnlyClasses);
+        else this.setStyleClassNames(this.normalClasses);
     },
     
 
@@ -812,7 +812,7 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.SliderGrip',
     initialize: function($super, slider) {
         $super();
         this.slider = slider;
-        this.setNodeClass('sapUiSliGrip');
+        this.setStyleClassNames('sapUiSliGrip');
         this.disableGrabbing();
     },
     

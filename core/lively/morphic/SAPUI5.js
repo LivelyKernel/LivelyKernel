@@ -313,7 +313,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Label',
         if(this.required) {
             classNames+=' '+this.requiredClass;
         }
-        this.setNodeClass(classNames);              
+        this.setStyleClassNames(classNames);              
     },
     setBold: function(b) {
         this.bold = b;
@@ -325,8 +325,8 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Label',
     },
     
     setFor: function(morph) {
-        if (morph && morph.getNodeId){
-            var id = (morph.targetNodeId && morph.targetNodeId()) || morph.getNodeId();
+        if (morph && morph.getStyleId){
+            var id = (morph.targetNodeId && morph.targetNodeId()) || morph.getStyleId();
             this.htmlFor = morph;
             return this.setAttribute('for', id);
         }
@@ -360,6 +360,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
         this.checkBoxMorph = this.addMorph(new lively.morphic.HTMLMorph('input'));
         this.checkBoxMorph.setAttribute('type', 'checkbox');
         //this.checkBoxMorph.setAttribute('id', checkboxId);
+		this.checkBoxMorph.setStyleId(this.checkBoxMorph.id);
         this.setupSubmorph(this.checkBoxMorph);
         this.labelMorph = this.addMorph(new lively.morphic.HTMLMorph('label'));
 
@@ -372,7 +373,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
     },
     appendHTML : function($super, ctx) {
         $super(ctx);
-        this.labelMorph.setAttribute('for', this.checkBoxMorph.getNodeId());
+        this.labelMorph.setAttribute('for', this.checkBoxMorph.getStyleId());
     },
     
     setupSubmorph: function(morph) {
@@ -421,7 +422,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
         this.checkBoxMorph.setProp("readonly", (this.readOnly)?"readOnly":null);
     },
     targetNodeId: function(){
-        return this.checkBoxMorph.getNodeId();    
+        return this.checkBoxMorph.getStyleId();    
     }
     
 },

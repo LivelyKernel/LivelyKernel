@@ -403,7 +403,7 @@ Object.extend(Array.prototype, {
         return groups;
     },
 
-    repair: function() {
+    mutableCompact: function() {
         // fix gaps that were created with 'delete'
         var i = 0, j = 0, len = this.length;
         while (i < len) {
@@ -413,6 +413,7 @@ Object.extend(Array.prototype, {
             i++;
         }
         while (j++ < len) this.pop();
+        return this;
     }
 
 });

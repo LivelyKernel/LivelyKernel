@@ -66,6 +66,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Button',
 },
 'event handling', {
     changeAppearanceFor: function(pressed) {
+        debugger
         if (pressed) {
             this.setStyleClassNames(this.activeClasses);
         } else {

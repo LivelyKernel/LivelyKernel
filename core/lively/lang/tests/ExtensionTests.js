@@ -369,10 +369,10 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         delete arr[0];
         this.assertEqualState([], arr.without("a"));
     },
-    testRepair: function() {
+    testMutableCompact: function() {
         var arr = ["a", "b", "c", undefined];
         delete arr[1];
-        arr.repair();
+        arr.mutableCompact();
         this.assertEqualState(["a", "c", undefined], arr);
     },
     testMin: function() {

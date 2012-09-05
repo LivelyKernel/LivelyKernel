@@ -145,6 +145,7 @@ Object.extend(lively.ide, {
         // 3. path (String) relative to URL.root
 
         var args = Array.from(arguments);
+        if (args.length === 0) { this.openSystemCodeBrowser(); return }
         if (args.length === 1) { // url or path
             var url = args[0].toString().startsWith('http:') ?
                 new URL(args[0]) : URL.root.withFilename(args[0]);

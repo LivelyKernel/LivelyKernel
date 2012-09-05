@@ -430,7 +430,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
     updateAppearance: function() {
 
         var classNames = this.baseClass;
-    
+
         if (this.isChecked()) { classNames+=' '+this.checkedClass}
         if (this.readOnly) {classNames+=' '+this.readOnlyClass}
             else if (this.active) {classNames+=' '+this.activeClass}

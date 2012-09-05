@@ -67,9 +67,9 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Button',
 'event handling', {
     changeAppearanceFor: function(pressed) {
         if (pressed) {
-            this.setNodeClass(this.activeClasses);
+            this.setStyleClasses(this.activeClasses);
         } else {
-            this.setNodeClass(this.isActive?this.classes:this.disabledClasses);
+            this.setStyleClasses(this.isActive?this.classes:this.disabledClasses);
         }
   
     },

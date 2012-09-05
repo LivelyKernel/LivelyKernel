@@ -607,7 +607,7 @@ lively.morphic.Morph.addMethods(
             } else { // if it's not an array we assume it's a string
                 return this.morphicSetter('StyleClassNames',
                     this.makeUniqueStyleClassNamesList(
-                    classNames.join(' ')));
+                    classNames.split(' ')));
             }
         } else {
             this.morphicSetter('StyleClassNames', null);

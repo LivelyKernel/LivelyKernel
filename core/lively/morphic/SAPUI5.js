@@ -441,6 +441,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
     },
 
     onChange: function(evt){
+        debugger
            if (this.active && !this.readOnly) {
                 lively.bindings.signal(this, 'fire', true);
             } 

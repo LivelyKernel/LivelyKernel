@@ -2,6 +2,10 @@ module('lively.morphic.Layout').requires('lively.morphic.Core', 'lively.morphic.
 
 lively.morphic.Morph.addMethods(
 'layouting', {
+    // if you want a specific morph not be layouted (morph being part of a layout,
+    // set this to false)
+    isLayoutable: true,
+
     adjustForNewBounds: function() {
         // resizeVertical, resizeHorizontal, moveVertical, moveHorizontal
 
@@ -118,15 +122,13 @@ lively.morphic.Morph.addMethods(
     },
 
     getLayoutableSubmorphs: function() {
-				// reject is damn slow..., optimize it!
-				var morphs = new Array(this.submorphs.length);
-				for (var i = 0; i < this.submorphs.length; i++) {
-						var m = this.submorphs[i];
-						if (!m.isEpiMorph && !m.isBeingDragged) {
-								morphs.push(m)
-						}
-				}
-				return morphs;
+        // reject is damn slow..., optimize it!
+        var morphs = new Array(this.submorphs.length);
+        for (var i = 0; i < this.submorphs.length; i++) {
+            var m = this.submorphs[i];
+            if (!m.isEpiMorph && !m.isBeingDragged && m.isLayoutable) { morphs.push(m); }
+        }
+        return morphs;
     },
 
     getPositionInWorld: function() {

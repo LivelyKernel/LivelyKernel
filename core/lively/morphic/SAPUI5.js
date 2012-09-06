@@ -373,6 +373,7 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.CheckBox',
     },
     appendHTML : function($super, ctx) {
         $super(ctx);
+        this.checkBoxMorph.setStyleId(this.checkBoxMorph.id);
         this.labelMorph.setAttribute('for', this.checkBoxMorph.getStyleId());
     },
     

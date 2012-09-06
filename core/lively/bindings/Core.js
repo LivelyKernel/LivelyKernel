@@ -268,7 +268,7 @@ Object.subclass('AttributeConnection',
             var conns = sourceObj.attributeConnections.clone();
             for (var i = 0; i < conns.length; i++) {
                 var c = conns[i];
-                if (c.getSourceAttrName() === sourceAttrName)
+                if (c && c.getSourceAttrName() === sourceAttrName)
                     c.update(newVal, oldVal);
             }
             return newVal;

@@ -354,8 +354,7 @@ Config.addOptions(
         ["ignoreLoadingErrors", true],
         ["ignoreMissingModules", false],
         // This is for Persistence.js (ask Martin).
-        ["keepSerializerIds", false],
-        ["useOfflineStorage", false]
+        ["keepSerializerIds", false]
     ],
 
     'lively.bindings', [
@@ -368,17 +367,9 @@ Config.addOptions(
         ['isNewMorphic', true, 'Deprecated option, defaults to true. Used in 2011 when Lively2 was being developed.'],
         ['shiftDragForDup', true, 'Allows easy object duplication using the Shift key.'],
         ["usePieMenus", UserAgent.isTouch],
-        ["suppressBalloonHelp", true],
         ["useTransformAPI", (!UserAgent.isOpera) && UserAgent.usableTransformAPI, "Use the browser's affine transforms"],
-        ["useGetTransformToElement", !(UserAgent.isOpera || UserAgent.isIE || UserAgent.fireFoxVersion && (UserAgent.fireFoxVersion[0] == '2' || UserAgent.fireFoxVersion[0] == '3')), "Firefox, Opera and IE have known problems with getTransformToElement, detect it"],
-
-        ["useDropShadow", UserAgent.usableDropShadow, "Enable drop shadows for objects (does not work well in most browsers)"],
-
-        ["suspendScriptsOnWorldExit", true, "We haven't decided on the behavior yet, but let's be brave! This option suspends all the scripts in a world as soon as the user moves to another world.  This should really be a world-specific option."],
 
         ["nullMoveAfterTicks", false, "For the engine/piano demo (and any other simulation interacting with unmoving mouse) it is necessary to generate a mouseMove event after each tick set this true in localconfig if you need this behavior"],
-
-        ["suppressWebStoreCaching", false, "Disable caching of webstore requests"],
 
         ["askBeforeQuit", true, "Confirm system shutdown from the user"],
 
@@ -388,33 +379,15 @@ Config.addOptions(
 
         ["personalServerPort", 8081, "where the local web server runs"],
 
-        ["mainDelay", 0.05, "the delay set on the main() function"],
-
-        ["useStyling", false, "whether the .style property should be used"],
-
-        ["verboseImport", false],
-
         ["suppressClipboardHack", false],
-
-        ["suppressDefaultMouseBehavior", UserAgent.canExtendBrowserObjects, "e.g. don't open standard Brwser menu on right"],
 
         ["resizeScreenToWorldBounds", false],
 
         ["changeLocationOnSaveWorldAs", false],
 
         ["alignToGridSpace", 10, "determins the pixels to snap to during shift dragging with mouse"],
-        ["ballonHelpDelay", 1000],
-
-        // Fabrik
-        ["showFabrikComponentBox", false],
-        ["showFahrenheitCelsiusExample", false],
-        ["showTextListExample", false],
-        ["openFabrikBrowserExample", false],
-        ["showFabrikWeatherWidgetExample", false],
 
         // Tests
-        ["loadTests", [], 'e.g. ["FabrikTest", "RecordTest", "TestFrameworkTests", "ClassTest", "LKWikiTest", "DevelopTest", "MorphTest"]'],
-        ["showTesterRunner", false],
         ["serverInvokedTest", false],
 
         // Modules
@@ -449,13 +422,16 @@ Config.addOptions(
 
         ["forceHTML", false],
 
-        ["userNameURL", document.location.protocol + '//' + document.location.host + '/cgi/user.sh']
+        ["userNameURL", document.location.protocol + '//' + document.location.host + '/cgi/user.sh'],
+
+        ["lessAnnoyingWorldStatusMessages", true]
     ],
 
     'lively.morphic.Main', [
         ["createNewWorld", false, "if createNewWorld is true then a new WorldMorph is build while loading instead of deserializing one"]
     ],
 
+    // completely deprecated!!!
     'lively.morphic.Examples', [
         ["skipMostExamples", false, "Quickly enable/disable most demos"],
         ["skipAllExamples", false],

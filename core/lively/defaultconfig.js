@@ -379,8 +379,6 @@ Config.addOptions(
 
         ["personalServerPort", 8081, "where the local web server runs"],
 
-        ["suppressClipboardHack", false],
-
         ["resizeScreenToWorldBounds", false],
 
         ["changeLocationOnSaveWorldAs", false],
@@ -425,49 +423,6 @@ Config.addOptions(
         ["userNameURL", document.location.protocol + '//' + document.location.host + '/cgi/user.sh'],
 
         ["lessAnnoyingWorldStatusMessages", true]
-    ],
-
-    'lively.morphic.Main', [
-        ["createNewWorld", false, "if createNewWorld is true then a new WorldMorph is build while loading instead of deserializing one"]
-    ],
-
-    // completely deprecated!!!
-    'lively.morphic.Examples', [
-        ["skipMostExamples", false, "Quickly enable/disable most demos"],
-        ["skipAllExamples", false],
-        ["showGridDemo", false],
-        ["showCurveExample", false],
-        ["showThumbnail", false, "Additional demo configuration options"],
-        ["showNetworkExamples", UserAgent.usableXmlHttpRequest, "Enables/disables network-dependent demos"],
-        ["showClock", true],
-        ["showStar", true],
-        ["spinningStar", true],
-        ["showHilbertFun", true],
-        ["showPenScript", true],
-        ["showTester", true],
-        ["showBitmap", false],
-        ["showMap", !Config.skipMostExamples && !UserAgent.isTouch],
-        ["showKaleidoscope", !Config.skipMostExamples && !UserAgent.isTouch],
-        ["showSampleMorphs", true],
-        ["showTextSamples", true],
-        ["showSystemBrowser", false],
-
-        ["showInnerWorld", true/*!Config.skipMostExamples*/],
-        ["showSlideWorld", true/*!Config.skipMostExamples*/],
-        ["showDeveloperWorld", true/*!Config.skipMostExamples*/],
-
-        ["showClipMorph", function() { return !Config.skipMostExamples}],
-        ["show3DLogo", function() { return !Config.skipMostExamples}],
-        ["showAsteroids", function() { return !Config.skipMostExamples && !UserAgent.isTouch}],
-        ["showEngine", function() { return !Config.skipMostExamples}],
-        ["showIcon", function() { return !Config.skipMostExamples}],
-        ["showWeather", function() { return !Config.skipMostExamples}],
-        ["showStocks", function() { return !Config.skipMostExamples}],
-        ["showCanvasScape", function() { return !Config.skipMostExamples && !UserAgent.isTouch}],
-        ["showRSSReader", function() { return !Config.skipMostExamples}],
-        ["showSquiggle", function() { return !Config.skipMostExamples}],
-        ["showWebStore", function() { return !Config.skipMostExamples || Config.browserAnyway}],
-        ["showVideo", function() { return !Config.skipMostExamples && !UserAgent.isTouch}]
     ],
 
     'lively.morphic.Events', [

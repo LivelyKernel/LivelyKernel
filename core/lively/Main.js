@@ -63,23 +63,8 @@ Object.extend(lively.Main.WorldDataAccessor, {
             // on it. However, Lively does, which is why we need this
             // distinction here.
 
-            var json = jsonNode.textContent;
-            if(json === "") {
-              // this is the content attribute, a.k.a. the proper way.
-              json = jsonNode.content;
-            }
-
+            var json = jsonNode.textContent == "" ? jsonNode.content : jsonNode.textContent;
             return new lively.Main.NewMorphicData(canvas, jsonNode && json, changeSet);
-        }
-
-        if (Config.createNewWorld)
-            return new lively.Main.NewWorldData(canvas);
-
-
-        if (jsonNode) {
-            Config.modulesBeforeWorldLoad.push('lively.persistence.ObjectExtensions');
-            changeSet = lively.persistence.Serializer.deserializeChangeSetFromDocument(doc);
-            return new lively.Main.JSONWorldData(canvas, jsonNode.textContent, changeSet);
         }
 
         if (canvas.tagName == 'canvas') {
@@ -108,17 +93,17 @@ lively.Main.WorldDataAccessor.subclass('lively.Main.JSONWorldData',
 
 
     getWorld: function() {
-        if (this.world) return world;
+        if (this.world) return this.world;
         this.world = lively.persistence.Serializer.deserializeWorldFromJso(this.jso);
         return this.world;
     },
-    getChangeSet: function() { return this.changeSet },
+    getChangeSet: function() { return this.changeSet }
 });
 
 lively.Main.WorldDataAccessor.subclass('lively.Main.NewWorldData',
 'accessing and creation', {
     getWorld: function() {
-        if (this.world) return world;
+        if (this.world) return this.world;
         this.world = new lively.morphic.World(this.getCanvas());
         return this.world;
     },
@@ -156,42 +141,13 @@ Object.subclass('lively.Main.Loader',
 'accessing', {
     getCanvas: function() { return this.canvas },
     getWorldData: function() {
-        if (!this.worldData)
+        if (!this.worldData) {
             this.worldData = lively.Main.WorldDataAccessor.forCanvas(this.getCanvas());
+        }
         return this.worldData;
-    },
+    }
 },
 'preparation', {
-
-    prepareForLoading: function() {
-        this.canvasHeightPatch(this.getCanvas());
-        this.configPatches();
-        this.debuggingExtras();
-        this.clipboardHack();
-        this.replaceWindowMorphIfNotExisiting();
-        this.setupCounter(this.getCanvas());
-        Event.prepareEventSystem(this.getCanvas());
-    },
-
-    debuggingExtras: function() {
-        // Name the methods for showStack
-        if (Config.tallyLOC && lively.lang.Execution.tallyLOC) lively.lang.Execution.tallyLOC();
-        // Name the methods for showStack
-        if (Config.debugExtras) lively.lang.Execution.installStackTracers();
-    },
-
-    clipboardHack: function() {
-        if (!Config.suppressClipboardHack) ClipboardHack.ensurePasteBuffer();
-    },
-
-    setupCounter: function(doc) {
-        var maxCount = new Query('//*[@id]').findAll(doc).inject(0, function(max, ea) {
-            function getNumber(id) { return Number(id.split(':')[0]) }
-            var no =  getNumber(ea.getAttribute('id')) || 0
-            return Math.max(max, no);
-        });
-        lively.data.Wrapper.prototype.newId(maxCount);
-    },
 
     browserSpecificFixes: function() {
         if (Global.navigator.appName == 'Opera') window.onresize();
@@ -228,30 +184,19 @@ Object.subclass('lively.Main.Loader',
         if (UserAgent.fireFoxVersion) {
             document.body.spellcheck = false;
         }
-    },
-
-    canvasHeightPatch: function(canvas) {
-        if (canvas.height && canvas.height.baseVal && canvas.height.baseVal.value < 200) {
-            // a forced value, some browsers have problems with height=100%
-            canvas.setAttribute("height", "800");
-        }
-    },
+    }
 
 },
 'loading', {
 
     systemStart: function(canvas) {
         console.group("World loading");
-
         this.canvas = canvas;
-
-        this.prepareForLoading();
         this.loadWorld(canvas);
     },
 
     loadWorld: function() {
-        var self = this,
-                    worldData = this.getWorldData();
+        var self = this, worldData = this.getWorldData();
         require(worldData.modulesBeforeDeserialization()).toRun(function() {
             require(worldData.modulesBeforeChanges()).toRun(function() {
                 var changes = !Config.skipChanges && worldData.getChangeSet();
@@ -282,74 +227,15 @@ Object.subclass('lively.Main.Loader',
                 cb(world);
             });
         }
-        lively.whenLoaded = function(callback) { callback.call(world) }
+        lively.whenLoaded = function(callback) { callback.call(world) };
         console.log("The world is now completely loaded.");
-    },
-
-},
-'maybe deprecated', {
-    configPatches: function() {},
-    replaceWindowMorphIfNotExisiting: function() {
-        // This stub allows us to run without Widgets.js
-        if(!Global.WindowMorph) { WindowMorph = function() {} }
-    }
-});
-
-lively.Main.Loader.subclass('lively.Main.CanvasLoader',
-'preperation', {
-    prepareForLoading: function() {
-        // made optional for NewLively world
-        Event.prepareEventSystem && Event.prepareEventSystem(this.getCanvas());
-    },
-});
-lively.Main.Loader.subclass('lively.Main.HTMLLoader',
-'preparation', {
-    setupCounter: function($super, doc) { return $super(doc.element || doc) },
-},
-'loading', {
-    systemStart: function($super, canvas) {
-        var loader = this,
-            modules = [
-                Config.useFlattenedHTMLRenderingLayer ? 'projects.HTML5.RenderingLayerFlattened' : 'projects.HTML5.RenderingLayer',
-                Config.useDelayedHTMLRendering ? 'projects.HTML5.HTMLSceneDelayed' : 'projects.HTML5.HTMLScene'];
-
-        require(modules).toRun(function() {
-            if (!canvas.isHTMLElementWrapper)
-                canvas = new HTMLElementWrapper(canvas);
-
-            if (Global.HTML5RenderingLayer) {
-                connect(loader, 'finishLoading', loader, 'enableLayerInWorld');
-                cop.withLayers([HTML5RenderingLayer], function() {
-                    $super(canvas);
-                });
-                console.log('_________USING HTML5RenderingLayer____________')
-            } else {
-                connect(loader, 'finishLoading', lively.morphic.World, 'currentWorld');
-                $super(canvas);
-            }
-        });
-    },
-
-    enableLayerInWorld: function(world) {
-        world.setWithLayers([HTML5RenderingLayer]);
-        world.firstHand().setWithLayers([HTML5RenderingLayer]);
-    },
-
-    createNewWorld: function(canvas) {
-        // FIXME, add it somewhere
-        var world = new lively.morphic.World(canvas);
-        world.displayOnCanvas(canvas);
-        this.onFinishLoading(world);
     }
 
 });
+
 
 Object.extend(lively.Main, {
-    getLoader: function(canvas) {
-        if (canvas.tagName.toUpperCase() == 'CANVAS' || Config.isNewMorphic) return new lively.Main.CanvasLoader();
-        if (canvas.tagName.toUpperCase() == 'DIV' || Config.forceHTML) return new lively.Main.HTMLLoader();
-        throw new Error('No loader for ' + canvas);
-    }
+    getLoader: function(canvas) { return new lively.Main.Loader(); }
 });
 
 }); // end of module

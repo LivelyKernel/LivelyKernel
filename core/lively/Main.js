@@ -22,11 +22,11 @@
  * THE SOFTWARE.
  */
 
-/**
- * Main.js.  System startup and demo loading.
- */
 module('lively.Main').requires("lively.persistence.Serializer", "lively.ChangeSet").toRun(function() {
 
+// The WorldDataAccessor reads data in some form (e.g. JSON) from some source
+// e.g. meta nodes in a DOM and creates and initializes lively.morphic.Worlds
+// from it
 Object.subclass('lively.Main.WorldDataAccessor',
 'initializing', {
     initialize: function(canvas) {
@@ -46,58 +46,13 @@ Object.subclass('lively.Main.WorldDataAccessor',
 
 Object.extend(lively.Main.WorldDataAccessor, {
     forCanvas: function(canvas) {
-        var doc = canvas.ownerDocument, changeSet,
-            jsonNode = doc.getElementById(lively.persistence.Serializer.jsonWorldId);
-
-        if (Config.isNewMorphic) {
-
-            // Meta elements do not have any text content. this violates
-            // not only html5 but also xhtml. For html5 I am fixing this
-            // using the content attribute, as it should be. For what
-            // should have been xhtml, I do not care.
-
-            changeSet = lively.persistence.Serializer.deserializeChangeSetFromDocument(doc);
-
-            // The text content of *every* meta element should be emtpy,
-            // everything else is a browser bug, and you should not rely
-            // on it. However, Lively does, which is why we need this
-            // distinction here.
-
-            var json = jsonNode.textContent == "" ? jsonNode.content : jsonNode.textContent;
-            return new lively.Main.NewMorphicData(canvas, jsonNode && json, changeSet);
-        }
-
-        if (canvas.tagName == 'canvas') {
-            return new lively.Main.NewWorldData(canvas);
-        }
-
-        throw new Error('Cannot access data to load world');
+        // currently we only support JSON embedded in XHTML meta nodes
+        var doc = canvas.ownerDocument,
+            changeSet = lively.persistence.Serializer.deserializeChangeSetFromDocument(doc),
+            jsonNode = doc.getElementById(lively.persistence.Serializer.jsonWorldId),
+            json = jsonNode.textContent == "" ? jsonNode.content : jsonNode.textContent;
+        return new lively.Main.JSONMorphicData(canvas, jsonNode && json, changeSet);
     }
-});
-
-lively.Main.WorldDataAccessor.subclass('lively.Main.JSONWorldData',
-'initializing', {
-    initialize: function($super, canvas, json, changeSet) {
-        $super(canvas);
-        this.jso = lively.persistence.Serializer.parseJSON(json);
-        this.changeSet = changeSet;
-    }
-},
-'accessing and creation', {
-    modulesBeforeChanges: function($super) {
-        var modulesInJson = this.jso ? lively.persistence.Serializer.sourceModulesIn(this.jso) : [];
-        console.log('Found modules required for loading because serialized objects require them: ' +
-            modulesInJson);
-        return $super().concat(modulesInJson).uniq();
-    },
-
-
-    getWorld: function() {
-        if (this.world) return this.world;
-        this.world = lively.persistence.Serializer.deserializeWorldFromJso(this.jso);
-        return this.world;
-    },
-    getChangeSet: function() { return this.changeSet }
 });
 
 lively.Main.WorldDataAccessor.subclass('lively.Main.NewWorldData',
@@ -114,26 +69,39 @@ lively.Main.WorldDataAccessor.subclass('lively.Main.NewWorldData',
     }
 });
 
-lively.Main.JSONWorldData.subclass('lively.Main.NewMorphicData',
+lively.Main.WorldDataAccessor.subclass('lively.Main.JSONMorphicData',
+'initializing', {
+    initialize: function($super, canvas, json, changeSet) {
+        $super(canvas);
+        this.jso = lively.persistence.Serializer.parseJSON(json);
+        this.changeSet = changeSet;
+    }
+},
 'accessing and creation', {
     getWorld: function() {
         if (this.world) return this.world;
-        if (!this.jso) { // we have no serialized world, create a new one
-            var bounds = new Rectangle(0,0, 1200, 850);
-            this.world = lively.morphic.World.createOn(document.body, bounds);
-        } else {
-            this.world = lively.morphic.World.createFromJSOOn(this.jso, document.body);
-        }
+        this.world = lively.morphic.World.createFromJSOOn(this.jso, document.body);
         return this.world;
     },
 
+    getChangeSet: function() { return this.changeSet },
+
     modulesBeforeChanges: function($super) {
-        return $super().concat('lively.morphic.Complete');
+        var modulesInJson = this.jso ? lively.persistence.Serializer.sourceModulesIn(this.jso) : [];
+        console.log('Found modules required for loading because '
+                   + 'serialized objects require them: '
+                   + modulesInJson);
+        return $super()
+               .concat(modulesInJson)
+               .concat('lively.morphic.Complete')
+               .uniq();
     },
     modulesBeforeDeserialization: function($super) { return $super().concat('lively.morphic.Serialization') }
 
 });
 
+// The loader defines what should happen after the bootstrap phase to get a
+// lively.morphic.World running
 Object.subclass('lively.Main.Loader',
 'properties', {
     connections: ['finishLoading']

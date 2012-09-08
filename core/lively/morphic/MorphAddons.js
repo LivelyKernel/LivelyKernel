@@ -675,8 +675,9 @@ lively.morphic.World.addMethods(
         })
         morph.addScript(function remove() {
             var world = this.world();
-            if (world.statusMessages)
-                world.statusMessages = world.statusMessages.without(this);
+            if (world && world.statusMessages) {
+                world.statusMessages.remove(this);
+            }
             return $super();
         })
         morph.align(morph.bounds().topRight(), this.visibleBounds().topRight());

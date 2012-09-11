@@ -35,9 +35,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
                 'test, *#test, #test-two.test3 {'+
                 'border: 1px solid red;'+
                 '}',
-            rules = this.morph.processStyleSheet(css),
+            rules = this.morph.getRulesFromStyleSheet(css),
             comp = this.morph.compileStyleSheet(rules),
-            decomp = this.morph.processStyleSheet(comp);
+            decomp = this.morph.getRulesFromStyleSheet(comp);
 
         this.assert((comp && comp.length > 0),
             'Compiled style sheet has to be longer than 0');

@@ -225,7 +225,7 @@ lively.morphic.Morph.addMethods(
         var styleSheet = this.getParsedStyleSheet();
 
         if (styleSheet && styleSheet.cssRules && styleSheet.cssRules.length > 0) {
-            return this.styleSheet.cssRules.collect(function(rule) {
+            return styleSheet.cssRules.collect(function(rule) {
                     rule.originMorph = this;
                     return rule;
                 }, this);

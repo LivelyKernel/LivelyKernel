@@ -105,7 +105,7 @@ Trait('StyleSheetsHTMLTrait',
 lively.morphic.Morph.addMethods(
 'Stylesheets', {
 
-    compileStyleSheet: function(rules) {
+    compileStyleSheet: function(optCssRules) {
         // Takes a list of CSS rules and assembles a style
         // sheet which can be injected into the DOM.
         // If this morph is not the world, the selectors
@@ -113,7 +113,8 @@ lively.morphic.Morph.addMethods(
         // to morphs outside the addressed hierarchy.
         // Helper function for setStyleSheetHTML.
 
-        var output = '';
+        var output = '',
+			rules = optCssRules || this.getStyleSheetRules();
 
         rules.each(function(rule) {
                 var selectors = this.splitGroupedSelector(rule.selectorText()),

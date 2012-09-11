@@ -256,9 +256,8 @@ lively.morphic.Morph.addMethods(
             }, this);
     },
     getRulesFromStyleSheet: function(styleSheet) {
-        // Extracts the CSS rules out of a style sheet.
-        // Returns the rules as an array.
-        return apps.cssParser.parse(styleSheet).cssRules || [];
+        // DEPRECATED - Use getStyleSheetRules()
+        return [];
     },
 
 

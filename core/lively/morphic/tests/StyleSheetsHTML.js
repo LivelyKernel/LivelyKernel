@@ -29,7 +29,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
 
     },
     test03CompileStyleSheet: function() {
-                debugger
         var css = '.test {'+
                 'color: purple;'+
                 '}'+

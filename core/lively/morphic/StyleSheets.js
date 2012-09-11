@@ -222,7 +222,7 @@ lively.morphic.Morph.addMethods(
         //return this.morphicSetter('StyleSheetRules', styleSheetRules);
     },
     getStyleSheetRules: function() {
-        var styleSheet = this.morphicGetter('StyleSheet');
+        var styleSheet = this.getStyleSheet();
 
         if (styleSheet && styleSheet.length && styleSheet.length > 0) {
             return this.getRulesFromStyleSheet(styleSheet).collect(function(rule) {
@@ -232,6 +232,10 @@ lively.morphic.Morph.addMethods(
         } else {
             return [];
         }
+    },
+    getParsedStyleSheet: function() {
+        var styleSheet = this.getStyleSheet();
+        return apps.cssParser.parse(styleSheet);
     }
 
 },

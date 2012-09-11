@@ -236,8 +236,10 @@ lively.morphic.Morph.addMethods(
         }
     },
     getParsedStyleSheet: function() {
-        var styleSheet = this.getStyleSheet();
-        return apps.cssParser.parse(styleSheet);
+        var styleSheet = this.getStyleSheet(),
+            parsedStyleSheet = apps.cssParser.parse(styleSheet);
+        parsedStyleSheet.originMorph = this;
+        return parsedStyleSheet;
     }
 
 },

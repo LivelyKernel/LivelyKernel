@@ -222,10 +222,10 @@ lively.morphic.Morph.addMethods(
         //return this.morphicSetter('StyleSheetRules', styleSheetRules);
     },
     getStyleSheetRules: function() {
-        var styleSheet = this.getStyleSheet();
+        var styleSheet = this.getParsedStyleSheet();
 
-        if (styleSheet && styleSheet.length && styleSheet.length > 0) {
-            return this.getRulesFromStyleSheet(styleSheet).collect(function(rule) {
+        if (styleSheet && styleSheet.cssRules && styleSheet.cssRules.length > 0) {
+            return this.styleSheet.cssRules.collect(function(rule) {
                     rule.originMorph = this;
                     return rule;
                 }, this);

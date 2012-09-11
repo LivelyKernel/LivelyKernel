@@ -187,7 +187,7 @@ lively.morphic.Morph.addMethods(
         // in the initHTML method of the morph.
 
         var styleTagId = "style-for-"+this.id,
-        rules = this.getRulesFromStyleSheet(styleSheet),
+        rules = this.getStyleSheetRules(),
         compiledCss = this.compileStyleSheet(rules);
 
         if (ctx.styleNode) {

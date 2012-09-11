@@ -648,7 +648,7 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
 'testing', {
     test01RuleOfCSSClassDef: function() {
         var css = ".some-class { color: red; }",
-            rules = apps.cssParser.parse(css);
+            rules = apps.cssParser.parse(css).cssRules;
         this.assertEquals(1, rules.length, 'no rule parsed');
         var expected = {
             mSelectorText: '.some-class',

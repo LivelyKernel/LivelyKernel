@@ -225,7 +225,7 @@ lively.morphic.Morph.addMethods(
         var styleSheet = this.morphicGetter('StyleSheet');
 
         if (styleSheet && styleSheet.length && styleSheet.length > 0) {
-            return this.processStyleSheet(styleSheet).collect(function(rule) {
+            return this.getRulesFromStyleSheet(styleSheet).collect(function(rule) {
                     rule.originMorph = this;
                     return rule;
                 }, this);
@@ -249,7 +249,7 @@ lively.morphic.Morph.addMethods(
                 }
             }, this);
     },
-    processStyleSheet: function(styleSheet) {
+    getRulesFromStyleSheet: function(styleSheet) {
         // Extracts the CSS rules out of a style sheet.
         // Returns the rules as an array.
         return apps.cssParser.parse(styleSheet);

@@ -501,7 +501,7 @@ spec can be: {removeAfterUpdate: Boolean, converter: Function, updater: Function
 
 	disconnectAll: function(sourceObj) {
 		if (!sourceObj.attributeConnections) return;
-		while (sourceObj.attributeConnections.length > 0)
+		while (sourceObj.attributeConnections)
 			sourceObj.attributeConnections[0].disconnect();
 	},
 

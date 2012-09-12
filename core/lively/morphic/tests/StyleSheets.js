@@ -511,7 +511,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var css = ".yellow .red .blue{color: purple;}";
         this.yellowRectangle.setStyleSheet(css);
         
-        rules = this.blueRectangle.getMatchingStyleSheetRules();
+        rules = this.blueRectangle1.getMatchingStyleSheetRules();
         this.assertEquals(1, rules.length, 'Blue: There has to be exactly one matching rule');
         this.assertEquals('.some-class', rules[0].selectorText(), 'Blue: Selector of first rule is not .blue');
         

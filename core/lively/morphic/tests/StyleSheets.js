@@ -508,12 +508,28 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         
         
         this.createSomeMorphs();
-        var css = ".yellow .red .blue{color: purple;}";
+        
+        
+        css = ".blue{color: purple;}";
         this.yellowRectangle.setStyleSheet(css);
         
         rules = this.blueRectangle1.getMatchingStyleSheetRules();
-        this.assertEquals(1, rules.length, 'Blue: There has to be exactly one matching rule');
-        this.assertEquals('.some-class', rules[0].selectorText(), 'Blue: Selector of first rule is not .blue');
+        this.assertEquals(1, rules.length, 'Blue1: There has to be exactly one matching rule');
+        this.assertEquals('.blue', rules[0].selectorText(), 'Blue1: Selector of first rule is not .blue');
+        
+        css = ".red .blue{color: purple;}";
+        this.yellowRectangle.setStyleSheet(css);
+        
+        rules = this.blueRectangle1.getMatchingStyleSheetRules();
+        this.assertEquals(1, rules.length, 'Blue2: There has to be exactly one matching rule');
+        this.assertEquals('.red .blue', rules[0].selectorText(), 'Blue2: Selector of first rule is not .red .blue');
+        
+        css = ".yellow .red .blue{color: purple;}";
+        this.yellowRectangle.setStyleSheet(css);
+        
+        rules = this.blueRectangle1.getMatchingStyleSheetRules();
+        this.assertEquals(1, rules.length, 'Blue3: There has to be exactly one matching rule');
+        this.assertEquals('.yellow .red .blue', rules[0].selectorText(), 'Blue3: Selector of first rule is not .yellow .red .blue');
         
     },
     test03MorphsHaveOnlyMatchingCSSRules: function() {

@@ -117,20 +117,22 @@ lively.morphic.Morph.addMethods(
 			rules = optCssRules || this.getStyleSheetRules();
 
         rules.each(function(rule) {
-                var selectors = this.splitGroupedSelector(rule.selectorText()),
-                    newSelector = '';
-                for (var i = 0; i < selectors.length; i++) {
-                    newSelector += this.addSelectorPrefixes(selectors[i]);
-                    if (i < selectors.length - 1) {
-                        newSelector += ', ';
-                    }
+				if (rule.selectorText && rule.declarations) {
+					var selectors = this.splitGroupedSelector(rule.selectorText()),
+						newSelector = '';
+					for (var i = 0; i < selectors.length; i++) {
+						newSelector += this.addSelectorPrefixes(selectors[i]);
+						if (i < selectors.length - 1) {
+							newSelector += ', ';
+						}
+					}
+					output += newSelector + ' {';
+					output += '\n';
+					rule.declarations.each(function(d) {
+							output += '\t' + d.cssText()+'\n';
+						});
+					output += '}\n';
 				}
-                output += newSelector + ' {';
-                output += '\n';
-				rule.declarations.each(function(d) {
-						output += '\t' + d.cssText()+'\n';
-					});
-				output += '}\n';
             }, this);
         return output;
     },

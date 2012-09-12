@@ -322,12 +322,13 @@ lively.morphic.Morph.addMethods(
         // Returns an array of all rules matching to
         // the morph, sorted by their specificity (low to high).
 
-        var thisMorph = this,
+        var thisMorph = this;
+            /*,
             styleSheetRules = (rules) ?
                 rules.splice() :
                 this.getMatchingStyleSheetRules();
-
-        return styleSheetRules.sort(function(a, b) {
+            */
+        return rules.sort(function(a, b) {
                 var specA = thisMorph.getStyleSheetRuleSpecificity(a),
                     specB = thisMorph.getStyleSheetRuleSpecificity(b);
                 if (specA === specB) {

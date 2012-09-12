@@ -473,10 +473,12 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.MatrixLayout',
         this.colgroupMorph = this.addMorph(new lively.morphic.HTMLMorph('colgroup'));
 
         for (var i = 0; i < this.cols; i++) {
-           this.colgroupMorph.addMorph(new lively.morphic.HTMLMorph('col'));    
+           this.colgroupMorph.addMorph(new lively.morphic.HTMLMorph('col'));
         }
 
         this.tbodyMorph = this.addMorph(new lively.morphic.HTMLMorph('tbody'));
+        this.tbodyMorph.ignoreEvents();
+        this.tbodyMorph.disableGrabbing();
         this.tbodyMorph.setAttribute('style', 'width: 100%; height: 100%;');
 
         for (var r = 0; r < this.rows; r++) {

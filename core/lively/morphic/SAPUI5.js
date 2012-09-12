@@ -112,7 +112,10 @@ lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.Button',
         // buttons should fire on mouse up
         if (!bool || this.toggle) lively.bindings.signal(this, 'fire', bool);
     },
-
+    reset: function() {
+        this.changeAppearanceFor(false);
+        this.isPressed = false;
+    }
 }
 );
 lively.morphic.SAPUI5.Control.subclass('lively.morphic.SAPUI5.TextField',

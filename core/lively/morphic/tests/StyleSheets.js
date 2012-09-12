@@ -510,6 +510,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.createSomeMorphs();
         var css = ".yellow .red .blue{color: purple;}";
         this.yellowRectangle.setStyleSheet(css);
+        
+        rules = this.blueRectangle.getMatchingStyleSheetRules();
+        this.assertEquals(1, rules.length, 'Blue: There has to be exactly one matching rule');
+        this.assertEquals('.some-class', rules[0].selectorText(), 'Blue: Selector of first rule is not .blue');
+        
     },
     test03MorphsHaveOnlyMatchingCSSRules: function() {
         this.createSomeMorphs(); // sets up a hierarchy of morphs

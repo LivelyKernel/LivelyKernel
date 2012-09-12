@@ -546,8 +546,8 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.MatrixLayoutCell',
         removePlaceholder: 'removePlaceholderHTML',
      },
      initialize: function($super) {
-            $super('td');
-         
+        $super('td');
+         this.disableGrabbing();
      },
      appendHTML: function($super, ctx) {
         $super(ctx);

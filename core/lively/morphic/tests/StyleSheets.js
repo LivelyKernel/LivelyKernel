@@ -508,7 +508,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         
         
         this.createSomeMorphs();
-        
+        var css = ".yellow .red .blue{color: purple;}";
+        this.yellowRectangle.setStyleSheet(css);
     },
     test03MorphsHaveOnlyMatchingCSSRules: function() {
         this.createSomeMorphs(); // sets up a hierarchy of morphs

@@ -191,21 +191,22 @@ lively.morphic.Morph.addMethods(
         rules = this.getStyleSheetRules(),
         compiledCss = this.compileStyleSheet(rules);
 
-        if (ctx.styleNode) {
-            $(ctx.styleNode).remove();
-            delete ctx.styleNode;
-        }
         if (rules.length && rules.length > 0 &&
             compiledCss && compiledCss.length &&
             compiledCss.length > 0) {
-           ctx.styleNode = $('<style type="text/css" id="' +
-               styleTagId + '"></style>').get(0);
+			
+			if (!ctx.styleNode) {
+				ctx.styleNode = $('<style type="text/css" id="' +
+					styleTagId + '"></style>').get(0);
+				this.appendStyleNodeHTML(ctx, ctx.styleNode);
+			}
            $(ctx.styleNode).text(compiledCss);
-		   
-		   console.log(compiledCss);
-		   
-           this.appendStyleNodeHTML(ctx, ctx.styleNode);
-        }
+		   //console.log(compiledCss);
+        } else if (ctx.styleNode) {
+			$(ctx.styleNode).remove();
+			delete ctx.styleNode;
+		}
+		
     },
     appendStyleNodeHTML: function(ctx, styleNode) {
         // Adds the morph's style node to the DOM

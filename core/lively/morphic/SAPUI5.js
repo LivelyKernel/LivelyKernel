@@ -574,7 +574,7 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.MatrixLayoutCell',
         //$(ctx.shapeNode).css('border', '1px dashed #999');
     }, 
     removePlaceholder: function(){
-        this.renderContextDispatch('removePlaceholder');        
+        this.renderContextDispatch('removePlaceholder');
     },
     removePlaceholderHTML: function(ctx){
         
@@ -586,12 +586,12 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.MatrixLayoutCell',
     },
     
     removeRow: function() {
-        this.owner.remove();    
+        this.owner.remove();
     },
      
     addMorph: function($super, morph) {
         this.removePlaceholder();
-        return $super(morph);    
+        return $super(morph);
     },
     morphMenuItems: function($super) {
         var self = this, items = $super();

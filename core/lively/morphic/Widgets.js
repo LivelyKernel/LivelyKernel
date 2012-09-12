@@ -2147,14 +2147,19 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 'menu', {
     showTargetMorphMenu: function() {
         var target = this.targetMorph || this;
+        var itemFilter;
         if (this.targetMorph) {
             var self = this;
             itemFilter = function (items) {
-            items[0] = [
-                'Publish window', function(evt) {
-                self.copyToPartsBinWithUserRequest();
-                }]
-            return items;
+                items[0] = ['Publish window', function(evt) {
+                    self.copyToPartsBinWithUserRequest();
+                }];
+                items[1] = ['Set window title', function(evt) {
+                    self.world().prompt('Set window title', function(input) {
+                        if (input !== null) self.setLabel(input || '');
+                    }, self.getLabel());
+                }];
+                return items;
             }
         }
         target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)), itemFilter);

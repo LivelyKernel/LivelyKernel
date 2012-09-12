@@ -503,6 +503,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 
         this.morph.setStyleSheet(css);
         var rules = this.morph.getMatchingStyleSheetRules();
+        this.assertEquals(1, rules.length, 'There has to be exactly one matching rule');
         this.assertEquals('.some-class', rules[0].selectorText(), 'Selector of first rule is not .some-class');
     },
     test03MorphsHaveOnlyMatchingCSSRules: function() {

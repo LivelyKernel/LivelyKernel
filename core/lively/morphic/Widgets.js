@@ -2156,7 +2156,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
                 }];
                 items[1] = ['Set window title', function(evt) {
                     self.world().prompt('Set window title', function(input) {
-                        if (input !== null) self.setLabel(input || '');
+                        if (input !== null) self.titleBar.setTitle(input || '');
                     }, self.getLabel());
                 }];
                 return items;

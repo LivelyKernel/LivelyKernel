@@ -309,9 +309,10 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         return $(ctx.shapeNode).attr(attribute);
     },
     setAttribute: function(attribute, value) {
-        if (!this.attributes) this.attributes = [];
-        this.attributes.push({attr: attribute, val: value}); // FIXME! Need a key value list here
-        this.renderContextDispatch('setAttribute', {attr: attribute, val: value});
+        if (!this.attributes) this.attributes = {};
+        this.attributes[attribute, value];
+        //this.attributes.push({attr: attribute, val: value}); // FIXME! Need a key value list here
+        this.renderContextDispatch('setAttribute');
     },
     setAttributeHTML: function(ctx, attrVal) {
 

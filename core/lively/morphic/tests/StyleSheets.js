@@ -505,6 +505,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var rules = this.morph.getMatchingStyleSheetRules();
         this.assertEquals(1, rules.length, 'There has to be exactly one matching rule');
         this.assertEquals('.some-class', rules[0].selectorText(), 'Selector of first rule is not .some-class');
+        
+        
+        this.createSomeMorphs();
+        
     },
     test03MorphsHaveOnlyMatchingCSSRules: function() {
         this.createSomeMorphs(); // sets up a hierarchy of morphs

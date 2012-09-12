@@ -561,7 +561,7 @@ lively.morphic.HTMLMorph.subclass('lively.morphic.SAPUI5.MatrixLayoutCell',
     addPlaceholder: function(width, height){
         if (this.submorphs.length ==0) {
             var size = pt (width || this.defaultPlaceholderWidth, height|| this.defaultPlaceholderHeight);
-            this.renderContextDispatch('addPlaceholder', size);        
+            this.renderContextDispatch('addPlaceholder', size);
         }
     },
     addPlaceholderHTML: function(ctx, size){

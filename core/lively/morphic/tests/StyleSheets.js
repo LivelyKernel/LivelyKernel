@@ -497,7 +497,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals('red', decl.valueText,
             'First declaration in rule is not color red but ' + Strings.print(decl.valueText));
     },
-    test02FindCSSRulesForMorphWithMorphItselfAsSizzleContext: function() {
+    test02FindCSSRulesForMorphWithStyleSheetDefinedInItself: function() {
         var css = ".some-class { color: red; }";
         this.morph.addStyleClassName('some-class');
 

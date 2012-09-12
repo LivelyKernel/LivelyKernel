@@ -257,10 +257,7 @@ lively.morphic.Morph.addMethods(
                 }
             }, this);
     },
-    getRulesFromStyleSheet: function(styleSheet) {
-        // DEPRECATED - Use getStyleSheetRules()
-        return [];
-    },
+
 
 
     getStyleSheetDeclarations: function(){

@@ -315,7 +315,7 @@ lively.morphic.Morph.addMethods(
             }
             morphInLoop = morphInLoop.owner;
         }
-        return matchingRules;
+        return this.sortStyleSheetRules(matchingRules);
     },
 
     sortStyleSheetRules: function(rules) {

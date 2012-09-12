@@ -321,7 +321,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     },
     setAllAttributes: function() {
         if (this.attributes) for (var x in this.attributes) {
-            this.setAttribute(this.attributes[x].attr, this.attributes[x].val);
+            this.setAttribute(x, this.attributes[x]);
         }
     },
     getProp: function(prop) {

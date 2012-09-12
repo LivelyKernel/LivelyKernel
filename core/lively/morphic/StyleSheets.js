@@ -308,7 +308,7 @@ lively.morphic.Morph.addMethods(
                 styleSheetRules.each(
                     function(rule) {
                         if (sizzle.select(rule.selectorText(),
-                            this, null, [this]).length === 1) {
+                            morphInLoop, null, [this]).length === 1) {
                                 matchingRules.push(rule);
                         }
                     }, this);

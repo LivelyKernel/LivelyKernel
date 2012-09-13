@@ -36,7 +36,7 @@ lively.Worker = {
         // #workerSetupCode below
         function run(worker) {
             var msgChannel = new MessageChannel();
-            worker.postMessage("createConsole", [msgChannel.port2]);
+            worker.postMessage("setup", [msgChannel.port2]);
             msgChannel.port1.onmessage = function(evt) {
                 var args = evt.data;
                 console.log.apply(console, args);
@@ -47,8 +47,8 @@ lively.Worker = {
         // a console.log method since since this is not available by default.
         function workerSetupCode() {
             self.onmessage = function(evt) {
-                if (evt.data !== "createConsole") return;
-                self.onmessage = null; // delete handler
+                if (evt.data !== "setup") return;
+                self.onmessage = null; // delete setup handler
                 self.console = {
                     _port: evt.ports[0],
                     log: function log() {
@@ -56,6 +56,24 @@ lively.Worker = {
                         self.console._port.postMessage(args);
                     }
                 }
+                self.httpRequest = function (options) {
+                    if (!options.url) {
+                        console.log("Error, httpRequest needs url");
+                        return;
+                    }
+                    var req = new XMLHttpRequest(),
+                        method = options.method || 'GET';
+                    function handleStateChange() {
+                        if (req.readyState === 4) {
+                            // req.status
+                            options.done && options.done(req);
+                        }
+                    }
+                    req.onreadystatechange = handleStateChange;
+                    req.open(method, options.url);
+                    req.send();
+                }
+
                 __CODE_PLACEHOLDER__
             }
         }

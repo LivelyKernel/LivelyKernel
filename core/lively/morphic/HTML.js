@@ -179,7 +179,10 @@ lively.morphic.Morph.addMethods(
 
     setClipModeHTML: function(ctx, clipMode) {
         // Sets the overflow property of the morph node.
-        // Clipmode can be either 'visible', 'hidden', 'scroll', 'auto' or 'inherit'.
+        // Clipmode can be either 'visible', 'hidden', 'scroll', 
+        // 'auto' or 'inherit', or an object with x and y parameters
+        // (i.e. {x: 'hidden', y: 'scroll'}).
+        // 
         if (!ctx.shapeNode || this.delayedClipMode) {
             this.delayedClipMode = clipMode;
             return;

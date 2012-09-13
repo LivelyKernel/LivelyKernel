@@ -322,6 +322,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     },
     setAllAttributes: function() {
         if (this.attributes) {
+            // fix to overcome issues with older attribute format
             if (Array.isArray(this.attributes)) {
                 this.attributes = {};
             }

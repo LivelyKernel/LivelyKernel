@@ -292,6 +292,13 @@ Strings = {
         var div = XHTMLNS.create('div');
         div.innerHTML = s;
         return div.textContent;
+    },
+
+    createDataURI: function(content, mimeType) {
+        // window.open(Strings.createDataURI('<h1>test</h1>', 'text/html'));
+        mimeType = mimeType || "text/plain";
+        return "data:" + mimeType
+             + ";base64," + btoa(content);
     }
 
 };

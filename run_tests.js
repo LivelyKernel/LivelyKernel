@@ -64,6 +64,7 @@ var testList = [
 
     // lang support
     "lively.lang.tests.ExtensionTests",
+    "lively.lang.tests.WorkerTests",
 
     // AST / OMeta
     "ometa.tests.OmetaTests",

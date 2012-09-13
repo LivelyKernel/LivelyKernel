@@ -24,6 +24,113 @@ lively.morphic.World.addMethods(
     }
 });
 
+lively.morphic.CSSProperties = {
+/*
+Information to interpret and manipulate CSS properties.
+Since there are a lot of CSS properties out there, this
+is only a selection.
+Feel free to add missing properties!
+
+A property can have several value counts (i.e. the value of
+border-color could be 'black', but it could also be 'black black black blue').
+
+A value is of a certain type:
+0: Plain text (i.e. font-family; edit through text field)
+1: Number (i.e. width; edit through slider)
+2: Option (i.e. border-style; edit with drop-down box)
+3: Color (i.e. color; edit with color chooser)
+4: Shadow (i.e. box-shadow; edit with shadow dialog)
+*/
+
+	'background-color': {
+		1 : { // only one value for this property
+			1 : {
+				type: 3
+			}
+		}
+	},
+	'border-color': {
+		1: { // either one value ...
+			1 : {
+				type: 3
+			}
+		},
+		4: { // ... or four
+			1 : {
+				type: 3
+			},
+			2 : {
+				type: 3
+			},
+			3: {
+				type: 3
+			},
+			4 : {
+				type: 3
+			}
+		}
+	},
+
+	'border-top-color': {
+		1 : { // only one value for this property
+			1 : {
+				type: 3
+			}
+		}
+	},
+	'border-bottom-color': {
+		1 : { // only one value for this property
+			1 : {
+				type: 3
+			}
+		}
+	},
+	'border-left-color': {
+		1 : { // only one value for this property
+			1 : {
+				type: 3
+			}
+		}
+	},
+	'border-right-color': {
+		1 : { // only one value for this property
+			1 : {
+				type: 3
+			}
+		}
+	},
+	'border-radius': {
+		1: { // either one value ...
+			1 : {
+				type: 1
+			}
+		},
+		4: { // ... or four
+			1 : {
+				type: 1
+			},
+			2 : {
+				type: 1
+			},
+			3: {
+				type: 1
+			},
+			4 : {
+				type: 1
+			}
+		}
+	},
+	'color': {
+		1: {
+			1: {
+				type: 3
+			}
+		}
+	},
+
+
+};
+
 
 
 lively.morphic.Morph.addMethods(
@@ -55,6 +162,56 @@ lively.morphic.Morph.addMethods(
             delete this._StyleSheet;
         }
     },
+
+	loadStyleSheetFromFile: function(file, resourcePath){
+		// use the resourcePath parameter if the resources addressed
+		// in the CSS file are in a different directory than the CSS'.
+		// (use "" to leave the urls untouched)
+
+		var absPath = file;
+		// is the filename absolute? if not then make it absolute.
+		if (absPath.search('http://')<0) {
+		  absPath = document.location.href.toString().split('?')[0];
+		  absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);
+		  absPath += "/"+file;
+		}
+		var url = new URL(absPath);
+
+		URL.proxy = null;
+
+		var webR = new WebResource(url);
+					webR.forceUncached();
+		var webRGet = webR.get();
+		if (webRGet.status.code() == 200) {
+			// add resource path to all relative urls in the css
+			var css = webRGet.content;
+
+			var resPath = resourcePath;
+			if (!resPath){
+							resPath = absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);
+			}
+			var urlReplace = "url("+resPath;
+			var urlReplaceSingle = "url('"+resPath;
+			var urlReplaceDouble = 'url("'+resPath;
+			css = css.replace(/url\([\s]*\'(?![\s]*http)/g, urlReplaceSingle).replace(/url\([\s]*\"(?![\s]*http)/g, urlReplaceDouble ).replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, urlReplace );
+
+			// insert line breaks so the css is more legible
+			css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/g,";\n").replace(/\}(?![\s]*(\r\n|\n|\r))/g,"}\n").replace(/\{(?![\s]*(\r\n|\n|\r))/g,"{\n");
+			//console.log(css);
+
+			// set the style sheet
+			this.setStyleSheet(css);
+			}
+			else {
+				throw new Error("Couldn't load stylesheet at "+absPath+" --> " +webRGet.status.code());
+			}
+
+			return {
+				status: webRGet.status.code(),
+				responseText: webRGet.content
+			};
+		},
+
     getStyleSheet: function() {
         return this.morphicGetter('StyleSheet');
     },
@@ -65,16 +222,24 @@ lively.morphic.Morph.addMethods(
         //return this.morphicSetter('StyleSheetRules', styleSheetRules);
     },
     getStyleSheetRules: function() {
-        var styleSheet = this.morphicGetter('StyleSheet');
+        // Extracts the CSS rules out of a style sheet.
+        // Returns the rules as an array.
+        var styleSheet = this.getParsedStyleSheet();
 
-        if (styleSheet && styleSheet.length && styleSheet.length > 0) {
-            return this.processStyleSheet(styleSheet).collect(function(rule) {
+        if (styleSheet && styleSheet.cssRules && styleSheet.cssRules.length > 0) {
+            return styleSheet.cssRules.collect(function(rule) {
                     rule.originMorph = this;
                     return rule;
                 }, this);
         } else {
             return [];
         }
+    },
+    getParsedStyleSheet: function() {
+        var styleSheet = this.getStyleSheet(),
+            parsedStyleSheet = apps.cssParser.parse(styleSheet);
+        parsedStyleSheet.originMorph = this;
+        return parsedStyleSheet;
     }
 
 },
@@ -92,11 +257,7 @@ lively.morphic.Morph.addMethods(
                 }
             }, this);
     },
-    processStyleSheet: function(styleSheet) {
-        // Extracts the CSS rules out of a style sheet.
-        // Returns the rules as an array.
-        return apps.cssParser.parse(styleSheet);
-    },
+
 
 
     getStyleSheetDeclarations: function(){
@@ -109,7 +270,7 @@ lively.morphic.Morph.addMethods(
         // i.e. {'background-color': <declaration>, 'border-width': <declaration>}
 
         var aggregatedStyle = {},
-            rules = this.sortStyleSheetRules(),
+            rules = this.getMatchingStyleSheetRules(),
             result = [];
 
         // iterate over the ordered rules
@@ -136,7 +297,6 @@ lively.morphic.Morph.addMethods(
         var sizzle = new lively.morphic.Sizzle(),
             matchingRules = [],
             morphInLoop = this;
-
         // Collect matching rules from ancestors (and self)
         while (morphInLoop) {
             var styleSheetRules = morphInLoop.getStyleSheetRules();
@@ -144,26 +304,27 @@ lively.morphic.Morph.addMethods(
                 styleSheetRules.each(
                     function(rule) {
                         if (sizzle.select(rule.selectorText(),
-                            this, null, [this]).length == 1) {
+                            morphInLoop, null, [this]).length === 1) {
                                 matchingRules.push(rule);
                         }
                     }, this);
             }
             morphInLoop = morphInLoop.owner;
         }
-        return matchingRules;
+        return this.sortStyleSheetRules(matchingRules);
     },
 
     sortStyleSheetRules: function(rules) {
         // Returns an array of all rules matching to
         // the morph, sorted by their specificity (low to high).
 
-        var thisMorph = this,
+        var thisMorph = this;
+            /*,
             styleSheetRules = (rules) ?
                 rules.splice() :
                 this.getMatchingStyleSheetRules();
-
-        return styleSheetRules.sort(function(a, b) {
+            */
+        return rules.sort(function(a, b) {
                 var specA = thisMorph.getStyleSheetRuleSpecificity(a),
                     specB = thisMorph.getStyleSheetRuleSpecificity(b);
                 if (specA === specB) {
@@ -443,9 +604,15 @@ lively.morphic.Morph.addMethods(
     },
 
     setStyleClassNames: function(classNames) {
-        if (classNames && Array.isArray(classNames) && classNames.length > 0) {
-            return this.morphicSetter('StyleClassNames',
-                this.makeUniqueStyleClassNamesList(classNames));
+        if (classNames && classNames.length > 0) {
+            if (Array.isArray(classNames)) {
+                return this.morphicSetter('StyleClassNames',
+                    this.makeUniqueStyleClassNamesList(classNames));
+            } else { // if it's not an array we assume it's a string
+                return this.morphicSetter('StyleClassNames',
+                    this.makeUniqueStyleClassNamesList(
+                    classNames.split(' ')));
+            }
         } else {
             this.morphicSetter('StyleClassNames', null);
             delete this._StyleClassNames;
@@ -474,6 +641,11 @@ lively.morphic.Morph.addMethods(
 });
 
 Object.subclass("lively.morphic.Sizzle",
+/*!
+ * Uses parts from the Sizzle CSS Selector Engine
+ * Copyright 2012 jQuery Foundation and other contributors
+ * http://sizzlejs.com/
+ */
 'documentation', {
     documentation: "Sizzle port for morphic."
 },

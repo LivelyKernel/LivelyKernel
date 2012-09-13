@@ -37,27 +37,27 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         blueRectangle2.setStyleId('b2');
         blueRectangle2.tagName = 'blueRectangleTag';
         redRectangle.addMorph(blueRectangle2);
-        
+
         this.yellowRectangle = yellowRectangle;
         this.redRectangle = redRectangle;
         this.blueRectangle1 = blueRectangle1;
         this.blueRectangle2 = blueRectangle2;
-        
+
     },
 
 },
 'testing', {
 
-    
-    
+
+
     testMorphSelectsItself: function() {
 
-        this.assertEqualState([this.redRectangle], 
+        this.assertEqualState([this.redRectangle],
             this.redRectangle.getSubmorphsByStyleClassName('red'),
             'selection by class only should include Red Rectangle'
         );
-        
-        this.assertEqualState(this.redRectangle, 
+
+        this.assertEqualState(this.redRectangle,
             this.redRectangle.getSubmorphByStyleId('the-red-rectangle'),
             'selection by id only should include Red Rectangle'
         );
@@ -66,8 +66,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
     },
 
 
-    
-    
+
+
     testSelectMorphById: function() {
         this.assertEqualState(this.redRectangle, this.world.getSubmorphByStyleId('the-red-rectangle'),
             'selection by id should only include red rectangle morph');
@@ -75,14 +75,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
     },
     testSelectMorphByClassName: function() {
 
-        this.assertEqualState([this.blueRectangle1, this.blueRectangle2], 
+        this.assertEqualState([this.blueRectangle1, this.blueRectangle2],
             this.world.getSubmorphsByStyleClassName('blue'),
             'selection by class should include both blue rectangle morphs');
 
     },
     testSelectMorphByTagName: function() {
 
-        this.assertEqualState([this.blueRectangle2], 
+        this.assertEqualState([this.blueRectangle2],
             this.world.getSubmorphsByTagName('blueRectangleTag'),
             'selection by tag should include the 2nd blue rectangle morph only');
 
@@ -90,23 +90,23 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
 
 
     testSelectMorphByAttributes: function() {
-        
-        this.assertEqualState([this.yellowRectangle, this.redRectangle], 
+
+        this.assertEqualState([this.yellowRectangle, this.redRectangle],
             this.world.getSubmorphsByAttribute('testAttribute'),
             'selection by attribute should include the yellow and the red morph');
-        
-        this.assertEqualState([this.yellowRectangle], 
+
+        this.assertEqualState([this.yellowRectangle],
             this.world.getSubmorphsByAttribute('testAttribute', 'theYellowRectangle'),
             'selection by attribute should include the yellow morph');
-        
-        this.assertEqualState([this.yellowRectangle], 
+
+        this.assertEqualState([this.yellowRectangle],
             this.world.getSubmorphsByAttribute('testAttribute', 'tHeYellOwRectAnglE', true),
             'selection by attribute should include the yellow morph (case insensitive)');
 
     },
-    
 
-    
+
+
 });
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.MorphClassNames',
 'running', {
@@ -126,7 +126,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
     test02MorphAddClassNames: function() {
         this.morph.setStyleClassNames([]);
         this.morph.addStyleClassName('test');
-        
+
         this.assertEquals(1, this.morph._StyleClassNames.length,
             'Class names array in morph is not 1 after first add');
         this.assertEquals('test', this.morph._StyleClassNames.first(),
@@ -157,7 +157,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
             'Class names getter does not return 3 after third add');
         this.assertEqualState(['Morph', 'test', 'morph'], this.morph.getStyleClassNames(),
             'Class names array should contain "Morph", "morph" and "test" after third add');
-        
+
     },
     test03MorphSetClassNames: function() {
         this.morph.classNames = [];
@@ -182,7 +182,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
             'Class names getter does not return 4 after adding "morph"');
         this.assertEqualState(['Morph', 'test', 'morph', "tEsT"], this.morph.getStyleClassNames(),
             'Class names array should contain "Morph", "morph" and "test" after adding "morph"');
-        
+
         this.morph.setStyleClassNames();
         this.assert(!this.morph._StyleClassNames,
             'Morph shouldn\'t have a classNames attribute after resetting');
@@ -211,7 +211,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
     },
     test05MorphRemoveClassName: function() {
         this.morph.setStyleClassNames(['test', 'CrAzYmOrPh']);
-        
+
         this.morph.removeStyleClassName('test');
         this.assert(!this.morph.isOfStyleClass('test'),
             'Morph should NOT be of class "test"');
@@ -245,7 +245,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
         yellowRectangle.testAttribute = 'theYellowRectangle';
         yellowRectangle.addStyleClassName('yellow');
         yellowRectangle.openInWorld();
-        
+
 
         var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
         redRectangle.applyStyle({fill: Color.red});
@@ -265,28 +265,28 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
         blueRectangle2.addStyleClassName('blue');
         blueRectangle2.setStyleId('b2');
         redRectangle.addMorph(blueRectangle2);
-        
+
         this.yellowRectangle = yellowRectangle;
         this.redRectangle = redRectangle;
         this.blueRectangle1 = blueRectangle1;
         this.blueRectangle2 = blueRectangle2;
-        
+
     },
 
 },
 'testing', {
 
-    
-    
+
+
     testMorphSelectsItself: function() {
-        
+
         this.assertSizzleSelect(
             [this.blueRectangle1],
             '*',
             this.blueRectangle1,
             'selection by asterisk should include only Blue Rectangle 1'
         );
-        
+
         this.assertSizzleSelect(
             [this.redRectangle],
             '.red',
@@ -311,10 +311,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             }), msg);
     },
 
-    
-    
+
+
     testSelectMorphById: function() {
-        
+
         this.assertSizzleSelect([this.redRectangle],
             '#the-red-rectangle',
             this.world,
@@ -322,7 +322,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
 
     },
     testSelectMorphByClassName: function() {
-        
+
         this.assertSizzleSelect([this.blueRectangle1, this.blueRectangle2],
             '.blue',
             this.world,
@@ -352,59 +352,59 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
     },
 
     testSelectMorphBySiblingRelation: function() {
-        
-        
+
+
         this.assertSizzleSelect([this.redRectangle, this.blueRectangle1],
             ':nth-child(1)',
             this.redRectangle,
             'selection by sibling relation should include red rectangle and blue rectangle 1');
-            
-            
+
+
         this.assertSizzleSelect([this.blueRectangle2],
             ':nth-child(2)',
             this.redRectangle,
-            'selection by sibling relation should include only blue rectangle 2');    
-            
+            'selection by sibling relation should include only blue rectangle 2');
+
         this.assertSizzleSelect([this.redRectangle],
             ':only-child',
             this.yellowRectangle,
-            'selection by sibling relation should include only red rectangle');   
-            
+            'selection by sibling relation should include only red rectangle');
+
         this.assertSizzleSelect([this.blueRectangle1, this.blueRectangle2],
             ':empty',
             this.yellowRectangle,
-            'selection by only-child relation should include both blue rectangles');  
-      
+            'selection by only-child relation should include both blue rectangles');
+
     },
     testSelectMorphByAttributes: function() {
-        
+
         this.assertSizzleSelect([this.yellowRectangle, this.redRectangle],
             '[testAttribute]',
             this.world,
             'selection for attribute "testAttribute" should return yellow rectangle and red rectangle');
-        
+
         this.assertSizzleSelect([this.yellowRectangle],
             '[testAttribute="theYellowRectangle"]',
             this.world,
             'selection for attribute "testAttribute=theYellowRectangle" should return yellow rectangle');
-        
+
         this.assertSizzleSelect([this.yellowRectangle, this.redRectangle],
             '[testAttribute^="the"]',
             this.world,
             'selection for attribute "testAttribute^=the" should return yellow and red rectangles');
-        
+
         this.assertSizzleSelect([this.yellowRectangle, this.redRectangle],
             '[testAttribute*="ectan"]',
             this.world,
             'selection for attribute "testAttribute*=ectan" should return yellow and red rectangles');
-        
+
         this.assertSizzleSelect([this.yellowRectangle, this.redRectangle],
             '[testAttribute$="Rectangle"]',
             this.world,
             'selection for attribute "testAttribute$=Rectangle" should return yellow and red rectangles');
-       
+
     },
-    
+
     testDoNotSelectMorphByClass: function() {
 
         this.assertSizzleSelect([this.yellowRectangle, this.redRectangle],
@@ -412,7 +412,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             this.yellowRectangle,
             'selection by not-class should return yellow and red rectangles');
     },
-    
+
     testSelectMorphByOwnership: function() {
         this.assertSizzleSelect([this.blueRectangle1,this.blueRectangle2],
             '.red .blue',
@@ -430,7 +430,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             '.red > .blue',
             this.world,
             'selection for ".red > .blue" should return both blue rectangles');
-        
+
         this.assertSizzleSelect([this.redRectangle],
             '.yellow > .Box',
             this.world,
@@ -453,6 +453,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var yellowRectangle = lively.morphic.Morph.makeRectangle(0,0, 300, 300);
         yellowRectangle.applyStyle({fill: Color.yellow});
         yellowRectangle.openInWorld();
+        yellowRectangle.addStyleClassName('yellow');
 
         var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
         redRectangle.applyStyle({fill: Color.red});
@@ -470,14 +471,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         blueRectangle2.addStyleClassName('blue');
         blueRectangle2.setStyleId('blue2');
         redRectangle.addMorph(blueRectangle2);
-        
+
         this.yellowRectangle = yellowRectangle;
         this.redRectangle = redRectangle;
         this.blueRectangle1 = blueRectangle1;
         this.blueRectangle2 = blueRectangle2;
-        
+
     },
-    
+
 },
 'testing', {
     test01SetStyleSheet: function() {
@@ -485,9 +486,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var css = ".some-class { color: red; }";
         this.morph.addStyleClassName('some-class');
         this.world.addMorph(this.morph);
-        debugger
         this.world.setStyleSheet(css);
-        
+
         var rules = this.morph.getMatchingStyleSheetRules();
         this.assert( 0 < rules.length, 'no rule assigned');
 
@@ -498,13 +498,41 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals('red', decl.valueText,
             'First declaration in rule is not color red but ' + Strings.print(decl.valueText));
     },
-    test02FindCSSRulesForMorphWithMorphItselfAsSizzleContext: function() {
+    test02FindCSSRulesForMorphWithStyleSheetDefinedInItself: function() {
         var css = ".some-class { color: red; }";
         this.morph.addStyleClassName('some-class');
 
         this.morph.setStyleSheet(css);
         var rules = this.morph.getMatchingStyleSheetRules();
+        this.assertEquals(1, rules.length, 'There has to be exactly one matching rule');
         this.assertEquals('.some-class', rules[0].selectorText(), 'Selector of first rule is not .some-class');
+
+
+
+
+        this.createSomeMorphs();
+
+        css = ".blue{color: purple;}";
+        this.yellowRectangle.setStyleSheet(css);
+
+        rules = this.blueRectangle1.getMatchingStyleSheetRules();
+        this.assertEquals(1, rules.length, 'Blue1: There has to be exactly one matching rule');
+        this.assertEquals('.blue', rules[0].selectorText(), 'Blue1: Selector of first rule is not .blue');
+
+        css = ".red .blue{color: purple;}";
+        this.yellowRectangle.setStyleSheet(css);
+
+        rules = this.blueRectangle1.getMatchingStyleSheetRules();
+        this.assertEquals(1, rules.length, 'Blue2: There has to be exactly one matching rule');
+        this.assertEquals('.red .blue', rules[0].selectorText(), 'Blue2: Selector of first rule is not .red .blue');
+
+        css = ".yellow .red .blue{color: purple;}";
+        this.yellowRectangle.setStyleSheet(css);
+
+        rules = this.blueRectangle1.getMatchingStyleSheetRules();
+        this.assertEquals(1, rules.length, 'Blue3: There has to be exactly one matching rule');
+        this.assertEquals('.yellow .red .blue', rules[0].selectorText(), 'Blue3: Selector of first rule is not .yellow .red .blue');
+
     },
     test03MorphsHaveOnlyMatchingCSSRules: function() {
         this.createSomeMorphs(); // sets up a hierarchy of morphs
@@ -519,12 +547,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             "}";
 
         this.yellowRectangle.setStyleSheet(css);
-        
+
         this.assert(this.blueRectangle1.getMatchingStyleSheetRules(), 'Blue Rectangle 1 has no rule attribute');
         var b1css = this.blueRectangle1.getMatchingStyleSheetRules();
         this.assertEquals(1, b1css.length, 'Blue Rectangle 1 has not exactly 1 rule');
         this.assertEquals('.blue:nth-child(1)', b1css [0].selectorText(), 'Selector of first rule in blueRectangle2 is not .blue:nth-child(1)');
-        
+
         this.assert(this.blueRectangle2.getMatchingStyleSheetRules(), 'Blue Rectangle 2 has no rule attribute');
         var b2css = this.blueRectangle2.getMatchingStyleSheetRules();
         this.assertEquals(1, b2css.length, 'Blue Rectangle 2 has not exactly 1 rule');
@@ -534,14 +562,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var rcss = this.redRectangle.getMatchingStyleSheetRules();
         this.assertEquals(1, rcss.length, 'RedRectangle has not exactly 1 rule');
         this.assertEquals('.red', rcss[0].selectorText(), 'Selector of first rule in RedRectangle is not .red');
-        
+
     },
     test05MorphsHaveOnlyCurrentCSSRules: function() {
         this.createSomeMorphs(); // sets up a hierarchy of morphs
         var firstCSS = ".red { color: red; }",
             secondCSS = "#the-red-rectangle { color: green; }",
             worldCSS = "#the-red-rectangle { color: black; }";
-        
+
         this.yellowRectangle.setStyleSheet(firstCSS);
         this.world.setStyleSheet(worldCSS );
 
@@ -576,7 +604,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 
         this.world.setStyleSheet(worldCss);
         this.yellowRectangle.setStyleSheet(yellowCss);
-        sortedRules = this.redRectangle.sortStyleSheetRules();
+        sortedRules = this.redRectangle.getMatchingStyleSheetRules();
 
         this.assertEquals(6, sortedRules.length, 'redRectangle should have 5 rules');
 
@@ -596,9 +624,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
     },
     test04GetRuleSpecificityOnMorph: function() {
         var css = ".blue, #the-red-rectangle.red, #the-red-rectangle, .red { color: red; }",
-            rules = apps.cssParser.parse(css);
+            rules = apps.cssParser.parse(css).cssRules;
         this.createSomeMorphs(); // sets up a hierarchy of morphs
-        
+
         this.assertEquals(10,
             this.blueRectangle1.getStyleSheetRuleSpecificity(rules.first()),
             'rule specificity on blue rect has to be 10');
@@ -648,7 +676,7 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
 'testing', {
     test01RuleOfCSSClassDef: function() {
         var css = ".some-class { color: red; }",
-            rules = apps.cssParser.parse(css);
+            rules = apps.cssParser.parse(css).cssRules;
         this.assertEquals(1, rules.length, 'no rule parsed');
         var expected = {
             mSelectorText: '.some-class',

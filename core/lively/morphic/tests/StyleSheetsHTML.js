@@ -35,9 +35,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
                 'test, *#test, #test-two.test3 {'+
                 'border: 1px solid red;'+
                 '}',
-            rules = this.morph.processStyleSheet(css),
+
+            rules = apps.cssParser.parse(css).cssRules,
             comp = this.morph.compileStyleSheet(rules),
-            decomp = this.morph.processStyleSheet(comp);
+            decomp = apps.cssParser.parse(comp).cssRules;
 
         this.assert((comp && comp.length > 0),
             'Compiled style sheet has to be longer than 0');
@@ -71,7 +72,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
             |      /  \
             13    23  33
         */
-        
+
         morph1Level1.addMorph(morph1Level2);
         morph1Level1.addMorph(morph2Level2);
         morph2Level1.addMorph(morph3Level2);
@@ -92,7 +93,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         this.assertStyleNode(morph1Level1, morph2Level2,
              'Style node of 11 is not before 22');
 
-  
+
 
         // TODO: more asserts?
 

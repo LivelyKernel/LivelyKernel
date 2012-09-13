@@ -321,8 +321,13 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
             else ctx.shapeNode.removeAttribute(attrVal.attr);
     },
     setAllAttributes: function() {
-        if (this.attributes && !Array.isArray(this.attributes)) for (var x in this.attributes) {
-            this.setAttribute(x, this.attributes[x]);
+        if (this.attributes) {
+            if (Array.isArray(this.attributes)) {
+                this.attributes = {};
+            }
+            for (var x in this.attributes) {
+                this.setAttribute(x, this.attributes[x]);
+            }
         }
     },
     getProp: function(prop) {

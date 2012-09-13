@@ -351,7 +351,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
     },
     setExtentHTML: function(ctx, value) {
         if (!ctx.shapeNode) return undefined;
-              debugger;
+
         var newExtent = value;
 
         var n = ctx.shapeNode.nodeName;

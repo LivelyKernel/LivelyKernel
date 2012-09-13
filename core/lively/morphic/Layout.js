@@ -2,6 +2,10 @@ module('lively.morphic.Layout').requires('lively.morphic.Core', 'lively.morphic.
 
 lively.morphic.Morph.addMethods(
 'layouting', {
+    // if you want a specific morph not be layouted (morph being part of a layout,
+    // set this to false)
+    isLayoutable: true,
+
     adjustForNewBounds: function() {
         // resizeVertical, resizeHorizontal, moveVertical, moveHorizontal
 
@@ -108,25 +112,23 @@ lively.morphic.Morph.addMethods(
         var topLeft = this.getBounds().topLeft(),
             nx, ny,
             cx, cy;
-	      nx = pos.x;
-	      ny = pos.y;
-	      cx = this.getPosition().x;
-	      cy = this.getPosition().y;
-	      this.setPosition(pt(
-	          nx + cx - topLeft.x,
+          nx = pos.x;
+          ny = pos.y;
+          cx = this.getPosition().x;
+          cy = this.getPosition().y;
+          this.setPosition(pt(
+              nx + cx - topLeft.x,
             ny + cy - topLeft.y));
     },
 
     getLayoutableSubmorphs: function() {
-				// reject is damn slow..., optimize it!
-				var morphs = new Array(this.submorphs.length);
-				for (var i = 0; i < this.submorphs.length; i++) {
-						var m = this.submorphs[i];
-						if (!m.isEpiMorph && !m.isBeingDragged) {
-								morphs.push(m)
-						}
-				}
-				return morphs;
+        // reject is damn slow..., optimize it!
+        var morphs = new Array(this.submorphs.length);
+        for (var i = 0; i < this.submorphs.length; i++) {
+            var m = this.submorphs[i];
+            if (!m.isEpiMorph && !m.isBeingDragged && m.isLayoutable) { morphs.push(m); }
+        }
+        return morphs;
     },
 
     getPositionInWorld: function() {
@@ -377,26 +379,26 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
             return this.getBorderSize("left") + this.getBorderSize("right") +
                 (submorphs.size()-1) * this.getSpacing() +
                 submorphs.reduce(function (s, e)
-		    {if (e.layout == undefined || e.layout.resizeWidth == false || e.layout.resizeWidth == undefined)
-		        {return s + e.getExtent().x;}
-	            else
+            {if (e.layout == undefined || e.layout.resizeWidth == false || e.layout.resizeWidth == undefined)
+                {return s + e.getExtent().x;}
+                else
                         {return s + e.getMinWidth();}}, 0);
 
         },
-	getMinHeight: function(container, submorphs) {
+    getMinHeight: function(container, submorphs) {
             return this.getBorderSize("top") + this.getBorderSize("bottom") +
                 submorphs.reduce(function(h, morph)
-		    {if (morph.getMinHeight() > h)
-			{return morph.getMinHeight();}
-		    else
-			{return h;}}, 0);
+            {if (morph.getMinHeight() > h)
+            {return morph.getMinHeight();}
+            else
+            {return h;}}, 0);
         },
     handlesSubmorphResized: function() {
         return false;
     },
 
-	layoutOrder: function(aMorph) {
-		return aMorph.getCenter().x;
+    layoutOrder: function(aMorph) {
+        return aMorph.getCenter().x;
     },
     displaysPlaceholders: function() {
         return true;
@@ -495,24 +497,24 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
         }, this.getBorderSize("top"));
     },
 
-	getMinHeight: function(container, submorphs) {
+    getMinHeight: function(container, submorphs) {
 
             return this.getBorderSize("top") + this.getBorderSize("bottom") +
                 (submorphs.size()-1) * this.getSpacing() +
                 submorphs.reduce(function (s, e)
-		    {if (e.layout == undefined || e.layout.resizeHeight == false || e.layout.resizeHeight == undefined)
-		        {return s + e.getExtent().y;}
-	            else
-		        {return s + e.getMinHeight();}}, 0);
+            {if (e.layout == undefined || e.layout.resizeHeight == false || e.layout.resizeHeight == undefined)
+                {return s + e.getExtent().y;}
+                else
+                {return s + e.getMinHeight();}}, 0);
 
         },
-	getMinWidth: function(container, submorphs) {
+    getMinWidth: function(container, submorphs) {
             return this.getBorderSize("left") + this.getBorderSize("right") +
                 submorphs.reduce(function(w, morph)
-		    {if (morph.getMinWidth() > w)
-			{return morph.getMinWidth();}
-		    else
-			{return w;}}, 0);
+            {if (morph.getMinWidth() > w)
+            {return morph.getMinWidth();}
+            else
+            {return w;}}, 0);
         },
 
         getEffectiveHeight: function(container, submorphs) {
@@ -521,8 +523,8 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
                 submorphs.reduce(function (s, e) {
                     return s + e.getExtent().y}, 0);
         },
-	layoutOrder: function(aMorph) {
-		//return aMorph.getCenter().y;
+    layoutOrder: function(aMorph) {
+        //return aMorph.getCenter().y;
                 return aMorph.getPosition().y;
     },
     displaysPlaceholders: function() {
@@ -729,7 +731,7 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.GridLayout',
 
     layoutOrder: function(aMorph) {
         // something we need to think about!
-	      return aMorph.getCenter().x;
+          return aMorph.getCenter().x;
     },
 
     getColWidth: function(columnIndex) {

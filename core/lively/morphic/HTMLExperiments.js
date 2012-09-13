@@ -315,12 +315,10 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.HTMLShape',
         this.renderContextDispatch('setAttribute', {attr: attribute, val: value});
     },
     setAttributeHTML: function(ctx, attrVal) {
-        if (attrVal.attr && attrVal.val) {
             if (attrVal.val) {
                 $(ctx.shapeNode).attr(attrVal.attr, attrVal.val);
             }
             else ctx.shapeNode.removeAttribute(attrVal.attr);
-        }
     },
     setAllAttributes: function() {
         if (this.attributes) for (var x in this.attributes) {

@@ -31,7 +31,7 @@ Since there are a lot of CSS properties out there, this
 is only a selection.
 Feel free to add missing properties!
 
-A property can have several value counts (i.e. the value of 
+A property can have several value counts (i.e. the value of
 border-color could be 'black', but it could also be 'black black black blue').
 
 A value is of a certain type:
@@ -70,7 +70,7 @@ A value is of a certain type:
 			}
 		}
 	},
-	
+
 	'border-top-color': {
 		1 : { // only one value for this property
 			1 : {
@@ -127,8 +127,8 @@ A value is of a certain type:
 			}
 		}
 	},
-	
-	
+
+
 };
 
 
@@ -162,7 +162,7 @@ lively.morphic.Morph.addMethods(
             delete this._StyleSheet;
         }
     },
-	
+
 	loadStyleSheetFromFile: function(file, resourcePath){
 		// use the resourcePath parameter if the resources addressed
 		// in the CSS file are in a different directory than the CSS'.
@@ -211,7 +211,7 @@ lively.morphic.Morph.addMethods(
 				responseText: webRGet.content
 			};
 		},
-	
+
     getStyleSheet: function() {
         return this.morphicGetter('StyleSheet');
     },

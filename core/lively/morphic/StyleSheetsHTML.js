@@ -196,7 +196,7 @@ lively.morphic.Morph.addMethods(
         if (rules.length && rules.length > 0 &&
             compiledCss && compiledCss.length &&
             compiledCss.length > 0) {
-			
+
 			if (!ctx.styleNode) {
 				ctx.styleNode = $('<style type="text/css" id="' +
 					styleTagId + '"></style>').get(0);
@@ -208,7 +208,7 @@ lively.morphic.Morph.addMethods(
 			$(ctx.styleNode).remove();
 			delete ctx.styleNode;
 		}
-		
+
     },
     appendStyleNodeHTML: function(ctx, styleNode) {
         // Adds the morph's style node to the DOM

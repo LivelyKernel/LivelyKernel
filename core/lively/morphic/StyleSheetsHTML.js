@@ -193,22 +193,20 @@ lively.morphic.Morph.addMethods(
         rules = this.getStyleSheetRules(),
         compiledCss = this.compileStyleSheet(rules);
 
-        if (rules.length && rules.length > 0 &&
-            compiledCss && compiledCss.length &&
-            compiledCss.length > 0) {
-
-			if (!ctx.styleNode) {
-				ctx.styleNode = $('<style type="text/css" id="' +
-					styleTagId + '"></style>').get(0);
-			}
-           $(ctx.styleNode).text(compiledCss);
-		   if (!ctx.styleNode.parentNode) {
-		    	this.appendStyleNodeHTML(ctx, ctx.styleNode);
-			}
-        } else if (ctx.styleNode) {
+        
+		if (ctx.styleNode) {
 			$(ctx.styleNode).remove();
 			delete ctx.styleNode;
 		}
+		if (rules.length && rules.length > 0 &&
+            compiledCss && compiledCss.length &&
+            compiledCss.length > 0) {
+			ctx.styleNode = $('<style type="text/css" id="' +
+					styleTagId + '"></style>').get(0);
+           $(ctx.styleNode).text(compiledCss);
+		    this.appendStyleNodeHTML(ctx, ctx.styleNode);
+			
+        } 
 
     },
     appendStyleNodeHTML: function(ctx, styleNode) {

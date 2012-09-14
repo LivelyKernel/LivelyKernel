@@ -460,7 +460,7 @@ Object.subclass('lively.morphic.Morph',
         return Object.mergePropertyInHierarchy(this, 'style');
     },
     applyStyle: function(spec) {
-        if (!spec) return;
+        if (!spec) return this;
 
         if (spec.pos || spec.position) this.setPosition(spec.position);
         if (spec.extent !== undefined) this.setExtent(spec.extent);
@@ -529,7 +529,7 @@ Object.subclass('lively.morphic.Morph',
         }
 
         return this;
-    },
+    }
 
 },
 'debugging', {
@@ -654,25 +654,27 @@ lively.morphic.Morph.subclass('lively.morphic.Box',
     initialize: function($super, initialBounds) {
         $super(new lively.morphic.Shapes.Rectangle(initialBounds.extent().extentAsRectangle()));
         this.setPosition(initialBounds.topLeft());
-    },
+    }
 });
 
 lively.morphic.Box.subclass('lively.morphic.List',
 'properties', {
-    isList: true,
+    isList: true
 });
+
 lively.morphic.List.subclass('lively.morphic.DropDownList'); // FIXME does not belong here
+
 lively.morphic.Box.subclass('lively.morphic.Clip',
 'initializing', {
     initialize: function($super, initialBounds) {
         $super(initialBounds);
         this.applyStyle({clipMode: 'scroll'});
-    },
+    }
 });
 
 Object.subclass('lively.morphic.Script',
 'properties', {
-    isScript: true,
+    isScript: true
 },
 'ticking', {
     execute: function() { throw new Error('subclass responsibility') },

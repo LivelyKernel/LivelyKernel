@@ -1309,11 +1309,11 @@ lively.morphic.DropDownList.addMethods(
 },
 'mouse events', {
     onMouseDown: function(evt) {
+        this.changeTriggered = false; // see onBlur
         if (evt.isCommandKey()) {
             evt.preventDefault()
             return false;
         }
-        this.changeTriggered = false; // see onBlur
         return true;
      },
 
@@ -1334,6 +1334,10 @@ lively.morphic.DropDownList.addMethods(
         var idx = this.renderContextDispatch('getSelectedIndexes').first();
         this.updateSelectionAndLineNoProperties(idx);
     },
+    isGrabbable: function(evt) {
+        return false; //!this.changeTriggered;
+    },
+
 
     registerForOtherEvents: function($super, handleOnCapture) {
         $super(handleOnCapture)

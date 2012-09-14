@@ -532,7 +532,7 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
         this.shape = new lively.morphic.Shapes.External(this.rootElement)
         $super(this.shape);
         this.shape.setBounds({
-            extent: function() {return initialExtent;},
+            extent: initialExtent,
             topLeft: function() {return pt(0,0);}});
 
         this.setFill(Color.rgb(200,200,200));

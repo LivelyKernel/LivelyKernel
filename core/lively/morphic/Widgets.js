@@ -100,13 +100,14 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     },
 
     applyStyle: function($super, spec) {
-        $super(spec);
         if (spec.label && this.label) {
             this.label.applyStyle(spec.label);
         }
+        return $super(spec);
     },
+
     generateFillWith: function(color, shade, upperCenter, lowerCenter, bottomShade){
-     return new lively.morphic.LinearGradient(
+        return new lively.morphic.LinearGradient(
             [{offset: 0, color: color.mixedWith(shade, 0.2)},
             {offset: upperCenter || 0.3, color: color},
             {offset: lowerCenter || 0.7, color: color},
@@ -1092,6 +1093,50 @@ lively.morphic.Morph.addMethods(
         }
         return null;
     }
+},
+'modal dialog', {
+    beModal: function(optBackgroundColor) {
+        /*
+         *   Makes a morph 'modal' by adding a backpane to the world
+         *   which is not removed as long as the morph is still there.
+         *
+         *   Usage:
+         *
+         *   morph.beModal(Color.gray);
+         *
+         *  Enjoy
+         */
+        if (this.backPanel) {
+            this.removeBackPanel();
+        }
+
+        function createBackPanel(extent) {
+            var backPanel = new lively.morphic.Box(extent.extentAsRectangle()),
+                style = {enableGrabbing: false, enableDragging: false};
+            if (optBackgroundColor) style.fill = optBackgroundColor;
+            backPanel.applyStyle(style).ignoreEvents();
+            return backPanel;
+        }
+
+        this.addScript(function removeBackPanel() {
+            this.backPanel && this.backPanel.remove && this.backPanel.remove();
+            delete this.backPanel;
+            delete this.removeBackPanel;
+            delete this.remove;
+        });
+
+        this.addScript(function remove() {
+            if (this.backPanelCanBeRemoved) this.removeBackPanel();
+            return $super();
+        });
+
+        this.backPanel = createBackPanel(this.owner.getExtent());
+        this.owner.addMorph(this.backPanel);
+        this.backPanel.bringToFront();
+        this.backPanelCanBeRemoved = false;
+        this.bringToFront();
+        this.backPanelCanBeRemoved = true;
+    }
 });
 
 lively.morphic.Text.addMethods(
@@ -1833,14 +1878,14 @@ lively.morphic.List.addMethods(
 },
 'styling', {
     applyStyle: function($super, spec) {
-        $super(spec);
         if (spec.fontFamily !== undefined) this.setFontFamily(spec.fontFamily);
         if (spec.fontSize !== undefined) this.setFontSize(spec.fontSize);
+        return $super(spec);
     },
     setFontSize: function(fontSize) { return  this.morphicSetter('FontSize', fontSize) },
     getFontSize: function() { return  this.morphicGetter('FontSize') || 10 },
     setFontFamily: function(fontFamily) { return  this.morphicSetter('FontFamily', fontFamily) },
-    getFontFamily: function() { return this.morphicSetter('FontFamily') || 'Helvetica' },
+    getFontFamily: function() { return this.morphicSetter('FontFamily') || 'Helvetica' }
 },
 'multiple selection support', {
     enableMultipleSelections: function() {
@@ -2567,65 +2612,13 @@ lively.morphic.App.subclass('lively.morphic.WindowedApp',
         view.ownerApp = this; // for debugging
         this.view = window;
         return window;
-    },
-});
-
-cop.create('lively.morphic.ModalLayer').refineClass(lively.morphic.Morph, {
-    /*
-        Makes a morph 'modal' by adding a backpane to the world
-        which is not removed as long as the morph is still there.
-
-        Usage:
-
-        morph.addWithLayer(lively.morphic.ModalLayer);
-        morph.beModal(Color.rgba(0,0,0,0.5);
-
-        Enjoy
-    */
-
-    beModal: function(optBackgroundColor) {
-        if (this.backPanel) {
-            this.removeBackPanel();
-        }
-        this.backPanel = this.createBackPanel(optBackgroundColor);
-        this.owner.addMorph(this.backPanel);
-        this.backPanel.bringToFront();
-        this.backPanelCanBeRemoved = false;
-        this.bringToFront();
-        this.backPanelCanBeRemoved = true;
-    },
-    remove: function(){
-        if (this.backPanelCanBeRemoved) {
-            this.removeBackPanel();
-        }
-        cop.proceed();
-    },
-    createBackPanel: function(optColor) {
-        var backPanel,
-            backPanelExtent = this.owner.getExtent();
-
-        backPanel = new lively.morphic.Box(backPanelExtent.extentAsRectangle());
-        if (optColor) {
-            backPanel.applyStyle({fill: optColor});
-        }
-        backPanel.ignoreEvents();
-        backPanel.disableGrabbing();
-        backPanel.disableDragging();
-        backPanel.disableHalos();
-
-        return backPanel;
-    },
-    removeBackPanel: function() {
-        this.backPanel && this.backPanel.remove && this.backPanel.remove();
-        this.backPanel = null;
     }
-
 });
 
 // COPIED from Widgets.js SelectionMorph
 lively.morphic.Box.subclass('lively.morphic.Selection',
 'documentation', {
-    documentation: 'selection "tray" object that allows multiple objects to be moved and otherwise manipulated simultaneously',
+    documentation: 'selection "tray" object that allows multiple objects to be moved and otherwise manipulated simultaneously'
 },
 'settings', {
     style: {fill: null, borderWidth: 1, borderColor: Color.darkGray},

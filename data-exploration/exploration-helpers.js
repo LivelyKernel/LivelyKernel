@@ -43,28 +43,41 @@ var net = {
 var couchDB = {
     baseURL: "http://localhost:9001/proxy/localhost:5984/",
 
-    getDocsPaginated: function(tableName, docs, pageSize, page, callback) {
-        var url = this.baseURL + tableName + '/' + docs + "?include_docs=true";
-        if (isNumber(pageSize)) {
-            url += "&limit=" + pageSize;
-            if (isNumber(page)) {
-                var skip = page * pageSize;
-                url += "&skip=" + pageSize;
+    getDocsPaginated: function(options, callback) {
+        // options:
+        // {tableName, baseQuery, pageSize, page, callback}
+        var url = this.baseURL + options.dbName + '/' + options.baseQuery + "?include_docs=true";
+        if (isNumber(options.pageSize)) {
+            url += "&limit=" + options.pageSize;
+            if (isNumber(options.page)) {
+                var skip = options.page * options.pageSize;
+                url += "&skip=" + options.pageSize;
             }
         }
         net.httpRequest({
             url: url,
             done: function(req) {
+                var cb = callback || options.callback;
                 if (req.status >= 400) {
                     console.log('Error in request %s: %s', url, req.statusText);
+                    cb && cb(req.status, req);
                     return;
                 }
-                var result = JSON.parse(req.responseText),
-                    docs = result.rows.map(function(row) { return row.doc });
+                var result;
+                try {
+                    result = JSON.parse(req.responseText);
+                    if (result. error) throw(result. error);
+                } catch(e) {
+                    console.log('Error parsing JSON %s: %s', url, req.responseText);
+                    cb && cb(e, req.responseText);
+                    return;
+                }
+                var docs = result.rows.map(function(row) { return row.doc });
 
-                console.log("Got page " + page + ' ' + docs.length + ' docs ' + url);
+                console.log("Got page " + options.page + ' ' + docs.length + ' docs ' + url);
 
-                callback && callback(result);
+                var cb = callback || options.callback;
+                cb && cb(null, result);
             }
         });
     }

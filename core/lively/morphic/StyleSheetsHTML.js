@@ -200,10 +200,11 @@ lively.morphic.Morph.addMethods(
 			if (!ctx.styleNode) {
 				ctx.styleNode = $('<style type="text/css" id="' +
 					styleTagId + '"></style>').get(0);
-				this.appendStyleNodeHTML(ctx, ctx.styleNode);
 			}
            $(ctx.styleNode).text(compiledCss);
-		   //console.log(compiledCss);
+		   if (!ctx.styleNode.parentNode) {
+		    	this.appendStyleNodeHTML(ctx, ctx.styleNode);
+			}
         } else if (ctx.styleNode) {
 			$(ctx.styleNode).remove();
 			delete ctx.styleNode;

@@ -500,6 +500,8 @@ cop.create('lively.morphic.RelativeLayer').refineClass(lively.morphic.Morph, {
 			}
 
 		}
+	    this.prepareDOMForStyleSheetsHTML(ctx);
+            this.setStyleSheetHTML(ctx, this.getStyleSheet());
 	   //this.setNodeId(this.id);
             //this.getShape().setStyleSheetHTML(ctx, this.getShape().getStyleSheet());
 	},

@@ -656,12 +656,12 @@ lively.morphic.List.addMethods(
         if (ctx.subNodes) {
             ctx.subNodes.forEach(function(ea) { ea.selected = false })
         }
-    },
+    }
 },
 'drop down support HTML', {
     renderAsDropDownListHTML: function(ctx) {
         if (ctx.listNode) ctx.listNode.size = 1
-    },
+    }
 },
 'multiple selection support HTML', {
     enableMultipleSelectionsHTML: function(ctx) {
@@ -691,7 +691,7 @@ lively.morphic.List.addMethods(
                 node.scrollIntoViewIfNeeded();
         }
     },
-    clearSelectionsHTML: function(ctx) { this.deselectNodesHTML(ctx) },
+    clearSelectionsHTML: function(ctx) { this.deselectNodesHTML(ctx) }
 },
 'node creation', {
     createListNodeHTML: function() {

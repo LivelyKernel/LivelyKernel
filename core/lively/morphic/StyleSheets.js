@@ -155,6 +155,7 @@ lively.morphic.Morph.addMethods(
     },
 
     setStyleSheet: function(styleSheet) {
+        debugger
         if (styleSheet && styleSheet.length && styleSheet.length > 0) {
             return this.morphicSetter('StyleSheet', styleSheet);
         } else {

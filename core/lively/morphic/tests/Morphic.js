@@ -822,18 +822,19 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ImageTests',
             childNodes: [{
                 tagName: 'div',
                 childNodes: [{tagName: 'img', attributes: {src: url}}]
-            }],
+            }]
         };
         this.assertNodeMatches(expected, morph.renderContext().getMorphNode());
-    },
+    }
 });
+
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
 'testing', {
     testWrongSubMenuItems: function() {
         var menu = lively.morphic.Menu.openAt(pt(0,0), 'test', [['foo', ['bar']], ['foo2', ['bar2']]]),
             item = menu.submorphs[1]; // 0 is title, 1 is first item
         this.doMouseEvent({type: 'mouseover', pos: pt(5,5), target: item.renderContext().getMorphNode()});
-        this.assertEquals('bar', menu.subMenu.items[0].string, 'sub menu is wrong')
+        this.assertEquals('bar', menu.subMenu.items[0].string, 'sub menu is wrong');
     },
 
     testTransformMenuBoundsForVisibility: function() {
@@ -843,19 +844,19 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
         // nothing to do when rect opens in visible range
         menuBounds = new Rectangle(0,0, 30, 20);
         expected = menuBounds;
-        var result = lively.morphic.Menu.prototype.moveBoundsForVisibility(menuBounds, ownerBounds)
+        result = lively.morphic.Menu.prototype.moveBoundsForVisibility(menuBounds, ownerBounds)
         this.assertEquals(expected, result, 1);
 
         // move bounds left besides opening point (hand) so that no accidental clicks occur
         menuBounds = new Rectangle(290,0, 30, 20);
         expected = new Rectangle(260,0, 30, 20);
-        var result = lively.morphic.Menu.prototype.moveBoundsForVisibility(menuBounds, ownerBounds)
+        result = lively.morphic.Menu.prototype.moveBoundsForVisibility(menuBounds, ownerBounds)
         this.assertEquals(expected, result, 2);
 
         // if bottom of menu would be lower than bottom of visble bounds, translate it
         menuBounds = new Rectangle(0,90, 30, 20);
         expected = menuBounds.translatedBy(pt(0,-10));
-        var result = lively.morphic.Menu.prototype.moveBoundsForVisibility(menuBounds, ownerBounds)
+        result = lively.morphic.Menu.prototype.moveBoundsForVisibility(menuBounds, ownerBounds)
         this.assertEquals(expected, result, 3);
     },
 
@@ -867,7 +868,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
         mainMenuItemBounds = new Rectangle(0,0, 10, 10);
         subMenuBounds = new Rectangle(0,0, 30, 20);
         expected = new Rectangle(10,0, 30, 20);
-        var result = lively.morphic.Menu.prototype.moveSubMenuBoundsForVisibility(
+        result = lively.morphic.Menu.prototype.moveSubMenuBoundsForVisibility(
             subMenuBounds, mainMenuItemBounds, ownerBounds);
         this.assertEquals(expected, result, 1);
 
@@ -875,7 +876,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
         mainMenuItemBounds = new Rectangle(290,0, 10, 10);
         subMenuBounds = new Rectangle(0,0, 30, 20);
         expected = new Rectangle(290-30,0, 30, 20);
-        var result = lively.morphic.Menu.prototype.moveSubMenuBoundsForVisibility(
+        result = lively.morphic.Menu.prototype.moveSubMenuBoundsForVisibility(
             subMenuBounds, mainMenuItemBounds, ownerBounds);
         this.assertEquals(expected, result, 2);
 
@@ -883,7 +884,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
         mainMenuItemBounds = new Rectangle(0,90, 10, 10);
         subMenuBounds = new Rectangle(0,0, 30, 20);
         expected = new Rectangle(10,90-10, 30, 20);
-        var result = lively.morphic.Menu.prototype.moveSubMenuBoundsForVisibility(
+        result = lively.morphic.Menu.prototype.moveSubMenuBoundsForVisibility(
             subMenuBounds, mainMenuItemBounds, ownerBounds);
         this.assertEquals(expected, result, 3);
 
@@ -891,7 +892,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
         mainMenuItemBounds = new Rectangle(0,0, 10, 10);
         subMenuBounds = new Rectangle(0,0, 10, 200);
         expected = new Rectangle(10,0, 10, 200);
-        var result = lively.morphic.Menu.prototype.moveSubMenuBoundsForVisibility(
+        result = lively.morphic.Menu.prototype.moveSubMenuBoundsForVisibility(
             subMenuBounds, mainMenuItemBounds, ownerBounds);
         this.assertEquals(expected, result, 4);
     },
@@ -900,8 +901,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MenuTests',
         var ownerBounds = new Rectangle(0,0, 20, 20),
             menuBounds = new Rectangle(10,10, 30, 30),
             // move 1px to right so hand is out of bounds
-            expected = new Rectangle(1,0, 30, 30);
-        var result = lively.morphic.Menu.prototype.moveBoundsForVisibility(menuBounds, ownerBounds)
+            expected = new Rectangle(1,0, 30, 30),
+            result = lively.morphic.Menu.prototype.moveBoundsForVisibility(menuBounds, ownerBounds);
         this.assertEquals(expected, result, 'transformed when onerBounds smaller');
     },
 

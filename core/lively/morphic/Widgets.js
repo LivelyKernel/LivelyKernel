@@ -686,6 +686,20 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                     self.openSubMenu(evt, name, subItems) }, true));
                 return;
             }
+
+            // [name, {getItems: function() { return submenu items }}]
+            if (Object.isArray(item) && Object.isObject(item[1])) {
+                var name = item[0], spec = item[1];
+                if (Object.isFunction(spec.condition)) {
+                    if (!spec.condition()) return;
+                }
+                if (Object.isFunction(spec.getItems)) {
+                    result.push(createItem(name, name, i, null, function(evt) {
+                        self.openSubMenu(evt, name, spec.getItems()) }, true));
+                }
+                return;
+            }
+
             // item = "some string"
             result.push(createItem(String(item), item, i, function() { alert('clicked ' + self.idx) }));
         });
@@ -963,26 +977,30 @@ lively.morphic.Morph.addMethods(
         return true;
     },
     morphMenuItems: function() {
-        var self = this, items = [];
-        items.push([
-            'Publish', function(evt) {
-            self.copyToPartsBinWithUserRequest();
-        }])
-        items.push(['Open in window', function(evt){
-            self.openInWindow(evt.mousePoint);
-        }]);
+        var self = this, world = this.world(), items = [
+            ['Publish', function(evt) { self.copyToPartsBinWithUserRequest(); }],
+            ['Open in window', function(evt) {self.openInWindow(evt.mousePoint); }]
+        ];
 
         // Drilling into scene to addMorph or get a halo
         // whew... this is expensive...
-        var world = this.world(),
-            morphs = world.morphsContainingPoint(this.worldPoint(pt(0,0)))
-                     .reject(function(ea) { return ea === self || ea === world; });
-        items.push(["Add morph to...", morphs.collect(function(ea) {
-                return [ea, function() { ea.addMorph(self)}]
-        })])
-        items.push(["Get halo on...", morphs.collect(function(ea) {
-                return [ea, function(evt) { ea.toggleHalos(evt)}]
-        })])
+        function menuItemsForMorphsBeneathMe(itemCallback) {
+            var morphs = world.morphsContainingPoint(self.worldPoint(pt(0,0)));
+            morphs.pop(); // remove world
+            var selfInList = morphs.indexOf(self);
+            // remove self and other morphs over self (the menu)
+            morphs = morphs.slice(selfInList + 1);
+            return morphs.collect(function(ea) { return [String(ea), itemCallback.bind(this, ea)]; });
+        }
+
+        items.push(["Add morph to...", {
+            getItems: menuItemsForMorphsBeneathMe.bind(this,  function(morph) { morph.addMorph(self) })
+        }]);
+
+        items.push(["Get halo on...", {
+            getItems: menuItemsForMorphsBeneathMe.bind(this,  function(morph, evt) { morph.toggleHalos(evt); })
+        }]);
+
         var steppingItems = [];
 
         if (this.startSteppingScripts) {
@@ -994,28 +1012,25 @@ lively.morphic.Morph.addMethods(
         if (steppingItems.length != 0) {
             items.push(["Stepping", steppingItems])
         }
-         if (this.attributeConnections && this.attributeConnections.length > 0) {
-            items.push(["Connections", this.attributeConnections
-                .reject(function(ea) { return ea.dependedBy}) // Meta connection
-                .reject(function(ea) { return ea.targetMethodName == 'alignToMagnet'}) // Meta connection
-                .collect(function(ea) {
-                    var s = ea.sourceAttrName + " -> " + ea.targetObj  + "." + ea.targetMethodName
-                    return [s, [
-                        ["Disconnect", function() {
-                            alertOK("disconnecting " + ea)
-                            ea.disconnect()}],
-                        ["Edit converter", function() {
-                            var window = lively.bindings.editConnection(ea);
-                        }],
-                        ["Show", function() {
-                            lively.bindings.showConnection(ea);
-                        }],
-                        ["Hide", function() {
-                            if (ea.visualConnector) ea.visualConnector.remove();
-                        }],
-                    ]]
-                })])
-        }
+        items.push(["Connections", {
+            condition: function() {
+                return self.attributeConnections && self.attributeConnections.length > 0;
+            },
+            getItems: function() {
+                return self.attributeConnections
+                    // rk: come on, this is a mess!
+                    .reject(function(ea) { return ea.dependedBy }) // Meta connection
+                    .reject(function(ea) { return ea.targetMethodName == 'alignToMagnet'}) // Meta connection
+                    .collect(function(ea) {
+                        var s = ea.sourceAttrName + " -> " + ea.targetObj  + "." + ea.targetMethodName
+                        return [s, [
+                            ["Disconnect", function() { alertOK("disconnecting " + ea); ea.disconnect(); }],
+                            ["Edit converter", function() { var window = lively.bindings.editConnection(ea); }],
+                            ["Show", function() { lively.bindings.showConnection(ea); }],
+                            ["Hide", function() { if (ea.visualConnector) ea.visualConnector.remove(); }]]];
+                    });
+            }
+        }]);
 
         if (this.grabbingEnabled || this.grabbingEnabled == undefined) {
             items.push(["Disable grabbing", this.disableGrabbing.bind(this)])

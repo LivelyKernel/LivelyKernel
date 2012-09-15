@@ -127,6 +127,7 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
         if (!text || text == '') return null;
         if (this.labelMorph) this.labelMorph.remove();
         this.labelMorph = new lively.morphic.Text(new Rectangle(0,0, 0, 0), text).beLabel({align: 'center', fixedWidth: false, fixedHeight: false, textColor: Color.darkGray});
+        this.labelMorph.ignoreEvents();
 
         this.addMorph(this.labelMorph);
         (function() {

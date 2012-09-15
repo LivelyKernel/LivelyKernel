@@ -113,18 +113,21 @@ cop.create('lively.morphic.GrabbingLayer')
     isLocked: function() { return false },
     onDragStart: function(evt) {
         if (cop.proceed(evt)) return;
-        ((this.grabbingEnabled == undefined) || (this.grabbingEnabled == true)) && evt.hand.grabMorph(this);
+        evt.hand.grabMorph(this);
     },
 })
 .refineClass(lively.morphic.Text, {
     onDragStart: function(evt) {
         if (cop.proceed(evt)) return;
-        // only grab when in outer area of bounds
-        var bounds = this.innerBounds(),
-            smallerBounds = bounds.insetBy(6),
-            pos = this.localize(evt.getPosition());
-        if (bounds.containsPoint(pos) && !smallerBounds.containsPoint(pos))
-            ((this.grabbingEnabled == undefined) || (this.grabbingEnabled == true)) && evt.hand.grabMorph(this);
+        var grabMe = !this.allowInput;
+        if (!grabMe) {
+            // only grab when in outer area of bounds
+            var bounds = this.innerBounds(),
+                smallerBounds = bounds.insetBy(6),
+                pos = this.localize(evt.getPosition());
+            grabMe = bounds.containsPoint(pos) && !smallerBounds.containsPoint(pos);
+        }
+        grabMe && evt.hand.grabMorph(this);
     },
 });
 

@@ -659,7 +659,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
                 value: value,
                 idx: idx,
                 onClickCallback: callback,
-                onMouseOverCallback: callback2,
+                onMouseOverCallback: callback2
             }
         }
         var result = [], self = this;
@@ -855,7 +855,6 @@ Object.extend(lively.morphic.Menu, {
 
 lively.morphic.Text.subclass("lively.morphic.MenuItem",
 'settings', {
-    defaultItemHeight: 23,
     style: {
         clipMode: 'hidden',
         fixedHeight: true,
@@ -866,8 +865,10 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
         enableGrabbing: false,
         allowInput: false,
         fontSize: 10.5,
-        padding: Rectangle.inset(3,2)
-    }
+        padding: Rectangle.inset(3,2),
+        textColor: Config.get('textColor') || Color.black
+    },
+    defaultTextColor: Config.get('textColor') || Color.black
 },
 'initializing', {
     initialize: function($super, item) {
@@ -881,19 +882,8 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
             arrowMorph = new lively.morphic.Text(
                 new Rectangle(0, 0, 10, extent.y), "▶");
         arrowMorph.setPosition(pt(extent.x, 0));
-        arrowMorph.applyStyle({
-            clipMode: 'hidden',
-            fixedHeight: true,
-            fixedWidth: false,
-            borderWidth: 0,
-            fill: null,
-            handStyle: 'default',
-            enableGrabbing: false,
-            allowInput: false,
-            fontSize: 10,
-            padding: Rectangle.inset(3,2)
-        });
-        this.addMorph(arrowMorph);
+        arrowMorph.applyStyle(this.getStyle());
+        this.arrow = this.addMorph(arrowMorph);
     }
 },
 'mouse events', {
@@ -948,12 +938,9 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
 
     deselect: function(evt) {
         this.isSelected = false;
-        this.applyStyle({fill: null, textColor: Color.black});
-
-        // if the item is a submenu, set its textColor back to black
-        var arrow = this.submorphs.first();
-        if (arrow) {
-            arrow.applyStyle({textColor: Color.black});
+        this.applyStyle({fill: null, textColor: this.defaultTextColor});
+        if (this.arrow) {
+            this.arrow.applyStyle({textColor: this.defaultTextColor});
         }
     }
 

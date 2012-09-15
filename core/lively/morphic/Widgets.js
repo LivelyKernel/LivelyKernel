@@ -520,7 +520,7 @@ lively.morphic.Box.subclass('lively.morphic.ProgressBar',
 },
 'updating', {
     updateBar: function(value) {
-	var maxExt = this.getExtent();
+    var maxExt = this.getExtent();
         // this.progressMorph.setPosition(pt(1,1));
         this.progressMorph.setExtent(pt(Math.floor(maxExt.x * value), maxExt.y));
     },
@@ -654,7 +654,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             return {
                 isMenuItem: true,
                 isListItem: true,
-				isSubMenu: isSubMenu,
+                isSubMenu: isSubMenu,
                 string: string,
                 value: value,
                 idx: idx,
@@ -1166,7 +1166,7 @@ lively.morphic.World.addMethods(
         var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld';
         var part = lively.PartsBin.getPart(partName, optPartspaceName);
         if (!part)
-        	return;
+            return;
         if (part.onCreateFromPartsBin) part.onCreateFromPartsBin();
         return part;
     },
@@ -1333,7 +1333,7 @@ lively.morphic.World.addMethods(
         items.pushAll(partNames.collect(function(ea) { return [ea, function() {
             var partSpaceName = 'PartsBin/Basic',
                 part = lively.PartsBin.getPart(ea, partSpaceName);
-			      if (!part) return;
+                  if (!part) return;
             lively.morphic.World.current().firstHand().grabMorph(part);
         }]}))
 
@@ -1342,7 +1342,7 @@ lively.morphic.World.addMethods(
         items.pushAll(partNames.collect(function(ea) { return [ea, function() {
             var partSpaceName = 'PartsBin/Inputs',
                 part = lively.PartsBin.getPart(ea, partSpaceName);
-			      if (!part) return;
+                  if (!part) return;
             lively.morphic.World.current().firstHand().grabMorph(part);
         }]}))
 
@@ -1465,7 +1465,7 @@ lively.morphic.World.addMethods(
             ['Parts', this.morphMenuDefaultPartsItems()],
             ['Tools', [
                 ['Workspace', this.openWorkspace.bind(this)],
-		        ['System Code Browser', this.openSystemBrowser.bind(this)],
+                ['System Code Browser', this.openSystemBrowser.bind(this)],
                 ['Object Editor', this.openObjectEditor.bind(this)],
                 ['Test Runner', this.openTestRunner.bind(this)],
                 ['Method Finder', this.openMethodFinder.bind(this)],
@@ -1504,7 +1504,7 @@ lively.morphic.World.addMethods(
             ['Documentation', [
                 ["On short cuts", this.openShortcutDocumentation.bind(this)],
                 ["On connect data bindings", this.openConnectDocumentation.bind(this)],
-				        ["On Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
+                        ["On Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
                 ["More ...", function() { window.open(Config.rootPath + 'documentation/'); }]
             ]],
             ['Save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],
@@ -1702,11 +1702,11 @@ lively.morphic.World.addMethods(
             ea.setScale(1);
         })
     },
-	resetScale: function () {
-		this.setScale(1);
-		this.firstHand().setScale(1)
-	},
-	resetAllTitleBars: function() {
+    resetScale: function () {
+        this.setScale(1);
+        this.firstHand().setScale(1)
+    },
+    resetAllTitleBars: function() {
         this.submorphs.select(function(ea) {
             return ea instanceof lively.morphic.Window
         }).invoke('resetTitleBar')
@@ -2132,7 +2132,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             var moveDelta = evt.mousePoint.subPt(this.dragStartPoint)
             if (evt.isShiftDown()) {
                 var maxDelta = Math.max(moveDelta.x, moveDelta.y);
-	              moveDelta = pt(maxDelta, maxDelta);
+                  moveDelta = pt(maxDelta, maxDelta);
             };
             this.owner.setExtent(this.originalTargetExtent.addPt(moveDelta));
             this.align(this.bounds().bottomRight(), this.owner.getExtent());
@@ -2508,8 +2508,8 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
         var input = new lively.morphic.Text(this.label.bounds().insetByPt(pt(this.label.getPosition().x * 2, 0)), this.defaultInput || '');
         input.align(input.getPosition(), this.label.bounds().bottomLeft().addPt(pt(0,5)));
         input.beInputLine({fixedWidth: true});
-		input.disableDragging();
-		input.disableGrabbing();
+        input.disableDragging();
+        input.disableGrabbing();
         connect(input, 'savedTextString', this, 'result');
         connect(input, 'onEscPressed', this, 'result', {converter: function() { return null } });
         connect(this.panel, 'onEscPressed', this, 'result', {converter: function() { return null}});
@@ -3192,7 +3192,7 @@ lively.morphic.Box.subclass('lively.morphic.HorizontalDivider', Trait('Horizonta
     },
 });
 
-lively.morphic.Box.subclass('lively.morphic.Slider', Trait('SliderMorphTrait'),
+lively.morphic.Box.subclass('lively.morphic.Slider',
 'settings', {
     style: {
         borderColor: Color.darkGray,
@@ -3201,12 +3201,14 @@ lively.morphic.Box.subclass('lively.morphic.Slider', Trait('SliderMorphTrait'),
         fill: Styles.sliderBackgroundGradient(Color.gray, "NorthSouth")
     },
     connections: {
-        value: {}}
+        value: {}
+    },
+    mss: 12  // "minimum slider size"
 },
 'initializing', {
     initialize: function($super, initialBounds, scaleIfAny) {
         $super(initialBounds);
-        connect(this, 'value', this, 'adjustSliderParts')
+        connect(this, 'value', this, 'adjustSliderParts');
         this.setValue(0);
         this.setSliderExtent(0.1);
         this.valueScale = (scaleIfAny === undefined) ? 1.0 : scaleIfAny;
@@ -3219,6 +3221,14 @@ lively.morphic.Box.subclass('lively.morphic.Slider', Trait('SliderMorphTrait'),
     getValue: function() { return this.value },
 
     setValue: function(value) { return this.value = value },
+
+    getScaledValue: function() {
+        return (this.getValue() || 0) / this.valueScale; // FIXME remove 0
+    },
+
+    setScaledValue: function(value) {
+        return this.setValue(value * this.valueScale);
+    },
 
     getSliderExtent: function() { return this.sliderExtent },
 
@@ -3254,7 +3264,50 @@ lively.morphic.Box.subclass('lively.morphic.Slider', Trait('SliderMorphTrait'),
         this.setScaledValue(this.clipValue(newValue));
 
         return true;
+    }
+
+},
+'slider logic', {
+      vertical: function() {
+            var bnds = this.shape.bounds();
+            return bnds.height > bnds.width;
+      },
+      clipValue: function(val) {
+            return Math.min(1.0,Math.max(0,0,val.roundTo(0.0001)));
+      }
+},
+'layouting', {
+    adjustSliderParts: function() {
+        if (!this.sliderKnob) return;
+
+        // This method adjusts the slider for changes in value as well as geometry
+        var val = this.getScaledValue(),
+            bnds = this.shape.bounds(),
+            ext = this.getSliderExtent();
+
+
+        if (this.vertical()) { // more vertical...
+            var elevPix = Math.max(ext*bnds.height, this.mss), // thickness of elevator in pixels
+                topLeft = pt(0, (bnds.height - elevPix)*val),
+                sliderExt = pt(bnds.width, elevPix);
+        } else { // more horizontal...
+            var elevPix = Math.max(ext*bnds.width, this.mss), // thickness of elevator in pixels
+                topLeft = pt((bnds.width - elevPix)*val, 0),
+                sliderExt = pt(elevPix, bnds.height);
+        }
+        this.sliderKnob.setBounds(bnds.topLeft().addPt(topLeft).extent(sliderExt));
     },
+    adjustFill: function() {},
+
+    setupFill: function() {
+        if (this.vertical()) {
+            this.sliderKnob.linkToStyles(['slider']);
+            this.linkToStyles(['slider_background']);
+        } else {
+            this.sliderKnob.linkToStyles(['slider_horizontal']);
+            this.linkToStyles(['slider_background_horizontal']);
+        }
+    }
 })
 
 // FIXME move somewhere else

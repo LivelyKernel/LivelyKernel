@@ -501,6 +501,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         };
         if (customStyle) labelStyle = Object.merge([labelStyle, customStyle]);
         this.applyStyle(labelStyle);
+        this.ignoreEvents();
         return this;
     },
     beInputLine: function(customStyle) {

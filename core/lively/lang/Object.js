@@ -279,13 +279,15 @@ Properties = {
     },
 
     forEachOwn: function(object, func, context) {
+        var result = [];
         for (var name in object) {
             if (!object.hasOwnProperty(name)) continue;
             var value = object[name];
             if (!Object.isFunction(value)) {
-                func.call(context || this, name, value);
+                result.push(func.call(context || this, name, value));
             }
         }
+        return result;
     },
 
     nameFor: function(object, value) {

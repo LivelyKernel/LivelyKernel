@@ -11,6 +11,7 @@ lively.Config.set("wikiRepoUrl", protocol + '//' + host + (url.include('swa/rese
                                                     wwPath + '/swa/research' : wwPath));
 
 lively.Config.set("debugExtras", false);
+lively.Config.set("verboseLogging", true);
 
 // FIXME what from both options is used???
 lively.Config.set("askBeforeQuit", true);

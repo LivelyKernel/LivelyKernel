@@ -729,12 +729,10 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         this.subMenu = m;
         m.ownerMenu = this;
 
-          // we do this twice because effect of fitToItems is delayed
-        m.setVisible(false); // we hide it because it is first shown at the wrong position
-        m.offsetForOwnerMenu();
+        // delayed so we can use the real text extent
         (function() {
             if (!m.ownerMenu) return; // we might have removed that submenu already again
-            m.offsetForOwnerMenu()
+            m.offsetForOwnerMenu();
             m.setVisible(true);
         }).delay(0);
 
@@ -829,11 +827,12 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     offsetForOwnerMenu: function() {
         var owner = this.ownerMenu,
             visibleBounds = this.world().visibleBounds(),
-            localVisibleBounds = owner.getTransform().inverse().transformRectToRect(visibleBounds),
+            localVisibleBounds = owner.getGlobalTransform().inverse().transformRectToRect(visibleBounds),
             newBounds = this.moveSubMenuBoundsForVisibility(
                 this.innerBounds(),
                 owner.overItemMorph ? owner.overItemMorph.bounds() : new Rectangle(0,0,0,0),
-                localVisibleBounds);
+                localVisibleBounds
+            );
         this.setBounds(newBounds);
     },
 
@@ -1820,7 +1819,8 @@ lively.morphic.List.addMethods(
     },
 
     getSelectedItem: function() {
-        return this.selection && this.selection.isListItem ? this.itemList[this.selectedLineNo] : this.selection;
+        return this.selection && this.selection.isListItem ?
+            this.selection : this.itemList[this.selectedLineNo];
     },
     moveUpInList: function(itemOrValue) {
         if (!itemOrValue) return;

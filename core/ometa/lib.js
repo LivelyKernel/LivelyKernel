@@ -225,7 +225,7 @@ Global.printOn = function ometaPrintOn(objOrArray, ws) {
 	}
 }
 
-Array.prototype.toString = function() { var ws = "".writeStream(); Global.printOn(this,ws); return ws.contents() }
+// Array.prototype.toString = function() { var ws = "".writeStream(); Global.printOn(this,ws); return ws.contents() }
 
 // delegation
 Object.delegated = function(from, props) {

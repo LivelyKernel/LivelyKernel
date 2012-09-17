@@ -697,12 +697,13 @@ View.subclass('Resource'/*, NetRequestReporterTrait*/, {
     documentation: "a remote document that can be fetched, stored and queried for metadata",
     // FIXME: should probably encapsulate content type
 
-    formals: ["ContentDocument", //:XML
+    formals: [
+        "ContentDocument", //:XML
         "ContentText", //:String
         "URL", // :URL
         "RequestStatus", // :NetRequestStatus
         "ResponseHeaders",
-        "Progress",
+        "Progress"
     ],
 
     createNetRequest: function() {
@@ -1031,7 +1032,7 @@ Object.subclass('SVNVersionInfo', {
     initialize: function(spec) {
         // possible properties of spec:
         // rev, date, author, url, change, content
-        for (name in spec) {
+        for (var name in spec) {
             var val = spec[name];
             if (name == 'date') {
                 if (Object.isString(val)) {
@@ -1135,20 +1136,20 @@ Object.subclass('WebResource',
     createResource: function() {
         var self = this;
         var resource = new SVNResource(
-            this.getRepoURL().toString(),
-            {
+            this.getRepoURL().toString(), {
                 model: {
                     url: self.getURL().toString(),
                     getURL: function() { return this.url },
                     setURL: function(url) { this.url = url },
-                    setRequestStatus: function(reqStatus) { self.status = reqStatus; self.isExisting = reqStatus.isSuccess() },
+                    setRequestStatus: function(reqStatus) {
+                        self.status = reqStatus; self.isExisting = reqStatus.isSuccess() },
                     setContentText: function(string) { self.content = string },
                     setContentDocument: function(doc) { self.contentDocument = doc },
                     setResponseHeaders: function(obj) { self.responseHeaders = obj },
                     setProgress: function(progress) { self.progress = progress },
                     setHeadRevision: function(rev) { self.headRevision = rev },
                     getHeadRevision: function() { return self.headRevision },
-                    setMetadata: function(metadata) { self.versions = metadata },
+                    setMetadata: function(metadata) { self.versions = metadata }
                 },
                 getURL: 'getURL',
                 setURL: 'setURL',
@@ -1159,24 +1160,25 @@ Object.subclass('WebResource',
                 setProgress: 'setProgress',
                 setHeadRevision: 'setHeadRevision',
                 getHeadRevision: 'getHeadRevision',
-                setMetadata: 'setMetadata',
+                setMetadata: 'setMetadata'
             });
         resource.isShowingProgress = this.isShowingProgress;
-        // resource.removeNetRequestReporterTrait();
-        return resource
+        return resource;
     },
 
     createNetRequest: function() {
-        var self = this;
-        var request = new NetRequest({
+        var self = this,
+            request = new NetRequest({
                 model: {
-                    setStatus: function(reqStatus) { self.status = reqStatus; self.isExisting = reqStatus.isSuccess() },
+                    setStatus: function(reqStatus) {
+                        self.status = reqStatus; self.isExisting = reqStatus.isSuccess() },
                     setResponseText: function(string) { self.content = string },
                     setResponseXML: function(doc) { self.contentDocument = doc },
                     setResponseHeaders: function(obj) { self.responseHeaders = obj },
                     setReadyState: function(readyState) { self.readystate = readyState },
                     setProgress: function(progress) { self.progress = progress },
-                    setStreamContent: function(content) { self.content = content;  self.streamContent = content  },
+                    setStreamContent: function(content) {
+                        self.content = content;  self.streamContent = content  }
                 },
                 setStatus: 'setStatus',
                 setResponseText: 'setResponseText',
@@ -1184,12 +1186,11 @@ Object.subclass('WebResource',
                 setResponseHeaders: 'setResponseHeaders',
                 setReadyState: 'setReadyState',
                 setProgress: 'setProgress',
-                setStreamContent: 'setStreamContent',
+                setStreamContent: 'setStreamContent'
         });
-        if (this.isSync())
-            request.beSync();
-        if (this.requestHeaders)
-            request.requestHeaders = this.requestHeaders;
+        if (this.isSync()) request.beSync();
+        if (this.requestHeaders) request.requestHeaders = this.requestHeaders;
+        this.xhr = request.transport;
         return request;
     },
     createXMLHTTPRequest: function(method) {
@@ -1250,6 +1251,8 @@ Object.subclass('WebResource',
         } else {
             req.addEventListener("progress", onProgress, false);
         }
+
+        this.xhr = req;
 
         // to be more or less compatible with the netRequest object -- fixme should simplified
         return {

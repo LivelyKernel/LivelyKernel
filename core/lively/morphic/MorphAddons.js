@@ -70,6 +70,16 @@ Object.extend(lively.morphic, {
         else console.log(msg);
     },
 
+    log: function(/*msg, args*/) {
+        var args = Array.from(arguments),
+            msg = Strings.format.apply(Strings, args);
+        if (Config.verboseLogging) {
+            $world.setStatusMessage(msg, Config.get('textColor'), 3);
+        } else {
+            console.log(msg);
+        }
+    },
+
     inspect: function(obj) {
         if (Global.lively && lively.morphic && lively.morphic.World.current())
             return lively.morphic.World.current().openInspectorFor(obj);
@@ -94,7 +104,8 @@ Object.extend(Global, {
     alert:    lively.morphic.alert,
     alertOK:  lively.morphic.alertOK,
     inspect:  lively.morphic.inspect,
-    edit:     lively.morphic.edit
+    edit:     lively.morphic.edit,
+    log:      lively.morphic.log
 });
 
 lively.morphic.Morph.addMethods(

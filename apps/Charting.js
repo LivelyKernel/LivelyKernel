@@ -1,4 +1,4 @@
-module('apps.Charting').requires('apps.d3').toRun(function() {
+module('apps.Charting').requires('apps.d3', 'lively.morphic.AdditionalMorphs').toRun(function() {
 
 Object.subclass('apps.Charting.ChartData',
 'init',
@@ -9,11 +9,10 @@ Object.subclass('apps.Charting.ChartData',
         this.dimensions = {};
     }
 },
-'dimensions',
-{
+'dimensions', {
     /*
     A dimension is defined as follows:
-    
+
     {
         id: unique identifier used to relate data to dimensions (no default),
         description: a string to describe the dimension(default: null),
@@ -22,11 +21,11 @@ Object.subclass('apps.Charting.ChartData',
         implicitTick: a function that returns the value of a tick on
             the implicit axis (default: function(t) {return t;}),
     }
-    
+
     The implicit dimension results from the order in the data array.
     A line graph, for instance, can interpret the values in the data array
     as y-coordinates whereas their order in the array determines their
-    x-coordinates. The implicitTick(t) function then calculates the 
+    x-coordinates. The implicitTick(t) function then calculates the
     x-coordinate value for a certain position in the array.
     If the data set already has two (or more) explicit dimensions,
     the implicit dimension is ignored.
@@ -47,19 +46,19 @@ Object.subclass('apps.Charting.ChartData',
         this.implicitDimension = dimension;
         return this;
     }
-    
+
 },
 'series',{
     /*
     A series represents a data set to be displayed in context
     (i.e. stock value over time).
-    
+
     A series is defined as follows:
-    
+
     {
         title: title of the series,
         values: array of numbers or key-value-pair objects
-            (i.e. [1, 45, 3, 10, -0.5] or 
+            (i.e. [1, 45, 3, 10, -0.5] or
             [{x: 1, y: -3.7}, {x: 20, y: 13}]),
     }
     */
@@ -113,15 +112,15 @@ Object.subclass('apps.Charting.ChartData',
             this.series[seriesId].values = [].concat(values);
         }
         return this;
-    },
+    }
 
-}
-);
+});
+
 Object.subclass('apps.Charting.ChartRenderer',
 'rendering', {
     render: function(data, context, optDisableStyling) {
         // Interface for the ChartRenderer strategy
-        // 
+        //
         // data: a Charting.ChartData instance,
         // context: the render base of the chart
         // (i.e. an HTML node),
@@ -170,20 +169,18 @@ lively.morphic.HtmlWrapperMorph.subclass('apps.Charting.ChartMorph',
             this.draw();
         }
     }
-}
-);
+});
+
 apps.Charting.ChartRenderer.subclass('apps.Charting.D3ChartRenderer',
 'rendering', {
     setRenderOption: function(option, value) {
-        if (!this.renderOptions) {
-            this.renderOptions = {};
-        }
+        this.renderOptions = this.renderOptions || {};
         this.renderOptions[option] = value;
         return this;
     },
     setRenderOptions: function(options) {
         /*
-        Options is an object that can have the following 
+        Options is an object that can have the following
         parameters (with following defaults):
         {
             interpolation: 'linear'
@@ -194,7 +191,7 @@ apps.Charting.ChartRenderer.subclass('apps.Charting.D3ChartRenderer',
     },
     setAxisOptions: function(options) {
         /*
-        Options is an object that can have the following 
+        Options is an object that can have the following
         parameters (with following defaults):
         {
             paddingTop: 0,
@@ -235,7 +232,7 @@ apps.Charting.ChartRenderer.subclass('apps.Charting.D3ChartRenderer',
             w = ctxW - paddingLeft - paddingRight,
             h = ctxH - paddingTop - paddingBottom,
             d3 = apps.d3.d3,
-            
+
             // generate an id for the clip path so multiple charts do
             // not cross reference their clip paths
             clipId = 'clip-' + Math.floor(Math.random()*0x10000).toString(16);
@@ -422,13 +419,14 @@ apps.Charting.ChartRenderer.subclass('apps.Charting.D3BarChartRenderer',
 
         hrules.exit()
             .remove()
-    },
+    }
 });
+
 apps.Charting.D3ChartRenderer.subclass('apps.Charting.D3LineChartRenderer',
 'rendering', {
     render: function(data, context) {
         $(context).empty();
-        var options = this.renderOptions,
+        var options = this.renderOptions || {},
             pane = this.createAxes(data, context, this.axisOptions ||
                 {paddingRight: 60, paddingBottom: 60, paddingTop: 20, paddingLeft: 20}),
             x = this.xScale,
@@ -455,6 +453,34 @@ apps.Charting.D3ChartRenderer.subclass('apps.Charting.D3LineChartRenderer',
 });
 
 
+apps.Charting.D3ChartRenderer.subclass('apps.Charting.D3MapChartRenderer',
+'rendering', {
+    render: function(data, context) {
+        $(context).empty();
 
+
+
+        // var options = this.renderOptions || {},
+        //     pane = this.createAxes(data, context, this.axisOptions ||
+        //         {paddingRight: 60, paddingBottom: 60, paddingTop: 20, paddingLeft: 20}),
+        //     x = this.xScale,
+        //     y = this.yScale,
+        //     d3 = apps.d3.d3,
+        //     line = d3.svg.line()
+        //         .interpolate(options.interpolation || 'linear')
+        //         .x(function(d) { return x(d.x); })
+        //         .y(function(d) { return y(d.y); }),
+        //     series = data.getSeries();
+        // series.each(function(s) {
+        //     pane.append("svg:path")
+        //         .datum(s.values)
+        //         .attr("class", 'line'+ (s.className ? ' '+ s.className : ''))
+        //         .attr("d", line)
+        //         .attr("fill", 'red');
+        //        //debugger
+        //     //console.log(line(s.values));
+        //     }, this);
+    }
+});
 
 }) // end of module

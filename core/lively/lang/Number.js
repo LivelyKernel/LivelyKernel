@@ -9,7 +9,10 @@ Object.extend(Number.prototype, {
     },
 
     roundTo: function(quantum) {
-        return Math.round(this / quantum) * quantum;
+        // quantum is something like 0.01,
+        // however for JS rounding to work we need the reciprocal
+        quantum = 1 / quantum;
+        return Math.round(this * quantum) / quantum;
     },
 
     detent: function(detent, grid, snap) {
@@ -21,10 +24,10 @@ Object.extend(Number.prototype, {
         // factor.
         var r1 = this.roundTo(grid); // Nearest multiple of grid
         if (Math.abs(this - r1) < detent / 2) return r1; // Snap to that multiple...
-        if (snap) return this // ...or return this
-        if (this < r1) r2 = r1 - (detent / 2) // Nearest end of dead zone
-        else r2 = r1 + (detent / 2);
-        //Scale values between dead zones to fill range between multiples"
+        if (snap) return this // ...and return this
+        // or compute nearest end of dead zone
+        var r2 = this < r1 ? r1 - (detent / 2) : r1 + (detent / 2);
+        // and scale values between dead zones to fill range between multiples
         return r1 + ((this - r2) * grid / (grid - detent));
     },
 
@@ -48,7 +51,7 @@ Numbers = {
         max  = max || 100;
         return Math.round(Math.random() * (max-min) + min)
     },
-    
+
     humanReadableByteSize: function(n) {
         function round(n) { return Math.round(n * 100) / 100 }
         if (n < 1000) return String(round(n)) + 'B'

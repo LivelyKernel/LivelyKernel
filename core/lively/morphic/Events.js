@@ -1204,7 +1204,6 @@ lively.morphic.List.addMethods(
 },
 'mouse events', {
     onMouseDown: function(evt) {
-
         if (evt.isCommandKey()) {
             evt.preventDefault()
             return false;
@@ -1218,6 +1217,7 @@ lively.morphic.List.addMethods(
             evt.stop();
             return true;
         }
+
         return false;
     },
     onMouseUp: function (evt) {
@@ -1472,6 +1472,7 @@ lively.morphic.World.addMethods(
             // "that" construct from Antero Taivalsaari's Lively Qt
             Global.that = this.clickedOnMorph;
             alertOK('that = ' + Global.that);
+            return true;
         }
 
         evt.hand.removeOpenMenu(evt);

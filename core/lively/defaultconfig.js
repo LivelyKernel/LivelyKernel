@@ -438,7 +438,8 @@ Config.addOptions(
         ["ignoreAdvice", UserAgent.isRhino, "Ignore function logging through the prototype.js wrap mechanism rhino will give more useful exception info"],
         ["showLivelyConsole", false, "Open up our console"],
         ["debugExtras", false, "Enable advanced debugging options"],
-        ["advancedSyntaxHighlighting", false, "Enable ast-based source code highlighting and error checking"]
+        ["advancedSyntaxHighlighting", false, "Enable ast-based source code highlighting and error checking"],
+        ["verboseLogging", false, "Whether to make logging/alerting highly visible in the UI"]
     ],
 
     'lively.morphic.Text', [

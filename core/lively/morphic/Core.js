@@ -273,8 +273,9 @@ Object.subclass('lively.morphic.Morph',
         // if morph1 visually before morph2 than list.indexOf(morph1) < list.indexOf(morph2)
         if (!list) list = [];
         if (!this.fullContainsWorldPoint(point)) return list;
-        for (var i = this.submorphs.length -1 ; i >=0; i--)
-            this.submorphs[i].morphsContainingPoint(point, list)
+        for (var i = this.submorphs.length -1 ; i >=0; i--) {
+            this.submorphs[i].morphsContainingPoint(point, list);
+        }
         if (this.innerBoundsContainsWorldPoint(point)) list.push(this);
         return list;
     },

@@ -275,8 +275,8 @@ lively.morphic.Morph.addMethods(
             }
 
             if (!parentNode) {
-                if (Config.debugMissingParentNode) debugger
-                alert('Cannot render ' + this + ' without parentNode')
+                if (Config.debugMissingParentNode) debugger;
+                console.warn('Cannot render ' + this + ' without parentNode');
                 return;
             }
         }

@@ -455,6 +455,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     inputAllowed: function() { return this.allowInput },
     setInputAllowed: function(bool) {
         this.morphicSetter('InputAllowed', bool);
+        this.setHandStyle(bool ? null : 'default');
         return this.allowInput = bool;
     }
 
@@ -496,7 +497,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             fixedHeight: true,
             allowInput: false,
             clipMode: 'hidden',
-            handStyle: 'default',
             emphasize: {textShadow: {offset: pt(0,1), color: Color.white}}
         };
         if (customStyle) labelStyle = Object.merge([labelStyle, customStyle]);
@@ -1208,11 +1208,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 
         if (this.isFocused()) {
             this.priorSelectionRange = this.getSelectionRange();  // save for onMouseUp
-        }
-
-        if (!this.allowInput && !this.allowsInput) {
-            evt.stop();
-            return false;
         }
 
         return false;

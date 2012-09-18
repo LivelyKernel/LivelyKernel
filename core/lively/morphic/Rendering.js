@@ -134,9 +134,9 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
         return parentNode.appendChild(childNode);
     },
     remove: function(node) {
-        if (!node.parentNode) return;
+        if (!node || !node.parentNode) return;
         node.parentNode.removeChild(node);
-    },
+    }
 },
 'accessing -- DOM', {
     getPosition: function(node) {

@@ -117,23 +117,23 @@ lively.morphic.Morph.addMethods(
 			rules = optCssRules || this.getStyleSheetRules();
 
         rules.each(function(rule) {
-				if (rule.selectorText && rule.declarations) {
-					var selectors = this.splitGroupedSelector(rule.selectorText()),
-						newSelector = '';
-					for (var i = 0; i < selectors.length; i++) {
-						newSelector += this.addSelectorPrefixes(selectors[i]);
-						if (i < selectors.length - 1) {
-							newSelector += ', ';
-						}
+			if (rule.selectorText && rule.declarations) {
+				var selectors = this.splitGroupedSelector(rule.selectorText()),
+					newSelector = '';
+				for (var i = 0; i < selectors.length; i++) {
+					newSelector += this.addSelectorPrefixes(selectors[i]);
+					if (i < selectors.length - 1) {
+						newSelector += ', ';
 					}
-					output += newSelector + ' {';
-					output += '\n';
-					rule.declarations.each(function(d) {
-							output += '\t' + d.cssText()+'\n';
-						});
-					output += '}\n';
 				}
-            }, this);
+				output += newSelector + ' {';
+				output += '\n';
+				rule.declarations.each(function(d) {
+					output += '\t' + d.cssText()+'\n';
+				});
+				output += '}\n';
+			}
+        }, this);
         return output;
     },
     addSelectorPrefixes: function(selector) {
@@ -190,26 +190,26 @@ lively.morphic.Morph.addMethods(
         // in the initHTML method of the morph.
 
         var styleTagId = "style-for-"+this.id,
-        rules = this.getStyleSheetRules(),
-        compiledCss = this.compileStyleSheet(rules);
-
-        if (rules.length && rules.length > 0 &&
-            compiledCss && compiledCss.length &&
-            compiledCss.length > 0) {
-
-			if (!ctx.styleNode) {
-				ctx.styleNode = $('<style type="text/css" id="' +
-					styleTagId + '"></style>').get(0);
-				this.appendStyleNodeHTML(ctx, ctx.styleNode);
-			}
-           $(ctx.styleNode).text(compiledCss);
-		   //console.log(compiledCss);
-        } else if (ctx.styleNode) {
-			$(ctx.styleNode).remove();
+            rules = this.getStyleSheetRules(),
+            compiledCss = this.compileStyleSheet(rules),
+            parseSuccess = compiledCss && compiledCss.length > 0;
+        if (!parseSuccess) {
+			ctx.domInterface.remove(ctx.styleNode);
 			delete ctx.styleNode;
+            return;
+        }
+		if (!ctx.styleNode) {
+            ctx.styleNode = XHTMLNS.create('style', {
+                type: "text/css",
+                id: styleTagId
+            });
 		}
-
+        if (!ctx.styleNode.parentNode) {
+		    this.appendStyleNodeHTML(ctx, ctx.styleNode);
+        }
+        $(ctx.styleNode).text(compiledCss);
     },
+
     appendStyleNodeHTML: function(ctx, styleNode) {
         // Adds the morph's style node to the DOM
         // and reflects the morph hierarchy in the

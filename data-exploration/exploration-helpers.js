@@ -102,10 +102,11 @@ var dataExploration = {
             var keys = Object.keys(ea),
                 hash = keys.sort().join('').hashCode();
             if (!result[hash]) {
-                result[hash] = {keys: keys, count: 0}
+                result[hash] = {keys: keys, count: 0, objects: []}
                 values.push(result[hash]);
             }
             result[hash].count++;
+            result[hash].objects.push(ea);
         });
         return values;
     }
@@ -113,7 +114,14 @@ var dataExploration = {
 
 if (typeof lively !== undefined) {
 
-    module('lively.TestFramework').load(true);
+Object.extend(Global, {
+    $lk: $lk,
+    couchDB: couchDB,
+    dataExploration: dataExploration,
+    net: net
+});
+
+module('lively.TestFramework').load(true);
 
 TestCase.subclass('ClassifierTests',
 'testing', {

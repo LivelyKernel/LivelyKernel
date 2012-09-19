@@ -51,7 +51,7 @@ Object.subclass('apps.Charting.ChartData',
 	getDimension: function(id) {
 		return this.dimensions[id];
 	},
-	
+
     getDimensions: function() {
        var result = [];
         for (var x in this.dimensions) {
@@ -222,7 +222,7 @@ lively.morphic.HtmlWrapperMorph.subclass('apps.Charting.D3ChartMorph',
 
 'template methods', {
 	makeContentPane: function(context) {
-		// Override to create a custom surface to be used as a 
+		// Override to create a custom surface to be used as a
 		// drawing context for the chart content.
 		// Per default an svg group element with a clippath is returned.
 
@@ -233,7 +233,7 @@ lively.morphic.HtmlWrapperMorph.subclass('apps.Charting.D3ChartMorph',
             .attr("id", clipId)
 			.attr('class', 'chart-content')
             .append("svg:rect");
-		
+
 		return context.append("svg:g")
             .attr("clip-path", "url(#"+clipId+")");
 	},
@@ -243,7 +243,7 @@ lively.morphic.HtmlWrapperMorph.subclass('apps.Charting.D3ChartMorph',
 		// context: a d3 node to draw your axes onto,
 		// dimensions: an array of simple dimension representations
 		// (i.e. [{id: 'x', title: 'X Axis', unit: 'Time'}])
-	
+
 	},
 	drawSeries: function(context, series) {
 		// Override to draw the information contained by the dataset's series
@@ -260,18 +260,18 @@ lively.morphic.HtmlWrapperMorph.subclass('apps.Charting.D3ChartMorph',
 			ctxH = $(context).height(),
             ctxW = $(context).width(),
 			contentPane;
-        
+
 		$(context).empty();
-		
+
 		this.drawingPane = d3.select(context).append("svg:svg")
             .attr("width", ctxW)
             .attr("height", ctxH)
             .append("svg:g");
-		
+
 		contentPane = this.makeContentPane(this.drawingPane);
-		
+
 		this.drawDimensions(this.drawingPane, dimensions);
-		
+
 		this.drawSeries(contentPane, series);
     }
 });
@@ -361,7 +361,7 @@ apps.Charting.ChartRenderer.subclass('apps.Charting.D3ChartRenderer',
             .attr("height", ctxH)
             .append("svg:g")
             .attr("transform", "translate(" + paddingLeft + "," + paddingTop + ")");
-			
+
         // Add the clip path.
         this.drawingPane.append("svg:clipPath")
             .attr("id", clipId)
@@ -535,7 +535,7 @@ apps.Charting.D3ChartRenderer.subclass('apps.Charting.D3LineChartRenderer',
             pane = this.createAxes(data, context, this.axisOptions ||
                 {paddingRight: 60, paddingBottom: 60, paddingTop: 20, paddingLeft: 20}),
            x = this.xScale,
-        y = this.yScale, 
+        y = this.yScale,
             series = data.getSeries();
         this.lineFunction = d3.svg.line()
                 .interpolate(options.interpolation || 'linear')

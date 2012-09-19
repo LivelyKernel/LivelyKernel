@@ -77,6 +77,7 @@ var testList = [
 
     // ide / SCB
     "lively.ide.tests.FileParserTests",
+    "lively.ide.tests.ModuleLookup",
     'lively.ide.tests.SCBTests',
     "lively.ide.tests.SyntaxHighlighting",
 

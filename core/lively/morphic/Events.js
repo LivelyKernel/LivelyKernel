@@ -1467,11 +1467,21 @@ lively.morphic.World.addMethods(
 
         return false;
     },
-    onMouseUp: function(evt) {
-        if (evt.isAltDown()) {
+    onMouseUp: function (evt) {
+        if (evt.isAltDown() && this.clickedOnMorph) {
+            if (!Global.thats) Global.thats = [];
+            // thats: select multiple morphs
+            // reset when clicked in world
+
+            if (this.clickedOnMorph === this) {
+                Global.thats = [];
+                alertOK('thats array emptied');
+            } else {
+                Global.thats.pushIfNotIncluded(this.clickedOnMorph);
+            }
             // "that" construct from Antero Taivalsaari's Lively Qt
             Global.that = this.clickedOnMorph;
-            alertOK('that = ' + Global.that);
+            Global.that.show && Global.that.show();
             return true;
         }
 

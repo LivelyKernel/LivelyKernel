@@ -1,6 +1,29 @@
 module('lively.morphic.ScriptingSupport').requires('lively.morphic.Core', 'lively.PartsBin', 'lively.morphic.Connectors').toRun(function() {
 
 lively.morphic.Morph.addMethods(
+'accessing', {
+    getAllScriptSelectors: function() {
+        return this.getAllScripts().collect(function(ea) { return ea.name }).compact();
+    },
+
+    getAllScripts: function() {
+        var result = [];
+        for (var name in this) {
+            if (!this.hasOwnProperty(name)) continue;
+            var script = this[name];
+            if (!Object.isFunction(script) || !script.getOriginal().hasLivelyClosure) continue;
+            result.push(script);
+        }
+        return result;
+    },
+
+    printAllScripts: function() {
+        var scripts = this.getAllScripts();
+        return scripts.collect(function(script) {
+            return Strings.format('this.addScript(%s)', script);
+        }).join('\n\n');
+    }
+},
 'naming', {
     setName: function(name) { this.name = name },
     getName: function() { return this.name },

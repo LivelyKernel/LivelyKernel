@@ -409,7 +409,7 @@ Object.subclass('AnotherSourceDatabase', {
         try {
             var webR = new WebResource(url).beSync(),
                 fileURLs = webR.getSubElements().subDocuments.collect(function(ea) { return ea.getURL() }),
-                fileNames = fileURLs.collect(function(ea) { return ea.relativePathFrom(URL.codeBase) }),
+                fileNames = this.mapURLsToRelativeModulePaths(fileURLs),
                 acceptedFileNames = /.*\.(st|js|lkml|ometa)$/,
                 rejects = ['JSON.js'];
 
@@ -417,14 +417,24 @@ Object.subclass('AnotherSourceDatabase', {
                         .select(function(ea) { return acceptedFileNames.test(ea) })
                         .reject(function(ea) { return rejects.include(ea) })
                         .uniq();
-
             return fileNames;
+
         } catch(e) {
             console.error('interestingLKFileNames: ' + e);
             return [];
         }
 
     },
+    mapURLsToRelativeModulePaths: function(urls) {
+        return urls.collect(function(ea) {
+            var path = ea.relativePathFrom(URL.root);
+            if (path.startsWith('core/')) {
+                path = path.slice('core/'.length);
+            }
+            return path;
+        });
+    }
+
 
 });
 

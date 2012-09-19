@@ -451,6 +451,15 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         connect(obj, 'x', obj, 'm');
         this.assert(!obj.hasOwnProperty('$$x'), 'connecting assigns non-existent property value');
     },
+
+    test40DisconnectAll: function() {
+        var obj = {};
+        connect(obj, 'x', obj, 'y');
+        connect(obj, 'x', obj, 'z');
+        disconnectAll(obj);
+        this.assert(!obj.attributeConnections, 'attributeConnections not removed');
+    }
+
 });
 
 TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionSerializationTest', {
@@ -741,7 +750,8 @@ TestCase.subclass('lively.bindings.tests.BindingTests.PlugTest',
         morph.plugTo(model, {
             setPosition: "<-positionMorph",
             _Rotation: "->rotationOfMorph",
-            someProperty: {dir: '<->', name: 'someProperty', options: {converter: function(x) { return x+1 }}},
+            someProperty: {dir: '<->', name: 'someProperty',
+                           options: {converter: function(x) { return x+1 }}}
         });
         this.assertEquals(pt(0,0), morph.getPosition(), 'initial pos')
         this.assertEquals(null, model.rotationOfMorph, 'initial rotationOfMorph')
@@ -757,8 +767,9 @@ TestCase.subclass('lively.bindings.tests.BindingTests.PlugTest',
 
         model.positionMorph(pt(10,10));
         this.assertEquals(pt(10,10), morph.getPosition(), 'positionOfMorph')
-    },
+    }
 });
+
 TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionJSONSerializationTest', {
 
     test01ObjConnectedToMethodDeserialization: function() {
@@ -771,7 +782,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionJSONSerializatio
             newObj2 = lively.persistence.Serializer.deserialize(jso);
         newObj2.a = 23;
         this.assertEquals(23, newObj2.ref.b, 'connection not working after deserialization');
-    },
+    }
 
 });
 

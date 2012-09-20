@@ -221,6 +221,7 @@ lively.morphic.HtmlWrapperMorph.subclass('apps.Charting.D3ChartMorph',
 },
 
 'template methods', {
+
 	makeContentPane: function(context) {
 		// Override to create a custom surface to be used as a
 		// drawing context for the chart content.
@@ -237,6 +238,14 @@ lively.morphic.HtmlWrapperMorph.subclass('apps.Charting.D3ChartMorph',
 		return context.append("svg:g")
             .attr("clip-path", "url(#"+clipId+")");
 	},
+
+    makeDrawingPane: function(context) {
+	// Override to create a custom surface to be used as a 
+	// drawing context for the chart content.
+        // Per default returns the context itself.
+        return context;
+    },
+
 	drawDimensions: function(context, dimensions) {
 		// Override this method to set up and draw your chart's axes
 		//
@@ -254,26 +263,37 @@ lively.morphic.HtmlWrapperMorph.subclass('apps.Charting.D3ChartMorph',
 'drawing', {
     draw: function() {
         var context = this.renderContext().shapeNode,
-			data = this.getChartData(),
-			dimensions = data.getDimensions(),
-			series = data.getSeries(),
-			ctxH = $(context).height(),
-            ctxW = $(context).width(),
-			contentPane;
 
-		$(context).empty();
+            data = this.getChartData(),
+            dimensions = data.getDimensions(),
+            series = data.getSeries(),
 
-		this.drawingPane = d3.select(context).append("svg:svg")
+            // Creates an SVG context for the chart
+            contextPane = this.prepareContext(context),
+
+            // Template hook for making a pane for the actual content
+            drawingPane = this.makeDrawingPane(contextPane);
+
+        // Template hook for drawing axes
+        this.drawDimensions(contextPane, dimensions);
+
+        // Template hook for drawing the series
+        this.drawSeries(drawingPane, series);
+    },
+    prepareContext: function(context) {
+        // Override to customize the DOM context of the chart.
+        // Returns an SVG node with a group node per default.
+        var ctxH = $(context).height(),
+            ctxW = $(context).width();
+
+        $(context).empty();
+
+        return d3.select(context).append("svg:svg")
             .attr("width", ctxW)
             .attr("height", ctxH)
             .append("svg:g");
-
-		contentPane = this.makeContentPane(this.drawingPane);
-
-		this.drawDimensions(this.drawingPane, dimensions);
-
-		this.drawSeries(contentPane, series);
     }
+
 });
 
 apps.Charting.ChartRenderer.subclass('apps.Charting.D3ChartRenderer',

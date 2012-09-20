@@ -317,7 +317,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         if (this.owner && this.owner.isInLayoutCycle) return;
 
         var scrollbarExtent = this.getScrollBarExtent(),
-            textExtent = this.getTextExtent(),
             borderWidth = this.getBorderWidth(),
             padding = this.getPadding() || new Rectangle(0,0,0,0),
             width = null,
@@ -337,6 +336,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         }
 
         if (this.fixedHeight) {
+            var textExtent = this.getTextExtent();
             height = Math.max(value, textExtent.y); // FIXME shouldn't that be value.y? (max width ever used??)
             // yes it should, and it is used, e.g. Scriptpanes are fixed in both dimensions  -bsiegmund
             // reverted for now, some bugs reported -bsiegmund

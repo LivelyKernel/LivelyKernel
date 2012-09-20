@@ -83,25 +83,13 @@ var couchDB = {
     }
 }
 
-// http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
-String.prototype.hashCode = function() {
-    var hash = 0;
-    if (this.length == 0) return hash;
-    for (var i = 0; i < this.length; i++) {
-        var c = this.charCodeAt(i);
-        hash = ((hash<<5)-hash) + c;
-        hash = hash & hash; // Convert to 32bit integer
-    }
-    return hash;
-}
-
 var dataExploration = {
     classify: function(objList) {
         var result = {}, values = [];
         objList.forEach(function(ea) {
-            var keys = Object.keys(ea),
-                hash = keys.sort().join('').hashCode();
+            var hash = Properties.hash(ea);
             if (!result[hash]) {
+                var keys = Properties.own(ea);
                 result[hash] = {keys: keys, count: 0, objects: []}
                 values.push(result[hash]);
             }

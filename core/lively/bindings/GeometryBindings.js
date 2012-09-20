@@ -162,20 +162,22 @@ lively.morphic.Morph.addMethods(
         extent: { map: 'shape._Extent'},
 
         globalTransform: {
-            connectionClassType: 'lively.morphic.GeometryTransformConnection'}},
+            connectionClassType: 'lively.morphic.GeometryTransformConnection'
+        }
+    }
 });
 lively.morphic.Text.addMethods(
 'bindings', {
     connections: {
         textString: {},
-        savedTextString: {},
-    },
+        savedTextString: {}
+    }
 });
 lively.morphic.Button.addMethods(
 'bindings', {
     connections: {
-        fire: {},
-    },
+        fire: {}
+    }
 });
 
 cop.create('lively.morphic.BindingsExtensionLayer').refineObject(lively.bindings, {
@@ -188,21 +190,16 @@ cop.create('lively.morphic.BindingsExtensionLayer').refineObject(lively.bindings
         if (!sourceObj.connections) return proceed();
         var connectionPoint = sourceObj.getConnectionPoints && sourceObj.getConnectionPoints()[attrName]
         if (!connectionPoint) return proceed();
-        var klass;
-        if (connectionPoint.map)
-            klass = lively.morphic.GeometryConnection
-        else if (connectionPoint.connectionClassType)
-            klass = Class.forName(connectionPoint.connectionClassType);
-        else
-            klass = AttributeConnection
-        if (!klass) throw new Error('cannot create customized connection without connectionClassType')
-        return new klass(sourceObj, attrName, targetObj, targetMethodName, specOrConverter).connect()
+        var klass = (connectionPoint.map && lively.morphic.GeometryConnection)
+                 || (connectionPoint.connectionClassType && Class.forName(connectionPoint.connectionClassType))
+                 || AttributeConnection;
+        return new klass(sourceObj, attrName, targetObj, targetMethodName, specOrConverter).connect();
     }
 }).beGlobal();
 
 // connect is not late bound, so we have to reinitialize it after layering
 Object.extend(Global, {
     connect: function() { return lively.bindings.connect.apply(lively.bindings, arguments) }
-})
+});
 
 }) // end of module

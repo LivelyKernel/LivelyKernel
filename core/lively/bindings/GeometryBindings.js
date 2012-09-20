@@ -193,7 +193,14 @@ cop.create('lively.morphic.BindingsExtensionLayer').refineObject(lively.bindings
         var klass = (connectionPoint.map && lively.morphic.GeometryConnection)
                  || (connectionPoint.connectionClassType && Class.forName(connectionPoint.connectionClassType))
                  || AttributeConnection;
-        return new klass(sourceObj, attrName, targetObj, targetMethodName, specOrConverter).connect();
+        var connection = new klass(sourceObj, attrName, targetObj, targetMethodName, specOrConverter).connect()
+
+        if (connectionPoint.updateOnConnect) {
+            connection.update(sourceObj[attrName]);
+        }
+
+        return connection;
+;
     }
 }).beGlobal();
 

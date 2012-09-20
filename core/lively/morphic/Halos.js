@@ -74,8 +74,9 @@ lively.morphic.Morph.addMethods(
 lively.morphic.World.addMethods(
 'halos', {
     showHalosFor: function(morph, halos) {
-        if (this.currentHaloTarget)
+        if (this.currentHaloTarget) {
             this.currentHaloTarget.removeHalos(this);
+        }
         this.currentHaloTarget = morph;
         halos.forEach(function(halo) { this.addMorph(halo); }, this);
     },
@@ -151,15 +152,15 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
                     // here come the magic numbers!
                     t.owner.worldPoint(t.bounds().topLeft().addXY(-3,15)));
             });
+            this.infoLabel.targetMorph = this.targetMorph
+            this.targetMorph.halos.push(this.infoLabel);
+            if (!this.world()) return this.infoLabel;
+            this.world().addMorph(this.infoLabel);
         }
-        this.infoLabel.targetMorph = this.targetMorph
         // Why needed?? - Dan --- rkrk - because of alignment at targetMorph
-        this.targetMorph.halos.push(this.infoLabel);
-        if (!this.world()) return this.infoLabel;
-        this.world().addMorph(this.infoLabel);
         this.infoLabel.alignAtTarget();
-        return this.infoLabel
-    },
+        return this.infoLabel;
+    }
 },
 'accessing', {
     getLabelText: function() { return this.labelText },
@@ -168,7 +169,7 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
     },
     getBoundsHalo: function() {
         return this.targetMorph && this.targetMorph.halos.detect(function(ea) { return ea.isBoundsHalo });
-    },
+    }
 },
 'layout', {
     alignAtTarget: function() {
@@ -183,9 +184,8 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
 
         var bounds = targetMorph.bounds(),
             boundsInWorld = owner.getGlobalTransform().transformRectToRect(bounds),
-            visibleBounds = this.computeHaloBounds(boundsInWorld, world);
-
-        var haloItemExtent = this.defaultExtent,
+            visibleBounds = this.computeHaloBounds(boundsInWorld, world),
+            haloItemExtent = this.defaultExtent,
             haloOffsetX = (visibleBounds.realWidth()-haloItemExtent.x) / this.maxHorizontalLabels,
             haloOffsetY = (visibleBounds.realHeight()-haloItemExtent.y) / this.maxVerticalLabels,
             pos = visibleBounds.topLeft().addPt(
@@ -193,11 +193,12 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
 
         return pos;
     },
+
     computeHaloBounds: function(morphBounds, owner) {
         // make sure in the bounds are fitting this.maxHorizontalLabels * this.maxVerticalLabels
         var haloItemExtent = this.defaultExtent,
             minHaloExtent = haloItemExtent.scaleByPt(
-                pt(this.maxHorizontalLabels+1, this.maxVerticalLabels+1));
+                pt(this.maxHorizontalLabels+1, this.maxVerticalLabels+1)),
             bounds = rect(morphBounds.topLeft().subPt(haloItemExtent),
                         morphBounds.bottomRight().addXY(haloItemExtent.x, 0)),
             visibleBounds = owner.visibleBounds(),
@@ -223,9 +224,9 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
 
         var deltaOffset = newOffset.subPt(this.startOffset)
 
-        moveDelta = moveDelta.addPt(deltaOffset)
+        moveDelta = moveDelta.addPt(deltaOffset);
         return moveDelta
-     },
+     }
 },
 'halo actions', {
     clickAction: function(evt) {

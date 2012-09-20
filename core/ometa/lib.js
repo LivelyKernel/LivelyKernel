@@ -152,9 +152,7 @@ escapeChar = function(c) {
   return charCode > 255 ? String.fromCharCode(charCode) : escapeStringFor[charCode]
 }
 
-window._unescape = window.unescape;
-
-function unescape(s) {
+function ometaUnescape(s) {
   if (s[0] == '\\')
     switch (s[1]) {
       case '\\': return '\\'
@@ -263,8 +261,7 @@ Global.isSequenceable = function(obj) { return Object.isArray(obj) || Object.isS
 Global.StringBuffer = StringBuffer;
 Global.ReadStream = ReadStream;
 Global.escapeChar = escapeChar;
-Global.urlUnescape = Global.unescape;
-Global.unescape = unescape;
+Global.ometaUnescape = ometaUnescape;
 Global.tempnam = tempnam;
 Global.getTag = getTag;
 

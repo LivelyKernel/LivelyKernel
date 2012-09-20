@@ -14,7 +14,7 @@ ometa BSJSParser <: Parser {
                | digit+:ws ('.' digit+ | empty -> []):fs                                         -> [#number,
                                                                                                      parseFloat(ws.join('') + '.' +
                                                                                                                 fs.join(''))],
-  escapeChar   = '\\' char:c                                                                     -> unescape('\\' + c),
+  escapeChar   = '\\' char:c                                                                     -> ometaUnescape('\\' + c),
   str          = seq('"""')  (escapeChar | ~seq('"""') char)*:cs seq('"""')                      -> [#string, cs.join('')]
                | '\'' (escapeChar | ~'\'' char)*:cs '\''                                         -> [#string, cs.join('')]
                | '"'  (escapeChar | ~'"'  char)*:cs '"'                                          -> [#string, cs.join('')]

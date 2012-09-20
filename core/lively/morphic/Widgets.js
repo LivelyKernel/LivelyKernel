@@ -1012,14 +1012,21 @@ lively.morphic.Morph.addMethods(
             items.push(["Stepping", steppingItems])
         }
         items.push(["Connections", {
+            getConnections: function() {
+                if (!this.connections) {
+                    this.connections = !self.attributeConnections ? [] :
+                        self.attributeConnections
+                            // rk: come on, this is a mess!
+                            .reject(function(ea) { return ea.dependedBy }) // Meta connection
+                            .reject(function(ea) { return ea.targetMethodName == 'alignToMagnet'}) // Meta connection
+                }
+                return this.connections;
+            },
             condition: function() {
-                return self.attributeConnections && self.attributeConnections.length > 0;
+                return this.getConnections().length > 0;
             },
             getItems: function() {
-                return self.attributeConnections
-                    // rk: come on, this is a mess!
-                    .reject(function(ea) { return ea.dependedBy }) // Meta connection
-                    .reject(function(ea) { return ea.targetMethodName == 'alignToMagnet'}) // Meta connection
+                return this.getConnections()
                     .collect(function(ea) {
                         var s = ea.sourceAttrName + " -> " + ea.targetObj  + "." + ea.targetMethodName
                         return [s, [

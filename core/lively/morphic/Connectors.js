@@ -220,7 +220,7 @@ cop.create('lively.morphic.VisualBindingsLayer')
                 }.bind(this)]);
         }
         return items
-    },
+    }
 })
 .refineClass(lively.morphic.Morph, {
     morphMenuItems: function() {
@@ -234,7 +234,7 @@ cop.create('lively.morphic.VisualBindingsLayer')
                 }]
             });
         return cop.proceed().concat([["Connect ...", connectionItems]]);
-    },
+    }
 })
 .beGlobal();
 
@@ -254,16 +254,17 @@ cop.create('NoMagnetsLayer')
     getMagnets: function() {return []},
 })
 
-
 lively.morphic.HandMorph.addMethods({
     withLayers: [NoMagnetsLayer]
 });
 lively.morphic.Halo.addMethods({
     withLayers: [NoMagnetsLayer]
 });
+
 lively.morphic.Window.addMethods({
     // withLayers: [NoMagnetsLayer]
 });
+
 cop.create('ConnectorLayer').refineClass(lively.morphic.Path, {
     onMouseUp: function(evt) {
         var result
@@ -394,7 +395,7 @@ lively.morphic.Path.addMethods(
 });
 
 lively.morphic.ControlPoint.addMethods({
-   alignToMagnet: function() {
+    alignToMagnet: function() {
         var magnet = this.connectedMagnet;
         if (!magnet || ! magnet.isMagnet) return
         var delta = magnet.getGlobalPosition().subPt(this.getGlobalPos());
@@ -448,9 +449,8 @@ Object.extend(lively.bindings, {
     },
     showConnection: function(con) {
         var source = con.sourceObj,
-            target = con.targetObj;
-
-        var visualConnector = source.createConnectorTo(target);
+            target = con.targetObj,
+            visualConnector = source.createConnectorTo(target);
 
         // arrow head
         var arrowHead = new lively.morphic.Path([pt(0,0), pt(0,12), pt(16,6), pt(0,0)]);

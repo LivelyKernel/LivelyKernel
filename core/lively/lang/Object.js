@@ -322,6 +322,10 @@ Properties = {
             if (predicate(obj, name)) result.push(name);
         }
         return result;
+    },
+
+    hash: function(obj) {
+        return Object.keys(obj).sort().join('').hashCode();
     }
 
 };

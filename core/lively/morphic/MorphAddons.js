@@ -50,10 +50,10 @@ Object.extend(lively.morphic, {
             return b;
         }
 
-         function createMarkerForCorners() {
+        function createMarkerForCorners() {
             r = r.insetBy(-2);
             var length = Math.min(r.width, r.height),
-                markerLength = Math.floor((length/10) < 10 ? length / 2 : length / 10),
+                markerLength = Math.max(4, Math.floor((length/10) < 10 ? (length / 2) - 5 : length / 10)),
                 boundsForMarkers = [
                     r.topLeft().     addXY(0,0).               extent(pt(markerLength, 0)),
                     r.topLeft().     addXY(0,2).               extent(pt(0, markerLength)),
@@ -128,7 +128,7 @@ Object.extend(lively.morphic, {
         var stack = 'no stack';
         try { throw new Error() } catch(e) { if (e.stack) stack = e.stack }
         lively.morphic.alert(stack);
-    },
+    }
 
 });
 
@@ -325,8 +325,8 @@ lively.morphic.Morph.addMethods(
     takesKeyboardFocus: function() {},
     isGrabbable: function(evt) {
         // return false to inhibit grabbing by the hand
-        return this.grabbingEnabled || this.grabbingEnabled == undefined || this.draggingEnabled;
-        },
+        return this.grabbingEnabled || this.grabbingEnabled === undefined;
+    }
 },
 'copying', {
     duplicate: function() { return this.copy() },
@@ -771,7 +771,6 @@ lively.morphic.World.addMethods(
         });
     },
 
-
     ensureUserDir: function(optUserName) {
         var username = optUserName || this.getUserName();
         if (!username) {
@@ -800,7 +799,6 @@ lively.morphic.World.addMethods(
             lively.ide.browse(url);
         });
     },
-
 
     isGrabbable: function(evt) {
         return false;

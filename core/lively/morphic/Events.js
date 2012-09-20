@@ -1334,10 +1334,10 @@ lively.morphic.DropDownList.addMethods(
         var idx = this.renderContextDispatch('getSelectedIndexes').first();
         this.updateSelectionAndLineNoProperties(idx);
     },
+
     isGrabbable: function(evt) {
         return false; //!this.changeTriggered;
     },
-
 
     registerForOtherEvents: function($super, handleOnCapture) {
         $super(handleOnCapture)
@@ -1536,37 +1536,39 @@ lively.morphic.World.addMethods(
             (this.eventStartPos.dist(evt.getPosition()) > targetMorph.dragTriggerDistance);
         if (!minDragDistReached) return false;
         if (evt.isCommandKey() && !targetMorph.isEpiMorph && evt.isLeftMouseButtonDown()) {
-            if (evt.hand.submorphs.length > 0) return;
-            if (!targetMorph.isGrabbable(evt)) return;  // Don't drag world, etc
+            if (evt.hand.submorphs.length > 0) return false;
+            if (!targetMorph.isGrabbable(evt)) return false;  // Don't drag world, etc
             evt.hand.grabMorph(targetMorph);
-            return;
+            return false;
         }
 
         // handle copy on shift+move
         if (evt.isShiftDown() && !targetMorph.isEpiMorph && evt.isLeftMouseButtonDown()) {
-            if (evt.hand.submorphs.length > 0) return;
-            if (!targetMorph.owner) return;
-            if (targetMorph instanceof lively.morphic.World) return;
+            if (evt.hand.submorphs.length > 0) return false;
+            if (!targetMorph.owner) return false;
+            if (targetMorph instanceof lively.morphic.World) return false;
 
             targetMorph.removeHalos();
             var copy = targetMorph.copy();
             targetMorph.owner.addMorph(copy); // FIXME for setting the right position
             evt.hand.grabMorph(copy);
             targetMorph = copy;
-            return;
+            return false;
         }
 
         // handle dragStart
-        if (targetMorph.isGrabbable()) { // world is never grabbable ...
+        if (targetMorph !== this && (targetMorph.draggingEnabled || targetMorph.isGrabbable())) {
             // morphs that do not have a selection can be dragged
             // (Lists, Texts, Boxes inside a window cannot be dragged by just clicking and moving)
             // before dragging, we want to move the mouse pointer back to the spot we
             // clicked on when we started dragging.
             // FIXME this should also work for Cmd-Drag and Shift-Drag
-            var lockOwner = targetMorph.lockOwner(),
-                grabTarget = lockOwner && targetMorph.isLocked() ? lockOwner : targetMorph;
-            if (grabTarget.correctForDragOffset()) {
-                grabTarget.moveBy(evt.getPosition().subPt(this.eventStartPos));
+            if (targetMorph.isGrabbable()) { // world is never grabbable ...
+                var lockOwner = targetMorph.lockOwner(),
+                    grabTarget = lockOwner && targetMorph.isLocked() ? lockOwner : targetMorph;
+                if (grabTarget.correctForDragOffset()) {
+                    grabTarget.moveBy(evt.getPosition().subPt(this.eventStartPos));
+                }
             }
             this.draggedMorph = targetMorph;
             this.draggedMorph.onDragStart && this.draggedMorph.onDragStart(evt);
@@ -1676,7 +1678,7 @@ lively.morphic.World.addMethods(
         this.hands.forEach(function(hand) {
             hand.scrollFocusMorph = that.getTopmostMorph(hand.getPosition());
         });
-    },
+    }
 },
 'scrolling', {
     getScroll: function() {

@@ -93,6 +93,18 @@ Object.extend(String.prototype, {
 
     times: function(count) {
         return count < 1 ? '' : new Array(count + 1).join(this);
+    },
+
+    // http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
+    hashCode: function() {
+        var hash = 0, len = this.length;
+        if (len == 0) return hash;
+        for (var i = 0; i < len; i++) {
+            var c = this.charCodeAt(i);
+            hash = ((hash<<5)-hash) + c;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        return hash;
     }
 
 });

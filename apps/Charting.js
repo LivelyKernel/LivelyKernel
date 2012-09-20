@@ -240,7 +240,7 @@ lively.morphic.HtmlWrapperMorph.subclass('apps.Charting.D3ChartMorph',
 	},
 
     makeDrawingPane: function(context) {
-	// Override to create a custom surface to be used as a 
+	// Override to create a custom surface to be used as a
 	// drawing context for the chart content.
         // Per default returns the context itself.
         return context;
@@ -571,36 +571,13 @@ apps.Charting.D3ChartRenderer.subclass('apps.Charting.D3LineChartRenderer',
     },
     redraw: function(context) {
          context.selectAll(".line").attr("d", this.lineFunction);
-    },
+    }
 });
 
 apps.Charting.D3ChartRenderer.subclass('apps.Charting.D3MapChartRenderer',
 'rendering', {
     render: function(data, context) {
-        $(context).empty();
-
-
-
-        // var options = this.renderOptions || {},
-        //     pane = this.createAxes(data, context, this.axisOptions ||
-        //         {paddingRight: 60, paddingBottom: 60, paddingTop: 20, paddingLeft: 20}),
-        //     x = this.xScale,
-        //     y = this.yScale,
-        //     d3 = apps.d3.d3,
-        //     line = d3.svg.line()
-        //         .interpolate(options.interpolation || 'linear')
-        //         .x(function(d) { return x(d.x); })
-        //         .y(function(d) { return y(d.y); }),
-        //     series = data.getSeries();
-        // series.each(function(s) {
-        //     pane.append("svg:path")
-        //         .datum(s.values)
-        //         .attr("class", 'line'+ (s.className ? ' '+ s.className : ''))
-        //         .attr("d", line)
-        //         .attr("fill", 'red');
-        //        //debugger
-        //     //console.log(line(s.values));
-        //     }, this);
+        // currently this is implemented in a Part
     }
 });
 

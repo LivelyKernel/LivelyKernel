@@ -325,8 +325,8 @@ lively.morphic.Morph.addMethods(
     takesKeyboardFocus: function() {},
     isGrabbable: function(evt) {
         // return false to inhibit grabbing by the hand
-        return this.grabbingEnabled || this.grabbingEnabled == undefined || this.draggingEnabled;
-        },
+        return this.grabbingEnabled || this.grabbingEnabled === undefined;
+    }
 },
 'copying', {
     duplicate: function() { return this.copy() },

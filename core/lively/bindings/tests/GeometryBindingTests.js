@@ -114,7 +114,7 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
     test10UpdateOnConnectViaConnectionsSpec: function() {
         var obj = {x: 23, connections: {x: {updateOnConnect: true}}};
         lively.bindings.connect(obj, 'x', obj, 'y');
-        this.assertEquals(obj.x, 23, "not updated in connect");
+        this.assertEquals(obj.y, 23, "not updated in connect");
     }
 
 });

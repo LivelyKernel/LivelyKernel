@@ -17,7 +17,7 @@ AsyncTestCase.subclass('lively.lang.tests.WorkerTests.WorkerCreation',
         this.delay(function() {
             this.assertEquals('Worker got "message to worker"', messageFromWorker);
             this.done();
-        }, 100);
+        }, 300);
     }
 
 });

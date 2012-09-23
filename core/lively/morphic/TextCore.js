@@ -3363,7 +3363,7 @@ Object.subclass('lively.morphic.Text.ShortcutHandler',
             if (!specialKeysMatch || !charKeyMatches) continue;
             return b.handler.call(this, target, b);
         };
-    },
+    }
 });
 
 Trait("lively.morphic.TextDiffTrait", {
@@ -3386,7 +3386,7 @@ Trait("lively.morphic.TextDiffTrait", {
             }
             dmp.showDiffsIn(diffs, text, insertAt);
         });
-    },
+    }
 }).applyTo(lively.morphic.Text);
 
 }) // end of module

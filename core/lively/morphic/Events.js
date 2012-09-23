@@ -1961,7 +1961,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     isPressed: function() {
         // FIXME, this depends on world behavior!!!
         return !!this.world().clickedOnMorph;
-    },
+    }
 },
 'event handling', {
     grabMorph: function(morph, evt) {

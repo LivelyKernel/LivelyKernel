@@ -601,7 +601,6 @@ lively.morphic.Morph.subclass('lively.morphic.World',
 
     visibleBounds:  function () {
         // the bounds call seems to slow down halos...
-        // return this.windowBounds().intersection(this.bounds());
         return this.windowBounds().intersection(this.innerBounds());
     }
 },
@@ -632,7 +631,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
 },
 'changes', {
     setChangeSet: function(changeSet) { this.changeSet = changeSet },
-    getChangeSet: function() { return this.changeSet },
+    getChangeSet: function() { return this.changeSet }
 });
 
 Object.extend(lively.morphic.World, {
@@ -688,7 +687,7 @@ Object.subclass('lively.morphic.Script',
             return;
         }
         if (!this.stopped) this.startTicking(this.tickTime);
-    },
+    }
 },
 'starting and stopping', {
     startTicking: function(ms) {
@@ -757,16 +756,16 @@ lively.morphic.Script.subclass('lively.morphic.TargetScript',
 'ticking', {
     execute: function() {
         this.target[this.selector].apply(this.target, this.args);
-    },
+    }
 },
 'testing', {
-    equals: function(other) { return other.isScript && this.target == other.target && this.selector == other.selector },
+    equals: function(other) { return other.isScript && this.target == other.target && this.selector == other.selector }
 },
 'debugging', {
     toString: function() {
         return Strings.format('Script(%s>>%s(%s))',
             this.target, this.selector, this.args.join(','))
-    },
+    }
 });
 
 Object.extend(lively.morphic.Script, {
@@ -775,7 +774,7 @@ Object.extend(lively.morphic.Script, {
     },
     forTarget: function(target, selector, optArgs) {
         return new lively.morphic.TargetScript(target, selector, optArgs);
-    },
+    }
 });
 
 }) // end of module

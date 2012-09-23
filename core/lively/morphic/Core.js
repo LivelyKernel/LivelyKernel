@@ -235,10 +235,11 @@ Object.subclass('lively.morphic.Morph',
     },
     withAllSubmorphsDo: function(func, context, depth) {
         if (!depth) depth = 0;
-        func.call(context || Global, this, depth);
+        var result = [func.call(context || Global, this, depth)];
         for (var i = 0; i < this.submorphs.length; i++) {
-            this.submorphs[i].withAllSubmorphsDo(func, context, depth + 1);
+            result.pushAll(this.submorphs[i].withAllSubmorphsDo(func, context, depth + 1));
         }
+        return result;
     },
     withAllSubmorphsSelect: function(func, context, depth) {
         if (!depth) depth = 0;

@@ -245,11 +245,11 @@ Global.pt = function(x, y) {
 
 Object.subclass('Rectangle',
 'documentation', {
-    documentation: "primitive rectangle, structually equivalent to SVGRect",
+    documentation: "primitive rectangle, structually equivalent to SVGRect"
 },
 'settings', {
     corners: ["topLeft","topRight","bottomRight","bottomLeft"],
-    sides: ["leftCenter","rightCenter","topCenter","bottomCenter"],
+    sides: ["leftCenter","rightCenter","topCenter","bottomCenter"]
 },
 'initializing', {
     initialize: function(x, y, w, h) {
@@ -257,7 +257,7 @@ Object.subclass('Rectangle',
         this.y = y || 0;
         this.width = w || 0;
         this.height = h || 0;
-    },
+    }
 },
 'instance creation', {
     copy: function() {
@@ -326,6 +326,12 @@ Object.subclass('Rectangle',
 
     insetByPt: function(p) {
         return new Rectangle(this.x + p.x, this.y + p.y, this.width - (p.x * 2), this.height - (p.y * 2));
+    },
+
+    grid: function(rows, cols) {
+        var w = this.width / cols, h = this.height / rows;
+        return Grid.mapCreate(rows, cols, function(i, j) {
+            return new Rectangle(w*j, h*i, w, h); });
     }
 },
 'converting', {

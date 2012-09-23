@@ -480,6 +480,76 @@ var Arrays = {
     }
 }
 
+var Grid = {
+    create: function(rows, columns, initialObj) {
+        var result = new Array(rows);
+        while (rows > 0) result[--rows] = Array.withN(columns, initialObj);
+        return result;
+    },
+
+    mapCreate: function(rows, cols, func, context) {
+        var result = new Array(rows);
+        for (var i = 0; i < rows; i++) {
+            result[i] = new Array(cols);
+            for (var j = 0; j < cols; j ++) {
+                result[i][j] = func.call(context || this, i, j);
+            }
+        }
+        return result;
+    },
+
+    forEach: function(grid, func, context) {
+        grid.forEach(function(row, i) {
+            row.forEach(function(val, j) {
+                func.call(context || this, val, i, j);
+            });
+        })
+    },
+
+    map: function(grid, func, context) {
+        var result = new Array(grid.length);
+        grid.forEach(function(row, i) {
+            result[i] = new Array(row.length);
+            row.forEach(function(val, j) {
+                result[i][j] = func.call(context || this, val, i, j);
+            });
+        });
+        return result;
+    },
+
+    benchmark: function() {
+        var results = [], t;
+
+        var grid = Grid.create(1000, 200, 1),
+            addNum = 0;
+        t  = Functions.timeToRunN(function() {
+            Grid.forEach(grid, function(n) { addNum += n; }) }, 10);
+        results.push(Strings.format('Grid.forEach: %ims', t));
+
+
+        var mapResult;
+        t  = Functions.timeToRunN(function() {
+            mapResult = Grid.map(grid, function(n, i, j) { return Numbers.random(i+j); });
+        }, 10);
+        results.push(Strings.format('Grid.map: %ims', t));
+
+        var mapResult2 = Grid.create(1000, 2000);
+        t  = Functions.timeToRunN(function() {
+            mapResult2 = new Array(1000);
+            for (var i = 0; i < 1000; i++) mapResult2[i] = new Array(2000);
+            Grid.forEach(grid, function(n, i, j) { mapResult2[i][j] = Numbers.random(i+j); });
+        }, 10);
+
+        results.push(Strings.format('Grid.map with forEach: %ims', t));
+
+        results.push('--= 2012-09-22 =--\n'
+                    + "Grid.forEach: 14.9ms\n"
+                    + "Grid.map: 19.8ms\n"
+                    + "Grid.map with forEach: 38.7ms\n")
+        return results.join('\n');
+    }
+}
+
 // Intervals are arrays whose first two elements are numbers and the
 // first element should be less or equal the second element, see
 // #isInterval

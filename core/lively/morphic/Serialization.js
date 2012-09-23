@@ -15,6 +15,9 @@ lively.morphic.EventHandler.addMethods(
 
 lively.morphic.Morph.addMethods(
 'serialization', {
+
+    doNotSerialize: ['_renderContext', 'halos', '_isRendered', 'priorExtent', 'cachedBounds'],
+
     onrestore: function() {
         // FIXME this does not belong here
         // event handlers used to be serialized with each morph
@@ -45,7 +48,6 @@ lively.morphic.Morph.addMethods(
 
 },
 'copying', {
-    doNotSerialize: ['_renderContext', 'halos', '_isRendered', 'priorExtent'],
 
     copy: function() {
         var copy = this.basicCopy();

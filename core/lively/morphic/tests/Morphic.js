@@ -271,14 +271,21 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MorphicBounds',
         this.assertEquals(bounds, morph.getBounds(), 'morph bounds');
     },
 
-    testMorphBoundsChangeOnSetExtentAndSetPosition: function() {
+    testMorphBoundsChangeOnExtentPositionScaleRotationTransformChanges: function() {
+        this.epsilon = 0.01;
         var morph = new lively.morphic.Morph();
         morph.setBounds(rect(100, 100, 40, 40));
-        this.assertEquals(rect(100, 100, 40, 40), morph.getBounds(), "1");
+        this.assertEquals(rect(100, 100, 40, 40), morph.getBounds(), "setBounds");
         morph.setExtent(pt(50,50));
-        this.assertEquals(rect(100, 100, 50, 50), morph.getBounds(), "2");
+        this.assertEquals(rect(100, 100, 50, 50), morph.getBounds(), "setExtent");
         morph.setPosition(pt(150,50));
-        this.assertEquals(rect(150, 50, 50, 50), morph.getBounds(), "3");
+        this.assertEquals(rect(150, 50, 50, 50), morph.getBounds(), "setPosition");
+        morph.setScale(2);
+        this.assertEquals(rect(150, 50, 100, 100), morph.getBounds(), "setScale");
+        morph.setTransform(new lively.morphic.Similitude(pt(0,0)));
+        this.assertEquals(rect(0,0 , 50, 50), morph.getBounds(), "setTransform");
+        morph.rotateBy((45).toRadians());
+        this.assertEquals(rect(-35.36, 0, 70.71, 70.71), morph.getBounds(), "setRotation");
     },
 
     testBorderWidthDoesNotAffectsBounds: function() {
@@ -292,9 +299,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MorphicBounds',
         var morph1 = new lively.morphic.Morph(),
             morph2 = new lively.morphic.Morph();
         morph1.setBounds(rect(100, 100, 40, 40));
+        this.assertEquals(rect(100, 100, 40, 40), morph1.getBounds());
         morph2.setBounds(rect(-10,0, 20, 50));
         morph1.addMorph(morph2);
         this.assertEquals(rect(90, 100, 50, 50), morph1.getBounds());
+        morph2.remove();
+        this.assertEquals(rect(100, 100, 40, 40), morph1.getBounds());
     }
 
 });

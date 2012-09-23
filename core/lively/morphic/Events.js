@@ -2002,7 +2002,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
                 submorph.dropOn(morph);
             }
         };
-        evt.stop();
+        evt && evt.stop();
         return true;
     }
 },

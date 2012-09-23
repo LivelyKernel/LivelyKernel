@@ -95,12 +95,11 @@ var Enumerable = {
         return memo;
     },
 
-    invoke: function(method) {
+    invoke: function(method, arg1, arg2, arg3, arg4, arg5, arg6) {
         var args = Array.from(arguments).slice(1),
             result = new Array(this.length);
-        for (var value, i = 0, len = this.length; i < len; i++) {
-            value = this[i];
-            result[i] = value[method].apply(value, args);
+        for (var i = 0, len = this.length; i < len; i++) {
+            result[i] = this[i][method].call(this[i], arg1, arg2, arg3, arg4, arg5, arg6);
         }
         return result;
     },

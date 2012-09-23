@@ -598,6 +598,8 @@ lively.morphic.Morph.subclass('lively.morphic.World',
     world: function() { return this },
     firstHand: function() { return this.hands && this.hands[0] },
     windowBounds:  function () {
+        if (this.cachedWindowBounds) return this.cachedWindowBounds;
+
         var canvas = this.renderContext().getMorphNode(),
             topmost = document.documentElement,
             body = document.body,
@@ -611,7 +613,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
             width = topmost.clientWidth * scale;
             height = topmost.clientHeight * scale;
         }
-        return topLeft.scaleBy(scale).extent(pt(width, height));
+        return this.cachedWindowBounds = topLeft.scaleBy(scale).extent(pt(width, height));
     },
 
     visibleBounds:  function () {

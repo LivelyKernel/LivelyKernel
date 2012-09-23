@@ -1366,7 +1366,7 @@ lively.morphic.World.addMethods(
         // FIXME this should be done in EventHandler!!!!
         var self = this;
         // late bind event methods
-        document.onmousewheel = function(evt) {
+        Global.document.onmousewheel = function(evt) {
             lively.morphic.EventHandler.prototype.patchEvent(evt);
             self.onMouseWheel(evt);
         };
@@ -1379,7 +1379,7 @@ lively.morphic.World.addMethods(
             self.onWindowScroll(evt);
         };
 
-    },
+    }
 },
 'keyboard event handling', {
     onKeyDown: function($super, evt) {
@@ -1658,6 +1658,7 @@ lively.morphic.World.addMethods(
 },
 'window related', {
     onWindowResize: function(evt) {
+        this.cachedWindowBounds = null;
     },
     onWindowScroll: function(evt) {
         // alert('window scrolled')

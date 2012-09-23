@@ -137,7 +137,7 @@ lively.morphic.Text.addMethods(
 
 lively.morphic.World.addMethods(
 'serialization', {
-    doNotSerialize: ['revisionOnLoad', 'clickedOnMorph', 'draggedMorph'],
+    doNotSerialize: ['revisionOnLoad', 'clickedOnMorph', 'draggedMorph', 'cachedWindowBounds'],
     onrestore: function($super) {
         $super();
         // this should go into prepareForNewRenderContext / event registration...!
@@ -149,11 +149,12 @@ lively.morphic.World.addMethods(
             if (!input) return;
             var url = input.startsWith('http') ?
                 new URL(input) : URL.source.withFilename(input);
-            if (!new WebResource(url).exists())
+            if (!new WebResource(url).exists()) {
                 world.saveWorldAs(url)
-            else
+            } else {
                 world.confirm(url.toString() + ' already exists. Overwrite?',
-                    function(answer) { answer && world.saveWorldAs(url) });
+                              function(answer) { answer && world.saveWorldAs(url) });
+            }
         }, URL.source.filename())
     },
     saveWorldAs: function(url, checkForOverwrites) {

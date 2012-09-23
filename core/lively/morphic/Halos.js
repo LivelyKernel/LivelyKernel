@@ -38,7 +38,10 @@ lively.morphic.Morph.addMethods(
             lively.morphic.ScriptEditorHalo,
             lively.morphic.OriginHalo];
     },
-    getHalos: function() { return this.getHaloClasses().map(function(ea) { return new  ea(this) }, this) },
+    getHalos: function() {
+        var morph = this;
+        return this.getHaloClasses().map(function(ea) { return new ea.getInstanceFor(morph) });
+    },
 
     removeHalos: function(optWorld) {
         this.removeHalosWithout(optWorld, []);
@@ -66,8 +69,7 @@ lively.morphic.Morph.addMethods(
         var morphBeneath = this.morphBeneath(evt.getPosition());
         if (morphBeneath) morphBeneath.showHalos();
         return morphBeneath
-    },
-
+    }
 
 })
 
@@ -115,7 +117,7 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
     horizontalPos: 0,
     verticalPos: 0,
     isEpiMorph: true,
-    isHalo: true,
+    isHalo: true
 },
 'initializing', {
     initialize: function($super, targetMorph) {
@@ -152,11 +154,11 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
                     // here come the magic numbers!
                     t.owner.worldPoint(t.bounds().topLeft().addXY(-3,15)));
             });
-            this.infoLabel.targetMorph = this.targetMorph
             this.targetMorph.halos.push(this.infoLabel);
             if (!this.world()) return this.infoLabel;
-            this.world().addMorph(this.infoLabel);
         }
+        this.infoLabel.targetMorph = this.targetMorph;
+        if (!this.infoLabel.owner) this.world().addMorph(this.infoLabel);
         // Why needed?? - Dan --- rkrk - because of alignment at targetMorph
         this.infoLabel.alignAtTarget();
         return this.infoLabel;
@@ -271,15 +273,16 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
         }
         target.moveBy(evt.getPosition().subPt(world.eventStartPos));
         target.halos.invoke('alignAtTarget');
-    },
+    }
 
 });
+
 lively.morphic.Halo.subclass('lively.morphic.ResizeHalo',
 'settings', {
     style: {fill: Color.green, toolTip: 'resizes the object'},
     labelText: 'R',
     horizontalPos: 3,
-    verticalPos: 3,
+    verticalPos: 3
 },
 'halo actions', {
     dragAction: function(evt, moveDelta) {
@@ -309,13 +312,12 @@ lively.morphic.Halo.subclass('lively.morphic.ResizeHalo',
     }
 });
 
-
 lively.morphic.Halo.subclass('lively.morphic.RescaleHalo',
 'settings', {
     style: {fill: Color.green, toolTip: 'scales the object'},
     labelText: 'R',
     horizontalPos: 3,
-    verticalPos: 3,
+    verticalPos: 3
 },
 'halo actions', {
     dragAction: function(evt, moveDelta) {
@@ -496,10 +498,10 @@ lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
         this.updateAngleIndicator(evt.hand);
     },
     dragEndAction: function(evt) {
+        this.haloIsBeingDragged = false;
         this.removeAngleIndicator();
         this.targetMorph.removeHalos();
         this.targetMorph.showHalos();
-        this.isHaloIsBeingDragged = true;
     },
 
     dragStartAction: function(evt) {
@@ -511,7 +513,7 @@ lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
         this.startHandDist = evt.getPosition().subPt(globalPosition).r();
         this.targetMorph.removeHalosWithout(this.world(), [this, this.getBoundsHalo()]);
         this.updateAngleIndicator(evt.hand);
-        this.isHaloIsBeingDragged = true;
+        this.haloIsBeingDragged = true;
     },
 
     onMouseDown: function($super, evt) {
@@ -536,14 +538,14 @@ lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
             globalEnd = this.targetMorph.worldPoint(pt(0,0)),
             localEnd = this.localize(globalEnd);
         indicator.setVertices([localStart, localEnd]);
-    },
+    }
 },
 'layout', {
     alignAtTarget: function($super) {
         var world = this.world();
-        if (!this.isHaloIsBeingDragged || !world) return $super();
+        if (!this.haloIsBeingDragged || !world) { $super(); return; }
         this.setPosition(world.firstHand().getPosition().subPt(this.getExtent().scaleBy(0.5)));
-    },
+    }
 });
 lively.morphic.Halo.subclass('lively.morphic.CloseHalo',
 'settings', {
@@ -746,14 +748,15 @@ lively.morphic.Halo.subclass('lively.morphic.PublishHalo',
 'halo actions', {
     clickAction: function(evt) {
         this.targetMorph.copyToPartsBinWithUserRequest();
-    },
+    }
 });
+
 lively.morphic.Halo.subclass('lively.morphic.LockHalo',
 'settings', {
     style: {fill: Color.white},
     labelText: '',
     horizontalPos: 4,
-    verticalPos: 0,
+    verticalPos: 0
 },
 'initializing', {
     initialize: function($super, targetMorph) {
@@ -761,11 +764,12 @@ lively.morphic.Halo.subclass('lively.morphic.LockHalo',
         this.updateImage();
         this.setToolTip(this.targetMorph.isLocked() ? 'Unlock' : 'Lock')
     },
+
     updateImage: function() {
         if (this.image) this.image.remove();
         this.image = this.targetMorph.isLocked() ? this.lockImage() : this.unlockImage();
         this.addMorph(this.image);
-    },
+    }
 
 },
 'accessing', {
@@ -824,11 +828,9 @@ lively.morphic.Halo.subclass('lively.morphic.BoundsHalo',
     },
 
     alignAtTarget: function() {
-
         var targetMorph = this.targetMorph,
             world = targetMorph.world();
-        if (!world || !targetMorph.owner) return pt(0,0);
-
+        if (!world || !targetMorph.owner) return;
         var bounds = targetMorph.bounds(),
             boundsInWorld = targetMorph.owner.getGlobalTransform().transformRectToRect(bounds);
         this.setBounds(boundsInWorld);
@@ -839,5 +841,22 @@ lively.morphic.Halo.subclass('lively.morphic.BoundsHalo',
     }
 
 });
+
+(function setupGetInstanceFor() {
+    // add a getInstanceFor method to all halo classes
+    lively.morphic.Halo.allSubclasses().forEach(function(klass) {
+        Object.extend(klass, {
+            getInstanceFor: function(morph) {
+                if (!klass.instance) {
+                    klass.instance = new klass(morph);
+                } else {
+                    klass.instance.targetMorph = morph;
+                }
+                return klass.instance;
+            }
+        });
+    });
+
+})();
 
 }) // end of module

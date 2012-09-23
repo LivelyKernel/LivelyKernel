@@ -106,7 +106,7 @@ var Enumerable = {
 
     max: function(iterator, context) {
         iterator = iterator ? iterator.bind(context) : Functions.K;
-        var result, resultValue;
+        var value, result, resultValue;
         this.each(function(element, index) {
             value = iterator(element, index);
             if (result == undefined || value >= resultValue) {
@@ -119,7 +119,7 @@ var Enumerable = {
 
     min: function(iterator, context) {
         iterator = iterator ? iterator.bind(context) : Functions.K;
-        var result, resultValue;
+        var value, result, resultValue;
         this.each(function(element, index) {
             value = iterator(element, index);
             if (result == undefined || value < resultValue) {

@@ -460,6 +460,11 @@ Object.extend(Array, {
             results = new Array(length);
         while (length--) results[length] = iterable[length];
         return results;
+    },
+    withN: function(n, obj) {
+        var result = new Array(n);
+        while (n > 0) result[--n] = obj;
+        return result;
     }
 });
 

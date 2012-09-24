@@ -59,6 +59,7 @@ Object.extend(lively.ast.Parser, {
         if (!ast || Object.isString(ast)) {
             throw [source, rule, 'Could not translate symbolic AST tree', 0, intermediate, ast];
         }
+        ast.source = source;
         return ast;
     },
 

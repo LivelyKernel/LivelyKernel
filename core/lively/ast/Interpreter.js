@@ -764,7 +764,7 @@ lively.ast.Node.addMethods('interpretation', {
     toSource: function() { return this.toString(); },
     parentSource: function() {
         if (this.source) return this.source;
-        if (this._Parent) return this._Parent.parentSource();
+        if (this.hasParent()) return this.getParent().parentSource();
         return this.toSource();
     }
 });

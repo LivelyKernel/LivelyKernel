@@ -90,7 +90,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
         if (!this.func) {
             return 'frame has no function!';
         }
-        return this.func.getOriginal().toSource();
+        return this.func.getOriginal().evaluatedSource();
     },
     findFrame: function(name) {
         if (this.mapping.hasOwnProperty(name)) {

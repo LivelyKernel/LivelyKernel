@@ -822,6 +822,7 @@ lively.ast.Function.addMethods('interpretation', {
         fn.startHalted = function() { return function(/*args*/) {
             return that.apply(this, $A(arguments), true);
         }};
+        fn.toSource = function() { return that.parentSource(); };
         if (optFunc) {
             fn.source = optFunc.toSource();
             fn.varMapping = optFunc.getVarMapping();
@@ -831,7 +832,6 @@ lively.ast.Function.addMethods('interpretation', {
             if (optFunc.declaredObject) fn.declaredObject = optFunc.declaredObject;
             if (optFunc.name) fn.name = optFunc.name;
         }
-        if (this.source) fn.source = this.source;
         return this._chachedFunction = fn;
     }
 },

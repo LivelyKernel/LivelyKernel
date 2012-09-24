@@ -1014,6 +1014,9 @@ lively.ast.Visitor.subclass('lively.ast.ContainsDebuggerVisitor', 'visiting', {
 
 Function.addMethods(
 'ast', {
+    evaluatedSource: function() {
+        return this.toSource();
+    },
     ast: function() {
         if (this._cachedAst) return this._cachedAst;
         var parseResult = lively.ast.Parser.parse(this.toSource(), 'topLevel');

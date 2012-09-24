@@ -761,6 +761,12 @@ lively.ast.Node.addMethods('interpretation', {
         var interpreter = new lively.ast.InterpreterVisitor();
         return interpreter.run(this, optMapping);
     },
+    toSource: function() { return this.toString(); },
+    parentSource: function() {
+        if (this.source) return this.source;
+        if (this._Parent) return this._Parent.parentSource();
+        return this.toSource();
+    }
 });
 
 lively.ast.Variable.addMethods('interpretation', {

@@ -159,7 +159,7 @@ lively.ast.Visitor.subclass('lively.ast.Rewriting.Transformation',
         return new lively.ast.New(node.pos, this.visit(node.clsExpr));
     },
     visitVarDeclaration: function(node) {
-        return new lively.ast.VarDeclaration(node.pos, node.name, this.visit(node.value));
+        return new lively.ast.VarDeclaration(node.pos, node.name, this.visit(node.val));
     },
     visitThrow: function(node) {
         return new lively.ast.Throw(node.pos, this.visit(node.expr));

@@ -160,7 +160,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
             });
         }
         if (this.containingScope) {
-            items.push({isListItem: true, string: '---containing scope---'});
+            items.push({isListItem: true, string: '[[containing scope]]'});
             items.pushAll(this.containingScope.listItemsForIntrospection());
         }
         return items;

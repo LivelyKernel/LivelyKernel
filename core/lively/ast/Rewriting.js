@@ -256,7 +256,7 @@ Object.extend(JSLoader, {
 Object.extend(lively.ast.Rewriting, {
     loadJS: function(cb, src) {
         if (!src) { src = cb; cb = null; }
-        eval2(src);
+        eval(src);
         if (cb) cb();
     }
 });

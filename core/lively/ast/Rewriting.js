@@ -249,7 +249,9 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     wrapVar: function(pos, name) {
         var scope = this.referenceVar(name);
         if (scope === undefined) return new lively.ast.Variable(pos, name);
-        return new lively.ast.GetSlot(pos, name, this.localFrame(scope));
+        return new lively.ast.GetSlot(pos,
+                                      new lively.ast.String(pos, name),
+                                      this.localFrame(scope));
     },
     rewriteVarDeclaration: function(pos, name, expr) {
         var scope = this.registerVar(name);

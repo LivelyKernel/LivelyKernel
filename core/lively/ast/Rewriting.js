@@ -223,7 +223,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     },
     visitFunction: function($super, node) {
         var rewritten = $super(node);
-        return lively.ast.Rewriting.table.wrapWithAstInitializer(originalFuncAst, rewritten);
+        return lively.ast.Rewriting.table.wrapWithAstInitializer(node, rewritten);
     }
 });
 

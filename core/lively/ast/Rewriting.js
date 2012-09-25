@@ -242,7 +242,7 @@ Object.extend(Global, {
 });
 
 Object.extend(JSLoader, {
-    loadJs: function (url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
+    loadJs2: function (url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
         var exactUrl = url;
         if ((exactUrl.indexOf('!svn') <= 0) && !okToUseCache) {
             exactUrl = this.makeUncached(exactUrl, cacheQuery);

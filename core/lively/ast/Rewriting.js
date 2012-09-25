@@ -214,12 +214,67 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.RemoveDebugge
 });
 
 lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
+'initializing', {
+    initialize: function($super) {
+        $super();
+        this.scopes = [];
+    }
+},
+'scoping', {
+    enterScope: function() {
+        this.scopes.push([]);
+    },
+    registerVar: function(name) {
+        this.scopes.last().push(name);
+    },
+    referenceVar: function(name) {
+        for (var i = this.scopes.length - 1; i >= 0; i--) {
+            if (this.scopes[i].include(name)) return i;
+        }
+        return undefined;
+    },
+    exitScope: function() {
+        this.scopes.pop();
+    },
+},
+'helping', {
+    computationFrame: function() {
+        return new lively.ast.Variable([0,0], "_");
+    },
+    localFrame: function(i) {
+        return new lively.ast.Variable([0,0], "_" + i);
+    }
+},
+'rewriting', {
+    wrapVar: function(pos, name) {
+        var scope = this.referenceVar(name);
+        if (scope === undefined) return new lively.ast.Variable(pos, name);
+        return new lively.ast.Member(pos, this.localFrame(scope), name);
+    },
+    rewriteVarDeclaration: function(pos, name, expr) {
+        var scope = this.registerVar(name);
+        return new lively.ast.Set(pos, this.wrapVar(pos, name), expr);
+    },
+    wrapFunctionBody: function(body) {
+        return body;
+    }
+},
 'visiting', {
+    visitVarDeclaration: function(node) {
+        var scope = this.registerVar(node.name.value);
+        return this.rewriteVarDeclaration(node.pos, node.name, this.visit(node.expr))
+    },
+    visitVariable: function(node) {
+        return this.wrapVar(node.pos, node.name);
+    },
     visitDebugger: function(node) {
         return undefined;
     },
     visitFunction: function($super, node) {
+        this.enterScope();
         var rewritten = $super(node);
+        this.exitScope();
+        rewritten.body = this.wrapFunctionBody(rewritten.body);
         return lively.ast.Rewriting.table.wrapWithAstInitializer(node, rewritten);
     }
 });

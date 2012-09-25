@@ -233,8 +233,7 @@ Object.extend(Global, {
         return f;
     },
     eval2: function(src) {
-        var wrapped = '(function(){\n' + src + '\n})';
-        var ast = lively.ast.Parser.parse(wrapped, 'topLevel');
+        var ast = lively.ast.Parser.parse(src, 'topLevel');
         var rewriter = new lively.ast.Rewriting.Rewriter();
         var rewrittenAst = rewriter.visit(ast);
         return lively.ast.oldEval(rewrittenAst.asJS())();

@@ -16,10 +16,10 @@ Object.subclass('lively.ast.Rewriting.AstTable', {
         return this.table[i];
     },
     wrapWithAstInitializer: function(originalFuncAst, newFuncAst) {
-        var fn = new Variable(funcAst.pos, "__livelyAST");
-        var num = new lively.ast.Number(funcAst.pos, this.register(originalFuncAst));
-        var call = new lively.ast.Call(funcAst.pos, fn, [num, funcAst]);
-        return fn._parent = funcAst._parent = num._parent = call;
+        var fn = new lively.ast.Variable(newFuncAst.pos, "__livelyAST");
+        var num = new lively.ast.Number(newFuncAst.pos, this.register(originalFuncAst));
+        var call = new lively.ast.Call(newFuncAst.pos, fn, [num, newFuncAst]);
+        return call;
     }
 });
 

@@ -150,9 +150,6 @@ Object.subclass('lively.ast.Interpreter.Frame',
         if (this.mapping === Global) {
             return items;
         }
-        if (this.outerScope) {
-            items.pushAll(this.getContainingScope().listItemsForIntrospection());
-        }
         for (var name in this.mapping) {
             if (!this.mapping.hasOwnProperty(name)) continue;
             var value = this.mapping[name];
@@ -160,7 +157,11 @@ Object.subclass('lively.ast.Interpreter.Frame',
                 isListItem: true,
                 string: name + ': ' + String(value).truncate(50),
                 value: value
-            })
+            });
+        }
+        if (this.containingScope) {
+            items.push({isListItem: true, string: '---containing scope---'});
+            items.pushAll(this.containingScope.listItemsForIntrospection());
         }
         return items;
     },

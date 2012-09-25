@@ -12,9 +12,6 @@ Object.subclass('lively.ast.Rewriting.AstTable', {
         this.table.push(funcAst);
         return this.table.length - 1;
     },
-    get: function(i) {
-        return this.table[i];
-    },
     wrapWithAstInitializer: function(originalFuncAst, newFuncAst) {
         var fn = new lively.ast.Variable(newFuncAst.pos, "__livelyAST");
         var num = new lively.ast.Number(newFuncAst.pos, this.register(originalFuncAst));

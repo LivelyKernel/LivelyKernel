@@ -3,11 +3,13 @@ module('lively.morphic.MorphAddons').requires('lively.morphic.Core', 'lively.mor
 Object.extend(lively.morphic, {
 
     show: function(obj) {
-        if (!obj) return;
-        if (Object.isArray(obj)) obj.forEach(function(ea) { lively.morphic.show(ea) });
-        else if (obj instanceof lively.Point) lively.morphic.newShowPt(obj);
-        else if (obj instanceof Rectangle) lively.morphic.newShowRect(obj);
+        if (!obj) return null;
+        if (Object.isArray(obj)) return obj.forEach(function(ea) { lively.morphic.show(ea) });
+        else if (obj instanceof lively.Point) return lively.morphic.newShowPt(obj);
+        else if (obj instanceof Rectangle) return lively.morphic.newShowRect(obj);
         else if (obj.isMorph) return lively.morphic.newShowMorph(obj);
+        else if (obj instanceof HTMLElement) return lively.morphic.newShowElement(obj);
+        return null;
     },
 
     newShowPt: function (/*pos or x,y, duration, extent*/) {
@@ -75,6 +77,10 @@ Object.extend(lively.morphic, {
     newShowMorph: function (morph) {
         lively.morphic.newShowRect(
             morph.getGlobalTransform().transformRectToRect(morph.getShape().getBounds()))
+    },
+
+    newShowElement: function(el) {
+        $(el).bounds({withMargin: true, withPadding: true}).show(2000);
     },
 
     newShowThenHide: function (morphOrMorphs, duration) {

@@ -1,5 +1,6 @@
 var isFirefox = window.navigator.userAgent.indexOf('Firefox') > -1;
 var isFireBug = isFirefox && window.console && window.console.firebug !== undefined;
+var useMinifiedLibs = document.location.host.indexOf('localhost') === -1;
 
 function livelyConfigExists() { return typeof Config !== "undefined" }
 
@@ -542,7 +543,7 @@ var LivelyLoader = {
     //
     // ------- generic load support ----------
     //
-    libsFile: 'lib/lively-libs.js',
+    libsFile: useMinifiedLibs ? 'lib/lively-libs.js' : 'lib/lively-libs-debug.js',
 
     codeBase: (function findCodeBase() {
         // search for script that links to "bootstrap.js" and

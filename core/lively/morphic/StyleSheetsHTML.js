@@ -215,7 +215,7 @@ lively.morphic.Morph.addMethods(
         // and reflects the morph hierarchy in the
         // node order.
 
-        var parent = child = this,
+        var parent = this,
             submorphs = this.submorphs || [];
 
         // Search upward in morph hierarchy ...

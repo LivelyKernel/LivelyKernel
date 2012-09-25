@@ -109,6 +109,12 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
         morph.setPosition(pt(60,60));
         this.assertEquals(pt(50,50), observer.pos, 'not disconnected');
         this.assert(!morph.attributeConnections, 'attributeConnections not empty');
+    },
+
+    test10UpdateOnConnectViaConnectionsSpec: function() {
+        var obj = {x: 23, connections: {x: {updateOnConnect: true}}};
+        lively.bindings.connect(obj, 'x', obj, 'y');
+        this.assertEquals(obj.y, 23, "not updated in connect");
     }
 
 });

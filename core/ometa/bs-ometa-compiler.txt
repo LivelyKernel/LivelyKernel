@@ -5,7 +5,7 @@ ometa BSOMetaParser <: Parser {
   nameRest       = nameFirst | digit,
   tsName         = firstAndRest(#nameFirst, #nameRest):xs              -> xs.join(''),
   name           = spaces tsName,
-  eChar          = '\\' char:c                                         -> unescape('\\' +c)
+  eChar          = '\\' char:c                                         -> ometaUnescape('\\' +c)
                  | char,
   tsString       = '\'' (~'\'' eChar)*:xs '\''                         -> xs.join(''),
   characters     = '`' '`' (~('\'' '\'') eChar)*:xs '\'' '\''          -> [#App, #seq,     xs.join('').toProgramString()],

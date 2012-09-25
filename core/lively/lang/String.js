@@ -278,14 +278,17 @@ Strings = {
                 && options.align[columnIndex] === 'right';
         }
         tableArray.forEach(function(row) {
-            row.forEach(function(cellString, i) {
+            row.forEach(function(cellVal, i) {
                 if (columnWidths[i] === undefined) columnWidths[i] = 0;
-                columnWidths[i] = Math.max(columnWidths[i], cellString.length);
+                columnWidths[i] = Math.max(columnWidths[i], String(cellVal).length);
             });
         });
         return tableArray.collect(function(row) {
-            return row.collect(function(cellString, i) {
-                return Strings.pad(cellString, columnWidths[i] - cellString.length, alignRight(i));
+            return row.collect(function(cellVal, i) {
+                var cellString = String(cellVal);
+                return Strings.pad(cellString,
+                                   columnWidths[i] - cellString.length,
+                                   alignRight(i));
             }).join(separator);
         }).join('\n');
     },

@@ -34,7 +34,7 @@ number =
     | digit+:ws ('.' digit+ | empty -> []):fs ('e' ('+' | '-' | empty -> ''):sig digit+ | empty -> []):exp pos:p2
         -> [#number, [p1, p2], parseFloat(ws.join('') + '.' + fs.join('') + 'e' + sig + exp.join(''))]),
 escapeChar =
-    '\\' char:c -> unescape('\\' + c),
+    '\\' char:c -> ometaUnescape('\\' + c),
 str =
     pos:p1 (
         seq('"""')  (escapeChar | ~seq('"""') char)*:cs seq('"""') pos:p2 -> [#string, [p1, p2], cs.join('')]

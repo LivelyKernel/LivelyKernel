@@ -28,6 +28,7 @@ lively.morphic.EventSimulator = {
             pos.x - Global.scrollX, pos.y - Global.scrollY,
             keys.ctrl || false, keys.alt || false, keys.shift || false, keys.meta || false,
             button || 0/*left*/, null);
+        lively.morphic.EventHandler.prototype.patchEvent(simulatedEvent);
         return simulatedEvent;
     },
     doMouseEvent: function(spec) {
@@ -1937,7 +1938,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     style: {enableDropping: false, enableHalos: false}
 },
 'testing', {
-    isHand: true,
+    isHand: true
 },
 'initializing', {
     initialize: function($super) {
@@ -1961,7 +1962,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     isPressed: function() {
         // FIXME, this depends on world behavior!!!
         return !!this.world().clickedOnMorph;
-    },
+    }
 },
 'event handling', {
     grabMorph: function(morph, evt) {

@@ -391,4 +391,48 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
     }
 });
 
+TestCase.subclass('lively.lang.tests.ExtensionTests.GridTest', {
+    testCreateGrid: function() {
+        var result = Grid.create(2, 3, 'foo'),
+            expected = [
+                ['foo', 'foo', 'foo'],
+                ['foo', 'foo', 'foo']];
+        this.assertEqualState(expected, result);
+    },
+
+    testCreateGridReturnsDistinctColumns: function() {
+        var result = Grid.create(2, 3, 'foo'),
+            expected = [
+                ['foo', 'bar', 'foo'],
+                ['foo', 'foo', 'foo']];
+        result[0][1] = 'bar';
+        this.assertEqualState(expected, result);
+    },
+
+    testGridForEach: function() {
+        var result = [],
+            expected = [[0,0], [0,1], [0,2],
+                        [1,0], [1,1], [1,2]];
+        Grid.forEach(Grid.create(2, 3), function(_, row, col) {
+            result.push([row, col]); });
+        this.assertEqualState(expected, result);
+    },
+
+    testGridMap: function() {
+        var result = Grid.map(Grid.create(2, 3), function(_, row, col) {
+            return row + col; }),
+            expected = [[0, 1, 2],
+                        [1, 2, 3]];
+        this.assertEqualState(expected, result);
+    },
+
+    testGridMapCreate: function() {
+        var result = Grid.mapCreate(2, 3, function(row, col) {
+            return row + col; }),
+            expected = [[0, 1, 2],
+                        [1, 2, 3]];
+        this.assertEqualState(expected, result);
+    }
+});
+
 }) // end of module

@@ -45,6 +45,7 @@ Object.extend(Number.prototype, {
 ///////////////////////////////////////////////////////////////////////////////
 
 Numbers = {
+
     random: function(min, max) {
         // both min and max are included
         min = min || 0;
@@ -60,4 +61,16 @@ Numbers = {
         n = n / 1024;
         return String(round(n)) + 'MB'
     },
+
+    average: function(numbers) {
+        return numbers.sum() / numbers.length;
+    },
+
+    median: function(numbers) {
+        var sorted = numbers.sort(), len = numbers.length;
+        return len % 2 === 0 ?
+            0.5 * (sorted[len/2-1] + sorted[len/2]) :
+            sorted[(len-1)/2];
+    }
+
 }

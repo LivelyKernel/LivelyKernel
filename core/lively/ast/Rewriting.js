@@ -209,6 +209,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         this.scopes.push([]);
     },
     registerVar: function(name) {
+        if (this.scopes.length == 0) return;
         this.scopes.last().push(name);
     },
     referenceVar: function(name) {

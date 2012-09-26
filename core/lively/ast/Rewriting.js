@@ -309,8 +309,9 @@ Object.subclass('lively.ast.Rewriting.UnwindExecption',
     },
 },
 'frames', {
-    shiftFrame: function(computationFrame, localFrame, astIndex) {
+    shiftFrame: function(thiz, computationFrame, localFrame, astIndex) {
         var frame = [computationFrame, localFrame, astIndex, Global];
+        localFrame["this"] = thiz;
         if (!this.top) return this.top = this.last = frame;
         this.last[3] = frame;
         this.last = frame;

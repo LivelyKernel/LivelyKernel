@@ -215,6 +215,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
         return node.isAfter(this.bp);
     },
     findPC: function() {
+        var current = this.firstStatement();
         // find PC based on values
     },
     setPC: function(node) {

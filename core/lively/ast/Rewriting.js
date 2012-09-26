@@ -4,7 +4,6 @@ Object.extend(lively.ast, {
     oldEval: eval
 });
 
-
 Object.extend(lively.ast.Rewriting, {
     table: []
 });
@@ -283,7 +282,8 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         this.enterScope();
         var rewritten = $super(node);
         this.exitScope();
-        var idx = lively.ast.Rewriting.table.register(node);
+        lively.ast.Rewriting.table.push(node);
+        var idx = lively.ast.Rewriting.table.length - 1;
         rewritten.body = this.wrapFunctionBody(idx, rewritten.body);
         return this.wrapClosure(idx, rewritten);
     }
@@ -291,7 +291,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
 
 Object.extend(Global, {
     __createClosure: function(idx, scope, f) {
-        f._cachedAst = lively.ast.Rewriting.table.table[idx];
+        f._cachedAst = lively.ast.Rewriting.table[idx];
         f._cachedScope = scope;
         return f;
     },

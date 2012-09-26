@@ -374,6 +374,9 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     },
     visitFunction: function($super, node) {
         this.enterScope();
+        for (var i = 0; i < node.args.length; i++) {
+            this.register(node.args[i].value);
+        }
         var rewritten = $super(node);
         this.exitScope();
         lively.ast.Rewriting.table.push(node);

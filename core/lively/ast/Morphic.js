@@ -93,7 +93,7 @@ cop.create('DebugGlobalErrorHandlerLayer')
 .beGlobal()
 .refineClass(lively.morphic.World, {
     logError: function(err, optName) {
-        if (err.isUnwindExecption) {
+        if (err.isUnwindException) {
             if (err.simStack) {
                 var frame = lively.ast.Interpreter.Frame.fromTraceNode(err.simStack);
             } else {

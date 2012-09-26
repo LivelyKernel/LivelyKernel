@@ -226,7 +226,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
             return last == node.position();
         })[0];
         // the pc should be the next node right after the last one
-        this.pc = this.func.ast().nodeForAstIndex(node.astIndex() + 1);
+        this.pc = this.func.ast().nodeForAstIndex(node.astIndex() - 1);
     },
     setPC: function(node) {
         this.pc = node.isFunction ? node : node.firstStatement();

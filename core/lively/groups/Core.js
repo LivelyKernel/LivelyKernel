@@ -39,8 +39,12 @@ Object.subclass('lively.groups.ObjectGroup',
         });
     },
     performOnMembers: function(selector, args) {
-        this.getMembers().forEach(function (ea) {
-            ea[selector].apply(ea, args);
+        return this.getMembers().collect(function (ea) {
+            try {
+                return ea[selector].apply(ea, args);
+            } catch(e) {
+                return e;
+            }
         });
     }
 }

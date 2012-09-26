@@ -111,7 +111,17 @@ lively.morphic.tests.TestCase.subclass('lively.groups.tests.Groups.GroupTest',
         group.performOnMembers('setFill', [null]);
         this.assertEquals(null, group.getMembers()[0].getFill());
         this.assertEquals(null, group.getMembers()[1].getFill());
-     },
+    },
+    testPerformOnMembersContinuesOnErrors: function() {
+        var group = new lively.groups.ObjectGroup();
+        var xyzMorph = this.newTestMorph();
+        group.addMembers([this.newTestMorph(), this.newTestMorph(), xyzMorph]);
+        xyzMorph.addScript(function xyzMethod() {
+            this.xyz = '123';
+        });
+        group.performOnMembers('xyzMethod', []);
+        this.assertEquals('123', xyzMorph.xyz);
+    },
     testFindGroupMembersByID: function() {
         var morphA = new lively.morphic.Morph();
         var morphB = new lively.morphic.Morph();

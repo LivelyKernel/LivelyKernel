@@ -6,7 +6,7 @@ Object.extend(lively.ast, {
 
 
 Object.extend(lively.ast.Rewriting, {
-    table: new lively.ast.Rewriting.AstTable()
+    table: []
 });
 
 lively.ast.Visitor.subclass('lively.ast.Rewriting.Transformation',

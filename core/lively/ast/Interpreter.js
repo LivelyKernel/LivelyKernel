@@ -222,11 +222,12 @@ Object.subclass('lively.ast.Interpreter.Frame',
             return (+fromTo[1]) << 23 - (+fromTo[0]);
         });
         // find the node corresponding to this value
-        this.pc = this.func.ast().nodesMatching(function(node) {
+        var node = this.func.ast().nodesMatching(function(node) {
             return last == node.position();
         })[0];
         // the pc should be the next node right after the last one
         // this.pc = this.func.ast().nodeForAstIndex(node.astIndex() + 1);
+        this.pc = node.nextStatement();
     },
     setPC: function(node) {
         this.pc = node.isFunction ? node : node.firstStatement();

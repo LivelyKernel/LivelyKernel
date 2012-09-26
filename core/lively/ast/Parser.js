@@ -841,7 +841,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
         },
         conversion: {
             asJS: function(depth) {
-                return 'new (' + this.clsExpr.asJS(depth) + ')';
+                return 'new ' + this.clsExpr.asJS(depth);
             }
         }
     },

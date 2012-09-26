@@ -63,6 +63,13 @@ TestCase.subclass('lively.groups.tests.Groups.GroupTest', 'testing', {
         this.assert(groupNames.include('firstGroup'));
         this.assert(groupNames.include('secondGroup'));
     },
+    testAddPropertyToMembers: function() {
+        var group = new lively.groups.ObjectGroup();
+        group.addMembers([new lively.morphic.Morph(), new lively.morphic.Text()]);
+        group.addPropertyToMembers('testProp', 2);
+        this.assertEquals(2, group.members[0].testProp);
+        this.assertEquals(2, group.members[1].testProp);
+    },
     testAddScriptToMembersAddsTheScript: function() {
         var group = new lively.groups.ObjectGroup();
         group.addMembers([new lively.morphic.Morph(), new lively.morphic.Text()]);
@@ -86,7 +93,13 @@ TestCase.subclass('lively.groups.tests.Groups.GroupTest', 'testing', {
         this.assert(group.members[0].getGroups().include(group));
         this.assert(group.members[1].getGroups().include(group));
     },
-
+    testPerformOnMembers: function() {
+        var group = new lively.groups.ObjectGroup();
+        group.addMembers([new lively.morphic.Morph(), new lively.morphic.Text()]);
+        group.performOnMembers('setFill', [null]);
+        this.assertEquals(null, group.members[0].getFill());
+        this.assertEquals(null, group.members[1].getFill());
+     }
 });
 
 }) // end of module

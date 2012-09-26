@@ -26,12 +26,22 @@ Object.subclass('lively.groups.ObjectGroup',
     },
 },
 'group operations', {
+    addPropertyToMembers: function(name, value) {
+        this.members.forEach(function (ea) {
+            ea[name] = value;
+        });
+    },
     addScriptToMembers: function(funcOrString, optName) {
         var that = this;
         this.members.forEach(function (ea) {
             var func = Object.addScript(ea, funcOrString, optName);
             func.setGroupID(that.groupID);
             ea.addGroup(that);
+        });
+    },
+    performOnMembers: function(selector, args) {
+        this.members.forEach(function (ea) {
+            ea[selector].apply(ea, args);
         });
     }
 }

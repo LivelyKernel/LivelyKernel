@@ -338,6 +338,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
             this.rewriteVarDeclaration(node.pos, node.name, this.visit(node.val)));
     },
     visitVariable: function(node) {
+        debugger;
         return this.wrapVar(node.pos, node.name);
     },
     visitDebugger: function(node) {

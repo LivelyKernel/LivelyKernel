@@ -319,9 +319,6 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     visitNew: function($super, node) {
         return this.storeComputationResult($super(node));
     },
-    visitThrow: function($super, node) {
-        return this.storeComputationResult($super(node));
-    },
     visitFunction: function($super, node) {
         this.enterScope();
         var rewritten = this.storeComputationResult($super(node));

@@ -1001,7 +1001,7 @@ lively.ast.Node.subclass('lively.ast.Function',
 	},
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.args.collect(function(ea) { return '"' + ea.name + '"' }), this.body) },
+	printConstruction: function () { return this.printConstructorCall(this.pos, this.body, this.args.collect(function(ea) { return '"' + ea.name + '"' })) },
 	toString: function () {
                 return Strings.format(
                     '%s(function %s(%s) %s)',

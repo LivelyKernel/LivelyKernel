@@ -219,14 +219,12 @@ Object.subclass('lively.ast.Interpreter.Frame',
         // find the last computed value
         var last = Object.keys(this.values).max(function(k) {
             var fromTo = k.split('-');
-            return (+fromTo[1]) << 23 - (+fromTo[0]);
+            return (+fromTo[1]) << 23 + (+fromTo[0]);
         });
         // find the node corresponding to this value
-        var node = this.func.ast().nodesMatching(function(node) {
+        this.pc = this.func.ast().nodesMatching(function(node) {
             return last == node.position();
         })[0];
-        // the pc should be the next node right after the last one
-        this.pc = this.func.ast().nodeForAstIndex(node.astIndex() - 1);
     },
     setPC: function(node) {
         this.pc = node.isFunction ? node : node.firstStatement();
@@ -824,7 +822,8 @@ lively.ast.GetSlot.addMethods('interpretation', {
 
 lively.ast.Function.addMethods('interpretation', {
     position: function() {
-        return (this.pos[1] - 1) + "-" + this.pos[1];
+        //return (this.pos[1] - 1) + "-" + this.pos[1];
+        return this.pos[0] + "-" + this.pos[1];
     },
     basicApply: function(frame) {
         var interpreter = new lively.ast.InterpreterVisitor();

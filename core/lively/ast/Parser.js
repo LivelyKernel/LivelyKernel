@@ -904,7 +904,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
     func: {
         className: 'Function', rules: [':pos', 'trans:body', 'trans*:args'],
         debugging: {
-            printConstruction: function() { return this.printConstructorCall(this.pos, this.args.collect(function(ea) { return '"' + ea.name + '"' }), this.body) },
+            printConstruction: function() { return this.printConstructorCall(this.pos, this.body, this.args.collect(function(ea) { return '"' + ea.name + '"' })) },
             toString: function() {
                 return Strings.format(
                     '%s(function %s(%s) %s)',

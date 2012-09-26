@@ -214,6 +214,9 @@ Object.subclass('lively.ast.Interpreter.Frame',
         if (this.bp == node.nextStatement()) return false;
         return node.isAfter(this.bp);
     },
+    findPC: function() {
+        // find PC based on values
+    },
     setPC: function(node) {
         this.pc = node.isFunction ? node : node.firstStatement();
         if (this.isBreakingAt(node)) this.halt();

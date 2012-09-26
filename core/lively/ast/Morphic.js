@@ -70,7 +70,7 @@ cop.create('DebugMethodsLayer').refineObject(Function.prototype, {
         }
         return cop.proceed(categoryName, source);
     },
-}).beGlobal();
+});
 
 lively.morphic.Text.addMethods(
 'debugging', {

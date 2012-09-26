@@ -227,11 +227,11 @@ Object.subclass('lively.ast.Interpreter.Frame',
         })[0];
         // the pc should be the next node right after the last one
         // try next statement if this is not a debugger otherwise stay with node
-        if (!node.isDebugger) {
-            var next = node.nextStatement();
-            if (next) return this.pc = next;
-        }
-        this.pc = node;
+        //if (!node.isDebugger) {
+        //    var next = node.nextStatement();
+        //    if (next) return this.pc = next;
+        //}
+        this.pc = this.func.ast().nodeWithAstIndex(node.astIndex() + 1);
     },
     setPC: function(node) {
         this.pc = node.isFunction ? node : node.firstStatement();

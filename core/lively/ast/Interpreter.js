@@ -318,6 +318,8 @@ Object.extend(lively.ast.Interpreter.Frame, {
             frame.values = scope[0];
             frame.findPC();
             if (scope[3] !== Global) frame.setCaller(parent);
+            if (scope[4] !== Global) frame.frame.setContainingScope(
+                                       lively.ast.Interpreter.Frame.fromScope(scope[4]));
         } else {
             frame.setContainingScope(parent);
         }

@@ -262,7 +262,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     },
     catchExceptions: function(astIdx, body) {
         var src = "var ex = e.isUnwindException ? e : new lively.ast.Rewriting.UnwindExecption(e);"
-                + "ex.addFrame([_, _" + this.scopes.length + "," + astIdx + "]);"
+                + "ex.shiftFrame(_, _" + this.scopes.length + "," + astIdx + ");"
                 + "throw ex;";
         var catchSeq = lively.ast.Parser.parse(src, "topLevel");
         var noop = new lively.ast.Variable(body.pos, "undefined");

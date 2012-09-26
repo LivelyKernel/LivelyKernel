@@ -252,22 +252,23 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         var scope = this.registerVar(name);
         return new lively.ast.Set(pos, this.wrapVar(pos, name), expr);
     },
-    emptyObj: function(pos) {
-        return new lively.ast.ObjectLiteral(pos, []);
+    emptyObj: function() {
+        return new lively.ast.ObjectLiteral([0,0], []);
     },
     argsInitObj: function(args) {
         var properties = [];
         for (var i = 0; i < args.length; i++) {
-            var argVal = new lively.ast.Variable([0,0], args[i]);
-            properties.push(new lively.ast.ObjProperty([0,0], args[i], argVal));
+            var arg = args[i].name;
+            var argVal = new lively.ast.Variable(p, arg);
+            properties.push(new lively.ast.ObjProperty([0,0], arg, argVal));
         }
         return new lively.ast.ObjectLiteral([0,0], properties);
     },
-    addPreamble: function(astIdx, body) {
+    addPreamble: function(astIdx, body, args) {
         var p = body.pos;
         var level = this.scopes.length;
-        var initComputationFrame = new lively.ast.VarDeclaration(p, "_", this.emptyObj(p));
-        var initLocalFrame = new lively.ast.VarDeclaration(p, "_" + level, this.emptyObj(p));
+        var initComputationFrame = new lively.ast.VarDeclaration(p, "_", this.emptyObj());
+        var initLocalFrame = new lively.ast.VarDeclaration(p, "_"+level, this.argsInitObj(args));
         var frame = new lively.ast.ArrayLiteral(p, [this.computationFrame(),
                                                     this.localFrame(level),
                                                     new lively.ast.Number(p, astIdx),
@@ -286,8 +287,8 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         var error = new lively.ast.Variable(body.pos, "e");
         return new lively.ast.TryCatchFinally(body.pos, body, error, catchSeq, noop);
     },
-    wrapFunctionBody: function(astIdx, body) {
-        return this.catchExceptions(astIdx, this.addPreamble(astIdx, body));
+    wrapFunctionBody: function(astIdx, body, args) {
+        return this.catchExceptions(astIdx, this.addPreamble(astIdx, body, args));
     },
     wrapClosure: function(idx, node) {
         var fn = new lively.ast.Variable(node.pos, "__createClosure");

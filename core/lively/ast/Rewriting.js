@@ -373,6 +373,7 @@ Object.extend(Global, {
         var wrapped = new lively.ast.Function([0,0], ast, []);
         var rewriter = new lively.ast.Rewriting.Rewriter();
         var rewrittenAst = rewriter.visit(wrapped);
+        window.lastJS = rewrittenAst.asJS();
         return lively.ast.oldEval(rewrittenAst.asJS())();
     }
 });

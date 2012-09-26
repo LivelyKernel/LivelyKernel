@@ -364,7 +364,8 @@ Object.extend(Global, {
         var ast = lively.ast.Parser.parse(src, 'topLevel');
         var rewriter = new lively.ast.Rewriting.Rewriter();
         var rewrittenAst = rewriter.visit(ast);
-        return lively.ast.oldEval(rewrittenAst.asJS())();
+        window.lastJS = rewrittenAst.asJS();
+        return lively.ast.oldEval(rewrittenAst.asJS());
     }
 });
 

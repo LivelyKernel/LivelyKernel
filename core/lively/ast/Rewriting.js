@@ -299,6 +299,10 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         return this.wrapClosure(idx, rewritten);
     }
 });
+Object.subclass('MyClass',
+'default category', {
+    m1: function() {},
+});
 
 Object.extend(Global, {
     __createClosure: function(idx, scope, f) {

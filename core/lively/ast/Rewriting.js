@@ -282,7 +282,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         var number = new lively.ast.Number(newFunc.pos, idx);
         var scope = this.localFrame(this.scopes.length - 1);
         if (this.scopes.length == 0) scope = new lively.ast.Variable([0,0], "Global");
-        return new lively.ast.Call(newFunc.pos, fn, [number, scope, newFunc]);
+        return [idx, new lively.ast.Call(newFunc.pos, fn, [number, scope, newFunc])];
     }
 },
 'visiting', {

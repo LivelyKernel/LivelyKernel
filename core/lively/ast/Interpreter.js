@@ -231,6 +231,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
             var next = node.nextStatement();
             if (next) return this.pc = next;
         }
+        this.pc = node;
     },
     setPC: function(node) {
         this.pc = node.isFunction ? node : node.firstStatement();

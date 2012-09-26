@@ -1,4 +1,4 @@
-module('lively.groups.tests.Groups').requires('lively.TestFramework', 'lively.groups.Core').toRun(function() {
+module('lively.groups.tests.Groups').requires('lively.TestFramework', 'lively.groups.Core', 'lively.morphic.tests.Morphic').toRun(function() {
 
 TestCase.subclass('lively.groups.tests.Groups.ExtensionsTest', 'testing', {
     testAnnotateScriptWithID: function() {
@@ -40,21 +40,33 @@ TestCase.subclass('lively.groups.tests.Groups.ExtensionsTest', 'testing', {
     }
 });
 
-TestCase.subclass('lively.groups.tests.Groups.GroupTest', 'testing', {
+lively.morphic.tests.TestCase.subclass('lively.groups.tests.Groups.GroupTest', 
+'helpers', {
+    newTestMorph: function(optGroup) {
+        var m = new lively.morphic.Morph();
+        if (optGroup) {
+            m.addGroup(optGroup);
+        }
+        lively.morphic.World.current().addMorph(m);
+        return m;
+    }
+},
+'testing', {
     testCreateGroup: function() {
         var group = new lively.groups.ObjectGroup('newGroup');
         this.assertEquals(group.name, 'newGroup');
     },
     testAddMembers: function() {
         var group = new lively.groups.ObjectGroup();
-        group.addMember(new lively.morphic.Morph());
-        group.addMembers([new lively.morphic.Text(), new lively.morphic.Morph()]);
-        this.assertEquals(3, group.members.size());
+        group.addMember(this.newTestMorph());
+
+        group.addMembers([this.newTestMorph(group), this.newTestMorph()]);
+        this.assertEquals(3, group.getMembers().size());
     },
     testMemberKnowsItsGroups: function() {
         var firstGroup = new lively.groups.ObjectGroup('firstGroup');
         var secondGroup = new lively.groups.ObjectGroup('secondGroup');
-        var morph = new lively.morphic.Morph();
+        var morph = this.newTestMorph();
         morph.addGroup(firstGroup);
         morph.addGroup(secondGroup);
         var groupNames = morph.getGroups().collect(function (ea) {
@@ -65,41 +77,56 @@ TestCase.subclass('lively.groups.tests.Groups.GroupTest', 'testing', {
     },
     testAddPropertyToMembers: function() {
         var group = new lively.groups.ObjectGroup();
-        group.addMembers([new lively.morphic.Morph(), new lively.morphic.Text()]);
+        group.addMembers([this.newTestMorph(), this.newTestMorph()]);
         group.addPropertyToMembers('testProp', 2);
-        this.assertEquals(2, group.members[0].testProp);
-        this.assertEquals(2, group.members[1].testProp);
+        this.assertEquals(2, group.getMembers()[0].testProp);
+        this.assertEquals(2, group.getMembers()[1].testProp);
     },
     testAddScriptToMembersAddsTheScript: function() {
         var group = new lively.groups.ObjectGroup();
-        group.addMembers([new lively.morphic.Morph(), new lively.morphic.Text()]);
+        group.addMembers([this.newTestMorph(), this.newTestMorph()]);
         group.addScriptToMembers(function testScript() {});
-        this.assert(group.members[0].testScript);
-        this.assert(group.members[1].testScript);
+        this.assert(group.getMembers()[0].testScript);
+        this.assert(group.getMembers()[1].testScript);
     },
     testAddScriptToMembersAnnotatesScript: function() {
         var group = new lively.groups.ObjectGroup();
         group.groupID = '123';
-        group.addMembers([new lively.morphic.Morph(), new lively.morphic.Text()]);
+        group.addMembers([this.newTestMorph(), this.newTestMorph()]);
         group.addScriptToMembers(function testScript() {});
-        this.assertEquals('123', group.members[0].testScript.groupID);
-        this.assertEquals('123', group.members[1].testScript.groupID);
+        this.assertEquals('123', group.getMembers()[0].testScript.groupID);
+        this.assertEquals('123', group.getMembers()[1].testScript.groupID);
     },
     testAddScriptToMembersAnnotatesMember: function() {
         var group = new lively.groups.ObjectGroup();
         group.groupID = '123';
-        group.addMembers([new lively.morphic.Morph(), new lively.morphic.Text()]);
+        group.addMembers([this.newTestMorph(), this.newTestMorph()]);
         group.addScriptToMembers(function testScript() {});
-        this.assert(group.members[0].getGroups().include(group));
-        this.assert(group.members[1].getGroups().include(group));
+        this.assert(group.getMembers()[0].getGroups().include(group));
+        this.assert(group.getMembers()[1].getGroups().include(group));
     },
     testPerformOnMembers: function() {
         var group = new lively.groups.ObjectGroup();
-        group.addMembers([new lively.morphic.Morph(), new lively.morphic.Text()]);
+        group.addMembers([this.newTestMorph(), this.newTestMorph()]);
         group.performOnMembers('setFill', [null]);
-        this.assertEquals(null, group.members[0].getFill());
-        this.assertEquals(null, group.members[1].getFill());
-     }
+        this.assertEquals(null, group.getMembers()[0].getFill());
+        this.assertEquals(null, group.getMembers()[1].getFill());
+     },
+    testFindGroupMembersByID: function() {
+        var morphA = new lively.morphic.Morph();
+        var morphB = new lively.morphic.Morph();
+        var morphC = new lively.morphic.Morph();
+        morphA.addMorph(morphB);
+
+        var group = new lively.groups.ObjectGroup();
+        morphA.addGroup(group);
+        morphB.addGroup(group);
+
+        var members = morphA.findGroupMembersByID(group.groupID);
+        this.assert(members.include(morphA))
+        this.assert(members.include(morphB))
+        this.assert(!members.include(morphC))
+    }
 });
 
 }) // end of module

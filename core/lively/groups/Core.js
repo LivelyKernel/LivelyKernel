@@ -8,39 +8,38 @@ Object.subclass('lively.groups.ObjectGroup',
     initialize: function(name) {
         this.name = name || '';
         this.groupID =  new UUID();
-        this.members = [];
     },
 },
 'accessing', {
     addMember: function(member) {
-        this.members.push(member);
         member.addGroup(this);
     },
     addMembers: function(members) {
-        this.members.pushAll(members);
-
         var that = this;
         members.forEach(function (ea) {
             ea.addGroup(that)
         });
     },
+    getMembers: function() {
+        return lively.morphic.World.current().findGroupMembersByID(this.groupID);
+    }
 },
 'group operations', {
     addPropertyToMembers: function(name, value) {
-        this.members.forEach(function (ea) {
+        this.getMembers().forEach(function (ea) {
             ea[name] = value;
         });
     },
     addScriptToMembers: function(funcOrString, optName) {
         var that = this;
-        this.members.forEach(function (ea) {
+        this.getMembers().forEach(function (ea) {
             var func = Object.addScript(ea, funcOrString, optName);
             func.setGroupID(that.groupID);
             ea.addGroup(that);
         });
     },
     performOnMembers: function(selector, args) {
-        this.members.forEach(function (ea) {
+        this.getMembers().forEach(function (ea) {
             ea[selector].apply(ea, args);
         });
     }
@@ -70,8 +69,23 @@ lively.morphic.Morph.addMethods(
             this.groups.push(group);
         }
     },
-    getGroups: function(group) {
+    getGroups: function() {
+        if (!this.groups) {
+            this.groups = [];
+        }
         return this.groups;
+    },
+    findGroupMembersByID: function(groupID) {
+        var result = [];
+        if (this.getGroups().detect(function (ea) {
+            return ea.groupID === groupID;
+        })) {
+            result.push(this);
+        }
+        this.submorphs.each(function (ea) {
+            result.pushAll(ea.findGroupMembersByID(groupID));
+        })
+        return result;
     }
 });
 

@@ -877,7 +877,7 @@ lively.ast.Node.subclass('lively.ast.New',
 },
 'conversion', {
 	asJS: function (depth) {
-                return 'new ' + this.clsExpr.asJS(depth);
+                return 'new (' + this.clsExpr.asJS(depth) + ')';
             },
 },
 'visiting', {
@@ -1102,6 +1102,67 @@ lively.ast.Node.subclass('lively.ast.ObjProperty',
     }
  })
 
+lively.ast.Node.subclass('lively.ast.ObjPropertyGet',
+'testing', {
+	isObjPropertyGet: true,
+},
+'initializing', {
+	initialize: function($super, pos, name, body) {
+		this.pos = pos;
+		this.name = name;
+		this.body = body;
+		body.setParent(this);
+	},
+},
+'debugging', {
+	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.body) },
+	toString: function () {
+          return Strings.format(
+              '%s(%s() { %s })',
+              this.constructor.name, this.name, this.body) },
+},
+'conversion', {
+	asJS: function (depth) {
+                return Strings.format('get "%s"() { %s }', this.name, this.body.asJS(depth));
+            },
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitObjPropertyGet(this);
+    }
+ })
+
+lively.ast.Node.subclass('lively.ast.ObjPropertySet',
+'testing', {
+	isObjPropertySet: true,
+},
+'initializing', {
+	initialize: function($super, pos, name, body, arg) {
+		this.pos = pos;
+		this.name = name;
+		this.body = body;
+		this.arg = arg;
+		body.setParent(this);
+	},
+},
+'debugging', {
+	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.body, this.arg) },
+	toString: function () {
+          return Strings.format(
+              '%s(%s(%s) { %s })',
+              this.constructor.name, this.name, this.arg, this.body) },
+},
+'conversion', {
+	asJS: function (depth) {
+                return Strings.format('set "%s"(%s) { %s }', this.name, this.arg, this.body.asJS(depth));
+            },
+},
+'visiting', {
+    accept: function(visitor) {
+        return visitor.visitObjPropertySet(this);
+    }
+ })
+
 lively.ast.Node.subclass('lively.ast.Switch',
 'testing', {
 	isSwitch: true,
@@ -1213,67 +1274,6 @@ lively.ast.Node.subclass('lively.ast.Regex',
         return visitor.visitRegex(this);
     }
  })
-
-lively.ast.Node.subclass('lively.ast.ObjPropertyGet',
-'testing', {
-	isObjPropertyGet: true,
-},
-'initializing', {
-	initialize: function($super, pos, name, body) {
-		this.pos = pos;
-		this.name = name;
-		this.body = body;
-		body.setParent(this);
-	},
-},
-'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.body) },
-	toString: function () {
-          return Strings.format(
-              '%s(%s() { %s })',
-              this.constructor.name, this.name, this.body) },
-},
-'conversion', {
-	asJS: function (depth) {
-                return Strings.format('get "%s"() { %s }', this.name, this.body.asJS(depth));
-            },
-},
-'visiting', {
-    accept: function(visitor) {
-        return visitor.visitObjPropertyGet(this);
-    }
- })
-
-lively.ast.Node.subclass('lively.ast.ObjPropertySet',
-'testing', {
-	isObjPropertySet: true,
-},
-'initializing', {
-	initialize: function($super, pos, name, body, arg) {
-		this.pos = pos;
-		this.name = name;
-		this.body = body;
-		this.arg = arg;
-		body.setParent(this);
-	},
-},
-'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.body, this.arg) },
-	toString: function () {
-          return Strings.format(
-              '%s(%s(%s) { %s })',
-              this.constructor.name, this.name, this.arg, this.body) },
-},
-'conversion', {
-	asJS: function (depth) {
-                return Strings.format('set "%s"(%s) { %s }', this.name, this.arg, this.body.asJS(depth));
-            },
-},
-'visiting', {
-    accept: function(visitor) {
-        return visitor.visitObjPropertySet(this);
-    }
- })
 Object.subclass('lively.ast.Visitor', 
 'visiting', {
 	visit: function(node) { return node.accept(this) },
@@ -1310,12 +1310,12 @@ Object.subclass('lively.ast.Visitor',
 	visitFunction: function(node) {},
 	visitObjectLiteral: function(node) {},
 	visitObjProperty: function(node) {},
+	visitObjPropertyGet: function(node) {},
+	visitObjPropertySet: function(node) {},
 	visitSwitch: function(node) {},
 	visitCase: function(node) {},
 	visitDefault: function(node) {},
 	visitRegex: function(node) {},
-	visitObjPropertyGet: function(node) {},
-	visitObjPropertySet: function(node) {},
 
 })
 });

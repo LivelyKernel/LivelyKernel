@@ -290,11 +290,16 @@ Object.extend(lively.ast.Interpreter.Frame, {
         }
         return frame;
     },
-    fromScope: function(scope) {
+    fromScope: function(scope, callstack) {
         if (scope === Global) return lively.ast.Interpreter.Frame.global();
         var ast = lively.ast.Rewriting.table[scope[2]];
         var frame = new lively.ast.Interpreter.Frame(ast.asFunction(), scope[1]);
-        frame.setContainingScope(lively.ast.Interpreter.Frame.fromScope(scope[3]));
+        var parent = lively.ast.Interpreter.Frame.fromScope(scope[3]);
+        if (callstack) {
+            frame.setCaller(parent);
+        } else {
+            frame.setContainingScope(lively.ast.Interpreter.Frame.fromScope(scope[3]));
+        }
         return frame;
     }
 });

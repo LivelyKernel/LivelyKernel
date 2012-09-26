@@ -266,7 +266,8 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         var initComputationFrame = new lively.ast.VarDeclaration(p, "_", this.emptyObj(p));
         var containingScope = new lively.ast.ObjProperty(p, "_",
             level == 0 ? new lively.ast.Variable(p, "Global") : this.localFrame(level - 1));
-        var initLocalFrame = new lively.ast.VarDeclaration(p, "_" + level, this.emptyObj(p));
+        var localFrame = new lively.ast.ObjectLiteral(p, [containingScope]);
+        var initLocalFrame = new lively.ast.VarDeclaration(p, "_" + level, localFrame);
         return new lively.ast.Sequence(p, [initComputationFrame, initLocalFrame, body]);
     },
     wrapClosure: function(originalFunc, newFunc) {

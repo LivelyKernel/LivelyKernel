@@ -217,10 +217,10 @@ Object.subclass('lively.ast.Interpreter.Frame',
     findPC: function() {
         // find PC based on values
         var current = this.func.ast().firstStatement();
-        while (current != this.func.ast()) {
-            
+        while (this.isBreakingAt() && current != this.func.ast()) {
+            current = current.nextStatement();
         }
-        this.pc = current;
+        return this.pc = current;
     },
     setPC: function(node) {
         this.pc = node.isFunction ? node : node.firstStatement();

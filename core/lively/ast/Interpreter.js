@@ -226,6 +226,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
             return last == node.position();
         })[0];
         // the pc should be the next MODIFYING node right after the last one
+        debugger;
         var foundNode = false;
         var pc = node;
         this.func.ast().withAllChildNodesDo(function(n) {

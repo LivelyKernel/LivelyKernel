@@ -294,12 +294,12 @@ Object.extend(lively.ast.Interpreter.Frame, {
         if (scope === Global) return lively.ast.Interpreter.Frame.global();
         var ast = lively.ast.Rewriting.table[scope[2]];
         var frame = new lively.ast.Interpreter.Frame(ast.asFunction(), scope[1]);
-        frame.values = scope[0];
-        var parent = lively.ast.Interpreter.Frame.fromScope(scope[3]);
+        var parent = lively.ast.Interpreter.Frame.fromScope(scope[3], callstack);
         if (callstack) {
+            frame.values = scope[0];
             frame.setCaller(parent);
         } else {
-            frame.setContainingScope(lively.ast.Interpreter.Frame.fromScope(scope[3]));
+            frame.setContainingScope(parent);
         }
         return frame;
     }

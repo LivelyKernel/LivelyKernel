@@ -152,6 +152,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
         }
         for (var name in this.mapping) {
             if (!this.mapping.hasOwnProperty(name)) continue;
+            if (name == "_") continue;
             var value = this.mapping[name];
             items.push({
                 isListItem: true,

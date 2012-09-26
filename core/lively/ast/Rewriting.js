@@ -259,8 +259,12 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         var initFrame = new lively.ast.VarDeclaration(p, "__" + level, frame);
         return new lively.ast.Sequence(p, [initComputationFrame, initLocalFrame, initFrame]);
     },
+    catchExceptions: function(body) {
+        
+    },
     wrapFunctionBody: function(astIdx, body) {
         var bodyWithPreamble = this.functionPreamble(astIdx).insert(body);
+        return this.catchExceptions(bodyWithPreamble);
     },
     wrapClosure: function(idx, node) {
         var fn = new lively.ast.Variable(node.pos, "__createClosure");

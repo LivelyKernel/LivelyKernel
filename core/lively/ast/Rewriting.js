@@ -276,10 +276,11 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         var initFrame = new lively.ast.VarDeclaration(p, "__" + level, frame);
         return new lively.ast.Sequence(p, [initComputationFrame, initLocalFrame, initFrame, body]);
     },
-    wrapClosure: function(node) {
+    wrapClosure: function(idx, node) {
         var fn = new lively.ast.Variable(node.pos, "__createClosure");
         var scope = this.frame(this.scopes.length - 1);
-        return new lively.ast.Call(node.pos, fn, [scope, node]);
+        var astIdx = new lively.ast.Number([0,0], idx);
+        return new lively.ast.Call(node.pos, fn, [astIdx, scope, node]);
     }
 },
 'visiting', {

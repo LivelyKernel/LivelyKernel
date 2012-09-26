@@ -269,7 +269,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         return new lively.ast.TryCatchFinally(body.pos, body, catchSeq, noop);
     },
     wrapFunctionBody: function(astIdx, body) {
-        return this.catchExceptions(this.addPreamble(astIdx, body));
+        return this.catchExceptions(astIdx, this.addPreamble(astIdx, body));
     },
     wrapClosure: function(idx, node) {
         var fn = new lively.ast.Variable(node.pos, "__createClosure");

@@ -226,20 +226,20 @@ Object.subclass('lively.ast.Interpreter.Frame',
             return last == node.position();
         })[0];
         // the pc should be the next MODIFYING node right after the last one
-        var that = this;
+        var pc = null;
         var foundNode = false;
         this.func.ast().withAllChildNodesDoPostOrder(function(n) {
             if (!foundNode) {
                 if (n === node) foundNode = true;
             } else {
                 if (n.isCall || n.isSend || n.isSet || n.isModifyingSet || n.isPreOp || n.isPostOp) {
-                    that.pc = n;
+                    pc = n;
                     return false
                 }
             }
             return true;
         });
-        this.pc = this.func.ast();
+        this.pc = pc || this.func.ast();
     },
     setPC: function(node) {
         this.pc = node.isFunction ? node : node.firstStatement();

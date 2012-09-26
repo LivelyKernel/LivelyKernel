@@ -297,6 +297,7 @@ Object.extend(lively.ast.Interpreter.Frame, {
         var parent = lively.ast.Interpreter.Frame.fromScope(scope[3], callstack);
         if (callstack) {
             frame.values = scope[0];
+            frame.findPC();
             frame.setCaller(parent);
         } else {
             frame.setContainingScope(parent);

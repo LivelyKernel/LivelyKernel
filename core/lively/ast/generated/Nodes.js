@@ -877,7 +877,7 @@ lively.ast.Node.subclass('lively.ast.New',
 },
 'conversion', {
 	asJS: function (depth) {
-                return 'new (' + this.clsExpr.asJS(depth) + ')';
+                return 'new ' + this.clsExpr.asJS(depth);
             },
 },
 'visiting', {

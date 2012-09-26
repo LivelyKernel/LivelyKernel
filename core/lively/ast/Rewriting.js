@@ -325,12 +325,12 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     },
     visitFunction: function($super, node) {
         this.enterScope();
-        var rewritten = this.storeComputationResult($super(node));
+        var rewritten = $super(node);
         this.exitScope();
         lively.ast.Rewriting.table.push(node);
         var idx = lively.ast.Rewriting.table.length - 1;
         rewritten.body = this.wrapFunctionBody(idx, rewritten.body);
-        return this.wrapClosure(idx, rewritten);
+        return this.storeComputationResult(this.wrapClosure(idx, rewritten));
     }
 });
 Object.subclass('lively.ast.Rewriting.UnwindExecption',

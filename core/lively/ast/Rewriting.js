@@ -238,6 +238,22 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         var name = new lively.ast.String(node.pos, node.position());
         var target = new lively.ast.GetSlot(node.pos, name, this.computationFrame());
         return new lively.ast.Set(node.pos, target, node);
+    },
+    registerArguments: function(func) {
+        var args = [];
+        for (var i = 0; i < node.args.length; i++) {
+            this.registerVar(node.args[i].name);
+            args.push(new lively.ast.Variable(node.args[i].pos, node.args[i].name));
+        }
+        return args;
+    },
+    registerLocals: function(func) {
+        var that = this;
+        func.body.withAllChildNodesDo(function(node) {
+            if (node.isFunction) return false;
+            if (node.isVarDeclaration) that.registerVar(node.name);
+            return true;
+        });
     }
 },
 'rewriting', {
@@ -249,7 +265,6 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
                                       this.localFrame(scope));
     },
     rewriteVarDeclaration: function(pos, name, expr) {
-        var scope = this.registerVar(name);
         return new lively.ast.Set(pos, this.wrapVar(pos, name), expr);
     },
     emptyObj: function() {
@@ -362,18 +377,9 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     },
     visitFunction: function($super, node) {
         this.enterScope();
-        var args = [];
-        for (var i = 0; i < node.args.length; i++) {
-            this.registerVar(node.args[i].name);
-            args.push(new lively.ast.Variable(node.args[i].pos, node.args[i].name));
-        }
-        var that = this;
-        node.withAllChildNodesDo(function(n) {
-            if (n.isFunction) return false;
-            if (n.isVarDeclaration) that.registerVar(n.name);
-            return true;
-        });
-        var rewritten = new lively.ast.Function(node.pos, this.visit(node.body),args);
+        var args = this.registerArguments(node);
+        this.registerLocals(node);
+        var rewritten = new lively.ast.Function(node.pos, this.visit(node.body), args);
         this.exitScope();
         lively.ast.Rewriting.table.push(node);
         var idx = lively.ast.Rewriting.table.length - 1;

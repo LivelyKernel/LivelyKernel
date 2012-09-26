@@ -1040,9 +1040,6 @@ Function.addMethods(
 'debugging', {
     forInterpretation: function(optMapping) {
         var funcAst = this.ast();
-        if (optMapping) {
-            func.lexicalScope = lively.ast.Interpreter.Frame.create(optMapping || Global);
-        }
         return funcAst.asFunction(this);
     },
     containsDebugger: function() {

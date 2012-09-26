@@ -234,6 +234,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         return new lively.ast.Variable([0,0], "__" + i);
     },
     storeComputationResult: function(node) {
+        if (this.scopes.length == 0) return node; // dont store if there is no frame
         var name = new lively.ast.String(node.pos, node.position());
         var target = new lively.ast.GetSlot(node.pos, name, this.computationFrame());
         return new lively.ast.Set(node.pos, target, node);

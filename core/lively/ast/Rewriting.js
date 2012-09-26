@@ -361,9 +361,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     visitModifyingSet: function($super, node) {
         return this.storeComputationResult($super(node));
     },
-    visitBinaryOp: function($super, node) {
-        return this.storeComputationResult($super(node));
-    },
+
     visitPreOp: function($super, node) {
         return this.storeComputationResult($super(node));
     },

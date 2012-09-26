@@ -345,7 +345,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         this.exitScope();
         lively.ast.Rewriting.table.push(node);
         var idx = lively.ast.Rewriting.table.length - 1;
-        rewritten.body = this.wrapFunctionBody(idx, rewritten.body);
+        rewritten.body = this.wrapFunctionBody(idx, rewritten.body, rewritten.args);
         return this.storeComputationResult(this.wrapClosure(idx, rewritten));
     }
 });

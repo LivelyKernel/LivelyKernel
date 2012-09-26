@@ -241,9 +241,10 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     },
     registerArguments: function(func) {
         var args = [];
-        for (var i = 0; i < node.args.length; i++) {
-            this.registerVar(node.args[i].name);
-            args.push(new lively.ast.Variable(node.args[i].pos, node.args[i].name));
+        for (var i = 0; i < func.args.length; i++) {
+            var arg = func.args[i];
+            this.registerVar(arg.name);
+            args.push(new lively.ast.Variable(arg.pos, arg.name));
         }
         return args;
     },

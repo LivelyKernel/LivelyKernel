@@ -372,7 +372,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         debugger;
         var clsExpr = this.visit(node.clsExpr);
         if (clsExpr.isSet) clsExpr = clsExpr.right;
-        return this.storeComputationResult(clsExpr);
+        return this.storeComputationResult(new lively.ast.New(node.pos, clsExpr));
     },
     visitFunction: function($super, node) {
         this.enterScope();

@@ -266,7 +266,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
                 + "throw ex;";
         var catchSeq = lively.ast.Parser.parse(src, "topLevel");
         var noop = new lively.ast.Variable(body.pos, "undefined");
-        return new lively.ast.TryCatchFinally(body.pos, body, catchSeq, noop);
+        return new lively.ast.TryCatchFinally(body.pos, body, "e", catchSeq, noop);
     },
     wrapFunctionBody: function(astIdx, body) {
         return this.catchExceptions(astIdx, this.addPreamble(astIdx, body));

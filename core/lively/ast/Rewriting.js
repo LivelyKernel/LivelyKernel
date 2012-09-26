@@ -301,8 +301,8 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         var rewritten = $super(node);
         this.exitScope();
         var closure = this.wrapClosure(node, rewritten);
-        rewritten.body = this.wrapFunctionBody(rewritten.body);
-        return this.wrapClosure(node, rewritten);
+        rewritten.body = this.wrapFunctionBody(closure[0], rewritten.body);
+        return closure[1];
     }
 });
 

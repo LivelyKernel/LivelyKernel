@@ -49,7 +49,7 @@ Object.subclass("lively.ide.SyntaxHighlighter",
 lively.ide.SyntaxHighlighter.subclass('lively.ide.JSSyntaxHighlighter',
 'settings', {
     minDelay: 300, // ms
-    charLimit: 60000,
+    charLimit: 6000,
     rules: {
         // based on http://code.google.com/p/jquery-chili-js/ regex and colors
         num: {

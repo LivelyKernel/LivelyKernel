@@ -296,8 +296,9 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         return this.wrapVar(node.pos, node.name);
     },
     visitDebugger: function(node) {
-        var returnDebugger = function() { return "Debugger"; };
-        var ast = this.storeComputationResult(returnDebugger.ast());
+        var returnDebugger = (function() { return "Debugger"; }).ast();
+        returnDebugger.pos = node.pos;
+        var ast = this.storeComputationResult(returnDebugger);
         var toString = new lively.ast.ObjProperty(node.pos, "toString", ast);
         return new lively.ast.Throw(node.pos, new lively.ast.ObjectLiteral(node.pos, [toString]));
     },
@@ -344,9 +345,13 @@ Object.subclass('lively.ast.Rewriting.UnwindExecption',
         this.error = error;
     },
 },
+'printing', {
+    toString: function() {
+        return this.error.toString();
+    }
+},
 'frames', {
     shiftFrame: function(thiz, computationFrame, localFrame, astIndex) {
-        debugger;
         var frame = [computationFrame, localFrame, astIndex, Global];
         localFrame["this"] = thiz;
         if (!this.top) return this.top = this.last = frame;

@@ -291,7 +291,7 @@ Object.extend(lively.ast.Interpreter.Frame, {
         return frame;
     },
     fromScope: function(scope) {
-        var frame = new this();
+        var frame = new lively.ast.Interpreter.Frame();
         if (scope._) frame.setContainingScope(this.fromScope(scope["_"]));
         return frame;
     }

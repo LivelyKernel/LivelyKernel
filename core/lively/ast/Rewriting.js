@@ -333,6 +333,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         return new lively.ast.Sequence(node.pos, children);
     },
     visitVarDeclaration: function(node) {
+        debugger;
         this.registerVar(node.name.value);
         return this.storeComputationResult(
             this.rewriteVarDeclaration(node.pos, node.name, this.visit(node.val)));

@@ -298,6 +298,19 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     }
 },
 'visiting', {
+    visitSequence: function(node) {
+        var funs = [];
+        var rest = [];
+        for (var i = 0; i < node.children.length; i++) {
+            var visited = this.visit(node.children[i]);
+            if (node.children[i].isVarDeclaration && node.children[i].val.isFunction) {
+                funs.push(visited);
+            } else {
+                rest.push(visited);
+            }
+        }
+        return new lively.ast.Sequence(node.pos, funs.concat(rest));
+    },
     visitVarDeclaration: function(node) {
         this.registerVar(node.name.value);
         return this.storeComputationResult(

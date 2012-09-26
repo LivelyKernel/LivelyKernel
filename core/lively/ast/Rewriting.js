@@ -269,7 +269,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         var level = this.scopes.length;
         var initComputationFrame = new lively.ast.VarDeclaration(p, "_", this.emptyObj(p));
         var initLocalFrame = new lively.ast.VarDeclaration(p, "_" + level, this.emptyObj(p));
-        var frame = new lively.ast.ArrayLiteral(p, [this.initFrame(),
+        var frame = new lively.ast.ArrayLiteral(p, [this.computationFrame(),
                                                     this.localFrame(level),
                                                     new lively.ast.Number(p, astIdx),
                                                     this.frame(level - 1)]);

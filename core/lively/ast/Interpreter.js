@@ -292,7 +292,7 @@ Object.extend(lively.ast.Interpreter.Frame, {
     },
     fromScope: function(scope) {
         if (scope === Global) return lively.ast.Interpreter.Frame.global();
-        var ast = scope[2];
+        var ast = lively.ast.Rewriting.table.table[scope[2]];
         var frame = new lively.ast.Interpreter.Frame(ast.asFunction(), scope[1]);
         frame.setContainingScope(lively.ast.Interpreter.Frame.fromScope(scope[3]));
         return frame;

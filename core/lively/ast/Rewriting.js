@@ -270,10 +270,10 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     wrapClosure: function(originalFunc, newFunc) {
         var fn = new lively.ast.Variable(newFunc.pos, "__livelyAST");
         var idx = lively.ast.Rewriting.table.register(originalFunc);
-        var args = [new lively.ast.Number(newFunc.pos, idx)];
-        if (this.scopes.length > 0) args.push(this.localFrame(this.scopes.length - 1));
-        args.push(newFunc);
-        return new lively.ast.Call(newFunc.pos, fn, args);
+        var number = new lively.ast.Number(newFunc.pos, idx);
+        var scope = this.localFrame(this.scopes.length - 1);
+        if (this.scopes.length == 0) scope = new lively.ast.Variable([0,0], "Global");
+        return new lively.ast.Call(newFunc.pos, fn, [number, scope, newFunc]);
     }
 },
 'visiting', {

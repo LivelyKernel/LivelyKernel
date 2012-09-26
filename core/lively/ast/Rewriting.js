@@ -296,10 +296,9 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         return this.wrapVar(node.pos, node.name);
     },
     visitDebugger: function(node) {
-        var returnDebugger = (function() { return "Debugger"; });
-        var ast = this.storeComputationResult(returnDebugger.ast());
-        debugger;
-        ast.set.left.slotName = new lively.ast.String(node.pos, node.position());
+        var returnDebugger = (function() { return "Debugger"; }).ast();
+        returnDebugger.pos = node.pos;
+        var ast = this.storeComputationResult(returnDebugger);
         var toString = new lively.ast.ObjProperty(node.pos, "toString", ast);
         return new lively.ast.Throw(node.pos, new lively.ast.ObjectLiteral(node.pos, [toString]));
     },

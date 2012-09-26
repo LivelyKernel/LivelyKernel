@@ -861,6 +861,7 @@ lively.ast.Function.addMethods('interpretation', {
         var fn = function(/*args*/) {
             return that.apply(this, $A(arguments));
         };
+        fn.name = this.name();
         fn.forInterpretation = function() { return fn; };
         fn.ast = function() { return that; };
         fn.startHalted = function() { return function(/*args*/) {

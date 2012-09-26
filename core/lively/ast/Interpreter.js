@@ -219,7 +219,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
         // find the last computed value
         var last = Object.keys(this.values).max(function(k) {
             var fromTo = k.split('-');
-            return (+fromTo[1]) << 23 + (+fromTo[0]);
+            return (+fromTo[1]) << 23 - (+fromTo[0]);
         });
         // find the node corresponding to this value
         var node = this.func.ast().nodesMatching(function(node) {

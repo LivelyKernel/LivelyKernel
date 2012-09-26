@@ -305,8 +305,8 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
 });
 
 Object.extend(Global, {
-    __createClosure: function(i, scope, f) {
-        f._cachedAst = lively.ast.Rewriting.table.table[i];
+    __createClosure: function(scope, f) {
+        f._cachedAst = lively.ast.Rewriting.table.table[scope[2]];
         f._cachedScope = scope;
         return f;
     },

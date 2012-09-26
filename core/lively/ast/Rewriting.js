@@ -259,7 +259,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         var properties = [];
         for (var i = 0; i < args.length; i++) {
             var arg = args[i].name;
-            var argVal = new lively.ast.Variable(p, arg);
+            var argVal = new lively.ast.Variable([0,0], arg);
             properties.push(new lively.ast.ObjProperty([0,0], arg, argVal));
         }
         return new lively.ast.ObjectLiteral([0,0], properties);

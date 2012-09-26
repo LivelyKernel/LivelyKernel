@@ -285,7 +285,21 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
             new lively.ast.String(p,"shiftFrame"),
             new lively.ast.Variable(p,"ex"),
             [new lively.ast.This(p), new lively.ast.Variable(p, "__" + level)]);
-        var cond = new lively.ast.Cond(p, new lively.ast.GetSlot(p,new lively.ast.String(p,"isUnwindException"),new lively.ast.Variable(p,"e")),new lively.ast.Variable(p,"e"),new lively.ast.New(p,new lively.ast.Call(p,new lively.ast.GetSlot(p,new lively.ast.String(p,"UnwindExecption"),new lively.ast.GetSlot(p,new lively.ast.String(p,"Rewriting"),new lively.ast.GetSlot(p,new lively.ast.String(p,"ast"),new lively.ast.Variable(p,"lively")))),[new lively.ast.Variable(p,"e")])));
+        var isUnwind = new lively.ast.GetSlot(p,
+            new lively.ast.String(p, "isUnwindException"),
+            new lively.ast.Variable(p, "e"));
+        var classExpr = new lively.ast.GetSlot(p,
+            new lively.ast.String(p,"UnwindExecption"),
+            new lively.ast.GetSlot(p,
+                new lively.ast.String(p,"Rewriting"),
+                new lively.ast.GetSlot(p,
+                    new lively.ast.String(p,"ast"),
+                    new lively.ast.Variable(p,"lively"))));
+        var newUnwind = new lively.ast.New(p,
+            new lively.ast.Call(p, classExpr, [new lively.ast.Variable(p,"e")]));
+        var cond = new lively.ast.Cond(p, isUnwind,
+                                          new lively.ast.Variable(p, "e"),
+                                          newUnwind);
         var catchSeq = new lively.ast.Sequence(p, [
             new lively.ast.VarDeclaration(p,"ex",cond), shiftStmt, throwStmt])
         var noop = new lively.ast.Variable(body.pos, "undefined");

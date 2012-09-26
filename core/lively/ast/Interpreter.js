@@ -317,7 +317,7 @@ Object.extend(lively.ast.Interpreter.Frame, {
         if (callstack) {
             frame.values = scope[0];
             frame.findPC();
-            frame.setCaller(parent);
+            if (scope[3] !== Global) frame.setCaller(parent);
         } else {
             frame.setContainingScope(parent);
         }

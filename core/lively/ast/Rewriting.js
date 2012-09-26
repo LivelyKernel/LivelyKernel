@@ -269,7 +269,8 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     },
     wrapClosure: function(originalFunc, newFunc) {
         var fn = new lively.ast.Variable(newFunc.pos, "__livelyAST");
-        var num = new lively.ast.Number(newFunc.pos, this.register(originalFunc));
+        var idx = lively.ast.Rewriting.table.register(originalFunc);
+        var num = new lively.ast.Number(newFunc.pos, idx);
         var scope = this.localFrame(this.scopes.length - 1);
         var call = new lively.ast.Call(newFunc.pos, fn, [num, scope, newFunc]);
         return call;

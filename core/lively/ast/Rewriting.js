@@ -263,17 +263,17 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     wrapFunctionBody: function(body) {
         var p = body.pos;
         var initComputationFrame = new lively.ast.VarDeclaration(p, "_", this.emptyObj(p));
-        var localFrameName = "_" + (this.scopes.length - 1);
+        var localFrameName = "_" + this.scopes.length;
         var initLocalFrame = new lively.ast.VarDeclaration(p, localFrameName, this.emptyObj(p));
         return new lively.ast.Sequence(p, [initComputationFrame, initLocalFrame, body]);
     },
     wrapClosure: function(originalFunc, newFunc) {
         var fn = new lively.ast.Variable(newFunc.pos, "__livelyAST");
         var idx = lively.ast.Rewriting.table.register(originalFunc);
-        var num = new lively.ast.Number(newFunc.pos, idx);
-        var scope = this.localFrame(this.scopes.length - 1);
-        var call = new lively.ast.Call(newFunc.pos, fn, [num, scope, newFunc]);
-        return call;
+        var args = [new lively.ast.Number(newFunc.pos, idx)];
+        if (this.scopes.length > 0) args.push(this.localFrame(this.scopes.length - 1));
+        args.push(newFunc);
+        return new lively.ast.Call(newFunc.pos, fn, args);
     }
 },
 'visiting', {

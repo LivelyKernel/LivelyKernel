@@ -231,7 +231,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
         //    var next = node.nextStatement();
         //    if (next) return this.pc = next;
         //}
-        this.pc = this.func.ast().nodeWithAstIndex(node.astIndex() + 1);
+        this.pc = this.func.ast().nodeForAstIndex(node.astIndex() + 1);
     },
     setPC: function(node) {
         this.pc = node.isFunction ? node : node.firstStatement();

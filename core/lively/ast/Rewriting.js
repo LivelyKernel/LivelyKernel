@@ -259,6 +259,13 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     },
     wrapFunctionBody: function(body) {
         return body;
+    },
+    wrapClosure: function(originalFunc, newFunc) {
+        var fn = new lively.ast.Variable(newFunc.pos, "__livelyAST");
+        var num = new lively.ast.Number(newFunc.pos, this.register(originalFunc));
+        var scope = this.localFrame(this.scopes.length - 1);
+        var call = new lively.ast.Call(newFunc.pos, fn, [num, scope, newFunc]);
+        return call;
     }
 },
 'visiting', {
@@ -277,7 +284,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         var rewritten = $super(node);
         this.exitScope();
         rewritten.body = this.wrapFunctionBody(rewritten.body);
-        return lively.ast.Rewriting.table.wrapWithAstInitializer(node, rewritten);
+        return this.wrapClosure(node, rewritten);
     }
 });
 

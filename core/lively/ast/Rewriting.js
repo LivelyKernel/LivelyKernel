@@ -248,7 +248,8 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     emptyObj: function(pos) {
         return new lively.ast.ObjectLiteral(pos, []);
     },
-    functionPreamble: function(p, astIdx) {
+    functionPreamble: function(astIdx, body) {
+        var p = body.pos;
         var level = this.scopes.length;
         var initComputationFrame = new lively.ast.VarDeclaration(p, "_", this.emptyObj(p));
         var initLocalFrame = new lively.ast.VarDeclaration(p, "_" + level, this.emptyObj(p));
@@ -257,14 +258,13 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
                                                     new lively.ast.Number(p, astIdx),
                                                     this.frame(level - 1)]);
         var initFrame = new lively.ast.VarDeclaration(p, "__" + level, frame);
-        return new lively.ast.Sequence(p, [initComputationFrame, initLocalFrame, initFrame]);
+        return new lively.ast.Sequence(p, [initComputationFrame, initLocalFrame, initFrame, body]);
     },
     catchExceptions: function(body) {
-        
+        return new lively.ast.TryCatchFinally(body.pos, body, catchSeq);
     },
     wrapFunctionBody: function(astIdx, body) {
-        var bodyWithPreamble = this.functionPreamble(astIdx).insert(body);
-        return this.catchExceptions(bodyWithPreamble);
+        return this.catchExceptions(this.addPreamble(astIdx, body));
     },
     wrapClosure: function(idx, node) {
         var fn = new lively.ast.Variable(node.pos, "__createClosure");

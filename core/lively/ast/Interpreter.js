@@ -215,12 +215,15 @@ Object.subclass('lively.ast.Interpreter.Frame',
         return node.isAfter(this.bp);
     },
     findPC: function() {
-        // find PC based on values
-        var current = this.func.ast().firstStatement();
-        while (this.isBreakingAt() && current != this.func.ast()) {
-            current = current.nextStatement();
-        }
-        return this.pc = current;
+        if (Object.isEmpty(this.values)) return;
+        // find the last computed value
+        var last = Object.keys(this.values).max(function(k) {
+            var fromTo = k.split('-');
+            return (+fromTo[1]) << 23 + (+fromTo[0]);
+        });
+        this.func.ast().withAllNodesDo(function(node) {
+            
+        });
     },
     setPC: function(node) {
         this.pc = node.isFunction ? node : node.firstStatement();

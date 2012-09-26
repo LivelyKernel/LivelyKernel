@@ -255,6 +255,14 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     emptyObj: function(pos) {
         return new lively.ast.ObjectLiteral(pos, []);
     },
+    argsInitObj: function(args) {
+        var properties = [];
+        for (var i = 0; i < args.length; i++) {
+            var argVal = new lively.ast.Variable([0,0], args[i]);
+            properties.push(new lively.ast.ObjProperty([0,0], args[i], argVal));
+        }
+        return new lively.ast.ObjectLiteral([0,0], properties);
+    },
     addPreamble: function(astIdx, body) {
         var p = body.pos;
         var level = this.scopes.length;

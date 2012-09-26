@@ -297,7 +297,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     },
     visitDebugger: function(node) {
         var returnDebugger = (function() { return "Debugger"; }).ast();
-        returnDebugger.pos = node.pos;
+        returnDebugger.pos = node.position();
         var ast = this.storeComputationResult(returnDebugger);
         var toString = new lively.ast.ObjProperty(node.pos, "toString", ast);
         return new lively.ast.Throw(node.pos, new lively.ast.ObjectLiteral(node.pos, [toString]));

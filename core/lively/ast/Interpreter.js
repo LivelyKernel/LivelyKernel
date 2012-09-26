@@ -228,17 +228,18 @@ Object.subclass('lively.ast.Interpreter.Frame',
         // the pc should be the next MODIFYING node right after the last one
         debugger;
         var foundNode = false;
-        var pc = node;
         this.func.ast().withAllChildNodesDo(function(n) {
             if (!foundNode) {
                 if (n === node) foundNode = true;
-            } else if (pc === node) {
+            } else {
                 if (n.isCall || n.isSend || n.isSet || n.isModifyingSet || n.isPreOp || n.isPostOp) {
-                    pc = n;
+                    this.pc = n;
+                    return false
                 }
             }
+            return true;
         });
-        this.pc = pc;
+        this.pc = node;
     },
     setPC: function(node) {
         this.pc = node.isFunction ? node : node.firstStatement();

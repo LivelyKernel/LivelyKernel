@@ -257,7 +257,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
                                                     new lively.ast.Number(p, astIdx),
                                                     this.frame(level - 1)]);
         var initFrame = new lively.ast.VarDeclaration(p, "__" + level, frame);
-        return new lively.ast.Sequence(p, [initComputationFrame, initLocalFrame, initFrame, body]);
+        return new lively.ast.Sequence(p, [initComputationFrame, initLocalFrame, initFrame]);
     },
     wrapFunctionBody: function(astIdx, body) {
         var bodyWithPreamble = this.functionPreamble(astIdx).insert(body);

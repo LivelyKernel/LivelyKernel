@@ -260,8 +260,13 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         var initFrame = new lively.ast.VarDeclaration(p, "__" + level, frame);
         return new lively.ast.Sequence(p, [initComputationFrame, initLocalFrame, initFrame, body]);
     },
-    catchExceptions: function(body) {
-        return new lively.ast.TryCatchFinally(body.pos, body, catchSeq);
+    catchExceptions: function(astIdx, body) {
+        var src = "var ex = e.isUnwindException ? e : new lively.ast.Rewriting.UnwindExecption(e);"
+                + "ex.addFrame([_, _" + this.scopes.length + "," + astIdx + ");"
+                + "throw ex;";
+        var catchSeq = lively.ast.Parser.parse(src, "topLevel");
+        var noop = new lively.ast.Variable(body.pos, "undefined");
+        return new lively.ast.TryCatchFinally(body.pos, body, catchSeq, noop);
     },
     wrapFunctionBody: function(astIdx, body) {
         return this.catchExceptions(this.addPreamble(astIdx, body));

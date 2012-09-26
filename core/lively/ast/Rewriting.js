@@ -293,7 +293,10 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         return this.wrapVar(node.pos, node.name);
     },
     visitDebugger: function(node) {
-        return undefined;
+        var returnDebugger = function() { return "Debugger"; };
+        var ast = this.storeComputationResult(returnDebugger.ast());
+        var toString = new lively.ast.ObjProperty(node.pos, "toString", ast);
+        return new lively.ast.Throw(node.pos, new lively.ast.ObjectLiteral(node.pos, [toString]));
     },
     visitSet: function($super, node) {
         return this.storeComputationResult($super(node));

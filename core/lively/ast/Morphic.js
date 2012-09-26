@@ -94,14 +94,15 @@ cop.create('DebugGlobalErrorHandlerLayer')
 .refineClass(lively.morphic.World, {
     logError: function(err, optName) {
         if (err.isUnwindException) {
+            var frame = null
             if (err.simStack) {
-                var frame = lively.ast.Interpreter.Frame.fromTraceNode(err.simStack);
-            } else {
-                var frame = lively.ast.Interpreter.Frame.fromScope(err.top, true);
+                frame = lively.ast.Interpreter.Frame.fromTraceNode(err.simStack);
+            } else if (err.top) {
+                frame = lively.ast.Interpreter.Frame.fromScope(err.top, true);
             }
-            lively.ast.openDebugger(frame, err.toString());
+            if (frame) lively.ast.openDebugger(frame, err.toString());
             return false;
-        } else if (!err.isUnwindException) {
+        } else {
             return cop.proceed(err, optName);
         }
     }

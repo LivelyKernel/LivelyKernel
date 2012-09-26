@@ -921,7 +921,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
         accessing: {
             name: function() {
                 if (this._parent && this._parent.isVarDeclaration) {
-                    this._parent.name;
+                    return this._parent.name;
                 }
                 return undefined;
             },

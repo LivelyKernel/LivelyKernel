@@ -27,8 +27,11 @@ Object.subclass('lively.groups.ObjectGroup',
 },
 'group operations', {
     addScriptToMembers: function(funcOrString, optName) {
+        var that = this;
         this.members.forEach(function (ea) {
-            Object.addScript(ea, funcOrString, optName);
+            var func = Object.addScript(ea, funcOrString, optName);
+            func.setGroupID(that.groupID);
+            ea.addGroup(that);
         });
     }
 }
@@ -53,7 +56,9 @@ lively.morphic.Morph.addMethods(
         if (!this.groups) {
             this.groups = [];
         }
-        this.groups.push(group);
+        if (!this.groups.include(group)) {
+            this.groups.push(group);
+        }
     },
     getGroups: function(group) {
         return this.groups;

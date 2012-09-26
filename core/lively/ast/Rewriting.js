@@ -299,9 +299,16 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         return this.wrapClosure(idx, rewritten);
     }
 });
-Object.subclass('MyClass',
-'default category', {
-    m1: function() {},
+Object.subclass('lively.ast.Rewriting.UnwindExecption',
+'initializing', {
+    initialize: function(e) {
+        this.top = this.last = null;
+    },
+},
+'frames', {
+    shiftFrame: function(computationFrame, localFrame, astIndex) {
+        
+    }
 });
 
 Object.extend(Global, {

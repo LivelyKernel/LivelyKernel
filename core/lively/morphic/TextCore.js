@@ -945,15 +945,17 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         var fromMorph = this.splittedFrom;
         while (fromMorph && !fromMorph.owner)
             fromMorph = fromMorph.splittedFrom;
-        if (!fromMorph || !this.hasNullSelection() || this.getSelectionRange()[0] !== 0)
-            return false;
-
-        var rt = this.getRichText(),
-            textLength = fromMorph.textString.length
-        fromMorph.setSelectionRange(textLength,textLength);
-        rt.replaceSelectionInMorph(fromMorph)
+        if (!fromMorph) return false;
+        var styles = this.getChunkStyles(),
+            ranges = this.getChunkRanges(),
+            insertPos = fromMorph.textString.length,
+            rangesAndStyles = ranges.collect(function(range, i) {
+                return [range[0] + insertPos, range[1] + insertPos, styles[i]];
+            });
+        fromMorph.appendTextString(this.textString);
+        fromMorph.emphasizeRanges(rangesAndStyles);
+        fromMorph.setNullSelectionAt(insertPos);
         this.remove();
-        fromMorph.setNullSelectionAt(textLength);
         return true;
     },
 

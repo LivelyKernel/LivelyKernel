@@ -161,7 +161,7 @@ lively.ast.Visitor.subclass('lively.ast.Rewriting.Transformation',
         return new lively.ast.ObjectLiteral(node.pos, this.visitNodes(node.properties));
     },
     visitObjProperty: function(node) {
-        return new lively.ast.ObjectProperty(node.pos, node.name, this.visit(node.property));
+        return new lively.ast.ObjProperty(node.pos, node.name, this.visit(node.property));
     },
     visitSwitch: function(node) {
         return new lively.ast.Switch(node.pos,

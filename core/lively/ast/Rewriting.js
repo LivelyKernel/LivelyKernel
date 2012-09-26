@@ -231,6 +231,9 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     frame: function(i) {
         if (i < 0) return new lively.ast.Variable([0,0], "Global");
         return new lively.ast.Variable([0,0], "__" + i);
+    },
+    storeComputationResult: function(node) {
+        return new lively.morphic.Set(node.pos);
     }
 },
 'rewriting', {

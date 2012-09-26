@@ -367,6 +367,12 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
             this.registerVar(node.args[i].name);
             args.push(new lively.ast.Variable(node.args[i].pos, node.args[i].name));
         }
+        var that = this;
+        node.withAllChildNodesDo(function(n) {
+            if (n.isFunction) return false;
+            if (n.isVarDeclaration) that.registerVar(n.name);
+            return true;
+        });
         var rewritten = new lively.ast.Function(node.pos, this.visit(node.body),args);
         this.exitScope();
         lively.ast.Rewriting.table.push(node);

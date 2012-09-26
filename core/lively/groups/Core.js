@@ -27,5 +27,16 @@ Object.subclass('lively.groups.ObjectGroup',
     }
 }
 );
+Object.extend(Function.prototype, {
+    setID: function(id) {
+        this.setProperty('id', id || new UUID());
+    },
+    setTimestamp: function(timestamp) {
+        this.setProperty('timestamp', timestamp || new Date());
+    },
+    setGroup: function(groupID, functionHistory) {
+        this.setProperty('group', {id: groupID, history: functionHistory});
+    },
+});
 
 }) // end of module

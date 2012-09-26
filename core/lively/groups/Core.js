@@ -47,7 +47,8 @@ Object.extend(Function.prototype, {
         this.setProperty('history', history);
     }
 });
-Object.extend(Morph.prototype, {
+lively.morphic.Morph.addMethods(
+'object groups', {
     addGroup: function(group) {
         if (!this.groups) {
             this.groups = [];

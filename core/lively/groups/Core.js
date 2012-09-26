@@ -14,9 +14,15 @@ Object.subclass('lively.groups.ObjectGroup',
 'accessing', {
     addMember: function(member) {
         this.members.push(member);
+        member.addGroup(this);
     },
     addMembers: function(members) {
         this.members.pushAll(members);
+
+        var that = this;
+        members.forEach(function (ea) {
+            ea.addGroup(that)
+        });
     },
 },
 'group operations', {
@@ -34,9 +40,23 @@ Object.extend(Function.prototype, {
     setTimestamp: function(timestamp) {
         this.setProperty('timestamp', timestamp || new Date());
     },
-    setGroup: function(groupID, functionHistory) {
-        this.setProperty('group', {id: groupID, history: functionHistory});
+    setGroupID: function(groupID) {
+        this.setProperty('groupID', groupID);
     },
+    setHistory: function(history) {
+        this.setProperty('history', history);
+    }
+});
+Object.extend(Morph.prototype, {
+    addGroup: function(group) {
+        if (!this.groups) {
+            this.groups = [];
+        }
+        this.groups.push(group);
+    },
+    getGroups: function(group) {
+        return this.groups;
+    }
 });
 
 }) // end of module

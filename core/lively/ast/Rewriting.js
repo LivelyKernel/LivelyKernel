@@ -340,7 +340,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
 });
 Object.subclass('lively.ast.Rewriting.UnwindExecption',
 'settings', {
-    isUnwindExecption: true
+    isUnwindException: true
 },
 'initializing', {
     initialize: function(error) {

@@ -85,7 +85,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         updateAttributeConnection(obj1, 'value1', 3);
         this.assertEquals(3, obj2.value2, 'obj2 not updated');
     },
-    
+
     test09Converter: function() {
         var obj1 = {};
         var obj2 = {};
@@ -93,7 +93,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         obj1.value = 2;
         this.assertEquals(3, obj2.value);
     },
-    
+
     test10ErrorWhenConverterReferencesEnvironment: function() {
         var obj1 = {}, obj2 = {}, externalVal = 42, world = $world;
         connect(obj1, 'value', obj2, 'value',
@@ -136,7 +136,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         this.assertEquals(2, obj1.value);
         this.assertEquals(2, obj2.value);
     },
-    
+
     test13IsSimilarConnection: function () {
         var c1, c2, obj1 = {}, obj2 = {}, obj3 = {};
         c1 = connect(obj1, 'value', obj2, 'value'); c2 = connect(obj1, 'value', obj2, 'value');
@@ -169,7 +169,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         obj1.value = 15;
         this.assertEquals(obj2.delta, 5)
     },
-    
+
     test16Updater: function () {
         var obj1 = {x: null};
         var obj2 = {x: null};
@@ -206,7 +206,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         obj1.x = 15;
         this.assertEquals(obj2.x, 16);
     },
-        
+
     test19NoUpdaterNoConverter: function () {
         var obj1 = {x: null};
         var obj2 = {x: null};
@@ -217,7 +217,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         this.assert(obj1.updaterWasCalled, 'no updater called');
         this.assert(!obj1.converterWasCalled, 'converter called');
     },
-        
+
     test20RemoveAfterUpdateOnlyIfUpdaterProceeds: function() {
             // no proceed, no remove
         var obj1 = {};
@@ -246,10 +246,10 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
             var c1 = connect(obj1, 'x', obj2, 'x');
             var c2 = connect(obj1, 'x', obj3, 'x');
             obj1.x = 3;
-            
+
             this.assertEquals(obj2.x, 3, "obj2 update broken");
             this.assertEquals(obj3.x, 3, "obj3 update broken");
-            
+
     },
     test22ConnectTwoMethods: function() {
         var obj1 = {m1: function() { return 3 }};
@@ -406,7 +406,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         this.assertEquals(30, obj2.y);
     },
     test35CallWhenPathNotNull: function() {
-        var obj = {onBaz: function(value) { this.baz = value }}        
+        var obj = {onBaz: function(value) { this.baz = value }}
         lively.bindings.callWhenPathNotNull(obj, ['foo', 'bar', 'baz'], obj, "onBaz");
         obj.foo = {};
         obj.foo.bar = {};
@@ -445,12 +445,21 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         this.assertEquals(obj.b, 123, "first connection was not triggered");
         this.assertEquals(obj.c, 123, "second connection was not triggered");
     },
-    
+
     test39ConnectingNonexistentPropertyDoesNotAssignNewProperty: function() {
         var obj = {m: function() {}};
         connect(obj, 'x', obj, 'm');
         this.assert(!obj.hasOwnProperty('$$x'), 'connecting assigns non-existent property value');
     },
+
+    test40DisconnectAll: function() {
+        var obj = {};
+        connect(obj, 'x', obj, 'y');
+        connect(obj, 'x', obj, 'z');
+        disconnectAll(obj);
+        this.assert(!obj.attributeConnections, 'attributeConnections not removed');
+    }
+
 });
 
 TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionSerializationTest', {
@@ -460,7 +469,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionSerializationTes
         this.worldMorph = new lively.morphic.World();
         this.worldMorph.addHandMorph();
     },
-        
+
     createAndAddMorphs: function() {
         this.textMorph1 = new lively.morphic.Text(new Rectangle(20,400, 100, 30), 'abc');
         this.textMorph2 = new lively.morphic.Text(new Rectangle(20,400, 100, 30), 'xyz');
@@ -495,7 +504,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionSerializationTes
         this.assert(!setter1, 'serialization cleanup failure 1');
         this.assert(!setter2, 'serialization cleanup failure 2');
     },
-    
+
     test02ConverterIsSerialzed: function() {
         this.createAndAddMorphs();
 
@@ -509,7 +518,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionSerializationTes
         this.newTextMorph1.setTextString('bar');
         this.assertEquals('barfoo', this.newTextMorph2.textString, 'connect not working after deserialization');
     },
-    
+
     test03UpdaterIsSerialzed: function() {
         this.createAndAddMorphs();
 
@@ -613,7 +622,7 @@ Object.subclass('lively.bindings.tests.BindingTests.BindingsProfiler', {
     },
 
     runConverterConnectMethod: function() {
-        return this.connectAndRun({y: null}, 'y', 
+        return this.connectAndRun({y: null}, 'y',
             {converter: function(v) { return v + 1 }});
     },
 
@@ -687,7 +696,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.BindingsDuplicateTest', {
         this.assert(copy.attributeConnections[1].getTargetObj(), "no source object in copy");
         this.assert(copy.attributeConnections[1].getTargetObj(), "no taget object in copy");
         this.assert(copy.text !== this.sut.text, "text object did not change");
-        
+
         this.assertIdentity(copy.attributeConnections[1].getTargetObj(), copy.text,"no taget object in copy");
         copy.setPosition(p);
         this.assertEquals(copy.text.textString, String(p))
@@ -712,12 +721,12 @@ TestCase.subclass('lively.bindings.tests.BindingTests.BindingsDuplicateTest', {
         var copy = this.sut.duplicate();
         this.assert(copy.attributeConnections[1].getUpdater(), "no update in fillConnection copy");
     },
-    
+
     testCopyPlainObjects: function() {
         var o1 = {x: null};
         var o2 = {y: null};
         var sut = lively.bindings.connect(o1, 'x', o2, 'y');
-        
+
         this.assert(this.sut.attributeConnections[1].getUpdater(), "no update in fillConnection");
         var copy = this.sut.duplicate();
         this.assert(copy.attributeConnections[1].getUpdater(), "no update in fillConnection copy");
@@ -741,7 +750,8 @@ TestCase.subclass('lively.bindings.tests.BindingTests.PlugTest',
         morph.plugTo(model, {
             setPosition: "<-positionMorph",
             _Rotation: "->rotationOfMorph",
-            someProperty: {dir: '<->', name: 'someProperty', options: {converter: function(x) { return x+1 }}},
+            someProperty: {dir: '<->', name: 'someProperty',
+                           options: {converter: function(x) { return x+1 }}}
         });
         this.assertEquals(pt(0,0), morph.getPosition(), 'initial pos')
         this.assertEquals(null, model.rotationOfMorph, 'initial rotationOfMorph')
@@ -757,8 +767,9 @@ TestCase.subclass('lively.bindings.tests.BindingTests.PlugTest',
 
         model.positionMorph(pt(10,10));
         this.assertEquals(pt(10,10), morph.getPosition(), 'positionOfMorph')
-    },
+    }
 });
+
 TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionJSONSerializationTest', {
 
     test01ObjConnectedToMethodDeserialization: function() {
@@ -771,7 +782,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionJSONSerializatio
             newObj2 = lively.persistence.Serializer.deserialize(jso);
         newObj2.a = 23;
         this.assertEquals(23, newObj2.ref.b, 'connection not working after deserialization');
-    },
+    }
 
 });
 

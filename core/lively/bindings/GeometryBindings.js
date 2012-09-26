@@ -162,47 +162,51 @@ lively.morphic.Morph.addMethods(
         extent: { map: 'shape._Extent'},
 
         globalTransform: {
-            connectionClassType: 'lively.morphic.GeometryTransformConnection'}},
+            connectionClassType: 'lively.morphic.GeometryTransformConnection'
+        }
+    }
 });
 lively.morphic.Text.addMethods(
 'bindings', {
     connections: {
         textString: {},
-        savedTextString: {},
-    },
+        savedTextString: {}
+    }
 });
 lively.morphic.Button.addMethods(
 'bindings', {
     connections: {
-        fire: {},
-    },
+        fire: {}
+    }
 });
 
-cop.create('lively.morphic.BindingsExtensionLayer').refineObject(lively.bindings, {
+Object.extend(lively.bindings, {
+    basicConnect: lively.bindings.connect,
     connect: function(sourceObj, attrName, targetObj, targetMethodName, specOrConverter) {
-        // alertOK("geometry connect")
-        function proceed() {
-            return cop.proceed(sourceObj, attrName,
-                targetObj, targetMethodName, specOrConverter);
-        }
-        if (!sourceObj.connections) return proceed();
-        var connectionPoint = sourceObj.getConnectionPoints && sourceObj.getConnectionPoints()[attrName]
-        if (!connectionPoint) return proceed();
-        var klass;
-        if (connectionPoint.map)
-            klass = lively.morphic.GeometryConnection
-        else if (connectionPoint.connectionClassType)
-            klass = Class.forName(connectionPoint.connectionClassType);
-        else
-            klass = AttributeConnection
-        if (!klass) throw new Error('cannot create customized connection without connectionClassType')
-        return new klass(sourceObj, attrName, targetObj, targetMethodName, specOrConverter).connect()
-    }
-}).beGlobal();
+        var proceed = this.basicConnect.bind(this, sourceObj, attrName,
+                                             targetObj, targetMethodName,
+                                             specOrConverter);
 
-// connect is not late bound, so we have to reinitialize it after layering
+        if (!sourceObj.connections) return proceed();
+
+        var connectionPoint = (sourceObj.getConnectionPoints && sourceObj.getConnectionPoints()[attrName]) || sourceObj.connections[attrName];
+        if (!connectionPoint) return proceed();
+        var klass = (connectionPoint.map && lively.morphic.GeometryConnection)
+                 || (connectionPoint.connectionClassType && Class.forName(connectionPoint.connectionClassType))
+                 || AttributeConnection;
+        var connection = new klass(sourceObj, attrName,
+                                   targetObj, targetMethodName,
+                                   specOrConverter).connect();
+        if (connectionPoint.updateOnConnect) {
+            connection.update(sourceObj[attrName]);
+        }
+        return connection;
+    }
+});
+
+// connect is not late bound, so we have to reinitialize it
 Object.extend(Global, {
-    connect: function() { return lively.bindings.connect.apply(lively.bindings, arguments) }
-})
+    connect: lively.bindings.connect.bind(lively.bindings)
+});
 
 }) // end of module

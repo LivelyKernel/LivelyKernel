@@ -298,8 +298,12 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
 
 Object.extend(Global, {
     __livelyAST: function(i, scope, f) {
+        if (f === undefined) {
+            f = scope;
+        } else {
+            f._cachedScope = scope;
+        }
         f._cachedAst = lively.ast.Rewriting.table.table[i];
-        f._cachedScope = scope;
         return f;
     },
     eval2: function(src) {

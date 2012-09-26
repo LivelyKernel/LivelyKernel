@@ -294,6 +294,7 @@ Object.extend(lively.ast.Interpreter.Frame, {
         if (scope === Global) return lively.ast.Interpreter.Frame.global();
         var ast = lively.ast.Rewriting.table[scope[2]];
         var frame = new lively.ast.Interpreter.Frame(ast.asFunction(), scope[1]);
+        frame.values = scope[0];
         var parent = lively.ast.Interpreter.Frame.fromScope(scope[3]);
         if (callstack) {
             frame.setCaller(parent);

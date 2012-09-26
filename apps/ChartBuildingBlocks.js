@@ -6,8 +6,14 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
 'Visuals', {
     activeRenderPartClassName: 'active-render-part',
 
-    markMorph: function(morph){
+    markMorph: function(morph, hook){
         morph.addStyleClassName(this.activeRenderPartClassName);
+        
+        // The owner should be a ChartGenerator which 
+        // implements a function to mark morph according to their hook
+        if (this.owner.markHook) {
+            this.owner.markHook(morph, hook);
+        }
         return morph;
     },
     unmarkAllMorphs: function() {
@@ -18,15 +24,23 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
 },
 'Hook dispatch', {
     getMorphForHook: function(hookName) {
-        var m, i = this.submorphs.length - 1;
-        for (; (m = this.submorphs[i]); i--) {
+        debugger
+        var m,
+            submorphs = this.submorphs.sort(this.sortMorphsForTop),
+            i = submorphs.length - 1;
+
+
+        for (; (m = submorphs[i]); i--) {
             var hook = m[hookName];
             if (hook && typeof hook === 'function') {
-                this.markMorph(m);
+                this.markMorph(m, hookName);
                 return m;
             }
         }
         return null;
+    },
+    sortMorphsForTop: function(a,b) {
+        return b.getPosition().y - a.getPosition().y;
     },
     dispatchHook: function(args) {
         // Dispatches a given hook function and returns its return value.
@@ -64,9 +78,10 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
                 hookMorphs = [],
                 i = this.submorphs.length - 1,
                 argArray = Array.prototype.slice.call(args),
-                defaultHookName = hookName + 'Default';
+                defaultHookName = hookName + 'Default',
+                submorphs = this.submorphs.sort(this.sortMorphsForTop);
 
-            for (; (m = this.submorphs[i]); i--) {
+            for (; (m = submorphs[i]); i--) {
                 var hook = m[hookName];
                 if (hook && typeof hook === 'function') {
                     this.markMorph(m);
@@ -130,11 +145,9 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
 	// Override to ...
         return this.dispatchHook(arguments);
     },
-    setupDrawingAreasDefault: function(data, chartWidth, chartHeight, padding) {
+    setupDrawingAreasDefault: function(data, bounds) {
         // Returns a default drawing area
-        return [new Rectangle(padding[3], padding[0],
-            chartWidth - padding[3] - padding[1],
-            chartHeight - padding[0] - padding[2])];
+        return [bounds];
     },
     //
 
@@ -183,13 +196,13 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
 
         var dimensions = data.getDimensions(),
             series = data.getSeries(),
-            padding = this.normalizePadding(optPadding),
+            drawingBounds = this.prepareDrawingBounds(
+                $(context).width(), $(context).height(), optPadding),
             // Creates an SVG context for the chart
             contextPane = this.prepareContext(context),
 
             // Setup the drawing areas
-            areas = this.setupDrawingAreas(data,
-                $(context).width(), $(context).height(), padding),
+            areas = this.setupDrawingAreas(data, drawingBounds),
 
             // Create scales for the data's dimensions
             scales = this.setupScales(data, areas),
@@ -211,7 +224,14 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
         } else {
             return [0,0,0,0];
         }
-    }
+    },
+    prepareDrawingBounds: function(chartWidth, chartHeight, padding) {
+        var p = this.normalizePadding(padding);
+        return new Rectangle(padding[3], padding[0],
+            chartWidth - padding[3] - padding[1],
+            chartHeight - padding[0] - padding[2]);
+    },
+
 });
 
 

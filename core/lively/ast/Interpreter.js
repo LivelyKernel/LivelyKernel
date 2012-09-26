@@ -223,7 +223,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
         });
         // find the node corresponding to this value
         var node = this.func.ast().nodesMatching(function(node) {
-            return last == node.pos();
+            return last == node.position();
         })[0];
         // the node was succesfully computed, so PC must be the next statement after the node
         this.pc = node.nextStatement();

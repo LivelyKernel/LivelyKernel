@@ -306,7 +306,9 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         return this.storeComputationResult($super(node));
     },
     visitCall: function($super, node) {
-        return this.storeComputationResult($super(node));
+        return this.storeComputationResult(new lively.ast.Call(node.pos,
+           this.storeComputationResult(this.visit(node.fn)),
+           this.visitNodes(node.args)));
     },
     visitSend: function($super, node) {
         return this.storeComputationResult($super(node));

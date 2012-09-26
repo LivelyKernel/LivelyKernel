@@ -289,6 +289,9 @@ Object.extend(lively.ast.Interpreter.Frame, {
             frame.setCaller(lively.ast.Interpreter.Frame.fromTraceNode(trace.caller));
         }
         return frame;
+    },
+    fromScope: function(scope) {
+        
     }
 });
 

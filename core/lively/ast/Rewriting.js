@@ -233,7 +233,9 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         return new lively.ast.Variable([0,0], "__" + i);
     },
     storeComputationResult: function(node) {
-        return new lively.morphic.Set(node.pos);
+        var name = new lively.ast.String(node.pos, node.position());
+        var target = new lively.ast.GetSlot(node.pos, this.computationFrame(), name);
+        return new lively.ast.Set(node.pos, target, node);
     }
 },
 'rewriting', {
@@ -284,7 +286,8 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
 'visiting', {
     visitVarDeclaration: function(node) {
         this.registerVar(node.name.value);
-        return this.rewriteVarDeclaration(node.pos, node.name, this.visit(node.val))
+        return this.storeComputationResult(
+            this.rewriteVarDeclaration(node.pos, node.name, this.visit(node.val)));
     },
     visitVariable: function(node) {
         return this.wrapVar(node.pos, node.name);
@@ -292,9 +295,24 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     visitDebugger: function(node) {
         return undefined;
     },
+    visitSet: function($super, node) {
+        return this.storeComputationResult($super(node));
+    },
+    visitCall: function($super, node) {
+        return this.storeComputationResult($super(node));
+    },
+    visitSend: function($super, node) {
+        return this.storeComputationResult($super(node));
+    },
+    visitCond: function($super, node) {
+        return this.storeComputationResult($super(node));
+    },
+    visitIf: function(node) {
+        return this.storeComputationResult($super(node));
+    },
     visitFunction: function($super, node) {
         this.enterScope();
-        var rewritten = $super(node);
+        var rewritten = this.storeComputationResult($super(node));
         this.exitScope();
         lively.ast.Rewriting.table.push(node);
         var idx = lively.ast.Rewriting.table.length - 1;

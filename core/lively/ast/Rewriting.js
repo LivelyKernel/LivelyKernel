@@ -235,7 +235,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     },
     storeComputationResult: function(node) {
         var name = new lively.ast.String(node.pos, node.position());
-        var target = new lively.ast.GetSlot(node.pos, this.computationFrame(), name);
+        var target = new lively.ast.GetSlot(node.pos, name, this.computationFrame());
         return new lively.ast.Set(node.pos, target, node);
     }
 },

@@ -4,21 +4,6 @@ Object.extend(lively.ast, {
     oldEval: eval
 });
 
-Object.subclass('lively.ast.Rewriting.AstTable', {
-    initialize: function() {
-        this.table = [];
-    },
-    register: function(funcAst) {
-        this.table.push(funcAst);
-        return this.table.length - 1;
-    },
-    wrapWithAstInitializer: function(originalFuncAst, newFuncAst) {
-        var fn = new lively.ast.Variable(newFuncAst.pos, "__livelyAST");
-        var num = new lively.ast.Number(newFuncAst.pos, this.register(originalFuncAst));
-        var call = new lively.ast.Call(newFuncAst.pos, fn, [num, newFuncAst]);
-        return call;
-    }
-});
 
 Object.extend(lively.ast.Rewriting, {
     table: new lively.ast.Rewriting.AstTable()

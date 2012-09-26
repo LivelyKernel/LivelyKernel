@@ -1040,6 +1040,7 @@ Function.addMethods(
 'debugging', {
     forInterpretation: function(optMapping) {
         var funcAst = this.ast();
+        if (this.scope) funcAst.scope = this.scope();
         return funcAst.asFunction(this);
     },
     containsDebugger: function() {

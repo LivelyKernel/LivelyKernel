@@ -369,6 +369,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         return this.storeComputationResult($super(node));
     },
     visitNew: function($super, node) {
+        debugger;
         var clsExpr = $super(node);
         if (clsExpr.isSet) clsExpr = clsExpr.right;
         return this.storeComputationResult(clsExpr);

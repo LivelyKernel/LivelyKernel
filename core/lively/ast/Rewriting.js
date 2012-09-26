@@ -301,13 +301,16 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
 });
 Object.subclass('lively.ast.Rewriting.UnwindExecption',
 'initializing', {
-    initialize: function(e) {
-        this.top = this.last = null;
+    initialize: function(error) {
+        this.error = error;
     },
 },
 'frames', {
     shiftFrame: function(computationFrame, localFrame, astIndex) {
-        
+        var frame = [computationFrame, localFrame, astIndex, Global];
+        if (!this.top) return this.top = this.last = frame;
+        this.last[3] = frame;
+        this.last = frame;
     }
 });
 

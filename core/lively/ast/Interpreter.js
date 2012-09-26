@@ -293,8 +293,8 @@ Object.extend(lively.ast.Interpreter.Frame, {
     fromScope: function(scope) {
         if (scope === Global) return lively.ast.Interpreter.Frame.global();
         var ast = scope[2];
-        var frame = new lively.ast.Interpreter.Frame(scope[2]);
-        if (scope._) frame.setContainingScope(lively.ast.Interpreter.Frame.fromScope(scope["_"]));
+        var frame = new lively.ast.Interpreter.Frame(ast.asFunction(), {});
+        frame.setContainingScope(lively.ast.Interpreter.Frame.fromScope(scope[3]));
         return frame;
     }
 });

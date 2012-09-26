@@ -243,6 +243,10 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     },
     localFrame: function(i) {
         return new lively.ast.Variable([0,0], "_" + i);
+    },
+    frame: function(i) {
+        if (i < 0) return Global;
+        return new lively.ast.Variable([0,0], "__" + i);
     }
 },
 'rewriting', {

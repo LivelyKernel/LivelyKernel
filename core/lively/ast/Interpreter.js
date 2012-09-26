@@ -225,13 +225,13 @@ Object.subclass('lively.ast.Interpreter.Frame',
         var node = this.func.ast().nodesMatching(function(node) {
             return last == node.position();
         })[0];
-        // the pc should be the next node right after the last one
-        // try next statement if this is not a debugger otherwise stay with node
-        if (!node.isDebugger) {
-            var next = node.nextStatement();
-            if (next) return this.pc = next;
-        }
-        this.pc = node;
+        // the pc should be the next MODIFYING node right after the last one
+        var foundNode = false;
+        var pc = node;
+        this.func.ast().withAllSubnodesDo(function(n) {
+            
+        });
+        this.pc = pc;
     },
     setPC: function(node) {
         this.pc = node.isFunction ? node : node.firstStatement();

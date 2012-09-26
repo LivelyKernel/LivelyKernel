@@ -317,7 +317,6 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
     }
 },
 'visiting', {
-
     visitVarDeclaration: function(node) {
         this.registerVar(node.name.value);
         return this.storeComputationResult(

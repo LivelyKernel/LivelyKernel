@@ -15,10 +15,9 @@ Object.subclass('lively.groups.ObjectGroup',
         member.addGroup(this);
     },
     addMembers: function(members) {
-        var that = this;
-        members.forEach(function (ea) {
-            ea.addGroup(that)
-        });
+        members.each(function (ea) {
+            this.addMember(ea);
+        }, this);
     },
     getMembers: function() {
         return lively.morphic.World.current().findGroupMembersByID(this.groupID);

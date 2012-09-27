@@ -7,7 +7,7 @@ Object.subclass('lively.groups.ObjectGroup',
 'initializing', {
     initialize: function(name) {
         this.name = name || '';
-        this.groupID =  new UUID();
+        this.groupID =  new UUID().id;
     },
 },
 'accessing', {
@@ -22,6 +22,19 @@ Object.subclass('lively.groups.ObjectGroup',
     },
     getMembers: function() {
         return lively.morphic.World.current().findGroupMembersByID(this.groupID);
+    },
+    getScripts: function() {
+        var scripts = {};
+        var that = this;
+        this.getMembers().each(function(ea) {
+            Functions.own(ea).each(function(eaScriptName) {
+                var eaScript = ea[eaScriptName]
+                if (eaScript.groupID === that.groupID) {
+                    scripts[eaScript.id] = eaScript
+                }
+            })
+        })
+        return Properties.values(scripts)
     }
 },
 'group operations', {
@@ -51,7 +64,7 @@ Object.subclass('lively.groups.ObjectGroup',
 );
 Object.extend(Function.prototype, {
     setID: function(id) {
-        this.setProperty('id', id || new UUID());
+        this.setProperty('id', id || new UUID().id);
     },
     setTimestamp: function(timestamp) {
         this.setProperty('timestamp', timestamp || new Date());
@@ -82,6 +95,14 @@ lively.morphic.Morph.addMethods(
         }
         return this.groups;
     },
+    getScriptsForGroup: function(group) {
+        var that = this;
+        return Functions.own(this).collect(function (eaScriptname) {
+            return that[eaScriptname];
+        }).select(function (eaScript) {
+            return eaScript.groupID == group.groupID;
+        });
+    },
     findGroupMembersByID: function(groupID) {
         var result = [];
         if (this.getGroups().detect(function (ea) {
@@ -93,6 +114,30 @@ lively.morphic.Morph.addMethods(
             result.pushAll(ea.findGroupMembersByID(groupID));
         })
         return result;
+    },
+    updateGroupBehavior: function() {
+        this.groups.forEach(function(eaGroup) {
+            this.pullGroupChangesFrom(eaGroup);
+            this.pushGroupChangesTo(eaGroup);
+        }, this);
+    },
+    pullGroupChangesFrom: function(group) {
+        group.getScripts().each(function(ea) {
+            var myScript = this[ea.name];
+            if (!myScript || ea.getHistory().include(myScript.id)) {
+                this.addScript(ea);
+            }
+        }, this);
+    },
+    pushGroupChangesTo: function(group) {
+        this.getScriptsForGroup(group).each(function (eaScript) {
+            group.getMembers().each(function (eaMember) {
+                var memberScript = eaMember[eaScript.name];
+                if (!memberScript || eaScript.getHistory().include(memberScript.id)) {
+                    eaMember.addScript(eaScript);
+                }
+            })
+        }, this);
     },
 },
 'prototypical scripting', {

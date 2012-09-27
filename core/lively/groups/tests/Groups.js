@@ -84,14 +84,14 @@ lively.morphic.tests.TestCase.subclass('lively.groups.tests.Groups.GroupTest',
     testAddPropertyToMembers: function() {
         var group = new lively.groups.ObjectGroup();
         group.addMembers([this.newTestMorph(), this.newTestMorph()]);
-        group.addPropertyToMembers('testProp', 2);
+        group.addProperty('testProp', 2);
         this.assertEquals(2, group.getMembers()[0].testProp);
         this.assertEquals(2, group.getMembers()[1].testProp);
     },
     testAddScriptToMembersAddsTheScript: function() {
         var group = new lively.groups.ObjectGroup();
         group.addMembers([this.newTestMorph(), this.newTestMorph()]);
-        group.addScriptToMembers(function testScript() {});
+        group.addScript(function testScript() {});
         this.assert(group.getMembers()[0].testScript);
         this.assert(group.getMembers()[1].testScript);
     },
@@ -99,7 +99,7 @@ lively.morphic.tests.TestCase.subclass('lively.groups.tests.Groups.GroupTest',
         var group = new lively.groups.ObjectGroup();
         group.groupID = '123';
         group.addMembers([this.newTestMorph(), this.newTestMorph()]);
-        group.addScriptToMembers(function testScript() {});
+        group.addScript(function testScript() {});
         this.assertEquals('123', group.getMembers()[0].testScript.groupID);
         this.assertEquals('123', group.getMembers()[1].testScript.groupID);
     },
@@ -107,14 +107,14 @@ lively.morphic.tests.TestCase.subclass('lively.groups.tests.Groups.GroupTest',
         var group = new lively.groups.ObjectGroup();
         group.groupID = '123';
         group.addMembers([this.newTestMorph(), this.newTestMorph()]);
-        group.addScriptToMembers(function testScript() {});
+        group.addScript(function testScript() {});
         this.assert(group.getMembers()[0].getGroups().include(group));
         this.assert(group.getMembers()[1].getGroups().include(group));
     },
     testPerformOnMembers: function() {
         var group = new lively.groups.ObjectGroup();
         group.addMembers([this.newTestMorph(), this.newTestMorph()]);
-        group.performOnMembers('setFill', [null]);
+        group.perform('setFill', [null]);
         this.assertEquals(null, group.getMembers()[0].getFill());
         this.assertEquals(null, group.getMembers()[1].getFill());
     },
@@ -125,7 +125,7 @@ lively.morphic.tests.TestCase.subclass('lively.groups.tests.Groups.GroupTest',
         xyzMorph.addScript(function xyzMethod() {
             this.xyz = '123';
         });
-        group.performOnMembers('xyzMethod', []);
+        group.perform('xyzMethod', []);
         this.assertEquals('123', xyzMorph.xyz);
     },
     testFindGroupMembersByID: function() {
@@ -142,7 +142,8 @@ lively.morphic.tests.TestCase.subclass('lively.groups.tests.Groups.GroupTest',
         this.assert(members.include(morphA))
         this.assert(members.include(morphB))
         this.assert(!members.include(morphC))
-    }
+    },
+    
 });
 
 }) // end of module

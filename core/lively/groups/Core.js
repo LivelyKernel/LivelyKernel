@@ -25,12 +25,12 @@ Object.subclass('lively.groups.ObjectGroup',
     }
 },
 'group operations', {
-    addPropertyToMembers: function(name, value) {
+    addProperty: function(name, value) {
         this.getMembers().forEach(function (ea) {
             ea[name] = value;
         });
     },
-    addScriptToMembers: function(funcOrString, optName) {
+    addScript: function(funcOrString, optName) {
         var that = this;
         this.getMembers().forEach(function (ea) {
             var func = Object.addScript(ea, funcOrString, optName);
@@ -38,7 +38,7 @@ Object.subclass('lively.groups.ObjectGroup',
             ea.addGroup(that);
         });
     },
-    performOnMembers: function(selector, args) {
+    perform: function(selector, args) {
         return this.getMembers().collect(function (ea) {
             try {
                 return ea[selector].apply(ea, args);

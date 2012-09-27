@@ -888,6 +888,7 @@ lively.ast.Function.addMethods('interpretation', {
         if (optFunc) {
             fn.source = optFunc.toSource();
             fn.varMapping = optFunc.getVarMapping();
+            fn.prototype = optFunc.prototype;
             if (optFunc.declaredClass) fn.declaredClass = optFunc.declaredClass;
             if (optFunc.methodName) fn.methodName = optFunc.methodName;
             if (optFunc.sourceModule) fn.sourceModule = optFunc.sourceModule;

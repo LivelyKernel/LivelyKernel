@@ -7,8 +7,9 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
     activeRenderPartClassName: 'active-render-part',
 
     markMorph: function(morph, hook){
+
         morph.addStyleClassName(this.activeRenderPartClassName);
-        
+
         // The owner should be a ChartGenerator which 
         // implements a function to mark morph according to their hook
         if (this.owner.markHook) {
@@ -21,24 +22,43 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
             m.removeStyleClassName(this.activeRenderPartClassName)
         }, this);
     },
+
+    markHooks: function() {
+        var markFirst = ['prepareContext', 'setupDrawingAreas',
+                'setupScales', 'drawDimensions'],
+            markAll = ['drawSeries'];
+
+        markFirst.each(function(h){
+            var morphs = this.getMorphsForHook(h);
+            if (morphs.length > 0) {
+                this.markMorph(morphs.first(), h);
+            }
+        }, this);
+        markAll.each(function(h){
+            this.getMorphsForHook(h).each(function(morph){
+                this.markMorph(morph, h);
+            }, this);
+        }, this);
+
+    }
+
 },
 'Hook dispatch', {
-    getMorphForHook: function(hookName) {
-        debugger
+    getMorphsForHook: function(hookName) {
         var m,
             submorphs = this.submorphs.sort(this.sortMorphsForTop),
-            i = submorphs.length - 1;
-
+            i = submorphs.length - 1,
+            hookMorphs = [];
 
         for (; (m = submorphs[i]); i--) {
             var hook = m[hookName];
             if (hook && typeof hook === 'function') {
-                this.markMorph(m, hookName);
-                return m;
+                hookMorphs.push(m);
             }
         }
-        return null;
+        return hookMorphs;
     },
+
     sortMorphsForTop: function(a,b) {
         return b.getPosition().y - a.getPosition().y;
     },
@@ -50,10 +70,11 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
         var hookName = args.callee.methodName;
         if (hookName) {
             var defaultHookName = hookName + 'Default',
-                hookMorph = this.getMorphForHook(hookName),
+                hookMorphs = this.getMorphsForHook(hookName),
                 argArray = Array.prototype.slice.call(args);
 
-            if (hookMorph) {
+            if (hookMorphs.length > 0) {
+                var hookMorph = hookMorphs.first();
                 // If the hook was found implemented in a submorph, go for it
                 return hookMorph[hookName].apply(hookMorph, argArray);
 
@@ -74,20 +95,10 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
         // error is thrown.
         var hookName = args.callee.methodName;
         if (hookName) {
-            var m,
-                hookMorphs = [],
-                i = this.submorphs.length - 1,
+            var counter = 0,
+                hookMorphs = this.getMorphsForHook(hookName),
                 argArray = Array.prototype.slice.call(args),
-                defaultHookName = hookName + 'Default',
-                submorphs = this.submorphs.sort(this.sortMorphsForTop);
-
-            for (; (m = submorphs[i]); i--) {
-                var hook = m[hookName];
-                if (hook && typeof hook === 'function') {
-                    this.markMorph(m);
-                    hookMorphs.push(m);
-                }
-            }
+                defaultHookName = hookName + 'Default';
 
             if (hookMorphs.length > 0) {
                 // If the hook was found implemented in a submorph, go for it
@@ -108,12 +119,7 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
 },
 
 'Accessing', {
-    getContextPane: function() {
-        return this.contextPane;
-    },
-    getDrawingPane: function() {
-        return this.drawingPane;
-    }
+
 },
 
 'Drawing hook defaults', {

@@ -466,7 +466,7 @@ lively.ast.Node.subclass('lively.ast.BinaryOp',
                 this.constructor.name, this.left, this.name, this.right) },
 },
 'conversion', {
-	asJS: function (depth) { return this.left.asJS(depth) + ' ' + this.name + ' ' + this.right.asJS(depth) },
+	asJS: function (depth) { return '(' + this.left.asJS(depth) + ') ' + this.name + ' (' + this.right.asJS(depth) + ')' },
 },
 'visiting', {
     accept: function(visitor) {
@@ -493,7 +493,7 @@ lively.ast.Node.subclass('lively.ast.UnaryOp',
                 this.constructor.name, this.name, this.expr) },
 },
 'conversion', {
-	asJS: function (depth) { return this.name + this.expr.asJS(depth) },
+	asJS: function (depth) { return '(' + this.name + this.expr.asJS(depth) + ')'},
 },
 'visiting', {
     accept: function(visitor) {
@@ -520,7 +520,7 @@ lively.ast.Node.subclass('lively.ast.PreOp',
                 this.constructor.name, this.name, this.expr) },
 },
 'conversion', {
-	asJS: function (depth) { return this.name + this.expr.asJS(depth) },
+	asJS: function (depth) { return '(' + this.name + this.expr.asJS(depth) + ')' },
 },
 'visiting', {
     accept: function(visitor) {
@@ -547,7 +547,7 @@ lively.ast.Node.subclass('lively.ast.PostOp',
                 this.constructor.name, this.expr, this.name) },
 },
 'conversion', {
-	asJS: function (depth) { return this.expr.asJS(depth) + this.name },
+	asJS: function (depth) { return '(' + this.expr.asJS(depth) + this.name + ')'},
 },
 'visiting', {
     accept: function(visitor) {

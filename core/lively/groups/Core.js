@@ -97,8 +97,8 @@ lively.morphic.Morph.addMethods(
         if (!funcOrString) return false;
         var func = Function.fromString(funcOrString);
         var script = func.asScriptOf(this, optName);
-        script.setTimestamp();
-        script.setID();
+        script.setID(funcOrString.id);
+        script.setTimestamp(funcOrString.timestamp);
         return script;
     },
 });

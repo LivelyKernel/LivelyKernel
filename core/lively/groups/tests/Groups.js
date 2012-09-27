@@ -19,6 +19,17 @@ TestCase.subclass('lively.groups.tests.Groups.ExtensionsTest', 'testing', {
         this.assert(morph.testFunction.id);
         this.assert(morph.testFunction.timestamp);
     },
+    testAddingScriptsAnnotatesWithExistingIdAndTimestamp: function() {
+        var morph = new lively.morphic.Morph();
+        var func = function testFunction() {};
+        var id = '1234567890';
+        var timestamp = new Date('Thu Sep 27 2012 15:00:00 GMT+0200 (CEST)');
+        func.setID(id);
+        func.setTimestamp(timestamp);
+        morph.addScript(func);
+        this.assertEquals(id, morph.testFunction.id);
+        this.assertEquals(timestamp, morph.testFunction.timestamp);
+    },
     testAnnotateScriptWithGroup: function() {
         var func = function() {};
         func.setGroupID('123456789');

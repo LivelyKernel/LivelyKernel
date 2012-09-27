@@ -33,7 +33,7 @@ Object.subclass('lively.groups.ObjectGroup',
     addScript: function(funcOrString, optName) {
         var that = this;
         this.getMembers().forEach(function (ea) {
-            var func = Object.addScript(ea, funcOrString, optName);
+            var func = ea.addScript(funcOrString, optName);
             func.setGroupID(that.groupID);
             ea.addGroup(that);
         });

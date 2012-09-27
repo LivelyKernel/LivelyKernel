@@ -130,7 +130,7 @@ Object.extend(lively.Tracing, {
 
 cop.create('DeepInterpretationLayer')
 .refineClass(lively.ast.InterpreterVisitor, {
-    shouldInterpret: function(func) {
+    shouldInterpret: function(frame, func) {
         return !this.isNative(func);
     }
 });

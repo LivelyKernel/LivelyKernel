@@ -60,7 +60,10 @@ Object.extend(Function.prototype, {
         this.setProperty('groupID', groupID);
     },
     setHistory: function(history) {
-        this.setProperty('history', history);
+        this.setProperty('history', history || []);
+    },
+    getHistory: function() {
+        return this.history || [];
     }
 });
 lively.morphic.Morph.addMethods(
@@ -96,9 +99,17 @@ lively.morphic.Morph.addMethods(
     addScript: function(funcOrString, optName) {
         if (!funcOrString) return false;
         var func = Function.fromString(funcOrString);
+        var previousScript = this[optName || func.name];
+        if (previousScript) {
+            var history = previousScript.getHistory();
+            if (previousScript.id) {
+                history.push(previousScript.id);
+            }
+        }
         var script = func.asScriptOf(this, optName);
         script.setID(funcOrString.id);
         script.setTimestamp(funcOrString.timestamp);
+        script.setHistory(history);
         return script;
     },
 });

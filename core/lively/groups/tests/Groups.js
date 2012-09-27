@@ -38,7 +38,14 @@ TestCase.subclass('lively.groups.tests.Groups.ExtensionsTest', 'testing', {
     testAnnotateScriptWithHistory: function() {
         var func = function() {};
         func.setHistory(['1', '2', '3']);
-        this.assertEquals(3, func.history.size());   
+        this.assertEquals(3, func.history.size());
+    },
+    testAddingScriptsCreatesAHistory: function() {
+        var morph = new lively.morphic.Morph();
+        morph.addScript(function testScript() {});
+        morph.addScript(function testScript() {});
+        morph.addScript(function testScript() {});
+        this.assertEquals(2, morph.testScript.history.size());
     },
     testAnnotateMorphWithGroup: function() {
         var morph = new lively.morphic.Morph();
@@ -188,9 +195,7 @@ lively.morphic.tests.TestCase.subclass('lively.groups.tests.Groups.GroupTest',
         this.assertEquals('3', morphB.testFunction.id);
         this.assertEquals(group.groupID, morphA.testFunction.groupID);
         this.assertEquals(group.groupID, morphB.testFunction.groupID);
-    },
-
-
+    }
 });
 
 }) // end of module

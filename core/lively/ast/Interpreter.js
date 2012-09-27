@@ -375,7 +375,9 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
             recv = this.newObject(func)
         }
         var result = func.apply(recv, argValues);
-        if (isNew && !Object.isObject(result)) {
+        if (isNew) {// && !Object.isObject(result)) {
+            //FIXME: Cannot distinguish real result from (accidental) last result
+            //       which might also be an object but which should not be returned 
             // 13.2.2 ECMA-262 3rd. Ediion Specification:
             return recv;
         }

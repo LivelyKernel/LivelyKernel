@@ -90,7 +90,17 @@ lively.morphic.Morph.addMethods(
             result.pushAll(ea.findGroupMembersByID(groupID));
         })
         return result;
-    }
+    },
+},
+'prototypical scripting', {
+    addScript: function(funcOrString, optName) {
+        if (!funcOrString) return false;
+        var func = Function.fromString(funcOrString);
+        var script = func.asScriptOf(this, optName);
+        script.setTimestamp();
+        script.setID();
+        return script;
+    },
 });
 
 }) // end of module

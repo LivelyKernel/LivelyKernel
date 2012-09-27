@@ -13,6 +13,12 @@ TestCase.subclass('lively.groups.tests.Groups.ExtensionsTest', 'testing', {
         func.setTimestamp();
         this.assert(func.timestamp);
     },
+    testAddingScriptsAnnotatesWithIdAndTimestamp: function() {
+        var morph = new lively.morphic.Morph();
+        morph.addScript(function testFunction() {});
+        this.assert(morph.testFunction.id);
+        this.assert(morph.testFunction.timestamp);
+    },
     testAnnotateScriptWithGroup: function() {
         var func = function() {};
         func.setGroupID('123456789');

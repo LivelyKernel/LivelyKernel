@@ -1087,7 +1087,7 @@ Function.addMethods(
 'debugging', {
     forInterpretation: function(optMapping) {
         var funcAst = this.ast();
-        if (this._cachedScope) {
+        if (!funcAst.lexicalScope && this._cachedScope) {
             funcAst.lexicalScope = lively.ast.Interpreter.Frame.fromScope(this._cachedScope);
         }
         return funcAst.asFunction(this);

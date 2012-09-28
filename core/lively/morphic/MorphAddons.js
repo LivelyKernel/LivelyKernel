@@ -494,7 +494,7 @@ lively.morphic.Morph.addMethods(
             } else {
                 this.align(this.worldPoint(
                     this.shape.bounds().topCenter()), pt(windowExtent.x/2, 0).scaleBy(1/ratio));
-                world.setExtent(windowExtent);
+                world.setExtent(windowExtent.scaleBy(ratio));
             }
             Global.scrollTo(0, 0)
             this.owner.addMorphFront(this);

@@ -5,11 +5,11 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
 
 'Visuals', {
     activeRenderPartClassName: 'active-render-part',
-
+    inactiveRenderPartClassName: 'inactive-render-part',
     markMorph: function(morph, hook){
 
         morph.addStyleClassName(this.activeRenderPartClassName);
-
+        morph.removeStyleClassName(this.inactiveRenderPartClassName)
         // The owner should be a ChartGenerator which 
         // implements a function to mark morph according to their hook
         if (this.owner.markHook) {
@@ -19,15 +19,16 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
     },
     unmarkAllMorphs: function() {
         this.submorphs.each(function(m){
-            m.removeStyleClassName(this.activeRenderPartClassName)
+            m.removeStyleClassName(this.activeRenderPartClassName);
+            m.addStyleClassName(this.inactiveRenderPartClassName);
         }, this);
     },
 
     markHooks: function() {
+
         var markFirst = ['prepareContext', 'setupDrawingAreas',
                 'setupScales', 'drawDimensions'],
             markAll = ['drawSeries'];
-
         markFirst.each(function(h){
             var morphs = this.getMorphsForHook(h);
             if (morphs.length > 0) {

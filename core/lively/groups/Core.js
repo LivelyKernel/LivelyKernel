@@ -149,7 +149,7 @@ lively.morphic.Morph.addMethods(
             if (script.groupID == group.groupID) {
                 delete script.groupID;
             } 
-        })
+        }, this);
     },
     leaveGroup: function(group) {
         this.removeGroup(group);

@@ -37,7 +37,7 @@ Object.subclass('lively.groups.ObjectGroup',
         return Properties.values(scripts).select(function (eaScripts) {
             return Properties.values(eaScripts).size() > 1;
         }).collect(function (eaScripts) {
-            return Properties.values(eaScripts).first();
+            return Properties.values(eaScripts);
         })
     },
     getCurrentVersionsOfScripts: function() {

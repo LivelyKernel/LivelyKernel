@@ -348,7 +348,7 @@ lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.Gr
         morphB = this.deserialize(serializedMorphB);
         lively.morphic.World.current().addMorph(morphB);
         morphB.updateGroupBehavior();
-        
+
         func.setID('B');
         group.addScript(func);
 
@@ -360,6 +360,9 @@ lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.Gr
         this.assertEquals('B', morphB.testFunction.id);
 
         this.assertEquals(1, group.getConflicts().size());
+        var ids = group.getConflicts().first().collect(function (ea) {return ea.id})
+        this.assert(ids.include('A'));
+        this.assert(ids.include('B'));
     },
     testAGroupConflictCanBeResolvedByAddingAScript: function() {
         var group = new lively.groups.ObjectGroup();

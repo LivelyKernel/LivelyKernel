@@ -438,7 +438,20 @@ lively.morphic.Text.addMethods(
             pt(ctx.textNode.scrollWidth, ctx.textNode.scrollHeight) : this.getExtent();
     },
     setTextExtentHTML: function(ctx, value) {
-        if (ctx.textNode) ctx.domInterface.setExtent(ctx.textNode, value);
+        if (!ctx.textNode) return null;
+        var style = ctx.textNode.style;
+        if (!value) {
+            delete style.width;
+            delete style.height;
+            return null;
+        }
+        var x = value.x, y = value.y;
+        if (x && y) {
+            style.width = typeof x === 'number' ? x + 'px' : x;
+            style.height = typeof y === 'number' ? y + 'px' : y;
+            return value;
+        }
+        return null;
     },
 
     setMaxTextWidthHTML: function(ctx, value) {

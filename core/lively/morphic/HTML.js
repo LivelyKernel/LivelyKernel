@@ -385,9 +385,10 @@ lively.morphic.Text.addMethods(
         setVerticalAlign: 'setVerticalAlignHTML',
         setDisplay: 'setDisplayHTML',
         setWhiteSpaceHandling: 'setWhiteSpaceHandlingHTML',
+        setWordBreak: 'setWordBreakHTML',
         focusMorph: 'focusMorphHTML',
         setInputAllowed: 'setInputAllowedHTML'
-    },
+    }
 },
 'rendering', {
     initHTML: function($super, ctx) {
@@ -401,7 +402,9 @@ lively.morphic.Text.addMethods(
         this.setDisplayHTML(ctx, this.getDisplay());
         this.setTextColorHTML(ctx, this.getTextColor());
         this.setWhiteSpaceHandlingHTML(ctx, this.getWhiteSpaceHandling());
+        this.setWordBreakHTML(ctx, this.getWordBreak());
         this.setInputAllowedHTML(ctx, this.inputAllowed());
+        this.setExtent(this.getExtent());
         this.fit();
         if (this.textChunks) {
             this.textChunks.forEach(function(chunk) { chunk.addTo(this) }, this)
@@ -500,6 +503,10 @@ lively.morphic.Text.addMethods(
         if (ctx.textNode)
             ctx.textNode.style.whiteSpace = modeString || 'normal';
     },
+    setWordBreakHTML: function(ctx, modeString) {
+        if (ctx.textNode)
+            ctx.textNode.style.wordBreak = modeString || 'normal';
+    },
     getWhiteSpaceHandlingHTML: function(ctx) {
         return ctx.textNode ? (ctx.textNode.style.whiteSpace || 'normal') : 'normal';
     },
@@ -551,10 +558,10 @@ lively.morphic.Text.addMethods(
     createTextNodeHTML: function() {
         var node = XHTMLNS.create('div');
         node.className = 'visibleSelection';
-        node.style.cssText = 'position: absolute;' + // needed for text extent calculation
-                             'word-wrap: break-word;';
+        node.style.cssText = 'position: absolute;' // needed for text extent calculation
+                           + 'word-wrap: break-word;';
         return node;
-    },
+    }
 });
 
 lively.morphic.List.addMethods(

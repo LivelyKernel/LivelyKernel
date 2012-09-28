@@ -438,6 +438,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     setFixedWidth: function(bool) {
         this.fixedWidth = bool;
         this.setWhiteSpaceHandling(bool ? 'pre-wrap' : 'pre');
+        this.setWordBreak(bool ? 'break-all' : null);
         this.fit();
     },
     setFixedHeight: function(bool) {
@@ -1764,6 +1765,12 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     },
     getWhiteSpaceHandling: function(modeString) {
         return this.morphicGetter('WhiteSpaceHandling') || 'pre-wrap';
+    },
+    setWordBreak: function(modeString) {
+        return this.morphicSetter('WordBreak', modeString);
+    },
+    getWordBreak: function() {
+        return this.morphicGetter('WordBreak');
     },
     getTextElements: function() {
         // returns js objects for subnodes of this.renderContext().textNode

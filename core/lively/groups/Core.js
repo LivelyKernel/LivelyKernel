@@ -14,9 +14,17 @@ Object.subclass('lively.groups.ObjectGroup',
     addMember: function(member) {
         member.addGroup(this);
     },
+    removeMember: function(member) {
+        member.removeGroup(this);
+    },
     addMembers: function(members) {
         members.each(function (ea) {
             this.addMember(ea);
+        }, this);
+    },
+    removeMembers: function(members) {
+        members.each(function (ea) {
+            this.removeMember(ea);
         }, this);
     },
     getMembers: function() {
@@ -127,6 +135,24 @@ lively.morphic.Morph.addMethods(
         if (!this.groups.include(group)) {
             this.groups.push(group);
         }
+    },
+    enterGroup: function(group) {
+        this.addGroup(group);
+    },
+    removeGroup: function(group) {
+        if (this.groups) {
+            this.groups.remove(group);
+        }
+
+        Functions.own(this).each(function (eaName) {
+            var script = this[eaName];
+            if (script.groupID == group.groupID) {
+                delete script.groupID;
+            } 
+        })
+    },
+    leaveGroup: function(group) {
+        this.removeGroup(group);
     },
     getGroups: function() {
         if (!this.groups) {

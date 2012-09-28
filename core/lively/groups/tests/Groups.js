@@ -402,4 +402,33 @@ lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.Gr
     },
 });
 
+lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.GroupMemberTest',
+'testing', {
+   testLeavingGroupDisconnectsMember: function() { 
+        var group = new lively.groups.ObjectGroup();
+        var morph = this.newTestMorph(group);
+
+        group.addScript(function testFunction1() {});
+        group.addScript(function testFunction2() {});
+
+        morph.leaveGroup(group);
+
+        this.assertEquals(0, morph.getGroups().size());
+   },
+   testLeavingGroupDisconnectsAllScripts: function() {
+        var group = new lively.groups.ObjectGroup();
+        var morph = this.newTestMorph(group);
+
+        group.addScript(function testFunction1() {});
+        group.addScript(function testFunction2() {});
+
+        group.removeMember(morph);
+
+        this.assert(morph.testFunction1);
+        this.assert(morph.testFunction1);
+        this.assert(!morph.testFunction1.groupID);
+        this.assert(!morph.testFunction2.groupID);
+   } 
+});
+
 }) // end of module

@@ -140,12 +140,26 @@ Object.subclass('lively.Main.Loader',
         // 2. selection style of morphs/texts/lists etc.
         // suppress focus highlight for most elements
         // only texts, lists, etc should show the real focus
-        cssDef += ':focus {\n'
-                + '  outline:none;\n'
-                + '}\n'
-                + '.visibleSelection:focus {\n'
-                + '  outline: 2px auto ' + (UserAgent.webKitVersion ? '-webkit-focus-ring-color' : 'blue') + ';\n'
-                + '}\n';
+
+        if (UserAgent.webKitVersion) {
+            cssDef += ':focus {\n'
+                    + '  outline:none;\n'
+                    + '}\n'
+                    + '.visibleSelection:focus {\n'
+                    + '  outline: 2px auto -webkit-focus-ring-color;\n'
+                    + '}\n';
+        }
+
+        if (UserAgent.fireFoxVersion) {
+            cssDef += ':focus {\n'
+                    + '  outline:none;\n'
+                    + '}\n'
+                    + '.visibleSelection:focus {\n'
+                    + "  -moz-box-shadow: 0 0px 3px blue;\n"
+                    + "  box-shadow:0 0px 3px blue;\n"
+                    + "}\n"
+        }
+
         XHTMLNS.addCSSDef(cssDef);
 
         // disable Firefox spellchecking

@@ -288,10 +288,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     applyStyle: function($super, spec) {
         if (!spec) return this;
         $super(spec);
-        if (spec.fixedWidth !== undefined) {
-            this.setFixedWidth(spec.fixedWidth);
-            this.fit();
-        }
+        if (spec.fixedWidth !== undefined) this.setFixedWidth(spec.fixedWidth);
         if (spec.fixedHeight !== undefined) this.setFixedHeight(spec.fixedHeight);
         if (spec.allowInput !== undefined) this.setInputAllowed(spec.allowInput);
         if (spec.fontFamily !== undefined) this.setFontFamily(spec.fontFamily);
@@ -312,44 +309,10 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
 },
 'accessing', {
     setExtent: function($super, value) {
-        $super(value);
-
-        if (this.owner && this.owner.isInLayoutCycle) return;
-
-        var scrollbarExtent = this.getScrollBarExtent(),
-            borderWidth = this.getBorderWidth(),
-            padding = this.getPadding() || new Rectangle(0,0,0,0),
-            width = null,
-            height = null;
-
-        if (this.fixedWidth) {
-            width = value.x;
-            if (this.showsVerticalScrollBar())
-                width -= scrollbarExtent.x;
-            width -= borderWidth*2;
-            width -= padding.left() + padding.right();
-            this.setMaxTextWidth(width);
-            this.setMinTextWidth(width);
-        } else {
-            this.setMaxTextWidth(null);
-            this.setMinTextWidth(null);
-        }
-
-        if (this.fixedHeight) {
-            var textExtent = this.getTextExtent();
-            height = Math.max(value, textExtent.y); // FIXME shouldn't that be value.y? (max width ever used??)
-            // yes it should, and it is used, e.g. Scriptpanes are fixed in both dimensions  -bsiegmund
-            // reverted for now, some bugs reported -bsiegmund
-            if (this.showsHorizontalScrollBar())
-                height -= scrollbarExtent.y;
-            height -= borderWidth*2;
-            height -= padding.top() + padding.bottom();
-            this.setMaxTextHeight(height);
-            this.setMinTextHeight(height);
-        } else {
-            this.setMaxTextHeight(null);
-            this.setMinTextHeight(null);
-        }
+        var result = $super(value);
+        if (this.owner && this.owner.isInLayoutCycle) return result;
+        this.setTextNodeToFitMorphExtent();
+        return result;
     },
 
     getTextExtent: function() { return this.renderContextDispatch('getTextExtent') },
@@ -445,12 +408,17 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         this.fixedHeight = bool
         this.fit();
     },
-    setMaxTextWidth: function(value) {
-        this.morphicSetter('MaxTextWidth', value);
+    setClipMode: function($super, modeString) {
+        var r = $super(modeString);
+        if (this.isClip()) this.applyStyle({fixedHeight: true, fixedWidth: true});
+        this.fit();
+        return r;
     },
+    setMaxTextWidth: function(value) { this.morphicSetter('MaxTextWidth', value); },
     setMaxTextHeight: function(value) { this.morphicSetter('MaxTextHeight', value) },
     setMinTextWidth: function(value) { this.morphicSetter('MinTextWidth', value) },
     setMinTextHeight: function(value) { this.morphicSetter('MinTextHeight', value) },
+    setTextExtent: function(value) { this.morphicSetter('TextExtent', value) },
     getTextNode: function() { return this.renderContext().textNode },
 
     inputAllowed: function() { return this.allowInput },
@@ -471,7 +439,14 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     fit: function() {
         // expensive operation, only do when we are in world since we cannot
         // figure out the real bounds before we are in DOM anyway
+        this.setTextNodeToFitMorphExtent();
         if (!this.world()) return;
+
+        var isClip = this.isClip(),
+            fixedWidth = isClip || this.fixedWidth,
+            fixedHeight = isClip || this.fixedWidth;
+        if (this.fixedWidth && this.fixedHeight) return;
+
         var owners = this.ownerChain();
         for (var i = 0; i < owners.length; i++) {
             if (owners[i].isInLayoutCycle || !owners[i].isRendered()) return;
@@ -483,10 +458,52 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             padding = this.getPadding(),
             paddingWidth = padding.left() + padding.right(),
             paddingHeight = padding.top() + padding.bottom(),
-            width = this.fixedWidth ? extent.x : (textExtent.x + borderWidth*2 + paddingWidth),
-            height = this.fixedHeight ? extent.y : (textExtent.y + borderWidth*2 + paddingHeight);
-        this.setExtent(pt(width, height));
+            width = extent.x, height = extent.y;
+        if (!this.fixedWidth) {
+            width = textExtent.x + borderWidth*2 + paddingWidth;
+        }
+        if (!this.fixedHeight) {
+            height = textExtent.y + borderWidth*2 + paddingHeight;
+        }
+        if (width !== extent.x || height !== extent.y) {
+            this.setExtent(pt(width, height));
+        }
     },
+
+    setTextNodeToFitMorphExtent: function() {
+        // In case we do not want the text extent to grow unlimited (when
+        // fixedWidth / fixedHeight / beClip is set) we restrict the text
+        // bounds to the bounds of the morph itself.
+        // FIXME: this should go into lively.morphic.HTML
+        var isClip = this.isClip(),
+            fixedWidth = isClip || this.fixedWidth,
+            fixedHeight = isClip || this.fixedHeight,
+            style = this.renderContext().textNode.style,
+            prefix, padding;
+
+        if (fixedWidth || fixedHeight) {
+            // only compute it when needed
+            padding = this.getPadding();
+            prefix = this.renderContext().domInterface.html5CssPrefix;
+        }
+
+        if (fixedWidth) {
+            var paddingWidth = padding ? padding.left() + padding.right() : 0,
+                newWidth = prefix + 'calc(100% - ' + paddingWidth + 'px)';
+            style.minWidth = newWidth;
+        } else {
+            style.minWidth = null;
+        }
+
+        if (fixedHeight) {
+            var paddingHeight = padding ? padding.top() + padding.bottom() : 0,
+                newHeight = prefix + 'calc(100% - ' + paddingHeight + 'px)';
+            style.minHeight = newHeight;
+        } else {
+            style.minHeight = null;
+        }
+    }
+
 },
 'text modes', {
     beLabel: function(customStyle) {

@@ -1,6 +1,6 @@
 module('lively.morphic.tests.HTMLText').requires('lively.morphic.tests.Helper').toRun(function() {
 
-lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTMLText.TextAttributes',
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTMLText.TestCase',
 'running', {
     setUp: function($super) {
         $super();
@@ -8,7 +8,9 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTMLText.TextAttrib
         this.text = new lively.morphic.Text(new Rectangle(0,0, 400, 200));
         this.world.addMorph(this.text);
     }
-},
+});
+
+lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.TextAttributes',
 'testing', {
     test01RenderingTextShadow: function() {
         this.text.setTextString('eintest');
@@ -60,6 +62,20 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTMLText.TextAttrib
         this.text.sliceTextChunks(0,2); this.text.coalesceChunks(); // slice'n fix
         lastNode = Array.from(chunks.last().getChunkNode().childNodes).last();
         this.assertEquals('br', lastNode.tagName);
+    }
+});
+
+lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.Extent',
+'testing', {
+    testExtentOfClippedAndFixedText: function() {
+        var text = new lively.morphic.Text(lively.rect(0,0, 200, 300), 'foo');
+        text.applyStyle({fontFamily: 'Courier', fontSize: 12, clipMode: 'auto',
+                         fixedWidth: true, fixedHeight: true});
+        this.world.addMorph(text);
+        var p = text.getPadding(), borderWidth = text.getBorderWidth();
+        this.assertEquals(
+            pt(200,300).addXY(-p.left() - p.right() - 2*borderWidth, -p.top() - p.bottom() - 2*borderWidth),
+            text.getTextExtent());
     }
 });
 
@@ -162,5 +178,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.HTMLText.HtmlPars
     }
 
 });
+
 
 });

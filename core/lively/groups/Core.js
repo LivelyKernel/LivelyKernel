@@ -200,5 +200,13 @@ lively.morphic.World.addMethods(
     }
 }
 );
+cop.create('GroupSupportLayer').refineClass(lively.PartsBin.PartItem, {
+    setPart: function(part) {
+        cop.proceed(part);
+        part.updateGroupBehavior();
+        return part;
+    },
+});
+GroupSupportLayer.beGlobal();
 
 }) // end of module

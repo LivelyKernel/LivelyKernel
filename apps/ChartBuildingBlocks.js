@@ -25,7 +25,7 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
     },
 
     markHooks: function() {
-
+        this.unmarkAllMorphs();
         var markFirst = ['prepareContext', 'setupDrawingAreas',
                 'setupScales', 'drawDimensions'],
             markAll = ['drawSeries'];
@@ -199,7 +199,7 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
     draw: function(context, data, optPadding) {
         // Clear the visual indiciators about which 
         // morphs are used and which ones are not
-        this.unmarkAllMorphs();
+        // this.unmarkAllMorphs();
 
         var dimensions = data.getDimensions(),
             series = data.getSeries(),

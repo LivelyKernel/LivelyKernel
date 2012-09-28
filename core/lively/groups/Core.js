@@ -158,4 +158,20 @@ lively.morphic.Morph.addMethods(
     },
 });
 
+lively.morphic.World.addMethods(
+'object groups', {
+    allObjectGroups: function() {
+        var groups = {};
+        this.withAllSubmorphsDo(function (ea) {
+            ea.groups.each(function (eaGroup) {
+                if (!eaGroup) debugger;
+                if (!eaGroup.groupID) debugger;
+                groups[eaGroup.groupID] = eaGroup;
+            })
+        })
+        return Properties.values(groups);
+    }
+}
+);
+
 }) // end of module

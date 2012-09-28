@@ -273,6 +273,21 @@ lively.morphic.tests.TestCase.subclass('lively.groups.tests.Groups.GroupTest',
         morphA.updateGroupBehavior();
         this.assertEquals('2', morphB.testFunction.id);
     },
+    testWorldKnowsGroups: function() {
+        var firstGroup = new lively.groups.ObjectGroup('firstGroup');
+        var secondGroup = new lively.groups.ObjectGroup('secondGroup');
+        var thirdGroup = new lively.groups.ObjectGroup('thirdGroup');
+
+        this.newTestMorph(firstGroup).addGroup(secondGroup);
+        this.newTestMorph(thirdGroup);
+
+        var allGroupNames = lively.morphic.World.current().allObjectGroups().collect(function (ea) {
+            return ea.name;
+        });
+        this.assert(allGroupNames.include('firstGroup'));
+        this.assert(allGroupNames.include('secondGroup'));
+        this.assert(allGroupNames.include('thirdGroup'));
+    },
 });
 
 }) // end of module

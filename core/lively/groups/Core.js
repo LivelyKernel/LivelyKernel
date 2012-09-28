@@ -23,21 +23,37 @@ Object.subclass('lively.groups.ObjectGroup',
         return lively.morphic.World.current().findGroupMembersByID(this.groupID);
     },
     getScripts: function() {
-        var scripts = {};
-        var that = this;
+        var scripts = this.getCurrentVersionsOfScripts();
 
+        return Properties.values(scripts).select(function (eaScripts) {
+            return Properties.values(eaScripts).size() == 1;
+        }).collect(function (eaScripts) {
+            return Properties.values(eaScripts).first();
+        })
+    },
+    getConflicts: function() {
+        var scripts = this.getCurrentVersionsOfScripts();
+
+        return Properties.values(scripts).select(function (eaScripts) {
+            return Properties.values(eaScripts).size() > 1;
+        }).collect(function (eaScripts) {
+            return Properties.values(eaScripts).first();
+        })
+    },
+    getCurrentVersionsOfScripts: function() {
         // gather all versions of the same script across group members
+        var scripts = {};
         this.getMembers().each(function(ea) {
             Functions.own(ea).each(function(eaScriptName) {
                 var eaScript = ea[eaScriptName]
-                if (eaScript.groupID === that.groupID) {
+                if (eaScript.groupID === this.groupID) {
                     if (!scripts[eaScript.name]) {
                         scripts[eaScript.name] = {}
                     }
                     scripts[eaScript.name][eaScript.id] = eaScript;
                 }
-            })
-        })
+            }, this);
+        }, this);
 
         // remove all versions that are in the history of newer versions
         Properties.own(scripts).forEach(function (eaScriptname) {
@@ -50,13 +66,9 @@ Object.subclass('lively.groups.ObjectGroup',
             historicalIds.forEach(function (eaScriptID) {
                 delete scriptsWithSameName[eaScriptID];
             });
-
-            if (Properties.values(scriptsWithSameName).size() > 1) throw 'group script conflict';
         });
 
-        return Properties.values(scripts).collect(function (eaScripts) {
-            return Properties.values(eaScripts).first();
-        })
+        return scripts;
     }
 },
 'group operations', {

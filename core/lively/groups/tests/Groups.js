@@ -313,6 +313,40 @@ lively.morphic.tests.TestCase.subclass('lively.groups.tests.Groups.GroupTest',
         this.assert(allGroupNames.include('secondGroup'));
         this.assert(allGroupNames.include('thirdGroup'));
     },
+    testConflictingGroupUpdatesDontOverwriteButAreAConflict: function() {
+        var group = new lively.groups.ObjectGroup();
+        var morphA = this.newTestMorph(group);
+        var morphB = this.newTestMorph(group);
+
+        var func = function testFunction() {};
+        func.setID('1');
+        group.addScript(func);
+
+        var serializedMorphB = this.serialize(morphB);
+        morphB.remove();
+
+        func.setID('A');
+        group.addScript(func);
+
+        var serializedMorphA = this.serialize(morphA);
+        morphA.remove();
+
+        morphB = this.deserialize(serializedMorphB);
+        lively.morphic.World.current().addMorph(morphB);
+        morphB.updateGroupBehavior();
+        
+        func.setID('B');
+        group.addScript(func);
+
+        morphA = this.deserialize(serializedMorphA);
+        lively.morphic.World.current().addMorph(morphA);
+        morphA.updateGroupBehavior();
+
+        this.assertEquals('A', morphA.testFunction.id);
+        this.assertEquals('B', morphB.testFunction.id);
+
+        this.assertEquals(1, group.getConflicts().size());
+    },
 });
 
 }) // end of module

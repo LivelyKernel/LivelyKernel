@@ -82,6 +82,8 @@
 
         isLinux: window.navigator && window.navigator.platform.startsWith("Linux"),
 
+        isMacOS: window.navigator && window.navigator.platform.startsWith("Mac"),
+
         isTouch: window.navigator && (window.navigator.platform == "iPhone" || window.navigator.platform == "iPad" || window.navigator.platform == "iPod"),
 
         touchIsMouse: false

@@ -30,6 +30,18 @@ TestCase.subclass('lively.groups.tests.Groups.ExtensionsTest', 'testing', {
         this.assertEquals(id, morph.testFunction.id);
         this.assertEquals(timestamp, morph.testFunction.timestamp);
     },
+    testOverwritingScriptsCreatesScriptHistory: function() {
+        var morph = new lively.morphic.Morph();
+        morph.addScript(function testFunction() {});
+        var firstID = morph.testFunction.id;
+        morph.addScript(function testFunction() {});
+        var secondID = morph.testFunction.id;
+        morph.addScript(function testFunction() {});
+
+        this.assertEquals(2, morph.testFunction.history.size());
+        this.assert(morph.testFunction.history.include(firstID));
+        this.assert(morph.testFunction.history.include(secondID));
+    },
     testAnnotateScriptWithGroup: function() {
         var func = function() {};
         func.setGroupID('123456789');
@@ -130,6 +142,19 @@ lively.morphic.tests.TestCase.subclass('lively.groups.tests.Groups.GroupTest',
         group.addScript(function testScript() {});
         this.assertEquals('123', group.getMembers()[0].testScript.groupID);
         this.assertEquals('123', group.getMembers()[1].testScript.groupID);
+    },
+    testAddScriptCreatesCorrectHistory: function() {
+        var group = new lively.groups.ObjectGroup();
+        group.addMembers([this.newTestMorph(), this.newTestMorph()]);
+
+        var firstID = group.addScript(function testScript() {}).id;
+        var secondID = group.addScript(function testScript() {}).id;
+        group.addScript(function testScript() {});
+
+        this.assert(group.getMembers()[0].testScript.history.include(firstID));
+        this.assert(group.getMembers()[0].testScript.history.include(secondID));
+        this.assert(group.getMembers()[1].testScript.history.include(firstID));
+        this.assert(group.getMembers()[1].testScript.history.include(secondID));
     },
     testAddScriptToMembersAnnotatesMember: function() {
         var group = new lively.groups.ObjectGroup();

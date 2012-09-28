@@ -1,4 +1,4 @@
-module('lively.groups.Core').requires().toRun(function() {
+module('lively.groups.Core').requires('lively.PartsBin').toRun(function() {
 
 Object.subclass('lively.groups.ObjectGroup', 
 'properties', {
@@ -25,15 +25,38 @@ Object.subclass('lively.groups.ObjectGroup',
     getScripts: function() {
         var scripts = {};
         var that = this;
+
+        // gather all versions of the same script across group members
         this.getMembers().each(function(ea) {
             Functions.own(ea).each(function(eaScriptName) {
                 var eaScript = ea[eaScriptName]
                 if (eaScript.groupID === that.groupID) {
-                    scripts[eaScript.id] = eaScript
+                    if (!scripts[eaScript.name]) {
+                        scripts[eaScript.name] = {}
+                    }
+                    scripts[eaScript.name][eaScript.id] = eaScript;
                 }
             })
         })
-        return Properties.values(scripts)
+
+        // remove all versions that are in the history of newer versions
+        Properties.own(scripts).forEach(function (eaScriptname) {
+            var scriptsWithSameName = scripts[eaScriptname];
+
+            var historicalIds = Properties.values(scriptsWithSameName).collect(function (eaScript) {
+                return eaScript.history;
+            }).flatten().uniq();
+
+            historicalIds.forEach(function (eaScriptID) {
+                delete scriptsWithSameName[eaScriptID];
+            });
+
+            if (Properties.values(scriptsWithSameName).size() > 1) throw 'group script conflict';
+        });
+
+        return Properties.values(scripts).collect(function (eaScripts) {
+            return Properties.values(eaScripts).first();
+        })
     }
 },
 'group operations', {
@@ -43,12 +66,17 @@ Object.subclass('lively.groups.ObjectGroup',
         });
     },
     addScript: function(funcOrString, optName) {
-        var that = this;
-        this.getMembers().forEach(function (ea) {
-            var func = ea.addScript(funcOrString, optName);
-            func.setGroupID(that.groupID);
-            ea.addGroup(that);
-        });
+        var script;
+        this.getMembers().each(function (ea) {
+            if (!script) {
+                script = ea.addScript(funcOrString, optName);
+            } else {
+                script = ea.addScript(script, optName);
+            }
+            script.setGroupID(this.groupID);
+            ea.addGroup(this);
+        }, this);
+        return script;
     },
     perform: function(selector, args) {
         return this.getMembers().collect(function (ea) {
@@ -115,7 +143,8 @@ lively.morphic.Morph.addMethods(
         return result;
     },
     updateGroupBehavior: function() {
-        this.groups.forEach(function(eaGroup) {
+        alertOK('updating group behavior for' + this);
+        this.getGroups().forEach(function(eaGroup) {
             this.pullGroupChangesFrom(eaGroup);
             this.pushGroupChangesTo(eaGroup);
         }, this);
@@ -144,11 +173,9 @@ lively.morphic.Morph.addMethods(
         if (!funcOrString) return false;
         var func = Function.fromString(funcOrString);
         var previousScript = this[optName || func.name];
+        var history = [];
         if (previousScript) {
-            var history = previousScript.getHistory();
-            if (previousScript.id) {
-                history.push(previousScript.id);
-            }
+             history = previousScript.getHistory().concat(previousScript.id);
         }
         var script = func.asScriptOf(this, optName);
         script.setID(funcOrString.id);

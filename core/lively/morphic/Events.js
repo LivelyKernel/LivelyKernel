@@ -1661,7 +1661,7 @@ lively.morphic.World.addMethods(
         this.cachedWindowBounds = null;
     },
     onWindowScroll: function(evt) {
-        // alert('window scrolled')
+        this.cachedWindowBounds = null;
     },
     onScroll: function(evt) {
         // This is a fix for the annoying bug that cost us a keynote...

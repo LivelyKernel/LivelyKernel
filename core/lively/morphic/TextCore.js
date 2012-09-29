@@ -475,10 +475,12 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         // fixedWidth / fixedHeight / beClip is set) we restrict the text
         // bounds to the bounds of the morph itself.
         // FIXME: this should go into lively.morphic.HTML
+        var textNode = this.renderContext().textNode;
+        if (!textNode) return;
         var isClip = this.isClip(),
             fixedWidth = isClip || this.fixedWidth,
             fixedHeight = isClip || this.fixedHeight,
-            style = this.renderContext().textNode.style,
+            style = textNode.style,
             prefix, padding;
 
         if (fixedWidth || fixedHeight) {

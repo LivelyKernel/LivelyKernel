@@ -72,7 +72,7 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
         if (hookName) {
             var defaultHookName = hookName + 'Default',
                 hookMorphs = this.getMorphsForHook(hookName),
-                argArray = Array.prototype.slice.call(args);
+                argArray = Array.from(args);
 
             if (hookMorphs.length > 0) {
                 var hookMorph = hookMorphs.first();
@@ -98,7 +98,7 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
         if (hookName) {
             var counter = 0,
                 hookMorphs = this.getMorphsForHook(hookName),
-                argArray = Array.prototype.slice.call(args),
+                argArray = Array.from(args),
                 defaultHookName = hookName + 'Default';
 
             if (hookMorphs.length > 0) {

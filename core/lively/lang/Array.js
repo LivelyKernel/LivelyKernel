@@ -464,6 +464,11 @@ Object.extend(Array, {
         var result = new Array(n);
         while (n > 0) result[--n] = obj;
         return result;
+    },
+    genN: function(n, generator) {
+        var result = new Array(n);
+        while (n > 0) result[--n] = generator(n);
+        return result;
     }
 });
 

@@ -399,9 +399,9 @@ lively.morphic.Morph.addMethods(
     },
 
     getVisualBindingsBuilderFor: function(connectionPointName) {
-        return new lively.morph.ConnectionBuilder(this, connectionPointName);
+        return new lively.morphic.ConnectionBuilder(this, connectionPointName);
     }
-})
+});
 
 lively.morphic.Path.addMethods(
 'visual connectors', {
@@ -541,7 +541,7 @@ AttributeConnection.addMethods(
     }
 });
 
-lively.morphic.Box.subclass('lively.morph.ConnectionBuilder',
+lively.morphic.Box.subclass('lively.morphic.ConnectionBuilder',
 'initializing', {
     style: {fill: Color.gray, opacity: 0.5},
     initialize: function($super, sourceMorph, connectionPointSourceName) {
@@ -550,6 +550,7 @@ lively.morphic.Box.subclass('lively.morph.ConnectionBuilder',
         this.connectionPointSourceName = connectionPointSourceName;
         var label = lively.morphic.Text.makeLabel(connectionPointSourceName, {
             fixedWidth: true, fixedHeight: true, align: 'center', fontSize: 14, fill: null});
+        label.isLayoutable = false; // do not show placeholders
         this.label = this.addMorph(label);
         label.setBounds(this.innerBounds());
         this.adjustOrigin(this.innerBounds().center());

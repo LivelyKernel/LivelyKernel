@@ -991,13 +991,15 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.LayoutTests'
     },
 
     test03FixedWidthForcesLineBreaks: function() {
-        this.text.setTextString('aaa');
         this.epsilon = 4;
-        this.assertEqualsEpsilon(pt(24, 15), this.text.getTextExtent(), 'setup does not work');
-        this.text.applyStyle({fixedWidth: true, fixedHeight: false});
+        this.text.applyStyle({fontFamily: 'Courier', fontSize: 12,
+                              fixedWidth: false, fixedHeight: false});
+        this.text.setTextString('aaa');
+        this.assertEqualsEpsilon(pt(30, 18), this.text.getTextExtent(), 'setup does not work');
+        this.text.applyStyle({fixedWidth: true});
         this.text.setExtent(pt(20,15));
         // text's span is 16 then, but text itself 20
-        this.assertEqualsEpsilon(pt(20, 30), this.text.getTextExtent(), 'no line break');
+        this.assertEqualsEpsilon(pt(20, 36), this.text.getTextExtent(), 'no line break');
     },
 
     test03aFixedWidthCssProperties: function() {
@@ -1010,8 +1012,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.LayoutTests'
                 {tagName: 'div', childNodes: [ // world shape
                     {tagName: 'div',
                      childNodes: [{tagName: 'span'}],
-                     style: {maxWidth: '20px'}} // m and its shape
-                ]},
+                     style: {minWidth: function(val) { return val.test(/calc\(100%-)/)}}} // m and its shape
+                ]}
             ]};
 
         this.assertNodeMatches(expected, this.text.renderContext().getMorphNode());
@@ -1019,31 +1021,41 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.LayoutTests'
 
     test04FixedWidthIncreasesTextExtent: function() {
         this.epsilon = 2;
+        this.text.applyStyle({fontFamily: 'Courier', fontSize: 12,
+                              fixedWidth: false, fixedHeight: false});
         this.text.setTextString('aaa');
 
         this.text.fit();
 
-        this.assertEqualsEpsilon(pt(24, 15), this.text.getTextExtent(), 'hmm setup does not work');
-        this.text.applyStyle({fixedWidth: true, fixedHeight: false});
+        this.assertEqualsEpsilon(pt(30, 18), this.text.getTextExtent(), 'hmm setup does not work');
+        this.text.applyStyle({fixedWidth: true});
         this.text.setExtent(pt(40,15))
-        this.assertEqualsEpsilon(pt(40, 15), this.text.getTextExtent(), 'text extent didnt grow');
+        this.assertEqualsEpsilon(pt(40, 18), this.text.getTextExtent(), "text extent didn't grow");
     },
+
     test05FillWithBigAndThenWithSmallTextResizesTextBounds: function() {
-        this.text.applyStyle({fixedWidth: true, fixedHeight: true, clipMode: 'visible'});
-        this.text.setExtent(pt(50,50)); // actually should not be neccessary, but this is the feature we want to implement...
         this.epsilon = 2;
+        this.text.applyStyle({fontFamily: 'Courier', fontSize: 12,
+                              fixedWidth: true, fixedHeight: false,
+                              clipMode: 'visible'});
+        // actually should not be neccessary, but this is the feature we want to implement...
+        this.text.setExtent(pt(50,50));
         this.text.textString = 'aaa';
-        this.assertEqualsEpsilon(pt(50,15), this.text.getTextExtent(), 'hmm setup does not work');
+        this.assertEqualsEpsilon(pt(50,18), this.text.getTextExtent(), 'hmm setup does not work');
 
         // make text big, should grow vertically
         this.text.setTextString('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
-        //this.assertEquals(pt(50.0,75.0), this.text.getTextExtent(), 'hmm setup does not work 2');
-        this.assertEquals(this.text.getTextExtent().x, 50.0, 'text should not have grown horizontally');
-        this.assert(this.text.getTextExtent().y >= 75.0, 'text should have grown vertically (actual height: ' + this.text.getTextExtent().y + '), was expected to be at least 75.0');
+        this.assertEquals(this.text.getTextExtent().x, 50.0,
+                          'text should not have grown horizontally');
+        this.assert(this.text.getTextExtent().y >= 75.0,
+                    'text should have grown vertically (actual height: ' +
+                    this.text.getTextExtent().y +
+                    '), was expected to be at least 75.0');
 
         // make text small, vertical extent should shrink
         this.text.textString = 'aaa';
-        this.assertEqualsEpsilon(pt(50,15), this.text.getTextExtent(), 'text extent did not shrink');
+        this.assertEqualsEpsilon(pt(50,18), this.text.getTextExtent(),
+                                 'text extent did not shrink');
     }
 
 });

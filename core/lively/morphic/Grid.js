@@ -558,5 +558,27 @@ lively.morphic.DataGridHeadCell.subclass('lively.morphic.DataGridRowHead',
     isRowHead: true
 });
 
+Object.extend(lively.morphic.Grid, {
+    openWithData: function(data) {
+        var grid = new lively.morphic.DataGrid(data[0].length, data.length, {
+            showRowHeads: false, showColHeads: false});
+
+        grid.setData(data)
+        grid.openInWorld($world.visibleBounds().center());
+        grid.openInWindow.bind(grid).delay(0.1)
+
+        grid.getLayoutableSubmorphs().invoke('setClipMode', 'auto')
+        grid.getLayoutableSubmorphs().invoke('setExtent', pt(300, 100))
+
+        grid.setClipMode('auto')
+        grid.setExtent(pt(600, 500))
+
+        grid.withAllSubmorphsDo(function(ea) { ea.setFill(Color.white); })
+        // grid.getLayoutableSubmorphs().invoke('applyStyle', {fixedHeight: false})
+
+
+        return grid;
+    }
+})
 
 });

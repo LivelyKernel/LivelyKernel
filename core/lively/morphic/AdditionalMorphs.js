@@ -65,13 +65,13 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
     isPath: true,
     style: {
         borderWidth: 1, borderColor: Color.black
-    },
+    }
 },
 'initializing', {
     initialize: function($super, vertices) {
         var shape = new lively.morphic.Shapes.Path(vertices);
         $super(shape);
-    },
+    }
 },
 'accessing', {
     vertices: function() { return this.shape.vertices() }
@@ -119,7 +119,7 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
             p2 = this.localize(pt(x4, y4));
 
         return [p1, c1, c2, p2];
-    },
+    }
 },
 'arrow behavior', {
     addArrowHeadStart: function(morph) {
@@ -131,7 +131,7 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
         var ctrlPt = this.getControlPoints().last();
         this.addMorph(morph);
         ctrlPt.addMarker(morph, 'prev')
-    },
+    }
 },
 'control points', {
     getControlPoint: function(idx) { return this.getControlPoints()[idx] },
@@ -147,7 +147,8 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
     insertControlPointBetween: function(index1, index2, vertex) {
         var ctrlP1 = this.getControlPoint(index1);
         ctrlP1.insertAfter(vertex);
-    },
+        this.cachedBounds = null;
+    }
 },
 'halos', {
     getHalos: function($super) {
@@ -170,7 +171,7 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
         var result = [];
         for (var i = 0; i < this.vertices().length-1; i++) result.push(this.getInsertPointHalo(i));
         return result
-    },
+    }
 },
 'conversion', {
     convertToCurve: function() {
@@ -188,11 +189,12 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
                 p = ptArr[3];
             ctrlPt.toCurve(p, c1, c2);
         }
+        this.cachedBounds = null;
     },
     convertToLine: function() {
         this.getControlPoints().forEach(function(ea) { return ea.toLine(ea.getPos()) });
-    },
-
+        this.cachedBounds = null;
+    }
 },
 'menu', {
     morphMenuItems: function($super) {
@@ -207,9 +209,10 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
         var newVertices = this.vertices().map(function(ea) {
             return ea.subPt(newOrigin.subPt(oldOrigin)); });
         this.shape.setVertices(newVertices);
-    },
+    }
 
 });
+
 Object.subclass('lively.morphic.ControlPoint',
 'initializing', {
     initialize: function(morph, index) {
@@ -234,7 +237,8 @@ Object.subclass('lively.morphic.ControlPoint',
     },
     elementChanged: function() {
         this.morph.shape.setPathElements(this.morph.shape.getPathElements());
-    },
+        this.morph.cachedBounds = null;
+    }
 
 },
 'testing', {

@@ -341,7 +341,7 @@ Object.subclass('Rectangle',
 },
 'printing', {
     toString: function() {
-        return Strings.format("lively.rect(%s,%s)", this.topLeft(), this.bottomRight());
+        return Strings.format("lively.rect(%s,%s,%s,%s)", this.x, this.y, this.width, this.height);
     }
 },
 'comparing', {
@@ -657,14 +657,23 @@ Object.extend(Rectangle, {
 // FIXME: Point in global namespace
 lively.Rectangle = Rectangle;
 
-lively.rect = function(location, corner) {
-    return new Rectangle(location.x, location.y, corner.x - location.x, corner.y - location.y);
+lively.rect = function(arg1, arg2, arg3, arg4) {
+    // arg1 and arg2 can be location and corner or
+    // arg1/arg2 = location x/y and arg3/arg4 = extent x/y
+    var x, y, w, h;
+    if (typeof arg1 === 'number') {
+        x = arg1, y = arg2, w = arg3, h = arg4
+    } else {
+        x = arg1.x; y = arg1.y;
+        w = arg2.x - x; h = arg2.y - y;
+    }
+    return new Rectangle(x, y, w, h);
 }
 
 // FIXME: deprecated GLOBAL function
-Global.rect = function(location, corner) {
-    // DEPRECATED: use lively.rect(location, corner) instead
-    return lively.rect(location, corner);
+Global.rect = function(arg1, arg2, arg3, arg4) {
+    // DEPRECATED: use lively.rect(arg1, arg2, arg3, arg4) instead
+    return lively.rect(arg1, arg2, arg3, arg4);
 };
 
 Object.subclass('lively.morphic.Similitude',

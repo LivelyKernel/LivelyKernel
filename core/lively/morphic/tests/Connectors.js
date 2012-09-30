@@ -203,7 +203,7 @@ lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindings
 
         morph.setName('Foo');
         this.assert('Foo' != text.textString, 'logical connection not disconnected');
-        // this.assertMorphIsDisconnectedFromConnector(morph, con.getVisualConnector(), 0)
+        this.assertMorphIsDisconnectedFromConnector(morph, con.getVisualConnector(), 0);
     },
 
     test05VisualConnectorRemovedWhenOneConnectedMorphIsRemoved: function() {

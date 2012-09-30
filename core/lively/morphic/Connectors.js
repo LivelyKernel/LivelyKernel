@@ -11,7 +11,7 @@ lively.morphic.Box.subclass('lively.morphic.MagnetHalo',
 'initializing', {
     initialize: function($super) {
         $super(pt(0,0).extent(this.defaultExtent));
-    },
+    }
 },
 'connection', {
     getControlPoints: function() {
@@ -206,20 +206,18 @@ cop.create('ConnectorLayer')
 cop.create('lively.morphic.VisualBindingsLayer')
 .refineClass(lively.morphic.World, {
     morphMenuItems: function() {
-        var items = cop.proceed()
-
-        var debugging = items.detect(function(ea) { return ea[0] == "Debugging"})
+        var items = cop.proceed(),
+            debugging = items.detect(function(ea) { return ea[0] == "Debugging"}),
+            world = this;
         if (debugging) {
             debugging[1].splice(4, 0, ["Show connectors",
                 function() {
-                    this.submorphs.select(function(ea) {
-                        return ea.isPath && ea.con
-                    }).forEach(function(ea) {
-                        ea.owner.addMorph(ea)
-                    })
-                }.bind(this)]);
+                    world.submorphs.forEach(function(ea) {
+                        if (ea.isPath && ea.con) ea.owner.addMorph(ea);
+                    });
+                }]);
         }
-        return items
+        return items;
     }
 })
 .refineClass(lively.morphic.Morph, {
@@ -232,7 +230,14 @@ cop.create('lively.morphic.VisualBindingsLayer')
                     builder.openInHand();
                     builder.setPosition(pt(0,0));
                 }]
-            });
+            }).concat([['Custom ...', function() {
+                morph.world().prompt('Name of custom connection start?', function(name) {
+                    if (!name) return;
+                    var builder = morph.getVisualBindingsBuilderFor(name)
+                    builder.openInHand();
+                    builder.setPosition(pt(0,0));
+                })
+            }]])
         return cop.proceed().concat([["Connect ...", connectionItems]]);
     }
 })
@@ -377,7 +382,7 @@ lively.morphic.Morph.addMethods(
     },
     getVisualBindingsBuilderFor: function(connectionPointName) {
         return new lively.morph.ConnectionBuilder(this, connectionPointName);
-    },
+    }
 })
 
 lively.morphic.Path.addMethods(
@@ -507,11 +512,12 @@ lively.morphic.Box.subclass('lively.morph.ConnectionBuilder',
         $super(new Rectangle(0,0, 80, 25));
         this.sourceMorph = sourceMorph;
         this.connectionPointSourceName = connectionPointSourceName;
-        var label = lively.morphic.Text.makeLabel(connectionPointSourceName, {fixedWidth: true, fixedHeight: true, align: 'center', fontSize: 14, fill: null});
+        var label = lively.morphic.Text.makeLabel(connectionPointSourceName, {
+            fixedWidth: true, fixedHeight: true, align: 'center', fontSize: 14, fill: null});
         this.label = this.addMorph(label);
         label.setBounds(this.innerBounds());
         this.adjustOrigin(this.innerBounds().center());
-    },
+    }
 },
 'dropping', {
     dropOn: function($super, morph) {
@@ -519,7 +525,7 @@ lively.morphic.Box.subclass('lively.morph.ConnectionBuilder',
         var pos = morph.world() ? morph.world().firstHand().getPosition() : pt(0,0);
         this.openConnectToMenu(morph, pos)
     },
-    getGrabShadow: function() { return null },
+    getGrabShadow: function() { return null }
 
 },
 'menus', {

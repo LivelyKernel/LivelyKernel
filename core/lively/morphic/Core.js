@@ -33,14 +33,23 @@ Object.subclass('lively.morphic.Morph',
     makeStyleSpec: function() {
         // FIXME implement
         return {}
-    },
+    }
 },
 'accessing -- morph properties', {
-    setPosition: function(value) { return this.morphicSetter('Position', value) },
+    setPosition: function(value) {
+        this.cachedBounds = null;
+        return this.morphicSetter('Position', value);
+    },
     getPosition: function() { return this.morphicGetter('Position') || pt(0,0) },
-    setRotation: function(value) { return this.morphicSetter('Rotation', value) },
+    setRotation: function(value) {
+        this.cachedBounds = null;
+        return this.morphicSetter('Rotation', value);
+    },
     getRotation: function() { return this.morphicGetter('Rotation') || 0 },
-    setScale: function(value) { return this.morphicSetter('Scale', value) },
+    setScale: function(value) {
+        this.cachedBounds = null;
+        return this.morphicSetter('Scale', value);
+    },
     getScale: function() { return this.morphicGetter('Scale') || 1 },
     setBounds: function(bounds) {
         this.setPosition(bounds.topLeft().addPt(this.getOrigin()));
@@ -48,6 +57,8 @@ Object.subclass('lively.morphic.Morph',
         return bounds;
     },
     getBounds: function() {
+        if (this.cachedBounds) return this.cachedBounds;
+
         var tfm = this.getTransform(),
             bounds = this.innerBounds();
 
@@ -58,7 +69,7 @@ Object.subclass('lively.morphic.Morph',
             if (subBounds) bounds = bounds.union(subBounds);
         }
 
-        return bounds;
+        return this.cachedBounds = bounds;
     },
     globalBounds: function() {
         return this.owner ?
@@ -118,23 +129,23 @@ Object.subclass('lively.morphic.Morph',
     },
 	getHandStyle: function(styleName) { return this.morphicGetter('HandStyle') },
     setToolTip: function(string) { return this.morphicSetter('ToolTip', string) },
-    getToolTip: function() { return this.morphicGetter('ToolTip') },
+    getToolTip: function() { return this.morphicGetter('ToolTip') }
 },
 'accessing -- shape properties', {
-      setExtent: function(value) {
+    setExtent: function(value) {
+        this.cachedBounds = null;
 
         var min = this.getMinExtent();
-
         value.maxPt(min,value);
         this.priorExtent = this.getExtent();
         this.shape.setExtent(value);
         if (this.layout && (this.layout.adjustForNewBounds || this.layout.layouter))
             this.adjustForNewBounds();
-        if (this.owner && (typeof this.owner['submorphResized'] == 'function')) {
+        if (this.owner && (typeof this.owner.submorphResized == 'function')) {
             this.owner.submorphResized(this);
         }
         return value;
-      },
+    },
     getExtent: function() { return this.shape.getExtent() },
     setFill: function(value) { return this.shape.setFill(value) },
     getFill: function() { return this.shape.getFill() },
@@ -177,7 +188,7 @@ Object.subclass('lively.morphic.Morph',
     getOpacity: function() { return this.shape.getOpacity() },
     setOpacity: function(o) { return this.shape.setOpacity(o) },
 
-    setVertices: function(v) { this.shape.setVertices(v) },
+    setVertices: function(v) { this.shape.setVertices(v) }
 
 },
 'accessing -- morphic relationship', {
@@ -202,7 +213,7 @@ Object.subclass('lively.morphic.Morph',
 
         if (morph.owner) { morph.remove(); }
 
-        if (morph.owner !== this) { morph.owner = this; }
+        morph.owner = this;
 
         var indexToInsert = optMorphBefore && this.submorphs.indexOf(optMorphBefore);
         if (indexToInsert === undefined || indexToInsert < 0) {
@@ -210,9 +221,12 @@ Object.subclass('lively.morphic.Morph',
         }
         this.submorphs.pushAt(morph, indexToInsert);
 
-        // actually this should be done below so that geometry connects works correctly
-        // but for the current Chrome stable (12.0.7) this leads to a render bug (morph is offseted)
+        // actually this should be done below so that geometry connects works
+        // correctly but for the current Chrome stable (12.0.7) this leads to
+        // a render bug (morph is offseted)
         if (tfm) { morph.setTransform(tfm); }
+
+        this.cachedBounds = null; // submorph might affect bounds
 
         var parentRenderCtxt = this.renderContext(),
             subRenderCtxt = morph.renderContext(),
@@ -319,11 +333,12 @@ Object.subclass('lively.morphic.Morph',
         // PRIVATE! do *not* call directly
         this.submorphs = this.submorphs.without(morph);
         morph.owner = null;
+        this.cachedBounds = null;
         if (this.getLayouter()) {
             this.getLayouter().onSubmorphRemoved(this, morph, this.submorphs);
         }
         this.renderContextDispatch('removeMorph');
-    },
+    }
 
 },
 'transformation', {
@@ -384,7 +399,7 @@ Object.subclass('lively.morphic.Morph',
     innerBoundsContainsWorldPoint: function(p) { // p is in world coordinates
         return this.innerBoundsContainsPoint(this.owner == null ? p : this.localize(p));
     },
-    innerBoundsContainsPoint: function(p) { return this.innerBounds().containsPoint(p);  },
+    innerBoundsContainsPoint: function(p) { return this.innerBounds().containsPoint(p);  }
 },
 'prototypical scripting', {
     addScript: function(funcOrString, optName) {
@@ -583,6 +598,8 @@ lively.morphic.Morph.subclass('lively.morphic.World',
     world: function() { return this },
     firstHand: function() { return this.hands && this.hands[0] },
     windowBounds:  function () {
+        if (this.cachedWindowBounds) return this.cachedWindowBounds;
+
         var canvas = this.renderContext().getMorphNode(),
             topmost = document.documentElement,
             body = document.body,
@@ -596,7 +613,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
             width = topmost.clientWidth * scale;
             height = topmost.clientHeight * scale;
         }
-        return topLeft.scaleBy(scale).extent(pt(width, height));
+        return this.cachedWindowBounds = topLeft.scaleBy(scale).extent(pt(width, height));
     },
 
     visibleBounds:  function () {

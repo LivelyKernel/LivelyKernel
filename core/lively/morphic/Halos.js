@@ -594,17 +594,18 @@ lively.morphic.Halo.subclass('lively.morphic.MenuHalo',
     onMouseDown: function($super, evt) {
         this.clickAction(evt);
         return true;
-    },
+    }
 });
+
 lively.morphic.Halo.subclass('lively.morphic.RenameHalo',
 'settings', {
     style: {fill: Color.white, clipMode: 'hidden', toolTip: 'rename the object'},
     labelText: 'N',
     horizontalPos: 1,
-    verticalPos: 3,
+    verticalPos: 3
 },
 'accessing', {
-    getLabelText: function() { return this.targetMorph.getName() || this.targetMorph.toString() },
+    getLabelText: function() { return this.targetMorph.getName() || this.targetMorph.toString() }
 },
 'halo actions', {
     clickAction: function(evt) {
@@ -624,8 +625,8 @@ lively.morphic.Halo.subclass('lively.morphic.RenameHalo',
         return globalPos;
     },
     computePositionAtTarget: function($super) {
-        var globalBottom = $super().y; // because of its logical pos in the halo grid
-        var bl = this.globalizeTargetPos(this.targetMorph.innerBounds().bottomLeft());
+        var globalBottom = $super().y, // because of its logical pos in the halo grid
+            bl = this.globalizeTargetPos(this.targetMorph.innerBounds().bottomLeft());
         return bl.withY(globalBottom);
     },
     targetBottomRight: function() {
@@ -642,16 +643,16 @@ lively.morphic.Halo.subclass('lively.morphic.RenameHalo',
             boundsInWorld = owner.getGlobalTransform().transformRectToRect(bounds),
             visibleBounds = this.computeHaloBounds(boundsInWorld, world);
         this.align(this.bounds().topCenter(), visibleBounds.bottomCenter())
-    },
-
+    }
 
 });
+
 lively.morphic.Halo.subclass('lively.morphic.SetImageURLHalo',
 'settings', {
     style: {fill: Color.white.darker(), toolTip: 'set image url'},
     labelText: 'U',
     horizontalPos: 4,
-    verticalPos: 1,
+    verticalPos: 1
 },
 'halo actions', {
     clickAction: function(evt) {

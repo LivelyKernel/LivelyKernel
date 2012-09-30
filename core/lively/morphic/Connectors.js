@@ -376,9 +376,9 @@ lively.morphic.Morph.addMethods(
         return this.getMagnets()[0];
     },
     getVisualBindingsBuilderFor: function(connectionPointName) {
-        return new lively.morph.ConnectionBuilder(this, connectionPointName);
-    },
-})
+        return new lively.morphic.ConnectionBuilder(this, connectionPointName);
+    }
+});
 
 lively.morphic.Path.addMethods(
 'visual connectors', {
@@ -482,7 +482,7 @@ Object.extend(lively.bindings, {
             ];
             return items;
         })
-    },
+    }
 
 
 });
@@ -497,21 +497,23 @@ AttributeConnection.addMethods(
             connector.remove();
         }
         this.disconnect();
-    },
+    }
 });
 
-lively.morphic.Box.subclass('lively.morph.ConnectionBuilder',
+lively.morphic.Box.subclass('lively.morphic.ConnectionBuilder',
 'initializing', {
     style: {fill: Color.gray, opacity: 0.5},
     initialize: function($super, sourceMorph, connectionPointSourceName) {
         $super(new Rectangle(0,0, 80, 25));
         this.sourceMorph = sourceMorph;
         this.connectionPointSourceName = connectionPointSourceName;
-        var label = lively.morphic.Text.makeLabel(connectionPointSourceName, {fixedWidth: true, fixedHeight: true, align: 'center', fontSize: 14, fill: null});
+        var label = lively.morphic.Text.makeLabel(connectionPointSourceName, {
+            fixedWidth: true, fixedHeight: true, align: 'center', fontSize: 14, fill: null});
+        label.isLayoutable = false; // do not show placeholders
         this.label = this.addMorph(label);
         label.setBounds(this.innerBounds());
         this.adjustOrigin(this.innerBounds().center());
-    },
+    }
 },
 'dropping', {
     dropOn: function($super, morph) {
@@ -519,7 +521,7 @@ lively.morphic.Box.subclass('lively.morph.ConnectionBuilder',
         var pos = morph.world() ? morph.world().firstHand().getPosition() : pt(0,0);
         this.openConnectToMenu(morph, pos)
     },
-    getGrabShadow: function() { return null },
+    getGrabShadow: function() { return null }
 
 },
 'menus', {

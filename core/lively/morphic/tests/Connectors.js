@@ -2,35 +2,39 @@ module('lively.morphic.tests.Connectors').requires('lively.morphic.tests.Morphic
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
 'assertion', {
+
     assertMorphIsDisconnectedFromConnector: function(morph, connector, idxOfControlPoint) {
         var ctrlPt = connector.getControlPoints()[idxOfControlPoint],
             prevCtrlPtPos = ctrlPt.getGlobalPos(),
             morphStartPos = morph.getPosition();
         try {
-            morph.moveBy(pt(10,10))
+            morph.moveBy(pt(10,10));
             var currentCtrlPtPos = ctrlPt.getGlobalPos();
-            this.assertEquals(prevCtrlPtPos, currentCtrlPtPos, 'when morph moved connector moved also');
+            this.assertEquals(prevCtrlPtPos, currentCtrlPtPos,
+                              'when morph moved connector moved also');
             this.assert(!morph.hasOwnProperty("attributeConnections"),
                         "morph has attributeConnections");
 
-            this.assert(!ctrlPt.connectedMagnet, 'control point still has a magnet')
+            this.assert(!ctrlPt.connectedMagnet, 'control point still has a magnet');
         } finally {
             morph.setPosition(morphStartPos);
         }
     },
+
     assertConnectorMovesWithMorph: function(morph, connector, idxOfControlPoint) {
         var ctrlPt = connector.getControlPoints()[idxOfControlPoint],
             prevCtrlPtPos = ctrlPt.getGlobalPos(),
             morphStartPos = morph.getPosition();
         try {
-            morph.moveBy(pt(10,10))
+            morph.moveBy(pt(10,10));
             var currentCtrlPtPos = ctrlPt.getGlobalPos();
-            this.assertEquals(prevCtrlPtPos.addXY(10,10), currentCtrlPtPos, 'morph did not move with connection')
-            this.assert(ctrlPt.connectedMagnet, 'control point has no magnet')
+            this.assertEquals(prevCtrlPtPos.addXY(10,10), currentCtrlPtPos,
+                              'morph did not move with connection');
+            this.assert(ctrlPt.connectedMagnet, 'control point has no magnet');
         } finally {
             morph.setPosition(morphStartPos);
         }
-    },
+    }
 
 },
 'testing', {
@@ -91,8 +95,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
         cp.setConnectedMagnet(magnet);
         cp.setConnectedMagnet(null);
 
-        morph.moveBy(pt(10,10))
-        this.assertMorphIsDisconnectedFromConnector(morph, line, 0)
+        morph.moveBy(pt(10,10));
+        this.assertMorphIsDisconnectedFromConnector(morph, line, 0);
     },
     test05InterfaceForVisualConnect: function() {
         var morph1 = lively.morphic.Morph.makeRectangle(0,0, 20, 20),

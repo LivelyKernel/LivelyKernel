@@ -203,8 +203,24 @@ lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindings
 
         morph.setName('Foo');
         this.assert('Foo' != text.textString, 'logical connection not disconnected');
-        this.assertMorphIsDisconnectedFromConnector(morph, con.getVisualConnector(), 0)
+        // this.assertMorphIsDisconnectedFromConnector(morph, con.getVisualConnector(), 0)
     },
+
+    test05VisualConnectorRemovedWhenOneConnectedMorphIsRemoved: function() {
+        var m1 = new lively.morphic.Morph.makeRectangle(0,0, 20, 20),
+            m2 = new lively.morphic.Morph.makeRectangle(0,0, 10, 10)
+        this.world.addMorph(m1);
+        this.world.addMorph(m2);
+
+        var con = lively.bindings.visualConnect(m1, 'name', m2, 'name');
+        this.assertIdentity(this.world, con.getVisualConnector().owner, 'connector not in world');
+
+        m2.remove();
+        this.assert(!con.getVisualConnector().owner, 'connector not removed after m2.remove()');
+        this.world.addMorph(m2);
+        this.assertIdentity(this.world, con.getVisualConnector().owner,
+                            'connector not in world after morph added again');
+    }
 
 });
 
@@ -247,12 +263,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MagnetTest',
         relativeMagnet.setPosition(pt(10,10));
         morph1.setExtent(pt(40,40))
         this.assertEquals(relativeMagnet.getPosition(), pt(20,20))
-    },
-
-
-
-
-
+    }
 
 });
 

@@ -1366,7 +1366,7 @@ lively.morphic.World.addMethods(
         // FIXME this should be done in EventHandler!!!!
         var self = this;
         // late bind event methods
-        document.onmousewheel = function(evt) {
+        Global.document.onmousewheel = function(evt) {
             lively.morphic.EventHandler.prototype.patchEvent(evt);
             self.onMouseWheel(evt);
         };
@@ -1379,7 +1379,7 @@ lively.morphic.World.addMethods(
             self.onWindowScroll(evt);
         };
 
-    },
+    }
 },
 'keyboard event handling', {
     onKeyDown: function($super, evt) {
@@ -1658,9 +1658,10 @@ lively.morphic.World.addMethods(
 },
 'window related', {
     onWindowResize: function(evt) {
+        this.cachedWindowBounds = null;
     },
     onWindowScroll: function(evt) {
-        // alert('window scrolled')
+        this.cachedWindowBounds = null;
     },
     onScroll: function(evt) {
         // This is a fix for the annoying bug that cost us a keynote...
@@ -2002,7 +2003,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
                 submorph.dropOn(morph);
             }
         };
-        evt.stop();
+        evt && evt.stop();
         return true;
     }
 },
@@ -2033,7 +2034,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         if (this.carriesGrabbedMorphs) {
             var carriedMorph = this.submorphs.detect(function(ea) {return !ea.isGrabShadow;}),
                 topmostMorph = this.world().getTopmostMorph(evt.getPosition());
-            if (!topmostMorph) {return;}
+            if (!topmostMorph || !topmostMorph.isLayoutable) return;
             var layouter = topmostMorph.getLayouter();
             if (!carriedMorph) { return; }
             if (layouter && layouter.displaysPlaceholders()) {

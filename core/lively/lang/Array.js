@@ -148,13 +148,9 @@ var Enumerable = {
         return result;
     },
 
-    reject: function(iterator, context) {
-        iterator = iterator.bind(context);
-        var results = [];
-        this.each(function(value, index) {
-            if (!iterator(value, index)) results.push(value);
-        });
-        return results;
+    reject: function(func, context) {
+        function iterator(val, i) { return !func.call(context, val, i); }
+        return this.filter(iterator);
     },
 
     sortBy: function(iterator, context) {
@@ -463,6 +459,11 @@ Object.extend(Array, {
     withN: function(n, obj) {
         var result = new Array(n);
         while (n > 0) result[--n] = obj;
+        return result;
+    },
+    genN: function(n, generator) {
+        var result = new Array(n);
+        while (n > 0) result[--n] = generator(n);
         return result;
     }
 });

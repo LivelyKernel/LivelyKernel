@@ -44,4 +44,6 @@ lively.Config.add("modulesOnWorldLoad", 'lively.ide');
 
 lively.Config.set("loadUserConfig", true);
 
+lively.Config.set("visualConnectEnabled", true);
+
 lively.Config.urlQueryOverride();

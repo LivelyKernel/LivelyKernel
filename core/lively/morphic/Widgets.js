@@ -1554,7 +1554,9 @@ lively.morphic.World.addMethods(
             fixedWidth: true, fixedHeight: true,
             resizeWidth: true, resizeHeight: true,
             syntaxHighlighting: spec.syntaxHighlighting,
-            padding: Rectangle.inset(4,2)});
+            padding: Rectangle.inset(4,2),
+            fontSize: Config.get('defaultCodeFontSize')
+        });
         return pane;
     },
 

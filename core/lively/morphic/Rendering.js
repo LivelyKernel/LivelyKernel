@@ -28,17 +28,17 @@ Trait('lively.morphic.Renderable',
     renderContextDispatch: function(aspect, arg) {
         if (!this._renderContext) this.renderContext();
         // if we cannot lazy initialize the renderContext we just do nothing
-        if (!this._renderContext) return;
+        if (!this._renderContext) return undefined;
         var renderSpecificAspect = this.renderContextTable[aspect];
         if (!renderSpecificAspect) {
             var msg = 'renderContextTable does no include: ' + aspect + ' in ' + this;
-            debugger
-            console.warn(msg)
+            debugger;
+            console.warn(msg);
             alert(msg);
-            return
+            return undefined;
         }
         return this[renderSpecificAspect](this._renderContext, arg);
-    },
+    }
 })
 .applyTo(lively.morphic.Morph, {
     override: ['setRenderContext', 'renderContext', 'renderContextDispatch'],
@@ -383,14 +383,14 @@ Object.subclass('lively.morphic.Rendering.RenderContext',
 'accessing', {
     setParentNode: function(node) { this.parentNode = node },
     getMorphNode: function() { return this.morphNode },
-    getShapeNode: function() { return this.shapeNode },
+    getShapeNode: function() { return this.shapeNode }
 },
 'rendering', {
     append: function(morph, optMorphAfter) { throw new Error('subclass responsibility') },
     appendShape: function(morph) { throw new Error('subclass responsibility') },
     replaceRenderContext: function(morph, newRenderContext) {
         throw new Error('subclass responsibility');
-    },
+    }
 },
 'update', {
     shapeDispatch: function(aspect, shape, arg) {
@@ -399,8 +399,8 @@ Object.subclass('lively.morphic.Rendering.RenderContext',
             var msg = 'shapeUpdateTable does no include: ' + aspect + ' for renderContext: ' + this;
             console.warn(msg)
             alert(msg);
-            debugger
-            return
+            dbgOn(true);
+            return null;
         }
         return shape[updateFunc](this, arg);
     },

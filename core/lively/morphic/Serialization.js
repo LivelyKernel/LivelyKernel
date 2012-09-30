@@ -15,6 +15,9 @@ lively.morphic.EventHandler.addMethods(
 
 lively.morphic.Morph.addMethods(
 'serialization', {
+
+    doNotSerialize: ['_renderContext', 'halos', '_isRendered', 'priorExtent', 'cachedBounds'],
+
     onrestore: function() {
         // FIXME this does not belong here
         // event handlers used to be serialized with each morph
@@ -45,7 +48,6 @@ lively.morphic.Morph.addMethods(
 
 },
 'copying', {
-    doNotSerialize: ['_renderContext', 'halos', '_isRendered', 'priorExtent'],
 
     copy: function() {
         var copy = this.basicCopy();
@@ -135,7 +137,7 @@ lively.morphic.Text.addMethods(
 
 lively.morphic.World.addMethods(
 'serialization', {
-    doNotSerialize: ['revisionOnLoad', 'clickedOnMorph', 'draggedMorph'],
+    doNotSerialize: ['revisionOnLoad', 'clickedOnMorph', 'draggedMorph', 'cachedWindowBounds'],
     onrestore: function($super) {
         $super();
         // this should go into prepareForNewRenderContext / event registration...!
@@ -147,11 +149,12 @@ lively.morphic.World.addMethods(
             if (!input) return;
             var url = input.startsWith('http') ?
                 new URL(input) : URL.source.withFilename(input);
-            if (!new WebResource(url).exists())
+            if (!new WebResource(url).exists()) {
                 world.saveWorldAs(url)
-            else
+            } else {
                 world.confirm(url.toString() + ' already exists. Overwrite?',
-                    function(answer) { answer && world.saveWorldAs(url) });
+                              function(answer) { answer && world.saveWorldAs(url) });
+            }
         }, URL.source.filename())
     },
     saveWorldAs: function(url, checkForOverwrites) {

@@ -114,24 +114,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic.BasicFunc
         this.assertNodeMatches(expected, this.world.renderContext().getMorphNode());*/
     },
 
-    testMorphBounds: function() {
-        var morph1 = new lively.morphic.Morph(),
-            morph2 = new lively.morphic.Morph();
-        this.world.addMorph(morph1);
-        morph1.addMorph(morph2);
-        morph1.setBounds(new Rectangle(100, 100, 40, 40));
-        morph2.setBounds(new Rectangle(20, 10, 40, 40));
-        this.assertEquals(new Rectangle(100, 100, 60, 50), morph1.getBounds());
-    },
-
-    test07MorphBoundsOnCreation: function() {
-        var bounds = new Rectangle(30, 90, 30, 60),
-            shape = new lively.morphic.Shapes.Rectangle(bounds);
-        this.assertEquals(bounds, shape.getBounds(), 'shape bounds');
-        var morph = new lively.morphic.Morph(shape);
-        this.assertEquals(bounds, morph.getBounds(), 'morph bounds');
-    },
-
     test08aCreateMorphWithLinearGradient: function() {
         var morph = new lively.morphic.Morph();
         this.world.addMorph(morph);
@@ -222,7 +204,114 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic.BasicFunc
         this.assertNodeMatches(expected, morph.renderContext().getMorphNode());
     },
 
-    test16MorphsContainingPoint: function() {
+    test18OrderOfMorphsOnScrennAndInSubmorphArrayMatches: function() {
+        var morph1 = lively.morphic.Morph.makeRectangle(0, 0, 100, 100),
+            morph2 = lively.morphic.Morph.makeRectangle(0, 0, 100, 100);
+
+        this.world.addMorph(morph1);
+        this.world.addMorphBack(morph2);
+
+        this.assertIdentity(this.world.submorphs[0], morph2, 'morph2 not @0')
+        this.assertIdentity(this.world.submorphs[1], morph1, 'morph1 not @1')
+    },
+
+    test20setScalePointHTML: function() {
+        var morph = lively.morphic.Morph.makeRectangle(0,0, 10, 10);
+        morph.setScale(pt(2,3));
+        this.assertEquals(pt(2,3), morph.getScale());
+        this.assertEquals(pt(2,3), morph.getTransform().getScalePoint());
+        var ctxt = morph.renderContext(),
+            transformProp = ctxt.domInterface.html5TransformProperty;
+        this.assert(/scale.+2.+3/, ctxt.morphNode.style[transformProp],
+                    'css transform prop does not match');
+    },
+
+    test21addMorphSameOwner: function() {
+        var m = lively.morphic.Morph.makeRectangle(rect(0,0,3,3));
+        var o = lively.morphic.Morph.makeRectangle(rect(0,0,10,10));
+        o.rotateBy(1);
+        o.addMorph(m);
+        this.assert(!m.hasOwnProperty("_Rotation"), 'new morph has no rotation initially');
+        this.assertEquals(0, m.getRotation(), 'new morph has no rotation initially');
+        o.addMorph(m); // same owner
+        this.assert(!m.hasOwnProperty("_Rotation"), 'has still no rotation after adding');
+        this.assertEquals(0, m.getRotation(), 'has still no rotation after adding');
+    },
+
+    test22addMorphDifferentOwner: function() {
+        var m = lively.morphic.Morph.makeRectangle(rect(0,0,3,3));
+        var o = lively.morphic.Morph.makeRectangle(rect(0,0,10,10));
+        o.rotateBy(1);
+        this.world.addMorph(m);
+        o.addMorph(m); // different owner
+        this.assert(m.hasOwnProperty("_Rotation"), 'morph has a rotation after adding');
+        this.assertEquals(-1, m.getRotation(), 'morph has inverse rotation after adding');
+    }
+
+});
+
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MorphicBounds',
+"testing", {
+
+    testMorphBounds: function() {
+        var morph1 = new lively.morphic.Morph(),
+            morph2 = new lively.morphic.Morph();
+        this.world.addMorph(morph1);
+        morph1.addMorph(morph2);
+        morph1.setBounds(rect(100, 100, 40, 40));
+        morph2.setBounds(rect(20, 10, 40, 40));
+        this.assertEquals(rect(100, 100, 60, 50), morph1.getBounds());
+    },
+
+    testMorphBoundsOnCreation: function() {
+        var bounds = rect(30, 90, 30, 60),
+            shape = new lively.morphic.Shapes.Rectangle(bounds);
+        this.assertEquals(bounds, shape.getBounds(), 'shape bounds');
+        var morph = new lively.morphic.Morph(shape);
+        this.assertEquals(bounds, morph.getBounds(), 'morph bounds');
+    },
+
+    testMorphBoundsChangeOnExtentPositionScaleRotationTransformChanges: function() {
+        this.epsilon = 0.01;
+        var morph = new lively.morphic.Morph();
+        morph.setBounds(rect(100, 100, 40, 40));
+        this.assertEquals(rect(100, 100, 40, 40), morph.getBounds(), "setBounds");
+        morph.setExtent(pt(50,50));
+        this.assertEquals(rect(100, 100, 50, 50), morph.getBounds(), "setExtent");
+        morph.setPosition(pt(150,50));
+        this.assertEquals(rect(150, 50, 50, 50), morph.getBounds(), "setPosition");
+        morph.setScale(2);
+        this.assertEquals(rect(150, 50, 100, 100), morph.getBounds(), "setScale");
+        morph.setTransform(new lively.morphic.Similitude(pt(0,0)));
+        this.assertEquals(rect(0,0 , 50, 50), morph.getBounds(), "setTransform");
+        morph.rotateBy((45).toRadians());
+        this.assertEquals(rect(-35.36, 0, 70.71, 70.71), morph.getBounds(), "setRotation");
+    },
+
+    testBorderWidthDoesNotAffectsBounds: function() {
+        var morph = new lively.morphic.Morph();
+        morph.setBounds(rect(100, 100, 40, 40));
+        morph.setBorderWidth(4);
+        this.assertEquals(rect(100, 100, 40, 40), morph.getBounds());
+    },
+
+    testSubmorphsAffectBounds: function() {
+        var morph1 = new lively.morphic.Morph(),
+            morph2 = new lively.morphic.Morph();
+        morph1.setBounds(rect(100, 100, 40, 40));
+        this.assertEquals(rect(100, 100, 40, 40), morph1.getBounds());
+        morph2.setBounds(rect(-10,0, 20, 50));
+        morph1.addMorph(morph2);
+        this.assertEquals(rect(90, 100, 50, 50), morph1.getBounds());
+        morph2.remove();
+        this.assertEquals(rect(100, 100, 40, 40), morph1.getBounds());
+    }
+
+});
+
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MorphsContainingPoint',
+"testing", {
+    testMorphsContainingPoint: function() {
         var morph = lively.morphic.Morph.makeRectangle(0, 0, 100, 100),
             submorph = lively.morphic.Morph.makeRectangle(20, 20, 30, 30),
             subsubmorph = lively.morphic.Morph.makeRectangle(25, 25, 5, 5),
@@ -261,7 +350,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic.BasicFunc
         this.assertEquals(this.world, result[4]);
     },
 
-    test17MorphsContainingPointWithAddMorphFront: function() {
+    testMorphsContainingPointWithAddMorphFront: function() {
         var morph1 = lively.morphic.Morph.makeRectangle(0, 0, 100, 100),
             morph2 = lively.morphic.Morph.makeRectangle(0, 0, 100, 100);
 
@@ -269,27 +358,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic.BasicFunc
         this.world.addMorphBack(morph2);
 
         var result = this.world.morphsContainingPoint(pt(1,1));
-this. openMorphsInRealWorld()
-// inspect(result)
         this.assertEquals(3, result.length);
-        // this.assertEquals(this.world.firstHand(), result[0], 'for ' + pt(1,1));
 
         this.assertEquals(morph1, result[0], 'for ' + pt(1,1));
         this.assertEquals(morph2, result[1], 'for ' + pt(1,1));
     },
 
-    test18OrderOfMorphsOnScrennAndInSubmorphArrayMatches: function() {
-        var morph1 = lively.morphic.Morph.makeRectangle(0, 0, 100, 100),
-            morph2 = lively.morphic.Morph.makeRectangle(0, 0, 100, 100);
-
-        this.world.addMorph(morph1);
-        this.world.addMorphBack(morph2);
-
-        this.assertIdentity(this.world.submorphs[0], morph2, 'morph2 not @0')
-        this.assertIdentity(this.world.submorphs[1], morph1, 'morph1 not @1')
-    },
-
-    test19MorphsContainingPointDosNotIncludeOffsetedOwner: function() {
+    testMorphsContainingPointDoesNotIncludeOffsetedOwner: function() {
         var owner = lively.morphic.Morph.makeRectangle(0, 0, 100, 100),
             submorph = lively.morphic.Morph.makeRectangle(110, 10, 90, 90),
             other = lively.morphic.Morph.makeRectangle(100, 0, 100, 100);
@@ -304,39 +379,6 @@ this. openMorphsInRealWorld()
         this.assertEquals(this.world, result[2], 'for 2');
         this.assertEquals(other, result[1], 'for 1');
         this.assertEquals(submorph, result[0], 'for 0');
-    },
-
-    test20setScalePointHTML: function() {
-        var morph = lively.morphic.Morph.makeRectangle(0,0, 10, 10);
-        morph.setScale(pt(2,3));
-        this.assertEquals(pt(2,3), morph.getScale());
-        this.assertEquals(pt(2,3), morph.getTransform().getScalePoint());
-        var ctxt = morph.renderContext(),
-            transformProp = ctxt.domInterface.html5TransformProperty;
-        this.assert(/scale.+2.+3/, ctxt.morphNode.style[transformProp],
-                    'css transform prop does not match');
-    },
-
-    test21addMorphSameOwner: function() {
-        var m = lively.morphic.Morph.makeRectangle(rect(0,0,3,3));
-        var o = lively.morphic.Morph.makeRectangle(rect(0,0,10,10));
-        o.rotateBy(1);
-        o.addMorph(m);
-        this.assert(!m.hasOwnProperty("_Rotation"), 'new morph has no rotation initially');
-        this.assertEquals(0, m.getRotation(), 'new morph has no rotation initially');
-        o.addMorph(m); // same owner
-        this.assert(!m.hasOwnProperty("_Rotation"), 'has still no rotation after adding');
-        this.assertEquals(0, m.getRotation(), 'has still no rotation after adding');
-    },
-
-    test22addMorphDifferentOwner: function() {
-        var m = lively.morphic.Morph.makeRectangle(rect(0,0,3,3));
-        var o = lively.morphic.Morph.makeRectangle(rect(0,0,10,10));
-        o.rotateBy(1);
-        this.world.addMorph(m);
-        o.addMorph(m); // different owner
-        this.assert(m.hasOwnProperty("_Rotation"), 'morph has a rotation after adding');
-        this.assertEquals(-1, m.getRotation(), 'morph has inverse rotation after adding');
     }
 
 });

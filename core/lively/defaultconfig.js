@@ -82,6 +82,8 @@
 
         isLinux: window.navigator && window.navigator.platform.startsWith("Linux"),
 
+        isMacOS: window.navigator && window.navigator.platform.startsWith("Mac"),
+
         isTouch: window.navigator && (window.navigator.platform == "iPhone" || window.navigator.platform == "iPad" || window.navigator.platform == "iPod"),
 
         touchIsMouse: false
@@ -451,7 +453,8 @@ Config.addOptions(
         ["showAllTyping", true, "Defeat all bundled type-in for testing"],
         ["useSoftTabs", true],
         ["disableSyntaxHighlighting", false],
-        ["textUndoEnabled", false, "wether Lively takes care of undoing text changes or leaves it to the browser"]
+        ["textUndoEnabled", false, "wether Lively takes care of undoing text changes or leaves it to the browser"],
+        ['defaultCodeFontSize', 10, "In which pt size code appears."]
     ],
     "lively.PartsBin", [
         ["PartCachingEnabled", true, "Whether parts are cached after they are loaded the first time"]

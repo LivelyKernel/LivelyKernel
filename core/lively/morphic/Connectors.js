@@ -490,13 +490,13 @@ Object.extend(lively.bindings, {
             var visualConnector = this,
                 items = [
                     ['Edit converter', function() {
-                        var window = lively.bindings.editConnection(con);
+                        var window = lively.bindings.editConnection(visualConnector.con);
                         window.align(window.bounds().topCenter(),
                                      visualConnector.bounds().bottomCenter()); }],
                     ['Hide', function() {
                         visualConnector.hide();
-                        con.autoShowAndHideConnections.invoke('disconnect');
-                        con.autoShowAndHideConnections = [];
+                        visualConnector.con.autoShowAndHideConnections.invoke('disconnect');
+                        visualConnector.con.autoShowAndHideConnections = [];
                     }],
                     ['Disconnect', function() {
                         alertOK('Disconnected ' + visualConnector.con);

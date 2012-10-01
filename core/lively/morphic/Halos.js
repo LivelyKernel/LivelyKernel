@@ -122,8 +122,11 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
 'initializing', {
     initialize: function($super, targetMorph) {
         $super(this.defaultExtent.extentAsRectangle());
-        this.targetMorph = targetMorph;
+        this.setTarget(targetMorph);
         this.createLabel();
+    },
+    setTarget: function(morph) {
+        this.targetMorph = morph;
     },
     createLabel: function() {
         var text = this.getLabelText();
@@ -414,17 +417,18 @@ lively.morphic.Halo.subclass('lively.morphic.GrabHalo',
         this.targetMorph.showSelectedHalos([this]);
     },
 });
+
 lively.morphic.Halo.subclass('lively.morphic.CopyHalo',
 'settings', {
     style: {fill: Color.green.lighter(), toolTip: 'copies the object (shift-click)'},
     labelText: 'C',
     horizontalPos: 0,
-    verticalPos: 1,
+    verticalPos: 1
 },
 'layout', {
     alignAtTarget: function() {
         this.setPosition(this.computePositionAtTarget(this.copiedTarget || this.targetMorph));
-    },
+    }
 },
 'halo actions', {
     clickAction: function(evt) {
@@ -464,7 +468,8 @@ lively.morphic.Halo.subclass('lively.morphic.CopyHalo',
             this.copiedTarget.removeHalos();
             this.copiedTarget.showHalos();
         }
-    },
+        this.copiedTarget = null;
+    }
 
 });
 lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
@@ -607,6 +612,10 @@ lively.morphic.Halo.subclass('lively.morphic.RenameHalo',
     verticalPos: 3
 },
 'accessing', {
+    setTarget: function($super, morph) {
+        $super(morph);
+        this.createLabel();
+    },
     getLabelText: function() { return this.targetMorph.getName() || this.targetMorph.toString() }
 },
 'halo actions', {
@@ -851,7 +860,7 @@ lively.morphic.Halo.subclass('lively.morphic.BoundsHalo',
                 if (!klass.instance) {
                     klass.instance = new klass(morph);
                 } else {
-                    klass.instance.targetMorph = morph;
+                    klass.instance.setTarget(morph);
                 }
                 return klass.instance;
             }

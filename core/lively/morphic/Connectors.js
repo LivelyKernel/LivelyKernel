@@ -542,6 +542,9 @@ AttributeConnection.addMethods(
 });
 
 lively.morphic.Box.subclass('lively.morphic.ConnectionBuilder',
+'settings', {
+    isLayoutable: false
+},
 'initializing', {
     style: {fill: Color.gray, opacity: 0.5},
     initialize: function($super, sourceMorph, connectionPointSourceName) {
@@ -560,7 +563,7 @@ lively.morphic.Box.subclass('lively.morphic.ConnectionBuilder',
     dropOn: function($super, morph) {
         this.remove();
         var pos = morph.world() ? morph.world().firstHand().getPosition() : pt(0,0);
-        this.openConnectToMenu(morph, pos)
+        this.openConnectToMenu(morph, pos);
     },
     getGrabShadow: function() { return null }
 

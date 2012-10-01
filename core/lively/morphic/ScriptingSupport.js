@@ -151,7 +151,13 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
             morphSetup = {htmlSourceToMorph: function(source) {
                 source = source.replace(/.*\<body\>/, "").replace(/\<\/body\>.*/, "");
                 var node = XHTMLNS.create('div');
-                node.innerHTML = source;
+                try {
+                    node.innerHTML = source;
+                } catch(e) {
+                    debugger;
+                    node.innerHTML = '<span>' + item.name + '</span>';
+                    throw e;
+                }
                 var morph = new lively.morphic.Morph(new lively.morphic.Shapes.External(node));
                 morph.ignoreEvents();
 

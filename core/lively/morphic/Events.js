@@ -2034,7 +2034,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         if (this.carriesGrabbedMorphs) {
             var carriedMorph = this.submorphs.detect(function(ea) {return !ea.isGrabShadow;}),
                 topmostMorph = this.world().getTopmostMorph(evt.getPosition());
-            if (!topmostMorph || !topmostMorph.isLayoutable) return;
+            if (!topmostMorph || !carriedMorph.isLayoutable) return;
             var layouter = topmostMorph.getLayouter();
             if (!carriedMorph) { return; }
             if (layouter && layouter.displaysPlaceholders()) {

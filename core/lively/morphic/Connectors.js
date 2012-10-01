@@ -490,13 +490,13 @@ Object.extend(lively.bindings, {
             var visualConnector = this,
                 items = [
                     ['Edit converter', function() {
-                        var window = lively.bindings.editConnection(con);
+                        var window = lively.bindings.editConnection(visualConnector.con);
                         window.align(window.bounds().topCenter(),
                                      visualConnector.bounds().bottomCenter()); }],
                     ['Hide', function() {
                         visualConnector.hide();
-                        con.autoShowAndHideConnections.invoke('disconnect');
-                        con.autoShowAndHideConnections = [];
+                        visualConnector.con.autoShowAndHideConnections.invoke('disconnect');
+                        visualConnector.con.autoShowAndHideConnections = [];
                     }],
                     ['Disconnect', function() {
                         alertOK('Disconnected ' + visualConnector.con);
@@ -542,6 +542,9 @@ AttributeConnection.addMethods(
 });
 
 lively.morphic.Box.subclass('lively.morphic.ConnectionBuilder',
+'settings', {
+    isLayoutable: false
+},
 'initializing', {
     style: {fill: Color.gray, opacity: 0.5},
     initialize: function($super, sourceMorph, connectionPointSourceName) {
@@ -560,7 +563,7 @@ lively.morphic.Box.subclass('lively.morphic.ConnectionBuilder',
     dropOn: function($super, morph) {
         this.remove();
         var pos = morph.world() ? morph.world().firstHand().getPosition() : pt(0,0);
-        this.openConnectToMenu(morph, pos)
+        this.openConnectToMenu(morph, pos);
     },
     getGrabShadow: function() { return null }
 

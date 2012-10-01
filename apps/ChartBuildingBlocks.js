@@ -2,7 +2,6 @@ module('apps.ChartBuildingBlocks').requires('lively.morphic.AdditionalMorphs', '
 
 
 lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
-
 'Visuals', {
     activeRenderPartClassName: 'active-render-part',
     inactiveRenderPartClassName: 'inactive-render-part',
@@ -46,23 +45,12 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
 },
 'Hook dispatch', {
     getMorphsForHook: function(hookName) {
-        var m,
-            submorphs = this.submorphs.sort(this.sortMorphsForTop),
-            i = submorphs.length - 1,
-            hookMorphs = [];
-
-        for (; (m = submorphs[i]); i--) {
-            var hook = m[hookName];
-            if (hook && typeof hook === 'function') {
-                hookMorphs.push(m);
-            }
-        }
+        var morphs = this.submorphs.sortBy(function(ea) { return ea.bounds().top(); }).reverse(),
+            hookMorphs = morphs.select(function(ea) { return typeof ea[hookName] === 'function'; })
         return hookMorphs;
     },
 
-    sortMorphsForTop: function(a,b) {
-        return b.getPosition().y - a.getPosition().y;
-    },
+
     dispatchHook: function(args) {
         // Dispatches a given hook function and returns its return value.
         // If hook is not found in a submorph a default implementation is 
@@ -95,25 +83,24 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
         // looked-up here. If no default implementation could be found, an
         // error is thrown.
         var hookName = args.callee.methodName;
-        if (hookName) {
-            var counter = 0,
-                hookMorphs = this.getMorphsForHook(hookName),
-                argArray = Array.from(args),
-                defaultHookName = hookName + 'Default';
+        if (!hookName) return;
+        var counter = 0,
+            hookMorphs = this.getMorphsForHook(hookName),
+            argArray = Array.from(args),
+            defaultHookName = hookName + 'Default';
 
-            if (hookMorphs.length > 0) {
-                // If the hook was found implemented in a submorph, go for it
-                    hookMorphs.each(function(hookMorph) {
-                        hookMorph[hookName].apply(hookMorph, argArray);
-                    });
-            } else if (this[defaultHookName] && typeof this[defaultHookName] === 'function') {
-                // If not, than the go for the default implementation in this ChartRenderer
-                return this[defaultHookName].apply(this, argArray);
+        if (hookMorphs.length > 0) {
+            // If the hook was found implemented in a submorph, go for it
+                hookMorphs.each(function(hookMorph) {
+                    hookMorph[hookName].apply(hookMorph, argArray);
+                });
+        } else if (typeof this[defaultHookName] === 'function') {
+            // If not, than the go for the default implementation in this ChartRenderer
+            return this[defaultHookName].apply(this, argArray);
 
-            } else {
-                // Throw an error if no implementation was found at all
-                throw 'Cannot render chart because hook "' + hookName + ' was not implemented.';
-            }
+        } else {
+            // Throw an error if no implementation was found at all
+            throw 'Cannot render chart because hook "' + hookName + ' was not implemented.';
         }
     },
 

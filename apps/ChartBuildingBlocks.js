@@ -45,7 +45,7 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
 },
 'Hook dispatch', {
     getMorphsForHook: function(hookName) {
-        var morphs = this.submorphs.sortBy(function(ea) { return ea.bounds().top(); }).reverse(),
+        var morphs = this.submorphs.sortBy(function(ea) { return ea.bounds().top(); }),
             hookMorphs = morphs.select(function(ea) { return typeof ea[hookName] === 'function'; })
         return hookMorphs;
     },

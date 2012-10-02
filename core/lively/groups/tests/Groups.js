@@ -102,7 +102,7 @@ lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.Gr
 'testing', {
     testCreateGroup: function() {
         var group = new lively.groups.ObjectGroup('newGroup');
-        this.assertEquals(group.name, 'newGroup');
+        this.assertEquals(group.getName(), 'newGroup');
     },
     testAddMembers: function() {
         var group = new lively.groups.ObjectGroup();
@@ -208,6 +208,13 @@ lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.Gr
         group.addScript(function testScript() {});
         this.assert(group.getMembers()[0].testScript);
         this.assert(group.getMembers()[1].testScript);
+    },
+    testGetScriptByName: function() {
+        var group = new lively.groups.ObjectGroup();
+        group.addMember(this.newTestMorph());
+        var script = group.addScript(function testScript() {});
+
+        this.assertEquals(script.id, group.getScriptByName('testScript').id);
     },
     testAddScriptToMembersAnnotatesScript: function() {
         var group = new lively.groups.ObjectGroup();

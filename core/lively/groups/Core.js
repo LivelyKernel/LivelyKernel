@@ -12,6 +12,9 @@ Object.subclass('lively.groups.ObjectGroup',
     },
 },
 'accessing', {
+    getName: function() {
+        return this.name;
+    },
     addMember: function(member) {
         member.addGroup(this);
     },
@@ -58,6 +61,11 @@ Object.subclass('lively.groups.ObjectGroup',
         }).collect(function (eaScripts) {
             return Properties.values(eaScripts).first();
         })
+    },
+    getScriptByName: function(scriptName) {
+        return this.getScripts().detect(function (ea) {
+            return scriptName === ea.name;
+        });
     },
     getConflicts: function() {
         var scripts = this.getCurrentVersionsOfScripts();
@@ -318,7 +326,7 @@ lively.morphic.World.addMethods(
     allObjectGroups: function() {
         var groups = {};
         this.withAllSubmorphsDo(function (ea) {
-            ea.groups.each(function (eaGroup) {
+            ea.getGroups().each(function (eaGroup) {
                 if (!eaGroup) debugger;
                 if (!eaGroup.groupID) debugger;
                 groups[eaGroup.groupID] = eaGroup;

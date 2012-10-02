@@ -276,6 +276,27 @@ lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.Gr
         this.assert(group.groupID !== morphA.testFunction.groupID);
         this.assertEquals(group.groupID, morphB.testFunction.groupID);
     },
+    testRemoveScriptRemovesAllGroupScripts: function() {
+        var group = new lively.groups.ObjectGroup();
+        var morphA = this.newTestMorph(group);
+        var morphB = this.newTestMorph(group);
+        group.addScript(function testFunction() {});
+
+        group.removeScript('testFunction');
+
+        this.assertEquals(undefined, morphA.testFunction);
+        this.assertEquals(undefined, morphB.testFunction);
+    },
+    testRemoveScriptLeavesIndividualScripts: function() {
+        var group = new lively.groups.ObjectGroup();
+        var morph = this.newTestMorph(group);
+
+        morph.addScript(function testFunction() {});
+
+        group.removeScript('testFunction');
+
+        this.assert(morph.testFunction);
+    }
 });
 
 lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.GroupUpdatesTest',

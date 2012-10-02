@@ -98,6 +98,13 @@ Object.subclass('lively.groups.ObjectGroup',
         }, this);
         return script;
     },
+    removeScript: function(scriptName) {
+        this.getMembers().each(function (ea) {
+            if (ea[scriptName] && ea[scriptName].groupID == this.groupID) {
+                delete ea[scriptName];
+            }
+        }, this);
+    },
     perform: function(selector, args) {
         return this.getMembers().collect(function (ea) {
             try {

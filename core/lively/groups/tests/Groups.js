@@ -280,22 +280,49 @@ lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.Gr
         var group = new lively.groups.ObjectGroup();
         var morphA = this.newTestMorph(group);
         var morphB = this.newTestMorph(group);
-        group.addScript(function testFunction() {});
 
-        group.removeScript('testFunction');
+        var script = group.addScript(function testFunction() {});
+        group.removeScript(script);
 
         this.assertEquals(undefined, morphA.testFunction);
         this.assertEquals(undefined, morphB.testFunction);
     },
     testRemoveScriptLeavesIndividualScripts: function() {
         var group = new lively.groups.ObjectGroup();
-        var morph = this.newTestMorph(group);
+        var morphA = this.newTestMorph(group);
+        var morphB = this.newTestMorph(group);
 
-        morph.addScript(function testFunction() {});
+        group.addScript(function testFunction() {});
+        morphA.addScript(function testFunction() {});
 
         group.removeScript('testFunction');
 
-        this.assert(morph.testFunction);
+        this.assert(morphA.testFunction);
+    },
+    testRemoveScriptDoesntRemoveDerivedScripts: function() {
+        var group = new lively.groups.ObjectGroup();
+        var morph = this.newTestMorph(group);
+
+        var oldScript = group.addScript(function testFunction() {});
+        var newScript = group.addScript(function testFunction() {});
+
+        group.removeScript(oldScript);
+
+        this.assertEquals(newScript.id, morph.testFunction.id);
+    },
+    testRemoveScriptDoesntRemoveAmbiguousScriptsByName: function() {
+        var group = new lively.groups.ObjectGroup();
+        var morphA = this.newTestMorph(group);
+        var morphB = this.newTestMorph(group);
+
+        morphA.addScript(function testFunction() {});
+        morphA.testFunction.groupID = group.groupID;
+        morphB.addScript(function testFunction() {});
+        morphB.testFunction.groupID = group.groupID;
+
+        group.removeScript('testFunction');
+        this.assert(morphA.testFunction);
+        this.assert(morphB.testFunction);
     }
 });
 

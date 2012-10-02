@@ -98,10 +98,26 @@ Object.subclass('lively.groups.ObjectGroup',
         }, this);
         return script;
     },
-    removeScript: function(scriptName) {
+    removeScript: function(scriptOrScriptname) {
+        var script;
+        if (scriptOrScriptname.id) {
+            script = scriptOrScriptname;
+        } else {
+            script = this.getScripts().detect(function (ea) {
+                return ea.name === scriptOrScriptname;
+            }, this);
+
+            if (!script) {
+                // no group script or script is ambiguous among members
+                return false;
+            }
+        }
+
+
         this.getMembers().each(function (ea) {
-            if (ea[scriptName] && ea[scriptName].groupID == this.groupID) {
-                delete ea[scriptName];
+            if (ea[script.name]) {
+                if (ea[script.name].id === script.id || script.history.include(ea[script.name].id))
+                delete ea[script.name];
             }
         }, this);
     },

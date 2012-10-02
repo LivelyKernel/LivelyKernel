@@ -448,6 +448,51 @@ lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.Gr
         this.assertEquals('2', group.getMembers()[0].testFunction.id);
         this.assertEquals('2', group.getMembers()[1].testFunction.id);
     },
+    testRemoveScriptAffectsUnavailableMorphsEventually: function() {
+        var group = new lively.groups.ObjectGroup();
+        var morphA = this.newTestMorph(group);
+        var morphB = this.newTestMorph(group);
+
+        group.addScript(function testFunction() {});
+
+        var serializedMorphA = this.serialize(morphA);
+        morphA.remove();
+
+        group.removeScript('testFunction');
+
+        morphA = this.deserialize(serializedMorphA);
+        lively.morphic.World.current().addMorph(morphA);
+        morphA.updateGroupBehavior();
+
+        this.assertEquals(undefined, morphA.testFunction);
+        this.assertEquals(undefined, morphB.testFunction);
+    },
+    testLoadingAMorphMightRemoveGroupScript: function() {
+        var group = new lively.groups.ObjectGroup();
+        var morphA = this.newTestMorph(group);
+        var morphB = this.newTestMorph(group);
+
+        group.addScript(function testFunction() {});
+
+        var serializedMorphA = this.serialize(morphA);
+        morphA.remove();
+
+        group.removeScript('testFunction');
+
+        var serializedMorphB = this.serialize(morphB);
+        morphB.remove();
+
+        morphA = this.deserialize(serializedMorphA);
+        lively.morphic.World.current().addMorph(morphA);
+
+        morphB = this.deserialize(serializedMorphB);
+        lively.morphic.World.current().addMorph(morphB);
+
+        morphB.updateGroupBehavior();
+
+        this.assertEquals(undefined, morphA.testFunction);
+        this.assertEquals(undefined, morphB.testFunction);
+    }
 });
 
 lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.GroupMemberTest',
@@ -476,7 +521,7 @@ lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.Gr
         this.assert(morph.testFunction1);
         this.assert(!morph.testFunction1.groupID);
         this.assert(!morph.testFunction2.groupID);
-   } 
+    },
 });
 
 }) // end of module

@@ -8,6 +8,7 @@ Object.subclass('lively.groups.ObjectGroup',
     initialize: function(name) {
         this.name = name || '';
         this.groupID =  new UUID().id;
+        this.ripTokens = {};
     },
 },
 'accessing', {
@@ -29,6 +30,25 @@ Object.subclass('lively.groups.ObjectGroup',
     },
     getMembers: function() {
         return lively.morphic.World.current().findGroupMembersByID(this.groupID);
+    },
+    getRipTokens: function() {
+        var ripTokens = {};
+
+        this.getMembers().each(function (eaMember) {
+            var eaMemberTokens = eaMember.getGroup(this).ripTokens;
+
+            if (eaMemberTokens) {
+                Properties.all(eaMemberTokens).each(function (eaScriptTokenName) {
+                    var history = eaMemberTokens[eaScriptTokenName].history;
+                    if (ripTokens[eaScriptTokenName]) {
+                        history = history.pushAll(ripTokens[eaScriptTokenName]).uniq();
+                    }
+                    ripTokens[eaScriptTokenName] = {history: history};
+                }, this);
+            }
+        }, this);
+
+        return ripTokens;
     },
     getScripts: function() {
         var scripts = this.getCurrentVersionsOfScripts();
@@ -108,17 +128,24 @@ Object.subclass('lively.groups.ObjectGroup',
             }, this);
 
             if (!script) {
-                // no group script or script is ambiguous among members
+                // no script found or script is ambiguous among members
                 return false;
             }
         }
-
 
         this.getMembers().each(function (ea) {
             if (ea[script.name]) {
                 if (ea[script.name].id === script.id || script.history.include(ea[script.name].id))
                 delete ea[script.name];
             }
+
+            var memberGroup = ea.getGroup(this);
+
+            var history = script.history.concat(script.id);
+            if (memberGroup.ripTokens[script.name]) {
+                history = history.pushAll(memberGroup.ripTokens[script.name].history).uniq();
+            }
+            memberGroup.ripTokens[script.name] = {history: history};
         }, this);
     },
     perform: function(selector, args) {
@@ -158,6 +185,11 @@ lively.morphic.Morph.addMethods(
         if (!this.groups.include(group)) {
             this.groups.push(group);
         }
+    },
+    getGroup: function(group) {
+        return this.getGroups().detect(function (eaGroup) {
+            return eaGroup.groupID === group.groupID;
+        }, this);
     },
     enterGroup: function(group) {
         this.addGroup(group);
@@ -217,6 +249,18 @@ lively.morphic.Morph.addMethods(
                 this.addScript(ea);
             }
         }, this);
+
+        var ripTokens = group.getRipTokens();
+
+        Properties.own(ripTokens).each(function (eaScriptTokenName){
+            if (this[eaScriptTokenName]) {
+                var scriptToken = ripTokens[eaScriptTokenName];
+                if (scriptToken.history.include(this[eaScriptTokenName].id)) {
+                    delete this[eaScriptTokenName];
+                    group.ripTokens[eaScriptTokenName] = scriptToken;
+                }
+            }
+        }, this);
     },
     pushGroupChangesTo: function(group) {
         this.getScriptsForGroup(group).each(function (eaScript) {
@@ -226,6 +270,19 @@ lively.morphic.Morph.addMethods(
                     eaMember.addScript(eaScript);
                 }
             })
+        }, this);
+
+        Properties.own(group.ripTokens).each(function (eaScriptTokenName) {
+            group.getMembers().each(function (eaMember) {    
+                if (eaMember[eaScriptTokenName]) {
+                    debugger;
+                    var scriptToken = group.ripTokens[eaScriptTokenName];
+                    if (scriptToken.history.include(eaMember[eaScriptTokenName].id)) {
+                        delete eaMember[eaScriptTokenName];
+                        eaMember.getGroup(group).ripTokens[eaScriptTokenName] = scriptToken;
+                    }
+            }
+            }, this);
         }, this);
     },
 },

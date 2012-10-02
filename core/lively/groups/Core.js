@@ -156,6 +156,16 @@ Object.subclass('lively.groups.ObjectGroup',
                 return e;
             }
         });
+    },
+    evaluate: function(snippet) {
+        var interactiveEval = function() { return eval(snippet) };
+        return this.getMembers().collect(function (ea) {
+            try {
+                return interactiveEval.call(ea);
+            } catch(e) {
+                return e;
+            }
+        });
     }
 }
 );
@@ -273,7 +283,7 @@ lively.morphic.Morph.addMethods(
         }, this);
 
         Properties.own(group.ripTokens).each(function (eaScriptTokenName) {
-            group.getMembers().each(function (eaMember) {    
+            group.getMembers().each(function (eaMember) {
                 if (eaMember[eaScriptTokenName]) {
                     debugger;
                     var scriptToken = group.ripTokens[eaScriptTokenName];

@@ -171,7 +171,7 @@ lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.Gr
         this.assertEquals(null, group.getMembers()[0].getFill());
         this.assertEquals(null, group.getMembers()[1].getFill());
     },
-    testPerformOnMembersContinuesOnErrors: function() {
+    testPerformOnMembersContinuesThroughErrors: function() {
         var group = new lively.groups.ObjectGroup();
         var xyzMorph = this.newTestMorph();
         group.addMembers([this.newTestMorph(), this.newTestMorph(), xyzMorph]);
@@ -181,6 +181,23 @@ lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.Gr
         group.perform('xyzMethod', []);
         this.assertEquals('123', xyzMorph.xyz);
     },
+    testEvaluateForMembers: function() {
+        var group = new lively.groups.ObjectGroup();
+        group.addMembers([this.newTestMorph(), this.newTestMorph()]);
+        group.evaluate('this.setFill(null)');
+        this.assertEquals(null, group.getMembers()[0].getFill());
+        this.assertEquals(null, group.getMembers()[1].getFill());
+    },
+    testEvaluateForMembersContinuesThroughErrors: function() {
+        var group = new lively.groups.ObjectGroup();
+        var xyzMorph = this.newTestMorph();
+        group.addMembers([this.newTestMorph(), this.newTestMorph(), xyzMorph]);
+        xyzMorph.addScript(function xyzMethod() {
+            this.xyz = '123';
+        });
+        group.evaluate('this.xyzMethod()');
+        this.assertEquals('123', xyzMorph.xyz);
+    }
 });
 
 lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.GroupScriptsTest', 

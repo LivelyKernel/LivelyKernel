@@ -1,17 +1,26 @@
-module('lively.groups.Core').requires('lively.PartsBin').toRun(function() {
+module('lively.groups.Core').requires('lively.PartsBin', 'cop.Layers', 'lively.LayerableMorphs','lively.groups.GroupSupport').toRun(function() {
 
 Object.subclass('lively.groups.ObjectGroup', 
 'properties', {
     isObjectGroup: true
 },
 'initializing', {
-    initialize: function(name) {
+    initialize: function(name, members) {
         this.name = name || '';
         this.groupID =  new UUID().id;
         this.ripTokens = {};
+        
+        if (members) {
+            this.addMembers(members);
+        }
     },
 },
 'accessing', {
+    setName: function(name) {
+        this.getMembers().each(function(eaMember) {
+            eaMember.getGroup(this).name = name;
+        }, this);  
+    },
     getName: function() {
         return this.name;
     },
@@ -254,7 +263,6 @@ lively.morphic.Morph.addMethods(
         return result;
     },
     updateGroupBehavior: function() {
-        alertOK('updating group behavior for' + this);
         this.getGroups().forEach(function(eaGroup) {
             this.pullGroupChangesFrom(eaGroup);
             this.pushGroupChangesTo(eaGroup);
@@ -336,13 +344,5 @@ lively.morphic.World.addMethods(
     }
 }
 );
-cop.create('GroupSupportLayer').refineClass(lively.PartsBin.PartItem, {
-    setPart: function(part) {
-        cop.proceed(part);
-        part.updateGroupBehavior();
-        return part;
-    },
-});
-GroupSupportLayer.beGlobal();
 
 }) // end of module

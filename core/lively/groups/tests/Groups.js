@@ -1,4 +1,4 @@
-module('lively.groups.tests.Groups').requires('lively.TestFramework', 'lively.groups.Core', 'lively.morphic.tests.Morphic').toRun(function() {
+module('lively.groups.tests.Groups').requires('lively.TestFramework', 'lively.morphic.tests.Morphic', 'lively.groups.Core').toRun(function() {
 
 TestCase.subclass('lively.groups.tests.Groups.ExtensionsTest', 'testing', {
     testAnnotateScriptWithID: function() {
@@ -110,6 +110,16 @@ lively.groups.tests.Groups.GroupTestCase.subclass('lively.groups.tests.Groups.Gr
 
         group.addMembers([this.newTestMorph(group), this.newTestMorph()]);
         this.assertEquals(3, group.getMembers().size());
+    },
+    testSetGroupName: function() {
+        var group = new lively.groups.ObjectGroup(),
+            firstMorph = this.newTestMorph(group),
+            secondMorph = this.newTestMorph(group);
+
+        group.setName('test');
+
+        this.assertEquals('test', firstMorph.getGroups().first().getName());
+        this.assertEquals('test', secondMorph.getGroups().first().getName());
     },
     testMemberKnowsItsGroups: function() {
         var firstGroup = new lively.groups.ObjectGroup('firstGroup');

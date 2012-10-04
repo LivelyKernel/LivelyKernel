@@ -1425,8 +1425,8 @@ lively.morphic.World.addMethods(
                 });
             }]);
         }
-        if (localStorage['Config_quickLoad'] !== "false") {
-            items.push(['[ ] Quick Load', function() {
+        if (localStorage['Config_quickLoad'] == "false") {
+            items.push(['[  ] Quick Load', function() {
                 localStorage['Config_quickLoad'] = "true"
             }]);
         } else {

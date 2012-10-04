@@ -746,8 +746,53 @@ handleOnCapture);
         if (internalCompleteClick) {
             var invokeHalos = (evt.isLeftMouseButtonDown() && evt.isCommandKey())
                            || (this.showsHalosOnRightClick && evt.isRightMouseButtonDown());
+            var world = lively.morphic.World.current();
             if (invokeHalos) {
-                this.toggleHalos(evt);
+                if (evt.isCommandKey() && world.currentHaloTarget
+                        && lively.morphic.Selection.isSelectable(this)) {
+                    world.ensureSelectionMorph(evt.getPosition().asRectangle());
+
+                    if (world.selectionMorph.hasSelection()) {
+                        if (world.selectionMorph.selectedMorphs.include(this)) {
+                            world.selectionMorph.removeMorphFromSelection(this);
+                        } else {
+                            world.selectionMorph.addMorphToSelection(this);
+                        }
+                        world.selectionMorph.removeHalos();
+                    } else {
+                        world.selectionMorph.selectMorphs([world.currentHaloTarget, this]);
+                    }
+
+                    world.selectionMorph.showHalos();
+                } else if (this instanceof lively.morphic.BoundsHalo
+                        && this.targetMorph === world.selectionMorph) {
+                    var candidates = this.world().morphsContainingPoint(evt.getPosition());
+                    candidates = candidates.reject(function (ea) {
+                        return ea instanceof lively.morphic.BoundsHalo
+                            || ea instanceof lively.morphic.Selection
+                            || ea instanceof lively.morphic.World
+                            || (ea.name && ea.name.startsWith('Selection of '))});
+                    if (candidates.size()) {
+                        var target = candidates.first();
+                        if (world.selectionMorph.selectedMorphs.include(target)) {
+                            world.selectionMorph.removeMorphFromSelection(target);
+                        } else {
+                            world.selectionMorph.addMorphToSelection(target);
+                        }
+
+                        if (world.selectionMorph.selectedMorphs.size() <= 1) {
+                            if (world.selectionMorph.selectedMorphs.size() == 1) {
+                                world.selectionMorph.selectedMorphs.first().showHalos();
+                            }
+                            world.selectionMorph.reset();
+                        } else {
+                            world.selectionMorph.removeHalos();
+                            world.selectionMorph.showHalos();
+                        }
+                    }
+                } else {
+                    this.toggleHalos(evt);
+                }
                 return false;
             }
         }
@@ -1463,7 +1508,7 @@ lively.morphic.World.addMethods(
         // remove the selection when clicking into the world...
          if (this.selectionMorph && this.selectionMorph.owner
             && (this.morphsContainingPoint(this.eventStartPos).length == 1)) {
-            this.resetSelection()
+            this.selectionMorph.reset();
         }
 
         return false;

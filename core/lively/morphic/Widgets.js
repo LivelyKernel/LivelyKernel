@@ -2627,7 +2627,6 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         $super(initialBounds);
         this.applyStyle(this.style);
         this.selectedMorphs = [];
-
     },
 },
 'propagation', {
@@ -2701,6 +2700,11 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         // this.myWorld.currentSelection = null;
         Class.getSuperPrototype(this).remove.call(this);
     },
+},
+'testing', {
+    hasSelection: function() {
+        return this.selectedMorphs.size() > 0;
+    }
 },
 'accessing', {
     world: function($super) {
@@ -2965,7 +2969,15 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         }.bind(this))
         this.selectMorphs(all)
     },
+});
 
+Object.extend(lively.morphic.Selection, {
+    isSelectable: function(target) {
+        return !target.isEpiMorph
+            && !(target instanceof lively.morphic.World)
+            && !(target instanceof lively.morphic.HandMorph)
+            && !(target instanceof lively.morphic.BoundsHalo);
+    }
 });
 
 Trait('SelectionMorphTrait',
@@ -2979,10 +2991,7 @@ Trait('SelectionMorphTrait',
             return; // no selection with right mouse button (fbo 2011-09-13)
         }
 
-        this.resetSelection()
-
-        if (this.selectionMorph.owner !== this)
-            this.addMorph(this.selectionMorph);
+        this.ensureSelectionMorph();
 
         var pos = this.localize(this.eventStartPos || evt.getPosition());
         this.selectionMorph.withoutPropagationDo(function() {
@@ -3010,8 +3019,8 @@ Trait('SelectionMorphTrait',
         if (!self.selectionMorph) return;
         var selectionBounds = self.selectionMorph.bounds();
         var selectedMorphs  = this.submorphs
-            .reject(function(ea){
-                return ea === self || ea.isEpiMorph || ea instanceof lively.morphic.HandMorph
+            .select(function(ea){
+                return lively.morphic.Selection.isSelectable(ea);
             })
             .select(function(m) {
                 return selectionBounds.containsRect(m.bounds())})
@@ -3028,10 +3037,19 @@ Trait('SelectionMorphTrait',
         this.selectionMorph.showHalos()
 
     },
-
+    ensureSelectionMorph: function(bounds) {
+        if (!bounds) {
+            bounds = new Rectangle(0,0,0,0);
+        }
+        if (!this.selectionMorph || !this.selectionMorph.isSelection) {
+            this.selectionMorph = new lively.morphic.Selection(bounds);
+        }
+        if (this.selectionMorph.owner !== this) {
+            this.addMorph(this.selectionMorph);
+        }
+    },
     resetSelection: function() {
-        if (!this.selectionMorph || !this.selectionMorph.isSelection)
-            this.selectionMorph = new lively.morphic.Selection(new Rectangle(0,0,0,0))
+        this.ensureSeletionMorph();
         this.selectionMorph.reset();
     },
 })

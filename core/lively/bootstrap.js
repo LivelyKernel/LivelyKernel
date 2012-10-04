@@ -678,9 +678,8 @@ localStorage['Config_quickLoad']
                             && url.match('webwerkstatt')
                             && url.match('lively-kernel.org')
                             && (localStorage['Config_quickLoad'] !== "false");
-
-
-localStorage['Config_quickLoad']  = true
+        // disable quickLoading by explicitly setting 
+        // localStorage['Config_quickLoad']  = "false"
 
         if (optimizedLoading) {
             console.log('optimized loading enabled');

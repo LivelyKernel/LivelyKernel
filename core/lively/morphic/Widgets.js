@@ -2857,7 +2857,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         for (var i = 0; i < this.selectedMorphs.length; i++) {
             morph.addMorph(this.selectedMorphs[i]);
         }
-        this.removeSelecitonIndicators();
+        this.removeSelectionIndicators();
         this.removeOnlyIt();
     },
 
@@ -2890,20 +2890,17 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         this.setRotation(0)
         this.setScale(1)
         this.removeOnlyIt();
-        this.removeSelecitonIndicators();
+        this.removeSelectionIndicators();
         this.adjustOrigin(pt(0,0));
     },
-
-    selectMorphs: function(selectedMorphs) {
-        this.owner.selectionMorph.selectedMorphs = selectedMorphs
-
+    hightlightSelection: function() {
         // finding pos, starting with max values
         var topLeft = this.bounds().bottomRight(),
             bottomRight = this.bounds().topLeft(),
             self = this;
 
-        this.removeSelecitonIndicators();
-        selectedMorphs.forEach(function(ea) {
+        this.removeSelectionIndicators();
+        this.selectedMorphs.forEach(function(ea) {
             var innerBounds = ea.getTransform().inverse().
                 transformRectToRect(ea.bounds().insetBy(-4));
             var bounds = ea.getTransform().transformRectToRect(innerBounds);
@@ -2921,15 +2918,30 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             ea.addMorph(selectionIndicator);
             self.selectionIndicators.push(selectionIndicator);
         })
-    this.withoutPropagationDo(function() {
-        this.setPosition(topLeft);
-        this.setExtent(bottomRight.subPt(topLeft));
-        // this.adjustOrigin(this.getExtent().scaleBy(0.5))
-    }.bind(this))
-
+        this.withoutPropagationDo(function() {
+            this.setPosition(topLeft);
+            this.setExtent(bottomRight.subPt(topLeft));
+        }.bind(this))
     },
-
-    removeSelecitonIndicators: function() {
+    selectMorphs: function(selectedMorphs) {
+        this.selectedMorphs = selectedMorphs;
+        this.hightlightSelection();
+    },
+    addMorphToSelection: function(morph) {
+        if (!this.selectedMorphs.include(morph)) {
+            this.selectedMorphs.push(morph);
+        }
+        this.hightlightSelection(); 
+    },
+    addMorphsToSelection: function(morphs) {
+        this.selectedMorphs = this.selectedMorphs.concat(morphs).uniq();
+        this.hightlightSelection(); 
+    },
+    removeMorphFromSelection: function(morph) {
+        this.selectedMorphs.remove(morph);
+        this.hightlightSelection();
+    },
+    removeSelectionIndicators: function() {
         if (this.selectionIndicators)
             this.selectionIndicators.invoke('remove');
         this.selectionIndicators = [];

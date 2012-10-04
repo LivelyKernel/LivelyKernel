@@ -3049,7 +3049,7 @@ Trait('SelectionMorphTrait',
         }
     },
     resetSelection: function() {
-        this.ensureSeletionMorph();
+        this.ensureSelectionMorph();
         this.selectionMorph.reset();
     },
 })

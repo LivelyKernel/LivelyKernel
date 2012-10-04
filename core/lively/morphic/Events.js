@@ -760,7 +760,9 @@ handleOnCapture);
                         }
                         world.selectionMorph.removeHalos();
                     } else {
-                        world.selectionMorph.selectMorphs([world.currentHaloTarget, this]);
+                        if (lively.morphic.Selection.isSelectable(world.currentHaloTarget)) {
+                            world.selectionMorph.selectMorphs([world.currentHaloTarget, this]);
+                        }
                     }
 
                     world.selectionMorph.showHalos();

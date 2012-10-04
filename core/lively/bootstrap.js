@@ -677,7 +677,7 @@ localStorage['Config_quickLoad']
                             && !url.match('!svn')
                             && url.match('webwerkstatt')
                             && url.match('lively-kernel.org')
-                            && (localStorage['Config_quickLoad'] != false);
+                            && (localStorage['Config_quickLoad'] !== false);
 
 
         if (optimizedLoading) {

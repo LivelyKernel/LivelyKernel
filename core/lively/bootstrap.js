@@ -680,6 +680,8 @@ localStorage['Config_quickLoad']
                             && (localStorage['Config_quickLoad'] !== "false");
 
 
+localStorage['Config_quickLoad']  = true
+
         if (optimizedLoading) {
             console.log('optimized loading enabled');
             var hashUrl = codeBase + 'generated/combinedModulesHash.txt',

@@ -669,11 +669,16 @@ var LivelyLoader = {
 
         if (dontBootstrap) { thenDoFunc(); return };
 
+
+localStorage['Config_quickLoad']
+
         var codeBase = this.codeBase,
             optimizedLoading = !url.match('quickLoad=false')
                             && !url.match('!svn')
                             && url.match('webwerkstatt')
-                            && url.match('lively-kernel.org');
+                            && url.match('lively-kernel.org')
+                            && localStorage['Config_quickLoad'] !== false;
+
 
         if (optimizedLoading) {
             console.log('optimized loading enabled');

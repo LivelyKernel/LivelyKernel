@@ -1629,7 +1629,7 @@ Object.subclass('WebResource',
         if (!this.status.isSuccess()) {
             throw new Error('Cannot access subElements of ' + this.getURL());
         }
-        pvtProcessPropfindResults(doc);
+        this.pvtProcessPropfindResults(doc);
     },
     pvtProcessPropfindResults: function(doc) {
         var result = [];

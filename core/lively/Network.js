@@ -1625,24 +1625,28 @@ Object.subclass('WebResource',
         this.davNs = davNs;
         return davNs;
     },
-
     pvtProcessPropfindForSubElements: function(doc) {
         if (!this.status.isSuccess()) {
             throw new Error('Cannot access subElements of ' + this.getURL());
         }
-        var davNs = this.ensureDavXmlNs(doc),
-            nodes = new Query("/" + davNs + ":multistatus/" + davNs + ":response").findAll(doc.documentElement),
-            urlQ = new Query(davNs + ':href'),
-            result = [];
-        nodes.shift(); // remove first since it points to this WebResource
-        for (var i = 0; i < nodes.length; i++) {
-            var urlNode = urlQ.findFirst(nodes[i]),
-                url = urlNode.textContent || urlNode.text; // text is FIX for IE9+
-            if (/!svn/.test(url)) continue;// ignore svn dirs
-            var child = new WebResource(this.getURL().withPath(url)),
-                revNode = nodes[i].getElementsByTagName('version-name')[0];
-            if (revNode) child.headRevision = Number(revNode.textContent);
-            result.push(child);
+        pvtProcessPropfindResults(doc);
+    },
+    pvtProcessPropfindResults: function(doc) {
+        var result = [];
+        if (this.status.isSuccess()) {
+            var davNs = this.ensureDavXmlNs(doc);
+            var nodes = new Query("/" + davNs + ":multistatus/" + davNs + ":response").findAll(doc.documentElement);
+            var urlQ = new Query(davNs + ':href');
+            nodes.shift(); // remove first since it points to this WebResource
+            for (var i = 0; i < nodes.length; i++) {
+                var urlNode = urlQ.findFirst(nodes[i]),
+                    url = urlNode.textContent || urlNode.text; // text is FIX for IE9+
+                if (/!svn/.test(url)) continue;// ignore svn dirs
+                var child = new WebResource(this.getURL().withPath(url)),
+                    revNode = nodes[i].getElementsByTagName('version-name')[0];
+                if (revNode) child.headRevision = Number(revNode.textContent);
+                result.push(child);
+            }
         }
         this.subCollections = result.select(function(ea) { return ea.isCollection() });
         this.subDocuments = result.select(function(ea) { return !ea.isCollection() });

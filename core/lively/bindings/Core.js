@@ -516,7 +516,7 @@ Object.extend(lively.bindings, {
     signal: function(sourceObj, attrName, newVal) {
         if (!sourceObj.attributeConnections) return;
         var oldVal = sourceObj[attrName];
-        for (var i = 0; i < sourceObj.attributeConnections.length; i++) {
+        for (var i = 0; sourceObj.attributeConnections && i < sourceObj.attributeConnections.length; i++) {
             var c = sourceObj.attributeConnections[i];
             if (c.getSourceAttrName() == attrName) c.update(newVal, oldVal);
         }

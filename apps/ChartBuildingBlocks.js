@@ -2,47 +2,6 @@ module('apps.ChartBuildingBlocks').requires('lively.morphic.AdditionalMorphs', '
 
 
 lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
-'Visuals', {
-    activeRenderPartClassName: 'active-render-part',
-    inactiveRenderPartClassName: 'inactive-render-part',
-    markMorph: function(morph, hook){
-
-        morph.addStyleClassName(this.activeRenderPartClassName);
-        morph.removeStyleClassName(this.inactiveRenderPartClassName)
-        // The owner should be a ChartGenerator which 
-        // implements a function to mark morph according to their hook
-        if (this.owner.markHook) {
-            this.owner.markHook(morph, hook);
-        }
-        return morph;
-    },
-    unmarkAllMorphs: function() {
-        this.submorphs.each(function(m){
-            m.removeStyleClassName(this.activeRenderPartClassName);
-            m.addStyleClassName(this.inactiveRenderPartClassName);
-        }, this);
-    },
-
-    markHooks: function() {
-        this.unmarkAllMorphs();
-        var markFirst = ['prepareContext', 'setupDrawingAreas',
-                'setupScales', 'drawDimensions'],
-            markAll = ['drawSeries'];
-        markFirst.each(function(h){
-            var morphs = this.getMorphsForHook(h);
-            if (morphs.length > 0) {
-                this.markMorph(morphs.first(), h);
-            }
-        }, this);
-        markAll.each(function(h){
-            this.getMorphsForHook(h).each(function(morph){
-                this.markMorph(morph, h);
-            }, this);
-        }, this);
-
-    }
-
-},
 'Hook dispatch', {
     getMorphsForHook: function(hookName) {
         var morphs = this.submorphs.sortBy(function(ea) { return ea.bounds().top(); }),
@@ -105,12 +64,7 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
     },
 
 },
-
-'Accessing', {
-
-},
-
-'Drawing hook defaults', {
+'Drawing hooks', {
     prepareContext: function() {
         // Override to customize the DOM context of the chart.
         return this.dispatchHook(arguments);
@@ -207,6 +161,9 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
         // Template hook for drawing the series
         this.drawSeries(drawingPanes, data, scales, areas);
     },
+},
+
+'Helpers', {
     normalizePadding: function(padding) {
         if (padding >= 0) {
             return [padding,padding,padding,padding];

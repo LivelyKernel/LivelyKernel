@@ -178,9 +178,9 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
     },
     prepareDrawingBounds: function(chartWidth, chartHeight, padding) {
         var p = this.normalizePadding(padding);
-        return new Rectangle(padding[3], padding[0],
-            chartWidth - padding[3] - padding[1],
-            chartHeight - padding[0] - padding[2]);
+        return new Rectangle(p[3], p[0],
+            chartWidth - p[3] - p[1],
+            chartHeight - p[0] - p[2]);
     },
 
 });
@@ -210,9 +210,9 @@ lively.morphic.HtmlWrapperMorph.subclass('apps.ChartBuildingBlocks.ChartDisplay'
         $(this.renderContext().shapeNode).empty();
         return this;
     },
-    redraw: function() {
+    redraw: function(chartData, chartRenderer) {
         // Does a fresh draw (clear + draw).
-        return this.clear().draw();
+        return this.clear().draw(chartData, chartRenderer);
     }
 
 });

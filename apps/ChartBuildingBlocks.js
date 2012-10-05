@@ -239,12 +239,12 @@ lively.morphic.HtmlWrapperMorph.subclass('apps.ChartBuildingBlocks.ChartDisplay'
     }
 },
 'drawing', {
-    draw: function() {
+    draw: function(chartData, chartRenderer) {
         var context = this.renderContext().shapeNode;
-        if (this.chartRenderer && this.chartRenderer.draw) {
-            this.chartRenderer.draw(context, this.chartData, this.padding || [0,0,0,0]);
+        if (chartRenderer && chartRenderer.draw && chartData && chartData.getSeries) {
+            chartRenderer.draw(context, chartData);
         } else {
-            console.warn('The ChartDisplay has no ChartRenderer so nothing can be drawn right now.');
+            console.warn('Cannot draw, Chart Renderer or Chart Data are not valid.');
         }
         return this;
     },

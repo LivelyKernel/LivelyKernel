@@ -80,6 +80,17 @@ Trait('StyleSheetsHTMLShapeTrait',
     }),
 }).applyTo(lively.morphic.Shapes.Shape, {override: ['setFillHTML', 'setOpacityHTML', 'setBorderStyleHTML', 'setBorderHTML']});
 
+Trait('StyleSheetsHTMLExternalShapeTrait',
+'updating', {
+    setOpacityHTML: lively.morphic.Shapes.External.prototype.setOpacityHTML.wrap(function(proceed, ctx, value) {
+        if (this.shapeGetter('AppearanceStylingMode')){
+            proceed(ctx, null);
+        } else {
+            proceed(ctx, value);
+        }
+    })
+}).applyTo(lively.morphic.Shapes.External, {override: ['setOpacityHTML']});
+
 Trait('StyleSheetsHTMLRectangleTrait',
 'updating', {
     setBorderRadiusHTML: lively.morphic.Shapes.Rectangle.prototype.setBorderRadiusHTML.wrap(function(proceed, ctx, value) {

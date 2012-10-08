@@ -46,21 +46,23 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
         var counter = 0,
             hookMorphs = this.getMorphsForHook(hookName),
             argArray = Array.from(args),
-            defaultHookName = hookName + 'Default';
+            defaultHookName = hookName + 'Default',
+            resultArray = [];
 
         if (hookMorphs.length > 0) {
             // If the hook was found implemented in a submorph, go for it
                 hookMorphs.each(function(hookMorph) {
-                    hookMorph[hookName].apply(hookMorph, argArray);
+                    resultArray.push(hookMorph[hookName].apply(hookMorph, argArray));
                 });
         } else if (typeof this[defaultHookName] === 'function') {
             // If not, than the go for the default implementation in this ChartRenderer
-            return this[defaultHookName].apply(this, argArray);
+            return [this[defaultHookName].apply(this, argArray)];
 
         } else {
             // Throw an error if no implementation was found at all
             throw 'Cannot render chart because hook "' + hookName + ' was not implemented.';
         }
+        return resultArray;
     },
 
 },
@@ -102,10 +104,17 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
     //
     setupScales: function() {
 	// Override to ...
-        return this.dispatchHook(arguments);
+        var scales = this.dispatchHooks(arguments),
+            aggregatedScales = {};
+        scales.each(function(s) {
+            for (var x in s) {
+                aggregatedScales[x] = s[x];
+            }
+        });
+        return aggregatedScales;
     },
     setupScalesDefault: function() {
-        return [{}];
+        return {};
     },
     //
 

@@ -66,7 +66,35 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
     },
 
 },
-'Drawing hooks', {
+'Event Hooks', {
+    onChartDragStart: function() {
+        return this.dispatchHooks(arguments);
+    },
+    onChartDragStartDefault: function() {
+
+    },
+    //
+
+    //
+    onChartDrag: function() {
+        return this.dispatchHooks(arguments);
+    },
+    onChartDragDefault: function() {
+
+    },
+    //
+
+    //
+    onChartDragEnd: function() {
+        return this.dispatchHooks(arguments);
+    },
+    onChartDragEndDefault: function() {
+
+    }
+
+},
+
+'Drawing Hooks', {
     prepareContext: function() {
         // Override to customize the DOM context of the chart.
         return this.dispatchHook(arguments);

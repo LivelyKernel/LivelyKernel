@@ -209,7 +209,7 @@ Object.subclass('lively.Main.Loader',
                 cb(world);
             });
         }
-        lively.whenLoaded = function(callback) { callback.call(world) };
+        lively.whenLoaded = function(cb) { cb(world) };
         console.log("The world is now completely loaded.");
     }
 

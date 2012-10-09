@@ -37,21 +37,29 @@ Object.subclass('AttributeConnection',
         this.sourceAttrName = sourceProp;
         this.targetObj = target;
         this.targetMethodName = targetProp;
+        this.removeAfterUpdate = false;
+        this.converter = null;
+        this.converterString = null;
+        this.updater = null;
+        this.updaterString = null;
+        this.varMapping = {source: source, target: target};
         if (spec) {
             this.removeAfterUpdate = spec.removeAfterUpdate;
             // when converter function references objects from its environment we can't
             // serialize it. To fail as early as possible we will serialize the converter
             // already here
-            this.converter = null;
-            this.converterString = spec.converter ? spec.converter.toString() : null;
-            this.updater = null;
-            this.updaterString = spec.updater ? spec.updater.toString() : null;
-                        this.varMapping = Object.extend(spec.varMapping || {},
-                            {source: source, target: target});
+            if (spec.converter) {
+                this.converterString = spec.converter.toString();
+            }
+            if (spec.updater) {
+                this.updaterString = spec.updater.toString();
+            }
+            if (spec.varMapping) {
+                this.varMapping = Object.extend(spec.varMapping, this.varMapping);
+            }
         }
         return this;
     },
-
 
     onSourceAndTargetRestored: function() {
         if (this.sourceObj && this.targetObj) this.connect();
@@ -60,26 +68,22 @@ Object.subclass('AttributeConnection',
     copy: function(copier) {
         return AttributeConnection.fromLiteral(this.toLiteral(), copier);
     },
+
     fixInstanceAfterCopyingFromSite: function(name, ref, index) {
         // alert("removed connection: "  + this)
-        this.disconnect()
+        this.disconnect();
     },
+
     clone: function() {
-        var spec;
-        var hasSpec = this.converter || this.updater || this.removeAfterUpdate;
-        if (hasSpec) {
-            spec = {
-                updater: this.getUpdater(),
-                converter: this.getConverter(),
-                removeAfterUpdate: this.removeAfterUpdate
-            };
-        }
+        //rk 2012-10-09: What is the reason to have clone AND copy?!
         var con = new this.constructor(
             this.getSourceObj(), this.getSourceAttrName(),
-            this.getTargetObj(), this.getTargetMethodName(), spec);
+            this.getTargetObj(), this.getTargetMethodName(),
+            this.getSpec());
         if (this.dependedBy) con.dependedBy = this.dependedBy;
         return con;
     }
+
 },
 'accessing', {
     getTargetObj: function() { return this.targetObj },
@@ -102,6 +106,14 @@ Object.subclass('AttributeConnection',
             this.updater = lively.Closure.fromSource(this.updaterString, this.varMapping).recreateFunc();
         }
         return this.updater;
+    },
+
+    getSpec: function() {
+        return {
+            updater: this.getUpdater(),
+            converter: this.getConverter(),
+            removeAfterUpdate: this.removeAfterUpdate
+        };
     },
 
     privateAttrName: function(attrName) { return '$$' + attrName },

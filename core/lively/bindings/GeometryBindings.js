@@ -52,7 +52,8 @@ AttributeConnection.subclass('lively.morphic.GeometryConnection',
                 + ' cannot walk path ' + ea + ' for ' + this);
         })
 
-        var c = connect(newSourceObj, newSourceAttr, this.targetObj, this. targetMethodName);
+        var c = lively.bindings.connect(
+            newSourceObj, newSourceAttr, this.targetObj, this.targetMethodName, this.getSpec());
         this.addDependConnection(c);
 
         return this;
@@ -64,7 +65,7 @@ AttributeConnection.subclass('lively.morphic.GeometryConnection',
         this.dependendConnections.forEach(function(ea) {
             self.removeDependConnection(ea);
         })
-    },
+    }
 
 });
 

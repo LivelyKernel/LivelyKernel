@@ -45,15 +45,11 @@ Object.subclass('AttributeConnection',
         this.varMapping = {source: source, target: target};
         if (spec) {
             this.removeAfterUpdate = spec.removeAfterUpdate;
-            // when converter function references objects from its environment we can't
-            // serialize it. To fail as early as possible we will serialize the converter
-            // already here
-            if (spec.converter) {
-                this.converterString = spec.converter.toString();
-            }
-            if (spec.updater) {
-                this.updaterString = spec.updater.toString();
-            }
+            // when converter function references objects from its environment
+            // we can't serialize it. To fail as early as possible we will
+            // serialize the converter / updater already in the setters
+            this.setConverter(spec.converter);
+            this.setUpdater(spec.updater);
             if (spec.varMapping) {
                 this.varMapping = Object.extend(spec.varMapping, this.varMapping);
             }
@@ -100,12 +96,22 @@ Object.subclass('AttributeConnection',
         return this.converter;
     },
 
+    setConverter: function(funcOrSource) {
+        this.converter = null;
+        return this.converterString = funcOrSource ? String(funcOrSource) : null;
+    },
+
     getUpdater: function() {
         if (!this.updaterString) return null;
         if (!this.updater) {
             this.updater = lively.Closure.fromSource(this.updaterString, this.varMapping).recreateFunc();
         }
         return this.updater;
+    },
+
+    setUpdater: function(funcOrSource) {
+        this.updater = null;
+        return this.updaterString = funcOrSource ? String(funcOrSource) : null;
     },
 
     getSpec: function() {

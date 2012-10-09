@@ -1059,6 +1059,16 @@ lively.morphic.Morph.addMethods(
             }
         }
 
+        if(this.isFixed) {
+            items.push(["set unfixed", function() {
+                self.setFixed(false);
+            }]);
+        } else {
+            items.push(["set fixed", function() {
+                self.setFixed(true);
+            }]);
+        }
+
         if (false) { // rk 12-06-22: what is this for???
             items.push(["Enable internal selections", function() {
                 Trait('SelectionMorphTrait').applyTo(self, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
@@ -2189,11 +2199,26 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         if (this.targetMorph) {
             var self = this;
             itemFilter = function (items) {
-            items[0] = [
-                'Publish window', function(evt) {
-                self.copyToPartsBinWithUserRequest();
-                }]
-            return items;
+                items[0] = [
+                    'Publish window', function(evt) {
+                    self.copyToPartsBinWithUserRequest();
+                    }]
+                // set fixed support
+                var fixItem = items.find(function (ea) {
+                    return ea[0] == "set fixed" || ea[0] == "set unfixed"
+                })
+                if (fixItem) {
+                    if(this.isFixed) {
+                        fixItem[1] = function() {
+                            self.setFixed(false);
+                        }
+                    } else {
+                        fixItem[1] = function() {
+                            self.setFixed(true);
+                        };
+                    }
+                }
+                return items;
             }
         }
         target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)), itemFilter);

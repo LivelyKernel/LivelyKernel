@@ -473,6 +473,42 @@ lively.morphic.Morph.addMethods(
         doStep(steps);
     },
 },
+'fixing', {
+    setFixed: function(optFixed) {
+        // Fixes the morph at the current position and zoom when called with true or no parameter, and unfixes it when called with false.
+        var fixed = optFixed || (optFixed === false? false : true);
+        if(fixed && this.owner !== $world) {
+            return;
+        }
+        this.isFixed = fixed;
+        if(fixed) {
+            this.fixedScale = this.getScale() * $world.getZoomLevel();
+            this.fixedPosition = this.getPosition().subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel());
+
+            connect($world, "zoomLevel", this, "updateZoomScale");
+            connect($world, "scrollOffset", this, "updateScrollPosition");
+            $world.startStepping(100, "updateZoomLevel");
+            $world.startStepping(100, "getScrollOffset");
+        } else {
+            disconnect($world, "zoomLevel", this, "updateZoomScale");
+            disconnect($world, "scrollOffset", this, "updateScrollPosition");
+            if (!$world.withAllSubmorphsDetect(function (each) {
+                return each.isFixed
+            })) {
+                $world.stopStepping("updateZoomLevel");
+                $world.stopStepping("getScrollOffset");
+            }
+        }
+    },
+    updateZoomScale: function(newZoom) {
+        if(this.fixedScale) {
+            this.setScale(this.fixedScale/newZoom);
+        }
+    },
+    updateScrollPosition: function(newPosition) {
+        this.setPosition(this.fixedPosition.scaleBy(1/$world.zoomLevel).addPt(newPosition));
+    },
+},
 'fullscreen', {
     enterFullScreen: function(beTopLeft) {
         var world = this.world();
@@ -823,6 +859,30 @@ lively.morphic.World.addMethods(
         if (!this.fullScreenBackgroundMorph) return;
         this.fullScreenBackgroundMorph.remove();
         this.fullScreenBackgroundMorph = null;
+    },
+},
+"zooming", {
+    getZoomLevel: function() {
+        if(!this.zoomLevel){
+            this.zoomLevel = this.calculateCurrentZoom();
+        }
+        return this.zoomLevel;
+    },
+    calculateCurrentZoom: function() {
+        // TODO: clean distinction of browsers
+        if(UserAgent.isTouch) {
+            return document.documentElement.clientWidth / window.innerWidth;
+        }  else {
+            return window.outerWidth / window.innerWidth;
+        }
+    },
+    updateZoomLevel: function () {
+        this.zoomLevel = this.calculateCurrentZoom();
+        return this.zoomLevel
+    },
+    getScrollOffset: function () {
+        this.scrollOffset = pt(window.pageXOffset, window.pageYOffset)
+        return this.scrollOffset;
     },
 });
 lively.morphic.HandMorph.addMethods(

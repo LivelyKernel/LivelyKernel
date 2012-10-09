@@ -67,6 +67,15 @@ lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
 
 },
 'Event Hooks', {
+    onChartMouseWheel: function() {
+        return this.dispatchHooks(arguments);
+    },
+    onChartMouseWheelDefault: function() {
+
+    },
+    //
+
+    //
     onChartDragStart: function() {
         return this.dispatchHooks(arguments);
     },

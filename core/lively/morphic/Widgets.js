@@ -2208,14 +2208,16 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
                     return ea[0] == "set fixed" || ea[0] == "set unfixed"
                 })
                 if (fixItem) {
-                    if(this.isFixed) {
+                    if(self.isFixed) {
+                        fixItem[0] = "set unfixed"
                         fixItem[1] = function() {
                             self.setFixed(false);
                         }
                     } else {
+                        fixItem[0] = "set fixed"
                         fixItem[1] = function() {
                             self.setFixed(true);
-                        };
+                        }
                     }
                 }
                 return items;

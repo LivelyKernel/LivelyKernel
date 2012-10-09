@@ -485,27 +485,21 @@ lively.morphic.Morph.addMethods(
             this.fixedScale = this.getScale() * $world.getZoomLevel();
             this.fixedPosition = this.getPosition().subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel());
 
-            connect($world, "zoomLevel", this, "updateZoomScale");
-            connect($world, "scrollOffset", this, "updateScrollPosition");
-            $world.startStepping(100, "updateZoomLevel");
-            $world.startStepping(100, "getScrollOffset");
+            this.startStepping(100, "updateZoomScale");
+            this.startStepping(100, "updateScrollPosition");
         } else {
-            disconnect($world, "zoomLevel", this, "updateZoomScale");
-            disconnect($world, "scrollOffset", this, "updateScrollPosition");
-            if (!$world.withAllSubmorphsDetect(function (each) {
-                return each.isFixed
-            })) {
-                $world.stopStepping("updateZoomLevel");
-                $world.stopStepping("getScrollOffset");
-            }
+            this.stopStepping("updateZoomLevel");
+            this.stopStepping("getScrollOffset");
         }
     },
     updateZoomScale: function(newZoom) {
         if(this.fixedScale) {
+			var newZoom = newZoom || $world.updateZoomLevel();
             this.setScale(this.fixedScale/newZoom);
         }
     },
     updateScrollPosition: function(newPosition) {
+		var newPosition = newPosition || $world.getScrollOffset();
         this.setPosition(this.fixedPosition.scaleBy(1/$world.zoomLevel).addPt(newPosition));
     },
 },

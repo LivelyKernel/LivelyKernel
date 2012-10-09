@@ -693,14 +693,15 @@ lively.morphic.World.addMethods(
 'debugging', {
     logError: function (er, optName) {
         Global.LastError = er;
+        if (!Config.get('verboseLogging')) return;
         var msg = (optName || 'LOGERROR: ') + String(er) + "\nstack:" + er.stack;
         this.setStatusMessage(msg, Color.red, 10, function() {
             var errorStackViewer = this.openPartItem("ErrorStackViewer", "PartsBin/Tools");
             errorStackViewer.align(
                 errorStackViewer.bounds().topCenter(), this.visibleBounds().topCenter());
-            errorStackViewer.setError(er)
-        }.bind(this))
-    },
+            errorStackViewer.setError(er);
+        }.bind(this));
+    }
 },
 'logging', {
     setStatusMessage: function (msg, color, delay, callback, optStyle) {

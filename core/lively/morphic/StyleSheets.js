@@ -171,7 +171,7 @@ lively.morphic.Morph.addMethods(
         var url = URL.ensureAbsoluteURL(file);
         var webR = url.asWebResource();
         webR.forceUncached();
-        if (webR.get().isSuccess()) {
+        if (webR.get().status.isSuccess()) {
             // add resource path to all relative urls in the css
             var css = webR.content;
             var resPath = resourcePath || url.getDirectory();

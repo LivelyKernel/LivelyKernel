@@ -1,5 +1,44 @@
-module('apps.ChartBuildingBlocks').requires('lively.morphic.AdditionalMorphs', 'apps.d3').toRun(function() {
+module('apps.ChartBuildingBlocks').requires('lively.morphic.ScriptingSupport', 'lively.morphic.AdditionalMorphs', 'apps.d3').toRun(function() {
 
+lively.morphic.PartsBinItem.subclass('apps.ChartBuildingBlocks.ChartsBinItem',
+'settings',{
+    defaultExtent: pt(285,40),
+},
+'init', {
+    initialize: function($super, partsBinURL, targetName, partItem){
+        $super(partsBinURL, targetName, partItem);
+        this.applyStyle({fill: null, borderColor: null, borderRadius: 0})
+    },
+
+    setupLogoLabel: function(){},
+
+    setupHTMLLogo: function() {
+        var url = this.partItem.getHTMLLogoURL(),
+            item = this,
+            morphSetup = {htmlSourceToMorph: function(source) {
+                source = source.replace(/.*\<body\>/, "").replace(/\<\/body\>.*/, "");
+                var node = XHTMLNS.create('div');
+                try {
+                    node.innerHTML = source;
+                } catch(e) {
+                    debugger;
+                    node.innerHTML = '<span>' + item.name + '</span>';
+                    throw e;
+                }
+                $(node).children().attr('style',''); // get rid of the scale-down
+                var morph = new lively.morphic.Morph(new lively.morphic.Shapes.External(node));
+                morph.ignoreEvents();
+
+                //morph.setBounds(item.getBounds()); // set bounds to 285 x 40
+                item.addMorphBack(morph);
+            }};
+        var webR = new WebResource(url).forceUncached();
+        connect(webR, 'content', morphSetup, 'htmlSourceToMorph', {updater: function($upd, source) {            var status = this.sourceObj.status;
+            if (status && status.isDone() && status.isSuccess()) $upd(source) }});
+        webR.beAsync().get()
+    },
+}
+);
 
 lively.morphic.Box.subclass('apps.ChartBuildingBlocks.ChartRenderer',
 'Hook dispatch', {

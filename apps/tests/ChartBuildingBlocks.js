@@ -51,13 +51,15 @@ lively.morphic.tests.MorphTests.subclass('apps.tests.ChartBuildingBlocks.ChartRe
     },
     test02setupDrawingAreasDefault: function() {
         var areaArray
-                = this.chartRenderer.setupDrawingAreasDefault(null, 100, 200, [10,5,10,5]);
+                = this.chartRenderer.setupDrawingAreasDefault(null, new Rectangle(10,5,90,180));
+
 
 
         this.assert(Array.isArray(areaArray), 'areaArray should be array');
         this.assertEquals(1, areaArray.length, 'areaArray array should be of length 1');
-        this.assertEquals(5, areaArray.first().x, 'areaArray left is not correct');
-        this.assertEquals(10, areaArray.first().y, 'areaArray top is not correct');
+
+        this.assertEquals(10, areaArray.first().x, 'areaArray left is not correct');
+        this.assertEquals(5, areaArray.first().y, 'areaArray top is not correct');
         this.assertEquals(90, areaArray.first().width, 'areaArray width is not correct');
         this.assertEquals(180, areaArray.first().height, 'areaArray height is not correct');
     },

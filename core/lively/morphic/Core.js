@@ -755,7 +755,9 @@ lively.morphic.Script.subclass('lively.morphic.TargetScript',
 },
 'ticking', {
     execute: function() {
-        this.target[this.selector].apply(this.target, this.args);
+        var script = this.target[this.selector];
+        if (script)
+            script.apply(this.target, this.args);
     },
 },
 'testing', {

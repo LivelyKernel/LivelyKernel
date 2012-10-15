@@ -96,12 +96,27 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             proceed(ctx, optMorphAfter);
             this.prepareDOMForStyleSheetsHTML(ctx);
             this.setStyleSheetHTML(ctx, this.getStyleSheet());
+
+            // Mark morphNode
+            if (ctx.morphNode) {
+                $(ctx.morphNode).attr('node-type', 'morph-node');
+            }
+
+            // Mark originNode of owner
+            var ownerCtx = this.owner && this.owner.renderContext();
+
+            if (ownerCtx && ownerCtx.originNode) {
+                $(ownerCtx.originNode).attr('node-type', 'origin-node');
+            }
+
+
         })
     }).applyTo(lively.morphic.Morph, {
         override: 'appendHTML'
     });
 
-    lively.morphic.Morph.addMethods('Stylesheets', {
+    lively.morphic.Morph.addMethods(
+    'Stylesheets', {
 
         compileStyleSheet: function (optCssRules) {
             // Takes a list of CSS rules and assembles a style
@@ -116,7 +131,8 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 
             rules.each(function (rule) {
                 if (rule.selectorText && rule.declarations) {
-                    var selectors = this.splitGroupedSelector(rule.selectorText()),
+                    var selector = this.replaceChildOp(rule.selectorText()),
+                        selectors = this.splitGroupedSelector(selector),
                         newSelector = '';
                     for (var i = 0; i < selectors.length; i++) {
                         newSelector += this.addSelectorPrefixes(selectors[i]);
@@ -166,6 +182,14 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 
             return extendedSelector;
         },
+    generateCombinedIdSelector: function(actualSelector) {
+        return this.getIdsForSelector(actualSelector)
+            .reduce(function(prev, val) {
+                    return prev + (prev.length > 0 ? ', ' : '')
+                        + '[morphid="'+ val + '"]';
+                }, '');
+    },
+
 
         splitGroupedSelector: function (selector) {
             // Splits a grouped selector and returns
@@ -261,11 +285,46 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             // If appearantly none of the other morphs in the hierarchy
             // have a css applied, just add the stylenode to the head
             document.getElementsByTagName("head")[0].appendChild(styleNode);
+        },
+    replaceChildOp: function(selector) {
+        var replacements = ['>', '> [node-type="origin-node"] >',
+            '> [node-type="origin-node"] > [node-type="morph-node"] >'],
+            tokens = selector.split('>'),
+            childOpCount = tokens.length - 1,
+            results = [],
+            replaceRecursively = function(spareTokens) {
+                var firstToken = spareTokens.shift();
+                if (spareTokens.length === 1) {
+                    spareToken = spareTokens.first();
+                    return replacements.collect(function(r) {
+                            return firstToken + r + spareToken;
+                        });
+                } else {
+                    var combinedTokens = replaceRecursively(spareTokens);
+                    return combinedTokens.reduce(function(prev, c) {
+                        return prev.concat(
+                            replacements.collect(function(r) {
+                                    return firstToken + r + c;
+                                })
+                            );
+                    }, []);
+                }
+            };
+        if (childOpCount > 0) {
+            // Loop over all tokens
+            var sels = replaceRecursively(tokens);
+            return sels.reduce(function(prev, sel, i) {
+                    return prev + sel + ((i < sels.length - 1) ? ', ' : '');
+                },'');
+        } else {
+            return selector;
         }
+    },
+
 
     }, 
 	
-	'Style Classes and Ids', {
+    'Style Classes and Ids', {
         prepareDOMForStyleSheetsHTML: function (ctx) {
 
             this.setStyleClassNamesHTML(ctx);
@@ -294,6 +353,12 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                 $(ctx.shapeNode).removeAttr('id');
             }
         },
+    getIdsForSelector: function(selector) {
+        return (new lively.morphic.Sizzle())
+            .select(selector, this)
+            .collect(function(m) {return m.id});
+    }
+
     });
 
 }) // end of module

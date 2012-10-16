@@ -1,5 +1,156 @@
 module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssParser').toRun(function() {
 
+Object.subclass('lively.morphic.StyleSheet',
+'init', {
+    initialize: function(rules, originMorph) {
+        this.rules = rules || [];
+        this.originMorph = originMorph;
+    }
+},
+'Getter', {
+    getText: function() {
+        return this.rules.reduce(function(prev, rule) {
+                return prev + rule.getText() + '\n';
+            }, '');
+    },
+    getRules: function() {
+        return this.rules;
+    },
+    getOriginMorph: function() {
+        return this.originMorph;
+    }
+},
+'Setter', {
+    setRules: function(rules) {
+        this.rules = rules || [];
+    },
+    setOriginMorph: function(morph) {
+        this.originMorph = morph;
+    }
+}
+);
+
+Object.subclass('lively.morphic.StyleSheetRule',
+'init', {
+    initialize: function(styleSheet, declarations, selector) {
+        this.declarations = declarations || [];
+        this.styleSheet = styleSheet;
+        this.selector = selector || '';
+    }
+},
+'Getter', {
+    getDeclarations: function() {
+        return this.declarations.clone();
+    },
+    getStyleSheet: function() {
+        return this.styleSheet;
+    },
+    getOriginMorph: function() {
+        return this.styleSheet ? this.styleSheet.getOriginMorph() : null;
+    },
+    getSelector: function() {
+        return this.selector;
+    },
+    getText: function() {
+        var result = '';
+        result += this.selector;
+        result += '{\n';
+        this.declarations.each(function(decl) {
+                result += decl.getText() + '\n';
+            });
+        result += '}';
+        return result;
+    }
+},
+'Setter', {
+    setDeclarations: function(declarations) {
+        this.declarations = declarations || [];
+    },
+    setStyleSheet: function(styleSheet) {
+        this.styleSheet = styleSheet;
+    },
+    setSelector: function(selector) {
+        this.selector = selector;
+    }
+}
+);
+
+lively.morphic.StyleSheetRule.subclass('lively.morphic.StyleSheetComment',
+'init', {
+    initialize: function(styleSheet, comment) {
+        this.comment = comment || '\n';
+        this.styleSheet = styleSheet;
+        $super(styleSheet);
+    }
+},
+'Getter', {
+    getText: function() {
+        return this.text;
+    }
+},
+'Setter', {
+    setComment: function(comment) {
+        this.comment = comment || '\n';
+    }
+}
+);
+
+
+Object.subclass('lively.morphic.StyleSheetDeclaration',
+'init', {
+    initialize: function(rule, property, values, priority) {
+        this.values = values || [];
+        this.rule = rule;
+        this.property = property || '';
+        this.priority = priority || false;
+    }
+},
+'Getter', {
+    getValues: function() {
+        return this.values.clone();
+    },
+    getStyleSheet: function() {
+        return this.rule ? this.rule.getStyleSheet() : null;
+    },
+    getRule: function() {
+        return this.rule;
+    },
+    getOriginMorph: function() {
+        return this.getStyleSheet() ? this.getStyleSheet().getOriginMorph() : null;
+    },
+    getProperty: function() {
+        return this.property;
+    },
+    getPriority: function() {
+        return this.priority;
+    },
+    getText: function() {
+        var result = '';
+        result += this.property;
+        result += ':';
+        this.values.each(function(value) {
+                result += ' ' + value;
+            });
+        result += ';';
+        return result;
+    }
+},
+'Setter', {
+    setValues: function(values) {
+        this.values = values || [];
+    },
+    setRule: function(rule) {
+        this.rule = rule;
+    },
+    setProperty: function(property) {
+        this.property = property || '';
+    },
+    setPriority: function(priority) {
+        this.priority = priority || false;
+    }
+}
+);
+
 lively.morphic.Shapes.Shape.addMethods(
 'Styling', {
     setAppearanceStylingMode: function(value) {
@@ -1943,16 +2094,16 @@ Object.subclass("lively.morphic.Sizzle",
 
 Trait('WorldStyleSheetMenuTrait',
 'menu items', {
-	morphMenuItems: lively.morphic.World.prototype.morphMenuItems.wrap(function(proceed) {
-		var items = proceed();
-		for(var i = 0; i < items.length; i++) {
+    morphMenuItems: lively.morphic.World.prototype.morphMenuItems.wrap(function(proceed) {
+        var items = proceed();
+        for(var i = 0; i < items.length; i++) {
             if (items[i][0] === "Preferences") {
-				items[i][1].push(['Edit world CSS', this.openWorldCSSEditor.bind(this)]);
+                items[i][1].push(['Edit world CSS', this.openWorldCSSEditor.bind(this)]);
             }
         }
-		return items;
-	})
+	return items;
+    })
 }).applyTo(lively.morphic.World, {override: 'morphMenuItems'});
 
 
-}); // end of module
+}); // end of module}); // end of module

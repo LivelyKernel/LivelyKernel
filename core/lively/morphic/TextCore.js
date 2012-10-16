@@ -3164,7 +3164,8 @@ Object.extend(lively.morphic.HTMLParser, {
         } catch (e) {
             // JENS: logError breaks browser under windows?
             alert("PASTE ERROR: " + e + '\n could not paste: ' + string +'\n'
-                 + 'please report problem on: http://lively-kernel.org/trac')
+                 + 'please report problem on: http://lively-kernel.org/trac');
+            throw e
         }
         return node;
     },

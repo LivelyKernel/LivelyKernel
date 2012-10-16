@@ -469,16 +469,116 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
 
             'Style node content is missing the declaration');
 
-    },
-    test04MorphStyling: function() {
-        // Are the morphs selected by the browser the way we want?
-        
-        
     }
 
 
 });
 
 
+AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Selectors',
+'running', {
+    setUp: function($super) {
+        $super();
+        this.sizzle = new lively.morphic.Sizzle();
+this.createSomeMorphs();
+    },
+
+ tearDown: function() {
+        this.yellowRectangle.remove();
+    },
+
+},
+'testing', {
+    test01ClassSelector: function() {
+        
+        this.assertSelector(this.redRectangle, this.yellowRectangle, '.red', 'Could not select red rectangle via ".red"');
+
+    },
+    test02IdSelector: function() {
+        this.assertSelector(this.blueRectangle2, this.yellowRectangle, '#b2', 'Could not select blue 2 via "#b2"');
+    },
+    test03LevelOneChildSelector: function() {
+        this.assertSelector(this.redRectangle, this.yellowRectangle,
+            '.yellow > .red', 'Could not select red via ".yellow > .red"');
+    },
+    test04LevelTwoChildSelector: function() {
+        this.assertSelector(this.blueRectangle1, this.yellowRectangle,
+            '.yellow > .red > #b1', 'Could not select b1 via ".yellow > .red > #b1"');
+    },
+
+
+
+    assertSelector: function(morph, context, selector, msg) {
+        var test = this;
+        var shapeNode = morph.renderContext().shapeNode;
+        this.assert(shapeNode, msg+': No shapeNode! Whats going on here?');
+
+        var selection = this.sizzle.select(selector, context).first();
+        this.assert(selection,
+            msg+': No morphs could be selected by "'+ selector + '"');
+        this.assertEquals(morph, selection, msg+': Sizzle morph select did not work');
+
+        context.setStyleSheet(selector+' {outline: 12px solid purple;}');
+
+        this.delay(function() {
+            console.log(shapeNode)
+         this.assertEquals('12px', window.getComputedStyle(shapeNode)['outline-width'],
+            msg+': Style was not applied on node');
+            test.done();
+        }, 1);
+
+    },
+
+    createSomeMorphs: function() {
+        // this method creates 4 morphs: yellowRectange is the ouyter parent
+        // redRectangle its embedded submorph, blueRectangle1, blueRectangle1
+        // are its submorphs
+        var yellowRectangle = lively.morphic.Morph.makeRectangle(0,0, 300, 300);
+        yellowRectangle.applyStyle({fill: Color.yellow});
+        yellowRectangle.tagName = 'YellowRectangle';
+        yellowRectangle.testAttribute = 'theYellowRectangle';
+        yellowRectangle.openInWorld();
+        yellowRectangle.addStyleClassName('yellow');
+
+        var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
+        redRectangle.applyStyle({fill: Color.red});
+        redRectangle.addStyleClassName('red');
+        redRectangle.setStyleId('the-red-rectangle');
+        redRectangle.testAttribute = 'theRedRectangle';
+        yellowRectangle.addMorph(redRectangle);
+
+        var blueRectangle1 = lively.morphic.Morph.makeRectangle(10, 10, 150, 100);
+        blueRectangle1.applyStyle({fill: Color.blue});
+        blueRectangle1.addStyleClassName('blue');
+        blueRectangle1.setStyleId('b1');
+        redRectangle.addMorph(blueRectangle1);
+
+        var blueRectangle2 = lively.morphic.Morph.makeRectangle(10, 160, 150, 80);
+        blueRectangle2.applyStyle({fill: Color.blue});
+        blueRectangle2.addStyleClassName('blue');
+        blueRectangle2.setStyleId('b2');
+        blueRectangle2.tagName = 'blueRectangleTag';
+        redRectangle.addMorph(blueRectangle2);
+
+        this.yellowRectangle = yellowRectangle;
+        this.redRectangle = redRectangle;
+        this.blueRectangle1 = blueRectangle1;
+        this.blueRectangle2 = blueRectangle2;
+
+    },
+    assertArray: function(anticipated, actual, msg) {
+        this.assertArrayIsSubset(anticipated, actual, msg);
+        this.assertArrayIsSubset(actual, anticipated, msg);
+    },
+    assertArrayIsSubset: function(outerArray, innerArray, msg) {
+        var outer = outerArray.uniq(),
+            inner = innerArray.uniq();
+        return this.assert(inner.select(function(x) {
+                return outer.find(function(y) {return x === y;}) != undefined;
+            }).length === inner.length,
+            msg+'  -  '+ outerArray+' vs. '+innerArray);
+    },
+
+});
 
 })// end of module

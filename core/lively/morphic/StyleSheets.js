@@ -3,8 +3,8 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
 Object.subclass('lively.morphic.StyleSheet',
 'init', {
     initialize: function(rules, originMorph) {
-        this.rules = rules || [];
-        this.originMorph = originMorph;
+        this.setRules(rules);
+        this.setOriginMorph(originMorph);
     }
 },
 'Getter', {
@@ -23,6 +23,9 @@ Object.subclass('lively.morphic.StyleSheet',
 'Setter', {
     setRules: function(rules) {
         this.rules = rules || [];
+        this.rules.each(function(rule) {
+                rule.setStyleSheet(this);
+            }, this);
     },
     setOriginMorph: function(morph) {
         this.originMorph = morph;
@@ -32,10 +35,10 @@ Object.subclass('lively.morphic.StyleSheet',
 
 Object.subclass('lively.morphic.StyleSheetRule',
 'init', {
-    initialize: function(styleSheet, declarations, selector) {
-        this.declarations = declarations || [];
-        this.styleSheet = styleSheet;
-        this.selector = selector || '';
+    initialize: function(selector, declarations, styleSheet) {
+        this.setDeclarations(declarations);
+        this.setStyleSheet(styleSheet);
+        this.setSelector(selector);
     }
 },
 'Getter', {
@@ -56,7 +59,7 @@ Object.subclass('lively.morphic.StyleSheetRule',
         result += this.selector;
         result += '{\n';
         this.declarations.each(function(decl) {
-                result += decl.getText() + '\n';
+                result += '\t' + decl.getText() + '\n';
             });
         result += '}';
         return result;
@@ -65,27 +68,29 @@ Object.subclass('lively.morphic.StyleSheetRule',
 'Setter', {
     setDeclarations: function(declarations) {
         this.declarations = declarations || [];
+        this.declarations.each(function(decl) {
+                decl.setRule(this);
+            }, this);
     },
     setStyleSheet: function(styleSheet) {
         this.styleSheet = styleSheet;
     },
     setSelector: function(selector) {
-        this.selector = selector;
+        this.selector = selector || '';
     }
 }
 );
 
 lively.morphic.StyleSheetRule.subclass('lively.morphic.StyleSheetComment',
 'init', {
-    initialize: function(styleSheet, comment) {
-        this.comment = comment || '\n';
-        this.styleSheet = styleSheet;
+    initialize: function($super, comment, styleSheet) {
+        this.setComment(comment);
         $super(styleSheet);
     }
 },
 'Getter', {
     getText: function() {
-        return this.text;
+        return this.comment;
     }
 },
 'Setter', {
@@ -98,11 +103,11 @@ lively.morphic.StyleSheetRule.subclass('lively.morphic.StyleSheetComment',
 
 Object.subclass('lively.morphic.StyleSheetDeclaration',
 'init', {
-    initialize: function(rule, property, values, priority) {
-        this.values = values || [];
-        this.rule = rule;
-        this.property = property || '';
-        this.priority = priority || false;
+    initialize: function(property, values, rule, priority) {
+        this.setValues(values);
+        this.setRule(rule);
+        this.setProperty(property);
+        this.setPriority(priority);
     }
 },
 'Getter', {

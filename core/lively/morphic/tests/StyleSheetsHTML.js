@@ -490,42 +490,157 @@ this.createSomeMorphs();
 },
 'testing', {
     test01ClassSelector: function() {
-        
-        this.assertSelector(this.redRectangle, this.yellowRectangle, '.red', 'Could not select red rectangle via ".red"');
+        this.assertSelector([this.redRectangle],
+            [this.yellowRectangle, this.blueRectangle1, this.blueRectangle2],
+            this.yellowRectangle, '.red',
+            'Could not select red rectangle via ".red"');
 
     },
     test02IdSelector: function() {
-        this.assertSelector(this.blueRectangle2, this.yellowRectangle, '#b2', 'Could not select blue 2 via "#b2"');
+        this.assertSelector([this.blueRectangle2],
+            [this.yellowRectangle, this.blueRectangle1, this.redRectangle],
+            this.yellowRectangle, '#b2', 'Could not select blue 2 via "#b2"');
     },
-    test03LevelOneChildSelector: function() {
-        this.assertSelector(this.redRectangle, this.yellowRectangle,
+    test03DescendantOf: function() {
+        this.assertSelector([this.blueRectangle2, this.blueRectangle1],
+            [this.yellowRectangle, this.redRectangle],
+            this.yellowRectangle, '.red .blue',
+            'Could not select blue 1 & 2 via ".red .blue"');
+    },
+
+    test04LevelOneChildSelector: function() {
+        this.assertSelector([this.redRectangle],
+            [this.yellowRectangle, this.blueRectangle1, this.blueRectangle2],
+            this.yellowRectangle,
             '.yellow > .red', 'Could not select red via ".yellow > .red"');
     },
-    test04LevelTwoChildSelector: function() {
-        this.assertSelector(this.blueRectangle1, this.yellowRectangle,
-            '.yellow > .red > #b1', 'Could not select b1 via ".yellow > .red > #b1"');
+    test05LevelTwoChildSelector: function() {
+        this.assertSelector([this.blueRectangle1],
+            [this.yellowRectangle, this.blueRectangle2, this.redRectangle],
+            this.yellowRectangle,
+            '.yellow > .red > #b1',
+            'Could not select b1 via ".yellow > .red > #b1"');
+    },
+    test06Empty: function() {
+        this.assertSelector([this.blueRectangle1, this.blueRectangle2],
+            [this.yellowRectangle, this.redRectangle],
+            this.yellowRectangle,
+            ':empty', 'Could not select b1 and b2 via ":empty"');
+    },
+    test07FirstChild: function() {
+        this.done()
+        /*
+         *  ":first-child" not supported yet
+         *
+
+        this.assertSelector([this.blueRectangle1],
+            [this.yellowRectangle, this.redRectangle, this.blueRectangle2],
+            this.yellowRectangle,
+            '.red :first-child', 'Could not select b1 via ".red :first-child"');
+
+        */
+    },
+    test08NthChild: function() {
+        this.done()
+        /*
+         *  ":nth-child" not supported yet
+         *
+
+        this.assertSelector([this.blueRectangle2],
+            [this.yellowRectangle, this.redRectangle, this.blueRectangle1],
+            this.yellowRectangle,
+            '.red :nth-child(2)', 'Could not select b2 via ".red :nth-child(2)"');
+
+        */
+
+    },
+    test09LastChild: function() {
+        this.done()
+        /*
+         *  ":last-child" not supported yet
+         *
+
+        this.assertSelector([this.blueRectangle2],
+            [this.yellowRectangle, this.redRectangle, this.blueRectangle1],
+            this.yellowRectangle,
+            '.red :last-child', 'Could not select b2 via ".red :last-child"');
+
+        */
+
+    },
+    test10ImmediatleyPrecededBy: function() {
+        this.done()
+        /*
+         *  "+" not supported yet
+         *
+
+        this.assertSelector([this.blueRectangle2],
+            [this.yellowRectangle, this.redRectangle, this.blueRectangle1],
+            this.yellowRectangle,
+            '.blue + .blue', 'Could not select b2 via ".blue + .blue"');
+
+        */
+
+    },
+    test11PrecededBy: function() {
+        this.done()
+        /*
+         *  "~" not supported yet
+         *
+
+        this.assertSelector([this.blueRectangle2],
+            [this.yellowRectangle, this.redRectangle, this.blueRectangle1],
+            this.yellowRectangle,
+            '.blue ~ .blue', 'Could not select b2 via ".blue ~ .blue"');
+
+        */
+
+    },
+    test12Not: function() {
+        this.assertSelector([this.blueRectangle2],
+            [this.yellowRectangle, this.redRectangle, this.blueRectangle1],
+            this.yellowRectangle,
+            '.blue:not(.the-first-blue-rect)',
+            'Could not select b2 via ".blue:not(.the-first-blue-rect)"');
     },
 
 
 
-    assertSelector: function(morph, context, selector, msg) {
-        var test = this;
-        var shapeNode = morph.renderContext().shapeNode;
-        this.assert(shapeNode, msg+': No shapeNode! Whats going on here?');
 
-        var selection = this.sizzle.select(selector, context).first();
-        this.assert(selection,
-            msg+': No morphs could be selected by "'+ selector + '"');
-        this.assertEquals(morph, selection, msg+': Sizzle morph select did not work');
+
+
+
+
+
+
+    assertSelector: function(selectedMorphs, nonSelectedMorphs, context, selector, msg) {
+        var test = this;
+
+        var selection = this.sizzle.select(selector, context);
+        this.assertArray(selection, selectedMorphs, msg+': Sizzle select did fail');
 
         context.setStyleSheet(selector+' {outline: 12px solid purple;}');
 
         this.delay(function() {
-            console.log(shapeNode)
-         this.assertEquals('12px', window.getComputedStyle(shapeNode)['outline-width'],
-            msg+': Style was not applied on node');
+            selectedMorphs.each(function(m) {
+                    var shapeNode = m.renderContext().shapeNode;
+                    this.assert(shapeNode,
+                        msg+': No shapeNode! Whats going on here?');
+                    this.assertEquals('12px',
+                        window.getComputedStyle(shapeNode)['outline-width'],
+                         msg+': Style was not applied on a node');
+                }, this);
+            nonSelectedMorphs.each(function(m) {
+                    var shapeNode = m.renderContext().shapeNode;
+                    this.assert(shapeNode,
+                        msg+': No shapeNode! Whats going on here?');
+                    this.assertEquals('0px',
+                        window.getComputedStyle(shapeNode)['outline-width'],
+                         msg+': Style was mistakenly applied on a node');
+                }, this);
+
             test.done();
-        }, 1);
+        }, 0.1);
 
     },
 
@@ -550,6 +665,7 @@ this.createSomeMorphs();
         var blueRectangle1 = lively.morphic.Morph.makeRectangle(10, 10, 150, 100);
         blueRectangle1.applyStyle({fill: Color.blue});
         blueRectangle1.addStyleClassName('blue');
+        blueRectangle1.addStyleClassName('the-first-blue-rect');
         blueRectangle1.setStyleId('b1');
         redRectangle.addMorph(blueRectangle1);
 

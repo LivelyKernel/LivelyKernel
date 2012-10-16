@@ -1,7 +1,5 @@
 module('lively.morphic.tests.StyleSheetsHTML').requires('lively.morphic.tests.Helper', 'lively.morphic.HTML', 'lively.morphic.StyleSheets', 'lively.morphic.StyleSheetsHTML').toRun(function() {
 
-
-
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.Helpers',
 
 'running', {
@@ -469,6 +467,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
 
             'Style node content is missing the declaration');
 
+    },
+    test04Remove: function() {
+        // is stylenode removed when morph is removed?
+
+        this.morph.setStyleSheet('.test-class { color: black;}');
+        var styleNode = this.morph.renderContext().styleNode;
+
+        this.morph.remove();
+
+        this.assert(!styleNode.parentNode,
+            'Morph has been remove, but its stylenode is still in document.')
     }
 
 

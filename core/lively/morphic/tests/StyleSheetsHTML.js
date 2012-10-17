@@ -72,11 +72,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
 
 
 
-            rules = apps.cssParser.parse(css).cssRules,
+            rules = apps.cssParser.parse(css).getRules(),
 
             comp = this.morph.compileStyleSheet(rules),
 
-            decomp = apps.cssParser.parse(comp).cssRules;
+            decomp = apps.cssParser.parse(comp).getRules();
 
 
 

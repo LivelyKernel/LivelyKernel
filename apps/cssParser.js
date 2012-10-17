@@ -1,4 +1,4 @@
-module('apps.cssParser').requires('lively.Network').toRun(function(m) {
+module('apps.cssParser').requires('lively.Network', 'lively.morphic.StyleSheetRepresentation').toRun(function(m) {
 
 (function loadLib() {
     // FIXME load async!
@@ -47,7 +47,38 @@ Object.extend(apps.cssParser, {
         return tagCount + 10*classCount + 100*idCount;
     },
 
-    parse: function(cssString) {
+    convertParsedStyleSheet: function(styleSheet, originMorph) {
+        // Convert JSCSSP obj to our own style sheet object
+        return new lively.morphic.StyleSheet(
+                styleSheet.cssRules.collect(function(rule) {
+                    if (rule.type === 0) {
+                        // Rule could not be parsed
+                        console.warn('CSS Error '+rule.error+': '+rule.parsedCssText);
+                        return new lively.morphic.StyleSheetComment(
+                                '/* CSS Error ' + rule.error + ':\n'
+                                    + rule.parsedCssText + '*/'
+                            );
+	           } else {
+                        return new lively.morphic.StyleSheetRule(
+                                rule.selectorText(),
+                                rule.declarations.collect(function(decl) {
+                                        return new lively.morphic.StyleSheetDeclaration(
+                                                decl.property,
+                                                decl.values.collect(function(val) {
+                                                        return val.value;
+                                                    }),
+                                                null,
+                                                decl.priority
+                                            )
+                                    })
+                            );
+	           }
+                }),
+                originMorph
+            );
+    },
+
+    parse: function(cssString, originMorph) {
         // cssString should specifiy the css rules, e.g.
         // ".some-class { color: red; }"
         // returns the rules as javascript objects with the interface:
@@ -55,6 +86,12 @@ Object.extend(apps.cssParser, {
 
         var parser = new apps.cssParser.CSSParser(),
             parsedStyleSheet = parser.parse(cssString, false, true);
+
+        return this.convertParsedStyleSheet(parsedStyleSheet, originMorph);
+
+        /*
+        debugger
+        console.log(this.convertParsedStyleSheet(parsedStyleSheet));
 
         if (parsedStyleSheet) {
 
@@ -75,6 +112,8 @@ Object.extend(apps.cssParser, {
             })
         }
         else return [];
+        */
+
     },
 
 });

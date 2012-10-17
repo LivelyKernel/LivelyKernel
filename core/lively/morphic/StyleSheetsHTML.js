@@ -128,22 +128,23 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                 rules = optCssRules || this.getStyleSheetRules();
 
             rules.each(function (rule) {
-                if (rule.selectorText && rule.declarations) {
-                    var selector = this.replaceChildOp(rule.selectorText()),
+                if (rule.getSelector && rule.declarations) {
+                    var selector = this.replaceChildOp(rule.getSelector()),
                         selectors = this.splitGroupedSelector(selector),
-                        newSelector = '';
+                        newSelector = '',
+                        newRule;
                     for (var i = 0; i < selectors.length; i++) {
                         newSelector += this.addSelectorPrefixes(selectors[i]);
                         if (i < selectors.length - 1) {
                             newSelector += ', ';
                         }
                     }
-                    output += newSelector + ' {';
-                    output += '\n';
-                    rule.declarations.each(function (d) {
-                        output += '\t' + d.cssText() + '\n';
-                    });
-                    output += '}\n';
+
+                    newRule = new lively.morphic.StyleSheetRule(
+                            newSelector,
+                            rule.getDeclarations()
+                        );
+                    output += newRule.getText();
                 }
             }, this);
             return output;

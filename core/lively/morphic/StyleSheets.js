@@ -157,9 +157,8 @@ lively.morphic.Morph.addMethods(
     setStyleSheet: function(styleSheet) {
         if (styleSheet.isStyleSheet) {
             return this.morphicSetter('StyleSheet', styleSheet);
-        }
-        else if (typeof(styleSheet) === 'string' && styleSheet.length > 0) {
-            var parsedStyleSheet = apps.cssParser.parse(styleSheet);
+        } else if (typeof(styleSheet) === 'string' && styleSheet.length > 0) {
+            var parsedStyleSheet = apps.cssParser.parse(styleSheet, this);
             return this.morphicSetter('StyleSheet', parsedStyleSheet);
         } else {
             this.morphicSetter('StyleSheet', null);
@@ -229,7 +228,7 @@ lively.morphic.Morph.addMethods(
         // Extracts the CSS rules out of a style sheet.
         // Returns the rules as an array.
         var styleSheet = this.getStyleSheet();
-        return styleSheet ? styleSheet.getRules() : [];
+        return (styleSheet && styleSheet.getRules) ? styleSheet.getRules() : [];
     },
     getParsedStyleSheet: function() {
         /*
@@ -332,8 +331,8 @@ lively.morphic.Morph.addMethods(
                 var specA = thisMorph.getStyleSheetRuleSpecificity(a),
                     specB = thisMorph.getStyleSheetRuleSpecificity(b);
                 if (specA === specB) {
-                    if (a.originMorph !== b.originMorph) {
-                        return b.originMorph.isAncestorOf(a.originMorph);
+                    if (a.getOriginMorph()!== b.getOriginMorph()) {
+                        return b.getOriginMorph().isAncestorOf(a.getOriginMorph());
                     } else {
                         return false;
                         // order ok like this?

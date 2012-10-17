@@ -140,6 +140,9 @@ Object.subclass('lively.morphic.StyleSheetDeclaration',
         this.values.each(function(value) {
                 result += ' ' + value;
             });
+        if (this.getPriority()) {
+            result += ' !important';
+        }
         result += ';';
         return result;
     }

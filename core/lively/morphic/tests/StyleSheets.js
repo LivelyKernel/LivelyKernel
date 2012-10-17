@@ -636,8 +636,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 
     },
 
-    test07GetStyleSheetDeclarations: function() {
-
+    test07GetAggregatedMatchingStyleSheetDeclarations: function() {
+        
         var css = '.blue{ background-color: blue; }'+
                 '#blue2.blue { background-color: black; }'+
                 '.blue:nth-child(2) { background-color: yellow!important; }'+
@@ -645,25 +645,25 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                 '#the-red-rectangle { background-color: red; }',
             getDecl = function(decls, property){
                     return decls.filter(function(d){
-                            return (d.property === property)
-                        }).first().values.first();
+                            return (d.getProperty() === property)
+                        }).first().getValues().first();
                 };
         this.createSomeMorphs(); // sets up a hierarchy of morphs
 
         this.world.setStyleSheet(css);
 
-        var blue1Styles = this.blueRectangle1.getStyleSheetDeclarations(),
+        var blue1Styles = this.blueRectangle1.getAggregatedMatchingStyleSheetDeclarations(),
             blueStyles1BackgroundColorValue = getDecl(blue1Styles, 'background-color');
         this.assertEquals('blue', blueStyles1BackgroundColorValue,
             'background-color of blue1 should be blue');
 
-        var blue2Styles = this.blueRectangle2.getStyleSheetDeclarations(),
+        var blue2Styles = this.blueRectangle2.getAggregatedMatchingStyleSheetDeclarations(),
             blueStyles2BackgroundColorValue = getDecl(blue2Styles, 'background-color');
 
         this.assertEquals('yellow', blueStyles2BackgroundColorValue,
             'background-color of blue2 should be yellow');
 
-        var redStyles = this.redRectangle.getStyleSheetDeclarations(),
+        var redStyles = this.redRectangle.getAggregatedMatchingStyleSheetDeclarations(),
             redBackgroundColorValue = getDecl(redStyles, 'background-color'),
             redTextColorValue = getDecl(redStyles, 'color');
 

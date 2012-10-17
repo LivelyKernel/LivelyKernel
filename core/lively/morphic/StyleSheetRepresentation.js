@@ -92,7 +92,7 @@ lively.morphic.StyleSheetRule.subclass('lively.morphic.StyleSheetComment',
     isStyleSheetComment: true,
     initialize: function($super, comment, styleSheet) {
         this.setComment(comment);
-        $super(styleSheet);
+        $super('', [], styleSheet);
     }
 },
 'Getter', {
@@ -107,6 +107,31 @@ lively.morphic.StyleSheetRule.subclass('lively.morphic.StyleSheetComment',
 }
 );
 
+lively.morphic.StyleSheetRule.subclass('lively.morphic.StyleSheetFontFaceRule',
+'init', {
+    isStyleSheetFontFaceRule: true,
+    initialize: function($super, declarations, styleSheet) {
+        $super('', declarations, styleSheet);
+    }
+},
+'Getter', {
+    getText: function() {
+        // Returns the CSS formated text of the rule
+        var result = '';
+        result += '@font-face {\n';
+        this.declarations.each(function(decl) {
+                result += '\t' + decl.getText() + '\n';
+            });
+        result += '}';
+        return result;
+    }
+},
+'Setter', {
+    setComment: function(comment) {
+        this.comment = comment || '\n';
+    }
+}
+);
 
 Object.subclass('lively.morphic.StyleSheetDeclaration',
 'init', {

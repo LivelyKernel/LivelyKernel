@@ -731,7 +731,40 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
 
         this.assertEquals(styleSheet, parsedStyleSheet.getText(),
             'CSS text output not as expected');
+    },
+    test04RepeatedParsing: function() {
+        var styleSheet =
+                '.Morph{\n'+
+                '\tbackground: white !important;\n'+
+                '\tborder: 10px solid purple;\n'+
+                '}\n\n'+
+                '/* test */',
+            parsedStyleSheet = apps.cssParser.parse(styleSheet),
+            doubleparsedStyleSheet
+                = apps.cssParser.parse(parsedStyleSheet.getText());
+        this.assertEquals(parsedStyleSheet.getText(),
+            doubleparsedStyleSheet.getText(),
+            'Style sheet output is not the same after repeated parsing');
+    },
+    test05ParseFontFaceRule: function() {
+        var ffRule = '@font-face {\n'+
+            'font-family: Gentium;\n'+
+            'src: url(http://example.com/fonts/Gentium.ttf);\n}',
+
+            parsedCss = apps.cssParser.parse(ffRule);
+
+        this.assertEquals(1, parsedCss.getRules().length,
+            'Parsed font face rule sheet has not exactly one rule');
+
+        var f = parsedCss.getRules().first();
+
+        this.assert(f.isStyleSheetFontFaceRule,
+            'First rule is not a lively font face rule');
+
+        this.assertEquals('', f.getSelector(),
+            'Selector of FF rule is not ""');
     }
+
 
 });
 

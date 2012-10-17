@@ -92,8 +92,18 @@ Object.extend(apps.cssParser, {
                             return notSupportedRuleAsComment(
                                 'Media rules not supported yet, sry!', rule);
                         case 5:
-                            return notSupportedRuleAsComment(
-                                'Font face rules not supported yet, sry!', rule);
+                            return new lively.morphic.StyleSheetFontFaceRule(
+                                    rule.descriptors.collect(function(decl) {
+                                            return new lively.morphic.StyleSheetDeclaration(
+                                                    decl.property,
+                                                    decl.values.collect(function(val) {
+                                                            return val.value;
+                                                        }),
+                                                    null,
+                                                    decl.priority
+                                                )
+                                        })
+                                );
                         case 6:
                             return notSupportedRuleAsComment(
                                 'Page rules not supported yet, sry!', rule);
@@ -158,3 +168,5 @@ Object.extend(apps.cssParser, {
 });
 
 }); // end of module
+
+

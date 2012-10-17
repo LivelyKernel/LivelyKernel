@@ -95,7 +95,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
         appendHTML: lively.morphic.Morph.prototype.appendHTML.wrap(function (proceed, ctx, optMorphAfter) {
             proceed(ctx, optMorphAfter);
             this.prepareDOMForStyleSheetsHTML(ctx);
-            this.setStyleSheetHTML(ctx, this.getStyleSheet());
+            this.setStyleSheetHTML(ctx, this.getParsedStyleSheet());
 
             // Mark morphNode if it's not the same as the shapeNode
             if (ctx.morphNode && ctx.morphNode !== ctx.shapeNode) {
@@ -128,7 +128,11 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                 rules = optCssRules || this.getStyleSheetRules();
 
             rules.each(function (rule) {
-                if (rule.getSelector && rule.declarations) {
+                if (rule.isStyleSheetFontFaceRule) {
+                    output += rule.getText() + '\n';
+                } else if (rule.isStyleSheetComment){
+                    // do not include comments
+                } else if (rule.getSelector && rule.declarations) {
                     var selector = this.replaceChildOp(rule.getSelector()),
                         selectors = this.splitGroupedSelector(selector),
                         newSelector = '',
@@ -144,7 +148,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                             newSelector,
                             rule.getDeclarations()
                         );
-                    output += newRule.getText();
+                    output += newRule.getText() + '\n';
                 }
             }, this);
             return output;

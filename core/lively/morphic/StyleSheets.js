@@ -156,7 +156,7 @@ lively.morphic.Morph.addMethods(
 
     setStyleSheet: function(styleSheet) {
         if (styleSheet.isStyleSheet) {
-            return this.morphicSetter('StyleSheet', styleSheet);
+            return this.setParsedStyleSheet(styleSheet);
         } else if (typeof(styleSheet) === 'string' && styleSheet.length > 0) {
             var parsedStyleSheet = apps.cssParser.parse(styleSheet, this);
             return this.morphicSetter('StyleSheet', parsedStyleSheet);
@@ -165,6 +165,15 @@ lively.morphic.Morph.addMethods(
             delete this._StyleSheet;
         }
     },
+    setParsedStyleSheet: function(styleSheet) {
+        if (styleSheet.isStyleSheet) {
+            return this.morphicSetter('StyleSheet', styleSheet);
+        } else {
+            this.morphicSetter('StyleSheet', null);
+            delete this._StyleSheet;
+        }
+    },
+
 
 	loadStyleSheetFromFile: function(file, resourcePath){
 		// use the resourcePath parameter if the resources addressed
@@ -216,35 +225,19 @@ lively.morphic.Morph.addMethods(
 		},
 
     getStyleSheet: function() {
+        return this.getParsedStyleSheet().getText();
+    },
+
+    getParsedStyleSheet: function() {
         return this.morphicGetter('StyleSheet');
     },
 
-    setStyleSheetRules: function(styleSheetRules) {
-        // DEPRECATED
-        alert('setStyleSheetRules is deprecated!');
-        //return this.morphicSetter('StyleSheetRules', styleSheetRules);
-    },
     getStyleSheetRules: function() {
         // Extracts the CSS rules out of a style sheet.
         // Returns the rules as an array.
-        var styleSheet = this.getStyleSheet();
+        var styleSheet = this.getParsedStyleSheet();
         return (styleSheet && styleSheet.getRules) ? styleSheet.getRules() : [];
     },
-    getParsedStyleSheet: function() {
-        /*
-
-        DEPRECATED
-
-        var styleSheet = this.getStyleSheet(),
-            parsedStyleSheet = apps.cssParser.parse(styleSheet);
-        parsedStyleSheet.originMorph = this;
-        return parsedStyleSheet;
-        */
-        console.warn('getParsedStyleSheet is deprecated, but was called by '+
-            arguments.callee.caller.toString());
-        return this.getStyleSheet();
-    }
-
 },
 'Style sheet interpretation', {
     clearStyleRulesInSubmorphs: function() {

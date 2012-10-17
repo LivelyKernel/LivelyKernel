@@ -10,8 +10,11 @@ Object.subclass('lively.morphic.StyleSheet',
 },
 'Getter', {
     getText: function() {
-        return this.rules.reduce(function(prev, rule) {
-                return prev + rule.getText() + '\n';
+        // Returns the CSS formated text of the style sheet
+        return this.rules.reduce(function(prev, rule, i, rules) {
+                // Add two newlines after each rule, except the last
+                return prev + rule.getText()
+                    + (i < rules.length - 1 ? '\n\n' : '');
             }, '');
     },
     getRules: function() {
@@ -57,6 +60,7 @@ Object.subclass('lively.morphic.StyleSheetRule',
         return this.selector;
     },
     getText: function() {
+        // Returns the CSS formated text of the rule
         var result = '';
         result += this.selector;
         result += '{\n';
@@ -134,6 +138,7 @@ Object.subclass('lively.morphic.StyleSheetDeclaration',
         return this.priority;
     },
     getText: function() {
+        // Returns the CSS formated text of the style declaration (i.e. 'property: values;')
         var result = '';
         result += this.property;
         result += ':';

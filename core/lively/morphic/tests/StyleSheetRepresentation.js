@@ -12,7 +12,8 @@ TestCase.subclass('lively.morphic.tests.StyleSheetRepresentation.StyleSheetObjec
                         [
                             new lively.morphic.StyleSheetDeclaration(
                                     'background',
-                                    ['white']
+                                    ['white'],
+                                    null, true //important
                                 ),
                             new lively.morphic.StyleSheetDeclaration(
                                     'border',
@@ -72,10 +73,10 @@ TestCase.subclass('lively.morphic.tests.StyleSheetRepresentation.StyleSheetObjec
     test05GetText: function() {
         var text =
                 '.Morph{\n'+
-                '\tbackground: white;\n'+
+                '\tbackground: white !important;\n'+
                 '\tborder: 10px solid purple;\n'+
-                '}\n'+
-                '/* test */\n';
+                '}\n\n'+
+                '/* test */';
         this.assertEquals(text, this.styleSheetObj.getText(),
             'Output of style sheet not as expected');
     }

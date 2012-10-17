@@ -15,79 +15,52 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
 'testing', {
 
     test01SplitGroupedSelector: function() {
-
         this.assertEqualState(
-
             ['.test test'],
-
             this.morph.splitGroupedSelector('.test test'),
-
             'Splitting did not produce the same selector for non grouped selector');
 
         this.assertEqualState(
-
             ['.test test', 'test', '*#test > test', '.test'],
-
             this.morph.splitGroupedSelector('.test test, test,*#test > test   ,.test'),
-
             'Splitting did not work alright');
-
     },
 
     test02AddSelectorPrefixes: function() {
-
         this.assertEquals(
-
             '*[morphid="'+this.morph.id+'"] .test test, *[morphid="'+this.morph.id+'"].test test',
-
             this.morph.addSelectorPrefixes('.test test'),
-
             'Prefix were not added correctly');
 
         this.assertEquals(
+            '',
+            this.morph.addSelectorPrefixes(''),
+            'Empty selector is returned empty again');
 
+        this.assertEquals(
             '*[morphid="'+this.morph.id+'"] test, test[morphid="'+this.morph.id+'"]',
-
             this.morph.addSelectorPrefixes('test'),
-
             'Tagname did not go first when the selector prefixes are added');
-
-
-
     },
 
     test03CompileStyleSheet: function() {
 
         var css = '.test {'+
-
                 'color: purple;'+
-
                 '}'+
-
                 'test, *#test, #test-two.test3 {'+
-
                 'border: 1px solid red;'+
-
                 '}',
 
-
-
             rules = apps.cssParser.parse(css).getRules(),
-
             comp = this.morph.compileStyleSheet(rules),
-
             decomp = apps.cssParser.parse(comp).getRules();
 
-
-
         this.assert((comp && comp.length > 0),
-
             'Compiled style sheet has to be longer than 0');
 
         this.assertEquals(2, decomp.length,
-
             'Decompiled style sheet has to have 2 rules');
-
     },
 
     test04AppendStyleNode: function() {

@@ -108,9 +108,15 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                 $(ownerCtx.originNode).attr('node-type', 'origin-node');
             }
 
+        }),
+        setNewId: lively.morphic.Morph.prototype.setNewId.wrap(function (proceed, optId) {
+            proceed(optId);
+            if (this.isRendered()) {
+                this.prepareDOMForStyleSheetsHTML(this.renderContext());
+            }
         })
     }).applyTo(lively.morphic.Morph, {
-        override: 'appendHTML'
+        override: ['appendHTML', 'setNewId']
     });
 
     lively.morphic.Morph.addMethods(
@@ -334,6 +340,8 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             $(ctx.shapeNode).attr('morphid', this.id);
 
         },
+
+
 
         setStyleClassNamesHTML: function (ctx) {
             var classNames = this.getStyleClassNames();

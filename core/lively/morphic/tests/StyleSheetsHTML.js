@@ -158,6 +158,16 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
 
 
     },
+    test08SetNewMorphId: function() {
+        var shapeNode = this.morph.renderContext().shapeNode,
+            oldId = $(shapeNode).attr('morphid');
+        this.morph.setNewId();
+        this.assert(oldId !== $(shapeNode).attr('morphid'),
+            'morphid in node should not be the old id');
+        this.assertEquals(this.morph.id, $(shapeNode).attr('morphid'),
+            'morphid in node should be the new morph id');
+    },
+
 
 
     assertArray: function(anticipated, actual, msg) {

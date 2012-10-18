@@ -3,7 +3,8 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
     Object.extend(lively.morphic.Morph.prototype.htmlDispatchTable, {
         setStyleSheet: 'setStyleSheetHTML',
         setStyleClassNames: 'setStyleClassNamesHTML',
-        setStyleId: 'setStyleIdHTML'
+        setStyleId: 'setStyleIdHTML',
+        setNodeMorphId: 'setNodeMorphIdHTML'
     });
 
     Object.extend(lively.morphic.Shapes.Shape.prototype.htmlDispatchTable, {
@@ -39,8 +40,10 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
         },
 
         setBorderStylingModeHTML: function (ctx, value) {
-            this.setBorderHTML(ctx, this.getBorderWidth(), this.getBorderColor(), this.getStrokeOpacity());
+            this.setBorderHTML(
+                ctx, this.getBorderWidth(), this.getBorderColor(), this.getStrokeOpacity());
             this.setBorderRadiusHTML(ctx, this.getBorderRadius());
+            this.setExtentHTML(ctx, this.getExtent());
         }
     });
 
@@ -69,14 +72,15 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
         setBorderHTML: lively.morphic.Shapes.Shape.prototype.setBorderHTML.wrap(function (proceed, ctx, width, fill, opacity) {
             if (ctx.shapeNode && this.shapeGetter('BorderStylingMode')) {
                 ctx.shapeNode.style['border'] = null;
-                // compensate shapenode here?
+                this.compensateShapeNode(ctx);
             } else {
                 proceed(ctx, width, fill, opacity);
             }
 
         }),
     }).applyTo(lively.morphic.Shapes.Shape, {
-        override: ['setFillHTML', 'setOpacityHTML', 'setBorderStyleHTML', 'setBorderHTML']
+        override:
+            ['setFillHTML', 'setOpacityHTML', 'setBorderStyleHTML', 'setBorderHTML']
     });
 
     Trait('StyleSheetsHTMLRectangleTrait', 'updating', {
@@ -112,7 +116,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
         setNewId: lively.morphic.Morph.prototype.setNewId.wrap(function (proceed, optId) {
             proceed(optId);
             if (this.isRendered()) {
-                this.setNodeMorphIdHTML(this.renderContext());
+                this.renderContextDispatch('setNodeMorphId');
             }
         })
     }).applyTo(lively.morphic.Morph, {

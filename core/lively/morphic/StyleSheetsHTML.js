@@ -78,9 +78,18 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             }
 
         }),
+        getBorderWidth: function() {
+            if (this.getBorderStylingMode()) {
+                return 0;
+                //return this.renderContextDispatch('getComputedBorderWidth') || 0;
+            } else {
+                return this.shapeGetter('BorderWidth')  || 0;
+            }
+        }
     }).applyTo(lively.morphic.Shapes.Shape, {
         override:
-            ['setFillHTML', 'setOpacityHTML', 'setBorderStyleHTML', 'setBorderHTML']
+            ['setFillHTML', 'setOpacityHTML', 'setBorderStyleHTML',
+            'setBorderHTML', 'getBorderWidth']
     });
 
     Trait('StyleSheetsHTMLRectangleTrait', 'updating', {

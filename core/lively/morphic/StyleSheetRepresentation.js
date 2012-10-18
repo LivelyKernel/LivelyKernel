@@ -59,16 +59,19 @@ Object.subclass('lively.morphic.StyleSheetRule',
     getSelector: function() {
         return this.selector;
     },
-    getText: function() {
+    getTextWithSelector: function(selector) {
         // Returns the CSS formated text of the rule
         var result = '';
-        result += this.selector;
+        result += selector;
         result += '{\n';
         this.declarations.each(function(decl) {
                 result += '\t' + decl.getText() + '\n';
             });
         result += '}';
         return result;
+    },
+    getText: function() {
+        return this.getTextWithSelector(this.getSelector());
     }
 },
 'Setter', {

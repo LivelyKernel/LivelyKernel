@@ -132,23 +132,18 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                     output += rule.getText() + '\n';
                 } else if (rule.isStyleSheetComment){
                     // do not include comments
-                } else if (rule.getSelector && rule.declarations) {
+                } else if (rule.isStyleSheetRule) {
                     var selector = this.replaceChildOp(rule.getSelector()),
                         selectors = this.splitGroupedSelector(selector),
-                        newSelector = '',
-                        newRule;
+                        newSelector = '';
                     for (var i = 0; i < selectors.length; i++) {
                         newSelector += this.addSelectorPrefixes(selectors[i]);
                         if (i < selectors.length - 1) {
                             newSelector += ', ';
                         }
                     }
-
-                    newRule = new lively.morphic.StyleSheetRule(
-                            newSelector,
-                            rule.getDeclarations()
-                        );
-                    output += newRule.getText() + '\n';
+                    output += rule.getTextWithSelector(newSelector);
+                    output += '\n';
                 }
             }, this);
             return output;

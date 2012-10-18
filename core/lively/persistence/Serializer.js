@@ -200,8 +200,8 @@ Object.subclass('ObjectGraphLinearizer',
 
         // take the registered object (which has unresolveed references) and
         // create a new similiar object with patched references
-        var registeredObj = this.getRegisteredObjectFromId(id),
-            recreated = this.somePlugin('deserializeObj', [registeredObj]) || {};
+        var registeredObj = this.getRegisteredObjectFromId(id);
+        recreated = this.somePlugin('deserializeObj', [registeredObj]) || {};
         this.setRecreatedObject(recreated, id); // important to set recreated before patching refs!
         for (var key in registeredObj) {
             var value = registeredObj[key];
@@ -1159,6 +1159,9 @@ ObjectLinearizerPlugin.subclass('lively.persistence.GenericConstructorPlugin',
 });
 
 ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin',
+'settings', {
+    serializedExprProperty: '__serializedExpr__'
+},
 'testing', {
     canSerializeToExpr: function(obj) {
         if (!object) return null;
@@ -1167,17 +1170,24 @@ ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin',
     }
 },
 'plugin interface', {
+    ignorePropDeserialization: function(regObj, key, val) {
+        return key === this.serializedExprProperty;
+    },
+
     serializeObj: function(obj) {
-        return obj && Object.isFunction(obj.serializeExpr) ?
-            {expr: obj.serializeExpr()} : null;
+        if (!obj || !Object.isFunction(obj.serializeExpr)) return null;
+        var regObj = {};
+        regObj[this.serializedExprProperty] = obj.serializeExpr();
+        return regObj;
     },
 
     deserializeObj: function(obj) {
-        if (!obj || !obj.expr) return null;
+        var expr = obj && obj[this.serializedExprProperty];
+        if (!expr) return null;
         try {
-            return eval(obj.expr);
+            return eval(expr);
         } catch(e) {
-            console.error('Cannot deserialize expr obj\n%s\n%s', obj.expr, e.stack);
+            console.error('Cannot deserialize expr obj\n%s\n%s', expr, e.stack);
             return null;
         }
     }

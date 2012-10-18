@@ -505,15 +505,18 @@ lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('li
     },
 
     assertSerializesFromExpr: function(expectedObj, expr) {
-        var result = this.sut.deserializeJso({id: 0, registry: {'0': {registeredObject: {expr: expr}}}});
-        this.assertEquals(expectedObj, expr,
-                          Strings.format('expr %s does not eval to %s', expr, expectedObj));
+        var result = this.sut.deserializeJso({id: 0, registry: {
+            '0': {registeredObject: {__serializedExpr__: expr}}
+        }});
+        this.assertEquals(expectedObj, result,
+                          Strings.format('expr %s does not eval to %s',
+                                         expr, expectedObj));
     },
 
     assertSerializesToExpr: function(expectedExpr, obj) {
         var ref = this.sut.register(obj),
             regObj = this.sut.getRegisteredObjectFromId(ref.id);
-        this.assertEqualState(expectedExpr, regObj.expr,
+        this.assertEqualState(expectedExpr, regObj.__serializedExpr__,
                               Strings.format('object does not serialize to expected expr %s but %s',
                                              expectedExpr, regObj.expr));
     }
@@ -523,12 +526,11 @@ lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('li
         var obj = lively.pt(1,2),
             ref = this.sut.register(obj),
             regObj = this.sut.getRegisteredObjectFromId(ref.id);
-        this.assertEqualState({expr: 'lively.pt(1.0,2.0)'},
-                              regObj);
+        this.assertEqualState({__serializedExpr__: 'lively.pt(1.0,2.0)'}, regObj);
     },
 
     test02ToExpr: function() {
-        var regObj = {expr: 'lively.pt(1.0,2.0)'},
+        var regObj = {__serializedExpr__: 'lively.pt(1.0,2.0)'},
             result = this.sut.deserializeJso({id: 0, registry: {'0': {registeredObject: regObj}}});
         this.assertEquals(pt(1,2), result);
     },

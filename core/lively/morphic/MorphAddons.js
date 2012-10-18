@@ -706,8 +706,8 @@ lively.morphic.World.addMethods(
         }
         return null;
     },
-    getUserDir: function() {
-        var username = this.getUserName();
+    getUserDir: function(optUserName) {
+        var username = optUserName || this.getUserName();
         return username ? URL.root.withFilename('users/' + username + '/') : null;
     },
 

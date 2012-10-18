@@ -178,6 +178,8 @@ Object.extend(Global, {
         var b = new BoxMorph(rect);
         b.applyStyle({borderColor: Color.red, borderWidth: 2, fill: null});
         b.ignoreEvents();
+        b.disableEvents();
+        b.setOpacity(0.5);
         showThenHide(b, duration);
         return b
     },

@@ -112,7 +112,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
         setNewId: lively.morphic.Morph.prototype.setNewId.wrap(function (proceed, optId) {
             proceed(optId);
             if (this.isRendered()) {
-                this.prepareDOMForStyleSheetsHTML(this.renderContext());
+                this.setNodeMorphIdHTML(this.renderContext());
             }
         })
     }).applyTo(lively.morphic.Morph, {
@@ -337,7 +337,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 
             this.setStyleClassNamesHTML(ctx);
             this.setStyleIdHTML(ctx, this.getStyleId());
-            $(ctx.shapeNode).attr('morphid', this.id);
+            this.setNodeMorphIdHTML(ctx);
 
         },
 
@@ -354,6 +354,10 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                 $(ctx.shapeNode).removeAttr('class');
             }
         },
+    setNodeMorphIdHTML: function(ctx) {
+        $(ctx.shapeNode).attr('morphid', this.id);
+    },
+
         setStyleIdHTML: function (ctx, id) {
             if (id && id.length && id.length > 0) {
                 //$(ctx.morphNode).attr('id', id);

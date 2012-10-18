@@ -25,20 +25,22 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
     Object.subclass('lively.morphic.CSSProperties');
 
     Object.extend(lively.morphic.CSSProperties, {
-    getPropList: function() {
-        // Prepare the property list
+    enhancePropList: function(orgPropList) {
+        // Enhances the property list in lively.morphic.CSSProperties.props
+        // by adding conclusive shorthands and shorthandFor
+        // attributes to make it faster to use for parsing.
         var propList = {},
-            orgPropList = lively.morphic.CSSProperties.props,
             markShorthands = function (property, properties) {
                     var shorthand = orgPropList[property].shorthand;
                     propList[property].shorthandFor =
                         propList[property].shorthandFor.concat(properties || []);
-                    if(shorthand && orgPropList[shorthand]) {
-                        if(properties) {
+                    if (shorthand && orgPropList[shorthand]) {
+                        if (properties) {
                             properties.push(property);
                         } else {
                             properties = [property];
                         }
+                        // TODO: avoid running in circles
                         var shorthandsFor = markShorthands(shorthand, properties || []);
                         propList[property].shorthands =
                             propList[property].shorthands.concat(shorthandsFor);
@@ -49,21 +51,25 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                 };
 
         // Prepare proplist
-        for(var x in orgPropList) {
+        for (var x in orgPropList) {
             propList[x] = {};
             propList[x].shorthands = [];
             propList[x].shorthandFor = [];
         }
         // Mark shorthands
-        for(var x in orgPropList) {
+        for (var x in orgPropList) {
             markShorthands(x);
         }
         // Make sure there are no duplicates in the shorthand attrs
-        for(var x in propList) {
+        for (var x in propList) {
             propList[x].shorthands = propList[x].shorthands.uniq();
             propList[x].shorthandFor = propList[x].shorthandFor.uniq();
         }
         return propList;
+    },
+    getPropList: function() {
+        return lively.morphic.CSSProperties.enhancePropList(
+            lively.morphic.CSSProperties.props);
     },
     props: {
         /*

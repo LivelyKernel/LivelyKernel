@@ -662,7 +662,106 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals('red', redTextColorValue ,
             'color of red should be red');
     },
-    test08GenerateStyleSheetDeclarationOverrideList: function() {
+    test08EnhancePropList: function() {
+        var propList = {
+                'background-color': {
+                    shorthand: 'background',
+                    values: [ // only one value for this property
+                    [3]]
+                },
+                'border': {
+                    values: [
+                    // either one value ...
+                    [3],
+                    // ... or four
+                    [3, 3, 3, 3]]
+                },
+                'border-color': {
+                    shorthand: 'border',
+                    values: [
+                    // either one value ...
+                    [3],
+                    // ... or four
+                    [3, 3, 3, 3]]
+                },
+                'border-top-color': {
+                    shorthand: 'border-color',
+                    values: [ // only one value for this property
+                    [3]]
+                },
+                'border-bottom-color': {
+                    shorthand: 'border-color',
+                    values: [ // only one value for this property
+                    [3]]
+                },
+            },
+        enhancedPropList = lively.morphic.CSSProperties.enhancePropList(propList);
+        this.assertEquals(0, enhancedPropList['background-color'].shorthands.length,
+            'background-color should have no defined shorthands');
+        this.assertEquals(0, enhancedPropList['background-color'].shorthandFor.length,
+            'background-color should be no shorthand for any prop');
+
+        this.assertEquals(0, enhancedPropList['border'].shorthands.length,
+            'border should have no defined shorthands');
+        this.assertEquals(3, enhancedPropList['border'].shorthandFor.length,
+            'border should be shorthand for 3 props');
+        this.assert(enhancedPropList['border'].shorthandFor.find(function(x) {
+                return x === 'border-bottom-color';
+            }),
+            'border should be shorthand for border-bottom-color');
+        this.assert(enhancedPropList['border'].shorthandFor.find(function(x) {
+                return x === 'border-top-color';
+            }),
+            'border should be shorthand for border-top-color');
+        this.assert(enhancedPropList['border'].shorthandFor.find(function(x) {
+                return x === 'border-color';
+            }),
+            'border should be shorthand for border-color');
+
+
+        this.assertEquals(2, enhancedPropList['border-bottom-color'].shorthands.length,
+            'border-bottom-color should have 2 defined shorthands');
+        this.assertEquals(0, enhancedPropList['border-bottom-color'].shorthandFor.length,
+            'border-bottom-color should be no shorthand for any prop');
+        this.assert(enhancedPropList['border-bottom-color'].shorthands.find(function(x) {
+                return x === 'border-color';
+            }),
+            'border-bottom-color should have shorthand border-color');
+        this.assert(enhancedPropList['border-bottom-color'].shorthands.find(function(x) {
+                return x === 'border';
+            }),
+            'border-bottom-color should have shorthand border');
+
+        this.assertEquals(2, enhancedPropList['border-top-color'].shorthands.length,
+            'border-bottom-color should have 2 defined shorthands');
+        this.assertEquals(0, enhancedPropList['border-top-color'].shorthandFor.length,
+            'border-bottom-color should be no shorthand for any prop');
+        this.assert(enhancedPropList['border-top-color'].shorthands.find(function(x) {
+                return x === 'border-color';
+            }),
+            'border-top-color should have shorthand border-color');
+        this.assert(enhancedPropList['border-top-color'].shorthands.find(function(x) {
+                return x === 'border';
+            }),
+            'border-top-color should have shorthand border');
+
+        this.assertEquals(1, enhancedPropList['border-color'].shorthands.length,
+            'border-color should have 1 defined shorthands');
+        this.assertEquals('border', enhancedPropList['border-color'].shorthands.first(),
+            'border-color should have shorthand border');
+        this.assertEquals(2, enhancedPropList['border-color'].shorthandFor.length,
+            'border-bottom-color should be shorthand for 2 props');
+        this.assert(enhancedPropList['border-color'].shorthandFor.find(function(x) {
+                return x === 'border-top-color';
+            }),
+            'border-color should be shorthand for border-top-color');
+        this.assert(enhancedPropList['border-color'].shorthandFor.find(function(x) {
+                return x === 'border-bottom-color';
+            }),
+            'border-color should be shorthand for border-bottom-color');
+
+    },
+    test09GenerateStyleSheetDeclarationOverrideList: function() {
         var css = '.blue{ border-color: orange; }'+
                 '.blue.Box{ border-color: blue; }'+
                 '#blue2.blue { border: 1px solid black; }'+
@@ -691,7 +790,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
          this.assertEqualState([1, 2, -1, 2], blue2StyleOverrideList,
             'Override list for blue2 should be [1, 2, -1, 2]');
 
-    },});
+    },
+});
 
 TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
 'testing', {

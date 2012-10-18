@@ -732,7 +732,7 @@ lively.morphic.World.addMethods(
             this.askToRegisterAnAccount();
             return null;
         }
-        var userDir = this.getUserDir();
+        var userDir = this.getUserDir(optUserName);
         userDir.asWebResource().ensureExistance();
         return userDir;
     },

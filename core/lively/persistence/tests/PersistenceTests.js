@@ -537,7 +537,8 @@ lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('li
     test03ObjectsToAndFrom: function() {
         var test = this, tests = [
             {obj: lively.pt(2,3), expr: "lively.pt(2.0,3.0)"},
-            {obj: lively.rect(pt(1,2), pt(4,5)), expr: "lively.rect(1,2,3,3)"}
+            {obj: lively.rect(pt(1,2), pt(4,5)), expr: "lively.rect(1,2,3,3)"},
+            {obj: Color.red, expr: 'Color.' + Color.red.toString()}
         ];
         tests.forEach(function(testData) {
             test.assertSerializesToExpr(testData.expr, testData.obj);

@@ -8,6 +8,11 @@ Trait('lively.morphic.Serialization.ToStringIsSerializerExpressionTrait',
 .applyTo(lively.Point)
 .applyTo(lively.Rectangle);
 
+Color.addMethods(
+'serialization', {
+    serializeExpr: function() { return 'Color.' + this.toString(); }
+});
+
 lively.morphic.Shapes.Shape.addMethods(
 'copying', {
     doNotSerialize: ['_renderContext']

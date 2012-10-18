@@ -1,4 +1,5 @@
 module('lively.morphic.Graphics').requires().toRun(function() {
+// 'apps.ColorParser'
 
 Object.subclass("Point",
 'documentation', {

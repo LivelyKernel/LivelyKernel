@@ -1168,10 +1168,8 @@ ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin',
 },
 'plugin interface', {
     serializeObj: function(obj) {
-        if (!obj) return null;
-        var f = Strings.format;
-        if (obj instanceof lively.Point) { return {expr: obj.toString()} }
-        return null;
+        return obj && Object.isFunction(obj.serializeExpr) ?
+            {expr: obj.serializeExpr()} : null;
     },
 
     deserializeObj: function(obj) {

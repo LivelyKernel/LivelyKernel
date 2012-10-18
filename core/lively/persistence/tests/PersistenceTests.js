@@ -502,6 +502,20 @@ lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('li
     setUp: function($super) {
         $super();
         this.sut.addPlugin(new lively.persistence.ExprPlugin());
+    },
+
+    assertSerializesFromExpr: function(expectedObj, expr) {
+        var result = this.sut.deserializeJso({id: 0, registry: {'0': {registeredObject: {expr: expr}}}});
+        this.assertEquals(expectedObj, expr,
+                          Strings.format('expr %s does not eval to %s', expr, expectedObj));
+    },
+
+    assertSerializesToExpr: function(expectedExpr, obj) {
+        var ref = this.sut.register(obj),
+            regObj = this.sut.getRegisteredObjectFromId(ref.id);
+        this.assertEqualState(expectedExpr, regObj.expr,
+                              Strings.format('object does not serialize to expected expr %s but %s',
+                                             expectedExpr, regObj.expr));
     }
 },
 'testing', {
@@ -509,13 +523,24 @@ lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('li
         var obj = lively.pt(1,2),
             ref = this.sut.register(obj),
             regObj = this.sut.getRegisteredObjectFromId(ref.id);
-        this.assertEqualState({expr: 'lively.pt(1.0,2.0)'}, regObj);
+        this.assertEqualState({expr: 'lively.pt(1.0,2.0)'},
+                              regObj);
     },
 
     test02ToExpr: function() {
         var regObj = {expr: 'lively.pt(1.0,2.0)'},
             result = this.sut.deserializeJso({id: 0, registry: {'0': {registeredObject: regObj}}});
         this.assertEquals(pt(1,2), result);
+    },
+    test03ObjectsToAndFrom: function() {
+        var test = this, tests = [
+            {obj: lively.pt(2,3), expr: "lively.pt(2.0,3.0)"},
+            {obj: lively.rect(pt(1,2), pt(4,5)), expr: "lively.rect(1,2,3,3)"}
+        ];
+        tests.forEach(function(testData) {
+            test.assertSerializesToExpr(testData.expr, testData.obj);
+            test.assertSerializesFromExpr(testData.obj, testData.expr);
+        });
     }
 });
 

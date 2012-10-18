@@ -164,7 +164,6 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         getBorderStylingMode: function () {
             return this.shape.getBorderStylingMode();
         },
-
         setStyleSheet: function (styleSheet) {
             if(styleSheet.isStyleSheet) {
                 return this.setParsedStyleSheet(styleSheet);
@@ -184,71 +183,45 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                 delete this._StyleSheet;
             }
         },
-
-
-        loadStyleSheetFromFile: function (file, resourcePath) {
+        loadStyleSheetFromFile: function(file, resourcePath) {
+            // cs: refactored to make it usable with https
             // use the resourcePath parameter if the resources addressed
             // in the CSS file are in a different directory than the CSS'.
             // (use "" to leave the urls untouched)
-
-            var absPath = file;
-            // is the filename absolute? if not then make it absolute.
-            if(absPath.search('http://') < 0) {
-                absPath = document.location.href.toString().split('?')[0];
-                absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);
-                absPath += "/" + file;
-            }
-            var url = new URL(absPath);
-
-            URL.proxy = null;
-
-            var webR = new WebResource(url);
+            var url = URL.ensureAbsoluteURL(file);
+            var webR = url.asWebResource();
             webR.forceUncached();
-            var webRGet = webR.get();
-            if(webRGet.status.code() == 200) {
+            if (webR.get().status.isSuccess()) {
                 // add resource path to all relative urls in the css
-                var css = webRGet.content;
-
-                var resPath = resourcePath;
-                if(!resPath) {
-                    resPath = absPath = absPath.substring(0, absPath.lastIndexOf('/') + 1);
-                }
-                var urlReplace = "url(" + resPath;
-                var urlReplaceSingle = "url('" + resPath;
-                var urlReplaceDouble = 'url("' + resPath;
-                css = css.replace(/url\([\s]*\'(?![\s]*http)/g, urlReplaceSingle).replace(/url\([\s]*\"(?![\s]*http)/g, urlReplaceDouble).replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, urlReplace);
-
+                var css = webR.content;
+                var resPath = resourcePath || url.getDirectory();
+                css = css.replace(/url\([\s]*\'(?![\s]*http)/g, "url('" + resPath)
+                         .replace(/url\([\s]*\"(?![\s]*http)/g, 'url("' + resPath)
+                         .replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, "url(" + resPath);
                 // insert line breaks so the css is more legible
-                css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/g, ";\n").replace(/\}(?![\s]*(\r\n|\n|\r))/g, "}\n").replace(/\{(?![\s]*(\r\n|\n|\r))/g, "{\n");
-                //console.log(css);
-
-                // set the style sheet
+                css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/g, ";\n")
+                         .replace(/\}(?![\s]*(\r\n|\n|\r))/g, "}\n")
+                         .replace(/\{(?![\s]*(\r\n|\n|\r))/g, "{\n");
                 this.setStyleSheet(css);
             } else {
-                throw new Error("Couldn't load stylesheet at " + absPath + " --> " + webRGet.status.code());
+                throw new Error("Couldn't load stylesheet at " + file + " --> " + webR.status.code());
             }
-
-            return {
-                status: webRGet.status.code(),
-                responseText: webRGet.content
-            };
+            return {status: webR.status.code(), responseText: webR.content};
         },
-
         getStyleSheet: function () {
             return this.getParsedStyleSheet().getText();
         },
-
         getParsedStyleSheet: function () {
             return this.morphicGetter('StyleSheet');
         },
-
         getStyleSheetRules: function () {
             // Extracts the CSS rules out of a style sheet.
             // Returns the rules as an array.
             var styleSheet = this.getParsedStyleSheet();
             return(styleSheet && styleSheet.getRules) ? styleSheet.getRules() : [];
-        },
-    }, 'Style sheet interpretation', {
+        }
+    },
+    'Style sheet interpretation', {
 
       clearStyleRulesInSubmorphs: function () {
             // Get rid of the old rules in all submorphs.

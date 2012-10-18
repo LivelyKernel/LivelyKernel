@@ -322,10 +322,10 @@ lively.morphic.Morph.addMethods(
             morphPos = this.getPosition();
         if (supermorph && supermorph.isMorph) {
             this.submorphs.each(function(submorph) {
-                    var oldPos = submorph.getPosition();
-                    supermorph.addMorph(submorph);
-                    submorph.setPosition(morphPos.addPt(oldPos));
-                }, this);
+                var oldPos = submorph.getPosition();
+                supermorph.addMorph(submorph);
+                submorph.setPosition(morphPos.addPt(oldPos));
+            }, this);
             this.remove();
         } else {
             throw('Cannot remove '+this+' with a submorph drop. It has no owner.');

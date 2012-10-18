@@ -444,6 +444,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 'running', {
     setUp: function($super) {
         $super();
+        this.createSomeMorphs(); // sets up a hierarchy of morphs
     },
     createSomeMorphs: function() {
         // this method creates 4 morphs: yellowRectange is the ouyter parent
@@ -506,11 +507,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals(1, rules.length, 'There has to be exactly one matching rule');
         this.assertEquals('.some-class', rules[0].getSelector(), 'Selector of first rule is not .some-class');
 
-
-
-
-        this.createSomeMorphs();
-
         css = ".blue{color: purple;}";
         this.yellowRectangle.setStyleSheet(css);
 
@@ -534,7 +530,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 
     },
     test03MorphsHaveOnlyMatchingCSSRules: function() {
-        this.createSomeMorphs(); // sets up a hierarchy of morphs
         var css = ".red {"+
             "    border: 1px solid red;"+
             "}"+
@@ -567,7 +562,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
     test04GetRuleSpecificityOnMorph: function() {
         var css = ".blue, #the-red-rectangle.red, #the-red-rectangle, .red { color: red; }",
             rules = apps.cssParser.parse(css).getRules();
-        this.createSomeMorphs(); // sets up a hierarchy of morphs
 
         this.assertEquals(10,
             this.blueRectangle1.getStyleSheetRuleSpecificity(rules.first()),
@@ -578,7 +572,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
     },
 
     test05MorphsHaveOnlyCurrentCSSRules: function() {
-        this.createSomeMorphs(); // sets up a hierarchy of morphs
         var firstCSS = ".red { color: red; }",
             secondCSS = "#the-red-rectangle { color: green; }",
             worldCSS = "#the-red-rectangle { color: black; }";
@@ -613,8 +606,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                     return rule.declarations.first().values.first();
                 },
             sortedRules;
-        this.createSomeMorphs(); // sets up a hierarchy of morphs
-
         this.world.setStyleSheet(worldCss);
         this.yellowRectangle.setStyleSheet(yellowCss);
         sortedRules = this.redRectangle.getMatchingStyleSheetRules();
@@ -648,7 +639,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                             return (d.getProperty() === property)
                         }).first().getValues().first();
                 };
-        this.createSomeMorphs(); // sets up a hierarchy of morphs
 
         this.world.setStyleSheet(css);
 
@@ -671,6 +661,36 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             'background-color of red should be red');
         this.assertEquals('red', redTextColorValue ,
             'color of red should be red');
+    },
+    test08GenerateStyleSheetDeclarationOverrideList: function() {
+        var css = '.blue{ border-color: orange; }'+
+                '.blue.Box{ border-color: blue; }'+
+                '#blue2.blue { border: 1px solid black; }'+
+                '.blue.Box:nth-child(2) { border-color: yellow!important; }'+
+                '.red { color: red; border-color: green;}'+
+                '#the-red-rectangle { border-color: red; }',
+            getDecl = function(decls, property){
+                    return decls.filter(function(d){
+                            return (d.getProperty() === property)
+                        }).first().getValues().first();
+                };
+
+
+        this.world.setStyleSheet(css);
+
+        var blue1Styles = this.blueRectangle1.getMatchingStyleSheetDeclarations(),
+            blue1StyleOverrideList =
+                this.blueRectangle1.generateStyleSheetDeclarationOverrideList(blue1Styles);
+        this.assertEqualState([1, -1], blue1StyleOverrideList,
+            'Override list for blue1 should be [1, -1]');
+
+        var blue2Styles = this.blueRectangle2.getMatchingStyleSheetDeclarations(),
+            blue2StyleOverrideList =
+                this.blueRectangle2.generateStyleSheetDeclarationOverrideList(blue2Styles);
+        console.log(blue2StyleOverrideList )
+         this.assertEqualState([1, 2, -1, 2], blue2StyleOverrideList,
+            'Override list for blue2 should be [1, 2, -1, 2]');
+
     },});
 
 TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',

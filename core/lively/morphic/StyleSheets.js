@@ -25,6 +25,46 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
     Object.subclass('lively.morphic.CSSProperties');
 
     Object.extend(lively.morphic.CSSProperties, {
+    getPropList: function() {
+        // Prepare the property list
+        var propList = {},
+            orgPropList = lively.morphic.CSSProperties.props,
+            markShorthands = function (property, properties) {
+                    var shorthand = orgPropList[property].shorthand;
+                    propList[property].shorthandFor =
+                        propList[property].shorthandFor.concat(properties || []);
+                    if(shorthand && orgPropList[shorthand]) {
+                        if(properties) {
+                            properties.push(property);
+                        } else {
+                            properties = [property];
+                        }
+                        var shorthandsFor = markShorthands(shorthand, properties || []);
+                        propList[property].shorthands =
+                            propList[property].shorthands.concat(shorthandsFor);
+                        return shorthandsFor.concat(property);
+                    } else {
+                        return [property];
+                    }
+                };
+
+        // Prepare proplist
+        for(var x in orgPropList) {
+            propList[x] = {};
+            propList[x].shorthands = [];
+            propList[x].shorthandFor = [];
+        }
+        // Mark shorthands
+        for(var x in orgPropList) {
+            markShorthands(x);
+        }
+        // Make sure there are no duplicates in the shorthand attrs
+        for(var x in propList) {
+            propList[x].shorthands = propList[x].shorthands.uniq();
+            propList[x].shorthandFor = propList[x].shorthandFor.uniq();
+        }
+        return propList;
+    },
     props: {
         /*
         Information to interpret and manipulate CSS properties.
@@ -261,10 +301,12 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         },
         generateStyleSheetDeclarationOverrideList: function (declarations) {
             // Function expects a declaration array ordered by precedence
-            // (i.e. declarations[0] -> high precedence, 
+            // (i.e. declarations[0] -> highest precedence, 
             // declarations[x] -> lower precedence).
-            var propList = {},
-                orgPropList = lively.morphic.CSSProperties,
+            var propList = lively.morphic.CSSProperties.getPropList(),
+                result = declarations.collect(function () {
+                        return -1
+                    }),
                 overrides =  function(property, overrider) {
                         if (property === overrider) {
                             return true;
@@ -278,69 +320,37 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                             });
                             return overridden;
                         }
-                    },
-                result = declarations.collect(function () {
-                        return -1
-                    }),
-                markShorthands = function (property, properties) {
-                        var shorthand = orgPropList[property].shorthand;
-                        propList[property].shorthandFor =
-                            propList[property].shorthandFor.concat(properties || []);
-                        if(shorthand && orgPropList[shorthand]) {
-                            if(properties) {
-                                properties.push(property);
-                            } else {
-                                properties = [property];
-                            }
-                            var shorthandsFor = markShorthands(shorthand, properties || []);
-                            propList[property].shorthands =
-                                propList[property].shorthands.concat(shorthandsFor);
-                            return shorthandsFor.concat(property);
-                        } else {
-                            return [property];
-                        }
                     };
 
-            // Build proplist to speed up override check
-            for(var x in lively.morphic.CSSProperties) {
-                propList[x] = {};
-                propList[x].shorthands = [];
-                propList[x].shorthandFor = [];
-            }
-            // Build proplist to speed up override check
-            for(var x in lively.morphic.CSSProperties) {
-                markShorthands(x);
-            }
-            // Build proplist to speed up override check
-            for(var x in propList) {
-                propList[x].shorthands = propList[x].shorthands.uniq();
-                propList[x].shorthandFor = propList[x].shorthandFor.uniq();
-            }
-
-            for (var i = declarations.length - 1; i >= 0; i--) {
+            for (var i = 0; i < declarations.length; i++) {
                 var prop = declarations[i].getProperty();
                 // looking for higher precedence overriding declarations
-                for (var j = i - 1; j >= 0; j--) {
-                    var overrideProp = declarations[j].getProperty();
-                    if (overrides(overrideProp, prop)) {
+                for (var j = i + 1; j < declarations.length && result[i] < 0; j++) {
+                    var overrideProp = declarations[j].getProperty(),
+                        priorityOverride =
+                            declarations[i].getPriority() &&
+                            !declarations[j].getPriority();
+                    if (overrides(prop, overrideProp) && !priorityOverride) {
                         // put in result and continue
                         result[i] = j;
-                        continue;
                     }
                 }
                 // looking for lower precedence !important declarations
-                for(var j = i + 1; j < declarations.length; j++) {
-                    var overrideProp = declarations[j].getProperty();
-                    if(overrides(overrideProp, prop)) {
+                for(var j = i - 1, overridden = false;
+                    j >= 0 && !overridden; j--) {
+                    var overrideProp = declarations[j].getProperty(),
+                        priorityOverride =
+                            declarations[j].getPriority() &&
+                            !declarations[i].getPriority();
+
+                    if (overrides(prop, overrideProp) && priorityOverride) {
                         // put in result and continue
                         result[i] = j;
-                        continue;
+                        overridden = true;
                     }
                 }
             }
-
             return result;
-
         },
 
 

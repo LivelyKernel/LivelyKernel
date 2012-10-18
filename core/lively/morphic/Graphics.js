@@ -3,6 +3,7 @@ module('lively.morphic.Graphics').requires('apps.ColorParser').toRun(function() 
 // 'apps.ColorParser'
 
 
+
 Object.subclass("Point",
 'documentation', {
     documentation: "2D Point"

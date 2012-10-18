@@ -268,6 +268,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
             this.morph,
             'Morph has not id "test-id"');
     },
+    test02aSetNodeMorphId: function() {
+        var shapeNode = this.morph.renderContext().shapeNode;
+        $(shapeNode).attr('morphid', '');
+        this.morph.setNodeMorphIdHTML(this.morph.renderContext());
+        this.assertEquals(this.morph.id, $(shapeNode).attr('morphid'),
+            'Morphid node attribute should be the morph id');
+    },
+
     createSomeMorphs: function() {
         // this method creates 4 morphs: yellowRectange is the ouyter parent
         // redRectangle its embedded submorph, blueRectangle1, blueRectangle1

@@ -167,6 +167,8 @@ Object.extend(Global, {
         b.align(b.getCenter(), pos);
         b.applyStyle({fill: Color.red});
         b.ignoreEvents();
+        b.disableEvents();
+        b.setOpacity(0.5)
 
         showThenHide(b, duration);
         return b;

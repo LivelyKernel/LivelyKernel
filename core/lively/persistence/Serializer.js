@@ -1379,10 +1379,7 @@ Object.extend(lively.persistence, {
         IgnoreDOMElementsPlugin,
         LayerPlugin,
         lively.persistence.DatePlugin,
-        lively.persistence.ExprPlugin,
-        ObjectLinearizerPlugin.subclass('RenderContextTableFixPlugin', {
-            ignorePropDeserialization: function(regObj, key, val) { return key === 'renderContextTable' }
-        })]
+        lively.persistence.ExprPlugin]
 });
 
 Object.extend(ObjectGraphLinearizer, {

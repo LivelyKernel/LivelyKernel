@@ -39,7 +39,8 @@ Object.subclass('ObjectGraphLinearizer',
         this.path = [];
     },
     cleanup: function() {
-        // remove ids from all original objects and the original objects as well as any recreated objects
+        // remove ids from all original objects and the original objects as
+        // well as any recreated objects
         for (var id in this.registry) {
             var entry = this.registry[id];
             if (!this.keepIds && entry.originalObject)
@@ -49,7 +50,7 @@ Object.subclass('ObjectGraphLinearizer',
             delete entry.originalObject;
             delete entry.recreatedObject;
         }
-    },
+    }
 },
 'testing', {
     isReference: function(obj) { return obj && obj.__isSmartRef__ },
@@ -58,7 +59,7 @@ Object.subclass('ObjectGraphLinearizer',
         if ((typeof obj !== 'object') && (typeof obj !== 'function')) return true;
         if (this.isReference(obj)) return true;
         return false
-    },
+    }
 },
 'accessing', {
     idProperty: '__SmartId__',
@@ -119,7 +120,7 @@ Object.subclass('ObjectGraphLinearizer',
             if (!pluginMethod) continue;
             pluginMethod.apply(plugin, args);
         }
-    },
+    }
 },
 'object registry -- serialization', {
     registerWithPath: function(obj, path) {
@@ -199,8 +200,8 @@ Object.subclass('ObjectGraphLinearizer',
 
         // take the registered object (which has unresolveed references) and
         // create a new similiar object with patched references
-        var registeredObj = this.getRegisteredObjectFromId(id),
-            recreated = this.somePlugin('deserializeObj', [registeredObj]) || {};
+        var registeredObj = this.getRegisteredObjectFromId(id);
+        recreated = this.somePlugin('deserializeObj', [registeredObj]) || {};
         this.setRecreatedObject(recreated, id); // important to set recreated before patching refs!
         for (var key in registeredObj) {
             var value = registeredObj[key];
@@ -365,7 +366,7 @@ Object.extend(ObjectGraphLinearizer, {
 Object.subclass('ObjectLinearizerPlugin',
 'accessing', {
     getSerializer: function() { return this.serializer },
-    setSerializer: function(s) { this.serializer = s },
+    setSerializer: function(s) { this.serializer = s }
 },
 'plugin interface', {
     /* interface methods that can be reimplemented by subclasses:
@@ -384,7 +385,7 @@ ObjectLinearizerPlugin.subclass('ClassPlugin',
 'properties', {
     isInstanceRestorer: true, // for Class.intializer
     classNameProperty: '__LivelyClassName__',
-    sourceModuleNameProperty: '__SourceModuleName__',
+    sourceModuleNameProperty: '__SourceModuleName__'
 },
 'plugin interface', {
     additionallySerialize: function(original, persistentCopy) {
@@ -401,7 +402,7 @@ ObjectLinearizerPlugin.subclass('ClassPlugin',
     },
     afterDeserializeObj: function(obj) {
         this.removeClassInfoIfPresent(obj)
-    },
+    }
 },
 'class info persistence', {
     addClassInfoIfPresent: function(original, persistentCopy) {
@@ -663,7 +664,7 @@ ObjectLinearizerPlugin.subclass('IgnoreDOMElementsPlugin', // for serializing li
 
 ObjectLinearizerPlugin.subclass('RegExpPlugin',
 'accessing', {
-    serializedRegExpProperty: '__regExp__',
+    serializedRegExpProperty: '__regExp__'
 },
 'plugin interface', {
     serializeObj: function(original) {
@@ -693,7 +694,7 @@ ObjectLinearizerPlugin.subclass('OldModelFilter',
     initialize: function($super) {
         $super();
         this.relays = [];
-    },
+    }
 },
 'plugin interface', {
     ignoreProp: function(source, propName, value) {
@@ -1157,6 +1158,41 @@ ObjectLinearizerPlugin.subclass('lively.persistence.GenericConstructorPlugin',
     }
 });
 
+ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin',
+'settings', {
+    serializedExprProperty: '__serializedExpr__'
+},
+'testing', {
+    canSerializeToExpr: function(obj) {
+        if (!object) return null;
+        if (obj instanceof lively.Point) { return true }
+        return null;
+    }
+},
+'plugin interface', {
+    ignorePropDeserialization: function(regObj, key, val) {
+        return key === this.serializedExprProperty;
+    },
+
+    serializeObj: function(obj) {
+        if (!obj || !Object.isFunction(obj.serializeExpr)) return null;
+        var regObj = {};
+        regObj[this.serializedExprProperty] = obj.serializeExpr();
+        return regObj;
+    },
+
+    deserializeObj: function(obj) {
+        var expr = obj && obj[this.serializedExprProperty];
+        if (!expr) return null;
+        try {
+            return eval(expr);
+        } catch(e) {
+            console.error('Cannot deserialize expr obj\n%s\n%s', expr, e.stack);
+            return null;
+        }
+    }
+});
+
 Object.extend(lively.persistence.Serializer, {
 
     jsonWorldId: 'LivelyJSONWorld',
@@ -1342,7 +1378,8 @@ Object.extend(lively.persistence, {
         DoWeakSerializePlugin,
         IgnoreDOMElementsPlugin,
         LayerPlugin,
-        lively.persistence.DatePlugin]
+        lively.persistence.DatePlugin,
+        lively.persistence.ExprPlugin]
 });
 
 Object.extend(ObjectGraphLinearizer, {

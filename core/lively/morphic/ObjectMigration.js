@@ -79,6 +79,7 @@ Migration Level History:
 3 - [NOT YET WORKING] CSS text attribute white-space should be set to pre-line instead of pre-wrap to support text-align justify
 4 - ???
 5 - ???
+6 - renderContextTables are no longer props of shapes/morphs, don't deserialize them
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 if (false && LivelyMigrationSupport.documentMigrationLevel < 1) {
@@ -133,6 +134,14 @@ if (false && LivelyMigrationSupport.documentMigrationLevel < 5) {
             cop.proceed();
         },
     }).beGlobal();
+};
+
+if (LivelyMigrationSupport.documentMigrationLevel < 6) {
+    // 6 - renderContextTables are no longer props of shapes/morphs, don't deserialize them
+    ObjectLinearizerPlugin.subclass('IgnoreRenderContextTablePlugin', {
+        ignorePropDeserialization: function(regObj, key, val) { return key === 'renderContextTable' }
+    });
+    lively.persistence.pluginsForLively.push(IgnoreRenderContextTablePlugin);
 };
 
 if (Config.enableShapeGetterAndSetterRefactoringLayer) {

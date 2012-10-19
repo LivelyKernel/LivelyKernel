@@ -4,7 +4,7 @@ Object.subclass('lively.persistence.tests.PersistenceTests.SmartRefTestDummy', /
 'default category', {
     someProperty: 23,
     m1: function() { return 99 },
-    toString: function() { return 'a ' + this.constructor.name },
+    toString: function() { return 'a ' + this.constructor.name }
 });
 
 
@@ -13,7 +13,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
     setUp: function($super) {
         $super();
         this.sut = new ObjectGraphLinearizer();
-    },
+    }
 },
 'testing', {
     test01RegisterObject: function() {
@@ -40,7 +40,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         this.sut.register(obj3);
         var id1 = this.sut.getIdFromObject(obj1),
             id2 = this.sut.getIdFromObject(obj2),
-            id3 = this.sut.getIdFromObject(obj3);
+            id3 = this.sut.getIdFromObject(obj3),
             regObj1 = this.sut.getRegisteredObjectFromId(id1),
             regObj2 = this.sut.getRegisteredObjectFromId(id2),
             regObj3 = this.sut.getRegisteredObjectFromId(id3);
@@ -125,7 +125,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         this.sut.cleanup(); // evil!!!!
         this.assertEquals(id, obj[this.sut.idProperty], 'orig');
         this.assertEquals(id, recreated[this.sut.idProperty], 'recreated');
-    },
+    }
 })
 
 
@@ -142,7 +142,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
     },
     serializeAndDeserialize: function(obj) {
         return this.serializer.deserialize(this.serializer.serialize(obj))
-    },
+    }
 },
 'testing', {
     test01RecreationPlugin: function() {
@@ -239,9 +239,8 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         var string = this.serializer.serialize(morph1),
             jso = JSON.parse(string),
             result = lively.persistence.Serializer.sourceModulesIn(jso);
-        this.assertEquals(4, result.length, 'not the correct amount of classes recognized');
+        this.assertEquals(3, result.length, 'not the correct amount of classes recognized ' + result);
         this.assert(result.include('Global.lively.morphic.Core'), 'Global.lively.morphic.Core not included');
-        this.assert(result.include('Global.lively.morphic.Graphics'), 'Global.lively.morphic.Graphics not included');
         this.assert(result.include('Global.lively.morphic.Events'), 'Global.lively.morphic.Events not included');
         this.assert(result.include('Global.lively.morphic.Shapes'), 'Global.lively.morphic.Shapes not included');
     },
@@ -379,12 +378,12 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.RestoreTest',
     setUp: function($super) {
         $super();
         this.sut = ObjectGraphLinearizer.forLively();
-    },
+    }
 },
 'helper', {
     serializeAndDeserialize: function(obj) {
         return this.sut.deserialize(this.sut.serialize(obj))
-    },
+    }
 },
 'testing', {
     test01aConnect: function() {
@@ -424,7 +423,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.RestoreTest',
         var result = this.serializeAndDeserialize(obj);
         result.foo(3);
         this.assertEquals(3, result.x, 'script not serialized');
-    },
+    }
 
 });
 
@@ -494,6 +493,56 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.PrototypeInstanceSe
         var serialized = this.serializer.getRegisteredObjectFromId(id);
         this.assert(!serialized[this.plugin.constructorProperty],
                     'serialized constr for Lively Point');
+    }
+});
+
+lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('lively.persistence.tests.ExpressionValues',
+'running', {
+    setUp: function($super) {
+        $super();
+        this.sut.addPlugin(new lively.persistence.ExprPlugin());
+    },
+
+    assertSerializesFromExpr: function(expectedObj, expr) {
+        var result = this.sut.deserializeJso({id: 0, registry: {
+            '0': {registeredObject: {__serializedExpr__: expr}}
+        }});
+        this.assertEquals(expectedObj, result,
+                          Strings.format('expr %s does not eval to %s',
+                                         expr, expectedObj));
+    },
+
+    assertSerializesToExpr: function(expectedExpr, obj) {
+        var ref = this.sut.register(obj),
+            regObj = this.sut.getRegisteredObjectFromId(ref.id);
+        this.assertEqualState(expectedExpr, regObj.__serializedExpr__,
+                              Strings.format('object does not serialize to expected expr %s but %s',
+                                             expectedExpr, regObj.expr));
+    }
+},
+'testing', {
+    test01ToExpr: function() {
+        var obj = lively.pt(1,2),
+            ref = this.sut.register(obj),
+            regObj = this.sut.getRegisteredObjectFromId(ref.id);
+        this.assertEqualState({__serializedExpr__: 'lively.pt(1.0,2.0)'}, regObj);
+    },
+
+    test02ToExpr: function() {
+        var regObj = {__serializedExpr__: 'lively.pt(1.0,2.0)'},
+            result = this.sut.deserializeJso({id: 0, registry: {'0': {registeredObject: regObj}}});
+        this.assertEquals(pt(1,2), result);
+    },
+    test03ObjectsToAndFrom: function() {
+        var test = this, tests = [
+            {obj: lively.pt(2,3), expr: "lively.pt(2.0,3.0)"},
+            {obj: lively.rect(pt(1,2), pt(4,5)), expr: "lively.rect(1,2,3,3)"},
+            {obj: Color.red, expr: 'Color.' + Color.red.toString()}
+        ];
+        tests.forEach(function(testData) {
+            test.assertSerializesToExpr(testData.expr, testData.obj);
+            test.assertSerializesFromExpr(testData.obj, testData.expr);
+        });
     }
 });
 

@@ -341,6 +341,80 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
     }
 });
 
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.Borders',
+'running', {
+    setUp: function($super) {
+        $super();
+        this.createSomeMorphs();
+    },
+},
+
+'testing', {
+    assertDOMMorphNodeAttribute: function(targetValue, attributeName, morph, msg) {
+        var shapeNode= morph.renderContext().shapeNode;
+        return this.assertEquals(targetValue, $(shapeNode).attr(attributeName), msg);
+    },
+    test01SwitchBorderStylingMode: function() {
+        //this.redRectangle.setStyleSheet('.red {border: 10px solid black;}');
+        this.redRectangle.setBorderWidth(20);
+        var oldShapeNodeSize = $(this.redRectangle.renderContext().shapeNode).outerWidth();
+        this.redRectangle.setBorderStylingMode(true);
+        this.assertEquals(oldShapeNodeSize,
+            $(this.redRectangle.renderContext().shapeNode).outerWidth(),
+            'Shapenode should be the same size after switching on CSS styling');
+        this.redRectangle.setBorderStylingMode(false);
+        this.assertEquals(oldShapeNodeSize,
+            $(this.redRectangle.renderContext().shapeNode).outerWidth(),
+            'Shapenode should be the same size after switching off CSS styling');
+    },
+    test02AddCSSBorder: function() {
+        this.redRectangle.setBorderStylingMode(true);
+        this.redRectangle.setStyleSheet('.red {border: 10px solid black;}');
+        var oldShapeNodeSize = $(this.redRectangle.renderContext().shapeNode).outerWidth();
+        
+    },
+
+
+    createSomeMorphs: function() {
+        // this method creates 4 morphs: yellowRectange is the outer parent
+        // redRectangle its embedded submorph, blueRectangle1, blueRectangle1
+        // are its submorphs
+        var yellowRectangle = lively.morphic.Morph.makeRectangle(0,0, 300, 300);
+        yellowRectangle.applyStyle({fill: Color.yellow});
+        yellowRectangle.tagName = 'YellowRectangle';
+        yellowRectangle.testAttribute = 'theYellowRectangle';
+        yellowRectangle.openInWorld();
+        yellowRectangle.addStyleClassName('yellow');
+
+
+        var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
+        redRectangle.applyStyle({fill: Color.red});
+        redRectangle.addStyleClassName('red');
+        redRectangle.setStyleId('the-red-rectangle');
+        redRectangle.testAttribute = 'theRedRectangle';
+        yellowRectangle.addMorph(redRectangle);
+
+        var blueRectangle1 = lively.morphic.Morph.makeRectangle(10, 10, 150, 100);
+        blueRectangle1.applyStyle({fill: Color.blue});
+        blueRectangle1.addStyleClassName('blue');
+        blueRectangle1.setStyleId('b1');
+        redRectangle.addMorph(blueRectangle1);
+
+        var blueRectangle2 = lively.morphic.Morph.makeRectangle(10, 160, 150, 80);
+        blueRectangle2.applyStyle({fill: Color.blue});
+        blueRectangle2.addStyleClassName('blue');
+        blueRectangle2.setStyleId('b2');
+        blueRectangle2.tagName = 'blueRectangleTag';
+        redRectangle.addMorph(blueRectangle2);
+
+        this.yellowRectangle = yellowRectangle;
+        this.redRectangle = redRectangle;
+        this.blueRectangle1 = blueRectangle1;
+        this.blueRectangle2 = blueRectangle2;
+
+    },
+});
+
 
 AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Selectors',
 'running', {

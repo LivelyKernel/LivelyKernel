@@ -195,5 +195,16 @@ Object.subclass('lively.morphic.StyleSheetDeclaration',
     }
 }
 );
+lively.morphic.StyleSheetDeclaration.subclass('lively.morphic.StyleSheetShorthandDeclaration',
+'init', {
+    isStyleSheetShorthandDeclaration: true,
+},
+'Getter', {
+    getDeclarations: function() {
+        // TODO: implement caching
+        return apps.cssParser.parseShorthand(this);
+    },
+}
+);
 
 }) // end of module

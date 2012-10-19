@@ -22,129 +22,6 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         }
     });
 
-    Object.subclass('lively.morphic.CSSProperties');
-
-    Object.extend(lively.morphic.CSSProperties, {
-    enhancePropList: function(orgPropList) {
-        // Enhances the property list in lively.morphic.CSSProperties.props
-        // by adding conclusive shorthands and shorthandFor
-        // attributes to make it faster to use for parsing.
-        var propList = {},
-            markShorthands = function (property, properties) {
-                    var shorthand = orgPropList[property].shorthand;
-                    propList[property].shorthandFor =
-                        propList[property].shorthandFor.concat(properties || []);
-                    if (shorthand && orgPropList[shorthand]) {
-                        if (properties) {
-                            properties.push(property);
-                        } else {
-                            properties = [property];
-                        }
-                        // TODO: avoid running in circles
-                        var shorthandsFor = markShorthands(shorthand, properties || []);
-                        propList[property].shorthands =
-                            propList[property].shorthands.concat(shorthandsFor);
-                        return shorthandsFor.concat(property);
-                    } else {
-                        return [property];
-                    }
-                };
-
-        // Prepare proplist
-        for (var x in orgPropList) {
-            propList[x] = {};
-            propList[x].shorthands = [];
-            propList[x].shorthandFor = [];
-        }
-        // Mark shorthands
-        for (var x in orgPropList) {
-            markShorthands(x);
-        }
-        // Make sure there are no duplicates in the shorthand attrs
-        for (var x in propList) {
-            propList[x].shorthands = propList[x].shorthands.uniq();
-            propList[x].shorthandFor = propList[x].shorthandFor.uniq();
-        }
-        return propList;
-    },
-    getPropList: function() {
-        return lively.morphic.CSSProperties.enhancePropList(
-            lively.morphic.CSSProperties.props);
-    },
-    props: {
-        /*
-        Information to interpret and manipulate CSS properties.
-        Since there are a lot of CSS properties out there, this
-        is only a selection.
-        Feel free to add missing properties!
-        
-        A property can have several value counts (i.e. the value of
-        border-color could be 'black', but it could also be 'black black black blue').
-        
-        A value is of a certain type:
-        0: Plain text (i.e. font-family; edit through text field)
-        1: Number (i.e. width; edit through slider)
-        2: Option (i.e. border-style; edit with drop-down box)
-        3: Color (i.e. color; edit with color chooser)
-        4: Shadow (i.e. box-shadow; edit with shadow dialog)
-    
-        Additionally, a property can also have a shorthand.
-        I.e. 'border-top-color' is implicitly set by the shorthand 'border-color'
-        */
-
-        'background-color': {
-            shorthand: 'background',
-            values: [ // only one value for this property
-            [3]]
-        },
-        'border': {
-            values: [
-            // either one value ...
-            [3],
-            // ... or four
-            [3, 3, 3, 3]]
-        },
-        'border-color': {
-            shorthand: 'border',
-            values: [
-            // either one value ...
-            [3],
-            // ... or four
-            [3, 3, 3, 3]]
-        },
-        'border-top-color': {
-            shorthand: 'border-color',
-            values: [ // only one value for this property
-            [3]]
-        },
-        'border-bottom-color': {
-            shorthand: 'border-color',
-            values: [ // only one value for this property
-            [3]]
-        },
-        'border-left-color': {
-            shorthand: 'border-color',
-            values: [ // only one value for this property
-            [3]]
-        },
-        'border-right-color': {
-            shorthand: 'border-color',
-            values: [ // only one value for this property
-            [3]]
-        },
-        'border-radius': {
-            values: [
-            // either one value ...
-            [1],
-            // ... or four
-            [1, 1, 1, 1]]
-        },
-        'color': {
-            values: [ // only one value for this property
-            [3]]
-        }
-    }
-});
     lively.morphic.Morph.addMethods('Style sheet getters and setters', {
         cssIsEnabled: true,
 
@@ -248,17 +125,24 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
             // iterate over the ordered rules
             for(var i = 0; i < rules.length; i++) {
                 var rule = rules[i];
-                rule.declarations.each(function (decl) {
-                    if(aggregatedStyle[decl.getProperty()]
-                        && aggregatedStyle[decl.getProperty()].getPriority()
-                        && !decl.getPriority()) {
-                        // if the declaration is more '!important' than
-                        // the more specific one, do not override
-                    } else {
-                        // otherwise override declarations from less specific rules
-                        aggregatedStyle[decl.getProperty()] = decl;
-                    }
-                });
+                rule.getDeclarations()
+                    // Expand declarations to include shorthands
+                    .reduce(function(prev, decl) {
+                            return prev.concat(decl.isStyleSheetShorthandDeclaration ?
+                                decl.getDeclarations() : decl);
+                        }, [])
+                    // Aggregate and override declarations
+                    .each(function (decl) {
+                        if(aggregatedStyle[decl.getProperty()]
+                            && aggregatedStyle[decl.getProperty()].getPriority()
+                            && !decl.getPriority()) {
+                            // if the declaration is more '!important' than
+                            // the more specific one, do not override
+                        } else {
+                            // otherwise override declarations from less specific rules
+                            aggregatedStyle[decl.getProperty()] = decl;
+                        }
+                    });
             }
             for(var x in aggregatedStyle) {
                 result.push(aggregatedStyle[x]);
@@ -277,11 +161,38 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                 return prev.concat(rule.getDeclarations());
             }, []);
         },
+    getStyleSheetDeclarationValue: function(property) {
+        // Returns the value of a CSS property as applied to the morph.
+        // I.e. getStyleSheetDeclarationValue('border-width-left') returns '10px'
+        // when a style sheet in an ancestor morph includes a matching rule
+        // (including shorthands if defined in CSSProperties list).
+        var decls = this.getAggregatedMatchingStyleSheetDeclarations(),
+            normalizedProperty = property.toLowerCase().trim(),
+            matchingDecl = decls.find(function(x) {
+                    // For shorthands check all of their atomar declarations
+                    if (x.isStyleSheetShorthandDeclaration) {
+                        return x.getDeclarations().find(
+                            function(y) {
+                                // We assume shorthand properties are already normalized
+                                return (y.getProperty() === normalizedProperty);
+                            }
+                        );
+                    } else {
+                        return (x.getProperty().toLowerCase().trim() === normalizedProperty);
+                    }
+                });
+        if (matchingDecl) {
+        return matchingDecl.getValues().join(' ');
+        } else {
+            return null;
+        }
+    },
+
         generateStyleSheetDeclarationOverrideList: function (declarations) {
             // Function expects a declaration array ordered by precedence
             // (i.e. declarations[0] -> highest precedence, 
             // declarations[x] -> lower precedence).
-            var propList = lively.morphic.CSSProperties.getPropList(),
+            var propList = apps.cssParser.getPropList(),
                 result = declarations.collect(function () {
                         return -1
                     }),

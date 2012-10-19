@@ -628,12 +628,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
     },
 
     test07GetAggregatedMatchingStyleSheetDeclarations: function() {
-        
-        var css = '.blue{ background-color: blue; }'+
-                '#blue2.blue { background-color: black; }'+
-                '.blue:nth-child(2) { background-color: yellow!important; }'+
-                '.red { color: red; background-color: green;}'+
-                '#the-red-rectangle { background-color: red; }',
+        var css = '.blue{ border-top-color: blue; }'+
+                '#blue2.blue { border-top-color: black; }'+
+                '.blue:nth-child(2) { border-top-color: yellow!important; }'+
+                '.red { color: red; border-top-color: green;}'+
+                '#the-red-rectangle { border: 1px solid red; }',
             getDecl = function(decls, property){
                     return decls.filter(function(d){
                             return (d.getProperty() === property)
@@ -643,22 +642,22 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.world.setStyleSheet(css);
 
         var blue1Styles = this.blueRectangle1.getAggregatedMatchingStyleSheetDeclarations(),
-            blueStyles1BackgroundColorValue = getDecl(blue1Styles, 'background-color');
+            blueStyles1BackgroundColorValue = getDecl(blue1Styles, 'border-top-color');
         this.assertEquals('blue', blueStyles1BackgroundColorValue,
-            'background-color of blue1 should be blue');
+            'border-top-color of blue1 should be blue');
 
         var blue2Styles = this.blueRectangle2.getAggregatedMatchingStyleSheetDeclarations(),
-            blueStyles2BackgroundColorValue = getDecl(blue2Styles, 'background-color');
+            blueStyles2BackgroundColorValue = getDecl(blue2Styles, 'border-top-color');
 
         this.assertEquals('yellow', blueStyles2BackgroundColorValue,
-            'background-color of blue2 should be yellow');
+            'border-top-color of blue2 should be yellow');
 
         var redStyles = this.redRectangle.getAggregatedMatchingStyleSheetDeclarations(),
-            redBackgroundColorValue = getDecl(redStyles, 'background-color'),
+            redBackgroundColorValue = getDecl(redStyles, 'border-top-color'),
             redTextColorValue = getDecl(redStyles, 'color');
 
         this.assertEquals('red', redBackgroundColorValue ,
-            'background-color of red should be red');
+            'border-top-color of red should be red');
         this.assertEquals('red', redTextColorValue ,
             'color of red should be red');
     },
@@ -695,7 +694,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                     [3]]
                 },
             },
-        enhancedPropList = lively.morphic.CSSProperties.enhancePropList(propList);
+        enhancedPropList = apps.cssParser.enhancePropList(propList);
         this.assertEquals(0, enhancedPropList['background-color'].shorthands.length,
             'background-color should have no defined shorthands');
         this.assertEquals(0, enhancedPropList['background-color'].shorthandFor.length,
@@ -791,6 +790,21 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             'Override list for blue2 should be [1, 2, -1, 2]');
 
     },
+    test10GetStyleSheetDeclarationValue: function() {
+        var css = '.blue{ border-color-left: blue; }'+
+                '#blue2.blue { border-left-color: black; }'+
+                '.blue:nth-child(2) { border-left-color: yellow!important; }'+
+                '.red { color: red; border-left-color: green;}'+
+                '#the-red-rectangle { border: 1px solid red; }';
+        this.yellowRectangle.setStyleSheet(css);
+        this.assertEquals('yellow',
+            this.blueRectangle2.getStyleSheetDeclarationValue('border-left-color'),
+            'Border color of blue2 should be yellow.');
+        this.assertEquals('red',
+            this.redRectangle.getStyleSheetDeclarationValue('border-left-color'),
+            'Border color of red set through shorthand border and should be red.');
+    }
+
 });
 
 TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
@@ -883,7 +897,15 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
 
         this.assertEquals('', f.getSelector(),
             'Selector of FF rule is not ""');
+    },
+    test06ParseShorthand: function() {
+        var shorthandDecl = new lively.morphic.StyleSheetShorthandDeclaration(
+                'border', ['1px', 'solid', 'black']),
+            decls = shorthandDecl.getDeclarations();
+        this.assertEquals(12, decls.length,
+            'Border shorthand should produce 12 atomar declarations');
     }
+
 
 
 });

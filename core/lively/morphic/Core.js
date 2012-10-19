@@ -9,7 +9,8 @@ Object.subclass('lively.morphic.Morph',
         borderColor: null,
         fill: null
     },
-    isMorph: true
+    isMorph: true,
+	isLoggable: true
 },
 'initializing', {
     idCounter: 0,
@@ -245,6 +246,18 @@ Object.subclass('lively.morphic.Morph',
             return null;
         }
 
+		// TODO: AUA
+		if (!morph.isLoggable || (!this.isLoggable && !(this instanceof lively.morphic.HandMorph))) {
+			morph.withAllSubmorphsDo(function (ea) {
+				ea.isLoggable = false;
+				ea.shape.isLoggable = false;
+			});
+		}
+
+        $world.GlobalLogger.logAddMorph(this, morph, optMorphBefore);
+		morph.shape.isLoggable = morph.isLoggable;
+		$world.GlobalLogger.disableLogging();
+
         var tfm = morph.owner
                && morph.owner !== newOwner
                && morph.transformForNewOwner(newOwner);
@@ -293,6 +306,7 @@ Object.subclass('lively.morphic.Morph',
             ea.onOwnerChanged(newOwner);
         });
 
+		$world.GlobalLogger.enableLogging();
         return morph;
     },
 
@@ -399,6 +413,7 @@ Object.subclass('lively.morphic.Morph',
     remove: function() {
         this.suspendSteppingAll();
         if (this.showsHalos) this.removeHalos();
+		$world.GlobalLogger.logRemove(this)
         if (this.owner) {
             this.owner.removeMorph(this);
         }

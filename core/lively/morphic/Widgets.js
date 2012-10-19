@@ -812,8 +812,8 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     paddingLeft: 20,
     isEpiMorph: true,
     isMenu: true,
-    removeOnMouseOut: false
-
+    removeOnMouseOut: false,
+	isLoggable: false
 },
 'initializing', {
     initialize: function($super, title, items) {
@@ -1280,7 +1280,8 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
         fontFamily: "Helvetica,Verdana,sans-serif",
         whiteSpaceHandling: 'nowrap'
     },
-    defaultTextColor: Config.get('textColor') || Color.black
+    defaultTextColor: Config.get('textColor') || Color.black,
+	isLoggable: false
 },
 'initializing', {
     initialize: function($super, item) {
@@ -1674,12 +1675,17 @@ lively.morphic.World.addMethods(
         return part;
     },
     openPartItem: function(partName, optPartspaceName) {
+		if (optPartspaceName === 'PartsBin/Tools') {
+			var loggingEnabled = $world.GlobalLogger.loggingEnabled
+			$world.GlobalLogger.disableLogging()
+		}
         var part = this.loadPartItem(partName, optPartspaceName);
         if (!part) return null;
         part.openInWorld(pt(0,0))
         part.align(part.bounds().center(), this.visibleBounds().center());
         var win = part.getWindow();
         if (win) win.comeForward();
+		$world.GlobalLogger.loggingEnabled = loggingEnabled;
         return part;
     },
     openPartsBin: function() {
@@ -1696,8 +1702,10 @@ lively.morphic.World.addMethods(
 
     openInspectorFor: function(object) {
         lively.require('lively.ide.tools.Inspector').toRun(function() {
+            $world.GlobalLogger.disableLogging();
             lively.BuildSpec('lively.ide.tools.Inspector').createMorph().openInWorldCenter().
                 comeForward().inspect(object);
+            $world.GlobalLogger.enableLogging();
         });
     },
 
@@ -2508,10 +2516,11 @@ lively.morphic.Button.subclass("lively.morphic.WindowControl",
         accessibleInInactiveWindow: true
     },
     connections: ['HelpText', 'fire'],
+    isLoggable: false
 },
 'initializing', {
     initialize: function($super, bnds, inset, labelString, labelOffset/*deprecated*/) {
-        $super(bnds, labelString)
+        $super(bnds, labelString);
         this.label.setExtent(this.getExtent());
     },
 });
@@ -2664,8 +2673,14 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         enableDragging: true
     },
     isWindow: true,
+<<<<<<< HEAD
     isCollapsed: function() { return this.state === 'collapsed'; },
     doNotSerialize: ['highlighted', 'cameForward']
+=======
+    isCollapsed: function() { return this.state === 'collapsed' },
+	isLoggable: false
+
+>>>>>>> First version of very basic undo redo and logging for simple morphs
 },
 'initializing', {
     initialize: function($super, targetMorph, titleString, optSuppressControls) {
@@ -3546,7 +3561,13 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
     isEpiMorph: true,
     doNotRemove: true,
     propagate: true,
+<<<<<<< HEAD
     isSelection: true
+=======
+    isSelection: true,
+	isLoggable: false,
+
+>>>>>>> First version of very basic undo redo and logging for simple morphs
 },
 'initializing', {
 

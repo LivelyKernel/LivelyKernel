@@ -1939,7 +1939,8 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     style: {enableDropping: false, enableHalos: false}
 },
 'testing', {
-    isHand: true
+    isHand: true,
+	isLoggable: false
 },
 'initializing', {
     initialize: function($super) {

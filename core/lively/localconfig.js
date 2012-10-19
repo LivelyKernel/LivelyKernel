@@ -35,6 +35,8 @@ lively.Config.add("modulePaths", 'apps');
 lively.Config.add("modulesBeforeWorldLoad", 'lively.morphic.HTML');
 lively.Config.add("modulesBeforeWorldLoad", 'lively.morphic.StyleSheetsHTML');
 
+lively.Config.add("modulesOnWorldLoad", 'lively.morphic.GlobalLogger');
+
 // Config.set("textUndoEnabled", document.URL.indexOf('textUndoEnabled=false') === -1);
 if (lively.Config.get("textUndoEnabled")) {
     lively.Config.add("modulesBeforeWorldLoad", 'lively.morphic.TextUndo');

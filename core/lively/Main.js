@@ -210,6 +210,7 @@ Object.subclass('lively.Main.Loader',
             });
         }
         lively.whenLoaded = function(cb) { cb(world) };
+		lively.morphic.World.current().GlobalLogger = new lively.GlobalLogger()
         console.log("The world is now completely loaded.");
     }
 

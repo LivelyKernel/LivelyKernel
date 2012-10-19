@@ -571,7 +571,8 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         borderRadius: 4,
         opacity: 0.95
     },
-    isEpiMorph: true
+    isEpiMorph: true,
+	isLoggable: false
 },
 'initializing', {
     initialize: function($super, title, items) {
@@ -881,7 +882,8 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
         padding: Rectangle.inset(3,2),
         textColor: Config.get('textColor') || Color.black
     },
-    defaultTextColor: Config.get('textColor') || Color.black
+    defaultTextColor: Config.get('textColor') || Color.black,
+	isLoggable: false
 },
 'initializing', {
     initialize: function($super, item) {
@@ -1187,17 +1189,24 @@ lively.morphic.World.addMethods(
         return part;
     },
     openPartItem: function(partName, optPartspaceName) {
+		if (optPartspaceName === 'PartsBin/Tools') {
+			var loggingEnabled = $world.GlobalLogger.loggingEnabled
+			$world.GlobalLogger.disableLogging()
+		}
         var part = this.loadPartItem(partName, optPartspaceName);
         part.openInWorld(pt(0,0))
         part.align(part.bounds().center(), this.visibleBounds().center());
+		$world.GlobalLogger.loggingEnabled = loggingEnabled
         return part;
     },
     openPartsBin: function(evt) {
         return this.openPartItem('PartsBinBrowser', 'PartsBin/Tools');
     },
     openInspectorFor: function(object, evt) {
+		$world.GlobalLogger.disableLogging()
         var part = this.openPartItem("ObjectInspector", 'PartsBin/Tools');
         part.inspect(object);
+		$world.GlobalLogger.enableLogging()
         return part;
     },
     openStyleEditorFor: function(morph, evt) {
@@ -1941,6 +1950,7 @@ lively.morphic.Button.subclass("lively.morphic.WindowControl",
 },
 'initializing', {
     initialize: function($super, bnds, inset, labelString, labelOffset) {
+		this.isLoggable = false;
         $super(bnds, labelString)
         this.label.applyStyle({fontSize: 8})
     },
@@ -2089,6 +2099,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
     style: {borderWidth: 0, fill: null, borderRadius: 0, strokeOpacity: 0, adjustForNewBounds: true, enableDragging: true},
     isWindow: true,
     isCollapsed: function() { return this.state === 'collapsed' },
+	isLoggable: false
 
 },
 'initializing', {
@@ -2647,6 +2658,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
     doNotRemove: true,
     propagate: true,
     isSelection: true,
+	isLoggable: false,
 
 },
 'initializing', {

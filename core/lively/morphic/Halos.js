@@ -117,11 +117,13 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
     horizontalPos: 0,
     verticalPos: 0,
     isEpiMorph: true,
-    isHalo: true
+    isHalo: true,
+	isLoggable: false
 },
 'initializing', {
     initialize: function($super, targetMorph) {
         $super(this.defaultExtent.extentAsRectangle());
+		this.shape.isLoggable = false
         this.setTarget(targetMorph);
         this.createLabel();
     },
@@ -148,7 +150,8 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
         if (!this.infoLabel) {
             this.infoLabel = new lively.morphic.Text(new Rectangle(0,0,100,30), "")
                 .beLabel({fontSize: 8});
-            this.infoLabel.isEpiMorph = true;
+            this.infoLabel.isLoggable = false
+			this.infoLabel.isEpiMorph = true;
             this.infoLabel.addScript(function alignAtTarget() {
                 if (!this.owner) return;
                 var t = this.targetMorph;

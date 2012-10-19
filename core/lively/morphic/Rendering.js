@@ -3,6 +3,7 @@ module('lively.morphic.Rendering').requires('lively.morphic.Core', 'lively.morph
 Trait('lively.morphic.Renderable',
 'accessing', {
     renderAttributeSetter: function(propName, value) {
+		lively.morphic.World.current() && lively.morphic.World.current().GlobalLogger && lively.morphic.World.current().GlobalLogger.logRenderAttributeSetter(this, propName, value);
         if (value === undefined) {
             delete this['_' + propName];
         } else {
@@ -39,8 +40,7 @@ Trait('lively.morphic.Renderable',
         }
         return this[renderSpecificAspect](this._renderContext, arg);
     }
-})
-.applyTo(lively.morphic.Morph, {
+}).applyTo(lively.morphic.Morph, {
     override: ['setRenderContext', 'renderContext', 'renderContextDispatch'],
     alias: {renderAttributeSetter: 'morphicSetter', renderAttributeGetter: 'morphicGetter'},
 })

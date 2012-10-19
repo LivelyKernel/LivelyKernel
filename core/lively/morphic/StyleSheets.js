@@ -446,10 +446,9 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
 
             for(var i = 0; i < classNames.length; i++) {
                 var innerLoopRet = false;
-                for(var j = 0; j < morphClasses.length; j++) {
+                for(var j = 0; j < morphClasses.length && !innerLoopRet; j++) {
                     if(classNames[i].test(morphClasses[j])) {
                         innerLoopRet = true;
-                        continue;
                     }
                 }
                 if(!innerLoopRet) {
@@ -487,10 +486,9 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
             // Tests if a morph has a specific style id.
             var styleId = this.getStyleId();
 
-            if(styleId && id) {
-                styleId = styleId.toLowerCase();
-                id = id.trim().toLowerCase();
-                return(styleId === id);
+            if (styleId && id) {
+                id = id.trim();
+                return (styleId === id);
             } else {
                 return false;
             }

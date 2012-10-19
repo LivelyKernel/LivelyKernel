@@ -169,14 +169,13 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                 return this.setParsedStyleSheet(styleSheet);
             } else if(typeof (styleSheet) === 'string' && styleSheet.length > 0) {
                 var parsedStyleSheet = apps.cssParser.parse(styleSheet, this);
-                return this.morphicSetter('StyleSheet', parsedStyleSheet);
+                return this.setParsedStyleSheet(parsedStyleSheet);
             } else {
-                this.morphicSetter('StyleSheet', null);
-                delete this._StyleSheet;
+                return this.setParsedStyleSheet();
             }
         },
         setParsedStyleSheet: function (styleSheet) {
-            if(styleSheet.isStyleSheet) {
+            if(styleSheet && styleSheet.isStyleSheet) {
                 return this.morphicSetter('StyleSheet', styleSheet);
             } else {
                 this.morphicSetter('StyleSheet', null);

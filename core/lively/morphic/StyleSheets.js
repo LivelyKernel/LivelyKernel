@@ -182,7 +182,7 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                     }
                 });
         if (matchingDecl) {
-        return matchingDecl.getValues().join(' ');
+            return matchingDecl.getValues().join(' ');
         } else {
             return null;
         }
@@ -320,76 +320,42 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         }
     }, 'Morph selection', {
         getSubmorphByStyleId: function (id, optIdAttributeName) {
-            var styleId = (optIdAttributeName) ? this[optIdAttributeName] : this.getStyleId();
-            if(styleId === id) {
-                return this;
-            } else {
-                for(var i = 0; i < this.submorphs.length; i++) {
-                    var m = this.submorphs[i],
-                        hit = m.getSubmorphByStyleId(id);
-                    if(hit) {
-                        return hit;
-                    }
-                }
-                return null;
-            }
+            // Returns the first sub(subsub...)morph with the given id
+            return this.withAllSubmorphsDetect(function(m) {
+                    var styleId = (optIdAttributeName)
+                            ? m[optIdAttributeName]
+                            : m.getStyleId();
+                    return styleId === id;
+                });
         },
-        getSubmorphsByStyleClassName: function (classNames) {
-            var resultMorphs = [];
-
-            this.withAllSubmorphsDo(function (morph) {
-                if(morph.isOfStyleClass(classNames)) {
-                    resultMorphs.push(morph);
-                }
-            });
-
-            return resultMorphs;
+        getSubmorphsByStyleClassName: function (className) {
+            // Returns an array of morphs matching the given class name(s).
+            //
+            // className : string -> one or multiple (space separated) class names
+            return this.withAllSubmorphsSelect(
+                function (morph) {return morph.isOfStyleClass(className)});
         },
         getSubmorphsByAttribute: function (attr, value, optCaseInsensitive) {
-            var resultMorphs = [],
-                val = optCaseInsensitive ? (value + '').toLowerCase() : (value + '');
+            var val = optCaseInsensitive ? (value + '').toLowerCase() : (value + '');
 
-            this.withAllSubmorphsDo(function (morph) {
+            return this.withAllSubmorphsSelect(function (morph) {
                 var a = morph[attr];
-                if(a) {
-                    if(value == null) {
-                        resultMorphs.push(morph);
-                    }
-                    a += '';
-
-                    if(optCaseInsensitive) {
-                        a = a.toLowerCase();
-                    }
-
-                    if(a === val) {
-                        resultMorphs.push(morph);
-                    }
+                if (value === null || value === undefined) {
+                    return a !== null && a !== undefined;
+                } else {
+                    return a &&
+                        (optCaseInsensitive ? (a + '').toLowerCase() : (a + '')) === val;
                 }
-
             });
-
-            return resultMorphs;
-
         },
         getSubmorphsByTagName: function (tag, optTagNameAttribute) {
-            var resultMorphs = [],
-                tagNameAttr = optTagNameAttribute || 'tagName',
+            var tagNameAttr = optTagNameAttribute || 'tagName',
                 selectAll = (tag.trim() === '*');
 
-            this.withAllSubmorphsDo(function (morph) {
-                var thisTagName = morph[tagNameAttr];
-                if(selectAll) {
-                    resultMorphs.push(morph);
-                } else if(thisTagName) {
-                    thisTagName += '';
-
-                    if(thisTagName === tag) {
-                        resultMorphs.push(morph);
-                    }
-                }
+            return this.withAllSubmorphsSelect(function (morph) {
+                var thisTagName = morph[tagNameAttr]
+                return selectAll || (thisTagName && (thisTagName + '' === tag));
             });
-
-            return resultMorphs;
         },
 
         getAttribute: function (attr) {

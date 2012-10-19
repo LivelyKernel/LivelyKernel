@@ -239,9 +239,8 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         var string = this.serializer.serialize(morph1),
             jso = JSON.parse(string),
             result = lively.persistence.Serializer.sourceModulesIn(jso);
-        this.assertEquals(4, result.length, 'not the correct amount of classes recognized');
+        this.assertEquals(3, result.length, 'not the correct amount of classes recognized ' + result);
         this.assert(result.include('Global.lively.morphic.Core'), 'Global.lively.morphic.Core not included');
-        this.assert(result.include('Global.lively.morphic.Graphics'), 'Global.lively.morphic.Graphics not included');
         this.assert(result.include('Global.lively.morphic.Events'), 'Global.lively.morphic.Events not included');
         this.assert(result.include('Global.lively.morphic.Shapes'), 'Global.lively.morphic.Shapes not included');
     },

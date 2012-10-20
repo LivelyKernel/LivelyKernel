@@ -169,7 +169,7 @@ Object.extend(apps.cssParser, {
     },
 
     enhancePropList: function(orgPropList) {
-        // Enhances the property list in lively.morphic.CSSProperties.props
+        // Enhances the property list in apps.cssParser.props
         // by adding conclusive shorthands and shorthandFor
         // attributes to make it faster to use for parsing.
         var propList = {},
@@ -211,8 +211,15 @@ Object.extend(apps.cssParser, {
         return propList;
     },
     getPropList: function() {
-        return apps.cssParser.enhancePropList(
-            apps.cssParser.props);
+        // Returns the shorthand enhanced property list.
+        // If already created return cached version
+        if (apps.cssParser.enhancedPropertyList) {
+            return apps.cssParser.enhancedPropertyList;
+        } else {
+            apps.cssParser.enhancedPropertyList = apps.cssParser.enhancePropList(
+                apps.cssParser.props);
+            return apps.cssParser.enhancedPropertyList;
+        }
     },
     props: {
         /*
@@ -291,6 +298,78 @@ Object.extend(apps.cssParser, {
 });
 
 }); // end of module
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

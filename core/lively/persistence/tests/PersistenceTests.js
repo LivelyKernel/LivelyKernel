@@ -496,7 +496,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.PrototypeInstanceSe
     }
 });
 
-lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('lively.persistence.tests.ExpressionValues',
+lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('lively.persistence.tests.SerializeAsExpression',
 'running', {
     setUp: function($super) {
         $super();
@@ -505,33 +505,39 @@ lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('li
 
     assertSerializesFromExpr: function(expectedObj, expr) {
         var result = this.sut.deserializeJso({id: 0, registry: {
-            '0': {registeredObject: {__serializedExpr__: expr}}
+            '0': {
+                registeredObject: {
+                    __serializedExpressions__: [ "testObj" ],
+                    testObj: expr
+                }
+            }
         }});
-        this.assertEquals(expectedObj, result,
+        this.assertEquals(expectedObj, result.testObj,
                           Strings.format('expr %s does not eval to %s',
                                          expr, expectedObj));
     },
 
     assertSerializesToExpr: function(expectedExpr, obj) {
-        var ref = this.sut.register(obj),
+        var ref = this.sut.register({testExpr: obj}),
             regObj = this.sut.getRegisteredObjectFromId(ref.id);
-        this.assertEqualState(expectedExpr, regObj.__serializedExpr__,
-                              Strings.format('object does not serialize to expected expr %s but %s',
-                                             expectedExpr, regObj.expr));
+        this.assertEquals(expectedExpr, regObj.testExpr);
     }
 },
 'testing', {
     test01ToExpr: function() {
-        var obj = lively.pt(1,2),
+        var obj = {point: lively.pt(1,2)},
             ref = this.sut.register(obj),
             regObj = this.sut.getRegisteredObjectFromId(ref.id);
-        this.assertEqualState({__serializedExpr__: 'lively.pt(1.0,2.0)'}, regObj);
+        this.assertEqualState({
+            '__serializedExpressions__': ['point'],
+            point: 'lively.pt(1.0,2.0)'
+        }, regObj, JSON.prettyPrint(regObj));
     },
 
     test02ToExpr: function() {
-        var regObj = {__serializedExpr__: 'lively.pt(1.0,2.0)'},
+        var regObj = {__serializedExpressions__: ['point'], point: 'lively.pt(1.0,2.0)'},
             result = this.sut.deserializeJso({id: 0, registry: {'0': {registeredObject: regObj}}});
-        this.assertEquals(pt(1,2), result);
+        this.assertEquals(pt(1,2), result.point);
     },
     test03ObjectsToAndFrom: function() {
         var test = this, tests = [

@@ -139,7 +139,7 @@ Object.subclass('ObjectGraphLinearizer',
             var result = [];
             for (var i = 0; i < obj.length; i++) {
                 var item = obj[i];
-                if (this.somePlugin('ignoreProp', [obj, i, item])) continue;
+                if (this.somePlugin('ignoreProp', [obj, i, item, result])) continue;
                 result.push(this.registerWithPath(item, i));
             }
             return result;
@@ -174,7 +174,7 @@ Object.subclass('ObjectGraphLinearizer',
         for (var key in source) {
             if (!source.hasOwnProperty(key) || (key === this.idProperty && !this.keepIds)) continue;
             var value = source[key];
-            if (this.somePlugin('ignoreProp', [source, key, value])) continue;
+            if (this.somePlugin('ignoreProp', [source, key, value, copy])) continue;
             copy[key] = this.registerWithPath(value, key);
         }
     },
@@ -210,7 +210,7 @@ Object.subclass('ObjectGraphLinearizer',
             recreated[key] = this.patchObj(value);
             this.path.pop();
         };
-        this.letAllPlugins('afterDeserializeObj', [recreated]);
+        this.letAllPlugins('afterDeserializeObj', [recreated, registeredObj]);
         return recreated;
     },
     patchObj: function(obj) {
@@ -373,9 +373,9 @@ Object.subclass('ObjectLinearizerPlugin',
     serializeObj: function(original) {},
     additionallySerialize: function(original, persistentCopy) {},
     deserializeObj: function(persistentCopy) {},
-    ignoreProp: function(obj, propName, value) {},
+    ignoreProp: function(obj, propName, value, persistentCopy) {},
     ignorePropDeserialization: function(obj, propName, value) {},
-    afterDeserializeObj: function(obj) {},
+    afterDeserializeObj: function(obj, persistentCopy) {},
     deserializationDone: function() {},
     serializationDone: function(registry) {},
     */
@@ -1158,37 +1158,41 @@ ObjectLinearizerPlugin.subclass('lively.persistence.GenericConstructorPlugin',
     }
 });
 
-ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin',
-'settings', {
-    serializedExprProperty: '__serializedExpr__'
-},
-'testing', {
-    canSerializeToExpr: function(obj) {
-        if (!object) return null;
-        if (obj instanceof lively.Point) { return true }
-        return null;
-    }
-},
-'plugin interface', {
-    ignorePropDeserialization: function(regObj, key, val) {
-        return key === this.serializedExprProperty;
+ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin', {
+    specialSerializeProperty: '__serializedExpressions__',
+    canBeSerializedAsExpression: function(value) {
+        return value && Object.isObject(value) && Object.isFunction(value.serializeExpr);
     },
-
-    serializeObj: function(obj) {
-        if (!obj || !Object.isFunction(obj.serializeExpr)) return null;
-        var regObj = {};
-        regObj[this.serializedExprProperty] = obj.serializeExpr();
-        return regObj;
+    ignoreProp: function(obj, propName, value, copy) {
+        if (!this.canBeSerializedAsExpression(value)) return false;
+        if (!copy[this.specialSerializeProperty]) {
+            copy[this.specialSerializeProperty] = []
+        };
+        copy[this.specialSerializeProperty].push(propName);
+        return true;
     },
-
-    deserializeObj: function(obj) {
-        var expr = obj && obj[this.serializedExprProperty];
-        if (!expr) return null;
-        try {
-            return eval(expr);
-        } catch(e) {
-            console.error('Cannot deserialize expr obj\n%s\n%s', expr, e.stack);
-            return null;
+    additionallySerialize: function(original, persistentCopy) {
+        var keysToConvert = persistentCopy[this.specialSerializeProperty];
+        if (!keysToConvert) return;
+        for (var i = 0, len = keysToConvert.length; i < len; i++) {
+            var key = keysToConvert[i], value = original[key];
+            persistentCopy[key] = value.serializeExpr();
+        }
+    },
+    afterDeserializeObj: function(obj, persistentCopy) {
+        var keysToConvert = persistentCopy[this.specialSerializeProperty];
+        if (!keysToConvert) return;
+        for (var i = 0, len = keysToConvert.length; i < len; i++) {
+            var key = keysToConvert[i], expr = obj[key];
+            if (expr && Object.isString(expr)) {
+                try {
+                    obj[key] = eval(expr);
+                } catch(e) {
+                    console.error('Error when trying to restore serialized '
+                                 + 'expression %S (%s[%s]): %s', expr, obj, key, e);
+                    obj[key] = e;
+                }
+            }
         }
     }
 });

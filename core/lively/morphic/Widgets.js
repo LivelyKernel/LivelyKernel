@@ -1694,6 +1694,7 @@ lively.morphic.World.addMethods(
                 openInWorldCenter().comeForward();
         });
     },
+
     openEntanglementInspectorFor: function(object, evt) {
         var e = object.buildSpec().createEntanglement();
         e.postEntangle(object);
@@ -2673,14 +2674,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         enableDragging: true
     },
     isWindow: true,
-<<<<<<< HEAD
     isCollapsed: function() { return this.state === 'collapsed'; },
-    doNotSerialize: ['highlighted', 'cameForward']
-=======
-    isCollapsed: function() { return this.state === 'collapsed' },
+    doNotSerialize: ['highlighted', 'cameForward'],
 	isLoggable: false
 
->>>>>>> First version of very basic undo redo and logging for simple morphs
 },
 'initializing', {
     initialize: function($super, targetMorph, titleString, optSuppressControls) {
@@ -3561,13 +3558,8 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
     isEpiMorph: true,
     doNotRemove: true,
     propagate: true,
-<<<<<<< HEAD
-    isSelection: true
-=======
     isSelection: true,
-	isLoggable: false,
-
->>>>>>> First version of very basic undo redo and logging for simple morphs
+	isLoggable: false
 },
 'initializing', {
 

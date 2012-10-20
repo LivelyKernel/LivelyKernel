@@ -1673,4 +1673,13 @@ Trait('lively.morphic.SetStatusMessageTrait', {
   }
 });
 
+lively.morphic.Morph.addMethods(
+'undoredo', {
+	getLoggability: function () {
+		return !this.ownerChain().each(function (ea) {
+			return (ea instanceof lively.morphic.HandMorph) || !ea.isLoggable;
+		});
+	}
+});
+
 }) // end of module

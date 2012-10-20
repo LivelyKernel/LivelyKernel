@@ -74,6 +74,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
             'selection by other case id should return null');
 
     },
+    testMorphHasStyleId: function() {
+        this.assert(this.redRectangle.hasStyleId('the-red-rectangle'),
+            'Red rect should have style id the-red-rectangle');
+        this.assert(!this.redRectangle.hasStyleId('the-Red-rectangle'),
+            'Red rect should NOT have style id the-Red-rectangle');
+    },
+
     testSelectMorphByClassName: function() {
 
         this.assertEqualState([this.blueRectangle1, this.blueRectangle2],

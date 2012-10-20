@@ -266,16 +266,13 @@ Object.subclass('lively.morphic.Morph',
     },
     selectSubmorphs: function(spec) {
         // return all submorphs (recursively) that fulfill spec
-        var matchSpec = function(aMorph) {
-                var matches = true;
-                Properties.own(spec).forEach(function(prop) {
-                    if (aMorph[prop] != spec[prop]) {
-                        matches = false;
-                    }
-                });
-                return matches;
-            };
-        return this.withAllSubmorphsSelect(matchSpec);
+        var props = Properties.own(spec);
+        function matches(aMorph) {
+            return props.all(function(prop) {
+                return aMorph[prop] == spec[prop];
+            });
+        };
+        return this.withAllSubmorphsSelect(matches);
     },
 
 

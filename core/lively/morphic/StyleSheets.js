@@ -485,13 +485,7 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         hasStyleId: function (id) {
             // Tests if a morph has a specific style id.
             var styleId = this.getStyleId();
-
-            if (styleId && id) {
-                id = id.trim();
-                return (styleId === id);
-            } else {
-                return false;
-            }
+            return styleId && id && (id + '').trim() === styleId;
         },
 
         removeStyleClassName: function (className) {

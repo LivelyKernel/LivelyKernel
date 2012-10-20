@@ -913,6 +913,23 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
             decls = shorthandDecl.getDeclarations();
         this.assertEquals(12, decls.length,
             'Border shorthand should produce 12 atomar declarations');
+        decls.each(function(decl) {
+                var p = decl.getProperty();
+                if (p.indexOf('color') >=0) {
+                    this.assertEquals('black', decl.getValues().first(),
+                        'Value of '+p+' should be black');
+                } else  if (p.indexOf('style') >=0) {
+                    this.assertEquals('solid', decl.getValues().first(),
+                        'Value of '+p+' should be solid');
+                } else if (p.indexOf('width') >=0) {
+                    this.assertEquals('1px', decl.getValues().first(),
+                        'Value of '+p+' should be 1pxa');
+                } else {
+                    this.assert(false,
+                        'There should be no declarations having neither of color'+
+                        ', style or width in their property string');
+                }
+            }, this);
     }
 
 

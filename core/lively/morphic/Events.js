@@ -1439,6 +1439,8 @@ lively.morphic.World.addMethods(
             case "k": { this.openWorkspace(evt); return true; }
             case "o": { this.openObjectEditor(evt); return true; }
             case "p": { this.openPartsBin(evt); return true; }
+			case "z": { this.GlobalLogger.undoLastAction(); return true }
+			case "y": { this.GlobalLogger.redoNextAction(); return true }
         }
 
         switch(evt.getKeyCode()) {

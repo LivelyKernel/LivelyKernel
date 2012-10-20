@@ -1205,6 +1205,7 @@ lively.morphic.World.addMethods(
     openInspectorFor: function(object, evt) {
 		$world.GlobalLogger.disableLogging()
         var part = this.openPartItem("ObjectInspector", 'PartsBin/Tools');
+		debugger
         part.inspect(object);
 		$world.GlobalLogger.enableLogging()
         return part;

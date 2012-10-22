@@ -1099,10 +1099,6 @@ ObjectLinearizerPlugin.subclass('CopyOnlySubmorphsPlugin',
     },
 },
 'plugin interface', {
-    ignoreProp: function(obj, key, value) {
-        if (!value || !this.root || !this.root.isMorph) return false;
-        return value === this.root.owner;
-    },
     serializeObj: function(obj) {
         // if obj is a morph and the root obj that is copied is a morph then
         // copy this object only if it is a submorph of the root obj

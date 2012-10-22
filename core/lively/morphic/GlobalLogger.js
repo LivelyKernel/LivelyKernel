@@ -57,7 +57,6 @@ Object.subclass('lively.GlobalLogger',
 				var undoFunc = morph.remove.bind(morph);
 			}
 			if (!newOwner.isLoggable && !(newOwner instanceof lively.morphic.HandMorph)) {
-				//this.deleteRecentLogs()
 				return false
 			}
 			var handPos = $world.firstHand().getPosition()
@@ -92,7 +91,6 @@ Object.subclass('lively.GlobalLogger',
 				owner = morph.owner;
 			if (owner)
 				string.concat(' from ' + owner.toString())
-			// TODO: this fucks up adding and when redone adds 2^n entries to the list
 			var action = {
 				string: string,
 				morph: morph,
@@ -175,8 +173,5 @@ Object.subclass('lively.GlobalLogger',
 	disableLogging: function () {
 		this.loggingEnabled = false
 	},
-	deleteRecentLogs: function () {
-		this.stack.splice(this.counter)
-	}
 }
 )}) // end of module

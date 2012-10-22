@@ -1009,6 +1009,7 @@ handleOnCapture);
     getGrabShadow: function (local) {
         var shadow = new lively.morphic.Morph(
             lively.persistence.Serializer.newMorphicCopy(this.shape));
+		shadow.isLoggable = false
         this.submorphs.forEach(function(ea) {
             var submorphShadow = ea.getGrabShadow(true);
             submorphShadow && shadow.addMorph(submorphShadow) });

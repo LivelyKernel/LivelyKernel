@@ -507,6 +507,15 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals('red', decl.getValues().first(),
             'First declaration in rule is not color red');
     },
+    test01aGetStyleSheet: function() {
+        this.assertEquals(null, this.world.getStyleSheet(),
+            'GetStyleSheet should return null by default');
+        var css = ".some-class { color: red; }";
+        this.world.setStyleSheet(css);
+        this.assertEquals(".some-class {\n\tcolor: red;\n}", this.world.getStyleSheet(),
+            'GetStyleSheet should return style sheet');
+    },
+
     test02FindCSSRulesForMorphWithStyleSheetDefinedInItself: function() {
         var css = ".some-class { color: red; }";
         this.morph.addStyleClassName('some-class');

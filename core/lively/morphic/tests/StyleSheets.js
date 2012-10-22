@@ -830,9 +830,20 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertRaises(function(){morph.convertLengthToPx('19')},
             '"19" should raise an error');
 
-    }
+    },
+    test12GetStyleSheetBorderWidth: function() {
+        this.assertEquals(0, this.blueRectangle2.getStyleSheetBorderWidth(),
+            'Border width with out any set style sheet rules should be 0');
 
+        this.yellowRectangle.setStyleSheet('.blue{ border-width: 16px; }'+
+                '#blue2.blue { border-left-width: 4px; }');
 
+        this.assertEquals(16, this.blueRectangle1.getStyleSheetBorderWidth(),
+            'Border width of blue1 should be 18');
+
+        this.assertEquals(13, this.blueRectangle2.getStyleSheetBorderWidth(),
+            'Border width of blue2 should be 13 (average of 16, 16, 16, 4)');
+    },
 });
 
 TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',

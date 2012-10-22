@@ -253,6 +253,34 @@ Object.extend(apps.cssParser, {
             // ... or four
             [3, 3, 3, 3]]
         },
+        'border-width': {
+            shorthand: 'border',
+            values: [
+            // either one value ...
+            [1],
+            // ... or four
+            [1, 1, 1, 1]]
+        },
+        'border-bottom-width': {
+            shorthand: 'border-width',
+            values: [ // only one value for this property
+            [1]]
+        },
+        'border-left-width': {
+            shorthand: 'border-width',
+            values: [ // only one value for this property
+            [1]]
+        },
+        'border-top-width': {
+            shorthand: 'border-width',
+            values: [ // only one value for this property
+            [1]]
+        },
+        'border-right-width': {
+            shorthand: 'border-width',
+            values: [ // only one value for this property
+            [1]]
+        },
         'border-color': {
             shorthand: 'border',
             values: [

@@ -161,6 +161,25 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                 return prev.concat(rule.getDeclarations());
             }, []);
         },
+    getStyleSheetBorderWidth: function() {
+        var borderWidthDecls = this.getAggregatedMatchingStyleSheetDeclarations().select(
+                function(d) {
+                    var p = d.getProperty();
+                    return p.indexOf('border') >= 0 && p.indexOf('width') >= 0;
+                }),
+            convert = this.convertLengthToPx;
+        if (borderWidthDecls.length > 0) {
+            // No support for left-top-right-bottom separation yet, so we just take the average
+            var borderWidth = borderWidthDecls.reduce(
+                function(prev, decl, i, a){
+                    return prev + convert(decl.getValues().first()) / a.length;
+                }, 0);
+            return borderWidth;
+        } else {
+            return 0;
+        }
+    },
+
     getStyleSheetDeclarationValue: function(property) {
         // Returns the value of a CSS property as applied to the morph.
         // I.e. getStyleSheetDeclarationValue('border-width-left') returns '10px'

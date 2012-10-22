@@ -468,6 +468,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CopyMorphTests',
 
         this.assertIdentity(m1, m1.scripts[0].target, 'original target changed');
         this.assertIdentity(copy, copy.scripts[0].target, 'copy target changed');
+    },
+    test06KeepReferenceToOtherMorphs: function() {
+        var m = new lively.morphic.Morph();
+        var m2 = new lively.morphic.Morph();
+        connect(m, 'a', m2, 'b');
+        m2.addMorph(m);
+        this.world.addMorph(m2);
+        m.a = 23;
+        this.assertEquals(23, m2.b);
+        var copy = m.copy();
+        copy.a = 42;
+        this.assertEquals(42, m2.b);
     }
 
 });

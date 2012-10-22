@@ -72,7 +72,7 @@ TestCase.subclass('lively.morphic.tests.StyleSheetRepresentation.StyleSheetObjec
     },
     test05GetText: function() {
         var text =
-                '.Morph{\n'+
+                '.Morph {\n'+
                 '\tbackground: white !important;\n'+
                 '\tborder: 10px solid purple;\n'+
                 '}\n\n'+

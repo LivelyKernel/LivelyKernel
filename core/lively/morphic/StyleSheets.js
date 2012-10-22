@@ -187,6 +187,20 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
             return null;
         }
     },
+    convertLengthToPx: function(value) {
+        var tokens = value.match(/^(-?[\d+\.\-]+)([a-z]+|%)$/i);
+        if (tokens && tokens.length === 3) {
+            var unit = tokens[2];
+            if (unit === 'px') {
+                return parseFloat(tokens[1]);
+            } else {
+                throw 'Unit "'+unit+'" is not supported (yet)';
+            }
+        } else {
+            throw '"'+value+'" is not a valid CSS length value';
+        }
+    },
+
 
         generateStyleSheetDeclarationOverrideList: function (declarations) {
             // Function expects a declaration array ordered by precedence

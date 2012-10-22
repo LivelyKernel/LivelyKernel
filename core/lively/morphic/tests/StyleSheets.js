@@ -812,7 +812,26 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals('red',
             this.redRectangle.getStyleSheetDeclarationValue('border-left-color'),
             'Border color of red set through shorthand border and should be red.');
+    },
+    test11ConvertLengthToPx: function() {
+        var morph = this.morph;
+        this.assertEquals(19, morph.convertLengthToPx('19px'),
+            '"19px" should convert to 19');
+        this.assertRaises(function(){morph.convertLengthToPx('19pt')},
+            '"19pt" should raise an error');
+        this.assertRaises(function(){morph.convertLengthToPx('19em')},
+            '"19em" should raise an error');
+        this.assertRaises(function(){morph.convertLengthToPx('19ex')},
+            '"19ex" should raise an error');
+        this.assertRaises(function(){morph.convertLengthToPx('19cm')},
+            '"19cm" should raise an error');
+        this.assertRaises(function(){morph.convertLengthToPx('19mm')},
+            '"19mm" should raise an error');
+        this.assertRaises(function(){morph.convertLengthToPx('19')},
+            '"19" should raise an error');
+
     }
+
 
 });
 

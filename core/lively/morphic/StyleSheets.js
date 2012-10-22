@@ -331,7 +331,6 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         // Only adapt borders to style sheet when CSS mode is on
         if (this.getBorderStylingMode()) {
             this.setBorderWidth(this.getStyleSheetBorderWidth());
-            this.setExtent(this.getExtent());
         }
 
         // Call adaptBorders for each submorph

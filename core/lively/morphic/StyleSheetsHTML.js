@@ -123,6 +123,9 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                 $(ownerCtx.originNode).attr('node-type', 'origin-node');
             }
 
+            // Check if the css border changed
+            this.adaptBorders();
+
         }),
         setNewId: lively.morphic.Morph.prototype.setNewId.wrap(function (proceed, optId) {
             proceed(optId);

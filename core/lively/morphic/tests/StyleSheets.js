@@ -869,7 +869,7 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
     },
     test03ParseStyleSheet: function() {
         var styleSheet =
-                '.Morph{\n'+
+                '.Morph {\n'+
                 '\tbackground: white !important;\n'+
                 '\tborder: 10px solid purple;\n'+
                 '}\n\n'+

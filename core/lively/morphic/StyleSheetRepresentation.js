@@ -63,7 +63,7 @@ Object.subclass('lively.morphic.StyleSheetRule',
         // Returns the CSS formated text of the rule
         var result = '';
         result += selector;
-        result += '{\n';
+        result += ' {\n';
         this.declarations.each(function(decl) {
                 result += '\t' + decl.getText() + '\n';
             });

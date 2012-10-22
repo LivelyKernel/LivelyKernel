@@ -256,6 +256,7 @@ Object.subclass('lively.morphic.Morph',
 
         $world.GlobalLogger.logAddMorph(this, morph, optMorphBefore);
 		morph.shape.isLoggable = morph.isLoggable;
+		var loggingEnabled = $world.GlobalLogger.loggingEnabled;
 		$world.GlobalLogger.disableLogging();
 
         var tfm = morph.owner
@@ -306,7 +307,7 @@ Object.subclass('lively.morphic.Morph',
             ea.onOwnerChanged(newOwner);
         });
 
-		$world.GlobalLogger.enableLogging();
+		$world.GlobalLogger.loggingEnabled = loggingEnabled;
         return morph;
     },
 

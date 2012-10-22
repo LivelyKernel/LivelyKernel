@@ -6,12 +6,14 @@ lively.morphic.Morph.addMethods(
     enableHalos: function() { this.halosEnabled = true },
     disableHalos: function() { this.halosEnabled = false },
     showHalos: function() {
+		$world.GlobalLogger.disableLogging();
         if (!this.world() || (this.halosEnabled !== undefined && !this.halosEnabled)) return;
         if (this.showsHalos && this.halos) { this.halos.invoke('alignAtTarget'); return; }
         this.showsHalos = true;
         this.halos = this.getHalos();
         this.world().showHalosFor(this, this.halos);
         this.halos.invoke('alignAtTarget');
+		$world.GlobalLogger.enableLogging();
         this.focus.bind(this).delay(0);
     },
     showSelectedHalos: function(haloItems) {

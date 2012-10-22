@@ -1386,9 +1386,11 @@ lively.morphic.Morph.addMethods(
     },
 
     showMorphMenu: function(evt) {
+		$world.GlobalLogger.disableLogging();
         var pos = evt ? evt.getPosition() : this.firstHand().getPosition();
         evt && evt.stop();
         this.openMorphMenuAt(pos);
+		$world.GlobalLogger.enableLogging();
         return true;
     },
     morphMenuItems: function() {

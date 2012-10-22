@@ -78,20 +78,22 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             }
 
         }),
-        getBorderWidth: function() {
+        setBorderWidthHTML: function(ctx, width) {
             if (this.getBorderStylingMode()) {
-                return 0;
-                //return this.renderContextDispatch('getComputedBorderWidth') || 0;
+            $(ctx.shapeNode).css('border', null);
+                $(ctx.shapeNode).css('border-width', width+'px');
             } else {
-                return this.shapeGetter('BorderWidth')  || 0;
+                $(ctx.shapeNode).css('border-width', null);
+                this.setBorderHTML(ctx, width, this.getBorderColor(), this.getStrokeOpacity());
             }
-        }
+            this.compensateShapeNode(ctx);
+            this.setExtentHTML(ctx, this.getExtent());
+            return width;
+        },
     }).applyTo(lively.morphic.Shapes.Shape, {
         override:
-            ['setFillHTML', 'setOpacityHTML', 'setBorderStyleHTML',
-            'setBorderHTML', 'getBorderWidth']
+            ['setFillHTML', 'setOpacityHTML', 'setBorderStyleHTML', 'setBorderWidthHTML', 'setBorderHTML']
     });
-
     Trait('StyleSheetsHTMLRectangleTrait', 'updating', {
         setBorderRadiusHTML: lively.morphic.Shapes.Rectangle.prototype.setBorderRadiusHTML.wrap(function (proceed, ctx, value) {
             if (ctx.shapeNode && this.shapeGetter('BorderStylingMode')) {

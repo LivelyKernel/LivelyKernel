@@ -233,7 +233,7 @@ Object.extend(apps.cssParser, {
         
         A value is of a certain type:
         0: Plain text (i.e. font-family; edit through text field)
-        1: Number (i.e. width; edit through slider)
+        1: Length (i.e. width; edit through slider)
         2: Option (i.e. border-style; edit with drop-down box)
         3: Color (i.e. color; edit with color chooser)
         4: Shadow (i.e. box-shadow; edit with shadow dialog)

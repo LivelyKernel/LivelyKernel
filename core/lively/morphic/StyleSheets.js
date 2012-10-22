@@ -37,6 +37,7 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
             // TRUE when border is styled through style sheets,
             // FALSE when border is styled through style dialog
             this.shape.setBorderStylingMode(value);
+            this.adaptBorders();
         },
         getBorderStylingMode: function () {
             return this.shape.getBorderStylingMode();
@@ -53,9 +54,11 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         },
         setParsedStyleSheet: function (styleSheet) {
             if(styleSheet && styleSheet.isStyleSheet) {
-                return this.morphicSetter('StyleSheet', styleSheet);
+                this.morphicSetter('StyleSheet', styleSheet);
+                this.adaptBorders();
             } else {
                 this.morphicSetter('StyleSheet', null);
+                this.adaptBorders();
                 delete this._StyleSheet;
             }
         },
@@ -323,6 +326,18 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                 }
             });
         },
+    adaptBorders: function() {
+        // Only adapt borders to style sheet when CSS mode is on
+        if (this.getBorderStylingMode()) {
+            this.setBorderWidth(this.getStyleSheetBorderWidth());
+            this.setExtent(this.getExtent());
+        }
+
+        // Call adaptBorders for each submorph
+        this.submorphs.each(function(s) {s.adaptBorders()});
+
+    },
+
         getStyleSheetRuleSpecificity: function (rule) {
             // check if it is a grouped selector
             if(rule.getSelector().indexOf(",") != -1) {

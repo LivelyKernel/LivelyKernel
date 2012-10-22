@@ -641,6 +641,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                 '#blue2.blue { border-top-color: black; }'+
                 '.blue:nth-child(2) { border-top-color: yellow!important; }'+
                 '.red { color: red; border-top-color: green;}'+
+                '#the-red-rectangle.red { border-top-color: purple; }'+
                 '#the-red-rectangle { border: 1px solid red; }',
             getDecl = function(decls, property){
                     return decls.filter(function(d){
@@ -665,7 +666,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             redBackgroundColorValue = getDecl(redStyles, 'border-top-color'),
             redTextColorValue = getDecl(redStyles, 'color');
 
-        this.assertEquals('red', redBackgroundColorValue ,
+        this.assertEquals(13, redStyles.length, 'There need to be 13 styles applied for red rect');
+
+        this.assertEquals('purple', redBackgroundColorValue ,
             'border-top-color of red should be red');
         this.assertEquals('red', redTextColorValue ,
             'color of red should be red');

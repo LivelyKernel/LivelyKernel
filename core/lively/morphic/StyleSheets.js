@@ -85,7 +85,8 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
             return {status: webR.status.code(), responseText: webR.content};
         },
         getStyleSheet: function () {
-            return this.getParsedStyleSheet().getText();
+            var styleSheet = this.getParsedStyleSheet();
+            return styleSheet ? styleSheet.getText() : null;
         },
         getParsedStyleSheet: function () {
             return this.morphicGetter('StyleSheet');

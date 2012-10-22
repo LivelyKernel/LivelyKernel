@@ -212,6 +212,7 @@ Object.subclass('lively.morphic.Morph',
 		
         $world.GlobalLogger.logAddMorph(this, morph, optMorphBefore);
 		morph.shape.isLoggable = morph.isLoggable
+		var loggingEnabled = $world.GlobalLogger.loggingEnabled;
 		$world.GlobalLogger.disableLogging();
 	
         if (morph.isAncestorOf(this)) {
@@ -258,7 +259,7 @@ Object.subclass('lively.morphic.Morph',
                     // call Stack.beInBackground to place in background
             }
         }
-		$world.GlobalLogger.enableLogging();
+		$world.GlobalLogger.loggingEnabled = loggingEnabled;
         return morph
     },
     withAllSubmorphsDo: function(func, context, depth) {

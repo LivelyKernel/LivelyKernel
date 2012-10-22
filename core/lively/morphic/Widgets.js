@@ -973,8 +973,10 @@ lively.morphic.Morph.addMethods(
                                           itemFilter(this.morphMenuItems()));
     },
     showMorphMenu: function(evt) {
+		$world.GlobalLogger.disableLogging();
         this.openMorphMenuAt(evt.getPosition());
         evt.stop();
+		$world.GlobalLogger.enableLogging();
         return true;
     },
     morphMenuItems: function() {

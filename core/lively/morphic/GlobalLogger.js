@@ -17,23 +17,7 @@ Object.subclass('lively.GlobalLogger',
 					+ ' from '
 					+ renderObject['_' + propName]
 					+ ' to '
-					+ value,
-                world = lively.morphic.World.current();
-            var equal = false;
-            // if ( before == undefined && after == undefined ) {
-                // equal = true;
-            // }
-            // else if (Number.isNaN(before) && Number.isNaN(after)) {
-                // equal = true
-            // }
-            // else if (before != undefined) {
-                // if (before.equals) {
-                    // equal = before.equals(after)
-                // } 
-                // else 
-                    // equal = (before === after)
-            // }
-            // if (!equal) {
+					+ value;
                 this.logAction({
                     string: string,
 					morph: renderObject,
@@ -52,7 +36,6 @@ Object.subclass('lively.GlobalLogger',
 							return this.renderContextDispatch('set' + propName, after);
 						}).bind(renderObject)
                 });
-            // }
 		}
     },
 	logAddMorph: function (newOwner, morph, optMorphBefore) {
@@ -74,7 +57,7 @@ Object.subclass('lively.GlobalLogger',
 				var undoFunc = morph.remove.bind(morph);
 			}
 			if (!newOwner.isLoggable && !(newOwner instanceof lively.morphic.HandMorph)) {
-				this.deleteRecentLogs()
+				//this.deleteRecentLogs()
 				return false
 			}
 			var handPos = $world.firstHand().getPosition()
@@ -165,7 +148,7 @@ Object.subclass('lively.GlobalLogger',
 	undoAction: function (action) {
 		this.disableLogging()
 		debugger
-		if (action.morph.getLoggability && action.morph.getLoggability())
+		if (action.morph.getLoggability && action.morph.getLoggability() || !action.morph.getLoggability)
 			action.undo();
 		this.enableLogging()
 	},
@@ -182,7 +165,7 @@ Object.subclass('lively.GlobalLogger',
 	},
 	redoAction: function (action) {
 		this.disableLogging()
-		if (action.morph.getLoggability && action.morph.getLoggability())
+		if (action.morph.getLoggability && action.morph.getLoggability()  || !action.morph.getLoggability)
 			action.redo()
 		this.enableLogging()
 	},

@@ -480,8 +480,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CopyMorphTests',
         var copy = m.copy();
         copy.a = 42;
         this.assertEquals(42, m2.b);
+    },
+    test07MorphHasNoOwnerAfterCopy: function() {
+        var m = new lively.morphic.Morph(),
+            m2 = new lively.morphic.Morph();
+        m.addMorph(m2);
+        var copy = m2.copy();
+        this.assert(!copy.owner, 'copy.owner is ' + copy.owner);
     }
-
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ButtonMorphTests',

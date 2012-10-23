@@ -1386,11 +1386,9 @@ lively.morphic.Morph.addMethods(
     },
 
     showMorphMenu: function(evt) {
-		$world.GlobalLogger.disableLogging();
         var pos = evt ? evt.getPosition() : this.firstHand().getPosition();
         evt && evt.stop();
         this.openMorphMenuAt(pos);
-		$world.GlobalLogger.enableLogging();
         return true;
     },
     morphMenuItems: function() {
@@ -1677,6 +1675,7 @@ lively.morphic.World.addMethods(
         return part;
     },
     openPartItem: function(partName, optPartspaceName) {
+		// TODO: part-time workaround!!
 		if (optPartspaceName === 'PartsBin/Tools') {
 			var loggingEnabled = $world.GlobalLogger.loggingEnabled
 			$world.GlobalLogger.disableLogging()
@@ -1705,10 +1704,8 @@ lively.morphic.World.addMethods(
 
     openInspectorFor: function(object) {
         lively.require('lively.ide.tools.Inspector').toRun(function() {
-            $world.GlobalLogger.disableLogging();
             lively.BuildSpec('lively.ide.tools.Inspector').createMorph().openInWorldCenter().
                 comeForward().inspect(object);
-            $world.GlobalLogger.enableLogging();
         });
     },
 

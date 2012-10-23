@@ -247,12 +247,13 @@ Object.subclass('lively.morphic.Morph',
         }
 
 		// TODO: AUA
-		if (!morph.isLoggable || (!this.isLoggable && !(this instanceof lively.morphic.HandMorph))) {
+		if (morph.isLoggable === false || (!this.isLoggable && !(this instanceof lively.morphic.HandMorph))) {
 			morph.withAllSubmorphsDo(function (ea) {
 				ea.isLoggable = false;
 				ea.shape.isLoggable = false;
 			});
 		}
+		else if (morph.isLoggable === undefined)  morph.isLoggable = true;
 
         $world.GlobalLogger.logAddMorph(this, morph, optMorphBefore);
 		morph.shape.isLoggable = morph.isLoggable;

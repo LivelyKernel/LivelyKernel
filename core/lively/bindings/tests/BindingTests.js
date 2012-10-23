@@ -458,7 +458,36 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         connect(obj, 'x', obj, 'z');
         disconnectAll(obj);
         this.assert(!obj.attributeConnections, 'attributeConnections not removed');
+    },
+    test41DynamicallyDisableUpdate: function() {
+        var obj = {};
+        connect(obj, 'x', obj, 'y');
+        obj.x = 5;
+        this.assertEquals(5, obj.y, 'not updated 1');
+        lively.bindings.noUpdate({sourceObj: obj, sourceAttribute: 'x'}, function() { obj.x = 6; });
+        this.assertEquals(5, obj.y, 'updated, but should not update');
+        this.assertRaises(function() {
+            lively.bindings.noUpdate({
+                sourceObj: obj, sourceAttribute: 'x'}, function() { throw {} });
+        });
+        obj.x = 7;
+        this.assertEquals(7, obj.y, 'not updated 2');
+    },
+    test41aDynamicallyDisableUpdateForOneConnection: function() {
+        var obj = {};
+        connect(obj, 'x', obj, 'y');
+        connect(obj, 'x', obj, 'z');
+        lively.bindings.noUpdate({
+            sourceObj: obj, sourceAttribute: 'x',
+            targetObj: obj, targetAttribute: 'z'
+        }, function() { obj.x = 6; });
+        this.assertEquals(6, obj.y, 'not updated y');
+        this.assertEquals(undefined, obj.z, 'updated z but should not');
+        obj.x = 7;
+        this.assertEquals(7, obj.y, 'not updated y 2');
+        this.assertEquals(7, obj.z, 'not updated z 2');
     }
+
 
 });
 

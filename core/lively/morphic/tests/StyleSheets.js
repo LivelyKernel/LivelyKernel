@@ -1,6 +1,5 @@
 module('lively.morphic.tests.StyleSheets').requires('lively.morphic.tests.Helper', 'lively.morphic.StyleSheets').toRun(function() {
 
-
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.MorphSelection',
 'running', {
     setUp: function($super) {
@@ -71,8 +70,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
     testSelectMorphById: function() {
         this.assertEqualState(this.redRectangle, this.world.getSubmorphByStyleId('the-red-rectangle'),
             'selection by id should only include red rectangle morph');
+        this.assertEquals(null, this.world.getSubmorphByStyleId('the-Red-rectangle'),
+            'selection by other case id should return null');
 
     },
+    testMorphHasStyleId: function() {
+        this.assert(this.redRectangle.hasStyleId('the-red-rectangle'),
+            'Red rect should have style id the-red-rectangle');
+        this.assert(!this.redRectangle.hasStyleId('the-Red-rectangle'),
+            'Red rect should NOT have style id the-Red-rectangle');
+    },
+
     testSelectMorphByClassName: function() {
 
         this.assertEqualState([this.blueRectangle1, this.blueRectangle2],
@@ -445,6 +453,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 'running', {
     setUp: function($super) {
         $super();
+        this.createSomeMorphs(); // sets up a hierarchy of morphs
     },
     createSomeMorphs: function() {
         // this method creates 4 morphs: yellowRectange is the ouyter parent
@@ -491,13 +500,22 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var rules = this.morph.getMatchingStyleSheetRules();
         this.assert( 0 < rules.length, 'no rule assigned');
 
-        this.assertEquals('.some-class', rules[0].selectorText(), 'Selector of first rule is not .blue');
-        this.assertEquals('color', rules[0].declarations[0].property,
+        this.assertEquals('.some-class', rules[0].getSelector(), 'Selector of first rule is not .blue');
+        this.assertEquals('color', rules[0].getDeclarations()[0].getProperty(),
             'First declaration in rule is not for color');
-        var decl = rules[0].declarations[0];
-        this.assertEquals('red', decl.valueText,
-            'First declaration in rule is not color red but ' + Strings.print(decl.valueText));
+        var decl = rules[0].getDeclarations()[0];
+        this.assertEquals('red', decl.getValues().first(),
+            'First declaration in rule is not color red');
     },
+    test01aGetStyleSheet: function() {
+        this.assertEquals(null, this.world.getStyleSheet(),
+            'GetStyleSheet should return null by default');
+        var css = ".some-class { color: red; }";
+        this.world.setStyleSheet(css);
+        this.assertEquals(".some-class {\n\tcolor: red;\n}", this.world.getStyleSheet(),
+            'GetStyleSheet should return style sheet');
+    },
+
     test02FindCSSRulesForMorphWithStyleSheetDefinedInItself: function() {
         var css = ".some-class { color: red; }";
         this.morph.addStyleClassName('some-class');
@@ -505,37 +523,31 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.morph.setStyleSheet(css);
         var rules = this.morph.getMatchingStyleSheetRules();
         this.assertEquals(1, rules.length, 'There has to be exactly one matching rule');
-        this.assertEquals('.some-class', rules[0].selectorText(), 'Selector of first rule is not .some-class');
-
-
-
-
-        this.createSomeMorphs();
+        this.assertEquals('.some-class', rules[0].getSelector(), 'Selector of first rule is not .some-class');
 
         css = ".blue{color: purple;}";
         this.yellowRectangle.setStyleSheet(css);
 
         rules = this.blueRectangle1.getMatchingStyleSheetRules();
         this.assertEquals(1, rules.length, 'Blue1: There has to be exactly one matching rule');
-        this.assertEquals('.blue', rules[0].selectorText(), 'Blue1: Selector of first rule is not .blue');
+        this.assertEquals('.blue', rules[0].getSelector(), 'Blue1: Selector of first rule is not .blue');
 
         css = ".red .blue{color: purple;}";
         this.yellowRectangle.setStyleSheet(css);
 
         rules = this.blueRectangle1.getMatchingStyleSheetRules();
         this.assertEquals(1, rules.length, 'Blue2: There has to be exactly one matching rule');
-        this.assertEquals('.red .blue', rules[0].selectorText(), 'Blue2: Selector of first rule is not .red .blue');
+        this.assertEquals('.red .blue', rules[0].getSelector(), 'Blue2: Selector of first rule is not .red .blue');
 
         css = ".yellow .red .blue{color: purple;}";
         this.yellowRectangle.setStyleSheet(css);
 
         rules = this.blueRectangle1.getMatchingStyleSheetRules();
         this.assertEquals(1, rules.length, 'Blue3: There has to be exactly one matching rule');
-        this.assertEquals('.yellow .red .blue', rules[0].selectorText(), 'Blue3: Selector of first rule is not .yellow .red .blue');
+        this.assertEquals('.yellow .red .blue', rules[0].getSelector(), 'Blue3: Selector of first rule is not .yellow .red .blue');
 
     },
     test03MorphsHaveOnlyMatchingCSSRules: function() {
-        this.createSomeMorphs(); // sets up a hierarchy of morphs
         var css = ".red {"+
             "    border: 1px solid red;"+
             "}"+
@@ -551,21 +563,33 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assert(this.blueRectangle1.getMatchingStyleSheetRules(), 'Blue Rectangle 1 has no rule attribute');
         var b1css = this.blueRectangle1.getMatchingStyleSheetRules();
         this.assertEquals(1, b1css.length, 'Blue Rectangle 1 has not exactly 1 rule');
-        this.assertEquals('.blue:nth-child(1)', b1css [0].selectorText(), 'Selector of first rule in blueRectangle2 is not .blue:nth-child(1)');
+        this.assertEquals('.blue:nth-child(1)', b1css [0].getSelector(), 'Selector of first rule in blueRectangle2 is not .blue:nth-child(1)');
 
         this.assert(this.blueRectangle2.getMatchingStyleSheetRules(), 'Blue Rectangle 2 has no rule attribute');
         var b2css = this.blueRectangle2.getMatchingStyleSheetRules();
         this.assertEquals(1, b2css.length, 'Blue Rectangle 2 has not exactly 1 rule');
-        this.assertEquals('.blue:nth-child(2)', b2css[0].selectorText(), 'Selector of first rule in blueRectangle2 is not .blue:nth-child(2)');
+        this.assertEquals('.blue:nth-child(2)', b2css[0].getSelector(), 'Selector of first rule in blueRectangle2 is not .blue:nth-child(2)');
 
         this.assert(this.redRectangle.getMatchingStyleSheetRules(), 'Red Rectangle has no rule attribute');
         var rcss = this.redRectangle.getMatchingStyleSheetRules();
         this.assertEquals(1, rcss.length, 'RedRectangle has not exactly 1 rule');
-        this.assertEquals('.red', rcss[0].selectorText(), 'Selector of first rule in RedRectangle is not .red');
+        this.assertEquals('.red', rcss[0].getSelector(), 'Selector of first rule in RedRectangle is not .red');
 
     },
+
+    test04GetRuleSpecificityOnMorph: function() {
+        var css = ".blue, #the-red-rectangle.red, #the-red-rectangle, .red { color: red; }",
+            rules = apps.cssParser.parse(css).getRules();
+
+        this.assertEquals(10,
+            this.blueRectangle1.getStyleSheetRuleSpecificity(rules.first()),
+            'rule specificity on blue rect has to be 10');
+        this.assertEquals(110,
+            this.redRectangle.getStyleSheetRuleSpecificity(rules.first()),
+            'rule specificity on red rect has to be 110');
+    },
+
     test05MorphsHaveOnlyCurrentCSSRules: function() {
-        this.createSomeMorphs(); // sets up a hierarchy of morphs
         var firstCSS = ".red { color: red; }",
             secondCSS = "#the-red-rectangle { color: green; }",
             worldCSS = "#the-red-rectangle { color: black; }";
@@ -582,9 +606,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         rcss = this.redRectangle.getMatchingStyleSheetRules();
         this.assertEquals(2, rcss.length,
            'RedRectangle has not exactly 2 rules after 2nd processing');
-        this.assertEquals('#the-red-rectangle', rcss[0].selectorText(),
+        this.assertEquals('#the-red-rectangle', rcss[0].getSelector(),
             'Selector of first rule in RedRectangle is not #the-red-rectangle');
-        this.assertEquals('#the-red-rectangle', rcss[1].selectorText(),
+        this.assertEquals('#the-red-rectangle', rcss[1].getSelector(),
             'Selector of 2nd rule in RedRectangle is not #the-red-rectangle');
     },
 
@@ -597,11 +621,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                 '#the-red-rectangle, #the-blue-rectangle, #the-blue-rectangle { color: green; }', //5
             yellowCss = '.red { color: black;}', //2
             getVal = function(rule) {
-                    return rule.declarations.first().values.first().value;
+                    return rule.declarations.first().values.first();
                 },
             sortedRules;
-        this.createSomeMorphs(); // sets up a hierarchy of morphs
-
         this.world.setStyleSheet(worldCss);
         this.yellowRectangle.setStyleSheet(yellowCss);
         sortedRules = this.redRectangle.getMatchingStyleSheetRules();
@@ -622,65 +644,223 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             'rule 4 should have color blue');
 
     },
-    test04GetRuleSpecificityOnMorph: function() {
-        var css = ".blue, #the-red-rectangle.red, #the-red-rectangle, .red { color: red; }",
-            rules = apps.cssParser.parse(css).cssRules;
-        this.createSomeMorphs(); // sets up a hierarchy of morphs
 
-        this.assertEquals(10,
-            this.blueRectangle1.getStyleSheetRuleSpecificity(rules.first()),
-            'rule specificity on blue rect has to be 10');
-        this.assertEquals(110,
-            this.redRectangle.getStyleSheetRuleSpecificity(rules.first()),
-            'rule specificity on red rect has to be 110');
-    },
-
-    test07GetStyleSheetDeclarations: function() {
-
-        var css = '.blue{ background-color: blue; }'+
-                '#blue2.blue { background-color: black; }'+
-                '.blue:nth-child(2) { background-color: yellow!important; }'+
-                '.red { color: red; background-color: green;}'+
-                '#the-red-rectangle { background-color: red; }',
+    test07GetAggregatedMatchingStyleSheetDeclarations: function() {
+        var css = '.blue{ border-top-color: blue; }'+
+                '#blue2.blue { border-top-color: black; }'+
+                '.blue:nth-child(2) { border-top-color: yellow!important; }'+
+                '.red { color: red; border-top-color: green;}'+
+                '#the-red-rectangle { border: 1px solid red; }',
             getDecl = function(decls, property){
                     return decls.filter(function(d){
-                            return (d.property === property)
-                        }).first().values.first().value;
+                            return (d.getProperty() === property)
+                        }).first().getValues().first();
                 };
-        this.createSomeMorphs(); // sets up a hierarchy of morphs
 
         this.world.setStyleSheet(css);
 
-        var blue1Styles = this.blueRectangle1.getStyleSheetDeclarations(),
-            blueStyles1BackgroundColorValue = getDecl(blue1Styles, 'background-color');
+        var blue1Styles = this.blueRectangle1.getAggregatedMatchingStyleSheetDeclarations(),
+            blueStyles1BackgroundColorValue = getDecl(blue1Styles, 'border-top-color');
         this.assertEquals('blue', blueStyles1BackgroundColorValue,
-            'background-color of blue1 should be blue');
+            'border-top-color of blue1 should be blue');
 
-        var blue2Styles = this.blueRectangle2.getStyleSheetDeclarations(),
-            blueStyles2BackgroundColorValue = getDecl(blue2Styles, 'background-color');
+        var blue2Styles = this.blueRectangle2.getAggregatedMatchingStyleSheetDeclarations(),
+            blueStyles2BackgroundColorValue = getDecl(blue2Styles, 'border-top-color');
 
         this.assertEquals('yellow', blueStyles2BackgroundColorValue,
-            'background-color of blue2 should be yellow');
+            'border-top-color of blue2 should be yellow');
 
-        var redStyles = this.redRectangle.getStyleSheetDeclarations(),
-            redBackgroundColorValue = getDecl(redStyles, 'background-color'),
+        var redStyles = this.redRectangle.getAggregatedMatchingStyleSheetDeclarations(),
+            redBackgroundColorValue = getDecl(redStyles, 'border-top-color'),
             redTextColorValue = getDecl(redStyles, 'color');
 
         this.assertEquals('red', redBackgroundColorValue ,
-            'background-color of red should be red');
+            'border-top-color of red should be red');
         this.assertEquals('red', redTextColorValue ,
             'color of red should be red');
-    },});
+    },
+    test08EnhancePropList: function() {
+        var propList = {
+                'background-color': {
+                    shorthand: 'background',
+                    values: [ // only one value for this property
+                    [3]]
+                },
+                'border': {
+                    values: [
+                    // either one value ...
+                    [3],
+                    // ... or four
+                    [3, 3, 3, 3]]
+                },
+                'border-color': {
+                    shorthand: 'border',
+                    values: [
+                    // either one value ...
+                    [3],
+                    // ... or four
+                    [3, 3, 3, 3]]
+                },
+                'border-top-color': {
+                    shorthand: 'border-color',
+                    values: [ // only one value for this property
+                    [3]]
+                },
+                'border-bottom-color': {
+                    shorthand: 'border-color',
+                    values: [ // only one value for this property
+                    [3]]
+                },
+            },
+        enhancedPropList = apps.cssParser.enhancePropList(propList);
+        this.assertEquals(0, enhancedPropList['background-color'].shorthands.length,
+            'background-color should have no defined shorthands');
+        this.assertEquals(0, enhancedPropList['background-color'].shorthandFor.length,
+            'background-color should be no shorthand for any prop');
+
+        this.assertEquals(0, enhancedPropList['border'].shorthands.length,
+            'border should have no defined shorthands');
+        this.assertEquals(3, enhancedPropList['border'].shorthandFor.length,
+            'border should be shorthand for 3 props');
+        this.assert(enhancedPropList['border'].shorthandFor.find(function(x) {
+                return x === 'border-bottom-color';
+            }),
+            'border should be shorthand for border-bottom-color');
+        this.assert(enhancedPropList['border'].shorthandFor.find(function(x) {
+                return x === 'border-top-color';
+            }),
+            'border should be shorthand for border-top-color');
+        this.assert(enhancedPropList['border'].shorthandFor.find(function(x) {
+                return x === 'border-color';
+            }),
+            'border should be shorthand for border-color');
+
+
+        this.assertEquals(2, enhancedPropList['border-bottom-color'].shorthands.length,
+            'border-bottom-color should have 2 defined shorthands');
+        this.assertEquals(0, enhancedPropList['border-bottom-color'].shorthandFor.length,
+            'border-bottom-color should be no shorthand for any prop');
+        this.assert(enhancedPropList['border-bottom-color'].shorthands.find(function(x) {
+                return x === 'border-color';
+            }),
+            'border-bottom-color should have shorthand border-color');
+        this.assert(enhancedPropList['border-bottom-color'].shorthands.find(function(x) {
+                return x === 'border';
+            }),
+            'border-bottom-color should have shorthand border');
+
+        this.assertEquals(2, enhancedPropList['border-top-color'].shorthands.length,
+            'border-bottom-color should have 2 defined shorthands');
+        this.assertEquals(0, enhancedPropList['border-top-color'].shorthandFor.length,
+            'border-bottom-color should be no shorthand for any prop');
+        this.assert(enhancedPropList['border-top-color'].shorthands.find(function(x) {
+                return x === 'border-color';
+            }),
+            'border-top-color should have shorthand border-color');
+        this.assert(enhancedPropList['border-top-color'].shorthands.find(function(x) {
+                return x === 'border';
+            }),
+            'border-top-color should have shorthand border');
+
+        this.assertEquals(1, enhancedPropList['border-color'].shorthands.length,
+            'border-color should have 1 defined shorthands');
+        this.assertEquals('border', enhancedPropList['border-color'].shorthands.first(),
+            'border-color should have shorthand border');
+        this.assertEquals(2, enhancedPropList['border-color'].shorthandFor.length,
+            'border-bottom-color should be shorthand for 2 props');
+        this.assert(enhancedPropList['border-color'].shorthandFor.find(function(x) {
+                return x === 'border-top-color';
+            }),
+            'border-color should be shorthand for border-top-color');
+        this.assert(enhancedPropList['border-color'].shorthandFor.find(function(x) {
+                return x === 'border-bottom-color';
+            }),
+            'border-color should be shorthand for border-bottom-color');
+
+    },
+    test09GenerateStyleSheetDeclarationOverrideList: function() {
+        var css = '.blue{ border-color: orange; }'+
+                '.blue.Box{ border-color: blue; }'+
+                '#blue2.blue { border: 1px solid black; }'+
+                '.blue.Box:nth-child(2) { border-color: yellow!important; }'+
+                '.red { color: red; border-color: green;}'+
+                '#the-red-rectangle { border-color: red; }',
+            getDecl = function(decls, property){
+                    return decls.filter(function(d){
+                            return (d.getProperty() === property)
+                        }).first().getValues().first();
+                };
+
+
+        this.world.setStyleSheet(css);
+
+        var blue1Styles = this.blueRectangle1.getMatchingStyleSheetDeclarations(),
+            blue1StyleOverrideList =
+                this.blueRectangle1.generateStyleSheetDeclarationOverrideList(blue1Styles);
+        this.assertEqualState([1, -1], blue1StyleOverrideList,
+            'Override list for blue1 should be [1, -1]');
+
+        var blue2Styles = this.blueRectangle2.getMatchingStyleSheetDeclarations(),
+            blue2StyleOverrideList =
+                this.blueRectangle2.generateStyleSheetDeclarationOverrideList(blue2Styles);
+        console.log(blue2StyleOverrideList )
+         this.assertEqualState([1, 2, -1, 2], blue2StyleOverrideList,
+            'Override list for blue2 should be [1, 2, -1, 2]');
+
+    },
+    test10GetStyleSheetDeclarationValue: function() {
+        var css = '.blue{ border-color-left: blue; }'+
+                '#blue2.blue { border-left-color: black; }'+
+                '.blue:nth-child(2) { border-left-color: yellow!important; }'+
+                '.red { color: red; border-left-color: green;}'+
+                '#the-red-rectangle { border: 1px solid red; }';
+        this.yellowRectangle.setStyleSheet(css);
+        this.assertEquals('yellow',
+            this.blueRectangle2.getStyleSheetDeclarationValue('border-left-color'),
+            'Border color of blue2 should be yellow.');
+        this.assertEquals('red',
+            this.redRectangle.getStyleSheetDeclarationValue('border-left-color'),
+            'Border color of red set through shorthand border and should be red.');
+    },
+    test11ConvertLengthToPx: function() {
+        var morph = this.morph;
+        this.assertEquals(19, morph.convertLengthToPx('19px'),
+            '"19px" should convert to 19');
+/*
+        this.assertRaises(function(){morph.convertLengthToPx('19pt')},
+            '"19pt" should raise an error');
+        this.assertRaises(function(){morph.convertLengthToPx('19em')},
+            '"19em" should raise an error');
+        this.assertRaises(function(){morph.convertLengthToPx('19ex')},
+            '"19ex" should raise an error');
+        this.assertRaises(function(){morph.convertLengthToPx('19cm')},
+            '"19cm" should raise an error');
+        this.assertRaises(function(){morph.convertLengthToPx('19mm')},
+            '"19mm" should raise an error');
+        this.assertRaises(function(){morph.convertLengthToPx('19')},
+            '"19" should raise an error');
+*/
+        this.assertEquals(0, morph.convertLengthToPx('19pt'),
+            '"19pt" should convert to 0');
+        this.assertEquals(0, morph.convertLengthToPx('19em'),
+            '"19em" should convert to 0');
+        this.assertEquals(0, morph.convertLengthToPx('19ex'),
+            '"19ex" should convert to 0');
+        this.assertEquals(0, morph.convertLengthToPx('19cm'),
+            '"19cm" should convert to 0');
+        this.assertEquals(0, morph.convertLengthToPx('19'),
+            '"19" should convert to 0');
+}});
 
 TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
 'testing', {
     test01RuleOfCSSClassDef: function() {
         var css = ".some-class { color: red; }",
-            rules = apps.cssParser.parse(css).cssRules;
+            rules = apps.cssParser.parse(css).getRules();
         this.assertEquals(1, rules.length, 'no rule parsed');
         var expected = {
-            mSelectorText: '.some-class',
-            declarations: [{property: 'color', valueText: 'red'}]
+            selector: '.some-class',
+            declarations: [{property: 'color', values: ['red']}]
         };
         this.assertMatches(expected, rules[0], 'rules don\'t match');
     },
@@ -704,6 +884,91 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
             apps.cssParser.calculateCSSRuleSpecificity('test.test#test asdf.asdf#asdf'),
             'test.test#test asdf.asdf#asdf should be specificity 222');
     },
+    test03ParseStyleSheet: function() {
+        var styleSheet =
+                '.Morph {\n'+
+                '\tbackground: white !important;\n'+
+                '\tborder: 10px solid purple;\n'+
+                '}\n\n'+
+                '/* test */',
+            parsedStyleSheet = apps.cssParser.parse(styleSheet);
+        this.assert(parsedStyleSheet.isStyleSheet,
+            'Parsed style sheet is no lively style sheet object');
+        this.assertEquals(2, parsedStyleSheet.getRules().length,
+            'Parsed style sheet does not have exactly two rules');
+
+        this.assert(parsedStyleSheet.getRules().first().isStyleSheetRule,
+            'First rule is no lively style sheet rule');
+        this.assert(parsedStyleSheet.getRules().last().isStyleSheetRule,
+            'Last rule is no lively style sheet rule');
+        this.assert(parsedStyleSheet.getRules().last().isStyleSheetComment,
+            'Last rule is no lively style sheet comment');
+
+        this.assertEquals(2,
+            parsedStyleSheet.getRules().first().getDeclarations().length,
+            'First style sheet rule does not have exactly two declarations');
+
+        this.assertEquals(styleSheet, parsedStyleSheet.getText(),
+            'CSS text output not as expected');
+    },
+    test04RepeatedParsing: function() {
+        var styleSheet =
+                '.Morph{\n'+
+                '\tbackground: white !important;\n'+
+                '\tborder: 10px solid purple;\n'+
+                '}\n\n'+
+                '/* test */',
+            parsedStyleSheet = apps.cssParser.parse(styleSheet),
+            doubleparsedStyleSheet
+                = apps.cssParser.parse(parsedStyleSheet.getText());
+        this.assertEquals(parsedStyleSheet.getText(),
+            doubleparsedStyleSheet.getText(),
+            'Style sheet output is not the same after repeated parsing');
+    },
+    test05ParseFontFaceRule: function() {
+        var ffRule = '@font-face {\n'+
+            'font-family: Gentium;\n'+
+            'src: url(http://example.com/fonts/Gentium.ttf);\n}',
+
+            parsedCss = apps.cssParser.parse(ffRule);
+
+        this.assertEquals(1, parsedCss.getRules().length,
+            'Parsed font face rule sheet has not exactly one rule');
+
+        var f = parsedCss.getRules().first();
+
+        this.assert(f.isStyleSheetFontFaceRule,
+            'First rule is not a lively font face rule');
+
+        this.assertEquals('', f.getSelector(),
+            'Selector of FF rule is not ""');
+    },
+    test06ParseShorthand: function() {
+        var shorthandDecl = new lively.morphic.StyleSheetShorthandDeclaration(
+                'border', ['1px', 'solid', 'black']),
+            decls = shorthandDecl.getDeclarations();
+        this.assertEquals(12, decls.length,
+            'Border shorthand should produce 12 atomar declarations');
+        decls.each(function(decl) {
+                var p = decl.getProperty();
+                if (p.indexOf('color') >=0) {
+                    this.assertEquals('black', decl.getValues().first(),
+                        'Value of '+p+' should be black');
+                } else  if (p.indexOf('style') >=0) {
+                    this.assertEquals('solid', decl.getValues().first(),
+                        'Value of '+p+' should be solid');
+                } else if (p.indexOf('width') >=0) {
+                    this.assertEquals('1px', decl.getValues().first(),
+                        'Value of '+p+' should be 1pxa');
+                } else {
+                    this.assert(false,
+                        'There should be no declarations having neither of color'+
+                        ', style or width in their property string');
+                }
+            }, this);
+    }
+
+
 
 });
 

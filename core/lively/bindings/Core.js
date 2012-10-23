@@ -571,7 +571,28 @@ Object.extend(lively.bindings, {
         }
 
         helper.whenDefined(source);
+    },
+    noUpdate: function(noUpdateSpec, func) {
+        var obj = noUpdateSpec.sourceObj,
+            attr = noUpdateSpec.sourceAttribute,
+            targetObj = noUpdateSpec.targetObj,
+            targetAttr = noUpdateSpec.targetAttribute,
+            filter = targetObj && targetAttr ?
+                function(ea) { return ea.getSourceAttrName() === attr
+                                   && targetObj === ea.getTargetObj()
+                                   && targetAttr === ea.getTargetMethodName(); }:
+                function(ea) { return ea.getSourceAttrName() === attr; },
+            conns = obj.attributeConnections.select(filter),
+            result;
+        conns.invoke('activate');
+        try {
+            result = func();
+        } finally {
+            conns.invoke('deactivate');
+        }
+        return result;
     }
+
 
 });
 

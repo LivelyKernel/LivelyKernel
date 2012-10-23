@@ -195,10 +195,14 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
             if (unit === 'px') {
                 return parseFloat(tokens[1]);
             } else {
-                throw 'Unit "'+unit+'" is not supported (yet)';
+                console.warn('CSS length unit "'+unit+'" is not supported (yet).'+
+                    'Value will be set to 0.');
+                return 0;
             }
         } else {
-            throw '"'+value+'" is not a valid CSS length value';
+             console.warn('"'+unit+'" is a valid CSS length.'+
+                    'Value will be set to 0.');
+            return 0;
         }
     },
 

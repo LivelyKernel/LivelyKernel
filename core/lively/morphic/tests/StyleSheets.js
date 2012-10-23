@@ -826,6 +826,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var morph = this.morph;
         this.assertEquals(19, morph.convertLengthToPx('19px'),
             '"19px" should convert to 19');
+/*
         this.assertRaises(function(){morph.convertLengthToPx('19pt')},
             '"19pt" should raise an error');
         this.assertRaises(function(){morph.convertLengthToPx('19em')},
@@ -838,11 +839,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             '"19mm" should raise an error');
         this.assertRaises(function(){morph.convertLengthToPx('19')},
             '"19" should raise an error');
-
-    }
-
-
-});
+*/
+        this.assertEquals(0, morph.convertLengthToPx('19pt'),
+            '"19pt" should convert to 0');
+        this.assertEquals(0, morph.convertLengthToPx('19em'),
+            '"19em" should convert to 0');
+        this.assertEquals(0, morph.convertLengthToPx('19ex'),
+            '"19ex" should convert to 0');
+        this.assertEquals(0, morph.convertLengthToPx('19cm'),
+            '"19cm" should convert to 0');
+        this.assertEquals(0, morph.convertLengthToPx('19'),
+            '"19" should convert to 0');
+}});
 
 TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
 'testing', {

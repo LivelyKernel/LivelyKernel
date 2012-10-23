@@ -1350,7 +1350,11 @@ Object.extend(lively.persistence.Serializer, {
         serializer.showLog = false;
         var copyPlugin = new CopyOnlySubmorphsPlugin();
         copyPlugin.root = obj;
-        serializer.addPlugin(copyPlugin);
+        var ignoreOwnerPlugin = new GenericFilter();
+        ignoreOwnerPlugin.addFilter(function(o, propName) {
+            return o === obj && propName === 'owner';
+        });
+        serializer.addPlugins([copyPlugin, ignoreOwnerPlugin]);
         return serializer.copy(obj);
     },
 });

@@ -973,10 +973,8 @@ lively.morphic.Morph.addMethods(
                                           itemFilter(this.morphMenuItems()));
     },
     showMorphMenu: function(evt) {
-		$world.GlobalLogger.disableLogging();
         this.openMorphMenuAt(evt.getPosition());
         evt.stop();
-		$world.GlobalLogger.enableLogging();
         return true;
     },
     morphMenuItems: function() {
@@ -1191,6 +1189,7 @@ lively.morphic.World.addMethods(
         return part;
     },
     openPartItem: function(partName, optPartspaceName) {
+		// TODO: part-time workaround!!
 		if (optPartspaceName === 'PartsBin/Tools') {
 			var loggingEnabled = $world.GlobalLogger.loggingEnabled
 			$world.GlobalLogger.disableLogging()
@@ -1205,11 +1204,8 @@ lively.morphic.World.addMethods(
         return this.openPartItem('PartsBinBrowser', 'PartsBin/Tools');
     },
     openInspectorFor: function(object, evt) {
-		$world.GlobalLogger.disableLogging()
         var part = this.openPartItem("ObjectInspector", 'PartsBin/Tools');
-		debugger
         part.inspect(object);
-		$world.GlobalLogger.enableLogging()
         return part;
     },
     openStyleEditorFor: function(morph, evt) {

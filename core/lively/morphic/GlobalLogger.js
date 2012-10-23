@@ -4,7 +4,32 @@ Object.subclass('lively.GlobalLogger',
     initialize: function () {
 		this.stack = [];
 		this.counter = 0;
-    }
+		this.initializeSilentList();
+    },
+	initializeSilentList: function () {
+		var self = this;
+		this.silentFunctions = [
+			// [extendableClass, ['functionName', 'functionName']]
+			[lively.morphic.World, ['openInspectorFor', 'openStyleEditorFor', 'openPartsBin']],
+			[lively.morphic.Morph, ['showMorphMenu', 'showHalos']]
+		]
+		
+		cop.create('LoggerLayer');
+		this.silentFunctions.each(function (extendableClass) {
+			var functionsObject = {};
+			extendableClass[1] && extendableClass[1].each(function (functionName) {
+				functionsObject[functionName] = function () {
+					var loggingEnabled = self.loggingEnabled
+					self.disableLogging();
+					var returnValue = cop.proceed.apply(cop, arguments)
+					self.loggingEnabled = loggingEnabled;
+					return returnValue
+				}
+			})
+			LoggerLayer.refineClass(extendableClass[0], functionsObject);
+		})
+		LoggerLayer.beGlobal();
+	},
 },
 'logging', {
     logRenderAttributeSetter: function(renderObject, propName, value) {
@@ -145,7 +170,6 @@ Object.subclass('lively.GlobalLogger',
 	},
 	undoAction: function (action) {
 		this.disableLogging()
-		debugger
 		if (action.morph.getLoggability && action.morph.getLoggability() || !action.morph.getLoggability)
 			action.undo();
 		this.enableLogging()

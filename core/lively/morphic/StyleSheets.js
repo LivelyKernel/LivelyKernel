@@ -36,8 +36,17 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         setBorderStylingMode: function (value) {
             // TRUE when border is styled through style sheets,
             // FALSE when border is styled through style dialog
+
+            // Preserve previous border width
+            if (value) {
+                this['_PreviousBorderWidth'] = this.getBorderWidth();
+            }
             this.shape.setBorderStylingMode(value);
             this.adaptBorders();
+            if (!value && this['_PreviousBorderWidth'] >= 0) {
+                this.setBorderWidth(this['_PreviousBorderWidth']);
+                delete this['_PreviousBorderWidth'];
+            }
         },
         getBorderStylingMode: function () {
             return this.shape.getBorderStylingMode();

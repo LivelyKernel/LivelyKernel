@@ -368,11 +368,49 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.B
             'Shapenode should be the same size after switching off CSS styling');
     },
     test02AddCSSBorder: function() {
+        this.redRectangle.setBorderWidth(0);
+        var oldShapeNodeOuterSize = $(this.redRectangle.renderContext().shapeNode).outerWidth(),
+            oldShapeNodeInnerSize = $(this.redRectangle.renderContext().shapeNode).width(),
+            oldBluePosition = $(this.blueRectangle1.renderContext().shapeNode).position();
+
         this.redRectangle.setBorderStylingMode(true);
         this.redRectangle.setStyleSheet('.red {border: 10px solid black;}');
-        var oldShapeNodeSize = $(this.redRectangle.renderContext().shapeNode).outerWidth();
-        
+
+        var newShapeNodeOuterSize = $(this.redRectangle.renderContext().shapeNode).outerWidth(),
+            newShapeNodeInnerSize = $(this.redRectangle.renderContext().shapeNode).width(),
+            newBluePosition = $(this.blueRectangle1.renderContext().shapeNode).position();
+
+        this.assertEquals(oldShapeNodeOuterSize, newShapeNodeOuterSize ,
+            'Shape node should be the same outer size than before adding the 10px border');
+        this.assertEquals(oldShapeNodeInnerSize- 20, newShapeNodeInnerSize ,
+            'Shape node itself should be 20px less wide than before adding the 10px border');
+        this.assertEquals(oldBluePosition.top, newBluePosition.top,
+            'Blue shape node should be in the position as before adding the border to red');
     },
+    test03BorderIsResetWhenSwitchingBackAndForth: function() {
+        this.redRectangle.setBorderWidth(20);
+
+        this.redRectangle.setStyleSheet('.red {border: 10px solid black;}');
+
+        this.assertEquals(20, this.redRectangle.getBorderWidth(),
+            'Border width should be 20 before switch');
+
+        this.redRectangle.setBorderStylingMode(true);
+
+        this.assertEquals(10, this.redRectangle.getBorderWidth(),
+            'Border width should be 10 after switch');
+
+        this.redRectangle.setBorderStylingMode(false);
+
+        this.assertEquals(20, this.redRectangle.getBorderWidth(),
+            'Border width should be 20 again after switching back');
+
+        this.redRectangle.setBorderStylingMode(true);
+
+        this.assertEquals(10, this.redRectangle.getBorderWidth(),
+            'Border width should be 10 again after rereswitch');
+    },
+
 
 
     createSomeMorphs: function() {

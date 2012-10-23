@@ -6,7 +6,7 @@
   "homepage": "http://lively-kernel.org",
   "repository": {
     "type": "git",
-    "url": "git://github.com/rksm/LivelyKernel.git"
+    "url": "git://github.com/LivelyKernel/LivelyKernel.git"
   },
   "dependencies": {},
   "devDependencies": {},

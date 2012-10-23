@@ -1,5 +1,18 @@
 module('lively.morphic.Serialization').requires('lively.Network', 'lively.persistence.Serializer', 'lively.morphic.Core', 'lively.morphic.TextCore', 'lively.DOMAbstraction',  'lively.morphic.Widgets').toRun(function() {
 
+// All objects that have an eval'ble toString representation
+Trait('lively.morphic.Serialization.ToStringIsSerializerExpressionTrait',
+'serialization', {
+    serializeExpr: function() { return this.toString() }
+})
+.applyTo(lively.Point)
+.applyTo(lively.Rectangle);
+
+Color.addMethods(
+'serialization', {
+    serializeExpr: function() { return 'Color.' + this.toString(); }
+});
+
 lively.morphic.Shapes.Shape.addMethods(
 'copying', {
     doNotSerialize: ['_renderContext']

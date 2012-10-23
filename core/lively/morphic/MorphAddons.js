@@ -318,13 +318,18 @@ lively.morphic.Morph.addMethods(
 
     removeAndDropSubmorphs: function() {
         // Removes the morph and lets all its child morphs drop to its owner
-        this.submorphs.each(function(submorph) {
-            var supermorph = this.owner || $world;
-            supermorph.addMorph(submorph.copy());
-        }, this);
-
-        this.removeAllMorphs();
-        this.remove();
+        var supermorph = this.owner || this.world(),
+            morphPos = this.getPosition();
+        if (supermorph && supermorph.isMorph) {
+            this.submorphs.each(function(submorph) {
+                var oldPos = submorph.getPosition();
+                supermorph.addMorph(submorph);
+                submorph.setPosition(morphPos.addPt(oldPos));
+            }, this);
+            this.remove();
+        } else {
+            throw('Cannot remove '+this+' with a submorph drop. It has no owner.');
+        }
     }
 },
 'events', {

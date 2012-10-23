@@ -264,6 +264,17 @@ Object.subclass('lively.morphic.Morph',
         }
         return res;
     },
+    selectSubmorphs: function(spec) {
+        // return all submorphs (recursively) that fulfill spec
+        var props = Properties.own(spec);
+        function matches(aMorph) {
+            return props.all(function(prop) {
+                return aMorph[prop] == spec[prop];
+            });
+        };
+        return this.withAllSubmorphsSelect(matches);
+    },
+
 
     withAllSubmorphsDetect: function(func, context, depth) {
         if (!depth) depth = 0;

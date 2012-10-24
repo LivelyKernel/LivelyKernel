@@ -80,10 +80,10 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
         }),
         setBorderWidthHTML: function(ctx, width) {
             if (this.getBorderStylingMode()) {
-            $(ctx.shapeNode).css('border', null);
-                $(ctx.shapeNode).css('border-width', width+'px');
+                ctx.shapeNode.style.border = '';
+                ctx.shapeNode.style.borderWidth = width+'px';
             } else {
-                $(ctx.shapeNode).css('border-width', null);
+                ctx.shapeNode.style.borderWidth = '';
                 this.setBorderHTML(ctx, width, this.getBorderColor(), this.getStrokeOpacity());
             }
             this.compensateShapeNode(ctx);

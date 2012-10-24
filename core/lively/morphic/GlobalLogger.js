@@ -33,173 +33,27 @@ Object.subclass('lively.GlobalLogger',
 	},
 },
 'logging', {
-    logMorphicSetter: function(renderObject, propName, value) {	
-        if (renderObject.isLoggable) {
-            var before = renderObject['_' + propName],
-                after = value,
-                string = 'setting property '
-					+ propName+' of '
-					+ renderObject.toString()
-					+ ' from '
-					+ renderObject['_' + propName]
-					+ ' to '
-					+ value;
-                this.logAction({
-                    string: string,
-					morph: renderObject,
-					type: 'property',
-					time: (new Date ()).getTime(),
-                    undo: (function () {
-							if (propName === 'Position' && before === undefined)
-								return false
-							this['_' + propName] = before;
-							return this.renderContextDispatch('set' + propName, before);
-                        }).bind(renderObject),
-                    redo: (function () {
-							if (propName === 'Position' && after === undefined)
-								return false
-							this['_' + propName] = after;
-							return this.renderContextDispatch('set' + propName, after);
-						}).bind(renderObject)
-                });
-		}
-    },
-	logShapeSetter: function(renderObject, propName, value) {	
-        if (renderObject.isLoggable) {
-            var before = renderObject['_' + propName],
-                after = value,
-                string = 'setting property '
-					+ propName+' of '
-					+ renderObject.toString()
-					+ ' from '
-					+ renderObject['_' + propName]
-					+ ' to '
-					+ value;
-                this.logAction({
-                    string: string,
-					morph: renderObject,
-					type: 'property',
-					time: (new Date ()).getTime(),
-                    undo: (function () {
-							if (propName === 'Position' && before === undefined)
-								return false
-							this['_' + propName] = before;
-							return this.renderContextDispatch('set' + propName, before);
-                        }).bind(renderObject),
-                    redo: (function () {
-							if (propName === 'Position' && after === undefined)
-								return false
-							this['_' + propName] = after;
-							return this.renderContextDispatch('set' + propName, after);
-						}).bind(renderObject)
-                });
-		}
-    },
-	beforeLogAddMorph: function (morph, optBeforeMorph) {
-		if (morph.isLoggable === false || (!this.isLoggable && !(this instanceof lively.morphic.HandMorph))) {
-			morph.withAllSubmorphsDo(function (ea) {
-				ea.isLoggable = false
-				ea.shape.isLoggable = false
-			})
-		}
-		else if (morph.isLoggable === undefined)
-			morph.isLoggable = true
-		morph.shape.isLoggable = morph.isLoggable
-		return true
-	},
-	logAddMorph: function (newOwner, morph, optMorphBefore) {
-		// dirty hack next line
-		if (this.loggingEnabled && morph.isLoggable && !(morph instanceof lively.morphic.Window)) {
-			var self = this,
-				string = 'adding Morph '
-					+ morph.toString()
-					+ ' to '
-					+ newOwner.toString(),
-				owner = morph.owner
-
-			if (owner && owner.isLoggable) {
-				var undoFunc = owner.addMorph.bind(owner, morph, owner.submorphs.find(function (ea) {
-					return owner.submorphs[(owner.submorphs.indexOf(ea))-1] === morph
-				}))
-			}
-			else {
-				var undoFunc = morph.remove.bind(morph);
-			}
-			if (!newOwner.isLoggable && !(newOwner instanceof lively.morphic.HandMorph)) {
-				return false
-			}
-			var handPos = $world.firstHand().getPosition()
-			this.logAction({
-				string: string,
-				morph: morph,
-				type: 'addition',
-				time: (new Date ()).getTime(),
-				undo: function () {
-						undoFunc()
-					},
-				redo: function () {
-						if (owner instanceof lively.morphic.HandMorph)
-							morph.setPosition(handPos.subPt(newOwner.getPositionInWorld()))
-						if (newOwner.isLoggable)
-							newOwner.addMorph(morph, optMorphBefore)
-						else
-							morph.remove()
-					}
-			});
-		}
-    },
-	logRemove: function (morph) {
-		if (!morph)
-			return
-		// dirty hack next line
-		if (this.loggingEnabled && morph.isLoggable && !(morph instanceof lively.morphic.Window)) {
-			var self = this,
-				world = lively.morphic.World.current(),
-				string = 'removing Morph '
-					+ morph.toString()
-				owner = morph.owner;
-			if (owner)
-				string.concat(' from ' + owner.toString())
-			var action = {
-				string: string,
-				morph: morph,
-				type: 'removal',
-				time: (new Date ()).getTime(),
-				redo: function () {
-						morph.remove()
-					}
-			}
-			if (owner) {
-				action.undo = function () {
-						if (owner instanceof lively.morphic.HandMorph)
-								return
-						owner.addMorph(morph, owner.submorphs.find(function (ea) {
-							return owner.submorphs[(owner.submorphs.indexOf(ea))-1] === this
-						}.bind(morph)))
-					}
-			}
-			else {
-				action.undo = function () {};
-			}
-			this.logAction(action);
-		}
-	},
 	logAction: function(action) {
-		if (this.loggingEnabled === false 
-			|| action.morph.isLoggable === false
-			|| (action.morph.ownerChain && action.morph.ownerChain().find(function (ea) {return !ea.isLoggable && !ea instanceof lively.morphic.HandMorph})))
-			return
-		if (this.stack.length > this.counter) {
-			this.stack.splice(this.counter)
+		if (	action
+				&& this.loggingEnabled
+				&& action.morph.isLoggable
+				&& !(action.morph.ownerChain && action.morph.ownerChain().find(function (ea) {return !ea.isLoggable && !ea instanceof lively.morphic.HandMorph}))
+		) {
+			action.time = (new Date ()).getTime();
+			if (this.stack.length > this.counter) {
+				this.stack.splice(this.counter)
+			}
+			// keep changes at a bundle if they happen at the same time
+			if (this.stack.last() && this.stack.last().last() && (action.time - this.stack.last().last().time) <= 100) {
+				this.stack.last().push(action)
+			}
+			else {
+				this.stack.push([action])
+				this.counter ++
+			}
 		}
-		// keep changes at a bundle if they happen at the same time
-		if (this.stack.last() && this.stack.last().last() && (action.time - this.stack.last().last().time) <= 100) {
-			this.stack.last().push(action)
-		}
-		else {
-			this.stack.push([action])
-			this.counter ++
-		}
+		else
+			return false
 	},
 	undoLastAction: function () {
 		var self = this;
@@ -267,9 +121,9 @@ Object.subclass('lively.GlobalLogger',
 			var logConditionFunctionName = 'beforeLog' + functionName[0].toUpperCase() + functionName.substring(1),
 				logFunctionName = 'log' + functionName[0].toUpperCase() + functionName.substring(1);
 			functionsObject[functionName] = function () {
-				var logCondition = typeof self[logConditionFunctionName] === 'function' ? self[logConditionFunctionName].apply(this, arguments) : true;
-				if (logCondition && typeof self[logFunctionName] === 'function') {
-					self[logFunctionName].apply(self, [this].concat($A(arguments)))
+				var logCondition = typeof this[logConditionFunctionName] === 'function' ? this[logConditionFunctionName].apply(this, arguments) : true;
+				if (logCondition && typeof this[logFunctionName] === 'function') {
+					self.logAction(this[logFunctionName].apply(this, arguments))
 				}
 				var loggingEnabled = self.loggingEnabled;
 				self.disableLogging();
@@ -280,4 +134,165 @@ Object.subclass('lively.GlobalLogger',
 		})
 		LoggerLayer.refineClass(classObject, functionsObject);
 	}
-})}) // end of module
+}) // end of GlobalLogger
+
+lively.morphic.Morph.addMethods(
+'logging', {
+	logMorphicSetter: function(propName, value) {	
+        if (this.isLoggable) {
+            var before = this['_' + propName],
+                after = value,
+                string = 'setting property '
+					+ propName+' of '
+					+ this.toString()
+					+ ' from '
+					+ this['_' + propName]
+					+ ' to '
+					+ value;
+                return {
+                    string: string,
+					morph: this,
+					type: 'property',
+					time: (new Date ()).getTime(),
+                    undo: (function () {
+							if (propName === 'Position' && before === undefined)
+								return false
+							this['_' + propName] = before;
+							return this.renderContextDispatch('set' + propName, before);
+                        }).bind(this),
+                    redo: (function () {
+							if (propName === 'Position' && after === undefined)
+								return false
+							this['_' + propName] = after;
+							return this.renderContextDispatch('set' + propName, after);
+						}).bind(this)
+                };
+		}
+		return false
+    },
+	beforeLogAddMorph: function (morph, optBeforeMorph) {
+		if (morph.isLoggable === false || (!this.isLoggable && !(this instanceof lively.morphic.HandMorph))) {
+			morph.withAllSubmorphsDo(function (ea) {
+				ea.isLoggable = false
+				ea.shape.isLoggable = false
+			})
+		}
+		else if (morph.isLoggable === undefined)
+			morph.isLoggable = true
+		morph.shape.isLoggable = morph.isLoggable
+		return true
+	},
+	logAddMorph: function (morph, optMorphBefore) {
+		// dirty hack next line
+		if ($world.GlobalLogger.loggingEnabled && morph.isLoggable && !(morph instanceof lively.morphic.Window)) {
+			var string = 'adding Morph '
+					+ morph.toString()
+					+ ' to '
+					+ this.toString(),
+				owner = morph.owner
+
+			if (owner && owner.isLoggable) {
+				var undoFunc = owner.addMorph.bind(owner, morph, owner.submorphs.find(function (ea) {
+					return owner.submorphs[(owner.submorphs.indexOf(ea))-1] === morph
+				}))
+			}
+			else {
+				var undoFunc = morph.remove.bind(morph);
+			}
+			if (!this.isLoggable && !(this instanceof lively.morphic.HandMorph)) {
+				return false
+			}
+			var handPos = $world.firstHand().getPosition()
+			return {
+				string: string,
+				morph: morph,
+				type: 'addition',
+				time: (new Date ()).getTime(),
+				undo: function () {
+						undoFunc()
+					},
+				redo: function () {
+						if (owner instanceof lively.morphic.HandMorph)
+							morph.setPosition(handPos.subPt(this.getPositionInWorld()))
+						if (this.isLoggable)
+							this.addMorph(morph, optMorphBefore)
+						else
+							morph.remove()
+					}.bind(this)
+			};
+		}
+		return false
+    },
+	logRemove: function () {
+		// dirty hack next line
+		if ($world.GlobalLogger.loggingEnabled && this.isLoggable && !(this instanceof lively.morphic.Window)) {
+				var world = lively.morphic.World.current(),
+				string = 'removing Morph '
+					+ this.toString()
+				owner = this.owner;
+			if (owner)
+				string.concat(' from ' + owner.toString())
+			var action = {
+				string: string,
+				morph: this,
+				type: 'removal',
+				time: (new Date ()).getTime(),
+				redo: function () {
+						this.remove()
+					}
+			}
+			if (owner) {
+				action.undo = function () {
+						if (owner instanceof lively.morphic.HandMorph)
+								return
+						owner.addMorph(this, owner.submorphs.find(function (ea) {
+							return owner.submorphs[(owner.submorphs.indexOf(ea))-1] === this
+						}.bind(this)))
+					}
+			}
+			else {
+				action.undo = function () {};
+			}
+			return action;
+		}
+		return false
+	},
+})
+
+lively.morphic.Shapes.Shape.addMethods(
+'logging', {
+	logShapeSetter: function(propName, value) {	
+        if (this.isLoggable) {
+            var before = this['_' + propName],
+                after = value,
+                string = 'setting property '
+					+ propName+' of '
+					+ this.toString()
+					+ ' from '
+					+ this['_' + propName]
+					+ ' to '
+					+ value;
+                return {
+                    string: string,
+					morph: this,
+					type: 'property',
+					time: (new Date ()).getTime(),
+                    undo: (function () {
+							if (propName === 'Position' && before === undefined)
+								return false
+							this['_' + propName] = before;
+							return this.renderContextDispatch('set' + propName, before);
+                        }).bind(this),
+                    redo: (function () {
+							if (propName === 'Position' && after === undefined)
+								return false
+							this['_' + propName] = after;
+							return this.renderContextDispatch('set' + propName, after);
+						}).bind(this)
+                };
+		}
+		return false
+    },
+})
+
+}) // end of module

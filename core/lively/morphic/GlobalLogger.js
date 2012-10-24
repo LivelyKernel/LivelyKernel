@@ -14,11 +14,12 @@ Object.subclass('lively.GlobalLogger',
 			[lively.morphic.Shapes.Shape, ['shapeSetter']]
 		]
 		this.silentFunctions = [
-			[lively.morphic.World, ['openInspectorFor', 'openStyleEditorFor', 'openPartsBin']],
+			[lively.morphic.World, ['openInspectorFor', 'openStyleEditorFor', 'openPartsBin', 'openMethodFinderFor', 'prompt', 'openWorkspace', 'alert', 'alertOK']],
 			[lively.morphic.Morph, ['showMorphMenu', 'showHalos']],
 			[lively.morphic.Menu, ['initialize', 'openIn', 'remove']],
+			[lively.morphic.Text, ['doFind']]
 		]
-		this.silentClasses = [lively.morphic.Menu, lively.morphic.MenuItem, lively.morphic.Window/*, lively.morphic.ColorChooser*/] // loadging order
+		this.silentClasses = [lively.morphic.Menu, lively.morphic.MenuItem, lively.morphic.Window, lively.morphic.PromptDialog/*, lively.morphic.ColorChooser*/] // loadging order
 		cop.create('LoggerLayer');
 		this.silentFunctions.each(function (extendableClass) {
 			extendableClass[0] && self.disableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1])
@@ -67,7 +68,7 @@ Object.subclass('lively.GlobalLogger',
 		this.counter --
 	},
 	undoAction: function (action) {
-		this.disableLogging()
+		this.disableLogging(true)
 		if (action.morph.getLoggability && action.morph.getLoggability() || !action.morph.getLoggability)
 			action.undo();
 		this.enableLogging()
@@ -84,16 +85,18 @@ Object.subclass('lively.GlobalLogger',
 		this.counter ++
 	},
 	redoAction: function (action) {
-		this.disableLogging()
+		this.disableLogging(true)
 		if (action.morph.getLoggability && action.morph.getLoggability()  || !action.morph.getLoggability)
 			action.redo()
 		this.enableLogging()
 	},
 	enableLogging: function () {
 		this.loggingEnabled = true
+		this.workingOnAction = false
 	},
-	disableLogging: function () {
+	disableLogging: function (definite) {
 		this.loggingEnabled = false
+		this.workingOnAction = definite
 	},
 }, 
 'logging disable and enable', {
@@ -161,6 +164,10 @@ lively.morphic.Morph.addMethods(
 		return false
     },
 	beforeLogAddMorph: function (morph, optBeforeMorph) {
+		if (!$world.GlobalLogger.loggingEnabled && !$world.GlobalLogger.workingOnAction && !(this instanceof lively.morphic.HandMorph)) {
+			debugger
+			morph.isLoggable = false
+		}
 		if (morph.isLoggable === false || (!this.isLoggable && !(this instanceof lively.morphic.HandMorph))) {
 			morph.withAllSubmorphsDo(function (ea) {
 				ea.isLoggable = false
@@ -188,17 +195,18 @@ lively.morphic.Morph.addMethods(
 			if (!this.isLoggable && !(this instanceof lively.morphic.HandMorph)) {
 				return false
 			}
-			var handPos = $world.firstHand().getPosition()
+			var curPos = morph.getPositionInWorld();
 			return {
 				morph: morph,
 				undo: function () {
 						undoFunc()
 					},
 				redo: function () {
-						if (owner instanceof lively.morphic.HandMorph)
-							morph.setPosition(handPos.subPt(this.getPositionInWorld()))
-						if (this.isLoggable)
+						if (this.isLoggable) {
 							this.addMorph(morph, optMorphBefore)
+							var ownerPos = this.getPositionInWorld? this.getPositionInWorld() : this.getPosition();
+							morph.setPosition(curPos.subPt(ownerPos).addPt(morph.getOrigin()))
+						}
 						else
 							morph.remove()
 					}.bind(this)

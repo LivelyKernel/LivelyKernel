@@ -454,7 +454,8 @@ Config.addOptions(
         ["useSoftTabs", true],
         ["disableSyntaxHighlighting", false],
         ["textUndoEnabled", false, "wether Lively takes care of undoing text changes or leaves it to the browser"],
-        ['defaultCodeFontSize', 10, "In which pt size code appears."]
+        ['defaultCodeFontSize', 10, "In which pt size code appears."],
+        ['autoIndent', true, "Automatically indent new lines."]
     ],
     "lively.PartsBin", [
         ["PartCachingEnabled", true, "Whether parts are cached after they are loaded the first time"]

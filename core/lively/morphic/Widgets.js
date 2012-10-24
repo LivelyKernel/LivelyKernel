@@ -1460,17 +1460,6 @@ lively.morphic.World.addMethods(
                 })
             }]);
         }
-        if (Global.AutoIndentLayer && AutoIndentLayer.isGlobal()) {
-            items.push(['[X] Auto Indent', function() {
-                AutoIndentLayer.beNotGlobal();
-            }]);
-        } else {
-            items.push(['[  ] Auto Indent', function() {
-                require('users.cschuster.AutoIndent').toRun(function() {
-                    AutoIndentLayer.beGlobal();
-                });
-            }]);
-        }
         return items;
     },
 

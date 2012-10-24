@@ -9,16 +9,16 @@ Object.subclass('lively.GlobalLogger',
     },
 	initializeSilentList: function () {
 		var self = this;
+		this.loggedFunctions = [
+			[lively.morphic.Morph, ['addMorph', 'remove', 'morphicSetter', 'addScript']],
+			[lively.morphic.Shapes.Shape, ['shapeSetter']]
+		]
 		this.silentFunctions = [
 			[lively.morphic.World, ['openInspectorFor', 'openStyleEditorFor', 'openPartsBin']],
 			[lively.morphic.Morph, ['showMorphMenu', 'showHalos']],
 			[lively.morphic.Menu, ['initialize', 'openIn', 'remove']],
 		]
 		this.silentClasses = [lively.morphic.Menu, lively.morphic.MenuItem, lively.morphic.Window/*, lively.morphic.ColorChooser*/] // loadging order
-		this.loggedFunctions = [
-			[lively.morphic.Morph, ['addMorph', 'remove', 'morphicSetter']],
-			[lively.morphic.Shapes.Shape, ['shapeSetter']]
-		]
 		cop.create('LoggerLayer');
 		this.silentFunctions.each(function (extendableClass) {
 			extendableClass[0] && self.disableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1])
@@ -257,6 +257,23 @@ lively.morphic.Morph.addMethods(
 		}
 		return false
 	},
+	beforeLogAddScript: function (funcOrString, optName) {
+		return funcOrString
+	},
+	logAddScript: function (funcOrString, optName) {
+		return {
+			morph: this,
+			string: 'adding script ' + funcOrString + ' for ' + this.toString(),
+			undo: (function () {
+				var func = Function.fromString(funcOrString)
+				this.stopSteppingScriptNamed(func.name) //not neccessary
+				delete this[func.name]
+			}).bind(this),
+			redo: (function () {
+				this.addScript(funcOrString, optName)
+			}).bind(this)
+		}
+	}
 })
 
 lively.morphic.Shapes.Shape.addMethods(

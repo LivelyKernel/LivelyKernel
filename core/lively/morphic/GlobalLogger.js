@@ -141,19 +141,9 @@ lively.morphic.Morph.addMethods(
 	logMorphicSetter: function(propName, value) {	
         if (this.isLoggable) {
             var before = this['_' + propName],
-                after = value,
-                string = 'setting property '
-					+ propName+' of '
-					+ this.toString()
-					+ ' from '
-					+ this['_' + propName]
-					+ ' to '
-					+ value;
+                after = value;
                 return {
-                    string: string,
 					morph: this,
-					type: 'property',
-					time: (new Date ()).getTime(),
                     undo: (function () {
 							if (propName === 'Position' && before === undefined)
 								return false
@@ -185,11 +175,7 @@ lively.morphic.Morph.addMethods(
 	logAddMorph: function (morph, optMorphBefore) {
 		// dirty hack next line
 		if ($world.GlobalLogger.loggingEnabled && morph.isLoggable && !(morph instanceof lively.morphic.Window)) {
-			var string = 'adding Morph '
-					+ morph.toString()
-					+ ' to '
-					+ this.toString(),
-				owner = morph.owner
+			var owner = morph.owner
 
 			if (owner && owner.isLoggable) {
 				var undoFunc = owner.addMorph.bind(owner, morph, owner.submorphs.find(function (ea) {
@@ -204,10 +190,7 @@ lively.morphic.Morph.addMethods(
 			}
 			var handPos = $world.firstHand().getPosition()
 			return {
-				string: string,
 				morph: morph,
-				type: 'addition',
-				time: (new Date ()).getTime(),
 				undo: function () {
 						undoFunc()
 					},
@@ -227,16 +210,9 @@ lively.morphic.Morph.addMethods(
 		// dirty hack next line
 		if ($world.GlobalLogger.loggingEnabled && this.isLoggable && !(this instanceof lively.morphic.Window)) {
 				var world = lively.morphic.World.current(),
-				string = 'removing Morph '
-					+ this.toString()
-				owner = this.owner;
-			if (owner)
-				string.concat(' from ' + owner.toString())
+					owner = this.owner;
 			var action = {
-				string: string,
 				morph: this,
-				type: 'removal',
-				time: (new Date ()).getTime(),
 				redo: function () {
 						this.remove()
 					}
@@ -263,7 +239,6 @@ lively.morphic.Morph.addMethods(
 	logAddScript: function (funcOrString, optName) {
 		return {
 			morph: this,
-			string: 'adding script ' + funcOrString + ' for ' + this.toString(),
 			undo: (function () {
 				var func = Function.fromString(funcOrString)
 				this.stopSteppingScriptNamed(func.name) //not neccessary
@@ -281,19 +256,9 @@ lively.morphic.Shapes.Shape.addMethods(
 	logShapeSetter: function(propName, value) {	
         if (this.isLoggable) {
             var before = this['_' + propName],
-                after = value,
-                string = 'setting property '
-					+ propName+' of '
-					+ this.toString()
-					+ ' from '
-					+ this['_' + propName]
-					+ ' to '
-					+ value;
+                after = value;
                 return {
-                    string: string,
 					morph: this,
-					type: 'property',
-					time: (new Date ()).getTime(),
                     undo: (function () {
 							if (propName === 'Position' && before === undefined)
 								return false

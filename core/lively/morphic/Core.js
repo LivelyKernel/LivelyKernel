@@ -202,21 +202,6 @@ Object.subclass('lively.morphic.Morph',
     },
 
     addMorph: function (morph, optMorphBefore) {
-		// TODO: AUA
-		if (morph.isLoggable === false || (!this.isLoggable && !(this instanceof lively.morphic.HandMorph))) {
-			morph.withAllSubmorphsDo(function (ea) {
-				ea.isLoggable = false
-				ea.shape.isLoggable = false
-			})
-		}
-		else if (morph.isLoggable === undefined)
-			morph.isLoggable = true
-		
-        $world.GlobalLogger.logAddMorph(this, morph, optMorphBefore);
-		morph.shape.isLoggable = morph.isLoggable
-		var loggingEnabled = $world.GlobalLogger.loggingEnabled;
-		$world.GlobalLogger.disableLogging();
-	
         if (morph.isAncestorOf(this)) {
             alert('addMorph: Circular relationships between morphs not allowed');
             alert('tried to drop ' + morph + ' on ' + this);
@@ -261,7 +246,6 @@ Object.subclass('lively.morphic.Morph',
                     // call Stack.beInBackground to place in background
             }
         }
-		$world.GlobalLogger.loggingEnabled = loggingEnabled;
         return morph
     },
     withAllSubmorphsDo: function(func, context, depth) {
@@ -340,7 +324,7 @@ Object.subclass('lively.morphic.Morph',
     remove: function() {
         this.suspendSteppingAll();
         if (this.showsHalos) this.removeHalos();
-		$world.GlobalLogger.logRemove(this)
+		//$world.GlobalLogger.logRemove(this)
         if (this.owner) {
             this.owner.removeMorph(this);
         }

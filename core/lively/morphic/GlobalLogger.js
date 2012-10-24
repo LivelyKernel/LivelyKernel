@@ -5,34 +5,35 @@ Object.subclass('lively.GlobalLogger',
 		this.stack = [];
 		this.counter = 0;
 		this.initializeSilentList();
+		this.enableLogging();
     },
 	initializeSilentList: function () {
 		var self = this;
 		this.silentFunctions = [
-			// [extendableClass, ['functionName', 'functionName']]
 			[lively.morphic.World, ['openInspectorFor', 'openStyleEditorFor', 'openPartsBin']],
-			[lively.morphic.Morph, ['showMorphMenu', 'showHalos']]
+			[lively.morphic.Morph, ['showMorphMenu', 'showHalos']],
+			[lively.morphic.Menu, ['initialize', 'openIn', 'remove']],
 		]
-		
+		this.silentClasses = [lively.morphic.Menu, lively.morphic.MenuItem, lively.morphic.Window/*, lively.morphic.ColorChooser*/] // loadging order
+		this.loggedFunctions = [
+			[lively.morphic.Morph, ['addMorph', 'remove', 'morphicSetter']],
+			[lively.morphic.Shapes.Shape, ['shapeSetter']]
+		]
 		cop.create('LoggerLayer');
 		this.silentFunctions.each(function (extendableClass) {
-			var functionsObject = {};
-			extendableClass[1] && extendableClass[1].each(function (functionName) {
-				functionsObject[functionName] = function () {
-					var loggingEnabled = self.loggingEnabled
-					self.disableLogging();
-					var returnValue = cop.proceed.apply(cop, arguments)
-					self.loggingEnabled = loggingEnabled;
-					return returnValue
-				}
-			})
-			LoggerLayer.refineClass(extendableClass[0], functionsObject);
+			extendableClass[0] && self.disableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1])
+		})
+		this.silentClasses.each(function (eachClass) {
+			self.disableLoggingForClass(eachClass)
+		})
+		this.loggedFunctions.each(function (extendableClass) {
+			self.enableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1])
 		})
 		LoggerLayer.beGlobal();
 	},
 },
 'logging', {
-    logRenderAttributeSetter: function(renderObject, propName, value) {
+    logMorphicSetter: function(renderObject, propName, value) {	
         if (renderObject.isLoggable) {
             var before = renderObject['_' + propName],
                 after = value,
@@ -63,6 +64,49 @@ Object.subclass('lively.GlobalLogger',
                 });
 		}
     },
+	logShapeSetter: function(renderObject, propName, value) {	
+        if (renderObject.isLoggable) {
+            var before = renderObject['_' + propName],
+                after = value,
+                string = 'setting property '
+					+ propName+' of '
+					+ renderObject.toString()
+					+ ' from '
+					+ renderObject['_' + propName]
+					+ ' to '
+					+ value;
+                this.logAction({
+                    string: string,
+					morph: renderObject,
+					type: 'property',
+					time: (new Date ()).getTime(),
+                    undo: (function () {
+							if (propName === 'Position' && before === undefined)
+								return false
+							this['_' + propName] = before;
+							return this.renderContextDispatch('set' + propName, before);
+                        }).bind(renderObject),
+                    redo: (function () {
+							if (propName === 'Position' && after === undefined)
+								return false
+							this['_' + propName] = after;
+							return this.renderContextDispatch('set' + propName, after);
+						}).bind(renderObject)
+                });
+		}
+    },
+	beforeLogAddMorph: function (morph, optBeforeMorph) {
+		if (morph.isLoggable === false || (!this.isLoggable && !(this instanceof lively.morphic.HandMorph))) {
+			morph.withAllSubmorphsDo(function (ea) {
+				ea.isLoggable = false
+				ea.shape.isLoggable = false
+			})
+		}
+		else if (morph.isLoggable === undefined)
+			morph.isLoggable = true
+		morph.shape.isLoggable = morph.isLoggable
+		return true
+	},
 	logAddMorph: function (newOwner, morph, optMorphBefore) {
 		// dirty hack next line
 		if (this.loggingEnabled && morph.isLoggable && !(morph instanceof lively.morphic.Window)) {
@@ -197,5 +241,43 @@ Object.subclass('lively.GlobalLogger',
 	disableLogging: function () {
 		this.loggingEnabled = false
 	},
-}
-)}) // end of module
+}, 
+'logging disable and enable', {
+	disableLoggingOfFunctionsFromClass: function (classObject, functionNamesArray) {
+		var self = this,
+			functionsObject = {};
+		functionNamesArray.each(function (functionName) {
+			functionsObject[functionName] = function () {
+				var loggingEnabled = self.loggingEnabled
+				self.disableLogging();
+				var returnValue = cop.proceed.apply(cop, arguments)
+				self.loggingEnabled = loggingEnabled;
+				return returnValue
+			}
+		})
+		LoggerLayer.refineClass(classObject, functionsObject);
+	},
+	disableLoggingForClass: function (classObject) {
+		this.disableLoggingOfFunctionsFromClass(classObject, classObject.localFunctionNames().collect(function (ea) {return ea.toString()}).withoutAll(['constructor']))
+	},
+	enableLoggingOfFunctionsFromClass: function (classObject, functionNamesArray) {
+		var self = this,
+			functionsObject = {};
+		functionNamesArray.each(function (functionName) {
+			var logConditionFunctionName = 'beforeLog' + functionName[0].toUpperCase() + functionName.substring(1),
+				logFunctionName = 'log' + functionName[0].toUpperCase() + functionName.substring(1);
+			functionsObject[functionName] = function () {
+				var logCondition = typeof self[logConditionFunctionName] === 'function' ? self[logConditionFunctionName].apply(this, arguments) : true;
+				if (logCondition && typeof self[logFunctionName] === 'function') {
+					self[logFunctionName].apply(self, [this].concat($A(arguments)))
+				}
+				var loggingEnabled = self.loggingEnabled;
+				self.disableLogging();
+				var returnValue = cop.proceed.apply(cop, arguments);
+				self.loggingEnabled = loggingEnabled;
+				return returnValue;
+			}
+		})
+		LoggerLayer.refineClass(classObject, functionsObject);
+	}
+})}) // end of module

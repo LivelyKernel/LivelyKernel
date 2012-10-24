@@ -3,7 +3,6 @@ module('lively.morphic.Rendering').requires('lively.morphic.Core', 'lively.morph
 Trait('lively.morphic.Renderable',
 'accessing', {
     renderAttributeSetter: function(propName, value) {
-		lively.morphic.World.current() && lively.morphic.World.current().GlobalLogger && lively.morphic.World.current().GlobalLogger.logRenderAttributeSetter(this, propName, value);
         if (value === undefined) {
             delete this['_' + propName];
         } else {

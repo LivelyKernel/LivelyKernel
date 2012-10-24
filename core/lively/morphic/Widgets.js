@@ -626,7 +626,6 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
 
         owner.addMorph(this);
         this.fitToItems.bind(this).delay(0);
-
         this.offsetForWorld(pos);
         // delayed because of fitToItems
         // currently this is deactivated because the initial bounds are correct

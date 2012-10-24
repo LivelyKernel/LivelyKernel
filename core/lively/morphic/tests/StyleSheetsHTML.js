@@ -167,6 +167,15 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         this.assertEquals(this.morph.id, $(shapeNode).attr('morphid'),
             'morphid in node should be the new morph id');
     },
+    test09SetNodeTypeAttributes: function() {
+        var ctx = this.redRectangle.renderContext();
+
+        this.assertEquals('morph-node', $(ctx.morphNode).attr('node-type'),
+            'Node-type of morphNode should be "morph-node"');
+        this.assertEquals('origin-node', $(ctx.originNode).attr('node-type'),
+            'Node-type of originNode should be "origin-node"');
+    },
+
 
 
 

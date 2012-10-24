@@ -308,7 +308,6 @@ Object.subclass('lively.morphic.Morph',
             ea.onOwnerChanged(newOwner);
         });
 
-		$world.GlobalLogger.loggingEnabled = loggingEnabled;
         return morph;
     },
 
@@ -415,7 +414,7 @@ Object.subclass('lively.morphic.Morph',
     remove: function() {
         this.suspendSteppingAll();
         if (this.showsHalos) this.removeHalos();
-		$world.GlobalLogger.logRemove(this)
+		//$world.GlobalLogger.logRemove(this)
         if (this.owner) {
             this.owner.removeMorph(this);
         }

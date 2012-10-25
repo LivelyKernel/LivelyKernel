@@ -35,26 +35,23 @@ Object.subclass('lively.GlobalLogger',
     },
 },    'logging', {
     logAction: function(action) {
-        if (    action
-                && this.loggingEnabled
-                && action.morph.isLoggable
-                && !(action.morph.ownerChain && action.morph.ownerChain().find(function (ea) {return !ea.isLoggable && !ea instanceof lively.morphic.HandMorph}))
-        ) {
-            action.time = (new Date ()).getTime();
-            if (this.stack.length > this.counter) {
-                this.stack.splice(this.counter)
-            }
-            // keep changes at a bundle if they happen at the same time
-            if (this.stack.last() && this.stack.last().last() && (action.time - this.stack.last().last().time) <= 100) {
-                this.stack.last().push(action)
-            }
-            else {
-                this.stack.push([action])
-                this.counter ++
-            }
+        if (!action || !this.loggingEnabled || (action.morph && !action.morph.isLoggable)) return false;
+        var parentWantsNoUndo = action.morph.ownerChain? action.morph.ownerChain().detect(function (ea) { return !ea.isLoggable && !ea.isHand }) : false;
+        if (parentWantsNoUndo) return false
+        action.time = Date.now();
+        if (this.stack.length > this.counter) {
+            this.stack.splice(this.counter)
         }
-        else
-            return false
+        // keep changes at a bundle if they happen at the same time
+        var lastAction = this.stack.last() && this.stack.last().last()
+        if ( lastAction && (action.time - lastAction.time) <= 100) {
+            this.stack.last().push(action)
+        }
+        else {
+            this.stack.push([action])
+            this.counter ++
+        }
+        return true
     },
     undoLastAction: function () {
         var self = this;
@@ -167,7 +164,8 @@ lively.morphic.Morph.addMethods(
         if (!$world.GlobalLogger.loggingEnabled && !$world.GlobalLogger.workingOnAction && !(this instanceof lively.morphic.HandMorph)) {
             morph.isLoggable = false
         }
-        if (morph.isLoggable === false || (!this.isLoggable && !(this instanceof lively.morphic.HandMorph))) {
+        if ((morph.isLoggable === false && !morph.isHand) || (!this.isLoggable && !(this instanceof lively.morphic.HandMorph))) {
+               debugger
             morph.withAllSubmorphsDo(function (ea) {
                 ea.isLoggable = false
                 ea.shape.isLoggable = false
@@ -180,9 +178,9 @@ lively.morphic.Morph.addMethods(
     },
     logAddMorph: function (morph, optMorphBefore) {
         // dirty hack next line
-        if ($world.GlobalLogger.loggingEnabled && morph.isLoggable /*&& !(morph instanceof lively.morphic.Window)*/) {
+        var goesToUnloggable = !this.isLoggable && !this.isHand
+        if ($world.GlobalLogger.loggingEnabled && morph.isLoggable && !goesToUnloggable) {
             var owner = morph.owner
-
             if (owner && owner.isLoggable) {
                 var undoFunc = owner.addMorph.bind(owner, morph, owner.submorphs.find(function (ea) {
                     return owner.submorphs[(owner.submorphs.indexOf(ea))-1] === morph
@@ -190,9 +188,6 @@ lively.morphic.Morph.addMethods(
             }
             else {
                 var undoFunc = morph.remove.bind(morph);
-            }
-            if (!this.isLoggable && !(this instanceof lively.morphic.HandMorph)) {
-                return false
             }
             var curPos = morph.getPositionInWorld();
             return {

@@ -3611,6 +3611,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         });
     },
     collapse: function() {
+        if (!this.item.children || !this.childNodes) return;
         this.layoutAfter(function() {
             if (this.item.onCollapse) this.item.onCollapse(this.item);
             if (this.icon) this.icon.setTextString("►");

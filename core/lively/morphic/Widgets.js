@@ -3598,7 +3598,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         });
     },
     expand: function() {
-        if (!this.item.children) return;
+        if (!this.item.children || this.childNodes) return;
         this.layoutAfter(function () {
             if (this.item.onExpand) this.item.onExpand(this);
             if (this.icon) this.icon.setTextString("▼");

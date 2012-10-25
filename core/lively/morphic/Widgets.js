@@ -2097,7 +2097,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
     style: {borderWidth: 0, fill: null, borderRadius: 0, strokeOpacity: 0, adjustForNewBounds: true, enableDragging: true},
     isWindow: true,
     isCollapsed: function() { return this.state === 'collapsed' },
-	isLoggable: false
+	//isLoggable: false
 
 },
 'initializing', {

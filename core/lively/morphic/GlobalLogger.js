@@ -1,6 +1,18 @@
 module('lively.morphic.GlobalLogger').requires().toRun(function() {
 Object.subclass('lively.GlobalLogger',
-'initialization', {
+'properties', {
+	loggedFunctions: [
+		[lively.morphic.Morph, ['addMorph', 'remove', 'morphicSetter', 'addScript', 'openInWindow']],
+		[lively.morphic.Shapes.Shape, ['shapeSetter']]
+	],
+	silentFunctions: [
+		[lively.morphic.World, ['openInspectorFor', 'openStyleEditorFor', 'openPartsBin', 'openMethodFinderFor', 'prompt', 'openWorkspace', 'alert', 'alertOK']],
+		[lively.morphic.Morph, ['showMorphMenu', 'showHalos']],
+		[lively.morphic.Menu, ['initialize', 'openIn', 'remove']],
+		[lively.morphic.Text, ['doFind']]
+	],
+	silentClasses: [lively.morphic.Menu, lively.morphic.MenuItem, lively.morphic.PromptDialog/*, lively.morphic.ColorChooser*/] // loadging order
+}, 	'initialization', {
     initialize: function () {
 		this.stack = [];
 		this.counter = 0;
@@ -9,17 +21,6 @@ Object.subclass('lively.GlobalLogger',
     },
 	initializeSilentList: function () {
 		var self = this;
-		this.loggedFunctions = [
-			[lively.morphic.Morph, ['addMorph', 'remove', 'morphicSetter', 'addScript']],
-			[lively.morphic.Shapes.Shape, ['shapeSetter']]
-		]
-		this.silentFunctions = [
-			[lively.morphic.World, ['openInspectorFor', 'openStyleEditorFor', 'openPartsBin', 'openMethodFinderFor', 'prompt', 'openWorkspace', 'alert', 'alertOK']],
-			[lively.morphic.Morph, ['showMorphMenu', 'showHalos']],
-			[lively.morphic.Menu, ['initialize', 'openIn', 'remove']],
-			[lively.morphic.Text, ['doFind']]
-		]
-		this.silentClasses = [lively.morphic.Menu, lively.morphic.MenuItem, lively.morphic.Window, lively.morphic.PromptDialog/*, lively.morphic.ColorChooser*/] // loadging order
 		cop.create('LoggerLayer');
 		this.silentFunctions.each(function (extendableClass) {
 			extendableClass[0] && self.disableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1])
@@ -32,8 +33,7 @@ Object.subclass('lively.GlobalLogger',
 		})
 		LoggerLayer.beGlobal();
 	},
-},
-'logging', {
+},	'logging', {
 	logAction: function(action) {
 		if (	action
 				&& this.loggingEnabled
@@ -90,16 +90,17 @@ Object.subclass('lively.GlobalLogger',
 			action.redo()
 		this.enableLogging()
 	},
+}, 
+'logging disable and enable', {
 	enableLogging: function () {
 		this.loggingEnabled = true
 		this.workingOnAction = false
 	},
 	disableLogging: function (definite) {
+		debugger
 		this.loggingEnabled = false
 		this.workingOnAction = definite
 	},
-}, 
-'logging disable and enable', {
 	disableLoggingOfFunctionsFromClass: function (classObject, functionNamesArray) {
 		var self = this,
 			functionsObject = {};
@@ -165,7 +166,6 @@ lively.morphic.Morph.addMethods(
     },
 	beforeLogAddMorph: function (morph, optBeforeMorph) {
 		if (!$world.GlobalLogger.loggingEnabled && !$world.GlobalLogger.workingOnAction && !(this instanceof lively.morphic.HandMorph)) {
-			debugger
 			morph.isLoggable = false
 		}
 		if (morph.isLoggable === false || (!this.isLoggable && !(this instanceof lively.morphic.HandMorph))) {
@@ -176,12 +176,12 @@ lively.morphic.Morph.addMethods(
 		}
 		else if (morph.isLoggable === undefined)
 			morph.isLoggable = true
-		morph.shape.isLoggable = morph.isLoggable
+		morph.shape && (morph.shape.isLoggable = morph.isLoggable)
 		return true
 	},
 	logAddMorph: function (morph, optMorphBefore) {
 		// dirty hack next line
-		if ($world.GlobalLogger.loggingEnabled && morph.isLoggable && !(morph instanceof lively.morphic.Window)) {
+		if ($world.GlobalLogger.loggingEnabled && morph.isLoggable /*&& !(morph instanceof lively.morphic.Window)*/) {
 			var owner = morph.owner
 
 			if (owner && owner.isLoggable) {
@@ -216,22 +216,24 @@ lively.morphic.Morph.addMethods(
     },
 	logRemove: function () {
 		// dirty hack next line
-		if ($world.GlobalLogger.loggingEnabled && this.isLoggable && !(this instanceof lively.morphic.Window)) {
+		if ($world.GlobalLogger.loggingEnabled && this.isLoggable /*&& !(this instanceof lively.morphic.Window)*/) {
 				var world = lively.morphic.World.current(),
-					owner = this.owner;
+					owner = this.owner,
+					self = this;
 			var action = {
 				morph: this,
 				redo: function () {
-						this.remove()
+						self.remove()
 					}
 			}
 			if (owner) {
 				action.undo = function () {
+						debugger
 						if (owner instanceof lively.morphic.HandMorph)
 								return
-						owner.addMorph(this, owner.submorphs.find(function (ea) {
-							return owner.submorphs[(owner.submorphs.indexOf(ea))-1] === this
-						}.bind(this)))
+						owner.addMorph(self, owner.submorphs.find(function (ea) {
+							return owner.submorphs[(owner.submorphs.indexOf(ea))-1] === self
+						}))
 					}
 			}
 			else {
@@ -254,6 +256,20 @@ lively.morphic.Morph.addMethods(
 			}).bind(this),
 			redo: (function () {
 				this.addScript(funcOrString, optName)
+			}).bind(this)
+		}
+	},
+	logOpenInWindow: function (optPos) {
+		var owner = this.owner
+		return {
+			morph: this,
+			undo: (function () {
+				var windowMorphs = this.owner
+				owner.addMorph(this)
+				windowMorphs.remove()
+			}),
+			redo: (function () {
+				this.openInWindow()
 			}).bind(this)
 		}
 	}

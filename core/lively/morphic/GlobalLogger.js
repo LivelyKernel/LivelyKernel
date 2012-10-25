@@ -99,7 +99,6 @@ Object.subclass('lively.GlobalLogger',
 		this.workingOnAction = false
 	},
 	disableLogging: function (definite) {
-		debugger
 		this.loggingEnabled = false
 		this.workingOnAction = definite
 	},

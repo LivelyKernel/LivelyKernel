@@ -3531,7 +3531,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     },
     createLabel: function() {
         var bounds = pt(0, 0).extent(pt(100, 20));
-        var name = this.item.name + (this.item.description ? "  " : "");
+        var name = this.item.name;
         var label = new lively.morphic.Text(bounds, name);
         if (this.item.style) {
             label.firstTextChunk().styleText(this.item.style);
@@ -3539,7 +3539,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         }
         if (this.item.description) {
             var gray = {color: Color.web.darkgray};
-            label.insertRichTextAt(this.item.description, gray, name.length);
+            label.appendRichText(" " + this.item.description, gray);
         }
         label.setBorderWidth(0);
         label.setFill(null);

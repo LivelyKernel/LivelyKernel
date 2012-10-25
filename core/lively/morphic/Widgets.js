@@ -3604,6 +3604,11 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
             this.showChildren();
         })
     },
+    expandAll: function() {
+        this.withAllTreesDo(function(tree) {
+            tree.expand();
+        });
+    },
     collapse: function() {
         this.layoutAfter(function() {
             if (this.item.onCollapse) this.item.onCollapse(this.item);

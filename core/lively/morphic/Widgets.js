@@ -2675,7 +2675,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
     isWindow: true,
     isCollapsed: function() { return this.state === 'collapsed'; },
     doNotSerialize: ['highlighted', 'cameForward'],
-	isLoggable: false
+	//isLoggable: false
 
 },
 'initializing', {

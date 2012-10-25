@@ -10,7 +10,7 @@ Object.subclass('lively.morphic.Morph',
         fill: null
     },
     isMorph: true,
-	isLoggable: true
+    isLoggable: true
 },
 'initializing', {
     idCounter: 0,
@@ -414,7 +414,6 @@ Object.subclass('lively.morphic.Morph',
     remove: function() {
         this.suspendSteppingAll();
         if (this.showsHalos) this.removeHalos();
-		//$world.GlobalLogger.logRemove(this)
         if (this.owner) {
             this.owner.removeMorph(this);
         }

@@ -424,7 +424,9 @@ Config.addOptions(
 
         ["userNameURL", document.location.protocol + '//' + document.location.host + '/cgi/user.sh'],
 
-        ["lessAnnoyingWorldStatusMessages", true]
+        ["lessAnnoyingWorldStatusMessages", true],
+		
+		['undoLogging', true]
     ],
 
     'lively.morphic.Events', [

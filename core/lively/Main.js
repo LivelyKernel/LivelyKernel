@@ -1,4 +1,4 @@
-/*
+Global/*
  * Copyright (c) 2006-2009 Sun Microsystems, Inc.
  * Copyright (c) 2008-2011 Hasso Plattner Institute
  *
@@ -210,7 +210,9 @@ Object.subclass('lively.Main.Loader',
             });
         }
         lively.whenLoaded = function(cb) { cb(world) };
-		lively.morphic.World.current().GlobalLogger = new lively.GlobalLogger()
+        if (Config.undoLogging) {
+            lively.morphic.World.current().GlobalLogger = new lively.GlobalLogger();
+        }
         console.log("The world is now completely loaded.");
     }
 

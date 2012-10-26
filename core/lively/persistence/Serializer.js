@@ -880,8 +880,9 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
             for (var name in closures) {
                 var closure = closures[name];
                 // in case of directly added functions do nothing
-                if (!closure.isLivelyClosure) continue;
-                closure.recreateFunc().addToObject(obj, name);
+                if (closure.isLivelyClosure) {
+                    closure.recreateFunc().addToObject(obj, name);
+                }
                 currentClosures.remove(name);
             }
             currentClosures.forEach(function(name) { delete obj[name]; });

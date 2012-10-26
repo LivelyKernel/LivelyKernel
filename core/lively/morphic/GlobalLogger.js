@@ -9,9 +9,10 @@ Object.subclass('lively.GlobalLogger',
         [lively.morphic.World, ['openInspectorFor', 'openStyleEditorFor', 'openPartsBin', 'openMethodFinderFor', 'prompt', 'openWorkspace', 'setStatusMessage']],
         [lively.morphic.Morph, ['showMorphMenu', 'showHalos']],
         [lively.morphic.Menu, ['initialize', 'openIn', 'remove']],
-        [lively.morphic.Text, ['doFind']]
+        [lively.morphic.Text, ['doFind']],
+        [lively.morphic.MenuItem, ['initialize']]
     ],
-    silentClasses: [lively.morphic.Menu, lively.morphic.MenuItem, lively.morphic.PromptDialog/*, lively.morphic.ColorChooser*/] // loadging order
+    silentClasses: [lively.morphic.Menu, lively.morphic.PromptDialog/*, lively.morphic.ColorChooser*/] // loadging order
 },     'initialization', {
     initialize: function () {
         this.stack = [];
@@ -67,8 +68,7 @@ Object.subclass('lively.GlobalLogger',
     },
     undoAction: function (action) {
         this.disableLogging(true)
-        if ((action.morph.getLoggability && action.morph.getLoggability()) || !action.morph.getLoggability)
-            action.undo();
+        action.undo();
         this.enableLogging()
     },
     redoNextAction: function () {
@@ -209,7 +209,6 @@ lively.morphic.Morph.addMethods(
                     },
                 redo: function () {
                         if (this.isLoggable) {
-                            debugger
                             this.addMorph(morph, optMorphBefore)
                             var ownerOrigin = (this.getPositionInWorld? this.getPositionInWorld() : this.getPosition()).addPt(this.getOrigin());
                             morph.setPosition(curPos.subPt(ownerOrigin).addPt(morph.getOrigin()))
@@ -267,13 +266,15 @@ lively.morphic.Morph.addMethods(
     },
     logOpenInWindow: function (optPos) {
         var owner = this.owner
+        var pos = this.getPosition()
         return {
             morph: this,
             undo: (function () {
                 var windowMorphs = this.owner
                 owner.addMorph(this)
+                this.setPosition(pos)
                 windowMorphs.remove()
-            }),
+            }).bind(this),
             redo: (function () {
                 this.openInWindow()
             }).bind(this)

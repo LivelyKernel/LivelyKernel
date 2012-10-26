@@ -296,7 +296,6 @@ lively.morphic.Morph.addMethods(
         return this;
     },
     openInWindow: function(optPos) {
-		debugger
         lively.morphic.World.current().internalAddWindow(this,
             this.name, optPos || this.getPosition());
         this.applyStyle({resizeWidth: true, resizeHeight: true});

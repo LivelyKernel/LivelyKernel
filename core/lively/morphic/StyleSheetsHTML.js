@@ -152,11 +152,12 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                 } else if (rule.isStyleSheetComment){
                     // do not include comments
                 } else if (rule.isStyleSheetRule) {
-                    var selector = this.replaceChildOp(rule.getSelector()),
+                    var selector = rule.getSelector(),
                         selectors = this.splitGroupedSelector(selector),
                         newSelector = '';
                     for (var i = 0; i < selectors.length; i++) {
-                        newSelector += this.addSelectorPrefixes(selectors[i]);
+                        newSelector += this.addSelectorPrefixes(
+                            this.replaceChildOp(selectors[i]));
                         if (i < selectors.length - 1) {
                             newSelector += ', ';
                         }
@@ -313,6 +314,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             tokens = selector.split('>'),
             childOpCount = tokens.length - 1,
             results = [],
+            maxOpCount = 3,
             replaceRecursively = function(spareTokens) {
                 var firstToken = spareTokens.shift();
                 if (spareTokens.length === 1) {
@@ -331,7 +333,10 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                     }, []);
                 }
             };
-        if (childOpCount > 0) {
+        if (childOpCount > maxOpCount) {
+            console.warn('Cannot adapt selector ' + selector + '. Too many child operators.');
+            return selector;
+        } else if (childOpCount > 0) {
             // Loop over all tokens
             var sels = replaceRecursively(tokens);
             return sels.reduce(function(prev, sel, i) {

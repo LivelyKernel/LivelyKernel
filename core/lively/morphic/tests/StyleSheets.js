@@ -850,7 +850,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             '"19cm" should convert to 0');
         this.assertEquals(0, morph.convertLengthToPx('19'),
             '"19" should convert to 0');
-}});
+}
+});
 
 TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
 'testing', {
@@ -966,7 +967,37 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
                         ', style or width in their property string');
                 }
             }, this);
+    },
+    test07ParseInlineComment: function() {
+        var styleSheet =
+                '.Morph {\n'+
+                '/* test */\n'+
+                '}\n\n'+
+                '/* test */',
+            parsedStyleSheet = apps.cssParser.parse(styleSheet);
+        this.assert(parsedStyleSheet.isStyleSheet,
+            'Parsed style sheet is no lively style sheet object');
+        this.assertEquals(2, parsedStyleSheet.getRules().length,
+            'Parsed style sheet does not have exactly two rules');
+
+        this.assert(parsedStyleSheet.getRules().first().isStyleSheetRule,
+            'First rule is no lively style sheet rule');
+        this.assert(parsedStyleSheet.getRules().last().isStyleSheetRule,
+            'Last rule is no lively style sheet rule');
+        this.assert(parsedStyleSheet.getRules().last().isStyleSheetComment,
+            'Last rule is no lively style sheet comment');
+
+        this.assertEquals(1,
+            parsedStyleSheet.getRules().first().getDeclarations().length,
+            'First style sheet rule does not have exactly two declarations');
+
+        this.assert(parsedStyleSheet.getRules().first().getDeclarations().first().isStyleSheetInlineComment,
+            'Declaration is no lively style sheet inline comment');
+
+        this.assertEquals(styleSheet, parsedStyleSheet.getText(),
+            'CSS text output not as expected');
     }
+
 
 
 

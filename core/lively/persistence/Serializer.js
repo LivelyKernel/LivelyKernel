@@ -879,6 +879,8 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
                         && !obj[name].isConnectionWrapper; });
             for (var name in closures) {
                 var closure = closures[name];
+                // in case of directly added functions do nothing
+                if (!closure.isLivelyClosure) continue;
                 closure.recreateFunc().addToObject(obj, name);
                 currentClosures.remove(name);
             }

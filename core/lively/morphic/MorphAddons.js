@@ -99,7 +99,7 @@ Object.extend(Global, {
 
 lively.morphic.Morph.addMethods(
 'geometry', {
-    moveBy: function(point) { this.setPosition(this.getPosition().addPt(point)) },
+
     translateBy: function(p) {
         this.setPosition(this.getPosition().addPt(p));
         return this;

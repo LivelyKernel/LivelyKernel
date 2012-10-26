@@ -160,7 +160,7 @@ Object.subclass('lively.GlobalLogger',
                             morph: this,
                             undo: (function () {
                                     try {
-                                        this['disable'+suffix].apply(this)
+                                        this['disable'+suffix] && this['disable'+suffix].apply(this)
                                     }
                                     catch (e) {
                                         alert('unable to undo enable' + suffix +" with Error"+'\n'+e)
@@ -168,7 +168,7 @@ Object.subclass('lively.GlobalLogger',
                                 }).bind(this),
                             redo: (function () {
                                     try {
-                                        this['enble'+suffix].apply(this)
+                                        this['enble'+suffix] && this['enble'+suffix].apply(this)
                                     }
                                     catch (e) {
                                         alert('unable to redo enable' + suffix +" with Error"+'\n'+e)

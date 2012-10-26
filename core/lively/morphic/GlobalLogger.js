@@ -52,7 +52,7 @@ Object.subclass('lively.GlobalLogger',
             this.stack.push([action])
             this.counter ++
         }
-        return true
+        return action
     },
     undoLastAction: function () {
         var self = this;
@@ -125,16 +125,19 @@ Object.subclass('lively.GlobalLogger',
         var self = this,
             functionsObject = {};
         functionNames.each(function (functionName) {
-            var logConditionFunctionName = 'beforeLog' + functionName[0].toUpperCase() + functionName.substring(1),
-                logFunctionName = 'log' + functionName[0].toUpperCase() + functionName.substring(1);
+            var beforeLogFunctionName = 'beforeLog' + functionName[0].toUpperCase() + functionName.substring(1),
+                logFunctionName = 'log' + functionName[0].toUpperCase() + functionName.substring(1),
+                afterLogFunctionName = 'afterLog' + functionName[0].toUpperCase() + functionName.substring(1);
             functionsObject[functionName] = function () {
-                var logCondition = typeof this[logConditionFunctionName] === 'function' ? this[logConditionFunctionName].apply(this, arguments) : true;
+                var logCondition = Object.isFunction(this[beforeLogFunctionName]) ? this[beforeLogFunctionName].apply(this, arguments) : true;
                 if (logFunctionName && Object.isFunction(this[logFunctionName])) {
-                    self.logAction(this[logFunctionName].apply(this, arguments))
+                    var logResult = self.logAction(this[logFunctionName].apply(this, arguments))
                 }
                 var loggingEnabled = self.loggingEnabled;
                 self.disableLogging();
                 var returnValue = cop.proceed.apply(cop, arguments);
+                if (logResult && afterLogFunctionName && Object.isFunction(this[afterLogFunctionName]))
+                    this[afterLogFunctionName].apply(this, returnValue)
                 self.loggingEnabled = loggingEnabled;
                 return returnValue;
             }
@@ -265,20 +268,38 @@ lively.morphic.Morph.addMethods(
         }
     },
     logOpenInWindow: function (optPos) {
-        var owner = this.owner
-        var pos = this.getPosition()
+        var owner = this.owner,
+            pos = this.getPosition(),
+            loggable = this.isLoggable,
+            self = this;
         return {
             morph: this,
             undo: (function () {
-                var windowMorphs = this.owner
-                owner.addMorph(this)
-                this.setPosition(pos)
-                windowMorphs.remove()
-            }).bind(this),
+                this.windowMorph = self.owner
+                this.insidePosition = self.getPosition()
+                owner.addMorph(self)
+                self.setPosition(pos)
+                this.windowMorph.remove()
+                self.isLoggable = loggable
+            }),
             redo: (function () {
-                this.openInWindow()
-            }).bind(this)
+                if (this.windowMorph) {
+                    lively.morphic.World.current().addMorph(this.windowMorph)
+                    this.windowMorph.addMorphBack(self)
+                    self.setPosition(this.insidePosition)
+                    self.setPosition
+                }
+                else
+                    self.openInWindow(optPos)
+                self.afterLogOpenInWindow()
+            })
         }
+    },
+    afterLogOpenInWindow: function () {
+        this.owner.withAllSubmorphsDo(function (ea) {
+            ea.isLoggable = true;
+            ea.shape.isLoggable = true;
+        })
     }
 })
 

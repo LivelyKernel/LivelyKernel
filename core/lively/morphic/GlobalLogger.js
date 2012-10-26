@@ -2,7 +2,7 @@ module('lively.morphic.GlobalLogger').requires().toRun(function() {
 Object.subclass('lively.GlobalLogger',
 'properties', {
     loggedFunctions: [
-        [lively.morphic.Morph, ['addMorph', 'remove', 'morphicSetter', 'addScript', 'openInWindow']],
+        [lively.morphic.Morph, ['addMorph', 'remove', 'morphicSetter', 'addScript', 'openInWindow', 'lock', 'unlock']],
         [lively.morphic.Shapes.Shape, ['shapeSetter']]
     ],
     silentFunctions: [
@@ -12,7 +12,7 @@ Object.subclass('lively.GlobalLogger',
         [lively.morphic.Text, ['doFind']],
         [lively.morphic.MenuItem, ['initialize']]
     ],
-    silentClasses: [lively.morphic.Menu, lively.morphic.PromptDialog/*, lively.morphic.ColorChooser*/] // loadging order
+    silentClasses: [lively.morphic.Menu, lively.morphic.Tree, lively.morphic.PromptDialog/*, lively.morphic.ColorChooser*/] // loadging order
 },     'initialization', {
     initialize: function () {
         this.stack = [];
@@ -363,6 +363,28 @@ lively.morphic.Morph.addMethods(
             ea.isLoggable = true;
             ea.shape.isLoggable = true;
         })
+    },
+    logLock: function () {
+        return {
+            morph: this,
+            undo: (function () {
+                this.unlock()
+            }).bind(this),
+            redo: (function () {
+                this.lock()
+            }).bind(this)
+        }
+    },
+    logUnlock: function () {
+        return {
+            morph: this,
+            undo: (function () {
+                this.lock()
+            }).bind(this),
+            redo: (function () {
+                this.unlock()
+            }).bind(this)
+        }
     }
 })
 

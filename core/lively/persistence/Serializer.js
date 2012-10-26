@@ -1169,6 +1169,9 @@ ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin', {
         copy[this.specialSerializeProperty].push(propName);
         return true;
     },
+    ignorePropDeserialization: function(obj, propName, value) {
+        return propName == this.specialSerializeProperty;
+    },
     additionallySerialize: function(original, persistentCopy) {
         var keysToConvert = persistentCopy[this.specialSerializeProperty];
         if (!keysToConvert) return;

@@ -6,7 +6,7 @@ Object.subclass('lively.GlobalLogger',
         [lively.morphic.Shapes.Shape, ['shapeSetter']]
     ],
     silentFunctions: [
-        [lively.morphic.World, ['openInspectorFor', 'openStyleEditorFor', 'openPartsBin', 'openMethodFinderFor', 'prompt', 'openWorkspace', 'alert', 'alertOK']],
+        [lively.morphic.World, ['openInspectorFor', 'openStyleEditorFor', 'openPartsBin', 'openMethodFinderFor', 'prompt', 'openWorkspace', 'setStatusMessage']],
         [lively.morphic.Morph, ['showMorphMenu', 'showHalos']],
         [lively.morphic.Menu, ['initialize', 'openIn', 'remove']],
         [lively.morphic.Text, ['doFind']]
@@ -56,7 +56,7 @@ Object.subclass('lively.GlobalLogger',
     undoLastAction: function () {
         var self = this;
         if (this.counter <= 0) {
-            console.log('Nothing to undo')
+            lively.morphic.World.current().alert('Nothing to undo')
             return false
         }
         var actionIndex = this.counter-1
@@ -74,7 +74,7 @@ Object.subclass('lively.GlobalLogger',
     redoNextAction: function () {
         var self = this;
         if (this.counter > this.stack.length) {
-            console.log('Nothing to redo')
+            lively.morphic.World.current().alert('Nothing to redo')
             return false
         }
         this.stack[this.counter] && this.stack[this.counter].reverse().each(function (ea) {
@@ -99,6 +99,7 @@ Object.subclass('lively.GlobalLogger',
         this.workingOnAction = definite
     },
     disableLoggingOfFunctionsFromClass: function (classObject, functionNames) {
+        // Disable logging of certain functions (e.g. Tool functionality)
         var self = this,
             functionsObject = {};
         functionNames.each(function (functionName) {
@@ -113,12 +114,14 @@ Object.subclass('lively.GlobalLogger',
         LoggerLayer.refineClass(classObject, functionsObject);
     },
     disableLoggingForClass: function (classObject) {
+        // Disable every action of a Class (useful e.g. for Halo and HaloItem)
         var loggableClasses = classObject.localFunctionNames()
                                 .collect(function (ea) {return ea.toString()})
                                 .without('constructor')
         this.disableLoggingOfFunctionsFromClass(classObject, loggableClasses)
     },
     enableLoggingOfFunctionsFromClass: function (classObject, functionNames) {
+        // Adds a layered function that enables logging of certain functions
         var self = this,
             functionsObject = {};
         functionNames.each(function (functionName) {

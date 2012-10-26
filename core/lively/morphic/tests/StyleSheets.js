@@ -779,7 +779,16 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             '"19cm" should convert to 0');
         this.assertEquals(0, morph.convertLengthToPx('19'),
             '"19" should convert to 0');
+    },
+    test12SetParsedStyleSheet: function() {
+        var sheet = new lively.morphic.StyleSheet([], this.redRectangle);
+        this.assertEquals(this.redRectangle, sheet.getOriginMorph(),
+            'originMorph of sheet should be red before adding');
+        this.blueRectangle1.setParsedStyleSheet(sheet);
+        this.assertEquals(this.blueRectangle1, sheet.getOriginMorph(),
+            'originMorph of sheet should be blue after adding');
     }
+
 });
 
 TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',

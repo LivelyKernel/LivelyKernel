@@ -23,6 +23,7 @@ Object.subclass('lively.GlobalLogger',
     initializeSilentList: function () {
         var self = this;
         cop.create('LoggerLayer');
+        this.createMorphLoggersForEnablingAndDisabling();
         this.silentFunctions.each(function (extendableClass) {
             extendableClass[0] && self.disableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1])
         })
@@ -143,6 +144,68 @@ Object.subclass('lively.GlobalLogger',
             }
         })
         LoggerLayer.refineClass(classObject, functionsObject);
+    },
+}, 'morph disable and enable specials', {
+    createMorphLoggersForEnablingAndDisabling: function () {
+        var functionsObject = {},
+            functionNames = lively.morphic.Morph.localFunctionNames(),
+            self = this;
+        functionNames.each(function (functionName) {
+            if (functionName.startsWith('enable')) {
+                var suffix = functionName.slice('enable'.length)
+                if (functionNames.indexOf('disable'+suffix) >= 0) {
+                    functionsObject['enable'+suffix] = function () {
+                        var loggingEnabled = self.loggingEnabled
+                        self.logAction({
+                            morph: this,
+                            undo: (function () {
+                                    try {
+                                        this['disable'+suffix].apply(this)
+                                    }
+                                    catch (e) {
+                                        alert('unable to undo enable' + suffix +" with Error"+'\n'+e)
+                                    }
+                                }).bind(this),
+                            redo: (function () {
+                                    try {
+                                        this['enble'+suffix].apply(this)
+                                    }
+                                    catch (e) {
+                                        alert('unable to redo enable' + suffix +" with Error"+'\n'+e)
+                                    }
+                                }).bind(this)
+                        })
+                        var returnValue = cop.proceed.apply(cop, arguments)
+                        return returnValue
+                    };
+                    functionsObject['disable'+suffix] = function () {
+                        var loggingEnabled = self.loggingEnabled
+                        self.logAction({
+                            morph: this,
+                            undo: (function () {
+                                    try {
+                                        this['enable'+suffix].apply(this)
+                                    }
+                                    catch (e) {
+                                        alert('unable to undo disable' + suffix +" with Error"+'\n'+e)
+                                    }
+                                }).bind(this),
+                            redo: (function () {
+                                    try {
+                                        this['disable'+suffix].apply(this)
+                                    }
+                                    catch (e) {
+                                        alert('unable to redo disable' + suffix+" with Error"+'\n'+e)
+                                    }
+                                }).bind(this)
+                        })
+                        var returnValue = cop.proceed.apply(cop, arguments)
+                        return returnValue
+                    }
+                }
+            }
+        })
+        LoggerLayer.refineClass(lively.morphic.Morph, functionsObject);
     }
 }) // end of GlobalLogger
 

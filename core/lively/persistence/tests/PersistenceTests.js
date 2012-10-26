@@ -549,6 +549,12 @@ lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('li
             test.assertSerializesToExpr(testData.expr, testData.obj);
             test.assertSerializesFromExpr(testData.obj, testData.expr);
         });
+    },
+    test04SpecialPropertyCleaned: function() {
+        var obj = {pos: lively.pt(1,2)};
+        var serialized = this.sut.serializeToJso(obj);
+        var deserialized = this.sut.deserializeJso(serialized);
+        this.assert(!deserialized.hasOwnProperty('__serializedExpressions__'));
     }
 });
 

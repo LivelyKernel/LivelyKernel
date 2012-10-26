@@ -206,9 +206,10 @@ lively.morphic.Morph.addMethods(
                     },
                 redo: function () {
                         if (this.isLoggable) {
+                            debugger
                             this.addMorph(morph, optMorphBefore)
-                            var ownerPos = this.getPositionInWorld? this.getPositionInWorld() : this.getPosition();
-                            morph.setPosition(curPos.subPt(ownerPos).addPt(morph.getOrigin()))
+                            var ownerOrigin = (this.getPositionInWorld? this.getPositionInWorld() : this.getPosition()).addPt(this.getOrigin());
+                            morph.setPosition(curPos.subPt(ownerOrigin).addPt(morph.getOrigin()))
                         }
                         else
                             morph.remove()

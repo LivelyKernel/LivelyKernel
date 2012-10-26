@@ -35,7 +35,6 @@ Object.subclass('lively.GlobalLogger',
     },
 },    'logging', {
     logAction: function(action) {
-        debugger
         if (!action || !this.loggingEnabled || (action.morph && !action.morph.isLoggable)) return false;
         var parentWantsNoUndo = action.morph.ownerChain? action.morph.ownerChain().detect(function (ea) { return !ea.isLoggable && !ea.isHand }) : false;
         if (parentWantsNoUndo) return false
@@ -171,7 +170,6 @@ lively.morphic.Morph.addMethods(
         };
     },
     beforeLogAddMorph: function (morph, optBeforeMorph) {
-        debugger
         if (morph.isHand)
             return false
         if (!lively.morphic.World.current().GlobalLogger.loggingEnabled && !lively.morphic.World.current().GlobalLogger.workingOnAction && !(this.isHand)) {
@@ -189,8 +187,6 @@ lively.morphic.Morph.addMethods(
         return true
     },
     logAddMorph: function (morph, optMorphBefore) {
-        // dirty hack next line
-        debugger
         var goesToUnloggable = !this.isLoggable && !this.isHand
         if (lively.morphic.World.current().GlobalLogger.loggingEnabled && morph.isLoggable && !goesToUnloggable) {
             var owner = morph.owner

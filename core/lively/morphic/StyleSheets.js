@@ -53,6 +53,7 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         },
         setParsedStyleSheet: function (styleSheet) {
             if(styleSheet && styleSheet.isStyleSheet) {
+                styleSheet.setOriginMorph(this);
                 return this.morphicSetter('StyleSheet', styleSheet);
             } else {
                 this.morphicSetter('StyleSheet', null);

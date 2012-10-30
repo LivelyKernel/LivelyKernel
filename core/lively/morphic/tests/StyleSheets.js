@@ -16,7 +16,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         yellowRectangle.testAttribute = 'theYellowRectangle';
         yellowRectangle.openInWorld();
 
-
         var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
         redRectangle.applyStyle({fill: Color.red});
         redRectangle.addStyleClassName('red');
@@ -41,16 +40,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         this.redRectangle = redRectangle;
         this.blueRectangle1 = blueRectangle1;
         this.blueRectangle2 = blueRectangle2;
-
     },
-
 },
 'testing', {
-
-
-
     testMorphSelectsItself: function() {
-
         this.assertEqualState([this.redRectangle],
             this.redRectangle.getSubmorphsByStyleClassName('red'),
             'selection by class only should include Red Rectangle'
@@ -60,19 +53,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
             this.redRectangle.getSubmorphByStyleId('the-red-rectangle'),
             'selection by id only should include Red Rectangle'
         );
-
-
     },
-
-
-
-
     testSelectMorphById: function() {
         this.assertEqualState(this.redRectangle, this.world.getSubmorphByStyleId('the-red-rectangle'),
             'selection by id should only include red rectangle morph');
         this.assertEquals(null, this.world.getSubmorphByStyleId('the-Red-rectangle'),
             'selection by other case id should return null');
-
     },
     testMorphHasStyleId: function() {
         this.assert(this.redRectangle.hasStyleId('the-red-rectangle'),
@@ -80,25 +66,19 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         this.assert(!this.redRectangle.hasStyleId('the-Red-rectangle'),
             'Red rect should NOT have style id the-Red-rectangle');
     },
-
     testSelectMorphByClassName: function() {
 
         this.assertEqualState([this.blueRectangle1, this.blueRectangle2],
             this.world.getSubmorphsByStyleClassName('blue'),
             'selection by class should include both blue rectangle morphs');
-
     },
     testSelectMorphByTagName: function() {
 
         this.assertEqualState([this.blueRectangle2],
             this.world.getSubmorphsByTagName('blueRectangleTag'),
             'selection by tag should include the 2nd blue rectangle morph only');
-
     },
-
-
     testSelectMorphByAttributes: function() {
-
         this.assertEqualState([this.yellowRectangle, this.redRectangle],
             this.world.getSubmorphsByAttribute('testAttribute'),
             'selection by attribute should include the yellow and the red morph');
@@ -110,12 +90,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         this.assertEqualState([this.yellowRectangle],
             this.world.getSubmorphsByAttribute('testAttribute', 'tHeYellOwRectAnglE', true),
             'selection by attribute should include the yellow morph (case insensitive)');
-
     },
-
-
-
 });
+
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.MorphClassNames',
 'running', {
     setUp: function($super) {
@@ -230,10 +207,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         this.assert(this.morph.isOfStyleClass('Morph'),
             'Morph should still be of class "Morph"');
     }
-
-
-
-
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.SizzleMorphicSelection',
@@ -253,7 +226,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
         yellowRectangle.testAttribute = 'theYellowRectangle';
         yellowRectangle.addStyleClassName('yellow');
         yellowRectangle.openInWorld();
-
 
         var redRectangle = lively.morphic.Morph.makeRectangle(25, 25, 250, 250);
         redRectangle.applyStyle({fill: Color.red});
@@ -278,16 +250,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
         this.redRectangle = redRectangle;
         this.blueRectangle1 = blueRectangle1;
         this.blueRectangle2 = blueRectangle2;
-
     },
-
 },
 'testing', {
-
-
-
     testMorphSelectsItself: function() {
-
         this.assertSizzleSelect(
             [this.blueRectangle1],
             '*',
@@ -308,7 +274,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             this.redRectangle,
             'selection by combined selector only should include Red Rectangle'
         );
-
     },
     assertSizzleSelect: function(expected, selector, context, msg) {
         var selection = this.sizzle.select(selector, context),
@@ -318,16 +283,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
                 return selection.include(ea);
             }), msg);
     },
-
-
-
     testSelectMorphById: function() {
 
         this.assertSizzleSelect([this.redRectangle],
             '#the-red-rectangle',
             this.world,
             'selection by id should include red rectangle morph');
-
     },
     testSelectMorphByClassName: function() {
 
@@ -360,13 +321,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
     },
 
     testSelectMorphBySiblingRelation: function() {
-
-
         this.assertSizzleSelect([this.redRectangle, this.blueRectangle1],
             ':nth-child(1)',
             this.redRectangle,
             'selection by sibling relation should include red rectangle and blue rectangle 1');
-
 
         this.assertSizzleSelect([this.blueRectangle2],
             ':nth-child(2)',
@@ -382,10 +340,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             ':empty',
             this.yellowRectangle,
             'selection by only-child relation should include both blue rectangles');
-
     },
     testSelectMorphByAttributes: function() {
-
         this.assertSizzleSelect([this.yellowRectangle, this.redRectangle],
             '[testAttribute]',
             this.world,
@@ -410,17 +366,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             '[testAttribute$="Rectangle"]',
             this.world,
             'selection for attribute "testAttribute$=Rectangle" should return yellow and red rectangles');
-
     },
 
     testDoNotSelectMorphByClass: function() {
-
         this.assertSizzleSelect([this.yellowRectangle, this.redRectangle],
             ':not(.blue)',
             this.yellowRectangle,
             'selection by not-class should return yellow and red rectangles');
     },
-
     testSelectMorphByOwnership: function() {
         this.assertSizzleSelect([this.blueRectangle1,this.blueRectangle2],
             '.red .blue',
@@ -443,11 +396,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             '.yellow > .Box',
             this.world,
             'selection for ".yellow > .Box" should return only the red rect');
-
     },
 });
-
-
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSForMorphs',
 'running', {
@@ -487,7 +437,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.blueRectangle2 = blueRectangle2;
 
     },
-
 },
 'testing', {
     test01SetStyleSheet: function() {
@@ -515,7 +464,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals(".some-class {\n\tcolor: red;\n}", this.world.getStyleSheet(),
             'GetStyleSheet should return style sheet');
     },
-
     test02FindCSSRulesForMorphWithStyleSheetDefinedInItself: function() {
         var css = ".some-class { color: red; }";
         this.morph.addStyleClassName('some-class');
@@ -537,14 +485,16 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 
         rules = this.blueRectangle1.getMatchingStyleSheetRules();
         this.assertEquals(1, rules.length, 'Blue2: There has to be exactly one matching rule');
-        this.assertEquals('.red .blue', rules[0].getSelector(), 'Blue2: Selector of first rule is not .red .blue');
+        this.assertEquals('.red .blue', rules[0].getSelector(),
+            'Blue2: Selector of first rule is not .red .blue');
 
         css = ".yellow .red .blue{color: purple;}";
         this.yellowRectangle.setStyleSheet(css);
 
         rules = this.blueRectangle1.getMatchingStyleSheetRules();
         this.assertEquals(1, rules.length, 'Blue3: There has to be exactly one matching rule');
-        this.assertEquals('.yellow .red .blue', rules[0].getSelector(), 'Blue3: Selector of first rule is not .yellow .red .blue');
+        this.assertEquals('.yellow .red .blue', rules[0].getSelector(),
+            'Blue3: Selector of first rule is not .yellow .red .blue');
 
     },
     test03MorphsHaveOnlyMatchingCSSRules: function() {
@@ -563,12 +513,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assert(this.blueRectangle1.getMatchingStyleSheetRules(), 'Blue Rectangle 1 has no rule attribute');
         var b1css = this.blueRectangle1.getMatchingStyleSheetRules();
         this.assertEquals(1, b1css.length, 'Blue Rectangle 1 has not exactly 1 rule');
-        this.assertEquals('.blue:nth-child(1)', b1css [0].getSelector(), 'Selector of first rule in blueRectangle2 is not .blue:nth-child(1)');
+        this.assertEquals('.blue:nth-child(1)', b1css [0].getSelector(),
+            'Selector of first rule in blueRectangle2 is not .blue:nth-child(1)');
 
         this.assert(this.blueRectangle2.getMatchingStyleSheetRules(), 'Blue Rectangle 2 has no rule attribute');
         var b2css = this.blueRectangle2.getMatchingStyleSheetRules();
         this.assertEquals(1, b2css.length, 'Blue Rectangle 2 has not exactly 1 rule');
-        this.assertEquals('.blue:nth-child(2)', b2css[0].getSelector(), 'Selector of first rule in blueRectangle2 is not .blue:nth-child(2)');
+        this.assertEquals('.blue:nth-child(2)', b2css[0].getSelector(),
+            'Selector of first rule in blueRectangle2 is not .blue:nth-child(2)');
 
         this.assert(this.redRectangle.getMatchingStyleSheetRules(), 'Red Rectangle has no rule attribute');
         var rcss = this.redRectangle.getMatchingStyleSheetRules();
@@ -576,7 +528,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals('.red', rcss[0].getSelector(), 'Selector of first rule in RedRectangle is not .red');
 
     },
-
     test04GetRuleSpecificityOnMorph: function() {
         var css = ".blue, #the-red-rectangle.red, #the-red-rectangle, .red { color: red; }",
             rules = apps.cssParser.parse(css).getRules();
@@ -588,7 +539,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             this.redRectangle.getStyleSheetRuleSpecificity(rules.first()),
             'rule specificity on red rect has to be 110');
     },
-
     test05MorphsHaveOnlyCurrentCSSRules: function() {
         var firstCSS = ".red { color: red; }",
             secondCSS = "#the-red-rectangle { color: green; }",
@@ -611,9 +561,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals('#the-red-rectangle', rcss[1].getSelector(),
             'Selector of 2nd rule in RedRectangle is not #the-red-rectangle');
     },
-
     test06GetSortedRules: function() {
-
         var worldCss = '.red { color: red;}'+ //1
                 '.red.Box { color: purple;}'+ //3
                 '.red.Box { color: yellow;}'+ //4
@@ -644,7 +592,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             'rule 4 should have color blue');
 
     },
-
     test07GetAggregatedMatchingStyleSheetDeclarations: function() {
         var css = '.blue{ border-top-color: blue; }'+
                 '#blue2.blue { border-top-color: black; }'+
@@ -656,7 +603,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                             return (d.getProperty() === property)
                         }).first().getValues().first();
                 };
-
         this.world.setStyleSheet(css);
 
         var blue1Styles = this.blueRectangle1.getAggregatedMatchingStyleSheetDeclarations(),
@@ -790,8 +736,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                             return (d.getProperty() === property)
                         }).first().getValues().first();
                 };
-
-
         this.world.setStyleSheet(css);
 
         var blue1Styles = this.blueRectangle1.getMatchingStyleSheetDeclarations(),
@@ -803,7 +747,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var blue2Styles = this.blueRectangle2.getMatchingStyleSheetDeclarations(),
             blue2StyleOverrideList =
                 this.blueRectangle2.generateStyleSheetDeclarationOverrideList(blue2Styles);
-        console.log(blue2StyleOverrideList )
          this.assertEqualState([1, 2, -1, 2], blue2StyleOverrideList,
             'Override list for blue2 should be [1, 2, -1, 2]');
 
@@ -826,20 +769,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var morph = this.morph;
         this.assertEquals(19, morph.convertLengthToPx('19px'),
             '"19px" should convert to 19');
-/*
-        this.assertRaises(function(){morph.convertLengthToPx('19pt')},
-            '"19pt" should raise an error');
-        this.assertRaises(function(){morph.convertLengthToPx('19em')},
-            '"19em" should raise an error');
-        this.assertRaises(function(){morph.convertLengthToPx('19ex')},
-            '"19ex" should raise an error');
-        this.assertRaises(function(){morph.convertLengthToPx('19cm')},
-            '"19cm" should raise an error');
-        this.assertRaises(function(){morph.convertLengthToPx('19mm')},
-            '"19mm" should raise an error');
-        this.assertRaises(function(){morph.convertLengthToPx('19')},
-            '"19" should raise an error');
-*/
         this.assertEquals(0, morph.convertLengthToPx('19pt'),
             '"19pt" should convert to 0');
         this.assertEquals(0, morph.convertLengthToPx('19em'),
@@ -850,7 +779,16 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             '"19cm" should convert to 0');
         this.assertEquals(0, morph.convertLengthToPx('19'),
             '"19" should convert to 0');
-}
+    },
+    test12SetParsedStyleSheet: function() {
+        var sheet = new lively.morphic.StyleSheet([], this.redRectangle);
+        this.assertEquals(this.redRectangle, sheet.getOriginMorph(),
+            'originMorph of sheet should be red before adding');
+        this.blueRectangle1.setParsedStyleSheet(sheet);
+        this.assertEquals(this.blueRectangle1, sheet.getOriginMorph(),
+            'originMorph of sheet should be blue after adding');
+    }
+
 });
 
 TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
@@ -967,40 +905,7 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
                         ', style or width in their property string');
                 }
             }, this);
-    },
-    test07ParseInlineComment: function() {
-        var styleSheet =
-                '.Morph {\n'+
-                '/* test */\n'+
-                '}\n\n'+
-                '/* test */',
-            parsedStyleSheet = apps.cssParser.parse(styleSheet);
-        this.assert(parsedStyleSheet.isStyleSheet,
-            'Parsed style sheet is no lively style sheet object');
-        this.assertEquals(2, parsedStyleSheet.getRules().length,
-            'Parsed style sheet does not have exactly two rules');
-
-        this.assert(parsedStyleSheet.getRules().first().isStyleSheetRule,
-            'First rule is no lively style sheet rule');
-        this.assert(parsedStyleSheet.getRules().last().isStyleSheetRule,
-            'Last rule is no lively style sheet rule');
-        this.assert(parsedStyleSheet.getRules().last().isStyleSheetComment,
-            'Last rule is no lively style sheet comment');
-
-        this.assertEquals(1,
-            parsedStyleSheet.getRules().first().getDeclarations().length,
-            'First style sheet rule does not have exactly two declarations');
-
-        this.assert(parsedStyleSheet.getRules().first().getDeclarations().first().isStyleSheetInlineComment,
-            'Declaration is no lively style sheet inline comment');
-
-        this.assertEquals(styleSheet, parsedStyleSheet.getText(),
-            'CSS text output not as expected');
     }
-
-
-
-
 });
 
 }) // end of module

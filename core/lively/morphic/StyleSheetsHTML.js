@@ -251,7 +251,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             if (!ctx.styleNode.parentNode) {
                 this.appendStyleNodeHTML(ctx, ctx.styleNode);
             }
-            $(ctx.styleNode).text(compiledCss);
+            ctx.styleNode.textContent = compiledCss;
         },
 
         appendStyleNodeHTML: function (ctx, styleNode) {
@@ -266,7 +266,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             while ((parent = parent.owner)) {
                 var parentCtx = parent.renderContext();
                 if (parentCtx.styleNode) {
-                    $(parentCtx.styleNode).after(styleNode);
+                    parentCtx.styleNode.parentNode.insertBefore(styleNode, parentCtx.styleNode.nextSibling);
                     return;
                 }
             }
@@ -278,7 +278,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                     var m = this.owner.submorphs[i],
                         mCtx = m.renderContext();
                     if (mCtx.styleNode && m !== this) {
-                        $(mCtx.styleNode).after(styleNode);
+                        mCtx.styleNode.parentNode.insertBefore(styleNode, mCtx.styleNode.nextSibling);
                         return;
                     }
                 }
@@ -291,7 +291,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                     var m = submorphs[i],
                         mCtx = m.renderContext();
                     if (mCtx.styleNode && mCtx.styleNode !== styleNode) {
-                        $(mCtx.styleNode).before(styleNode);
+                        mCtx.styleNode.parentNode.insertBefore(styleNode, mCtx.styleNode);
                         return;
                     }
                     if (m.submorphs) {

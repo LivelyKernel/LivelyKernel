@@ -133,7 +133,7 @@ lively.morphic.World.addMethods(
     doNotSerialize: ["_lastZoomAttemptDelta","cachedWindowBounds","clickedOnMorph",
                      "clickedOnMorphTime","currentHaloTarget","currentMenu","draggedMorph",
                      "lastAlert","loadingMorph","revisionOnLoad","savedWorldAsURL","scrollOffset",
-                     "statusMessages","worldMenuOpened", "bertButton"],
+                     "statusMessages","worldMenuOpened", "bertButton", 'GlobalLogger'],
 
     onrestore: function($super) {
         $super();

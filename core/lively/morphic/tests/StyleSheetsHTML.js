@@ -640,7 +640,6 @@ AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Text',
                 'font-weight: bold;' +
                 'color: rgb(128, 0, 128);' +
                 'vertical-align: top;' +
-                'white-space: nowrap;' +
                 'word-break: keep-all;' +
                 '}';
         $super();
@@ -656,7 +655,6 @@ AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Text',
         this.textMorph.setTextColor(Color.black);
         this.textMorph.setTextDecoration('none');
         this.textMorph.setVerticalAlign('bottom');
-        this.textMorph.setWhiteSpaceHandling('pre');
         this.textMorph.setWordBreak('normal');
 
         this.textMorph.setStyleSheet(css);
@@ -686,8 +684,6 @@ AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Text',
                 'font-weight was not properly set via CSS');
             this.assertEquals('rgb(128, 0, 128)', $(textNode).css('color'),
                 'color was not properly set via CSS');
-            this.assertEquals('nowrap', $(textNode).css('white-space'),
-                'white-space was not properly set via CSS');
 
             this.done();
         }, 0.1);
@@ -709,8 +705,6 @@ AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Text',
                 'font-weight was not properly reset after switching back from CSS text styling');
             this.assertEquals('rgb(0, 0, 0)', $(textNode).css('color'),
                 'color was not properly reset after switching back from CSS text styling');
-            this.assertEquals('pre', $(textNode).css('white-space'),
-                'white-space was not properly reset after switching back from CSS text styling');
 
             this.done();
         }, 0.1);

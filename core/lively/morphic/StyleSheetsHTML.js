@@ -59,7 +59,6 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             this.setFontStyleHTML(ctx, this.getFontStyle());
             this.setAlignHTML(ctx, this.getAlign());
             this.setTextColorHTML(ctx, this.getTextColor());
-            this.setWhiteSpaceHandlingHTML(ctx, this.getWhiteSpaceHandling());
 
             // Not supported yet because properties are not inherited to text node:
             // this.setVerticalAlignHTML(ctx, this.getVerticalAlign());
@@ -170,13 +169,6 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                 proceed(ctx, value);
             }
         }),
-        setWhiteSpaceHandlingHTML: lively.morphic.Text.prototype.setWhiteSpaceHandlingHTML.wrap(function (proceed, ctx, value) {
-            if (ctx.textNode && this.morphicGetter('TextStylingMode')) {
-                ctx.textNode.style.whiteSpace = null;
-            } else {
-                proceed(ctx, value);
-            }
-        }),
 
         // ##############################
         // The following attributes cannot be set through CSS yet, since the properties
@@ -211,7 +203,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             // }
         // })
     }).applyTo(lively.morphic.Text, {
-        override: ['setAlignHTML',  'setFontFamilyHTML', 'setWhiteSpaceHandlingHTML',
+        override: ['setAlignHTML',  'setFontFamilyHTML',
             'setFontSizeHTML', 'setFontStyleHTML', 'setFontWeightHTML', 'setTextColorHTML',
             //'setTextDecorationHTML', 'setVerticalAlignHTML', 'setDisplayHTML', 'setWordBreakHTML'
             ]

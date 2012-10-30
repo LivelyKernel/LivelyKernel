@@ -640,7 +640,7 @@ AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Text',
                 'font-weight: bold;' +
                 'color: rgb(128, 0, 128);' +
                 'vertical-align: top;' +
-                'word-break: keep-all;' +
+                'text-decoration: underline;'+
                 '}';
         $super();
         this.textMorph = new lively.morphic.Text(new Rectangle(0,0,100,100));
@@ -684,7 +684,10 @@ AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Text',
                 'font-weight was not properly set via CSS');
             this.assertEquals('rgb(128, 0, 128)', $(textNode).css('color'),
                 'color was not properly set via CSS');
-
+            this.assertEquals('underline', $(textNode).css('text-decoration'),
+                'text-decoration was not properly set via CSS');
+            this.assertEquals('top', $(textNode).css('vertical-align'),
+                'vertial-align was not properly set via CSS');
             this.done();
         }, 0.1);
     },
@@ -705,7 +708,10 @@ AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Text',
                 'font-weight was not properly reset after switching back from CSS text styling');
             this.assertEquals('rgb(0, 0, 0)', $(textNode).css('color'),
                 'color was not properly reset after switching back from CSS text styling');
-
+            this.assertEquals('none', $(textNode).css('text-decoration'),
+                'text-decoration was not properly reset after switching back from CSS text styling');
+            this.assertEquals('bottom', $(textNode).css('vertical-align'),
+                'vertial-align was not properly reset after switching back from CSS text styling');
             this.done();
         }, 0.1);
     },

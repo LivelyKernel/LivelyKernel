@@ -60,11 +60,10 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             this.setAlignHTML(ctx, this.getAlign());
             this.setTextColorHTML(ctx, this.getTextColor());
 
-            // Not supported yet because properties are not inherited to text node:
-            // this.setVerticalAlignHTML(ctx, this.getVerticalAlign());
-            // this.setTextDecorationHTML(ctx, this.getTextDecoration());
-            // this.setWordBreakHTML(ctx, this.getWordBreak());
-            // this.setDisplayHTML(ctx, this.getDisplay());
+            this.setVerticalAlignHTML(ctx, this.getVerticalAlign());
+            this.setTextDecorationHTML(ctx, this.getTextDecoration());
+            this.setWordBreakHTML(ctx, this.getWordBreak());
+            this.setDisplayHTML(ctx, this.getDisplay());
         },
     });
 
@@ -130,7 +129,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             if (this.morphicGetter('TextStylingMode')) {
                 proceed(ctx, null);
             } else {
-                proceed(ctx, value);
+                proceed(ctx, value || null);
             }
         }),
 
@@ -138,74 +137,69 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             if (this.morphicGetter('TextStylingMode')) {
                 proceed(ctx, null);
             } else {
-                proceed(ctx, value);
+                proceed(ctx, value || null);
             }
         }),
         setFontSizeHTML: lively.morphic.Text.prototype.setFontSizeHTML.wrap(function (proceed, ctx, value) {
             if (ctx.textNode && this.morphicGetter('TextStylingMode')) {
                 ctx.textNode.style.fontSize = null;
             } else {
-                proceed(ctx, value);
+                proceed(ctx, value || null);
             }
         }),
         setFontStyleHTML: lively.morphic.Text.prototype.setFontStyleHTML.wrap(function (proceed, ctx, value) {
             if (this.morphicGetter('TextStylingMode')) {
                 proceed(ctx, null);
             } else {
-                proceed(ctx, value);
+                proceed(ctx, value || null);
             }
         }),
         setFontWeightHTML: lively.morphic.Text.prototype.setFontWeightHTML.wrap(function (proceed, ctx, value) {
             if (this.morphicGetter('TextStylingMode')) {
                 proceed(ctx, null);
             } else {
-                proceed(ctx, value);
+                proceed(ctx, value || null);
             }
         }),
         setTextColorHTML: lively.morphic.Text.prototype.setTextColorHTML.wrap(function (proceed, ctx, value) {
             if (this.morphicGetter('TextStylingMode')) {
                 proceed(ctx, null);
             } else {
-                proceed(ctx, value);
+                proceed(ctx, value || null);
             }
         }),
-
-        // ##############################
-        // The following attributes cannot be set through CSS yet, since the properties
-        // are not inherited (TODO: find a workaround!) :
-        //
-        // setTextDecorationHTML: lively.morphic.Text.prototype.setTextDecorationHTML.wrap(function (proceed, ctx, value) {
-            // if (this.morphicGetter('TextStylingMode')) {
-                // proceed(ctx, null);
-            // } else {
-                // proceed(ctx, value);
-            // }
-        // }),
-        // setVerticalAlignHTML: lively.morphic.Text.prototype.setVerticalAlignHTML.wrap(function (proceed, ctx, value) {
-            // if (this.morphicGetter('TextStylingMode')) {
-                // proceed(ctx, null);
-            // } else {
-                // proceed(ctx, value);
-            // }
-        // }),
-        // setDisplayHTML: lively.morphic.Text.prototype.setDisplayHTML.wrap(function (proceed, ctx, value) {
-            // if (this.morphicGetter('TextStylingMode')) {
-                // proceed(ctx, null);
-            // } else {
-                // proceed(ctx, value);
-            // }
-        // }),
-        // setWordBreakHTML: lively.morphic.Text.prototype.setWordBreakHTML.wrap(function (proceed, ctx, value) {
-            // if (ctx.textNode && this.morphicGetter('TextStylingMode')) {
-                // ctx.textNode.style.wordBreak = null;
-            // } else {
-                // proceed(ctx, value);
-            // }
-        // })
+        setTextDecorationHTML: lively.morphic.Text.prototype.setTextDecorationHTML.wrap(function (proceed, ctx, value) {
+            if (this.morphicGetter('TextStylingMode')) {
+                proceed(ctx, 'inherit');
+            } else {
+                proceed(ctx, value || null);
+            }
+        }),
+        setVerticalAlignHTML: lively.morphic.Text.prototype.setVerticalAlignHTML.wrap(function (proceed, ctx, value) {
+            if (this.morphicGetter('TextStylingMode')) {
+                proceed(ctx, 'inherit');
+            } else {
+                proceed(ctx, value || null);
+            }
+        }),
+        setDisplayHTML: lively.morphic.Text.prototype.setDisplayHTML.wrap(function (proceed, ctx, value) {
+            if (this.morphicGetter('TextStylingMode')) {
+                proceed(ctx, 'inherit');
+            } else {
+                proceed(ctx, value || null);
+            }
+        }),
+        setWordBreakHTML: lively.morphic.Text.prototype.setWordBreakHTML.wrap(function (proceed, ctx, value) {
+            if (ctx.textNode && this.morphicGetter('TextStylingMode')) {
+                ctx.textNode.style.wordBreak = 'inherit';
+            } else {
+                proceed(ctx, value || null);
+            }
+        })
     }).applyTo(lively.morphic.Text, {
         override: ['setAlignHTML',  'setFontFamilyHTML',
             'setFontSizeHTML', 'setFontStyleHTML', 'setFontWeightHTML', 'setTextColorHTML',
-            //'setTextDecorationHTML', 'setVerticalAlignHTML', 'setDisplayHTML', 'setWordBreakHTML'
+            'setTextDecorationHTML', 'setVerticalAlignHTML', 'setDisplayHTML', 'setWordBreakHTML'
             ]
     });
 

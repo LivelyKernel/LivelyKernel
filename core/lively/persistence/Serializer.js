@@ -1088,7 +1088,6 @@ ObjectLinearizerPlugin.subclass('CopyOnlySubmorphsPlugin',
     initialize: function() {
         this.morphRefId = 0;
         this.idMorphMapping = {};
-        this.root = 0;
     },
 },
 'copying', {
@@ -1100,8 +1099,7 @@ ObjectLinearizerPlugin.subclass('CopyOnlySubmorphsPlugin',
 },
 'plugin interface', {
     ignoreProp: function(obj, key, value) {
-        if (!value || !this.root || !this.root.isMorph) return false;
-        return value === this.root.owner;
+        return obj === this.root && key === "owner";
     },
     serializeObj: function(obj) {
         // if obj is a morph and the root obj that is copied is a morph then
@@ -1170,6 +1168,9 @@ ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin', {
         };
         copy[this.specialSerializeProperty].push(propName);
         return true;
+    },
+    ignorePropDeserialization: function(obj, propName, value) {
+        return propName == this.specialSerializeProperty;
     },
     additionallySerialize: function(original, persistentCopy) {
         var keysToConvert = persistentCopy[this.specialSerializeProperty];

@@ -65,7 +65,10 @@ Object.subclass('lively.morphic.StyleSheetRule',
         result += selector;
         result += ' {\n';
         this.declarations.each(function(decl) {
-                result += '\t' + decl.getText() + '\n';
+                if (!decl.isStyleSheetInlineComment) {
+                    result += '\t'
+                }
+                result += decl.getText() + '\n';
             });
         result += '}';
         return result;
@@ -192,6 +195,25 @@ Object.subclass('lively.morphic.StyleSheetDeclaration',
     },
     setPriority: function(priority) {
         this.priority = priority || false;
+    }
+}
+);
+lively.morphic.StyleSheetDeclaration.subclass('lively.morphic.StyleSheetInlineComment',
+'init', {
+    isStyleSheetInlineComment: true,
+    initialize: function($super, comment, rule) {
+        this.setComment(comment);
+        $super('', [''], rule);
+    }
+},
+'Getter', {
+    getText: function() {
+        return this.comment;
+    }
+},
+'Setter', {
+    setComment: function(comment) {
+        this.comment = comment || '\n';
     }
 }
 );

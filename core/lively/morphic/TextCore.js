@@ -979,6 +979,16 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return true;
     },
 
+    indentLine: function() {
+        // assumes that the current cursor position is at the start of the line
+        var endOfLastLine = this.getSelectionRange()[0] - 2;
+        var beginOfLastLine = this.textString.lastIndexOf('\n', endOfLastLine);
+        var lastLine = this.textString.substring(beginOfLastLine + 1, endOfLastLine + 1);
+        var indent = lastLine.match(/^[\ \t]*/).join();
+        if (['{','[','('].include(this.textString[endOfLastLine])) indent += this.tab;
+        this.insertAtCursor(indent, false, false);
+    },
+
     doAutoIndent: function() {
         var text = this.textString,
             i = 0, j = 0,
@@ -1097,7 +1107,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             if (range) {
                 endIdx = Math.max(range[0], range[1]);
             }
-            this.insertAtCursor('\n', false, true)
+            this.insertAtCursor('\n', false, true);
+            if (range && Config.get("autoIndent")) this.indentLine();
         }
         evt.stop();
         return true;

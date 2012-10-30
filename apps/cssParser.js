@@ -50,84 +50,75 @@ Object.extend(apps.cssParser, {
         return tagCount + 10*classCount + 100*idCount;
     },
 
-    convertParsedStyleSheet: function(styleSheet, originMorph) {
+    convertParsedStyleSheet: function (styleSheet, originMorph) {
         // Convert JSCSSP obj to our own style sheet object
 
-        var notSupportedRuleAsComment = function(msg, rule) {
-                    console.warn(msg+': '+rule.parsedCssText);
-                    return new lively.morphic.StyleSheetComment(
-                        '/* ' + msg + '\n'
-                                + rule.parsedCssText + '\n*/'
-                        );
-                };
+        var notSupportedRuleAsComment = function (msg, rule) {
+            console.warn(msg + ': ' + rule.parsedCssText);
+            return new lively.morphic.StyleSheetComment('/* ' + msg + '\n' + rule.parsedCssText + '\n*/');
+        };
 
         return new lively.morphic.StyleSheet(
-                styleSheet.cssRules.collect(function(rule) {
-                    switch(rule.type) {
-                        case 0:
-                            // Rule could not be parsed
-                            console.warn('CSS Error '+rule.error+': '+rule.parsedCssText);
-                            return new lively.morphic.StyleSheetComment(
-                                    '/* CSS Error ' + rule.error + ':\n'
-                                        + rule.parsedCssText + '*/'
-                                );
-                        case 1:
-                            return new lively.morphic.StyleSheetRule(
-                                    rule.selectorText(),
-                                    rule.declarations.collect(function(decl) {
-                                            var vals = decl.values.collect(
-                                                    function(val) {return val.value});
-                                            if (apps.cssParser.isShorthand(decl.property)) {
-                                                return new lively.morphic.StyleSheetShorthandDeclaration(
-                                                    decl.property, vals, null, decl.priority);
-                                            } else {
-                                                return new lively.morphic.StyleSheetDeclaration(
-                                                    decl.property, vals, null, decl.priority);
-                                            }
-                                        })
-                                );
-                        case 2:
-                            return notSupportedRuleAsComment(
-                                'Charset rules not supported yet, sry!', rule);
-                        case 3:
-                            return notSupportedRuleAsComment(
-                                'Imports not supported yet, sry!', rule);
-                        case 4:
-                            return notSupportedRuleAsComment(
-                                'Media rules not supported yet, sry!', rule);
-                        case 5:
-                            return new lively.morphic.StyleSheetFontFaceRule(
-                                    rule.descriptors.collect(function(decl) {
-                                            return new lively.morphic.StyleSheetDeclaration(
-                                                    decl.property,
-                                                    decl.values.collect(function(val) {
-                                                            return val.value;
-                                                        }),
-                                                    null,
-                                                    decl.priority
-                                                )
-                                        })
-                                );
-                        case 6:
-                            return notSupportedRuleAsComment(
-                                'Page rules not supported yet, sry!', rule);
-                        case 7:
-                        case 8:
-                            return notSupportedRuleAsComment(
-                                'Keyframe rules not supported yet, sry!', rule);
-                        case 100:
-                            return notSupportedRuleAsComment(
-                                'Namespace rules not supported yet, sry!', rule);
-                        case 101:
-                            return new lively.morphic.StyleSheetComment(
-                                rule.parsedCssText);
-                        default:
-                            return notSupportedRuleAsComment(
-                                'This type of rule is not supported yet, sry!', rule);
-	           }
-                }),
-                originMorph
-            );
+        styleSheet.cssRules.collect(function (rule) {
+            switch(rule.type) {
+                case 0:
+                    // Rule could not be parsed
+                    console.warn('CSS Error ' + rule.error + ': ' + rule.parsedCssText);
+                    return new lively.morphic.StyleSheetComment('/* CSS Error '
+                        + rule.error + ':\n' + rule.parsedCssText + '*/');
+                case 1:
+                    return new lively.morphic.StyleSheetRule(
+                    rule.selectorText(),
+                    rule.declarations.collect(function (decl) {
+                        if (decl.type === 1000) {
+                            var vals = decl.values.collect(
+                                    function (val) {
+                                        return val.value
+                                    });
+                            if(apps.cssParser.isShorthand(decl.property)) {
+                                return new lively.morphic.StyleSheetShorthandDeclaration(
+                                decl.property, vals, null, decl.priority);
+                            } else {
+                                return new lively.morphic.StyleSheetDeclaration(
+                                decl.property, vals, null, decl.priority);
+                            }
+                        } else {
+                            return new lively.morphic.StyleSheetInlineComment(
+                                decl.parsedCssText);
+                        }
+                    }));
+                case 2:
+                    return notSupportedRuleAsComment('Charset rules not supported yet, sry!', rule);
+                case 3:
+                    return notSupportedRuleAsComment('Imports not supported yet, sry!', rule);
+                case 4:
+                    return notSupportedRuleAsComment('Media rules not supported yet, sry!', rule);
+                case 5:
+                    return new lively.morphic.StyleSheetFontFaceRule(
+                    rule.descriptors.collect(function (decl) {
+                        return new lively.morphic.StyleSheetDeclaration(
+                        decl.property,
+                        decl.values.collect(function (val) {
+                            return val.value;
+                        }),
+                        null,
+                        decl.priority)
+                    }));
+                case 6:
+                    return notSupportedRuleAsComment('Page rules not supported yet, sry!', rule);
+                case 7:
+                case 8:
+                    return notSupportedRuleAsComment('Keyframe rules not supported yet, sry!', rule);
+                case 100:
+                    return notSupportedRuleAsComment('Namespace rules not supported yet, sry!', rule);
+                case 101:
+                    return new lively.morphic.StyleSheetComment(
+                    rule.parsedCssText);
+                default:
+                    return notSupportedRuleAsComment('This type of rule is not supported yet, sry!', rule);
+            }
+        }),
+        originMorph);
     },
     isShorthand: function(property) {
         var propList = apps.cssParser.getPropList(),

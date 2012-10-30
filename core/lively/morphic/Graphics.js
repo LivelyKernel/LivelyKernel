@@ -39,8 +39,6 @@ Object.subclass("Point",
     },
 
     subPt: function(p) {
-        if (arguments.length != 1) throw ('subPt() only takes 1 parameter.');
-
         return new lively.Point(this.x - p.x, this.y - p.y);
     },
 

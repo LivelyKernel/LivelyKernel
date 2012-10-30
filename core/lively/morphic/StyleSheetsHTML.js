@@ -157,11 +157,12 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                 } else if (rule.isStyleSheetComment){
                     // do not include comments
                 } else if (rule.isStyleSheetRule) {
-                    var selector = this.replaceChildOp(rule.getSelector()),
+                    var selector = rule.getSelector(),
                         selectors = this.splitGroupedSelector(selector),
                         newSelector = '';
                     for (var i = 0; i < selectors.length; i++) {
-                        newSelector += this.addSelectorPrefixes(selectors[i]);
+                        newSelector += this.addSelectorPrefixes(
+                            this.replaceChildOp(selectors[i]));
                         if (i < selectors.length - 1) {
                             newSelector += ', ';
                         }
@@ -255,7 +256,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             if (!ctx.styleNode.parentNode) {
                 this.appendStyleNodeHTML(ctx, ctx.styleNode);
             }
-            $(ctx.styleNode).text(compiledCss);
+            ctx.styleNode.textContent = compiledCss;
         },
 
         appendStyleNodeHTML: function (ctx, styleNode) {
@@ -270,7 +271,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             while ((parent = parent.owner)) {
                 var parentCtx = parent.renderContext();
                 if (parentCtx.styleNode) {
-                    $(parentCtx.styleNode).after(styleNode);
+                    parentCtx.styleNode.parentNode.insertBefore(styleNode, parentCtx.styleNode.nextSibling);
                     return;
                 }
             }
@@ -282,7 +283,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                     var m = this.owner.submorphs[i],
                         mCtx = m.renderContext();
                     if (mCtx.styleNode && m !== this) {
-                        $(mCtx.styleNode).after(styleNode);
+                        mCtx.styleNode.parentNode.insertBefore(styleNode, mCtx.styleNode.nextSibling);
                         return;
                     }
                 }
@@ -295,7 +296,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                     var m = submorphs[i],
                         mCtx = m.renderContext();
                     if (mCtx.styleNode && mCtx.styleNode !== styleNode) {
-                        $(mCtx.styleNode).before(styleNode);
+                        mCtx.styleNode.parentNode.insertBefore(styleNode, mCtx.styleNode);
                         return;
                     }
                     if (m.submorphs) {
@@ -318,6 +319,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             tokens = selector.split('>'),
             childOpCount = tokens.length - 1,
             results = [],
+            maxOpCount = 3,
             replaceRecursively = function(spareTokens) {
                 var firstToken = spareTokens.shift();
                 if (spareTokens.length === 1) {
@@ -336,7 +338,10 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                     }, []);
                 }
             };
-        if (childOpCount > 0) {
+        if (childOpCount > maxOpCount) {
+            console.warn('Cannot adapt selector ' + selector + '. Too many child operators.');
+            return selector;
+        } else if (childOpCount > 0) {
             // Loop over all tokens
             var sels = replaceRecursively(tokens);
             return sels.reduce(function(prev, sel, i) {

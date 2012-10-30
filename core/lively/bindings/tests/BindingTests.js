@@ -606,6 +606,20 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionSerializationTes
         this.assert(this.newTextMorph1.someScript1, 'script of source was not serialized');
         this.assertEquals(2, this.newTextMorph1.someScript1(), 'connect not working after deserialization');
     },
+    test07EmptySpecPropertiesNotSerialized: function() {
+        this.createAndAddMorphs();
+        connect(this.textMorph1, 'textString', this.textMorph2, 'textString');
+        this.textMorph1.setTextString('foo');
+
+        this.doSave();
+
+        var c = this.newTextMorph1.attributeConnections[0];
+        this.assert(!c.hasOwnProperty('converter'));
+        this.assert(!c.hasOwnProperty('converterString'));
+        this.assert(!c.hasOwnProperty('updater'));
+        this.assert(!c.hasOwnProperty('updaterString'));
+        this.assert(!c.hasOwnProperty('removeAfterUpdate'));
+    },
 });
 Object.subclass('lively.bindings.tests.BindingTests.BindingsProfiler', {
 

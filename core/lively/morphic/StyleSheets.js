@@ -604,6 +604,14 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
             return new RegExp("(^|[\\x20\\t\\r\\n\\f])" + className + "([\\x20\\t\\r\\n\\f]|$)", "");
         }
     });
+    lively.morphic.Text.addMethods('Style sheet getters and setters', {
+        setTextStylingMode: function (value) {
+            return this.morphicSetter('TextStylingMode', value);
+        },
+        getTextStylingMode: function () {
+            return this.morphicGetter('TextStylingMode');
+        },
+    });
 
     Object.subclass("lively.morphic.Sizzle",
     /*!

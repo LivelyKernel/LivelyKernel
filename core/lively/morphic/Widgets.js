@@ -46,6 +46,10 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.label = new lively.morphic.Text(this.getExtent().extentAsRectangle(), labelString);
         this.addMorph(this.label);
         this.label.beLabel(this.style.label);
+        this.label.setTextStylingMode(true);
+
+        this.setAppearanceStylingMode(true);
+        this.setBorderStylingMode(true);
     }
 
 },
@@ -79,23 +83,26 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     },
     changeAppearanceFor: function(pressed, toggled) {
         if (this.isActive) {
-            var isToggled = toggled || this.value,
-                baseColor = isToggled ? this.toggleColor : this.normalColor,
-                shade = pressed ? baseColor.mixedWith(Color.black, 0.9)  : baseColor.lighter(3),
-                bottomShade = pressed ?  baseColor.lighter(3):baseColor.mixedWith(Color.black, 0.9),
-                upperGradientCenter = pressed ? 0.2  : 0.3,
-                lowerGradientCenter = pressed ? 0.8  : 0.7;
-
-            this.label && this.label.setTextColor(this.normalTextColor);
+            var isToggled = toggled || this.value;
+            if (isToggled) {
+                this.addStyleClassName('toggled');
+            } else {
+                this.removeStyleClassName('toggled');
+            }
+            if (pressed) {
+                this.addStyleClassName('pressed');
+            } else {
+                this.removeStyleClassName('pressed');
+            }
             if (this.style && this.style.label && this.style.label.padding) {
                 var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
                 this.setPadding(labelPadding);
             }
-            this.setFill(this.generateFillWith(baseColor, shade, upperGradientCenter, lowerGradientCenter, bottomShade));
         }
         else {
-            this.label && this.label.setTextColor(this.disabledTextColor);
-            this.setFill(this.disabledColor);
+            this.addStyleClassName('disabled');
+            this.removeStyleClassName('toggled');
+            this.removeStyleClassName('pressed');
         }
     },
 

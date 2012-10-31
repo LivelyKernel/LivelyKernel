@@ -358,14 +358,15 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                 var selectors = rule.getSelector().split(","),
                     maxSpecificity = -1,
                     sizzle = new lively.morphic.Sizzle(),
-                    sel, spec, mostSpecificSelector;
+                    sel, spec, mostSpecificSelector,
+                    context = rule.getOriginMorph();
 
                 // loop over all selectors in the group
                 for(var j = 0, len = selectors.length; j < len; j++) {
-                    sel = selectors[j];
+                    sel = selectors[j].trim();
 
                     // find if the selector matches the element
-                    if(sizzle.select(sel, this, null, [this]).length == 1) {
+                    if(sizzle.select(sel, context, null, [this]).length == 1) {
                         spec = apps.cssParser.calculateCSSRuleSpecificity(sel);
 
                         // find the most specific selector that macthes the element
@@ -535,11 +536,12 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
             // already has the same id.
             id = id.trim();
             if(id && id.length && id.length > 0) {
-                return this.morphicSetter('StyleId', id);
+                this.morphicSetter('StyleId', id);
             } else {
                 this.morphicSetter('StyleId', null);
                 delete this._StyleId;
             }
+            this.adaptBorders();
         },
         getStyleId: function () {
             return this.morphicGetter('StyleId');
@@ -572,17 +574,17 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         setStyleClassNames: function (classNames) {
             if(classNames && classNames.length > 0) {
                 if(Array.isArray(classNames)) {
-                    return this.morphicSetter('StyleClassNames',
-                    this.makeUniqueStyleClassNamesList(classNames));
+                    this.morphicSetter('StyleClassNames',
+                        this.makeUniqueStyleClassNamesList(classNames));
                 } else { // if it's not an array we assume it's a string
-                    return this.morphicSetter('StyleClassNames',
-                    this.makeUniqueStyleClassNamesList(
-                    classNames.split(' ')));
+                    this.morphicSetter('StyleClassNames',
+                        this.makeUniqueStyleClassNamesList(classNames.split(' ')));
                 }
             } else {
                 this.morphicSetter('StyleClassNames', null);
                 delete this._StyleClassNames;
             }
+            this.adaptBorders();
         },
         makeUniqueStyleClassNamesList: function (classNames) {
             var uniqueClassNames = [];

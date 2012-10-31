@@ -1941,8 +1941,6 @@ lively.morphic.Button.subclass("lively.morphic.WindowControl",
         this.label.applyStyle({fontSize: 8})
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
-        this.applyStyle({borderWidth: 1, borderRadius: 3, borderColor: Color.rgbHex("888888")});
-        this.label.applyStyle({emphasize: {fontWeight: 'bold'}});
     },
 });
 
@@ -1956,28 +1954,14 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
     shortBarHeight: 15,
     accessibleInInactiveWindow: true,
     style: {
-        fill: new lively.morphic.LinearGradient(
-            [{offset: 0, color: Color.white},
-            {offset: 1, color: Color.gray.mixedWith(Color.black, 0.8)}]),
-        strokeOpacity: 1,
-        borderRadius: "8px 8px 0px 0px",
-        borderWidth: 1,
-        borderColor: Color.darkGray,
         adjustForNewBounds: true,
         resizeWidth: true
     },
     labelStyle: {
-        borderRadius: 0,
         padding: Rectangle.inset(0,0),
-        fill: null,
-        fontSize: 10,
-        align: 'center',
-        clipMode: 'hidden',
         fixedWidth: true,
         fixedHeight: true,
         resizeWidth: true,
-        textColor: Color.darkGray,
-        emphasize: {textShadow: {color: Color.white, offset: pt(0,1)}}
     }
 },
 'intitializing', {
@@ -2001,6 +1985,8 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
             label = lively.morphic.Text.makeLabel(headline, this.labelStyle);
         }
         this.label = this.addMorph(label);
+        this.label.addStyleClassName('window-title');
+        this.label.setTextStylingMode(true);
 
         if (!this.suppressControls) {
             var cell = new Rectangle(0, 0, this.barHeight-5, this.barHeight-5);
@@ -2009,14 +1995,14 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
                 new lively.morphic.WindowControl(cell, this.controlSpacing, "X", pt(-5,-4)));
             this.closeButton.applyStyle({moveHorizontal: true});
             this.closeButton.addStyleClassName('close');
-            //this.closeButton.linkToStyles('titleBar_closeButton');
+
             this.menuButton = this.addMorph(
                 new lively.morphic.WindowControl(cell, this.controlSpacing, "M", pt(-5,-6)));
-            //this.menuButton.linkToStyles('titleBar_menuButton');
+
             this.collapseButton = this.addMorph(
                 new lively.morphic.WindowControl(cell, this.controlSpacing, "–", pt(-3,-6)));
             this.collapseButton.applyStyle({moveHorizontal: true});
-            //this.collapseButton.linkToStyles('titleBar_collapseButton');
+
 
             this.connectButtons(windowMorph);
         }
@@ -2090,7 +2076,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
     minHeight: 100,
     debugMode: false,
     style: {borderWidth: 0, fill: null, borderRadius: 0, strokeOpacity: 0, adjustForNewBounds: true, enableDragging: true},
-    styleSheet: "background-color: rgba(255, 255, 255, 0.6); box-shadow: 0px 5px 20px #000; border-radius: 5px; &.highlighted {box-shadow: 0px 4px 15px #666;}",
 },
 'documentation', {
     documentation: "Full-fledged windows with title bar, menus, etc",
@@ -2344,7 +2329,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         } else {
             this.removeStyleClassName('highlighted');
         }
-        this.titleBar.label.applyStyle({emphasize: {fontWeight: trueForLight ? 'bold' : 'normal'}});
     },
 
     isInFront: function() { return this.owner && this.owner.topMorph() === this },

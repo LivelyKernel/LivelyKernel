@@ -565,18 +565,20 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         var worldCss = '.red { color: red;}'+ //1
                 '.red.Box { color: purple;}'+ //3
                 '.red.Box { color: yellow;}'+ //4
-                '#the-red-rectangle.red {color: blue;}' + //6
-                '#the-red-rectangle, #the-blue-rectangle, #the-blue-rectangle { color: green; }', //5
-            yellowCss = '.red { color: black;}', //2
+                '.yellow #the-red-rectangle {color: blue;}' + //7
+                '#the-red-rectangle, #the-red-rectangle, #the-blue-rectangle, #the-blue-rectangle { color: green; }', //6
+            yellowCss = '.red { color: black;}'//2
+                +'.yellow, .yellow .red.Box { color: white;}', //5
             getVal = function(rule) {
                     return rule.declarations.first().values.first();
                 },
             sortedRules;
         this.world.setStyleSheet(worldCss);
         this.yellowRectangle.setStyleSheet(yellowCss);
+
         sortedRules = this.redRectangle.getMatchingStyleSheetRules();
 
-        this.assertEquals(6, sortedRules.length, 'redRectangle should have 5 rules');
+        this.assertEquals(7, sortedRules.length, 'redRectangle should have 7 rules');
 
         this.assertEquals('red', getVal(sortedRules[0]),
             'rule 0 should have color red');
@@ -586,12 +588,16 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             'rule 2 should have color purple');
         this.assertEquals('yellow', getVal(sortedRules[3]),
             'rule 3 should have color yellow');
-        this.assertEquals('green', getVal(sortedRules[4]),
-            'rule 3 should have color green ');
-        this.assertEquals('blue', getVal(sortedRules[5]),
-            'rule 4 should have color blue');
+        this.assertEquals('white', getVal(sortedRules[4]),
+            'rule 4 should have color white');
+        this.assertEquals('green', getVal(sortedRules[5]),
+            'rule 5 should have color green ');
+        this.assertEquals('blue', getVal(sortedRules[6]),
+            'rule 6 should have color blue');
 
     },
+
+
     test07GetAggregatedMatchingStyleSheetDeclarations: function() {
         var css = '.blue{ border-top-color: blue; }'+
                 '#blue2.blue { border-top-color: black; }'+

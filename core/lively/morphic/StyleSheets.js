@@ -358,14 +358,15 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                 var selectors = rule.getSelector().split(","),
                     maxSpecificity = -1,
                     sizzle = new lively.morphic.Sizzle(),
-                    sel, spec, mostSpecificSelector;
+                    sel, spec, mostSpecificSelector,
+                    context = rule.getOriginMorph();
 
                 // loop over all selectors in the group
                 for(var j = 0, len = selectors.length; j < len; j++) {
-                    sel = selectors[j];
+                    sel = selectors[j].trim();
 
                     // find if the selector matches the element
-                    if(sizzle.select(sel, this, null, [this]).length == 1) {
+                    if(sizzle.select(sel, context, null, [this]).length == 1) {
                         spec = apps.cssParser.calculateCSSRuleSpecificity(sel);
 
                         // find the most specific selector that macthes the element

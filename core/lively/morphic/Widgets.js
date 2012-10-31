@@ -2174,7 +2174,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.owner.alignBottomReframeHandle();
             this.owner.alignRightReframeHandle();
         });
-        handle.setHandStyle("se-resize");
+        handle.addStyleClassName('reframe-handle corner');
         return handle;
     },
 
@@ -2206,7 +2206,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.owner.alignReframeHandle();
             this.owner.alignRightReframeHandle();
         });
-        handle.setHandStyle("s-resize");
+        handle.addStyleClassName('reframe-handle bottom');
         return handle;
     },
 
@@ -2242,7 +2242,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.owner.alignReframeHandle();
             this.owner.alignBottomReframeHandle();
         });
-        handle.setHandStyle("e-resize");
+        handle.addStyleClassName('reframe-handle right');
 
         return handle;
     },

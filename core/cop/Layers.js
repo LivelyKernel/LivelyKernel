@@ -163,7 +163,7 @@ Object.extend(cop, {
     layerMethod: function(layer, object,  property, func) {
         cop.ensurePartialLayer(layer, object)[property] = func;
         func.displayName = "layered " + layer.name + " " + (object.constructor ? (object.constructor.type + "$"): "") + property;
-        cop.makeFunctionLayerAware(object, property);
+        cop.makeFunctionLayerAware(object, property, layer.isHidden);
     },
 
     layerGetterMethod: function(layer, object, property, getter) {
@@ -278,7 +278,7 @@ Object.extend(cop, {
         return layered_function;
     },
 
-    pvtMakeFunctionOrPropertyLayerAware: function(obj, slotName, baseValue, type) {
+    pvtMakeFunctionOrPropertyLayerAware: function(obj, slotName, baseValue, type, isHidden) {
         // install in obj[slotName] a cop wrapper that weaves partial methods
         // into real method (baseValue)
 
@@ -290,9 +290,9 @@ Object.extend(cop, {
         if (cop.dynamicInlining)
             return cop.makeSlotLayerAwareWithDynamicInlining(obj, slotName, baseValue, type)
 
-        cop.makeSlotLayerAwareWithNormalLookup(obj, slotName, baseValue, type);
+        cop.makeSlotLayerAwareWithNormalLookup(obj, slotName, baseValue, type, isHidden);
     },
-    makeSlotLayerAwareWithNormalLookup: function(obj, slotName, baseValue, type) {
+    makeSlotLayerAwareWithNormalLookup: function(obj, slotName, baseValue, type, isHidden) {
         var wrapped_function = function() {
             var composition = new cop.PartialLayerComposition(
                 this, obj, slotName, baseValue, type);
@@ -307,6 +307,9 @@ Object.extend(cop, {
         // this is more declarative outside of COP context
         wrapped_function.isContextJSWrapper = true;
 
+        if (isHidden)
+            wrapped_function.toString = function () {return this.getOriginal().toString()}
+
         // For wrapped_function.getOriginal()
         wrapped_function.originalFunction = baseValue;
 
@@ -319,7 +322,7 @@ Object.extend(cop, {
         }
     },
 
-    makeFunctionLayerAware: function(base_obj, function_name) {
+    makeFunctionLayerAware: function(base_obj, function_name, isHidden) {
             if (!base_obj) throw new Error("can't layer an non existent object");
 
             /* ensure base function */
@@ -329,7 +332,7 @@ Object.extend(cop, {
                 // return;
                 base_function = Functions.Null;
             };
-            cop.pvtMakeFunctionOrPropertyLayerAware(base_obj, function_name, base_function)
+            cop.pvtMakeFunctionOrPropertyLayerAware(base_obj, function_name, base_function, undefined, isHidden)
     },
 
     makePropertyLayerAware: function(baseObj, property) {
@@ -651,6 +654,13 @@ Object.subclass("Layer",
         cop.disableLayer(this);
         return this;
     },
+    hide: function() {
+        // Hidden layers do not appear when evaluating the sourcecode of a function
+        // TODO: this function has to be called BEFORE the layer refines any class, due to problems in unrefining classes.
+        this.isHidden = true
+        return this;
+    },
+
 },
 'debugging', {
     toString: function() { return this.getName() },

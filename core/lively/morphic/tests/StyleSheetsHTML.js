@@ -419,6 +419,68 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.B
         this.assertEquals(10, this.redRectangle.getBorderWidth(),
             'Border width should be 10 again after rereswitch');
     },
+    test04BorderIsAdaptedWhenClassNamesChanged: function() {
+        var css = '.Box {'
+            +'border-width: 5px;'
+            +'}\n'+'.test-box, .test-box .Box {'
+            +'border-width: 13px;'
+            +'}';
+        this.yellowRectangle.setBorderStylingMode(true);
+        this.redRectangle.setBorderStylingMode(true);
+        this.blueRectangle1.setBorderStylingMode(true);
+        this.yellowRectangle.setStyleSheet(css);
+
+        this.assertEquals(5, this.yellowRectangle.getBorderWidth(),
+            'Border width of yellow should be 5 before changing class names');
+        this.assertEquals(5, this.redRectangle.getBorderWidth(),
+            'Border width of red should be 5 before changing class names');
+        this.assertEquals(5, this.blueRectangle1.getBorderWidth(),
+            'Border width of blue should be 5 before changing class names');
+
+        this.yellowRectangle.addStyleClassName('test-box');
+
+
+        this.assertEquals(13, this.yellowRectangle.getBorderWidth(),
+            'Border width of yellow should be 13 after changing class names');
+        this.assertEquals(13, this.redRectangle.getBorderWidth(),
+            'Border width of red should be 13 after changing class names');
+        this.assertEquals(13, this.blueRectangle1.getBorderWidth(),
+            'Border width of blue should be 13 after changing class names');
+
+    },
+    test05BorderIsAdaptedWhenStyleIdChanged: function() {
+        var css = '.Box {'
+            +'border-width: 5px;'
+            +'}'+'#test-box, #test-box .Box {'
+            +'border-width: 13px;'
+            +'}';
+        this.yellowRectangle.setBorderStylingMode(true);
+        this.redRectangle.setBorderStylingMode(true);
+        this.blueRectangle1.setBorderStylingMode(true);
+        this.yellowRectangle.setStyleSheet(css);
+
+        this.assertEquals(5, this.redRectangle.getBorderWidth(),
+            'Border width of red should be 5 before changing ID');
+
+        this.assertEquals(5, this.yellowRectangle.getBorderWidth(),
+            'Border width of yellow should be 5 before changing ID');
+
+        this.assertEquals(5, this.blueRectangle1.getBorderWidth(),
+            'Border width of blue should be 5 before changing ID');
+
+        this.yellowRectangle.setStyleId('test-box');
+        this.assertEquals(13, this.redRectangle.getBorderWidth(),
+            'Border width of red should be 13 after changing ID');
+
+        this.assertEquals(13, this.yellowRectangle.getBorderWidth(),
+            'Border width of yellow should be 13 after changing ID');
+
+        this.assertEquals(13, this.blueRectangle1.getBorderWidth(),
+            'Border width of blue should be 13 after changing ID');
+
+    },
+
+
 
 
 

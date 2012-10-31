@@ -27,8 +27,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
             fixedWidth: true,
             fixedHeight: true,
             textColor: Color.black,
-            clipMode: 'hidden',
-            emphasize: {textShadow: {offset: pt(0,1), color: Color.white}}
+            clipMode: 'hidden'
         }
     }
 },

@@ -2737,7 +2737,8 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         $super(initialBounds);
         this.applyStyle(this.style);
         this.selectedMorphs = [];
-
+        this.setBorderStylingMode(true);
+        this.setAppearanceStylingMode(true);
     },
 },
 'propagation', {

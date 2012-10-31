@@ -1,0 +1,110 @@
+.World {
+	font-family: Helvetica;
+}
+
+.Box {
+	background:  #F0F0D8;
+	border: 1px solid #666666;
+}
+
+.Selection {
+	background:  rgba(180,223,55, 0.6);;
+	border: 1px solid #666666;
+}
+
+.Text.edit-field {
+	background: white;
+	box-shadow: inset 1px 1px 1px #666;
+	border: 1px solid #B4DF37;
+}
+
+.Button {
+	font-size: 9pt;
+	color: black;
+	text-align: center;
+	background:  -webkit-linear-gradient(top, #F0F0D8, #B4DEBE);
+	box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.8);
+	border: 1px solid #BBB;
+	cursor: pointer;
+	text-shadow: 0px 0px 3px #F0F0D8, 0px 0px 3px #F0F0D8, 0px 0px 3px #F0F0D8;
+}
+.Button.pressed{
+	background:  -webkit-linear-gradient(bottom, #F0F0D8, #B4DF37);
+	box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.5);
+}
+.Button.toggled{
+	background: -webkit-linear-gradient(top, #F0F0D8, #B4DF37);
+	color: black;
+}
+.Button.toggled.pressed{
+	background: -webkit-gradient(bottom, #F0F0D8, #B4DF37);
+}
+.Button.disabled{
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fff), color-stop(20%,#aaa), color-stop(85%,#aaa), color-stop(100%,#888));
+	color: gray;
+}
+
+.Window {
+	background: rgba(240,240,216, 0.6);
+	box-shadow: 2px 2px 10px black, inset 1px 1px 1px white;
+}
+.Window.highlighted {
+	border: 1px solid #FEF9F0;
+	background: rgba(240,240,216, 0.8);
+	box-shadow: 2px 2px 15px black, inset 1px 1px 1px white;
+}
+
+.Window .Text.window-title {
+	font-size: 10pt;
+	text-align: center;
+	color: #555;
+	text-shadow: 0px 0px 5px white, 0px 0px 5px white, 0px 0px 5px white;
+}
+.Window.highlighted  .Text.window-title {
+	font-weight: bold;
+	color: #333;
+}
+
+.Window .TitleBar, .Window .reframe-handle {
+    border: none;
+    background: none;
+}
+
+.reframe-handle.corner {
+cursor: se-resize;
+}
+.reframe-handle.right{
+cursor: e-resize;
+}
+.reframe-handle.bottom{
+cursor: s-resize;
+}
+
+.Button.WindowControl {
+	background: #B4DEBE;
+	font-weight: normal;
+	text-shadow: none;
+}
+
+.Button.WindowControl.close {
+	background: #B4DF37;
+}
+
+
+
+.HorizontalDivider {
+	cursor: n-resize;
+}
+
+.Slider {
+	border: 1px solid #BBB;
+	background: #F0F0D8;
+	box-shadow: inset 1px 1px 1px #666;
+}
+
+.SliderKnob {
+	box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.8);
+	cursor: pointer;
+	border: 1px solid #888;
+	background-image: -webkit-linear-gradient(top, #F0F0D8, #B4DF37);
+}

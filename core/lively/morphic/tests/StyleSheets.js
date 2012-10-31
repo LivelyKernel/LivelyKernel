@@ -945,7 +945,26 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
         this.assert(parsedStyleSheet.getRules().first().getDeclarations().first().isStyleSheetInlineComment,
             'Declaration is no lively style sheet inline comment');
         this.assertEquals(styleSheet, parsedStyleSheet.getText(), 'CSS text output not as expected');
+    },
+    test08KeepCommaSeparatedValues: function() {
+        var styleSheet =
+                '.Morph{'+
+                'font-family: Arial, Helvetica;'+
+                'text-shadow: 1px 1px black, 1px 1px black;'+
+                '}',
+
+            parsedStyleSheet = apps.cssParser.parse(styleSheet),
+            fontFamilyDecl = parsedStyleSheet.getRules().first().getDeclarations().first(),
+            textShadowDecl = parsedStyleSheet.getRules().first().getDeclarations().last();
+
+        this.assertEquals(1, fontFamilyDecl.getValues().length,
+            'Font family declaration values should not be split');
+
+        this.assertEquals('text-shadow: 1px 1px black, 1px 1px black;',
+            textShadowDecl.getText(),
+            'Text shadow declaration values should not be split');
     }
+
 
 });
 

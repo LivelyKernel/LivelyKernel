@@ -1939,6 +1939,9 @@ lively.morphic.Button.subclass("lively.morphic.WindowControl",
     initialize: function($super, bnds, inset, labelString, labelOffset) {
         $super(bnds, labelString)
         this.label.applyStyle({fontSize: 8})
+        if (labelOffset) {
+            this.label.setPosition(this.label.getPosition().addPt(labelOffset));
+        }
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
     },
@@ -1992,15 +1995,15 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
             var cell = new Rectangle(0, 0, this.barHeight-5, this.barHeight-5);
 
             this.closeButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "X", pt(-5,-4)));
+                new lively.morphic.WindowControl(cell, this.controlSpacing, "X", pt(0,-1)));
             this.closeButton.applyStyle({moveHorizontal: true});
             this.closeButton.addStyleClassName('close');
 
             this.menuButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "M", pt(-5,-6)));
+                new lively.morphic.WindowControl(cell, this.controlSpacing, "M", pt(0,0)));
 
             this.collapseButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "–", pt(-3,-6)));
+                new lively.morphic.WindowControl(cell, this.controlSpacing, "–", pt(0,1)));
             this.collapseButton.applyStyle({moveHorizontal: true});
 
 

@@ -23,6 +23,7 @@ Object.subclass('lively.GlobalLogger',
     initializeSilentList: function () {
         var self = this;
         cop.create('LoggerLayer');
+        LoggerLayer.hide()
         this.createMorphLoggersForEnablingAndDisabling();
         this.silentFunctions.each(function (extendableClass) {
             extendableClass[0] && self.disableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1])

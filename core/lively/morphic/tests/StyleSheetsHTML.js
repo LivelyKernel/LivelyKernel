@@ -629,5 +629,91 @@ this.createSomeMorphs();
     },
 
 });
+AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Text',
+'running', {
+    setUp: function($super) {
+        var css = '#test-text {'+
+                'text-align: right;' +
+                'font-family: Arial;' +
+                'font-size: 13px;' +
+                'font-style: italic;' +
+                'font-weight: bold;' +
+                'color: rgb(128, 0, 128);' +
+                'vertical-align: top;' +
+                'text-decoration: underline;'+
+                '}';
+        $super();
+        this.textMorph = new lively.morphic.Text(new Rectangle(0,0,100,100));
+        this.textMorph.setStyleId('test-text');
+        this.textMorph.openInWorld();
 
+        this.textMorph.setAlign('center');
+        this.textMorph.setFontFamily('Times');
+        this.textMorph.setFontSize(20);
+        this.textMorph.setFontStyle('normal');
+        this.textMorph.setFontWeight('normal');
+        this.textMorph.setTextColor(Color.black);
+        this.textMorph.setTextDecoration('none');
+        this.textMorph.setVerticalAlign('bottom');
+        this.textMorph.setWordBreak('normal');
+
+        this.textMorph.setStyleSheet(css);
+    },
+
+ tearDown: function() {
+        this.textMorph.remove();
+    },
+
+},
+'testing', {
+    test01SwitchToStyleSheetStyling: function() {
+        var textNode = this.textMorph.renderContext().textNode;
+        this.textMorph.setTextStylingMode(true);
+        this.assert(this.textMorph.getTextStylingMode(), 'Text styling mode should be on');
+
+        this.delay(function() {
+            this.assertEquals('right', $(textNode).css('text-align'),
+                'Text align was not properly set via CSS');
+            this.assertEquals('Arial', $(textNode).css('font-family'),
+                'font-family was not properly set via CSS');
+            this.assertEquals('13px', $(textNode).css('font-size'),
+                'font-size was not properly set via CSS');
+            this.assertEquals('italic', $(textNode).css('font-style'),
+                'font-style was not properly set via CSS');
+            this.assertEquals('bold', $(textNode).css('font-weight'),
+                'font-weight was not properly set via CSS');
+            this.assertEquals('rgb(128, 0, 128)', $(textNode).css('color'),
+                'color was not properly set via CSS');
+            this.assertEquals('underline', $(textNode).css('text-decoration'),
+                'text-decoration was not properly set via CSS');
+            this.assertEquals('top', $(textNode).css('vertical-align'),
+                'vertial-align was not properly set via CSS');
+            this.done();
+        }, 0.1);
+    },
+    test02SwitchBackFromStyleSheetStyling: function() {
+        var textNode = this.textMorph.renderContext().textNode;
+        this.textMorph.setTextStylingMode(true);
+        this.textMorph.setTextStylingMode(false);
+        this.assert(!this.textMorph.getTextStylingMode(), 'Text styling mode should be off');
+
+        this.delay(function() {
+            this.assertEquals('center', $(textNode).css('text-align'),
+                'Text align was not properly reset after switching back from CSS text styling');
+            this.assertEquals('Times', $(textNode).css('font-family'),
+                'font-family was not properly reset after switching back from CSS text styling');
+            this.assertEquals('normal', $(textNode).css('font-style'),
+                'font-style was not properly reset after switching back from CSS text styling');
+            this.assertEquals('normal', $(textNode).css('font-weight'),
+                'font-weight was not properly reset after switching back from CSS text styling');
+            this.assertEquals('rgb(0, 0, 0)', $(textNode).css('color'),
+                'color was not properly reset after switching back from CSS text styling');
+            this.assertEquals('none', $(textNode).css('text-decoration'),
+                'text-decoration was not properly reset after switching back from CSS text styling');
+            this.assertEquals('bottom', $(textNode).css('vertical-align'),
+                'vertial-align was not properly reset after switching back from CSS text styling');
+            this.done();
+        }, 0.1);
+    },
+});
 })// end of module

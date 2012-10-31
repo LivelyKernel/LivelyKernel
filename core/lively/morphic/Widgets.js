@@ -3332,9 +3332,13 @@ lively.morphic.Box.subclass('lively.morphic.Slider',
         this.setValue(0);
         this.setSliderExtent(0.1);
         this.valueScale = (scaleIfAny === undefined) ? 1.0 : scaleIfAny;
-        this.sliderKnob = this.addMorph(new lively.morphic.SliderKnob(new Rectangle(0, 0, this.mss, this.mss), this));
-        this.setupFill();
-        this.adjustSliderParts()
+        this.sliderKnob = this.addMorph(
+            new lively.morphic.SliderKnob(new Rectangle(0, 0, this.mss, this.mss), this));
+        this.adjustSliderParts();
+        this.sliderKnob.setAppearanceStylingMode(true);
+        this.sliderKnob.setBorderStylingMode(true);
+        this.setAppearanceStylingMode(true);
+        this.setBorderStylingMode(true);
     },
 },
 'accessing', {
@@ -3416,16 +3420,15 @@ lively.morphic.Box.subclass('lively.morphic.Slider',
                 sliderExt = pt(elevPix, bnds.height);
         }
         this.sliderKnob.setBounds(bnds.topLeft().addPt(topLeft).extent(sliderExt));
+        this.adjustFill();
     },
-    adjustFill: function() {},
+    adjustFill: function() {this.setupFill();},
 
     setupFill: function() {
         if (this.vertical()) {
-            this.sliderKnob.linkToStyles(['slider']);
-            this.linkToStyles(['slider_background']);
+            this.addStyleClassName('vertical');
         } else {
-            this.sliderKnob.linkToStyles(['slider_horizontal']);
-            this.linkToStyles(['slider_background_horizontal']);
+            this.removeStyleClassName('vertical');
         }
     }
 })

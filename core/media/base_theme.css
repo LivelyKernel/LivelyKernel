@@ -1,0 +1,55 @@
+.World {
+	font-family: Helvetica;
+}
+
+.Button {
+	font-size: 8pt;
+	text-align: center;
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fff), color-stop(20%,#eee), color-stop(85%,#eee), color-stop(100%,#aaa));
+	border-radius: 4px;
+	border: 1px solid #aaa;
+}
+.Button.pressed{
+	background: -webkit-gradient(linear, left bottom, left top, color-stop(0%,#fff), color-stop(20%,#eee), color-stop(90%,#eee), color-stop(100%,#aaa));
+}
+.Button.toggled{
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fff), color-stop(20%,#cfe7fa), color-stop(85%,#cfe7fa), color-stop(100%,#aaa));
+}
+.Button.toggled.pressed{
+	background: -webkit-gradient(linear, left bottom, left top, color-stop(0%,#fff), color-stop(20%,#cfe7fa), color-stop(85%,#cfe7fa), color-stop(100%,#aaa));
+}
+.Button.disabled{
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fff), color-stop(20%,#aaa), color-stop(85%,#aaa), color-stop(100%,#888));
+	color: gray;
+}
+
+.Window {
+	background-color: rgba(255, 255, 255, 0.6);
+	box-shadow: 0px 4px 15px #666;
+	border-radius: 5px;
+}
+.Window.highlighted {
+	box-shadow: 0px 5px 20px #000;
+}
+
+.Window .Text.window-title {
+	font-size: 10pt;
+	text-align: center;
+	color: #555;
+	text-shadow: 0px 0px 5px white;
+}
+.Window.highlighted  .Text.window-title {
+	font-weight: bold;
+	color: #333;
+}
+
+.Button.WindowControl {
+	border: 1px solid #aaa;
+	border-radius: 3px;
+	background: #EEE;
+}
+
+.Button.WindowControl.close {
+	background: #E73F22;
+	color: white;
+}

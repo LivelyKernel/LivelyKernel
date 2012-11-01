@@ -2,7 +2,7 @@ module('lively.morphic.GlobalLogger').requires().toRun(function() {
 Object.subclass('lively.GlobalLogger',
 'properties', {
     loggedFunctions: [
-        [lively.morphic.Morph, ['addMorph', 'remove', 'morphicSetter', 'addScript', 'openInWindow', 'lock', 'unlock']],
+        [lively.morphic.Morph, ['addMorph', 'remove', 'morphicSetter', 'addScript', 'openInWindow', 'lock', 'unlock', 'startStepping', 'stopSteppingScriptNamed', 'stopStepping']],
         [lively.morphic.Shapes.Shape, ['shapeSetter']]
     ],
     silentFunctions: [
@@ -10,10 +10,12 @@ Object.subclass('lively.GlobalLogger',
         [lively.morphic.Morph, ['showMorphMenu', 'showHalos']],
         [lively.morphic.Menu, ['initialize', 'openIn', 'remove']],
         [lively.morphic.Text, ['doFind']],
-        [lively.morphic.MenuItem, ['initialize']]
+        [lively.morphic.MenuItem, ['initialize']],
+        [lively.morphic.Script, ['tick']]
     ],
     silentClasses: [lively.morphic.Menu, lively.morphic.Tree, lively.morphic.PromptDialog/*, lively.morphic.ColorChooser*/] // loadging order
-},     'initialization', {
+},
+'initialization', {
     initialize: function () {
         this.stack = [];
         this.counter = 0;
@@ -36,7 +38,8 @@ Object.subclass('lively.GlobalLogger',
         })
         LoggerLayer.beGlobal();
     },
-},    'logging', {
+},
+'logging', {
     logAction: function(action) {
         if (!action || !this.loggingEnabled || (action.morph && !action.morph.isLoggable)) return false;
         var parentWantsNoUndo = action.morph.ownerChain? action.morph.ownerChain().detect(function (ea) { return !ea.isLoggable && !ea.isHand }) : false;
@@ -47,7 +50,7 @@ Object.subclass('lively.GlobalLogger',
         }
         // keep changes at a bundle if they happen at the same time
         var lastAction = this.stack.last() && this.stack.last().last()
-        if ( lastAction && (action.time - lastAction.time) <= 100) {
+        if (lastAction && !(this.stack.last().isFull) && (action.time - lastAction.time) <= 100) {
             this.stack.last().push(action)
         }
         else {
@@ -56,6 +59,12 @@ Object.subclass('lively.GlobalLogger',
         }
         return action
     },
+    forceNewSlot: function () {
+        // enforces to open a new set of undoable actions
+        this.stack.last() && (this.stack.last().isFull = true)
+    },
+},
+'undoredo', {
     undoLastAction: function () {
         var self = this;
         if (this.counter <= 0) {
@@ -91,7 +100,7 @@ Object.subclass('lively.GlobalLogger',
         this.enableLogging()
     },
 }, 
-'logging disable and enable', {
+'disable and enable', {
     enableLogging: function () {
         this.loggingEnabled = true
         this.workingOnAction = false
@@ -100,6 +109,8 @@ Object.subclass('lively.GlobalLogger',
         this.loggingEnabled = false
         this.workingOnAction = definite
     },
+},
+'disable and enable context', {
     disableLoggingOfFunctionsFromClass: function (classObject, functionNames) {
         // Disable logging of certain functions (e.g. Tool functionality)
         var self = this,
@@ -127,9 +138,9 @@ Object.subclass('lively.GlobalLogger',
         var self = this,
             functionsObject = {};
         functionNames.each(function (functionName) {
-            var beforeLogFunctionName = 'beforeLog' + functionName[0].toUpperCase() + functionName.substring(1),
-                logFunctionName = 'log' + functionName[0].toUpperCase() + functionName.substring(1),
-                afterLogFunctionName = 'afterLog' + functionName[0].toUpperCase() + functionName.substring(1);
+            var beforeLogFunctionName = 'beforeLog' + functionName.capitalize(),
+                logFunctionName = 'log' + functionName.capitalize(),
+                afterLogFunctionName = 'afterLog' + functionName.capitalize();
             functionsObject[functionName] = function () {
                 var logCondition = Object.isFunction(this[beforeLogFunctionName]) ? this[beforeLogFunctionName].apply(this, arguments) : true;
                 if (logFunctionName && Object.isFunction(this[logFunctionName])) {
@@ -146,7 +157,7 @@ Object.subclass('lively.GlobalLogger',
         })
         LoggerLayer.refineClass(classObject, functionsObject);
     },
-}, 'morph disable and enable specials', {
+}, 'special morphic functions', {
     createMorphLoggersForEnablingAndDisabling: function () {
         var functionsObject = {},
             functionNames = lively.morphic.Morph.localFunctionNames(),
@@ -386,7 +397,78 @@ lively.morphic.Morph.addMethods(
                 this.unlock()
             }).bind(this)
         }
+    },
+    beforeLogStartStepping: function(stepTime, scriptName, argIfAny) {
+        if (Object.isFunction(this[scriptName]))
+            this[scriptName](argIfAny)
+        window.setTimeout(stepTime)
+        return true
+    },
+
+    logStartStepping: function(stepTime, scriptName, argIfAny) {
+        return {
+            morph: this,
+            undo: function () {
+                this.stopSteppingScriptNamed(scriptName)
+            }.bind(this),
+            redo: function () {
+                this.startStepping(stepTime, scriptName, argIfAny);
+            }.bind(this)
+        }
+    },
+
+    beforeLogStopSteppingScriptNamed: function(selector) {
+        var runningScripts = this.scripts.select(function (ea) {return ea.selector == selector}),
+            self = this;
+        runningScripts.each(function (ea) {
+            if (Object.isFunction(self[ea.selector]))
+                self[ea.selector].apply(self, ea.args)
+        })
+        return true
+    },
+
+
+    logStopSteppingScriptNamed: function(selector) {
+        var currentScripts = this.scripts.select(function(ea) { return ea.selector === selector });
+        return {
+            morph: this,
+            undo: function () {
+                var self = this;
+                currentScripts.each(function (eachScript) {
+                    self.startStepping.apply(self, [eachScript.tickTime, eachScript.selector].concat(eachScript.args))
+                })
+            }.bind(this),
+            redo: function () {
+                this.stopSteppingScriptNamed(selector)
+            }.bind(this)
+        }
+    },
+    beforeLogStopStepping: function() {
+        var self = this;
+        this.scripts.each(function (ea) {
+            if (Object.isFunction(self[ea.selector]))
+                self[ea.selector].apply(self, ea.args)
+        })
+    },
+
+
+
+    logStopStepping: function() {
+        var self = this,
+            currentScripts = Object.clone(this.scripts)
+        return {
+            morph: this,
+            undo: function () {
+                currentScripts.each(function (ea) {
+                    self.startStepping.apply(self, [ea.tickTime, ea.selector].concat(ea.args))
+                })
+            }.bind(this),
+            redo: function () {
+                this.stopStepping()
+            }.bind(this)
+        }
     }
+
 })
 
 lively.morphic.Shapes.Shape.addMethods(

@@ -658,6 +658,7 @@ Object.subclass("Layer",
         // Hidden layers do not appear when evaluating the sourcecode of a function
         // TODO: this function has to be called BEFORE the layer refines any class, due to problems in unrefining classes.
         this.isHidden = true
+        return this;
     },
 
 },

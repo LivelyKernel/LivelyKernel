@@ -684,10 +684,7 @@ Object.subclass("Layer",
         // Hidden layers do not appear when evaluating the sourcecode of a function
         // TODO: this function has to be called BEFORE the layer refines any class, due to problems in unrefining classes.
         this.isHidden = true
-<<<<<<< HEAD
         return this;
-=======
->>>>>>> added possibility to hide layers (at least functions of layers) from showing a functions source code via cmd+p
     },
 
 },

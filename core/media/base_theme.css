@@ -2,6 +2,23 @@
 	font-family: Helvetica;
 }
 
+.Box {
+	background:  #white;
+	border: 1px solid #aaa;
+}
+
+.Selection {
+	background:  rgba(222,222,222, 0.6);;
+	border: 1px solid #aaa;
+}
+
+.Text.edit-field {
+	background: white;
+	box-shadow: inset 1px 1px 1px #666;
+	border: 1px solid #aaa;
+	border-radius: 2px;
+}
+
 .Button {
 	font-size: 9pt;
 
@@ -40,6 +57,22 @@
 	box-shadow: 0px 5px 20px #000;
 	background-color: rgba(222, 222, 222, 0.8);
 }
+
+.Window .TitleBar, .Window .reframe-handle {
+	border: none;
+	background: none;
+}
+
+.reframe-handle.corner {
+	cursor: se-resize;
+}
+.reframe-handle.right{
+	cursor: e-resize;
+}
+.reframe-handle.bottom{
+	cursor: s-resize;
+}
+
 
 .Window .Text.window-title {
 	font-size: 10pt;

@@ -40,6 +40,7 @@ Object.subclass('AttributeConnection',
         this.varMapping = {source: source, target: target};
         if (spec) {
             if (spec.removeAfterUpdate) this.removeAfterUpdate = true;
+            if (spec.forceAttributeConnection) this.forceAttributeConnection = true;
             // when converter function references objects from its environment
             // we can't serialize it. To fail as early as possible we will
             // serialize the converter / updater already in the setters
@@ -114,11 +115,13 @@ Object.subclass('AttributeConnection',
         if (this.updaterString) spec.updater = this.getUpdater();
         if (this.converterString) spec.converter = this.getConverter();
         if (this.removeAfterUpdate) spec.removeAfterUpdate = true;
+        if (this.forceAttributeConnection) spec.forceAttributeConnection = true;
         return spec;
     },
 
     resetSpec: function() {
         delete this.removeAfterUpdate;
+        delete this.forceAttributeConnection;
         delete this.converter;
         delete this.converterString;
         delete this.updater;
@@ -158,9 +161,10 @@ Object.subclass('AttributeConnection',
             (this.getSourceValue() || this.getPrivateSourceValue());
 
         // method connect... FIXME refactori into own class!
-        if (Object.isFunction(methodOrValue)) {
-            if (!methodOrValue.isWrapped)
+        if (Object.isFunction(methodOrValue) && !this.forceAttributeConnection) {
+            if (!methodOrValue.isWrapped) {
                 this.addConnectionWrapper(this.sourceObj, this.sourceAttrName, methodOrValue);
+            }
         } else { // attribute connect
             this.addSourceObjGetterAndSetter(existingGetter, existingSetter);
         }
@@ -426,11 +430,12 @@ AttributeConnection.addMethods({
             sourceObj: getId(this.sourceObj),
             sourceAttrName: this.sourceAttrName,
             targetObj: getId(this.targetObj),
-            targetMethodName: this.targetMethodName,
+            targetMethodName: this.targetMethodName
         };
         if (this.converterString) literal.converter = this.converterString;
         if (this.updaterString) literal.updater = this.updaterString;
         if (this.removeAfterUpdate) literal.removeAfterUpdate = true;
+        if (this.forceAttributeConnection) literal.forceAttributeConnection = true;
         return literal;
     }
 })
@@ -485,6 +490,7 @@ Object.extend(lively.bindings, {
     documentation: 'connect parameters: source, sourceProp, target, targetProp, spec\n'
                  + 'spec can be: {\n'
                  + '  removeAfterUpdate: Boolean,\n'
+                 + '  forceAttributeConnection: Boolean,\n'
                  + '  converter: Function,\n'
                  + '  updater: Function,\n'
                  + '  varMapping: Object\n'

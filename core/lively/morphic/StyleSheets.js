@@ -60,6 +60,11 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                 delete this._StyleSheet;
             }
         },
+    updateStyleSheet: function() {
+        // Call this method if your style sheet has changed, but the DOM isn't up to date yet
+        this.setParsedStyleSheet(this.getParsedStyleSheet());
+    },
+
         loadStyleSheetFromFile: function(file, resourcePath) {
             // cs: refactored to make it usable with https
             // use the resourcePath parameter if the resources addressed

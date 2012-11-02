@@ -1,4 +1,4 @@
-module('lively.morphic.GlobalLogger').requires().toRun(function() {
+module('lively.morphic.GlobalLogger').requires('lively.ide.SystemCodeBrowser', 'lively.morphic.ColorChooserDraft').toRun(function() {
 Object.subclass('lively.GlobalLogger',
 'properties', {
     loggedFunctions: [
@@ -13,7 +13,7 @@ Object.subclass('lively.GlobalLogger',
         [lively.morphic.MenuItem, ['initialize']],
         [lively.morphic.Script, ['tick']]
     ],
-    silentClasses: [lively.morphic.Menu, lively.morphic.Tree, lively.morphic.PromptDialog/*, lively.morphic.ColorChooser*/] // loadging order
+    silentClasses: [lively.morphic.Menu, lively.morphic.Tree, lively.morphic.PromptDialog, lively.morphic.AwesomeColorField] // loadging order
 },
 'initialization', {
     initialize: function () {

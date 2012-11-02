@@ -79,7 +79,7 @@ Object.extend(apps.Handlebars, {
         var templateName = path.slice(path.lastIndexOf('/')+1, path.lastIndexOf('.')),
             url = URL.root.withFilename(path),
             template = url.asWebResource().get().content;
-        return this.set(templateNamem, template);
+        return this.set(templateName, template);
     },
 
     set: function(name, template) {

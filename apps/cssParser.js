@@ -190,7 +190,8 @@ Object.extend(apps.cssParser, {
         // Prepare proplist
         for (var x in orgPropList) {
             propList[x] = {};
-            propList[x].commaSeparated = orgPropList[x].commaSeparated ;
+            propList[x].commaSeparated = orgPropList[x].commaSeparated || false;
+            propList[x].values = orgPropList[x].values.slice() || [];
             propList[x].shorthands = [];
             propList[x].shorthandFor = [];
         }
@@ -243,10 +244,7 @@ Object.extend(apps.cssParser, {
         },
         'border': {
             values: [
-            // either one value ...
-            [3],
-            // ... or four
-            [3, 3, 3, 3]]
+            [1, 0, 3]]
         },
         'border-width': {
             shorthand: 'border',

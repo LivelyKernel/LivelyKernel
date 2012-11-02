@@ -11,7 +11,7 @@ TestCase.subclass('lively.morphic.tests.TestCase',
     tearDown: function($super) {
         $super();
         this.removeTestWorld();
-    },
+    }
 },
 'helper', {
     removeTestWorld: function() {

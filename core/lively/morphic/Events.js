@@ -726,7 +726,7 @@ handleOnCapture);
                 evt.world.eventStartPos = null;
             }).delay(0);
         }
-debugger
+
         if (completeClick && this.showsMorphMenu && evt.isRightMouseButtonDown()) {
             // special behavior for world menu:
             // you can navigate the world menu with a pressed right mouse button

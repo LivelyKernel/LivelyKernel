@@ -3026,9 +3026,9 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             selectionIndicator.name = 'Selection of ' + ea
             selectionIndicator.isEpiMorph = true;
             selectionIndicator.isSelectionIndicator = true;
-            selectionIndicator.applyStyle({
-                fill: null, borderWidth: 4,
-                strokeOpacity: 0.5, borderColor: Color.green})
+            selectionIndicator.setBorderStylingMode(true);
+            selectionIndicator.setAppearanceStylingMode(true);
+            selectionIndicator.addStyleClassName('selection-indicator');
             ea.addMorph(selectionIndicator);
             self.selectionIndicators.push(selectionIndicator);
         })

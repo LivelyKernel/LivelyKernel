@@ -8,8 +8,13 @@
 }
 
 .Selection {
-	background:  rgba(180,223,55, 0.6);;
+	background:  rgba(180,223,55, 0.6);
 	border: 1px solid #666666;
+}
+
+.Box.selection-indicator {
+	background:  none;
+	outline: 4px solid rgba(180,223,55, 1) ;
 }
 
 .Text.edit-field {

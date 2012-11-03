@@ -1225,13 +1225,17 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     onDownPressed: function($super, evt) { return $super(evt) || true }
 },
 'shortcut support', {
-    shortcutHandlers: [],
+    shortcutHandlers: []
 },
 'mouse events', {
     onMouseDown: function(evt) {
         // if clicked in the text we want the default thing to happen, at least in HTML
         // but do not want other morphs to handle the event as well, so return true for was handled
 
+        if (evt.target.onmousedown) { // handled by text chunk
+            this.blur();
+            return evt.target.onmousedown(evt);
+        }
         // FIXME: handled in Morph>>onMouseDown. remove.
         if (!evt.isLeftMouseButtonDown()) return false;
         if (evt.isCommandKey()) { // for halos
@@ -2683,7 +2687,7 @@ Object.subclass('lively.morphic.TextChunk',
         // FIXME not deleting storedString in order to not lose the content when
         // restoring an element that is not in the scenegraph
         //delete this.storedString;
-    },
+    }
 });
 
 Object.subclass('lively.morphic.TextEmphasis',
@@ -2714,19 +2718,19 @@ Object.subclass('lively.morphic.TextEmphasis',
                 var value = this.doit;
                 if (!value) return;
                 this.addCallbackWhenApplyDone(function(evt) {
-                    var src = '(function() {\n' + value.code + '\n})';
+                    var src = '(function() {\n' + value + '\n})';
                     try {
                         var func = eval(src);
                         func.call(value.context || Global);
                     } catch(e) {
                         alert('Error in text doit\n' + e.stack);
                     }
-                    return true
+                    return true;
                 });
                 node.style.cursor = 'pointer';
                 node.style.textDecoration = 'underline';
                 node.style.color = 'darkgreen';
-                LivelyNS.setAttribute(node, 'doit', lively.persistence.Serializer.serialize(value));
+                LivelyNS.setAttribute(node, 'doit', value);
             }
         },
 
@@ -3004,12 +3008,10 @@ Object.subclass('lively.morphic.TextEmphasis',
         };
         var cbs = this.clickCallbacks;
         node.onmousedown = function(evt) {
-            // Lively event dispatch not used here
             for (var i = 0; i < cbs.length; i++) {
                 cbs[i].call(this, evt);
             }
-            evt.stopPropagation();
-            evt.preventDefault();
+            evt.stop();
             return true;
         }
         delete this.clickCallbacks;

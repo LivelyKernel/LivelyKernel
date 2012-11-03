@@ -62,7 +62,18 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
         this.text.sliceTextChunks(0,2); this.text.coalesceChunks(); // slice'n fix
         lastNode = Array.from(chunks.last().getChunkNode().childNodes).last();
         this.assertEquals('br', lastNode.tagName);
+    },
+
+    test06SetDoit: function() {
+        this.text.setTextString('eintest');
+        this.text.emphasize({doit: 'Global.textDoitInvoked=true'}, 0, 3);
+        this.checkChunks(
+            [{textString: 'ein', style: {doit: 'Global.textDoitInvoked=true'}},
+            {textString: 'test'}]);
+        this.assert(Object.isFunction(this.text.firstTextChunk().getChunkNode().onmousedown),
+                    'no doit event handler');
     }
+
 });
 
 lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.Extent',

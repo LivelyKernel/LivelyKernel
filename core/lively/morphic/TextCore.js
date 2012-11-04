@@ -2694,9 +2694,11 @@ Object.subclass('lively.morphic.TextEmphasis',
 'documentation', {
     README: function() {
         // When extending TextEmphasis with new attribute:
-        // 1. add getter / setter for attribute that matches the naming convention
-        // (getAttributeName / setAttributeName)
-        // 2. extend #equals!
+        // 1. add new entry with set/get/equals/apply in styleAttributes make
+        //    sure you implement #equals in the newly added styleAttribute!
+        // 2. add getter / setter for attribute that matches the naming
+        //    convention (getAttributeName / setAttributeName)
+        // 3. extend TextEmphasis>>equals as well!
     }
 },
 'properties', {

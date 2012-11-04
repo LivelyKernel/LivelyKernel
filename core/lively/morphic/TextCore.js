@@ -2707,6 +2707,45 @@ Object.subclass('lively.morphic.TextEmphasis',
 'style attributes', {
     styleAttributes: {
 
+        hover: {
+            // expected to be of the form:
+            // {inAction: STRING, outAction: STRING [, context: OBJECT]}
+            set: function(value) { return this.hover = value },
+            get: function() { return this.hover },
+            equals: function(other) {
+                if (!this.hover) return !other.hover;
+                if (!other.hover) return false
+                return this.hover.inAction == other.hover.inAction
+                    && this.hover.outAction == other.hover.outAction;
+            },
+            apply: function(node) {
+                var hover = this.hover;
+                if (!hover) return;
+
+                // setup
+                var context = hover.context || {},
+                    world = lively.morphic.World.current(),
+                    inCode = '(function() {\n' + hover.inAction + '\n})',
+                    outCode = '(function() {\n' + hover.outAction + '\n})',
+                    inFunc, outFunc;
+                try { inFunc = eval(inCode); outFunc = eval(outCode); } catch(e) {
+                    alert('Error when installing hover: ' + e + '\n' + e.stack);
+                    return;
+                }
+
+                var actionQueue = lively.morphic.TextEmphasis.hoverActions;
+                this.addCallbackWhenApplyDone('mouseover', function(evt) {
+                    actionQueue.enter(inFunc, context); return true;
+                });
+                this.addCallbackWhenApplyDone('mouseout', function(evt) {
+                    actionQueue.leave(outFunc, context); return true;
+                });
+
+                LivelyNS.setAttribute(node, 'hoverInAction', hover.inAction);
+                LivelyNS.setAttribute(node, 'hoveroutAction', hover.outAction);
+            }
+        },
+
         doit: {
             // expected to be of the form
             // {code: STRING [, context: OBJECT]}
@@ -2868,6 +2907,8 @@ Object.subclass('lively.morphic.TextEmphasis',
     set: function(attrName, value) { return this.styleAttributes[attrName].set.call(this, value) },
     getDoit:             function()      { return this.get('doit'); },
     setDoit:             function(value) { return this.set('doit', value); },
+    getHover:            function()      { return this.get('hover'); },
+    setHover:            function(value) { return this.set('hover', value); },
     getURI:              function()      { return this.get('uri'); },
     setURI:              function(value) { return this.set('uri', value); },
     getFontWeight:       function()      { return this.get('fontWeight'); },
@@ -2912,6 +2953,7 @@ Object.subclass('lively.morphic.TextEmphasis',
 
         // FIXME refactor
         return attrs.doit            .equals.call(this, other)
+            && attrs.hover           .equals.call(this, other)
             && attrs.uri             .equals.call(this, other)
             && attrs.fontWeight      .equals.call(this, other)
             && attrs.italics         .equals.call(this, other)
@@ -2985,6 +3027,7 @@ Object.subclass('lively.morphic.TextEmphasis',
         // FIXME refactor
         var attrs = this.styleAttributes;
         attrs.doit            .apply.call(this, node);
+        attrs.hover           .apply.call(this, node);
         attrs.uri             .apply.call(this, node);
         attrs.fontWeight      .apply.call(this, node);
         attrs.italics         .apply.call(this, node);
@@ -3041,6 +3084,78 @@ Object.subclass('lively.morphic.TextEmphasis',
         })
         return 'TextEmphasis(' + propStrings.join(',') + ')'
     }
+});
+
+Object.extend(lively.morphic.TextEmphasis, {
+    hoverActions: (function createActionQueue() {
+        // this actionQueue takes care of the fact that new mouse in/out
+        // events are emitted when moving the hand between neighboring text
+        // chunks that all have hover actions with the same context
+        //
+        // consider 3 text chunks that all have hover actions, the arrows
+        // represent the movement of the hand across those chunks:
+        //
+        //       chunk1         chunk2            chunk3
+        //    +------------+----------------+----------------+
+        //    |   hover    |    hover       |     hover      |
+        // ---+--->    ----+--->         ---+-->           --+---->
+        //    | context 1  |   context 1    |    context 2   |
+        //    +------------+----------------+----------------+
+        //
+        // = when entering chunk1 the enter-action should run
+        // - when moving from chunk1 to chunk2 nothing should happen since the
+        //   hover context is the same
+        // - when moving from chunk2 to chunk3 the leave-action for context 1
+        //   and enter-action for context 2 should fire
+        // - when moving out of chunk3 the leave action for context 2 should
+        //   fire
+        //
+        // The implementation below implements these requirements
+
+        var actionQueue = [];
+
+        function schedule(type, context, action) {
+            action.type = type;
+            action.context = context;
+            action.ignore = false;
+            actionQueue.unshift(action);
+            (function() {
+                var idx = actionQueue.indexOf(action);
+                if (!action.ignore) action(idx, action.ignore);
+                actionQueue.removeAt(idx);
+            }).delay(0);
+        }
+
+        actionQueue.enter = function enter(callback, context) {
+            schedule('in', context, function(idxInQueue) {
+                if (idxInQueue === 0) { callback.call(context); return; }
+                var nextAction = actionQueue[idxInQueue-1];
+                if (!nextAction.type === "out") {
+                    throw new Error('Expecting next action of type "out"!');
+                }
+                callback.call(context);
+            });
+        }
+
+        actionQueue.leave = function leave(callback, context) {
+            schedule('out', context, function(idxInQueue) {
+                if (idxInQueue === 0) { callback.call(context); return; }
+
+                var nextAction = actionQueue[idxInQueue-1];
+                if (!nextAction.type === "in") {
+                    throw new Error('Expecting next action of type "in"!');
+                }
+                if (nextAction.context === context) {
+                    // out immediately followed by in: do nothing
+                    nextAction.ignore = true;
+                } else {
+                    callback.call(context);
+                }
+            });
+        }
+
+        return actionQueue;
+    })()
 });
 
 Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),

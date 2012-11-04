@@ -3055,10 +3055,10 @@ Object.subclass('lively.morphic.TextEmphasis',
         [{type: 'click', handler: 'mousedown'},
          {type: 'mouseover', handler: 'mouseover'},
          {type: 'mouseout', handler: 'mouseout'}].forEach(function(spec) {
+             $node.off(spec.handler);
              if (!this.callbacks
                || !this.callbacks[spec.type]
                || this.callbacks[spec.type].length === 0) {
-                 $node.off([spec.handler]);
                  return;
              }
              var cbs = this.callbacks[spec.type];

@@ -66,10 +66,11 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
 
     test06SetDoit: function() {
         this.text.setTextString('eintest');
-        this.text.emphasize({doit: 'Global.textDoitInvoked=true'}, 0, 3);
+        this.text.emphasize({doit: {code: 'Global.textDoitInvoked=true'}}, 0, 3);
         this.checkChunks(
-            [{textString: 'ein', style: {doit: 'Global.textDoitInvoked=true'}},
-            {textString: 'test'}]);
+            [{textString: 'ein', style: {doit: {
+                code: "Global.textDoitInvoked=true", context: null}}},
+             {textString: 'test'}]);
         this.assert(Object.isFunction(this.text.firstTextChunk().getChunkNode().onmousedown),
                     'no doit event handler');
     }

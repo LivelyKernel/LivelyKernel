@@ -2715,13 +2715,13 @@ Object.subclass('lively.morphic.TextEmphasis',
                 return !other.doit;
             },
             apply: function(node) {
-                var value = this.doit;
-                if (!value) return;
+                var doit = this.doit;
+                if (!doit) return;
                 this.addCallbackWhenApplyDone(function(evt) {
-                    var src = '(function() {\n' + value + '\n})';
+                    var src = '(function() {\n' + doit.code + '\n})';
                     try {
                         var func = eval(src);
-                        func.call(value.context || Global);
+                        func.call(doit.context || Global);
                     } catch(e) {
                         alert('Error in text doit\n' + e.stack);
                     }
@@ -2730,7 +2730,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                 node.style.cursor = 'pointer';
                 node.style.textDecoration = 'underline';
                 node.style.color = 'darkgreen';
-                LivelyNS.setAttribute(node, 'doit', value);
+                LivelyNS.setAttribute(node, 'doit', doit.code);
             }
         },
 

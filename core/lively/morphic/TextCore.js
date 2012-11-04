@@ -2708,6 +2708,8 @@ Object.subclass('lively.morphic.TextEmphasis',
     styleAttributes: {
 
         doit: {
+            // expected to be of the form
+            // {code: STRING [, context: OBJECT]}
             set: function(value) { return this.doit = value },
             get: function() { return this.doit },
             equals: function(other) {
@@ -2719,7 +2721,7 @@ Object.subclass('lively.morphic.TextEmphasis',
             apply: function(node) {
                 var doit = this.doit;
                 if (!doit) return;
-                this.addCallbackWhenApplyDone(function(evt) {
+                this.addCallbackWhenApplyDone('click', function(evt) {
                     var src = '(function() {\n' + doit.code + '\n})';
                     try {
                         var func = eval(src);
@@ -2743,7 +2745,7 @@ Object.subclass('lively.morphic.TextEmphasis',
             apply: function(node) {
                 var value = this.uri;
                 if (!value) return;
-                this.addCallbackWhenApplyDone(function(evt) { window.open(value) });
+                this.addCallbackWhenApplyDone('click', function(evt) { window.open(value) });
                 node.style.cursor = 'pointer';
                 node.style.textDecoration = 'underline';
                 node.style.color = 'blue';
@@ -2996,27 +2998,36 @@ Object.subclass('lively.morphic.TextEmphasis',
         // attrs.isNullStyle.apply.call(this, node);
 
         this.installCallbackHandler(node);
+        delete this.callbacks;
     },
 
-    addCallbackWhenApplyDone: function(cb) {
-        if (!this.clickCallbacks) this.clickCallbacks = [];
-        this.clickCallbacks.push(cb);
+    addCallbackWhenApplyDone: function(type, cb) {
+        if (!this.callbacks) this.callbacks = {};
+        if (!this.callbacks[type]) this.callbacks[type] = [];
+        this.callbacks[type].push(cb);
     },
 
     installCallbackHandler: function(node) {
-        if (!this.clickCallbacks || this.clickCallbacks.length === 0) {
-            delete node.onmousedown;
-            return;
-        };
-        var cbs = this.clickCallbacks;
-        node.onmousedown = function(evt) {
-            for (var i = 0; i < cbs.length; i++) {
-                cbs[i].call(this, evt);
-            }
-            evt.stop();
-            return true;
-        }
-        delete this.clickCallbacks;
+        var $node = $(node);
+        [{type: 'click', handler: 'mousedown'},
+         {type: 'mouseover', handler: 'mouseover'},
+         {type: 'mouseout', handler: 'mouseout'}].forEach(function(spec) {
+             if (!this.callbacks
+               || !this.callbacks[spec.type]
+               || this.callbacks[spec.type].length === 0) {
+                 $node.off([spec.handler]);
+                 return;
+             }
+             var cbs = this.callbacks[spec.type];
+             $node.on(spec.handler, function(evt) {
+                 for (var i = 0; i < cbs.length; i++) {
+                     cbs[i].call(this, evt);
+                 }
+                 evt.stopPropagation();
+                 evt.preventDefault();
+                 return true;
+             });
+         }, this);
     }
 
 },

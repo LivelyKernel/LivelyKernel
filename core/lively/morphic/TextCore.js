@@ -2725,8 +2725,8 @@ Object.subclass('lively.morphic.TextEmphasis',
                 // setup
                 var context = hover.context || {},
                     world = lively.morphic.World.current(),
-                    inCode = '(function() {\n' + hover.inAction + '\n})',
-                    outCode = '(function() {\n' + hover.outAction + '\n})',
+                    inCode = '(function(evt) {\n' + hover.inAction + '\n})',
+                    outCode = '(function(evt) {\n' + hover.outAction + '\n})',
                     inFunc, outFunc;
                 try { inFunc = eval(inCode); outFunc = eval(outCode); } catch(e) {
                     alert('Error when installing hover: ' + e + '\n' + e.stack);
@@ -2735,10 +2735,10 @@ Object.subclass('lively.morphic.TextEmphasis',
 
                 var actionQueue = lively.morphic.TextEmphasis.hoverActions;
                 this.addCallbackWhenApplyDone('mouseover', function(evt) {
-                    actionQueue.enter(inFunc, context); return true;
+                    actionQueue.enter(inFunc.bind(context,evt), context); return true;
                 });
                 this.addCallbackWhenApplyDone('mouseout', function(evt) {
-                    actionQueue.leave(outFunc, context); return true;
+                    actionQueue.leave(outFunc.bind(context, evt), context); return true;
                 });
 
                 LivelyNS.setAttribute(node, 'hoverInAction', hover.inAction);

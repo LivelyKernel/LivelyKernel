@@ -1,5 +1,5 @@
 /*
- * This file was compiled with "lk build-libs" on Mon, 29 Oct 2012 21:45:37 GMT with the libs:
+ * This file was compiled with "lk build-libs" on Mon, 05 Nov 2012 16:47:59 GMT with the libs:
  * jquery-1.7.2.js
  * jquery-bounds.js
  * es5-shim.js
@@ -9483,6 +9483,17 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
         });
         return bounds;
     };
+
+    $.fn.boundsEach = function(options) {
+        var all = []
+        this.each(function (i,el) {
+            all.push($(el).bounds(options));
+        });
+        all.show = function(ms) {
+            $(all).each(function(i, bounds) { bounds.show(ms) });
+        }
+        return all;
+    }
 
 })(jQuery);
 

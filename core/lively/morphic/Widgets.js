@@ -1188,15 +1188,9 @@ lively.morphic.World.addMethods(
         return part;
     },
     openPartItem: function(partName, optPartspaceName) {
-		// TODO: part-time workaround!!
-		if (optPartspaceName === 'PartsBin/Tools') {
-			var loggingEnabled = $world.GlobalLogger.loggingEnabled
-			$world.GlobalLogger.disableLogging()
-		}
         var part = this.loadPartItem(partName, optPartspaceName);
         part.openInWorld(pt(0,0))
         part.align(part.bounds().center(), this.visibleBounds().center());
-		$world.GlobalLogger.loggingEnabled = loggingEnabled
         return part;
     },
     openPartsBin: function(evt) {
@@ -1260,7 +1254,7 @@ lively.morphic.World.addMethods(
         return part;
     },
     openPublishPartDialogFor: function(morph) {
-                var publishDialog = this.loadPartItem('PublishPartDialog', 'PartsBin/Dialogs');
+        var publishDialog = this.loadPartItem('PublishPartDialog', 'PartsBin/Dialogs');
         var metaInfo = morph.getPartsBinMetaInfo();
         publishDialog.targetMorph.setTarget(morph);
         publishDialog.openInWorldCenter();

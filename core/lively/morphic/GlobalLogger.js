@@ -6,14 +6,14 @@ Object.subclass('lively.GlobalLogger',
         [lively.morphic.Shapes.Shape, ['shapeSetter']]
     ],
     silentFunctions: [
-        [lively.morphic.World, ['openInspectorFor', 'openStyleEditorFor', 'openPartsBin', 'openMethodFinderFor', 'prompt', 'openWorkspace', 'setStatusMessage']],
+        [lively.morphic.World, ['openInspectorFor', 'openStyleEditorFor', 'openPartsBin', 'openMethodFinderFor', 'prompt', 'openWorkspace', 'setStatusMessage', 'openSystemBrowser']],
         [lively.morphic.Morph, ['showMorphMenu', 'showHalos']],
         [lively.morphic.Menu, ['initialize', 'openIn', 'remove']],
         [lively.morphic.Text, ['doFind']],
         [lively.morphic.MenuItem, ['initialize']],
         [lively.morphic.Script, ['tick']]
     ],
-    silentClasses: [lively.morphic.Menu, lively.morphic.Tree, lively.morphic.PromptDialog, lively.morphic.AwesomeColorField] // loadging order
+    silentClasses: [lively.morphic.Menu, lively.morphic.Tree, lively.morphic.PromptDialog, lively.morphic.AwesomeColorField, lively.morphic.List] // loadging order
 },
 'initialization', {
     initialize: function () {
@@ -41,9 +41,7 @@ Object.subclass('lively.GlobalLogger',
 },
 'logging', {
     logAction: function(action) {
-        if (!action || !this.loggingEnabled || (action.morph && !action.morph.isLoggable)) return false;
-        var parentWantsNoUndo = action.morph.ownerChain? action.morph.ownerChain().detect(function (ea) { return !ea.isLoggable && !ea.isHand }) : false;
-        if (parentWantsNoUndo) return false
+        if (!action || !this.shouldLog(action.morph)) return false
         action.time = Date.now();
         if (this.stack.length > this.counter) {
             this.stack.splice(this.counter)
@@ -63,6 +61,12 @@ Object.subclass('lively.GlobalLogger',
         // enforces to open a new set of undoable actions
         this.stack.last() && (this.stack.last().isFull = true)
     },
+    shouldLog: function(item) {
+        // determines whether an item (morph, shape, etc) is supposed to be logged in certain circumstances
+        if (!this.loggingEnabled || (item && !item.isLoggable)) return false;
+        return true
+    }
+
 },
 'undoredo', {
     undoLastAction: function () {
@@ -144,7 +148,9 @@ Object.subclass('lively.GlobalLogger',
             functionsObject[functionName] = function () {
                 var logCondition = Object.isFunction(this[beforeLogFunctionName]) ? this[beforeLogFunctionName].apply(this, arguments) : true;
                 if (logFunctionName && Object.isFunction(this[logFunctionName])) {
-                    var logResult = self.logAction(this[logFunctionName].apply(this, arguments))
+                    var action = this[logFunctionName].apply(this, arguments)
+                    action.logString = ('calling '+functionName+' on '+(this.toString && this.toString()));
+                    var logResult = self.logAction(action)
                 }
                 var loggingEnabled = self.loggingEnabled;
                 self.disableLogging();
@@ -342,6 +348,9 @@ lively.morphic.Morph.addMethods(
             }).bind(this)
         }
     },
+    beforeLogOpenInwindow: function (optPos) {
+        return (this.isLoggable === true)
+    },
     logOpenInWindow: function (optPos) {
         var owner = this.owner,
             pos = this.getPosition(),
@@ -445,14 +454,11 @@ lively.morphic.Morph.addMethods(
     },
     beforeLogStopStepping: function() {
         var self = this;
-        this.scripts.each(function (ea) {
+        /*this.scripts.each(function (ea) {
             if (Object.isFunction(self[ea.selector]))
                 self[ea.selector].apply(self, ea.args)
-        })
+        })*/
     },
-
-
-
     logStopStepping: function() {
         var self = this,
             currentScripts = Object.clone(this.scripts)
@@ -494,6 +500,22 @@ lively.morphic.Shapes.Shape.addMethods(
                 }).bind(this)
         };
     },
+})
+
+lively.morphic.World.addMethods(
+'logging', {
+    loadPartItem: function (partName, optPartspaceName) {
+        var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld';
+        var part = lively.PartsBin.getPart(partName, optPartspaceName);
+        if (optPartspaceName && optPartspaceName.include('Tools')) {
+            part.isLoggable = false
+            part.shape.isLoggable = false
+        }
+        if (!part)
+            return;
+        if (part.onCreateFromPartsBin) part.onCreateFromPartsBin();
+        return part;
+    }
 })
 
 }) // end of module

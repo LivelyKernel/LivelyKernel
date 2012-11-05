@@ -2,10 +2,19 @@ module('lively.morphic.GlobalLogger').requires('lively.ide.SystemCodeBrowser', '
 Object.subclass('lively.GlobalLogger',
 'properties', {
     loggedFunctions: [
+        /* 
+        ** To log a function called functionName, add functions 'beforeLogFunctionName', 'logFunctionName' and 'afterLogFunctionName', if you need them.
+        ** The execution of logFunctionName will not be logged, as well as side functions.
+        ** If beforeFunctionName returns a falsee, logFunctionName will not be executed. 
+        */
         [lively.morphic.Morph, ['addMorph', 'remove', 'morphicSetter', 'addScript', 'openInWindow', 'lock', 'unlock', 'startStepping', 'stopSteppingScriptNamed', 'stopStepping']],
         [lively.morphic.Shapes.Shape, ['shapeSetter']]
     ],
     silentFunctions: [
+        /* 
+        ** Add functions of Classes that are not supposed to be logged.
+        ** This will create an invisible layered function that prevents logging of this function.
+        */
         [lively.morphic.World, ['openInspectorFor', 'openStyleEditorFor', 'openPartsBin', 'openMethodFinderFor', 'prompt', 'openWorkspace', 'setStatusMessage', 'openSystemBrowser']],
         [lively.morphic.Morph, ['showMorphMenu', 'showHalos']],
         [lively.morphic.Menu, ['initialize', 'openIn', 'remove']],
@@ -13,40 +22,53 @@ Object.subclass('lively.GlobalLogger',
         [lively.morphic.MenuItem, ['initialize']],
         [lively.morphic.Script, ['tick']]
     ],
-    silentClasses: [lively.morphic.Menu, lively.morphic.Tree, lively.morphic.PromptDialog, lively.morphic.AwesomeColorField, lively.morphic.List] // loadging order
+    silentClasses: [
+        /* 
+        ** No function of these classes will ever be logged.
+        */
+        lively.morphic.Menu, lively.morphic.Tree, lively.morphic.PromptDialog, lively.morphic.AwesomeColorField, lively.morphic.List
+    ]
 },
 'initialization', {
     initialize: function () {
         this.stack = [];
         this.counter = 0;
-        this.initializeSilentList();
+        this.buildLoggerLayer();
         this.enableLogging();
     },
-    initializeSilentList: function () {
+    buildLoggerLayer: function () {
+        // Creates a hidden Layer to cover loggable and explicitly unloggable functions
         var self = this;
         cop.create('LoggerLayer');
         LoggerLayer.hide()
-        this.createMorphLoggersForEnablingAndDisabling();
+        this.initializeLayer();
+        LoggerLayer.beGlobal();
+    },
+    initializeLayer: function () {
+        // Covers functions added to silentFunctions, silentClasses and loggedFunctions, also all enableFunction and disable Function for Morphs.
+        var self = this
         this.silentFunctions.each(function (extendableClass) {
-            extendableClass[0] && self.disableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1])
+            extendableClass[0] && self.disableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1]);
         })
         this.silentClasses.each(function (eachClass) {
-            self.disableLoggingForClass(eachClass)
+            self.disableLoggingForClass(eachClass);
         })
         this.loggedFunctions.each(function (extendableClass) {
-            self.enableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1])
+            self.enableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1]);
         })
-        LoggerLayer.beGlobal();
+        this.createMorphLoggersForEnablingAndDisabling();
     },
 },
 'logging', {
     logAction: function(action) {
+        /* 
+        ** Writes the action to $world.GlobalLogger.stack, if the target of the action is loggable.
+        ** Actions that happen at the same time are bundeled, so they can be reverted at once.
+        */
         if (!action || !this.shouldLog(action.morph)) return false
         action.time = Date.now();
-        if (this.stack.length > this.counter) {
+        if (this.stack.length > this.counter)
             this.stack.splice(this.counter)
-        }
-        // keep changes at a bundle if they happen at the same time
         var lastAction = this.stack.last() && this.stack.last().last()
         if (lastAction && !(this.stack.last().isFull) && (action.time - lastAction.time) <= 100) {
             this.stack.last().push(action)
@@ -70,23 +92,25 @@ Object.subclass('lively.GlobalLogger',
 },
 'undoredo', {
     undoLastAction: function () {
+        // Reverts the last bulk of actions logged, in reverse order.
         var self = this;
         if (this.counter <= 0) {
             lively.morphic.World.current().alert('Nothing to undo')
             return false
         }
-        var actionIndex = this.counter-1
-        this.stack[actionIndex] && this.stack[actionIndex].reverse().each(function (ea) {
+        this.counter --
+        this.stack[this.counter] && this.stack[this.counter].reverse().each(function (ea) {
             self.undoAction(ea);
         })
-        this.counter --
     },
     undoAction: function (action) {
+        // Undos an action without logging the side effects of undoing
         this.disableLogging(true)
         action.undo();
         this.enableLogging()
     },
     redoNextAction: function () {
+        // re-executes the currently next bulk of actions
         var self = this;
         if (this.counter > this.stack.length) {
             lively.morphic.World.current().alert('Nothing to redo')
@@ -98,6 +122,7 @@ Object.subclass('lively.GlobalLogger',
         this.counter ++
     },
     redoAction: function (action) {
+        // Redos an action without logging the side effects of redoing
         this.disableLogging(true)
         if (action.morph.getLoggability && action.morph.getLoggability()  || !action.morph.getLoggability)
             action.redo()
@@ -110,19 +135,52 @@ Object.subclass('lively.GlobalLogger',
         this.workingOnAction = false
     },
     disableLogging: function (definite) {
+        // disables the GlobalLogger temporarily and returns whether it was enabled before, or not.
+        var enabled = this.loggingEnabled
         this.loggingEnabled = false
         this.workingOnAction = definite
+        return enabled
     },
 },
 'disable and enable context', {
+    enableLoggingOfFunctionsFromClass: function (classObject, functionNames) {
+        // Adds a layered function that enables logging of certain functions
+        var self = this,
+            functionsObject = {};
+        functionNames.each(function (functionName) {
+            // Pattern to work with functionName: beforeLogFunctionName, logFunctionName, afterLogFunctionName
+            var beforeLogFunctionName = 'beforeLog' + functionName.capitalize(),
+                logFunctionName = 'log' + functionName.capitalize(),
+                afterLogFunctionName = 'afterLog' + functionName.capitalize();
+            functionsObject[functionName] = function () {
+                // beforeLogFunctionName
+                var logCondition = Object.isFunction(this[beforeLogFunctionName]) ? this[beforeLogFunctionName].apply(this, arguments) : true;
+                if (logFunctionName && Object.isFunction(this[logFunctionName])) {
+                    // logFunctionName
+                    var action = this[logFunctionName].apply(this, arguments)
+                    action.logString = ('calling '+functionName+' on '+(this.toString && this.toString()));
+                    var logResult = self.logAction(action)
+                }
+                var loggingEnabled = self.disableLogging();
+                // functionName
+                var returnValue = cop.proceed.apply(cop, arguments);
+                if (logResult && afterLogFunctionName && Object.isFunction(this[afterLogFunctionName])) {
+                    // afterLogFunctionName
+                    this[afterLogFunctionName].apply(this, returnValue) 
+                }
+                self.loggingEnabled = loggingEnabled;
+                return returnValue;
+            }
+        })
+        LoggerLayer.refineClass(classObject, functionsObject);
+    },
     disableLoggingOfFunctionsFromClass: function (classObject, functionNames) {
         // Disable logging of certain functions (e.g. Tool functionality)
         var self = this,
             functionsObject = {};
         functionNames.each(function (functionName) {
             functionsObject[functionName] = function () {
-                var loggingEnabled = self.loggingEnabled
-                self.disableLogging();
+                var loggingEnabled = self.disableLogging();
                 var returnValue = cop.proceed.apply(cop, arguments)
                 self.loggingEnabled = loggingEnabled;
                 return returnValue
@@ -137,89 +195,50 @@ Object.subclass('lively.GlobalLogger',
                                 .without('constructor')
         this.disableLoggingOfFunctionsFromClass(classObject, loggableClasses)
     },
-    enableLoggingOfFunctionsFromClass: function (classObject, functionNames) {
-        // Adds a layered function that enables logging of certain functions
-        var self = this,
-            functionsObject = {};
-        functionNames.each(function (functionName) {
-            var beforeLogFunctionName = 'beforeLog' + functionName.capitalize(),
-                logFunctionName = 'log' + functionName.capitalize(),
-                afterLogFunctionName = 'afterLog' + functionName.capitalize();
-            functionsObject[functionName] = function () {
-                var logCondition = Object.isFunction(this[beforeLogFunctionName]) ? this[beforeLogFunctionName].apply(this, arguments) : true;
-                if (logFunctionName && Object.isFunction(this[logFunctionName])) {
-                    var action = this[logFunctionName].apply(this, arguments)
-                    action.logString = ('calling '+functionName+' on '+(this.toString && this.toString()));
-                    var logResult = self.logAction(action)
-                }
-                var loggingEnabled = self.loggingEnabled;
-                self.disableLogging();
-                var returnValue = cop.proceed.apply(cop, arguments);
-                if (logResult && afterLogFunctionName && Object.isFunction(this[afterLogFunctionName]))
-                    this[afterLogFunctionName].apply(this, returnValue)
-                self.loggingEnabled = loggingEnabled;
-                return returnValue;
-            }
-        })
-        LoggerLayer.refineClass(classObject, functionsObject);
-    },
 }, 'special morphic functions', {
+    createActionForAbler: function (functionName) {
+        // returns a function that enables logging for functionName
+        var functionPieces = functionName.split('able'),
+            suffix = functionPieces.splice(1).join('able'),
+            counterFunctionName = functionPieces[0] == 'dis'? 'enable'+suffix : 'disable'+suffix;
+        return {
+            morph: this,
+            undo: (function () {
+                    try {
+                        this[counterFunctionName] && this[counterFunctionName].apply(this)
+                    }
+                    catch (e) {
+                        alert('unable to undo '+ functionName +" with Error"+'\n'+e)
+                    }
+                }).bind(this),
+            redo: (function () {
+                    try {
+                        this[functionName] && this[functionName].apply(this)
+                    }
+                    catch (e) {
+                        alert('unable to redo ' + functionName +" with Error"+'\n'+e)
+                    }
+                }).bind(this)
+        }
+    },
     createMorphLoggersForEnablingAndDisabling: function () {
+        // Morph functions that follow the patter enableSomething and disableSomething are always logged
         var functionsObject = {},
             functionNames = lively.morphic.Morph.localFunctionNames(),
             self = this;
         functionNames.each(function (functionName) {
             if (functionName.startsWith('enable')) {
                 var suffix = functionName.slice('enable'.length)
-                if (functionNames.indexOf('disable'+suffix) >= 0) {
-                    functionsObject['enable'+suffix] = function () {
-                        var loggingEnabled = self.loggingEnabled
-                        self.logAction({
-                            morph: this,
-                            undo: (function () {
-                                    try {
-                                        this['disable'+suffix] && this['disable'+suffix].apply(this)
-                                    }
-                                    catch (e) {
-                                        alert('unable to undo enable' + suffix +" with Error"+'\n'+e)
-                                    }
-                                }).bind(this),
-                            redo: (function () {
-                                    try {
-                                        this['enble'+suffix] && this['enble'+suffix].apply(this)
-                                    }
-                                    catch (e) {
-                                        alert('unable to redo enable' + suffix +" with Error"+'\n'+e)
-                                    }
-                                }).bind(this)
-                        })
-                        var returnValue = cop.proceed.apply(cop, arguments)
-                        return returnValue
-                    };
-                    functionsObject['disable'+suffix] = function () {
-                        var loggingEnabled = self.loggingEnabled
-                        self.logAction({
-                            morph: this,
-                            undo: (function () {
-                                    try {
-                                        this['enable'+suffix].apply(this)
-                                    }
-                                    catch (e) {
-                                        alert('unable to undo disable' + suffix +" with Error"+'\n'+e)
-                                    }
-                                }).bind(this),
-                            redo: (function () {
-                                    try {
-                                        this['disable'+suffix].apply(this)
-                                    }
-                                    catch (e) {
-                                        alert('unable to redo disable' + suffix+" with Error"+'\n'+e)
-                                    }
-                                }).bind(this)
-                        })
-                        var returnValue = cop.proceed.apply(cop, arguments)
-                        return returnValue
-                    }
+                if (!functionNames.include('disable'+suffix)) return
+                functionsObject['enable'+suffix] = function () {
+                    self.logAction(self.createActionForAbler(functionName))
+                    var returnValue = cop.proceed.apply(cop, arguments)
+                    return returnValue
+                };
+                functionsObject['disable'+suffix] = function () {
+                    self.logAction(self.createActionForAbler(functionName))
+                    var returnValue = cop.proceed.apply(cop, arguments)
+                    return returnValue
                 }
             }
         })

@@ -5,6 +5,7 @@ workspace/
 *.xhtml
 !blank.xhtml
 !run_tests.xhtml
+!StyleBrowser.xhtml
 
 # Node #
 node_modules

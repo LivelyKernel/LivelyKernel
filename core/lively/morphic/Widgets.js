@@ -1675,18 +1675,12 @@ lively.morphic.World.addMethods(
         return part;
     },
     openPartItem: function(partName, optPartspaceName) {
-		// TODO: part-time workaround!!
-		if (optPartspaceName === 'PartsBin/Tools') {
-			var loggingEnabled = $world.GlobalLogger.loggingEnabled
-			$world.GlobalLogger.disableLogging()
-		}
         var part = this.loadPartItem(partName, optPartspaceName);
         if (!part) return null;
         part.openInWorld(pt(0,0))
         part.align(part.bounds().center(), this.visibleBounds().center());
         var win = part.getWindow();
         if (win) win.comeForward();
-		$world.GlobalLogger.loggingEnabled = loggingEnabled;
         return part;
     },
     openPartsBin: function() {

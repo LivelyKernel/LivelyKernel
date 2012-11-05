@@ -71,11 +71,12 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
             [{textString: 'ein', style: {doit: {
                 code: "Global.textDoitInvoked=true", context: null}}},
              {textString: 'test'}]);
-        var events = $(this.text.firstTextChunk().getChunkNode()).data('events');
+        var events = $._data(this.text.firstTextChunk().getChunkNode(), "events");
+
         this.assertEquals(1, events.mousedown.length, 'no doit event handler?');
 
         this.text.emphasize({doit: {code: 'Global.textDoitInvoked=true'}}, 0, 3);
-        events = $(this.text.firstTextChunk().getChunkNode()).data('events');
+        events = $._data(this.text.firstTextChunk().getChunkNode(), "events");
         this.assertEquals(1, events.mousedown.length, 'multiple doit event handler?');
     },
 
@@ -88,7 +89,7 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
             style: {hover: {inAction: "1", outAction: "2", context: 1}}
         }]);
 
-        var events1 = $(this.text.firstTextChunk().getChunkNode()).data('events');
+        var events1 = $._data(this.text.firstTextChunk().getChunkNode(), "events");
         this.assertEquals(1, events1.mouseover.length);
         this.assertEquals(1, events1.mouseout.length);
 
@@ -97,7 +98,7 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
             textString: "xyz",
             style: {hover: {inAction: "3", outAction: "4", context: 2}}
         }]);
-        var events2 = $(this.text.firstTextChunk().getChunkNode()).data('events');
+        var events2 = $._data(this.text.firstTextChunk().getChunkNode(), "events");
         this.assertEquals(1, events2.mouseover.length);
         this.assertEquals(1, events2.mouseout.length);
     }

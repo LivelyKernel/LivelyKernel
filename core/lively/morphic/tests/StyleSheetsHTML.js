@@ -371,7 +371,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.B
         this.redRectangle.setBorderStylingMode(true);
         this.redRectangle.setStyleSheet('.red {border: 10px solid black;}');
         var oldShapeNodeSize = $(this.redRectangle.renderContext().shapeNode).outerWidth();
-        
+
     },
 
 
@@ -704,7 +704,7 @@ AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Text',
                 'font-family was not properly reset after switching back from CSS text styling');
             this.assertEquals('normal', $(textNode).css('font-style'),
                 'font-style was not properly reset after switching back from CSS text styling');
-            this.assertEquals('normal', $(textNode).css('font-weight'),
+            this.assertEquals('400', $(textNode).css('font-weight'),
                 'font-weight was not properly reset after switching back from CSS text styling');
             this.assertEquals('rgb(0, 0, 0)', $(textNode).css('color'),
                 'color was not properly reset after switching back from CSS text styling');

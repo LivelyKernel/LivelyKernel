@@ -90,8 +90,8 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
         }]);
 
         var events1 = $._data(this.text.firstTextChunk().getChunkNode(), "events");
-        this.assertEquals(1, events1.mouseover.length);
-        this.assertEquals(1, events1.mouseout.length);
+        this.assertEquals(1, events1.mouseenter.length);
+        this.assertEquals(1, events1.mouseleave.length);
 
         this.text.emphasize({hover: {inAction: '3', outAction: '4', context: 2}}, 0, 3);
         this.checkChunks([{
@@ -99,8 +99,8 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
             style: {hover: {inAction: "3", outAction: "4", context: 2}}
         }]);
         var events2 = $._data(this.text.firstTextChunk().getChunkNode(), "events");
-        this.assertEquals(1, events2.mouseover.length);
-        this.assertEquals(1, events2.mouseout.length);
+        this.assertEquals(1, events2.mousenter.length);
+        this.assertEquals(1, events2.mouseleave.length);
     }
 
 });

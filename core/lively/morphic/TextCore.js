@@ -2714,7 +2714,7 @@ Object.subclass('lively.morphic.TextEmphasis',
             get: function() { return this.hover },
             equals: function(other) {
                 if (!this.hover) return !other.hover;
-                if (!other.hover) return false
+                if (!other.hover) return false;
                 return this.hover.inAction == other.hover.inAction
                     && this.hover.outAction == other.hover.outAction;
             },
@@ -2734,10 +2734,10 @@ Object.subclass('lively.morphic.TextEmphasis',
                 }
 
                 var actionQueue = lively.morphic.TextEmphasis.hoverActions;
-                this.addCallbackWhenApplyDone('mouseover', function(evt) {
+                this.addCallbackWhenApplyDone('mouseenter', function(evt) {
                     actionQueue.enter(inFunc.bind(context,evt), context); return true;
                 });
-                this.addCallbackWhenApplyDone('mouseout', function(evt) {
+                this.addCallbackWhenApplyDone('mouseleave', function(evt) {
                     actionQueue.leave(outFunc.bind(context, evt), context); return true;
                 });
 
@@ -3053,8 +3053,8 @@ Object.subclass('lively.morphic.TextEmphasis',
     installCallbackHandler: function(node) {
         var $node = $(node);
         [{type: 'click', handler: 'mousedown'},
-         {type: 'mouseover', handler: 'mouseover'},
-         {type: 'mouseout', handler: 'mouseout'}].forEach(function(spec) {
+         {type: 'mouseenter', handler: 'mouseenter'},
+         {type: 'mouseleave', handler: 'mouseleave'}].forEach(function(spec) {
              $node.off(spec.handler);
              if (!this.callbacks
                || !this.callbacks[spec.type]

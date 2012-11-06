@@ -66,7 +66,6 @@ Object.subclass('lively.GlobalLogger',
         ** Actions that happen at the same time are bundeled, so they can be reverted at once.
         */
         if (!action || !this.shouldLog(action.morph)) return false
-        debugger
         action.time = Date.now();
         if (this.stack.length > this.counter)
             this.stack.splice(this.counter)

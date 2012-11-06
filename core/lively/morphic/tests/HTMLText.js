@@ -83,24 +83,36 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
     test07OnlyOneHoverEventHandler: function() {
         this.world.addMorph(this.text);
         this.text.setTextString('xyz');
-        this.text.emphasize({hover: {inAction: '1', outAction: '2', context: 1}}, 0, 3);
+        var hoverSpec1 = {
+            inAction: function() { return 1 },
+            outAction: function() { return 2 },
+            context: 1
+        };
+        this.text.emphasize({hover: hoverSpec1}, 0, 3);
         this.checkChunks([{
             textString: "xyz",
-            style: {hover: {inAction: "1", outAction: "2", context: 1}}
+            style: {hover: hoverSpec1}
         }]);
 
         var events1 = $._data(this.text.firstTextChunk().getChunkNode(), "events");
-        this.assertEquals(1, events1.mouseenter.length);
-        this.assertEquals(1, events1.mouseleave.length);
+        // jQuery decides whether it implements mouseenter/leave with
+        // mouseover/out or directly with menter/leave
+        this.assertEquals(1, (events1.mouseover || events1.mouseenter).length);
+        this.assertEquals(1, (events1.mouseout || events1.mouseleave).length);
 
-        this.text.emphasize({hover: {inAction: '3', outAction: '4', context: 2}}, 0, 3);
+        var hoverSpec2 = {
+            inAction: function() { return 3 },
+            outAction: function() { return 4 },
+            context: 2
+        };
+        this.text.emphasize({hover: hoverSpec2}, 0, 3);
         this.checkChunks([{
             textString: "xyz",
-            style: {hover: {inAction: "3", outAction: "4", context: 2}}
+            style: {hover: hoverSpec2}
         }]);
         var events2 = $._data(this.text.firstTextChunk().getChunkNode(), "events");
-        this.assertEquals(1, events2.mousenter.length);
-        this.assertEquals(1, events2.mouseleave.length);
+        this.assertEquals(1, (events2.mouseover || events2.mouseenter).length);
+        this.assertEquals(1, (events2.mouseout || events2.mouseleave).length);
     }
 
 });

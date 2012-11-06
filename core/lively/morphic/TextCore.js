@@ -2710,7 +2710,13 @@ Object.subclass('lively.morphic.TextEmphasis',
         hover: {
             // expected to be of the form:
             // {inAction: STRING, outAction: STRING [, context: OBJECT]}
-            set: function(value) { return this.hover = value },
+            set: function(value) {
+                lively.assert(value.inAction, "hover inAction required");
+                lively.assert(value.outAction, "hover outAction required");
+                if (!value.inAction.hasLivelyClosure) value.inAction = value.inAction.asScript();
+                if (!value.outAction.hasLivelyClosure) value.outAction = value.outAction.asScript();
+                return this.hover = value;
+            },
             get: function() { return this.hover },
             equals: function(other) {
                 if (!this.hover) return !other.hover;
@@ -2724,25 +2730,16 @@ Object.subclass('lively.morphic.TextEmphasis',
 
                 // setup
                 var context = hover.context || {},
-                    world = lively.morphic.World.current(),
-                    inCode = '(function(evt) {\n' + hover.inAction + '\n})',
-                    outCode = '(function(evt) {\n' + hover.outAction + '\n})',
-                    inFunc, outFunc;
-                try { inFunc = eval(inCode); outFunc = eval(outCode); } catch(e) {
-                    alert('Error when installing hover: ' + e + '\n' + e.stack);
-                    return;
-                }
-
-                var actionQueue = lively.morphic.TextEmphasis.hoverActions;
+                    actionQueue = lively.morphic.TextEmphasis.hoverActions;
                 this.addCallbackWhenApplyDone('mouseenter', function(evt) {
-                    actionQueue.enter(inFunc.bind(context,evt), context); return true;
+                    actionQueue.enter(hover.inAction.bind(context,evt), context); return true;
                 });
                 this.addCallbackWhenApplyDone('mouseleave', function(evt) {
-                    actionQueue.leave(outFunc.bind(context, evt), context); return true;
+                    actionQueue.leave(hover.outAction.bind(context, evt), context); return true;
                 });
 
-                LivelyNS.setAttribute(node, 'hoverInAction', hover.inAction);
-                LivelyNS.setAttribute(node, 'hoveroutAction', hover.outAction);
+                LivelyNS.setAttribute(node, 'hoverInAction', hover.inAction.toString());
+                LivelyNS.setAttribute(node, 'hoveroutAction', hover.outAction.toString());
             }
         },
 

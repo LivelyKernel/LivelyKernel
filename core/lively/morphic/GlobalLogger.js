@@ -16,7 +16,7 @@ Object.subclass('lively.GlobalLogger',
         ** This will create an invisible layered function that prevents logging of this function.
         */
         [lively.morphic.World, ['openInspectorFor', 'openStyleEditorFor', 'openPartsBin', 'openMethodFinderFor', 'prompt', 'openWorkspace', 'setStatusMessage', 'openSystemBrowser']],
-        [lively.morphic.Morph, ['showMorphMenu', 'showHalos']],
+        [lively.morphic.Morph, ['showMorphMenu', 'showHalos', 'animatedPathStep']],
         [lively.morphic.Menu, ['initialize', 'openIn', 'remove']],
         [lively.morphic.Text, ['doFind']],
         [lively.morphic.MenuItem, ['initialize']],
@@ -444,18 +444,6 @@ lively.morphic.Morph.addMethods(
             }.bind(this)
         }
     },
-
-    beforeLogStopSteppingScriptNamed: function(selector) {
-        var runningScripts = this.scripts.select(function (ea) {return ea.selector == selector}),
-            self = this;
-        runningScripts.each(function (ea) {
-            if (Object.isFunction(self[ea.selector]))
-                self[ea.selector].apply(self, ea.args)
-        })
-        return true
-    },
-
-
     logStopSteppingScriptNamed: function(selector) {
         var currentScripts = this.scripts.select(function(ea) { return ea.selector === selector });
         return {
@@ -470,13 +458,6 @@ lively.morphic.Morph.addMethods(
                 this.stopSteppingScriptNamed(selector)
             }.bind(this)
         }
-    },
-    beforeLogStopStepping: function() {
-        var self = this;
-        /*this.scripts.each(function (ea) {
-            if (Object.isFunction(self[ea.selector]))
-                self[ea.selector].apply(self, ea.args)
-        })*/
     },
     logStopStepping: function() {
         var self = this,
@@ -493,7 +474,6 @@ lively.morphic.Morph.addMethods(
             }.bind(this)
         }
     }
-
 })
 
 lively.morphic.Shapes.Shape.addMethods(

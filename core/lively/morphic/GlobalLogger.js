@@ -26,7 +26,7 @@ Object.subclass('lively.GlobalLogger',
         /* 
         ** No function of these classes will ever be logged.
         */
-        lively.morphic.Menu, lively.morphic.Tree, lively.morphic.PromptDialog, lively.morphic.AwesomeColorField, lively.morphic.List
+        lively.morphic.Menu, lively.morphic.Tree, lively.morphic.PromptDialog, lively.morphic.AwesomeColorField, lively.morphic.List, lively.morphic.PartsBinItem, AttributeConnection
     ]
 },
 'initialization', {
@@ -66,6 +66,7 @@ Object.subclass('lively.GlobalLogger',
         ** Actions that happen at the same time are bundeled, so they can be reverted at once.
         */
         if (!action || !this.shouldLog(action.morph)) return false
+        debugger
         action.time = Date.now();
         if (this.stack.length > this.counter)
             this.stack.splice(this.counter)

@@ -2733,6 +2733,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                 this.addCallbackWhenApplyDone('mouseenter', function(evt) {
                     actionQueue.enter(function() {
                         var morph = $(evt.target).parents('[node-type="morph-node"]').eq(0).data('morph');
+                        lively.morphic.EventHandler.prototype.patchEvent(evt);
                         hover.inAction.call(morph, evt);
                     });
                     return true;
@@ -2740,6 +2741,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                 this.addCallbackWhenApplyDone('mouseleave', function(evt) {
                     actionQueue.leave(function() {
                         var morph = $(evt.target).parents('[node-type="morph-node"]').eq(0).data('morph');
+                        lively.morphic.EventHandler.prototype.patchEvent(evt);
                         hover.outAction.call(morph, evt);
                     });
                     return true;

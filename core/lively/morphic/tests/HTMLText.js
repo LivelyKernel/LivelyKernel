@@ -85,8 +85,7 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
         this.text.setTextString('xyz');
         var hoverSpec1 = {
             inAction: function() { return 1 },
-            outAction: function() { return 2 },
-            context: 1
+            outAction: function() { return 2 }
         };
         this.text.emphasize({hover: hoverSpec1}, 0, 3);
         this.checkChunks([{
@@ -102,8 +101,7 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
 
         var hoverSpec2 = {
             inAction: function() { return 3 },
-            outAction: function() { return 4 },
-            context: 2
+            outAction: function() { return 4 }
         };
         this.text.emphasize({hover: hoverSpec2}, 0, 3);
         this.checkChunks([{

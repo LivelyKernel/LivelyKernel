@@ -2709,7 +2709,7 @@ Object.subclass('lively.morphic.TextEmphasis',
 
         hover: {
             // expected to be of the form:
-            // {inAction: STRING, outAction: STRING [, context: OBJECT]}
+            // {inAction: FUNCTION, outAction: FUNCTION}
             set: function(value) {
                 lively.assert(value.inAction, "hover inAction required");
                 lively.assert(value.outAction, "hover outAction required");
@@ -2729,15 +2729,23 @@ Object.subclass('lively.morphic.TextEmphasis',
                 if (!hover) return;
 
                 // setup
-                var context = hover.context || {},
-                    actionQueue = lively.morphic.TextEmphasis.hoverActions;
+                var actionQueue = lively.morphic.TextEmphasis.hoverActions;
                 this.addCallbackWhenApplyDone('mouseenter', function(evt) {
-                    actionQueue.enter(hover.inAction.bind(context,evt), context); return true;
+                    actionQueue.enter(function() {
+                        var morph = $(evt.target).parents('[node-type="morph-node"]').eq(0).data('morph');
+                        hover.inAction.call(morph, evt);
+                    });
+                    return true;
                 });
                 this.addCallbackWhenApplyDone('mouseleave', function(evt) {
-                    actionQueue.leave(hover.outAction.bind(context, evt), context); return true;
+                    actionQueue.leave(function() {
+                        var morph = $(evt.target).parents('[node-type="morph-node"]').eq(0).data('morph');
+                        hover.outAction.call(morph, evt);
+                    });
+                    return true;
                 });
 
+                // FIXME use proper serialization with data attributes
                 LivelyNS.setAttribute(node, 'hoverInAction', hover.inAction.toString());
                 LivelyNS.setAttribute(node, 'hoveroutAction', hover.outAction.toString());
             }

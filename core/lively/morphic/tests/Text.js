@@ -1203,22 +1203,19 @@ AsyncTestCase.subclass("lively.morphic.tests.Text.HoverActions",
     test06InvokeHover: function() {
         var morph = new lively.morphic.Text(rect(0,0,100,100), "xyz");
         lively.morphic.World.current().addMorph(morph);
-        var context = {};
         morph.emphasizeAll({hover: {
             inAction: function() { this.x = 1 },
-            outAction: (function() { this.x = x }).asScript({x: 2}),
-            context: context
+            outAction: (function() { this.x = x }).asScript({x: 2})
         }});
 
         // NOTE! jQuery event triggering is async!
         $(morph.firstTextChunk().getChunkNode()).trigger('mouseenter');
         this.delay(function() {
-            this.assertEquals(1, context.x);
+            this.assertEquals(1, morph.x);
             $(morph.firstTextChunk().getChunkNode()).trigger('mouseleave');
         }, 0);
-
         this.delay(function() {
-            this.assertEquals(2, context.x);
+            this.assertEquals(2, morph.x);
             this.done();
         }, 20);
     }

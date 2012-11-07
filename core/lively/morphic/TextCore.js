@@ -2709,12 +2709,18 @@ Object.subclass('lively.morphic.TextEmphasis',
 
         hover: {
             // expected to be of the form:
-            // {inAction: STRING, outAction: STRING [, context: OBJECT]}
-            set: function(value) { return this.hover = value },
+            // {inAction: FUNCTION, outAction: FUNCTION}
+            set: function(value) {
+                value.inAction = value.inAction || Functions.Null;
+                value.outAction = value.outAction || Functions.Null;
+                if (!value.inAction.hasLivelyClosure) value.inAction = value.inAction.asScript();
+                if (!value.outAction.hasLivelyClosure) value.outAction = value.outAction.asScript();
+                return this.hover = value;
+            },
             get: function() { return this.hover },
             equals: function(other) {
                 if (!this.hover) return !other.hover;
-                if (!other.hover) return false
+                if (!other.hover) return false;
                 return this.hover.inAction == other.hover.inAction
                     && this.hover.outAction == other.hover.outAction;
             },
@@ -2723,26 +2729,27 @@ Object.subclass('lively.morphic.TextEmphasis',
                 if (!hover) return;
 
                 // setup
-                var context = hover.context || {},
-                    world = lively.morphic.World.current(),
-                    inCode = '(function(evt) {\n' + hover.inAction + '\n})',
-                    outCode = '(function(evt) {\n' + hover.outAction + '\n})',
-                    inFunc, outFunc;
-                try { inFunc = eval(inCode); outFunc = eval(outCode); } catch(e) {
-                    alert('Error when installing hover: ' + e + '\n' + e.stack);
-                    return;
-                }
-
                 var actionQueue = lively.morphic.TextEmphasis.hoverActions;
-                this.addCallbackWhenApplyDone('mouseover', function(evt) {
-                    actionQueue.enter(inFunc.bind(context,evt), context); return true;
+                this.addCallbackWhenApplyDone('mouseenter', function(evt) {
+                    actionQueue.enter(function() {
+                        var morph = $(evt.target).parents('[node-type="morph-node"]').eq(0).data('morph');
+                        lively.morphic.EventHandler.prototype.patchEvent(evt);
+                        hover.inAction.call(morph, evt);
+                    });
+                    return true;
                 });
-                this.addCallbackWhenApplyDone('mouseout', function(evt) {
-                    actionQueue.leave(outFunc.bind(context, evt), context); return true;
+                this.addCallbackWhenApplyDone('mouseleave', function(evt) {
+                    actionQueue.leave(function() {
+                        var morph = $(evt.target).parents('[node-type="morph-node"]').eq(0).data('morph');
+                        lively.morphic.EventHandler.prototype.patchEvent(evt);
+                        hover.outAction.call(morph, evt);
+                    });
+                    return true;
                 });
 
-                LivelyNS.setAttribute(node, 'hoverInAction', hover.inAction);
-                LivelyNS.setAttribute(node, 'hoveroutAction', hover.outAction);
+                // FIXME use proper serialization with data attributes
+                LivelyNS.setAttribute(node, 'hoverInAction', hover.inAction.toString());
+                LivelyNS.setAttribute(node, 'hoveroutAction', hover.outAction.toString());
             }
         },
 
@@ -3053,8 +3060,8 @@ Object.subclass('lively.morphic.TextEmphasis',
     installCallbackHandler: function(node) {
         var $node = $(node);
         [{type: 'click', handler: 'mousedown'},
-         {type: 'mouseover', handler: 'mouseover'},
-         {type: 'mouseout', handler: 'mouseout'}].forEach(function(spec) {
+         {type: 'mouseenter', handler: 'mouseenter'},
+         {type: 'mouseleave', handler: 'mouseleave'}].forEach(function(spec) {
              $node.off(spec.handler);
              if (!this.callbacks
                || !this.callbacks[spec.type]

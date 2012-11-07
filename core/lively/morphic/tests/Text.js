@@ -1138,6 +1138,9 @@ AsyncTestCase.subclass("lively.morphic.tests.Text.HoverActions",
     setUp: function($super) {
         $super();
         this.actionQueue = lively.morphic.TextEmphasis.hoverActions;
+    },
+    tearDown: function() {
+        if (this.morph) this.morph.remove();
     }
 },
 'testing', {
@@ -1195,6 +1198,26 @@ AsyncTestCase.subclass("lively.morphic.tests.Text.HoverActions",
             this.assertEqualState(['in1', 'out1', 'in2', 'out2'], output);
             this.done();
         }, 0);
+    },
+
+    test06InvokeHover: function() {
+        var morph = new lively.morphic.Text(rect(0,0,100,100), "xyz");
+        lively.morphic.World.current().addMorph(morph);
+        morph.emphasizeAll({hover: {
+            inAction: function() { this.x = 1 },
+            outAction: (function() { this.x = x }).asScript({x: 2})
+        }});
+
+        // NOTE! jQuery event triggering is async!
+        $(morph.firstTextChunk().getChunkNode()).trigger('mouseenter');
+        this.delay(function() {
+            this.assertEquals(1, morph.x);
+            $(morph.firstTextChunk().getChunkNode()).trigger('mouseleave');
+        }, 0);
+        this.delay(function() {
+            this.assertEquals(2, morph.x);
+            this.done();
+        }, 20);
     }
 
 });

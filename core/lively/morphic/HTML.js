@@ -240,6 +240,7 @@ lively.morphic.Morph.addMethods(
     },
     initHTML: function(ctx) {
         if (!ctx.morphNode) ctx.morphNode = ctx.domInterface.htmlRect();
+        this.setMorphDataHTML(ctx);
         this.setFocusableHTML(ctx, this.isFocusable());
         this.setPivotPointHTML(ctx, this.getPivotPoint())
         ctx.domInterface.setHTMLTransformOrigin(ctx.morphNode, pt(0,0));
@@ -256,6 +257,11 @@ lively.morphic.Morph.addMethods(
         if (UserAgent.fireFoxVersion)
             ctx.morphNode['-moz-user-modify'] = 'read-only'
     },
+
+    setMorphDataHTML: function(ctx) {
+        $(ctx.morphNode).data('morph', this);
+    },
+
     appendHTML: function(ctx, optMorphAfter) {
         if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
         var parentNode = ctx.morphNode.parentNode;
@@ -852,7 +858,7 @@ lively.morphic.Shapes.Shape.addMethods(
             // about stroke widths of svg lines instead of using borderWidth...
             if (ctx.pathNode) return;
 
-            // compensates the shapeNode's borderWidth for childmorphs, 
+            // compensates the shapeNode's borderWidth for childmorphs,
             // borders don't affect submorphs
             ctx.originNode.style.setProperty(
                 'margin-top', -this.getBorderWidth() + 'px', 'important');

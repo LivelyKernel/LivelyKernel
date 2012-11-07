@@ -7,6 +7,12 @@
 	border: 1px solid #666666;
 }
 
+.Box.no-style {
+	background:  none;
+	border: none;
+	box-shadow: none;
+}
+
 .Selection {
 	background:  rgba(180,223,55, 0.6);
 	border: 1px solid #666666;

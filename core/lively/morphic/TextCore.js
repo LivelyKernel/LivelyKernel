@@ -2711,8 +2711,8 @@ Object.subclass('lively.morphic.TextEmphasis',
             // expected to be of the form:
             // {inAction: FUNCTION, outAction: FUNCTION}
             set: function(value) {
-                lively.assert(value.inAction, "hover inAction required");
-                lively.assert(value.outAction, "hover outAction required");
+                value.inAction = value.inAction || Functions.Null;
+                value.outAction = value.outAction || Functions.Null;
                 if (!value.inAction.hasLivelyClosure) value.inAction = value.inAction.asScript();
                 if (!value.outAction.hasLivelyClosure) value.outAction = value.outAction.asScript();
                 return this.hover = value;

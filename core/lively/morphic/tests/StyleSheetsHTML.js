@@ -687,7 +687,7 @@ AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Text',
         this.textMorph.setFontFamily('Times');
         this.textMorph.setFontSize(20);
         this.textMorph.setFontStyle('normal');
-        this.textMorph.setFontWeight('normal');
+        this.textMorph.setFontWeight(300);
         this.textMorph.setTextColor(Color.black);
         this.textMorph.setTextDecoration('none');
         this.textMorph.setVerticalAlign('bottom');
@@ -740,7 +740,7 @@ AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Text',
                 'font-family was not properly reset after switching back from CSS text styling');
             this.assertEquals('normal', $(textNode).css('font-style'),
                 'font-style was not properly reset after switching back from CSS text styling');
-            this.assertEquals('400', $(textNode).css('font-weight'),
+            this.assertEquals('300', $(textNode).css('font-weight'),
                 'font-weight was not properly reset after switching back from CSS text styling');
             this.assertEquals('rgb(0, 0, 0)', $(textNode).css('color'),
                 'color was not properly reset after switching back from CSS text styling');

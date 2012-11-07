@@ -1036,6 +1036,10 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                         return !this.pseudos["empty"](elem);
                     },
 
+                    "root": function (elem, context) {
+                        return elem === context;
+                    },
+
                     "empty": function (elem) {
                         // http://www.w3.org/TR/selectors/#empty-pseudo
                         // :empty is only affected by element nodes and content nodes(including text(3), cdata(4)),

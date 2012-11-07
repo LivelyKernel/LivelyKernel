@@ -173,6 +173,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         this.assertEquals('*[morphid].class *[morphid].another-class', this.morph.replaceWildcardSelector('*.class *.another-class'),
             'Combined wildcards were not replaced correctly');
     },
+    test10ReplaceRootPseudo: function() {
+        var morphId = this.morph.id;
+        this.assertEquals('[morphid="'+morphId+'"]', this.morph.replaceRootPseudo(':root'),
+            'Simple root pseudo was not replaced correctly');
+        this.assertEquals('[morphid="'+morphId+'"].class, [morphid="'+morphId+'"].another-class', this.morph.replaceRootPseudo(':root.class, :root.another-class'),
+            'Grouped root pseudos were not replaced correctly');
+    },
+
 
 
 
@@ -557,6 +565,14 @@ this.createSomeMorphs();
             '.blue:not(.the-first-blue-rect)',
             'Could not select b2 via ".blue:not(.the-first-blue-rect)"');
     },
+    test13Root: function() {
+       this.assertSelector([this.yellowRectangle],
+            [this.blueRectangle2, this.redRectangle, this.blueRectangle1],
+            this.yellowRectangle,
+            ':root',
+            'Could not select yellow via ":root"');
+    },
+
 
 
     assertSelector: function(selectedMorphs, nonSelectedMorphs, context, selector, msg) {

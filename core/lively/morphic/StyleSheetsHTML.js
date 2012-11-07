@@ -258,6 +258,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                         var adaptedSelector = selectors[i];
                         // Wildcards have to be replaced before the prefixes are added
                         adaptedSelector = this.replaceWildcardSelector(adaptedSelector);
+                        adaptedSelector = this.replaceRootPseudo(adaptedSelector);
                         // Child ops are better replaced before prefixes add complexity to the selector
                         adaptedSelector = this.replaceChildOp(adaptedSelector);
                         adaptedSelector = this.addSelectorPrefixes(adaptedSelector);
@@ -454,6 +455,11 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
         // Only select shape nodes (shape nodes should have the morphid param set)
         return selector.replace(/\*/g, '*[morphid]');
     },
+    replaceRootPseudo: function(selector) {
+        // ":root" should select this morph
+        return selector.replace(/\:root/g, '[morphid="'+this.id+'"]');
+    },
+
     }, 
 	
     'Style Classes and Ids', {

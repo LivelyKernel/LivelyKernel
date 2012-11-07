@@ -167,6 +167,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         this.assertEquals(this.morph.id, $(shapeNode).attr('morphid'),
             'morphid in node should be the new morph id');
     },
+    test09ReplaceWildcardSelector: function() {
+        this.assertEquals('*[morphid]', this.morph.replaceWildcardSelector('*'),
+            'Simple wildcard was not replaced correctly');
+        this.assertEquals('*[morphid].class *[morphid].another-class', this.morph.replaceWildcardSelector('*.class *.another-class'),
+            'Combined wildcards were not replaced correctly');
+    },
+
 
 
 
@@ -430,6 +437,12 @@ this.createSomeMorphs();
 
 },
 'testing', {
+    test00WildcardSelector: function() {
+        this.assertSelector([this.redRectangle, this.yellowRectangle, this.blueRectangle1, this.blueRectangle2],
+            [],
+            this.yellowRectangle, '*',
+            'Could not select all rectangles via "*"');
+    },
     test01ClassSelector: function() {
         this.assertSelector([this.redRectangle],
             [this.yellowRectangle, this.blueRectangle1, this.blueRectangle2],
@@ -556,21 +569,44 @@ this.createSomeMorphs();
 
         this.delay(function() {
             selectedMorphs.each(function(m) {
-                    var shapeNode = m.renderContext().shapeNode;
+                    var shapeNode = m.renderContext().shapeNode,
+                        morphNode = m.renderContext().morphNode,
+                        originNode = m.renderContext().originNode;
                     this.assert(shapeNode,
                         msg+': No shapeNode! Whats going on here?');
+                    this.assert(morphNode,
+                        msg+': No morphNode! Whats going on here?');
                     this.assertEquals('12px',
                         window.getComputedStyle(shapeNode)['outline-width'],
                          msg+': Style was not applied on a node');
+                    this.assertEquals('0px',
+                        window.getComputedStyle(morphNode)['outline-width'],
+                         msg+': Style was mistakenly applied on morphNode');
+                    if (originNode) {
+                        this.assertEquals('0px',
+                            window.getComputedStyle(originNode)['outline-width'],
+                            msg+': Style was mistakenly applied on originNode');
+                    }
                 }, this);
             nonSelectedMorphs.each(function(m) {
-                    var shapeNode = m.renderContext().shapeNode;
+                    var shapeNode = m.renderContext().shapeNode,
+                        morphNode = m.renderContext().morphNode,
+                        originNode = m.renderContext().originNode;
                     this.assert(shapeNode,
                         msg+': No shapeNode! Whats going on here?');
                     this.assertEquals('0px',
                         window.getComputedStyle(shapeNode)['outline-width'],
                          msg+': Style was mistakenly applied on a node');
+                     this.assertEquals('0px',
+                        window.getComputedStyle(morphNode)['outline-width'],
+                         msg+': Style was mistakenly applied on morphNode');
+                    if (originNode) {
+                        this.assertEquals('0px',
+                            window.getComputedStyle(originNode)['outline-width'],
+                            msg+': Style was mistakenly applied on originNode');
+                    }
                 }, this);
+
 
             test.done();
         }, 0.1);

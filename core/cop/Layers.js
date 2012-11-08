@@ -164,6 +164,7 @@ Object.extend(cop, {
         cop.ensurePartialLayer(layer, object)[property] = func;
         func.displayName = "layered " + layer.name + " " + (object.constructor ? (object.constructor.type + "$"): "") + property;
         cop.makeFunctionLayerAware(object, property, layer.isHidden);
+        Object.isFunction(object.getName) && (layer.layeredFunctionsList[object][property] = true)
     },
 
     layerGetterMethod: function(layer, object, property, getter) {
@@ -439,6 +440,7 @@ Object.extend(cop, {
     // Layering objects may be a garbage collection problem, because the layers keep strong reference to the objects
     layerObject: function(layer, object, defs) {
         // log("cop.layerObject");
+        Object.isFunction(object.getName) && (layer.layeredFunctionsList[object] =  {})
         Object.keys(defs).forEach(function(function_name) {
             // log(" layer property: " + function_name);
             cop.layerProperty(layer, object, function_name, defs);
@@ -582,6 +584,7 @@ Object.subclass("Layer",
     initialize: function(name, namespaceName) {
         this.name = name;
         this.namespaceName = namespaceName || 'Global';
+        this.layeredFunctionsList = {};
 
         if (Global.lively && lively.lang && lively.lang.Namespace)
             this.sourceModule = lively.lang.Namespace.current();
@@ -609,10 +612,31 @@ Object.subclass("Layer",
 },
 'removing', {
     remove: function() {
+        // Deletes the LayerClass, but keeps the layered Functions.
         if (this.isGlobal()) this.beNotGlobal();
         var ns = module(this.namespaceName);
         delete ns[this.name];
     },
+    uninstall: function() {
+        // Uninstalls just this layer, functions that are layered by other Layers will not be reset.
+        var layer = this;
+        this.layeredObjects().each(function (eachLayeredObj) {
+            var layerIdx = Object.isFunction(eachLayeredObj.activeLayers)?
+                eachLayeredObj.activeLayers().indexOf(layer) : -1;
+            Properties.own(layer.layeredFunctionsList[eachLayeredObj]).each(function (eachLayeredFunc) {
+                var newerLayer = eachLayeredObj.activeLayers().find(function (eachOtherLayer) {
+                    var eachOtherLayerIdx = eachLayeredObj.activeLayers().indexOf(eachOtherLayer),
+                        isNewer = (eachOtherLayerIdx  !== -1) && (eachOtherLayerIdx < layerIdx)
+                    return isNewer && eachOtherLayer.layeredFunctionsList[eachLayeredObj][eachLayeredFunc]
+                })
+                if (!newerLayer)
+                    cop.makeFunctionLayerUnaware(eachLayeredObj, eachLayeredFunc)
+            })
+        })
+        this.remove()
+        alertOK('Successfully uninstalled Layer '+this+' in Global Classes');
+    },
+
 },
 'layer installation',     {
     layerClass: function(classObj, methods) {

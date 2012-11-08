@@ -33,7 +33,7 @@ Object.subclass('lively.GlobalLogger',
     initialize: function () {
         this.stack = [];
         this.counter = 0;
-        this.buildLoggerLayer();
+        this.activateLogging()
         this.enableLogging();
     },
     buildLoggerLayer: function () {
@@ -243,7 +243,29 @@ Object.subclass('lively.GlobalLogger',
             }
         })
         LoggerLayer.refineClass(lively.morphic.Morph, functionsObject);
+    },
+}, 
+'activation', {
+    activateLogging: function() {
+        // Activates the LoggerLayer. Can be accessed through the WorldMenu.
+        this.buildLoggerLayer()
+        this.activated = true;
+    },
+    deactivateLogging: function() {
+        // Deactivates the LoggerLayer. Can be accessed through the WorldMenu.
+        // Reason: Layers make Worlds damnslow!
+        try {
+            LoggerLayer.uninstall();
+            this.activated = false
+        }
+        catch (e) {
+            alert('Error uninstalling LoggerLayer - Logging already disabled?\n'
+                +'See console For more information.');
+            console.log(e)
+        }
     }
+
+
 }) // end of GlobalLogger
 
 lively.morphic.Morph.addMethods(
@@ -514,7 +536,23 @@ lively.morphic.World.addMethods(
             return;
         if (part.onCreateFromPartsBin) part.onCreateFromPartsBin();
         return part;
+    },
+    disableUndoRedo: function() {
+        this.GlobalLogger && this.GlobalLogger.deactivateLogging();
     }
 })
 
-}) // end of module
+Trait('WorldLoggingMenuTrait',
+'menu items', {
+    morphMenuItems: lively.morphic.World.prototype.morphMenuItems.wrap(function(proceed) {
+        var items = proceed();
+        for(var i = 0; i < items.length; i++) {
+            if (items[i][0] === "Preferences") {
+                items[i][1].push(['Disable UndoRedo Logging', this.disableUndoRedo.bind(this)]);
+            }
+        }
+        return items;
+    })
+}).applyTo(lively.morphic.World, {override: 'morphMenuItems'});
+
+}) // end of module}) // end of module}) // end of module}) // end of module

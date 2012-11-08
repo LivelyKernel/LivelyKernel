@@ -26,7 +26,7 @@ Object.subclass('lively.GlobalLogger',
         /* 
         ** No function of these classes will ever be logged.
         */
-        lively.morphic.Menu, lively.morphic.Tree, lively.morphic.PromptDialog, lively.morphic.AwesomeColorField, lively.morphic.List, lively.morphic.PartsBinItem, AttributeConnection
+        lively.morphic.Menu, lively.morphic.Tree, lively.morphic.PromptDialog, lively.morphic.AwesomeColorField, lively.morphic.List, AttributeConnection, WebResource
     ]
 },
 'initialization', {
@@ -300,7 +300,7 @@ lively.morphic.Morph.addMethods(
     beforeLogAddMorph: function (morph, optBeforeMorph) {
         if (morph.isHand)
             return false
-        if (!lively.morphic.World.current().GlobalLogger.loggingEnabled && !lively.morphic.World.current().GlobalLogger.workingOnAction && !(this.isHand)) {
+        if (!lively.morphic.World.current().GlobalLogger.loggingEnabled && !lively.morphic.World.current().GlobalLogger.workingOnAction && !(this.isHand) && !(this instanceof lively.morphic.PartsBinItem)) {
             morph.isLoggable = false
         }
         if ((morph.isLoggable === false && !morph.isHand) || (!this.isLoggable && !(this.isHand))) {

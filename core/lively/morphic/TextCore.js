@@ -3059,7 +3059,7 @@ Object.subclass('lively.morphic.TextEmphasis',
 
     installCallbackHandler: function(node) {
         var $node = $(node);
-        [{type: 'click', handler: 'mousedown'},
+        [{type: 'click', handler: 'mouseup'},
          {type: 'mouseenter', handler: 'mouseenter'},
          {type: 'mouseleave', handler: 'mouseleave'}].forEach(function(spec) {
              $node.off(spec.handler);

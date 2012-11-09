@@ -1185,6 +1185,10 @@ lively.morphic.World.addMethods(
     openPartsBin: function(evt) {
         return this.openPartItem('PartsBinBrowser', 'PartsBin/Tools');
     },
+    openChartsBin: function(evt) {
+        return this.openPartItem('ChartsBinBrowser', 'PartsBin/Sandbox');
+    },
+
     openInspectorFor: function(object, evt) {
         var part = this.openPartItem("ObjectInspector", 'PartsBin/Tools');
         part.inspect(object);
@@ -1468,6 +1472,7 @@ lively.morphic.World.addMethods(
         var world = this;
         var items = [
             ['PartsBin', this.openPartsBin.bind(this)],
+            ['ChartsBin', this.openChartsBin.bind(this)],
             ['Parts', this.morphMenuDefaultPartsItems()],
             ['Tools', [
                 ['Workspace', this.openWorkspace.bind(this)],

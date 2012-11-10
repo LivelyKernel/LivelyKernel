@@ -167,6 +167,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         this.assertEquals(this.morph.id, $(shapeNode).attr('morphid'),
             'morphid in node should be the new morph id');
     },
+    test09SetNodeTypeAttributes: function() {
+        var ctx = this.redRectangle.renderContext();
+
+        this.assertEquals('morph-node', $(ctx.morphNode).attr('node-type'),
+            'Node-type of morphNode should be "morph-node"');
+        this.assertEquals('origin-node', $(ctx.originNode).attr('node-type'),
+            'Node-type of originNode should be "origin-node"');
+    },
     test09ReplaceWildcardSelector: function() {
         this.assertEquals('*[morphid]', this.morph.replaceWildcardSelector('*'),
             'Simple wildcard was not replaced correctly');
@@ -180,11 +188,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         this.assertEquals('[morphid="'+morphId+'"].class, [morphid="'+morphId+'"].another-class', this.morph.replaceRootPseudo(':root.class, :root.another-class'),
             'Grouped root pseudos were not replaced correctly');
     },
-
-
-
-
-
     assertArray: function(anticipated, actual, msg) {
         this.assertArrayIsSubset(anticipated, actual, msg);
         this.assertArrayIsSubset(actual, anticipated, msg);
@@ -383,11 +386,111 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.B
             'Shapenode should be the same size after switching off CSS styling');
     },
     test02AddCSSBorder: function() {
+        this.redRectangle.setBorderWidth(0);
+        var oldShapeNodeOuterSize = $(this.redRectangle.renderContext().shapeNode).outerWidth(),
+            oldShapeNodeInnerSize = $(this.redRectangle.renderContext().shapeNode).width(),
+            oldBluePosition = $(this.blueRectangle1.renderContext().shapeNode).position();
+
         this.redRectangle.setBorderStylingMode(true);
         this.redRectangle.setStyleSheet('.red {border: 10px solid black;}');
-        var oldShapeNodeSize = $(this.redRectangle.renderContext().shapeNode).outerWidth();
+
+        var newShapeNodeOuterSize = $(this.redRectangle.renderContext().shapeNode).outerWidth(),
+            newShapeNodeInnerSize = $(this.redRectangle.renderContext().shapeNode).width(),
+            newBluePosition = $(this.blueRectangle1.renderContext().shapeNode).position();
+
+        this.assertEquals(oldShapeNodeOuterSize, newShapeNodeOuterSize ,
+            'Shape node should be the same outer size than before adding the 10px border');
+        this.assertEquals(oldShapeNodeInnerSize- 20, newShapeNodeInnerSize ,
+            'Shape node itself should be 20px less wide than before adding the 10px border');
+        this.assertEquals(oldBluePosition.top, newBluePosition.top,
+            'Blue shape node should be in the position as before adding the border to red');
+    },
+    test03BorderIsResetWhenSwitchingBackAndForth: function() {
+        this.redRectangle.setBorderWidth(20);
+
+        this.redRectangle.setStyleSheet('.red {border: 10px solid black;}');
+
+        this.assertEquals(20, this.redRectangle.getBorderWidth(),
+            'Border width should be 20 before switch');
+
+        this.redRectangle.setBorderStylingMode(true);
+
+        this.assertEquals(10, this.redRectangle.getBorderWidth(),
+            'Border width should be 10 after switch');
+
+        this.redRectangle.setBorderStylingMode(false);
+
+        this.assertEquals(20, this.redRectangle.getBorderWidth(),
+            'Border width should be 20 again after switching back');
+
+        this.redRectangle.setBorderStylingMode(true);
+
+        this.assertEquals(10, this.redRectangle.getBorderWidth(),
+            'Border width should be 10 again after rereswitch');
+    },
+    test04BorderIsAdaptedWhenClassNamesChanged: function() {
+        var css = '.Box {'
+            +'border-width: 5px;'
+            +'}\n'+'.test-box, .test-box .Box {'
+            +'border-width: 13px;'
+            +'}';
+        this.yellowRectangle.setBorderStylingMode(true);
+        this.redRectangle.setBorderStylingMode(true);
+        this.blueRectangle1.setBorderStylingMode(true);
+        this.yellowRectangle.setStyleSheet(css);
+
+        this.assertEquals(5, this.yellowRectangle.getBorderWidth(),
+            'Border width of yellow should be 5 before changing class names');
+        this.assertEquals(5, this.redRectangle.getBorderWidth(),
+            'Border width of red should be 5 before changing class names');
+        this.assertEquals(5, this.blueRectangle1.getBorderWidth(),
+            'Border width of blue should be 5 before changing class names');
+
+        this.yellowRectangle.addStyleClassName('test-box');
+
+
+        this.assertEquals(13, this.yellowRectangle.getBorderWidth(),
+            'Border width of yellow should be 13 after changing class names');
+        this.assertEquals(13, this.redRectangle.getBorderWidth(),
+            'Border width of red should be 13 after changing class names');
+        this.assertEquals(13, this.blueRectangle1.getBorderWidth(),
+            'Border width of blue should be 13 after changing class names');
 
     },
+    test05BorderIsAdaptedWhenStyleIdChanged: function() {
+        var css = '.Box {'
+            +'border-width: 5px;'
+            +'}'+'#test-box, #test-box .Box {'
+            +'border-width: 13px;'
+            +'}';
+        this.yellowRectangle.setBorderStylingMode(true);
+        this.redRectangle.setBorderStylingMode(true);
+        this.blueRectangle1.setBorderStylingMode(true);
+        this.yellowRectangle.setStyleSheet(css);
+
+        this.assertEquals(5, this.redRectangle.getBorderWidth(),
+            'Border width of red should be 5 before changing ID');
+
+        this.assertEquals(5, this.yellowRectangle.getBorderWidth(),
+            'Border width of yellow should be 5 before changing ID');
+
+        this.assertEquals(5, this.blueRectangle1.getBorderWidth(),
+            'Border width of blue should be 5 before changing ID');
+
+        this.yellowRectangle.setStyleId('test-box');
+        this.assertEquals(13, this.redRectangle.getBorderWidth(),
+            'Border width of red should be 13 after changing ID');
+
+        this.assertEquals(13, this.yellowRectangle.getBorderWidth(),
+            'Border width of yellow should be 13 after changing ID');
+
+        this.assertEquals(13, this.blueRectangle1.getBorderWidth(),
+            'Border width of blue should be 13 after changing ID');
+
+    },
+
+
+
 
 
     createSomeMorphs: function() {

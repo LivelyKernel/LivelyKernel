@@ -77,19 +77,22 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             }
 
         }),
-        getBorderWidth: function() {
+        setBorderWidthHTML: function(ctx, width) {
             if (this.getBorderStylingMode()) {
-                return 0;
+                ctx.shapeNode.style.border = '';
+                ctx.shapeNode.style.borderWidth = width+'px';
             } else {
-                return this.shapeGetter('BorderWidth')  || 0;
+                ctx.shapeNode.style.borderWidth = '';
+                this.setBorderHTML(ctx, width, this.getBorderColor(), this.getStrokeOpacity());
             }
-        }
+            this.compensateShapeNode(ctx);
+            this.setExtentHTML(ctx, this.getExtent());
+            return width;
+        },
     }).applyTo(lively.morphic.Shapes.Shape, {
         override:
-            ['setFillHTML', 'setOpacityHTML', 'setBorderStyleHTML',
-            'setBorderHTML', 'getBorderWidth']
+            ['setFillHTML', 'setOpacityHTML', 'setBorderStyleHTML', 'setBorderWidthHTML', 'setBorderHTML']
     });
-
     Trait('StyleSheetsHTMLRectangleTrait', 'updating', {
         setBorderRadiusHTML: lively.morphic.Shapes.Rectangle.prototype.setBorderRadiusHTML.wrap(function (proceed, ctx, value) {
             if (ctx.shapeNode && this.shapeGetter('BorderStylingMode')) {
@@ -189,14 +192,17 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 
             // Mark morphNode if it's not the same as the shapeNode
             if (ctx.morphNode && ctx.morphNode !== ctx.shapeNode) {
-                $(ctx.morphNode).attr('node-type', 'morph-node');
+                ctx.morphNode.setAttribute('node-type', 'morph-node');
             }
 
             // Mark originNode of owner
             var ownerCtx = this.owner && this.owner.renderContext();
             if (ownerCtx && ownerCtx.originNode) {
-                $(ownerCtx.originNode).attr('node-type', 'origin-node');
+                ownerCtx.originNode.setAttribute('node-type', 'origin-node');
             }
+
+            // Check if the css border changed
+            this.adaptBorders();
 
         }),
         setNewId: lively.morphic.Morph.prototype.setNewId.wrap(function (proceed, optId) {

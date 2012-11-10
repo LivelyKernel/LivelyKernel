@@ -228,7 +228,7 @@ Object.extend(apps.cssParser, {
         
         A value is of a certain type:
         0: Plain text (i.e. font-family; edit through text field)
-        1: Number (i.e. width; edit through slider)
+        1: Length (i.e. width; edit through slider)
         2: Option (i.e. border-style; edit with drop-down box)
         3: Color (i.e. color; edit with color chooser)
         4: Shadow (i.e. box-shadow; edit with shadow dialog)
@@ -247,6 +247,34 @@ Object.extend(apps.cssParser, {
             [3],
             // ... or four
             [3, 3, 3, 3]]
+        },
+        'border-width': {
+            shorthand: 'border',
+            values: [
+            // either one value ...
+            [1],
+            // ... or four
+            [1, 1, 1, 1]]
+        },
+        'border-bottom-width': {
+            shorthand: 'border-width',
+            values: [ // only one value for this property
+            [1]]
+        },
+        'border-left-width': {
+            shorthand: 'border-width',
+            values: [ // only one value for this property
+            [1]]
+        },
+        'border-top-width': {
+            shorthand: 'border-width',
+            values: [ // only one value for this property
+            [1]]
+        },
+        'border-right-width': {
+            shorthand: 'border-width',
+            values: [ // only one value for this property
+            [1]]
         },
         'border-color': {
             shorthand: 'border',

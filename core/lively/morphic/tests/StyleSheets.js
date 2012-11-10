@@ -610,6 +610,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                 '#blue2.blue { border-top-color: black; }'+
                 '.blue:nth-child(2) { border-top-color: yellow!important; }'+
                 '.red { color: red; border-top-color: green;}'+
+                '#the-red-rectangle.red { border-top-color: purple; }'+
                 '#the-red-rectangle { border: 1px solid red; }',
             getDecl = function(decls, property){
                     return decls.filter(function(d){
@@ -633,7 +634,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             redBackgroundColorValue = getDecl(redStyles, 'border-top-color'),
             redTextColorValue = getDecl(redStyles, 'color');
 
-        this.assertEquals('red', redBackgroundColorValue ,
+        this.assertEquals(13, redStyles.length, 'There need to be 13 styles applied for red rect');
+
+        this.assertEquals('purple', redBackgroundColorValue ,
             'border-top-color of red should be red');
         this.assertEquals('red', redTextColorValue ,
             'color of red should be red');
@@ -792,6 +795,19 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             '"19cm" should convert to 0');
         this.assertEquals(0, morph.convertLengthToPx('19'),
             '"19" should convert to 0');
+    },
+    test12GetStyleSheetBorderWidth: function() {
+        this.assertEquals(0, this.blueRectangle2.getStyleSheetBorderWidth(),
+            'Border width with out any set style sheet rules should be 0');
+
+        this.yellowRectangle.setStyleSheet('.blue{ border-width: 16px; }'+
+                '#blue2.blue { border-left-width: 4px; }');
+
+        this.assertEquals(16, this.blueRectangle1.getStyleSheetBorderWidth(),
+            'Border width of blue1 should be 18');
+
+        this.assertEquals(13, this.blueRectangle2.getStyleSheetBorderWidth(),
+            'Border width of blue2 should be 13 (average of 16, 16, 16, 4)');
     },
     test12SetParsedStyleSheet: function() {
         var sheet = new lively.morphic.StyleSheet([], this.redRectangle);

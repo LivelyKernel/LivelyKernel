@@ -36,7 +36,17 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         setBorderStylingMode: function (value) {
             // TRUE when border is styled through style sheets,
             // FALSE when border is styled through style dialog
+
+            // Preserve previous border width
+            if (value) {
+                this['_PreviousBorderWidth'] = this.getBorderWidth();
+            }
             this.shape.setBorderStylingMode(value);
+            this.adaptBorders();
+            if (!value && this['_PreviousBorderWidth'] >= 0) {
+                this.setBorderWidth(this['_PreviousBorderWidth']);
+                delete this['_PreviousBorderWidth'];
+            }
         },
         getBorderStylingMode: function () {
             return this.shape.getBorderStylingMode();
@@ -54,9 +64,11 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         setParsedStyleSheet: function (styleSheet) {
             if(styleSheet && styleSheet.isStyleSheet) {
                 styleSheet.setOriginMorph(this);
-                return this.morphicSetter('StyleSheet', styleSheet);
+                this.morphicSetter('StyleSheet', styleSheet);
+                this.adaptBorders();
             } else {
                 this.morphicSetter('StyleSheet', null);
+                this.adaptBorders();
                 delete this._StyleSheet;
             }
         },
@@ -155,6 +167,25 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                 return prev.concat(rule.getDeclarations());
             }, []);
         },
+    getStyleSheetBorderWidth: function() {
+        var borderWidthDecls = this.getAggregatedMatchingStyleSheetDeclarations().select(
+                function(d) {
+                    var p = d.getProperty();
+                    return p.indexOf('border') >= 0 && p.indexOf('width') >= 0;
+                }),
+            convert = this.convertLengthToPx;
+        if (borderWidthDecls.length > 0) {
+            // No support for left-top-right-bottom separation yet, so we just take the average
+            var borderWidth = borderWidthDecls.reduce(
+                function(prev, decl, i, a){
+                    return prev + convert(decl.getValues().first()) / a.length;
+                }, 0);
+            return borderWidth;
+        } else {
+            return 0;
+        }
+    },
+
     getStyleSheetDeclarationValue: function(property) {
         // Returns the value of a CSS property as applied to the morph.
         // I.e. getStyleSheetDeclarationValue('border-width-left') returns '10px'
@@ -302,6 +333,17 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                 }
             });
         },
+    adaptBorders: function() {
+        // Only adapt borders to style sheet when CSS mode is on
+        if (this.getBorderStylingMode()) {
+            this.setBorderWidth(this.getStyleSheetBorderWidth());
+        }
+
+        // Call adaptBorders for each submorph
+        this.submorphs.each(function(s) {s.adaptBorders()});
+
+    },
+
         getStyleSheetRuleSpecificity: function (rule) {
             // check if it is a grouped selector
             if(rule.getSelector().indexOf(",") != -1) {
@@ -486,11 +528,12 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
             // already has the same id.
             id = id.trim();
             if(id && id.length && id.length > 0) {
-                return this.morphicSetter('StyleId', id);
+                this.morphicSetter('StyleId', id);
             } else {
                 this.morphicSetter('StyleId', null);
                 delete this._StyleId;
             }
+            this.adaptBorders();
         },
         getStyleId: function () {
             return this.morphicGetter('StyleId');
@@ -523,17 +566,17 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         setStyleClassNames: function (classNames) {
             if(classNames && classNames.length > 0) {
                 if(Array.isArray(classNames)) {
-                    return this.morphicSetter('StyleClassNames',
-                    this.makeUniqueStyleClassNamesList(classNames));
+                    this.morphicSetter('StyleClassNames',
+                        this.makeUniqueStyleClassNamesList(classNames));
                 } else { // if it's not an array we assume it's a string
-                    return this.morphicSetter('StyleClassNames',
-                    this.makeUniqueStyleClassNamesList(
-                    classNames.split(' ')));
+                    this.morphicSetter('StyleClassNames',
+                        this.makeUniqueStyleClassNamesList(classNames.split(' ')));
                 }
             } else {
                 this.morphicSetter('StyleClassNames', null);
                 delete this._StyleClassNames;
             }
+            this.adaptBorders();
         },
         makeUniqueStyleClassNamesList: function (classNames) {
             var uniqueClassNames = [];

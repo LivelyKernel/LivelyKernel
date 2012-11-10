@@ -106,19 +106,6 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
     },
     'Style sheet interpretation', {
 
-      clearStyleRulesInSubmorphs: function () {
-            // Get rid of the old rules in all submorphs.
-            // DEPRECATED!
-            alert('clearStyleRulesInSubmorphs is deprecated!');
-            this.withAllSubmorphsDo(function (morph) {
-                if(morph.styleSheetRules) {
-                    morph.styleSheetRules = morph.styleSheetRules.filter(function (rule) {
-                        return(rule.originMorph !== this);
-                    }, this);
-                }
-            }, this);
-        },
-
         getAggregatedMatchingStyleSheetDeclarations: function () {
             // Returns the morph's aggregated style declarations
             // from all applicable css rules.

@@ -10,30 +10,9 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
     Object.extend(lively.morphic.Shapes.Shape.prototype.htmlDispatchTable, {
         setAppearanceStylingMode: 'setAppearanceStylingModeHTML',
         setBorderStylingMode: 'setBorderStylingModeHTML',
-        getComputedBorderWidth: 'getComputedBorderWidthHTML',
-        getComputedExtent: 'getComputedExtentHTML'
     });
 
     lively.morphic.Shapes.Shape.addMethods('Stylesheets', {
-        getComputedBorderWidthHTML: function (ctx) {
-            var width = ($(ctx.shapeNode).outerWidth() - $(ctx.shapeNode).width()) / 2;
-            return width || 0;
-        },
-
-        getComputedExtentHTML: function (ctx) {
-            if (ctx.shapeNode) {
-                var width = $(ctx.shapeNode).outerWidth(),
-                    height = $(ctx.shapeNode).outerHeight();
-                if (height > 0 && width > 0) {
-                    return pt(width, height);
-                } else {
-                    return null;
-                }
-            } else {
-                return null;
-            }
-        },
-
         setAppearanceStylingModeHTML: function (ctx, value) {
             this.setFillHTML(ctx, this.shapeGetter("Fill"));
             this.setOpacityHTML(ctx, this.shapeGetter("Opacity"));
@@ -101,7 +80,6 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
         getBorderWidth: function() {
             if (this.getBorderStylingMode()) {
                 return 0;
-                //return this.renderContextDispatch('getComputedBorderWidth') || 0;
             } else {
                 return this.shapeGetter('BorderWidth')  || 0;
             }

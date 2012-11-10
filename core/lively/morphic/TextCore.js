@@ -2768,10 +2768,10 @@ Object.subclass('lively.morphic.TextEmphasis',
                 var doit = this.doit;
                 if (!doit) return;
                 this.addCallbackWhenApplyDone('click', function(evt) {
-                    var src = '(function() {\n' + doit.code + '\n})';
+                    var src = '(function(evt) {\n' + doit.code + '\n})';
                     try {
                         var func = eval(src);
-                        func.call(doit.context || Global);
+                        func.call(doit.context || Global, evt);
                     } catch(e) {
                         alert('Error in text doit\n' + e.stack);
                     }

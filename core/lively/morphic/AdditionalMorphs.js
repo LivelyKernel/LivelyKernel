@@ -31,18 +31,14 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         }
     }
 },
- 'HTML rendering', {
+'HTML rendering', {
     htmlDispatchTable: {
        createCanvasNode: 'createCanvasNodeHTML',
        getContext: 'getContextHTML',
        adaptCanvasSize: 'adaptCanvasSizeHTML'
     },
     getContextHTML: function(ctx, optContext) {
-        if (ctx.shapeNode) {
-            return ctx.shapeNode.getContext(optContext|| '2d');
-        } else {
-            return null;
-        }
+        return ctx.shapeNode ? ctx.shapeNode.getContext(optContext|| '2d') : null;
     },
     appendHTML: function($super, ctx) {
        $super(ctx);
@@ -52,13 +48,13 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         return XHTMLNS.create('canvas');
     },
     adaptCanvasSizeHTML: function(ctx) {
-        var x = $(ctx.shapeNode).width(),
-            y = $(ctx.shapeNode).height();
-        $(ctx.shapeNode).attr('width', x);
-        $(ctx.shapeNode).attr('height', y);
-    },
-}
-);
+        var $node = $(ctx.shapeNode),
+            x = $node.width(),
+            y = $node.height();
+        $node.attr('width', x);
+        $node.attr('height', y);
+    }
+});
 
 lively.morphic.Morph.subclass('lively.morphic.Path',
 'properties', {

@@ -166,9 +166,7 @@ Trait('StyleSheetsHTMLTrait',
 
     setNewId: lively.morphic.Morph.prototype.setNewId.wrap(function (proceed, optId) {
         proceed(optId);
-        if (this.isRendered()) {
-            this.renderContextDispatch('setNodeMorphId');
-        }
+        if (this.isRendered()) { this.renderContextDispatch('setNodeMorphId'); }
     })
 
 }).applyTo(lively.morphic.Morph, {
@@ -247,20 +245,20 @@ lively.morphic.Morph.addMethods(
                 extendedSelector += '*' + morphPrefix;
                 extendedSelector += selector;
             }
-
             return extendedSelector;
         } else {
             return '';
         }
     },
-generateCombinedIdSelector: function(actualSelector) {
-    return this.getIdsForSelector(actualSelector)
-        .reduce(function(prev, val) {
-                return prev + (prev.length > 0 ? ', ' : '')
-                    + '[morphid="'+ val + '"]';
-            }, '');
-},
 
+    generateCombinedIdSelector: function(actualSelector) {
+        return this.getIdsForSelector(actualSelector)
+               .reduce(function(prev, val) {
+                   return prev
+                        + (prev.length > 0 ? ', ' : '')
+                        + '[morphid="'+ val + '"]';
+               }, '');
+    },
 
     splitGroupedSelector: function (selector) {
         // Splits a grouped selector and returns
@@ -357,55 +355,54 @@ generateCombinedIdSelector: function(actualSelector) {
         // have a css applied, just add the stylenode to the head
         document.getElementsByTagName("head")[0].appendChild(styleNode);
     },
-replaceChildOp: function(selector) {
-    var replacements = ['>', '> [node-type="origin-node"] >',
-        '> [node-type="origin-node"] > [node-type="morph-node"] >'],
-        tokens = selector.split('>'),
-        childOpCount = tokens.length - 1,
-        results = [],
-        maxOpCount = 3,
-        replaceRecursively = function(spareTokens) {
+
+    replaceChildOp: function(selector) {
+        var replacements = ['>', '> [node-type="origin-node"] >',
+                            '> [node-type="origin-node"] > [node-type="morph-node"] >'],
+            tokens = selector.split('>'),
+            childOpCount = tokens.length - 1,
+            results = [],
+            maxOpCount = 3;
+
+        function replaceRecursively(spareTokens) {
             var firstToken = spareTokens.shift();
             if (spareTokens.length === 1) {
-                spareToken = spareTokens.first();
+                var spareToken = spareTokens.first();
                 return replacements.collect(function(r) {
-                        return firstToken + r + spareToken;
-                    });
-            } else {
-                var combinedTokens = replaceRecursively(spareTokens);
-                return combinedTokens.reduce(function(prev, c) {
-                    return prev.concat(
-                        replacements.collect(function(r) {
-                                return firstToken + r + c;
-                            })
-                        );
-                }, []);
+                    return firstToken + r + spareToken;
+                });
             }
+            var combinedTokens = replaceRecursively(spareTokens);
+            return combinedTokens.reduce(function(prev, c) {
+                return prev.concat(replacements.collect(function(r) {
+                    return firstToken + r + c; }));
+            }, []);
         };
-    if (childOpCount > maxOpCount) {
-        console.warn('Cannot adapt selector ' + selector + '. Too many child operators.');
-        return selector;
-    } else if (childOpCount > 0) {
-        // Loop over all tokens
-        var sels = replaceRecursively(tokens);
-        return sels.reduce(function(prev, sel, i) {
+        if (childOpCount > maxOpCount) {
+            console.warn('Cannot adapt selector ' + selector + '. Too many child operators.');
+            return selector;
+        } else if (childOpCount > 0) {
+            // Loop over all tokens
+            var sels = replaceRecursively(tokens);
+            return sels.reduce(function(prev, sel, i) {
                 return prev + sel + ((i < sels.length - 1) ? ', ' : '');
             },'');
-    } else {
-        return selector;
+        } else {
+            return selector;
+        }
+    },
+
+    replaceWildcardSelector: function(selector) {
+        // Only select shape nodes (shape nodes should have the morphid param set)
+        return selector.replace(/\*/g, '*[morphid]');
+    },
+
+    replaceRootPseudo: function(selector) {
+        // ":root" should select this morph
+        return selector.replace(/\:root/g, '[morphid="'+this.id+'"]');
     }
-},
-replaceWildcardSelector: function(selector) {
-    // Only select shape nodes (shape nodes should have the morphid param set)
-    return selector.replace(/\*/g, '*[morphid]');
-},
-replaceRootPseudo: function(selector) {
-    // ":root" should select this morph
-    return selector.replace(/\:root/g, '[morphid="'+this.id+'"]');
-},
 
 },
-
 'Style Classes and Ids', {
     prepareDOMForStyleSheetsHTML: function (ctx) {
         this.setStyleClassNamesHTML(ctx);

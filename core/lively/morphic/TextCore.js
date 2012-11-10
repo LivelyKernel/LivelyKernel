@@ -2768,6 +2768,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                 var doit = this.doit;
                 if (!doit) return;
                 this.addCallbackWhenApplyDone('click', function(evt) {
+                    lively.morphic.EventHandler.prototype.patchEvent(evt);
                     var src = '(function(evt) {\n' + doit.code + '\n})';
                     try {
                         var func = eval(src);

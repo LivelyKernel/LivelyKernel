@@ -1,4 +1,4 @@
-module('lively.morphic.GlobalLogger').requires('lively.ide.SystemCodeBrowser', 'lively.morphic.ColorChooserDraft').toRun(function() {
+module('lively.morphic.GlobalLogger').requires('lively.ide.SystemCodeBrowser', 'lively.morphic.ColorChooserDraft', 'lively.morphic.TextUndo').toRun(function() {
 Object.subclass('lively.GlobalLogger',
 'properties', {
     loggedFunctions: [
@@ -8,7 +8,8 @@ Object.subclass('lively.GlobalLogger',
         ** If beforeFunctionName returns a falsee, logFunctionName will not be executed. 
         */
         [lively.morphic.Morph, ['addMorph', 'remove', 'morphicSetter', 'addScript', 'openInWindow', 'lock', 'unlock', 'startStepping', 'stopSteppingScriptNamed', 'stopStepping']],
-        [lively.morphic.Shapes.Shape, ['shapeSetter']]
+        [lively.morphic.Shapes.Shape, ['shapeSetter']],
+        [lively.morphic.Text, ['addUndo']]
     ],
     silentFunctions: [
         /* 
@@ -33,7 +34,7 @@ Object.subclass('lively.GlobalLogger',
     initialize: function () {
         this.stack = [];
         this.counter = 0;
-        this.activateLogging()
+        this.activateLogging();
         this.enableLogging();
     },
     buildLoggerLayer: function () {
@@ -57,7 +58,7 @@ Object.subclass('lively.GlobalLogger',
             self.enableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1]);
         })
         this.createMorphLoggersForEnablingAndDisabling();
-    },
+    }
 },
 'logging', {
     logAction: function(action) {
@@ -539,6 +540,25 @@ lively.morphic.World.addMethods(
     },
     disableUndoRedo: function() {
         this.GlobalLogger && this.GlobalLogger.deactivateLogging();
+    }
+});
+
+lively.morphic.Text.addMethods(
+'logging', {
+    logAddUndo: function (undoSettings) {
+        undoSettings.textChunkState = this.getTextChunks().invoke('toPlainObject');
+        var action = lively.morphic.TextUndo.TextUndo.forText(this, undoSettings);
+        return {
+            morph: this,
+            undo: (function () {
+                this.undoState.waitsForChange = true
+                action.undo()
+            }).bind(this),
+            redo: (function () {
+                this.undoState.waitsForChange = true
+                action.redo()
+            }).bind(this)
+        }
     }
 })
 

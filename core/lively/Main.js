@@ -210,6 +210,13 @@ Object.subclass('lively.Main.Loader',
             });
         }
         lively.whenLoaded = function(cb) { cb(world) };
+        if (Config.textUndoEnabled) {
+            (function setupUndo() {
+                if (!Config.get("textUndoEnabled")) return;
+                Trait("lively.morphic.TextUndo.TextMutationObserverTrait").applyTo(lively.morphic.Text);
+                console.log("Text undo enabled");
+            })();
+        }
         if (Config.undoLogging) {
             lively.morphic.World.current().GlobalLogger = new lively.GlobalLogger();
         }

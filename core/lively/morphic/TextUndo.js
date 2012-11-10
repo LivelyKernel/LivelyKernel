@@ -101,8 +101,8 @@ Trait("lively.morphic.TextUndo.TextMutationObserverTrait", {
         this.doNotSerialize = ['undoState'];
         this.undoState = {changes: []};
         this.observeTextChangesExpt();
-LastMutations = [];
-basicUndos = this.undoState.changes;
+        LastMutations = [];
+        basicUndos = this.undoState.changes;
     },
     observeTextChangesExpt: function() {
         var self = this,
@@ -128,7 +128,7 @@ basicUndos = this.undoState.changes;
             return;
         }
         // alert('onTextChangeExpt ' + mutations);
-LastMutations.push(mutations);
+        LastMutations.push(mutations);
         try {
             this.recordBasicUndo(mutations);
         } catch(e) {
@@ -143,9 +143,11 @@ LastMutations.push(mutations);
     // ---------- recording mutations ------------
     addUndo: function(undoSettings) {
         // undoSettings.textChunkState = this.getTextChunks().clone();
-        undoSettings.textChunkState = this.getTextChunks().invoke('toPlainObject');
-        var undo = lively.morphic.TextUndo.TextUndo.forText(this, undoSettings);
-        this.undoState.changes.push(undo);
+        
+        // moved to global Logger
+        // undoSettings.textChunkState = this.getTextChunks().invoke('toPlainObject');
+        // var undo = lively.morphic.TextUndo.TextUndo.forText(this, undoSettings);
+        // this.undoState.changes.push(undo);
     },
     recordBasicUndo: function(mutations) {
         mutations = this.normalizeMutations(mutations);
@@ -178,7 +180,8 @@ LastMutations.push(mutations);
                 mutations: mutations,
                 mutationsString: this.showMutationsExpt(mutations),
                 domChanges: domChanges,
-                undo: function() {}
+                undo: function() {},
+                redo: function() {}
             });
             // this.undoState.recordingErrors.push(mutations);
         }
@@ -245,6 +248,23 @@ LastMutations.push(mutations);
 
                     text.undoState.changes = text.undoState.changes.without(this);
                 });
+            },
+            redo: function () {
+                atomicChange.redo();
+                styleMutation.styleChangesDo(function(key, oldValue, newValue) {
+                    // key in form: text-weight
+                    // transform into JS name: textWeight
+                    // for style setter into: setTextWeight
+                    var setterName = ('set-' + key).camelize();
+
+                    // /^\s*[0-9]/.test(" 000")
+
+                    if (chunk.style[setterName]) {
+                        chunk.style[setterName](newValue);
+                    }
+
+                    text.undoState.changes = text.undoState.changes.without(this);
+                });
             }
         });
     },
@@ -270,6 +290,8 @@ LastMutations.push(mutations);
             // index of text in chunk node
             // textNodeIndex = Array.from(chunkNode.childNodes).indexOf(textNode),
             // prevTextString = mutations[0].oldValue || mutations[0].removedNodes[0].textContent;
+        
+        if (this.undoState.waitsForChange) return;
         this.addUndo({
             type: 'textChunkChange',
             mutations: mutations,
@@ -279,7 +301,6 @@ LastMutations.push(mutations);
             // prevTextString: prevTextString,
             undo: function() {
                 domChange.undo();
-                debugger
                 text.cachedTextString = null;
 
                 // check
@@ -287,8 +308,12 @@ LastMutations.push(mutations);
                 lively.assert(foundChunkNode === chunkNode, "text undo: chunkNode changed");
                 // chunkNode.childNodes[textNodeIndex].textContent = this.prevTextString;
                 text.undoState.changes = text.undoState.changes.without(this);
+            },
+            redo: function () {
+                domChange.redo();
             }
         });
+        this.undoState.waitsForChange = false
     },
 
     isSetTextStringChange: function(mutations) {
@@ -329,6 +354,9 @@ LastMutations.push(mutations);
                 text.cachedTextString = null;
                 // undo
                 text.undoState.changes = text.undoState.changes.without(this);
+            },
+            redo: function() {
+                domChanges.invoke("redo")
             }
         });
     },
@@ -354,6 +382,9 @@ LastMutations.push(mutations);
                 domChanges.invoke("undo"); // dom
                 text.getTextChunks().splice(idx, 2); // morphic
                 text.undoState.changes = text.undoState.changes.without(this); // remove undo
+            },
+            redo: function () {
+                domChanges.invoke("redo"); // dom
             }
         });
     },
@@ -387,6 +418,9 @@ LastMutations.push(mutations);
                 var chunks = text.getTextChunks()
                 chunks.splice(idx, 1);
                 text.undoState.changes = text.undoState.changes.without(this);
+            },
+            redo: function () {
+                domChanges.invoke('redo');
             }
         });
     },
@@ -526,7 +560,12 @@ LastMutations.push(mutations);
     undo: function() {
         var lastChange = this.undoState.changes.last();
         lastChange && lastChange.undo();
-    }
+    },
+    
+    redo: function() {
+        var nextChange = this.undoState.changes.last();
+        lastChange && lastChange.undo();
+    },
 
 });
 
@@ -540,6 +579,7 @@ Object.subclass('lively.morphic.TextUndo.TextUndo',
         this.type = 'unknown';
         this.text = settings.text;
         this.undoFunc = settings.undo;
+        this.redoFunc = settings.redo;
         delete settings.undo;
         Object.extend(this, settings);
     }
@@ -553,9 +593,25 @@ Object.subclass('lively.morphic.TextUndo.TextUndo',
         }
     }
 },
+'redoing', {
+    redo: function() {
+        var text = this.text;
+        if (this.redoFunc) {
+            text.undoState.undoInProgress = true;
+            this.redoFunc();
+        }
+    }
+},
 'debugging', {
     toString: function() {
         return 'TextUndo<' + this.type + '>';
+    }
+});
+
+Object.extend(lively.morphic.TextUndo.TextUndo, {
+    forText: function(text, settings) {
+        if (!settings.text) settings.text = text;
+        return new this(settings);
     }
 });
 

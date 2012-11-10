@@ -17,7 +17,7 @@
             if (!Config.finishLoadingCallbacks) {
                 Config.finishLoadingCallbacks = [];
             }
-            lively.whenLoaded = function(callback) {
+            lively.whenLoaded = function (callback) {
                 Config.finishLoadingCallbacks.push(callback);
             };
         }
@@ -29,7 +29,7 @@
             (window.parent && window.parent.console) ||
             {};
         var required = ['log', 'group', 'groupEnd', 'warn', 'assert', 'error'],
-            emptyFunc = function() { };
+            emptyFunc = function () { };
         var i;
         for (i = 0; i < required.length; i++) {
             if (!platformConsole[required[i]]) {
@@ -61,13 +61,13 @@
 
             for (i = 0; i < props.length; i++) {
                 // FIXME: JSHint does not like functions in loops
-                (function(name) {
+                (function (name) {
                     var func = platformConsole[name];
                     platformConsole['$' + name] = func;
                     if (typeof func !== 'function') {
                         return;
                     }
-                    platformConsole[name] = function(/*arguments*/) {
+                    platformConsole[name] = function (/*arguments*/) {
                         func.apply(platformConsole, arguments);
                         for (i = 0; i < consumers.length; i++) {
                             var consumerFunc = consumers[i][name];
@@ -95,11 +95,11 @@
             }
         }
 
-        platformConsole.addConsumer = function(c) {
+        platformConsole.addConsumer = function (c) {
             addWrappers();
             consumers.push(c);
         };
-        platformConsole.removeConsumer = function(c) {
+        platformConsole.removeConsumer = function (c) {
             var idx = consumers.indexOf(c);
             if (idx >= 0) {
                 consumers.splice(idx, 1);
@@ -121,14 +121,14 @@
             logoId: 'loadingLogo',
             brokenWorldMsgId: 'loadingBrokenWorldMsg',
 
-            width: function() {
+            width: function () {
                 return document.documentElement.clientWidth || 800;
             },
-            height: function() {
+            height: function () {
                 return document.documentElement.clientHeight || 800;
             },
 
-            buildBackground: function() {
+            buildBackground: function () {
                 var div1 = document.createElement('div');
                 div1.setAttribute('id', this.id);
                 div1.setAttribute(
@@ -143,7 +143,7 @@
                 return div1;
             },
 
-            buildLoadingLogo: function() {
+            buildLoadingLogo: function () {
                 var logoAndText = document.createElement('div');
                 logoAndText.setAttribute('id', this.logoId);
                 logoAndText.setAttribute(
@@ -165,7 +165,7 @@
 
                 logoAndText.style.top = (this.height() / 2 - 100) + 'px';
                 logoAndText.style.left = (this.width() / 2 - 40) + 'px';
-                logo.src = LivelyLoader.codeBase + 'media/loading.gif';
+                logo.src = Global.LivelyLoader.codeBase + 'media/loading.gif';
 
                 logoAndText.appendChild(logo);
                 logoAndText.appendChild(text);
@@ -175,7 +175,7 @@
                 return logoAndText;
             },
 
-            buildBrokenWorldMessage: function() {
+            buildBrokenWorldMessage: function () {
                 var el = document.createElement('div'),
                     text1 = document.createTextNode(
                         'An error occurred. If the world does not load you '
@@ -211,7 +211,7 @@
                 return el;
             },
 
-            ensureBrokenWorldMessage: function() {
+            ensureBrokenWorldMessage: function () {
                 this.removeElement(this.logo);
                 if (!document.getElementById(this.brokenWorldMsgId)) {
                     document.getElementById(this.id).appendChild(
@@ -220,7 +220,7 @@
                 }
             },
 
-            buildConsole: function() {
+            buildConsole: function () {
                 var console = document.createElement('pre'), self = this;
                 console.setAttribute('id', this.consoleId);
                 console.setAttribute(
@@ -261,9 +261,9 @@
                 }
 
                 this.consoleProxy = {
-                    log: function(msg) { addLine(msg); },
-                    warn: function(msg) { addLine(msg, 'color: yellow;'); },
-                    error: function(msg) {
+                    log: function (msg) { addLine(msg); },
+                    warn: function (msg) { addLine(msg, 'color: yellow;'); },
+                    error: function (msg) {
                         if (!console.parentNode) {
                             self.toggleConsole();
                         }
@@ -277,7 +277,7 @@
                 return console;
             },
 
-            removeConsole: function() {
+            removeConsole: function () {
                 var console = this.console;
                 this.console = null;
                 if (!console || isFireBug) {
@@ -291,7 +291,7 @@
                 this.consoleProxy = null;
             },
 
-            toggleConsole: function() {
+            toggleConsole: function () {
                 if (!this.console) {
                     this.buildConsole();
                 }
@@ -302,7 +302,7 @@
                 }
             },
 
-            buildConsoleButton: function() {
+            buildConsoleButton: function () {
                 var a = document.createElement('a');
                 a.setAttribute(
                     'style',
@@ -318,7 +318,7 @@
                 a.textContent = 'console';
                 return a;
             },
-            buildCloseButton: function() {
+            buildCloseButton: function () {
                 var a = document.createElement('a');
                 a.setAttribute(
                     'style',
@@ -332,7 +332,7 @@
                 return a;
             },
 
-            build: function() {
+            build: function () {
                 var background = this.buildBackground(),
                     loadingLogo = this.buildLoadingLogo(),
                     consoleButton = this.buildConsoleButton(),
@@ -346,19 +346,19 @@
                 return background;
             },
 
-            add: function() {
+            add: function () {
                 if (!this.domElement) {
                     this.domElement = this.build();
                 }
                 document.body.appendChild(this.domElement);
             },
 
-            remove: function() {
+            remove: function () {
                 this.removeConsole();
                 this.removeElement(this.domElement);
             },
 
-            removeElement: function(el) {
+            removeElement: function (el) {
                 if (el && el.parentNode) {
                     el.parentNode.removeChild(el);
                 }
@@ -377,7 +377,7 @@
             XLINKNamespace: 'http:\/\/www.w3.org/1999/xlink',
             LIVELYNamespace: 'http:\/\/www.experimentalstuff.com/Lively',
 
-            loadJs: function(url, onLoadCb, loadSync, okToUseCache,
+            loadJs: function (url, onLoadCb, loadSync, okToUseCache,
                                 cacheQuery) {
                 if (this.scriptInDOM(url)) {
                     console.log(
@@ -409,15 +409,15 @@
                 }
                 parentNode.appendChild(el);
                 el.setAttributeNS(null, 'id', url);
-            console.log(exactUrl);
+                console.log(exactUrl);
                 return loadSync ?
                     this.loadSync(exactUrl, onLoadCb, el) :
                     this.loadAsync(exactUrl, onLoadCb, el);
             },
 
-            loadSync: function(url, onLoadCb, script) {
+            loadSync: function (url, onLoadCb, script) {
                 if (this.isCSS(url)) {
-                    console.log('skipping eval for css: ' + url );
+                    console.log('skipping eval for css: ' + url);
                     if (typeof onLoadCb === 'function') {
                         onLoadCb();
                     }
@@ -428,7 +428,7 @@
                     // FIXME: is there another way to load sources?
                     // eval === evil
                     eval(source);
-                } catch(e) {
+                } catch (e) {
                     console.error(
                         'Error when loading ' + url + ': ' + e + '\n' + e.stack
                     );
@@ -438,11 +438,11 @@
                 }
             },
 
-            loadAsync: function(url, onLoadCb, script) {
+            loadAsync: function (url, onLoadCb, script) {
                 if (script.namespaceURI === this.SVGNamespace) {
                     script.setAttributeNS(this.XLINKNamespace, 'href', url);
                 } else if (this.isCSS(url)) {
-                    script.setAttribute("href",url);
+                    script.setAttribute("href", url);
                     if (typeof onLoadCb === 'function') {
                         onLoadCb(); // huh?
                     }
@@ -457,7 +457,7 @@
             },
 
 
-            loadCombinedModules: function(combinedFileUrl, callback, hash) {
+            loadCombinedModules: function (combinedFileUrl, callback, hash) {
                 // If several modules are combined in one file they can be
                 // loaded with this method. The method will ensure that all
                 // included modules are loaded. If they have required modules
@@ -467,14 +467,14 @@
                 var originalLoader = this,
                     combinedLoader = {
 
-                        expectToLoadModules: function(listOfRelativePaths) {
+                        expectToLoadModules: function (listOfRelativePaths) {
                             // urls like http://lively-kernel.org/repository/
                             //                  webwerkstatt/lively/Text.js
                             this.expectedModuleURLs = [];
                             var i, len = listOfRelativePaths.length;
                             for (i = 0; i < len; i++) {
                                 this.expectedModuleURLs.push(
-                                    LivelyLoader.codeBase
+                                    Global.LivelyLoader.codeBase
                                     + listOfRelativePaths[i]
                                 );
                             }
@@ -490,7 +490,7 @@
 
                             // create script tags that are found when tested if
                             // a file is already loaded
-                            this.expectedModuleURLs.forEach(function(url) {
+                            this.expectedModuleURLs.forEach(function (url) {
                                 var script = document.createElement('script');
                                 script.setAttribute('id', url);
                                 document.getElementsByTagName('head')[0]
@@ -498,13 +498,13 @@
                             });
                         },
 
-                        includedInCombinedFile: function(scriptUrl) {
+                        includedInCombinedFile: function (scriptUrl) {
                             return this.expectedModuleURLs &&
                                 this.expectedModuleURLs.indexOf(scriptUrl)
                                     >= 0;
                         },
 
-                        loadJs: function(url) {
+                        loadJs: function (url) {
                             console.log(
                                 'load file that is not in combined modules: '
                                 + url
@@ -514,29 +514,30 @@
                             }
                         },
 
-                        scriptInDOM: function(url) {
-                            return originalLoader.scriptInDOM(url) || 
+                        scriptInDOM: function (url) {
+                            return originalLoader.scriptInDOM(url) ||
                                 this.includedInCombinedFile(url);
                         }
 
                     },
 
-                    callCallback = function() {
+                    callCallback = function () {
                         window.JSLoader = originalLoader;
                         // FIXME
                         // Filter out the modules already loaded
                         var realModules = combinedLoader.expectedModules
-                            .select(function(ea) {
+                            .select(function (ea) {
                             // FIXME, better now throw error in Class.forName
-                            return !ea.include('lively-libs') &&
-                                Class.forName(ea) !== undefined;
+                            return !ea.include('lively-libs')
+                                && Class.forName(ea) !== undefined;
                         });
                         require(realModules).toRun(callback);
 
                     };
 
                 if (this.scriptInDOM(combinedFileUrl)) {
-                    callCallback(); return;
+                    callCallback();
+                    return;
                 }
 
                 // while loading the combined file we replace the loader
@@ -551,13 +552,13 @@
                 );
             },
 
-            loadAll: function(urls, cb) {
-                urls.reverse().reduce(function(loadPrevious, url) {
-                    return function() { JSLoader.loadJs(url, loadPrevious); };
-                }, function() { cb && cb(); })();
+            loadAll: function (urls, cb) {
+                urls.reverse().reduce(function (loadPrevious, url) {
+                    return function () { JSLoader.loadJs(url, loadPrevious); };
+                }, function () { cb && cb(); })();
             },
 
-            resolveAndLoadAll: function(baseURL, urls, cb) {
+            resolveAndLoadAll: function (baseURL, urls, cb) {
                 var i;
 
                 for (i = 0; i < urls.length; i++) {
@@ -566,7 +567,7 @@
                 return this.loadAll(urls, cb);
             },
 
-            findParentScriptNode: function() {
+            findParentScriptNode: function () {
                 var node = document.getElementsByTagName('head')[0];
                 if (!node) {
                     throw new Error(
@@ -576,20 +577,20 @@
                 return node;
             },
 
-            getLinkAttribute: function(el) {
+            getLinkAttribute: function (el) {
                 return el.getAttributeNS(this.XLINKNamespace, 'href') ||
                     el.getAttribute('src');
             },
 
-            getScripts: function() {
+            getScripts: function () {
                 return document.getElementsByTagName('script');
             },
 
-            scriptInDOM: function(url) {
+            scriptInDOM: function (url) {
                 return this.scriptsThatLinkTo(url).length > 0;
             },
 
-            scriptsThatLinkTo: function(url) {
+            scriptsThatLinkTo: function (url) {
                 var scriptsFound = [];
                 var allScripts = this.getScripts();
                 var i;
@@ -602,9 +603,9 @@
                 return scriptsFound;
             },
 
-            removeQueries: function(url) { return url.split('?')[0]; },
+            removeQueries: function (url) { return url.split('?')[0]; },
 
-            resolveURLString: function(urlString) {
+            resolveURLString: function (urlString) {
                 // FIXME duplicated from URL class in lively. Network
                 // actually lively.Core should require lively.Network -- but
                 // lively.Network indirectly
@@ -622,7 +623,7 @@
                 return result;
             },
 
-            scriptElementLinksTo: function(el, url) {
+            scriptElementLinksTo: function (el, url) {
                 if (!el.getAttribute) {
                     return false;
                 }
@@ -642,18 +643,18 @@
                 return linkString === urlString;
             },
 
-            currentDir: function() {
+            currentDir: function () {
                 return this.dirOfURL(document.location.href.toString());
             },
 
-            dirOfURL: function(url) {
+            dirOfURL: function (url) {
                 return this.removeQueries(url).substring(
                     0,
                     url.lastIndexOf('/') + 1
                 );
             },
 
-            makeAbsolute: function(urlString) {
+            makeAbsolute: function (urlString) {
                 urlString = this.removeQueries(urlString);
                 if (!urlString.match(/^http/)) {
                     // make absolute
@@ -662,14 +663,14 @@
                 return this.resolveURLString(urlString);
             },
 
-            makeUncached: function(urlString, cacheQuery) {
+            makeUncached: function (urlString, cacheQuery) {
                 cacheQuery = cacheQuery || new Date().getTime();
                 return urlString
                     + (urlString.indexOf('?') === -1 ? '?' : '&')
                     + cacheQuery;
             },
 
-            removeAllScriptsThatLinkTo: function(url) {
+            removeAllScriptsThatLinkTo: function (url) {
                 var scripts = this.scriptsThatLinkTo(url);
                 var i;
                 for (i = 0; i < scripts.length; i++) {
@@ -677,7 +678,7 @@
                 }
             },
 
-            getSyncReq: function(url, forceUncached) {
+            getSyncReq: function (url, forceUncached) {
                 if (typeof WebResource !== "undefined") {
                     var webR = new WebResource(url);
                     if (forceUncached) {
@@ -699,15 +700,15 @@
                 return req;
             },
 
-            getSync: function(url, forceUncached) {
+            getSync: function (url, forceUncached) {
                 return this.getSyncReq(url, forceUncached).responseText;
             },
 
-            getSyncStatus: function(url, forceUncached) {
+            getSyncStatus: function (url, forceUncached) {
                 return this.getSyncReq(url, forceUncached).status;
             },
 
-            isCSS: function(url){
+            isCSS: function (url) {
                 return url.match(/\.css$/) || url.match(/\.css\?/);
             }
         };
@@ -741,13 +742,13 @@
                 }
 
                 var bootstrapFileName = 'bootstrap.js',
-                    scripts = JSLoader.getScripts(),
+                    scripts = Global.JSLoader.getScripts(),
                     i = 0, node, url, urlFound;
 
                 while (!urlFound) {
                     i += 1;
                     node = scripts[i];
-                    url = JSLoader.getLinkAttribute(node);
+                    url = Global.JSLoader.getLinkAttribute(node);
                     if (url && (url.indexOf(bootstrapFileName) >= 0)) {
                         urlFound = url;
                     }
@@ -755,11 +756,13 @@
 
                 if (!urlFound) {
                     console.warn('Cannot find codebase, have to guess...');
-                    return JSLoader.dirOfURL(window.location.href.toString());
+                    return Global.JSLoader.dirOfURL(
+                        window.location.href.toString()
+                    );
                 }
 
-                var codeBase = JSLoader.makeAbsolute(
-                    JSLoader.dirOfURL(
+                var codeBase = Global.JSLoader.makeAbsolute(
+                    Global.JSLoader.dirOfURL(
                         urlFound
                     ) +
                     '../'
@@ -771,7 +774,7 @@
 
             rootPath: (function findRootPath() {
                 var bootstrapFileName = 'bootstrap.js',
-                    scripts = JSLoader.getScripts(),
+                    scripts = Global.JSLoader.getScripts(),
                     i = 0, node, url, urlFound;
 
                 if (window.Config && Config.rootPath !== undefined) {
@@ -788,7 +791,7 @@
                 while (!urlFound) {
                     i += 1;
                     node = scripts[i];
-                    url = JSLoader.getLinkAttribute(node);
+                    url = Global.JSLoader.getLinkAttribute(node);
                     if (url && (url.indexOf(bootstrapFileName) >= 0)) {
                         urlFound = url;
                     }
@@ -796,9 +799,11 @@
 
                 if (!urlFound) {
                     console.warn('Cannot find bootstrap.js, have to guess...');
-                    return JSLoader.dirOfURL(window.location.href.toString());
+                    return Global.JSLoader.dirOfURL(
+                        window.location.href.toString()
+                    );
                 }
-                var rootPath = JSLoader.makeAbsolute(
+                var rootPath = Global.JSLoader.makeAbsolute(
                     urlFound.match(/(.*)core\/lively\/(.*)/)[1]
                 );
                 console.log('Root path is ' + rootPath);
@@ -822,11 +827,11 @@
                 return Config.modulePaths;
             }()),
 
-            installWatcher: function(target, propName, haltWhenChanged) {
+            installWatcher: function (target, propName, haltWhenChanged) {
                 // observe slots, for debugging
                 var newPropName = '__' + propName;
                 target[newPropName] = target[propName];
-                target.__defineSetter__(propName, function(v) {
+                target.__defineSetter__(propName, function (v) {
                     target[newPropName] = v;
                     console.log(
                         target.toString() + '.' + propName + ' changed: ' + v
@@ -835,7 +840,7 @@
                         debugger;
                     }
                 });
-                target.__defineGetter__(propName, function() {
+                target.__defineGetter__(propName, function () {
                     return target[newPropName];
                 });
                 console.log(
@@ -843,7 +848,7 @@
                 );
             },
 
-            createConfigObject: function() {
+            createConfigObject: function () {
                 // Should have addtional logic for the case when no no window
                 // object exist...
                 if (!window.Config) {
@@ -857,17 +862,17 @@
             //
             // ------- load world ---------------
             //
-            loadMain: function(canvas, startupFunc) {
-                lively.Config.loadUserConfigModule();
-                require('lively.bindings', 'lively.Main').toRun(function() {
-                    var loader = lively.Main.getLoader(canvas);
-                    lively.bindings.connect(
+            loadMain: function (canvas, startupFunc) {
+                Global.lively.Config.loadUserConfigModule();
+                require('lively.bindings', 'lively.Main').toRun(function () {
+                    var loader = Global.lively.Main.getLoader(canvas);
+                    Global.lively.bindings.connect(
                         loader, 'finishLoading',
-                        LoadingScreen, 'remove'
+                        Global.LoadingScreen, 'remove'
                     );
                     if (startupFunc) {
                         loader.startupFunc = startupFunc;
-                        lively.bindings.connect(
+                        Global.lively.bindings.connect(
                             loader, 'finishLoading',
                             loader, 'startupFunc'
                         );
@@ -876,20 +881,20 @@
                 });
             },
 
-            startFromSerializedWorld: function(startupFunc) {
+            startFromSerializedWorld: function (startupFunc) {
                 if (!livelyConfigExists() || !Config.isNewMorphic) {
                     return false;
                 }
                 var self = this;
 
-                LoadingScreen.add();
-                this.bootstrap(function() {
+                Global.LoadingScreen.add();
+                this.bootstrap(function () {
                     self.loadMain(document.body, startupFunc);
                 });
                 return true;
             },
 
-            bootstrap: function(thenDoFunc) {
+            bootstrap: function (thenDoFunc) {
                 this.createConfigObject();
                 var url = document.URL,
                     dontBootstrap = Config.standAlone ||
@@ -912,8 +917,8 @@
                             'generated/combinedModulesHash.txt',
                         combinedModulesUrl = codeBase +
                             'generated/combinedModules.js',
-                        hash = JSLoader.getSync(hashUrl, true);
-                    JSLoader.loadCombinedModules(
+                        hash = Global.JSLoader.getSync(hashUrl, true);
+                    Global.JSLoader.loadCombinedModules(
                         combinedModulesUrl,
                         thenDoFunc,
                         hash
@@ -939,13 +944,15 @@
                     'lively/lang/UUID.js',     // FIXME: require module instead
                     'lively/LocalStorage.js'   // FIXME: require module instead
                 ];
-                JSLoader.resolveAndLoadAll(codeBase, modules, thenDoFunc);
+                Global.JSLoader.resolveAndLoadAll(
+                    codeBase, modules, thenDoFunc
+                );
             }
 
         };
 
         Global.LivelyLoader = LivelyLoader;
-     }(Global));
+    }(Global));
 
     (function setupEmbededLoader(Global) {
         var EmbededLoader;
@@ -955,15 +962,15 @@
             //
             // ------- embedd world in another page ---------------
             //
-            addWorld: function(worldURL, targetElement) {
+            addWorld: function (worldURL, targetElement) {
                 this.worldURL = worldURL;
                 this.targetElement = targetElement;
-                LivelyLoader.bootstrap(function() {
+                Global.LivelyLoader.bootstrap(function () {
                     EmbededLoader.embedAndLoadWorld(worldURL, targetElement);
                 });
             },
 
-            embedAndLoadWorld: function(worldURL, targetElement) {
+            embedAndLoadWorld: function (worldURL, targetElement) {
                 console.log('Fetching ' + worldURL);
                 var doc = new WebResource(worldURL).get().contentDocument;
                 this.convertCDATASections(doc.documentElement);
@@ -971,7 +978,7 @@
                     doc.getElementById('canvas'),
                     true
                 );
-                $A(canvas.getElementsByTagName('script')).forEach(function(e) {
+                $A(canvas.getElementsByTagName('script')).forEach(function (e) {
                     e.parentElement.removeChild(e);
                 });
                 var div = document.createElement('div');
@@ -1033,10 +1040,10 @@
                     }
                 }
                 document.body.style.cursor = null;
-                LivelyLoader.loadMain(canvas);
+                Global.LivelyLoader.loadMain(canvas);
             },
 
-            convertCDATASections: function(el) {
+            convertCDATASections: function (el) {
                 var i;
                 var text;
                 var parent;
@@ -1053,13 +1060,13 @@
                 }
             },
 
-            getWorldAttributeFrom: function(el) {
+            getWorldAttributeFrom: function (el) {
                 // return el.getAttributeNS(JSLoader.LIVELYNamespace, 'world');
                 // arghh! I HATE XML Namespaces!
                 return el.getAttribute('lively:world');
             },
 
-            isLivelyCanvas: function(el) {
+            isLivelyCanvas: function (el) {
                 if (!el || !el.getAttribute) {
                     return false;
                 }
@@ -1067,7 +1074,7 @@
                 return attr && attr !== '';
             },
 
-            findLivelyCanvasIn: function(element) {
+            findLivelyCanvasIn: function (element) {
                 var i;
                 if (this.isLivelyCanvas(element)) {
                     return element;
@@ -1078,7 +1085,7 @@
                 }
             },
 
-            embedLively: function() {
+            embedLively: function () {
                 var canvas = this.findLivelyCanvasIn(document.body);
                 if (!canvas) {
                     return;
@@ -1091,7 +1098,7 @@
         };
 
         Global.EmbededLoader = EmbededLoader;
-     }(Global));
+    }(Global));
 
     (function setupLivelyMigrationSupport(Global) {
         var LivelyMigrationSupport;
@@ -1104,18 +1111,18 @@
             migrationLevelNodeId: 'LivelyMigrationLevel',
             moduleRenameDict: {},
 
-            extractMigrationLevel: function(doc) {
+            extractMigrationLevel: function (doc) {
                 // LivelyMigrationSupport.extractMigrationLevel(document);
                 var node = doc.getElementById(this.migrationLevelNodeId);
                 return node ? Number(node.textContent) : 0;
             },
 
-            setDocumentMigrationLevel: function(doc) {
+            setDocumentMigrationLevel: function (doc) {
                 this.documentMigrationLevel = this.extractMigrationLevel(doc);
             },
 
             // module renaming
-            fixModuleName: function(name) {
+            fixModuleName: function (name) {
                 var oldName;
                 if (/^Global\./.test(name)) {
                     name = name.substring(7);
@@ -1132,7 +1139,7 @@
                 return name;
             },
 
-            addModuleRename: function(oldName, newName, migrationLevel) {
+            addModuleRename: function (oldName, newName, migrationLevel) {
                 this.moduleRenameDict[oldName] = newName;
             }
 
@@ -1143,15 +1150,15 @@
 
 
     (function startWorld(startupFunc) {
-        window.addEventListener('DOMContentLoaded', function() {
-            LivelyMigrationSupport.setDocumentMigrationLevel(document);
-            if (LivelyLoader.startFromSerializedWorld(startupFunc)) {
+        window.addEventListener('DOMContentLoaded', function () {
+            Global.LivelyMigrationSupport.setDocumentMigrationLevel(document);
+            if (Global.LivelyLoader.startFromSerializedWorld(startupFunc)) {
                 return;
             }
             console.warn("Lively startup failed'");
         }, true);
 
-        window.addEventListener('beforeunload', function(evt) {
+        window.addEventListener('beforeunload', function (evt) {
             if (livelyConfigExists() && (
                     window.Config.askBeforeQuit === true)) {
                 var msg = "Lively Kernel data may be lost if not saved.";

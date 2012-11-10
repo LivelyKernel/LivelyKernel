@@ -1133,4 +1133,93 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
     }
 });
 
+AsyncTestCase.subclass("lively.morphic.tests.Text.HoverActions",
+'running', {
+    setUp: function($super) {
+        $super();
+        this.actionQueue = lively.morphic.TextEmphasis.hoverActions;
+    },
+    tearDown: function() {
+        if (this.morph) this.morph.remove();
+    }
+},
+'testing', {
+    test01EnterAndLeave: function() {
+        var output = [];
+        this.actionQueue.enter(function() { output.push('in') }, 1);
+        this.actionQueue.leave(function() { output.push('out') }, 1);
+        this.delay(function() {
+            this.assertEqualState(['in', 'out'], output);
+            this.done();
+        }, 0);
+    },
+
+    test02EnterLeaveEnterInSameContext: function() {
+        var output = [];
+        this.actionQueue.enter(function() { output.push('in') }, 1);
+        this.actionQueue.leave(function() { output.push('out') }, 1);
+        this.actionQueue.enter(function() { output.push('in') }, 1);
+        this.delay(function() {
+            this.assertEqualState(['in'], output);
+            this.done();
+        }, 0);
+    },
+
+    test03EnterLeaveEnterLeaveInSameContext: function() {
+        var output = [];
+        this.actionQueue.enter(function() { output.push('in') }, 1);
+        this.actionQueue.leave(function() { output.push('out') }, 1);
+        this.actionQueue.enter(function() { output.push('in') }, 1);
+        this.actionQueue.leave(function() { output.push('out') }, 1);
+        this.delay(function() {
+            this.assertEqualState(['in', 'out'], output);
+            this.done();
+        }, 0);
+    },
+
+    test04EnterLeaveInContext1AndEnterInContext2: function() {
+        var output = [];
+        this.actionQueue.enter(function() { output.push('in1') }, 1);
+        this.actionQueue.leave(function() { output.push('out1') }, 1);
+        this.actionQueue.enter(function() { output.push('in2') }, 2);
+        this.delay(function() {
+            this.assertEqualState(['in1', 'out1', 'in2'], output);
+            this.done();
+        }, 0);
+    },
+
+    test05EnterLeaveInContext1AndEnterLeaveInContext2: function() {
+        var output = [];
+        this.actionQueue.enter(function() { output.push('in1') }, 1);
+        this.actionQueue.leave(function() { output.push('out1') }, 1);
+        this.actionQueue.enter(function() { output.push('in2') }, 2);
+        this.actionQueue.leave(function() { output.push('out2') }, 2);
+        this.delay(function() {
+            this.assertEqualState(['in1', 'out1', 'in2', 'out2'], output);
+            this.done();
+        }, 0);
+    },
+
+    test06InvokeHover: function() {
+        var morph = new lively.morphic.Text(rect(0,0,100,100), "xyz");
+        lively.morphic.World.current().addMorph(morph);
+        morph.emphasizeAll({hover: {
+            inAction: function() { this.x = 1 },
+            outAction: (function() { this.x = x }).asScript({x: 2})
+        }});
+
+        // NOTE! jQuery event triggering is async!
+        $(morph.firstTextChunk().getChunkNode()).trigger('mouseenter');
+        this.delay(function() {
+            this.assertEquals(1, morph.x);
+            $(morph.firstTextChunk().getChunkNode()).trigger('mouseleave');
+        }, 0);
+        this.delay(function() {
+            this.assertEquals(2, morph.x);
+            this.done();
+        }, 20);
+    }
+
+});
+
 });

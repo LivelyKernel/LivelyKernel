@@ -62,7 +62,57 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
         this.text.sliceTextChunks(0,2); this.text.coalesceChunks(); // slice'n fix
         lastNode = Array.from(chunks.last().getChunkNode().childNodes).last();
         this.assertEquals('br', lastNode.tagName);
+    },
+
+    test06SetDoit: function() {
+        this.text.setTextString('eintest');
+        this.text.emphasize({doit: {code: 'Global.textDoitInvoked=true'}}, 0, 3);
+        this.checkChunks(
+            [{textString: 'ein', style: {doit: {
+                code: "Global.textDoitInvoked=true", context: null}}},
+             {textString: 'test'}]);
+        var events = $._data(this.text.firstTextChunk().getChunkNode(), "events");
+
+        this.assertEquals(1, events.mousedown.length, 'no doit event handler?');
+
+        this.text.emphasize({doit: {code: 'Global.textDoitInvoked=true'}}, 0, 3);
+        events = $._data(this.text.firstTextChunk().getChunkNode(), "events");
+        this.assertEquals(1, events.mousedown.length, 'multiple doit event handler?');
+    },
+
+    test07OnlyOneHoverEventHandler: function() {
+        this.world.addMorph(this.text);
+        this.text.setTextString('xyz');
+        var hoverSpec1 = {
+            inAction: function() { return 1 },
+            outAction: function() { return 2 }
+        };
+        this.text.emphasize({hover: hoverSpec1}, 0, 3);
+        this.checkChunks([{
+            textString: "xyz",
+            style: {hover: hoverSpec1}
+        }]);
+
+        var events1 = $._data(this.text.firstTextChunk().getChunkNode(), "events");
+        // jQuery decides whether it implements mouseenter/leave with
+        // mouseover/out or directly with menter/leave
+        this.assertEquals(1, (events1.mouseover || events1.mouseenter).length);
+        this.assertEquals(1, (events1.mouseout || events1.mouseleave).length);
+
+        var hoverSpec2 = {
+            inAction: function() { return 3 },
+            outAction: function() { return 4 }
+        };
+        this.text.emphasize({hover: hoverSpec2}, 0, 3);
+        this.checkChunks([{
+            textString: "xyz",
+            style: {hover: hoverSpec2}
+        }]);
+        var events2 = $._data(this.text.firstTextChunk().getChunkNode(), "events");
+        this.assertEquals(1, (events2.mouseover || events2.mouseenter).length);
+        this.assertEquals(1, (events2.mouseout || events2.mouseleave).length);
     }
+
 });
 
 lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.Extent',

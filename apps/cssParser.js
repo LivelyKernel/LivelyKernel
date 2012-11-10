@@ -71,10 +71,15 @@ Object.extend(apps.cssParser, {
                     rule.selectorText(),
                     rule.declarations.collect(function (decl) {
                         if (decl.type === 1000) {
-                            var vals = decl.values.collect(
+                            var vals;
+                            if (apps.cssParser.isCommaSeparated(decl.property)) {
+                                vals = [decl.valueText]
+                            } else {
+                                vals = decl.values.collect(
                                     function (val) {
                                         return val.value
                                     });
+                            }
                             if(apps.cssParser.isShorthand(decl.property)) {
                                 return new lively.morphic.StyleSheetShorthandDeclaration(
                                 decl.property, vals, null, decl.priority);
@@ -122,11 +127,13 @@ Object.extend(apps.cssParser, {
     },
     isShorthand: function(property) {
         var propList = apps.cssParser.getPropList(),
-			shorthand = propList[property] && propList[property].shorthandFor;
-		return Object.isArray(shorthand) && shorthand.length > 0;
+            shorthand = propList[property] && propList[property].shorthandFor;
+        return Object.isArray(shorthand) && shorthand.length > 0;
     },
-
-
+    isCommaSeparated: function(property) {
+        var propList = apps.cssParser.getPropList()
+        return propList[property] && propList[property].commaSeparated;
+    },
     parseShorthand: function(shorthandDeclaration) {
         var simStyleSheet = '* {' + shorthandDeclaration.getText() + ' }',
             parsedSimStyleSheet = apps.cssParser.parse(simStyleSheet,
@@ -183,6 +190,7 @@ Object.extend(apps.cssParser, {
         // Prepare proplist
         for (var x in orgPropList) {
             propList[x] = {};
+            propList[x].commaSeparated = orgPropList[x].commaSeparated ;
             propList[x].shorthands = [];
             propList[x].shorthandFor = [];
         }
@@ -306,6 +314,26 @@ Object.extend(apps.cssParser, {
         'color': {
             values: [ // only one value for this property
             [3]]
+        },
+        'font-family': {
+            commaSeparated: true,
+            values: [[0]]
+        },
+        'background-image': {
+            commaSeparated: true,
+            values: [[0]]
+        },
+        'cursor': {
+            commaSeparated: true,
+            values: [[0]]
+        },
+        'box-shadow': {
+            commaSeparated: true,
+            values: [[4]]
+        },
+        'text-shadow': {
+            commaSeparated: true,
+            values: [[4]]
         }
     }
 

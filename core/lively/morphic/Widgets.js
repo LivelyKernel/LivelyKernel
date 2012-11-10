@@ -577,7 +577,8 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         borderRadius: 4,
         opacity: 0.95
     },
-    isEpiMorph: true
+    isEpiMorph: true,
+    removeOnMouseOut: false
 },
 'initializing', {
     initialize: function($super, title, items) {
@@ -612,7 +613,15 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         this.title.align(this.title.bounds().bottomLeft(), pt(0,0));
         this.addMorph(this.title);
         this.fitToItems()
-    },
+    }
+},
+'mouse events', {
+    onMouseOut: function() {
+        if (this.removeOnMouseOut) {
+            this.remove()
+        };
+        return this.removeOnMouseOut;
+    }
 },
 'opening', {
     openIn: function(parentMorph, pos, remainOnScreen, captionIfAny) {

@@ -48,7 +48,7 @@ Object.subclass('RealTrait',
         this.updateDependents();
 
         return this;
-    },
+    }
 },
 'testing', {
     equalOptions: function(a, b) {
@@ -73,7 +73,7 @@ Object.subclass('RealTrait',
             return cmp(leftObj, rightObj) && cmp(rightObj, leftObj);
         }
         return equals(a, b);
-    },
+    }
 },
 'derive', {
     derive: function(options) {
@@ -91,7 +91,7 @@ Object.subclass('RealTrait',
             if (this.equalOptions(options, extTraitOptions)) return Trait(name)
         }
         return null;
-    },
+    }
 
 },
 'updating', {
@@ -113,11 +113,20 @@ Object.subclass('RealTrait',
     },
     applyTo: function(obj, options) {
         options = options || this.optionsForApply;
+        // Fix wrong usage of override
+        if (Object.isString(options.override)) options.override = [options.override];
         if (Class.isClass(obj)) return this.applyToClass(obj, options);
         if (obj.isTrait) return this.applyToTrait(obj, options);
         return this.applyToObject(obj, options);
     },
     applyToClass: function(klass, options) {
+        var originalMethods = options.originalMethods;
+        if (!originalMethods) originalMethods = options.originalMethods = {};
+        if (options.override) {
+            options.override.forEach(function(ea) {
+                if (klass.prototype[ea]) originalMethods[ea] = klass.prototype[ea];
+            });
+        }
         this.removeFrom(klass.prototype);
         this.basicApplyTo(this.def, klass.prototype, options)
         this.extendedObjectsAndOptions.classes[klass.type || klass.name] = options;
@@ -179,19 +188,26 @@ Object.subclass('RealTrait',
         }
         Object.extend(target, def);
         return this;
-    },
+    }
 },
 'removing', {
     remove: function() {
         this.removeFromDependents();
         delete this.traitRegistry[this.name];
     },
-    removeFrom: function(obj) {
+    removeFrom: function(obj, options) {
         var own = Properties.ownValues(this.def),
-            props = Functions.all(obj);
+            props = Functions.all(obj),
+            originalMethods = (options && options.originalMethods) || {};
         for (var i = 0; i < props.length; i++) {
-            if (own.include(obj[props[i]])) {
-                delete obj[props[i]];
+            var name = props[i];
+            // FIXME what about aliased methods?
+            if (!own.include(obj[name])) continue;
+            if (obj[name].belongsToTrait === this && originalMethods[name]) {
+                obj[name] = originalMethods[name];
+                delete originalMethods[name];
+            } else {
+                delete obj[name];
             }
         }
     },
@@ -199,7 +215,7 @@ Object.subclass('RealTrait',
         Properties.forEachOwn(this.extendedObjectsAndOptions.classes, function(className, options) {
             var klass = Class.forName(className);
             if (!klass) return;
-            this.removeFrom(klass.prototype)
+            this.removeFrom(klass.prototype, options);
         }, this);
         Properties.forEachOwn(this.extendedObjectsAndOptions.traits, function(traitName, options) {
             var trait = Trait(traitName);
@@ -210,7 +226,7 @@ Object.subclass('RealTrait',
         }, this);
         var objConfs = this.extendedObjectsAndOptions.objects;
         objConfs && objConfs.forEach(function(conf) { if (conf.object) this.removeFrom(conf.object); }, this);
-    },
+    }
 },
 'categories', {
     getCategoryNames: function() { return Properties.own(this.categories) }

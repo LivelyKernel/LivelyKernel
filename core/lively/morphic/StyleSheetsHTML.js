@@ -10,30 +10,9 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
     Object.extend(lively.morphic.Shapes.Shape.prototype.htmlDispatchTable, {
         setAppearanceStylingMode: 'setAppearanceStylingModeHTML',
         setBorderStylingMode: 'setBorderStylingModeHTML',
-        getComputedBorderWidth: 'getComputedBorderWidthHTML',
-        getComputedExtent: 'getComputedExtentHTML'
     });
 
     lively.morphic.Shapes.Shape.addMethods('Stylesheets', {
-        getComputedBorderWidthHTML: function (ctx) {
-            var width = ($(ctx.shapeNode).outerWidth() - $(ctx.shapeNode).width()) / 2;
-            return width || 0;
-        },
-
-        getComputedExtentHTML: function (ctx) {
-            if (ctx.shapeNode) {
-                var width = $(ctx.shapeNode).outerWidth(),
-                    height = $(ctx.shapeNode).outerHeight();
-                if (height > 0 && width > 0) {
-                    return pt(width, height);
-                } else {
-                    return null;
-                }
-            } else {
-                return null;
-            }
-        },
-
         setAppearanceStylingModeHTML: function (ctx, value) {
             this.setFillHTML(ctx, this.shapeGetter("Fill"));
             this.setOpacityHTML(ctx, this.shapeGetter("Opacity"));
@@ -260,8 +239,14 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
                         selectors = this.splitGroupedSelector(selector),
                         newSelector = '';
                     for (var i = 0; i < selectors.length; i++) {
-                        newSelector += this.addSelectorPrefixes(
-                            this.replaceChildOp(selectors[i]));
+                        var adaptedSelector = selectors[i];
+                        // Wildcards have to be replaced before the prefixes are added
+                        adaptedSelector = this.replaceWildcardSelector(adaptedSelector);
+                        adaptedSelector = this.replaceRootPseudo(adaptedSelector);
+                        // Child ops are better replaced before prefixes add complexity to the selector
+                        adaptedSelector = this.replaceChildOp(adaptedSelector);
+                        adaptedSelector = this.addSelectorPrefixes(adaptedSelector);
+                        newSelector += adaptedSelector;
                         if (i < selectors.length - 1) {
                             newSelector += ', ';
                         }
@@ -450,7 +435,14 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             return selector;
         }
     },
-
+    replaceWildcardSelector: function(selector) {
+        // Only select shape nodes (shape nodes should have the morphid param set)
+        return selector.replace(/\*/g, '*[morphid]');
+    },
+    replaceRootPseudo: function(selector) {
+        // ":root" should select this morph
+        return selector.replace(/\:root/g, '[morphid="'+this.id+'"]');
+    },
 
     }, 
 	

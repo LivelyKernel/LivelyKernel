@@ -7,7 +7,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.HTML.jQueryTests'
     },
     test02jQueryReturnsWrappedShapeNode: function() {
         var m = new lively.morphic.Morph();
-        this.assertEquals(m.jQuery()[0], m.renderContext().shapeNode)
+        this.assertEquals(m.jQuery()[0], m.renderContext().shapeNode);
     }
 });
 
@@ -16,7 +16,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.RenderingTest'
     setUp: function($super) {
         $super();
         this.createWorld();
-    },
+    }
 },
 'testing', {
     test01NodeIsInDOM: function() {
@@ -30,6 +30,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.RenderingTest'
         this.assert(domInterface.isInDOM(m1.renderContext().morphNode), 'm1 node not in DOM?')
         this.assert(domInterface.isInDOM(m2.renderContext().morphNode), 'm2 node not in DOM?')
     },
+
     test02RenderCrossBrowserLinearGradient: function() {
         var gradient = new lively.morphic.LinearGradient(
             [{offset: 0, color: Color.red}, {offset: 0.8, color: Color.green}], "northSouth");
@@ -48,6 +49,11 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HTML.RenderingTest'
             firefoxResult = gradient.toCSSString(new Rectangle(0,0,100,100), '-moz-');
         this.assert(expectedWebkit == webkitResult.replace(/\s/g, '') || expectedFirefox == firefoxResult, 'browser does not render gradients correctly');
     },
+
+    test03MorphSetsDataAttributeToBackpoint: function() {
+        var m1 = lively.morphic.Morph.makeRectangle(0,0,100,100);
+        this.assertIdentity(m1, $(m1.renderContext().morphNode).data('morph'));
+    }
 
 });
 

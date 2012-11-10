@@ -397,6 +397,13 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             this.world,
             'selection for ".yellow > .Box" should return only the red rect');
     },
+    testSelectRootMorph: function() {
+        this.assertSizzleSelect([this.blueRectangle1],
+            ':root',
+            this.blueRectangle1,
+            'selection for ":root" should return the context (blueRectangle1)');
+    }
+
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSForMorphs',

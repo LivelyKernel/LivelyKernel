@@ -268,7 +268,7 @@ Object.extend(Array.prototype, {
     },
 
     equals: function(otherArray) {
-        if (this.length != otherArray.length) return false;
+        if (!otherArray || this.length !== otherArray.length) return false;
         for (var i = 0; i < otherArray.length; i++) {
             if (this[i].equals && otherArray[i].equals) {
                 if (!this[i].equals(otherArray[i])) {

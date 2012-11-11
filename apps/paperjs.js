@@ -83,20 +83,48 @@ lively.morphic.CanvasMorph.subclass('apps.paperjs.Morph',
 
 lively.morphic.Shapes.External.subclass('apps.paperjs.PathShape',
 'initializing', {
-    initialize: function($super, paperSpec) {
-        this.shapeNode = paperSpec.view;
+    initialize: function($super) {
+        this.shapeNode = XHTMLNS.create('canvas');
+        this.shapeNode.setAttribute('id', 'paperjs-canvas-' + new UUID().id);
+        this.initPaperjs();
+    },
+
+    doNotSerialize: ['path'],
+
+    initPaperjs: function($super) {
         this.setNodeId(this.shapeNode.getAttribute('id'));
+        paper.setup(this.shapeNode);
+        this.path = new paper.Path();
+        this.path.moveTo(pt(0,0)); // to initialize bounds and stuff
+    },
+
+    onstore: function() {
+        // This should better go into a plugin so that we only add this stuff
+        // to the serialization form and not to the original object
+        this.serializedStrokeWidth = this.path.strokeWidth;
+        this.serializedVertices = this.getVertices();
+    },
+
+    onrestore: function() {
+        this.shapeNode = XHTMLNS.create('canvas');
+        this.shapeNode.setAttribute('id', 'paperjs-canvas-' + new UUID().id);
+
+        this.initPaperjs();
+
+        if (this.serializedVertices) this.setVertices(this.serializedVertices);
+        delete this.serializedVertices;
+        if (this.serializedStrokeWidth) path.strokeWidth = this.serializedStrokeWidth;
+        delete this.serializedStrokeWidth;
     }
 },
 'accessing', {
     getPath: function() {
-        return this.renderContext().path;
+        return this.path;
     },
 
     setVertices: function(vertices) {
         var path = this.getPath();
         path.strokeColor = 'black';
-        path.strokeWidth = 4;
 
         if (vertices.length === 0) {
             path.removeSegments();
@@ -136,40 +164,41 @@ lively.morphic.Shapes.External.subclass('apps.paperjs.PathShape',
             minX = Math.min(minX, ea.point.x);
             minY = Math.min(minY, ea.point.y);
         });
+        minX -= path.strokeWidth / 2;
+        minY -= path.strokeWidth / 2;
         path.translate(new paper.Point(-minX, -minY));
         return pt(minX, minY);
     }
 },
 'HTML rendering', {
     initHTML: function($super, ctx) {
-        if (!ctx.path) {
-            ctx.path = new paper.Path();
-            ctx.path.moveTo(pt(0,0)); // to initialize bounds and stuff
-        }
-        $super(ctx);
+        if (ctx.shapeNode) return;
+        ctx.shapeNode = this.shapeNode;
     },
 
     getExtentHTML: function(ctx) {
-        return pt(ctx.path.bounds.width, ctx.path.bounds.height);
+        var bounds = this.path.bounds,
+            padding = this.path.strokeWidth / 2;
+        return pt(bounds.width + padding, bounds.height + padding);
     },
 
     setExtentHTML: function($super, ctx, extent) {
+        var path = this.getPath();
+        extent = extent.addXY(path.strokeWidth/2, path.strokeWidth/2);
         $super(ctx, extent);
-        if (ctx.shapeNode) {
-            var redraw = false,
-                view = this.getPath().project.view,
-                size = view.viewSize;
-            debugger
-            if (size.width !== extent.x) {
-                redraw = true;
-            }
-            if (size.height !== extent.y) {
-                redraw = true;
-            }
-            if (redraw) {
-                view.viewSize = new paper.Point(extent);
-                // view.draw();
-            }
+        if (!ctx.shapeNode) return;
+        var redraw = false,
+            view = path.project.view,
+            size = view.viewSize;
+        if (size.width !== extent.x) {
+            redraw = true;
+        }
+        if (size.height !== extent.y) {
+            redraw = true;
+        }
+        if (redraw) {
+            view.viewSize = new paper.Point(extent);
+            // view.draw();
         }
     }
 });
@@ -177,54 +206,38 @@ lively.morphic.Shapes.External.subclass('apps.paperjs.PathShape',
 lively.morphic.Morph.subclass('apps.paperjs.Path',
 'initializing', {
     initialize: function($super, vertices) {
-        var paperInit = this.initializePaperjsCanvas(),
-            shape = new apps.paperjs.PathShape(paperInit);
+        var shape = new apps.paperjs.PathShape();
         $super(shape);
         shape.setVertices(vertices);
+        this.setStrokeWidth(6);
         this.disableGrabbing();
         this.enableDragging();
     },
 
-    initializePaperjsCanvas: function() {
-        var element = XHTMLNS.create('canvas'),
-            id = 'paperjs-canvas-' + Date.now();
-        element.setAttribute('id', id);
-
-        var morph = this;
-        paper.setup(element);
-        // var tool = this.tool = new paper.Tool();
-        // tool.onMouseDown = function(evt) {
-        //     debugger
-        //     Global.Hit=path.hitTest(evt.point);
-        //     return morph.onMouseDown(evt);
-        // }
-        // tool.activate();
-
-        return {view: element, project: paper.project};
+    onLoad: function() {
+        this.pathChanged();
     }
-
+},
+"updating", {
+    pathChanged: function() {
+        this.normalizePath();
+        this.setExtent(this.getExtent());
+    }
 },
 "accessing", {
     setVertices: function(verts) {
-
-        // normalize
-        var offset
-        // var x = first.x * -1 + (hintX || 0),
-        //     y = first.y * -1 + (hintY || 0),
-        //     isFirst = true,
-        //     elements = this.getPathElements();
-        // for (var i = 0; i < elements.length; i++) {
-        //     elements[i].translate(x, y, isFirst);
-        //     isFirst = false;
-        // }
-        // this.setPathElements(this.getPathElements());
-
-
-
         this.getShape().setVertices(verts);
+        this.pathChanged();
     },
     getVertices: function() { return this.getShape().getVertices(); },
     getPath: function() { return this.getShape().getPath(); },
+
+    setStrokeWidth: function(value) {
+        this.getPath().strokeWidth = value;
+        this.pathChanged();
+    }
+},
+"conversion", {
     paperjsPoint: function(x, y) {
         // cal with one arg: point, or two: x, y coords
         return y === undefined ? new paper.Point(x.x, x.y) : new paper.Point(x, y);
@@ -291,8 +304,7 @@ lively.morphic.Morph.subclass('apps.paperjs.Path',
             point = new paper.Point(pos.x, pos.y);
         point = point.subtract(this.getOrigin());
         this.selectedSegment.point = point;
-        var offset = this.normalizePath();
-        this.setExtent(this.getExtent());
+        this.pathChanged();
         return true;
     },
 

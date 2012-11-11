@@ -16,7 +16,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     },
     setExtent: function($super, extent) {
         $super(extent);
-        this.renderContextDispatch('adaptCanvasSize');
+        this.renderContextDispatch('adaptCanvasSize', extent);
     },
     clear: function() {
         var ctx = this.getContext(),
@@ -217,8 +217,7 @@ Object.subclass('lively.morphic.ControlPoint',
     },
     create: function() {
         return new lively.morphic.ControlPoint(this.morph)
-    },
-
+    }
 },
 'updating', {
     signalChange: function() {
@@ -243,8 +242,7 @@ Object.subclass('lively.morphic.ControlPoint',
     isCurve: function() {
         var e = this.getElement();
         return e.charCode == 'Q' || e.charCode == 'C' || e.charCode == 'S';
-    },
-
+    }
 },
 'accessing', {
     getMorph: function() { return this.morph },
@@ -262,9 +260,7 @@ Object.subclass('lively.morphic.ControlPoint',
         var elements = this.morph.shape.getPathElements();
         elements.replaceAt(element, this.index);
         this.morph.shape.setPathElements(elements);
-    },
-
-
+    }
 },
 'enumerating', {
     withNextControlPointsDo: function(func) {
@@ -323,8 +319,7 @@ Object.subclass('lively.morphic.ControlPoint',
     mergeWithNext: function() {
         var next = this.next();
         next && next.remove();
-    },
-
+    }
 
 },
 'removing', {
@@ -378,8 +373,9 @@ Object.subclass('lively.morphic.ControlPoint',
             rot = vector.theta();
         this.marker.setRotation(rot);
         this.marker.setPosition(pos);
-    },
+    }
 });
+
 lively.morphic.Halo.subclass('lively.morphic.PathControlPointHalo',
 'settings', {
     style: {fill: null, borderWidth: 2, borderColor: Color.blue},
@@ -393,17 +389,12 @@ lively.morphic.Halo.subclass('lively.morphic.PathControlPointHalo',
         //controlPoint.getMorph().addMorph(this);
         //this.setPosition(controlPoint.getPos());
     },
-    createLabel: function() {/*do nothing*/},
-
-
-},
-'transformation', {
-
+    createLabel: function() {/*do nothing*/}
 });
 
 lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathVertexControlPointHalo',
 'properies', {
-    isVertexControlHalo: true,
+    isVertexControlHalo: true
 },
 'halo behavior', {
     computePositionAtTarget: function() {

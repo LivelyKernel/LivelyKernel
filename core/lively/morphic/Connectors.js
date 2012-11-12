@@ -100,7 +100,7 @@ Object.subclass('lively.morphic.Magnet',
     },
     remove: function() {
         // enter comment here
-    },
+    }
 });
 
 lively.morphic.Magnet.subclass('lively.morphic.RelativeMagnet',
@@ -396,6 +396,7 @@ lively.morphic.Path.addMethods(
             if (ctrlPt.connectedMagnet) ctrlPt.setConnectedMagnet(null);
         })
     },
+
     getMagnets: function() {
         return [ ]
     },
@@ -448,7 +449,7 @@ Object.extend(lively.bindings, {
 
         var con = this.connect(source, sourceProp, target, targetProp, spec);
 
-        if (Config.visualConnectEnabled)
+        if (Config.get("visualConnectEnabled"))
             this.showConnection(con);
 
         return con;
@@ -500,7 +501,7 @@ Object.extend(lively.bindings, {
                     alertOK('Disconnected ' + visualConnector.con);
                     visualConnector.con.visualDisconnect();
                 }],
-                ['Cancel', function() {}],
+                ['Cancel', function() {}]
             ];
             return items;
         })
@@ -563,14 +564,13 @@ lively.morphic.Box.subclass('lively.morphic.ConnectionBuilder',
         lively.morphic.Menu.openAtHand('Connect to ' + (target.name || target), items)
     },
     underMorphMenu: function(position, sourceMorph, sourceAttribute) {
-        var world = sourceMorph.world(),
-            that = this;
-        if (!world) { return; }
-        var morphStack = world.morphsContainingPoint(position).reject(
-                function(ea){return ea.isWorld;}),
+        var world = sourceMorph.world(), that = this;
+        if (!world) { return null; }
+        var morphStack = world.morphsContainingPoint(position).reject(function(ea){
+                return ea.isWorld; }),
             menu = [];
-        morphStack.
-            forEach(function(ea) { menu.push([ea.name, that.propertiesMenuForTarget(ea)]);});
+        morphStack.forEach(function(ea) {
+            menu.push([ea.name, that.propertiesMenuForTarget(ea)]); });
         return ['Connect to under morph ...', menu];
     },
     propertiesMenuForTarget: function(aMorph) {

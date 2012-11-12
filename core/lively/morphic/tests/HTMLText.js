@@ -73,11 +73,11 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
              {textString: 'test'}]);
         var events = $._data(this.text.firstTextChunk().getChunkNode(), "events");
 
-        this.assertEquals(1, events.mousedown.length, 'no doit event handler?');
+        this.assertEquals(1, events.mouseup.length, 'no doit event handler?');
 
         this.text.emphasize({doit: {code: 'Global.textDoitInvoked=true'}}, 0, 3);
         events = $._data(this.text.firstTextChunk().getChunkNode(), "events");
-        this.assertEquals(1, events.mousedown.length, 'multiple doit event handler?');
+        this.assertEquals(1, events.mouseup.length, 'multiple doit event handler?');
     },
 
     test07OnlyOneHoverEventHandler: function() {

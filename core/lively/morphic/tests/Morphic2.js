@@ -72,7 +72,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PivotPointTests',
         // now do the same with a morph and see if its bounds matches
         var morph = lively.morphic.Morph.makeRectangle(0, 0, 100, 20);
         this.world.addMorph(morph);
-debugger
         morph.setRotation((45).toRadians());
         this.assertEquals(Rectangle.unionPts(bounds1), morph.bounds(), 'bounds wrong, step1');
 

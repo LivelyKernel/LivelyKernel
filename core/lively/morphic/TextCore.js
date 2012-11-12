@@ -2759,19 +2759,28 @@ Object.subclass('lively.morphic.TextEmphasis',
             set: function(value) { return this.doit = value },
             get: function() { return this.doit },
             equals: function(other) {
-                if (this.hasOwnProperty("doit")) {
+                if (this.doit) {
                     return other.doit ? this.doit.code == other.doit.code : false;
                 }
                 return !other.doit;
             },
             apply: function(node) {
+                if (!this.hasOwnProperty("doit")) return;
+                if (!this.doit) {
+                    node.style.cursor = 'auto';
+                    node.style.textDecoration = 'none';
+                    node.style.color = 'inherit';
+                    LivelyNS.removeAttribute(node, 'doit');
+                    delete this.doit;
+                    return;
+                }
                 var doit = this.doit;
-                if (!doit) return;
                 this.addCallbackWhenApplyDone('click', function(evt) {
-                    var src = '(function() {\n' + doit.code + '\n})';
+                    lively.morphic.EventHandler.prototype.patchEvent(evt);
+                    var src = '(function(evt) {\n' + doit.code + '\n})';
                     try {
                         var func = eval(src);
-                        func.call(doit.context || Global);
+                        func.call(doit.context || Global, evt);
                     } catch(e) {
                         alert('Error in text doit\n' + e.stack);
                     }
@@ -3059,7 +3068,7 @@ Object.subclass('lively.morphic.TextEmphasis',
 
     installCallbackHandler: function(node) {
         var $node = $(node);
-        [{type: 'click', handler: 'mousedown'},
+        [{type: 'click', handler: 'mouseup'},
          {type: 'mouseenter', handler: 'mouseenter'},
          {type: 'mouseleave', handler: 'mouseleave'}].forEach(function(spec) {
              $node.off(spec.handler);

@@ -2759,14 +2759,22 @@ Object.subclass('lively.morphic.TextEmphasis',
             set: function(value) { return this.doit = value },
             get: function() { return this.doit },
             equals: function(other) {
-                if (this.hasOwnProperty("doit")) {
+                if (this.doit) {
                     return other.doit ? this.doit.code == other.doit.code : false;
                 }
                 return !other.doit;
             },
             apply: function(node) {
+                if (!this.hasOwnProperty("doit")) return;
+                if (!this.doit) {
+                    node.style.cursor = 'auto';
+                    node.style.textDecoration = 'none';
+                    node.style.color = 'inherit';
+                    LivelyNS.removeAttribute(node, 'doit');
+                    delete this.doit;
+                    return;
+                }
                 var doit = this.doit;
-                if (!doit) return;
                 this.addCallbackWhenApplyDone('click', function(evt) {
                     lively.morphic.EventHandler.prototype.patchEvent(evt);
                     var src = '(function(evt) {\n' + doit.code + '\n})';

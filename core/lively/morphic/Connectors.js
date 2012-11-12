@@ -355,20 +355,15 @@ lively.morphic.Morph.addMethods(
         if (lineStyle) line.applyStyle(lineStyle);
         if (this.owner) this.owner.addMorphBack(line);
 
-        var cp1 = line.getControlPoints().first();
-        var startMagnet = this.getMagnetForPos(
-            this.world() ? otherMorph.worldPoint(otherMorph.innerBounds().center()) : null);
-        cp1.setConnectedMagnet(startMagnet);
+        var startMagnet = line.connectToNearestStartMagnet(this, otherMorph),
+            endMagnet = line.connectToNearestEndMagnet(this, otherMorph);
 
-        var cp2 = line.getControlPoints().last();
-        var endMagnet = otherMorph.getMagnetForPos(
-            this.world() ? this.worldPoint(this.innerBounds().center()) : null);
-        if (startMagnet === undefined || endMagnet === undefined) {
-            alert("Connection Problem: no magnet found")
-            line.disconnectFromMagnets()
-            line.remove()
+        if (!startMagnet || !endMagnet) {
+            alert("Connection Problem: no magnet found");
+            line.disconnectFromMagnets();
+            line.remove();
         }
-        cp2.setConnectedMagnet(endMagnet);
+        }
 
         return line;
     },
@@ -403,6 +398,22 @@ lively.morphic.Path.addMethods(
     },
     getMagnets: function() {
         return [ ]
+    },
+
+    connectToNearestStartMagnet: function(fromMorph, toMorph) {
+        var cp = this.getControlPoints().first(),
+            nearestPoint = fromMorph.bounds().closestPointToPt(toMorph.bounds().center()),
+            magnet = fromMorph.getMagnetForPos(nearestPoint);
+        cp.setConnectedMagnet(magnet);
+        return magnet;
+    },
+
+    connectToNearestEndMagnet: function(fromMorph, toMorph) {
+        var cp = this.getControlPoints().last(),
+            nearestPoint = toMorph.bounds().closestPointToPt(fromMorph.bounds().center()),
+            magnet = toMorph.getMagnetForPos(nearestPoint);
+        cp.setConnectedMagnet(magnet);
+        return magnet;
     },
 });
 

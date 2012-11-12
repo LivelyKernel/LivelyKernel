@@ -653,7 +653,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             return {
                 isMenuItem: true,
                 isListItem: true,
-				isSubMenu: isSubMenu,
+                isSubMenu: isSubMenu,
                 string: string,
                 value: value,
                 idx: idx,

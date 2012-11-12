@@ -347,9 +347,11 @@ lively.morphic.Morph.addMethods(
             return ea.getConnectedControlPoints().length == 0
         }).invoke('remove')
     },
-    createConnectorTo: function(otherMorph, lineStyle) {
-        if (!otherMorph)
-            throw new Error('Cannot to nothing');
+
+    createConnectorTo: function(otherMorph, lineStyle, update) {
+        if (!otherMorph) {
+            throw new Error('Cannot connect to nothing');
+        }
 
         var line = new lively.morphic.Path([pt(0,0), pt(0,0)]);
         if (lineStyle) line.applyStyle(lineStyle);
@@ -363,6 +365,10 @@ lively.morphic.Morph.addMethods(
             line.disconnectFromMagnets();
             line.remove();
         }
+
+        if (update) {
+            connect(this, 'globalTransform', line, 'realignConnection');
+            connect(otherMorph, 'globalTransform', line, 'realignConnection');
         }
 
         return line;
@@ -416,6 +422,18 @@ lively.morphic.Path.addMethods(
         cp.setConnectedMagnet(magnet);
         return magnet;
     },
+
+    realignConnection: function() {
+        var ctrls = this.getControlPoints(),
+            firstMagnet = ctrls.first().getConnectedMagnet(),
+            fromMorph = firstMagnet && firstMagnet.morph,
+            lastMagnet = ctrls.last().getConnectedMagnet(),
+            toMorph = lastMagnet && lastMagnet.morph;
+        if (!fromMorph || !toMorph) return false;
+        this.connectToNearestStartMagnet(fromMorph, toMorph);
+        this.connectToNearestEndMagnet(fromMorph, toMorph);
+        return true;
+    }
 });
 
 lively.morphic.ControlPoint.addMethods({
@@ -473,7 +491,7 @@ Object.extend(lively.bindings, {
     showConnection: function(con) {
         var source = con.sourceObj,
             target = con.targetObj,
-            visualConnector = source.createConnectorTo(target);
+            visualConnector = source.createConnectorTo(target, null, true);
 
         // arrow head
         var arrowHead = new lively.morphic.Path([pt(0,0), pt(0,12), pt(16,6), pt(0,0)]);

@@ -775,13 +775,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
         this.text.setTextString('eintest');
         this.text.emphasize({doit: {code: 'alert(1)'}}, 0,3);
         this.text.emphasize({doit: null}, 1,4);
-        window.bratheringe = this.text;
         this.checkChunks(
             [{textString: 'e'},
             {textString: 'intest'}])
         this.checkDOM([
-            {tagName: 'span', textContent: 'e', style: {doit: {code: 'alert(1)'}}},
-            {tagName: 'span', textContent: 'intest', style: {fontWeight: ''}}])
+            {tagName: 'span', textContent: 'e', style: {textDecoration: 'underline'}},
+            {tagName: 'span', textContent: 'intest', style: {textDecoration: 'initial'}}])
     },
 
     test27aInsertStringAt: function() {

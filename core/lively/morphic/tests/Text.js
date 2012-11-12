@@ -331,7 +331,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
     test07MakeTextBoldThenUnbold: function() {
         this.text.setTextString('eintest');
         this.text.emphasize({fontWeight: 'bold'}, 0, 2);
-        debugger
         this.text.emphasize({fontWeight: 'normal'}, 0, 2);
         this.checkDOM([{tagName: 'span', textContent: 'eintest'}])
     },
@@ -771,6 +770,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
             {tagName: 'span', textContent: 'intest', style: {fontWeight: ''}}])
     },
 
+    test26cRemoveDoit: function() {
+        this.text.setTextString('eintest');
+        this.text.emphasize({doit: {code: 'alert(1)'}}, 0,3);
+        this.text.emphasize({doit: null}, 1,4);
+        this.checkChunks(
+            [{textString: 'e'},
+            {textString: 'intest'}])
+        this.checkDOM([
+            {tagName: 'span', textContent: 'e', style: {textDecoration: 'underline'}},
+            {tagName: 'span', textContent: 'intest', style: {textDecoration: 'initial'}}])
+    },
+
     test27aInsertStringAt: function() {
         this.text.setTextString('some text');
         this.text.toggleBoldness(2,4);
@@ -796,7 +807,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
     test28bEmphasizeRangesWithPrexistingStyle: function() {
         this.text.setTextString('some text');
         this.text.emphasize({textDecoration: 'underline'}, 0, 4);
-        debugger;
         this.text.emphasizeRanges([[0,4, {fontWeight: 'bold'}]]);
         this.checkChunks([
             {textString: 'some', style: {fontWeight: 'bold', textDecoration: 'underline'}},

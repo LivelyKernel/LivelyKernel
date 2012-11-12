@@ -89,7 +89,7 @@ lively.morphic.Shapes.External.subclass('apps.paperjs.PathShape',
         this.initPaperjs();
     },
 
-    doNotSerialize: ['path'],
+    doNotSerialize: ['path', 'endArrow'],
 
     initPaperjs: function($super) {
         this.setNodeId(this.shapeNode.getAttribute('id'));
@@ -113,7 +113,7 @@ lively.morphic.Shapes.External.subclass('apps.paperjs.PathShape',
 
         if (this.serializedVertices) this.setVertices(this.serializedVertices);
         delete this.serializedVertices;
-        if (this.serializedStrokeWidth) path.strokeWidth = this.serializedStrokeWidth;
+        if (this.serializedStrokeWidth) this.path.strokeWidth = this.serializedStrokeWidth;
         delete this.serializedStrokeWidth;
     }
 },
@@ -166,8 +166,33 @@ lively.morphic.Shapes.External.subclass('apps.paperjs.PathShape',
         });
         minX -= path.strokeWidth / 2;
         minY -= path.strokeWidth / 2;
+        if (this.endArrow) {
+            minX = Math.min(minX, this.endArrow.bounds.left);
+            minY = Math.min(minY, this.endArrow.bounds.top);
+        }
         path.translate(new paper.Point(-minX, -minY));
         return pt(minX, minY);
+    }
+},
+'arrow heads', {
+    displayArrowHeads: function() {
+        if (this.endArrow) this.endArrow.remove();
+        var path = this.path,
+            strokeW = path.strokeWidth,
+            dir = path.lastSegment.curve.getTangent(0),
+            arrowVector = dir.normalize(20),
+            end = path.lastSegment.point.add(dir.normalize(strokeW/2)),
+            endArrow = new paper.Path([
+			    end.add(arrowVector.rotate(150)),
+			    end,
+			    end.add(arrowVector.rotate(-150))
+		    ]);
+
+        endArrow.strokeWidth = strokeW/2;
+        endArrow.strokeColor = 'black';
+        // path.project.activeLayer.addChild(endArrow);
+        path.addChild(endArrow);
+        this.endArrow = endArrow;
     }
 },
 'HTML rendering', {
@@ -177,9 +202,23 @@ lively.morphic.Shapes.External.subclass('apps.paperjs.PathShape',
     },
 
     getExtentHTML: function(ctx) {
+        // var bounds = this.path.bounds,
         var bounds = this.path.bounds,
-            padding = this.path.strokeWidth / 2;
-        return pt(bounds.width + padding, bounds.height + padding);
+            strokeW = this.path.strokeWidth / 2,
+            paddingRight = strokeW,
+            paddingBottom = strokeW,
+            endArrow = this.endArrow;
+        if (endArrow) {
+            var endArrowBnds = endArrow.bounds;
+            paddingRight = Math.max(paddingRight, endArrowBnds.width / 2);
+            paddingBottom = Math.max(paddingBottom, endArrowBnds.height / 2);
+        }
+
+Functions.throttle(function() {
+        show(pt(bounds.width + paddingRight, bounds.height + paddingBottom).extentAsRectangle());
+}, 5000)
+
+        return pt(bounds.width + paddingRight, bounds.height + paddingBottom);
     },
 
     setExtentHTML: function($super, ctx, extent) {
@@ -212,6 +251,7 @@ lively.morphic.Morph.subclass('apps.paperjs.Path',
         this.setStrokeWidth(6);
         this.disableGrabbing();
         this.enableDragging();
+        this.disableDropping();
     },
 
     onLoad: function() {
@@ -221,6 +261,7 @@ lively.morphic.Morph.subclass('apps.paperjs.Path',
 "updating", {
     pathChanged: function() {
         this.normalizePath();
+        this.getShape().displayArrowHeads();
         this.setExtent(this.getExtent());
     }
 },
@@ -256,7 +297,9 @@ lively.morphic.Morph.subclass('apps.paperjs.Path',
     normalizePath: function() {
         var offset = this.getShape().normalizeVertices();
         this.moveBy(offset);
-    },
+    }
+},
+'hit detection', {
 
     pathHit: function(tolerance, globalPos) {
         var path = this.getPath(),
@@ -281,6 +324,9 @@ lively.morphic.Morph.subclass('apps.paperjs.Path',
         if (dist1 > tolerance*tolerance && dist2 > tolerance*tolerance) return null;
         return dist1 < dist2 ? segBefore : segAfter;
     },
+
+},
+'mouse events', {
 
     onMouseDown: function(evt) {
         var path = this.getPath(),

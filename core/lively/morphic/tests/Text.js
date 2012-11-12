@@ -771,6 +771,19 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
             {tagName: 'span', textContent: 'intest', style: {fontWeight: ''}}])
     },
 
+    test26cRemoveDoit: function() {
+        this.text.setTextString('eintest');
+        this.text.emphasize({doit: {code: 'alert(1)'}}, 0,3);
+        this.text.emphasize({doit: null}, 1,4);
+        window.bratheringe = this.text;
+        this.checkChunks(
+            [{textString: 'e'},
+            {textString: 'intest'}])
+        this.checkDOM([
+            {tagName: 'span', textContent: 'e', style: {doit: {code: 'alert(1)'}}},
+            {tagName: 'span', textContent: 'intest', style: {fontWeight: ''}}])
+    },
+
     test27aInsertStringAt: function() {
         this.text.setTextString('some text');
         this.text.toggleBoldness(2,4);

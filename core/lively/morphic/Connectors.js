@@ -372,8 +372,20 @@ lively.morphic.Morph.addMethods(
 
         return line;
     },
+
     getMagnetForPos: function(globalPos) {
-        return this.getMagnets()[0];
+        var nearestMagnetDist = Infinity,
+            selected = null,
+            magnets = this.getMagnets();
+        magnets.forEach(function(magnet) {
+            var dist = magnet.getGlobalPosition().dist(globalPos);
+            if (dist < nearestMagnetDist) {
+                nearestMagnetDist = dist;
+                selected = magnet;
+            }
+        });
+        return selected || magnets[0];
+
     },
     getVisualBindingsBuilderFor: function(connectionPointName) {
         return new lively.morphic.ConnectionBuilder(this, connectionPointName);

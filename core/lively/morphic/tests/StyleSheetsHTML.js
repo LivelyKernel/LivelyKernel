@@ -175,10 +175,19 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         this.assertEquals('origin-node', $(ctx.originNode).attr('node-type'),
             'Node-type of originNode should be "origin-node"');
     },
-
-
-
-
+    test09ReplaceWildcardSelector: function() {
+        this.assertEquals('*[morphid]', this.morph.replaceWildcardSelector('*'),
+            'Simple wildcard was not replaced correctly');
+        this.assertEquals('*[morphid].class *[morphid].another-class', this.morph.replaceWildcardSelector('*.class *.another-class'),
+            'Combined wildcards were not replaced correctly');
+    },
+    test10ReplaceRootPseudo: function() {
+        var morphId = this.morph.id;
+        this.assertEquals('[morphid="'+morphId+'"]', this.morph.replaceRootPseudo(':root'),
+            'Simple root pseudo was not replaced correctly');
+        this.assertEquals('[morphid="'+morphId+'"].class, [morphid="'+morphId+'"].another-class', this.morph.replaceRootPseudo(':root.class, :root.another-class'),
+            'Grouped root pseudos were not replaced correctly');
+    },
     assertArray: function(anticipated, actual, msg) {
         this.assertArrayIsSubset(anticipated, actual, msg);
         this.assertArrayIsSubset(actual, anticipated, msg);
@@ -539,6 +548,12 @@ this.createSomeMorphs();
 
 },
 'testing', {
+    test00WildcardSelector: function() {
+        this.assertSelector([this.redRectangle, this.yellowRectangle, this.blueRectangle1, this.blueRectangle2],
+            [],
+            this.yellowRectangle, '*',
+            'Could not select all rectangles via "*"');
+    },
     test01ClassSelector: function() {
         this.assertSelector([this.redRectangle],
             [this.yellowRectangle, this.blueRectangle1, this.blueRectangle2],
@@ -653,6 +668,14 @@ this.createSomeMorphs();
             '.blue:not(.the-first-blue-rect)',
             'Could not select b2 via ".blue:not(.the-first-blue-rect)"');
     },
+    test13Root: function() {
+       this.assertSelector([this.yellowRectangle],
+            [this.blueRectangle2, this.redRectangle, this.blueRectangle1],
+            this.yellowRectangle,
+            ':root',
+            'Could not select yellow via ":root"');
+    },
+
 
 
     assertSelector: function(selectedMorphs, nonSelectedMorphs, context, selector, msg) {
@@ -665,21 +688,44 @@ this.createSomeMorphs();
 
         this.delay(function() {
             selectedMorphs.each(function(m) {
-                    var shapeNode = m.renderContext().shapeNode;
+                    var shapeNode = m.renderContext().shapeNode,
+                        morphNode = m.renderContext().morphNode,
+                        originNode = m.renderContext().originNode;
                     this.assert(shapeNode,
                         msg+': No shapeNode! Whats going on here?');
+                    this.assert(morphNode,
+                        msg+': No morphNode! Whats going on here?');
                     this.assertEquals('12px',
                         window.getComputedStyle(shapeNode)['outline-width'],
                          msg+': Style was not applied on a node');
+                    this.assertEquals('0px',
+                        window.getComputedStyle(morphNode)['outline-width'],
+                         msg+': Style was mistakenly applied on morphNode');
+                    if (originNode) {
+                        this.assertEquals('0px',
+                            window.getComputedStyle(originNode)['outline-width'],
+                            msg+': Style was mistakenly applied on originNode');
+                    }
                 }, this);
             nonSelectedMorphs.each(function(m) {
-                    var shapeNode = m.renderContext().shapeNode;
+                    var shapeNode = m.renderContext().shapeNode,
+                        morphNode = m.renderContext().morphNode,
+                        originNode = m.renderContext().originNode;
                     this.assert(shapeNode,
                         msg+': No shapeNode! Whats going on here?');
                     this.assertEquals('0px',
                         window.getComputedStyle(shapeNode)['outline-width'],
                          msg+': Style was mistakenly applied on a node');
+                     this.assertEquals('0px',
+                        window.getComputedStyle(morphNode)['outline-width'],
+                         msg+': Style was mistakenly applied on morphNode');
+                    if (originNode) {
+                        this.assertEquals('0px',
+                            window.getComputedStyle(originNode)['outline-width'],
+                            msg+': Style was mistakenly applied on originNode');
+                    }
                 }, this);
+
 
             test.done();
         }, 0.1);
@@ -760,7 +806,7 @@ AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Text',
         this.textMorph.setFontFamily('Times');
         this.textMorph.setFontSize(20);
         this.textMorph.setFontStyle('normal');
-        this.textMorph.setFontWeight('normal');
+        this.textMorph.setFontWeight(300);
         this.textMorph.setTextColor(Color.black);
         this.textMorph.setTextDecoration('none');
         this.textMorph.setVerticalAlign('bottom');
@@ -813,7 +859,7 @@ AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Text',
                 'font-family was not properly reset after switching back from CSS text styling');
             this.assertEquals('normal', $(textNode).css('font-style'),
                 'font-style was not properly reset after switching back from CSS text styling');
-            this.assertEquals('normal', $(textNode).css('font-weight'),
+            this.assertEquals('300', $(textNode).css('font-weight'),
                 'font-weight was not properly reset after switching back from CSS text styling');
             this.assertEquals('rgb(0, 0, 0)', $(textNode).css('color'),
                 'color was not properly reset after switching back from CSS text styling');

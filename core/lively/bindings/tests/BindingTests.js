@@ -473,6 +473,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         obj.x = 7;
         this.assertEquals(7, obj.y, 'not updated 2');
     },
+
     test41aDynamicallyDisableUpdateForOneConnection: function() {
         var obj = {};
         connect(obj, 'x', obj, 'y');
@@ -486,8 +487,16 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         obj.x = 7;
         this.assertEquals(7, obj.y, 'not updated y 2');
         this.assertEquals(7, obj.z, 'not updated z 2');
-    }
+    },
 
+    test42ForceAttributeConnection: function() {
+        var obj = {m: function() { return 3 }, x: 2};
+        connect(obj, 'm', obj, 'x', {forceAttributeConnection: true});
+        obj.m();
+        this.assertEquals(2, obj.x);
+        obj.m = function() { return 4 }
+        this.assertIdentity(obj.m, obj.x);
+    }
 
 });
 

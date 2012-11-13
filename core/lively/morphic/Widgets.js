@@ -571,7 +571,8 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         borderRadius: 4,
         opacity: 0.95
     },
-    isEpiMorph: true
+    isEpiMorph: true,
+    removeOnMouseOut: false
 },
 'initializing', {
     initialize: function($super, title, items) {
@@ -606,7 +607,15 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         this.title.align(this.title.bounds().bottomLeft(), pt(0,0));
         this.addMorph(this.title);
         this.fitToItems()
-    },
+    }
+},
+'mouse events', {
+    onMouseOut: function() {
+        if (this.removeOnMouseOut) {
+            this.remove()
+        };
+        return this.removeOnMouseOut;
+    }
 },
 'opening', {
     openIn: function(parentMorph, pos, remainOnScreen, captionIfAny) {
@@ -1059,6 +1068,16 @@ lively.morphic.Morph.addMethods(
             }
         }
 
+        if(this.isFixed) {
+            items.push(["set unfixed", function() {
+                self.setFixed(false);
+            }]);
+        } else {
+            items.push(["set fixed", function() {
+                self.setFixed(true);
+            }]);
+        }
+
         if (false) { // rk 12-06-22: what is this for???
             items.push(["Enable internal selections", function() {
                 Trait('SelectionMorphTrait').applyTo(self, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
@@ -1452,17 +1471,6 @@ lively.morphic.World.addMethods(
                 require('lively.ast.IDESupport').toRun(function() {
                     lively.ast.IDESupport.enable();
                 })
-            }]);
-        }
-        if (Global.AutoIndentLayer && AutoIndentLayer.isGlobal()) {
-            items.push(['[X] Auto Indent', function() {
-                AutoIndentLayer.beNotGlobal();
-            }]);
-        } else {
-            items.push(['[  ] Auto Indent', function() {
-                require('users.cschuster.AutoIndent').toRun(function() {
-                    AutoIndentLayer.beGlobal();
-                });
             }]);
         }
         return items;
@@ -2194,11 +2202,28 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         if (this.targetMorph) {
             var self = this;
             itemFilter = function (items) {
-            items[0] = [
-                'Publish window', function(evt) {
-                self.copyToPartsBinWithUserRequest();
-                }]
-            return items;
+                items[0] = [
+                    'Publish window', function(evt) {
+                    self.copyToPartsBinWithUserRequest();
+                    }]
+                // set fixed support
+                var fixItem = items.find(function (ea) {
+                    return ea[0] == "set fixed" || ea[0] == "set unfixed"
+                })
+                if (fixItem) {
+                    if(self.isFixed) {
+                        fixItem[0] = "set unfixed"
+                        fixItem[1] = function() {
+                            self.setFixed(false);
+                        }
+                    } else {
+                        fixItem[0] = "set fixed"
+                        fixItem[1] = function() {
+                            self.setFixed(true);
+                        }
+                    }
+                }
+                return items;
             }
         }
         target.openMorphMenuAt(this.getGlobalTransform().transformPoint(pt(0,0)), itemFilter);

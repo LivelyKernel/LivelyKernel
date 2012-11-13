@@ -453,13 +453,11 @@ Object.extend(lively.bindings, {
     editConnection: function(con) {
          var source = con.converterString ||
                    'function converter(value) {\n    return value\n}',
-             editor = new lively.morphic.Text(new Rectangle(0,0, 400, 200), source),
-             world = lively.morphic.World.current();
-        editor.doitContext = con;
-        lively.bindings.connect(editor, 'savedTextString', con, 'converterString', {updater:
-            function($upd, source) { this.targetObj.converter = null; $upd(source) }});
-        lively.bindings.connect(editor, 'savedTextString', world, 'alertOK', {
-            converter: function() { return 'setting new converter' }})
+            editor = new lively.morphic.Text(new Rectangle(0,0, 400, 200), source);
+            editor.doitContext = con;
+        connect(editor, 'savedTextString', con, 'setConverter');
+        connect(editor, 'savedTextString', $world, 'alertOK', {converter:
+            function() { return 'setting new converter' }})
         editor.applyStyle({syntaxHighlighting: true,
             fontFamily: 'Courier', resizeWidth: true, resizeHeight: true});
         var title = con.targetObj.name && con.sourceObj.name ?

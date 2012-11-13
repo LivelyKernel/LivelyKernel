@@ -25,7 +25,7 @@ module('lively.bindings.Core').requires().toRun(function() {
 
 Object.subclass('AttributeConnection',
 'settings', {
-    doNotSerialize: ['isActive']
+    doNotSerialize: ['isActive', 'converter', 'updater']
 },
 'initializing', {
 
@@ -37,21 +37,21 @@ Object.subclass('AttributeConnection',
         this.sourceAttrName = sourceProp;
         this.targetObj = target;
         this.targetMethodName = targetProp;
+        this.varMapping = {source: source, target: target};
         if (spec) {
-            this.removeAfterUpdate = spec.removeAfterUpdate;
-            // when converter function references objects from its environment we can't
-            // serialize it. To fail as early as possible we will serialize the converter
-            // already here
-            this.converter = null;
-            this.converterString = spec.converter ? spec.converter.toString() : null;
-            this.updater = null;
-            this.updaterString = spec.updater ? spec.updater.toString() : null;
-                        this.varMapping = Object.extend(spec.varMapping || {},
-                            {source: source, target: target});
+            if (spec.removeAfterUpdate) this.removeAfterUpdate = true;
+            if (spec.forceAttributeConnection) this.forceAttributeConnection = true;
+            // when converter function references objects from its environment
+            // we can't serialize it. To fail as early as possible we will
+            // serialize the converter / updater already in the setters
+            if (spec.converter) this.setConverter(spec.converter);
+            if (spec.updater) this.setUpdater(spec.updater);
+            if (spec.varMapping) {
+                this.varMapping = Object.extend(spec.varMapping, this.varMapping);
+            }
         }
         return this;
     },
-
 
     onSourceAndTargetRestored: function() {
         if (this.sourceObj && this.targetObj) this.connect();
@@ -60,26 +60,22 @@ Object.subclass('AttributeConnection',
     copy: function(copier) {
         return AttributeConnection.fromLiteral(this.toLiteral(), copier);
     },
+
     fixInstanceAfterCopyingFromSite: function(name, ref, index) {
         // alert("removed connection: "  + this)
-        this.disconnect()
+        this.disconnect();
     },
+
     clone: function() {
-        var spec;
-        var hasSpec = this.converter || this.updater || this.removeAfterUpdate;
-        if (hasSpec) {
-            spec = {
-                updater: this.getUpdater(),
-                converter: this.getConverter(),
-                removeAfterUpdate: this.removeAfterUpdate
-            };
-        }
+        //rk 2012-10-09: What is the reason to have clone AND copy?!
         var con = new this.constructor(
             this.getSourceObj(), this.getSourceAttrName(),
-            this.getTargetObj(), this.getTargetMethodName(), spec);
+            this.getTargetObj(), this.getTargetMethodName(),
+            this.getSpec());
         if (this.dependedBy) con.dependedBy = this.dependedBy;
         return con;
     }
+
 },
 'accessing', {
     getTargetObj: function() { return this.targetObj },
@@ -96,12 +92,40 @@ Object.subclass('AttributeConnection',
         return this.converter;
     },
 
+    setConverter: function(funcOrSource) {
+        delete this.converter;
+        return this.converterString = funcOrSource ? String(funcOrSource) : null;
+    },
+
     getUpdater: function() {
         if (!this.updaterString) return null;
         if (!this.updater) {
             this.updater = lively.Closure.fromSource(this.updaterString, this.varMapping).recreateFunc();
         }
         return this.updater;
+    },
+
+    setUpdater: function(funcOrSource) {
+        delete this.updater;
+        return this.updaterString = funcOrSource ? String(funcOrSource) : null;
+    },
+
+    getSpec: function() {
+        var spec = {};
+        if (this.updaterString) spec.updater = this.getUpdater();
+        if (this.converterString) spec.converter = this.getConverter();
+        if (this.removeAfterUpdate) spec.removeAfterUpdate = true;
+        if (this.forceAttributeConnection) spec.forceAttributeConnection = true;
+        return spec;
+    },
+
+    resetSpec: function() {
+        delete this.removeAfterUpdate;
+        delete this.forceAttributeConnection;
+        delete this.converter;
+        delete this.converterString;
+        delete this.updater;
+        delete this.updaterString;
     },
 
     privateAttrName: function(attrName) { return '$$' + attrName },
@@ -137,9 +161,10 @@ Object.subclass('AttributeConnection',
             (this.getSourceValue() || this.getPrivateSourceValue());
 
         // method connect... FIXME refactori into own class!
-        if (Object.isFunction(methodOrValue)) {
-            if (!methodOrValue.isWrapped)
+        if (Object.isFunction(methodOrValue) && !this.forceAttributeConnection) {
+            if (!methodOrValue.isWrapped) {
                 this.addConnectionWrapper(this.sourceObj, this.sourceAttrName, methodOrValue);
+            }
         } else { // attribute connect
             this.addSourceObjGetterAndSetter(existingGetter, existingSetter);
         }
@@ -266,8 +291,9 @@ Object.subclass('AttributeConnection',
             var conns = sourceObj.attributeConnections.clone();
             for (var i = 0; i < conns.length; i++) {
                 var c = conns[i];
-                if (c.getSourceAttrName() === sourceAttrName)
+                if (c && c.getSourceAttrName() === sourceAttrName) {
                     c.update(newVal, oldVal);
+                }
             }
             return newVal;
         });
@@ -400,15 +426,17 @@ AttributeConnection.addMethods({
                         + 'source or target objects that have no id: ' + self);
             return null
         }
-        return {
+        var literal = {
             sourceObj: getId(this.sourceObj),
             sourceAttrName: this.sourceAttrName,
             targetObj: getId(this.targetObj),
-            targetMethodName: this.targetMethodName,
-            converter: this.converterString,
-            updater: this.updaterString,
-            removeAfterUpdate: this.removeAfterUpdate
+            targetMethodName: this.targetMethodName
         };
+        if (this.converterString) literal.converter = this.converterString;
+        if (this.updaterString) literal.updater = this.updaterString;
+        if (this.removeAfterUpdate) literal.removeAfterUpdate = true;
+        if (this.forceAttributeConnection) literal.forceAttributeConnection = true;
+        return literal;
     }
 })
 
@@ -419,11 +447,7 @@ Object.extend(AttributeConnection, {
 
         // just create the connection, connection not yet installed!!!
         var con = new AttributeConnection(
-            null, literal.sourceAttrName, null, literal.targetMethodName, {
-                updater: literal.updater,
-                converter: literal.converter,
-                removeAfterUpdate: literal.removeAfterUpdate,
-            });
+            null, literal.sourceAttrName, null, literal.targetMethodName, literal);
 
         // when target/source obj are restored asynchronly
         new AttributeConnection(con, 'sourceObj', con, 'onSourceAndTargetRestored',
@@ -466,6 +490,7 @@ Object.extend(lively.bindings, {
     documentation: 'connect parameters: source, sourceProp, target, targetProp, spec\n'
                  + 'spec can be: {\n'
                  + '  removeAfterUpdate: Boolean,\n'
+                 + '  forceAttributeConnection: Boolean,\n'
                  + '  converter: Function,\n'
                  + '  updater: Function,\n'
                  + '  varMapping: Object\n'
@@ -483,6 +508,7 @@ Object.extend(lively.bindings, {
         var connection = new AttributeConnection(sourceObj, attrName, targetObj, targetMethodName, spec),
             existing = connection.getExistingConnection();
         if (existing) {
+            existing.resetSpec();
             existing.init(sourceObj, attrName, targetObj, targetMethodName, spec);
             return existing;
         }
@@ -514,10 +540,11 @@ Object.extend(lively.bindings, {
     },
 
     signal: function(sourceObj, attrName, newVal) {
-        if (!sourceObj.attributeConnections) return;
+        var connections = sourceObj.attributeConnections;
+        if (!connections) return;
         var oldVal = sourceObj[attrName];
-        for (var i = 0; i < sourceObj.attributeConnections.length; i++) {
-            var c = sourceObj.attributeConnections[i];
+        for (var i = 0, len = connections.length; i < len; i++) {
+            var c = connections[i];
             if (c.getSourceAttrName() == attrName) c.update(newVal, oldVal);
         }
     },

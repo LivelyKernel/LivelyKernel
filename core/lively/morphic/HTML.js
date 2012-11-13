@@ -240,6 +240,7 @@ lively.morphic.Morph.addMethods(
     },
     initHTML: function(ctx) {
         if (!ctx.morphNode) ctx.morphNode = ctx.domInterface.htmlRect();
+        this.setMorphDataHTML(ctx);
         this.setFocusableHTML(ctx, this.isFocusable());
         this.setPivotPointHTML(ctx, this.getPivotPoint())
         ctx.domInterface.setHTMLTransformOrigin(ctx.morphNode, pt(0,0));
@@ -256,6 +257,11 @@ lively.morphic.Morph.addMethods(
         if (UserAgent.fireFoxVersion)
             ctx.morphNode['-moz-user-modify'] = 'read-only'
     },
+
+    setMorphDataHTML: function(ctx) {
+        $(ctx.morphNode).data('morph', this);
+    },
+
     appendHTML: function(ctx, optMorphAfter) {
         if (!ctx.morphNode) throw dbgOn(new Error('no ctx.morphNode!'));
         var parentNode = ctx.morphNode.parentNode;
@@ -840,17 +846,25 @@ lively.morphic.Shapes.Shape.addMethods(
     compensateShapeNode: function(ctx) {
         // compensates the shapeNode's position for childmorphs,
         // positions childmorphs against morphNodes (origin!)
-        ctx.originNode.style.setProperty('top', -this.getPosition().y + 'px', 'important');
-        ctx.originNode.style.setProperty('left', -this.getPosition().x + 'px', 'important');
-        ctx.originNode.style.setProperty('position', 'absolute', 'important');
+        if(ctx.originNode) {
+            ctx.originNode.style.setProperty(
+                'top', -this.getPosition().y + 'px', 'important');
+            ctx.originNode.style.setProperty(
+                'left', -this.getPosition().x + 'px', 'important');
+            ctx.originNode.style.setProperty(
+                'position', 'absolute', 'important');
 
-        // FIXME: hack, necessary until the style editor knows
-        // about stroke widths of svg lines instead of using borderWidth...
-        if (ctx.pathNode) return;
+            // FIXME: hack, necessary until the style editor knows
+            // about stroke widths of svg lines instead of using borderWidth...
+            if (ctx.pathNode) return;
 
-        // compensates the shapeNode's borderWidth for childmorphs, borders don't affect submorphs
-        ctx.originNode.style.setProperty('margin-top', -this.getBorderWidth() + 'px', 'important');
-        ctx.originNode.style.setProperty('margin-left', -this.getBorderWidth() + 'px', 'important');
+            // compensates the shapeNode's borderWidth for childmorphs,
+            // borders don't affect submorphs
+            ctx.originNode.style.setProperty(
+                'margin-top', -this.getBorderWidth() + 'px', 'important');
+            ctx.originNode.style.setProperty(
+                'margin-left', -this.getBorderWidth() + 'px', 'important');
+        }
     },
     setOpacityHTML: function(ctx, value) {
         if (ctx.shapeNode) {

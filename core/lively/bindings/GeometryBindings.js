@@ -56,17 +56,23 @@ AttributeConnection.subclass('lively.morphic.GeometryConnection',
         })
 
         var c = lively.bindings.connect(
-            newSourceObj, newSourceAttr, this.targetObj, this. targetMethodName);
+            newSourceObj, newSourceAttr, this.targetObj, this.targetMethodName, this.getSpec());
         this.addDependConnection(c);
+
+        lively.bindings.connect(this, 'converterString', c, 'setConverter');
+        lively.bindings.connect(this, 'updaterString', c, 'setUpdater');
+        lively.bindings.connect(this, 'varMapping', c, 'varMapping');
 
         return this;
     },
 
     disconnect: function($super) {
         $super();
-        while (this.dependendConnections) {
-            this.removeDependConnection(this.dependendConnections[0]);
-        }
+        if (!this.dependendConnections) return;
+        var self = this;
+        this.dependendConnections.forEach(function(ea) {
+            self.removeDependConnection(ea);
+        })
     }
 });
 

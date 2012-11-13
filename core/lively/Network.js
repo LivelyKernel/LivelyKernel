@@ -436,6 +436,8 @@ Object.subclass('NetRequestStatus',
 View.subclass('NetRequest', {
     documentation: "a view that writes the contents of an http request into the model",
 
+    useProxy: true,
+
     // see XMLHttpRequest documentation for the following:
     Unsent: 0,
     Opened: 1,
@@ -450,7 +452,7 @@ View.subclass('NetRequest', {
         "+ResponseText", // Updated at most once, when request state is {Done}, with the text content retrieved.
         "+ResponseHeaders",  // Updated at most once, when request state is {Done}, with the response headers retrieved.
         "StreamContent",
-        "Progress",
+        "Progress"
     ],
 
     initialize: function($super, modelPlug) {
@@ -582,39 +584,39 @@ View.subclass('NetRequest', {
         }
     },
 
-    get: function(url) { return this.request("GET", URL.makeProxied(url), null) },
+    get: function(url) { return this.request("GET", this.useProxy ? URL.makeProxied(url) : String(url), null) },
 
-    put: function(url, content) { return this.request("PUT", URL.makeProxied(url), content) },
+    put: function(url, content) { return this.request("PUT", this.useProxy ? URL.makeProxied(url) : String(url), content) },
 
-    post: function(url, content) { return this.request("POST", URL.makeProxied(url), content) },
+    post: function(url, content) { return this.request("POST", this.useProxy ? URL.makeProxied(url) : String(url), content) },
 
     propfind: function(url, depth, content) {
         this.setContentType("text/xml"); // complain if it's set to something else?
         if (depth != 0 && depth != 1)
             depth = "infinity";
         this.setRequestHeaders({ "Depth" : depth });
-        return this.request("PROPFIND", URL.makeProxied(url), content);
+        return this.request("PROPFIND", this.useProxy ? URL.makeProxied(url) : String(url), content);
     },
 
-    report: function(url, content) { return this.request("REPORT", URL.makeProxied(url), content) },
+    report: function(url, content) { return this.request("REPORT", this.useProxy ? URL.makeProxied(url) : String(url), content) },
 
-    mkcol: function(url, content) { return this.request("MKCOL", URL.makeProxied(url), content) },
+    mkcol: function(url, content) { return this.request("MKCOL", this.useProxy ? URL.makeProxied(url) : String(url), content) },
 
     del: function(url) {
         // http://www.webdav.org/specs/rfc2518.html#rfc.section.8.6.2
         this.setRequestHeaders({ "Depth" : "infinity" });
-        return this.request("DELETE", URL.makeProxied(url));
+        return this.request("DELETE", this.useProxy ? URL.makeProxied(url) : String(url));
     },
 
     copy: function(url, destUrl, overwrite) {
         this.setRequestHeaders({ "Destination" : destUrl.toString() });
         if (overwrite) this.setRequestHeaders({ "Overwrite" : 'T' });
-        return this.request("COPY", URL.makeProxied(url));
+        return this.request("COPY", this.useProxy ? URL.makeProxied(url) : String(url));
     },
     move: function(url, destUrl, overwrite) {
         this.setRequestHeaders({ "Destination" : destUrl.toString() });
         if (overwrite) this.setRequestHeaders({ "Overwrite" : 'T' });
-        return this.request("MOVE", URL.makeProxied(url));
+        return this.request("MOVE", this.useProxy ? URL.makeProxied(url) : String(url));
     },
 
 
@@ -626,7 +628,7 @@ View.subclass('NetRequest', {
         <D:locktype><D:write/></D:locktype> \n\
         <D:owner>%s</D:owner> \n\
         </D:lockinfo>', owner || 'unknown user');
-        return this.request("LOCK", URL.makeProxied(url), content);
+        return this.request("LOCK", this.useProxy ? URL.makeProxied(url) : String(url), content);
     },
 
     unlock: function(url, lockToken, force) {
@@ -640,11 +642,11 @@ View.subclass('NetRequest', {
             lockToken = tokenElement.textContent;
         }
         this.setRequestHeaders({'Lock-Token': '<' + lockToken + '>'});
-        return this.request("UNLOCK", URL.makeProxied(url));
+        return this.request("UNLOCK", this.useProxy ? URL.makeProxied(url) : String(url));
     },
-    head: function(url) { return this.request("HEAD", URL.makeProxied(url), null) },
+    head: function(url) { return this.request("HEAD", this.useProxy ? URL.makeProxied(url) : String(url), null) },
 
-    toString: function() { return "#<NetRequest{"+ this.method + " " + this.url + "}>" },
+    toString: function() { return "#<NetRequest{"+ this.method + " " + this.url + "}>" }
 
 });
 
@@ -1107,13 +1109,29 @@ Object.extend(SVNVersionInfo, {
         var slash = name.endsWith('/') ? name.lastIndexOf('/', name.length - 2) : name.lastIndexOf('/');
         var shortName = name.substring(slash + 1);
 
-        return new SVNVersionInfo({rev: rev, date: date, author: author, shortName: shortName, url: name, fileSize: fileSize});
-},
+        return new SVNVersionInfo({
+            rev: rev,
+            date: date,
+            author: author,
+            shortName: shortName,
+            url: name,
+            fileSize: fileSize
+        });
+    }
 });
 
 Object.subclass('WebResource',
 'documentation', {
-    connections: ['status', 'content', 'contentDocument', 'isExisting', 'subCollections', 'subDocuments', 'progress', 'readystate', 'versions', 'headRevision'],
+    connections: ['status',
+                  'content',
+                  'contentDocument',
+                  'isExisting',
+                  'subCollections',
+                  'subDocuments',
+                  'progress',
+                  'readystate',
+                  'versions',
+                  'headRevision']
 },
 'initializing', {
     initialize: function(url) {
@@ -1190,6 +1208,7 @@ Object.subclass('WebResource',
         });
         if (this.isSync()) request.beSync();
         if (this.requestHeaders) request.requestHeaders = this.requestHeaders;
+        if (this._noProxy) request.useProxy = false;
         this.xhr = request.transport;
         return request;
     },
@@ -1254,10 +1273,11 @@ Object.subclass('WebResource',
 
         this.xhr = req;
 
+        var proxied = !this._noProxy;
         // to be more or less compatible with the netRequest object -- fixme should simplified
         return {
             request: function(content) {
-                var proxiedUrl = URL.makeProxied(url);
+                var proxiedUrl = proxied ? URL.makeProxied(url) : url;
                 req.open(method, proxiedUrl.toString(), !isSync);
                 Properties.forEachOwn(requestHeaders, function(p, value) {
                     req.setRequestHeader(p, value);
@@ -1273,7 +1293,7 @@ Object.subclass('WebResource',
                 }
             }
         }
-    },
+    }
 
 },
 'private', {
@@ -1283,7 +1303,7 @@ Object.subclass('WebResource',
         var result = func.call(this)
         this._url = temp;
         return result;
-    },
+    }
 },
 'accessing', {
     getURL: function() { return this._url; },
@@ -1292,7 +1312,7 @@ Object.subclass('WebResource',
     },
 
     getName: function() { return this.getURL().filename(); },
-    isCollection: function() { return !this.getURL().isLeaf() },
+    isCollection: function() { return !this.getURL().isLeaf() }
 },
 'configuration', {
     isSync: function() { return this._isSync; },
@@ -1304,11 +1324,15 @@ Object.subclass('WebResource',
     beBinary: function() { this._isBinary = true; return this; },
     beText: function() { this._isBinary = false; return this; },
 
-
     forceUncached: function() {
         this._url = this.getURL().withQuery({time: new Date().getTime()});
         return this;
     },
+
+    noProxy: function() {
+        this._noProxy = true;
+        return this;
+    }
 },
 'progress', {
     enableShowingProgress: function() { this.isShowingProgress = true; return this },
@@ -1322,7 +1346,7 @@ Object.subclass('WebResource',
         connect(this, 'status', progressBar, 'remove', {
             updater: function($upd, status) { if (status.isDone()) $upd() }});
         return this;
-    },
+    }
 
 },
 'DEPRECATED', {
@@ -1331,7 +1355,7 @@ Object.subclass('WebResource',
         otherResource.create();
         new NetRequest().copy(this.getURL(), url, true /*overwrite*/);
         return otherResource;
-    },
+    }
 
 },
 'debugging', {
@@ -1353,7 +1377,7 @@ Object.subclass('WebResource',
         return this
     },
 
-    toString: function() { return 'WebResource(' + this.getURL() + ')' },
+    toString: function() { return 'WebResource(' + this.getURL() + ')' }
 },
 'request headers', {
 
@@ -1430,7 +1454,6 @@ Object.subclass('WebResource',
         return this;
     },
 
-
     put_DEPRECATED: function(content, contentType, requiredRevision) {
         this.content = this.convertContent(content);
         var resource = this.createResource();
@@ -1440,6 +1463,7 @@ Object.subclass('WebResource',
 
         return this;
     },
+
     put: function(content, contentType, requiredRevision) {
         this.content = this.convertContent(content || '');
         if (requiredRevision) this.addHeaderForRequiredRevision(requiredRevision);
@@ -1449,7 +1473,6 @@ Object.subclass('WebResource',
         req.request(this.content);
         return this;
     },
-
 
     create: function() {
         if (!this.isCollection()) return this.put('');
@@ -1471,8 +1494,9 @@ Object.subclass('WebResource',
     post: function(content, contentType) {
         this.content = content;
         var request = this.createNetRequest();
-        if (contentType)
+        if (contentType) {
             request.setContentType(contentType);
+        }
         request.post(this.getURL(), content);
         return this;
     },
@@ -1522,7 +1546,6 @@ Object.subclass('WebResource',
         return this;
     },
 
-
     getVersions: function(startRev, endRev) {
         var res = this.createResource();
         if (!startRev) {
@@ -1557,6 +1580,7 @@ Object.subclass('WebResource',
         res.fetchProperties(this.isSync(), optRequestHeaders, rev);
         return this;
     },
+
     ensureExistance: function() {
         var url = this.getURL();
         url.getAllParentDirectories().forEach(function(ea) {
@@ -1567,7 +1591,8 @@ Object.subclass('WebResource',
             }
         })
         return this;
-    },
+    }
+
 },
 'version specific', {
     getLocationInRev: function(rev) {
@@ -1633,23 +1658,29 @@ Object.subclass('WebResource',
         if (!this.status.isSuccess()) {
             throw new Error('Cannot access subElements of ' + this.getURL());
         }
-        var davNs = this.ensureDavXmlNs(doc),
-            nodes = new Query("/" + davNs + ":multistatus/" + davNs + ":response").findAll(doc.documentElement),
-            urlQ = new Query(davNs + ':href'),
-            result = [];
-        nodes.shift(); // remove first since it points to this WebResource
-        for (var i = 0; i < nodes.length; i++) {
-            var urlNode = urlQ.findFirst(nodes[i]),
-                url = urlNode.textContent || urlNode.text; // text is FIX for IE9+
-            if (/!svn/.test(url)) continue;// ignore svn dirs
-            var child = new WebResource(this.getURL().withPath(url)),
-                revNode = nodes[i].getElementsByTagName('version-name')[0];
-            if (revNode) child.headRevision = Number(revNode.textContent);
-            result.push(child);
+        this.pvtProcessPropfindResults(doc);
+    },
+
+    pvtProcessPropfindResults: function(doc) {
+        var result = [];
+        if (this.status.isSuccess()) {
+            var davNs = this.ensureDavXmlNs(doc);
+            var nodes = new Query("/" + davNs + ":multistatus/" + davNs + ":response").findAll(doc.documentElement);
+            var urlQ = new Query(davNs + ':href');
+            nodes.shift(); // remove first since it points to this WebResource
+            for (var i = 0; i < nodes.length; i++) {
+                var urlNode = urlQ.findFirst(nodes[i]),
+                    url = urlNode.textContent || urlNode.text; // text is FIX for IE9+
+                if (/!svn/.test(url)) continue;// ignore svn dirs
+                var child = new WebResource(this.getURL().withPath(url)),
+                    revNode = nodes[i].getElementsByTagName('version-name')[0];
+                if (revNode) child.headRevision = Number(revNode.textContent);
+                result.push(child);
+            }
         }
         this.subCollections = result.select(function(ea) { return ea.isCollection() });
         this.subDocuments = result.select(function(ea) { return !ea.isCollection() });
-    },
+    }
 },
 'conversion', {
     convertContent: function(content) {
@@ -1669,13 +1700,13 @@ Object.subclass('WebResource',
             content = content.xml;
         }
         return content;
-    },
+    }
 });
 
 
 // make WebResource async
 Object.extend(WebResource, {
-    create: function(url) { return new this(url) },
+    create: function(url) { return new this(url) }
 });
 
 }); // end of module

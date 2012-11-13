@@ -302,10 +302,9 @@ var JSLoader = {
             el = document.createElementNS(xmlNamespace, 'script');
             el.setAttributeNS(null, 'type', 'text/ecmascript');
         }
-
         parentNode.appendChild(el);
         el.setAttributeNS(null, 'id', url);
-
+		console.log(exactUrl)
         return loadSync ?
             this.loadSync(exactUrl, onLoadCb, el) :
             this.loadAsync(exactUrl, onLoadCb, el);
@@ -335,7 +334,7 @@ var JSLoader = {
         } else {
             script.setAttributeNS(null, 'src', url);
         }
-
+		
         if (onLoadCb) script.onload = onLoadCb;
         script.setAttributeNS(null, 'async', true);
     },
@@ -543,7 +542,9 @@ var LivelyLoader = {
     //
     // ------- generic load support ----------
     //
-    libsFile: useMinifiedLibs ? 'lib/lively-libs.js' : 'lib/lively-libs-debug.js',
+	
+	// TODO: Something is wrong with the lively-libs, use debug only to activate loading on ios 5
+    libsFile: /*useMinifiedLibs ? 'lib/lively-libs.js' :*/ 'lib/lively-libs-debug.js',
 
     codeBase: (function findCodeBase() {
         // search for script that links to "bootstrap.js" and

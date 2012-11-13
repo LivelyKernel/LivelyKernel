@@ -334,7 +334,8 @@ Object.subclass('lively.PartsBin.PartItem',
                 delete $world.publishPartDialog;
             }
         } else {
-            this.alert('Problem saving ' + status.url + ': ' + status)
+            var msg = 'Problem saving ' + status.url + ': ' + status;
+            Config.verboseLogging ? alert(msg) : console.error(msg);
         }
     },
     updateRevisionOnLoad: function() {

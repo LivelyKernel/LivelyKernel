@@ -318,13 +318,18 @@ lively.morphic.Morph.addMethods(
 
     removeAndDropSubmorphs: function() {
         // Removes the morph and lets all its child morphs drop to its owner
-        this.submorphs.each(function(submorph) {
-            var supermorph = this.owner || $world;
-            supermorph.addMorph(submorph.copy());
-        }, this);
-
-        this.removeAllMorphs();
-        this.remove();
+        var supermorph = this.owner || this.world(),
+            morphPos = this.getPosition();
+        if (supermorph && supermorph.isMorph) {
+            this.submorphs.each(function(submorph) {
+                var oldPos = submorph.getPosition();
+                supermorph.addMorph(submorph);
+                submorph.setPosition(morphPos.addPt(oldPos));
+            }, this);
+            this.remove();
+        } else {
+            throw('Cannot remove '+this+' with a submorph drop. It has no owner.');
+        }
     }
 },
 'events', {
@@ -471,6 +476,36 @@ lively.morphic.Morph.addMethods(
             doStep.curry(step-1).delay(stepTime/1000);
         }
         doStep(steps);
+    },
+},
+'fixing', {
+    setFixed: function(optFixed) {
+        // Fixes the morph at the current position and zoom when called with true or no parameter, and unfixes it when called with false.
+        var fixed = optFixed || (optFixed === false? false : true);
+        if(fixed && this.owner !== $world) {
+            return;
+        }
+        this.isFixed = fixed;
+        if(fixed) {
+            this.fixedScale = this.getScale() * $world.getZoomLevel();
+            this.fixedPosition = this.getPosition().subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel());
+
+            this.startStepping(100, "updateZoomScale");
+            this.startStepping(100, "updateScrollPosition");
+        } else {
+            this.stopStepping("updateZoomLevel");
+            this.stopStepping("getScrollOffset");
+        }
+    },
+    updateZoomScale: function(newZoom) {
+        if(this.fixedScale) {
+			var newZoom = newZoom || $world.updateZoomLevel();
+            this.setScale(this.fixedScale/newZoom);
+        }
+    },
+    updateScrollPosition: function(newPosition) {
+		var newPosition = newPosition || $world.getScrollOffset();
+        this.setPosition(this.fixedPosition.scaleBy(1/$world.zoomLevel).addPt(newPosition));
     },
 },
 'fullscreen', {
@@ -824,6 +859,30 @@ lively.morphic.World.addMethods(
         if (!this.fullScreenBackgroundMorph) return;
         this.fullScreenBackgroundMorph.remove();
         this.fullScreenBackgroundMorph = null;
+    },
+},
+"zooming", {
+    getZoomLevel: function() {
+        if(!this.zoomLevel){
+            this.zoomLevel = this.calculateCurrentZoom();
+        }
+        return this.zoomLevel;
+    },
+    calculateCurrentZoom: function() {
+        // TODO: clean distinction of browsers
+        if(UserAgent.isTouch) {
+            return document.documentElement.clientWidth / window.innerWidth;
+        }  else {
+            return window.outerWidth / window.innerWidth;
+        }
+    },
+    updateZoomLevel: function () {
+        this.zoomLevel = this.calculateCurrentZoom();
+        return this.zoomLevel
+    },
+    getScrollOffset: function () {
+        this.scrollOffset = pt(window.pageXOffset, window.pageYOffset)
+        return this.scrollOffset;
     },
 });
 lively.morphic.HandMorph.addMethods(

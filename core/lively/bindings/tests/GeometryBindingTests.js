@@ -9,6 +9,17 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
         morph.setExtent(pt(50,50));
         this.assertEquals(pt(50,50), observer.extent);
     },
+    test01aConnectExtentWithConverter: function() {
+        var morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
+            observer = {extentChanged: function(val) { this.val = val }},
+            c = lively.bindings.connect(morph, 'extent', observer, 'extentChanged', {
+                converter: function(ext) { return ext.x }});
+        morph.setExtent(pt(50,50));
+        this.assertEquals(50, observer.val);
+        c.setConverter(function(ext) { return ext.x * 2 })
+        morph.setExtent(pt(50,50));
+        this.assertEquals(100, observer.val);
+    },
     test02ConnectToExtentOfAWithExplicitConnectionMorph: function() {
         var morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
             observer = {extentChanged: function(ext) { this.extent = ext }};

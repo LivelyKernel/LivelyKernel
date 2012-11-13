@@ -106,7 +106,10 @@ var testList = [
     "lively.bindings.tests.BindingTests",
 
     // cop
-    "cop.tests.LayerTests"
+    "cop.tests.LayerTests",
+
+    // apps
+    "apps.tests.Handlebars"
 ];
 
 var additionalModules = getURLParam('additionalModules');

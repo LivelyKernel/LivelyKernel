@@ -1094,7 +1094,8 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
             [{backgroundColor: Color.red}, {backgroundColor: Color.rgba(204,0,0,1)}],
             [{isNullStyle: true}, {isNullStyle: true}],
             [{fontWeight: 'normal'}, {}],
-            [{}, {foobarbaz: Color.green}]
+            [{}, {foobarbaz: Color.green}],
+            [{data: 'foo'}, {data: 'foo'}]
         ];
 
        testTable.forEach(function(spec) {
@@ -1105,7 +1106,9 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
     testUnEqual: function() {
         var testTable = [
             [{}, {isNullStyle: true}],
-            [{color: Color.red}, {color: Color.green}]
+            [{color: Color.red}, {color: Color.green}],
+            [{data: 'foo'}, {data: 'bar'}],
+            [{data: 'foo'}, {}]
         ];
 
        testTable.forEach(function(spec) {

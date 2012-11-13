@@ -2713,13 +2713,7 @@ Object.subclass('lively.morphic.TextEmphasis',
             },
             get: function() { return this.data; },
             equals: function(other) { return this.getData() === other.getData(); },
-            apply: function(node) {
-                if (!this.data) {
-                    delete node.dataset["tag"];
-                } else {
-                    node.dataset["tag"] = this.data;
-                }
-            }
+            apply: Functions.Null
         },
 
         hover: {

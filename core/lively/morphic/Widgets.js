@@ -1434,6 +1434,17 @@ lively.morphic.World.addMethods(
                 localStorage['Config_quickLoad'] = "false";
             }]);
         }
+        if (localStorage['Config_CopyAndPaste'] == "false") {
+            items.push(['[  ] CopyAndPaste', function() {
+                localStorage['Config_CopyAndPaste'] = "true"
+            }]);
+        } else {
+            items.push(['[X] Quick Load', function() {
+                localStorage['Config_CopyAndPaste'] = "false";
+            }]);
+        }
+        
+        
         return items;
     },
 

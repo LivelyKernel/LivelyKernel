@@ -132,6 +132,7 @@ cop.create("ClipboardLayer").refineClass(lively.morphic.World, {
         cop.proceed(morphs);
         // alertOK("selectMorphs")
         var m = this.world().ensureTextFocusTarget()
+        this.textFocusTarget.setPosition($world.windowBounds().topLeft())
         m.focus.bind(m).delay(0.5); // hack, who is taking the focus...
     },
 })

@@ -181,8 +181,33 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             ]
     });
 
-    Trait('StyleSheetsHTMLTrait', 'initializing', {
-        appendHTML: lively.morphic.Morph.prototype.appendHTML.wrap(function (proceed, ctx, optMorphAfter) {
+    Trait('StyleSheetsHTMLExternalShapeTrait',
+    'updating', {
+        setOpacityHTML: lively.morphic.Shapes.External.prototype.setOpacityHTML.wrap(function(proceed, ctx, value) {
+            if (this.shapeGetter('AppearanceStylingMode')){
+                proceed(ctx, null);
+            } else {
+                proceed(ctx, value);
+            }
+        })
+    }).applyTo(lively.morphic.Shapes.External, {override: ['setOpacityHTML']});
+
+    Trait('StyleSheetsHTMLRectangleTrait',
+    'updating', {
+        setBorderRadiusHTML: lively.morphic.Shapes.Rectangle.prototype.setBorderRadiusHTML.wrap(function(proceed, ctx, value) {
+            if (ctx.shapeNode && this.shapeGetter('BorderStylingMode')) {
+                proceed(ctx, null);
+            } else {
+                proceed(ctx, value);
+            }
+        })
+    }).applyTo(lively.morphic.Shapes.Rectangle, {override: 'setBorderRadiusHTML'});
+
+
+
+Trait('StyleSheetsHTMLTrait',
+'initializing', {
+    appendHTML: lively.morphic.Morph.prototype.appendHTML.wrap(function(proceed, ctx, optMorphAfter) {
             proceed(ctx, optMorphAfter);
             this.prepareDOMForStyleSheetsHTML(ctx);
             this.setStyleSheetHTML(ctx, this.getParsedStyleSheet());
@@ -197,40 +222,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             if (ownerCtx && ownerCtx.originNode) {
                 $(ownerCtx.originNode).attr('node-type', 'origin-node');
             }
-
-Trait('StyleSheetsHTMLExternalShapeTrait',
-'updating', {
-    setOpacityHTML: lively.morphic.Shapes.External.prototype.setOpacityHTML.wrap(function(proceed, ctx, value) {
-        if (this.shapeGetter('AppearanceStylingMode')){
-            proceed(ctx, null);
-        } else {
-            proceed(ctx, value);
-        }
-    })
-}).applyTo(lively.morphic.Shapes.External, {override: ['setOpacityHTML']});
-
-Trait('StyleSheetsHTMLRectangleTrait',
-'updating', {
-    setBorderRadiusHTML: lively.morphic.Shapes.Rectangle.prototype.setBorderRadiusHTML.wrap(function(proceed, ctx, value) {
-        if (ctx.shapeNode && this.shapeGetter('BorderStylingMode')) {
-            proceed(ctx, null);
-        } else {
-            proceed(ctx, value);
-        }
-    })
-}).applyTo(lively.morphic.Shapes.Rectangle, {override: 'setBorderRadiusHTML'});
-
-
-
-Trait('StyleSheetsHTMLTrait',
-'initializing', {
-    appendHTML: lively.morphic.Morph.prototype.appendHTML.wrap(function(proceed, ctx, optMorphAfter) {
-        proceed(ctx, optMorphAfter);
-        this.prepareDOMForStyleSheetsHTML(ctx);
-        this.setStyleSheetHTML(ctx, this.getStyleSheet());
-        
-     
-    }),
+        }),
     setNewId: lively.morphic.Morph.prototype.setNewId.wrap(function (proceed, optId) {
             proceed(optId);
             if (this.isRendered()) {
@@ -319,15 +311,13 @@ lively.morphic.Morph.addMethods(
                 return '';
             }
         },
-    generateCombinedIdSelector: function(actualSelector) {
-        return this.getIdsForSelector(actualSelector)
-            .reduce(function(prev, val) {
-                    return prev + (prev.length > 0 ? ', ' : '')
-                        + '[morphid="'+ val + '"]';
-                }, '');
-    },
-
-
+        generateCombinedIdSelector: function(actualSelector) {
+            return this.getIdsForSelector(actualSelector)
+                .reduce(function(prev, val) {
+                        return prev + (prev.length > 0 ? ', ' : '')
+                            + '[morphid="'+ val + '"]';
+                    }, '');
+        },
         splitGroupedSelector: function (selector) {
             // Splits a grouped selector and returns
             // its single selectors as an array.
@@ -339,7 +329,6 @@ lively.morphic.Morph.addMethods(
                 return s.trim();
             });
         },
-
         setStyleSheetHTML: function (ctx, styleSheet) {
             // Compiles the input style rules to an
             // HTML specific style sheet and adds this
@@ -368,7 +357,6 @@ lively.morphic.Morph.addMethods(
             }
             ctx.styleNode.textContent = compiledCss;
         },
-
         appendStyleNodeHTML: function (ctx, styleNode) {
             // Adds the morph's style node to the DOM
             // and reflects the morph hierarchy in the
@@ -385,7 +373,6 @@ lively.morphic.Morph.addMethods(
                     return;
                 }
             }
-
             // If no upward morphs have any CSS applied,
             // search for sister morph style nodes ...
             if (this.owner && this.owner.submorphs) {
@@ -423,62 +410,59 @@ lively.morphic.Morph.addMethods(
             // have a css applied, just add the stylenode to the head
             document.getElementsByTagName("head")[0].appendChild(styleNode);
         },
-    replaceChildOp: function(selector) {
-        var replacements = ['>', '> [node-type="origin-node"] >',
-            '> [node-type="origin-node"] > [node-type="morph-node"] >'],
-            tokens = selector.split('>'),
-            childOpCount = tokens.length - 1,
-            results = [],
-            maxOpCount = 3,
-            replaceRecursively = function(spareTokens) {
-                var firstToken = spareTokens.shift();
-                if (spareTokens.length === 1) {
-                    spareToken = spareTokens.first();
-                    return replacements.collect(function(r) {
-                            return firstToken + r + spareToken;
-                        });
-                } else {
-                    var combinedTokens = replaceRecursively(spareTokens);
-                    return combinedTokens.reduce(function(prev, c) {
-                        return prev.concat(
-                            replacements.collect(function(r) {
-                                    return firstToken + r + c;
-                                })
-                            );
-                    }, []);
-                }
-            };
-        if (childOpCount > maxOpCount) {
-            console.warn('Cannot adapt selector ' + selector + '. Too many child operators.');
-            return selector;
-        } else if (childOpCount > 0) {
-            // Loop over all tokens
-            var sels = replaceRecursively(tokens);
-            return sels.reduce(function(prev, sel, i) {
-                    return prev + sel + ((i < sels.length - 1) ? ', ' : '');
-                },'');
-        } else {
-            return selector;
-        }
-    },
-    replaceWildcardSelector: function(selector) {
-        // Only select shape nodes (shape nodes should have the morphid param set)
-        return selector.replace(/\*/g, '*[morphid]');
-    },
-    replaceRootPseudo: function(selector) {
-        // ":root" should select this morph
-        return selector.replace(/\:root/g, '[morphid="'+this.id+'"]');
-    },
-
+        replaceChildOp: function(selector) {
+            var replacements = ['>', '> [node-type="origin-node"] >',
+                '> [node-type="origin-node"] > [node-type="morph-node"] >'],
+                tokens = selector.split('>'),
+                childOpCount = tokens.length - 1,
+                results = [],
+                maxOpCount = 3,
+                replaceRecursively = function(spareTokens) {
+                    var firstToken = spareTokens.shift();
+                    if (spareTokens.length === 1) {
+                        spareToken = spareTokens.first();
+                        return replacements.collect(function(r) {
+                                return firstToken + r + spareToken;
+                            });
+                    } else {
+                        var combinedTokens = replaceRecursively(spareTokens);
+                        return combinedTokens.reduce(function(prev, c) {
+                            return prev.concat(
+                                replacements.collect(function(r) {
+                                        return firstToken + r + c;
+                                    })
+                                );
+                        }, []);
+                    }
+                };
+            if (childOpCount > maxOpCount) {
+                console.warn('Cannot adapt selector ' + selector + '. Too many child operators.');
+                return selector;
+            } else if (childOpCount > 0) {
+                // Loop over all tokens
+                var sels = replaceRecursively(tokens);
+                return sels.reduce(function(prev, sel, i) {
+                        return prev + sel + ((i < sels.length - 1) ? ', ' : '');
+                    },'');
+            } else {
+                return selector;
+            }
+        },
+        replaceWildcardSelector: function(selector) {
+            // Only select shape nodes (shape nodes should have the morphid param set)
+            return selector.replace(/\*/g, '*[morphid]');
+        },
+        replaceRootPseudo: function(selector) {
+            // ":root" should select this morph
+            return selector.replace(/\:root/g, '[morphid="'+this.id+'"]');
+        },
     }, 
 
     'Style Classes and Ids', {
         prepareDOMForStyleSheetsHTML: function (ctx) {
-
             this.setStyleClassNamesHTML(ctx);
             this.setStyleIdHTML(ctx, this.getStyleId());
             this.setNodeMorphIdHTML(ctx);
-
         },
 
         setStyleClassNamesHTML: function (ctx) {
@@ -492,9 +476,9 @@ lively.morphic.Morph.addMethods(
                 $(ctx.shapeNode).removeAttr('class');
             }
         },
-    setNodeMorphIdHTML: function(ctx) {
-        $(ctx.shapeNode).attr('morphid', this.id);
-    },
+        setNodeMorphIdHTML: function(ctx) {
+            $(ctx.shapeNode).attr('morphid', this.id);
+        },
 
         setStyleIdHTML: function (ctx, id) {
             if (id && id.length && id.length > 0) {
@@ -505,12 +489,11 @@ lively.morphic.Morph.addMethods(
                 $(ctx.shapeNode).removeAttr('id');
             }
         },
-    getIdsForSelector: function(selector) {
-        return (new lively.morphic.Sizzle())
-            .select(selector, this)
-            .collect(function(m) {return m.id});
-    }
-
+        getIdsForSelector: function(selector) {
+            return (new lively.morphic.Sizzle())
+                .select(selector, this)
+                .collect(function(m) {return m.id});
+        }
     });
 
 }) // end of module

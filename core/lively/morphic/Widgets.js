@@ -2970,6 +2970,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             group.addMorph(ea)
         })
         this.selectMorphs([group])
+        return group
     },
     unGroup: function() {
         if (!this.selectedMorphs || this.selectedMorphs.length !== 1) return;

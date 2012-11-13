@@ -356,6 +356,21 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
 
         this.assert(!styleNode.parentNode,
             'Morph has been remove, but its stylenode is still in document.')
+    },
+    test05SetBaseThemeStyleSheet: function() {
+        this.morph.setBaseThemeStyleSheet('.test-class { color: black;}');
+        var baseThemeNode = this.morph.renderContext().baseThemeNode;
+        this.assert(baseThemeNode, 'There is no base theme node in the render context');
+        this.assertEquals('base-theme-for-'+this.morph.id, $(baseThemeNode).attr('id'),
+            'id of base theme node is wrong');
+        var styleNodeContent = $(baseThemeNode).html()
+        this.assert(styleNodeContent.indexOf('[morphid="'+this.morph.id.toUpperCase()+'"]') >= 0,
+            'Base theme node content has no ref to morph');
+        this.morph.setStyleSheet('.test-class { color: black;}');
+        var styleNode = this.morph.renderContext().styleNode;
+
+        this.assertEquals(2, styleNode.compareDocumentPosition(baseThemeNode),
+            'Style node has to follow the base theme node in the DOM');
     }
 });
 

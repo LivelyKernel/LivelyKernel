@@ -352,7 +352,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             // in the initHTML method of the morph.
 
             var styleTagId = "base-theme-for-" + this.id,
-                rules = styleSheet.getRules(),
+                rules = styleSheet && styleSheet.getRules ? styleSheet.getRules() : [],
                 compiledCss = this.compileStyleSheet(rules),
                 parseSuccess = compiledCss && compiledCss.length > 0;
             if (!parseSuccess) {

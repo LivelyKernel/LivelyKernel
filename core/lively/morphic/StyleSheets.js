@@ -91,14 +91,17 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         setParsedBaseThemeStyleSheet: function(styleSheet) {
             if(styleSheet && styleSheet.isStyleSheet) {
                 styleSheet.setOriginMorph(this);
-                // Do not use setter here, since we don't want to have the base theme
-                // as a part of the world's state
+                styleSheet.isBaseTheme = true;
+                // Do not use the morphic setter here, since we
+                // don't want the base theme to be serialized.
+                this.$$baseThemeStyleSheet = styleSheet;
+                this.doNotSerialize.pushIfNotIncluded('$$baseThemeStyleSheet');
                 this.renderContextDispatch('setBaseThemeStyleSheet', styleSheet);
                 this.adaptBorders();
             } else {
                 this.renderContextDispatch('setBaseThemeStyleSheet', null);
                 this.adaptBorders();
-                delete this._BaseThemeStyleSheet;
+                delete this.$$BaseThemeStyleSheet;
             }
         },
 
@@ -139,7 +142,7 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         },
 
         loadBaseTheme: function(file, resourcePath) {
-            var css = this.loadCSSFile(file, resourcePath);
+            var css = this.loadCSSFile(file || Config.baseThemeStyleSheetURL, resourcePath);
             if (css) {
                 this.setBaseThemeStyleSheet(css);
                 return true;
@@ -165,14 +168,34 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
             var styleSheet = this.getParsedStyleSheet();
             return styleSheet ? styleSheet.getText() : null;
         },
+        getBaseThemeStyleSheet: function () {
+            var styleSheet = this.getParsedBaseThemeStyleSheet();
+            return styleSheet ? styleSheet.getText() : null;
+        },
+
         getParsedStyleSheet: function () {
             return this.morphicGetter('StyleSheet');
         },
+        getParsedBaseThemeStyleSheet: function() {
+            return this.$$baseThemeStyleSheet || null;
+        },
+
         getStyleSheetRules: function () {
             // Extracts the CSS rules out of a style sheet.
             // Returns the rules as an array.
-            var styleSheet = this.getParsedStyleSheet();
-            return(styleSheet && styleSheet.getRules) ? styleSheet.getRules() : [];
+            var styleSheet = this.getParsedStyleSheet(),
+                // Include the base theme rules (in case the morph is a world)
+                baseTheme = this.getParsedBaseThemeStyleSheet(),
+                result = [];
+            // List the base theme rules first so they can be
+            // overridden by the rules defined in the world
+            if (baseTheme && baseTheme.isStyleSheet) {
+                result = result.concat(baseTheme.getRules());
+            }
+            if (styleSheet && styleSheet.isStyleSheet) {
+                result = result.concat(styleSheet.getRules());
+            }
+            return result;
         }
     },
     'Style sheet interpretation', {

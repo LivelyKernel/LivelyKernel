@@ -1,5 +1,48 @@
 module('lively.morphic.tests.StyleSheets').requires('lively.morphic.tests.Helper', 'lively.morphic.StyleSheets').toRun(function() {
 
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.BaseTheme',
+'running', {
+    setUp: function($super) {
+        $super();
+        this.createTestStyleSheet();
+        this.baseThemeParam = '$$baseThemeStyleSheet';
+    },
+    createTestStyleSheet: function() {
+        this.testSrc = '.test-class {\n'
+            + '\tborder: 1px solid green;\n'
+            + '}';
+        this.testStyleSheet = apps.cssParser.parse(this.testSrc, this.world);
+    }
+},
+'testing', {
+    test01SetParsedBaseThemeStyleSheet: function() {
+        this.world.setParsedBaseThemeStyleSheet(this.testStyleSheet);
+        this.assertEquals(this.testStyleSheet, this.world[this.baseThemeParam],
+            'Base theme style sheet should be temp-saved inside world');
+        this.assert(this.world.doNotSerialize.include(this.baseThemeParam),
+            'Base theme style sheet should not be serialized');
+        this.assert(this.testStyleSheet.isBaseTheme,
+            'isBaseTheme flag should be set in base theme style sheet');
+        this.assertEquals(this.testStyleSheet, this.world.getParsedBaseThemeStyleSheet(),
+            'Base theme style sheet should be accessible through getParsedBaseThemeStyleSheet()');
+    },
+    test02SetBaseThemeStyleSheet: function() {
+        this.world.setBaseThemeStyleSheet(this.testSrc);
+        this.assertEquals(this.testSrc, this.world.getBaseThemeStyleSheet(),
+            'Base theme style sheet should be set in the world');
+    },
+    test03LoadBaseTheme: function() {
+        this.world.setParsedBaseThemeStyleSheet();
+        this.assert(!this.world.getParsedBaseThemeStyleSheet(),
+            'After resetting, there should be no base theme applied');
+
+        this.world.loadBaseTheme();
+        this.assert(this.world.getParsedBaseThemeStyleSheet().isBaseTheme,
+            'After loading the base default theme, it should be applied to the world');
+    }
+}
+);
+
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.MorphSelection',
 'running', {
     setUp: function($super) {

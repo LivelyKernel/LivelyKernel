@@ -101,7 +101,7 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
             } else {
                 this.renderContextDispatch('setBaseThemeStyleSheet', null);
                 this.adaptBorders();
-                delete this.$$BaseThemeStyleSheet;
+                delete this.$$baseThemeStyleSheet;
             }
         },
 

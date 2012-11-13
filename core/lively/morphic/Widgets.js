@@ -1438,10 +1438,12 @@ lively.morphic.World.addMethods(
             items.push(['[  ] Copy And Paste', function() {
                 localStorage['Config_CopyAndPaste'] = "true"
                 module('lively.experimental.CopyAndPaste').load(true)
+                ClipboardLayer.beGlobal()
             }]);
         } else {
             items.push(['[X] Copy And Paste', function() {
                 localStorage['Config_CopyAndPaste'] = "false";
+                ClipboardLayer.beNotGlobal()
             }]);
         }
         

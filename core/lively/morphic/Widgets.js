@@ -1437,6 +1437,7 @@ lively.morphic.World.addMethods(
         if (localStorage['Config_CopyAndPaste'] == "false") {
             items.push(['[  ] Copy And Paste', function() {
                 localStorage['Config_CopyAndPaste'] = "true"
+                module('lively.experimental.CopyAndPaste').load(true)
             }]);
         } else {
             items.push(['[X] Copy And Paste', function() {

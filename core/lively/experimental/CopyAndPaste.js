@@ -118,6 +118,8 @@ cop.create("ClipboardLayer").refineClass(lively.morphic.World, {
         this.ensureTextFocusTarget()
 
         if (!this.selectionMorph || !this.selectionMorph.owner) {
+            // hack, hack, hack
+            this.textFocusTarget.setPosition($world.windowBounds().topLeft())
             this.textFocusTarget.focus()
             this.pastePositionInWorld = evt.mousePoint
 

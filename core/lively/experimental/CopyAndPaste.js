@@ -134,13 +134,6 @@ cop.create("ClipboardLayer").refineClass(lively.morphic.World, {
     },
 })
 
-ClipboardLayer.beNotGlobal()
 ClipboardLayer.beGlobal()
-
-
-
-
-
-
 
 }) // end of module

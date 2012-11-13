@@ -175,7 +175,8 @@ Trait('TextChunkOwner',
         domChanged = domChanged || this.removeNonChunkNodes(chunks);
         chunks.last().ensureEndsWithBr();
         var newSelectionRange = this.getSelectionRange();
-        if (domChanged && selRange) {
+        if (domChanged && selRange || 
+            (newSelectionRange && selRange && newSelectionRange[0] !== selRange[0])) {
             this.setSelectionRange(selRange[0], selRange[1]);
         }
     },

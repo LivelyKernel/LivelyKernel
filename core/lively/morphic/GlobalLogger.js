@@ -1,18 +1,19 @@
-module('lively.morphic.GlobalLogger').requires('lively.ide.SystemCodeBrowser', 'lively.morphic.ColorChooserDraft', 'lively.morphic.TextUndo').toRun(function() {
+module('lively.morphic.GlobalLogger').requires('lively.morphic', 'lively.ide.SystemCodeBrowser', 'lively.morphic.ColorChooserDraft', 'lively.morphic.TextUndo').toRun(function() {
+
 Object.subclass('lively.GlobalLogger',
 'properties', {
     loggedFunctions: [
-        /* 
+        /*
         ** To log a function called functionName, add functions 'beforeLogFunctionName', 'logFunctionName' and 'afterLogFunctionName', if you need them.
         ** The execution of logFunctionName will not be logged, as well as side functions.
-        ** If beforeFunctionName returns a falsee, logFunctionName will not be executed. 
+        ** If beforeFunctionName returns a falsee, logFunctionName will not be executed.
         */
         [lively.morphic.Morph, ['addMorph', 'remove', 'morphicSetter', 'addScript', 'openInWindow', 'lock', 'unlock', 'startStepping', 'stopSteppingScriptNamed', 'stopStepping']],
         [lively.morphic.Shapes.Shape, ['shapeSetter']],
         [lively.morphic.Text, ['addUndo']]
     ],
     silentFunctions: [
-        /* 
+        /*
         ** Add functions of Classes that are not supposed to be logged.
         ** This will create an invisible layered function that prevents logging of this function.
         */
@@ -24,11 +25,10 @@ Object.subclass('lively.GlobalLogger',
         [lively.morphic.Script, ['tick']]
     ],
     silentClasses: [
-        /* 
+        /*
         ** No function of these classes will ever be logged.
         */
-        lively.morphic.Menu, lively.morphic.Tree, lively.morphic.PromptDialog, lively.morphic.AwesomeColorField, lively.morphic.List, AttributeConnection, WebResource
-    ]
+        lively.morphic.Menu, lively.morphic.Tree, lively.morphic.PromptDialog, lively.morphic.AwesomeColorField, lively.morphic.List, AttributeConnection, WebResource]
 },
 'initialization', {
     initialize: function () {
@@ -62,7 +62,7 @@ Object.subclass('lively.GlobalLogger',
 },
 'logging', {
     logAction: function(action) {
-        /* 
+        /*
         ** Writes the action to $world.GlobalLogger.stack, if the target of the action is loggable.
         ** Actions that happen at the same time are bundeled, so they can be reverted at once.
         */
@@ -114,26 +114,28 @@ Object.subclass('lively.GlobalLogger',
         // re-executes the currently next bulk of actions
         var self = this;
         if (this.counter > this.stack.length) {
-            lively.morphic.World.current().alert('Nothing to redo')
-            return false
+            lively.morphic.World.current().alert('Nothing to redo');
+            return false;
         }
         this.stack[this.counter] && this.stack[this.counter].reverse().each(function (ea) {
             self.redoAction(ea);
         })
-        this.counter ++
+        this.counter++;
     },
     redoAction: function (action) {
         // Redos an action without logging the side effects of redoing
         this.disableLogging(true)
-        if (action.morph.getLoggability && action.morph.getLoggability()  || !action.morph.getLoggability)
-            action.redo()
+        if ((action.morph.getLoggability && action.morph.getLoggability())
+          || !action.morph.getLoggability) {
+            action.redo();
+        }
         this.enableLogging()
     },
-}, 
+},
 'disable and enable', {
     enableLogging: function () {
-        this.loggingEnabled = true
-        this.workingOnAction = false
+        this.loggingEnabled = true;
+        this.workingOnAction = false;
     },
     disableLogging: function (definite) {
         // disables the GlobalLogger temporarily and returns whether it was enabled before, or not.
@@ -167,7 +169,7 @@ Object.subclass('lively.GlobalLogger',
                 var returnValue = cop.proceed.apply(cop, arguments);
                 if (logResult && afterLogFunctionName && Object.isFunction(this[afterLogFunctionName])) {
                     // afterLogFunctionName
-                    this[afterLogFunctionName].apply(this, returnValue) 
+                    this[afterLogFunctionName].apply(this, returnValue)
                 }
                 self.loggingEnabled = loggingEnabled;
                 return returnValue;
@@ -245,7 +247,7 @@ Object.subclass('lively.GlobalLogger',
         })
         LoggerLayer.refineClass(lively.morphic.Morph, functionsObject);
     },
-}, 
+},
 'activation', {
     activateLogging: function() {
         // Activates the LoggerLayer. Can be accessed through the WorldMenu.
@@ -527,14 +529,13 @@ lively.morphic.Shapes.Shape.addMethods(
 lively.morphic.World.addMethods(
 'logging', {
     loadPartItem: function (partName, optPartspaceName) {
-        var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld';
+        optPartspaceName = optPartspaceName || 'PartsBin/NewWorld';
         var part = lively.PartsBin.getPart(partName, optPartspaceName);
         if (optPartspaceName && optPartspaceName.include('Tools')) {
-            part.isLoggable = false
-            part.shape.isLoggable = false
+            part.isLoggable = false;
+            part.shape.isLoggable = false;
         }
-        if (!part)
-            return;
+        if (!part) return null;
         if (part.onCreateFromPartsBin) part.onCreateFromPartsBin();
         return part;
     },
@@ -575,4 +576,4 @@ Trait('WorldLoggingMenuTrait',
     })
 }).applyTo(lively.morphic.World, {override: 'morphMenuItems'});
 
-}) // end of module}) // end of module}) // end of module}) // end of module
+}) // end of module

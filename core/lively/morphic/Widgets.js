@@ -1435,7 +1435,7 @@ lively.morphic.World.addMethods(
             }]);
         }
         if (localStorage['Config_CopyAndPaste'] == "false") {
-            items.push(['[  ] CopyAndPaste', function() {
+            items.push(['[  ] Quick Load', function() {
                 localStorage['Config_CopyAndPaste'] = "true"
             }]);
         } else {

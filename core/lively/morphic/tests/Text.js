@@ -1138,7 +1138,7 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
 
     testAppliesOnlyWhitelistedAttributes: function() {
         var emph = new lively.morphic.TextEmphasis({color: Color.red, orphans: '2'}),
-            htmlNode = {style: {}, setAttributeNS: function() {}};
+            htmlNode = {style: {}, dataset: {}, setAttributeNS: function() {}};
         emph.applyToHTML(htmlNode);
         this.assertEquals(Color.red.toString(), htmlNode.style.color, 'no color');
         this.assert(!htmlNode.style.orphans, 'applied unwanted attr');

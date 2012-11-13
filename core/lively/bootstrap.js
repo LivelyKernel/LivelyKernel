@@ -90,39 +90,38 @@ var LoadingScreen = {
 
     width: function() { return document.documentElement.clientWidth || 800 },
     height: function() { return document.documentElement.clientHeight || 800 },
+    backgroundGradient: "background-image: "
+		+ "-webkit-linear-gradient(bottom, #515151 0%, rgb(255,255,255) 25%); "
+		+ "background-image: "
+		+ "-moz-linear-gradient(bottom, #515151 0%, rgb(255,255,255) 25%);",
+	buttonStyle: "opacity: 0.75; font-family: Helvetica, Arial, sans-serif;"
+		+ "text-decoration: none; font-size: 14px;color: #515151;"
+		+ "padding: 5px 10px; border-radius: 5px; border: 3px solid #515151;",
 
     buildBackground: function() {
-        var div1 = document.createElement('div')
-        div1.setAttribute('id', this.id);
-        div1.setAttribute('style', "position: fixed; left: 0px; top: 0px; background-color: rgba(100,100,100,0.7); overflow: auto");
-        div1.style.width = this.width() + 'px'
-        div1.style.height = this.height() + 'px'
-
-        return div1
+		var div1 = document.createElement('div');
+		div1.setAttribute('id', this.id);
+		div1.setAttribute('style',
+			"position: fixed; left: 0px; top: 0px; "
+			+ "background-color: white; overflow: auto;" + this.backgroundGradient);
+		div1.style.width = this.width() + 'px';
+		div1.style.height = this.height() + 'px';
+		return div1;
     },
 
     buildLoadingLogo: function() {
-        var logoAndText = document.createElement('div')
-        logoAndText.setAttribute('id', this.logoId);
-        logoAndText.setAttribute('style', "position: fixed; margin-left:auto; margin-right:auto; width: 80px; height: 108px; background-color: white;");
-
-        var logo = document.createElement('img')
-        logo.setAttribute('style', "width: 80px; height: 80px;");
-
-        var text = document.createElement('div')
-        text.setAttribute('style', "text-align:center; font-family: sans-serif; font-size: large; color: gray")
-        text.textContent = 'Loading';
-
-        logoAndText.style['top'] = (this.height() / 2 - 100) + 'px'
-        logoAndText.style['left'] = (this.width() / 2 - 40) + 'px'
-        logo.src = LivelyLoader.codeBase + 'media/loading.gif';
-
-        logoAndText.appendChild(logo);
-        logoAndText.appendChild(text);
-
-        this.logo = logoAndText;
-
-        return logoAndText;
+        var logoWidth = 160,
+			logoHeight = 160,
+			logo = document.createElement('div'),
+			logoSrc = LivelyLoader.codeBase + 'media/loading.svg';
+		logo.setAttribute('style', "position: absolute; width: "
+			+ logoWidth+"px; height: "+logoHeight+"px;"
+			+ "background-image:url('"+logoSrc+"');");
+		logo.setAttribute('id', this.logoId);
+		logo.style['left'] = (this.width() / 2 - (logoWidth/2)) + 'px';
+		logo.style['top'] = (this.height() / 2.3 - (logoHeight/2)) + 'px';
+		this.logo = logo;
+		return logo;
     },
 
     buildBrokenWorldMessage: function() {
@@ -223,20 +222,20 @@ var LoadingScreen = {
         }
     },
 
-    buildConsoleButton: function() {
-        var a = document.createElement('a');
-        a.setAttribute('style', "position: fixed; right: 170px; top: 20px; width: 70px; text-align:center; font-family: monospace; border: 1px solid; border-color: rgb(100,100,100); color: rgb(100,100,100)");
-        a.setAttribute('href', 'javascript:LoadingScreen.toggleConsole()');
-        a.textContent = 'console';
-        return a;
-    },
-    buildCloseButton: function() {
-        var a = document.createElement('a');
-        a.setAttribute('style', "position: fixed; right: 90px; top: 20px; width: 70px; text-align:center; font-family: monospace; border: 1px solid; border-color: rgb(100,100,100); color: rgb(100,100,100)");
-        a.setAttribute('href', 'javascript:LoadingScreen.remove();');
-        a.textContent = 'close';
-        return a;
-    },
+	buildConsoleButton: function() {
+		var a = document.createElement('a');
+		a.setAttribute('style', "position: fixed; right: 170px; top: 20px;"+ this.buttonStyle);
+		a.setAttribute('href', 'javascript:LoadingScreen.toggleConsole()');
+		a.textContent = 'console';
+		return a;
+	},
+	buildCloseButton: function() {
+		var a = document.createElement('a');
+		a.setAttribute('style', "position: fixed; right: 90px; top: 20px;"+ this.buttonStyle);
+		a.setAttribute('href', 'javascript:LoadingScreen.remove();');
+		a.textContent = 'close';
+		return a;
+	},
 
     build: function() {
         var background = this.buildBackground(),

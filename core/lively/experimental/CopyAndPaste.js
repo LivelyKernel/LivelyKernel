@@ -1,4 +1,4 @@
-module('lively.experimental.CopyAndPaste').requires('cop.Layers').toRun(function() {
+module('lively.experimental.CopyAndPaste').requires('cop.Layers', 'lively.morphic').toRun(function() {
 
 cop.create("ClipboardLayer").refineClass(lively.morphic.World, {
     onPasteFromClipboard: function(evt) {

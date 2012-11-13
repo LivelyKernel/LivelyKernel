@@ -1,5 +1,10 @@
 module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssParser', 'lively.morphic.StyleSheetRepresentation').toRun(function () {
 
+    // Load the base theme when the world is loaded
+    Config.finishLoadingCallbacks.push(function(world) {
+            world.loadBaseTheme(Config.baseThemeStyleSheetURL, '');
+        });
+
     lively.morphic.Shapes.Shape.addMethods('Styling', {
         setAppearanceStylingMode: function (value) {
             return this.shapeSetter('AppearanceStylingMode', value);
@@ -61,6 +66,17 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                 return this.setParsedStyleSheet();
             }
         },
+        setBaseThemeStyleSheet: function(styleSheet) {
+            if(styleSheet.isStyleSheet) {
+                return this.setParsedBaseThemeStyleSheet(styleSheet);
+            } else if(typeof (styleSheet) === 'string' && styleSheet.length > 0) {
+                var parsedStyleSheet = apps.cssParser.parse(styleSheet, this);
+                return this.setParsedBaseThemeStyleSheet(parsedStyleSheet);
+            } else {
+                return this.setParsedBaseThemeStyleSheet();
+            }
+        },
+
         setParsedStyleSheet: function (styleSheet) {
             if(styleSheet && styleSheet.isStyleSheet) {
                 styleSheet.setOriginMorph(this);
@@ -72,6 +88,20 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                 delete this._StyleSheet;
             }
         },
+        setParsedBaseThemeStyleSheet: function(styleSheet) {
+            if(styleSheet && styleSheet.isStyleSheet) {
+                styleSheet.setOriginMorph(this);
+                // Do not use setter here, since we don't want to have the base theme
+                // as a part of the world's state
+                this.renderContextDispatch('setBaseThemeStyleSheet', styleSheet);
+                this.adaptBorders();
+            } else {
+                this.renderContextDispatch('setBaseThemeStyleSheet', null);
+                this.adaptBorders();
+                delete this._BaseThemeStyleSheet;
+            }
+        },
+
     updateStyleSheet: function() {
         // Call this method if your style sheet has changed, but the DOM isn't up to date yet
         this.setParsedStyleSheet(this.getParsedStyleSheet());
@@ -82,26 +112,55 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
             // use the resourcePath parameter if the resources addressed
             // in the CSS file are in a different directory than the CSS'.
             // (use "" to leave the urls untouched)
-            var url = URL.ensureAbsoluteURL(file);
-            var webR = url.asWebResource();
+            var css = this.loadCSSFile(file, resourcePath);
+            if (css) {
+                this.setStyleSheet(css);
+                return true;
+            } else {
+                return false;
+            }
+        },
+        loadCSSFile: function(file, resourcePath) {
+            // Use the resourcePath parameter if the resources addressed
+            // in the CSS file are in a different directory than the CSS'.
+            // (use "" to leave the urls untouched)
+            var url = URL.ensureAbsoluteURL(file),
+                webR = url.asWebResource();
             webR.forceUncached();
             if (webR.get().status.isSuccess()) {
+                var css = webR.content,
+                    resPath = resourcePath || url.getDirectory();
                 // add resource path to all relative urls in the css
-                var css = webR.content;
-                var resPath = resourcePath || url.getDirectory();
-                css = css.replace(/url\([\s]*\'(?![\s]*http)/g, "url('" + resPath)
-                         .replace(/url\([\s]*\"(?![\s]*http)/g, 'url("' + resPath)
-                         .replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, "url(" + resPath);
-                // insert line breaks so the css is more legible
-                css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/g, ";\n")
-                         .replace(/\}(?![\s]*(\r\n|\n|\r))/g, "}\n")
-                         .replace(/\{(?![\s]*(\r\n|\n|\r))/g, "{\n");
-                this.setStyleSheet(css);
+                css = this.makeResourceURLsAbsolute(css, resPath);
+                return css;
             } else {
                 throw new Error("Couldn't load stylesheet at " + file + " --> " + webR.status.code());
             }
-            return {status: webR.status.code(), responseText: webR.content};
         },
+
+        loadBaseTheme: function(file, resourcePath) {
+            var css = this.loadCSSFile(file, resourcePath);
+            if (css) {
+                this.setBaseThemeStyleSheet(css);
+                return true;
+            } else {
+                return false;
+            }
+        },
+
+    makeResourceURLsAbsolute: function(css, resPath) {
+        if (!css) {
+            return '';
+        }
+        else if (!resPath || resPath.length < 1) {
+            return css;
+        } else {
+            return css.replace(/url\([\s]*\'(?![\s]*http)/g, "url('" + resPath)
+                .replace(/url\([\s]*\"(?![\s]*http)/g, 'url("' + resPath)
+                .replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, "url(" + resPath);
+        }
+    },
+
         getStyleSheet: function () {
             var styleSheet = this.getParsedStyleSheet();
             return styleSheet ? styleSheet.getText() : null;

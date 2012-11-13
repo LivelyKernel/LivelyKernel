@@ -2,6 +2,7 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 
     Object.extend(lively.morphic.Morph.prototype.htmlDispatchTable, {
         setStyleSheet: 'setStyleSheetHTML',
+        setBaseThemeStyleSheet: 'setBaseThemeStyleSheetHTML',
         setStyleClassNames: 'setStyleClassNamesHTML',
         setStyleId: 'setStyleIdHTML',
         setNodeMorphId: 'setNodeMorphIdHTML'
@@ -342,6 +343,35 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
             }
             ctx.styleNode.textContent = compiledCss;
         },
+        setBaseThemeStyleSheetHTML: function (ctx, styleSheet) {
+            // Compiles the input style rules to an
+            // HTML specific style sheet and adds this
+            // to the DOM.
+            // Called when a new style sheet was applied to
+            // the morph (i.e. through setStyleSheet) and
+            // in the initHTML method of the morph.
+
+            var styleTagId = "base-theme-for-" + this.id,
+                rules = styleSheet.getRules(),
+                compiledCss = this.compileStyleSheet(rules),
+                parseSuccess = compiledCss && compiledCss.length > 0;
+            if (!parseSuccess) {
+                ctx.domInterface.remove(ctx.baseThemeNode);
+                delete ctx.baseThemeNode;
+                return;
+            }
+            if (!ctx.baseThemeNode) {
+                ctx.baseThemeNode= XHTMLNS.create('style', {
+                    type: "text/css",
+                    id: styleTagId
+                });
+            }
+            if (!ctx.baseThemeNode.parentNode) {
+                this.appendStyleNodeHTML(ctx, ctx.baseThemeNode);
+            }
+            ctx.baseThemeNode.textContent = compiledCss;
+        },
+
 
         appendStyleNodeHTML: function (ctx, styleNode) {
             // Adds the morph's style node to the DOM
@@ -350,6 +380,16 @@ module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 
 
             var parent = this,
                 submorphs = this.submorphs || [];
+
+            // Check if the own context has either a baseThemeNode or a styleNode
+            // (the baseThemeNode should always be inserted before the styleNode)
+            if (ctx.baseThemeNode && ctx.baseThemeNode !== styleNode) {
+                ctx.baseThemeNode.parentNode.insertBefore(styleNode, ctx.baseThemeNode.nextSibling);
+                return;
+            } else if (ctx.styleNode && ctx.styleNode !== styleNode) {
+                ctx.styleNode.parentNode.insertBefore(styleNode, ctx.styleNode);
+                return;
+            }
 
             // Search upward in morph hierarchy ...
             while ((parent = parent.owner)) {

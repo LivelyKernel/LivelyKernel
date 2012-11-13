@@ -40,26 +40,26 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
         morph.setPosition(pt(50,50));
         this.assertEquals(pt(50,50), observer.position);
     },
-    test05TransformConnectionsTheGarbageOut: function() {
 
-        var parent =lively.morphic.Morph.makeRectangle(0,0, 100, 100);
-        parent.setPosition(pt(10,10))
+    test05TransformConnectionsCleanup: function() {
+        var parent = lively.morphic.Morph.makeRectangle(10,10, 100, 100),
+            morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
+            observer = {changed: function(source) { this.source = source }};
 
-        var morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
-            observer = {transformationChange: function(source) { this.source = source }};
-
-        parent.addMorph(morph)
+        parent.addMorph(morph);
         morph.setPosition(pt(50,50));
 
-        var numberOfOldConnections = (parent.attributeConnections || []).length;
-        var c =  lively.bindings.connect(morph, 'globalTransform', observer, 'transformationChange');
-
-        this.assert((parent.attributeConnections || []).length > numberOfOldConnections,
-            "no new connections?")
+        this.assert(!parent.attributeConnections, "setup strange, parent has connections");
+        var c = lively.bindings.connect(morph, 'globalTransform', observer, 'changed');
+        this.assert(parent.attributeConnections.length > 0, "no new connections?");
         morph.remove();
-        this.assertEquals((parent.attributeConnections || []).length,
-            numberOfOldConnections, "garbage is still there")
+        this.assert(!parent.attributeConnections, "garbage connections still in owner");
+        debugger;
+        c.disconnect();
+        this.assert(!morph.attributeConnections,
+                    "connections still in morph: " + morph.attributeConnections);
     },
+
     test06ConnectToGlobalPositionOfAMorph: function() {
         var parent =lively.morphic.Morph.makeRectangle(0,0, 100, 100);
         parent.setPosition(pt(10,10))
@@ -77,23 +77,19 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
     },
 
     test07DuplicateMorphsWithTransformConnections: function() {
-        var parent =lively.morphic.Morph.makeRectangle(0,0, 100, 100);
-        parent.setPosition(pt(10,10))
+        var parent = lively.morphic.Morph.makeRectangle(10,10, 100, 100),
+            morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
+            observer = {changed: function(source) { this.source = source }};
+        parent.addMorph(morph);
 
-        var morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
-            observer = {transformationChange: function(source) { this.source = source }};
-        parent.addMorph(morph)
+        var c = lively.bindings.connect(morph, 'globalTransform', observer, 'changed'),
+            numberOfOldConnections = morph.attributeConnections.length,
+            morph2 = morph.copy();
 
-        var c =  lively.bindings.connect(morph, 'globalTransform',
-            observer, 'transformationChange');
-
-        var numberOfOldConnections = morph.attributeConnections.length;
-
-        var morph2 = morph.copy();
-
-        this.assert(morph2.attributeConnections.length = numberOfOldConnections)
+        this.assertEquals(numberOfOldConnections, morph2.attributeConnections.length);
 
     },
+
     test08removeSourceObjGetterAndSetter: function() {
         var obj1 = {a: 3}, obj2 = {b: 3};
         var c = connect(obj1, 'a', obj2, 'b');
@@ -128,6 +124,36 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
         this.assertEquals(obj.y, 23, "not updated in connect");
     }
 
+});
+
+lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingTests.AllOwners',
+'testing', {
+    test01OwnersConnect: function() {
+        var m1 = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
+            m2 = lively.morphic.Morph.makeRectangle(5,5, 10, 10),
+            owners = [],
+            observer = {ownersChanged: function(newOwners) { owners = newOwners }},
+            connection = lively.bindings.connect(m2, 'owners', observer, 'ownersChanged');
+
+        this.world.addMorph(m1);
+        this.assertEqualState([], owners, '1');
+        this.assert(!m1.attributeConnections, '1');
+
+        m1.addMorph(m2);
+        this.assertEqualState([m1, this.world], owners, '2');
+        this.assertEquals(1, m1.attributeConnections.length, '2');
+
+        m1.remove();
+        this.assertEqualState([m1], owners, '3');
+        this.assertEquals(1, m1.attributeConnections.length, '3');
+
+        this.world.addMorph(m2);
+        this.assertEqualState([this.world], owners, '4');
+        this.assert(!m1.attributeConnections, '4 m1 attributeConnections not removed');
+
+        connection.disconnect();
+        this.assert(!m2.attributeConnections, '5 m2 attributeConnections not removed');
+    }
 });
 
 

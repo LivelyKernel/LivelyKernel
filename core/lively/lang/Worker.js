@@ -56,23 +56,6 @@ lively.Worker = {
                         self.console._port.postMessage(args);
                     }
                 }
-                self.httpRequest = function (options) {
-                    if (!options.url) {
-                        console.log("Error, httpRequest needs url");
-                        return;
-                    }
-                    var req = new XMLHttpRequest(),
-                        method = options.method || 'GET';
-                    function handleStateChange() {
-                        if (req.readyState === 4) {
-                            // req.status
-                            options.done && options.done(req);
-                        }
-                    }
-                    req.onreadystatechange = handleStateChange;
-                    req.open(method, options.url);
-                    req.send();
-                }
 
                 __CODE_PLACEHOLDER__
             }

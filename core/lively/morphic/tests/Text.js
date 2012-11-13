@@ -778,8 +778,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
             [{textString: 'e'},
             {textString: 'intest'}])
         this.checkDOM([
-            {tagName: 'span', textContent: 'e', style: {textDecoration: 'underline'}},
-            {tagName: 'span', textContent: 'intest', style: {textDecoration: 'initial'}}])
+            {tagName: 'span', textContent: 'e', style: {color: 'rgb(0,100,0)'}},
+            {tagName: 'span', textContent: 'intest', style: {color: 'inherit'}}])
     },
 
     test27aInsertStringAt: function() {

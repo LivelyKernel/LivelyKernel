@@ -2707,6 +2707,10 @@ Object.subclass('lively.morphic.TextEmphasis',
 'style attributes', {
     styleAttributes: {
         data: {
+            // attaches an arbitary JavaScript object to a text chunk
+            // this can be used to tag certain parts of a text with
+            // non-visible data that will be retained when editing
+            // and copying text
             set: function(value) {
                 if (!value) delete this.data;
                 return this.data = value;

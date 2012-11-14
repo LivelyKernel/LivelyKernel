@@ -2706,6 +2706,19 @@ Object.subclass('lively.morphic.TextEmphasis',
 },
 'style attributes', {
     styleAttributes: {
+        data: {
+            // attaches an arbitary JavaScript object to a text chunk
+            // this can be used to tag certain parts of a text with
+            // non-visible data that will be retained when editing
+            // and copying text
+            set: function(value) {
+                if (!value) delete this.data;
+                return this.data = value;
+            },
+            get: function() { return this.data; },
+            equals: function(other) { return this.getData() === other.getData(); },
+            apply: Functions.Null
+        },
 
         hover: {
             // expected to be of the form:
@@ -2921,6 +2934,8 @@ Object.subclass('lively.morphic.TextEmphasis',
 'accessing', {
     get: function(attrName) { return this.styleAttributes[attrName].get.call(this) },
     set: function(attrName, value) { return this.styleAttributes[attrName].set.call(this, value) },
+    getData:             function()      { return this.get('data'); },
+    setData:             function(value) { return this.set('data', value); },
     getDoit:             function()      { return this.get('doit'); },
     setDoit:             function(value) { return this.set('doit', value); },
     getHover:            function()      { return this.get('hover'); },
@@ -2968,7 +2983,8 @@ Object.subclass('lively.morphic.TextEmphasis',
         }
 
         // FIXME refactor
-        return attrs.doit            .equals.call(this, other)
+        return attrs.data            .equals.call(this, other)
+            && attrs.doit            .equals.call(this, other)
             && attrs.hover           .equals.call(this, other)
             && attrs.uri             .equals.call(this, other)
             && attrs.fontWeight      .equals.call(this, other)
@@ -3042,6 +3058,7 @@ Object.subclass('lively.morphic.TextEmphasis',
 
         // FIXME refactor
         var attrs = this.styleAttributes;
+        attrs.data            .apply.call(this, node);
         attrs.doit            .apply.call(this, node);
         attrs.hover           .apply.call(this, node);
         attrs.uri             .apply.call(this, node);

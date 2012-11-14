@@ -1088,13 +1088,16 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
 },
 'testing', {
     testEqual: function() {
+        var obj = {foo: 'bar'};
         var testTable = [
+            [{}, {}],
             [{color: Color.red}, {color: Color.red}],
             [{color: Color.red}, {color: Color.rgba(204,0,0,1)}],
             [{backgroundColor: Color.red}, {backgroundColor: Color.rgba(204,0,0,1)}],
             [{isNullStyle: true}, {isNullStyle: true}],
             [{fontWeight: 'normal'}, {}],
-            [{}, {foobarbaz: Color.green}]
+            [{}, {foobarbaz: Color.green}],
+            [{data: obj}, {data: obj}]
         ];
 
        testTable.forEach(function(spec) {
@@ -1105,7 +1108,9 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
     testUnEqual: function() {
         var testTable = [
             [{}, {isNullStyle: true}],
-            [{color: Color.red}, {color: Color.green}]
+            [{color: Color.red}, {color: Color.green}],
+            [{data: {foo: 'bar'}}, {}],
+            [{data: {foo: 'bar'}}, {data: {foo: 'bar'}}]
         ];
 
        testTable.forEach(function(spec) {
@@ -1135,7 +1140,7 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
 
     testAppliesOnlyWhitelistedAttributes: function() {
         var emph = new lively.morphic.TextEmphasis({color: Color.red, orphans: '2'}),
-            htmlNode = {style: {}, setAttributeNS: function() {}};
+            htmlNode = {style: {}, dataset: {}, setAttributeNS: function() {}};
         emph.applyToHTML(htmlNode);
         this.assertEquals(Color.red.toString(), htmlNode.style.color, 'no color');
         this.assert(!htmlNode.style.orphans, 'applied unwanted attr');

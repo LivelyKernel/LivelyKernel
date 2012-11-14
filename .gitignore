@@ -5,6 +5,7 @@ workspace/
 *.xhtml
 !blank.xhtml
 !run_tests.xhtml
+!StyleBrowser.xhtml
 
 # Node #
 node_modules
@@ -12,5 +13,5 @@ node_modules
 # Parts #
 PartsBin
 
-# users #
-users/
+# Users #
+users

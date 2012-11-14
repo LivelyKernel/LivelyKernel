@@ -6,6 +6,11 @@
 	background:  #white;
 	border: 1px solid #aaa;
 }
+.Box.no-style {
+	background:  none;
+	border: none;
+	box-shadow: none;
+}
 
 .Selection {
 	background:  rgba(222,222,222, 0.6);

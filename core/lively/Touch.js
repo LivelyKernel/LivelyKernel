@@ -306,11 +306,12 @@ lively.morphic.Box.subclass('lively.morphic.NameDisplay',
 lively.morphic.Morph.addMethods(
 "Tap ThroughHalos", {
     onTap: function(evt) {
+        var world = lively.morphic.World.current();
         if ($world.firstHand() && $world.firstHand().submorphs && $world.firstHand().submorphs.length) {
-            var morph = $world.firstHand().submorphs[1]
-            $world.addMorph(morph)
+            var morph = world.firstHand().submorphs[1]
+            world.addMorph(morph)
             morph.setPosition(evt.getPosition())
-            $world.firstHand().submorphs.invoke('remove')
+            world.firstHand().submorphs.invoke('remove')
         }
         this.select();
     },
@@ -1289,10 +1290,6 @@ lively.morphic.World.addMethods(
             this.holdIndicator.remove(); 
         }
     },
-
-
-
-
 },
 "PieMenu", {
             showPieFor: function(morph, pieItems){
@@ -1320,10 +1317,10 @@ lively.morphic.World.addMethods(
             },
     onTap: function($super, evt) {
         $super(evt);
+        this.touchMenuPrototype.remove()
         if (this.currentHaloTarget) {
             this.currentHaloTarget.removeHalos() 
         }
-
         this.removePie();
         this.worldMenuMorph && this.worldMenuMorph.remove();
     },
@@ -2121,14 +2118,14 @@ cop.create('worldMenu').refineClass(lively.morphic.World, {
         this.touchMenuPrototype = this.loadPartItem("TouchMenu", "PartsBin/iPadWidgets");
     },
     showTouchMenuAt: function (pos, fixed) {
-        var touchMenu = this.touchMenuPrototype;
-
-        var pagePosition = pos;
-        var screenPos = pagePosition.subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel());
+        var touchMenu = this.touchMenuPrototype,
+            pagePosition = pos,
+            screenPos = pagePosition.subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel()),
+            triangle = touchMenu.get("Triangle");
 
         touchMenu.setPosition(pos);
         if(screenPos.y > document.documentElement.clientHeight / 2) {
-            touchMenu.moveBy(pt(0, -(touchMenu.getExtent().y + 1 * touchMenu.get("Triangle").getExtent().y)).scaleBy(1 / $world.getZoomLevel()));
+            touchMenu.moveBy(pt(0, -(touchMenu.getExtent().y + 1 * triangle.getExtent().y)).scaleBy(1 / $world.getZoomLevel()));
             touchMenu.movePointerToBottom();
         } else {
             touchMenu.movePointerToTop();
@@ -2136,22 +2133,23 @@ cop.create('worldMenu').refineClass(lively.morphic.World, {
 
         if(screenPos.x < touchMenu.getExtent().x / 2) {
             touchMenu.moveBy(pt(touchMenu.getExtent().x / 2 - screenPos.x, 0).scaleBy(1 / $world.getZoomLevel()));
-            touchMenu.get("Triangle").moveBy(pt(- touchMenu.getExtent().x / 2 + screenPos.x,0));
+            triangle.moveBy(pt(- touchMenu.getExtent().x / 2 + screenPos.x,0));
         }
         if(screenPos.x > document.documentElement.clientWidth - touchMenu.getExtent().x / 2) {
             var delta = document.documentElement.clientWidth - screenPos.x;
             touchMenu.moveBy(pt( -touchMenu.getExtent().x / 2 + delta, 0).scaleBy(1 / $world.getZoomLevel()));
-            touchMenu.get("Triangle").moveBy(pt(+touchMenu.getExtent().x/2-delta,0));
+            triangle.moveBy(pt(+touchMenu.getExtent().x/2-delta,0));
         }
 
 
-        this.addBlockerWith(touchMenu);
+        // this.addBlockerWith(touchMenu);
         if(fixed) {
             touchMenu.setFixed(true, true);    
         }
+        this.addMorph(touchMenu)
         return touchMenu;
     },
-    addBlockerWith: function(menu) {
+/*    addBlockerWith: function(menu) {
         var blocker = Morph.makeRectangle(rect(0,0,10,10));
         blocker.setExtent(this.getExtent());
         blocker.setPosition(pt(0,0));
@@ -2178,7 +2176,7 @@ cop.create('worldMenu').refineClass(lively.morphic.World, {
         connect(menu, "remove", blocker, "remove", {removeAfterUpdate: true});
         
         this.addMorph(blocker);
-    },
+    },*/
 
     onHold: function(touch) {
         var items = this.morphMenuItems();

@@ -200,6 +200,7 @@ Object.subclass('lively.Main.Loader',
     onFinishLoading: function(world) {
         console.groupEnd("World loading");
         world.hideHostMouseCursor();
+        world.loadingMorph = world.loadPartItem('LoadingMorph', 'PartsBin/iPadWidgets/')
         this.browserSpecificFixes()
         lively.bindings.signal(this, 'finishLoading', world);
         lively.bindings.signal(world, 'finishLoading', world);

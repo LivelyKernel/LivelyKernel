@@ -597,24 +597,21 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
 },
 'initializing', {
 
-    initialize: function($super, tabBarStrategy) {
+    initialize: function($super, optTabBarStrategy, optExtent, optTabBarHeight) {
         $super();
-        if (!tabBarStrategy) {
-            tabBarStrategy = new lively.morphic.TabStrategyTop();
-        }
+        var tabBarStrategy = optTabBarStrategy || new lively.morphic.TabStrategyTop();
         this.setTabBarStrategy(tabBarStrategy);
-        this.tabPaneExtent = pt(600,400);
-        this.initializeTabBar();
+        this.tabPaneExtent = optExtent || pt(600,400);
+        this.initializeTabBar(optTabBarHeight);
         var newExtent = this.getTabBarStrategy().
             calculateInitialExtent(this.tabBar, this.tabPaneExtent);
         this.setExtent(newExtent);
         tabBarStrategy.applyTo(this);
     },
 
-    initializeTabBar: function() {
-        this.tabBar = new lively.morphic.TabBar(this);
+    initializeTabBar: function(optTabBarHeight) {
+        this.tabBar = new lively.morphic.TabBar(this, optTabBarHeight);
         this.addMorph(this.tabBar);
-        //this.getTabBarStrategy().adjustTabBar(this.tabBar);
     },
     getTabBarStrategy: function() {
         if (!this.tabBarStrategy) {
@@ -737,8 +734,9 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
 },
 'initializing', {
 
-    initialize: function($super, tabContainer) {
+    initialize: function($super, tabContainer, optTabBarHeight) {
         $super();
+        optTabBarHeight && this.setDefaultHeight(optTabBarHeight)
         this.tabContainer = tabContainer;
         var width = tabContainer.getTabBarStrategy().getTabBarWidth(tabContainer);
         this.setExtent(pt(width, this.getDefaultHeight()));
@@ -748,8 +746,12 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
 },
 'accessing', {
     getDefaultHeight: function() {
-        return 30;
+        return this.defaultHeight || 30;
     },
+    setDefaultHeight: function(height) {
+        this.defaultHeight = height;
+    },
+
 
     getTabs: function() {
         return this.tabs;
@@ -987,12 +989,14 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         this.isActive = false;
     },
     addCloseButton: function() {
-        var closer = new lively.morphic.Button;
+        var closer = new lively.morphic.Button,
+            padding = 5,
+            extent = this.getExtent().y - (padding *2)
         closer.setLabel("X")
         closer.label.fit();
-        closer.setExtent(pt(20,20))
+        closer.setExtent(pt(extent,extent))
         this.addMorph(closer)
-        closer.setPosition(pt(this.getExtent().x - 23,6))
+        closer.setPosition(pt(this.getExtent().x - extent - padding,padding))
         closer.layout = {moveHorizontal: true};
         connect(closer, "fire", this, "closeTab", {});
         this.closeButton = closer;

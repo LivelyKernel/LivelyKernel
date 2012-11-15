@@ -494,7 +494,7 @@ lively.morphic.Morph.addMethods(
     },
     updateZoomScale: function(newZoom) {
         if(this.fixedScale) {
-			var newZoom = newZoom || $world.updateZoomLevel();
+            var newZoom = newZoom || $world.updateZoomLevel();
             this.setScale(this.fixedScale/newZoom);
         }
     },
@@ -858,9 +858,7 @@ lively.morphic.World.addMethods(
 },
 "zooming", {
     getZoomLevel: function() {
-        if(!this.zoomLevel){
-            this.zoomLevel = this.calculateCurrentZoom();
-        }
+        this.zoomLevel = this.calculateCurrentZoom();
         return this.zoomLevel;
     },
     calculateCurrentZoom: function() {

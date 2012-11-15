@@ -2266,96 +2266,104 @@ cop.create('worldMenu').refineClass(lively.morphic.World, {
         return items;
     },
     morphMenuItems: function() {
-    
-    
-    // morphMenuItems: function() {
-        // var a = cop.proceed();
-        // var self = this;
-
-        // a[2][1].push(["PartsBin Flap", function() {
-                // new lively.morphic.PartsBinFlap();
-            // }]);
-
-        // a[2][1][2] = ['Object Editor', function() {
-                // var oe = self.openPartItem("FlapOE", "PartsBin/iPadWidgets");
-                // oe.updateZoomScale.bind(oe, $world.getZoomLevel()).delay(0);                                    
-            // }];
-                
-        // a[2][1].push(['Empty Flap', function() {
-                // var flap = self.openPartItem("Flap", "PartsBin/iPadWidgets");
-                // flap.updateZoomScale.bind(flap, $world.getZoomLevel()).delay(0);
-            // }]);
+        var items = cop.proceed();
         
-        // a.push(["Flaps", [  ['PartsBin', function() {
-                                // var pb = self.openPartItem("FlapPB", "PartsBin/iPadWidgets");
-                                // pb.updateZoomScale.bind(pb, $world.getZoomLevel()).delay(0);
-                            // }],
-                            // ['Object Editor', function() {
-                                // var oe = self.openPartItem("FlapOE", "PartsBin/iPadWidgets");
-                                // oe.updateZoomScale.bind(oe, $world.getZoomLevel()).delay(0);                                    
-                            // }],
-                            // ['Empty flap', function() {
-                                // var flap = self.openPartItem("Flap", "PartsBin/iPadWidgets");
-                                // flap.updateZoomScale.bind(flap, $world.getZoomLevel()).delay(0);
-                            // }],
-                        // ]    
-                    // ]);
-        // return a;
-    // },
+        items[2][1][7] = ['Flap', function() {
+                var flap = new lively.morphic.Flap('Custom', 'bottom');
+                flap.enableSelection();
+                //flap.updateZoomScale.bind(flap, $world.getZoomLevel()).delay(0);
+            }];
+            
+        return items
+    
+    // // morphMenuItems: function() {
+        // // var a = cop.proceed();
+        // // var self = this;
+
+        // // a[2][1].push(["PartsBin Flap", function() {
+                // // new lively.morphic.PartsBinFlap();
+            // // }]);
+
+        // // a[2][1][2] = ['Object Editor', function() {
+                // // var oe = self.openPartItem("FlapOE", "PartsBin/iPadWidgets");
+                // // oe.updateZoomScale.bind(oe, $world.getZoomLevel()).delay(0);                                    
+            // // }];
+                
+        // // a[2][1].push(['Empty Flap', function() {
+                // // var flap = self.openPartItem("Flap", "PartsBin/iPadWidgets");
+                // // flap.updateZoomScale.bind(flap, $world.getZoomLevel()).delay(0);
+            // // }]);
+        
+        // // a.push(["Flaps", [  ['PartsBin', function() {
+                                // // var pb = self.openPartItem("FlapPB", "PartsBin/iPadWidgets");
+                                // // pb.updateZoomScale.bind(pb, $world.getZoomLevel()).delay(0);
+                            // // }],
+                            // // ['Object Editor', function() {
+                                // // var oe = self.openPartItem("FlapOE", "PartsBin/iPadWidgets");
+                                // // oe.updateZoomScale.bind(oe, $world.getZoomLevel()).delay(0);                                    
+                            // // }],
+                            // // ['Empty flap', function() {
+                                // // var flap = self.openPartItem("Flap", "PartsBin/iPadWidgets");
+                                // // flap.updateZoomScale.bind(flap, $world.getZoomLevel()).delay(0);
+                            // // }],
+                        // // ]    
+                    // // ]);
+        // // return a;
+    // // },
     
     
-        var world = this;
-        var items = [
-            ['PartsBin', this.openPartsBin.bind(this)],
-            ['Parts', this.morphMenuDefaultPartsItems()],
-            ['Tools', [
-                ['Workspace', this.openWorkspace.bind(this)],
-                ['System Code Browser', this.openSystemBrowser.bind(this)],
-                ['Object Editor', this.openObjectEditor.bind(this)],
-                ['Test Runner', this.openTestRunner.bind(this)],
-                ['Method Finder', this.openMethodFinder.bind(this)],
-                ['Text Editor', function() { new lively.morphic.TextEditor().openIn(world) }],
-                ['System Console', this.openSystemConsole.bind(this)]
-            ]],
-            ['Stepping', [
-                ['Start stepping',  function() { world.submorphs.each(
-                        function(ea) {ea.startSteppingScripts && ea.startSteppingScripts()})}],
-                ['Stop stepping', function() { world.submorphs.each(
-                        function(ea) {ea.stopStepping && ea.stopStepping()})}],
-            ]],
-            ['Preferences', [
-                ['Set username', this.askForUserName.bind(this)],
-                ['My user config', this.showUserConfig.bind(this)],
-                ['Set extent', this.askForNewWorldExtent.bind(this)],
-                ['Set background color', this.askForNewBackgroundColor.bind(this)]]
-            ],
-            ['Debugging', this.debuggingMenuItems(world)],
-            ['Wiki', [
-                ['About this wiki', this.openAboutBox.bind(this)],
-                ['Bootstrap parts from webwerkstatt', this.openBootstrapParts.bind(this)],
-                ['View versions of this world', this.openVersionViewer.bind(this)],
-                ['Download world', function() {
-                    require('lively.persistence.StandAlonePackaging').toRun(function() {
-                        lively.persistence.StandAlonePackaging.packageCurrentWorld();
-                    });
-                }],
-                ['Upload world to Dropbox', function() {
-                    require('apps.Dropbox').toRun(function() {
-                        DropboxAPI.uploadArchivedWorld();
-                    });
-                }],
-                ['Delete world', this.interactiveDeleteWorldOnServer.bind(this)]
-            ]],
-            ['Documentation', [
-                ["On short cuts", this.openShortcutDocumentation.bind(this)],
-                ["On connect data bindings", this.openConnectDocumentation.bind(this)],
-                        ["On Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
-                ["More ...", function() { window.open(Config.rootPath + 'documentation/'); }]
-            ]],
-            ['Save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],
-            ['Save world', this.saveWorld.bind(this), 'synchron']
-        ];
-        return items;
+        // var world = this;
+        // var items = [
+            // ['PartsBin', this.openPartsBin.bind(this)],
+            // ['Parts', this.morphMenuDefaultPartsItems()],
+            // ['Tools', [
+                // ['Workspace', this.openWorkspace.bind(this)],
+                // ['System Code Browser', this.openSystemBrowser.bind(this)],
+                // ['Object Editor', this.openObjectEditor.bind(this)],
+                // ['Test Runner', this.openTestRunner.bind(this)],
+                // ['Method Finder', this.openMethodFinder.bind(this)],
+                // ['Text Editor', function() { new lively.morphic.TextEditor().openIn(world) }],
+                // ['System Console', this.openSystemConsole.bind(this)]
+            // ]],
+            // ['Stepping', [
+                // ['Start stepping',  function() { world.submorphs.each(
+                        // function(ea) {ea.startSteppingScripts && ea.startSteppingScripts()})}],
+                // ['Stop stepping', function() { world.submorphs.each(
+                        // function(ea) {ea.stopStepping && ea.stopStepping()})}],
+            // ]],
+            // ['Preferences', [
+                // ['Set username', this.askForUserName.bind(this)],
+                // ['My user config', this.showUserConfig.bind(this)],
+                // ['Set extent', this.askForNewWorldExtent.bind(this)],
+                // ['Set background color', this.askForNewBackgroundColor.bind(this)]]
+            // ],
+            // ['Debugging', this.debuggingMenuItems(world)],
+            // ['Wiki', [
+                // ['About this wiki', this.openAboutBox.bind(this)],
+                // ['Bootstrap parts from webwerkstatt', this.openBootstrapParts.bind(this)],
+                // ['View versions of this world', this.openVersionViewer.bind(this)],
+                // ['Download world', function() {
+                    // require('lively.persistence.StandAlonePackaging').toRun(function() {
+                        // lively.persistence.StandAlonePackaging.packageCurrentWorld();
+                    // });
+                // }],
+                // ['Upload world to Dropbox', function() {
+                    // require('apps.Dropbox').toRun(function() {
+                        // DropboxAPI.uploadArchivedWorld();
+                    // });
+                // }],
+                // ['Delete world', this.interactiveDeleteWorldOnServer.bind(this)]
+            // ]],
+            // ['Documentation', [
+                // ["On short cuts", this.openShortcutDocumentation.bind(this)],
+                // ["On connect data bindings", this.openConnectDocumentation.bind(this)],
+                        // ["On Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
+                // ["More ...", function() { window.open(Config.rootPath + 'documentation/'); }]
+            // ]],
+            // ['Save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],
+            // ['Save world', this.saveWorld.bind(this), 'synchron']
+        // ];
+        // return items;
     },
     openPartsBin: function() {
         return (new lively.morphic.PartsBinFlap());
@@ -2372,6 +2380,7 @@ cop.create('worldMenu').refineClass(lively.morphic.World, {
         }
         var menu = $world.showTouchMenuAt(pos, true);
         menu.targetMorph = this;
+        debugger
         menu.setup(itemFilter(this.morphMenuItems()));
         return menu
     },

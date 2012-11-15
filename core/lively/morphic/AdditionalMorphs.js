@@ -585,6 +585,41 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
     },
 
 });
+lively.morphic.HtmlWrapperMorph.subclass('lively.morphic.SVGMorph',
+'default category', {
+    initialize: function($super, svgCode) {
+        $super(pt(100,100));
+        if (svgCode) {
+            this.addSVG(svgCode);
+        }
+    },
+    addSVG: function(svgCode) {
+        svgCode = svgCode.replace(/(\r\n|\n|\r)/gm,'');
+        console.log(svgCode);
+        var node = $(svgCode);
+        if (!node) {
+            alert('There must be something wrong with your SVG code');
+            return
+        }
+        var x = $(node).attr('x'),
+            y = $(node).attr('y'),
+            width = $(node).attr('width'),
+            height = $(node).attr('height');
+        if (x && y && width && height) {
+            var viewBox = x+' '+y+' '+width+' '+height;
+            viewBox = viewBox.replace(/px/g,'');
+            node.attr('viewBox', viewBox);
+        }
+        $(this.renderContext().shapeNode).empty();
+        this.appendChild(node[0]);
+    },
+    setExtent: function($super, extent) {
+        $super(extent);
+        var svg = $(this.renderContext().shapeNode).children();
+        svg.attr('width', extent.x);
+        svg.attr('height', extent.y);
+    }
+});
 
 
 lively.morphic.Morph.subclass('lively.morphic.TabContainer',

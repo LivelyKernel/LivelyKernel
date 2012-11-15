@@ -327,11 +327,11 @@ Object.extend(apps.cssParser, {
         },
         'box-shadow': {
             commaSeparated: true,
-            values: [[4]]
+            values: [[0]]
         },
         'text-shadow': {
             commaSeparated: true,
-            values: [[4]]
+            values: [[0]]
         }
     }
 

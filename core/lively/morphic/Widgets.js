@@ -994,7 +994,14 @@ lively.morphic.Morph.addMethods(
     morphMenuItems: function() {
         var self = this, world = this.world(), items = [
             ['Publish', function(evt) { self.copyToPartsBinWithUserRequest(); }],
-            ['Open in window', function(evt) {self.openInWindow(evt.mousePoint); }]
+            ['Open in window', function(evt) {self.openInWindow(evt.mousePoint); }],
+            ['Edit CSS', function(evt) {
+                    var editor = world.openPartItem('CSSEditor', 'PartsBin/Sandbox');
+                    editor.get('CSSEditor').setTarget(self);
+                
+                return editor;
+                
+            }]
         ];
 
         // Drilling into scene to addMorph or get a halo
@@ -1221,8 +1228,8 @@ lively.morphic.World.addMethods(
         return part;
     },
     openStyleEditorFor: function(morph, evt) {
-        var editor = this.openPartItem('StyleEditor', 'PartsBin/Tools');
-        editor.setTarget(morph);
+        var editor = this.openPartItem('StyleEditor', 'PartsBin/Sandbox');
+        editor.get('StyleEditorPane').setTarget(morph);
         var globalPos = morph.owner.getGlobalTransform().transformPoint(
                 morph.bounds().bottomLeft());
         editor.align(editor.bounds().topLeft(),globalPos);

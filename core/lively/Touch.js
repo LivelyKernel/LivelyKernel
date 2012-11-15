@@ -2384,16 +2384,6 @@ cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
         var a = cop.proceed();
         var self = this;
         if( this != $world) {
-            if(this.isFixed) {
-                a.push(["set unfixed", function() {
-                    self.setFixed(false);
-                }]);
-            } else {
-                a.push(["set fixed", function() {
-                    self.setFixed(true);
-                }]);
-            }
-
             a.push(["tools", [  ['inspect', function() {
                                     $world.openInspectorFor(self)
                                 }],

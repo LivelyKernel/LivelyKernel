@@ -942,8 +942,8 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer', 
         var i = 1;
         var that = this;
         functions.forEach(function(ea){
-            var button = new lively.morphic.Button(rect(0,0).extent(that.scriptButtonStyle.extent));
-            button.applyStyle(this.scriptButtonStyle);
+            var button = new lively.morphic.Button(pt(0,0).extent(that.scriptButtonStyle.extent));
+            button.applyStyle(that.scriptButtonStyle);
             button.setLabel(ea);
             button.fixedWidth = true;
             button.gridCoords = pt(column,i);

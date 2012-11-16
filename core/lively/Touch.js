@@ -1776,6 +1776,10 @@ cop.create("IPadThemeLayer").refineClass(lively.morphic.World, {
         cop.proceed();
         this.beTaskBar.bind(this).delay(0);
     },
+    initialize: function  () {
+        cop.proceed();
+        this.beTaskBar.bind(this).delay(0);
+    },
     beTaskBar: function() {
         this.applyTaskBarStyle();
         this.adjustForNewBounds();
@@ -3141,6 +3145,7 @@ cop.create('ToolMorphLayer').refineClass(lively.morphic.Morph, {
         }*/
     },
 }).refineClass(lively.morphic.Window, {
+    
     collapse: function () {
         if (this.isCollapsed()) return;
         this.expandedTransform = this.getTransform();

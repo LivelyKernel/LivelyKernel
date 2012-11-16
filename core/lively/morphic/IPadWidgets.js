@@ -9,6 +9,8 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         {offset: 0, color: Color.rgb(253,253,253)},
         {offset: 1, color: Color.rgb(238,238,238)}
     ], 'northSouth'),
+    defaultItemBorderColor: 1,
+
     defaultTextColor: Color.rgb(47,47,47),
     defaultActiveGradient: new lively.morphic.LinearGradient([
         {offset: 0, color: Color.rgb(47,47,47)},
@@ -19,7 +21,12 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
     defaultItemBorderColor: Color.rgb(138,138,138),
 },
 'initializing', {
-    initialize: function($super, bounds, optItems) {
+    initialize: function($super, bounds, optItems, optStyle) {
+        if (optStyle) {
+            if (optStyle.textColor) this.defaultTextColor = optStyle.textColor;
+            if (optStyle.itemGradient) this.defaultItemGradient = optStyle.itemGradient;
+            if (optStyle.itemBorderColor) this.defaultItemBorderColor = optStyle.itemBorderColor
+        }
         $super(bounds);
         this.itemList = [];
         this.selection = null;
@@ -28,6 +35,8 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         this.disableSelection();
         this.reset();
     },
+
+
     createList: function() {
         this.setExtent(pt(this.defaultExtent));
         return this.addMorph(this.createSubmenuContainer());
@@ -389,17 +398,15 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
 'properties', {
     defaultAlignment: 'left',
     style: {
-        fill: Color.rgba(235,235,235,0.8),
-        borderRadius: 15,
-        extent: pt(100,40),
+        extent: pt(100,20),
         borderWidth: 1,
-        borderColor: Color.rgb(138,138,138),
         fixedHeight: true,
         fixedWidth: false,
         padding: Rectangle.inset(9,9),
         enableHalos: false,
         align: 'center',
-        fontSize: 14
+        fontSize: 14,
+        textColor: Color.rgba(0,0,0,0)
     },
 },
 'initialization', {
@@ -407,7 +414,7 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
         $super(rect(0,0,0,0));
         this.alignment = alignment
         this.determineRotation();
-        this.applyStyle(this.style);
+        this.applyStyle(Object.merge([this.style, this.determineGradient()]));
         this.setTextString(handleName);
         return this
     },
@@ -431,7 +438,36 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
             }
         }
         return this.style.rotation;
-    }
+    },
+    determineGradient: function() {
+        var dark = Color.rgb(9,16,29)
+        var bright = Color.rgb(200,200,200)
+        var gradient = new lively.morphic.LinearGradient([
+            {offset: 0, color: dark},
+            {offset: 0.06, color: dark},
+            {offset: 0.09, color: bright},
+            {offset: 0.27, color: bright},
+            {offset: 0.33, color: dark},
+            {offset: 0.36, color: dark},
+            {offset: 0.39, color: bright},
+            {offset: 0.57, color: bright},
+            {offset: 0.63, color: dark},
+            {offset: 0.66, color: dark},
+            {offset: 0.69, color: bright},
+            {offset: 0.9, color: bright},
+            {offset: 0.93, color: dark},
+            {offset: 1, color: dark},
+        ], 'northSouth')
+        var borderRadius = (this.alignment == 'left' || this.alignment == 'bottom') ?
+                "8px 8px 0px 0px" : "0px 0px 8px 8px";
+        return {
+            fill: gradient,
+            borderRadius: borderRadius,
+            borderWidth: 5,
+            borderColor: dark
+        }
+    },
+
 },
 'events', {
 /* TODO: add alignment */
@@ -497,7 +533,14 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
 
     defaultExtent: pt(document.documentElement.clientWidth / 3, document.documentElement.clientHeight),
     style: {
-        fill: Color.rgba(235,235,235,0.8)
+        fill: new lively.morphic.LinearGradient(
+                [
+                    {offset: 0, color: Color.rgb(79,87,104)},
+                    {offset: 0.5, color: Color.rgb(33,43,60)},
+                    {offset: 1, color: Color.rgb(9,16,29)}
+                ],
+                'northSouth'
+            )
     },
     isFlap: true,
 
@@ -508,6 +551,7 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         $super(this.defaultShape());
         this.alignment = alignment;
         this.fitInWorld();
+        this.applyStyle(Object.merge([this.style,{fill: this.determineFillGradient()}]))
         this.setName(name+'Flap');
         this.initializeHandle(name, alignment);
         this.setFixed(true);
@@ -520,7 +564,7 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         world.addMorph(this)
         this.determineExtent();
         this.determinePosition();
-        this.applyStyle(this.style);
+        this.setBorderRadius(this.determineBorderRadius());
     },
     determinePosition: function () {
         var pos,
@@ -561,6 +605,45 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         this.style.extent = extent
         return this.style.extent;
     },
+    determineBorderRadius: function() {
+        switch (this.alignment) {
+            case 'left': return "0px 8px 8px 0px";
+            case 'top': return "0px 0px 8px 8px";
+            case 'right': return "8px 0px 0px 8px";
+            case 'bottom': return "8px 8px 0px 0px";
+        }
+    },
+    determineFillGradient: function() {
+        var direction = 'westEast';
+        switch (this.alignment) {
+            case 'left': {
+                direction = 'eastWest';
+                break
+            };
+            case 'top': {
+                direction = 'northSouth';
+                break
+            };
+            case 'right': {
+                direction = 'westEast';
+                break
+            };
+            case 'bottom': {
+                direction = 'southNorth';
+                break
+            };
+        }
+        return new lively.morphic.LinearGradient(
+                [
+                    {offset: 0, color: Color.rgb(79,87,104)},
+                    {offset: 0.5, color: Color.rgb(33,43,60)},
+                    {offset: 1, color: Color.rgb(9,16,29)}
+                ],
+                direction
+            )
+    },
+
+
     initializeHandle: function (name, alignment) {
         this.flapHandle = new lively.morphic.FlapHandle(name, alignment);
         this.addMorph(this.flapHandle);
@@ -570,24 +653,27 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         var pos,
             self = this,
             docEl = document.documentElement,
-            flapCount = lively.morphic.World.current().submorphs.select(function (ea) {
+            spaceUsedByOtherFlaps = lively.morphic.World.current().submorphs.select(function (ea) {
                 return ea.isFlap && ea !== self && ea.alignment == self.alignment
-            }).length
+            }).reduce(function(a, b){
+                return a + b.flapHandle.getExtent().x;
+            }, 10),
+            handleBorderOffset = 8;
         switch (this.alignment) {
             case 'left': {
-                pos = pt(this.style.extent.x + this.flapHandle.getExtent().y, flapCount * this.flapHandle.getExtent().x)
+                pos = pt(handleBorderOffset + this.style.extent.x + this.flapHandle.getExtent().y, spaceUsedByOtherFlaps)
                 break;
             };
             case 'top': {
-                pos = pt(docEl.clientWidth - (this.flapHandle.getExtent().x * (flapCount + 1)), this.getExtent().y)
+                pos = pt(docEl.clientWidth - (this.flapHandle.getExtent().x + spaceUsedByOtherFlaps), this.getExtent().y)
                 break;
             };
             case 'right': {
-                pos = pt(0, docEl.clientHeight - (this.flapHandle.getExtent().x * (flapCount + 1)))
+                pos = pt(0, docEl.clientHeight - (this.flapHandle.getExtent().x + spaceUsedByOtherFlaps))
                 break;
             };
             case 'bottom': {
-                pos = pt(this.flapHandle.getExtent().x * flapCount, - this.flapHandle.getExtent().y);
+                pos = pt(spaceUsedByOtherFlaps, - this.flapHandle.getExtent().y - handleBorderOffset);
                 break;
             }
         }
@@ -635,16 +721,51 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
     },
 }) // end of subclass lively.morphic.Flap
 
-lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap', {
+lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap', 
+'properties', {
+    defaultOffset: 8,
+    touchListStyle: {
+        textColor: Color.white,
+        itemGradient: new lively.morphic.LinearGradient([
+            {offset: 0, color: Color.rgba(253,253,253,0.1)},
+            {offset: 1, color: Color.rgba(238,238,238,0.1)}
+        ], 'southNorth'),
+        itemBorderColor: Color.rgb(47,47,47)
+    },
+    headerStyle: {
+        fill: null,
+        borderWidth: 0,
+    },
+
+
+
+
+}, 
+'initialization', {
     initialize: function ($super) {
         $super('PartsBin', 'left');
         this.createPartsBin();
         return this
     },
+
+
     buttonStyle: {
-        fill: Color.rgba(255,255,255,0.2),
-        padding: pt(0,10)
+        fill: Color.rgba(47,47,47,0.2),
+        padding: rect(0,0,10,10),
+        extent: pt(100,35),
+        label: {
+            textColor: Color.rgb(235,235,235),
+            fontSize: 14
+        }
     },
+    determineTouchListGradient: function() {
+        var direction = 'westEast'
+        return new lively.morphic.LinearGradient([
+            {offset: 0, color: Color.rgba(253,253,253,0.1)},
+            {offset: 1, color: Color.rgba(238,238,238,0.1)}
+        ], 'northSouth')
+    },
+
 
     addMorphsForPartItems: function(partItems) {
         this.partItemsToBeAdded = partItems.clone();
@@ -720,30 +841,30 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap', {
                 fill: null,
                 borderWidth: 0,
                 fontSize: 14,
-                textColor: Color.rgb(47,47,47),
+                textColor: Color.rgb(235,235,235),
                 fontFamily: "Helvetica, Arial, sans-serif"
             });
             text.textString = "";
          return text;
     },
     createPartsBin: function() {
-        this.list = new lively.morphic.TouchList(rect(0,0,0,0));
+        var offset = this.defaultOffset;
+        this.list = new lively.morphic.TouchList(rect(0,0,0,0), undefined, this.touchListStyle);
         var flap = this;
-        this.list.setExtent(flap.getExtent());
-        this.list.setPosition(pt(0,0));
+        this.list.setExtent(flap.getExtent().subPt(pt(offset*2,offset*2)));
+        this.list.setPosition(pt(offset,offset));
         this.list.submorphs[0].setExtent(this.list.getExtent());
         flap.addMorph(this.list);
 
         this.header = new lively.morphic.Box(rect(0,0,10,10));
         this.header.setExtent(pt(this.getExtent().x, 35));
         this.header.setVisible(false);
-        this.header.setFill(Color.rgb(255,208,157));
+        this.header.applyStyle(this.headerStyle)
         flap.addMorph(this.header);
 
 
         var backBtn = this.createBackButton()
-        backBtn.setExtent(pt(100,35));
-        backBtn.setFill(Color.rgba(255,255,255,0.2))
+        backBtn.applyStyle(this.buttonStyle)
         this.header.addMorph(backBtn);
         this.backBtn = backBtn;
 
@@ -794,7 +915,6 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap', {
         this.list.disableEvents();
         this.list.ignoreEvents();
         this.header.setVisible(true);
-        this.header.setFill(Color.gray)
 
         this.categoryContainer.setPosition(pt(0,35));
 

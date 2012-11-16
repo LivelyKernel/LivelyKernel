@@ -1216,7 +1216,7 @@ lively.morphic.World.addMethods(
         return part;
     },
     openPartsBin: function(evt) {
-        return this.openPartItem('PartsBinBrowser', 'PartsBin/Tools');
+        return this.openPartItem('PartsBinBrowser', 'PartsBin/Sandbox');
     },
     openChartsBin: function(evt) {
         return this.openPartItem('ChartsBinBrowser', 'PartsBin/Sandbox');

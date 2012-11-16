@@ -386,6 +386,7 @@ lively.morphic.Morph.addMethods(
             var parentCtx = parent.renderContext();
             if (parentCtx.styleNode) {
                 parentCtx.styleNode.parentNode.insertBefore(styleNode, parentCtx.styleNode.nextSibling);
+                return;
             }
         }
 

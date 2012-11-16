@@ -294,6 +294,7 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
     },
     convertLengthToPx: function(value) {
         var tokens = value.match(/^(-?[\d+\.\-]+)([a-z]+|%)$/i);
+
         if (tokens && tokens.length === 3) {
             var unit = tokens[2];
             if (unit === 'px') {
@@ -303,6 +304,11 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
                     'Value will be set to 0.');
                 return 0;
             }
+        } else if (value.toLowerCase() ==='medium') {
+            // This special case comes into play when
+            // JSCSSP parses a 'border: none' declaration.
+            // We don't need any warning for that.
+            return 0
         } else {
              console.warn('"'+unit+'" is a valid CSS length.'+
                     'Value will be set to 0.');

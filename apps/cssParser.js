@@ -4,20 +4,19 @@ module('apps.cssParser').requires('lively.Network', 'lively.morphic.StyleSheetRe
     // FIXME load async!
     var url = URL.codeBase.withFilename('lib/cssParser.js'),
         src = url.asWebResource().beSync().get().content,
-
-	// lib has to be adapted to suit our needs:
-	// - declarations shall not be multiplied with vendor prefixes
-	// - shorthands shall never be expanded
+        // lib has to be adapted to suit our needs:
+        // - declarations shall not be multiplied with vendor prefixes
+        // - shorthands shall never be expanded
         vendorRepl = "kCSS_VENDOR_PREFIXES = {properties:[]};",
-	expRepl = 'aExpandShorthands = this.expandShorthands;',
+        expRepl = 'aExpandShorthands = this.expandShorthands;',
         parseRepl = 'aTryToPreserveComments, expandShorthands) {\n'
-            +'this.expandShorthands = expandShorthands;',
-	rewritten = '(function (){'
-            + src.replace(/kCSS_VENDOR_PREFIXES([\s\S]*?)};/, vendorRepl)
-                .replace('aTryToPreserveComments) {', parseRepl)
-            .replace(/(?=this.preserveState\(\);[\x20\t\r\n\f]*var blocks = \[\];)/, expRepl)
-            + 'this.CSSParser = CSSParser;'
-            + '}).call(apps.cssParser);';
+                  +'this.expandShorthands = expandShorthands;',
+        rewritten = '(function (){'
+                  + src.replace(/kCSS_VENDOR_PREFIXES([\s\S]*?)};/, vendorRepl)
+                       .replace('aTryToPreserveComments) {', parseRepl)
+                       .replace(/(?=this.preserveState\(\);[\x20\t\r\n\f]*var blocks = \[\];)/, expRepl)
+                  + 'this.CSSParser = CSSParser;'
+                  + '}).call(apps.cssParser);';
     try {
         eval(rewritten);
     } catch(e) {
@@ -139,14 +138,11 @@ Object.extend(apps.cssParser, {
             parsedSimStyleSheet = apps.cssParser.parse(simStyleSheet,
                 shorthandDeclaration.getOriginMorph(), true),
             decls = parsedSimStyleSheet.getRules().first().getDeclarations();
-        if (decls && decls.length > 0) {
-            return decls.collect(function(decl) {
-                    decl.setRule(shorthandDeclaration.getRule());
-                    return decl;
-                });
-        } else {
-            return [shorthandDeclaration];
-        }
+        if (!decls || decls.length === 0) return [shorthandDeclaration];
+        return decls.collect(function(decl) {
+            decl.setRule(shorthandDeclaration.getRule());
+            return decl;
+        });
     },
 
     parse: function(cssString, originMorph, expandShorthands) {
@@ -223,17 +219,17 @@ Object.extend(apps.cssParser, {
         Since there are a lot of CSS properties out there, this
         is only a selection.
         Feel free to add missing properties!
-        
+
         A property can have several value counts (i.e. the value of
         border-color could be 'black', but it could also be 'black black black blue').
-        
+
         A value is of a certain type:
         0: Plain text (i.e. font-family; edit through text field)
         1: Length (i.e. width; edit through slider)
         2: Option (i.e. border-style; edit with drop-down box)
         3: Color (i.e. color; edit with color chooser)
         4: Shadow (i.e. box-shadow; edit with shadow dialog)
-    
+
         Additionally, a property can also have a shorthand.
         I.e. 'border-top-color' is implicitly set by the shorthand 'border-color'
         */
@@ -334,7 +330,6 @@ Object.extend(apps.cssParser, {
             values: [[4]]
         }
     }
-
 
 });
 

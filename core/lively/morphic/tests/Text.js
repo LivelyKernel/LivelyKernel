@@ -331,7 +331,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
     test07MakeTextBoldThenUnbold: function() {
         this.text.setTextString('eintest');
         this.text.emphasize({fontWeight: 'bold'}, 0, 2);
-        debugger
         this.text.emphasize({fontWeight: 'normal'}, 0, 2);
         this.checkDOM([{tagName: 'span', textContent: 'eintest'}])
     },
@@ -771,6 +770,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
             {tagName: 'span', textContent: 'intest', style: {fontWeight: ''}}])
     },
 
+    test26cRemoveDoit: function() {
+        this.text.setTextString('eintest');
+        this.text.emphasize({doit: {code: 'alert(1)'}}, 0,3);
+        this.text.emphasize({doit: null}, 1,4);
+        this.checkChunks(
+            [{textString: 'e'},
+            {textString: 'intest'}])
+        this.checkDOM([
+            {tagName: 'span', textContent: 'e', style: {color: 'rgb(0,100,0)'}},
+            {tagName: 'span', textContent: 'intest', style: {color: 'inherit'}}])
+    },
+
     test27aInsertStringAt: function() {
         this.text.setTextString('some text');
         this.text.toggleBoldness(2,4);
@@ -796,7 +807,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
     test28bEmphasizeRangesWithPrexistingStyle: function() {
         this.text.setTextString('some text');
         this.text.emphasize({textDecoration: 'underline'}, 0, 4);
-        debugger;
         this.text.emphasizeRanges([[0,4, {fontWeight: 'bold'}]]);
         this.checkChunks([
             {textString: 'some', style: {fontWeight: 'bold', textDecoration: 'underline'}},
@@ -1078,13 +1088,16 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
 },
 'testing', {
     testEqual: function() {
+        var obj = {foo: 'bar'};
         var testTable = [
+            [{}, {}],
             [{color: Color.red}, {color: Color.red}],
             [{color: Color.red}, {color: Color.rgba(204,0,0,1)}],
             [{backgroundColor: Color.red}, {backgroundColor: Color.rgba(204,0,0,1)}],
             [{isNullStyle: true}, {isNullStyle: true}],
             [{fontWeight: 'normal'}, {}],
-            [{}, {foobarbaz: Color.green}]
+            [{}, {foobarbaz: Color.green}],
+            [{data: obj}, {data: obj}]
         ];
 
        testTable.forEach(function(spec) {
@@ -1095,7 +1108,9 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
     testUnEqual: function() {
         var testTable = [
             [{}, {isNullStyle: true}],
-            [{color: Color.red}, {color: Color.green}]
+            [{color: Color.red}, {color: Color.green}],
+            [{data: {foo: 'bar'}}, {}],
+            [{data: {foo: 'bar'}}, {data: {foo: 'bar'}}]
         ];
 
        testTable.forEach(function(spec) {
@@ -1125,7 +1140,7 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
 
     testAppliesOnlyWhitelistedAttributes: function() {
         var emph = new lively.morphic.TextEmphasis({color: Color.red, orphans: '2'}),
-            htmlNode = {style: {}, setAttributeNS: function() {}};
+            htmlNode = {style: {}, dataset: {}, setAttributeNS: function() {}};
         emph.applyToHTML(htmlNode);
         this.assertEquals(Color.red.toString(), htmlNode.style.color, 'no color');
         this.assert(!htmlNode.style.orphans, 'applied unwanted attr');

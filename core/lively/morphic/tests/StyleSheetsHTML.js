@@ -491,7 +491,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.B
 
         this.assertEquals(5, this.blueRectangle1.getBorderWidth(),
             'Border width of blue should be 5 before changing ID');
-
         this.yellowRectangle.setStyleId('test-box');
         this.assertEquals(13, this.redRectangle.getBorderWidth(),
             'Border width of red should be 13 after changing ID');

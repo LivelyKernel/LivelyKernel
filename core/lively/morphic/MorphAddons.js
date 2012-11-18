@@ -664,6 +664,24 @@ lively.Line.addMethods(
     }
 });
 
+Object.extend(lively.Line, {
+    arrowBetween: function(obj1, obj2, spec) {
+        spec = spec || {};
+        if (!obj1 || !obj2
+                  || !Object.isFunction(obj1.bounds)
+                  || !Object.isFunction(obj2.bounds)) return null;
+        var bounds1 = obj1.globalBounds ? obj1.globalBounds() : obj1.bounds(),
+            bounds2 = obj2.globalBounds ? obj2.globalBounds() : obj2.bounds(),
+            line = bounds1.lineTo(bounds2),
+            morph = line.asMorph();
+        morph.openInWorld();
+        if (spec.lineStyle) morph.applyStyle(spec.lineStyle);
+        if (spec.endArrow) morph.createArrowHeadEnd();
+        if (spec.startArrow) morph.createArrowHeadStart();
+        return morph;
+    }
+});
+
 lively.morphic.Text.addMethods(
 'shape appearance', {
     fitWidth: function() {}

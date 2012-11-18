@@ -186,7 +186,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
         $super();
         this.text = new lively.morphic.Text(new Rectangle(0,0, 400, 200));
         this.world.addMorph(this.text);
-    },
+    }
 },
 'testing', {
     test01MorphHasTextChunk: function() {
@@ -1233,6 +1233,20 @@ AsyncTestCase.subclass("lively.morphic.tests.Text.HoverActions",
             this.assertEquals(2, morph.x);
             this.done();
         }, 20);
+    }
+
+});
+
+lively.morphic.tests.Text.TextMorphRichTextTests.subclass('lively.morphic.tests.Text.TextChunk',
+'testing', {
+    test01ChunkBounds: function() {
+        // $world.text = this
+        this.text.textString = 'foobar';
+        this.text.emphasize({color: Color.red}, 0, 3);
+        this.text.emphasize({color: Color.green}, 3, 6);
+        var chunks = this.text.getTextChunks();
+        this.assert(this.text.bounds().containsRect(chunks[0].bounds()), 'chunk0 bounds fail?');
+        this.assert(this.text.bounds().containsRect(chunks[1].bounds()), 'chunk1 bounds fail?');
     }
 
 });

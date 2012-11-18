@@ -151,15 +151,21 @@ Object.subclass("Point",
         return lively.pt(this.x - (this.x % grid.x), this.y - (this.y % grid.y))
     }
 },
-'round off', {
+'geometry computation', {
     roundTo: function(quantum) {
         return new lively.Point(this.x.roundTo(quantum), this.y.roundTo(quantum));
     },
 
     dist: function(p) {
-        var dx = this.x - p.x;
-        var dy = this.y - p.y;
+        var dx = this.x - p.x,
+            dy = this.y - p.y;
         return Math.sqrt(dx * dx + dy * dy);
+    },
+
+    distSquared: function(p) {
+        var dx = this.x - p.x,
+            dy = this.y - p.y;
+        return dx * dx + dy * dy;
     },
 
     nearestPointOnLineBetween: function(p1, p2) {
@@ -172,6 +178,7 @@ Object.subclass("Point",
         var t = (((this.y - y1) / x21) + ((this.x - x1) / y21)) / ((x21 / y21) + (y21 / x21));
         return lively.pt(x1 + (t * x21), y1 + (t * y21));
     }
+
 },
 'converting', {
     asRectangle: function() {

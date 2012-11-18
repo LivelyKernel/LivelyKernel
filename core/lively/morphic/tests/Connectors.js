@@ -18,6 +18,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
             morph.setPosition(morphStartPos);
         }
     },
+
     assertConnectorMovesWithMorph: function(morph, connector, idxOfControlPoint) {
         var ctrlPt = connector.getControlPoints()[idxOfControlPoint],
             prevCtrlPtPos = ctrlPt.getGlobalPos(),
@@ -30,7 +31,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
         } finally {
             morph.setPosition(morphStartPos);
         }
-    },
+    }
 
 },
 'testing', {
@@ -94,6 +95,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
         morph.moveBy(pt(10,10))
         this.assertMorphIsDisconnectedFromConnector(morph, line, 0)
     },
+
     test05InterfaceForVisualConnect: function() {
         var morph1 = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
             morph2 = lively.morphic.Morph.makeRectangle(100,100, 20, 20);
@@ -104,6 +106,19 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
         this.assertConnectorMovesWithMorph(morph1, connector, 0);
         this.assertConnectorMovesWithMorph(morph2, connector, 1);
     },
+
+    test05bVisualConnectFindsNearesMagnet: function() {
+        var morph1 = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
+            morph2 = lively.morphic.Morph.makeRectangle(100,0, 20, 20);
+        this.world.addMorph(morph1);
+        this.world.addMorph(morph2);
+        var connector = morph1.createConnectorTo(morph2),
+            pos1 = connector.getControlPoints().first().getGlobalPos(),
+            pos2 = connector.getControlPoints().last().getGlobalPos();
+        this.assertEquals(pt(20, 10), pos1);
+        this.assertEquals(pt(100, 10), pos2);
+    },
+
     test06InterfaceForVisualDisconnect: function() {
         var morph1 = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
             morph2 = lively.morphic.Morph.makeRectangle(100,100, 20, 20);
@@ -153,6 +168,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
 
 lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindingsTest',
 'testing', {
+
     test01ConnectMorphNameToText: function() {
         if (!Config.visualConnectEnabled) {
             return;
@@ -170,6 +186,7 @@ lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindings
         this.assertConnectorMovesWithMorph(morph, con.getVisualConnector(), 0);
         this.assertConnectorMovesWithMorph(text, con.getVisualConnector(), 1);
     },
+
     test02GetListOfConnectionPoints: function() {
         var text = new lively.morphic.Text(new Rectangle(100,0,100,20), '');
 
@@ -178,6 +195,7 @@ lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindings
         this.assert(Properties.own(cPoints).include('name'), 'name not in there')
         this.assert(Properties.own(cPoints).include('textString'), 'textString not in there')
     },
+
     test03GetListOfTargetConnectionPoints: function() {
         var text = new lively.morphic.Text(new Rectangle(100,0,100,20), '');
 
@@ -185,6 +203,7 @@ lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindings
 
         this.assert(Properties.own(cPoints).include('textString'), 'textString not in there')
     },
+
     test04DisconnectMorphNameToText: function() {
         if (!Config.visualConnectEnabled) {
             return;
@@ -200,7 +219,7 @@ lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindings
         morph.setName('Foo');
         this.assert('Foo' != text.textString, 'logical connection not disconnected');
         this.assertMorphIsDisconnectedFromConnector(morph, con.getVisualConnector(), 0)
-    },
+    }
 
 });
 

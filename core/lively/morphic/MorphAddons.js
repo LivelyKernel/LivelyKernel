@@ -6,6 +6,7 @@ Object.extend(lively.morphic, {
         if (!obj) return null;
         if (Object.isArray(obj)) return obj.forEach(function(ea) { lively.morphic.show(ea) });
         else if (obj instanceof lively.Point) return lively.morphic.newShowPt(obj);
+        else if (obj instanceof lively.Line) return lively.morphic.newShowLine(obj);
         else if (obj instanceof Rectangle) return lively.morphic.newShowRect(obj);
         else if (obj.isMorph) return lively.morphic.newShowMorph(obj);
         else if (obj instanceof HTMLElement) return lively.morphic.newShowElement(obj);
@@ -30,6 +31,12 @@ Object.extend(lively.morphic, {
 
         lively.morphic.newShowThenHide(b, duration);
         return b;
+    },
+
+    newShowLine: function(line, duration) {
+        return line.sample(5).map(function(p) {
+            return this.newShowPt(p, duration, pt(3,3));
+        }, this);
     },
 
     newShowRect: function (r, duration) {
@@ -677,6 +684,12 @@ Object.extend(lively.morphic.Morph, {
 
 
 })
+lively.Line.addMethods(
+'conversion', {
+    asMorph: function() {
+        return lively.morphic.Morph.makeLine([this.start, this.end], 1);
+    }
+});
 
 lively.morphic.Text.addMethods(
 'shape appearance', {

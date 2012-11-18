@@ -289,11 +289,11 @@ Object.subclass('lively.morphic.ControlPoint',
         this.setPos(this.morph.localize(p));
     },
 
-
     insertAfter: function(pos) {
         var next = this.create();
         return next.insertAt(this.index+1, pos);
     },
+
     insertAt: function(index, pos) {
         this.index = index;
 
@@ -347,8 +347,7 @@ Object.subclass('lively.morphic.ControlPoint',
     toLine: function(p) {
         if (this.isFirst()) return;
         this.setElement(new lively.morphic.Shapes.LineTo(true, p.x, p.y));
-    },
-
+    }
 
 },
 'markers', {

@@ -631,40 +631,14 @@ Object.extend(lively.morphic.Morph, {
         return morph;
     },
     makeLine: function (verts, lineWidth, lineColor) {
-        if (verts.length < 2) return;
-        var morph = new lively.morphic.Path(verts);
-        morph.applyStyle({fill: null, borderWidth: lineWidth || 1, borderColor: lineColor || Color.black});
-        return morph;
-
-// =========================================================================
-
         if (verts.length < 2) return null;
-        if (verts.length > 2) {
-            // Polylines become a mere blob for now...
-            var morph = this.makeRectangle(Rectangle.unionPts(verts));
-            morph.setBorderWidth(lineWidth);
-            morph.setBorderColor(lineColor);
-            morph.setFill(null);
-            return morph;
-        }
-        // Okay, it's a simple line...
-        var p1 = verts[0]; var p2 = verts[1];
-        var v = p2.subPt(p1);
-
-        // First make a horizontal line of the same length with origin at (0, 0)
-        var morph = this.makeRectangle(Rectangle.unionPts([pt(0, -lineWidth/2), lively.Point.polar(v.r(), 0).addXY(0, lineWidth/2)]));
-
-        // *** Not right, but we want to make position and center of rot = (0, 0):
-        // morph._Position = pt(0, 0);
-
-        morph.setBorderWidth(0);
-        morph.setFill(lineColor);
-
-        // Then move and rotate, with first vertex being the rotation center
-        morph.moveBy(p1);
-        morph.adjustOrigin(pt(0, lineWidth/2));
-        morph.isLine = true;
-        return morph.rotateBy(v.theta());
+        var morph = new lively.morphic.Path(verts);
+        morph.applyStyle({
+            fill: null,
+            borderWidth: lineWidth || 1,
+            borderColor: lineColor || Color.black
+        });
+        return morph;
     },
     makePolygon: function (verts, lineWidth, lineColor, fill) {
         var path = new lively.morphic.Path(verts);
@@ -679,11 +653,10 @@ Object.extend(lively.morphic.Morph, {
         ellipse.setFill(Color.green);
         ellipse.setOrigin(aRectangle.extent().scaleBy(0.5));
         return ellipse;
-    },
+    }
 
+});
 
-
-})
 lively.Line.addMethods(
 'conversion', {
     asMorph: function() {
@@ -693,11 +666,12 @@ lively.Line.addMethods(
 
 lively.morphic.Text.addMethods(
 'shape appearance', {
-    fitWidth: function() {},
+    fitWidth: function() {}
 },
 'focus', {
-    requestKeyboardFocus: function(hand) { this.focus() },
+    requestKeyboardFocus: function(hand) { this.focus() }
 });
+
 Object.extend(lively.morphic.Text, {
     makeLabel: function (labelString, styleIfAny) {
         var label = new this();

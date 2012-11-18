@@ -121,12 +121,26 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
     addArrowHeadStart: function(morph) {
         var ctrlPt = this.getControlPoints().first();
         this.addMorph(morph);
-        ctrlPt.addMarker(morph, 'next')
+        ctrlPt.addMarker(morph, 'next');
+        return morph;
     },
     addArrowHeadEnd: function(morph) {
         var ctrlPt = this.getControlPoints().last();
         this.addMorph(morph);
         ctrlPt.addMarker(morph, 'prev')
+        return morph;
+    },
+    createArrow: function() {
+        var arrowHead = new lively.morphic.Path([pt(0,0), pt(0,12), pt(16,6), pt(0,0)]);
+        arrowHead.applyStyle({borderWidth: 0, borderColor: Color.black, fill: Color.black})
+        arrowHead.adjustOrigin(pt(12,6))
+        return arrowHead;
+    },
+    createArrowHeadStart: function() {
+        return this.addArrowHeadStart(this.createArrow());
+    },
+    createArrowHeadEnd: function() {
+        return this.addArrowHeadEnd(this.createArrow());
     }
 },
 'control points', {

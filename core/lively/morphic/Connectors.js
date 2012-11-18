@@ -493,12 +493,7 @@ Object.extend(lively.bindings, {
             target = con.targetObj,
             visualConnector = source.createConnectorTo(target, null, true);
 
-        // arrow head
-        var arrowHead = new lively.morphic.Path([pt(0,0), pt(0,12), pt(16,6), pt(0,0)]);
-        arrowHead.applyStyle({borderWidth: 0, borderColor: Color.black, fill: Color.black})
-        arrowHead.adjustOrigin(pt(12,6))
-        visualConnector.addArrowHeadEnd(arrowHead)
-
+        visualConnector.createArrowHeadEnd();
         con.visualConnector = visualConnector;
         con.visualConnector.con = con; // FIXME
         visualConnector.showsMorphMenu = true; // FIX ... MEE !!!!!

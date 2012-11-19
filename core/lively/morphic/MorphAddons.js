@@ -529,14 +529,15 @@ lively.morphic.Morph.addMethods(
             ratioX =  (windowExtent.x / this.getExtent().x) * world.getScale(),
             ratio = Math.min(ratioX, ratioY);
         if (ratio > 0 && ratio < 100) {
+            var newWindowExtent = pt(windowExtent.x / ratio, windowExtent.y / ratio);
             world.setScale(ratio);
             if (beTopLeft) {
                 this.setPosition(pt(0,0))
                 world.setExtent(this.getExtent());
             } else {
                 this.align(this.worldPoint(
-                    this.shape.bounds().topCenter()), pt(windowExtent.x/2, 0));
-                world.setExtent(windowExtent);
+                    this.shape.bounds().topCenter()), pt(newWindowExtent.x/2, 0));
+                world.setExtent(newWindowExtent);
             }
             Global.scrollTo(0, 0)
             this.owner.addMorphFront(this);

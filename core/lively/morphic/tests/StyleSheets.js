@@ -445,7 +445,28 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             ':root',
             this.blueRectangle1,
             'selection for ":root" should return the context (blueRectangle1)');
+    },
+    testUnsupportedPseudos: function() {
+        this.assertSizzleSelect([],
+            ':focus',
+            this.yellow,
+            'selection for ":focus" should return nothing (since it is unsupported)');
+        this.assertSizzleSelect([],
+            ':header',
+            this.yellow,
+            'selection for ":header" should return nothing (since it is unsupported)');
+        this.assertSizzleSelect([],
+            ':text',
+            this.yellow,
+            'selection for ":text" should return nothing (since it is unsupported)');
+        this.assertSizzleSelect([],
+            ':input',
+            this.yellow,
+            'selection for ":input" should return nothing (since it is unsupported)');
+
+
     }
+
 
 });
 

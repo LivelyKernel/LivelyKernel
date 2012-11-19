@@ -6,6 +6,7 @@ Object.extend(lively.morphic, {
         if (!obj) return null;
         if (Object.isArray(obj)) return obj.forEach(function(ea) { lively.morphic.show(ea) });
         else if (obj instanceof lively.Point) return lively.morphic.newShowPt(obj);
+        else if (obj instanceof lively.Line) return lively.morphic.newShowLine(obj);
         else if (obj instanceof Rectangle) return lively.morphic.newShowRect(obj);
         else if (obj.isMorph) return lively.morphic.newShowMorph(obj);
         else if (obj instanceof HTMLElement) return lively.morphic.newShowElement(obj);
@@ -30,6 +31,12 @@ Object.extend(lively.morphic, {
 
         lively.morphic.newShowThenHide(b, duration);
         return b;
+    },
+
+    newShowLine: function(line, duration) {
+        return line.sample(5).map(function(p) {
+            return this.newShowPt(p, duration, pt(3,3));
+        }, this);
     },
 
     newShowRect: function (r, duration) {
@@ -522,14 +529,15 @@ lively.morphic.Morph.addMethods(
             ratioX =  (windowExtent.x / this.getExtent().x) * world.getScale(),
             ratio = Math.min(ratioX, ratioY);
         if (ratio > 0 && ratio < 100) {
+            var newWindowExtent = pt(windowExtent.x / ratio, windowExtent.y / ratio);
             world.setScale(ratio);
             if (beTopLeft) {
                 this.setPosition(pt(0,0))
                 world.setExtent(this.getExtent());
             } else {
                 this.align(this.worldPoint(
-                    this.shape.bounds().topCenter()), pt(windowExtent.x/2, 0));
-                world.setExtent(windowExtent);
+                    this.shape.bounds().topCenter()), pt(newWindowExtent.x/2, 0));
+                world.setExtent(newWindowExtent);
             }
             Global.scrollTo(0, 0)
             this.owner.addMorphFront(this);
@@ -624,40 +632,14 @@ Object.extend(lively.morphic.Morph, {
         return morph;
     },
     makeLine: function (verts, lineWidth, lineColor) {
-        if (verts.length < 2) return;
-        var morph = new lively.morphic.Path(verts);
-        morph.applyStyle({fill: null, borderWidth: lineWidth || 1, borderColor: lineColor || Color.black});
-        return morph;
-
-// =========================================================================
-
         if (verts.length < 2) return null;
-        if (verts.length > 2) {
-            // Polylines become a mere blob for now...
-            var morph = this.makeRectangle(Rectangle.unionPts(verts));
-            morph.setBorderWidth(lineWidth);
-            morph.setBorderColor(lineColor);
-            morph.setFill(null);
-            return morph;
-        }
-        // Okay, it's a simple line...
-        var p1 = verts[0]; var p2 = verts[1];
-        var v = p2.subPt(p1);
-
-        // First make a horizontal line of the same length with origin at (0, 0)
-        var morph = this.makeRectangle(Rectangle.unionPts([pt(0, -lineWidth/2), lively.Point.polar(v.r(), 0).addXY(0, lineWidth/2)]));
-
-        // *** Not right, but we want to make position and center of rot = (0, 0):
-        // morph._Position = pt(0, 0);
-
-        morph.setBorderWidth(0);
-        morph.setFill(lineColor);
-
-        // Then move and rotate, with first vertex being the rotation center
-        morph.moveBy(p1);
-        morph.adjustOrigin(pt(0, lineWidth/2));
-        morph.isLine = true;
-        return morph.rotateBy(v.theta());
+        var morph = new lively.morphic.Path(verts);
+        morph.applyStyle({
+            fill: null,
+            borderWidth: lineWidth || 1,
+            borderColor: lineColor || Color.black
+        });
+        return morph;
     },
     makePolygon: function (verts, lineWidth, lineColor, fill) {
         var path = new lively.morphic.Path(verts);
@@ -672,19 +654,43 @@ Object.extend(lively.morphic.Morph, {
         ellipse.setFill(Color.green);
         ellipse.setOrigin(aRectangle.extent().scaleBy(0.5));
         return ellipse;
-    },
+    }
 
+});
 
+lively.Line.addMethods(
+'conversion', {
+    asMorph: function() {
+        return lively.morphic.Morph.makeLine([this.start, this.end], 1);
+    }
+});
 
-})
+Object.extend(lively.Line, {
+    arrowBetween: function(obj1, obj2, spec) {
+        spec = spec || {};
+        if (!obj1 || !obj2
+                  || !Object.isFunction(obj1.bounds)
+                  || !Object.isFunction(obj2.bounds)) return null;
+        var bounds1 = obj1.globalBounds ? obj1.globalBounds() : obj1.bounds(),
+            bounds2 = obj2.globalBounds ? obj2.globalBounds() : obj2.bounds(),
+            line = bounds1.lineTo(bounds2),
+            morph = line.asMorph();
+        morph.openInWorld();
+        if (spec.lineStyle) morph.applyStyle(spec.lineStyle);
+        if (spec.endArrow) morph.createArrowHeadEnd();
+        if (spec.startArrow) morph.createArrowHeadStart();
+        return morph;
+    }
+});
 
 lively.morphic.Text.addMethods(
 'shape appearance', {
-    fitWidth: function() {},
+    fitWidth: function() {}
 },
 'focus', {
-    requestKeyboardFocus: function(hand) { this.focus() },
+    requestKeyboardFocus: function(hand) { this.focus() }
 });
+
 Object.extend(lively.morphic.Text, {
     makeLabel: function (labelString, styleIfAny) {
         var label = new this();

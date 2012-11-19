@@ -184,6 +184,8 @@ Object.subclass('TestCase',
 
         if (a instanceof Color && b instanceof Color && a.equals(b)) return;
 
+        if (a instanceof lively.Line && b instanceof lively.Line && a.equals(b)) return;
+
         if (Global.URL && a instanceof URL && b instanceof URL && a.eq(b)) return;
 
         if (a == b) return;

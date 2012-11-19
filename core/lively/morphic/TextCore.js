@@ -2439,7 +2439,11 @@ Object.subclass('lively.morphic.TextChunk',
         var chunks = this.chunkOwner.getTextChunks(), chunkIdx = chunks.indexOf(this);
         return chunks[chunkIdx-1];
     },
-    getStyle: function() { return this.style }
+    getStyle: function() { return this.style },
+    bounds: function() {
+        var b = $(this.getChunkNode()).bounds();
+        return new Rectangle(b.left, b.top, b.width(), b.height());
+    }
 },
 'testing', {
     isRendered: function() { return this.chunkNode && this.chunkNode.parentNode != undefined }

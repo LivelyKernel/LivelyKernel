@@ -266,9 +266,13 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
                     styleSheetRules.each(
 
                     function (rule) {
-                        if(sizzle.select(rule.getSelector(),
-                        morphInLoop, null, [this]).length === 1) {
-                            matchingRules.push(rule);
+                        try {
+                            if(sizzle.select(rule.getSelector(),
+                                morphInLoop, null, [this]).length === 1) {
+                                matchingRules.push(rule);
+                            }
+                        } catch(e) {
+                            console.warning('Selector engine failed to deal with '+rule.getSelector());
                         }
                     }, this);
                 }
@@ -1004,8 +1008,7 @@ Object.subclass("lively.morphic.Sizzle",
                 "checked": function (elem) {
                     // In CSS3, :checked should return both checked and selected elements
                     // http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
-                    var nodeName = elem.nodeName.toLowerCase();
-                    return(nodeName === "input" && !! elem.checked) || (nodeName === "option" && !! elem.selected);
+                    return elem.checked || elem.selected;
                 },
 
                 "selected": function (elem) {
@@ -1038,22 +1041,11 @@ Object.subclass("lively.morphic.Sizzle",
                         return true;
                     }
 
-                    /*
-            var nodeType;
-            elem = elem.firstChild;
-            while ( elem ) {
-                if ( elem.nodeName > "@" || (nodeType = elem.nodeType) === 3 || nodeType === 4 ) {
-                    return false;
-                }
-                elem = elem.nextSibling;
-            }
-            return true;
-            */
                 },
 
                 "contains": this.markFunction(function (text) {
                     return function (elem) {
-                        return(elem.textContent || elem.innerText || getText(elem)).indexOf(text) > -1;
+                        return elem.textString && elem.textString.indexOf(text) > -1;
                     };
                 }),
 
@@ -1064,14 +1056,13 @@ Object.subclass("lively.morphic.Sizzle",
                 }),
 
                 "header": function (elem) {
-                    return this.rheader.test(elem.nodeName);
+                	// not supported
+                    return false;
                 },
 
                 "text": function (elem) {
-                    var type, attr;
-                    // IE6 and 7 will map elem.type to 'text' for new HTML5 types (search, etc)
-                    // use getAttribute instead to test this case
-                    return elem.nodeName.toLowerCase() === "input" && (type = elem.type) === "text" && ((attr = elem.getAttribute("type")) == null || attr.toLowerCase() === type);
+                	// not supported
+                    return false;
                 },
 
                 // Input types
@@ -1085,21 +1076,22 @@ Object.subclass("lively.morphic.Sizzle",
                 "reset": this.createButtonFunction("reset"),
 
                 "button": function (elem) {
-                    var name = elem.nodeName.toLowerCase();
-                    return name === "input" && elem.type === "button" || name === "button";
+                    return elem.hasStyleClass('Button') || elem.hasStyleClass('button');
                 },
 
                 "input": function (elem) {
-                    return this.rinputs.test(elem.nodeName);
+                	// not supported
+                    return false;
                 },
 
                 "focus": function (elem) {
-                    var doc = elem.ownerDocument;
-                    return elem === doc.activeElement && (!doc.hasFocus || doc.hasFocus()) && !! (elem.type || elem.href);
+                	// not supported
+                    return false;
                 },
 
                 "active": function (elem) {
-                    return elem === elem.ownerDocument.activeElement;
+                    // not supported
+                    return false;
                 }
             },
 

@@ -635,8 +635,8 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         }
         return new lively.morphic.LinearGradient(
                 [
-                    {offset: 0, color: Color.rgb(79,87,104)},
-                    {offset: 0.5, color: Color.rgb(33,43,60)},
+                    {offset: 0, color: Color.rgb(235,235,235)},
+                    {offset: 0.8, color: Color.rgb(33,43,60)},
                     {offset: 1, color: Color.rgb(9,16,29)}
                 ],
                 direction
@@ -970,12 +970,36 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
 'initialization', {
     initialize: function ($super, tabBar) {
         $super(tabBar)
-        var tabBarHeight = this.tabBar.getExtent().y
-        this.setExtent(pt(this.getExtent().x, tabBarHeight))
-        this.closeButton.setExtent(pt(tabBarHeight, tabBarHeight))
-        this.closeButton.setPosition(pt(this.getExtent().x - tabBarHeight, 0))
+        var tabBarHeight = tabBar.getExtent().y
+        this.applyStyle({
+            borderWidth: 0,
+            extent: pt(100, tabBarHeight),
+            position: pt(0,0)
+        })
+        this.closeButton.beFlapButton()
+        this.closeButton.moveBy(pt(-30, 0)),
+        this.closeButton.setExtent(pt(25,25)),
+        this.closeButton.setBorderRadius(3)
         return this
-    }
+    },
+    initializeLabel: function($super, aString) {
+        var labelHeight = this.getExtent().y;
+        this.label = new lively.morphic.Text(new Rectangle(0, 0, 60, labelHeight));
+        this.label.beLabel();
+        this.label.normalTextColor = Color.rgb(235,235,235)
+        this.label.applyStyle({
+            textColor: this.label.normalTextColor,
+            padding: rect(0,5,0,0),
+            position: pt(5,5),
+            fixedWidth: true,
+            fixedHeight: false
+        });
+        this.setLabel(aString);
+        this.label.disableEvents();
+        this.addMorph(this.label);
+        return this.label
+    },
+
 },
 'default', {
     closeTab: function($super) {
@@ -993,7 +1017,7 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
         if(newTextString !== this.originalScript) {
             this.label.setTextColor(Color.red);
         } else {
-            this.label.setTextColor(Color.rgb(26,41,127));
+            this.label.setTextColor(this.label.normalTextColor);
         }
     },
     setOriginalScript: function(scriptText) {
@@ -1004,7 +1028,7 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
         this.getTabBar().activateTab(this);
     },
     setLabel: function($super, aString) {
-        this.label.applyStyle({fixedWidth: false, fixedHeight: false});
+        this.label.applyStyle({fixedWidth: false, fixedHeight: false, textColor: Color.white});
         this.label.setWhiteSpaceHandling("nowrap");
         var out = $super(aString);
         var that = this;
@@ -1013,12 +1037,27 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
             var labelExtent = that.label.getExtent();
             that.setExtent(pt(labelExtent.x + 33, that.getExtent().y));
         }).delay(0);
+    },
+    getActiveFill: function() {
+        return Color.rgba(235,235,235,0.5)
+    },
+    getInactiveFill: function() {
+        return null
     }
+
+
 });
 
 lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer', {
     initialize: function($super, tabBarStrategy, optExtent, optTabBarHeight) {
-        return $super(tabBarStrategy, optExtent, optTabBarHeight);
+        var returnValue = $super(tabBarStrategy, optExtent, optTabBarHeight);
+        this.applyStyle({
+            borderColor: Color.rgb(47,47,47),
+        })
+        this.tabBar.applyStyle({
+            fill: Color.rgb(47,47,47)
+        })
+        return returnValue
     },
     tabBarHeight: 40,
     scriptButtonStyle: {
@@ -1053,12 +1092,19 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer', 
         return annotation + scriptSource;
     }, 
     makeButtonsFor: function(category, functions, column, target) {
-        var text = new TextMorph(rect(0,0,10,10));
+        // build the category label
+        /*var text = new TextMorph(rect(0,0,10,10));
         text.setExtent(pt(100,20));
         text.fixedWidth = true;
         text.textString = category;
         text.gridCoords = pt(column,0);
-        this.gridContainer.addMorph(text);
+        this.gridContainer.addMorph(text);*/
+        this.gridContainer.applyStyle({
+            extent: pt(this.getExtent().x / 2, this.getExtent().y),
+            position: pt(this.getExtent().x / 4, -10),
+            borderWidth: 0,
+            fill: Color.rgba(43,43,43,0.5),
+        })
         var i = 1;
         var that = this;
         functions.forEach(function(ea){
@@ -1073,9 +1119,10 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer', 
             button.addScript(function onFire() {
                 this.tabContainer.openTabFor(this.fctName, this.fctTarget);
             });
-            button.onTouchStart = function (){};
-            button.onTouchMove = function () {};
-            button.onTouchEnd = function () {};
+            //button.onTouchStart = function (){};
+            //button.onTouchMove = function () {};
+            //button.onTouchEnd = function () {};
+            button.beFlapButton();
             connect(button, "fire", button, "onFire");
             that.gridContainer.addMorph(button);
             i++;
@@ -1095,9 +1142,10 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer', 
                 });
                 this.tabContainer.openTabFor(this.fctName, this.fctTarget);
             });
-            button.onTouchStart = function (){};
-            button.onTouchMove = function () {};
-            button.onTouchEnd = function () {};
+            //button.onTouchStart = function (){};
+            //button.onTouchMove = function () {};
+            //button.onTouchEnd = function () {};
+            button.beFlapButton();
             connect(button, "fire", button, "onFire");
             that.gridContainer.addMorph(button);
             i++;
@@ -1107,7 +1155,6 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer', 
         var container = new lively.morphic.Box((pt(0,this.tabBar.getExtent().y))
                     .extent(this.getExtent().subPt(pt(0,this.tabBar.getExtent().y))));
         var morph = new lively.morphic.Box(pt(0,0).extent(this.getExtent()));
-        morph.setFill(Color.white);
         container.addMorph(morph);
         morph.disableGrabbing();
         container.setClipMode("hidden")
@@ -1164,22 +1211,21 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer', 
         });
         gridContainer.setLayouter(new lively.morphic.Layout.GridLayout(gridContainer, categories.length + 1, functionNames.length + 1));
         gridContainer.applyLayout();
-
+        this.addMorph(gridContainer)
+        gridContainer.moveBy(pt(0,-25))
     },
     onTouchEnd: function() {
         //TODO: this function should be in Events.js
     },
         openTabFor: function(scriptName, target) {
         //TODO: add name of morph
-        this.setTabPaneExtent(this.getExtent().subPt(pt(0,this.tabBarHeight)));
-        this.tabBar.setExtent(pt(this.tabBar.getExtent().x, this.tabBarHeight));
         var newTab = new lively.morphic.ObjectEditorTab(this.tabBar);
-        newTab.setExtent(pt(newTab.getExtent().x, this.tabBarHeight))
-        newTab.setLabel(scriptName+": "+target.getName());
+        newTab.setLabel(scriptName+":"+target.getName());
         this.tabBar.addTab(newTab);
+        newTab.setPosition(pt(newTab.getPosition().x,5))
         disconnect($world, "currentlySelectedMorph", this.gridLayoutMorph, "rebuildForNewTarget");
         var pane = newTab.pane;
-        pane.setBounds(pt(0,this.tabBarHeight).extent(this.getExtent().subPt(pt(0,this.tabBarHeight))))
+        pane.setPosition(pt(0,this.tabBarHeight))
         newTab.fctTarget = target;
         newTab.fctScriptName = scriptName;
         var morph = new lively.morphic.Text(rect(0,0,10,10));
@@ -1190,12 +1236,10 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer', 
         morph.doitContext = target;
         connect(morph, "textString", morph, "highlightJavaScriptSyntax");
         connect(morph, "textString", newTab, "updateChangedIndicator");
-        newTab.label.setTextColor(Color.rgb(26,41,127));
         var scriptText = this.getSourceForScript(scriptName, target);
         newTab.setOriginalScript(scriptText);
         morph.setTextString(scriptText);
         pane.addMorph(morph);
-        this.tabBar.setExtent(pt(this.tabBar.getExtent().x, this.tabBarHeight))
         this.cleanUp();
     }
 });
@@ -1204,15 +1248,17 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
 'properties', {
     editorPanePadding: 8,
     tabBarHeight: 40,
-    buttonLabelStyle: {
-        align: 'center',
-        verticalAlign: 'middle',
-        fontSize: 14,
-        padding: Rectangle.inset(0,9),
-        textColor: Color.black
-    },
+
     buttonStyle: {
-        fill: Color.rgba(255,255,255,0.2)
+        fill: null,
+        borderWidth: 0,
+        label: {
+            align: 'center',
+            verticalAlign: 'middle',
+            fontSize: 14,
+            padding: Rectangle.inset(0,9),
+            textColor: Color.rgb(235,235,235),
+        }
     },
 
 
@@ -1237,18 +1283,14 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
         this.tabContainer = tabContainer;
         this.addMorph(tabContainer)
         var padding = this.editorPanePadding,
-            extent = this.getExtent().subPt(pt(2*padding, 2*padding))
-        tabContainer.setBounds(pt(padding,padding).extent(extent))
-        this.tabBar = this.initializeTabBar(tabContainer)
-        tabContainer.tabBar = this.tabBar;
+            extent = this.getExtent().subPt(pt(0, 2*padding))
+        tabContainer.setBounds(pt(0,padding).extent(extent))
+        this.tabBar = tabContainer.tabBar;
+        this.tabBar.setFill(Color.rgba(47,47,47,0.7))
         tabContainer.setTabPaneExtent(tabContainer.getExtent().subPt(pt(0,self.tabBar.getExtent().y)));
         return tabContainer;
     },
-    initializeTabBar: function(tabContainer) {
-        var tabBar = new lively.morphic.TabBar(tabContainer);
-        tabBar.setExtent(pt(this.tabContainer.getExtent().x, this.tabBarHeight));
-        return this.tabContainer.addMorph(tabBar);
-    },
+
     initializeNextButton: function () {
         var self = this,
             nextButton = new lively.morphic.Button(pt(this.tabBar.getExtent().x - this.tabBarHeight,0)
@@ -1261,11 +1303,14 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
         nextButton.onMouseDown = function() {
             $world.ignoreHalos = true;
         };
-        nextButton.applyStyle(this.buttonStyle)
-        nextButton.label.applyStyle(this.buttonLabelStyle)
-        nextButton.normalFill = this.buttonStyle.fill
+        nextButton.beFlapButton();
+        nextButton.setExtent(pt(40,30))
         connect(nextButton, "fire", nextButton, "onFire", {});
         nextButton.setName('nextButton')
+        nextButton.moveBy(pt(0,5));
+        nextButton.label.applyStyle({
+            padding: rect(0,5,0,0)
+        })
         this.tabBar.addMorph(nextButton);
         return nextButton
     },
@@ -1298,9 +1343,8 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
         saveButton.onTap = function() {
             this.doSave();
         };
-        saveButton.applyStyle(this.buttonStyle)
-        saveButton.label.applyStyle(this.buttonLabelStyle)
-        saveButton.normalFill = this.buttonStyle.fill
+        saveButton.beFlapButton();
+        saveButton.moveBy(pt(0,5));
         return saveButton
     },
     initializeRunButton: function() {
@@ -1315,9 +1359,11 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
             var activeTab = self.tabContainer.activeTab();
             var tags = activeTab.fctTarget[activeTab.fctScriptName]();
         };
-        runButton.applyStyle(this.buttonStyle)
-        runButton.label.applyStyle(this.buttonLabelStyle)
-        runButton.normalFill = this.buttonStyle.fill
+        runButton.beFlapButton();
+        runButton.moveBy(pt(0,5));
+        runButton.label.applyStyle({
+            padding: rect(0,6,0,0)
+        })
         return this.tabBar.addMorph(runButton);
     },
     setTarget: function(target) {
@@ -1341,6 +1387,29 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
     },
 });
 
+lively.morphic.TabBar.addMethods(
+'properties',
+{
+    style: {
+        borderWidth: 0,
+        enableDragging: false,
+        enableGrabbing: false,
+        borderWidth: 0,
+    },
+})
 
+lively.morphic.TabPane.addMethods(
+'properties', {
+    style: {
+        fill: Color.rgba(235,235,235,0.5),
+        borderWidth: 0,
+        enableDragging: false,
+        enableGrabbing: false,
+        adjustForNewBounds: true,
+        resizeWidth: true,
+        resizeHeight: true
+    }
+}
+)
 
 }) // end of module

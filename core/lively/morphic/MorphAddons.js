@@ -485,8 +485,8 @@ lively.morphic.Morph.addMethods(
             this.fixedScale = this.getScale() * $world.getZoomLevel();
             this.fixedPosition = this.getPosition().subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel());
 
-            this.startStepping(100, "updateZoomScale");
-            this.startStepping(100, "updateScrollPosition");
+            this.startStepping(0, "updateZoomScale");
+            this.startStepping(0, "updateScrollPosition");
         } else {
             this.stopStepping("updateZoomLevel");
             this.stopStepping("getScrollOffset");

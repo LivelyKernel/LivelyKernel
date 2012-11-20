@@ -1399,10 +1399,24 @@ lively.morphic.Text.addMethods("TapEvents", {
 });
 
 lively.morphic.Button.addMethods("TapEvents", {
-    onTap: function(evt){
-        this.setValue(true);
-        this.setValue(false);
+
+    onTouchStart: function() {
+        if (this.isActive) {
+            this.isPressed = true;
+            this.changeAppearanceFor(true);
+        }
+        return false;
+    },
+    onTouchEnd: function() {
+        if (this.isPressed) {
+            this.setValue(false);
+            this.changeAppearanceFor(false);
+            this.isPressed = false;
+        }
+        return false;
     }
+
+
 });
 
 cop.create("GestureEvents").refineClass(lively.morphic.Morph, {
@@ -1738,7 +1752,6 @@ cop.create("IPadThemeLayer").refineClass(lively.morphic.World, {
         this.centerLabel();
         return this;
     },
-
     beIPadButton: function() {
         this.setBorderRadius(13);
         this.setBorderWidth(1);
@@ -1751,18 +1764,39 @@ cop.create("IPadThemeLayer").refineClass(lively.morphic.World, {
         this.label.setPadding(pt(0,0).extent(pt(0,0)));
         this.centerLabel();
     },
-    onTouchStart: function (evt) {
-        // to react on touches with color changes
-        var color = this.lighterFill || this.getFill();
-        this.setFill(color);
-        return cop.proceed(evt);
+    beFlapButton: function() {
+        this.lighterFill = Color.blue;
+        this.normalFill = Color.rgba(43,43,43,0.5);
+        this.applyStyle({
+            fill: this.normalFill,
+            borderRadius: 50,
+            borderWidth: 2,
+            borderColor: this.normalFill.withA(1),
+            extent: pt(100,30),
+            label: {
+                fontWeight: 'bold',
+                textColor: Color.rgb(235,235,235),
+                padding: rect(0,3,0,0)
+            }
+        })
+        this.setFill(this.normalFill)
+        this.label.applyStyle({
+            fontWeight: 'bold',
+            textColor: Color.rgb(235,235,235),
+        })
     },
-    onTouchEnd: function (evt) {
-        // see on touch start
-        var color = this.normalFill || this.getFill();
-        this.setFill(color);
-        return cop.proceed(evt);
-    },
+    changeAppearanceFor: function (pressed, toggled) {
+            if (this.isActive && pressed) {
+                this.setFill(this.lighterFill);
+            }
+            else {
+                this.setFill(this.normalFill)
+            }
+        },
+
+
+
+
     centerLabel: function() {
         this.label.layout = this.label.layout || {};
         this.layout = this.layout || {};
@@ -2402,7 +2436,14 @@ lively.morphic.Morph.subclass('lively.morphic.PieItem',
 
     isPieItem: true,
     style: {
-        fill: Color.rgb(131,111,255),
+        fill: new lively.morphic.LinearGradient(
+            [
+                {offset: 0, color: Color.rgb(49,79,255)},
+                {offset: 0.59, color: Color.rgb(53,83,255)},
+                {offset: 0.63, color: Color.rgb(79,105,255)},
+                {offset: 1, color: Color.rgb(112,134,255)}
+            ],
+            'southNorth')
     },
 
     leave: function() {

@@ -870,7 +870,7 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         $super();
         this.tabBar = tabBar;
         this.tabBarOffset = 0;
-        this.setFill(Color.gray);
+        this.setFill(this.getInactiveFill());
         this.setBorderWidth(1);
         this.setBorderColor(Color.gray);
         this.layout = {adjustForNewBounds: true};
@@ -975,7 +975,7 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         this.isInActivationCycle = true;
         this.getPane().remove();
         this.getTabContainer().addTabPane(this.getPane());
-        this.setFill(Color.white);
+        this.setFill(this.getActiveFill());
         this.label.applyStyle({fontWeight:'bold'});
         this.label.fit();
         delete this.isInActivationCycle;
@@ -983,11 +983,19 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         this.getPane().onActivate();
     },
     deactivate: function() {
-        this.setFill(Color.gray);
+        this.setFill(this.getInactiveFill());
         this.label.applyStyle({fontWeight:null});
         this.label.fit();
         this.isActive = false;
     },
+    getActiveFill: function() {
+        return Color.white
+    },
+    getInactiveFill: function() {
+        Color.gray
+    },
+
+
     addCloseButton: function() {
         var closer = new lively.morphic.Button,
             padding = 5,

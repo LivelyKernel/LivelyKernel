@@ -1,63 +1,6 @@
 module('lively.Touch').requires('lively.TestFramework').toRun(function () {
 
-cop.create('TouchEvents').refineClass(lively.morphic.Morph, {
-    registerForTouchEvents: function (handleOnCapture) {
-      if (!UserAgent.isTouch) {
-        return;
-      }
-      handleOnCapture = false;
-
-      if (this.onTouchStartAction) {
-        this.registerForEvent('touchstart', this, 'onTouchStartAction', handleOnCapture);
-      } else if (this.onTouchStart) {
-        this.registerForEvent('touchstart', this, 'onTouchStart', handleOnCapture);
-      }
-      if (this.onTouchMoveAction) {
-        this.registerForEvent('touchmove', this, 'onTouchMoveAction', handleOnCapture);
-      } else if (this.onTouchMove) {
-        this.registerForEvent('touchmove', this, 'onTouchMove', handleOnCapture);
-      }
-      if (this.onTouchEndAction) {
-        this.registerForEvent('touchend', this, 'onTouchEndAction', handleOnCapture);
-      } else if (this.onTouchEnd) {
-        this.registerForEvent('touchend', this, 'onTouchEnd', handleOnCapture);
-      }
-      if (this.onTouchCancel) {
-        this.registerForEvent('touchcancel', this, 'onTouchCancel', handleOnCapture);
-      }
-    },
-
-    registerForGestureEvents: function(handleOnCapture) {
-      handleOnCapture = false;
-      if (this.onGestureStart) {
-        this.registerForEvent('gesturestart', this, 'onGestureStart', handleOnCapture);
-      }
-      if (this.onGestureChange) {
-        this.registerForEvent('gesturechange', this, 'onGestureChange', handleOnCapture);
-      }
-      if (this.onGestureEnd) {
-        this.registerForEvent('gestureend', this, 'onGestureEnd', handleOnCapture);
-      }
-    },
-
-    unregisterFromGestureEvents: function() {
-        // Since Morphs are able to register for Gesture Events, they must be able to unregister
-        var eventHandler = this.eventHandler;
-        // unregisterFromDispatchTable
-        eventHandler.eventSpecsDo(function (eventSpec) {
-            if (eventSpec.type && eventSpec.type.startsWith("gesture")) {
-                if (!eventSpec.unregisterMethodName) throw new Error('Cannot unregister event handler ' + this);
-                eventHandler[eventSpec.unregisterMethodName](eventSpec)
-            }
-        });
-    },
-
-    registerForEvents: function(handleOnCapture) {
-      this.registerForGestureEvents(handleOnCapture);
-      cop.proceed(handleOnCapture);
-    }
-
-}).refineClass(lively.morphic.EventHandler, {
+cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
     patchEvent: function(evt) {
         evt = cop.proceed(evt);
         if (['touchend', 'touchstart', 'touchmove'].include(evt.type)) {
@@ -68,110 +11,93 @@ cop.create('TouchEvents').refineClass(lively.morphic.Morph, {
         }
         return evt;
     },
-    patchTouchEvent: function(evt) {
-        if(evt.changedTouches) {
-            for(var i = 0; i < evt.changedTouches.length; i++){
-                evt.changedTouches[i].lastUpdate = evt.timeStamp;
-            }
-            evt.getPosition = function() {
-                if (!evt.scaledPos) {
-                    if (evt.changedTouches.length > 0) {
-                        evt.scaledPos = evt.changedTouches[0].getPagePosition();
-                    }
-                    else if (evt.touches.length > 0) {
-                        evt.scaledPos = evt.touches[0].getPagePosition();
-                    }
-                }
-                return evt.scaledPos;
-            };
-        }
-    },
-
-    patchTouchStartEvent: function(evt) {
-        for(var i = 0; i < evt.changedTouches.length; i++){
-            var touch = evt.changedTouches[i];
-
-            touch.startDate = evt.timeStamp;
-
-            touch.getClientPosition = function(){
-                return pt(this.clientX, this.clientY);
-            };
-            touch.getPagePosition = function(){
-                return pt(this.pageX, this.pageY);
-            };
-            touch.getScreenPosition = function(){
-                return pt(this.screenX, this.screenY);
-            };
-
-            touch.clientStart = touch.getClientPosition();
-            touch.pageStart = touch.getPagePosition();
-            touch.screenStart = touch.getScreenPosition();
-
-            touch.timeSinceStart = function(){
-                return new Date().valueOf() - this.startDate;
-            };
-            touch.timeSinceLastUpdate = function(){
-                return new Date().valueOf() - this.lastUpdate;
-            };
-            touch.timeFromStartToLastUpdate = function () {
-                return this.lastUpdate - this.startDate;
-            }
-
-            touch.getClientDeltaToStart = function(){
-                return this.getClientPosition().subPt(this.clientStart);
-            };
-            touch.getPageDeltaToStart = function(){
-                return this.getPagePosition().subPt(this.pageStart);
-            };
-            touch.getScreenDeltaToStart = function(){
-                return this.getScreenPosition().subPt(this.screenStart);
-            };
-
-            touch.startTouch = Object.clone(touch);
-        }
-    }
-
-
-}); //end of cop
-
-TouchEvents.beGlobal();
-
-TestCase.subclass('TouchEventsTest',
-'default category', {
-    testRegisterForGestureEvents: function() {
-        var m = Morph.makeRectangle(0,0,100,100);
-        var eventHandlerKeys = Properties.own(m.eventHandler.dispatchTable);
-        this.assert(eventHandlerKeys.include("gesturestart"), "No gesturestart")
-    },
-    testUnregisterFromGestureEvents: function() {
-        var m = Morph.makeRectangle(0,0,100,100);
-        var eventHandlerKeys = Properties.own(m.eventHandler.dispatchTable);
-        m.unregisterFromGestureEvents();
-        var gestureNodeFound = 0;
-        m.eventHandler.eventSpecsDo(function (eventSpec) {
-            if (gestureNodeFound < 4) {
-                inspect(eventSpec.node)
-                gestureNodeFound += 1;
-            }
-        });
-    }
-});
-
-
-if (typeof Config.useTwoFingerHaloGesture !== 'boolean') {
-    Config.useTwoFingerHaloGesture = true;
-}
-
-cop.create('TapEvents').refineClass(lively.morphic.World, {
+}).refineClass(lively.morphic.World, {
     onrestore: function(){
         connect(lively.morphic.World, "currentWorld", this, "loadHoldIndicator");
         cop.proceed();
+        connect(lively.morphic.World, "currentWorld", this, "loadTouchMenu");
     },
-    showHalos: function() {
-        // lazy function is lazy
+    morphMenuItems: function() {
+        var items = cop.proceed();
+        items[2][1][7] = ['Flap', function() {
+                var flap = new lively.morphic.Flap('Custom', 'bottom');
+                flap.enableSelection();
+            }];
+        return items
+    },
+    onGestureStart:function (evt) {
+        if(!this.pieMode){
+            cop.proceed(evt);
+            this.zoomingInProgress = true;
+            this._emulatedScrollingTemporarilyDisabled = true;
+        }
+    },
+    onLoad: function() {
+        this.zoomLevel = this.calculateCurrentZoom();
+        this.onWindowScroll();
+        cop.proceed();
+    },
+    registerForGlobalEvents: function() {
+        // enter comment here
+        var self = this;
+        document.body.onorientationchange = function (evt) {
+            lively.morphic.EventHandler.prototype.patchEvent(evt);
+            self.onOrientationChange(evt);
+        }
+        return cop.proceed();
+    },
+}).refineClass(lively.morphic.Morph, {
+    onMouseDown: function (evt) {
+        cop.proceed(evt);
+
+        if (!evt.isRightMouseButtonDown()){
+            $world.ignoreHalos = true;
+        }
+    },
+    onMouseUp: function (evt) {
+        cop.proceed(evt);
+        if (this.owner == $world) window.setTimeout(function () {$world.ignoreHalos = false}, 0);
+    },
+    onTouchStartAction: function (evt) {
+        if($world.pieMode){
+            return this.pieStart(evt);
+        } else {
+            cop.proceed(evt);
+        }
+    },
+    onTouchMoveAction: function (evt) {
+        if($world.pieMode){
+            //console.log("doing piemove");
+            return this.pieMove(evt);
+        } else {
+            cop.proceed(evt);
+        }
+    },
+    onTouchEndAction: function (evt) {
+        if($world.pieMode){
+            return this.pieEnd(evt);
+        } else {
+            cop.proceed(evt);
+        }
     },
 
-}).refineClass(lively.morphic.Morph, {
+    onTap: function(evt) {
+        var out = cop.proceed(evt);
+        $world.removePie();
+        return out;
+    },
+    onTap: function(evt){
+        if(this.world().selectionActivated){
+            this.select();
+            evt.stop();
+        } else {
+            return cop.proceed(evt);
+        }
+    },
+    registerForEvents: function(handleOnCapture) {
+      this.registerForGestureEvents(handleOnCapture);
+      cop.proceed(handleOnCapture);
+    },
     onMouseDown: function(evt) {
         if(!$world.ignoreMouseEvents){
             return cop.proceed(evt);
@@ -219,8 +145,283 @@ cop.create('TapEvents').refineClass(lively.morphic.World, {
         });
         return items;
     },
+    morphMenuItems: function() {
+        var a = cop.proceed();
+        var self = this;
+        if( this != $world) {
+            a.push(["tools", [  ['inspect', function() {
+                                    $world.openInspectorFor(self)
+                                }],
+                                ['style',
+                                    [ ['Fill', function() {
+                                        $world.openColorStylerFor(self);
+                                    }],
+                                    ['Border', function() {
+                                        $world.openBorderStylerFor(self);}],
+                                    ['Layout', function() {
+                                        $world.openLayoutStylerFor(self);}]
+                                    ]
+                                ],
+                                ['edit', function() {
+                                    $world.openObjectEditorFor(self)
+                                }]
+                            ]
+                    ])
+        }
+        return a;
+    },
+}).refineClass(lively.morphic.AbstractDialog, {
+     buildPanel: function (bounds) {
+        var out = cop.proceed(bounds);
+        this.panel.setScale(1.5/$world.getZoomLevel());
+    },
+}).refineClass(lively.morphic.BoundsHalo, {
+    initialize: function (targetMorph) {
+        cop.proceed(targetMorph);
+        this.unregisterFromGestureEvents();
+        this.disableEvents();
+    },
+}).refineClass(lively.morphic.Slider, {
+    onrestore: function (initialBounds, scaleIfAny) {
+        cop.proceed(initialBounds, scaleIfAny);
+        this.beIPadSlider.bind(this).delay(1);
+    },
+    initialize: function (initialBounds, scaleIfAny) {
+        cop.proceed(initialBounds, scaleIfAny);
+        connect(this, 'value', this, 'adjustSliderParts');
+        this.setValue(0);
+        this.setSliderExtent(0.1);
+        this.valueScale = (scaleIfAny === undefined) ? 1.0 : scaleIfAny;
+        this.sliderKnob = this.addMorph(new lively.morphic.SliderKnob(new Rectangle(0, 0, this.mss, this.mss), this));
+        this.setupFill();
+        this.adjustSliderParts()
+        this.beIPadSlider.bind(this).delay(0);
+    },
+    onMouseDown: function (evt) {
+        cop.proceed(evt);
 
+        if (!evt.isRightMouseButtonDown()){
+            $world.ignoreHalos = true;
+        }
+    },
+}).refineClass(lively.morphic.SliderKnob, {
+    onMouseDown: function (evt) {
+        cop.proceed(evt);
+    },
+}).refineClass(lively.morphic.TitleBar, {
+    onrestore: function () {
+        cop.proceed();
+        this.beTaskBar.bind(this).delay(0);
+    },
+    adjustForNewBounds: function() {
+        cop.proceed();
+        this.menuButton.setPosition(pt(0,0));
+        this.closeButton.setPosition(pt(this.getExtent().x-this.closeButton.getExtent().x,0))
+        this.collapseButton.setPosition(pt(this.closeButton.getPosition().x-this.collapseButton.getExtent().x,0))
+    },
+
+    initialize: function(headline, windowWidth, windowMorph, optSuppressControls) {
+        cop.proceed(headline, windowWidth, windowMorph, optSuppressControls);
+        this.beTaskBar.bind(this).delay(0);
+    },
+}).refineClass(lively.morphic.Button, {
+    onTap: function(evt){
+        if(this.world().selectionActivated){
+            this.select();
+            evt.stop();
+        } else {
+            return cop.proceed(evt);
+        }
+    }
+}).refineClass(lively.morphic.Text, {
+    onTap: function(evt){
+        if(this.world().selectionActivated){
+            this.select();
+            evt.stop();
+        } else {
+            return cop.proceed(evt);
+        }
+    }
+}).refineClass(lively.morphic.List, {
+    updateList: function(items, useOwnImplementation) {
+        if(!useOwnImplementation) {
+            cop.proceed(items);
+        } else {
+
+        items = items || [];
+        //this.itemList = items;
+        var that = this;
+        this.itemList = [];
+        var mapToItemList = function(array) {
+            for(var i=0; i < array.length; i++) {
+                if(array[i].constructor === Array) {
+                    mapToItemList(array[i].slice(1));
+                } else {
+                    that.itemList.push(array[i]);
+                }
+            }
+        }
+        mapToItemList(items);
+
+        this.renderContextDispatch('updateListContent', items);
+        }
+    },
 }).beGlobal();
+
+IPadExtensions.beGlobal = function(){
+  cop.enableLayer(this);
+  $world.ensureSelectionMorph();
+  return this;
+};
+
+TestCase.subclass('TouchEventsTest',
+'default category', {
+    testRegisterForGestureEvents: function() {
+        var m = Morph.makeRectangle(0,0,100,100);
+        var eventHandlerKeys = Properties.own(m.eventHandler.dispatchTable);
+        this.assert(eventHandlerKeys.include("gesturestart"), "No gesturestart")
+    },
+    testUnregisterFromGestureEvents: function() {
+        var m = Morph.makeRectangle(0,0,100,100);
+        var eventHandlerKeys = Properties.own(m.eventHandler.dispatchTable);
+        m.unregisterFromGestureEvents();
+        var gestureNodeFound = 0;
+        m.eventHandler.eventSpecsDo(function (eventSpec) {
+            if (gestureNodeFound < 4) {
+                inspect(eventSpec.node)
+                gestureNodeFound += 1;
+            }
+        });
+    }
+});
+
+
+if (typeof Config.useTwoFingerHaloGesture !== 'boolean') {
+    Config.useTwoFingerHaloGesture = true;
+}
+
+lively.morphic.Window.addMethods({
+    collapse: function () {
+        if (this.isCollapsed()) return;
+        this.expandedTransform = this.getTransform();
+
+        this.targetMorph.onWindowCollapse && this.targetMorph.onWindowCollapse();
+        this.targetMorph.remove();
+        this.helperMorphs = this.submorphs.withoutAll([this.targetMorph, this.titleBar]);
+        this.helperMorphs.invoke('remove');
+        if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(true);
+        var finCollapse = function () {
+            this.state = 'collapsed';  // Set it now so setExtent works right
+            if (this.collapsedTransform) this.setTransform(this.collapsedTransform);
+            if (this.collapsedExtent) this.setExtent(this.collapsedExtent);
+            if (this.collapsedPosition) this.setPosition(this.collapsedPosition);
+            this.shape.setBounds(this.titleBar.bounds());
+        }.bind(this);
+        /*if (this.collapsedPosition && this.collapsedPosition.dist(this.getPosition()) > 100)
+            this.animatedInterpolateTo(this.collapsedPosition, 5, 50, finCollapse);
+        else */finCollapse();
+        this.owner.dispatchNotify && this.owner.dispatchNotify("collapse", this);
+    },
+    expand: function () {
+        if (!this.isCollapsed()) return;
+        this.collapsedTransform = this.getTransform();
+        this.collapsedExtent = this.innerBounds().extent();
+        this.collapsedPosition = this.getPosition();
+        var finExpand = function () {
+            this.state = 'expanded';
+            if (this.expandedTransform)
+                this.setTransform(this.expandedTransform);
+            if (this.expandedExtent) {
+                this.setExtent(this.expandedExtent);
+            }
+            if (this.expandedPosition) {
+                this.setPosition(this.expandedPosition);
+            }
+
+            this.addMorph(this.targetMorph);
+
+            this.helperMorphs.forEach(function(ea) {
+                this.addMorph(ea)
+            }, this);
+
+            // Bring this window forward if it wasn't already
+            this.owner && this.owner.addMorphFront(this);
+            this.targetMorph.onWindowExpand && this.targetMorph.onWindowExpand();
+        }.bind(this);
+        /*if (this.expandedPosition && this.expandedPosition.dist(this.getPosition()) > 100)
+            this.animatedInterpolateTo(this.expandedPosition, 5, 50, finExpand);
+        else*/ finExpand();
+        if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(false);
+        this.owner.dispatchNotify && this.owner.dispatchNotify("expand", this);
+    },
+
+    onMouseUp: function() {},
+    onMouseDown: function() {}
+});
+
+lively.morphic.EventHandler.addMethods({
+    patchTouchEvent: function(evt) {
+        if(evt.changedTouches) {
+            for(var i = 0; i < evt.changedTouches.length; i++){
+                evt.changedTouches[i].lastUpdate = evt.timeStamp;
+            }
+            evt.getPosition = function() {
+                if (!evt.scaledPos) {
+                    if (evt.changedTouches.length > 0) {
+                        evt.scaledPos = evt.changedTouches[0].getPagePosition();
+                    }
+                    else if (evt.touches.length > 0) {
+                        evt.scaledPos = evt.touches[0].getPagePosition();
+                    }
+                }
+                return evt.scaledPos;
+            };
+        }
+    },
+    patchTouchStartEvent: function(evt) {
+        for(var i = 0; i < evt.changedTouches.length; i++){
+            var touch = evt.changedTouches[i];
+
+            touch.startDate = evt.timeStamp;
+
+            touch.getClientPosition = function(){
+                return pt(this.clientX, this.clientY);
+            };
+            touch.getPagePosition = function(){
+                return pt(this.pageX, this.pageY);
+            };
+            touch.getScreenPosition = function(){
+                return pt(this.screenX, this.screenY);
+            };
+
+            touch.clientStart = touch.getClientPosition();
+            touch.pageStart = touch.getPagePosition();
+            touch.screenStart = touch.getScreenPosition();
+
+            touch.timeSinceStart = function(){
+                return new Date().valueOf() - this.startDate;
+            };
+            touch.timeSinceLastUpdate = function(){
+                return new Date().valueOf() - this.lastUpdate;
+            };
+            touch.timeFromStartToLastUpdate = function () {
+                return this.lastUpdate - this.startDate;
+            }
+
+            touch.getClientDeltaToStart = function(){
+                return this.getClientPosition().subPt(this.clientStart);
+            };
+            touch.getPageDeltaToStart = function(){
+                return this.getPagePosition().subPt(this.pageStart);
+            };
+            touch.getScreenDeltaToStart = function(){
+                return this.getScreenPosition().subPt(this.screenStart);
+            };
+
+            touch.startTouch = Object.clone(touch);
+        }
+    },
+})
 
 lively.morphic.Box.subclass('lively.morphic.NameDisplay',
 'default category', {
@@ -624,14 +825,12 @@ lively.morphic.Morph.addMethods(
 
 },
 "Selection", {
-
     select: function() {
         // enter comment here
         if(!this.isSelectable()) return;
         $world.updateSelection(this);
         this.selectionMorph = this.createSelectionMorph();
         $world.addMorph(this.selectionMorph);
-
         $world.firstHand().setPosition(this.selectionMorph.bounds().center());
         this.ignoreEvents();
     },
@@ -656,20 +855,18 @@ lively.morphic.Morph.addMethods(
         };
         border.disableSelection();
 
-        if(PieMenu) {
-            border.onTouchStart = function (evt) {
-            // TODO this takes about 100ms and delays processing of furher events
-            // especially TouchEnd, which checks for taps using the time that passed
-            // that forces us to increase the tap-threshold
-                this.targetMorph.pieStart(evt);
-            };
-            border.onTouchMove = function (evt) {
-                this.targetMorph.pieMove(evt);
-            };
-            border.onTouchEnd = function (evt) {
-                this.targetMorph.pieEnd(evt);
-            };
-        }
+        border.onTouchStart = function (evt) {
+        // TODO this takes about 100ms and delays processing of furher events
+        // especially TouchEnd, which checks for taps using the time that passed
+        // that forces us to increase the tap-threshold
+            this.targetMorph.pieStart(evt);
+        };
+        border.onTouchMove = function (evt) {
+            this.targetMorph.pieMove(evt);
+        };
+        border.onTouchEnd = function (evt) {
+            this.targetMorph.pieEnd(evt);
+        };
 
         connect(this, "extent", border, "setExtent");
         connect(this, "_Scale", border, "setScale", {converter: function(value) {
@@ -913,6 +1110,15 @@ lively.morphic.Morph.addMethods(
         this.activatedPieItem = item;
         item.activate(evt);
     },
+    openMorphMenuAt: function(pos, itemFilter) {
+        if (!(itemFilter instanceof Function)) {
+            itemFilter = function (items) { return items }
+        }
+        var menu = $world.showTouchMenuAt(pos, true);
+        menu.targetMorph = this;
+        menu.setup(itemFilter(this.morphMenuItems()));
+        return menu
+    },
 },
 "CSSTransitions", {
     moveByAnimated: function(delta, time, callback) {
@@ -1017,6 +1223,126 @@ lively.morphic.Morph.addMethods(
     beTool: function () {
         this.setWithLayers([ToolMorphLayer]);
     }
+}, 
+'Gestures', {
+    onGestureChange: function (evt) {
+        if(this.areEventsIgnoredOrDisabled()){
+            return false;
+        }
+        if (this.halosTemporaryInvisible) {
+            this.setScale(evt.scale*this.originalScale);
+            this.setRotation(this.originalRotation+evt.rotation/180*Math.PI);
+            evt.stop()
+        };
+        if ($world.isInEditMode()) $world.setEditMode(false)
+    },
+    onGestureStart: function(evt) {
+        if(this.areEventsIgnoredOrDisabled()){
+            return false;
+        }
+        if (this.showsHalos) {
+            this.removeHalos();
+            this.halosTemporaryInvisible = true
+            this.setOrigin(this.getExtent().scaleBy(0.5));
+            this.originalScale = this.getScale();
+            this.originalRotation = this.getRotation();
+            this.lastRotation = 0;
+            evt.stop()
+        };
+    },
+    onGestureEnd: function(evt) {
+        if (this.areEventsIgnoredOrDisabled()){
+            return false;
+        }
+        if (this != this.world() && this.halosTemporaryInvisible) {
+            if (this.halosTemporaryInvisible) {
+                this.showHalos();
+                this.halosTemporaryInvisible = false
+            }
+            this.setOrigin(this.getExtent().scaleBy(0.5));
+            this.originalScale = this.getScale();
+            this.originalRotation = this.getRotation();
+            evt.stop();
+        }
+    },
+},
+'Touch Events', {
+    registerForTouchEvents: function (handleOnCapture) {
+      if (!UserAgent.isTouch) {
+        return;
+      }
+      handleOnCapture = false;
+
+      if (this.onTouchStartAction) {
+        this.registerForEvent('touchstart', this, 'onTouchStartAction', handleOnCapture);
+      } else if (this.onTouchStart) {
+        this.registerForEvent('touchstart', this, 'onTouchStart', handleOnCapture);
+      }
+      if (this.onTouchMoveAction) {
+        this.registerForEvent('touchmove', this, 'onTouchMoveAction', handleOnCapture);
+      } else if (this.onTouchMove) {
+        this.registerForEvent('touchmove', this, 'onTouchMove', handleOnCapture);
+      }
+      if (this.onTouchEndAction) {
+        this.registerForEvent('touchend', this, 'onTouchEndAction', handleOnCapture);
+      } else if (this.onTouchEnd) {
+        this.registerForEvent('touchend', this, 'onTouchEnd', handleOnCapture);
+      }
+      if (this.onTouchCancel) {
+        this.registerForEvent('touchcancel', this, 'onTouchCancel', handleOnCapture);
+      }
+    },
+
+    registerForGestureEvents: function(handleOnCapture) {
+      handleOnCapture = false;
+      if (this.onGestureStart) {
+        this.registerForEvent('gesturestart', this, 'onGestureStart', handleOnCapture);
+      }
+      if (this.onGestureChange) {
+        this.registerForEvent('gesturechange', this, 'onGestureChange', handleOnCapture);
+      }
+      if (this.onGestureEnd) {
+        this.registerForEvent('gestureend', this, 'onGestureEnd', handleOnCapture);
+      }
+    },
+
+    unregisterFromGestureEvents: function() {
+        // Since Morphs are able to register for Gesture Events, they must be able to unregister
+        var eventHandler = this.eventHandler;
+        // unregisterFromDispatchTable
+        eventHandler.eventSpecsDo(function (eventSpec) {
+            if (eventSpec.type && eventSpec.type.startsWith("gesture")) {
+                if (!eventSpec.unregisterMethodName) throw new Error('Cannot unregister event handler ' + this);
+                eventHandler[eventSpec.unregisterMethodName](eventSpec)
+            }
+        });
+    },
+},
+'Double Tap Selection', {
+    tapped: function(evt) {
+        var doubleTapTimeout = 250,
+            that = this;
+
+        if (this.lastTap && new Date() - this.lastTap <= doubleTapTimeout) {
+            if (typeof this.onDoubleTap === "function") {
+                this.lastTap.event.doNotTap = true;
+                this.lastTap = false;
+                this.onDoubleTap(evt);
+            }
+
+        } else {
+            if (typeof this.onTap === "function") {
+                window.setTimeout(function () {
+                    if (that.lastTap && !that.lastTap.event.doNotTap) {
+                        that.onTap(evt);
+                    }
+                }, doubleTapTimeout);
+            }
+            this.lastTap = new Date();
+            this.lastTap.event = evt;
+        }
+    }
+
 });
 
 lively.morphic.Morph.subclass('lively.morphic.ResizeCorner',
@@ -1305,9 +1631,10 @@ lively.morphic.World.addMethods(
             lively.morphic.PieItem,
             lively.morphic.MenuPieItem,
             lively.morphic.PieItem];
-    }
-
-},
+    },
+    showHalos: function() {
+        // lazy function is lazy
+    },},
 "scrolling", {
     startFollowingHand: function() {
         connect(this.firstHand(), "position", this, "followHand");
@@ -1339,6 +1666,297 @@ lively.morphic.World.addMethods(
             window.scrollBy(0, y + scrollThreshold - document.documentElement.clientHeight);
         }
     },
+},
+'World Menu', {
+    openPartsBin: function() {
+        return (new lively.morphic.PartsBinFlap());
+    },
+    openObjectEditor: function() {
+        var objectEditor = new lively.morphic.ObjectEditorFlap();
+        this.addMorph(objectEditor);
+        return objectEditor
+    },
+    loadTouchMenu: function() {
+        this.touchMenuPrototype = this.loadPartItem("TouchMenu", "PartsBin/iPadWidgets");
+    },
+    showTouchMenuAt: function (pos, fixed) {
+        var touchMenu = this.touchMenuPrototype,
+            pagePosition = pos,
+            screenPos = pagePosition.subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel()),
+            triangle = touchMenu.get("Triangle");
+        touchMenu.setPosition(pos);
+        if(screenPos.y > document.documentElement.clientHeight / 2) {
+            touchMenu.moveBy(pt(0, -(touchMenu.getExtent().y + 1 * triangle.getExtent().y)).scaleBy(1 / $world.getZoomLevel()));
+            touchMenu.movePointerToBottom();
+        } else {
+            touchMenu.movePointerToTop();
+        }
+        if(screenPos.x < touchMenu.getExtent().x / 2) {
+            touchMenu.moveBy(pt(touchMenu.getExtent().x / 2 - screenPos.x, 0).scaleBy(1 / $world.getZoomLevel()));
+            triangle.moveBy(pt(- touchMenu.getExtent().x / 2 + screenPos.x,0));
+        }
+        if(screenPos.x > document.documentElement.clientWidth - touchMenu.getExtent().x / 2) {
+            var delta = document.documentElement.clientWidth - screenPos.x;
+            touchMenu.moveBy(pt( -touchMenu.getExtent().x / 2 + delta, 0).scaleBy(1 / $world.getZoomLevel()));
+            triangle.moveBy(pt(+touchMenu.getExtent().x/2-delta,0));
+        }
+        if(fixed) {
+            touchMenu.setFixed(true, true);
+        }
+        this.addMorph(touchMenu)
+        return touchMenu;
+    },
+    onHold: function(touch) {
+        var items = this.morphMenuItems();
+        var that = this;
+        var menu = this.showTouchMenuAt(touch.pageStart, true);
+        menu.targetMorph = this;
+        menu.setup(items);
+    },
+    addTextWindow: function (spec) {
+        // FIXME: typecheck the spec
+        if (Object.isString(spec.valueOf())) spec = {content: spec}; // convenience
+        var extent = spec.extent || pt(500, 200),
+            wrapper = lively.PartsBin.getPart("Rectangle", "PartsBin/Basic"),
+            textMorph = new lively.morphic.Text(extent.extentAsRectangle(), spec.content || ""),
+            doitButton = lively.PartsBin.getPart("DoitButton", "PartsBin/iPadWidgets"),
+            doAllButton = lively.PartsBin.getPart("DoAllButton", "PartsBin/iPadWidgets"),
+            saveButton = lively.PartsBin.getPart("SaveButton", "PartsBin/iPadWidgets"),
+            printButton = lively.PartsBin.getPart("PrintButton", "PartsBin/iPadWidgets");
+        wrapper.setExtent(extent.addXY(0, 24));
+        wrapper.addMorph(doitButton);
+        wrapper.addMorph(doAllButton);
+        wrapper.addMorph(saveButton);
+        wrapper.addMorph(printButton);
+        wrapper.addMorph(textMorph);
+        doitButton.moveBy(pt(2, 2));
+        doAllButton.moveBy(pt(doAllButton.getExtent().x+2*2, 2));
+        saveButton.moveBy(pt(2*saveButton.getExtent().x+3*2, 2));
+        printButton.moveBy(pt(3*saveButton.getExtent().x+4*2, 2));
+        doitButton.textMorph = textMorph;
+        doAllButton.textMorph = textMorph;
+        saveButton.textMorph = textMorph;
+        printButton.textMorph = textMorph;
+        textMorph.moveBy(pt(0, 35));
+        pane = this.internalAddWindow(wrapper, spec.title, spec.position);
+        wrapper.applyStyle({
+            fill: Color.rgb(255,255,255),
+            adjustForNewBounds: true,
+            resizeWidth: true, resizeHeight: true
+        });
+        textMorph.applyStyle({
+            clipMode: 'auto',
+            fixedWidth: true, fixedHeight: true,
+            resizeWidth: true, resizeHeight: true,
+            syntaxHighlighting: spec.syntaxHighlighting});
+        return textMorph;
+    },
+    morphMenuDefaultPartsItems: function() {
+        var items = [],
+            partNames = ["Rectangle", "Ellipse", "Image", "Text", 'Line'].sort();
+
+        items.pushAll(partNames.collect(function(ea) { return [ea, function(evt, menuMorph) {
+            var partSpaceName = 'PartsBin/Basic',
+                part = lively.PartsBin.getPart(ea, partSpaceName);
+            if (!part) {
+                return;
+            }
+            if(UserAgent.isTouch) {
+                part.openInWorld();
+                //part.align(part.bounds().topLeft(), menuMorph.bounds().topRight());
+                part.align(part.bounds().center(), $world.visibleBounds().center());
+                $world.setEditMode(true);
+                part.select();
+            } else {
+                lively.morphic.World.current().firstHand().grabMorph(part);
+            }
+
+        }]}));
+
+        partNames = ["List", "Slider", "ScriptableButton", "Button"].sort()
+        items.pushAll(partNames.collect(function(ea) { return [ea, function(evt, menuMorph) {
+            var partSpaceName = 'PartsBin/Inputs',
+                part = lively.PartsBin.getPart(ea, partSpaceName);
+            if (!part) {
+                return;
+            }
+            if(UserAgent.isTouch) {
+                part.openInWorld();
+                part.align(part.bounds().topLeft(), menuMorph.bounds().topRight());
+                $world.setEditMode(true);
+                part.showHalos();
+            } else {
+                lively.morphic.World.current().firstHand().grabMorph(part);
+            }
+        }]}));
+
+        return items;
+    },
+    morphMenuDefaultPartsItems: function () {
+        var items = [],
+            partNames = ["Rectangle", "Ellipse", "Image", "Text", 'Line'].sort();
+
+        items.pushAll(partNames.collect(function(ea) { return [ea, function() {
+            var partSpaceName = 'PartsBin/Basic',
+                part = lively.PartsBin.getPart(ea, partSpaceName);
+			if (!part) return;
+            lively.morphic.World.current().firstHand().grabMorph(part);
+        }]}))
+
+        items.pushAll(["TextField", "Button"].collect(function(ea) { return [ea, function() {
+            var partSpaceName = 'PartsBin/iPadWidgets',
+                part = lively.PartsBin.getPart(ea, partSpaceName);
+			if (!part) return;
+            lively.morphic.World.current().firstHand().grabMorph(part);
+        }]}))
+
+        partNames = ["List", "Slider", "ScriptableButton"].sort()
+        items.pushAll(partNames.collect(function(ea) { return [ea, function() {
+            var partSpaceName = 'PartsBin/Inputs',
+                part = lively.PartsBin.getPart(ea, partSpaceName);
+			if (!part) return;
+            lively.morphic.World.current().firstHand().grabMorph(part);
+        }]}))
+
+        return items;
+    },
+}, 
+'Gestures', {
+    onGestureChange: function(evt) {
+
+    },
+    onGestureEnd: function(evt) {
+        if(!this.pieMode){
+            window.setTimeout( function() {
+                $world.zoomLevel = $world.calculateCurrentZoom();
+                $world.onWindowScroll();
+                $world.zoomingInProgress = false;
+            }, 1);
+        }
+    },
+    onWindowScroll: function(evt) {
+        $world.scrollOffset = pt(window.pageXOffset,window.pageYOffset);
+    },
+    addStatusMessageMorph: function(morph, delay) {
+        morph.setScale(1/this.getZoomLevel());
+        if (!this.statusMessages) this.statusMessages = [];
+        morph.isEpiMorph = true;
+        this.addMorph(morph);
+        morph.addScript(function onMouseUp(evt) {
+            this.stayOpen = true;
+            return $super(evt);
+        })
+        morph.addScript(function remove() {
+            var world = this.world();
+            if (world.statusMessages)
+                world.statusMessages = world.statusMessages.without(this);
+            return $super();
+        })
+        morph.align(morph.bounds().topRight(), this.visibleBounds().topRight());
+        this.statusMessages.invoke('moveBy', pt(0, morph.getExtent().y / this.getZoomLevel()));
+        this.statusMessages.push(morph);
+
+        if (delay) {
+            (function removeMsgMorph() {
+                if (!morph.stayOpen) morph.remove()
+            }).delay(delay);
+        }
+
+        return morph;
+    },
+    onOrientationChange: function(evt) {
+        this.zoomLevel = this.calculateCurrentZoom();
+        this.onWindowScroll();
+    },
+}, 
+'Selection Status', {
+    ensureSelectionMorph: function() {
+        if(!this.selectionModeButton){
+            this.selectionModeButton = new lively.morphic.Button(rect(0,0,44,44));
+            this.selectionModeButton.setExtent(pt(100,84));
+            this.selectionModeButton.setLabel("activate selection mode");
+
+            this.selectionModeButton.label.beLabel({
+                textColor: Color.white,
+                emphasize: {textShadow: null}
+            });
+            this.selectionModeButton.lighterFill = new lively.morphic.LinearGradient(
+                [
+                    {offset: 0, color: Color.rgb(49,79,255)},
+                    {offset: 0.59, color: Color.rgb(53,83,255)},
+                    {offset: 0.63, color: Color.rgb(79,105,255)},
+                    {offset: 1, color: Color.rgb(112,134,255)}
+                ],
+                'southNorth'
+            );
+            this.selectionModeButton.normalFill = new lively.morphic.LinearGradient(
+                [
+                    {offset: 0, color: Color.rgb(0,0,0)},
+                    {offset: 0.59, color: Color.rgb(59,59,59)},
+                    {offset: 0.63, color: Color.rgb(86,86,86)},
+                    {offset: 1, color: Color.rgb(139,139,139)}
+                ],
+                'southNorth'
+            );
+            this.selectionModeButton.setFill(this.selectionModeButton.normalFill);
+            this.selectionModeButton.onTouchStart = function(){};
+            this.selectionModeButton.onTouchEnd = function(){};
+            this.selectionModeButton.onTap = function(){
+                this.toggle();
+            };
+            this.selectionModeButton.toggle = function(){
+                this.isActivated = !this.isActivated;
+                if(this.isActivated){
+                    this.setFill(this.lighterFill);
+                    $world.activateSelection();
+                } else {
+                    this.setFill(this.normalFill);
+                    $world.deactivateSelection();
+                }
+            }
+        }
+        this.addMorph(this.selectionModeButton);
+
+        this.selectionModeButton.setFixed(true);
+        this.selectionModeButton.fixedScale = 1;
+        this.selectionModeButton.fixedPosition = pt(0,0);
+    },
+    deactivateSelection: function() {
+        $world.select();
+        this.selectionActivated = false;
+    },
+    activateSelection: function() {
+        this.selectionActivated = true;
+    },
+
+},
+'Tools', {
+    openColorStylerFor: function(target){
+        if(!this.colorStyler) {
+            this.colorStyler = this.openPartItem('ColorChooser', 'PartsBin/iPadWidgets');
+        } else {
+            this.addMorph(this.colorStyler)
+        }
+        target.showHalos()
+
+    },
+    openBorderStylerFor: function(target){
+        if(!this.borderStyler) {
+            this.borderStyler = this.openPartItem('BorderStyler', 'PartsBin/iPadWidgets');
+        } else {
+            this.addMorph(this.borderStyler)
+        }
+        target.showHalos()
+    },
+
+    openLayoutStylerFor: function(target){
+        if(!this.layoutStyler) {
+            this.layoutStyler = this.openPartItem('LayoutStyler', 'PartsBin/iPadWidgets');
+        } else {
+            this.addMorph(this.layoutStyler)
+        }
+        target.showHalos()
+},
 });
 
 lively.morphic.Halo.addMethods("TouchToMouse", {
@@ -1396,287 +2014,6 @@ lively.morphic.Text.addMethods("TapEvents", {
     onTouchMove: function(evt) {
         evt.stopPropagation();
     },
-});
-
-lively.morphic.Button.addMethods("TapEvents", {
-
-    onTouchStart: function() {
-        if (this.isActive) {
-            this.isPressed = true;
-            this.changeAppearanceFor(true);
-        }
-        return false;
-    },
-    onTouchEnd: function() {
-        if (this.isPressed) {
-            this.setValue(false);
-            this.changeAppearanceFor(false);
-            this.isPressed = false;
-        }
-        return false;
-    }
-
-
-});
-
-cop.create("GestureEvents").refineClass(lively.morphic.Morph, {
-    onGestureChange: function (evt) {
-        if(this.areEventsIgnoredOrDisabled()){
-            return false;
-        }
-        if (this.halosTemporaryInvisible) {
-            this.setScale(evt.scale*this.originalScale);
-            this.setRotation(this.originalRotation+evt.rotation/180*Math.PI);
-            evt.stop()
-        };
-        if ($world.isInEditMode()) $world.setEditMode(false)
-    },
-    onGestureStart: function(evt) {
-        if(this.areEventsIgnoredOrDisabled()){
-            return false;
-        }
-        if (this.showsHalos) {
-            this.removeHalos();
-            this.halosTemporaryInvisible = true
-            this.setOrigin(this.getExtent().scaleBy(0.5));
-            this.originalScale = this.getScale();
-            this.originalRotation = this.getRotation();
-            this.lastRotation = 0;
-            evt.stop()
-        };
-    },
-    onGestureEnd: function(evt) {
-        if (this.areEventsIgnoredOrDisabled()){
-            return false;
-        }
-        if (this != this.world() && this.halosTemporaryInvisible) {
-            if (this.halosTemporaryInvisible) {
-                this.showHalos();
-                this.halosTemporaryInvisible = false
-            }
-            this.setOrigin(this.getExtent().scaleBy(0.5));
-            this.originalScale = this.getScale();
-            this.originalRotation = this.getRotation();
-            evt.stop();
-        }
-    },
-}).refineClass(lively.morphic.AbstractDialog, {
-     buildPanel: function (bounds) {
-        var out = cop.proceed(bounds);
-        this.panel.setScale(1.5/$world.getZoomLevel());
-    },
-}).refineClass(lively.morphic.World, {
-    onGestureStart:function (evt) {
-        if(!this.pieMode){
-            cop.proceed(evt);
-            this.zoomingInProgress = true;
-            this._emulatedScrollingTemporarilyDisabled = true;
-        }
-    },
-    onGestureChange: function(evt) {
-
-    },
-    onGestureEnd: function(evt) {
-        if(!this.pieMode){
-            window.setTimeout( function() {
-                $world.zoomLevel = $world.calculateCurrentZoom();
-                $world.onWindowScroll();
-                $world.zoomingInProgress = false;
-            }, 1);
-        }
-    },
-    onWindowScroll: function(evt) {
-        $world.scrollOffset = pt(window.pageXOffset,window.pageYOffset);
-    },
-
-    onLoad: function() {
-        this.zoomLevel = this.calculateCurrentZoom();
-        this.onWindowScroll();
-        cop.proceed();
-    },
-    openDialog: function(dialog) {
-        return cop.proceed(dialog);
-    },
-    addStatusMessageMorph: function(morph, delay) {
-        morph.setScale(1/this.getZoomLevel());
-        if (!this.statusMessages) this.statusMessages = [];
-        morph.isEpiMorph = true;
-        this.addMorph(morph);
-        morph.addScript(function onMouseUp(evt) {
-            this.stayOpen = true;
-            return $super(evt);
-        })
-        morph.addScript(function remove() {
-            var world = this.world();
-            if (world.statusMessages)
-                world.statusMessages = world.statusMessages.without(this);
-            return $super();
-        })
-        morph.align(morph.bounds().topRight(), this.visibleBounds().topRight());
-        this.statusMessages.invoke('moveBy', pt(0, morph.getExtent().y / this.getZoomLevel()));
-        this.statusMessages.push(morph);
-
-        if (delay) {
-            (function removeMsgMorph() {
-                if (!morph.stayOpen) morph.remove()
-            }).delay(delay);
-        }
-
-        return morph;
-    },
-    registerForGlobalEvents: function() {
-        // enter comment here
-        var self = this;
-        document.body.onorientationchange = function (evt) {
-            lively.morphic.EventHandler.prototype.patchEvent(evt);
-            self.onOrientationChange(evt);
-        }
-        return cop.proceed();
-    },
-    onOrientationChange: function(evt) {
-        this.zoomLevel = this.calculateCurrentZoom();
-        this.onWindowScroll();
-    },
-
-}).refineClass(lively.morphic.BoundsHalo, {
-    initialize: function (targetMorph) {
-        cop.proceed(targetMorph);
-        this.unregisterFromGestureEvents();
-        this.disableEvents();
-    },
-}).beGlobal();
-
-cop.create("IPadThemeLayer").refineClass(lively.morphic.World, {
-
-    morphMenuDefaultPartsItems: function () {
-        var items = [],
-            partNames = ["Rectangle", "Ellipse", "Image", "Text", 'Line'].sort();
-
-        items.pushAll(partNames.collect(function(ea) { return [ea, function() {
-            var partSpaceName = 'PartsBin/Basic',
-                part = lively.PartsBin.getPart(ea, partSpaceName);
-			if (!part) return;
-            lively.morphic.World.current().firstHand().grabMorph(part);
-        }]}))
-
-        items.pushAll(["TextField", "Button"].collect(function(ea) { return [ea, function() {
-            var partSpaceName = 'PartsBin/iPadWidgets',
-                part = lively.PartsBin.getPart(ea, partSpaceName);
-			if (!part) return;
-            lively.morphic.World.current().firstHand().grabMorph(part);
-        }]}))
-
-        partNames = ["List", "Slider", "ScriptableButton"].sort()
-        items.pushAll(partNames.collect(function(ea) { return [ea, function() {
-            var partSpaceName = 'PartsBin/Inputs',
-                part = lively.PartsBin.getPart(ea, partSpaceName);
-			if (!part) return;
-            lively.morphic.World.current().firstHand().grabMorph(part);
-        }]}))
-
-        return items;
-    }
-}).refineClass(lively.morphic.Slider, {
-    onrestore: function () {
-        cop.proceed();
-        this.beIPadSlider.bind(this).delay(0);
-    },
-
-    beIPadSlider: function() {
-        if (!this.owner) return;
-        if (this.vertical()) {
-            this.setExtent(pt(7, this.getExtent().y));
-        } else {
-            this.setExtent(pt(this.getExtent().x, 7));
-        };
-        this.adjustSliderParts();
-        this.setBorderWidth(1);
-        this.setBorderColor(Color.rgb(95,94,95));
-        this.adjustSliderParts();
-        this.setKnobFill();
-
-        this.enlargeMorph()
-        this.sliderKnob.disableSelection()
-    },
-
-    enlargeMorph: function() {
-        if (this.sliderKnob.isEnlarged()) return;
-        var largeSliderKnob = this.sliderKnob.copy()
-
-        this.sliderKnob.addMorph(largeSliderKnob)
-        largeSliderKnob.setScale(largeSliderKnob.getScale()*2) // define min/max size
-        largeSliderKnob.ignoreEvents()
-        largeSliderKnob.disableSelection()
-        largeSliderKnob.setFill(null)
-
-        //largeSliderKnob.setFill(Color.rgba(200,200,200,0.3))
-        largeSliderKnob.setBorderWidth(0)
-        largeSliderKnob.setPosition(largeSliderKnob.getExtent().scaleBy(-0.5))
-        this.sliderKnob.setOrigin(this.sliderKnob.bounds().topLeft().subPt(this.sliderKnob.getPosition()))
-    },
-
-    updateFill: function(value) {
-        if (this.inverted && this.inverted()) value = 1 - value;
-        var color = this.color || Color.rgb(53,83,255),
-            align = this.vertical() ? 'northSouth' : 'eastWest',
-            bgStyle = new lively.morphic.LinearGradient([
-                {offset: 0, color: color},
-                {offset: value, color: color},
-                {offset: Math.min(1,value+0.01), color: Color.white
-            }], align);
-        this.setFill(bgStyle);
-    },
-    setKnobFill: function() {
-        var knobStyle= new lively.morphic.LinearGradient([
-                {offset: 0, color: Color.darkGray.mixedWith(Color.white, 0.5)},
-                {offset: 0.3, color: Color.lightGray},
-                {offset: 1, color: Color.white}]);
-        this.sliderKnob.setFill(knobStyle);
-    },
-    adjustSliderParts: function() {
-        if (!this.sliderKnob) return;
-        // This method adjusts the slider for changes in value as well as geometry
-        var val = this.getScaledValue();
-        var bnds = this.shape.bounds();
-        var knobMult = this.knobRatio || 3
-        var ext = this.getSliderExtent();
-        if (this.vertical()) { // more vertical...
-            var offset = 0 - (this.sliderKnob.bounds().width / 2) + (this.getExtent().x / 2);
-            this.sliderKnob.setPosition(pt(offset,this.sliderKnob.getPosition().y));
-            var size = this.getExtent().x * knobMult;
-            this.sliderKnob.setExtent(pt(size, size));
-            var elevPix = Math.max(ext*bnds.height, this.mss); // thickness of elevator in pixels
-            var topLeft = pt(this.sliderKnob.getPosition().x - this.sliderKnob.getOrigin().x, (bnds.height - elevPix)*val);
-        } else { // more horizontal...
-            var offset = 0 - (this.sliderKnob.bounds().height / 2) + (this.getExtent().y / 2);
-            this.sliderKnob.setPosition(pt(this.sliderKnob.getPosition().x, offset));
-            var size = this.getExtent().y * knobMult;
-            this.sliderKnob.setExtent(pt(size,size));
-            var elevPix = Math.max(ext*bnds.width, this.mss); // thickness of elevator in pixels
-            var topLeft = pt((bnds.width - elevPix)*val, this.sliderKnob.getPosition().y - this.sliderKnob.getOrigin().y);
-        };
-
-        this.sliderKnob.setPosition(topLeft.addPt(this.sliderKnob.getOrigin()));
-        this.sliderKnob.setBorderRadius(13);
-        this.sliderKnob.draggableWithoutHalo = true;
-        this.updateFill(val);
-    },
-    setKnobRatio: function(num) {
-        this.knobRatio = num;
-    },
-    getSliderExtent: function() {
-    if (this.vertical())
-        return (this.sliderKnob.getExtent().y)/(this.getExtent().y)
-    else
-        return (this.sliderKnob.getExtent().x)/(this.getExtent().x)
-    },
-    onDoubleTap: function(){
-        this.select();
-    },
-    onTap: function(){
-        return;
-    }
-}).refineClass(lively.morphic.Text, {
     beTextField: function() {
         this.shape.setPadding(pt(10,10).extent(pt(0,0)));
         this.setBorderRadius(13);
@@ -1702,15 +2039,54 @@ cop.create("IPadThemeLayer").refineClass(lively.morphic.World, {
         this.disableEvents();
         return this;
     }
-}).refineClass(lively.morphic.Button, {
-    onrestore: function () {
-        cop.proceed();
-        this.beIPadButton();
+},
+'Double Tap Selection', {
+    onDoubleTap: function(evt){
+        this.select();
+        evt.stop();
     },
-    initialize: function(bounds, labelString) {
-        cop.proceed(bounds, labelString);
-        this.beIPadButton(labelString);
+    appendTextHTML: function(ctx) {
+        if (!ctx.morphNode) throw dbgOn(new Error('appendText: no morphNode!'))
+        if (!ctx.shapeNode) throw dbgOn(new Error('appendText: no shapeNode!'))
+        if (!ctx.textNode) throw dbgOn(new Error('appendText: no textNode!'))
+
+        ctx.shapeNode.insertBefore(ctx.textNode, ctx.shapeNode.firstChild); // instead of appendChild
+    }
+},
+'Touch and Hold Selection', {
+
+    appendTextHTML: function(ctx) {
+        if (!ctx.morphNode) throw dbgOn(new Error('appendText: no morphNode!'))
+        if (!ctx.shapeNode) throw dbgOn(new Error('appendText: no shapeNode!'))
+        if (!ctx.textNode) throw dbgOn(new Error('appendText: no textNode!'))
+        ctx.shapeNode.insertBefore(ctx.textNode, ctx.shapeNode.firstChild); // instead of appendChild
+    }
+});
+
+lively.morphic.Button.addMethods("TapEvents", {
+
+    onTouchStart: function() {
+        if (this.isActive) {
+            this.isPressed = true;
+            this.changeAppearanceFor(true);
+        }
+        return false;
     },
+    onTouchEnd: function() {
+        if (this.isPressed) {
+            this.setValue(false);
+            this.changeAppearanceFor(false);
+            this.isPressed = false;
+        }
+        return false;
+    },
+    onTap: function(evt) {
+        evt.stop()
+        // we don't want a button to be selected when tapped
+    },
+
+
+
 
     setExtent: function(value) {
         var min = this.getMinExtent();
@@ -1805,502 +2181,18 @@ cop.create("IPadThemeLayer").refineClass(lively.morphic.World, {
         this.label.layout.centeredHorizontal = true;
         this.adjustForNewBounds();
     },
-}).refineClass(lively.morphic.TitleBar, {
-    onrestore: function () {
-        cop.proceed();
-        this.beTaskBar.bind(this).delay(0);
-    },
-    initialize: function  () {
-        cop.proceed();
-        this.beTaskBar.bind(this).delay(0);
-    },
-    beTaskBar: function() {
-        this.applyTaskBarStyle();
-        this.adjustForNewBounds();
-        this.draggableWithoutHalo = true;
-        this.windowMorph.targetMorph.align(this.windowMorph.targetMorph.getBounds().topLeft(), this.getBounds().bottomLeft())
-        this.windowMorph.targetMorph.setExtent(pt(this.windowMorph.getExtent().x, this.windowMorph.getExtent().y-this.getExtent().y))
-    },
-    applyTaskBarStyle: function() {
-        var barHeight = 44;
-        var that = this;
-        this.setExtent(pt(this.getExtent().x, barHeight));
-        this.setBorderWidth(0);
-        this.windowMorph.setBorderWidth(0);
-        this.submorphs.each(function (ea) {
-            if (ea.constructor === lively.morphic.Button) {
-                if (ea.beToolbarButton && ea.label && ea.label.getTextString) {
-                    ea.beToolbarButton(ea.label.getTextString());
-                    if (!(ea === that.closeButton
-                            || ea === that.menuButton
-                            || ea === that.collapseButton)) {
-                        ea.setPosition(pt(barHeight*ea.orderInTaskBar, ea.getPosition().y));
-                    }
-                }
-            }
-        })
-        this.closeButton.beToolbarButton("X");
-        this.closeButton.setPosition(pt(this.getExtent().x-this.closeButton.getExtent().x,0));
-        this.collapseButton.beToolbarButton("-");
-        this.collapseButton.setPosition(pt(
-            this.closeButton.getPosition().x-this.collapseButton.getExtent().x,0)
-        );
-        this.menuButton.beToolbarButton("M");
-        this.menuButton.setPosition(pt(0,0))
-        this.applyStyle({borderRadius: "3px 3px 0px 0px",});
-        this.label.emphasizeAll({fontWeight: "bold",});
-      },
 
-    centerLabel: function() {
-        this.label.fixedWidth = false;
-        if (this.label.layout) {
-            this.label.layout.resizeWidth = false;
-            this.label.layout.centeredVertical = true;
-        }
-        this.label.growOrShrinkToFit();
-    },
-
-    adjustForNewBounds: function() {
-        cop.proceed();
-        this.menuButton.setPosition(pt(0,0));
-        this.closeButton.setPosition(pt(this.getExtent().x-this.closeButton.getExtent().x,0))
-        this.collapseButton.setPosition(pt(this.closeButton.getPosition().x-this.collapseButton.getExtent().x,0))
-    },
-
-    initialize: function(headline, windowWidth, windowMorph, optSuppressControls) {
-        cop.proceed(headline, windowWidth, windowMorph, optSuppressControls);
-        this.beTaskBar.bind(this).delay(0);
-    },
-
-}).refineClass(lively.morphic.Menu, {
-    openAt: function(pos, title, items) {
-        $world.loadWorldMenu();
-    },
-    }).refineClass(lively.morphic.SliderKnob, {
-        onDrag: function(evt) {
-        // the hitpoint is the offset that make the slider move smooth
-        if (!this.hitPoint) return; // we were not clicked on...
-
-        // Compute the value from a new mouse point, and emit it
-        var delta = evt.getPosition().subPt(this.hitPoint),
-            p = this.bounds().topLeft().addPt(delta).subPt(this.getOrigin()),
-            bnds = this.slider.innerBounds(),
-            ext = this.slider.getSliderExtent();
-
-        this.hitPoint = evt.getPosition()
-        if (this.slider.vertical()) {
-            // thickness of elevator in pixels
-            var elevPix = Math.max(ext*bnds.height,this.slider.mss),
-                newValue = p.y / (bnds.height-elevPix);
-        } else {
-            // thickness of elevator in pixels
-            var elevPix = Math.max(ext*bnds.width,this.slider.mss),
-                newValue =  p.x / (bnds.width-elevPix);
-        }
-
-        if (isNaN(newValue)) newValue = 0;
-        this.slider.setScaledValue(this.slider.clipValue(newValue));
-    },
-    isEnlarged: function() {
-        return this.submorphs.length != 0
-    },
-}).beGlobal();
-
-cop.create('DoubleTapSelection').refineClass(lively.morphic.Button,{
+},
+'Double Tap Selection', {
     onDoubleTap: function(){
         this.select();
     }
-}).refineClass(lively.morphic.Text,{
-    onDoubleTap: function(evt){
-        this.select();
-        evt.stop();
-    },
-    appendTextHTML: function(ctx) {
-        if (!ctx.morphNode) throw dbgOn(new Error('appendText: no morphNode!'))
-        if (!ctx.shapeNode) throw dbgOn(new Error('appendText: no shapeNode!'))
-        if (!ctx.textNode) throw dbgOn(new Error('appendText: no textNode!'))
-
-        ctx.shapeNode.insertBefore(ctx.textNode, ctx.shapeNode.firstChild); // instead of appendChild
-    }
-}).refineClass(lively.morphic.Morph,{
-    tapped: function(evt) {
-        var doubleTapTimeout = 250,
-            that = this;
-
-        if (this.lastTap && new Date() - this.lastTap <= doubleTapTimeout) {
-            if (typeof this.onDoubleTap === "function") {
-                this.lastTap.event.doNotTap = true;
-                this.lastTap = false;
-                this.onDoubleTap(evt);
-            }
-
-        } else {
-            if (typeof this.onTap === "function") {
-                window.setTimeout(function () {
-                    if (that.lastTap && !that.lastTap.event.doNotTap) {
-                        that.onTap(evt);
-                    }
-                }, doubleTapTimeout);
-            }
-            this.lastTap = new Date();
-            this.lastTap.event = evt;
-        }
-    }
-});
-
-cop.create('TouchAndHoldSelection').refineClass(lively.morphic.Button,{
-    onHold: function(){
-        this.select();
-    }
-}).refineClass(lively.morphic.Text,{
-    onHold: function(){
-        this.select();
-    },
-    appendTextHTML: function(ctx) {
-        if (!ctx.morphNode) throw dbgOn(new Error('appendText: no morphNode!'))
-        if (!ctx.shapeNode) throw dbgOn(new Error('appendText: no shapeNode!'))
-        if (!ctx.textNode) throw dbgOn(new Error('appendText: no textNode!'))
-        ctx.shapeNode.insertBefore(ctx.textNode, ctx.shapeNode.firstChild); // instead of appendChild
-    }
-});
-
-cop.create('SelectionMode').refineClass(lively.morphic.World, {
-    ensureSelectionMorph: function() {
-        if(!this.selectionModeButton){
-            this.selectionModeButton = new lively.morphic.Button(rect(0,0,44,44));
-            this.selectionModeButton.setExtent(pt(100,84));
-            this.selectionModeButton.setLabel("activate selection mode");
-
-            this.selectionModeButton.label.beLabel({
-                textColor: Color.white,
-                emphasize: {textShadow: null}
-            });
-            this.selectionModeButton.lighterFill = new lively.morphic.LinearGradient(
-                [
-                    {offset: 0, color: Color.rgb(49,79,255)},
-                    {offset: 0.59, color: Color.rgb(53,83,255)},
-                    {offset: 0.63, color: Color.rgb(79,105,255)},
-                    {offset: 1, color: Color.rgb(112,134,255)}
-                ],
-                'southNorth'
-            );
-            this.selectionModeButton.normalFill = new lively.morphic.LinearGradient(
-                [
-                    {offset: 0, color: Color.rgb(0,0,0)},
-                    {offset: 0.59, color: Color.rgb(59,59,59)},
-                    {offset: 0.63, color: Color.rgb(86,86,86)},
-                    {offset: 1, color: Color.rgb(139,139,139)}
-                ],
-                'southNorth'
-            );
-            this.selectionModeButton.setFill(this.selectionModeButton.normalFill);
-            this.selectionModeButton.onTouchStart = function(){};
-            this.selectionModeButton.onTouchEnd = function(){};
-            this.selectionModeButton.onTap = function(){
-                this.toggle();
-            };
-            this.selectionModeButton.toggle = function(){
-                this.isActivated = !this.isActivated;
-                if(this.isActivated){
-                    this.setFill(this.lighterFill);
-                    $world.activateSelection();
-                } else {
-                    this.setFill(this.normalFill);
-                    $world.deactivateSelection();
-                }
-            }
-        }
-        this.addMorph(this.selectionModeButton);
-
-        this.selectionModeButton.setFixed(true);
-        this.selectionModeButton.fixedScale = 1;
-        this.selectionModeButton.fixedPosition = pt(0,0);
-    },
-    deactivateSelection: function() {
-        $world.select();
-        this.selectionActivated = false;
-    },
-    activateSelection: function() {
-        this.selectionActivated = true;
-    },
-
-
-}).refineClass(lively.morphic.Morph, {
-    onTap: function(evt){
-        if(this.world().selectionActivated){
-            this.select();
-            evt.stop();
-        } else {
-            return cop.proceed(evt);
-        }
-    }
-}).refineClass(lively.morphic.Button, {
-    onTap: function(evt){
-        if(this.world().selectionActivated){
-            this.select();
-            evt.stop();
-        } else {
-            return cop.proceed(evt);
-        }
-    }
-}).refineClass(lively.morphic.Text, {
-    onTap: function(evt){
-        if(this.world().selectionActivated){
-            this.select();
-            evt.stop();
-        } else {
-            return cop.proceed(evt);
-        }
-    }
-});
-
-SelectionMode.beGlobal = function(){
-  cop.enableLayer(this);
-  $world.ensureSelectionMorph();
-  return this;
-};
-
-cop.create('worldMenu').refineClass(lively.morphic.World, {
-
-    onrestore: function(){
-        cop.proceed();
-        connect(lively.morphic.World, "currentWorld", this, "loadTouchMenu");
-    },
-    loadTouchMenu: function() {
-        this.touchMenuPrototype = this.loadPartItem("TouchMenu", "PartsBin/iPadWidgets");
-    },
-    showTouchMenuAt: function (pos, fixed) {
-        var touchMenu = this.touchMenuPrototype,
-            pagePosition = pos,
-            screenPos = pagePosition.subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel()),
-            triangle = touchMenu.get("Triangle");
-
-        touchMenu.setPosition(pos);
-        if(screenPos.y > document.documentElement.clientHeight / 2) {
-            touchMenu.moveBy(pt(0, -(touchMenu.getExtent().y + 1 * triangle.getExtent().y)).scaleBy(1 / $world.getZoomLevel()));
-            touchMenu.movePointerToBottom();
-        } else {
-            touchMenu.movePointerToTop();
-        }
-
-        if(screenPos.x < touchMenu.getExtent().x / 2) {
-            touchMenu.moveBy(pt(touchMenu.getExtent().x / 2 - screenPos.x, 0).scaleBy(1 / $world.getZoomLevel()));
-            triangle.moveBy(pt(- touchMenu.getExtent().x / 2 + screenPos.x,0));
-        }
-        if(screenPos.x > document.documentElement.clientWidth - touchMenu.getExtent().x / 2) {
-            var delta = document.documentElement.clientWidth - screenPos.x;
-            touchMenu.moveBy(pt( -touchMenu.getExtent().x / 2 + delta, 0).scaleBy(1 / $world.getZoomLevel()));
-            triangle.moveBy(pt(+touchMenu.getExtent().x/2-delta,0));
-        }
-
-
-        // this.addBlockerWith(touchMenu);
-        if(fixed) {
-            touchMenu.setFixed(true, true);
-        }
-        this.addMorph(touchMenu)
-        return touchMenu;
-    },
-/*    addBlockerWith: function(menu) {
-        var blocker = Morph.makeRectangle(rect(0,0,10,10));
-        blocker.setExtent(this.getExtent());
-        blocker.setPosition(pt(0,0));
-        blocker.disableDropping();
-        blocker.disableSelection();
-        blocker.applyStyle({
-            fill: null,
-            opacity: 1,
-        });
-        menu.pinned = false;
-        menu.get('PinButton').inactiveBackground();
-        blocker.addMorph(menu);
-        blocker.touchMenu = menu;
-        blocker.addScript(function remove(optRemoveMenu) {
-            if (optRemoveMenu) {
-                this.touchMenu.removeFixed();
-            } else {
-                this.touchMenu = undefined;
-            }
-            $super();
-        });
-        connect(blocker, "onTap", blocker, "remove");
-        connect(blocker, "onClick", blocker, "remove");
-        connect(menu, "remove", blocker, "remove", {removeAfterUpdate: true});
-
-        this.addMorph(blocker);
-    },*/
-
-    onHold: function(touch) {
-        var items = this.morphMenuItems();
-        var that = this;
-        var menu = this.showTouchMenuAt(touch.pageStart, true);
-        menu.targetMorph = this;
-        menu.setup(items);
-    },
-    addTextWindow: function (spec) {
-        // FIXME: typecheck the spec
-        if (Object.isString(spec.valueOf())) spec = {content: spec}; // convenience
-        var extent = spec.extent || pt(500, 200),
-            wrapper = lively.PartsBin.getPart("Rectangle", "PartsBin/Basic"),
-            textMorph = new lively.morphic.Text(extent.extentAsRectangle(), spec.content || ""),
-            doitButton = lively.PartsBin.getPart("DoitButton", "PartsBin/iPadWidgets"),
-            doAllButton = lively.PartsBin.getPart("DoAllButton", "PartsBin/iPadWidgets"),
-            saveButton = lively.PartsBin.getPart("SaveButton", "PartsBin/iPadWidgets"),
-            printButton = lively.PartsBin.getPart("PrintButton", "PartsBin/iPadWidgets");
-        wrapper.setExtent(extent.addXY(0, 24));
-        wrapper.addMorph(doitButton);
-        wrapper.addMorph(doAllButton);
-        wrapper.addMorph(saveButton);
-        wrapper.addMorph(printButton);
-        wrapper.addMorph(textMorph);
-        doitButton.moveBy(pt(2, 2));
-        doAllButton.moveBy(pt(doAllButton.getExtent().x+2*2, 2));
-        saveButton.moveBy(pt(2*saveButton.getExtent().x+3*2, 2));
-        printButton.moveBy(pt(3*saveButton.getExtent().x+4*2, 2));
-        doitButton.textMorph = textMorph;
-        doAllButton.textMorph = textMorph;
-        saveButton.textMorph = textMorph;
-        printButton.textMorph = textMorph;
-        textMorph.moveBy(pt(0, 35));
-        pane = this.internalAddWindow(wrapper, spec.title, spec.position);
-        wrapper.applyStyle({
-            fill: Color.rgb(255,255,255),
-            adjustForNewBounds: true,
-            resizeWidth: true, resizeHeight: true
-        });
-        textMorph.applyStyle({
-            clipMode: 'auto',
-            fixedWidth: true, fixedHeight: true,
-            resizeWidth: true, resizeHeight: true,
-            syntaxHighlighting: spec.syntaxHighlighting});
-        return textMorph;
-    },
-    morphMenuDefaultPartsItems: function() {
-        var items = [],
-            partNames = ["Rectangle", "Ellipse", "Image", "Text", 'Line'].sort();
-
-        items.pushAll(partNames.collect(function(ea) { return [ea, function(evt, menuMorph) {
-            var partSpaceName = 'PartsBin/Basic',
-                part = lively.PartsBin.getPart(ea, partSpaceName);
-            if (!part) {
-                return;
-            }
-            if(UserAgent.isTouch) {
-                part.openInWorld();
-                //part.align(part.bounds().topLeft(), menuMorph.bounds().topRight());
-                part.align(part.bounds().center(), $world.visibleBounds().center());
-                $world.setEditMode(true);
-                part.select();
-            } else {
-                lively.morphic.World.current().firstHand().grabMorph(part);
-            }
-
-        }]}));
-
-        partNames = ["List", "Slider", "ScriptableButton", "Button"].sort()
-        items.pushAll(partNames.collect(function(ea) { return [ea, function(evt, menuMorph) {
-            var partSpaceName = 'PartsBin/Inputs',
-                part = lively.PartsBin.getPart(ea, partSpaceName);
-            if (!part) {
-                return;
-            }
-            if(UserAgent.isTouch) {
-                part.openInWorld();
-                part.align(part.bounds().topLeft(), menuMorph.bounds().topRight());
-                $world.setEditMode(true);
-                part.showHalos();
-            } else {
-                lively.morphic.World.current().firstHand().grabMorph(part);
-            }
-        }]}));
-
-        return items;
-    },
-    morphMenuItems: function() {
-        var items = cop.proceed();
-        
-        items[2][1][7] = ['Flap', function() {
-                var flap = new lively.morphic.Flap('Custom', 'bottom');
-                flap.enableSelection();
-            }];
-            
-        return items
-    },
-    openPartsBin: function() {
-        return (new lively.morphic.PartsBinFlap());
-    },
-    openObjectEditor: function() {
-        var objectEditor = new lively.morphic.ObjectEditorFlap();
-        this.addMorph(objectEditor);
-        return objectEditor
-    },
-}).refineClass(lively.morphic.Morph, {
-    openMorphMenuAt: function(pos, itemFilter) {
-        if (!(itemFilter instanceof Function)) {
-            itemFilter = function (items) { return items }
-        }
-        var menu = $world.showTouchMenuAt(pos, true);
-        menu.targetMorph = this;
-        debugger
-        menu.setup(itemFilter(this.morphMenuItems()));
-        return menu
-    },
-}).beGlobal();
-
-cop.create("morphMenuTools").refineClass(lively.morphic.Morph, {
-    morphMenuItems: function() {
-        var a = cop.proceed();
-        var self = this;
-        if( this != $world) {
-            a.push(["tools", [  ['inspect', function() {
-                                    $world.openInspectorFor(self)
-                                }],
-                                ['style',
-                                    [ ['Fill', function() {
-                                        $world.openColorStylerFor(self);
-                                    }],
-                                    ['Border', function() {
-                                        $world.openBorderStylerFor(self);}],
-                                    ['Layout', function() {
-                                        $world.openLayoutStylerFor(self);}]
-                                    ]
-                                ],
-                                ['edit', function() {
-                                    $world.openObjectEditorFor(self)
-                                }]
-                            ]
-                    ])
-        }
-        return a;
-    },
-}).refineClass(lively.morphic.World, {
-    openColorStylerFor: function(target){
-        if(!this.colorStyler) {
-            this.colorStyler = this.openPartItem('ColorChooser', 'PartsBin/iPadWidgets');
-        } else {
-            this.addMorph(this.colorStyler)
-        }
-        target.showHalos()
-
-    },
-    openBorderStylerFor: function(target){
-        if(!this.borderStyler) {
-            this.borderStyler = this.openPartItem('BorderStyler', 'PartsBin/iPadWidgets');
-        } else {
-            this.addMorph(this.borderStyler)
-        }
-        target.showHalos()
-    },
-
-    openLayoutStylerFor: function(target){
-        if(!this.layoutStyler) {
-            this.layoutStyler = this.openPartItem('LayoutStyler', 'PartsBin/iPadWidgets');
-        } else {
-            this.addMorph(this.layoutStyler)
-        }
-        target.showHalos()
 },
-}).beGlobal();
+'Touch and Hold Selection', {
+    onHold: function(){
+        this.select();
+    },
+});
 
 lively.morphic.Morph.subclass('lively.morphic.PieMenu',
 'inizialization', {
@@ -3068,62 +2960,278 @@ lively.morphic.Path.addMethods(
         }
     }
 });
-
-cop.create('PieMenu').refineClass(lively.morphic.Morph, {
-    onTouchStartAction: function (evt) {
-        if($world.pieMode){
-            return this.pieStart(evt);
+lively.morphic.Slider.addMethods({
+    beIPadSlider: function() {
+        if (!this.owner) return;
+        if (this.vertical()) {
+            this.setExtent(pt(7, this.getExtent().y));
         } else {
-            cop.proceed(evt);
+            this.setExtent(pt(this.getExtent().x, 7));
+        };
+        this.adjustSliderParts();
+        this.setBorderWidth(1);
+        this.setBorderColor(Color.rgb(95,94,95));
+        this.adjustSliderParts();
+        this.setKnobFill();
+
+        this.enlargeMorph()
+        this.sliderKnob.disableSelection()
+    },
+
+    enlargeMorph: function() {
+        if (this.sliderKnob.isEnlarged()) return;
+        var largeSliderKnob = this.sliderKnob.copy()
+
+        this.sliderKnob.addMorph(largeSliderKnob)
+        largeSliderKnob.setScale(largeSliderKnob.getScale()*2) // define min/max size
+        largeSliderKnob.ignoreEvents()
+        largeSliderKnob.disableSelection()
+        largeSliderKnob.setFill(null)
+
+        //largeSliderKnob.setFill(Color.rgba(200,200,200,0.3))
+        largeSliderKnob.setBorderWidth(0)
+        largeSliderKnob.setPosition(largeSliderKnob.getExtent().scaleBy(-0.5))
+        this.sliderKnob.setOrigin(this.sliderKnob.bounds().topLeft().subPt(this.sliderKnob.getPosition()))
+    },
+
+    updateFill: function(value) {
+        if (this.inverted && this.inverted()) value = 1 - value;
+        var color = this.color || Color.rgb(53,83,255),
+            align = this.vertical() ? 'northSouth' : 'eastWest',
+            bgStyle = new lively.morphic.LinearGradient([
+                {offset: 0, color: color},
+                {offset: value, color: color},
+                {offset: Math.min(1,value+0.01), color: Color.white
+            }], align);
+        this.setFill(bgStyle);
+    },
+    setKnobFill: function() {
+        var knobStyle= new lively.morphic.LinearGradient([
+                {offset: 0, color: Color.darkGray.mixedWith(Color.white, 0.5)},
+                {offset: 0.3, color: Color.lightGray},
+                {offset: 1, color: Color.white}]);
+        this.sliderKnob.setFill(knobStyle);
+    },
+    adjustSliderParts: function() {
+        if (!this.sliderKnob) return;
+        // This method adjusts the slider for changes in value as well as geometry
+        var val = this.getScaledValue();
+        var bnds = this.shape.bounds();
+        var knobMult = this.knobRatio || 3
+        var ext = this.getSliderExtent();
+        if (this.vertical()) { // more vertical...
+            var offset = 0 - (this.sliderKnob.bounds().width / 2) + (this.getExtent().x / 2);
+            this.sliderKnob.setPosition(pt(offset,this.sliderKnob.getPosition().y));
+            var size = this.getExtent().x * knobMult;
+            this.sliderKnob.setExtent(pt(size, size));
+            var elevPix = Math.max(ext*bnds.height, this.mss); // thickness of elevator in pixels
+            var topLeft = pt(this.sliderKnob.getPosition().x - this.sliderKnob.getOrigin().x, (bnds.height - elevPix)*val);
+        } else { // more horizontal...
+            var offset = 0 - (this.sliderKnob.bounds().height / 2) + (this.getExtent().y / 2);
+            this.sliderKnob.setPosition(pt(this.sliderKnob.getPosition().x, offset));
+            var size = this.getExtent().y * knobMult;
+            this.sliderKnob.setExtent(pt(size,size));
+            var elevPix = Math.max(ext*bnds.width, this.mss); // thickness of elevator in pixels
+            var topLeft = pt((bnds.width - elevPix)*val, this.sliderKnob.getPosition().y - this.sliderKnob.getOrigin().y);
+        };
+
+        this.sliderKnob.setPosition(topLeft.addPt(this.sliderKnob.getOrigin()));
+        this.sliderKnob.setBorderRadius(13);
+        this.sliderKnob.draggableWithoutHalo = true;
+        this.updateFill(val);
+    },
+    setKnobRatio: function(num) {
+        this.knobRatio = num;
+    },
+    getSliderExtent: function() {
+    if (this.vertical())
+        return (this.sliderKnob.getExtent().y)/(this.getExtent().y)
+    else
+        return (this.sliderKnob.getExtent().x)/(this.getExtent().x)
+    },
+    onDoubleTap: function(){
+        this.select();
+    },
+    onTap: function(){
+        return;
+    },
+    beIPadSlider: function() {
+        if (!this.owner) return;
+        if (this.vertical()) {
+            this.setExtent(pt(7, this.getExtent().y));
+        } else {
+            this.setExtent(pt(this.getExtent().x, 7));
+        };
+        this.adjustSliderParts();
+        this.setBorderWidth(1);
+        this.setBorderColor(Color.rgb(95,94,95));
+        this.adjustSliderParts();
+        this.setKnobFill();
+
+        this.enlargeMorph()
+        this.sliderKnob.disableSelection()
+    },
+
+    enlargeMorph: function() {
+        if (this.sliderKnob.isEnlarged()) return;
+        var largeSliderKnob = this.sliderKnob.copy()
+
+        this.sliderKnob.addMorph(largeSliderKnob)
+        largeSliderKnob.setScale(largeSliderKnob.getScale()*2) // define min/max size
+        largeSliderKnob.ignoreEvents()
+        largeSliderKnob.disableSelection()
+        largeSliderKnob.setFill(null)
+
+        //largeSliderKnob.setFill(Color.rgba(200,200,200,0.3))
+        largeSliderKnob.setBorderWidth(0)
+        largeSliderKnob.setPosition(largeSliderKnob.getExtent().scaleBy(-0.5))
+        this.sliderKnob.setOrigin(this.sliderKnob.bounds().topLeft().subPt(this.sliderKnob.getPosition()))
+    },
+
+    updateFill: function(value) {
+        if (this.inverted && this.inverted()) value = 1 - value;
+        var color = this.color || Color.rgb(53,83,255),
+            align = this.vertical() ? 'northSouth' : 'eastWest',
+            bgStyle = new lively.morphic.LinearGradient([
+                {offset: 0, color: color},
+                {offset: value, color: color},
+                {offset: Math.min(1,value+0.01), color: Color.white
+            }], align);
+        this.setFill(bgStyle);
+    },
+    setKnobFill: function() {
+        var knobStyle= new lively.morphic.LinearGradient([
+                {offset: 0, color: Color.darkGray.mixedWith(Color.white, 0.5)},
+                {offset: 0.3, color: Color.lightGray},
+                {offset: 1, color: Color.white}]);
+        this.sliderKnob.setFill(knobStyle);
+    },
+    adjustSliderParts: function() {
+        if (!this.sliderKnob) return;
+        // This method adjusts the slider for changes in value as well as geometry
+        var val = this.getScaledValue();
+        var bnds = this.shape.bounds();
+        var knobMult = this.knobRatio || 3
+        var ext = this.getSliderExtent();
+        if (this.vertical()) { // more vertical...
+            var offset = 0 - (this.sliderKnob.bounds().width / 2) + (this.getExtent().x / 2);
+            this.sliderKnob.setPosition(pt(offset,this.sliderKnob.getPosition().y));
+            var size = this.getExtent().x * knobMult;
+            this.sliderKnob.setExtent(pt(size, size));
+            var elevPix = Math.max(ext*bnds.height, this.mss); // thickness of elevator in pixels
+            var topLeft = pt(this.sliderKnob.getPosition().x - this.sliderKnob.getOrigin().x, (bnds.height - elevPix)*val);
+        } else { // more horizontal...
+            var offset = 0 - (this.sliderKnob.bounds().height / 2) + (this.getExtent().y / 2);
+            this.sliderKnob.setPosition(pt(this.sliderKnob.getPosition().x, offset));
+            var size = this.getExtent().y * knobMult;
+            this.sliderKnob.setExtent(pt(size,size));
+            var elevPix = Math.max(ext*bnds.width, this.mss); // thickness of elevator in pixels
+            var topLeft = pt((bnds.width - elevPix)*val, this.sliderKnob.getPosition().y - this.sliderKnob.getOrigin().y);
+        };
+
+        this.sliderKnob.setPosition(topLeft.addPt(this.sliderKnob.getOrigin()));
+        this.sliderKnob.setBorderRadius(13);
+        this.sliderKnob.draggableWithoutHalo = true;
+        this.updateFill(val);
+    },
+    setKnobRatio: function(num) {
+        this.knobRatio = num;
+    },
+    getSliderExtent: function() {
+    if (this.vertical())
+        return (this.sliderKnob.getExtent().y)/(this.getExtent().y)
+    else
+        return (this.sliderKnob.getExtent().x)/(this.getExtent().x)
+    },
+    onDoubleTap: function(){
+        this.select();
+    },
+    onTap: function(){
+        return;
+    }
+});
+lively.morphic.SliderKnob.addMethods({
+    onDrag: function(evt) {
+        // the hitpoint is the offset that make the slider move smooth
+        if (!this.hitPoint) return; // we were not clicked on...
+
+        // Compute the value from a new mouse point, and emit it
+        var delta = evt.getPosition().subPt(this.hitPoint),
+            p = this.bounds().topLeft().addPt(delta).subPt(this.getOrigin()),
+            bnds = this.slider.innerBounds(),
+            ext = this.slider.getSliderExtent();
+
+        this.hitPoint = evt.getPosition()
+        if (this.slider.vertical()) {
+            // thickness of elevator in pixels
+            var elevPix = Math.max(ext*bnds.height,this.slider.mss),
+                newValue = p.y / (bnds.height-elevPix);
+        } else {
+            // thickness of elevator in pixels
+            var elevPix = Math.max(ext*bnds.width,this.slider.mss),
+                newValue =  p.x / (bnds.width-elevPix);
         }
-    },
-    onTouchMoveAction: function (evt) {
-        if($world.pieMode){
-            //console.log("doing piemove");
-            return this.pieMove(evt);
-        } else {
-            cop.proceed(evt);
-        }
-    },
-    onTouchEndAction: function (evt) {
-        if($world.pieMode){
-            return this.pieEnd(evt);
-        } else {
-            cop.proceed(evt);
-        }
-    },
 
-    onTap: function(evt) {
-        var out = cop.proceed(evt);
-        $world.removePie();
-        return out;
+        if (isNaN(newValue)) newValue = 0;
+        this.slider.setScaledValue(this.slider.clipValue(newValue));
     },
-
-}).refineClass(lively.morphic.List, {
-    updateList: function(items, useOwnImplementation) {
-        if(!useOwnImplementation) {
-            cop.proceed(items);
-        } else {
-
-        items = items || [];
-        //this.itemList = items;
+    isEnlarged: function() {
+        return this.submorphs.length != 0
+    },
+});
+lively.morphic.TitleBar.addMethods({
+    beTaskBar: function() {
+        this.applyTaskBarStyle();
+        this.adjustForNewBounds();
+        this.draggableWithoutHalo = true;
+        this.windowMorph.targetMorph.align(this.windowMorph.targetMorph.getBounds().topLeft(), this.getBounds().bottomLeft())
+        this.windowMorph.targetMorph.setExtent(pt(this.windowMorph.getExtent().x, this.windowMorph.getExtent().y-this.getExtent().y))
+    },
+    applyTaskBarStyle: function() {
+        var barHeight = 44;
         var that = this;
-        this.itemList = [];
-        var mapToItemList = function(array) {
-            for(var i=0; i < array.length; i++) {
-                if(array[i].constructor === Array) {
-                    mapToItemList(array[i].slice(1));
-                } else {
-                    that.itemList.push(array[i]);
+        this.setExtent(pt(this.getExtent().x, barHeight));
+        this.setBorderWidth(0);
+        this.windowMorph.setBorderWidth(0);
+        this.submorphs.each(function (ea) {
+            if (ea.constructor === lively.morphic.Button) {
+                if (ea.beToolbarButton && ea.label && ea.label.getTextString) {
+                    ea.beToolbarButton(ea.label.getTextString());
+                    if (!(ea === that.closeButton
+                            || ea === that.menuButton
+                            || ea === that.collapseButton)) {
+                        ea.setPosition(pt(barHeight*ea.orderInTaskBar, ea.getPosition().y));
+                    }
                 }
             }
-        }
-        mapToItemList(items);
+        })
+        this.closeButton.beToolbarButton("X");
+        this.closeButton.setPosition(pt(this.getExtent().x-this.closeButton.getExtent().x,0));
+        this.collapseButton.beToolbarButton("-");
+        this.collapseButton.setPosition(pt(
+            this.closeButton.getPosition().x-this.collapseButton.getExtent().x,0)
+        );
+        this.menuButton.beToolbarButton("M");
+        this.menuButton.setPosition(pt(0,0))
+        this.applyStyle({borderRadius: "3px 3px 0px 0px",});
+        this.label.emphasizeAll({fontWeight: "bold",});
+      },
 
-        this.renderContextDispatch('updateListContent', items);
+    centerLabel: function() {
+        this.label.fixedWidth = false;
+        if (this.label.layout) {
+            this.label.layout.resizeWidth = false;
+            this.label.layout.centeredVertical = true;
         }
+        this.label.growOrShrinkToFit();
     },
-
+});
+lively.morphic.Menu.addMethods({
+    openAt: function(pos, title, items) {
+        $world.loadWorldMenu();
+    },
+});
+lively.morphic.List.addMethods({
     updateListContentHTML: function(ctx, itemStrings) {
         //cop.proceed(ctx,itemStrings);
         //return;
@@ -3153,98 +3261,7 @@ cop.create('PieMenu').refineClass(lively.morphic.Morph, {
                 ctx.subNodes.push(option);
             }
         }
-    },
-
-}).beGlobal();
-
-cop.create('ToolMorphLayer').refineClass(lively.morphic.Morph, {
-    onMouseDown: function (evt) {
-        cop.proceed(evt);
-
-        if (!evt.isRightMouseButtonDown()){
-            $world.ignoreHalos = true;
-        }
-    },
-    onMouseUp: function (evt) {
-        cop.proceed(evt);
-        if (this.owner == $world) window.setTimeout(function () {$world.ignoreHalos = false}, 0);
-    },
-}).refineClass(lively.morphic.Slider, {
-    onMouseDown: function (evt) {
-        cop.proceed(evt);
-
-        if (!evt.isRightMouseButtonDown()){
-            $world.ignoreHalos = true;
-        }
-    },
-}).refineClass(lively.morphic.SliderKnob, {
-    onMouseDown: function (evt) {
-        cop.proceed(evt);
-
-        /*if (!evt.isRightMouseButtonDown()){
-            $world.ignoreHalos = true;
-        }*/
-    },
-}).refineClass(lively.morphic.Window, {
-    
-    collapse: function () {
-        if (this.isCollapsed()) return;
-        this.expandedTransform = this.getTransform();
-
-        this.targetMorph.onWindowCollapse && this.targetMorph.onWindowCollapse();
-        this.targetMorph.remove();
-        this.helperMorphs = this.submorphs.withoutAll([this.targetMorph, this.titleBar]);
-        this.helperMorphs.invoke('remove');
-        if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(true);
-        var finCollapse = function () {
-            this.state = 'collapsed';  // Set it now so setExtent works right
-            if (this.collapsedTransform) this.setTransform(this.collapsedTransform);
-            if (this.collapsedExtent) this.setExtent(this.collapsedExtent);
-            if (this.collapsedPosition) this.setPosition(this.collapsedPosition);
-            this.shape.setBounds(this.titleBar.bounds());
-        }.bind(this);
-        /*if (this.collapsedPosition && this.collapsedPosition.dist(this.getPosition()) > 100)
-            this.animatedInterpolateTo(this.collapsedPosition, 5, 50, finCollapse);
-        else */finCollapse();
-        this.owner.dispatchNotify && this.owner.dispatchNotify("collapse", this);
-    },
-    expand: function () {
-        if (!this.isCollapsed()) return;
-        this.collapsedTransform = this.getTransform();
-        this.collapsedExtent = this.innerBounds().extent();
-        this.collapsedPosition = this.getPosition();
-        var finExpand = function () {
-            this.state = 'expanded';
-            if (this.expandedTransform)
-                this.setTransform(this.expandedTransform);
-            if (this.expandedExtent) {
-                this.setExtent(this.expandedExtent);
-            }
-            if (this.expandedPosition) {
-                this.setPosition(this.expandedPosition);
-            }
-
-            this.addMorph(this.targetMorph);
-
-            this.helperMorphs.forEach(function(ea) {
-                this.addMorph(ea)
-            }, this);
-
-            // Bring this window forward if it wasn't already
-            this.owner && this.owner.addMorphFront(this);
-            this.targetMorph.onWindowExpand && this.targetMorph.onWindowExpand();
-        }.bind(this);
-        /*if (this.expandedPosition && this.expandedPosition.dist(this.getPosition()) > 100)
-            this.animatedInterpolateTo(this.expandedPosition, 5, 50, finExpand);
-        else*/ finExpand();
-        if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(false);
-        this.owner.dispatchNotify && this.owner.dispatchNotify("expand", this);
-    },
-
-    onMouseUp: function() {},
-    onMouseDown: function() {}
-})
-
+    },})
 
 lively.morphic.Box.subclass('ToolContainer',
 'initializing', {

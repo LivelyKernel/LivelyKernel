@@ -126,9 +126,16 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
         var obj = {x: 23, connections: {x: {updateOnConnect: true}}};
         lively.bindings.connect(obj, 'x', obj, 'y');
         this.assertEquals(obj.y, 23, "not updated in connect");
-    }
-
-});
+    },
+    test11GeometryBindingUsesConvert: function() {
+        var morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
+            observer = {result: 0},
+            c = lively.bindings.connect(morph, 'position', observer, 'result', {
+                converter: function(v) { return v * 2}
+            });
+        morph.setPosition(pt(50,50));
+        this.assertEquals(100, observer.result, 'converter not working');
+    }});
 
 
 }) // end of module

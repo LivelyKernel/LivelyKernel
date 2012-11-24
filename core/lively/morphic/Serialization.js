@@ -156,6 +156,7 @@ lively.morphic.World.addMethods(
         $super();
         // this should go into prepareForNewRenderContext / event registration...!
         this.registerForGlobalEvents();
+        this.getLastModificationDate();
     },
 
     interactiveSaveWorldAs: function() {
@@ -165,10 +166,10 @@ lively.morphic.World.addMethods(
             var url = input.startsWith('http') ?
                 new URL(input) : URL.source.withFilename(input);
             if (!new WebResource(url).exists()) {
-                world.saveWorldAs(url)
+                world.saveWorldAs(url, true);
             } else {
                 world.confirm(url.toString() + ' already exists. Overwrite?',
-                              function(answer) { answer && world.saveWorldAs(url) });
+                              function(answer) { answer && world.saveWorldAs(url, true); });
             }
         }, URL.source.filename())
     },
@@ -194,11 +195,11 @@ lively.morphic.World.addMethods(
             }
         })
 
-        if (URL.source.eq(url))
-            timeOnNetwork = this.storeDoc(doc, url, checkForOverwrites);
-        else
-            this.checkIfPathExistsAndStoreDoc(doc, url, checkForOverwrites)
-
+        if (URL.source.eq(url)) {
+            this.storeDoc(doc, url, checkForOverwrites);
+        } else {
+            this.checkIfPathExistsAndStoreDoc(doc, url, checkForOverwrites);
+        }
         Config.lastSaveTime = new Date().getTime() - start;
     },
     saveWorld: function() {
@@ -231,28 +232,55 @@ lively.morphic.World.addMethods(
     storeDoc: function (doc, url, checkForOverwrites) {
         var webR = new WebResource(url);
         webR.createProgressBar('Saving...');
-        connect(webR, 'status', this, 'handleSaveStatus');
+        connect(webR, 'status', this, 'handleSaveStatus', {updater: function($upd, status) {
+            $upd(status, this.sourceObj); // pass in WebResource as well
+        }});
         // allow disabling async saving.
         if(!Config.forceSyncSaving) { webR = webR.beAsync(); }
 		if (this.getUserName) this.getUserName(); // cgi, saves user in localStorage
-        webR.put(doc, null, {requiredSVNRevision: checkForOverwrites ? this.revisionOnLoad : null});
+
+        var putOptions = {};
+        if (checkForOverwrites) {
+            if (this.lastModified) putOptions.ifUnmodifiedSince = this.lastModified;
+            else if (this.revisionOnLoad) putOptions.requiredSVNRevision = this.revisionOnLoad;
+        }
+        webR.put(doc, null, putOptions);
     },
     askToOverwrite: function(url) {
         this.confirm(String(url) + ' was changed since loading it. Overwrite?',
-            function(input) { if (input) this.saveWorldAs(url) }.bind(this))
+            function(input) { if (input) this.saveWorldAs(url, false) }.bind(this))
     },
-    handleSaveStatus: function(status) {
+    handleSaveStatus: function(status, webR) {
         if (!status.isDone()) return;
         if (status.code() === 412) {
             this.askToOverwrite(status.url);
             return;
         }
         if (status.isSuccess()) {
-            this.tryToGetWorldRevision(); // update the rev used for overwrite check
+             // update the rev used for overwrite check
+            this.tryToGetWorldRevision();
+            this.getLastModificationDate(webR);
             this.savedWorldAsURL =  status.url;
             lively.bindings.signal(this, 'savingDone', status.url);
         } else {
             this.alert('Problem saving ' + status.url + ': ' + status)
+        }
+    },
+    getLastModificationDate: function(webR) {
+        function extractDate(webR) {
+            var dateString = webR.xhr.getResponseHeader('Last-Modified')
+                          || webR.xhr.getResponseHeader('Date');
+            return dateString && new Date(dateString);
+        }
+        if (webR) {
+            this.lastModified = extractDate(webR);
+        } else {
+            webR = new WebResource(URL.source);
+            webR.extractDate = function() { return extractDate(this) };
+            lively.bindings.connect(webR, 'status', this, 'lastModified', {
+                converter: function(status) {
+                    return status.isSuccess() && this.sourceObj.extractDate(); }});
+            webR.beAsync().get();
         }
     },
     tryToGetWorldRevision: function() {

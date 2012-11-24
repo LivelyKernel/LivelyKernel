@@ -1247,12 +1247,13 @@ Object.subclass('WebResource',
                 if (req.responseXML !== undefined)
                     webR.contentDocument = req.responseXML;
                 if (req.getAllResponseHeaders() !== undefined)
-                    webR.responseHeaders = extractHeaders(req)
+                    webR.responseHeaders = extractHeaders(req);
+                if (method === "PUT" || method === "GET") {
+                    var dateString = webR.responseHeaders["last-modified"]
+                                  || webR.responseHeaders["Date"];
+                    if (dateString) webR.lastModified = new Date(dateString);
+                }
             }
-
-                    // setReadyState: function(readyState) { self.readystate = readyState },
-                    // setProgress: function(progress) { self.progress = progress },
-                    // setStreamContent: function(content) { self.content = content },
         };
 
         function onProgress(evt) {
@@ -1385,12 +1386,17 @@ Object.subclass('WebResource',
         this.requestHeaders = Object.merge([this.requestHeaders || {}, headers]);
         return this;
     },
-    addHeaderForRequiredRevision: function(rev) {
-        if (!rev) return;
-        var local = this.getURL().relativePathFrom(this.getRepoURL()),
-            ifHeader = Strings.format('(["%s//%s"])', rev, local);
-        console.log('Creating if header: ' + ifHeader);
-        this.requestHeaders["If"] = ifHeader;
+    addHeaderForPutRequirements: function(options) {
+        var rev = options.requiredSVNRevision,
+            date = options.ifUnmodifiedSince;
+        if (rev) {
+            var local = this.getURL().relativePathFrom(this.getRepoURL()),
+                ifHeader = Strings.format('(["%s//%s"])', rev, local);
+            this.requestHeaders["If"] = ifHeader;
+        } else if (date) {
+            var dateString = date.toGMTString ? date.toGMTString() : date.toString();
+            this.requestHeaders["if-unmodified-since"] = dateString;
+        }
     },
     addContentType: function(contentType) {
         this.requestHeaders["Content-Type"] = contentType || '';
@@ -1469,9 +1475,7 @@ Object.subclass('WebResource',
         options = options || {};
         contentType = contentType || options.contentType;
         this.content = this.convertContent(content || '');
-        if (options.requiredSVNRevision) {
-            this.addHeaderForRequiredRevision(options.requiredSVNRevision);
-        }
+        this.addHeaderForPutRequirements(options);
         if (contentType) this.addContentType(contentType)
         this.addNoCacheHeader();
         var req = this.createXMLHTTPRequest('PUT');

@@ -161,15 +161,29 @@ TestCase.subclass('lively.tests.NetworkTests.WebResourceTest',
     },
 
     testPutWithRequiredRev: function() {
-        var url = URL.source.asDirectory().withFilename('testPut'),
+        var url = URL.source.getDirectory().withFilename('testPut'),
             localPath = url.relativePathFrom(URL.root),
             webR = url.asWebResource();
-        webR.createXMLHTTPRequest = function(method) {
-            return {request: function(content) {;}}
-        }
+        webR.createXMLHTTPRequest = function(method) {return {request: Functions.Null}}
         webR.put('foo', null, {requiredSVNRevision: 23});
         this.assertEquals('(["23//' + localPath + '"])', webR.requestHeaders["If"]);
+    },
+
+    testPutWithUnmodiefiedSince: function() {
+        var url = URL.source.getDirectory().withFilename('testPut'),
+            localPath = url.relativePathFrom(URL.root),
+            webR = url.asWebResource(),
+            now = new Date();
+        webR.createXMLHTTPRequest = function(method) {return {request: Functions.Null}};
+        webR.put('foo', null, {ifUnmodifiedSince: now});
+        this.assertEquals(now.toGMTString(), webR.requestHeaders["if-unmodified-since"]);
+        this.assert(!webR.requestHeaders["If"], 'If header present');
+        // let it also work with strings
+        var otherDate = "Sat, 24 Nov 2012 08:10:12 GMT";
+        webR.put('foo', null, {ifUnmodifiedSince: otherDate});
+        this.assertEquals(otherDate, webR.requestHeaders["if-unmodified-since"]);
     }
+
 });
 
 TestCase.subclass('lively.tests.NetworkTests.ActiveWebResourceTest',

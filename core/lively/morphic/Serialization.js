@@ -151,11 +151,13 @@ lively.morphic.Text.addMethods(
 lively.morphic.World.addMethods(
 'serialization', {
     doNotSerialize: ['revisionOnLoad', 'clickedOnMorph', 'draggedMorph', 'cachedWindowBounds'],
+
     onrestore: function($super) {
         $super();
         // this should go into prepareForNewRenderContext / event registration...!
         this.registerForGlobalEvents();
     },
+
     interactiveSaveWorldAs: function() {
         var world = this;
         world.prompt('Please enter a relative or absolute path', function(input) {
@@ -170,10 +172,11 @@ lively.morphic.World.addMethods(
             }
         }, URL.source.filename())
     },
+
     saveWorldAs: function(url, checkForOverwrites) {
-        var serializer = ObjectGraphLinearizer.forNewLively();
-        var doc = new Importer().getBaseDocument();
-        var start = new Date().getTime();
+        var serializer = ObjectGraphLinearizer.forNewLively(),
+            doc = new Importer().getBaseDocument(),
+            start = new Date().getTime();
 
         lively.persistence.Serializer.serializeWorldToDocumentWithSerializer(this, doc, serializer);
 
@@ -185,11 +188,9 @@ lively.morphic.World.addMethods(
         if (titleTag) titleTag.textContent = url.filename().replace('.xhtml', '');
 
         this.savedWorldAsURL = undefined;
-        connect(this, 'savedWorldAsURL', this, 'visitNewPageAfterSaveAs', {
+        lively.bindings.connect(this, 'savedWorldAsURL', this, 'visitNewPageAfterSaveAs', {
             updater: function($upd, v) {
-                if (v && v.toString() !== URL.source.toString()) {
-                    $upd(v)
-                }
+                if (v && v.toString() !== URL.source.toString()) { $upd(v); }
             }
         })
 
@@ -233,10 +234,8 @@ lively.morphic.World.addMethods(
         connect(webR, 'status', this, 'handleSaveStatus');
         // allow disabling async saving.
         if(!Config.forceSyncSaving) { webR = webR.beAsync(); }
-        var start = new Date().getTime();
-		if (this.getUserName) this.getUserName(); // cgi saves user in localStorage
-        webR.put(doc, null, checkForOverwrites ? this.revisionOnLoad : null);
-        Config.lastSaveTransferTime = new Date().getTime() - start;
+		if (this.getUserName) this.getUserName(); // cgi, saves user in localStorage
+        webR.put(doc, null, {requiredSVNRevision: checkForOverwrites ? this.revisionOnLoad : null});
     },
     askToOverwrite: function(url) {
         this.confirm(String(url) + ' was changed since loading it. Overwrite?',

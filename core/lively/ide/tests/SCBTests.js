@@ -447,10 +447,10 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
             }
         }
 
-        this.spyInClass(WebResource, 'put', function(source, mimeType, reqRev) {
+        this.spyInClass(WebResource, 'put', function(source, mimeType, options) {
             webRInspector.putCallCount++;
             webRInspector.lastPutWebR = this;
-            webRInspector.putReqRevs.push(reqRev)
+            webRInspector.putReqRevs.push(options && options.requiredSVNRevision);
             webRInspector.lastPutSource = source;
         });
 

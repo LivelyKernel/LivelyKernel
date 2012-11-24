@@ -158,12 +158,23 @@ TestCase.subclass('lively.tests.NetworkTests.WebResourceTest',
         url.port = 1234;
         var sut = new WebResource(url);
         this.assert(url.eq(sut.getURL()), 'Given URL and used URL are not the same');
+    },
+
+    testPutWithRequiredRev: function() {
+        var url = URL.source.asDirectory().withFilename('testPut'),
+            localPath = url.relativePathFrom(URL.root),
+            webR = url.asWebResource();
+        webR.createXMLHTTPRequest = function(method) {
+            return {request: function(content) {;}}
+        }
+        webR.put('foo', null, {requiredSVNRevision: 23});
+        this.assertEquals('(["23//' + localPath + '"])', webR.requestHeaders["If"]);
     }
 });
 
 TestCase.subclass('lively.tests.NetworkTests.ActiveWebResourceTest',
 'settings', {
-    shouldRun: !Config.serverInvokedTest,
+    shouldRun: !Config.serverInvokedTest
 },
 'helper', {
     plainTextString: 'this is a test\nfoo\nbar',
@@ -182,9 +193,10 @@ TestCase.subclass('lively.tests.NetworkTests.ActiveWebResourceTest',
     removeFile: function(url) {
         new WebResource(url).del();
     },
+
     isWebDAVEnvironment: function() {
         return URL.source.normalizedHostname() !== 'localhost';
-    },
+    }
 
 },
 'running', {
@@ -204,7 +216,7 @@ TestCase.subclass('lively.tests.NetworkTests.ActiveWebResourceTest',
     tearDown: function($super) {
         $super();
         this.dir.del();
-    },
+    }
 },
 'testing', {
     testGet: function() {
@@ -310,7 +322,7 @@ TestCase.subclass('lively.tests.NetworkTests.ActiveWebResourceTest',
             webR = new WebResource(url);
         webR.ensureExistance();
         this.assert(webR.exists(), 'ensure existance did not work');
-    },
+    }
 
 });
 

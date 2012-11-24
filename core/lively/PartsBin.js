@@ -284,9 +284,9 @@ Object.subclass('lively.PartsBin.PartItem',
         connect(webR, 'status', this, 'handleSaveStatus');
         var rev = this.part.getPartsBinMetaInfo().revisionOnLoad;
 
-        webR.put(serialized.json, null, checkForOverwrite? rev : null);
-        new WebResource(this.getHTMLLogoURL()).beAsync().put(serialized.htmlLogo, null, checkForOverwrite? rev : null);
-        new WebResource(this.getMetaInfoURL()).beAsync().put(serialized.metaInfo, null, checkForOverwrite? rev : null);
+        webR.put(serialized.json, null, {requiredSVNRevision: checkForOverwrite? rev : null});
+        new WebResource(this.getHTMLLogoURL()).beAsync().put(serialized.htmlLogo, null, {requiredSVNRevision: checkForOverwrite? rev : null});
+        new WebResource(this.getMetaInfoURL()).beAsync().put(serialized.metaInfo, null, {requiredSVNRevision: checkForOverwrite? rev : null});
     },
     copyFilesFrom: function(otherItem) {
         new WebResource(otherItem.getFileURL()).copyTo(this.getFileURL());

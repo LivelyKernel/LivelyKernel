@@ -141,7 +141,7 @@ Object.subclass('lively.ide.ModuleWrapper',
         var webR = new WebResource(this.fileURL());
         this.networkRequestInProgress = true;
         lively.bindings.connect(webR, 'status', this, 'handleSaveStatus');
-        webR.beAsync().put(source, null, checkForOverwrites ? this.revisionOnLoad : null);
+        webR.beAsync().put(source, null, {requiredSVNRevision: checkForOverwrites ? this.revisionOnLoad : null});
     },
 
     handleSaveStatus: function(status) {

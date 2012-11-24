@@ -1464,9 +1464,14 @@ Object.subclass('WebResource',
         return this;
     },
 
-    put: function(content, contentType, requiredRevision) {
+    put: function(content, contentType, options) {
+        // options: {requiredSVNRevision: String || Number}
+        options = options || {};
+        contentType = contentType || options.contentType;
         this.content = this.convertContent(content || '');
-        if (requiredRevision) this.addHeaderForRequiredRevision(requiredRevision);
+        if (options.requiredSVNRevision) {
+            this.addHeaderForRequiredRevision(options.requiredSVNRevision);
+        }
         if (contentType) this.addContentType(contentType)
         this.addNoCacheHeader();
         var req = this.createXMLHTTPRequest('PUT');

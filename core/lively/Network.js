@@ -1382,7 +1382,7 @@ Object.subclass('WebResource',
 'request headers', {
 
     setRequestHeaders: function(headers) {
-        this.requestHeaders = headers;
+        this.requestHeaders = Object.merge([this.requestHeaders || {}, headers]);
         return this;
     },
     addHeaderForRequiredRevision: function(rev) {

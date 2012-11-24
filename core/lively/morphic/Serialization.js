@@ -267,19 +267,11 @@ lively.morphic.World.addMethods(
         }
     },
     getLastModificationDate: function(webR) {
-        function extractDate(webR) {
-            var dateString = webR.xhr.getResponseHeader('Last-Modified')
-                          || webR.xhr.getResponseHeader('Date');
-            return dateString && new Date(dateString);
-        }
-        if (webR) {
-            this.lastModified = extractDate(webR);
+        if (webR && webR.lastModified) {
+            this.lastModified = webR.lastModified;
         } else {
             webR = new WebResource(URL.source);
-            webR.extractDate = function() { return extractDate(this) };
-            lively.bindings.connect(webR, 'status', this, 'lastModified', {
-                converter: function(status) {
-                    return status.isSuccess() && this.sourceObj.extractDate(); }});
+            lively.bindings.connect(webR, 'lastModified', this, 'lastModified');
             webR.beAsync().get();
         }
     },

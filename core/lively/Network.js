@@ -1131,7 +1131,8 @@ Object.subclass('WebResource',
                   'progress',
                   'readystate',
                   'versions',
-                  'headRevision']
+                  'headRevision',
+                  'lastModified']
 },
 'initializing', {
     initialize: function(url) {
@@ -1189,7 +1190,12 @@ Object.subclass('WebResource',
             request = new NetRequest({
                 model: {
                     setStatus: function(reqStatus) {
-                        self.status = reqStatus; self.isExisting = reqStatus.isSuccess() },
+                        self.status = reqStatus;
+                        self.isExisting = reqStatus.isSuccess();
+                        if (reqStatus.isSuccess()) {
+                            self.setLastModificationDateFromXHR(request.transport);
+                        }
+                    },
                     setResponseText: function(string) { self.content = string },
                     setResponseXML: function(doc) { self.contentDocument = doc },
                     setResponseHeaders: function(obj) { self.responseHeaders = obj },
@@ -1248,11 +1254,7 @@ Object.subclass('WebResource',
                     webR.contentDocument = req.responseXML;
                 if (req.getAllResponseHeaders() !== undefined)
                     webR.responseHeaders = extractHeaders(req);
-                if (method === "PUT" || method === "GET") {
-                    var dateString = webR.responseHeaders["last-modified"]
-                                  || webR.responseHeaders["Date"];
-                    if (dateString) webR.lastModified = new Date(dateString);
-                }
+                webR.setLastModificationDateFromXHR(req);
             }
         };
 
@@ -1304,6 +1306,12 @@ Object.subclass('WebResource',
         var result = func.call(this)
         this._url = temp;
         return result;
+    },
+
+    setLastModificationDateFromXHR: function(xhr) {
+        var dateString = xhr.getResponseHeader("last-modified")
+                      || xhr.getResponseHeader("Date");
+        if (dateString) this.lastModified = new Date(dateString);
     }
 },
 'accessing', {
@@ -1386,6 +1394,7 @@ Object.subclass('WebResource',
         this.requestHeaders = Object.merge([this.requestHeaders || {}, headers]);
         return this;
     },
+
     addHeaderForPutRequirements: function(options) {
         var rev = options.requiredSVNRevision,
             date = options.ifUnmodifiedSince;

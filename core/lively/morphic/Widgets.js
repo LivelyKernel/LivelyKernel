@@ -1504,8 +1504,6 @@ lively.morphic.World.addMethods(
                 ClipboardLayer.beNotGlobal()
             }]);
         }
-
-
         return items;
     },
 

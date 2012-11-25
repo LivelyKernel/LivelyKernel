@@ -173,4 +173,48 @@ tests.ScriptingTests.OnlinePartsBinTest.subclass('lively.tests.ScriptingTests.Dr
 	}
 });
 
+TestCase.subclass('lively.tests.ScriptingTests.MetaInfo',
+'running', {
+    setUp: function($super) {
+        $super();
+                this.world = lively.morphic.World.current()
+    }
+},
+'testing', {
+    test01MetaInfoOfLoadedPartHasLastModDate: function() {
+        var part = this.world.loadPartItem("Rectangle", "PartsBin/Basic"),
+            partItem = part.getPartItem(),
+            metaInfo = part.getPartsBinMetaInfo(),
+            actualDate = partItem.getFileURL().asWebResource().head().lastModified;
+        this.assertEquals(actualDate, metaInfo.getLastModifiedDate(), 'metainfo last mod');
+    },
+
+    test02LastModDateIsUsedForUpload: function() {
+        var putCallCount = 0, putOptions, webR;
+        this.spyInClass(WebResource, 'put', function(source, mimeType, options) {
+            putCallCount++;
+            putOptions = options;
+            webR = this;
+        });
+
+        var part = this.world.loadPartItem("Rectangle", "PartsBin/Basic"),
+            partItem = part.getPartItem(),
+            metaInfo = part.getPartsBinMetaInfo(),
+            actualDate = partItem.getFileURL().asWebResource().head().lastModified,
+            now = new Date();
+
+        // upload
+        part.copyToPartsBin();
+        this.assertEquals(actualDate, putOptions.ifUnmodifiedSince, 'no if-unmodified-since PUT');
+
+        // trigger upload done
+        webR.lastModified = now;
+        webR.status = {isDone: Functions.True, isSuccess: Functions.True,
+                       code: function() { return 200 }};
+
+        // check if upload done handling worked
+        this.assertEquals(now, metaInfo.getLastModifiedDate(), 'metainfo last mod');
+    }
+});
+
 }); // end of module

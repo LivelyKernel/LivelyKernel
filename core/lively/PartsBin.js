@@ -64,8 +64,22 @@ Object.subclass('lively.PartsBin.PartItem',
         if (this.loadedMetaInfo)
             return this.loadedMetaInfo;
         return this.loadPart().part.getPartsBinMetaInfo()
+    },
+
+    fetchLastModifiedDate: function() {
+        // FIXME this should also consider the current rev of the part,
+        // unfortunately it's hard to get it...
+        return this.getFileURL().asWebResource().head().lastModified;
     }
 
+},
+'testing', {
+    hasLatestPartVersion: function() {
+        if (!this.part) return false;
+        var date = this.part.getPartsBinMetaInfo().getLastModifiedDate();
+        if (!date) return false;
+        return date.valueOf() === this.fetchLastModifiedDate().valueOf();
+    }
 },
 'naming', {
     makeUpPartName: function() {
@@ -104,7 +118,8 @@ Object.subclass('lively.PartsBin.PartItem',
                 })
             }
         }
-        modulesForDeserialization.forEach(function(ea) { var m = module(ea); if (m != Global && !m.isLoaded()) m.load(true) });
+        modulesForDeserialization.forEach(function(ea) {
+            var m = module(ea); if (m != Global && !m.isLoaded()) m.load(true) });
 
         var serializer = this.getSerializer(),
             part = serializer.deserializeJso(jso),
@@ -113,7 +128,9 @@ Object.subclass('lively.PartsBin.PartItem',
 
         // ensure
         metaInfo.setPartsSpace(this.getPartsSpace());
-        requiredModules.forEach(function(ea) { var m = module(ea); if (m != Global && !m.isLoaded()) m.load(true) });
+        if (this.lastModifiedDate) metaInfo.lastModifiedDate = this.lastModifiedDate;
+        requiredModules.forEach(function(ea) {
+            var m = module(ea); if (m != Global && !m.isLoaded()) m.load(true) });
         part.withAllSubmorphsDo(function(ea) { ea.setNewId(); });
         part.setPartsBinMetaInfo(metaInfo);
         this.runAfterDeserializationHooks(part);
@@ -170,8 +187,9 @@ Object.subclass('lively.PartsBin.PartItem',
         var webR = new WebResource(this.getFileURL()).forceUncached();
         if (isAsync) webR.beAsync();
         connect(webR, 'content', this, 'json', {updater: function($upd, json) {
-            if (!this.sourceObj.status.isSuccess()) return $upd(null);
-            if (!this.sourceObj.status.isDone()) return;
+            if (!this.sourceObj.status.isSuccess()) { $upd(null); return; }
+            if (!this.sourceObj.status.isDone()) { return; }
+            this.targetObj.lastModifiedDate = this.sourceObj.lastModified;
             $upd(json);
         }});
         webR.get(rev);
@@ -193,12 +211,9 @@ Object.subclass('lively.PartsBin.PartItem',
         } else {
             this.rev = new WebResource(this.getFileURL()).getHeadRevision().headRevision;
         }
-        else {
-            var webR = new WebResource(this.getFileURL());
-            this.rev = webR && webR.exists() && webR.getVersions().versions && webR.getVersions().versions.first().rev
-        };
 
-        // ensure that setPartFromJSON is only called when both json and metaInfo are there.
+        // ensure that setPartFromJSON is only called when both json and
+        // metaInfo are there.
         var loadTrigger = {
             item: this,
             rev: this.rev,
@@ -279,21 +294,46 @@ Object.subclass('lively.PartsBin.PartItem',
             return;
         }
 
-        this.part.getPartsBinMetaInfo().setPartsSpace(this.getPartsSpace());
+        var metaInfo = this.part.getPartsBinMetaInfo(),
+            lastModified = metaInfo.getLastModifiedDate();
+
+        // 1. serialize part
+        metaInfo.setPartsSpace(this.getPartsSpace());
         var name = this.part.name,
             serialized = this.serializePart(this.part);
 
+        // 2. start the upload...
         var webR = new WebResource(this.getFileURL())
             .beAsync()
             .createProgressBar('Uploading ' + name);
 
-        connect(webR, 'status', this, 'handleSaveStatus');
-        var rev = this.part.getPartsBinMetaInfo().revisionOnLoad;
+        // 3. setup overwrite check
+        var rev = this.part.getPartsBinMetaInfo().revisionOnLoad,
+            putOptions = {};
+        if (checkForOverwrite && (lastModified || rev)) {
+            if (lastModified) putOptions.ifUnmodifiedSince = lastModified;
+            else putOptions.requiredSVNRevision = rev;
+        }
 
-        webR.put(serialized.json, null, {requiredSVNRevision: checkForOverwrite? rev : null});
-        new WebResource(this.getHTMLLogoURL()).beAsync().put(serialized.htmlLogo, null, {requiredSVNRevision: checkForOverwrite? rev : null});
-        new WebResource(this.getMetaInfoURL()).beAsync().put(serialized.metaInfo, null, {requiredSVNRevision: checkForOverwrite? rev : null});
+        // 4. hookup handler for doing stuff when upload has finished
+        connect(webR, 'status', this, 'handleSaveStatus', {
+            converter: function() { return this.sourceObj }});
+
+        // 5. upload meta data and preview
+        // FIXME put this into #handleSaveStatus?
+        var partItem = this, uploadHelper = {
+            uploadMetaDataAndPreview: function(putStatus) {
+                if (!putStatus.isSuccess()) return;
+                new WebResource(partItem.getHTMLLogoURL()).beAsync().put(serialized.htmlLogo);
+                new WebResource(partItem.getMetaInfoURL()).beAsync().put(serialized.metaInfo);
+            }
+        }
+        connect(webR, 'status', uploadHelper, 'uploadMetaDataAndPreview');
+
+        // 6. Finally, initiate the upload
+        webR.put(serialized.json, null, putOptions);
     },
+
     copyFilesFrom: function(otherItem) {
         new WebResource(otherItem.getFileURL()).copyTo(this.getFileURL());
         new WebResource(otherItem.getHTMLLogoURL()).copyTo(this.getHTMLLogoURL());
@@ -319,8 +359,10 @@ Object.subclass('lively.PartsBin.PartItem',
         // returns false
         return new WebResource(this.getFileURL()).exists();
     },
-    handleSaveStatus: function(status) {
+
+    handleSaveStatus: function(webR) {
         // handles the request for overwrite on header 412
+        var status = webR.status;
         if (!status.isDone()) return;
         if (status.code() === 412) {
             if (status.url.asWebResource().exists()) {
@@ -335,6 +377,7 @@ Object.subclass('lively.PartsBin.PartItem',
             var world = lively.morphic.World.current(),
                 metaInfo = this.part.getPartsBinMetaInfo();
             world.alertOK("Successfully saved "+status.url+" in PartsBin.")
+            metaInfo.lastModifiedDate = webR.lastModified;
             this.updateRevisionOnLoad();
             if (world.publishPartDialog) {
                 world.publishPartDialog.remove();
@@ -394,7 +437,7 @@ Object.subclass('lively.PartsBin.PartsBinMetaInfo',
     getPartsSpace: function() { return lively.PartsBin.partsSpaceNamed(this.partsSpaceName) },
     getComment: function() { return this.comment },
     setComment: function(comment) { return this.comment = comment },
-
+    getLastModifiedDate: function() { return this.lastModifiedDate; },
 
     addRequiredModule: function(moduleName) {
         if (!this.requiredModules) this.requiredModules = [];

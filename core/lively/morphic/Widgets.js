@@ -526,10 +526,9 @@ lively.morphic.Box.subclass('lively.morphic.ProgressBar',
 },
 'updating', {
     updateBar: function(value) {
-    var maxExt = this.getExtent();
-        // this.progressMorph.setPosition(pt(1,1));
+        var maxExt = this.getExtent();
         this.progressMorph.setExtent(pt(Math.floor(maxExt.x * value), maxExt.y));
-    },
+    }
 });
 
 lively.morphic.Text.subclass('lively.morphic.FrameRateMorph', {
@@ -846,8 +845,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             newBounds = this.moveSubMenuBoundsForVisibility(
                 this.innerBounds(),
                 owner.overItemMorph ? owner.overItemMorph.bounds() : new Rectangle(0,0,0,0),
-                localVisibleBounds
-            );
+                localVisibleBounds);
         this.setBounds(newBounds);
     },
 
@@ -1194,10 +1192,9 @@ lively.morphic.Text.addMethods(
 lively.morphic.World.addMethods(
 'tools', {
     loadPartItem: function(partName, optPartspaceName) {
-        var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld';
-        var part = lively.PartsBin.getPart(partName, optPartspaceName);
-        if (!part)
-            return;
+        var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld',
+            part = lively.PartsBin.getPart(partName, optPartspaceName);
+        if (!part) return;
         if (part.onCreateFromPartsBin) part.onCreateFromPartsBin();
         return part;
     },
@@ -1364,7 +1361,7 @@ lively.morphic.World.addMethods(
         items.pushAll(partNames.collect(function(ea) { return [ea, function() {
             var partSpaceName = 'PartsBin/Basic',
                 part = lively.PartsBin.getPart(ea, partSpaceName);
-                  if (!part) return;
+            if (!part) return;
             lively.morphic.World.current().firstHand().grabMorph(part);
         }]}))
 
@@ -1373,7 +1370,7 @@ lively.morphic.World.addMethods(
         items.pushAll(partNames.collect(function(ea) { return [ea, function() {
             var partSpaceName = 'PartsBin/Inputs',
                 part = lively.PartsBin.getPart(ea, partSpaceName);
-                  if (!part) return;
+            if (!part) return;
             lively.morphic.World.current().firstHand().grabMorph(part);
         }]}))
 
@@ -1524,7 +1521,7 @@ lively.morphic.World.addMethods(
             ['Documentation', [
                 ["On short cuts", this.openShortcutDocumentation.bind(this)],
                 ["On connect data bindings", this.openConnectDocumentation.bind(this)],
-                        ["On Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
+                ["On Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
                 ["More ...", function() { window.open(Config.rootPath + 'documentation/'); }]
             ]],
             ['Save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],

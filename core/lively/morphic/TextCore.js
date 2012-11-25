@@ -3204,7 +3204,7 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     initialize: function(string) {
         this.getTextChunks(); // lazy initialize
         if (string) this.firstTextChunk().textString = string;
-    },
+    }
 },
 'rich text interface', {
     emphasize: function(styleSpec, from, to) {
@@ -3242,7 +3242,9 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     },
     getTextNode: function() {
         return this.firstTextChunk().getChunkNode().parentNode
-    }
+    },
+
+    getSelectionRange: Functions.Null
 
 },
 'text morph application', {

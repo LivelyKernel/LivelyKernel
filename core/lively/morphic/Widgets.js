@@ -2317,21 +2317,20 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 },
 'menu', {
     showTargetMorphMenu: function() {
-        var target = this.targetMorph || this;
+        var target = this.targetMorph || this,
+            itemFilter;
         if (this.targetMorph) {
             var self = this;
             itemFilter = function (items) {
-                items[0] = [
-                    'Publish window', function(evt) {
+                items[0] = ['Publish window', function(evt) {
                     self.copyToPartsBinWithUserRequest();
-                    }]
+                }];
                 // set fixed support
                 var fixItem = items.find(function (ea) {
-                    return ea[0] == "set fixed" || ea[0] == "set unfixed"
-                })
+                    return ea[0] == "set fixed" || ea[0] == "set unfixed" });
                 if (fixItem) {
-                    if(self.isFixed) {
-                        fixItem[0] = "set unfixed"
+                    if (self.isFixed) {
+                        fixItem[0] = "set unfixed";
                         fixItem[1] = function() {
                             self.setFixed(false);
                         }

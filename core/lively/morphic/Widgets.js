@@ -1483,6 +1483,29 @@ lively.morphic.World.addMethods(
                 });
             }]);
         }
+        if (localStorage['Config_quickLoad'] == "false") {
+            items.push(['[  ] Quick Load', function() {
+                localStorage['Config_quickLoad'] = "true"
+            }]);
+        } else {
+            items.push(['[X] Quick Load', function() {
+                localStorage['Config_quickLoad'] = "false";
+            }]);
+        }
+        if (localStorage['Config_CopyAndPaste'] == "false") {
+            items.push(['[  ] Copy And Paste', function() {
+                localStorage['Config_CopyAndPaste'] = "true"
+                module('lively.experimental.CopyAndPaste').load(true)
+                ClipboardLayer.beGlobal()
+            }]);
+        } else {
+            items.push(['[X] Copy And Paste', function() {
+                localStorage['Config_CopyAndPaste'] = "false";
+                ClipboardLayer.beNotGlobal()
+            }]);
+        }
+
+
         return items;
     },
 

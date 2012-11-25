@@ -3644,12 +3644,10 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         var changed = false;
         if (this.item.description) str += "  " + this.item.description;
         if (this.label.getTextNode().textContent !== str) {
-            this.label.textString = this.item.name + (this.item.description ? "  " : "");
+            this.label.textString = this.item.name;
             if (this.item.description) {
-                var chunk = this.label.createChunk();
-                chunk.textString = this.item.description;
-                chunk.styleText({color: Color.web.darkgray});
-                this.label.getTextChunks().push(chunk);
+                var gray = {color: Color.web.darkgray};
+                this.label.appendRichText(" " + this.item.description, gray);
             }
             changed = true;
         }

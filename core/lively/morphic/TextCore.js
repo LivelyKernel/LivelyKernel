@@ -174,9 +174,11 @@ Trait('TextChunkOwner',
         domChanged = this.fixTextBeforeAndAfterChunks(chunks);
         domChanged = domChanged || this.removeNonChunkNodes(chunks);
         chunks.last().ensureEndsWithBr();
-        if (domChanged && selRange) {
-            this.setSelectionRange(selRange[0], selRange[1]);
-        }
+        var newSelectionRange = this.getSelectionRange();
+        if (!selRange) return;
+        var selMustMove = domChanged || (newSelectionRange && newSelectionRange[0] !== selRange[0]);
+        if (!selMustMove) return;
+        this.setSelectionRange(selRange[0], selRange[1]);
     },
     fixChunksDelayed: function() {
         this.fixChunks.bind(this).delay(0);

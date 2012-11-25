@@ -3093,9 +3093,9 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         group.isGroup = true;
         this.owner.addMorph(group);
         this.selectedMorphs.forEach(function(ea) {
-            group.addMorph(ea)
-        })
-        this.selectMorphs([group])
+            group.addMorph(ea); });
+        this.selectMorphs([group]);
+        return group;
     },
     unGroup: function() {
         if (!this.selectedMorphs || this.selectedMorphs.length !== 1) return;

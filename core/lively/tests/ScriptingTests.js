@@ -11,7 +11,7 @@ TestCase.subclass('lively.tests.ScriptingTests.OnlinePartsBinTest',
 		lively.PartsBin.partsSpaceNamed('PartsBin').clearCache();
 		if (this.urlsForDeletion)
 			this.urlsForDeletion.forEach(function(url) { new WebResource(url).del() })
-	},
+	}
 },
 'testing', {
 	testLoadNamesFromDefaultPartsBin: function() {
@@ -94,7 +94,7 @@ TestCase.subclass('lively.tests.ScriptingTests.OnlinePartsBinTest',
 
 		this.assert(copiedPart.partsBinMetaInfo, "no partsBinMetaInfo")
 		this.assertEquals(url.withFilename(copiedPart.name + '.json'), copiedPart.getPartItem().getFileURL());
-		
+
 		this.assertEquals(url, copiedPart.partsBinMetaInfo.getPartsSpaceURL());
 	},
 	testMovePartItem: function() {
@@ -147,16 +147,16 @@ TestCase.subclass('lively.tests.ScriptingTests.OnlinePartsBinTest',
 		var oldRevisionOnLoad = item.part.partsBinMetaInfo.revisionOnLoad;
 
         item.uploadPart();
-        this.assert(oldRevisionOnLoad !== item.part.partsBinMetaInfo.revisionOnLoad, 
+        this.assert(oldRevisionOnLoad !== item.part.partsBinMetaInfo.revisionOnLoad,
                     'rev did not change')
-	},
+	}
 })
 
 tests.ScriptingTests.OnlinePartsBinTest.subclass('lively.tests.ScriptingTests.DroppableBehaviorTest',
 'helper', {
 	get: function(name) {
 		return lively.PartsBin.getPart(name, 'PartsBin/DroppableBehaviors');
-	},
+	}
 },
 'testing', {
 	testDropColorBehaviorOnMorph: function() {
@@ -170,6 +170,7 @@ tests.ScriptingTests.OnlinePartsBinTest.subclass('lively.tests.ScriptingTests.Dr
 
 		colorBehavior.applyTo(morph)
 		this.assertEquals(Color.green, morph.getFill(), 'behavior not applied');
-	},
+	}
 });
-}) // end of module
+
+}); // end of module

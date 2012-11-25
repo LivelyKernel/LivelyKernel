@@ -169,7 +169,7 @@ TestCase.subclass('lively.tests.NetworkTests.WebResourceTest',
         this.assertEquals('(["23//' + localPath + '"])', webR.requestHeaders["If"]);
     },
 
-    testPutWithUnmodiefiedSince: function() {
+    testPutWithUnmodifiedSince: function() {
         var url = URL.source.getDirectory().withFilename('testPut'),
             localPath = url.relativePathFrom(URL.root),
             webR = url.asWebResource(),

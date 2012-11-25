@@ -1190,11 +1190,11 @@ Object.subclass('WebResource',
             request = new NetRequest({
                 model: {
                     setStatus: function(reqStatus) {
-                        self.status = reqStatus;
-                        self.isExisting = reqStatus.isSuccess();
                         if (reqStatus.isSuccess()) {
                             self.setLastModificationDateFromXHR(request.transport);
                         }
+                        self.status = reqStatus;
+                        self.isExisting = reqStatus.isSuccess();
                     },
                     setResponseText: function(string) { self.content = string },
                     setResponseXML: function(doc) { self.contentDocument = doc },
@@ -1245,6 +1245,11 @@ Object.subclass('WebResource',
         };
         function onReadyStateChange() {
             var status = createStatus();
+            // do this before setting status so that the properties are
+            // already available when connections to status are updated
+            if (req.readyState == loadStates.DONE) {
+                webR.setLastModificationDateFromXHR(req);
+            }
             webR.status = status;
             if (req.readyState == loadStates.DONE) {
                 webR.isExisting = status.isSuccess();
@@ -1254,7 +1259,6 @@ Object.subclass('WebResource',
                     webR.contentDocument = req.responseXML;
                 if (req.getAllResponseHeaders() !== undefined)
                     webR.responseHeaders = extractHeaders(req);
-                webR.setLastModificationDateFromXHR(req);
             }
         };
 

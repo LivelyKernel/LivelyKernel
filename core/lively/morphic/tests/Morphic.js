@@ -396,6 +396,19 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.MorphInterfaceTests
         m3.shouldBeFound = true;
         var result = m1.withAllSubmorphsDetect(function(m) { return m.shouldBeFound });
         this.assertIdentity(m3, result);
+    },
+
+    testSelectSubmorphs: function() {
+        var m1 = new lively.morphic.Morph(),
+            m2 = new lively.morphic.Morph(),
+            m3 = new lively.morphic.Morph(),
+            m4 = new lively.morphic.Morph();
+        m1.addMorph(m2);
+        m2.addMorph(m3);
+        m2.addMorph(m4);
+        m3.shouldBeFound = true;
+        var result = m1.selectSubmorphs({shouldBeFound: true});
+        this.assertEquals([m3], result);
     }
 });
 
@@ -468,8 +481,26 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CopyMorphTests',
 
         this.assertIdentity(m1, m1.scripts[0].target, 'original target changed');
         this.assertIdentity(copy, copy.scripts[0].target, 'copy target changed');
+    },
+    test06KeepReferenceToOtherMorphs: function() {
+        var m = new lively.morphic.Morph();
+        var m2 = new lively.morphic.Morph();
+        connect(m, 'a', m2, 'b');
+        m2.addMorph(m);
+        this.world.addMorph(m2);
+        m.a = 23;
+        this.assertEquals(23, m2.b);
+        var copy = m.copy();
+        copy.a = 42;
+        this.assertEquals(42, m2.b);
+    },
+    test07MorphHasNoOwnerAfterCopy: function() {
+        var m = new lively.morphic.Morph(),
+            m2 = new lively.morphic.Morph();
+        m.addMorph(m2);
+        var copy = m2.copy();
+        this.assert(!copy.owner, 'copy.owner is ' + copy.owner);
     }
-
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ButtonMorphTests',

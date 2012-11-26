@@ -186,7 +186,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
         $super();
         this.text = new lively.morphic.Text(new Rectangle(0,0, 400, 200));
         this.world.addMorph(this.text);
-    },
+    }
 },
 'testing', {
     test01MorphHasTextChunk: function() {
@@ -331,7 +331,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
     test07MakeTextBoldThenUnbold: function() {
         this.text.setTextString('eintest');
         this.text.emphasize({fontWeight: 'bold'}, 0, 2);
-        debugger
         this.text.emphasize({fontWeight: 'normal'}, 0, 2);
         this.checkDOM([{tagName: 'span', textContent: 'eintest'}])
     },
@@ -771,6 +770,18 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
             {tagName: 'span', textContent: 'intest', style: {fontWeight: ''}}])
     },
 
+    test26cRemoveDoit: function() {
+        this.text.setTextString('eintest');
+        this.text.emphasize({doit: {code: 'alert(1)'}}, 0,3);
+        this.text.emphasize({doit: null}, 1,4);
+        this.checkChunks(
+            [{textString: 'e'},
+            {textString: 'intest'}])
+        this.checkDOM([
+            {tagName: 'span', textContent: 'e', style: {color: 'rgb(0,100,0)'}},
+            {tagName: 'span', textContent: 'intest', style: {color: 'inherit'}}])
+    },
+
     test27aInsertStringAt: function() {
         this.text.setTextString('some text');
         this.text.toggleBoldness(2,4);
@@ -796,7 +807,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphRic
     test28bEmphasizeRangesWithPrexistingStyle: function() {
         this.text.setTextString('some text');
         this.text.emphasize({textDecoration: 'underline'}, 0, 4);
-        debugger;
         this.text.emphasizeRanges([[0,4, {fontWeight: 'bold'}]]);
         this.checkChunks([
             {textString: 'some', style: {fontWeight: 'bold', textDecoration: 'underline'}},
@@ -1078,13 +1088,16 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
 },
 'testing', {
     testEqual: function() {
+        var obj = {foo: 'bar'};
         var testTable = [
+            [{}, {}],
             [{color: Color.red}, {color: Color.red}],
             [{color: Color.red}, {color: Color.rgba(204,0,0,1)}],
             [{backgroundColor: Color.red}, {backgroundColor: Color.rgba(204,0,0,1)}],
             [{isNullStyle: true}, {isNullStyle: true}],
             [{fontWeight: 'normal'}, {}],
-            [{}, {foobarbaz: Color.green}]
+            [{}, {foobarbaz: Color.green}],
+            [{data: obj}, {data: obj}]
         ];
 
        testTable.forEach(function(spec) {
@@ -1095,7 +1108,9 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
     testUnEqual: function() {
         var testTable = [
             [{}, {isNullStyle: true}],
-            [{color: Color.red}, {color: Color.green}]
+            [{color: Color.red}, {color: Color.green}],
+            [{data: {foo: 'bar'}}, {}],
+            [{data: {foo: 'bar'}}, {data: {foo: 'bar'}}]
         ];
 
        testTable.forEach(function(spec) {
@@ -1125,12 +1140,115 @@ TestCase.subclass("lively.morphic.tests.Text.TextEmphasis",
 
     testAppliesOnlyWhitelistedAttributes: function() {
         var emph = new lively.morphic.TextEmphasis({color: Color.red, orphans: '2'}),
-            htmlNode = {style: {}, setAttributeNS: function() {}};
+            htmlNode = {style: {}, dataset: {}, setAttributeNS: function() {}};
         emph.applyToHTML(htmlNode);
         this.assertEquals(Color.red.toString(), htmlNode.style.color, 'no color');
         this.assert(!htmlNode.style.orphans, 'applied unwanted attr');
         this.assert(!emph.orphans, 'unwanted attr in emph');
     }
+});
+
+AsyncTestCase.subclass("lively.morphic.tests.Text.HoverActions",
+'running', {
+    setUp: function($super) {
+        $super();
+        this.actionQueue = lively.morphic.TextEmphasis.hoverActions;
+    },
+    tearDown: function() {
+        if (this.morph) this.morph.remove();
+    }
+},
+'testing', {
+    test01EnterAndLeave: function() {
+        var output = [];
+        this.actionQueue.enter(function() { output.push('in') }, 1);
+        this.actionQueue.leave(function() { output.push('out') }, 1);
+        this.delay(function() {
+            this.assertEqualState(['in', 'out'], output);
+            this.done();
+        }, 0);
+    },
+
+    test02EnterLeaveEnterInSameContext: function() {
+        var output = [];
+        this.actionQueue.enter(function() { output.push('in') }, 1);
+        this.actionQueue.leave(function() { output.push('out') }, 1);
+        this.actionQueue.enter(function() { output.push('in') }, 1);
+        this.delay(function() {
+            this.assertEqualState(['in'], output);
+            this.done();
+        }, 0);
+    },
+
+    test03EnterLeaveEnterLeaveInSameContext: function() {
+        var output = [];
+        this.actionQueue.enter(function() { output.push('in') }, 1);
+        this.actionQueue.leave(function() { output.push('out') }, 1);
+        this.actionQueue.enter(function() { output.push('in') }, 1);
+        this.actionQueue.leave(function() { output.push('out') }, 1);
+        this.delay(function() {
+            this.assertEqualState(['in', 'out'], output);
+            this.done();
+        }, 0);
+    },
+
+    test04EnterLeaveInContext1AndEnterInContext2: function() {
+        var output = [];
+        this.actionQueue.enter(function() { output.push('in1') }, 1);
+        this.actionQueue.leave(function() { output.push('out1') }, 1);
+        this.actionQueue.enter(function() { output.push('in2') }, 2);
+        this.delay(function() {
+            this.assertEqualState(['in1', 'out1', 'in2'], output);
+            this.done();
+        }, 0);
+    },
+
+    test05EnterLeaveInContext1AndEnterLeaveInContext2: function() {
+        var output = [];
+        this.actionQueue.enter(function() { output.push('in1') }, 1);
+        this.actionQueue.leave(function() { output.push('out1') }, 1);
+        this.actionQueue.enter(function() { output.push('in2') }, 2);
+        this.actionQueue.leave(function() { output.push('out2') }, 2);
+        this.delay(function() {
+            this.assertEqualState(['in1', 'out1', 'in2', 'out2'], output);
+            this.done();
+        }, 0);
+    },
+
+    test06InvokeHover: function() {
+        var morph = new lively.morphic.Text(rect(0,0,100,100), "xyz");
+        lively.morphic.World.current().addMorph(morph);
+        morph.emphasizeAll({hover: {
+            inAction: function() { this.x = 1 },
+            outAction: (function() { this.x = x }).asScript({x: 2})
+        }});
+
+        // NOTE! jQuery event triggering is async!
+        $(morph.firstTextChunk().getChunkNode()).trigger('mouseenter');
+        this.delay(function() {
+            this.assertEquals(1, morph.x);
+            $(morph.firstTextChunk().getChunkNode()).trigger('mouseleave');
+        }, 0);
+        this.delay(function() {
+            this.assertEquals(2, morph.x);
+            this.done();
+        }, 20);
+    }
+
+});
+
+lively.morphic.tests.Text.TextMorphRichTextTests.subclass('lively.morphic.tests.Text.TextChunk',
+'testing', {
+    test01ChunkBounds: function() {
+        // $world.text = this
+        this.text.textString = 'foobar';
+        this.text.emphasize({color: Color.red}, 0, 3);
+        this.text.emphasize({color: Color.green}, 3, 6);
+        var chunks = this.text.getTextChunks();
+        this.assert(this.text.bounds().containsRect(chunks[0].bounds()), 'chunk0 bounds fail?');
+        this.assert(this.text.bounds().containsRect(chunks[1].bounds()), 'chunk1 bounds fail?');
+    }
+
 });
 
 });

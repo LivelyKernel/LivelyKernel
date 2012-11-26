@@ -16,20 +16,22 @@ Trait('lively.morphic.Renderable',
         return this._renderContext;
     },
     setRenderContext: function(newRenderContext) {
-        this.renderContextTable = newRenderContext ?
-            Object.mergePropertyInHierarchy(this, newRenderContext.renderContextTableName) : {};
-        this._renderContext = newRenderContext
+        if (newRenderContext) {
+            newRenderContext[this.renderContextTableType] = Object.mergePropertyInHierarchy(
+                this, newRenderContext.renderContextTableName);
+        }
+        this._renderContext = newRenderContext;
     },
     defaultRenderContext: function() {
         throw new Error('method defaultRenderContext should be overwritten');
-    },
+    }
 },
 'renderContext dispatch', {
     renderContextDispatch: function(aspect, arg) {
         if (!this._renderContext) this.renderContext();
         // if we cannot lazy initialize the renderContext we just do nothing
         if (!this._renderContext) return undefined;
-        var renderSpecificAspect = this.renderContextTable[aspect];
+        var renderSpecificAspect = this._renderContext[this.renderContextTableType][aspect];
         if (!renderSpecificAspect) {
             var msg = 'renderContextTable does no include: ' + aspect + ' in ' + this;
             debugger;
@@ -42,11 +44,11 @@ Trait('lively.morphic.Renderable',
 })
 .applyTo(lively.morphic.Morph, {
     override: ['setRenderContext', 'renderContext', 'renderContextDispatch'],
-    alias: {renderAttributeSetter: 'morphicSetter', renderAttributeGetter: 'morphicGetter'},
+    alias: {renderAttributeSetter: 'morphicSetter', renderAttributeGetter: 'morphicGetter'}
 })
 .applyTo(lively.morphic.Shapes.Shape, {
     override: ['setRenderContext', 'renderContext', 'renderContextDispatch'],
-    alias: {renderAttributeSetter: 'shapeSetter', renderAttributeGetter: 'shapeGetter'},
+    alias: {renderAttributeSetter: 'shapeSetter', renderAttributeGetter: 'shapeGetter'}
 });
 
 Object.subclass('lively.morphic.Rendering.DOMInterface',
@@ -411,10 +413,10 @@ Object.subclass('lively.morphic.Rendering.RenderContext',
             console.warn(msg)
             alert(msg);
             debugger
-            return
+            return null;
         }
         return morph[methodName](this, arg);
-    },
+    }
 },
 'removal', {
     morphRemoved: function() {
@@ -427,18 +429,20 @@ Object.subclass('lively.morphic.Rendering.RenderContext',
     },
     removeNode: function(node) {
         try { node && node.parentNode && node.parentNode.removeChild(node) } catch(e) {};
-    },
+    }
 },
 'testing', {
     isHTML: function(node) { return this.domInterface.isHTML(node) },
-    isSVG: function(node) { return this.domInterface.isSVG(node) },
+    isSVG: function(node) { return this.domInterface.isSVG(node) }
 },
 'debugging', {
-    toString: function() { return 'a' + this.constructor.type },
+    toString: function() { return 'a' + this.constructor.type }
 });
 
 lively.morphic.Morph.addMethods(
 'rendering', {
+
+    renderContextTableType: 'morphRenderContextTable',
 
     renderUsing: function(renderContext) {
         this.renderAfterUsing(renderContext, null);
@@ -502,6 +506,7 @@ lively.morphic.Morph.addMethods(
 
 lively.morphic.Shapes.Shape.addMethods(
 'rendering', {
+    renderContextTableType: 'shapeRenderContextTable',
     defaultRenderContext: function() { return null },
     renderUsing: function(renderContext) {
         this.setRenderContext(renderContext);

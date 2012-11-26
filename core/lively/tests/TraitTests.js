@@ -13,13 +13,13 @@ TestCase.subclass('lively.tests.TraitsTests.BaseTest',
         this.traitsToRemove.forEach(function(name) {
             Trait(name).remove(name);
         });
-    },
+    }
 
 },
 'trait handling', {
     removeTraitAfterwards: function(traitName) {
         this.traitsToRemove.push(traitName);
-    },
+    }
 
 },
 'test classes', {
@@ -27,18 +27,18 @@ TestCase.subclass('lively.tests.TraitsTests.BaseTest',
         this.dummyA = Object.subclass('lively.tests.TraitsTests.DummyA', {
             a: 4,
             m1: function() { return this.m2() + 3 },
-            m2: function() { return this.a },
+            m2: function() { return this.a }
         });
         this.dummyB = this.dummyA.subclass('lively.tests.TraitsTests.DummyB', {
             m1: function($super) { return $super() + 2 },
-            m3: function($super) { return 99 },
+            m3: function($super) { return 99 }
         });
     },
 
     removeDummyClasses: function() {
         this.dummyA.remove();
         this.dummyB.remove();
-    },
+    }
 });
 
 lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.TraitCreation',
@@ -151,13 +151,13 @@ lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.TraitCreati
         this.removeTraitAfterwards('Foo');
         this.removeTraitAfterwards('Bar');
         var trait1 = Trait('Foo', {b: function() { return 2 }}),
-        trait2 = Trait('Bar', {b: function() { return 3 }, c: function() { return 4 }});
+            trait2 = Trait('Bar', {b: function() { return 3 }, c: function() { return 4 }});
             trait2.applyTo(trait1);
         trait1.applyTo(this.dummyA);
         var obj = new this.dummyA();
         this.assertEquals(2, obj.b());
         this.assertEquals(4, obj.c());
-            trait2 = Trait('Bar', {c: function() { return 5 }});
+        trait2 = Trait('Bar', {c: function() { return 5 }});
         this.assertEquals(5, obj.c());
     },
 
@@ -169,13 +169,22 @@ lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.TraitCreati
         this.assert(!this.dummyA.prototype.b, 'not removed');
     },
 
+    testRemoveOverridenMethodsFromClass: function() {
+        this.removeTraitAfterwards('Foo');
+        var orig = this.dummyB.prototype.m3,
+            trait = Trait('Foo', {m3: function() { return 2 }});
+        trait.applyTo(this.dummyB, {override: ['m3']});
+        trait.remove();
+        this.assertIdentity(orig, this.dummyB.prototype.m3, 'not removed');
+    },
+
     testIdentityOfDerivedTraitsWithSameOptions: function() {
         this.removeTraitAfterwards('Foo');
         var trait = Trait('Foo', {a: 4, m1: function() { return 33 }}),
-        derived1 = trait.derive({alias: {m1: 'newM1'}, exclude: ['a']}),
-        derived2 = trait.derive({alias: {m1: 'newM1'}, exclude: ['a']}),
+            derived1 = trait.derive({alias: {m1: 'newM1'}, exclude: ['a']}),
+            derived2 = trait.derive({alias: {m1: 'newM1'}, exclude: ['a']}),
             derived3 = trait.derive({alias: {m1: 'newM1'}}),
-        derived4 = trait.derive({alias: {m1: 'newM2'}, exclude: ['a']});
+            derived4 = trait.derive({alias: {m1: 'newM2'}, exclude: ['a']});
         this.assertIdentity(derived1, derived2, 'derived1 !== derived2')
         this.assert(derived1 !== derived3, 'derived1 === derived3')
         this.assert(derived1 !== derived4, 'derived1 === derived4')

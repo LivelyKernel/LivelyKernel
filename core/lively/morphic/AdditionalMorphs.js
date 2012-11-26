@@ -16,7 +16,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     },
     setExtent: function($super, extent) {
         $super(extent);
-        this.renderContextDispatch('adaptCanvasSize');
+        this.renderContextDispatch('adaptCanvasSize', extent);
     },
     clear: function() {
         var ctx = this.getContext(),
@@ -31,18 +31,14 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         }
     }
 },
- 'HTML rendering', {
+'HTML rendering', {
     htmlDispatchTable: {
        createCanvasNode: 'createCanvasNodeHTML',
        getContext: 'getContextHTML',
        adaptCanvasSize: 'adaptCanvasSizeHTML'
     },
     getContextHTML: function(ctx, optContext) {
-        if (ctx.shapeNode) {
-            return ctx.shapeNode.getContext(optContext|| '2d');
-        } else {
-            return null;
-        }
+        return ctx.shapeNode ? ctx.shapeNode.getContext(optContext|| '2d') : null;
     },
     appendHTML: function($super, ctx) {
        $super(ctx);
@@ -52,13 +48,13 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         return XHTMLNS.create('canvas');
     },
     adaptCanvasSizeHTML: function(ctx) {
-        var x = $(ctx.shapeNode).width(),
-            y = $(ctx.shapeNode).height();
-        $(ctx.shapeNode).attr('width', x);
-        $(ctx.shapeNode).attr('height', y);
-    },
-}
-);
+        var $node = $(ctx.shapeNode),
+            x = $node.width(),
+            y = $node.height();
+        $node.attr('width', x);
+        $node.attr('height', y);
+    }
+});
 
 lively.morphic.Morph.subclass('lively.morphic.Path',
 'properties', {
@@ -125,12 +121,26 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
     addArrowHeadStart: function(morph) {
         var ctrlPt = this.getControlPoints().first();
         this.addMorph(morph);
-        ctrlPt.addMarker(morph, 'next')
+        ctrlPt.addMarker(morph, 'next');
+        return morph;
     },
     addArrowHeadEnd: function(morph) {
         var ctrlPt = this.getControlPoints().last();
         this.addMorph(morph);
         ctrlPt.addMarker(morph, 'prev')
+        return morph;
+    },
+    createArrow: function() {
+        var arrowHead = new lively.morphic.Path([pt(0,0), pt(0,12), pt(16,6), pt(0,0)]);
+        arrowHead.applyStyle({borderWidth: 0, borderColor: Color.black, fill: Color.black})
+        arrowHead.adjustOrigin(pt(12,6))
+        return arrowHead;
+    },
+    createArrowHeadStart: function() {
+        return this.addArrowHeadStart(this.createArrow());
+    },
+    createArrowHeadEnd: function() {
+        return this.addArrowHeadEnd(this.createArrow());
     }
 },
 'control points', {
@@ -221,8 +231,7 @@ Object.subclass('lively.morphic.ControlPoint',
     },
     create: function() {
         return new lively.morphic.ControlPoint(this.morph)
-    },
-
+    }
 },
 'updating', {
     signalChange: function() {
@@ -247,8 +256,7 @@ Object.subclass('lively.morphic.ControlPoint',
     isCurve: function() {
         var e = this.getElement();
         return e.charCode == 'Q' || e.charCode == 'C' || e.charCode == 'S';
-    },
-
+    }
 },
 'accessing', {
     getMorph: function() { return this.morph },
@@ -266,9 +274,7 @@ Object.subclass('lively.morphic.ControlPoint',
         var elements = this.morph.shape.getPathElements();
         elements.replaceAt(element, this.index);
         this.morph.shape.setPathElements(elements);
-    },
-
-
+    }
 },
 'enumerating', {
     withNextControlPointsDo: function(func) {
@@ -297,11 +303,11 @@ Object.subclass('lively.morphic.ControlPoint',
         this.setPos(this.morph.localize(p));
     },
 
-
     insertAfter: function(pos) {
         var next = this.create();
         return next.insertAt(this.index+1, pos);
     },
+
     insertAt: function(index, pos) {
         this.index = index;
 
@@ -327,8 +333,7 @@ Object.subclass('lively.morphic.ControlPoint',
     mergeWithNext: function() {
         var next = this.next();
         next && next.remove();
-    },
-
+    }
 
 },
 'removing', {
@@ -356,8 +361,7 @@ Object.subclass('lively.morphic.ControlPoint',
     toLine: function(p) {
         if (this.isFirst()) return;
         this.setElement(new lively.morphic.Shapes.LineTo(true, p.x, p.y));
-    },
-
+    }
 
 },
 'markers', {
@@ -382,8 +386,9 @@ Object.subclass('lively.morphic.ControlPoint',
             rot = vector.theta();
         this.marker.setRotation(rot);
         this.marker.setPosition(pos);
-    },
+    }
 });
+
 lively.morphic.Halo.subclass('lively.morphic.PathControlPointHalo',
 'settings', {
     style: {fill: null, borderWidth: 2, borderColor: Color.blue},
@@ -397,17 +402,12 @@ lively.morphic.Halo.subclass('lively.morphic.PathControlPointHalo',
         //controlPoint.getMorph().addMorph(this);
         //this.setPosition(controlPoint.getPos());
     },
-    createLabel: function() {/*do nothing*/},
-
-
-},
-'transformation', {
-
+    createLabel: function() {/*do nothing*/}
 });
 
 lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathVertexControlPointHalo',
 'properies', {
-    isVertexControlHalo: true,
+    isVertexControlHalo: true
 },
 'halo behavior', {
     computePositionAtTarget: function() {

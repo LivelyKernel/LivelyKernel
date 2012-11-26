@@ -4,7 +4,7 @@ Object.extend(lively.persistence, {
     OptimizedMorphCreator: {
         initShape: function(protoShape, newMorph, newCtx) {
             var newShape = newMorph.getShape();
-            newShape.renderContextTable = protoShape.renderContextTable;
+            newCtx.shapeRenderContextTable = protoShape.renderContext().shapeRenderContextTable;
             newShape._renderContext = newCtx;
         },
 
@@ -18,7 +18,8 @@ Object.extend(lively.persistence, {
 
         prepareForNewRenderContextFunc: function(morph, shape, morphNode, shapeNode, optTextNode, ctx) {
             // this.setRenderContext(newCtx);
-            this.renderContextTable = morph.renderContextTable;
+            // FIXME, renderContextTable now in renderContext!
+            ctx.morphRenderContextTable = morph.renderContext().morphRenderContextTable;
             this._renderContext = ctx;
 
             // this.getShape().setRenderContext(newCtx);

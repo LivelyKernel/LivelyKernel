@@ -71,6 +71,15 @@ Numbers = {
         return len % 2 === 0 ?
             0.5 * (sorted[len/2-1] + sorted[len/2]) :
             sorted[(len-1)/2];
+    },
+
+    between: function(x, a, b, eps) {
+        // is a <= x <= y?
+        eps = eps || 0;
+        var min, max;
+        if (a < b) { min = a, max = b }
+        else { max = a, min = b }
+        return (max - x + eps >= 0) && (min - x - eps <= 0);
     }
 
 }

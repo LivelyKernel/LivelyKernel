@@ -19,7 +19,7 @@ Object.subclass('lively.morphic.Morph',
     setNewId: function(optId) {
         if (this.derivationIds === undefined) this.derivationIds = [];
         if (this.id) this.derivationIds.push(this.id);
-        this.id = optId || new UUID().id;
+        return this.id = optId || new UUID().id;
     },
 
     defaultShape: function(optBounds) {
@@ -264,6 +264,17 @@ Object.subclass('lively.morphic.Morph',
         }
         return res;
     },
+    selectSubmorphs: function(spec) {
+        // return all submorphs (recursively) that fulfill spec
+        var props = Properties.own(spec);
+        function matches(aMorph) {
+            return props.all(function(prop) {
+                return aMorph[prop] == spec[prop];
+            });
+        };
+        return this.withAllSubmorphsSelect(matches);
+    },
+
 
     withAllSubmorphsDetect: function(func, context, depth) {
         if (!depth) depth = 0;

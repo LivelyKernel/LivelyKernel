@@ -33,16 +33,17 @@ Object.extend(apps.cssParser, {
         */
         var reSelectorTag = /(^|\s)(?:\w+)/g,
             reSelectorClass = /\.[\w\d_-]+/g,
-            reSelectorId = /#[\w\d_-]+/g;
+            reSelectorId = /#[\w\d_-]+/g,
+            match, tagCount, classCount, idCount;
 
-        var match = selector.match(reSelectorTag);
-        var tagCount = match ? match.length : 0;
+        match = selector.match(reSelectorTag),
+        tagCount = match ? match.length : 0;
 
         match = selector.match(reSelectorClass);
-        var classCount = match ? match.length : 0;
+        classCount = match ? match.length : 0;
 
         match = selector.match(reSelectorId);
-        var idCount = match ? match.length : 0;
+        idCount = match ? match.length : 0;
 
         // FIXME: like that, tag count and class count can't
         // exceed 9 in one selector without distort the result
@@ -162,29 +163,29 @@ Object.extend(apps.cssParser, {
         // Enhances the property list in apps.cssParser.props
         // by adding conclusive shorthands and shorthandFor
         // attributes to make it faster to use for parsing.
-        var propList = {},
-            markShorthands = function (property, properties) {
-                    var shorthand = orgPropList[property].shorthand;
-                    propList[property].shorthandFor =
-                        propList[property].shorthandFor.concat(properties || []);
-                    if (shorthand && orgPropList[shorthand]) {
-                        if (properties) {
-                            properties.push(property);
-                        } else {
-                            properties = [property];
-                        }
-                        // TODO: avoid running in circles
-                        var shorthandsFor = markShorthands(shorthand, properties || []);
-                        propList[property].shorthands =
-                            propList[property].shorthands.concat(shorthandsFor);
-                        return shorthandsFor.concat(property);
-                    } else {
-                        return [property];
-                    }
-                };
+        var propList = {}, x;
+        function markShorthands(property, properties) {
+            var shorthand = orgPropList[property].shorthand;
+            propList[property].shorthandFor =
+                propList[property].shorthandFor.concat(properties || []);
+            if (shorthand && orgPropList[shorthand]) {
+                if (properties) {
+                    properties.push(property);
+                } else {
+                    properties = [property];
+                }
+                // TODO: avoid running in circles
+                var shorthandsFor = markShorthands(shorthand, properties || []);
+                propList[property].shorthands =
+                    propList[property].shorthands.concat(shorthandsFor);
+                return shorthandsFor.concat(property);
+            } else {
+                return [property];
+            }
+        };
 
         // Prepare proplist
-        for (var x in orgPropList) {
+        for (x in orgPropList) {
             propList[x] = {};
             propList[x].commaSeparated = orgPropList[x].commaSeparated || false;
             propList[x].values = orgPropList[x].values.slice() || [];
@@ -192,11 +193,11 @@ Object.extend(apps.cssParser, {
             propList[x].shorthandFor = [];
         }
         // Mark shorthands
-        for (var x in orgPropList) {
+        for (x in orgPropList) {
             markShorthands(x);
         }
         // Make sure there are no duplicates in the shorthand attrs
-        for (var x in propList) {
+        for (x in propList) {
             propList[x].shorthands = propList[x].shorthands.uniq();
             propList[x].shorthandFor = propList[x].shorthandFor.uniq();
         }
@@ -205,13 +206,10 @@ Object.extend(apps.cssParser, {
     getPropList: function() {
         // Returns the shorthand enhanced property list.
         // If already created return cached version
-        if (apps.cssParser.enhancedPropertyList) {
-            return apps.cssParser.enhancedPropertyList;
-        } else {
+        if (!apps.cssParser.enhancedPropertyList)
             apps.cssParser.enhancedPropertyList = apps.cssParser.enhancePropList(
                 apps.cssParser.props);
-            return apps.cssParser.enhancedPropertyList;
-        }
+        return apps.cssParser.enhancedPropertyList;
     },
     props: {
         /*
@@ -221,7 +219,8 @@ Object.extend(apps.cssParser, {
         Feel free to add missing properties!
 
         A property can have several value counts (i.e. the value of
-        border-color could be 'black', but it could also be 'black black black blue').
+        border-color could be 'black', but it could also be 'black black black
+        blue').
 
         A value is of a certain type:
         0: Plain text (i.e. font-family; edit through text field)
@@ -230,8 +229,8 @@ Object.extend(apps.cssParser, {
         3: Color (i.e. color; edit with color chooser)
         4: Shadow (i.e. box-shadow; edit with shadow dialog)
 
-        Additionally, a property can also have a shorthand.
-        I.e. 'border-top-color' is implicitly set by the shorthand 'border-color'
+        Additionally, a property can also have a shorthand. I.e.
+        'border-top-color' is implicitly set by the shorthand 'border-color'
         */
         'background-color': {
             shorthand: 'background',

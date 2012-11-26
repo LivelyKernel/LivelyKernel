@@ -134,7 +134,7 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
         var css = webR.content,
             resPath = resourcePath || url.getDirectory();
         // add resource path to all relative urls in the css
-        this.makeResourceURLsAbsolute(css, resPath);
+        return this.makeResourceURLsAbsolute(css, resPath);
     },
 
     loadBaseTheme: function(file, resourcePath) {
@@ -242,10 +242,8 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
             convert = this.convertLengthToPx;
         if (borderWidthDecls.length === 0) return 0;
         // No support for left-top-right-bottom separation yet, so we just take the average
-        var borderWidth = borderWidthDecls.reduce(
-            function(prev, decl, i, a){
-                return prev + convert(decl.getValues().first()) / a.length;
-            }, 0);
+        var borderWidth = borderWidthDecls.reduce(function(prev, decl, i, a) {
+            return prev + convert(decl.getValues().first()) / a.length; }, 0);
         return borderWidth;
     },
 

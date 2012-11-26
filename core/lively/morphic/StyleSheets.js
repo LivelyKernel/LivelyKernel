@@ -57,28 +57,28 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
         return this.shape.getBorderStylingMode();
     },
     setStyleSheet: function (styleSheet) {
-        if(styleSheet.isStyleSheet) {
+        if (styleSheet.isStyleSheet) {
             return this.setParsedStyleSheet(styleSheet);
-        } else if(typeof (styleSheet) === 'string' && styleSheet.length > 0) {
+        }
+        if (typeof (styleSheet) === 'string' && styleSheet.length > 0) {
             var parsedStyleSheet = apps.cssParser.parse(styleSheet, this);
             return this.setParsedStyleSheet(parsedStyleSheet);
-        } else {
-            return this.setParsedStyleSheet();
         }
+        return this.setParsedStyleSheet();
     },
     setBaseThemeStyleSheet: function(styleSheet) {
-        if(styleSheet.isStyleSheet) {
+        if (styleSheet.isStyleSheet) {
             return this.setParsedBaseThemeStyleSheet(styleSheet);
-        } else if(typeof (styleSheet) === 'string' && styleSheet.length > 0) {
+        }
+        if (typeof (styleSheet) === 'string' && styleSheet.length > 0) {
             var parsedStyleSheet = apps.cssParser.parse(styleSheet, this);
             return this.setParsedBaseThemeStyleSheet(parsedStyleSheet);
-        } else {
-            return this.setParsedBaseThemeStyleSheet();
         }
+        return this.setParsedBaseThemeStyleSheet();
     },
 
     setParsedStyleSheet: function (styleSheet) {
-        if(styleSheet && styleSheet.isStyleSheet) {
+        if (styleSheet && styleSheet.isStyleSheet) {
             styleSheet.setOriginMorph(this);
             this.morphicSetter('StyleSheet', styleSheet);
             this.adaptBorders();
@@ -88,8 +88,9 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
             delete this._StyleSheet;
         }
     },
+
     setParsedBaseThemeStyleSheet: function(styleSheet) {
-        if(styleSheet && styleSheet.isStyleSheet) {
+        if (styleSheet && styleSheet.isStyleSheet) {
             styleSheet.setOriginMorph(this);
             styleSheet.isBaseTheme = true;
             // Do not use the morphic setter here, since we
@@ -116,12 +117,9 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
         // in the CSS file are in a different directory than the CSS'.
         // (use "" to leave the urls untouched)
         var css = this.loadCSSFile(file, resourcePath);
-        if (css) {
-            this.setStyleSheet(css);
-            return true;
-        } else {
-            return false;
-        }
+        if (!css) return false;
+        this.setStyleSheet(css);
+        return true;
     },
     loadCSSFile: function(file, resourcePath) {
         // Use the resourcePath parameter if the resources addressed
@@ -130,42 +128,35 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
         var url = URL.ensureAbsoluteURL(file),
             webR = url.asWebResource();
         webR.forceUncached();
-        if (webR.get().status.isSuccess()) {
-            var css = webR.content,
-                resPath = resourcePath || url.getDirectory();
-            // add resource path to all relative urls in the css
-            css = this.makeResourceURLsAbsolute(css, resPath);
-            return css;
-        } else {
+        if (!webR.get().status.isSuccess()) {
             throw new Error("Couldn't load stylesheet at " + file + " --> " + webR.status.code());
         }
+        var css = webR.content,
+            resPath = resourcePath || url.getDirectory();
+        // add resource path to all relative urls in the css
+        this.makeResourceURLsAbsolute(css, resPath);
     },
 
     loadBaseTheme: function(file, resourcePath) {
         var css = this.loadCSSFile(file || Config.baseThemeStyleSheetURL, resourcePath);
-        if (css) {
-            this.setBaseThemeStyleSheet(css);
-            return true;
-        } else {
-            return false;
-        }
+        if (!css) return false;
+        this.setBaseThemeStyleSheet(css);
+        return true;
     },
 
     makeResourceURLsAbsolute: function(css, resPath) {
         if (!css) return '';
-        if (!resPath || resPath.length < 1) {
-            return css;
-        } else {
-            return css.replace(/url\([\s]*\'(?![\s]*http)/g, "url('" + resPath)
-                .replace(/url\([\s]*\"(?![\s]*http)/g, 'url("' + resPath)
-                .replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, "url(" + resPath);
-        }
+        if (!resPath || resPath.length < 1) return css;
+        return css.replace(/url\([\s]*\'(?![\s]*http)/g, "url('" + resPath)
+               .replace(/url\([\s]*\"(?![\s]*http)/g, 'url("' + resPath)
+               .replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, "url(" + resPath);
     },
 
     getStyleSheet: function () {
         var styleSheet = this.getParsedStyleSheet();
         return styleSheet ? styleSheet.getText() : null;
     },
+
     getBaseThemeStyleSheet: function () {
         var styleSheet = this.getParsedBaseThemeStyleSheet();
         return styleSheet ? styleSheet.getText() : null;
@@ -205,7 +196,7 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
         // Comes as an array of lively.morphic.StyleSheetDeclarations
 
         var aggregatedStyle = {},
-        rules = this.getMatchingStyleSheetRules(),
+            rules = this.getMatchingStyleSheetRules(),
             result = [];
 
         // iterate over the ordered rules
@@ -219,7 +210,7 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
                     }, [])
                 // Aggregate and override declarations
                 .each(function (decl) {
-                    if(aggregatedStyle[decl.getProperty()]
+                    if (aggregatedStyle[decl.getProperty()]
                         && aggregatedStyle[decl.getProperty()].getPriority()
                         && !decl.getPriority()) {
                         // if the declaration is more '!important' than
@@ -230,9 +221,7 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
                     }
                 });
         }
-        for(var x in aggregatedStyle) {
-            result.push(aggregatedStyle[x]);
-        }
+        for (var x in aggregatedStyle) { result.push(aggregatedStyle[x]); }
         return result;
     },
     getMatchingStyleSheetDeclarations: function () {
@@ -240,12 +229,9 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
         // from all applicable css rules.
         //
         // Comes as an array of lively.morphic.StyleSheetDeclarations
-
         var rules = this.getMatchingStyleSheetRules();
-
         return rules.reduce(function (prev, rule) {
-            return prev.concat(rule.getDeclarations());
-        }, []);
+            return prev.concat(rule.getDeclarations()); }, []);
     },
     getStyleSheetBorderWidth: function() {
         var borderWidthDecls = this.getAggregatedMatchingStyleSheetDeclarations().select(
@@ -254,16 +240,13 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
                     return p.indexOf('border') >= 0 && p.indexOf('width') >= 0;
                 }),
             convert = this.convertLengthToPx;
-        if (borderWidthDecls.length > 0) {
-            // No support for left-top-right-bottom separation yet, so we just take the average
-            var borderWidth = borderWidthDecls.reduce(
-                function(prev, decl, i, a){
-                    return prev + convert(decl.getValues().first()) / a.length;
-                }, 0);
-            return borderWidth;
-        } else {
-            return 0;
-        }
+        if (borderWidthDecls.length === 0) return 0;
+        // No support for left-top-right-bottom separation yet, so we just take the average
+        var borderWidth = borderWidthDecls.reduce(
+            function(prev, decl, i, a){
+                return prev + convert(decl.getValues().first()) / a.length;
+            }, 0);
+        return borderWidth;
     },
 
     getStyleSheetDeclarationValue: function(property) {
@@ -274,46 +257,37 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
         var decls = this.getAggregatedMatchingStyleSheetDeclarations(),
             normalizedProperty = property.toLowerCase().trim(),
             matchingDecl = decls.find(function(x) {
-                    // For shorthands check all of their atomar declarations
-                    if (x.isStyleSheetShorthandDeclaration) {
-                        return x.getDeclarations().find(
-                            function(y) {
-                                // We assume shorthand properties are already normalized
-                                return (y.getProperty() === normalizedProperty);
-                            }
-                        );
-                    } else {
-                        return (x.getProperty().toLowerCase().trim() === normalizedProperty);
-                    }
-                });
-        if (matchingDecl) {
-            return matchingDecl.getValues().join(' ');
-        } else {
-            return null;
-        }
+                // For shorthands check all of their atomar declarations
+                if (!x.isStyleSheetShorthandDeclaration) {
+                    return (x.getProperty().toLowerCase().trim() === normalizedProperty);
+                }
+                return x.getDeclarations().find(function(y) {
+                    // We assume shorthand properties are already normalized
+                        return y.getProperty() === normalizedProperty; });
+            });
+        return matchingDecl ? matchingDecl.getValues().join(' ') : null;
     },
+
     convertLengthToPx: function(value) {
         var tokens = value.match(/^(-?[\d+\.\-]+)([a-z]+|%)$/i);
-
         if (tokens && tokens.length === 3) {
             var unit = tokens[2];
             if (unit === 'px') {
                 return parseFloat(tokens[1]);
-            } else {
-                console.warn('CSS length unit "'+unit+'" is not supported (yet).'+
-                    'Value will be set to 0.');
-                return 0;
             }
-        } else if (value.toLowerCase() ==='medium') {
+            console.warn('CSS length unit "' + unit + '" is not supported (yet).'
+                        + 'Value will be set to 0.');
+            return 0;
+        }
+        if (value.toLowerCase() ==='medium') {
             // This special case comes into play when
             // JSCSSP parses a 'border: none' declaration.
             // We don't need any warning for that.
             return 0
-        } else {
-             console.warn('"'+unit+'" is a valid CSS length.'+
-                    'Value will be set to 0.');
-            return 0;
         }
+        console.warn('"' + value + '" is not a valid CSS length.'
+                    + 'Value will be set to 0.');
+        return 0;
     },
 
     generateStyleSheetDeclarationOverrideList: function (declarations) {
@@ -369,20 +343,18 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
             matchingRules = [],
             morphInLoop = this;
         // Collect matching rules from ancestors (and self)
-        while(morphInLoop) {
+        while (morphInLoop) {
             var styleSheetRules = morphInLoop.getStyleSheetRules();
-            if(styleSheetRules) {
-                styleSheetRules.each(
-                function (rule) {
-                        try {
-                            if(sizzle.select(rule.getSelector(),
-                                morphInLoop, null, [this]).length === 1) {
-                                matchingRules.push(rule);
-                            }
-                        } catch(e) {
-                            console.warning('Selector engine failed to deal with '+rule.getSelector());
+            if (styleSheetRules) {
+                styleSheetRules.each(function (rule) {
+                    try {
+                        if (sizzle.select(rule.getSelector(), morphInLoop, null, [this]).length === 1) {
+                            matchingRules.push(rule);
                         }
-                    }, this);
+                    } catch(e) {
+                        console.warning('Selector engine failed to deal with '+rule.getSelector());
+                    }
+                }, this);
             }
             morphInLoop = morphInLoop.owner;
         }
@@ -392,7 +364,6 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
     sortStyleSheetRules: function (rules) {
         // Returns an array of all rules matching to
         // the morph, sorted by their specificity (low to high).
-
         var thisMorph = this;
         /*,
         styleSheetRules = (rules) ?
@@ -402,16 +373,14 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
         return rules.sort(function (a, b) {
             var specA = thisMorph.getStyleSheetRuleSpecificity(a),
                 specB = thisMorph.getStyleSheetRuleSpecificity(b);
-            if(specA === specB) {
-                if(a.getOriginMorph() !== b.getOriginMorph()) {
+            if (specA === specB) {
+                if (a.getOriginMorph() !== b.getOriginMorph()) {
                     return b.getOriginMorph().isAncestorOf(a.getOriginMorph());
-                } else {
-                    return false;
-                    // order ok like this?
                 }
-            } else {
-                return(specA > specB);
+                return false;
+                // order ok like this?
             }
+            return (specA > specB);
         });
     },
 
@@ -420,10 +389,8 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
         if (this.getBorderStylingMode()) {
             this.setBorderWidth(this.getStyleSheetBorderWidth());
         }
-
         // Call adaptBorders for each submorph
         this.submorphs.each(function(s) {s.adaptBorders()});
-
     },
 
     getStyleSheetRuleSpecificity: function (rule) {
@@ -441,11 +408,9 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
         // loop over all selectors in the group
         for (var j = 0, len = selectors.length; j < len; j++) {
             sel = selectors[j].trim();
-
             // find if the selector matches the element
-            if(sizzle.select(sel, context, null, [this]).length == 1) {
+            if (sizzle.select(sel, context, null, [this]).length == 1) {
                 spec = apps.cssParser.calculateCSSRuleSpecificity(sel);
-
                 // find the most specific selector that macthes the element
                 if(spec > maxSpecificity) {
                     maxSpecificity = spec;
@@ -461,8 +426,8 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
         // Returns the first sub(subsub...)morph with the given id
         return this.withAllSubmorphsDetect(function(m) {
             var styleId = (optIdAttributeName)
-                                         ? m[optIdAttributeName]
-                                         : m.getStyleId();
+                        ? m[optIdAttributeName]
+                        : m.getStyleId();
             return styleId === id;
         });
     },
@@ -476,21 +441,17 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
 
     getSubmorphsByAttribute: function (attr, value, optCaseInsensitive) {
         var val = optCaseInsensitive ? (value + '').toLowerCase() : (value + '');
-
         return this.withAllSubmorphsSelect(function (morph) {
             var a = morph[attr];
             if (value === null || value === undefined) {
                 return a !== null && a !== undefined;
-            } else {
-                return a &&
-                    (optCaseInsensitive ? (a + '').toLowerCase() : (a + '')) === val;
             }
+            return a && (optCaseInsensitive ? (a + '').toLowerCase() : (a + '')) === val;
         });
     },
     getSubmorphsByTagName: function (tag, optTagNameAttribute) {
         var tagNameAttr = optTagNameAttribute || 'tagName',
-        selectAll = (tag.trim() === '*');
-
+            selectAll = (tag.trim() === '*');
         return this.withAllSubmorphsSelect(function (morph) {
             var thisTagName = morph[tagNameAttr]
             return selectAll || (thisTagName && (thisTagName + '' === tag));
@@ -1826,6 +1787,7 @@ if ( !xml ) {
 
 'sort order', {
     sortOrder: function (a, b) {
+        // rk 2012-11-26: FIXME undeclared variables below!
         // The nodes are identical, we can exit early
         if(a === b) {
             hasDuplicate = true;
@@ -1903,6 +1865,7 @@ if ( !xml ) {
 
 
     uniqueSort: function (results) {
+        // rk 2012-11-26: FIXME where are the vars used below from?
         // Document sorting and removing duplicates
         var elem,
             i = 1;

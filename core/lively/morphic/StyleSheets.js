@@ -1,9 +1,21 @@
 module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssParser', 'lively.morphic.StyleSheetRepresentation').toRun(function () {
 
-// Load the base theme when the world is loaded
-Config.finishLoadingCallbacks.push(function(world) {
-    world.loadBaseTheme(Config.baseThemeStyleSheetURL, '');
-});
+// This module defines general support for CSS in Lively. Stylesheet rules are
+// mapped to the Morphic scene graph. A general stylesheet can be applied that
+// will target all morphs in the scene graph. Morphs can also define own
+// stylesheets whose rules scoped to them and their submorphs.
+//
+// The first part of this module defines accessors for morphic stylesheet
+// rules and convenience methods for working with stylsheets. The second part
+// defines lively.morphic.Sizzle, a CSS selector engine implementation based
+// on http://sizzlejs.com/ that maps sizzle rules to the Morphic scene graph.
+
+(function loadBaseThemeOnWorldLoad() {
+    // Load the base theme when the world is loaded
+    Config.finishLoadingCallbacks.push(function(world) {
+        world.loadBaseTheme(Config.baseThemeStyleSheetURL, '');
+    });
+})();
 
 lively.morphic.Shapes.Shape.addMethods('Styling', {
     setAppearanceStylingMode: function (value) {
@@ -21,10 +33,24 @@ lively.morphic.Shapes.Shape.addMethods('Styling', {
     }
 });
 
-lively.morphic.World.addMethods('CSS editor', {
+Trait('lively.morphic.WorldStyleSheetTrait',
+'convenience functions', {
     openWorldCSSEditor: function () {
         return this.openPartItem('WorldCSS', 'PartsBin/Tools');
     }
+},
+'menu items', {
+    morphMenuItems: lively.morphic.World.prototype.morphMenuItems.wrap(function (proceed) {
+        var items = proceed();
+        for (var i = 0; i < items.length; i++) {
+            if (items[i][0] === "Preferences") {
+                items[i][1].push(['Edit world CSS', this.openWorldCSSEditor.bind(this)]);
+            }
+        }
+        return items;
+    })
+}).applyTo(lively.morphic.World, {
+    override: 'morphMenuItems'
 });
 
 lively.morphic.Morph.addMethods('Style sheet getters and setters', {
@@ -1883,21 +1909,6 @@ if ( !xml ) {
         return results;
     }
 
-});
-
-Trait('WorldStyleSheetMenuTrait',
-'menu items', {
-    morphMenuItems: lively.morphic.World.prototype.morphMenuItems.wrap(function (proceed) {
-        var items = proceed();
-        for(var i = 0; i < items.length; i++) {
-            if(items[i][0] === "Preferences") {
-                items[i][1].push(['Edit world CSS', this.openWorldCSSEditor.bind(this)]);
-            }
-        }
-        return items;
-    })
-}).applyTo(lively.morphic.World, {
-    override: 'morphMenuItems'
 });
 
 }); // end of module

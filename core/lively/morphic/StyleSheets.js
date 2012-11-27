@@ -376,7 +376,7 @@ lively.morphic.Morph.addMethods('Style sheet getters and setters', {
                             matchingRules.push(rule);
                         }
                     } catch(e) {
-                        console.warning('Selector engine failed to deal with '+rule.getSelector());
+                        console.warn('Selector engine failed to deal with '+rule.getSelector());
                     }
                 }, this);
             }

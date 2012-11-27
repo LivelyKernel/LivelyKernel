@@ -430,27 +430,33 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
 
 },
 'helper', {
-    prepareForSetSource: function() {
+    prepareForSetSource: function(options) {
         var webRInspector = {
             getHeadRevCallCount: 0,
+            getCallCount: 0,
             putCallCount: 0,
             putReqRevs: [],
-            lastPutWebR: null,
+            putIfUnmodifiedSinceDates: [],
+            lastWebR: null,
             lastPutSource: null,
+            getContent: (options && options.initialContent) || null,
+            getContentLastModified: (options && options.lastModified) || null,
             currentRev: 1,
-            triggerDoneState: function(code) {
-                this.lastPutWebR.status = {
+            triggerDoneState: function(options) {
+                if (options.lastModified) this.lastWebR.lastModified = options.lastModified;
+                this.lastWebR.status = {
                     isDone: Functions.True,
-                    isSuccess: function() { return code < 400 },
-                    code: function() { return code }
+                    isSuccess: function() { return options.code < 400 },
+                    code: function() { return options.code }
                 };
             }
         }
 
-        this.spyInClass(WebResource, 'put', function(source, mimeType, reqRev) {
+        this.spyInClass(WebResource, 'put', function(source, mimeType, options) {
             webRInspector.putCallCount++;
-            webRInspector.lastPutWebR = this;
-            webRInspector.putReqRevs.push(reqRev)
+            webRInspector.lastWebR = this;
+            webRInspector.putReqRevs.push(options && options.requiredSVNRevision);
+            webRInspector.putIfUnmodifiedSinceDates.push(options && options.ifUnmodifiedSince);
             webRInspector.lastPutSource = source;
         });
 
@@ -459,6 +465,16 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
             this.headRevision = ++webRInspector.currentRev;
         });
 
+        this.spyInClass(WebResource, 'get', function() {
+            webRInspector.lastWebR = this;
+            webRInspector.getCallCount++;
+            this.content = webRInspector.getContent;
+            if (webRInspector.getContentLastModified)
+                this.lastModified = webRInspector.getContentLastModified;
+            return this;
+        });
+
+// (new Date()).valueOf() + 1
         return webRInspector;
     }
 },
@@ -476,50 +492,52 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
     },
 
     testPipelineSetSourceRequests: function() {
-        var webRInspector = this.prepareForSetSource(),
-            moduleWrapper = lively.ide.sourceDB().addModule('from/modulewrapper/test.js', 'code');
-
-        moduleWrapper.revisionOnLoad = webRInspector.currentRev; // 1
+        var date1 = new Date(),
+            date2 = new Date(date1.valueOf() + 1000),
+            webRInspector = this.prepareForSetSource({initialContent: 'code', lastModified: date1});
+        var moduleWrapper = lively.ide.sourceDB().addModule('from/modulewrapper/test.js');
 
         // two request but the second doesn't run
         moduleWrapper.setSource('code2', false, true);
         moduleWrapper.setSource('code3', false, true);
         this.assertEquals(1, webRInspector.putCallCount, 'double setSource results in two puts');
         this.assertEquals(webRInspector.lastPutSource, 'code2', 'content for first request not ok');
-        this.assertMatches([1], webRInspector.putReqRevs, 'required rev of first PUT not OK');
+        this.assertEqualState([date1], webRInspector.putIfUnmodifiedSinceDates, 'unmod dates');
 
         // answer the first one
-        webRInspector.triggerDoneState(204);
+
+        webRInspector.triggerDoneState({code: 204, lastModified: date2});
 
         this.assertEquals(2, webRInspector.putCallCount, 'no second put after responding to first');
         this.assertEquals(webRInspector.lastPutSource, 'code3', 'content for second request not ok');
-        this.assertMatches([1, 2], webRInspector.putReqRevs, 'required rev of second PUT not OK');
+
+        this.assertEqualState([date1, date2], webRInspector.putIfUnmodifiedSinceDates, 'unmod dates 2');
     },
 
     testCancelQueuedRequestsWhenOverwriteDenied: function() {
-        var webRInspector = this.prepareForSetSource(),
-            moduleWrapper = lively.ide.sourceDB().addModule('from/modulewrapper/test.js', 'code');
-
-        moduleWrapper.revisionOnLoad = webRInspector.currentRev; // 1
+        var date = new Date(),
+            webRInspector = this.prepareForSetSource({initialContent: 'code', lastModified: date});
+        var moduleWrapper = lively.ide.sourceDB().addModule('from/modulewrapper/test.js');
 
         // two request but the second doesn't run
         moduleWrapper.setSource('code2', false, true);
         moduleWrapper.setSource('code3', false, true);
 
         this.spyInClass(lively.morphic.World, 'confirm', function(q, cb) { cb(false); });
-        webRInspector.triggerDoneState(412);
+        webRInspector.triggerDoneState({code: 412});
 
         this.assertEquals(1, webRInspector.putCallCount, 'second put after responding to first');
         this.assertEquals(webRInspector.lastPutSource, 'code2', 'content not ok');
-        this.assertMatches([1], webRInspector.putReqRevs, 'required rev of second PUT not OK');
+        this.assertMatches([date], webRInspector.putIfUnmodifiedSinceDates,
+                           'required rev of second PUT not OK');
         this.assertEquals(0, moduleWrapper.queuedRequests.length, 'queuedRequests not cleared');
     },
 
     testRunQueuedSetSourceAfterOverwriteConfirm: function() {
-        var webRInspector = this.prepareForSetSource(),
-            moduleWrapper = lively.ide.sourceDB().addModule('from/modulewrapper/test.js', 'code');
-
-        moduleWrapper.revisionOnLoad = webRInspector.currentRev; // 1
+        var date1 = new Date(),
+            date2 = new Date(date1.valueOf() + 1000),
+            webRInspector = this.prepareForSetSource({initialContent: 'code', lastModified: date1});
+        var moduleWrapper = lively.ide.sourceDB().addModule('from/modulewrapper/test.js');
 
         // two request but the second doesn't run
         moduleWrapper.setSource('code2', false, true);
@@ -527,21 +545,26 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
 
         this.assertEquals(1, webRInspector.putCallCount, 'second put after responding to first');
         this.assertEquals(webRInspector.lastPutSource, 'code2', 'content not ok');
-        this.assertMatches([1], webRInspector.putReqRevs, 'required rev of first PUT not OK');
+        this.assertMatches([date1], webRInspector.putIfUnmodifiedSinceDates,
+                           'required date of first PUT not OK');
 
         // first setSource done:
         this.spyInClass(lively.morphic.World, 'confirm', function(q, cb) { cb(true); });
-        webRInspector.triggerDoneState(412);
+        webRInspector.triggerDoneState({code: 412});
 
-        this.assertEquals(2, webRInspector.putCallCount, 'no second put after confirming overwrite');
-        // the retried setSource call should directly use new source:
-        this.assertEquals(webRInspector.lastPutSource, 'code3', 'content of retried setSource not ok');
-        this.assertMatches([1, 2], webRInspector.putReqRevs, 'required rev of first PUT not OK');
+        this.assertEquals(2, webRInspector.putCallCount,
+                          'no second put after confirming overwrite');
+        this.assertEquals(webRInspector.lastPutSource, 'code3',
+                          'overwrite setSource call should use new source');
+        this.assertMatches([date1], webRInspector.putIfUnmodifiedSinceDates,
+                           'overwrite should not add a ifUnmodifiedSince date');
 
         // overwrite done and there shouldn't the queued request should be gone
-        webRInspector.triggerDoneState(204);
+        webRInspector.triggerDoneState({code: 204, lastModified: date2});
         this.assertEquals(2, webRInspector.putCallCount, 'there was yet another put');
         this.assertEquals(0, moduleWrapper.queuedRequests.length, 'queuedRequests not empty');
+        this.assertEquals(date2, moduleWrapper.lastModifiedDate,
+                          'lastModifiedDate no ok after 2. put');
     }
 
 });

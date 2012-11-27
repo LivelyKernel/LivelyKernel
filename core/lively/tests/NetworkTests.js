@@ -158,12 +158,37 @@ TestCase.subclass('lively.tests.NetworkTests.WebResourceTest',
         url.port = 1234;
         var sut = new WebResource(url);
         this.assert(url.eq(sut.getURL()), 'Given URL and used URL are not the same');
+    },
+
+    testPutWithRequiredRev: function() {
+        var url = URL.source.getDirectory().withFilename('testPut'),
+            localPath = url.relativePathFrom(URL.root),
+            webR = url.asWebResource();
+        webR.createXMLHTTPRequest = function(method) {return {request: Functions.Null}}
+        webR.put('foo', null, {requiredSVNRevision: 23});
+        this.assertEquals('(["23//' + localPath + '"])', webR.requestHeaders["If"]);
+    },
+
+    testPutWithUnmodifiedSince: function() {
+        var url = URL.source.getDirectory().withFilename('testPut'),
+            localPath = url.relativePathFrom(URL.root),
+            webR = url.asWebResource(),
+            now = new Date();
+        webR.createXMLHTTPRequest = function(method) {return {request: Functions.Null}};
+        webR.put('foo', null, {ifUnmodifiedSince: now});
+        this.assertEquals(now.toGMTString(), webR.requestHeaders["if-unmodified-since"]);
+        this.assert(!webR.requestHeaders["If"], 'If header present');
+        // let it also work with strings
+        var otherDate = "Sat, 24 Nov 2012 08:10:12 GMT";
+        webR.put('foo', null, {ifUnmodifiedSince: otherDate});
+        this.assertEquals(otherDate, webR.requestHeaders["if-unmodified-since"]);
     }
+
 });
 
 TestCase.subclass('lively.tests.NetworkTests.ActiveWebResourceTest',
 'settings', {
-    shouldRun: !Config.serverInvokedTest,
+    shouldRun: !Config.serverInvokedTest
 },
 'helper', {
     plainTextString: 'this is a test\nfoo\nbar',
@@ -182,9 +207,10 @@ TestCase.subclass('lively.tests.NetworkTests.ActiveWebResourceTest',
     removeFile: function(url) {
         new WebResource(url).del();
     },
+
     isWebDAVEnvironment: function() {
         return URL.source.normalizedHostname() !== 'localhost';
-    },
+    }
 
 },
 'running', {
@@ -204,7 +230,7 @@ TestCase.subclass('lively.tests.NetworkTests.ActiveWebResourceTest',
     tearDown: function($super) {
         $super();
         this.dir.del();
-    },
+    }
 },
 'testing', {
     testGet: function() {
@@ -310,7 +336,7 @@ TestCase.subclass('lively.tests.NetworkTests.ActiveWebResourceTest',
             webR = new WebResource(url);
         webR.ensureExistance();
         this.assert(webR.exists(), 'ensure existance did not work');
-    },
+    }
 
 });
 

@@ -188,6 +188,8 @@ Object.subclass('TestCase',
 
         if (Global.URL && a instanceof URL && b instanceof URL && a.eq(b)) return;
 
+        if (a instanceof Date & b instanceof Date && a.valueOf() === b.valueOf()) return;
+
         if (a == b) return;
 
         this.assert(false, (msg ? msg : '') + ' (' + a +' != ' + b +')');
@@ -229,6 +231,10 @@ Object.subclass('TestCase',
             case String:
             case Boolean:
             case Boolean:
+            case Date: {
+                this.assertEquals(leftObj, rightObj, msg);
+                return;
+            }
             case Number: {
                 this.assertEquals(leftObj, rightObj, msg);
                 return;

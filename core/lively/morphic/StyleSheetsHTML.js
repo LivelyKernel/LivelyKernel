@@ -1,4 +1,4 @@
-module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 'lively.morphic.HTML').toRun(function () {
+module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.HTML').toRun(function () {
 
 // This module modifies the Morphic HTML rendering implementation to make it
 // compatible with CSS styling. Several style attribute setter methods are

@@ -459,7 +459,7 @@ Config.addOptions(
     ],
 
     'lively.morphic.StyleSheets', [
-        ["baseThemeStyleSheetURL", (ExistingConfig.codeBase || Config.getDocumentDirectory()) + 'media/base_theme.css', "The base theme CSS file location"]
+        ["baseThemeStyleSheetURL", (ExistingConfig.codeBase || Config.getDocumentDirectory()) + 'styles/base_theme.css', "The base theme CSS file location"]
     ],
 
     "lively.PartsBin", [

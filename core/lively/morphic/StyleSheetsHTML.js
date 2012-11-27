@@ -1,5 +1,9 @@
 module('lively.morphic.StyleSheetsHTML').requires('lively.morphic.StyleSheets', 'lively.morphic.HTML').toRun(function () {
 
+// This module modifies the Morphic HTML rendering implementation to make it
+// compatible with CSS styling. Several style attribute setter methods are
+// adapted so that inline styling / declarative styling work together.
+
 Object.extend(lively.morphic.Morph.prototype.htmlDispatchTable, {
     setStyleSheet: 'setStyleSheetHTML',
     setBaseThemeStyleSheet: 'setBaseThemeStyleSheetHTML',
@@ -85,7 +89,9 @@ Trait('StyleSheetsHTMLShapeTrait',
         override:
             ['setFillHTML', 'setOpacityHTML', 'setBorderStyleHTML', 'setBorderWidthHTML', 'setBorderHTML']
 });
-Trait('StyleSheetsHTMLRectangleTrait', 'updating', {
+
+Trait('StyleSheetsHTMLRectangleTrait',
+'updating', {
     setBorderRadiusHTML: lively.morphic.Shapes.Rectangle.prototype.setBorderRadiusHTML.wrap(function (proceed, ctx, value) {
         if (ctx.shapeNode && this.shapeGetter('BorderStylingMode')) {
             proceed(ctx, null);
@@ -97,7 +103,8 @@ Trait('StyleSheetsHTMLRectangleTrait', 'updating', {
     override: 'setBorderRadiusHTML'
 });
 
-Trait('StyleSheetsHTMLTextTrait', 'accessing', {
+Trait('StyleSheetsHTMLTextTrait',
+'accessing', {
     setAlignHTML: lively.morphic.Text.prototype.setAlignHTML.wrap(function (proceed, ctx, value) {
         if (this.morphicGetter('TextStylingMode')) {
             proceed(ctx, null);
@@ -176,7 +183,8 @@ Trait('StyleSheetsHTMLTextTrait', 'accessing', {
         ]
 });
 
-Trait('StyleSheetsHTMLTrait', 'initializing', {
+Trait('StyleSheetsHTMLTrait',
+'initializing', {
     appendHTML: lively.morphic.Morph.prototype.appendHTML.wrap(function (proceed, ctx, optMorphAfter) {
         proceed(ctx, optMorphAfter);
         this.prepareDOMForStyleSheetsHTML(ctx);
@@ -452,15 +460,15 @@ lively.morphic.Morph.addMethods(
         if (childOpCount > maxOpCount) {
             console.warn('Cannot adapt selector ' + selector + '. Too many child operators.');
             return selector;
-        } else if (childOpCount > 0) {
-            // Loop over all tokens
-            var sels = replaceRecursively(tokens);
-            return sels.reduce(function(prev, sel, i) {
-                return prev + sel + ((i < sels.length - 1) ? ', ' : '');
-            },'');
-        } else {
+        }
+        if (childOpCount === 0) {
             return selector;
         }
+        // Loop over all tokens
+        var sels = replaceRecursively(tokens);
+        return sels.reduce(function(prev, sel, i) {
+            return prev + sel + ((i < sels.length - 1) ? ', ' : '');
+        },'');
     },
 
     replaceWildcardSelector: function(selector) {

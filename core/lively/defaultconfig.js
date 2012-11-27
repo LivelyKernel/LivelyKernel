@@ -457,6 +457,11 @@ Config.addOptions(
         ['defaultCodeFontSize', 10, "In which pt size code appears."],
         ['autoIndent', true, "Automatically indent new lines."]
     ],
+
+    'lively.morphic.StyleSheets', [
+        ["baseThemeStyleSheetURL", (ExistingConfig.codeBase || Config.getDocumentDirectory()) + 'styles/base_theme.css', "The base theme CSS file location"]
+    ],
+
     "lively.PartsBin", [
         ["PartCachingEnabled", true, "Whether parts are cached after they are loaded the first time"]
     ]

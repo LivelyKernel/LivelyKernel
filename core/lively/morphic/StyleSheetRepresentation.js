@@ -12,10 +12,10 @@ Object.subclass('lively.morphic.StyleSheet',
     getText: function() {
         // Returns the CSS formated text of the style sheet
         return this.rules.reduce(function(prev, rule, i, rules) {
-                // Add two newlines after each rule, except the last
-                return prev + rule.getText()
-                    + (i < rules.length - 1 ? '\n\n' : '');
-            }, '');
+            // Add two newlines after each rule, except the last
+            return prev + rule.getText()
+                 + (i < rules.length - 1 ? '\n\n' : '');
+        }, '');
     },
     getRules: function() {
         return this.rules;
@@ -28,14 +28,12 @@ Object.subclass('lively.morphic.StyleSheet',
     setRules: function(rules) {
         this.rules = rules || [];
         this.rules.each(function(rule) {
-                rule.setStyleSheet(this);
-            }, this);
+            rule.setStyleSheet(this); }, this);
     },
     setOriginMorph: function(morph) {
         this.originMorph = morph;
     }
-}
-);
+});
 
 Object.subclass('lively.morphic.StyleSheetRule',
 'init', {
@@ -46,7 +44,7 @@ Object.subclass('lively.morphic.StyleSheetRule',
         this.setSelector(selector);
     }
 },
-'Getter', {
+'accessing', {
     getDeclarations: function() {
         return this.declarations.clone();
     },
@@ -75,9 +73,7 @@ Object.subclass('lively.morphic.StyleSheetRule',
     },
     getText: function() {
         return this.getTextWithSelector(this.getSelector());
-    }
-},
-'Setter', {
+    },
     setDeclarations: function(declarations) {
         this.declarations = declarations || [];
         this.declarations.each(function(decl) {
@@ -90,8 +86,7 @@ Object.subclass('lively.morphic.StyleSheetRule',
     setSelector: function(selector) {
         this.selector = selector || '';
     }
-}
-);
+});
 
 lively.morphic.StyleSheetRule.subclass('lively.morphic.StyleSheetComment',
 'init', {
@@ -101,17 +96,14 @@ lively.morphic.StyleSheetRule.subclass('lively.morphic.StyleSheetComment',
         $super('', [], styleSheet);
     }
 },
-'Getter', {
+'accessing', {
     getText: function() {
         return this.comment;
-    }
-},
-'Setter', {
+    },
     setComment: function(comment) {
         this.comment = comment || '\n';
     }
-}
-);
+});
 
 lively.morphic.StyleSheetRule.subclass('lively.morphic.StyleSheetFontFaceRule',
 'init', {
@@ -120,7 +112,7 @@ lively.morphic.StyleSheetRule.subclass('lively.morphic.StyleSheetFontFaceRule',
         $super('', declarations, styleSheet);
     }
 },
-'Getter', {
+'accessing', {
     getText: function() {
         // Returns the CSS formated text of the rule
         var result = '';
@@ -130,14 +122,11 @@ lively.morphic.StyleSheetRule.subclass('lively.morphic.StyleSheetFontFaceRule',
             });
         result += '}';
         return result;
-    }
-},
-'Setter', {
+    },
     setComment: function(comment) {
         this.comment = comment || '\n';
     }
-}
-);
+});
 
 Object.subclass('lively.morphic.StyleSheetDeclaration',
 'init', {
@@ -149,7 +138,7 @@ Object.subclass('lively.morphic.StyleSheetDeclaration',
         this.setPriority(priority);
     }
 },
-'Getter', {
+'accessing', {
     getValues: function() {
         return this.values.clone();
     },
@@ -170,20 +159,15 @@ Object.subclass('lively.morphic.StyleSheetDeclaration',
     },
     getText: function() {
         // Returns the CSS formated text of the style declaration (i.e. 'property: values;')
-        var result = '';
-        result += this.property;
-        result += ':';
+        var result = '' + this.property + ':';
         this.values.each(function(value) {
-                result += ' ' + value;
-            });
+            result += ' ' + value; });
         if (this.getPriority()) {
             result += ' !important';
         }
         result += ';';
         return result;
-    }
-},
-'Setter', {
+    },
     setValues: function(values) {
         this.values = values || [];
     },
@@ -196,8 +180,8 @@ Object.subclass('lively.morphic.StyleSheetDeclaration',
     setPriority: function(priority) {
         this.priority = priority || false;
     }
-}
-);
+});
+
 lively.morphic.StyleSheetDeclaration.subclass('lively.morphic.StyleSheetInlineComment',
 'init', {
     isStyleSheetInlineComment: true,
@@ -206,27 +190,24 @@ lively.morphic.StyleSheetDeclaration.subclass('lively.morphic.StyleSheetInlineCo
         $super('', [''], rule);
     }
 },
-'Getter', {
+'accessing', {
     getText: function() {
         return this.comment;
-    }
-},
-'Setter', {
+    },
     setComment: function(comment) {
         this.comment = comment || '\n';
     }
-}
-);
+});
+
 lively.morphic.StyleSheetDeclaration.subclass('lively.morphic.StyleSheetShorthandDeclaration',
 'init', {
-    isStyleSheetShorthandDeclaration: true,
+    isStyleSheetShorthandDeclaration: true
 },
-'Getter', {
+'accessing', {
     getDeclarations: function() {
         // TODO: implement caching
         return apps.cssParser.parseShorthand(this);
-    },
-}
-);
+    }
+});
 
-}) // end of module
+}); // end of module

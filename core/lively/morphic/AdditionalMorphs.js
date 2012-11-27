@@ -597,20 +597,20 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
 },
 'initializing', {
 
-    initialize: function($super, optTabBarStrategy, optExtent, optTabBarHeight) {
+    initialize: function($super, optTabBarStrategy) {
         $super();
         var tabBarStrategy = optTabBarStrategy || new lively.morphic.TabStrategyTop();
         this.setTabBarStrategy(tabBarStrategy);
-        this.tabPaneExtent = optExtent || pt(600,400);
-        this.initializeTabBar(optTabBarHeight);
+        this.tabPaneExtent = pt(600,400);
+        this.initializeTabBar();
         var newExtent = this.getTabBarStrategy().
             calculateInitialExtent(this.tabBar, this.tabPaneExtent);
         this.setExtent(newExtent);
         tabBarStrategy.applyTo(this);
     },
 
-    initializeTabBar: function(optTabBarHeight) {
-        this.tabBar = new lively.morphic.TabBar(this, optTabBarHeight);
+    initializeTabBar: function() {
+        this.tabBar = new lively.morphic.TabBar(this);
         this.addMorph(this.tabBar);
     },
     getTabBarStrategy: function() {
@@ -734,9 +734,8 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
 },
 'initializing', {
 
-    initialize: function($super, tabContainer, optTabBarHeight) {
+    initialize: function($super, tabContainer) {
         $super();
-        optTabBarHeight && this.setDefaultHeight(optTabBarHeight)
         this.tabContainer = tabContainer;
         var width = tabContainer.getTabBarStrategy().getTabBarWidth(tabContainer);
         this.setExtent(pt(width, this.getDefaultHeight()));

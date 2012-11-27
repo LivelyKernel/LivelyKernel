@@ -224,24 +224,6 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
         cop.proceed(headline, windowWidth, windowMorph, optSuppressControls);
         this.beTaskBar.bind(this).delay(0);
     },
-}).refineClass(lively.morphic.Button, {
-    onTap: function(evt){
-        if(this.world().selectionActivated){
-            this.select();
-            evt.stop();
-        } else {
-            return cop.proceed(evt);
-        }
-    }
-}).refineClass(lively.morphic.Text, {
-    onTap: function(evt){
-        if(this.world().selectionActivated){
-            this.select();
-            evt.stop();
-        } else {
-            return cop.proceed(evt);
-        }
-    }
 }).refineClass(lively.morphic.List, {
     updateList: function(items, useOwnImplementation) {
         if(!useOwnImplementation) {
@@ -249,7 +231,6 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
         } else {
 
         items = items || [];
-        //this.itemList = items;
         var that = this;
         this.itemList = [];
         var mapToItemList = function(array) {
@@ -266,13 +247,37 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
         this.renderContextDispatch('updateListContent', items);
         }
     },
-}).beGlobal();
+})
+// the following code can be used in combination with ensureselectionmorph (not used right now)
+// .refineClass(lively.morphic.Button, {
+    // onTap: function(evt){
+        // // prepared for selection morph activation (see ensureselectionmorph)
+        // if(this.world().selectionActivated){
+            // this.select();
+            // evt.stop();
+        // } else {
+            // return cop.proceed(evt);
+        // }
+    // }
+// }).refineClass(lively.morphic.Text, {
+    // onTap: function(evt){
+        // // prepared for selection morph activation (see ensureselectionmorph)
+        // if(this.world().selectionActivated){
+            // this.select();
+            // evt.stop();
+        // } else {
+            // return cop.proceed(evt);
+        // }
+    // }
+// })
+.beGlobal();
 
-IPadExtensions.beGlobal = function(){
-  cop.enableLayer(this);
-  $world.ensureSelectionMorph();
-  return this;
-};
+// the selection morph can be used to enable or disable an edit mode. Not used right now, so there is no need to overwrite this function 
+// IPadExtensions.beGlobal = function(){
+  // cop.enableLayer(this);
+  // $world.ensureSelectionMorph();
+  // return this;
+// };
 
 TestCase.subclass('TouchEventsTest',
 'default category', {
@@ -1871,6 +1876,7 @@ lively.morphic.World.addMethods(
 }, 
 'Selection Status', {
     ensureSelectionMorph: function() {
+    // Not in use
         if(!this.selectionModeButton){
             this.selectionModeButton = new lively.morphic.Button(rect(0,0,44,44));
             this.selectionModeButton.setExtent(pt(100,84));
@@ -1880,7 +1886,7 @@ lively.morphic.World.addMethods(
                 textColor: Color.white,
                 emphasize: {textShadow: null}
             });
-            this.selectionModeButton.lighterFill = new lively.morphic.LinearGradient(
+            this.selectionModeButton.toggleColor = new lively.morphic.LinearGradient(
                 [
                     {offset: 0, color: Color.rgb(49,79,255)},
                     {offset: 0.59, color: Color.rgb(53,83,255)},
@@ -1889,7 +1895,7 @@ lively.morphic.World.addMethods(
                 ],
                 'southNorth'
             );
-            this.selectionModeButton.normalFill = new lively.morphic.LinearGradient(
+            this.selectionModeButton.normalColor = new lively.morphic.LinearGradient(
                 [
                     {offset: 0, color: Color.rgb(0,0,0)},
                     {offset: 0.59, color: Color.rgb(59,59,59)},
@@ -1898,7 +1904,7 @@ lively.morphic.World.addMethods(
                 ],
                 'southNorth'
             );
-            this.selectionModeButton.setFill(this.selectionModeButton.normalFill);
+            this.selectionModeButton.setFill(this.selectionModeButton.normalColor);
             this.selectionModeButton.onTouchStart = function(){};
             this.selectionModeButton.onTouchEnd = function(){};
             this.selectionModeButton.onTap = function(){
@@ -1907,10 +1913,10 @@ lively.morphic.World.addMethods(
             this.selectionModeButton.toggle = function(){
                 this.isActivated = !this.isActivated;
                 if(this.isActivated){
-                    this.setFill(this.lighterFill);
+                    this.setFill(this.toggleColor);
                     $world.activateSelection();
                 } else {
-                    this.setFill(this.normalFill);
+                    this.setFill(this.normalColor);
                     $world.deactivateSelection();
                 }
             }
@@ -1922,10 +1928,12 @@ lively.morphic.World.addMethods(
         this.selectionModeButton.fixedPosition = pt(0,0);
     },
     deactivateSelection: function() {
+        // Not in use
         $world.select();
         this.selectionActivated = false;
     },
     activateSelection: function() {
+        // Not in use
         this.selectionActivated = true;
     },
 
@@ -2064,7 +2072,6 @@ lively.morphic.Text.addMethods("TapEvents", {
 });
 
 lively.morphic.Button.addMethods("TapEvents", {
-
     onTouchStart: function() {
         if (this.isActive) {
             this.isPressed = true;
@@ -2084,10 +2091,6 @@ lively.morphic.Button.addMethods("TapEvents", {
         evt.stop()
         // we don't want a button to be selected when tapped
     },
-
-
-
-
     setExtent: function(value) {
         var min = this.getMinExtent();
         value.maxPt(min,value);
@@ -2114,8 +2117,8 @@ lively.morphic.Button.addMethods("TapEvents", {
         // enter comment here
         this.setExtent(pt(44,44))
         var fontSize = 16
-        this.normalFill = null;
-        this.lighterFill = Color.rgba(255,255,255,0.3);
+        this.normalColor = null;
+        this.toggleColor = Color.rgba(255,255,255,0.3);
         this.setFill(null);
         this.label.setFontSize(fontSize);
         this.setLabel(labelString);
@@ -2133,21 +2136,28 @@ lively.morphic.Button.addMethods("TapEvents", {
         this.setBorderWidth(1);
         this.setBorderColor(Color.darkGray);
         this.setFill(Color.white);
-        this.normalFill = Color.white;
-        this.lighterFill = this.normalFill.mixedWith(Color.darkGray, 0.5);
+        this.normalColor = Color.white;
+        this.toggleColor = this.normalColor.mixedWith(Color.darkGray, 0.5);
         this.label.setBorderWidth(0);
         this.label.setTextColor(Color.rgb(53,83,255).mixedWith(Color.black, 0.5));
         this.label.setPadding(pt(0,0).extent(pt(0,0)));
         this.centerLabel();
     },
     beFlapButton: function() {
-        this.lighterFill = Color.blue;
-        this.normalFill = Color.rgba(43,43,43,0.5);
+        this.toggleColor = new lively.morphic.LinearGradient(
+            [
+                {offset: 0, color: Color.rgb(49,79,255)},
+                {offset: 0.59, color: Color.rgb(53,83,255)},
+                {offset: 0.63, color: Color.rgb(79,105,255)},
+                {offset: 1, color: Color.rgb(112,134,255)}
+            ],
+            'southNorth');
+        this.normalColor = Color.rgba(43,43,43,0.5);
         this.applyStyle({
-            fill: this.normalFill,
+            fill: this.normalColor,
             borderRadius: 50,
             borderWidth: 2,
-            borderColor: this.normalFill.withA(1),
+            borderColor: this.normalColor.withA(1),
             extent: pt(100,30),
             label: {
                 fontWeight: 'bold',
@@ -2155,7 +2165,7 @@ lively.morphic.Button.addMethods("TapEvents", {
                 padding: rect(0,3,0,0)
             }
         })
-        this.setFill(this.normalFill)
+        this.setFill(this.normalColor)
         this.label.applyStyle({
             fontWeight: 'bold',
             textColor: Color.rgb(235,235,235),
@@ -2163,17 +2173,14 @@ lively.morphic.Button.addMethods("TapEvents", {
     },
     changeAppearanceFor: function (pressed, toggled) {
             if (this.isActive && pressed) {
-                this.setFill(this.lighterFill);
+                this.setFill(this.toggleColor);
             }
             else {
-                this.setFill(this.normalFill)
+                this.setFill(this.normalColor)
             }
         },
-
-
-
-
     centerLabel: function() {
+        // TODO: make it work again
         this.label.layout = this.label.layout || {};
         this.layout = this.layout || {};
         this.layout.adjustForNewBounds = true;
@@ -2181,7 +2188,6 @@ lively.morphic.Button.addMethods("TapEvents", {
         this.label.layout.centeredHorizontal = true;
         this.adjustForNewBounds();
     },
-
 },
 'Double Tap Selection', {
     onDoubleTap: function(){
@@ -2190,6 +2196,8 @@ lively.morphic.Button.addMethods("TapEvents", {
 },
 'Touch and Hold Selection', {
     onHold: function(){
+        this.isPressed = false;
+        this.changeAppearanceFor(false);
         this.select();
     },
 });

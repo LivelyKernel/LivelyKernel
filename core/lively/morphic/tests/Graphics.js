@@ -58,6 +58,24 @@ TestCase.subclass('lively.morphic.tests.Line',
         this.assertEquals(right, r.rightEdge(), "right");
     },
 
+    testLinesBetweenRect: function() {
+        var r1 = new lively.Rectangle(10, 10, 10, 10),
+            r2 = new lively.Rectangle(30, 20, 10, 10),
+            r3 = new lively.Rectangle(20, 10, 20, 20),
+            l1 = r1.lineTo(r2),
+            l2 = r2.lineTo(r1),
+            l3 = r2.lineTo(r3),
+            l4 = r3.lineTo(r2);
+        this.assertEquals(20, l1.start.x);
+        this.assertEquals(17.5, l1.start.y);
+        this.assertEquals(30, l1.end.x);
+        this.assertEquals(22.5, l1.end.y);
+        this.assert(l1.start.equals(l2.end));
+        this.assert(l2.start.equals(l1.end));
+        this.assert(!l3);
+        this.assert(!l4);
+    },
+
     testPointOnLine: function() {
         var line = pt(10,10).lineTo(pt(20,20)),
             p1 = pt(12, 12),

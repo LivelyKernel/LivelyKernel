@@ -1,5 +1,4 @@
 module('lively.morphic.Shapes').requires('lively.morphic.Graphics').toRun(function() {
-
 Object.subclass('lively.morphic.Shapes.Shape',
 'initializing', {
     initialize: function(bounds) {
@@ -11,9 +10,8 @@ Object.subclass('lively.morphic.Shapes.Shape',
     getPosition: function() { return this.shapeGetter('Position') || pt(0,0) },
     setExtent: function(extent, scrollBarExtent) { return this.shapeSetter('Extent', extent) },
     getExtent: function() { return this.shapeGetter('Extent') || pt(0,0); },
-    setClipMode: function (modeString) { return this.shapeSetter('ClipMode', modeString) },
+	setClipMode: function (modeString) { return this.shapeSetter('ClipMode', modeString) },
     getClipMode: function () { return this.shapeGetter('ClipMode') || 'visible' },
-
     setBounds: function(bounds) {
         this.setPosition(bounds.topLeft());
         this.setExtent(bounds.extent());
@@ -21,7 +19,6 @@ Object.subclass('lively.morphic.Shapes.Shape',
     },
     getBounds: function() { return this.getPosition().extent(this.getExtent()) },
     bounds: function() { return this.getBounds() },
-
     setFill: function(fill) { return this.shapeSetter('Fill', fill) },
     getFill: function() { return this.shapeGetter('Fill') || null },
     setFillOpacity: function(opacity) {
@@ -35,11 +32,7 @@ Object.subclass('lively.morphic.Shapes.Shape',
     },
     setBorderWidth: function(width) { return this.shapeSetter('BorderWidth', width) },
     getBorderWidth: function() {
-        if (this.getBorderStylingMode && this.getBorderStylingMode()) {
-            return this.renderContextDispatch('getComputedBorderWidth') || 0;
-        } else {
-            return this.shapeGetter('BorderWidth')  || 0;
-        }
+        return this.shapeGetter('BorderWidth')  || 0;
     },
     setBorderColor: function(fill) { return this.shapeSetter('BorderColor', fill) },
     getBorderColor: function() {
@@ -58,13 +51,11 @@ Object.subclass('lively.morphic.Shapes.Shape',
         return this.shapeSetter('BorderStyle', value);
     },
     getBorderStyle: function() { return this.shapeGetter('BorderStyle') || 'solid' },
-
     setOpacity: function(opacity) { return this.shapeSetter('Opacity', opacity) },
     getOpacity: function() {
         var op = this.shapeGetter('Opacity');
         return op === undefined ? 1 : Number(op);
     },
-
     vertices: function() {
         var b = this.bounds();
         return [pt(b.x, b.y), pt(b.width, b.height)]
@@ -87,12 +78,11 @@ Object.subclass('lively.morphic.Shapes.Shape',
     },
 
     setNodeId: function(value) {
-       this.renderContextDispatch('setNodeId', value);
-        return value;
+        return this.shapeSetter('NodeId', value);
     },
 
     getNodeId: function() {
-        return this.renderContextDispatch('setNodeId');
+        return this.shapeGetter('NodeId')
     }
 
 });
@@ -121,7 +111,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Image',
 
 lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.External',
 'documentation', {
-    documentation: 'a shape that wraps an arbitrary HTML element',
+    documentation: 'a shape that wraps an arbitrary HTML element'
 },
 'initializing', {
     initialize: function($super, element) {
@@ -129,7 +119,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.External',
     },
     initFromStringifiedShapeNode: function() {
         return this.renderContextDispatch('initFromStringifiedShapeNode');
-    },
+    }
 },
 'serialization', {
     doNotSerialize: ['shapeNode'],
@@ -142,13 +132,13 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.External',
     onrestore: function() {
         // FIXME this directly depends on HTML
         this.initFromStringifiedShapeNodeHTML(null);
-    },
+    }
 },
 'accessing', {
     getExtent: function() {
         // FIXME: this does not work in Firefox
         return this.renderContextDispatch('getExtent') || pt(0,0);
-    },
+    }
 });
 
 Object.subclass('lively.morphic.Gradient',

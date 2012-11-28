@@ -157,7 +157,7 @@ Object.subclass('TestCase',
     addAndSignalFailure: function(e) {
         this.result.addFailure(this.constructor.type, this.currentSelector, e);
         this.failure(e);
-    },
+    }
 
 },
 
@@ -173,6 +173,8 @@ Object.subclass('TestCase',
 
         if (Object.isNumber(a) && Object.isNumber(b) && Math.abs(a-b) <= eps) return;
 
+        if (Object.isArray(a) && Object.isArray(b) && a.equals(b)) return;
+
         if (a instanceof lively.Point && b instanceof lively.Point &&
             Math.abs(a.x-b.x) <= eps && Math.abs(a.y-b.y) <= eps) return;
 
@@ -182,7 +184,11 @@ Object.subclass('TestCase',
 
         if (a instanceof Color && b instanceof Color && a.equals(b)) return;
 
+        if (a instanceof lively.Line && b instanceof lively.Line && a.equals(b)) return;
+
         if (Global.URL && a instanceof URL && b instanceof URL && a.eq(b)) return;
+
+        if (a instanceof Date & b instanceof Date && a.valueOf() === b.valueOf()) return;
 
         if (a == b) return;
 
@@ -225,6 +231,10 @@ Object.subclass('TestCase',
             case String:
             case Boolean:
             case Boolean:
+            case Date: {
+                this.assertEquals(leftObj, rightObj, msg);
+                return;
+            }
             case Number: {
                 this.assertEquals(leftObj, rightObj, msg);
                 return;

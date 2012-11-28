@@ -516,8 +516,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             fixedWidth: false,
             fixedHeight: true,
             allowInput: false,
-            clipMode: 'hidden',
-            emphasize: {textShadow: {offset: pt(0,1), color: Color.white}}
+            clipMode: 'hidden'
         };
         if (customStyle) labelStyle = Object.merge([labelStyle, customStyle]);
         this.applyStyle(labelStyle);
@@ -979,6 +978,16 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         return true;
     },
 
+    indentLine: function() {
+        // assumes that the current cursor position is at the start of the line
+        var endOfLastLine = this.getSelectionRange()[0] - 2;
+        var beginOfLastLine = this.textString.lastIndexOf('\n', endOfLastLine);
+        var lastLine = this.textString.substring(beginOfLastLine + 1, endOfLastLine + 1);
+        var indent = lastLine.match(/^[\ \t]*/).join();
+        if (['{','[','('].include(this.textString[endOfLastLine])) indent += this.tab;
+        this.insertAtCursor(indent, false, false);
+    },
+
     doAutoIndent: function() {
         var text = this.textString,
             i = 0, j = 0,
@@ -1097,7 +1106,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             if (range) {
                 endIdx = Math.max(range[0], range[1]);
             }
-            this.insertAtCursor('\n', false, true)
+            this.insertAtCursor('\n', false, true);
+            if (range && Config.get("autoIndent")) this.indentLine();
         }
         evt.stop();
         return true;
@@ -1214,13 +1224,17 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     onDownPressed: function($super, evt) { return $super(evt) || true }
 },
 'shortcut support', {
-    shortcutHandlers: [],
+    shortcutHandlers: []
 },
 'mouse events', {
     onMouseDown: function(evt) {
         // if clicked in the text we want the default thing to happen, at least in HTML
         // but do not want other morphs to handle the event as well, so return true for was handled
 
+        if (evt.target.onmousedown) { // handled by text chunk
+            this.blur();
+            return evt.target.onmousedown(evt);
+        }
         // FIXME: handled in Morph>>onMouseDown. remove.
         if (!evt.isLeftMouseButtonDown()) return false;
         if (evt.isCommandKey()) { // for halos
@@ -2425,7 +2439,11 @@ Object.subclass('lively.morphic.TextChunk',
         var chunks = this.chunkOwner.getTextChunks(), chunkIdx = chunks.indexOf(this);
         return chunks[chunkIdx-1];
     },
-    getStyle: function() { return this.style }
+    getStyle: function() { return this.style },
+    bounds: function() {
+        var b = $(this.getChunkNode()).bounds();
+        return new Rectangle(b.left, b.top, b.width(), b.height());
+    }
 },
 'testing', {
     isRendered: function() { return this.chunkNode && this.chunkNode.parentNode != undefined }
@@ -2672,16 +2690,18 @@ Object.subclass('lively.morphic.TextChunk',
         // FIXME not deleting storedString in order to not lose the content when
         // restoring an element that is not in the scenegraph
         //delete this.storedString;
-    },
+    }
 });
 
 Object.subclass('lively.morphic.TextEmphasis',
 'documentation', {
     README: function() {
         // When extending TextEmphasis with new attribute:
-        // 1. add getter / setter for attribute that matches the naming convention
-        // (getAttributeName / setAttributeName)
-        // 2. extend #equals!
+        // 1. add new entry with set/get/equals/apply in styleAttributes make
+        //    sure you implement #equals in the newly added styleAttribute!
+        // 2. add getter / setter for attribute that matches the naming
+        //    convention (getAttributeName / setAttributeName)
+        // 3. extend TextEmphasis>>equals as well!
     }
 },
 'properties', {
@@ -2689,33 +2709,103 @@ Object.subclass('lively.morphic.TextEmphasis',
 },
 'style attributes', {
     styleAttributes: {
+        data: {
+            // attaches an arbitary JavaScript object to a text chunk
+            // this can be used to tag certain parts of a text with
+            // non-visible data that will be retained when editing
+            // and copying text
+            set: function(value) {
+                if (!value) delete this.data;
+                return this.data = value;
+            },
+            get: function() { return this.data; },
+            equals: function(other) { return this.getData() === other.getData(); },
+            apply: Functions.Null
+        },
+
+        hover: {
+            // expected to be of the form:
+            // {inAction: FUNCTION, outAction: FUNCTION}
+            set: function(value) {
+                value.inAction = value.inAction || Functions.Null;
+                value.outAction = value.outAction || Functions.Null;
+                if (!value.inAction.hasLivelyClosure) value.inAction = value.inAction.asScript();
+                if (!value.outAction.hasLivelyClosure) value.outAction = value.outAction.asScript();
+                return this.hover = value;
+            },
+            get: function() { return this.hover },
+            equals: function(other) {
+                if (!this.hover) return !other.hover;
+                if (!other.hover) return false;
+                return this.hover.inAction == other.hover.inAction
+                    && this.hover.outAction == other.hover.outAction;
+            },
+            apply: function(node) {
+                var hover = this.hover;
+                if (!hover) return;
+
+                // setup
+                var actionQueue = lively.morphic.TextEmphasis.hoverActions;
+                this.addCallbackWhenApplyDone('mouseenter', function(evt) {
+                    actionQueue.enter(function() {
+                        var morph = $(evt.target).parents('[node-type="morph-node"]').eq(0).data('morph');
+                        lively.morphic.EventHandler.prototype.patchEvent(evt);
+                        hover.inAction.call(morph, evt);
+                    });
+                    return true;
+                });
+                this.addCallbackWhenApplyDone('mouseleave', function(evt) {
+                    actionQueue.leave(function() {
+                        var morph = $(evt.target).parents('[node-type="morph-node"]').eq(0).data('morph');
+                        lively.morphic.EventHandler.prototype.patchEvent(evt);
+                        hover.outAction.call(morph, evt);
+                    });
+                    return true;
+                });
+
+                // FIXME use proper serialization with data attributes
+                LivelyNS.setAttribute(node, 'hoverInAction', hover.inAction.toString());
+                LivelyNS.setAttribute(node, 'hoveroutAction', hover.outAction.toString());
+            }
+        },
 
         doit: {
+            // expected to be of the form
+            // {code: STRING [, context: OBJECT]}
             set: function(value) { return this.doit = value },
             get: function() { return this.doit },
             equals: function(other) {
-                if (this.hasOwnProperty("doit")) {
+                if (this.doit) {
                     return other.doit ? this.doit.code == other.doit.code : false;
                 }
                 return !other.doit;
             },
             apply: function(node) {
-                var value = this.doit;
-                if (!value) return;
-                this.addCallbackWhenApplyDone(function(evt) {
-                    var src = '(function() {\n' + value.code + '\n})';
+                if (!this.hasOwnProperty("doit")) return;
+                if (!this.doit) {
+                    node.style.cursor = 'auto';
+                    node.style.textDecoration = 'none';
+                    node.style.color = 'inherit';
+                    LivelyNS.removeAttribute(node, 'doit');
+                    delete this.doit;
+                    return;
+                }
+                var doit = this.doit;
+                this.addCallbackWhenApplyDone('click', function(evt) {
+                    lively.morphic.EventHandler.prototype.patchEvent(evt);
+                    var src = '(function(evt) {\n' + doit.code + '\n})';
                     try {
                         var func = eval(src);
-                        func.call(value.context || Global);
+                        func.call(doit.context || Global, evt);
                     } catch(e) {
                         alert('Error in text doit\n' + e.stack);
                     }
-                    return true
+                    return true;
                 });
                 node.style.cursor = 'pointer';
                 node.style.textDecoration = 'underline';
                 node.style.color = 'darkgreen';
-                LivelyNS.setAttribute(node, 'doit', lively.persistence.Serializer.serialize(value));
+                LivelyNS.setAttribute(node, 'doit', doit.code);
             }
         },
 
@@ -2726,7 +2816,7 @@ Object.subclass('lively.morphic.TextEmphasis',
             apply: function(node) {
                 var value = this.uri;
                 if (!value) return;
-                this.addCallbackWhenApplyDone(function(evt) { window.open(value) });
+                this.addCallbackWhenApplyDone('click', function(evt) { window.open(value) });
                 node.style.cursor = 'pointer';
                 node.style.textDecoration = 'underline';
                 node.style.color = 'blue';
@@ -2847,8 +2937,12 @@ Object.subclass('lively.morphic.TextEmphasis',
 'accessing', {
     get: function(attrName) { return this.styleAttributes[attrName].get.call(this) },
     set: function(attrName, value) { return this.styleAttributes[attrName].set.call(this, value) },
+    getData:             function()      { return this.get('data'); },
+    setData:             function(value) { return this.set('data', value); },
     getDoit:             function()      { return this.get('doit'); },
     setDoit:             function(value) { return this.set('doit', value); },
+    getHover:            function()      { return this.get('hover'); },
+    setHover:            function(value) { return this.set('hover', value); },
     getURI:              function()      { return this.get('uri'); },
     setURI:              function(value) { return this.set('uri', value); },
     getFontWeight:       function()      { return this.get('fontWeight'); },
@@ -2892,7 +2986,9 @@ Object.subclass('lively.morphic.TextEmphasis',
         }
 
         // FIXME refactor
-        return attrs.doit            .equals.call(this, other)
+        return attrs.data            .equals.call(this, other)
+            && attrs.doit            .equals.call(this, other)
+            && attrs.hover           .equals.call(this, other)
             && attrs.uri             .equals.call(this, other)
             && attrs.fontWeight      .equals.call(this, other)
             && attrs.italics         .equals.call(this, other)
@@ -2965,7 +3061,9 @@ Object.subclass('lively.morphic.TextEmphasis',
 
         // FIXME refactor
         var attrs = this.styleAttributes;
+        attrs.data            .apply.call(this, node);
         attrs.doit            .apply.call(this, node);
+        attrs.hover           .apply.call(this, node);
         attrs.uri             .apply.call(this, node);
         attrs.fontWeight      .apply.call(this, node);
         attrs.italics         .apply.call(this, node);
@@ -2979,29 +3077,36 @@ Object.subclass('lively.morphic.TextEmphasis',
         // attrs.isNullStyle.apply.call(this, node);
 
         this.installCallbackHandler(node);
+        delete this.callbacks;
     },
 
-    addCallbackWhenApplyDone: function(cb) {
-        if (!this.clickCallbacks) this.clickCallbacks = [];
-        this.clickCallbacks.push(cb);
+    addCallbackWhenApplyDone: function(type, cb) {
+        if (!this.callbacks) this.callbacks = {};
+        if (!this.callbacks[type]) this.callbacks[type] = [];
+        this.callbacks[type].push(cb);
     },
 
     installCallbackHandler: function(node) {
-        if (!this.clickCallbacks || this.clickCallbacks.length === 0) {
-            delete node.onmousedown;
-            return;
-        };
-        var cbs = this.clickCallbacks;
-        node.onmousedown = function(evt) {
-            // Lively event dispatch not used here
-            for (var i = 0; i < cbs.length; i++) {
-                cbs[i].call(this, evt);
-            }
-            evt.stopPropagation();
-            evt.preventDefault();
-            return true;
-        }
-        delete this.clickCallbacks;
+        var $node = $(node);
+        [{type: 'click', handler: 'mouseup'},
+         {type: 'mouseenter', handler: 'mouseenter'},
+         {type: 'mouseleave', handler: 'mouseleave'}].forEach(function(spec) {
+             $node.off(spec.handler);
+             if (!this.callbacks
+               || !this.callbacks[spec.type]
+               || this.callbacks[spec.type].length === 0) {
+                 return;
+             }
+             var cbs = this.callbacks[spec.type];
+             $node.on(spec.handler, function(evt) {
+                 for (var i = 0; i < cbs.length; i++) {
+                     cbs[i].call(this, evt);
+                 }
+                 evt.stopPropagation();
+                 evt.preventDefault();
+                 return true;
+             });
+         }, this);
     }
 
 },
@@ -3015,6 +3120,78 @@ Object.subclass('lively.morphic.TextEmphasis',
         })
         return 'TextEmphasis(' + propStrings.join(',') + ')'
     }
+});
+
+Object.extend(lively.morphic.TextEmphasis, {
+    hoverActions: (function createActionQueue() {
+        // this actionQueue takes care of the fact that new mouse in/out
+        // events are emitted when moving the hand between neighboring text
+        // chunks that all have hover actions with the same context
+        //
+        // consider 3 text chunks that all have hover actions, the arrows
+        // represent the movement of the hand across those chunks:
+        //
+        //       chunk1         chunk2            chunk3
+        //    +------------+----------------+----------------+
+        //    |   hover    |    hover       |     hover      |
+        // ---+--->    ----+--->         ---+-->           --+---->
+        //    | context 1  |   context 1    |    context 2   |
+        //    +------------+----------------+----------------+
+        //
+        // = when entering chunk1 the enter-action should run
+        // - when moving from chunk1 to chunk2 nothing should happen since the
+        //   hover context is the same
+        // - when moving from chunk2 to chunk3 the leave-action for context 1
+        //   and enter-action for context 2 should fire
+        // - when moving out of chunk3 the leave action for context 2 should
+        //   fire
+        //
+        // The implementation below implements these requirements
+
+        var actionQueue = [];
+
+        function schedule(type, context, action) {
+            action.type = type;
+            action.context = context;
+            action.ignore = false;
+            actionQueue.unshift(action);
+            (function() {
+                var idx = actionQueue.indexOf(action);
+                if (!action.ignore) action(idx, action.ignore);
+                actionQueue.removeAt(idx);
+            }).delay(0);
+        }
+
+        actionQueue.enter = function enter(callback, context) {
+            schedule('in', context, function(idxInQueue) {
+                if (idxInQueue === 0) { callback.call(context); return; }
+                var nextAction = actionQueue[idxInQueue-1];
+                if (!nextAction.type === "out") {
+                    throw new Error('Expecting next action of type "out"!');
+                }
+                callback.call(context);
+            });
+        }
+
+        actionQueue.leave = function leave(callback, context) {
+            schedule('out', context, function(idxInQueue) {
+                if (idxInQueue === 0) { callback.call(context); return; }
+
+                var nextAction = actionQueue[idxInQueue-1];
+                if (!nextAction.type === "in") {
+                    throw new Error('Expecting next action of type "in"!');
+                }
+                if (nextAction.context === context) {
+                    // out immediately followed by in: do nothing
+                    nextAction.ignore = true;
+                } else {
+                    callback.call(context);
+                }
+            });
+        }
+
+        return actionQueue;
+    })()
 });
 
 Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),

@@ -425,7 +425,7 @@ Config.addOptions(
         ["userNameURL", document.location.protocol + '//' + document.location.host + '/cgi/user.sh'],
 
         ["lessAnnoyingWorldStatusMessages", true],
-		
+
 		['undoLogging', true]
     ],
 
@@ -456,8 +456,14 @@ Config.addOptions(
         ["useSoftTabs", true],
         ["disableSyntaxHighlighting", false],
         ["textUndoEnabled", true, "whether Lively takes care of undoing text changes or leaves it to the browser"],
-        ['defaultCodeFontSize', 10, "In which pt size code appears."]
+        ['defaultCodeFontSize', 10, "In which pt size code appears."],
+        ['autoIndent', true, "Automatically indent new lines."]
     ],
+
+    'lively.morphic.StyleSheets', [
+        ["baseThemeStyleSheetURL", (ExistingConfig.codeBase || Config.getDocumentDirectory()) + 'styles/base_theme.css', "The base theme CSS file location"]
+    ],
+
     "lively.PartsBin", [
         ["PartCachingEnabled", true, "Whether parts are cached after they are loaded the first time"]
     ]

@@ -39,7 +39,8 @@ Object.subclass('ObjectGraphLinearizer',
         this.path = [];
     },
     cleanup: function() {
-        // remove ids from all original objects and the original objects as well as any recreated objects
+        // remove ids from all original objects and the original objects as
+        // well as any recreated objects
         for (var id in this.registry) {
             var entry = this.registry[id];
             if (!this.keepIds && entry.originalObject)
@@ -49,7 +50,7 @@ Object.subclass('ObjectGraphLinearizer',
             delete entry.originalObject;
             delete entry.recreatedObject;
         }
-    },
+    }
 },
 'testing', {
     isReference: function(obj) { return obj && obj.__isSmartRef__ },
@@ -58,7 +59,7 @@ Object.subclass('ObjectGraphLinearizer',
         if ((typeof obj !== 'object') && (typeof obj !== 'function')) return true;
         if (this.isReference(obj)) return true;
         return false
-    },
+    }
 },
 'accessing', {
     idProperty: '__SmartId__',
@@ -119,7 +120,7 @@ Object.subclass('ObjectGraphLinearizer',
             if (!pluginMethod) continue;
             pluginMethod.apply(plugin, args);
         }
-    },
+    }
 },
 'object registry -- serialization', {
     registerWithPath: function(obj, path) {
@@ -138,7 +139,7 @@ Object.subclass('ObjectGraphLinearizer',
             var result = [];
             for (var i = 0; i < obj.length; i++) {
                 var item = obj[i];
-                if (this.somePlugin('ignoreProp', [obj, i, item])) continue;
+                if (this.somePlugin('ignoreProp', [obj, i, item, result])) continue;
                 result.push(this.registerWithPath(item, i));
             }
             return result;
@@ -173,7 +174,7 @@ Object.subclass('ObjectGraphLinearizer',
         for (var key in source) {
             if (!source.hasOwnProperty(key) || (key === this.idProperty && !this.keepIds)) continue;
             var value = source[key];
-            if (this.somePlugin('ignoreProp', [source, key, value])) continue;
+            if (this.somePlugin('ignoreProp', [source, key, value, copy])) continue;
             copy[key] = this.registerWithPath(value, key);
         }
     },
@@ -199,8 +200,8 @@ Object.subclass('ObjectGraphLinearizer',
 
         // take the registered object (which has unresolveed references) and
         // create a new similiar object with patched references
-        var registeredObj = this.getRegisteredObjectFromId(id),
-            recreated = this.somePlugin('deserializeObj', [registeredObj]) || {};
+        var registeredObj = this.getRegisteredObjectFromId(id);
+        recreated = this.somePlugin('deserializeObj', [registeredObj]) || {};
         this.setRecreatedObject(recreated, id); // important to set recreated before patching refs!
         for (var key in registeredObj) {
             var value = registeredObj[key];
@@ -209,7 +210,7 @@ Object.subclass('ObjectGraphLinearizer',
             recreated[key] = this.patchObj(value);
             this.path.pop();
         };
-        this.letAllPlugins('afterDeserializeObj', [recreated]);
+        this.letAllPlugins('afterDeserializeObj', [recreated, registeredObj]);
         return recreated;
     },
     patchObj: function(obj) {
@@ -365,16 +366,16 @@ Object.extend(ObjectGraphLinearizer, {
 Object.subclass('ObjectLinearizerPlugin',
 'accessing', {
     getSerializer: function() { return this.serializer },
-    setSerializer: function(s) { this.serializer = s },
+    setSerializer: function(s) { this.serializer = s }
 },
 'plugin interface', {
     /* interface methods that can be reimplemented by subclasses:
     serializeObj: function(original) {},
     additionallySerialize: function(original, persistentCopy) {},
     deserializeObj: function(persistentCopy) {},
-    ignoreProp: function(obj, propName, value) {},
+    ignoreProp: function(obj, propName, value, persistentCopy) {},
     ignorePropDeserialization: function(obj, propName, value) {},
-    afterDeserializeObj: function(obj) {},
+    afterDeserializeObj: function(obj, persistentCopy) {},
     deserializationDone: function() {},
     serializationDone: function(registry) {},
     */
@@ -384,7 +385,7 @@ ObjectLinearizerPlugin.subclass('ClassPlugin',
 'properties', {
     isInstanceRestorer: true, // for Class.intializer
     classNameProperty: '__LivelyClassName__',
-    sourceModuleNameProperty: '__SourceModuleName__',
+    sourceModuleNameProperty: '__SourceModuleName__'
 },
 'plugin interface', {
     additionallySerialize: function(original, persistentCopy) {
@@ -401,7 +402,7 @@ ObjectLinearizerPlugin.subclass('ClassPlugin',
     },
     afterDeserializeObj: function(obj) {
         this.removeClassInfoIfPresent(obj)
-    },
+    }
 },
 'class info persistence', {
     addClassInfoIfPresent: function(original, persistentCopy) {
@@ -663,7 +664,7 @@ ObjectLinearizerPlugin.subclass('IgnoreDOMElementsPlugin', // for serializing li
 
 ObjectLinearizerPlugin.subclass('RegExpPlugin',
 'accessing', {
-    serializedRegExpProperty: '__regExp__',
+    serializedRegExpProperty: '__regExp__'
 },
 'plugin interface', {
     serializeObj: function(original) {
@@ -693,7 +694,7 @@ ObjectLinearizerPlugin.subclass('OldModelFilter',
     initialize: function($super) {
         $super();
         this.relays = [];
-    },
+    }
 },
 'plugin interface', {
     ignoreProp: function(source, propName, value) {
@@ -1087,7 +1088,6 @@ ObjectLinearizerPlugin.subclass('CopyOnlySubmorphsPlugin',
     initialize: function() {
         this.morphRefId = 0;
         this.idMorphMapping = {};
-        this.root = 0;
     },
 },
 'copying', {
@@ -1099,8 +1099,7 @@ ObjectLinearizerPlugin.subclass('CopyOnlySubmorphsPlugin',
 },
 'plugin interface', {
     ignoreProp: function(obj, key, value) {
-        if (!value || !this.root || !this.root.isMorph) return false;
-        return value === this.root.owner;
+        return obj === this.root && key === "owner";
     },
     serializeObj: function(obj) {
         // if obj is a morph and the root obj that is copied is a morph then
@@ -1154,6 +1153,48 @@ ObjectLinearizerPlugin.subclass('lively.persistence.GenericConstructorPlugin',
         function HelperConstructor() {};
         HelperConstructor.prototype = constr.prototype;
         return new HelperConstructor();
+    }
+});
+
+ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin', {
+    specialSerializeProperty: '__serializedExpressions__',
+    canBeSerializedAsExpression: function(value) {
+        return value && Object.isObject(value) && Object.isFunction(value.serializeExpr);
+    },
+    ignoreProp: function(obj, propName, value, copy) {
+        if (!this.canBeSerializedAsExpression(value)) return false;
+        if (!copy[this.specialSerializeProperty]) {
+            copy[this.specialSerializeProperty] = []
+        };
+        copy[this.specialSerializeProperty].push(propName);
+        return true;
+    },
+    ignorePropDeserialization: function(obj, propName, value) {
+        return propName == this.specialSerializeProperty;
+    },
+    additionallySerialize: function(original, persistentCopy) {
+        var keysToConvert = persistentCopy[this.specialSerializeProperty];
+        if (!keysToConvert) return;
+        for (var i = 0, len = keysToConvert.length; i < len; i++) {
+            var key = keysToConvert[i], value = original[key];
+            persistentCopy[key] = value.serializeExpr();
+        }
+    },
+    afterDeserializeObj: function(obj, persistentCopy) {
+        var keysToConvert = persistentCopy[this.specialSerializeProperty];
+        if (!keysToConvert) return;
+        for (var i = 0, len = keysToConvert.length; i < len; i++) {
+            var key = keysToConvert[i], expr = obj[key];
+            if (expr && Object.isString(expr)) {
+                try {
+                    obj[key] = eval(expr);
+                } catch(e) {
+                    console.error('Error when trying to restore serialized '
+                                 + 'expression %S (%s[%s]): %s', expr, obj, key, e);
+                    obj[key] = e;
+                }
+            }
+        }
     }
 });
 
@@ -1342,7 +1383,8 @@ Object.extend(lively.persistence, {
         DoWeakSerializePlugin,
         IgnoreDOMElementsPlugin,
         LayerPlugin,
-        lively.persistence.DatePlugin]
+        lively.persistence.DatePlugin,
+        lively.persistence.ExprPlugin]
 });
 
 Object.extend(ObjectGraphLinearizer, {

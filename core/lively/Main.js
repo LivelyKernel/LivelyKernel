@@ -142,7 +142,7 @@ Object.subclass('lively.Main.Loader',
         // only texts, lists, etc should show the real focus
 
         if (UserAgent.webKitVersion) {
-            cssDef += ':focus {\n'
+            cssDef += ':focus:not(input) {\n'
                     + '  outline:none;\n'
                     + '}\n'
                     + '.visibleSelection:focus {\n'

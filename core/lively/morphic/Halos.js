@@ -825,7 +825,7 @@ lively.morphic.Halo.subclass('lively.morphic.BoundsHalo',
 'initializing', {
     initialize: function($super, targetMorph) {
         $super(targetMorph);
-        this.ignoreEvents();
+        this.disableEvents();
     }
 },
 'layout', {

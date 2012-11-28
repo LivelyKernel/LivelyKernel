@@ -86,6 +86,7 @@ var testList = [
     "lively.morphic.tests.Connectors",
     "lively.morphic.tests.CoreToolsTests",
     "lively.morphic.tests.DataGridTests",
+    "lively.morphic.tests.DiffMerge",
     "lively.morphic.tests.EventTests",
     "lively.morphic.tests.Graphics",
     'lively.morphic.tests.HTML',
@@ -106,7 +107,10 @@ var testList = [
     "lively.bindings.tests.BindingTests",
 
     // cop
-    "cop.tests.LayerTests"
+    "cop.tests.LayerTests",
+
+    // apps
+    "apps.tests.Handlebars"
 ];
 
 var additionalModules = getURLParam('additionalModules');

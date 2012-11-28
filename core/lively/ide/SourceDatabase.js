@@ -26,6 +26,7 @@ Object.subclass('lively.ide.ModuleWrapper',
         this._ast = null;
         this._cachedSource = source || null;
         this._isVirtual = isVirtual; // isVirtual means that there is no file for this module
+        this.lastModifiedDate = null;
     }
 
 },
@@ -52,7 +53,7 @@ Object.subclass('lively.ide.ModuleWrapper',
         var webR = new WebResource(this.fileURL());
         if (this.forceUncached) webR.forceUncached();
         this._cachedSource = webR.get().content || '';
-        this.updateFileRevision();
+        this.lastModifiedDate = webR.lastModified;
         return this._cachedSource;
     },
 
@@ -140,27 +141,25 @@ Object.subclass('lively.ide.ModuleWrapper',
 
         var webR = new WebResource(this.fileURL());
         this.networkRequestInProgress = true;
-        lively.bindings.connect(webR, 'status', this, 'handleSaveStatus');
-        webR.beAsync().put(source, null, checkForOverwrites ? this.revisionOnLoad : null);
+        lively.bindings.connect(webR, 'status', this, 'handleSaveStatus', {converter: function() {
+            return this.sourceObj; }});
+
+        var putOptions = {};
+        if (checkForOverwrites) {
+            putOptions.ifUnmodifiedSince = this.lastModifiedDate;
+        }
+        webR.beAsync().put(source, null, putOptions);
     },
 
-    handleSaveStatus: function(status) {
-        if (!status.isDone()) return;
+    handleSaveStatus: function(webR) {
+        if (!webR.status.isDone()) return;
         this.networkRequestInProgress = false;
-        if (status.code() === 412) {
-            this.askToOverwrite(status.url);
-        } else if (status.isSuccess()) {
-            this.updateFileRevision(true);
+        if (webR.status.code() === 412) {
+            this.askToOverwrite(webR.status.url);
+        } else if (webR.status.isSuccess()) {
+            this.lastModifiedDate = webR.lastModified;
             this.runQueuedRequest();
         }
-    },
-
-    updateFileRevision: function(beSync) {
-        if (this.isVirtual()) return;
-        var webR = new WebResource(this.fileURL());
-        connect(webR, 'headRevision', this, 'revisionOnLoad');
-        if (!beSync) webR.beAsync();
-        webR.getHeadRevision();
     },
 
     askToOverwrite: function(url) {
@@ -171,8 +170,7 @@ Object.subclass('lively.ide.ModuleWrapper',
             function(input) {
                 moduleWrapper.removeQueuedRequests();
                 if (input) {
-                    moduleWrapper.updateFileRevision(true);
-                    moduleWrapper.setSource(moduleWrapper.getSource(), false, true);
+                    moduleWrapper.setSource(moduleWrapper.getSource(), false, false);
                 }
             });
     }

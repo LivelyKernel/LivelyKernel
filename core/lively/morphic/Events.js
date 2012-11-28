@@ -665,10 +665,10 @@ handleOnCapture);
     },
 
     onMouseDownEntry: function(evt) {
-        // check if mouse is on the scrollbar
+        // checkMouseUpEntry if mouse is on the scrollbar
         var suppressScrollbarClick = (this.showsVerticalScrollBar()
                                     || this.showsHorizontalScrollBar())
-                                  && this.grabbingEnabled;
+                                  && this.isGrabbable();
         if (suppressScrollbarClick) {
             var scrollbarExtent = this.getScrollBarExtent(),
                 extent = this.getExtent();
@@ -685,6 +685,7 @@ handleOnCapture);
         }
 
         if (this.showsMorphMenu
+          && !this.eventsAreIgnored
           && evt.isRightMouseButtonDown() // only world morph is present?
           && this.world().morphsContainingPoint(evt.getPosition()).length === 1) {
             this.world().worldMenuOpened = true;
@@ -711,6 +712,7 @@ handleOnCapture);
     },
 
     onMouseUp: function(evt) { return false; },
+
     onMouseUpEntry: function(evt) {
         var world = evt.world,
             completeClick = world.clickedOnMorph === this,
@@ -744,8 +746,9 @@ handleOnCapture);
         }
 
         if (internalCompleteClick) {
-            var invokeHalos = (evt.isLeftMouseButtonDown() && evt.isCommandKey())
-                           || (this.showsHalosOnRightClick && evt.isRightMouseButtonDown());
+            var invokeHalos = this.halosEnabled &&
+                ((evt.isLeftMouseButtonDown() && evt.isCommandKey())
+               || (this.showsHalosOnRightClick && evt.isRightMouseButtonDown()));
             if (invokeHalos) {
                 this.toggleHalos(evt);
                 return false;
@@ -2013,9 +2016,13 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 },
 'menu', {
     removeOpenMenu: function(evt) {
-        var menu = this.world().currentMenu;
-        if (menu && !menu.bounds().containsPoint(evt.getPosition()))
-            this.world().currentMenu.remove();
+        var world = this.world(),
+            menu = world.currentMenu;
+        if (menu && !menu.bounds().containsPoint(evt.getPosition())) {
+            world.currentMenu.remove();
+            // FIXME currentMenu does not have to be worldMenu...
+            world.worldMenuOpened = false;
+        }
     }
 },
 'moving', {

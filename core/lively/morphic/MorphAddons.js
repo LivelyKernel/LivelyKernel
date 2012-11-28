@@ -661,7 +661,9 @@ Object.extend(lively.morphic.Morph, {
 lively.Line.addMethods(
 'conversion', {
     asMorph: function() {
-        return lively.morphic.Morph.makeLine([this.start, this.end], 1);
+        return this.start && this.end ?
+            lively.morphic.Morph.makeLine([this.start, this.end], 1) :
+            null;
     }
 });
 
@@ -674,7 +676,8 @@ Object.extend(lively.Line, {
         var bounds1 = obj1.globalBounds ? obj1.globalBounds() : obj1.bounds(),
             bounds2 = obj2.globalBounds ? obj2.globalBounds() : obj2.bounds(),
             line = bounds1.lineTo(bounds2),
-            morph = line.asMorph();
+            morph = line && line.asMorph();
+        if (!morph) return null;
         morph.openInWorld();
         if (spec.lineStyle) morph.applyStyle(spec.lineStyle);
         if (spec.endArrow) morph.createArrowHeadEnd();

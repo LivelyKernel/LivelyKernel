@@ -1198,12 +1198,12 @@ lively.morphic.Morph.addMethods(
 "fixed", {
 
     setFixedPosition: function(position) {
-        this.fixedPosition = position;/*.subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel())*/
+        this.fixedPosition = position;//.subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel())
         this.updateScrollPosition($world.scrollOffset);
     },
 
     getFixedPosition: function() {
-        return this.fixedPosition;//.scaleBy(1/$world.getZoomLevel());
+        return this.fixedPosition//.scaleBy(1/$world.getZoomLevel());
     },
 
 
@@ -2204,8 +2204,8 @@ lively.morphic.Button.addMethods("TapEvents", {
 
 lively.morphic.Morph.subclass('lively.morphic.PieMenu',
 'inizialization', {
-    initialize: function($super, halos) {
         // Creates a PieMenu with x sectors.
+    initialize: function($super, halos) {
         $super();
         var n = halos.length,
             i = 0,

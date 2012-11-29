@@ -3,7 +3,6 @@ module('lively.morphic.IPadWidgets').requires('lively.morphic.AdditionalMorphs')
 
 lively.morphic.Box.subclass('lively.morphic.TouchList',
 'properties', {
-    defaultExtent: pt(340,280),
     defaultItemHeight: 40,
     defaultItemGradient: new lively.morphic.LinearGradient([
         {offset: 0, color: Color.rgb(253,253,253)},
@@ -25,30 +24,30 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         if (optStyle) {
             if (optStyle.textColor) this.defaultTextColor = optStyle.textColor;
             if (optStyle.itemGradient) this.defaultItemGradient = optStyle.itemGradient;
-            if (optStyle.itemBorderColor) this.defaultItemBorderColor = optStyle.itemBorderColor
+            if (optStyle.itemBorderColor) this.defaultItemBorderColor = optStyle.itemBorderColor;
+            if (optStyle.defaultExtent) this.setDefaultExtent(optStyle.defaultExtent);
+            if (optStyle.itemFontSize) this.itemFontSize = optStyle.itemFontSize;
         }
         $super(bounds);
+        this.resetToDefaultProperties()
         this.itemList = [];
-        this.selection = null;
-        this.selectedLineNo = -1;
         this.createList();
         this.disableSelection();
         this.reset();
+        if (optItems) this.updateList(optItems)
     },
-
-
     createList: function() {
-        this.setExtent(pt(this.defaultExtent));
+        this.setExtent(this.getDefaultExtent());
         return this.addMorph(this.createSubmenuContainer());
     },
     createSubmenuContainer: function() {
-        var container = new lively.morphic.Box(pt(0,0).extent(this.defaultExtent));
+        var container = new lively.morphic.Box(pt(0,0).extent(this.getDefaultExtent()));
         container.setName('SubmenuContainer');
         container.addMorph(this.createListItemContainer());
         return container;
     },
     createListItemContainer: function() {
-        return new lively.morphic.ListItemContainer(rect(0,0,this.defaultExtent.x,this.defaultItemHeight))
+        return new lively.morphic.ListItemContainer(rect(0,0,this.getDefaultExtent.x,this.defaultItemHeight))
     },
     reset: function() {
         this.disableDropping();
@@ -56,9 +55,8 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         this.setup([]);
     },
     setup: function(itemList) {
-        this.selection = null;
-        this.selectedLineNo = -1;
-        this.selectedMorph = null;
+        this.resetToDefaultProperties()
+        this.itemList = [];
         this.setClipMode("hidden");
         this.titleStack = [];
         this.containerStack = [];
@@ -71,6 +69,19 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         //world menu entries
         this.createMenuItems(itemList);
     },
+    resetToDefaultProperties: function() {
+        if (this.allowsMultiSelection) {
+            this.selection = [];
+            this.selectedLineNo = [];
+            this.selectedMorph = []
+        }
+        else {
+            this.selection = null;
+            this.selectedLineNo = -1;
+            this.selectedMorph = null
+        }
+    }
+
 },
 'list interface', {
     include: function(touch){
@@ -84,35 +95,39 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
     addItem: function(item) {
         var newMorph = this.createListItem(item);
         this.getCurrentContainer().addItem(newMorph);
+        return newMorph
     },
     updateSelection: function(newSelectedMorph) {
+        if (this.allowsMultiSelection) {
+            this.updateMultiSelection(newSelectedMorph)
+            return
+        }
         var hasText = true;
         if(this.selectedMorph) {
-            hasText = this.selectedMorph.submorphs[0];
+            hasText = this.selectedMorph.getTextString();
             this.selectedMorph.setFill(this.defaultItemGradient);
             if(hasText) {
-                this.selectedMorph.submorphs[0].setTextColor(this.defaultTextColor);
+                this.selectedMorph.setTextColor(this.defaultTextColor);
             }
         }
-        hasText = newSelectedMorph.submorphs[0];
         if(hasText) {
             this.selection = newSelectedMorph.item.value;
             if (this.selection[1] instanceof Array && !this.submenusDisabled) {
                 this.openSubMenu(this.selection);
                 return;
             }
-            
         } else {
             this.selection = null;
         }
         this.selectedLineNo = newSelectedMorph.index;
         this.selectedMorph = newSelectedMorph;
         this.selectedMorph.setFill(this.defaultActiveGradient);
-        
         if(hasText) {
-            this.selectedMorph.submorphs[0].setTextColor(this.defaultActiveTextColor);
+            this.selectedMorph.setTextColor(this.defaultActiveTextColor);
         }
     },
+
+
     openSubMenu: function(selection) {
         (function () {
             this.titleStack.push(this.title);
@@ -152,9 +167,7 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         this.get("SubmenuContainer").setPositionAnimated(pt(-offset, 0), 500, callbackFct);
     },
     updateList: function(items) {
-        this.selection = null;
-        this.selectedLineNo = -1;
-        this.selectedMorph = null;
+        this.resetToDefaultProperties();
         this.setClipMode("hidden");
         this.titleStack = [];
         this.containerStack = [];
@@ -170,6 +183,7 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         items.forEach(function (item) {
             that.addItem({string: item, value: item, isListItem: true});
         });
+        this.itemList = items
     },
 },
 'events', {
@@ -190,6 +204,22 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         }
         return this.currentContainer;
         },
+    getDefaultExtent: function() {
+        return this.defaultExtent || pt(340,280)
+    },
+    setDefaultExtent: function(point) {
+        this.defaultExtent = point;
+    },
+    getItemFontSize: function() {
+        return this.itemFontSize || 14
+    },
+    setItemFontSize: function(int) {
+        this.itemFontSize = int;
+    },
+
+
+
+
         createMenuItems: function(items) {
         this.removeAllMenuItems();
         this.addMenuItems(items);
@@ -238,12 +268,13 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
             resizeWidth: true,
             borderColor: this.defaultItemBorderColor,
             borderWidth: 1,
-            fontSize: 14,
+            fontSize: this.getItemFontSize(),
             textColor: this.defaultTextColor,
             fontFamily: "Helvetica, Arial, sans-serif",
             padding: Rectangle.inset(10,10),
             fontWeight: 'bold'
         });
+        part.touchList = this;
         part.setTextString(textString);
         part.disableHalos();
         part.disableSelection();
@@ -263,8 +294,68 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
     getLevel: function() {
         return this.titleStack.length;
     },
-});
+}, 
+'multiselection', {
+    allowMultiSelection: function () {
+        this.allowsMultiSelection = true;
+        this.resetToDefaultProperties()
+    },
+    updateMultiSelection: function(newSelectedMorph) {
+        if (newSelectedMorph.isSelected) {
+            newSelectedMorph.setDeselected();
+            var idx = this.selectedMorph.indexOf(newSelectedMorph);
+            this.selection.splice(idx, 1);
+            this.selectedLineNo.splice(idx, 1);
+            this.selectedMorph.splice(idx, 1);
+        }
+        else {
+            newSelectedMorph.setSelected();
+            this.selection.push(newSelectedMorph.item.value);
+            this.selectedLineNo.push(newSelectedMorph.index);
+            this.selectedMorph.push(newSelectedMorph);
+        }
+    },
+    forbidMultiSelection: function() {
+        this.allowsMultiSelection = false;
+        this.resetToDefaultProperties()
+    }
 
+});
+lively.morphic.TouchList.subclass('lively.morphic.CustomizableTouchList',
+'initilization', {
+    initialize: function($super, bounds, optItems, optStyle) {
+        var returnValue = $super(bounds, optItems, optStyle),
+            height = 20,
+            that = this;
+        this.inputField = new lively.morphic.Text(rect(height, this.getExtent().y - height, this.getExtent().x - height, height))
+        this.inputField.setTextString('foobar')
+        this.plusButton = new lively.morphic.Button(rect(0,this.getExtent().y - height, height, height), '+')
+        this.addMorph(this.inputField);
+        this.addMorph(this.plusButton);
+        this.plusButton.onFire = function () {
+            that.addCustomItem();
+        }
+        connect(this.plusButton, 'fire', this.plusButton, 'onFire')
+        return returnValue
+    },
+    addCustomItem: function() {
+        var input = this.inputField.getTextString();
+        if (!input) 
+            return
+        var item = this.addItem({
+            string: input,
+            value: input,
+            isListItem: true,
+        })
+        //this.inputField.setTextString('');
+        this.onAddCustomItem && this.onAddCustomItem(item);
+    },
+    onAddCustomItem: function(item) {
+        // Hook to e.g. select a new Item
+    }
+
+
+});
 lively.morphic.Box.subclass('lively.morphic.ListItemContainer',
 'properties', {
     defaultItemHeight: 40,
@@ -374,7 +465,6 @@ lively.morphic.Text.subclass('lively.morphic.ListItem',
     },
     onTouchMove: function(evt) {
         var touch = evt.touches[0];
-        
         this.lastClickPos = pt(touch.clientX,touch.clientY);
 
         return false;
@@ -392,6 +482,18 @@ lively.morphic.Text.subclass('lively.morphic.ListItem',
         }
         return false;
     },
+    setSelected: function() {
+        this.isSelected = true
+        this.setFill(this.touchList.defaultActiveGradient);
+        this.setTextColor(this.touchList.defaultActiveTextColor);
+    },
+    setDeselected: function() {
+        this.isSelected = false
+        this.setTextColor(this.defaultTextColor);
+        this.setFill(this.defaultItemGradient);
+    }
+
+
 });
 
 lively.morphic.Text.subclass('lively.morphic.FlapHandle', 
@@ -415,9 +517,29 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
         this.alignment = alignment
         this.determineRotation();
         this.applyStyle(Object.merge([this.style, this.determineGradient()]));
-        this.setTextString(handleName);
+        this.setTextString('Flap       ')
+        this.initializeCloseButton()
         return this
     },
+    initializeCloseButton: function() {
+        var closeButton = new lively.morphic.Button(rect(this.getExtent().x-20, 0, 20, 20), 'X'),
+            that = this;
+        closeButton.beFlapButton();
+        closeButton.normalColor = Color.red.withA(0.5);
+        closeButton.toggleColor = Color.red;
+        closeButton.applyStyle({
+            position: pt(this.getExtent().x-20, 5),
+            extent: pt(20, 20),
+            fill: Color.red.withA(0.5)
+        })
+        closeButton.onFire = function () {
+            that.owner.remove()
+        }
+        connect(closeButton, 'fire', closeButton, 'onFire')
+        closeButton.setBorderRadius(1)
+        this.addMorph(closeButton);
+    },
+
     determineRotation: function() {
         switch (this.alignment) {
             case 'left': {
@@ -489,7 +611,11 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
         this.beginMorphPosition = this.owner.getFixedPosition();
         evt.stop();
         return true;
-    }
+    },
+    onTap: function() {
+        this.collapse();
+    },
+
 },
 'positioning while moving', {
     setNextPos: function (touchPosition) {
@@ -525,7 +651,16 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
                     : pt(0, this.beginTouchPosition.subPt(touchPosition).y))
                 .scaleBy(world.getZoomLevel());
         return this.beginMorphPosition.subPt(deltaToStart);
-    }
+    },
+
+    collapse: function() {
+        var that = this;
+        this.owner.setFixed(false);
+        var callback = function () {
+            that.owner.setFixed(true)
+        }
+        this.owner.setPositionAnimated(this.owner.getCollapsedPosition(), 500, callback);
+    },
 })
 
 lively.morphic.Morph.subclass('lively.morphic.Flap', 
@@ -587,7 +722,8 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
                 break
             }
         }
-        this.style.position = pos.scaleBy(1 / world.getZoomLevel()).addPt(pt(document.body.scrollLeft, document.body.scrollTop))
+        this.setCollapsedPosition(pos);
+        this.style.position = this.getCollapsedPosition()
         return this.style.position;
     },
     determineExtent: function () {
@@ -712,6 +848,8 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         evt.stop();
         return true;
     },
+
+
     partsBinURL: function() {
         return new URL(Config.rootPath).withFilename('PartsBin/');
     },
@@ -719,6 +857,15 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         this.stopSteppingScriptNamed('addPartItemAsync');
         delete this.partItemsToBeAdded;
     },
+    setCollapsedPosition: function(pos) {
+        this.collapsedPosition= pos;
+    },
+    getCollapsedPosition: function() {
+        var pos = this.collapsedPosition,
+            world = lively.morphic.World.current();
+        return pos.scaleBy(1 / world.getZoomLevel()).addPt(pt(document.body.scrollLeft, document.body.scrollTop))
+    },
+
 }) // end of subclass lively.morphic.Flap
 
 lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap', 
@@ -862,7 +1009,6 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
         this.header.applyStyle(this.headerStyle)
         flap.addMorph(this.header);
 
-
         var backBtn = this.createBackButton()
         backBtn.applyStyle(this.buttonStyle)
         this.header.addMorph(backBtn);
@@ -880,7 +1026,6 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
 
         this.flap = flap;
         connect(this.list, "selection", this, "gotoCategory", {converter: function(input){ if(!input) return ""; return input[0]; }});
-        
 
         this.updateCategoriesDictFromPartsBin();
     },
@@ -981,6 +1126,7 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
             position: pt(this.getExtent().x - 25, 5),
             borderRadius: 3
         })
+        this.tagList = this.initializeTagList();
         return returnValue
     },
     initializeLabel: function($super, aString) {
@@ -996,7 +1142,8 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
         return this.label
     },
     initializePane: function($super, extent) {
-        var returnValue = $super(extent);
+        var returnValue = $super(extent),
+            that = this;
         this.pane.applyStyle({
             fill: Color.rgba(235,235,235,0.5),
             borderWidth: 0,
@@ -1006,14 +1153,54 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
             resizeWidth: true,
             resizeHeight: true
         })
+        this.pane.focus();
         return returnValue
     },
+    initializeTagList: function() {
+        var width = 100,
+            extent = pt(width,this.pane.getExtent().y),
+            list = new lively.morphic.CustomizableTouchList(pt(this.pane.getExtent().x-width,0).extent(extent), [], {defaultExtent: extent, itemFontSize: 10});
+        list.allowMultiSelection();
+        list.onAddCustomItem = function (item) {
+            this.updateSelection(item)
+        }
+        return this.pane.addMorph(list)
+    },
+
+
+
+},
+'tagging', {
+
+    initializeTags: function() {
+        var that = this;
+        this.tagList.updateList(this.getTargetTags());
+        this.getFunctionTags().each(function (ea) {
+            var listItem = that.tagList.currentContainer.submorphs.find(function (each) {return each.item.string == ea});
+            that.tagList.updateSelection(listItem);
+        })
+    },
+
+    getTargetTags: function() {
+        var target = this.fctTarget;
+        return Functions.own(target).collect(function (each) {
+            return target[each].tags || [];
+        }).flatten().uniq();
+    },
+    getFunctionTags: function() {
+        var target = this.fctTarget,
+            scriptName = this.fctScriptName;
+        if(!target[scriptName])
+            return []
+        return target[scriptName].tags || [];
+    },
+
 
 
 },
 'tab interaction', {
     closeTab: function($super) {
-        if (this.pane.submorphs[0].getTextString() === this.originalScript) {
+        if (this.pane.submorphs[0].getTextString && (this.pane.submorphs[0].getTextString() === this.originalScript)) {
             $super();
         } else {
             if(confirm("Script "+this.fctScriptName+" has unsaved changes. Do you really want to close it?")) {
@@ -1053,8 +1240,13 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
         return Color.rgba(235,235,235,0.5)
     },
     getInactiveFill: function() {
-        return null
+        return Color.rgba(43,43,43,0.5)
+    },
+    determineLabelString: function(scriptName, target) {
+        var targetDisplayName = target.isWorld ? 'World' : target.getName();
+        return scriptName+":"+'\n'+targetDisplayName;
     }
+
 
 
 });
@@ -1076,6 +1268,7 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer', 
         }
         this.setBorderColor(Color.rgb(47,47,47))
         this.tabBar.setFill(Color.rgb(47,47,47))
+        this.openTabs = []
         return returnValue
     },
     initializeTabBar: function($super, optDefaultHeight) {
@@ -1101,11 +1294,11 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer', 
         ],
         'southNorth'
     ),
-
-
-
     buildModalViewFor: function(target){
-        this.makeGridLayoutFor(target);
+        if (this.gridContainer && this.gridContainer.owner)
+            this.gridContainer.owner.remove()
+        if (target !== null)
+            this.makeGridLayoutFor(target);
     },
     cleanUp: function() {
         this.gridContainer && this.gridContainer.remove();
@@ -1154,8 +1347,8 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer', 
             button.addScript(function onFire() {
                 this.tabContainer.openTabFor(this.fctName, this.fctTarget);
             });
+            connect(button, 'fire', button, 'onFire')
             button.beFlapButton();
-            connect(button, "fire", button, "onFire");
             that.gridContainer.addMorph(button);
             i++;
         });
@@ -1171,106 +1364,119 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer', 
         })
         return label
     },
-    makeAddButton: function(target, column, i) {
-        var button = new lively.morphic.Button(rect(0,0, 100,40));
+    makeAddButton: function(target, width) {
+        var button = new lively.morphic.Button(rect(0,20, width,20));
         button.applyStyle(this.scriptButtonStyle)
         button.fixedWidth = true;
         button.setLabel("Add script");
-        button.gridCoords = pt(column, i);
         button.tabContainer = this;
         button.fctName = "newScript";
         button.fctTarget = target;
         button.addScript(function onFire() {
             this.tabContainer.openTabFor(this.fctName, this.fctTarget);
         });
+        connect(button, 'fire', button, 'onFire')
         button.beFlapButton();
         button.setFill(this.activeGradient);
         button.normalColor = this.activeGradient;
         button.toggleColor = Color.rgba(43,43,43,0.7)
-        connect(button, "fire", button, "onFire");
         return button
     },
 
 
-    makeGridContainer: function() {
-        var that = this,
-            container = new lively.morphic.Box((pt(0,this.tabBar.getExtent().y))
-                    .extent(this.getExtent().subPt(pt(0,this.tabBar.getExtent().y)))),
-            blocker = new lively.morphic.Box(pt(0,0).extent(this.getExtent()));
-        container.addMorph(blocker);
-        container.onTap = function () {
-            blocker.remove()
+    makeGridContainer: function (width) {
+        var blocker = new lively.morphic.Box(pt(0,0).extent(this.getExtent().subPt(pt(40,0)))),
+            containerX = (this.getExtent().x / 2) - (width / 2),
+            container = new lively.morphic.Box(rect(containerX, 0, width, this.getExtent().y)),
+            that = this;
+        blocker.setName('Blocker')
+        blocker.applyStyle({
+            fill: Color.rgba(235,235,235,0),
+            borderWidth: 0,
+        });
+        container.applyStyle({
+            borderWidth: 0,
+            fill: Color.rgba(43,43,43,0.5),
+        });
+        container.rebuildForNewTarget = function(newMorph) {
+            that.buildModalViewFor(newMorph);
         };
-        container.setClipMode("hidden");
-        this.addMorph(container);
+        connect(lively.morphic.World.current(), "currentlySelectedMorph", container, "rebuildForNewTarget", {removeAfterUpdate: true});
+        container.disableGrabbing();
+        container.disableSelection();
         blocker.disableGrabbing();
         blocker.disableSelection();
-        blocker.rebuildForNewTarget = function(newMorph) {
-            that.makeGridLayoutFor(newMorph);
-        };
-        connect($world, "currentlySelectedMorph", blocker, "rebuildForNewTarget", {removeAfterUpdate: true});
-        this.gridLayoutMorph = blocker;
-        return blocker;
+        blocker.onTap = function () {
+            this.remove();
+        }
+        this.addMorph(blocker);
+        blocker.addMorph(container);
+        return container
     },
     makeGridLayoutFor: function(target) {
-        var that = this,
-            categories = this.getCategoriesFor(target),
-            functionNames = Functions.own(target),
-            i = 0;
+        var categories = this.getCategoriesFor(target),
+            functionNames = Functions.own(target);
         this.cleanUp();
         this.tabBar.getTabs().forEach(function(ea) {
-                ea.deactivate();});
-        var gridContainer = this.makeGridContainer();
-        this.gridContainer = gridContainer;
+            ea.deactivate();
+        });
+        this.gridContainer = this.makeGridContainer(categories.length * 100);
+        this.buildCategoryViews(target, categories, functionNames)
+        this.gridContainer.setLayouter(new lively.morphic.Layout.GridLayout(this.gridContainer, categories.length, 4));
+        this.gridContainer.applyLayout();
+    },
+    buildCategoryViews: function(target, categories, functionNames) {
+        var i = 0,
+            that = this,
+            targetName = target.isWorld? 'World' : target.getName(),
+            targetLabel = new lively.morphic.Text(rect(0,0,categories.length+1*100, 20), targetName);
+        targetLabel.beLabel();
+        targetLabel.applyStyle({
+            textColor: Color.rgb(235,235,235),
+            align: 'center',
+            fontSize: 11,
+        })
+        that.gridContainer.addMorph(that.makeAddButton(target, categories.length * 100));
+        this.gridContainer.addMorph(targetLabel);
         categories.forEach(function(category) {
             var functionsForCategory = functionNames.select(function(functionName){
-                if(((typeof target[functionName].tags === "undefined" || target[functionName].tags.length === 0) && category === "uncategorized") ||
-                    (typeof target[functionName].tags !== "undefined" && target[functionName].tags.include(category))) {
-                    return functionName;
-                }
-            });
-            that.makeButtonsFor(category, functionsForCategory, i, target);
-            i++;
+                    if(((typeof target[functionName].tags === "undefined" || target[functionName].tags.length === 0) && category === "uncategorized") ||
+                        (typeof target[functionName].tags !== "undefined" && target[functionName].tags.include(category))) {
+                        return functionName;
+                    }
+                }),
+                list = new lively.morphic.TouchList(rect(0,0,100,that.getExtent().y - 40), functionsForCategory, {defaultExtent: pt(100,that.getExtent().y - 60), itemFontSize: 10});
+            connect(list, "selection", that, "openTabFor");
+            that.gridContainer.addMorph(that.makeCategoryLabel(category, i, 1));
+            list.gridCoords = pt(i, 2);
+            that.gridContainer.addMorph(list)
+            i++
         });
-        var width = categories.length * 100,
-            height = (functionNames.length + 1) * 40 + 20
-        gridContainer.applyStyle({
-            extent: pt(width, height),
-            position: pt((this.getExtent().x / 2) - (width / 2), (this.getExtent().y / 2) - (height / 2)),
-            borderWidth: 0,
-            fill: Color.rgba(43,43,43,0.5)
-        })
-        this.gridContainer.setLayouter(new lively.morphic.Layout.GridLayout(this.gridContainer, categories.length, functionNames.length + 2));
-        this.gridContainer.applyLayout();
-        this.addMorph(gridContainer);
-        gridContainer.moveBy(pt(0,-25))
     },
+
     onTouchEnd: function() {
         //TODO: this function should be in Events.js
     },
-        openTabFor: function(scriptName, target) {
+    openTabFor: function(scriptName, optTarget) {
         //TODO: add name of morph
-        var newTab = this.buildTabView(scriptName, target)
-        var textMorph = newTab.pane.textMorph
-        newTab.fctTarget = target;
-        newTab.fctScriptName = scriptName;
-        textMorph.doitContext = target;
-        connect(textMorph, "textString", textMorph, "highlightJavaScriptSyntax");
-        connect(textMorph, "textString", textMorph, "updateChangedIndicator");
-        var scriptText = this.getSourceForScript(scriptName, target);
-        if (scriptName !== "newScript")
-            newTab.setOriginalScript(scriptText);
-        textMorph.setTextString(scriptText);
-        newTab.pane.addMorph(textMorph);
-        newTab.updateChangedIndicator(scriptText);
+        if (!scriptName)
+            return;
+        var target = optTarget || this.owner.target;
+        var tab = this.tabBar.submorphs.find(function (ea) {
+                return ea.fctTarget === target && ea.fctScriptName === scriptName
+            })
+            || this.buildTabView(scriptName, target);
+        tab.getTabBar().activateTab(tab);
+        this.gridContainer.owner.remove();
+        tab.initializeTags()
         this.cleanUp();
     },
     buildTabView: function(scriptName, target) {
         var newTab = new lively.morphic.ObjectEditorTab(this.tabBar);
-        newTab.setLabel(scriptName+":"+'\n'+target.getName());
+        newTab.setLabel(newTab.determineLabelString(scriptName, target));
         this.tabBar.addTab(newTab);
         newTab.setPosition(pt(newTab.getPosition().x,5))
-        disconnect($world, "currentlySelectedMorph", this.gridLayoutMorph, "rebuildForNewTarget");
+        disconnect($world, "currentlySelectedMorph", this.gridContainer, "rebuildForNewTarget");
         newTab.pane.setPosition(pt(0,40));
         var textMorph = new lively.morphic.Text(rect(0,0,10,10));
         textMorph.applyStyle({
@@ -1280,10 +1486,22 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer', 
             clipMode: "auto",
         });
         newTab.pane.textMorph = textMorph;
+        this.openTabs.push(newTab)
+        var textMorph = newTab.pane.textMorph
+        newTab.fctTarget = target;
+        newTab.fctScriptName = scriptName;
+        textMorph.doitContext = target;
+        var textMorph = newTab.pane.textMorph;
+        connect(textMorph, "textString", textMorph, "highlightJavaScriptSyntax");
+        connect(textMorph, "textString", newTab, "updateChangedIndicator");
+        var scriptText = this.getSourceForScript(scriptName, target);
+        if (scriptName !== "newScript")
+            newTab.setOriginalScript(scriptText);
+        textMorph.setTextString(scriptText);
         newTab.pane.addMorph(textMorph);
+        newTab.tagList && textMorph.addMorph(newTab.tagList)
         return newTab
-    }
-
+    },
 });
 
 lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
@@ -1317,8 +1535,10 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
     initialize: function ($super) {
         $super('ObjectEditor', 'top')
         this.tabContainer = this.initializeTabContainer();
+        this.target = lively.morphic.World.current();
         this.nextButton = this.initializeNextButton();
         this.saveButton = this.initializeSaveButton();
+        this.deleteButton = this.initializeDeleteButton();
         this.runButton = this.initializeRunButton();
         return this
     },
@@ -1351,12 +1571,12 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
             self.tabContainer.buildModalViewFor(target);
             $world.ignoreHalos = false;
         };
+        connect(nextButton, 'fire', nextButton, 'onFire');
         nextButton.onMouseDown = function() {
             $world.ignoreHalos = true;
         };
         nextButton.beFlapButton();
         nextButton.setExtent(pt(40,30))
-        connect(nextButton, "fire", nextButton, "onFire", {});
         nextButton.setName('nextButton')
         nextButton.moveBy(pt(0,5));
         nextButton.label.applyStyle({
@@ -1374,17 +1594,16 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
         saveButton.doSave = function() {
             var activeTab = self.tabContainer.activeTab();
             var scriptPane = activeTab.pane.submorphs[0];
-            var script = Strings.format('this.addScript(%s)', scriptPane.getTextString());
+            var script = Strings.format('this.addScript(%s);', scriptPane.getTextString());
             var saved = scriptPane.boundEval(script);
             var addScriptRegex = /function\s+([^\(]*)\(/;
             var addScriptMatches = [];
             var addScriptMatch = addScriptRegex.exec(script);
             if (activeTab.fctScriptName === "newScript")
                 activeTab.fctScriptName = addScriptMatch[1]
-            var tags = activeTab.fctTarget[activeTab.fctScriptName].tags || [];
-            activeTab.fctTarget[addScriptMatch[1]].setProperty("tags", tags);
             activeTab.fctScriptName = addScriptMatch[1];
-            activeTab.setLabel(addScriptMatch[1]+": "+activeTab.fctTarget.getName());
+            activeTab.fctTarget[activeTab.fctScriptName].setProperty("tags", activeTab.tagList.selection);
+            activeTab.setLabel(activeTab.determineLabelString(activeTab.fctScriptName, activeTab.fctTarget));
             if (saved) {
                 alertOK("saved script "+activeTab.fctScriptName + " for " + activeTab.fctTarget);
                 activeTab.setOriginalScript(scriptPane.getTextString());
@@ -1399,10 +1618,32 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
         saveButton.moveBy(pt(0,5));
         return saveButton
     },
+    initializeDeleteButton: function() {
+        var self = this,
+            width = 40,
+            deleteButton = new lively.morphic.Button(rect(0,0,0,0), 'X');
+        deleteButton.beFlapButton();
+        deleteButton.applyStyle({
+            position: pt(this.saveButton.getPosition().x-width,5),
+            extent: pt(width, this.tabBarHeight - 10),
+        })
+        deleteButton.onTap = function () {
+            var activeTab = self.tabContainer.activeTab();
+            var deleteFunc = function () {
+                delete activeTab.fctTarget[activeTab.fctScriptName]
+            }
+            if (confirm("Do you really want to delete " + activeTab.getLabel() + "?")) {
+                deleteFunc();
+                activeTab.closeTab();
+            }
+        }
+        return this.tabBar.addMorph(deleteButton);
+    },
+
     initializeRunButton: function() {
         var self = this,
             width = 100,
-            runButton = new lively.morphic.Button(pt(this.saveButton.getPosition().x - width,0)
+            runButton = new lively.morphic.Button(pt(this.deleteButton.getPosition().x - width,0)
                     .extent(pt(width, this.tabBarHeight)), 'Run');
         runButton.onTap = function() {
             this.run();

@@ -179,7 +179,10 @@ lively.morphic.Morph.addMethods(
 
     setClipModeHTML: function(ctx, clipMode) {
         // Sets the overflow property of the morph node.
-        // Clipmode can be either 'visible', 'hidden', 'scroll', 'auto' or 'inherit'.
+        // Clipmode can be either 'visible', 'hidden', 'scroll',
+        // 'auto' or 'inherit', or an object with x and y parameters
+        // (i.e. {x: 'hidden', y: 'scroll'}).
+        //
         if (!ctx.shapeNode || this.delayedClipMode) {
             this.delayedClipMode = clipMode;
             return;
@@ -852,25 +855,24 @@ lively.morphic.Shapes.Shape.addMethods(
     compensateShapeNode: function(ctx) {
         // compensates the shapeNode's position for childmorphs,
         // positions childmorphs against morphNodes (origin!)
-        if(ctx.originNode) {
-            ctx.originNode.style.setProperty(
-                'top', -this.getPosition().y + 'px', 'important');
-            ctx.originNode.style.setProperty(
-                'left', -this.getPosition().x + 'px', 'important');
-            ctx.originNode.style.setProperty(
-                'position', 'absolute', 'important');
+        if (!ctx.originNode) return;
+        ctx.originNode.style.setProperty(
+            'top', -this.getPosition().y + 'px', 'important');
+        ctx.originNode.style.setProperty(
+            'left', -this.getPosition().x + 'px', 'important');
+        ctx.originNode.style.setProperty(
+            'position', 'absolute', 'important');
 
-            // FIXME: hack, necessary until the style editor knows
-            // about stroke widths of svg lines instead of using borderWidth...
-            if (ctx.pathNode) return;
+        // FIXME: hack, necessary until the style editor knows
+        // about stroke widths of svg lines instead of using borderWidth...
+        if (ctx.pathNode) return;
 
-            // compensates the shapeNode's borderWidth for childmorphs,
-            // borders don't affect submorphs
-            ctx.originNode.style.setProperty(
-                'margin-top', -this.getBorderWidth() + 'px', 'important');
-            ctx.originNode.style.setProperty(
-                'margin-left', -this.getBorderWidth() + 'px', 'important');
-        }
+        // compensates the shapeNode's borderWidth for childmorphs,
+        // borders don't affect submorphs
+        ctx.originNode.style.setProperty(
+            'margin-top', -this.getBorderWidth() + 'px', 'important');
+        ctx.originNode.style.setProperty(
+            'margin-left', -this.getBorderWidth() + 'px', 'important');
     },
     setOpacityHTML: function(ctx, value) {
         if (ctx.shapeNode) {

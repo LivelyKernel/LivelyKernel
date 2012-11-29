@@ -803,8 +803,8 @@ lively.morphic.World.addMethods(
         }
         return null;
     },
-    getUserDir: function() {
-        var username = this.getUserName();
+    getUserDir: function(optUserName) {
+        var username = optUserName || this.getUserName();
         return username ? URL.root.withFilename('users/' + username + '/') : null;
     },
 
@@ -828,7 +828,7 @@ lively.morphic.World.addMethods(
             this.askToRegisterAnAccount();
             return null;
         }
-        var userDir = this.getUserDir();
+        var userDir = this.getUserDir(optUserName);
         userDir.asWebResource().ensureExistance();
         return userDir;
     },

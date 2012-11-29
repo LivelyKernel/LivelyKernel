@@ -3118,8 +3118,8 @@ Object.subclass('lively.morphic.TextEmphasis',
         var propStrings = [];
         Properties.forEachOwn(this, function(key, value) {
             if (key === '__SourceModuleName__') return;
-            propStrings.push(
-                key + ': ' +  (value && value.isColor ? value.toString() : JSON.stringify(value)));
+            // cs: in contrast to JSON.stringify, toString works for all objects
+            propStrings.push(key + ': ' +  value);
         })
         return 'TextEmphasis(' + propStrings.join(',') + ')'
     }

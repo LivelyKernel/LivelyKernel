@@ -47,7 +47,9 @@ Object.subclass('lively.GlobalLogger',
     },
     initializeLayer: function () {
         // Covers functions added to silentFunctions, silentClasses and loggedFunctions, also all enableFunction and disable Function for Morphs.
-        var self = this
+        var self = this;
+        if (!lively.morphic.World.current().GlobalLogger)
+            lively.morphic.World.current().GlobalLogger = new lively.GlobalLogger()
         this.silentFunctions.each(function (extendableClass) {
             extendableClass[0] && self.disableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1]);
         })

@@ -174,9 +174,11 @@ Trait('TextChunkOwner',
         domChanged = this.fixTextBeforeAndAfterChunks(chunks);
         domChanged = domChanged || this.removeNonChunkNodes(chunks);
         chunks.last().ensureEndsWithBr();
-        if (domChanged && selRange) {
-            this.setSelectionRange(selRange[0], selRange[1]);
-        }
+        if (!selRange) return;
+        var newSelectionRange = this.getSelectionRange(),
+            selMustChange = domChanged || (newSelectionRange && newSelectionRange[0] !== selRange[0]);
+        if (!selMustChange) return;
+        this.setSelectionRange(selRange[0], selRange[1]);
     },
     fixChunksDelayed: function() {
         this.fixChunks.bind(this).delay(0);
@@ -516,7 +518,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
             fixedWidth: false,
             fixedHeight: true,
             allowInput: false,
-            clipMode: 'hidden'
+            clipMode: 'hidden',
+            emphasize: {textShadow: {offset: pt(0,1), color: Color.white}}
         };
         if (customStyle) labelStyle = Object.merge([labelStyle, customStyle]);
         this.applyStyle(labelStyle);
@@ -3202,7 +3205,7 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     initialize: function(string) {
         this.getTextChunks(); // lazy initialize
         if (string) this.firstTextChunk().textString = string;
-    },
+    }
 },
 'rich text interface', {
     emphasize: function(styleSpec, from, to) {
@@ -3240,7 +3243,9 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     },
     getTextNode: function() {
         return this.firstTextChunk().getChunkNode().parentNode
-    }
+    },
+
+    getSelectionRange: Functions.Null
 
 },
 'text morph application', {

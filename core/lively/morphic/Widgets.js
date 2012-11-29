@@ -27,7 +27,8 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
             fixedWidth: true,
             fixedHeight: true,
             textColor: Color.black,
-            clipMode: 'hidden'
+            clipMode: 'hidden',
+            emphasize: {textShadow: {offset: pt(0,1), color: Color.white}}
         }
     }
 },
@@ -526,10 +527,9 @@ lively.morphic.Box.subclass('lively.morphic.ProgressBar',
 },
 'updating', {
     updateBar: function(value) {
-    var maxExt = this.getExtent();
-        // this.progressMorph.setPosition(pt(1,1));
+        var maxExt = this.getExtent();
         this.progressMorph.setExtent(pt(Math.floor(maxExt.x * value), maxExt.y));
-    },
+    }
 });
 
 lively.morphic.Text.subclass('lively.morphic.FrameRateMorph', {
@@ -846,8 +846,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             newBounds = this.moveSubMenuBoundsForVisibility(
                 this.innerBounds(),
                 owner.overItemMorph ? owner.overItemMorph.bounds() : new Rectangle(0,0,0,0),
-                localVisibleBounds
-            );
+                localVisibleBounds);
         this.setBounds(newBounds);
     },
 
@@ -1194,10 +1193,9 @@ lively.morphic.Text.addMethods(
 lively.morphic.World.addMethods(
 'tools', {
     loadPartItem: function(partName, optPartspaceName) {
-        var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld';
-        var part = lively.PartsBin.getPart(partName, optPartspaceName);
-        if (!part)
-            return;
+        var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld',
+            part = lively.PartsBin.getPart(partName, optPartspaceName);
+        if (!part) return;
         if (part.onCreateFromPartsBin) part.onCreateFromPartsBin();
         return part;
     },
@@ -1364,7 +1362,7 @@ lively.morphic.World.addMethods(
         items.pushAll(partNames.collect(function(ea) { return [ea, function() {
             var partSpaceName = 'PartsBin/Basic',
                 part = lively.PartsBin.getPart(ea, partSpaceName);
-                  if (!part) return;
+            if (!part) return;
             lively.morphic.World.current().firstHand().grabMorph(part);
         }]}))
 
@@ -1373,7 +1371,7 @@ lively.morphic.World.addMethods(
         items.pushAll(partNames.collect(function(ea) { return [ea, function() {
             var partSpaceName = 'PartsBin/Inputs',
                 part = lively.PartsBin.getPart(ea, partSpaceName);
-                  if (!part) return;
+            if (!part) return;
             lively.morphic.World.current().firstHand().grabMorph(part);
         }]}))
 
@@ -1475,6 +1473,38 @@ lively.morphic.World.addMethods(
                 })
             }]);
         }
+        if (Global.AutoIndentLayer && AutoIndentLayer.isGlobal()) {
+            items.push(['[X] Auto Indent', function() {
+                AutoIndentLayer.beNotGlobal();
+            }]);
+        } else {
+            items.push(['[  ] Auto Indent', function() {
+                require('users.cschuster.AutoIndent').toRun(function() {
+                    AutoIndentLayer.beGlobal();
+                });
+            }]);
+        }
+        if (localStorage['Config_quickLoad'] == "false") {
+            items.push(['[  ] Quick Load', function() {
+                localStorage['Config_quickLoad'] = "true"
+            }]);
+        } else {
+            items.push(['[X] Quick Load', function() {
+                localStorage['Config_quickLoad'] = "false";
+            }]);
+        }
+        if (localStorage['Config_CopyAndPaste'] == "false") {
+            items.push(['[  ] Copy And Paste', function() {
+                localStorage['Config_CopyAndPaste'] = "true"
+                module('lively.experimental.CopyAndPaste').load(true)
+                ClipboardLayer.beGlobal()
+            }]);
+        } else {
+            items.push(['[X] Copy And Paste', function() {
+                localStorage['Config_CopyAndPaste'] = "false";
+                ClipboardLayer.beNotGlobal()
+            }]);
+        }
         return items;
     },
 
@@ -1524,7 +1554,7 @@ lively.morphic.World.addMethods(
             ['Documentation', [
                 ["On short cuts", this.openShortcutDocumentation.bind(this)],
                 ["On connect data bindings", this.openConnectDocumentation.bind(this)],
-                        ["On Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
+                ["On Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
                 ["More ...", function() { window.open(Config.rootPath + 'documentation/'); }]
             ]],
             ['Save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],
@@ -2288,21 +2318,20 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 },
 'menu', {
     showTargetMorphMenu: function() {
-        var target = this.targetMorph || this;
+        var target = this.targetMorph || this,
+            itemFilter;
         if (this.targetMorph) {
             var self = this;
             itemFilter = function (items) {
-                items[0] = [
-                    'Publish window', function(evt) {
+                items[0] = ['Publish window', function(evt) {
                     self.copyToPartsBinWithUserRequest();
-                    }]
+                }];
                 // set fixed support
                 var fixItem = items.find(function (ea) {
-                    return ea[0] == "set fixed" || ea[0] == "set unfixed"
-                })
+                    return ea[0] == "set fixed" || ea[0] == "set unfixed" });
                 if (fixItem) {
-                    if(self.isFixed) {
-                        fixItem[0] = "set unfixed"
+                    if (self.isFixed) {
+                        fixItem[0] = "set unfixed";
                         fixItem[1] = function() {
                             self.setFixed(false);
                         }
@@ -2313,6 +2342,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
                         }
                     }
                 }
+                items[1] = ['Set window title', function(evt) {
+                    self.world().prompt('Set window title', function(input) {
+                        if (input !== null) self.titleBar.setTitle(input || '');
+                    }, self.titleBar.getTitle());
+                }];
                 return items;
             }
         }
@@ -3060,9 +3094,9 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         group.isGroup = true;
         this.owner.addMorph(group);
         this.selectedMorphs.forEach(function(ea) {
-            group.addMorph(ea)
-        })
-        this.selectMorphs([group])
+            group.addMorph(ea); });
+        this.selectMorphs([group]);
+        return group;
     },
     unGroup: function() {
         if (!this.selectedMorphs || this.selectedMorphs.length !== 1) return;
@@ -3611,12 +3645,10 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         var changed = false;
         if (this.item.description) str += "  " + this.item.description;
         if (this.label.getTextNode().textContent !== str) {
-            this.label.textString = this.item.name + (this.item.description ? "  " : "");
+            this.label.textString = this.item.name;
             if (this.item.description) {
-                var chunk = this.label.createChunk();
-                chunk.textString = this.item.description;
-                chunk.styleText({color: Color.web.darkgray});
-                this.label.getTextChunks().push(chunk);
+                var gray = {color: Color.web.darkgray};
+                this.label.appendRichText(" " + this.item.description, gray);
             }
             changed = true;
         }
@@ -3680,7 +3712,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     },
     createLabel: function() {
         var bounds = pt(0, 0).extent(pt(100, 20));
-        var name = this.item.name + (this.item.description ? "  " : "");
+        var name = this.item.name;
         var label = new lively.morphic.Text(bounds, name);
         if (this.item.style) {
             label.firstTextChunk().styleText(this.item.style);
@@ -3688,7 +3720,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         }
         if (this.item.description) {
             var gray = {color: Color.web.darkgray};
-            label.insertRichTextAt(this.item.description, gray, name.length);
+            label.appendRichText(" " + this.item.description, gray);
         }
         label.setBorderWidth(0);
         label.setFill(null);
@@ -3749,13 +3781,20 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         });
     },
     expand: function() {
+        if (!this.item.children || this.childNodes) return;
         this.layoutAfter(function () {
             if (this.item.onExpand) this.item.onExpand(this);
             if (this.icon) this.icon.setTextString("▼");
             this.showChildren();
         })
     },
+    expandAll: function() {
+        this.withAllTreesDo(function(tree) {
+            tree.expand();
+        });
+    },
     collapse: function() {
+        if (!this.item.children || !this.childNodes) return;
         this.layoutAfter(function() {
             if (this.item.onCollapse) this.item.onCollapse(this.item);
             if (this.icon) this.icon.setTextString("►");

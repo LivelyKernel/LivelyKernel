@@ -880,7 +880,10 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
                         && !obj[name].isConnectionWrapper; });
             for (var name in closures) {
                 var closure = closures[name];
-                closure.recreateFunc().addToObject(obj, name);
+                // in case of directly added functions do nothing
+                if (closure.isLivelyClosure) {
+                    closure.recreateFunc().addToObject(obj, name);
+                }
                 currentClosures.remove(name);
             }
             currentClosures.forEach(function(name) { delete obj[name]; });

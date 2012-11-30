@@ -68,6 +68,58 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests.DragAn
         this.dropAt(pt(10, 10));
         this.assert(morph1.submorphs.include(morph2), 'morph2 not dropped on morph1');
     },
+    test04RestrictMorphsToDrop: function() {
+        var morph1 = new lively.morphic.Box(new Rectangle(0, 0, 100, 100)),
+            morph2 = new lively.morphic.Box(new Rectangle(100, 0, 80, 80)),
+            morph3 = new lively.morphic.Box(new Rectangle(200, 0, 80, 80));
+        this.world.addMorph(morph1);
+        this.world.addMorph(morph2);
+        this.world.addMorph(morph3);
+        morph1.setFill(Color.red);
+        morph2.setFill(Color.green);
+        morph3.setFill(Color.blue);
+
+        morph1.addScript(function wantsDroppedMorph(morph) {
+            // accept only blue morphs for dropping
+            return morph.getFill().equals(Color.blue);
+        });
+
+        this.grabAt(pt(110, 10));
+        this.assert(this.world.firstHand().submorphs.include(morph2), 'morph2 not grabbed');
+        this.dropAt(pt(10, 10));
+        this.assert(!morph1.submorphs.include(morph2), 'morph2 dropped on morph1');
+        morph2.remove();
+        this.grabAt(pt(210, 10));
+        this.assert(this.world.firstHand().submorphs.include(morph3), 'morph3 not grabbed');
+        this.dropAt(pt(10, 10));
+        this.assert(morph1.submorphs.include(morph3), 'morph3 not dropped on morph1');
+    },
+    test05RestrictDropTarget: function() {
+        var morph1 = new lively.morphic.Box(new Rectangle(0, 0, 100, 100)),
+            morph2 = new lively.morphic.Box(new Rectangle(100, 0, 100, 100)),
+            morph3 = new lively.morphic.Box(new Rectangle(200, 0, 80, 80));
+        this.world.addMorph(morph1);
+        this.world.addMorph(morph2);
+        this.world.addMorph(morph3);
+        morph1.setFill(Color.red);
+        morph2.setFill(Color.green);
+        morph3.setFill(Color.blue);
+
+        morph3.addScript(function wantsToBeDroppedInto(dropTaget) {
+            // accept only green morphs as drop targets
+            return dropTaget.getFill().equals(Color.green);
+        });
+
+        var h = this.world.firstHand();
+        this.grabAt(pt(210, 10));
+        this.assert(this.world.firstHand().submorphs.include(morph3), 'morph3 not grabbed');
+        this.dropAt(pt(10, 10));
+        this.assert(!morph1.submorphs.include(morph3), 'morph3 dropped on morph1');
+        this.grabAt(pt(10, 10));
+        this.assert(this.world.firstHand().submorphs.include(morph3), 'morph3 not grabbed');
+        this.dropAt(pt(110, 10));
+        this.assert(morph2.submorphs.include(morph3), 'morph3 not dropped on morph2');
+    }
 });
 
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.EventTests.LockingTests',

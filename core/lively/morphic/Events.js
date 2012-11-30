@@ -1040,7 +1040,14 @@ handleOnCapture);
         //this.grabShadow = shadow;
         return shadow;
     },
-
+    wantsToBeDroppedInto: function(dropTarget) {
+        // returns true if this morph can be dropped into the target
+        return true;
+    },
+    wantsDroppedMorph: function(morphToDrop) {
+        // returns true if the morph can be dropped into this morph
+        return !!this.droppingEnabled;
+    }
 },
 'scrolling', {
     onScroll: function(evt) {},

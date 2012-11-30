@@ -1,33 +1,20 @@
 module('lively.morphic.tests.EventTests').requires('lively.morphic.tests.Morphic').toRun(function() {
 
 // this testcase was migrated from lively.morphic.tests.Morphic
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OldEventTests',
-'testing', {
-    xtest05DropMorph: function() {
-        var morph1 = new lively.morphic.Morph(),
-            morph2 = new lively.morphic.Morph();
-        this.world.addMorph(morph1);
-        this.world.addMorph(morph2);
-        morph1.setBounds(new Rectangle(0,0, 100, 100));
-        morph2.setBounds(new Rectangle(0,0, 80, 80));
-        morph1.applyStyle({fill: Color.red});
-        morph2.applyStyle({fill: Color.green});
-
-        // is already done by style settings
-        // this.world.enableDropping();
-        // morph1.enableDropping();
-        // morph1.enableGrabbing();
-        // morph2.enableDropping();
-        // morph2.enableGrabbing();
-
-        this.doMouseEvent({type: 'mousedown', pos: pt(20,20), target: morph2.renderContext().getMorphNode(), button: 0});
-
-        this.assert(this.world.firstHand().submorphs.include(morph2), 'morph not grabbed');
-
-        this.doMouseEvent({type: 'mouseup', pos: pt(20,20), target: this.world.renderContext().getMorphNode()});
-
-        this.assert(morph1.submorphs.include(morph2), 'morph not dropped on morph2');
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests.DragAndDropTests',
+'helping', {
+    grabAt: function(pos) {
+        this.world.firstHand().setPosition(pos);
+        var morphs = this.world.morphsContainingPoint(pos);
+        if (morphs.length > 1) this.world.firstHand().grabMorph(morphs.first());
     },
+    dropAt: function(pos) {
+        this.world.firstHand().setPosition(pos);
+        var evt = {hand: this.world.firstHand(), getPosition: function() { return pos; }, stop: Functions.Null};
+        this.world.dispatchDrop(evt);
+    }
+},
+'testing', {
     test01DragMorph: function() {
         var dragStarted = false,
             dragMoved = false,
@@ -68,7 +55,19 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OldEventTests',
             {type: 'mousedown', pos: pt(20,20), target: morph2, button: 0});
         this.assertIdentity(morph1, this.world.clickedOnMorph);
     },
+    test03DropMorph: function() {
+        var morph1 = new lively.morphic.Box(new Rectangle(0, 0, 100, 100)),
+            morph2 = new lively.morphic.Box(new Rectangle(100, 0, 80, 80));
+        this.world.addMorph(morph1);
+        this.world.addMorph(morph2);
+        morph1.setFill(Color.red);
+        morph2.setFill(Color.green);
 
+        this.grabAt(pt(110, 10));
+        this.assert(this.world.firstHand().submorphs.include(morph2), 'morph2 not grabbed');
+        this.dropAt(pt(10, 10));
+        this.assert(morph1.submorphs.include(morph2), 'morph2 not dropped on morph1');
+    },
 });
 
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.EventTests.LockingTests',

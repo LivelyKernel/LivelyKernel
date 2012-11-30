@@ -3118,10 +3118,11 @@ Object.subclass('lively.morphic.TextEmphasis',
         var propStrings = [];
         Properties.forEachOwn(this, function(key, value) {
             if (key === '__SourceModuleName__') return;
-            // cs: in contrast to JSON.stringify, toString works for all objects
-            propStrings.push(key + ': ' +  value);
-        })
-        return 'TextEmphasis(' + propStrings.join(',') + ')'
+            var valueString = value && value.isColor ?
+                value.toString() : JSON.stringify(value);
+            propStrings.push(key + ': ' +  valueString);
+        });
+        return 'TextEmphasis(' + propStrings.join(',') + ')';
     }
 });
 
@@ -3167,9 +3168,8 @@ Object.extend(lively.morphic.TextEmphasis, {
 
         actionQueue.enter = function enter(callback, context) {
             schedule('in', context, function(idxInQueue) {
-                if (idxInQueue === 0) { callback.call(context); return; }
                 var nextAction = actionQueue[idxInQueue-1];
-                if (!nextAction.type === "out") {
+                if (nextAction && nextAction.type !== "out") {
                     throw new Error('Expecting next action of type "out"!');
                 }
                 callback.call(context);
@@ -3178,13 +3178,11 @@ Object.extend(lively.morphic.TextEmphasis, {
 
         actionQueue.leave = function leave(callback, context) {
             schedule('out', context, function(idxInQueue) {
-                if (idxInQueue === 0) { callback.call(context); return; }
-
                 var nextAction = actionQueue[idxInQueue-1];
-                if (!nextAction.type === "in") {
+                if (nextAction && nextAction.type !== "in") {
                     throw new Error('Expecting next action of type "in"!');
                 }
-                if (nextAction.context === context) {
+                if (nextAction && nextAction.context === context) {
                     // out immediately followed by in: do nothing
                     nextAction.ignore = true;
                 } else {

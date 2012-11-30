@@ -1045,8 +1045,8 @@ handleOnCapture);
         return true;
     },
     wantsDroppedMorph: function(morphToDrop) {
-        // returns true if the morph can be dropped into this morph
-        return !!this.droppingEnabled;
+        // returns true if the provided morph can be dropped into this morph
+        return true;
     }
 },
 'scrolling', {

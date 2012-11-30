@@ -1261,7 +1261,7 @@ lively.morphic.Morph.addMethods(
         }
         if (this != this.world() && this.halosTemporaryInvisible) {
             if (this.halosTemporaryInvisible) {
-                this.showHalos();
+                //this.showHalos();
                 this.halosTemporaryInvisible = false
             }
             this.setOrigin(this.getExtent().scaleBy(0.5));
@@ -1602,6 +1602,11 @@ lively.morphic.World.addMethods(
 
         return this.pieMenu;
     },
+    showHalosFor: function() {
+        // We do NOT want to get a Halo at any time!
+        return false
+    },
+
 
     removePie: function() {
         if (this.currentPieTarget) {
@@ -1639,7 +1644,8 @@ lively.morphic.World.addMethods(
     },
     showHalos: function() {
         // lazy function is lazy
-    },},
+    },
+},
 "scrolling", {
     startFollowingHand: function() {
         connect(this.firstHand(), "position", this, "followHand");
@@ -1794,10 +1800,9 @@ lively.morphic.World.addMethods(
                 lively.morphic.World.current().firstHand().grabMorph(part);
             }
         }]}));
-
         return items;
     },
-    morphMenuDefaultPartsItems: function () {
+    /*morphMenuDefaultPartsItems: function () {
         var items = [],
             partNames = ["Rectangle", "Ellipse", "Image", "Text", 'Line'].sort();
 
@@ -1824,7 +1829,7 @@ lively.morphic.World.addMethods(
         }]}))
 
         return items;
-    },
+    },*/
 }, 
 'Gestures', {
     onGestureChange: function(evt) {
@@ -2057,18 +2062,11 @@ lively.morphic.Text.addMethods("TapEvents", {
         if (!ctx.morphNode) throw dbgOn(new Error('appendText: no morphNode!'))
         if (!ctx.shapeNode) throw dbgOn(new Error('appendText: no shapeNode!'))
         if (!ctx.textNode) throw dbgOn(new Error('appendText: no textNode!'))
-
         ctx.shapeNode.insertBefore(ctx.textNode, ctx.shapeNode.firstChild); // instead of appendChild
     }
 },
 'Touch and Hold Selection', {
 
-    appendTextHTML: function(ctx) {
-        if (!ctx.morphNode) throw dbgOn(new Error('appendText: no morphNode!'))
-        if (!ctx.shapeNode) throw dbgOn(new Error('appendText: no shapeNode!'))
-        if (!ctx.textNode) throw dbgOn(new Error('appendText: no textNode!'))
-        ctx.shapeNode.insertBefore(ctx.textNode, ctx.shapeNode.firstChild); // instead of appendChild
-    }
 });
 
 lively.morphic.Button.addMethods("TapEvents", {

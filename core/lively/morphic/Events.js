@@ -963,16 +963,6 @@ handleOnCapture);
     enableDragging: function() { this.draggingEnabled = true },
     disableDragging: function() { this.draggingEnabled = false },
 
-    dropOnMe: function(evt) {
-        if (!this.droppingEnabled || this.eventsAreIgnored) return false;
-        if (evt.hand.submorphs.length == 0) return false;
-        for (var i = 0; i < this.submorphs.length; i++) {
-            if (this.submorphs[i].manualDropOnMe(evt)) return true;
-        }
-        if (this.owner != evt.hand) {
-            return evt.hand.dropContentsOn(this, evt);
-        }
-        return false;
     },
 
     dropOn: function(aMorph) {
@@ -1000,12 +990,6 @@ handleOnCapture);
         return false;
     },
 
-    manualDropOnMe: function(evt) {
-        // this is a workaround. HTML events are not delivered to the required morph
-        // under the hand when the hand already carries submorphs that overlap
-        // var localPt = this.localize(evt.getPosition());
-        return this.fullContainsWorldPoint(evt.getPosition()) ? this.dropOnMe(evt) : false;
-    },
     grabMe: function(evt) {
         return this.grabbingEnabled && evt.hand.grabMorph(this, evt);
     },

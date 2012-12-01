@@ -196,9 +196,7 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
                 nameLabel.bounds().bottomCenter(),
                 this.innerBounds().bottomCenter().addXY(0, -4));
         }.bind(this)).delay(0.1)
-    },
-
-
+    }
 
 },
 'selection', {
@@ -210,10 +208,7 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
     showAsNotSelected: function() {
         this.isSelected = false;
         this.applyStyle({borderWidth: 0});
-    },
-},
-'naming', {
-
+    }
 },
 'mouse events', {
     onMouseDown: function(evt) {
@@ -229,12 +224,12 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
     onDragStart: function($super, evt) {
         if (!this.partItem) {
             alert('Cannot load Part because found no PartItem');
-            return;
+            return false;
         }
 // FIXME duplication with PartsBinBrowser open
         // FIXME put somewhere else
         this.startLoadingPart('openLoadedPartsBinItem')
-        return true
+        return true;
     },
     onDragEnd: function($super, evt) {
         var target = evt.world.morphsContainingPoint(evt.getPosition()).detect(function(ea) { return ea.droppingEnabled });
@@ -258,14 +253,14 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
                 alertOK("deleted " + this.targetName + " in " + this.partsBinURL);
             }
         }.bind(this))
-    },
+    }
 },
 'loading', {
     openLoadedPartsBinItem: function(partMorph) {
         // FIXME duplication with PartsBinBrowser open
         lively.morphic.World.current().firstHand().grabMorph(partMorph, null);
         partMorph.setPosition(pt(0,0));
-        if(partMorph.onCreateFromPartsBin) partMorph.onCreateFromPartsBin();
+        if (partMorph.onCreateFromPartsBin) partMorph.onCreateFromPartsBin();
     },
     openLoadedPartCentered: function(partMorph) {
         partMorph.openInWorld();
@@ -297,8 +292,9 @@ Object.extend(Global, {
     },
     $part: function getPartItem(partName, partSpaceName) {
         return $world.loadPartItem(partName, partSpaceName);
-    },
+    }
 });
+
 Trait('lively.morphic.DraggableBehavior',
 'dragging and dropping', {
     onDragEnd: function(evt) {

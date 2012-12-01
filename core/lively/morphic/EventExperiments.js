@@ -4,7 +4,7 @@ Object.extend(lively.morphic.Morph, {
     eventDepth: {
         onMouseDown: 0,
         onMouseUp: 0,
-        onMouseMove: 0,
+        onMouseMove: 0
     }
 });
 
@@ -104,7 +104,7 @@ cop.create('lively.morphic.GrabbingDefaultLayer')
         if (lockOwner && !lockOwner.isWorld) {
             evt.hand.grabMorph(lockOwner); return true }
         return false
-    },
+    }
 }).beGlobal();
 
 // grabbing behavior
@@ -114,7 +114,7 @@ cop.create('lively.morphic.GrabbingLayer')
     onDragStart: function(evt) {
         if (cop.proceed(evt)) return;
         evt.hand.grabMorph(this);
-    },
+    }
 })
 .refineClass(lively.morphic.Text, {
     onDragStart: function(evt) {
@@ -128,7 +128,7 @@ cop.create('lively.morphic.GrabbingLayer')
             grabMe = bounds.containsPoint(pos) && !smallerBounds.containsPoint(pos);
         }
         grabMe && evt.hand.grabMorph(this);
-    },
+    }
 });
 
 (function setup() {

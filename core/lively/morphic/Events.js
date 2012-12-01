@@ -1100,8 +1100,6 @@ handleOnCapture);
                         (!ea.owner || !ea.owner.isHalo); });
     },
 
-
-
     isScrollableHTML: function() {
         // HTML specific
         if (this.isList) {
@@ -1133,7 +1131,7 @@ handleOnCapture);
         }
         return false;
 
-    },
+    }
 
 });
 

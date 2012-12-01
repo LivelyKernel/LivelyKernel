@@ -232,12 +232,8 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
         return true;
     },
     onDragEnd: function($super, evt) {
-        var target = evt.world.morphsContainingPoint(evt.getPosition()).detect(function(ea) { return ea.droppingEnabled });
-        if (target)
-            evt.hand.dropContentsOn(target, evt)
-        return $super(evt);
-    },
-
+        return evt.world.dispatchDrop(evt) || $super(evt);
+    }
 
 },
 'server interaction', {

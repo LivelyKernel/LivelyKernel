@@ -2444,6 +2444,9 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.moveBy(movedBy);
         return true;
     },
+    wantsToBeDroppedInto: function(dropTarget) {
+        return dropTarget.isWorld;
+    }
 },
 'debugging', {
     toString: function($super) {

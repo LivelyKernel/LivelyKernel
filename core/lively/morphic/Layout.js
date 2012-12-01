@@ -289,13 +289,12 @@ Object.subclass('lively.morphic.Layout.Layout',
         return aMorph.id;
     },
 
-
     setSpacing: function(value) {
         this.spacing = value;
         if (this.getContainer()) {
             this.getContainer().applyLayout();
         }
-    },
+    }
 
 },
 'debugging', {
@@ -305,11 +304,9 @@ Object.subclass('lively.morphic.Layout.Layout',
         return false;
     },
     showPlaceholderFor: function(aMorph, anEvent) {
-        if (!this.container ||  !this.container.droppingEnabled) {
-            return;
-        }
+        if (!this.container || !this.container.droppingEnabled) return;
         var localPos = this.container.getGlobalTransform().
-            inverse().transformPoint(anEvent.getPosition()); //.addPt(aMorph.getPosition());
+            inverse().transformPoint(anEvent.getPosition());
         var placeholder = aMorph.obtainPlaceholder();
         if (!placeholder.isSubmorphOf(this.container)) {
             this.container.insertPlaceholder(placeholder);

@@ -963,6 +963,26 @@ handleOnCapture);
     enableDragging: function() { this.draggingEnabled = true },
     disableDragging: function() { this.draggingEnabled = false },
 
+    howDroppingWorks: function() {
+        // How does dropping morphs work? When morphs are carried by a HandMorph (i.e.
+        // being its submorphs), and a mouseup event occurs then
+        // lviely.morphic.World>>dispatchDrop is called.
+        //
+        // The high-level call stack of what happens then looks like this:
+        //
+        // world.dispatchDrop(evt)
+        //     targetMorph.wantsDroppedMorph(grabbedMorph)
+        //     grabbedMorph.wantsToBeDroppedInto(targetMorph)
+        //     handMorph.dropContentsOn(targetMorph,evt)
+        //         grabbedMorph>>dropOn(targetMorph)
+        //             grabbedMorph>>onDropOn(targetMorph)
+        //
+        // #wantsDroppedMorph and #wantsToBeDroppedInto are used for dynamically
+        // controlling drop behavior (called while drop process and are able to cancel
+        // the drop). Also, there is a property "droppingEnabled" that (statically)
+        // controls whether a morph should be considered for a drop at all.
+    },
+
     wantsToBeDroppedInto: function(dropTarget) {
         // returns true if this morph can be dropped into the target
         return true;

@@ -963,6 +963,14 @@ handleOnCapture);
     enableDragging: function() { this.draggingEnabled = true },
     disableDragging: function() { this.draggingEnabled = false },
 
+    wantsToBeDroppedInto: function(dropTarget) {
+        // returns true if this morph can be dropped into the target
+        return true;
+    },
+
+    wantsDroppedMorph: function(morphToDrop) {
+        // returns true if the provided morph can be dropped into this morph
+        return true;
     },
 
     dropOn: function(aMorph) {
@@ -993,6 +1001,7 @@ handleOnCapture);
     grabMe: function(evt) {
         return this.grabbingEnabled && evt.hand.grabMorph(this, evt);
     },
+
     getGrabShadow: function (local) {
         var shadow = new lively.morphic.Morph(
             lively.persistence.Serializer.newMorphicCopy(this.shape));
@@ -1023,14 +1032,6 @@ handleOnCapture);
         //shadow.originalMorph = this;
         //this.grabShadow = shadow;
         return shadow;
-    },
-    wantsToBeDroppedInto: function(dropTarget) {
-        // returns true if this morph can be dropped into the target
-        return true;
-    },
-    wantsDroppedMorph: function(morphToDrop) {
-        // returns true if the provided morph can be dropped into this morph
-        return true;
     }
 },
 'scrolling', {

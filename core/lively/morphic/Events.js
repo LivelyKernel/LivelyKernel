@@ -1573,15 +1573,14 @@ lively.morphic.World.addMethods(
         return false;
     },
     dispatchDrop: function(evt) {
-        if (evt.hand.submorphs.length == 0) return false;
-        var morphStack = this.morphsContainingPoint(evt.getPosition());
-        var dropTarget = morphStack.detect(function(ea) {
-            return ea.droppingEnabled && !ea.eventsAreIgnored &&
-                evt.hand.submorphs.all(function(toBeDropped) {
-                    return toBeDropped.isGrabShadow ||
-                           (ea.wantsDroppedMorph(toBeDropped) && toBeDropped.wantsToBeDroppedInto(ea));
-                });
-        });
+        if (evt.hand.submorphs.length === 0) return false;
+        var morphStack = this.morphsContainingPoint(evt.getPosition()),
+            carriedMorphs = evt.hand.submorphs.select(function(ea) { return !ea.isGrabShadow }),
+            dropTarget = morphStack.detect(function(ea) {
+                return ea.droppingEnabled && !ea.eventsAreIgnored &&
+                    carriedMorphs.all(function(toBeDropped) {
+                        return ea.wantsDroppedMorph(toBeDropped)
+                            && toBeDropped.wantsToBeDroppedInto(ea); }); });
         if (!dropTarget) {
             alert('found nothing to drop onto');
             return false;

@@ -578,6 +578,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         opacity: 0.95
     },
     isEpiMorph: true,
+	isLoggable: false,
     removeOnMouseOut: false
 },
 'initializing', {
@@ -640,7 +641,6 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
 
         owner.addMorph(this);
         this.fitToItems.bind(this).delay(0);
-
         this.offsetForWorld(pos);
         // delayed because of fitToItems
         // currently this is deactivated because the initial bounds are correct
@@ -895,7 +895,8 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
         padding: Rectangle.inset(3,2),
         textColor: Config.get('textColor') || Color.black
     },
-    defaultTextColor: Config.get('textColor') || Color.black
+    defaultTextColor: Config.get('textColor') || Color.black,
+	isLoggable: false
 },
 'initializing', {
     initialize: function($super, item) {
@@ -1266,7 +1267,7 @@ lively.morphic.World.addMethods(
         return part;
     },
     openPublishPartDialogFor: function(morph) {
-                var publishDialog = this.loadPartItem('PublishPartDialog', 'PartsBin/Dialogs');
+        var publishDialog = this.loadPartItem('PublishPartDialog', 'PartsBin/Dialogs');
         var metaInfo = morph.getPartsBinMetaInfo();
         publishDialog.targetMorph.setTarget(morph);
         publishDialog.openInWorldCenter();
@@ -1975,6 +1976,7 @@ lively.morphic.Button.subclass("lively.morphic.WindowControl",
 },
 'initializing', {
     initialize: function($super, bnds, inset, labelString, labelOffset) {
+		this.isLoggable = false;
         $super(bnds, labelString)
         this.label.applyStyle({fontSize: 8})
         if (labelOffset) {
@@ -2126,6 +2128,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
     style: {borderWidth: 0, fill: null, borderRadius: 0, strokeOpacity: 0, adjustForNewBounds: true, enableDragging: true},
     isWindow: true,
     isCollapsed: function() { return this.state === 'collapsed' },
+	//isLoggable: false
 
 },
 'initializing', {
@@ -2776,6 +2779,7 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
     doNotRemove: true,
     propagate: true,
     isSelection: true,
+	isLoggable: false,
 
 },
 'initializing', {

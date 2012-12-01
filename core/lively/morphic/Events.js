@@ -1025,6 +1025,7 @@ handleOnCapture);
     getGrabShadow: function (local) {
         var shadow = new lively.morphic.Morph(
             lively.persistence.Serializer.newMorphicCopy(this.shape));
+		shadow.isLoggable = false
         this.submorphs.forEach(function(ea) {
             var submorphShadow = ea.getGrabShadow(true);
             submorphShadow && shadow.addMorph(submorphShadow) });
@@ -1452,6 +1453,8 @@ lively.morphic.World.addMethods(
             case "k": { this.openWorkspace(evt); return true; }
             case "o": { this.openObjectEditor(evt); return true; }
             case "p": { this.openPartsBin(evt); return true; }
+            case "z": { Config.undoLogging && this.GlobalLogger.undoLastAction(); return true }
+            case "y": { Config.undoLogging && this.GlobalLogger.redoNextAction(); return true }
         }
 
         switch(evt.getKeyCode()) {
@@ -1957,7 +1960,8 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     style: {enableDropping: false, enableHalos: false}
 },
 'testing', {
-    isHand: true
+    isHand: true,
+	isLoggable: false
 },
 'initializing', {
     initialize: function($super) {

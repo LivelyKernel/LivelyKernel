@@ -41,8 +41,7 @@ Trait('lively.morphic.Renderable',
         }
         return this[renderSpecificAspect](this._renderContext, arg);
     }
-})
-.applyTo(lively.morphic.Morph, {
+}).applyTo(lively.morphic.Morph, {
     override: ['setRenderContext', 'renderContext', 'renderContextDispatch'],
     alias: {renderAttributeSetter: 'morphicSetter', renderAttributeGetter: 'morphicGetter'}
 })

@@ -424,7 +424,9 @@ Config.addOptions(
 
         ["userNameURL", document.location.protocol + '//' + document.location.host + '/cgi/user.sh'],
 
-        ["lessAnnoyingWorldStatusMessages", true]
+        ["lessAnnoyingWorldStatusMessages", true],
+
+		['undoLogging', true]
     ],
 
     'lively.morphic.Events', [
@@ -453,7 +455,7 @@ Config.addOptions(
         ["showAllTyping", true, "Defeat all bundled type-in for testing"],
         ["useSoftTabs", true],
         ["disableSyntaxHighlighting", false],
-        ["textUndoEnabled", false, "wether Lively takes care of undoing text changes or leaves it to the browser"],
+        ["textUndoEnabled", true, "whether Lively takes care of undoing text changes or leaves it to the browser"],
         ['defaultCodeFontSize', 10, "In which pt size code appears."],
         ['autoIndent', true, "Automatically indent new lines."]
     ],

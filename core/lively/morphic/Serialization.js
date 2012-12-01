@@ -150,7 +150,8 @@ lively.morphic.Text.addMethods(
 
 lively.morphic.World.addMethods(
 'serialization', {
-    doNotSerialize: ['revisionOnLoad', 'clickedOnMorph', 'draggedMorph', 'cachedWindowBounds'],
+    doNotSerialize: ['GlobalLogger', 'revisionOnLoad', 'clickedOnMorph',
+                     'draggedMorph', 'cachedWindowBounds'],
 
     onrestore: function($super) {
         $super();

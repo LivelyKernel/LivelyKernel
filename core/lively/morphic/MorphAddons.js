@@ -964,5 +964,4 @@ lively.morphic.List.addMethods(
     clearFilter: function() {},
 });
 
-
 }) // end of module

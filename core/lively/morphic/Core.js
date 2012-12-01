@@ -3,7 +3,8 @@ module('lively.morphic.Core').requires('lively.morphic.Shapes', 'lively.Traits')
 Object.subclass('lively.morphic.Morph',
 'properties', {
     style: {enableDropping: true, enableHalos: true},
-    isMorph: true
+    isMorph: true,
+    isLoggable: true
 },
 'initializing', {
     isMorph: true,

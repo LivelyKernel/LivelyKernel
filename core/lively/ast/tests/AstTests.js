@@ -1102,8 +1102,9 @@ TestCase.subclass('lively.ast.tests.AstTests.ContainsDebuggerTest',
     },
     testMethod: function() {
         this.assert(this.examples.method.containsDebugger());
-    },
+    }
 });
+
 TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
 'running', {
     setUp: function($super) {
@@ -1123,10 +1124,10 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
             cb();
             this.assert(false, "function did not break");
         } catch (e) {
-            if (e.isUnwindException)
-                return e.topFrame;
+            if (e.isUnwindException) return e.topFrame;
             throw e;
         }
+        return undefined;
     },
     assertBreaksWhenInterpretated: function(fun, arg) {
         var examples = this.examples;
@@ -1136,8 +1137,9 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
     },
     assertStep: function(frame, expectedMapping) {
         this.assertBreaks(function() { frame.stepToNextStatement(); });
-        for (var name in expectedMapping)
+        for (var name in expectedMapping) {
             this.assertEquals(frame.mapping[name], expectedMapping[name]);
+        }
     }
 },
 'testing', {
@@ -1412,7 +1414,7 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
 
 TestCase.subclass('lively.ast.tests.AstTests.SteppingAstTest',
 'running', {
-    setUp: function() {},
+    setUp: function() {}
 },
 'testing', {
     testSimpleStatements: function() {

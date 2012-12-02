@@ -24,6 +24,8 @@
 module('lively.ast.Parser').requires('lively.Ometa', 'lively.ast.generated.Translator', 'lively.ast.generated.Nodes', 'lively.ast.LivelyJSParser').toRun(function() {
 
 
+// LivelyJSParser is the OMeta parser defined in lively.ast.LivelyJSParser.ometa
+// Here we add a few helper methods that are used in the parser rules
 Object.extend(LivelyJSParser, {
 
     hexDigits: "0123456789abcdef",
@@ -40,17 +42,19 @@ Object.extend(LivelyJSParser, {
 
     _isKeyword: function(k) {
         return this.keywords[k] === true;
-    },
+    }
 
 });
 
 Object.extend(lively.ast.Parser, {
+
     jsParser: LivelyJSParser,
     astTranslator: JSTranslator,
+
     basicParse: function(source, rule) {
         // first call the LKJSParser. this will result in a synbolic AST tree.
         // translate this into real AST objects using JSTranslator
-        var errorHandler = function() { throw $A(arguments) },
+        var errorHandler = function() { throw Array.from(arguments) },
             intermediate = OMetaSupport.matchAllWithGrammar(this.jsParser, rule, source, errorHandler);
         if (!intermediate || Object.isString(intermediate)) {
             throw [source, rule, 'Could not parse JS source code', 0, intermediate];
@@ -62,7 +66,7 @@ Object.extend(lively.ast.Parser, {
         return ast;
     },
 
-    parse: function(src, optRule) { return this.basicParse(src, optRule || 'topLevel') },
+    parse: function(src, optRule) { return this.basicParse(src, optRule || 'topLevel') }
 });
 
 lively.ast.Node.addMethods(
@@ -83,13 +87,13 @@ lively.ast.Node.addMethods(
     },
     nodeForAstIndex: function(idx) {
         return this.linearlyListNodesWithoutNestedFunctions()[idx]
-    },
+    }
 },
 'testing', {
     isASTNode: true,
     isUndefined: function(expr) {
         return expr.isVariable && expr.name === 'undefined';
-    },
+    }
 },
 'enumerating', {
     withAllChildNodesDo: function(func, parent, nameInParent, depth) {
@@ -110,7 +114,7 @@ lively.ast.Node.addMethods(
             childNode.withAllChildNodesDoPostOrder(func, stopFunc, node, nameInParent, depth ? depth + 1 : 1)
         });
         func(node, parent, nameInParent, depth || 0);
-  },
+    },
 
     doForAllChildNodes: function(func) {
         for (var name in this) {
@@ -158,7 +162,7 @@ lively.ast.Node.addMethods(
             return !first;
         });
         return first === other;
-    },
+    }
 },
 'replacing', {
 
@@ -200,20 +204,21 @@ lively.ast.Node.addMethods(
             this[slotName][idx] = newNode;
         }
         newNode.setParent(this);
-    },
+    }
 },
 'evaluation', {
 
     eval: function() {
+        var result, js;
         try {
-            var js = this.asJS(),
-                src = '(' + js + ')',
-                result = eval(src);
+            js = this.asJS();
+            var src = '(' + js + ')';
+            result = eval(src);
         } catch(e) {
             alert('Could not eval ' + js + ' because:\n' + e + '\n' + e.stack);
         }
         return result;
-    },
+    }
 
 },
 'debugging', {
@@ -287,8 +292,8 @@ lively.ast.Node.addMethods(
         if (Object.isArray(pattern) && Object.isArray(value)) {
             var matchedPlaceholder = true;
             for (var i = 0; i < pattern.length; i++) {
-                var success = false;
-                var lastError = null;
+                var success = false,
+                    lastError = null;
                 for (var j = 0; j < value.length; j++) {
                     try {
                         var res = this.matchVal(key, value[j], pattern[i]);
@@ -336,7 +341,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
 
     modulePath: 'lively.ast.',
     rootNodeClassName: 'lively.ast.Node',
-    visitorClassName: 'lively.ast.Visitor',
+    visitorClassName: 'lively.ast.Visitor'
 },
 'translator rules', {
 

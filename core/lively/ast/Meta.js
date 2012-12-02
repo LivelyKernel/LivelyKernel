@@ -1,7 +1,8 @@
 module('lively.ast.Meta').requires('lively.ast.Parser').toRun(function() {
 
 // Meta-Programming functions for displaying and saving functions
-Object.extend(Function.prototype, {
+Function.addMethods(
+'meta programming interface', {
     toSource: function() {
         if (!this.source) {
             var name = this.methodName || this.name || "anonymous";
@@ -23,21 +24,21 @@ Object.extend(Function.prototype, {
         throw new Error('Cannot browse anonymous function ' + this);
     },
     updateSource: function(source) {
-        var ast = lively.ast.Parser.parse(source, "functionDef");
-        var newFun = ast.val.eval();
+        var ast = lively.ast.Parser.parse(source, "functionDef"),
+            newFun = ast.val.eval();
         newFun.declaredClass = this.declaredClass;
         newFun.methodName = this.methodName;
         newFun.sourceModule = this.sourceModule;
         newFun.source = source;
         newFun.locallyChanged = true;
-        //TODO: This should probably use 'addMethod' instead
+        // TODO: This should probably use 'addMethods' instead
         this.getClass().prototype[this.methodName] = newFun;
         lively.bindings.signal(this, 'localSource', newFun);
         lively.ast.Meta.ChangeSet.getCurrent().addChange(newFun);
     },
     getClass: function() {
         return Class.forName(this.declaredClass);
-    },
+    }
 });
 
 // Skeleton for ChangeSets support - still work in Progress
@@ -45,7 +46,7 @@ Object.subclass('lively.ast.Meta.ChangeSet',
 'initializing', {
     initialize: function() {
         this.changes = [];
-    },
+    }
 },
 'managing', {
     addChange: function(fun) {
@@ -60,9 +61,10 @@ Object.subclass('lively.ast.Meta.ChangeSet',
 },
 'merging', {
     mergeWithCurrent: function() {
-        throw new Error('not implemented yet');        
+        throw new Error('not implemented yet');
     }
 });
+
 Object.extend(lively.ast.Meta.ChangeSet, {
     current: null,
     getCurrent: function() {
@@ -70,7 +72,7 @@ Object.extend(lively.ast.Meta.ChangeSet, {
             this.current = new this();
         }
         return this.current;
-    },
+    }
 });
 
 }) // end of module

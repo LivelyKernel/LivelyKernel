@@ -54,8 +54,9 @@ cop.create('DebugScriptsLayer')
         var source = script.livelyClosure.source = funcOrString.toString();
         script.toString = function() { return source };
         return script;
-    },
+    }
 }).beGlobal();
+
 cop.create('DebugMethodsLayer').refineObject(Function.prototype, {
     addCategorizedMethods: function(categoryName, source) {
         for (var property in source) {
@@ -69,7 +70,7 @@ cop.create('DebugMethodsLayer').refineObject(Function.prototype, {
             }
         }
         return cop.proceed(categoryName, source);
-    },
+    }
 }).beGlobal();
 
 lively.morphic.Text.addMethods(

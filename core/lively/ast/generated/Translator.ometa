@@ -99,6 +99,12 @@ json =
 binding =
 	:pos :name trans:property
 	-> { new lively.ast.ObjProperty(pos, name, property) },
+jsonGetter =
+	:pos :name trans:body
+	-> { new lively.ast.ObjPropertyGet(pos, name, body) },
+jsonSetter =
+	:pos :name trans:body :arg
+	-> { new lively.ast.ObjPropertySet(pos, name, body, arg) },
 switch =
 	:pos trans:expr trans*:cases
 	-> { new lively.ast.Switch(pos, expr, cases) },
@@ -110,11 +116,5 @@ default =
 	-> { new lively.ast.Default(pos, defaultExpr) },
 regex =
 	:pos :exprString :flags
-	-> { new lively.ast.Regex(pos, exprString, flags) },
-jsonGetter =
-	:pos :name trans:body
-	-> { new lively.ast.ObjPropertyGet(pos, name, body) },
-jsonSetter =
-	:pos :name trans:body :arg
-	-> { new lively.ast.ObjPropertySet(pos, name, body, arg) }
+	-> { new lively.ast.Regex(pos, exprString, flags) }
 }

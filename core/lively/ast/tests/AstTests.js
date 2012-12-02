@@ -1161,6 +1161,7 @@ TestCase.subclass('lively.ast.tests.AstTests.BreakpointTest',
         this.assertEquals(inner.mapping["b"], 42);
         var outer = inner.getContainingScope();
         this.assertEquals(outer.mapping["a"], 23);
+        this.assertEqualState(["this", "a", "fun"], Object.keys(outer.mapping));
     },
     testForEach: function() {
         var frame = this.assertBreaksWhenInterpretated(this.examples.forEach);

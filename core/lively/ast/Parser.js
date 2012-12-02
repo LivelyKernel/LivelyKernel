@@ -63,6 +63,7 @@ Object.extend(lively.ast.Parser, {
         if (!ast || Object.isString(ast)) {
             throw [source, rule, 'Could not translate symbolic AST tree', 0, intermediate, ast];
         }
+        ast.source = source;
         return ast;
     },
 
@@ -639,7 +640,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
                 this.constructor.name, this.left, this.name, this.right) },
         },
         conversion: {
-            asJS: function(depth) { return this.left.asJS(depth) + ' ' + this.name + ' ' + this.right.asJS(depth) },
+            asJS: function(depth) { return '(' + this.left.asJS(depth) + ') ' + this.name + ' (' + this.right.asJS(depth) + ')' },
         },
     },
 
@@ -652,7 +653,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
                 this.constructor.name, this.name, this.expr) },
     },
         conversion: {
-            asJS: function(depth) { return this.name + this.expr.asJS(depth) },
+            asJS: function(depth) { return '(' + this.name + this.expr.asJS(depth) + ')'},
         },
     },
 
@@ -665,7 +666,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
                 this.constructor.name, this.name, this.expr) },
         },
         conversion: {
-            asJS: function(depth) { return this.name + this.expr.asJS(depth) },
+            asJS: function(depth) { return '(' + this.name + this.expr.asJS(depth) + ')' },
         },
     },
 
@@ -678,7 +679,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
                 this.constructor.name, this.expr, this.name) },
         },
         conversion: {
-            asJS: function(depth) { return this.expr.asJS(depth) + this.name },
+            asJS: function(depth) { return '(' + this.expr.asJS(depth) + this.name + ')'},
         },
     },
 
@@ -908,7 +909,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
     func: {
         className: 'Function', rules: [':pos', 'trans:body', 'trans*:args'],
         debugging: {
-            printConstruction: function() { return this.printConstructorCall(this.pos, this.args.collect(function(ea) { return '"' + ea.name + '"' }), this.body) },
+            printConstruction: function() { return this.printConstructorCall(this.pos, this.body, this.args.collect(function(ea) { return '"' + ea.name + '"' })) },
             toString: function() {
                 return Strings.format(
                     '%s(function %s(%s) %s)',
@@ -925,7 +926,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
         accessing: {
             name: function() {
                 if (this._parent && this._parent.isVarDeclaration) {
-                    this._parent.name;
+                    return this._parent.name;
                 }
                 return undefined;
             },

@@ -4,6 +4,16 @@ module('lively.ast.IDESupport').requires('lively.ast.StaticAnalysis', 'lively.id
 // DEPRECATED!!! //
 ///////////////////
 cop.create('AdvancedSyntaxHighlighting').refineClass(lively.morphic.Text, {
+    highlightGlobals: function(target, ast) {
+        ///////////////////
+        // DEPRECATED!!! //
+        ///////////////////
+        var analyzer = new lively.ast.VariableAnalyzer(),
+            globals = analyzer.findGlobalVariablesInAST(ast);
+        globals.each(function(g) {
+            target.emphasize(AdvancedSyntaxHighlighting.globalStyle, g.pos[0], g.pos[1]);
+        });
+    },
     boundEval: function(str) {
         ///////////////////
         // DEPRECATED!!! //

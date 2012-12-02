@@ -753,7 +753,7 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor',
     },
     visitFunction: function(node) {
         var frame = this.currentFrame;
-        if (node.name) frame.addToMapping(node.name, node);
+        if (Object.isString(node.name)) frame.addToMapping(node.name, node);
         if (!node.prototype) node.prototype = {};
         node.lexicalScope = frame;
         return node.asFunction();

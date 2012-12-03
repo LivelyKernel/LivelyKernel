@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.ast.Interpreter').requires('lively.ast.Parser', 'lively.ast.Meta').toRun(function() {
+module('lively.ast.Interpreter').requires('lively.ast.Parser', 'lively.ast.Meta', 'lively.ast.Rewriting').toRun(function() {
 
 Object.subclass('lively.ast.Interpreter.Frame',
 'initialization', {
@@ -312,9 +312,9 @@ Object.extend(lively.ast.Interpreter.Frame, {
     },
     fromScope: function(scope, callstack) {
         if (scope === Global) return lively.ast.Interpreter.Frame.global();
-        var ast = lively.ast.Rewriting.table[scope[2]];
-        var frame = new lively.ast.Interpreter.Frame(ast.asFunction(), scope[1]);
-        var parent = lively.ast.Interpreter.Frame.fromScope(scope[3], callstack);
+        var ast = lively.ast.Rewriting.table[scope[2]],
+            frame = new lively.ast.Interpreter.Frame(ast.asFunction(), scope[1]),
+            parent = lively.ast.Interpreter.Frame.fromScope(scope[3], callstack);
         if (callstack) {
             frame.values = scope[0];
             frame.findPC();

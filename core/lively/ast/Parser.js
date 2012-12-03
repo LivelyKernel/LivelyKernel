@@ -1292,7 +1292,7 @@ lively.ast.Parser.jsParser = LivelyJSParser;',
              + "        return visitor.visit" + ruleSpec.className + "(this);\n"
              + "    }\n"
              + " }";
-    },
+    }
 
 });
 

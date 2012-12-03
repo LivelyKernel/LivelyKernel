@@ -388,6 +388,7 @@ lively.ast.Rewriting.Transformation.subclass('lively.ast.Rewriting.Rewriter',
         return this.storeComputationResult(this.wrapClosure(idx, rewritten));
     }
 });
+
 Object.subclass('lively.ast.Rewriting.UnwindExecption',
 'settings', {
     isUnwindException: true
@@ -395,7 +396,7 @@ Object.subclass('lively.ast.Rewriting.UnwindExecption',
 'initializing', {
     initialize: function(error) {
         this.error = error;
-    },
+    }
 },
 'printing', {
     toString: function() {

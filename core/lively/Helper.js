@@ -22,12 +22,54 @@
  * THE SOFTWARE.
  */
 
-
 module('lively.Helper').requires('lively.LogHelper').toRun(function() {
+
+/*
+ * Stack Viewer when Dan's StackTracer is not available
+ * FIXME rk: move this to Helper.js?
+ */
+function getStack() {
+    var result = [];
+    for(var caller = arguments.callee.caller; caller; caller = caller.caller) {
+        if (result.indexOf(caller) != -1) {
+           result.push({name: "recursive call can't be traced"});
+           break;
+        }
+        result.push(caller);
+    };
+    return result;
+};
+
+function printStack() {
+    function guessFunctionName(func) {
+        var qName = func.qualifiedMethodName && func.qualifiedMethodName(),
+            regExpRes = func.toString().match(/function (.+)\(/);
+        return qName || (regExpRes && regExpRes[1]) || func;
+    };
+
+    var string = "== Stack ==\n",
+        stack = getStack();
+    stack.shift(); // for getStack
+    stack.shift(); // for printStack (me)
+    var indent = "";
+    for (var i=0; i < stack.length; i++) {
+        string += indent + i + ": " +guessFunctionName(stack[i]) + "\n";
+        indent += " ";
+    };
+    return string;
+};
+
+function logStack() {
+    this.console.log(printStack());
+};
+
 
 Object.extend(Global, {
     // DEPRECATED!!!
-    range: Array.range
+    range: Array.range,
+    getStack: getStack,
+    printStack: printStack,
+    logStack: logStack
 });
 
 Object.extend(Global, {
@@ -45,7 +87,7 @@ Object.extend(Global, {
         evt.hand = lively.morphic.World.current().hands.first();
         if (point) evt.mousePoint = point;
         return evt;
-    },
+    }
 });
 
 

@@ -334,7 +334,7 @@ var JSLoader = {
         } else {
             script.setAttributeNS(null, 'src', url);
         }
-		
+
         if (onLoadCb) script.onload = onLoadCb;
         script.setAttributeNS(null, 'async', true);
     },
@@ -542,7 +542,7 @@ var LivelyLoader = {
     //
     // ------- generic load support ----------
     //
-	
+
 	// TODO: Something is wrong with the lively-libs, use debug only to activate loading on ios 5
     libsFile: /*useMinifiedLibs ? 'lib/lively-libs.js' :*/ 'lib/lively-libs-debug.js',
 
@@ -700,6 +700,7 @@ var LivelyLoader = {
             'lively/defaultconfig.js',
             'lively/localconfig.js',
             'lively/Base.js',
+            'lively/Module.js',
             'lively/lang/Closure.js',   // FIXME: require module instead
             'lively/lang/UUID.js',      // FIXME: require module instead
             'lively/LocalStorage.js'    // FIXME: require module instead

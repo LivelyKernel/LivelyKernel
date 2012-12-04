@@ -1,69 +1,37 @@
 function namespace(spec, context) {
+    function define(spec, context) {
+        var i,N;
+        context = context || Global;
+        spec = spec.valueOf();
+        if (typeof spec === 'string') {
+            (function handleStringCase() {
+                var parts;
+                parts = spec.split('.');
+                for (i = 0, N = parts.length; i<N; i++) {
+                    spec = parts[i];
+                    if (!Class.isValidIdentifier(spec)) {
+                        throw new Error('"'+spec+'" is not a valid name for a package.');
+                    }
+                    context[spec] = context[spec] || new lively.lang.Namespace(context, spec);
+                    context = context[spec];
+                }
+            })();
+            return context;
+        } else {
+            throw new TypeError();
+        }
+    }
     var codeDB;
     if (spec[0] == '$') {
         codeDB = spec.substring(1, spec.indexOf('.'));
         spec = spec.substring(spec.indexOf('.') + 1);
     }
-    var ret = __oldNamespace(spec, context);
+    var ret = define(spec, context);
     if (codeDB) {
         ret.fromDB = codeDB;
     }
     return ret;
 };
-
-function __oldNamespace(spec, context) {
-    var     i,N;
-    context = context || Global;
-    spec = spec.valueOf();
-    if (typeof spec === 'object') {
-        if (typeof spec.length === 'number') {//assume an array-like object
-            for (i = 0,N = spec.length; i < N; i++) {
-                return namespace(spec[i], context);
-            }
-        } else {//spec is a specification object e.g, {com: {trifork: ['model,view']}}
-            for (i in spec) if (spec.hasOwnProperty(i)) {
-                context[i] = context[i] || new lively.lang.Namespace(context, i);
-                    return namespace(spec[i], context[i]);//recursively descend tree
-            }
-        }
-    } else if (typeof spec === 'string') {
-        (function handleStringCase() {
-            var parts;
-            parts = spec.split('.');
-            for (i = 0, N = parts.length; i<N; i++) {
-                spec = parts[i];
-                if (!Class.isValidIdentifier(spec)) {
-                    throw new Error('"'+spec+'" is not a valid name for a package.');
-                }
-                context[spec] = context[spec] || new lively.lang.Namespace(context, spec);
-                context = context[spec];
-            }
-        })();
-        return context;
-    } else {
-        throw new TypeError();
-    }
-}
-
-(function testModuleLoad() {
-    var modules = Global.subNamespaces(true).select(function(ea) { return ea.wasDefined });
-    modules
-    .select(function(ea) { return ea.hasPendingRequirements() })
-    .forEach(function(ea) {
-		var msg = Strings.format('%s has unloaded requirements: %s',
-			ea.uri(), ea.pendingRequirementNames());
-		console.warn(msg);
-
-        // FIXME use proper Config-URL-parsing
-        if (lively.Config.ignoreMissingModules
-          || document.URL.indexOf('ignoreMissingModules=true') >= 0) {
-            ea.pendingRequirements = [];
-            ea.load();
-            testModuleLoad.delay(6);
-        }
-	});
-    console.log('Module load check done. ' + modules.length + ' modules loaded.');
-}).delay(10);
 
 function module(moduleName) {
 
@@ -87,7 +55,7 @@ function module(moduleName) {
 
     function basicRequire(/*module, requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
         // support modulenames as array and parameterlist
-        var args = $A(arguments),
+        var args = Array.from(arguments),
             module = args.shift(),
             preReqModuleNames = Object.isArray(args[0]) ? args[0] : args,
             requiredModules = [];
@@ -143,7 +111,7 @@ Object.subclass('Namespace',
     initialize: function(context, nsName) {
         this.namespaceIdentifier = context.namespaceIdentifier + '.' + nsName;
         this.createTime = new Date();
-    },
+    }
 },
 'accessing', {
     gather: function(selector, condition, recursive) {
@@ -565,6 +533,24 @@ Object.extend(lively.Module, {
             callback(modules);
         }}, 'onLoad');
         webR.getSubElements();
+    },
+
+    checkModuleLoadStates: function() {
+        var modules = Global.subNamespaces(true).select(function(ea) { return ea.wasDefined });
+        modules
+        .select(function(ea) { return ea.hasPendingRequirements() })
+        .forEach(function(ea) {
+		    var msg = Strings.format('%s has unloaded requirements: %s',
+			                         ea.uri(), ea.pendingRequirementNames());
+		    console.warn(msg);
+
+            if (lively.Config.ignoreMissingModules) {
+                ea.pendingRequirements = [];
+                ea.load();
+                lively.Module.checkModuleLoadStates.delay(6);
+            }
+	    });
+        console.log('Module load check done. ' + modules.length + ' modules loaded.');
     }
 });
 
@@ -579,3 +565,7 @@ Object.extend(lively.Module, {
         return arguments[arguments.length - 1].apply(this, arguments);
     }
 })(lively);
+
+(function testModuleLoad() {
+    lively.Module.checkModuleLoadStates();
+}).delay(10);

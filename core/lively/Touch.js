@@ -2169,6 +2169,36 @@ lively.morphic.Button.addMethods("TapEvents", {
             textColor: Color.rgb(235,235,235),
         })
     },
+    beBlackButton: function() {
+        this.toggleColor = new lively.morphic.LinearGradient(
+            [
+                {offset: 0, color: Color.rgb(49,79,255)},
+                {offset: 0.59, color: Color.rgb(53,83,255)},
+                {offset: 0.63, color: Color.rgb(79,105,255)},
+                {offset: 1, color: Color.rgb(112,134,255)}
+            ],
+            'southNorth'
+        );
+        this.normalColor = new lively.morphic.LinearGradient(
+            [
+                {offset: 0, color: Color.rgb(0,0,0)},
+                {offset: 0.59, color: Color.rgb(59,59,59)},
+                {offset: 0.63, color: Color.rgb(86,86,86)},
+                {offset: 1, color: Color.rgb(139,139,139)}
+            ],
+            'southNorth'
+        );
+        this.applyStyle({
+            fill: this.normalColor,
+            borderColor: Color.rgb(0,0,0),
+            borderRadius: 6,
+            borderWidth: 1,
+            label: {
+                textColor: Color.white,
+            }
+        })
+    },
+
     changeAppearanceFor: function (pressed, toggled) {
             if (this.isActive && pressed) {
                 this.setFill(this.toggleColor);

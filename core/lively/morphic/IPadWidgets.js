@@ -1856,4 +1856,123 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
     },
 });
 
+lively.morphic.Box.subclass('lively.morphic.TextControl',
+'initilization', {
+    initialize: function ($super, bounds) {
+        var returnValue = $super(bounds);
+        this.initializeButtons();
+        return returnValue
+    },
+    initializeButtons: function() {
+        var that = this,
+            i=0,
+            buttonTypes = ['Do it', 'Do all', 'Print', 'Save'];
+        this.setLayouter(new lively.morphic.Layout.HorizontalLayout(this));
+        buttonTypes.each(function (ea) {
+            var button = new lively.morphic.Button(rect(0,0,65.0,32.0), ea);
+            button.beBlackButton();
+            var str = ea.replace(' ', '');
+            that[str+'Button'] = button;
+            button.gridCoords = pt(i,0)
+            button.onFire = that['trigger'+ea.replace(' ', '')].bind(this);
+            connect(button, 'fire', button, 'onFire');
+            that.addMorph(button);
+            i++
+        })
+        this.applyLayout();
+    },
+    initializeDoitButton: function(gridCoords) {
+        var button = new lively.morphic.Button(rect(0,0,65.0,32.0), 'Do it');
+        button.beBlackButton();
+        button.gridCoords = gridCoords;
+        button.onFire = this.triggerDoIt.bind(this);
+        connect(button, 'fire', button, 'onFire');
+        return this.addMorph(button);
+    },
+    initializeDoAllButton: function(gridCoords) {
+        var button = new lively.morphic.Button(rect(0,0,65.0,32.0), 'Do all');
+        button.beBlackButton();
+        button.gridCoords = gridCoords;
+        button.onFire = this.triggerDoAll.bind(this);
+        connect(button, 'fire', button, 'onFire');
+        return this.addMorph(button);
+    },
+    initializePrintButton: function(gridCoords) {
+        var button = new lively.morphic.Button(rect(0,0,65.0,32.0), 'Print');
+        button.beBlackButton();
+        button.gridCoords = gridCoords;
+        button.onFire = this.triggerPrintIt.bind(this);
+        connect(button, 'fire', button, 'onFire');
+        return this.addMorph(button);
+    },
+    initializeSaveButton: function(gridCoords) {
+        var button = new lively.morphic.Button(rect(0,0,65.0,32.0), 'Save');
+        button.beBlackButton();
+        button.gridCoords = gridCoords;
+        button.onFire = this.triggerSaveIt.bind(this);
+        connect(button, 'fire', button, 'onFire');
+        return this.addMorph(button);
+    },
+},
+'actions', {
+    triggerDoit: function() {
+        var textSelectionRange = this.getTextMorph().getSelectionRange();
+        if (textSelectionRange) {
+            this.prevSelectionRange = textSelectionRange;
+            var selection = textSelectionRange;
+        }
+        else {
+            var selection = this.prevSelectionRange;
+        };
+        var string = this.getTextMorph().textString;
+        if (selection[0] == selection[1]) {
+            // do stuff on one line
+            var start = string.slice(0, selection[0]).lastIndexOf('\n') + 1,
+                end = string.indexOf('\n', selection[0]);
+            if (start === -1) start = 0;
+            if (end === -1) end = string.length;
+            selection = [start, end];
+        }
+        var code = this.getTextMorph.textString.slice(selection[0], selection[1]);
+        this.getTextMorph.tryBoundEval(code);
+        return true;
+    },
+    triggerDoall: function() {
+        this.getTextMorph().evalAll();
+    },
+    triggerPrint: function() {
+        var textMorph = this.getTextMorph(),
+            textSelectionRange = ttextMorph.getSelectionRange();
+        if (!textSelectionRange) {
+            textMorph.focus();
+            textMorph.setSelectionRange(this.prevSelectionRange[0], this.prevSelectionRange[1]);
+        }
+        else {
+            this.prevSelectionRange = textSelectionRange;
+        }
+        textMorph.doPrintit();
+        return true;
+    },
+    triggerSave: function() {
+        this.getTextMorph().doSave();
+    },
+},
+'accessing', {
+    getTextMorph: function() {
+        return this.textMorph
+    },
+    setTextMorph: function(morph) {
+        this.textMorph = morph;
+    },
+    setTarget: function(morph) {
+        // TODO: implement rest (updating and stuff)
+        this.setTextMorp(morph)
+    }
+
+
+
+
+
+}) // end of lively.morphic.TextControl
+
 }) // end of module

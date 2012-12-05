@@ -24,7 +24,7 @@
 
 // Non-Lively Compatibility
 if (!window.module) {
-    module = function() {
+    window.module = function() {
         return {
             requires: function() {return this},
             toRun: function(func) {
@@ -32,9 +32,9 @@ if (!window.module) {
             }
         }
     }
-    Config = {};
-    cop = {};
-    Global = window;
+    window.Config = {};
+    window.cop = {};
+    window.Global = window;
 
 
 
@@ -81,8 +81,8 @@ Object.extend(Function.prototype, {
 			if (className) targetScope[shortName] = klass; // otherwise it's anonymous
 
 			// remember the module that contains the class def
-			if (Global.lively && lively.lang && lively.lang.Namespace)
-				klass.sourceModule = lively.lang.Namespace.current();
+			if (Global.lively && lively.Module && lively.Module.current)
+				klass.sourceModule = lively.Module.current();
 		};
 
 		// the remaining args should be category strings or source objects
@@ -92,7 +92,7 @@ Object.extend(Function.prototype, {
 			klass.prototype.initialize = function () {};
 
 		return klass;
-	},
+	}
 });
 
 }
@@ -586,8 +586,8 @@ Object.subclass("Layer",
         this.namespaceName = namespaceName || 'Global';
         this.layeredFunctionsList = {};
 
-        if (Global.lively && lively.lang && lively.lang.Namespace)
-            this.sourceModule = lively.lang.Namespace.current();
+        if (Global.lively && lively.lang && lively.Module)
+            this.sourceModule = lively.Module.current();
     },
 },
 'accessing', {

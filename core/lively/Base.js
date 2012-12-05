@@ -79,7 +79,7 @@ Object.extend(Function.prototype, {
             if (className) targetScope[shortName] = klass; // otherwise it's anonymous
 
             // remember the module that contains the class def
-            if (Global.lively && lively.Module)
+            if (Global.lively && lively.Module && lively.Module.current)
                 klass.sourceModule = lively.Module.current();
         };
 
@@ -196,7 +196,7 @@ Object.extend(Function.prototype, {
                 value.displayName = className + "$" + property;
 
                 // remember where it was defined
-                if (Global.lively && lively.Module)
+                if (Global.lively && lively.Module && lively.Module.current)
                     value.sourceModule = lively.Module.current();
 
                 for (; value; value = value.originalFunction) {

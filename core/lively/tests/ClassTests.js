@@ -106,7 +106,7 @@ TestCase.subclass('lively.tests.ClassTests.NamespaceTest', {
 
     testNamespaceIsNamespace: function() {
         this.assert(testNamespace, 'no namespace');
-        this.assert(testNamespace instanceof lively.lang.Namespace, 'strange namespace');
+        this.assert(testNamespace instanceof lively.Module, 'strange namespace');
         // this.assert(testNamespace.isNamespace, 'namespace doesn\' know that it is a namespace');
     },
 

@@ -537,14 +537,36 @@ var JSLoader = {
     }
 };
 
+// TODO: Something is wrong with the lively-libs, use debug only to activate loading on ios 5
+var libsFile = /*useMinifiedLibs ? 'lib/lively-libs.js' :*/ 'lib/lively-libs-debug.js',
+    bootstrapFiles = [
+        libsFile,
+        'lively/Migration.js',
+        'lively/JSON.js',
+        'lively/lang/Object.js',
+        'lively/lang/Function.js',
+        'lively/lang/String.js',
+        'lively/lang/Array.js',
+        'lively/lang/Number.js',
+        'lively/lang/Date.js',
+        'lively/lang/Worker.js',
+        'lively/defaultconfig.js',
+        'lively/localconfig.js',
+        'lively/Base.js',
+        'lively/ModuleSystem.js',
+        'lively/lang/Closure.js',   // FIXME: require module instead
+        'lively/lang/UUID.js',      // FIXME: require module instead
+        'lively/LocalStorage.js'    // FIXME: require module instead
+    ];
+
 var LivelyLoader = {
 
     //
     // ------- generic load support ----------
     //
 
-	// TODO: Something is wrong with the lively-libs, use debug only to activate loading on ios 5
-    libsFile: /*useMinifiedLibs ? 'lib/lively-libs.js' :*/ 'lib/lively-libs-debug.js',
+    libsFile: libsFile,
+    bootstrapFiles: bootstrapFiles,
 
     codeBase: (function findCodeBase() {
         // search for script that links to "bootstrap.js" and
@@ -686,26 +708,7 @@ var LivelyLoader = {
             return;
         }
 
-        var modules = [
-            this.libsFile,
-            'lively/Migration.js',
-            'lively/JSON.js',
-            'lively/lang/Object.js',
-            'lively/lang/Function.js',
-            'lively/lang/String.js',
-            'lively/lang/Array.js',
-            'lively/lang/Number.js',
-            'lively/lang/Date.js',
-            'lively/lang/Worker.js',
-            'lively/defaultconfig.js',
-            'lively/localconfig.js',
-            'lively/Base.js',
-            'lively/Module.js',
-            'lively/lang/Closure.js',   // FIXME: require module instead
-            'lively/lang/UUID.js',      // FIXME: require module instead
-            'lively/LocalStorage.js'    // FIXME: require module instead
-        ];
-        JSLoader.resolveAndLoadAll(codeBase, modules, thenDoFunc);
+        JSLoader.resolveAndLoadAll(codeBase, this.bootstrapFiles, thenDoFunc);
     }
 
 };
@@ -844,7 +847,6 @@ var LivelyMigrationSupport = {
     addModuleRename: function(oldName, newName, migrationLevel) {
         this.moduleRenameDict[oldName] = newName;
     }
-
 };
 
 

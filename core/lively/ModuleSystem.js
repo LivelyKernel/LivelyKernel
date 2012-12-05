@@ -7,15 +7,17 @@ function module(moduleName) {
             context = context || Global;
             spec = spec.valueOf();
             if (typeof spec === 'string') {
-                var parts = spec.split('.');
-                for (var i = 0, len = parts.length; i < len; i++) {
-                    spec = parts[i];
-                    if (!Class.isValidIdentifier(spec)) {
-                        throw new Error('"' + spec + '" is not a valid name for a module.');
+                (function() {
+                    var parts = spec.split('.');
+                    for (var i = 0, len = parts.length; i < len; i++) {
+                        spec = parts[i];
+                        if (!Class.isValidIdentifier(spec)) {
+                            throw new Error('"' + spec + '" is not a valid name for a module.');
+                        }
+                        context[spec] = context[spec] || new lively.Module(context, spec);
+                        context = context[spec];
                     }
-                    context[spec] = context[spec] || new lively.Module(context, spec);
-                    context = context[spec];
-                }
+                })();
                 return context;
             } else {
                 throw new TypeError();
@@ -36,6 +38,7 @@ function module(moduleName) {
     }
 
     function convertUrlToNSIdentifier(url) {
+        // foo/bar/baz.js -> foo.bar.baz
         var result = url;
         result = result.replace(/\//g, '.');
         // get rid of '.js'
@@ -44,7 +47,8 @@ function module(moduleName) {
     }
 
     function createNamespaceModule(moduleName) {
-        return namespace(isNamespaceAwareModule(moduleName) ? moduleName : convertUrlToNSIdentifier(moduleName));
+        return namespace(isNamespaceAwareModule(moduleName) ?
+                         moduleName : convertUrlToNSIdentifier(moduleName));
     }
 
     function basicRequire(/*module, requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
@@ -55,7 +59,7 @@ function module(moduleName) {
             requiredModules = [];
         for (var i = 0; i < preReqModuleNames.length; i++) {
             var name = LivelyMigrationSupport.fixModuleName(preReqModuleNames[i]),
-                 reqModule = createNamespaceModule(name);
+                reqModule = createNamespaceModule(name);
             module.addRequiredModule(reqModule);
             requiredModules.push(reqModule);
         }
@@ -63,14 +67,16 @@ function module(moduleName) {
         return {
             toRun: function(code) {
                 var debugCode = code;
-                code = code.curry(module); // pass in own module name for nested requirements
-                var codeWrapper = function() { // run code with namespace modules as additional parameters
+                 // pass in own module name for nested requirements
+                code = code.curry(module);
+                 // run code with namespace modules as additional parameters
+                var codeWrapper = function() {
                     try {
                         module.activate();
                         code.apply(this, requiredModules);
                         module._isLoaded = true;
                     } catch(e) {
-                        module.logError(module + '>>basicRequire: ' + e, debugCode)
+                        module.logError(module + '>>basicRequire: ' + e, debugCode);
                     } finally {
                         module.deactivate();
                     }
@@ -81,7 +87,6 @@ function module(moduleName) {
         };
     };
 
-    dbgOn(!Object.isString(moduleName));
     var module = createNamespaceModule(moduleName);
     module.wasDefined = true;
     module.requires = basicRequire.curry(module);
@@ -100,17 +105,27 @@ function require(/*requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/
 
 
 Object.subclass('lively.Module',
+'properties', {
+    isLivelyModule: true
+},
 'initializing', {
     initialize: function(context, nsName) {
         this.namespaceIdentifier = context.namespaceIdentifier + '.' + nsName;
         this.createTime = new Date();
+    },
+    beAnonymous: function() {
+        this._isAnonymous = true;
+        this.sourceModuleName = lively.Module.current().namespaceIdentifier;
+        return this;
     }
 },
-'accessing', {
+'accessing nested objects', {
     gather: function(selector, condition, recursive) {
-        var result = Object.values(this).select(function(ea) { return condition.call(this, ea) }, this);
+        var result = Object.values(this).select(function(ea) {
+            return condition.call(this, ea) }, this);
         if (!recursive) return result;
-        return    this.subNamespaces().inject(result, function(result, ns) { return result.concat(ns[selector](true)) });
+        return this.subNamespaces().inject(result, function(result, ns) {
+            return result.concat(ns[selector](true)) });
     },
 
     subNamespaces: function(recursive) {
@@ -125,48 +140,27 @@ Object.subclass('lively.Module',
             'classes',
             function(ea) { return ea && ea !== this.constructor && Class.isClass(ea) },
             recursive);
-        if (this === Global)
-            return [Array, Number, String, Function].concat(normalClasses);
-        return normalClasses;
+        return this === Global ?
+            [Array, Number, String, Function].concat(normalClasses) : normalClasses;
     },
 
     functions: function(recursive) {
         return this.gather(
             'functions',
-            function(ea) { return ea
-                               && !Class.isClass(ea)
-                               && Object.isFunction(ea)
-                               && !ea.declaredClass
-                               && this.requires !== ea
-                               && ea.getOriginal() === ea },
+            function(ea) {
+                return ea
+                    && !Class.isClass(ea)
+                    && Object.isFunction(ea)
+                    && !ea.declaredClass
+                    && this.requires !== ea
+                    && ea.getOriginal() === ea; },
             recursive);
-    }
-
-});
-
-// let Glabal act like a namespace itself
-Object.extend(Global, lively.Module.prototype);
-Object.extend(Global, {
-    namespaceIdentifier: 'Global',
-    isLoaded: Functions.True
-});
-
-lively.Module.addMethods(
-'properties', {
-    isLivelyModule: true
-},
-'initializing', {
-    beAnonymous: function() {
-        this._isAnonymous = true;
-        this.sourceModuleName = lively.Module.current().namespaceIdentifier;
-        return this;
     }
 },
 'accessing', { // module specific, should be a subclass?
 
     name: function() {
-        var identifier =  this.namespaceIdentifier,
-            globalIdStart = 'Global.';
+        var identifier = this.namespaceIdentifier, globalIdStart = 'Global.';
         if (identifier.startsWith(globalIdStart)) {
             identifier = identifier.substring(globalIdStart.length);
         }
@@ -202,34 +196,35 @@ lively.Module.addMethods(
 
     uri: function(optType) { // FIXME cleanup necessary
         if (this.__cachedUri && !optType) { return this.__cachedUri; }
-        var url;
         if (this.fromDB) {
-            var id = this.namespaceIdentifier; // something like lively.Core
-            var namespacePrefix;
+            var id = this.namespaceIdentifier, // something like lively.Core
+                namespacePrefix;
             if (id.startsWith('Global.')) {
                 namespacePrefix = 'Global.';
                 id = id.substring(7);
-            } else
-                throw dbgOn(new Error('unknown namespaceIdentifier'));
-
-            // FIXME: extract to lively.Config.codeBaseDB
-            url = lively.Config.couchDBURL + '/' + this.fromDB + '/_design/raw_data/_list/javascript/for-module?module=' + id;
-            this.__cachedUri = url;
-            return url;
-        } else {
-            var id = this.namespaceIdentifier; // something like lively.Core
-            var namespacePrefix;
-            if (!this.isAnonymous()) {
-                url = this.findUri(optType);
             } else {
-                if (id.startsWith('Global.')) namespacePrefix = 'Global.';
-                else throw dbgOn(new Error('unknown namespaceIdentifier'));
-                url = lively.Config.codeBase + this.namespaceIdentifier.substr(namespacePrefix.length).replace(/\./g, '/');
+                throw dbgOn(new Error('unknown namespaceIdentifier'));
             }
-
+            // FIXME: extract to lively.Config.codeBaseDB
+            var url = lively.Config.couchDBURL
+                + '/' + this.fromDB
+                + '/_design/raw_data/_list/javascript/for-module?module='
+                + id;
             this.__cachedUri = url;
             return url;
         }
+        var id = this.namespaceIdentifier, // something like lively.Core
+            namespacePrefix, url;
+        if (!this.isAnonymous()) {
+            url = this.findUri(optType);
+        } else {
+            if (id.startsWith('Global.')) namespacePrefix = 'Global.';
+            else throw dbgOn(new Error('unknown namespaceIdentifier'));
+            url = lively.Config.codeBase
+                + this.namespaceIdentifier.substr(namespacePrefix.length).replace(/\./g, '/');
+        }
+        this.__cachedUri = url;
+        return url;
     },
     relativePath: function(optType) {
         return new URL(this.uri(optType)).relativePathFrom(URL.codeBase);
@@ -260,10 +255,10 @@ lively.Module.addMethods(
     traceDependendModules: function(visited) {
         visited = visited || [];
         var deps =  this.debugDependendModules || [];
-        deps = deps.withoutAll(visited)
+        deps = deps.withoutAll(visited);
         visited.push(this);
         return [this.namespaceIdentifier, deps.collect(function(ea) {
-            return ea.traceDependendModules(visited)
+            return ea.traceDependendModules(visited);
         })]
     },
 
@@ -279,12 +274,11 @@ lively.Module.addMethods(
     },
 
     removeRequiredModule: function(requiredModule) {
-        if (this.pendingRequirements && !this.pendingRequirements.include(requiredModule))
+        if (this.pendingRequirements && !this.pendingRequirements.include(requiredModule)) {
             throw dbgOn(new Error('requiredModule not there'));
-        this.pendingRequirements = this.pendingRequirements.without(requiredModule);
-        if (!this.hasPendingRequirements()) {
-            this.load();
         }
+        this.pendingRequirements = this.pendingRequirements.without(requiredModule);
+        if (!this.hasPendingRequirements()) { this.load(); }
     },
 
     pendingRequirementNames: function() {
@@ -326,7 +320,7 @@ lively.Module.addMethods(
     },
 
     isAnonymous: function() {
-        return this._isAnonymous
+        return this._isAnonymous;
     }
 
 },
@@ -342,7 +336,7 @@ lively.Module.addMethods(
     },
 
     isAnonymous: function() {
-        return this._isAnonymous
+        return this._isAnonymous;
     }
 
 },
@@ -358,9 +352,10 @@ lively.Module.addMethods(
         }
         if (this.isLoading() && this.wasDefined && !this.hasPendingRequirements()) {
             this.runOnloadCallbacks();
-            // time is not only the time needed for the request and code evaluation
-            // but the complete time span from the creation of the module (when the module is first encountered)
-            // to evaluation the evaluation of its code, including load time of all requirements
+            // time is not only the time needed for the request and code
+            // evaluation but the complete time span from the creation of the
+            // module (when the module is first encountered) to evaluation the
+            // evaluation of its code, including load time of all requirements
             var time = this.createTime ? new Date() - this.createTime : 'na';
             console.log(this.uri() + ' loaded in ' + time + ' ms');
             this.informDependendModules();
@@ -380,50 +375,51 @@ lively.Module.addMethods(
 
     deactivate: function() {
         var m = this.constructor.namespaceStack.pop();
-        if (m !== this)
-            throw new Error('Wrong module: ' + this.namespaceIdentifier +
-                ' instead of expected ' + m.namespaceIdentifier )
+        if (m !== this) { // sanity check
+            throw new Error('Wrong module: ' + this.namespaceIdentifier
+                           + ' instead of expected ' + m.namespaceIdentifier);
+        }
     }
 },
 'removing', {
     remove: function() {
         var ownerNamespace = Class.namespaceFor(this.namespaceIdentifier),
-            ownName = Class.unqualifiedNameFor(this.namespaceIdentifier)
+            ownName = Class.unqualifiedNameFor(this.namespaceIdentifier);
         JSLoader.removeAllScriptsThatLinkTo(this.uri());
         delete ownerNamespace[ownName];
     },
     removeScriptNode: function() {
         var node = document.getElementById(this.uri());
-        if (!node) return
-        node.parentNode.removeChild(node);
+        if (node) node.parentNode.removeChild(node);
     }
 },
 'debugging', {
     toString: function() { return 'module(' + this.namespaceIdentifier + ')' },
     inspect: function() { return this.toString() + ' defined at ' + this.defStack; },
-        logError: function(e, optCode) {
-            var list = this.traceDependendModules();
-            var msg = 'Error while loading ' + this.moduleName + ': ' + e;
-            msg += '\ndependencies: ' + Strings.printNested(list)
-            if (Global.lively && lively.morphic && lively.morphic.World && lively.morphic.World.current() && lively.morphic.World.current().logError)
-                lively.morphic.World.current().logError(e)
-
-            if (e.stack) msg = msg + e.stack;
-
-            if (optCode)
-                msg += "code:\n" + optCode;
-            console.error(msg);
-            dbgOn(true);
-        }
+    logError: function(e, optCode) {
+        var list = this.traceDependendModules(),
+            msg = 'Error while loading ' + this.moduleName + ': ' + e
+                + '\ndependencies: ' + Strings.printNested(list),
+            world = Global.lively && lively.morphic
+                 && lively.morphic.World && lively.morphic.World.current();
+        if (e.stack) msg = msg + e.stack;
+        if (optCode) msg += "code:\n" + optCode;
+        if (world.logError) world.logError(e);
+        else console.error(msg);
+        dbgOn(true);
+    }
 });
 
 Object.extend(lively.Module, {
+
     namespaceStack: [Global],
+
     current: function() { return this.namespaceStack.last() },
+
     topologicalSortLoadedModules: function() {
         if (lively.Config.standAlone) {
             var scripIds = [];
-            $('body script').each(function() { scripIds.push($(this).attr('id')) });
+            $('body script').each(function() { scripIds.push($(this).attr('id')); });
             return scripIds.collect(function(id) {
                 var name = id.replace(/^..\//, '');
                 return module(name);
@@ -432,9 +428,9 @@ Object.extend(lively.Module, {
 
         // get currently loaded modules that really are js files
         var modules = Global.subNamespaces(true)
-                .reject(function(ea) { return ea.isAnonymous(); })
-                .select(function(ea) {
-                    return ea.isLoaded() && new WebResource(ea.uri()).exists() });
+                      .reject(function(ea) { return ea.isAnonymous(); })
+                      .select(function(ea) {
+                          return ea.isLoaded() && new WebResource(ea.uri()).exists() });
 
         // topological sort modules according to their requirements
         var sortedModules = [], i = 0;
@@ -448,35 +444,20 @@ Object.extend(lively.Module, {
             sortedModules = sortedModules.concat(canBeLoaded);
             modules = modules.withoutAll(canBeLoaded);
         }
-        if (modules.length > 0)
+        if (modules.length > 0) {
             throw new Error('Cannot find dependencies for all modules!');
+        }
 
         return sortedModules;
     },
 
     bootstrapModules: function() {
         // return a string to include in bootstrap.js
-        var urls = this.topologicalSortLoadedModules()
+        var moduleFiles = this.topologicalSortLoadedModules()
             .collect(function(ea) { return new URL(ea.uri()).relativePathFrom(URL.codeBase) })
             // omit modules outside of core
             .reject(function(path) { return path.startsWith('..') });
-        var manual = [LivelyLoader.libsFile,
-            'lively/Migration.js',
-            'lively/JSON.js',
-            'lively/lang/Object.js',
-            'lively/lang/Function.js',
-            'lively/lang/String.js',
-            'lively/lang/Array.js',
-            'lively/lang/Number.js',
-            'lively/lang/Date.js',
-            'lively/defaultconfig.js',
-            'lively/localconfig.js',
-            'lively/Base.js',
-            'lively/lang/Closure.js',   // FIXME: require module instead
-            'lively/lang/UUID.js',       // FIXME: require module instead
-            'lively/LocalStorage.js'];
-        urls = manual.concat(urls);
-        return urls;
+        return LivelyLoader.bootstrapFiles.concat(moduleFiles);
     },
 
     bootstrapModulesString: function() {
@@ -484,26 +465,6 @@ Object.extend(lively.Module, {
         return '[\'' + urls.join('\', \'') + '\']';
     }
 });
-
-(function createLivelyNamespace(Global) {
-    // namespace('lively.lang');
-    var preExistingLively = Global.lively;
-    delete Global.lively;
-    var lively = new preExistingLively.Module(Global, 'lively');
-    // FIXME this is just a hack to get properties of a potentially
-    // predefined "lively" object over to the namespace lively object
-    // namespaces should deal with this in general
-    if (preExistingLively) {
-        for (var name in preExistingLively) {
-            lively[name] = preExistingLively[name];
-        }
-    }
-    Global.lively = lively;
-})(Global);
-
-(function addUsefulStuffToLivelyNS(Global, lively) {
-    lively.assert = Global.assert;
-})(Global, lively);
 
 Object.extend(lively.Module, {
     findAllInThenDo: function(url, callback) {
@@ -538,6 +499,29 @@ Object.extend(lively.Module, {
         console.log('Module load check done. ' + modules.length + ' modules loaded.');
     }
 });
+
+(function createLivelyNamespace(Global) {
+    // let Glabal act like a namespace itself
+    Object.extend(Global, Global.lively.Module.prototype);
+    Object.extend(Global, {
+        namespaceIdentifier: 'Global',
+        isLoaded: Functions.True
+    });
+    // make "lively" a proper lively.Module
+    var helper = Global.lively,
+        lively = new Global.lively.Module(Global, 'lively');
+    // FIXME this is just a hack to get properties of a potentially
+    // predefined "lively" object over to the namespace lively object
+    // namespaces should deal with this in general
+    for (var name in helper) {
+        lively[name] = helper[name];
+    }
+    Global.lively = lively;
+})(Global);
+
+(function addUsefulStuffToLivelyNS(Global, lively) {
+    lively.assert = Global.assert;
+})(Global, lively);
 
 (function setupLivelyLang(lively) {
     lively.lang = new lively.Module(lively, 'lang');

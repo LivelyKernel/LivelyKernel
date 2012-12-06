@@ -1,6 +1,6 @@
-var host = document.location.host,
-    protocol = document.location.protocol,
-    url = document.location.toString(),
+var host = Config.location.host,
+    protocol = Config.location.protocol,
+    url = Config.location.toString(),
     wwPath = "/repository/webwerkstatt";
 
 

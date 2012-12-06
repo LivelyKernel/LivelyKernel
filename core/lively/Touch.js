@@ -247,6 +247,22 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
         this.renderContextDispatch('updateListContent', items);
         }
     },
+}).refineClass(lively.morphic.Text,
+'text control', {
+    initialize: function (bounds, string) {
+        var returnValue = cop.proceed(bounds, string);
+        this.initializeTextControl();
+        this.activateTextControl();
+        return returnValue;
+    },
+    onrestore: function() {
+        var returnValue = cop.proceed(bounds, string);
+        this.initializeTextControl();
+        this.activateTextControl();
+        return returnValue;
+    }
+
+
 })
 // the following code can be used in combination with ensureselectionmorph (not used right now)
 // .refineClass(lively.morphic.Button, {
@@ -2018,6 +2034,7 @@ lively.morphic.Text.addMethods("TapEvents", {
         evt.stopPropagation();
     },
     onTap: function(evt){
+        this.activateTextControl();
         evt.stopPropagation();
     },
 
@@ -2065,9 +2082,36 @@ lively.morphic.Text.addMethods("TapEvents", {
         ctx.shapeNode.insertBefore(ctx.textNode, ctx.shapeNode.firstChild); // instead of appendChild
     }
 },
-'Touch and Hold Selection', {
+'text control', {
+    initializeTextControl: function() {
+        // TextControl adds Buttons that allow printing and doing the current context
+        this.textControl = new lively.morphic.TextControl(rect(0, 0,180, 35));
+    },
+    activateTextControl: function() {
+        if (!this.textControl) {
+            this.initializeTextControl()
+        }
+        var world = lively.morphic.World.current();
+        world.addMorph(this.textControl);
+        this.textControl.fitInWorld();
+        this.textControl.setTarget(this);
+    },
 
-});
+
+    deactivateTextControl: function() {
+        if (!this.textControl) return
+        this.textControl.setFixed(false);
+        this.textControl.setTarget(undefined)
+        this.textControl.remove();
+    },
+    onBlur: function() {
+        this.deactivateTextControl()
+    },
+    onFocus: function($super, evt) {
+        var returnValue = $super(evt)
+        this.activateTextControl()
+        return returnValue
+    },});
 
 lively.morphic.Button.addMethods("TapEvents", {
     onTouchStart: function() {

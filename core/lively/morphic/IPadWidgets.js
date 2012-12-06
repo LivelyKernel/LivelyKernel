@@ -1861,9 +1861,19 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
     initialize: function ($super, bounds) {
         var returnValue = $super(bounds);
         this.initializeButtons();
+        this.applyStyle({
+            fill: Color.rgba(47,47,47,0.5),
+            borderRadius: '0px 0px 5px 0px',
+            layout: {
+                adjustForNewBounds: true
+            }
+        })
+        this.disableSelection();
         return returnValue
     },
     initializeButtons: function() {
+        // Creates the interaction buttons according to a pattern
+        // add buttons by naming them the way you name their action function in buttonTypes
         var that = this,
             i=0,
             buttonTypes = ['Do it', 'Do all', 'Print', 'Save'];
@@ -1873,49 +1883,29 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
             button.beBlackButton();
             var str = ea.replace(' ', '');
             that[str+'Button'] = button;
-            button.gridCoords = pt(i,0)
-            button.onFire = that['trigger'+ea.replace(' ', '')].bind(this);
+            button.gridCoords = pt(i,0);
+            button.label.setPadding(rect(5,7,0,0));
+            button.onFire = that['trigger'+ea.replace(' ', '')].bind(that);
             connect(button, 'fire', button, 'onFire');
             that.addMorph(button);
+            button.applyStyle({
+                layout: {
+                    resizeWidth: true,
+                    resizeHeight: true
+                },
+            })
             i++
         })
         this.applyLayout();
     },
-    initializeDoitButton: function(gridCoords) {
-        var button = new lively.morphic.Button(rect(0,0,65.0,32.0), 'Do it');
-        button.beBlackButton();
-        button.gridCoords = gridCoords;
-        button.onFire = this.triggerDoIt.bind(this);
-        connect(button, 'fire', button, 'onFire');
-        return this.addMorph(button);
-    },
-    initializeDoAllButton: function(gridCoords) {
-        var button = new lively.morphic.Button(rect(0,0,65.0,32.0), 'Do all');
-        button.beBlackButton();
-        button.gridCoords = gridCoords;
-        button.onFire = this.triggerDoAll.bind(this);
-        connect(button, 'fire', button, 'onFire');
-        return this.addMorph(button);
-    },
-    initializePrintButton: function(gridCoords) {
-        var button = new lively.morphic.Button(rect(0,0,65.0,32.0), 'Print');
-        button.beBlackButton();
-        button.gridCoords = gridCoords;
-        button.onFire = this.triggerPrintIt.bind(this);
-        connect(button, 'fire', button, 'onFire');
-        return this.addMorph(button);
-    },
-    initializeSaveButton: function(gridCoords) {
-        var button = new lively.morphic.Button(rect(0,0,65.0,32.0), 'Save');
-        button.beBlackButton();
-        button.gridCoords = gridCoords;
-        button.onFire = this.triggerSaveIt.bind(this);
-        connect(button, 'fire', button, 'onFire');
-        return this.addMorph(button);
-    },
+
+
+
+
 },
 'actions', {
     triggerDoit: function() {
+        if (!this.getTarget()) return
         var textSelectionRange = this.getTextMorph().getSelectionRange();
         if (textSelectionRange) {
             this.prevSelectionRange = textSelectionRange;
@@ -1933,16 +1923,18 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
             if (end === -1) end = string.length;
             selection = [start, end];
         }
-        var code = this.getTextMorph.textString.slice(selection[0], selection[1]);
-        this.getTextMorph.tryBoundEval(code);
+        var code = this.getTextMorph().textString.slice(selection[0], selection[1]);
+        this.getTextMorph().tryBoundEval(code);
         return true;
     },
     triggerDoall: function() {
+        if (!this.getTarget()) return
         this.getTextMorph().evalAll();
     },
     triggerPrint: function() {
+        if (!this.getTarget()) return
         var textMorph = this.getTextMorph(),
-            textSelectionRange = ttextMorph.getSelectionRange();
+            textSelectionRange = textMorph.getSelectionRange();
         if (!textSelectionRange) {
             textMorph.focus();
             textMorph.setSelectionRange(this.prevSelectionRange[0], this.prevSelectionRange[1]);
@@ -1954,6 +1946,7 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
         return true;
     },
     triggerSave: function() {
+        if (!this.getTarget()) return
         this.getTextMorph().doSave();
     },
 },
@@ -1966,11 +1959,25 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
     },
     setTarget: function(morph) {
         // TODO: implement rest (updating and stuff)
-        this.setTextMorp(morph)
+        this.setTextMorph(morph)
+    },
+    getTarget: function() {
+        return this.textMorph
+    },
+    fitInWorld: function() {
+        var world = lively.morphic.World.current(),
+            extent = pt(document.documentElement.clientWidth / 5, document.documentElement.clientHeight / 10),
+            pos = pt(0, 0)
+                .scaleBy(1 / world.getZoomLevel())
+                .addPt(pt(document.body.scrollLeft, document.body.scrollTop));
+            this.setExtent(extent);
+            this.setPosition(pos);
+            this.setScale(1 / world.getZoomLevel())
+            this.submorphs.each(function (ea) {
+                ea.label.setExtent(ea.getExtent())
+            })
+            this.setFixed(true);
     }
-
-
-
 
 
 }) // end of lively.morphic.TextControl

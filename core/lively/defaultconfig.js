@@ -31,15 +31,11 @@
  *  to be overridden.
  */
 
-var Global = (typeof window !== "undefined" && window)
-          || (typeof global !== "undefined" && global)
-          || this;
-
-;(function setupUserAgent(Global) {
+;(function setupUserAgent() {
 
     var webKitVersion = (function() {
         if (!window.navigator) return 0;
-        var match = navigator.userAgent.match(/.*AppleWebKit\/(\d+).*/);
+        var match = window.navigator.userAgent.match(/.*AppleWebKit\/(\d+).*/);
         return match ? parseInt(match[1]) : 0;
     })();
 
@@ -100,16 +96,16 @@ var Global = (typeof window !== "undefined" && window)
 
     }
 
-})(Global);
+})();
 
 
 //--------------------------
 // Determine runtime behavior based on UA capabilities and user choices
 // (can be overriden in localconfig.js)
 // --------------------------
-(function savePreBootstrapConfig(Global) {
+(function savePreBootstrapConfig() {
     Global.ExistingConfig = Global.Config;
-})(window);
+})();
 
 Global.Config = {
 
@@ -354,7 +350,6 @@ Global.Config = {
 
 (function addConfigOptions(Config, UserAgent, ExistingConfig) {
 
-
     Config.addOptions(
         "cop", [
             ["copDynamicInlining", false, "Dynamically compile layered methods for improving their execution performance ."],
@@ -484,7 +479,7 @@ Global.Config = {
         ],
 
         'lively.morphic.StyleSheets', [
-            ["baseThemeStyleSheetURL", (ExistingConfig.codeBase || Config.getDocumentDirectory()) + 'styles/base_theme.css', "The base theme CSS file location"]
+            ["baseThemeStyleSheetURL", ((ExistingConfig && ExistingConfig.codeBase) || Config.getDocumentDirectory()) + 'styles/base_theme.css', "The base theme CSS file location"]
         ],
 
         "lively.PartsBin", [
@@ -492,32 +487,25 @@ Global.Config = {
         ]
     );
 
-})(Config, UserAgent, ExistingConfig);
+})(Global.Config, Global.UserAgent, Global.ExistingConfig);
 
-
-(function addOptionsFromPreBootstrapConfig(Global) {
-
-    var ExistingConfig = Global.ExistingConfig;
-
+(function addOptionsFromPreBootstrapConfig(ExistingConfig, NewConfig) {
     if (!ExistingConfig) return;
-
     for (var name in ExistingConfig) {
         var value = ExistingConfig[name];
-        if (Config.hasOption(name)) {
-            Config.set(name, value)
+        if (NewConfig.hasOption(name)) {
+            NewConfig.set(name, value)
         } else {
-            Config.addOption(name, value, null, 'pre-bootstrap config option');
+            NewConfig.addOption(name, value, null, 'pre-bootstrap config option');
         }
     }
-
     delete Global.ExistingConfig;
+})(Global.ExistingConfig, Global.Config);
 
-})(window);
-
-(function addConfigToLivelyNS(Global) {
+(function addConfigToLivelyNS() {
     var lively = Global.lively = Global.lively || {};
     lively.Config = Global.Config;
-})(window);
+})();
 
 (function setupTracking() {
     if (lively.Config.get('trackUsage')) {

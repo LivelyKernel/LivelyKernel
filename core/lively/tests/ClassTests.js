@@ -1,51 +1,51 @@
 module('lively.tests.ClassTests').requires('lively.TestFramework').toRun(function() {
 
 TestCase.subclass('lively.tests.ClassTests.ClassTest', {
-	
+
 	testIsSuperclass: function() {
 		TestCase.subclass('Dummy1', {});
 		this.assert(Dummy1.isSubclassOf(TestCase));
 		this.assert(Global["Dummy1"]);
 	},
-		
+
 	testIsSuperclassDeep: function() {
 		TestCase.subclass('Dummy1', {});
 		Dummy1.subclass('Dummy2', {});
 		this.assert(Dummy2.isSubclassOf(Dummy1));
 		this.assert(Dummy2.isSubclassOf(TestCase));
 	},
-	
+
 	testAllSubclasses: function() {
-		TestCase.subclass('DummyClass', {}); 
+		TestCase.subclass('DummyClass', {});
 		DummyClass.subclass('SubDummyClass1', {});
 		this.assert(SubDummyClass1.isSubclassOf(DummyClass));
-		DummyClass.subclass('SubDummyClass2', {}); 
+		DummyClass.subclass('SubDummyClass2', {});
 		SubDummyClass1.subclass('SubSubDummyClass', {});
-		this.assert(Class.isClass(DummyClass));	 
-		this.assertEquals(DummyClass.allSubclasses().length, 3); 
-		//this.assertEquals(SubDummyClass1.allSubclasses[0], SubSubDummyClass); 
+		this.assert(Class.isClass(DummyClass));
+		this.assertEquals(DummyClass.allSubclasses().length, 3);
+		//this.assertEquals(SubDummyClass1.allSubclasses[0], SubSubDummyClass);
 	},
-	
+
 	testAllSubclassesWithNamespace: function() {
 		TestCase.subclass('OtherDummyClass', {});
-		namespace('lively.Dummy');
+		module('lively.Dummy');
 		OtherDummyClass.subclass('lively.Dummy.SubDummyClass', {});
 		this.assert(lively.Dummy.SubDummyClass.isSubclassOf(OtherDummyClass), 'isSubclassOf');
-		this.assertEquals(OtherDummyClass.allSubclasses().length, 1); 
+		this.assertEquals(OtherDummyClass.allSubclasses().length, 1);
 	},
-	
+
 	testGetSuperClasses: function() {
 	    TestCase.subclass('A', {});
 		A.subclass('B', {});
 		var result = A.superclasses();
 		this.assertEqualState(result, [Object, TestCase]);
 	},
-	
+
 	testSuperMethodsAreAssignedCorrectly: function() {
 	    var className = 'DummyTestSuperMethods';
 	    this.assert(!Global[className], 'Test already there');
 		var f1 = function ($super) { 1; };
-	
+
 	    Object.subclass(className, {
             a: f1,
             b: function($super) { 2; }
@@ -54,12 +54,12 @@ TestCase.subclass('lively.tests.ClassTests.ClassTest', {
         delete Global[className];
         this.assertEquals(aSource, f1.toString());
 	},
-	
+
 	testSubclassingDoesNotReplaceExistingClass: function() {
 		var className = 'DummyTestOverrideSubclass';
 	    this.assert(!Global[className], 'Test already there');
 		try {
-	    
+
 			Object.subclass(className, {
             	a: function () {return 1;},
 			});
@@ -74,23 +74,23 @@ TestCase.subclass('lively.tests.ClassTests.ClassTest', {
 			delete Global[className];
 		}
 	},
-	
+
 	testNewClassDefinitionOfExistingClass: function() {
 		TestCase.subclass('Dummy23', { m: function() { return 1 }});
 		var instance = new Dummy23();
 		TestCase.subclass('Dummy23', { m: function() { return 2 }});
 		this.assertEquals(instance.m(), 2);
 	},
-	
+
 });
 
 TestCase.subclass('lively.tests.ClassTests.NamespaceTest', {
-    
+
     setUp: function() {
         // create namespaces
-		namespace('testNamespace.one');
-        namespace('testNamespace.two');
-		namespace('testNamespace.three.threeOne');
+		module('testNamespace.one');
+        module('testNamespace.two');
+		module('testNamespace.three.threeOne');
         // create classes
         Object.subclass('testNamespace.Dummy');
         Object.subclass('testNamespace.one.Dummy');
@@ -99,17 +99,17 @@ TestCase.subclass('lively.tests.ClassTests.NamespaceTest', {
         testNamespace.dummyFunc = function() { return 1 };
         testNamespace.three.threeOne.dummyFunc = function() { return 2 };
     },
-    
+
     tearDown: function() {
 		// delete Global.testNamespace; // delete leads to errors when test is re-run?
     },
-    
+
     testNamespaceIsNamespace: function() {
         this.assert(testNamespace, 'no namespace');
-        this.assert(testNamespace instanceof lively.lang.Namespace, 'strange namespace');
+        this.assert(testNamespace instanceof lively.Module, 'strange namespace');
         // this.assert(testNamespace.isNamespace, 'namespace doesn\' know that it is a namespace');
     },
-    
+
     testGetAllNamespaces: function() {
         var result = testNamespace.subNamespaces(false);
         this.assertEquals(result.length, 3);
@@ -117,19 +117,19 @@ TestCase.subclass('lively.tests.ClassTests.NamespaceTest', {
         this.assert(result.include(testNamespace.two));
         this.assert(result.include(testNamespace.three));
     },
-    
+
     testGetAllNamespacesRecursive: function() {
         var result = testNamespace.subNamespaces(true);
         this.assertEquals(result.length, 4);
         this.assert(result.include(testNamespace.three.threeOne));
     },
-    
+
     testGetAllNamespaceClasses: function() {
 		var result = testNamespace.classes(false);
         this.assertEquals(result.length, 1);
         this.assert(result.include(testNamespace.Dummy));
     },
-    
+
     testGetAllNamespaceClassesRecursive: function() {
         var result = testNamespace.classes(true);
         this.assertEquals(result.length, 3);
@@ -137,13 +137,13 @@ TestCase.subclass('lively.tests.ClassTests.NamespaceTest', {
         this.assert(result.include(testNamespace.one.Dummy));
         this.assert(result.include(testNamespace.three.threeOne.Dummy));
     },
-    
+
     testGetAllNamespaceFunctions: function() {
         var result = testNamespace.functions(false);
         this.assertEquals(result.length, 1);
         this.assert(result.include(testNamespace.dummyFunc));
     },
-    
+
     testGetAllNamespaceFunctionsrecursive: function() {
         var result = testNamespace.functions(true);
         this.assertEquals(result.length, 2);
@@ -152,7 +152,7 @@ TestCase.subclass('lively.tests.ClassTests.NamespaceTest', {
     },
 })
 
-TestCase.subclass('lively.tests.ClassTests.MethodCategoryTest', 
+TestCase.subclass('lively.tests.ClassTests.MethodCategoryTest',
 'running', {
 
 	tearDown: function() {

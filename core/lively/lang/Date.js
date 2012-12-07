@@ -5,7 +5,7 @@
 Object.extend(Date, {
     ensureTimeStamp: function(obj) {
         return obj.timeStamp = Date.now();
-    },
+    }
 });
 
 

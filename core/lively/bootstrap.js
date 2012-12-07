@@ -1,3 +1,5 @@
+Global = (typeof window !== "undefined" && window) || global;
+
 var isFirefox = window.navigator.userAgent.indexOf('Firefox') > -1;
 var isFireBug = isFirefox && window.console && window.console.firebug !== undefined;
 var useMinifiedLibs = document.location.host.indexOf('localhost') === -1;
@@ -334,7 +336,7 @@ var JSLoader = {
         } else {
             script.setAttributeNS(null, 'src', url);
         }
-		
+
         if (onLoadCb) script.onload = onLoadCb;
         script.setAttributeNS(null, 'async', true);
     },
@@ -537,14 +539,36 @@ var JSLoader = {
     }
 };
 
+// TODO: Something is wrong with the lively-libs, use debug only to activate loading on ios 5
+var libsFile = /*useMinifiedLibs ? 'lib/lively-libs.js' :*/ 'lib/lively-libs-debug.js',
+    bootstrapFiles = [
+        libsFile,
+        'lively/Migration.js',
+        'lively/JSON.js',
+        'lively/lang/Object.js',
+        'lively/lang/Function.js',
+        'lively/lang/String.js',
+        'lively/lang/Array.js',
+        'lively/lang/Number.js',
+        'lively/lang/Date.js',
+        'lively/lang/Worker.js',
+        'lively/defaultconfig.js',
+        'lively/localconfig.js',
+        'lively/Base.js',
+        'lively/ModuleSystem.js',
+        'lively/lang/Closure.js',   // FIXME: require module instead
+        'lively/lang/UUID.js',      // FIXME: require module instead
+        'lively/LocalStorage.js'    // FIXME: require module instead
+    ];
+
 var LivelyLoader = {
 
     //
     // ------- generic load support ----------
     //
-	
-	// TODO: Something is wrong with the lively-libs, use debug only to activate loading on ios 5
-    libsFile: /*useMinifiedLibs ? 'lib/lively-libs.js' :*/ 'lib/lively-libs-debug.js',
+
+    libsFile: libsFile,
+    bootstrapFiles: bootstrapFiles,
 
     codeBase: (function findCodeBase() {
         // search for script that links to "bootstrap.js" and
@@ -686,130 +710,9 @@ var LivelyLoader = {
             return;
         }
 
-        var modules = [
-            this.libsFile,
-            'lively/Migration.js',
-            'lively/JSON.js',
-            'lively/lang/Object.js',
-            'lively/lang/Function.js',
-            'lively/lang/String.js',
-            'lively/lang/Array.js',
-            'lively/lang/Number.js',
-            'lively/lang/Date.js',
-            'lively/lang/Worker.js',
-            'lively/defaultconfig.js',
-            'lively/localconfig.js',
-            'lively/Base.js',
-            'lively/lang/Closure.js',   // FIXME: require module instead
-            'lively/lang/UUID.js',      // FIXME: require module instead
-            'lively/LocalStorage.js'    // FIXME: require module instead
-        ];
-        JSLoader.resolveAndLoadAll(codeBase, modules, thenDoFunc);
+        JSLoader.resolveAndLoadAll(codeBase, this.bootstrapFiles, thenDoFunc);
     }
 
-};
-
-var EmbededLoader = {
-
-    //
-    // ------- embedd world in another page ---------------
-    //
-    addWorld: function(worldURL, targetElement) {
-        this.worldURL = worldURL;
-        this.targetElement = targetElement;
-        LivelyLoader.bootstrap(function() {
-            EmbededLoader.embedAndLoadWorld(worldURL, targetElement);
-        });
-    },
-
-    embedAndLoadWorld: function(worldURL, targetElement) {
-        console.log('Fetching ' + worldURL);
-        var doc = new WebResource(worldURL).get().contentDocument;
-        this.convertCDATASections(doc.documentElement);
-        var canvas = document.importNode(doc.getElementById('canvas'), true);
-        $A(canvas.getElementsByTagName('script')).forEach(function(e) {
-            e.parentElement.removeChild(e);
-        });
-        var div = document.createElement('div');
-        // div.setAttribute('style', "page-break-before: always; page-break-inside: avoid;");
-        div.style['page-break-before'] = 'always';
-        div.style['page-break-inside'] = 'avoid';
-        div.appendChild(canvas);
-        targetElement.appendChild(div);
-
-        Config.isEmbedded = true;
-
-        var worldElement;
-        // SVG detection
-        if (canvas.getElementsByTagName('g').length > 0) {
-            // FIXME ugly hack: width/height not properly saved in canvas element so reset it to the
-            // width/height of the rect of the worldmorph
-            Config.resizeScreenToWorldBounds = false;
-            worldElement = canvas.getElementsByTagName('g')[0];
-            canvas.setAttribute("width", worldElement.childNodes[0].width.baseVal.value.toString()
-                                       + 'px');
-            canvas.setAttribute("height", worldElement.childNodes[0].height.baseVal.value.toString()
-                                        + 'px');
-        } else {
-            // FIXME!!!
-            Config.resizeScreenToWorldBounds = false;
-            canvas.setAttribute("width", targetElement.clientWidth + 'px');
-            canvas.setAttribute("height", targetElement.clientHeight + 'px');
-            worldElement = canvas.getElementsByTagName('div')[0];
-            worldElement.setAttribute("width", targetElement.clientWidth + 'px');
-            worldElement.setAttribute("height", targetElement.clientHeight + 'px');
-            var pos = targetElement.getAttribute('lively:position')
-            if (pos) {
-                var values = pos.split(' ');
-                canvas.style.position = 'absolute';
-                canvas.style.left = values[0];
-                canvas.style.top = values[1];
-            }
-        }
-        document.body.style.cursor = null;
-        LivelyLoader.loadMain(canvas);
-    },
-
-    convertCDATASections: function(el) {
-        // CDATA sections are not allowed in (X)HTML documents....
-        if (el.nodeType == document.CDATA_SECTION_NODE) {
-            var text = el.ownerDocument.createTextNode(el.data),
-                parent = el.parentNode;
-            parent.removeChild(el);
-            parent.appendChild(text);
-        }
-
-        for (var i = 0; i < el.childNodes.length; i++) {
-            this.convertCDATASections(el.childNodes[i]);
-        }
-    },
-
-    getWorldAttributeFrom: function(el) {
-        // return el.getAttributeNS(JSLoader.LIVELYNamespace, 'world');
-        // arghh! I HATE XML Namespaces!
-        return el.getAttribute('lively:world');
-    },
-
-    isLivelyCanvas: function(el) {
-        if (!el || !el.getAttribute) return false;
-        var attr = this.getWorldAttributeFrom(el);
-        return attr && attr != '';
-    },
-
-    findLivelyCanvasIn: function(element) {
-        if (this.isLivelyCanvas(element)) return element;
-        for (var i = 0; i < element.childNodes.length; i++)
-            return this.findLivelyCanvasIn(element.childNodes[i]);
-    },
-
-    embedLively: function() {
-        var canvas = this.findLivelyCanvasIn(document.body);
-        if (!canvas) return;
-        var ownUrl = document.location.href,
-            url = ownUrl.substring(0, ownUrl.lastIndexOf('/') + 1)
-                + this.getWorldAttributeFrom(canvas);
-        this.addWorld(url, canvas);
-    }
 };
 
 var LivelyMigrationSupport = {
@@ -843,7 +746,6 @@ var LivelyMigrationSupport = {
     addModuleRename: function(oldName, newName, migrationLevel) {
         this.moduleRenameDict[oldName] = newName;
     }
-
 };
 
 

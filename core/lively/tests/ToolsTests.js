@@ -10,7 +10,7 @@ Object.extend(tests.ToolsTests, {
 	createDummyNamespace: function() {
 		console.assert(!tests.ToolsTests['testNS'], 'testNS already existing');
 		// creating 5 namespaces-    namespace('testNS.one', tests.ToolsTests);    namespace('testNS.two', tests.ToolsTests);
-		namespace('testNS.three.threeOne', tests.ToolsTests);
+		module('tests.ToolsTests.testNS.three.threeOne');
 		// create classes
 		Object.subclass(tests.ToolsTests.namespaceIdentifier + '.testNS.Dummy', { method1: function() { 1 } });
 		Object.subclass(tests.ToolsTests.namespaceIdentifier + '.testNS.one.Dummy');

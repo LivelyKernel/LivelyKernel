@@ -1,3 +1,5 @@
+Global = (typeof window !== "undefined" && window) || global;
+
 var isFirefox = window.navigator.userAgent.indexOf('Firefox') > -1;
 var isFireBug = isFirefox && window.console && window.console.firebug !== undefined;
 var useMinifiedLibs = document.location.host.indexOf('localhost') === -1;

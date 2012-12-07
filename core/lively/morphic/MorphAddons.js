@@ -500,8 +500,9 @@ lively.morphic.Morph.addMethods(
             this.startStepping(0, "updateZoomScale");
             this.startStepping(0, "updateScrollPosition");
         } else {
+            this.stopStepping()
             this.stopSteppingScriptNamed("updateZoomLevel");
-            this.stopSteppingScriptNamed("getScrollOffset");
+            this.stopSteppingScriptNamed("getScrollPosition");
         }
     },
     updateZoomScale: function(newZoom) {

@@ -2033,10 +2033,7 @@ lively.morphic.Text.addMethods("TapEvents", {
     onTouchStart: function(evt) {
         evt.stopPropagation();
     },
-    onTap: function(evt){
-        this.activateTextControl();
-        evt.stopPropagation();
-    },
+
 
     onTouchEnd: function(evt) {
         evt.stopPropagation();
@@ -2044,6 +2041,10 @@ lively.morphic.Text.addMethods("TapEvents", {
     onTouchMove: function(evt) {
         evt.stopPropagation();
     },
+    onTap: function(evt){
+        evt.stopPropagation();
+    },
+
     beTextField: function() {
         this.shape.setPadding(pt(10,10).extent(pt(0,0)));
         this.setBorderRadius(13);

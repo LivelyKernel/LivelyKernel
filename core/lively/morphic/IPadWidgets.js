@@ -241,12 +241,8 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         }
         return this.currentContainer;
         },
-    getDefaultExtent: function() {
-        return this.defaultExtent || pt(340,280)
-    },
-    setDefaultExtent: function(point) {
-        this.defaultExtent = point;
-    },
+
+
     getItemFontSize: function() {
         return this.itemFontSize || 14
     },
@@ -650,6 +646,7 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
         this.applyStyle(Object.merge([this.style, this.determineGradient()]));
         this.setTextString('Flap       ')
         this.initializeCloseButton()
+        this.disableSelection();
         return this
     },
     initializeCloseButton: function() {
@@ -724,9 +721,12 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
 },
 'events', {
     onTouchEnd: function (evt) {
-        var threshold = 10;
-        if(this.owner.getFixedPosition().x < threshold - this.ownerExtent.x) {
-            this.owner.setFixedPosition(pt(-this.ownerExtent.x,0));
+        if (!this.flap.getFixedPosition()) return;
+        var threshold = 10,
+            pos = this.flap.getFixedPosition() || this.flap.getPositionInWorld();
+        if(pos && pos.x < threshold - this.ownerExtent.x) {
+            if (this.flap.getFixedPosition())
+                this.flap.setFixedPosition(pt(-this.ownerExtent.x,0));
         }
     },
     onTouchMove: function (evt) {
@@ -738,7 +738,9 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
     onTouchStart: function(evt) {
         this.ownerExtent = this.owner.getExtent();
         this.beginTouchPosition = evt.getPosition();
-        this.beginMorphPosition = this.owner.getFixedPosition();
+        this.beginMorphPosition = this.owner.getFixedPosition() || this.owner.getPosition();
+        this.beginMorphPosition = this.beginMorphPosition
+            //.scaleBy(lively.morphic.World.current().getZoomLevel())
         evt.stop();
         return true;
     },
@@ -749,37 +751,42 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
 },
 'positioning while moving', {
     setNextPos: function (touchPosition) {
-        var pos = this.transformDelta(touchPosition);
+        var pos = this.transformDelta(touchPosition),
+            bottomRight = this.owner.getBottomRight();
         switch (this.getAlignment()) {
             case 'left': {
                 pos.x = Math.max(pos.x, -this.ownerExtent.x);
-                pos.x = Math.min(pos.x, document.documentElement.clientWidth / 3 - this.ownerExtent.x);
+                pos.x = Math.min(pos.x, bottomRight.x / 3 - this.ownerExtent.x);
                 break;
             };
             case 'top': {
                 pos.y = Math.max(pos.y, -this.ownerExtent.y);
-                pos.y = Math.min(pos.y, document.documentElement.clientHeight/ 3 - this.ownerExtent.y)
+                pos.y = Math.min(pos.y, bottomRight.y/ 3 - this.ownerExtent.y)
                 break
             };
             case 'right': {
-                pos.x = Math.max(pos.x, this.ownerExtent.x);
-                pos.x = Math.max(pos.x, document.documentElement.clientWidth * 2 / 3);
+                pos.x = Math.max(pos.x, bottomRight.x * 2 / 3);
+                pos.x = Math.min(pos.x, bottomRight.x);
                 break
             };
             case 'bottom': {
-                pos.y = Math.max(pos.y, this.ownerExtent.y);
-                pos.y = Math.max(pos.y, document.documentElement.clientHeight * 2 / 3);
+                pos.y = Math.max(pos.y, bottomRight.y * 2 / 3);
+                pos.y = Math.min(pos.y, bottomRight.y);
                 break
             }
         }
-        this.owner.setFixedPosition(pos);
+        if (this.flap.getFixedPosition())
+            this.flap.setFixedPosition(pos);
+        else
+            this.flap.setPosition(pos)
     },
     transformDelta: function(touchPosition) {
         var world = lively.morphic.World.current();
         var deltaToStart = ((this.getAlignment() == 'left' || this.getAlignment() == 'right')
                     ? pt(this.beginTouchPosition.subPt(touchPosition).x,0)
                     : pt(0, this.beginTouchPosition.subPt(touchPosition).y))
-                .scaleBy(world.getZoomLevel());
+        if (this.flap.owner.isWorld)
+            deltaToStart = deltaToStart.scaleBy(world.getZoomLevel())
         return this.beginMorphPosition.subPt(deltaToStart);
     },
 
@@ -789,7 +796,7 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
 lively.morphic.Morph.subclass('lively.morphic.Flap', 
 'properties', {
 
-    defaultExtent: pt(document.documentElement.clientWidth / 3, document.documentElement.clientHeight),
+
     style: {
         fill: new lively.morphic.LinearGradient(
                 [
@@ -806,7 +813,8 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
     },
     getCollapsedPosition: function() {
         var pos = this.collapsedPosition,
-            world = lively.morphic.World.current();
+            world = lively.morphic.World.current(),
+            bottomRight = this.getBottomRight();
         if (pos)
             return pos;
         switch (this.alignment) {
@@ -819,74 +827,82 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
                 break
             };
             case 'right': {
-                pos = pt(document.documentElement.clientWidth, 0);
+                pos = pt(bottomRight.x, 0);
                 break;
             };
             case 'bottom' : {
-                pos = pt(0, document.documentElement.clientHeight);
+                pos = pt(0, bottomRight.y);
                 break
             }
         }
-        return pos.scaleBy(1 / world.getZoomLevel()).addPt(pt(document.body.scrollLeft, document.body.scrollTop))
+        if (this.owner.isWorld)
+            return pos.scaleBy(1 / world.getZoomLevel()).addPt(pt(document.body.scrollLeft, document.body.scrollTop))
+        else
+            return pos
     },},
 'initialization', {
-    initialize: function($super, name, alignment) {
+    initialize: function($super, name, alignment, optOwner) {
         // alignment: 'left', 'right', 'top', 'bottom'
         $super(this.defaultShape());
+        var owner = optOwner || lively.morphic.World.current();
+        owner.addMorph(this);
         this.alignment = alignment;
         this.fitInWorld();
         this.applyStyle(Object.merge([this.style,{fill: this.determineFillGradient()}]))
-        this.setPosition(this.getPosition())
         this.setName(name+'Flap');
         this.flapHandle = this.initializeHandle(name, alignment);
         this.setFixed(true);
         this.fixedScale = 1;
         this.disableSelection();
-        connect(lively.morphic.World.current(), "currentlySelectedMorph", this, "setTarget");
+        if (!optOwner)
+            connect(lively.morphic.World.current(), "currentlySelectedMorph", this, "setTarget");
         return this;
     },
     close: function() {
-        connect(lively.morphic.World.current(), "currentlySelectedMorph", this, "setTarget");
+        disconnect(this.owner, "currentlySelectedMorph", this, "setTarget");
         this.remove()
     },
 
 
 
     fitInWorld: function () {
-        var world = lively.morphic.World.current();
-        world.addMorph(this)
         this.determineExtent();
         this.style.position = this.determinePosition();
         this.setBorderRadius(this.determineBorderRadius());
     },
     determinePosition: function () {
         var pos,
-            world = lively.morphic.World.current();
+            world = lively.morphic.World.current(),
+            bottomRight = this.getBottomRight();
         switch (this.alignment) {
             case 'left': case 'top': {
                 pos = pt(0, 0);
                 break;
             }
             case 'right': {
-                pos = pt(document.documentElement.clientWidth - this.style.extent.x, 0);
+                pos = pt(bottomRight.x - this.style.extent.x, 0);
                 break
             }
             case 'bottom' : {
-                pos = pt(0, document.documentElement.clientHeight - this.style.extent.y);
+                pos = pt(0, bottomRight.y - this.style.extent.y);
                 break;
             }
         }
-        return pos.scaleBy(1 / world.getZoomLevel()).addPt(pt(document.body.scrollLeft, document.body.scrollTop))
+        if (this.owner.isWorld)
+            return pos.scaleBy(1 / world.getZoomLevel()).addPt(pt(document.body.scrollLeft, document.body.scrollTop))
+        else
+            return pos
     },
     determineExtent: function () {
-        var extent;
+        var extent,
+            bottomRight = this.getBottomRight();
         switch (this.alignment)  {
             case 'left': case 'right': {
-                extent = pt(document.documentElement.clientWidth / 3, document.documentElement.clientHeight);
+                extent = pt(bottomRight.x / 3, bottomRight.y);
                 break;
             };
             case 'top': case 'bottom': {
-                extent = pt(document.documentElement.clientWidth, document.documentElement.clientHeight / 3);
+                extent = pt(bottomRight.x, bottomRight.y / 3);
                 break;
             };
         }
@@ -944,7 +960,8 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         var pos,
             self = this,
             docEl = document.documentElement,
-            spaceUsedByOtherFlaps = lively.morphic.World.current().submorphs.select(function (ea) {
+            bottomRight = this.getBottomRight(),
+            spaceUsedByOtherFlaps = this.owner.submorphs.select(function (ea) {
                 return ea.isFlap && ea !== self && ea.alignment == self.alignment
             }).reduce(function(a, b){
                 return a + b.flapHandle.getExtent().x;
@@ -956,11 +973,11 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
                 break;
             };
             case 'top': {
-                pos = pt(docEl.clientWidth - (this.flapHandle.getExtent().x + spaceUsedByOtherFlaps), this.getExtent().y)
+                pos = pt(bottomRight.x - (this.flapHandle.getExtent().x + spaceUsedByOtherFlaps), this.getExtent().y)
                 break;
             };
             case 'right': {
-                pos = pt(0, docEl.clientHeight - (this.flapHandle.getExtent().x + spaceUsedByOtherFlaps))
+                pos = pt(0, bottomRight.y - (this.flapHandle.getExtent().x + spaceUsedByOtherFlaps))
                 break;
             };
             case 'bottom': {
@@ -989,7 +1006,8 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         var that = this;
         this.setFixed(false);
         var callback = function () {
-            that.setFixed(true)
+            if (that.owner.isWorld)
+                that.setFixed(true)
         }
         this.setPositionAnimated(this.getCollapsedPosition(), 500, callback);
     },},
@@ -997,6 +1015,13 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
     setTarget: function(target) {
         this.target = target
     },
+    getBottomRight: function() {
+        if (this.owner.isWorld)
+            return pt(document.documentElement.clientWidth, document.documentElement.clientHeight)
+        else
+            return this.owner.getExtent()
+    }
+
 }) // end of subclass lively.morphic.Flap
 
 lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap', 

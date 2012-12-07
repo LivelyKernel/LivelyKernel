@@ -1260,26 +1260,20 @@ Object.extend(lively.persistence.Serializer, {
             getHeadNode: function(doc) {
                 return doc.getElementsByTagName('head')[0] || doc.selectSingleNode('//*["head"=name()]');
             },
+            getBodyNode: function(doc) {
+                return doc.getElementsByTagName('body')[0] || doc.selectSingleNode('//*["body"=name()]');
+            }
         }
 
         var head = domAccess.getHeadNode(doc);
 
-        // FIXME remove previous meta elements - is this really necessary?
-        // var metaElement;
-        // while (metaElement = doc.getElementsByTagName('meta')[0])
-        //    metaElement.parentNode.removeChild(metaElement)
-        // removed 2012-01-5 fabian
-        // doing this instead: remove old serialized data.. is it necessary or not?
-        // we need additional meta tags for better iPad touch support, can't remove all of them..
+        // we need additional meta tags for better iPad touch support, can't
+        // remove all of them...
         var metaToBeRemoved = ['LivelyMigrationLevel', 'WorldChangeSet', 'LivelyJSONWorld'];
         metaToBeRemoved.forEach(function(ea) {
             var element = doc.getElementById(ea);
             if (element) { element.parentNode.removeChild(element); }});
 
-
-        // FIXME remove system dictionary
-        var sysDict = domAccess.getSystemDictNode(doc);
-        if (sysDict) sysDict.parentNode.removeChild(sysDict);
 
         // store migration level
         var migrationLevel = LivelyMigrationSupport.migrationLevel,
@@ -1303,6 +1297,15 @@ Object.extend(lively.persistence.Serializer, {
         metaWorldNode.setAttribute('id', this.jsonWorldId)
         metaWorldNode.appendChild(doc.createCDATASection(json))
         head.appendChild(metaWorldNode);
+
+        // generate a preview
+        var body = domAccess.getBodyNode(doc),
+            previewHTML = world.asHTMLLogo({asFragment: true});
+        while (body.childNodes.length > 0) {
+            body.removeChild(body.childNodes[0]);
+        }
+        body.innerHTML = previewHTML;
+        $("head style").clone().appendTo(head);
 
         return doc;
     },

@@ -404,8 +404,11 @@ Object.subclass('lively.Module',
                  && lively.morphic.World && lively.morphic.World.current();
         if (e.stack) msg = msg + e.stack;
         if (optCode) msg += "code:\n" + optCode;
-        if (world.logError) world.logError(e);
-        else console.error(msg);
+        if (world.logError) {
+            world.logError(e);
+        } else {
+            console.error(msg);
+        }
         dbgOn(true);
     }
 });

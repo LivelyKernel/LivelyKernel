@@ -76,23 +76,29 @@ lively.morphic.Morph.addMethods(
     logoHTMLString: function () {
         return Exporter.stringify(this.renderContext().morphNode);
     },
-    asHTMLLogo: function () {
+    asHTMLLogo: function (options) {
+        options = options || {};
         var oldPos = this.getPosition(),
             oldScale = this.getScale(),
             bounds = this.bounds();
-
         try {
-            this.setScale(85 / Math.max(bounds.width, bounds.height)*oldScale);
-
+            if (options.scale) this.setScale(options.scale);
             this.align(this.bounds().topLeft(), pt(5,5));
             var html = this.logoHTMLString();
             // patch properties so they work on all browsers...
             html = html.replace(/(-webkit|-moz|-o)(-transform[^;]+;)/g, '-webkit$2 -moz$2 -o$2');
-            html ='<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"> <body>'
-                + html + '</body></html>';
+            if (!options.asFragment) {
+                html ='<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '
+                     + '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
+                     + '<html xmlns="http://www.w3.org/1999/xhtml">'
+                     +   '<body>'
+                     + html
+                     +   '</body>'
+                     + '</html>';
+            }
             return html;
         } finally {
-            this.setScale(oldScale);
+            if (options.scale) this.setScale(oldScale);
             this.setPosition(oldPos);
         }
     },
@@ -103,7 +109,7 @@ lively.morphic.Morph.addMethods(
             shape = new lively.morphic.Shapes.External(svgNode),
             morph = new lively.morphic.Morph(shape);
         return morph;
-    },
+    }
 
 },
 'connection points', {

@@ -57,7 +57,7 @@ lively.morphic.Morph.addMethods(
         }
     },
 
-    onstore: function() {},
+    onstore: function() {}
 
 },
 'copying', {

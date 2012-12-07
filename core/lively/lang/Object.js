@@ -330,3 +330,34 @@ Global.Properties = {
     }
 
 };
+
+JSON.prettyPrint = function(jsoOrJson, indent) {
+	var jso = (typeof jsoOrJson == 'string') ? JSON.parse(jsoOrJson) : jsoOrJson,
+		isArray = jsoOrJson && jsoOrJson.constructor === Array,
+		str = '',
+		propStrings = [];
+	indent = indent || '';
+
+	for (var key in jso) {
+		if (!jso.hasOwnProperty(key)) continue;
+		var val = jso[key],
+			propIndent = indent + '  ',
+			propStr = propIndent;
+		if (!isArray) propStr += '"' + key + '"' + ': ';
+		if (typeof val === 'object') {
+			propStr += JSON.prettyPrint(val, propIndent);
+		} else if (typeof val === 'string'){
+			propStr += '"' + String(val) + '"';
+		} else {
+			propStr += String(val);
+		}
+		propStrings.push(propStr);
+	}
+
+	var openBracket = isArray ? '[' : '{',
+		closeBracket = isArray ? ']' : '}';
+	str += propStrings.length == 0 ?
+		openBracket + closeBracket :
+		openBracket + '\n' + propStrings.join(',\n') + '\n' + indent + closeBracket;
+	return str;
+};

@@ -70,7 +70,7 @@ This file adds these methods to JavaScript:
 
             If no optFilter argument is provided to serialize(),
             this defaultFilter is used. It is part of the API so that
-            other filters can be built by composing with it. 
+            other filters can be built by composing with it.
             This default filter will return undefined unless key is a
             string and an own-property of baseObj, or if key is a
             number and baseObj is an array. If baseObj[key]
@@ -89,7 +89,7 @@ This file adds these methods to JavaScript:
             as json.js's Date.toJSONString().
 
 Use your own copy. It is extremely unwise to load untrusted third
-party code into your pages.  
+party code into your pages.
 */
 
 
@@ -134,7 +134,7 @@ CustomJSON = (function () {
             return result;
         }
     }
-    
+
     /** m is a table of character substitutions. */
     var m = {
         '\b': '\\b',
@@ -162,14 +162,14 @@ CustomJSON = (function () {
                 var len; // array lengths;
                 var needComma = false;
                 var k,v; // property key and value
-                
+
                 // stack.push(value);
-                
+
                 switch (typeof value) {
                 case 'object':
                     if (value === null) {
                         out.push('null');
-                        
+
                     } else if (value instanceof Array) {
                         len = value.length;
                         out.push('[');
@@ -185,7 +185,7 @@ CustomJSON = (function () {
                             }
                         }
                         out.push(']');
-                        
+
                     } else {
                         out.push('{');
                         for (k in value) {
@@ -204,7 +204,7 @@ CustomJSON = (function () {
                         out.push('}');
                     }
                     break;
-                    
+
                 case 'string':
                     // If the string contains no control characters, no quote
                     // characters, and no backslash characters, then we can
@@ -212,7 +212,7 @@ CustomJSON = (function () {
                     // also replace the offending characters with safe
                     // sequences.
                     if ((/["\\\x00-\x1f]/).test(value)) { //"])){
-                        out.push('"' + 
+                        out.push('"' +
                                  value.replace((/[\x00-\x1f\\"]/g), //"]),
                                                function (a) {
                             var c = m[a];
@@ -230,7 +230,7 @@ CustomJSON = (function () {
 
                 case 'number':
                     // JSON numbers must be finite. Encode non-finite numbers
-                    // as null. 
+                    // as null.
                     out.push(isFinite(value) ? String(value) : 'null');
                     break;
 
@@ -252,7 +252,7 @@ CustomJSON = (function () {
         unserialize: function(str, optFilter) {
 
             var result;
-            
+
             function walk(value) {
                 var i,len,k,v;
 
@@ -280,7 +280,7 @@ CustomJSON = (function () {
                         }
                     }
                 }
-                
+
             }
 
             if ((/^[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]*$/).
@@ -311,35 +311,3 @@ if (window && window.JSON) {
 	JSON.parse = JSON.unserialize
 	JSON.stringify = JSON.serialize
 }
-
-
-JSON.prettyPrint = function(jsoOrJson, indent) {
-	var jso = (typeof jsoOrJson == 'string') ? JSON.parse(jsoOrJson) : jsoOrJson,
-		isArray = jsoOrJson && jsoOrJson.constructor === Array,
-		str = '',
-		indent = indent || '',
-		propStrings = [];
-	
-	for (var key in jso) {
-		if (!jso.hasOwnProperty(key)) continue;
-		var val = jso[key],
-			propIndent = indent + '  ',
-			propStr = propIndent;
-		if (!isArray) propStr += '"' + key + '"' + ': ';
-		if (typeof val === 'object') {
-			propStr += JSON.prettyPrint(val, propIndent);
-		} else if (typeof val === 'string'){
-			propStr += '"' + String(val) + '"';
-		} else {
-			propStr += String(val);
-		}
-		propStrings.push(propStr);
-	}
-
-	var openBracket = isArray ? '[' : '{',
-		closeBracket = isArray ? ']' : '}';
-	str += propStrings.length == 0 ?
-		openBracket + closeBracket :
-		openBracket + '\n' + propStrings.join(',\n') + '\n' + indent + closeBracket;
-	return str;
-};

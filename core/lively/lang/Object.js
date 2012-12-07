@@ -25,7 +25,8 @@ Object.extend = function(destination, source) {
         if (sourceObj instanceof Function) {
             if ((!sourceObj.name || (sourceObj.name.length == 0)) && !sourceObj.displayName) sourceObj.displayName = property;
             // remember the module that contains the class def
-            if (window.lively && lively.lang && lively.lang.Namespace) sourceObj.sourceModule = lively.lang.Namespace.current();
+            if (window.lively && lively.Module && lively.Module.current)
+                sourceObj.sourceModule = lively.Module.current();
         }
     }
     return destination;
@@ -188,7 +189,7 @@ if (this.window && window.navigator && window.navigator.userAgent.match(/Firefox
 // Global Helper - Objects and Properties
 ///////////////////////////////////////////////////////////////////////////////
 
-Objects = {
+Global.Objects = {
 
     typeStringOf: function(obj) {
         if (obj === null) { return "null" }
@@ -260,7 +261,7 @@ Objects = {
     }
 };
 
-Properties = {
+Global.Properties = {
     all: function(object, predicate) {
         var a = [];
         for (var name in object) {
@@ -328,4 +329,35 @@ Properties = {
         return Object.keys(obj).sort().join('').hashCode();
     }
 
+};
+
+JSON.prettyPrint = function(jsoOrJson, indent) {
+	var jso = (typeof jsoOrJson == 'string') ? JSON.parse(jsoOrJson) : jsoOrJson,
+		isArray = jsoOrJson && jsoOrJson.constructor === Array,
+		str = '',
+		propStrings = [];
+	indent = indent || '';
+
+	for (var key in jso) {
+		if (!jso.hasOwnProperty(key)) continue;
+		var val = jso[key],
+			propIndent = indent + '  ',
+			propStr = propIndent;
+		if (!isArray) propStr += '"' + key + '"' + ': ';
+		if (typeof val === 'object') {
+			propStr += JSON.prettyPrint(val, propIndent);
+		} else if (typeof val === 'string'){
+			propStr += '"' + String(val) + '"';
+		} else {
+			propStr += String(val);
+		}
+		propStrings.push(propStr);
+	}
+
+	var openBracket = isArray ? '[' : '{',
+		closeBracket = isArray ? ']' : '}';
+	str += propStrings.length == 0 ?
+		openBracket + closeBracket :
+		openBracket + '\n' + propStrings.join(',\n') + '\n' + indent + closeBracket;
+	return str;
 };

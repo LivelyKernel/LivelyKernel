@@ -473,14 +473,14 @@ Object.extend(Array, {
 // Global Helper - Arrays
 ///////////////////////////////////////////////////////////////////////////////
 
-var Arrays = {
+Global.Arrays = {
     equal: function(firstArray, secondArray) {
         // deprecated, use anArray.equals
         return firstArray.equals(secondArray);
     }
 }
 
-var Grid = {
+Global.Grid = {
     create: function(rows, columns, initialObj) {
         var result = new Array(rows);
         while (rows > 0) result[--rows] = Array.withN(columns, initialObj);
@@ -828,4 +828,4 @@ var Interval = {
 ///////////////////////////////////////////////////////////////////////////////
 
 // DEPRECATED!
-var $A = Array.from;
+Global.$A = Array.from;

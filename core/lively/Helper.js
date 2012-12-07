@@ -22,12 +22,54 @@
  * THE SOFTWARE.
  */
 
-
 module('lively.Helper').requires('lively.LogHelper').toRun(function() {
+
+/*
+ * Stack Viewer when Dan's StackTracer is not available
+ * FIXME rk: move this to Helper.js?
+ */
+function getStack() {
+    var result = [];
+    for(var caller = arguments.callee.caller; caller; caller = caller.caller) {
+        if (result.indexOf(caller) != -1) {
+           result.push({name: "recursive call can't be traced"});
+           break;
+        }
+        result.push(caller);
+    };
+    return result;
+};
+
+function printStack() {
+    function guessFunctionName(func) {
+        var qName = func.qualifiedMethodName && func.qualifiedMethodName(),
+            regExpRes = func.toString().match(/function (.+)\(/);
+        return qName || (regExpRes && regExpRes[1]) || func;
+    };
+
+    var string = "== Stack ==\n",
+        stack = getStack();
+    stack.shift(); // for getStack
+    stack.shift(); // for printStack (me)
+    var indent = "";
+    for (var i=0; i < stack.length; i++) {
+        string += indent + i + ": " +guessFunctionName(stack[i]) + "\n";
+        indent += " ";
+    };
+    return string;
+};
+
+function logStack() {
+    this.console.log(printStack());
+};
+
 
 Object.extend(Global, {
     // DEPRECATED!!!
-    range: Array.range
+    range: Array.range,
+    getStack: getStack,
+    printStack: printStack,
+    logStack: logStack
 });
 
 Object.extend(Global, {
@@ -45,7 +87,7 @@ Object.extend(Global, {
         evt.hand = lively.morphic.World.current().hands.first();
         if (point) evt.mousePoint = point;
         return evt;
-    },
+    }
 });
 
 
@@ -140,113 +182,6 @@ Object.subclass('lively.Helper.XMLConverter', {
     createNodeFromString: function(string, baseDoc) {
         return baseDoc.adoptNode(new DOMParser().parseFromString(string, "text/xml").documentElement);
     }
-
-});
-
-Object.extend(Global, {
-
-    showThenHide: function(morph, duration) {
-        duration = duration || 3;
-        morph.openInWorld();
-        if (duration) // FIXME use scheduler
-            (function() { morph.remove() }).delay(duration);
-    },
-
-    // highlight some point on the screen
-    showPt: function(/*pos or x,y, duration, extent*/) {
-        var args = $A(arguments);
-        // pos either specified using point object or two numbers
-        var pos = args[0].constructor == lively.Point ?
-            args.shift() :
-            pt(args.shift(), args.shift());
-        var duration = args.shift();
-        var extent = args.shift() || pt(12,12);
-
-
-        var b = new BoxMorph(extent.extentAsRectangle());
-        b.align(b.getCenter(), pos);
-        b.applyStyle({fill: Color.red});
-        b.ignoreEvents();
-
-        showThenHide(b, duration);
-        return b;
-    },
-
-    showRect: function(rect, duration) {
-        var b = new BoxMorph(rect);
-        b.applyStyle({borderColor: Color.red, borderWidth: 2, fill: null});
-        b.ignoreEvents();
-        showThenHide(b, duration);
-        return b
-    },
-
-    showMorph: function(morph) {
-        showRect(morph.getGlobalTransform().transformRectToRect(morph.shape.bounds()))
-    },
-
-    showConnection: function(c, duration) {
-        var m1 = c.getSourceObj();
-        var m2 = c.getTargetObj();
-
-        if (m1.isConnectionVisualization || m2.isConnectionVisualization) return; // don't show yourself...
-        if (!(m1 instanceof Morph)) return;
-        if (!(m2 instanceof Morph)) return;
-
-        var morph  = Morph.makeConnector(pt(100,100), pt(200,200));
-        morph.isConnectionVisualization = true;
-
-        if (duration) showThenHide(morph, duration);
-        else morph.openInWorld();
-
-        morph.setBorderWidth(2);
-        morph.setBorderColor(Color.red);
-        morph.arrowHead.head.setFill(Color.red);
-        morph.arrowHead.head.setBorderColor(Color.red);
-
-        var labelStyle = {fill: Color.white, textColor: Color.red};
-
-        morph.connectMorphs(m1, m2)
-        var startLabel = new lively.morphic.Text(new Rectangle(0,0, 100,30), c.getSourceAttrName()).beLabel();
-        startLabel.applyStyle(labelStyle);
-        morph.addMorph(startLabel);
-        morph.startLabel = startLabel;
-
-        var endLabel = new lively.morphic.Text(new Rectangle(0,0, 100,30), c.getTargetMethodName()).beLabel();
-        endLabel.applyStyle(labelStyle);
-        morph.addMorph(endLabel);
-        morph.endLabel = endLabel;
-
-        if (c.converterString) {
-            var middleLabel = new lively.morphic.Text(new Rectangle(0,0, 100,30), c.converterString).beLabel();
-            middleLabel.applyStyle(labelStyle);
-            morph.addMorph(middleLabel);
-            morph.middleLabel = middleLabel;
-        }
-
-        morph.addScript(function updateLabelPositions() {
-            this.startLabel.setPosition(this.getStartPos());
-            this.endLabel.setPosition(this.getEndPos());
-            if (this.middleLabel) this.middleLabel.setPosition(this.getRelativePoint(0.5));
-        });
-
-        connect(morph, 'geometryChanged', morph, 'updateLabelPositions');
-
-        morph.toggleLineStyle();
-
-        return morph;
-    },
-
-    showConnections: function(obj) {
-        if (!obj.attributeConnections) return;
-        for (var i = 0; i < obj.attributeConnections.length; i++)
-            showConnection(obj.attributeConnections[i]);
-    },
-
-    hideAllConnections: function(morph) {
-        morph.withAllSubmorphsDo(function() {
-            if (this.isConnectionVisualization) this.remove();
-        });
-    },
 
 });
 

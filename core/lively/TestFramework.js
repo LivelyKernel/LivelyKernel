@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.TestFramework').requires(['lively.bindings']).toRun(function() {
+module('lively.TestFramework').requires('lively.bindings', 'lively.Helper').toRun(function() {
 
 Object.subclass('TestCase',
 'settings', {

@@ -274,7 +274,7 @@ Object.extend(Function.prototype, {
 
 });
 
-var Class = {
+Global.Class = {
 
     anonymousCounter: 0,
 

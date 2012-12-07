@@ -189,7 +189,7 @@ if (this.window && window.navigator && window.navigator.userAgent.match(/Firefox
 // Global Helper - Objects and Properties
 ///////////////////////////////////////////////////////////////////////////////
 
-Objects = {
+Global.Objects = {
 
     typeStringOf: function(obj) {
         if (obj === null) { return "null" }
@@ -261,7 +261,7 @@ Objects = {
     }
 };
 
-Properties = {
+Global.Properties = {
     all: function(object, predicate) {
         var a = [];
         for (var name in object) {

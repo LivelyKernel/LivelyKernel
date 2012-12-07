@@ -1,4 +1,4 @@
-lively.module = function module(moduleName) {
+Global.module = lively.module = function module(moduleName) {
 
     moduleName = LivelyMigrationSupport.fixModuleName(moduleName);
 
@@ -93,7 +93,7 @@ lively.module = function module(moduleName) {
     return module;
 };
 
-lively.require = function require(/*requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
+Global.require = lively.require = function require(/*requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
     var getUniqueName = function() { return 'anonymous_module_' + require.counter },
         args = $A(arguments);
     require.counter !== undefined ? require.counter++ : require.counter = 0;

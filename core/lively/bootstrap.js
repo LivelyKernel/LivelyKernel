@@ -1,6 +1,8 @@
 /*global Config, require, Class, WebResource*/
 /*jshint evil: true, scripturl: true, loopfunc: true, laxbreak: true, immed: true, lastsemic: true*/
 (function bootstrapLively(Global) {
+    // "Global" is the lively accessor to the toplevel JS scope
+    Global.Global = Global;
     var isNodejs = typeof window === "undefined" && Global.process && !!Global.process.versions.node,
         isFirefox = Global.navigator && Global.navigator.userAgent.indexOf('Firefox') > -1,
         isFireBug = isFirefox && Global.console && Global.console.firebug !== undefined,
@@ -22,6 +24,20 @@
                 Config.finishLoadingCallbacks.push(callback);
             }
         }
+    })();
+
+    (function setupNodejs() {
+        if (!isNodejs) return;
+        // First define Global
+        // Now setup a DOM and window object
+        var jsdom = require("jsdom").jsdom,
+            markup = "<html><body><h1>test</h1></html></body>",
+            doc = jsdom(markup);
+        Global.window = doc.createWindow();
+        // FIX for global, see
+        // https://github.com/tmpvar/jsdom/commit/667948b3f0be1e1eb8edb8f0c5422deec84b25c2
+        // and https://github.com/brianmcd/contextify
+        window.window = window.getGlobal();
     })();
 
     (function setupConsole() {
@@ -284,8 +300,12 @@
         loadJs: isNodejs ?
             function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
                 console.log('loading ' + url)
-                var path = url.match(/(^http|^file):\/\/(.*)/)[2];
-                require(path);
+                var path = url.match(/(^http|^file):\/\/(.*)/)[2],
+                    fs = require('fs'),
+                    code = fs.readFileSync(path),
+                    vm = require('vm');
+                // vm.runInThisContext(code, path);
+                eval(code);
                 onLoadCb && onLoadCb();
             } :
             function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
@@ -842,7 +862,6 @@
 
     (function startWorld(startupFunc) {
         if (isNodejs) {
-            Global.window = global;
             // remove libs, JSON:
             LivelyLoader.bootstrapFiles = [
                 'lib/lively-libs-nodejs.js',
@@ -864,6 +883,12 @@
             ];
             LivelyLoader.bootstrap(function() {
                 console.log('bootstrap done');
+                console.log('' + lively);
+
+                JSLoader.loadJs("file:///Users/robert/Dropbox/Projects/emacs/swank-js/client/swank-js.js")
+                console.log('' + global.SwankJS);
+
+                // require("swank-js/client/node").setupNodeJSClient();
             });
         } else {
             Global.addEventListener('DOMContentLoaded', init, true);

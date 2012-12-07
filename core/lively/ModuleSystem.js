@@ -1,4 +1,4 @@
-function module(moduleName) {
+lively.module = function module(moduleName) {
 
     moduleName = LivelyMigrationSupport.fixModuleName(moduleName);
 
@@ -93,7 +93,7 @@ function module(moduleName) {
     return module;
 };
 
-function require(/*requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
+lively.require = function require(/*requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
     var getUniqueName = function() { return 'anonymous_module_' + require.counter },
         args = $A(arguments);
     require.counter !== undefined ? require.counter++ : require.counter = 0;
@@ -422,7 +422,7 @@ Object.extend(lively.Module, {
             $('body script').each(function() { scripIds.push($(this).attr('id')); });
             return scripIds.collect(function(id) {
                 var name = id.replace(/^..\//, '');
-                return module(name);
+                return lively.module(name);
             });
         }
 
@@ -438,7 +438,7 @@ Object.extend(lively.Module, {
             i++;
             var canBeLoaded = modules.select(function(module) {
                 if (!module.privateRequirements) return true;
-                return module.privateRequirements.all(function(requirement) {
+                return lively.module.privateRequirements.all(function(requirement) {
                     return sortedModules.include(requirement) })
             })
             sortedModules = sortedModules.concat(canBeLoaded);
@@ -475,7 +475,7 @@ Object.extend(lively.Module, {
         var webR = dir.asWebResource();
         lively.bindings.connect(webR, 'subDocuments', {onLoad: function(files) {
             var moduleNames = files.invoke('getURL') .invoke('asModuleName'),
-                modules = moduleNames.collect(function(name) { return module(name); })
+                modules = moduleNames.collect(function(name) { return lively.module(name); })
             callback(modules);
         }}, 'onLoad');
         webR.getSubElements();

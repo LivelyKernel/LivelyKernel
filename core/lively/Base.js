@@ -50,7 +50,7 @@ Object.extend(Function.prototype, {
 
         // modified from prototype.js
 
-        var args = $A(arguments),
+        var args = Array.from(arguments),
             className = args.shift(),
             targetScope = Global,
             shortName = null;
@@ -349,7 +349,7 @@ var Class = {
         // get the namespace object given the qualified name
         var lastDot = className ? className.lastIndexOf('.') : -1;
         if (lastDot < 0) return Global;
-        else return module(className.substring(0, lastDot));
+        else return lively.module(className.substring(0, lastDot));
     },
 
     withAllClassNames: function Class$withAllClassNames(scope, callback) {

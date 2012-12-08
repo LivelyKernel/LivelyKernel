@@ -656,6 +656,21 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         this.hands.push(hand);
         this.addMorph(hand);
     }
+},
+"world requirements", {
+    addWorldRequirement: function(requirement) {
+        this.setWorldRequirements(this.getWorldRequirements().concat(requirement));
+    },
+
+    setWorldRequirements: function(requirements) {
+        // FIXME metaInfos should be independent from PartsBin
+        var metaInfo = this.getPartsBinMetaInfo();
+        requirements.forEach(function(ea) { metaInfo.addRequiredModule(ea); });
+    },
+
+    getWorldRequirements: function() {
+        return this.getPartsBinMetaInfo().getRequiredModules();
+    }
 });
 
 Object.extend(lively.morphic.World, {

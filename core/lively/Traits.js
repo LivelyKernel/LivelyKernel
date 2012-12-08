@@ -19,8 +19,8 @@ Object.subclass('RealTrait',
         this.traitRegistry[name] = this;
 
         // remember the module that contains the class def
-        if (Global.lively && lively.lang && lively.lang.Namespace)
-        this.sourceModule = lively.lang.Namespace.current();
+        if (Global.lively && lively.Module && lively.Module.current)
+            this.sourceModule = lively.Module.current();
     },
     createAnonymousTrait: function(options) {
         return RealTrait.createAnonymousTrait('Modified' + this.name, options);
@@ -38,8 +38,8 @@ Object.subclass('RealTrait',
         this.removeFromDependents();
         for (var name in def) {
             if (!def.hasOwnProperty(name) || !Object.isFunction(def[name])) continue;
-            if (Global.lively && lively.lang && lively.lang.Namespace) {
-                def[name].sourceModule = lively.lang.Namespace.current();
+            if (Global.lively && lively.Module && lively.Module.current) {
+                def[name].sourceModule = lively.Module.current();
             }
             def[name].belongsToTrait = this;
         }

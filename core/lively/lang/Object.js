@@ -25,7 +25,8 @@ Object.extend = function(destination, source) {
         if (sourceObj instanceof Function) {
             if ((!sourceObj.name || (sourceObj.name.length == 0)) && !sourceObj.displayName) sourceObj.displayName = property;
             // remember the module that contains the class def
-            if (window.lively && lively.lang && lively.lang.Namespace) sourceObj.sourceModule = lively.lang.Namespace.current();
+            if (window.lively && lively.Module && lively.Module.current)
+                sourceObj.sourceModule = lively.Module.current();
         }
     }
     return destination;
@@ -188,7 +189,7 @@ if (this.window && window.navigator && window.navigator.userAgent.match(/Firefox
 // Global Helper - Objects and Properties
 ///////////////////////////////////////////////////////////////////////////////
 
-Objects = {
+Global.Objects = {
 
     typeStringOf: function(obj) {
         if (obj === null) { return "null" }
@@ -260,7 +261,7 @@ Objects = {
     }
 };
 
-Properties = {
+Global.Properties = {
     all: function(object, predicate) {
         var a = [];
         for (var name in object) {

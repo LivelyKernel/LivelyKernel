@@ -1,6 +1,6 @@
 module('lively.morphic.tests.Helper').requires('lively.TestFramework', 'lively.morphic.Complete').toRun(function() {
 
-namespace('lively.morphic.Tests'); // FIXME to be removed
+module('lively.morphic.Tests'); // FIXME to be removed
 
 TestCase.subclass('lively.morphic.tests.TestCase',
 'running', {

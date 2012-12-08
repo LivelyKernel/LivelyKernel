@@ -3,7 +3,7 @@ module('lively.persistence.StandAlonePackaging').requires(['lively.persistence.S
 Object.subclass('lively.persistence.StandAlonePackaging.Helper',
 'accessing modules', {
     getRelativeURLsFromLoadedModules: function() {
-        var relativeURLs = lively.lang.Namespace.bootstrapModules();
+        var relativeURLs = lively.Module.bootstrapModules();
         relativeURLs.unshift('lively/bootstrap.js');
         return relativeURLs;
     }

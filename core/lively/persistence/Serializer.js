@@ -1204,7 +1204,6 @@ ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin', {
 Object.extend(lively.persistence.Serializer, {
 
     jsonWorldId: 'LivelyJSONWorld',
-    changeSetElementId: 'WorldChangeSet',
 
     createObjectGraphLinearizer: function() {
         return ObjectGraphLinearizer.forNewLively();
@@ -1231,24 +1230,6 @@ Object.extend(lively.persistence.Serializer, {
     },
 
     serializeWorldToDocumentWithSerializer: function(world, doc, serializer) {
-        // this helper was introduced to make the code that is browser
-        // dependent (currently IE9 vs the rest) easier to read. It sould be
-        // moved to dome general DOM abstraction layer
-        function getCSNode(doc, changeSet) {
-            var changeSetNode;
-            if (!changeSet) {
-                alert('Found no ChangeSet while serializing ' + world + '! Adding an empty CS.');
-                changeSetNode = LivelyNS.create('code');
-            } else {
-                changeSetNode = cs.getXMLElement();
-            }
-            if (!UserAgent.isIE) return doc.importNode(changeSetNode, true);
-            // mr: this is a real IE hack!
-            var helperDoc = new ActiveXObject('MSXML2.DOMDocument.6.0');
-            helperDoc.loadXML(new XMLSerializer().serializeToString(changeSetNode));
-            return doc.importNode(helperDoc.firstChild, true);
-        }
-
         var $doc = $(doc),
             $head = $doc.find("head"),
             head = $head.get(0);
@@ -1261,14 +1242,6 @@ Object.extend(lively.persistence.Serializer, {
             .attr("id", LivelyMigrationSupport.migrationLevelNodeId)
             .append($doc[0].createCDATASection(LivelyMigrationSupport.migrationLevel))
             .appendTo($head);
-
-        // serialize changeset
-        var cs = world.getChangeSet(),
-            csElement = getCSNode(doc, cs);
-        $("<meta/>")
-            .attr("id", this.changeSetElementId)
-            .append(csElement)
-            .appendTo($head)
 
         // serialize world
         var json = this.serialize(world, null, serializer);

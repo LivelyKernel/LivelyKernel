@@ -1279,9 +1279,11 @@ Object.extend(lively.persistence.Serializer, {
             .appendTo($head)
 
         // generate a preview
-        var previewHTML = world.asHTMLLogo({asFragment: true});
-        $doc.find("body").html(previewHTML);
-        $("head style").clone().appendTo($head);
+        if (lively.Config.get('createWorldPreview')) {
+            var previewHTML = world.asHTMLLogo({asFragment: true});
+            $doc.find("body").html(previewHTML);
+            $("head style").clone().appendTo($head);
+        }
 
         return doc;
     },

@@ -398,7 +398,7 @@ var JSLoader = {
                     // FIXME, better now throw error in Class.forName
                     return !ea.include('lively-libs') && Class.forName(ea) !== undefined;
                 });
-                require(realModules).toRun(callback);
+                lively.require(realModules).toRun(callback);
 
             };
 

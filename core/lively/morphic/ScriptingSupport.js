@@ -112,14 +112,13 @@ lively.morphic.Morph.addMethods(
     },
     getTargetConnectionPoints: function() {
         return this.getConnectionPoints();
-    },
-
+    }
 });
 
 lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
 'settings', {
     defaultExtent: pt(100,100),
-    style: {enableDragging: true, accessibleInInactiveWindow: true},
+    style: {enableDragging: true, accessibleInInactiveWindow: true}
 },
 'initializing', {
     initialize: function($super, partsBinURL, targetName, partItem) {

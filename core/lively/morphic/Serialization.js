@@ -304,9 +304,7 @@ Object.extend(lively.morphic.World, {
         return world;
     },
     fromDocument: function(doc) {
-        var world = lively.persistence.Serializer.deserializeWorldFromDocument(doc),
-            cs = lively.persistence.Serializer.deserializeChangeSetFromDocument(doc);
-        world.setChangeSet(cs);
+        var world = lively.persistence.Serializer.deserializeWorldFromDocument(doc);
         world.prepareForNewRenderContext(world.renderContext());
         return world;
     },

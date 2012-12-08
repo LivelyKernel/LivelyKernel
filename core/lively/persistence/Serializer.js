@@ -1309,13 +1309,6 @@ Object.extend(lively.persistence.Serializer, {
         return world;
     },
 
-    deserializeChangeSetFromDocument: function(doc) {
-        var csMetaElement = doc.getElementById(this.changeSetElementId);
-        if (!csMetaElement)
-            throw new Error('Cannot find ChangeSet meta element when deserializing');
-        return ChangeSet.fromNode(csMetaElement);
-    },
-
     sourceModulesIn: function(jso) {
         return new ClassPlugin().sourceModulesIn(jso.registry);
     },

@@ -647,7 +647,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
                 path = URL.codeBase.withFilename(cursorFile).pathname;
             document.body.style.cursor = 'url("' + path + '"), none';
         });
-    },
+    }
 },
 'hand morph', {
     addHandMorph: function() {
@@ -656,10 +656,6 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         this.hands.push(hand);
         this.addMorph(hand);
     }
-},
-'changes', {
-    setChangeSet: function(changeSet) { this.changeSet = changeSet },
-    getChangeSet: function() { return this.changeSet }
 });
 
 Object.extend(lively.morphic.World, {

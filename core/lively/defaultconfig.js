@@ -392,9 +392,8 @@ Config.addOptions(
         ["serverInvokedTest", false],
 
         // Modules
-        ["modulesBeforeChanges", ['lively.ChangeSet'], "evaluated first, even before ChangeSet of a world"],
         ["modulesBeforeWorldLoad", [], "evaluated before all changes"],
-        ["modulesOnWorldLoad", [], "evaluated before ChangeSet initializer"],
+        ["modulesOnWorldLoad", [], "evaluated before world is setup"],
         ["codeBase", Config.codeBase && Config.codeBase != '' ? Config.codeBase : Config.getDocumentDirectory()],
         ["showModuleDefStack", true, "so modules know where they were required from"],
         ["loadUserConfig", false, "for sth like jens/config.js, used in lively.bootstrap"],

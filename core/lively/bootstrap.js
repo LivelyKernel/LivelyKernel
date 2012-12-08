@@ -718,7 +718,7 @@ var LivelyLoader = {
 var LivelyMigrationSupport = {
     // increase this value by hand if you make a change that effects object layout
     // LivelyMigrationSupport.migrationLevel
-    migrationLevel: 4,
+    migrationLevel: 7,
     documentMigrationLevel: 0,
     migrationLevelNodeId: 'LivelyMigrationLevel',
     moduleRenameDict: {},

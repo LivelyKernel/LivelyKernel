@@ -113,7 +113,7 @@ Object.extend(String.prototype, {
 // Global Helper - Strings
 ///////////////////////////////////////////////////////////////////////////////
 
-Strings = {
+Global.Strings = {
     format: function Strings$format() {
         return Strings.formatFromArray($A(arguments));
     },

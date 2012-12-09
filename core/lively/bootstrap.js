@@ -1,5 +1,7 @@
-/*global Config, require, Class, WebResource*/
+/*global Config, require, Class, WebResource, $A*/
 /*jshint evil: true, scripturl: true, loopfunc: true, laxbreak: true, immed: true, lastsemic: true*/
+var Global = (typeof window !== "undefined" && window) || global;
+
 (function bootstrapLively(Global) {
     var isFirefox = window.navigator.userAgent.indexOf('Firefox') > -1;
     var isFireBug = isFirefox
@@ -30,7 +32,7 @@
                            || (window.parent && window.parent.console)
                            || {},
             required = ['log', 'group', 'groupEnd', 'warn', 'assert', 'error'],
-            emptyFunc = function() { };
+            emptyFunc = function () { };
 
         for (var i = 0; i < required.length; i++) {
             if (!platformConsole[required[i]]) {
@@ -340,10 +342,11 @@
             LIVELYNamespace: 'http:\/\/www.experimentalstuff.com/Lively',
 
             loadJs: function (url, onLoadCb, loadSync, okToUseCache,
-                                cacheQuery) {
+                             cacheQuery) {
                 if (this.scriptInDOM(url)) {
-                    console.log(
-                        'script ' + url + ' already loaded or loading');
+                    console.log('script ' + url
+                                + ' already loaded or loading'
+                    );
                     return null;
                 }
                 // it's called loadJs, not loadCSS !!!
@@ -379,21 +382,18 @@
             loadSync: function (url, onLoadCb, script) {
                 if (this.isCSS(url)) {
                     console.log('skipping eval for css: ' + url);
-                    if (typeof onLoadCb === 'function') {
-                        onLoadCb();
-                    }
+                    if (typeof onLoadCb === 'function') onLoadCb();
                     return;
                 }
                 var source = this.getSync(url);
                 try {
                     eval(source);
                 } catch (e) {
-                    console.error(
-                        'Error when loading ' + url + ': ' + e + '\n' + e.stack);
+                    console.error('Error when loading ' + url + ': '
+                                  + e + '\n' + e.stack
+                    );
                 }
-                if (typeof onLoadCb === 'function') {
-                    onLoadCb();
-                }
+                if (typeof onLoadCb === 'function') onLoadCb();
             },
 
             loadAsync: function (url, onLoadCb, script) {
@@ -401,19 +401,14 @@
                     script.setAttributeNS(this.XLINKNamespace, 'href', url);
                 } else if (this.isCSS(url)) {
                     script.setAttribute("href", url);
-                    if (typeof onLoadCb === 'function') {
-                        onLoadCb(); // huh?
-                    }
+                    if (typeof onLoadCb === 'function') onLoadCb(); // huh?
                 } else {
                     script.setAttributeNS(null, 'src', url);
                 }
 
-                if (onLoadCb) {
-                    script.onload = onLoadCb;
-                }
+                if (onLoadCb) script.onload = onLoadCb;
                 script.setAttributeNS(null, 'async', true);
             },
-
 
             loadCombinedModules: function (combinedFileUrl, callback, hash) {
                 // If several modules are combined in one file they can be
@@ -428,21 +423,24 @@
                         expectToLoadModules: function (listOfRelativePaths) {
                             // urls like http://lively-kernel.org/repository/
                             //                  webwerkstatt/lively/Text.js
-                            this.expectedModuleURLs = [];
+                            this.expectedModuleURLs = new Array(
+                                    listOfRelativePaths.length
+                            );
                             var i, len = listOfRelativePaths.length;
                             for (i = 0; i < len; i++) {
-                                this.expectedModuleURLs.push(
+                                this.expectedModuleURLs[i] = (
                                     Global.LivelyLoader.codeBase
-                                  + listOfRelativePaths[i]);
+                                    + listOfRelativePaths[i]
+                                );
                             }
 
                             // modules like lively.Text
-                            this.expectedModules = [];
+                            this.expectedModules = new Array(len);
                             for (i = 0; i < len; i++) {
-                                var moduleName =
-                                    listOfRelativePaths[i].replace(/\//g, '.');
+                                var moduleName = listOfRelativePaths[i]
+                                                    .replace(/\//g, '.');
                                 moduleName = moduleName.replace(/\.js$/g, '');
-                                this.expectedModules.push(moduleName);
+                                this.expectedModules[i] = moduleName;
                             }
 
                             // create script tags that are found when tested if
@@ -451,43 +449,52 @@
                                 var script = document.createElement('script');
                                 script.setAttribute('id', url);
                                 document.getElementsByTagName('head')[0]
-                                    .appendChild(script);
+                                            .appendChild(script);
                             });
                         },
 
                         includedInCombinedFile: function (scriptUrl) {
-                            return this.expectedModuleURLs &&
-                                this.expectedModuleURLs.indexOf(scriptUrl)
-                                    >= 0;
+                            return (
+                                this.expectedModuleURLs
+                                && this.expectedModuleURLs.indexOf(scriptUrl)
+                                   >= 0
+                            );
                         },
 
                         loadJs: function (url) {
                             console.log(
                                 'load file that is not in combined modules: '
-                              + url);
+                                + url
+                            );
                             if (!this.includedInCombinedFile(url)) {
                                 originalLoader.loadJs(url);
                             }
                         },
 
                         scriptInDOM: function (url) {
-                            return originalLoader.scriptInDOM(url) ||
-                                this.includedInCombinedFile(url);
+                            return (
+                                originalLoader.scriptInDOM(url)
+                                || this.includedInCombinedFile(url)
+                            );
                         }
 
                     },
 
                     callCallback = function () {
                         window.JSLoader = originalLoader;
-                        // FIXME
-                        // Filter out the modules already loaded
+                        // FIXME, Filter out the modules already loaded
                         var realModules = combinedLoader.expectedModules
-                            .select(function (ea) {
-                            // FIXME, better now throw error in Class.forName
-                            return !ea.include('lively-libs')
-                                && Class.forName(ea) !== undefined;
-                        });
-                        require(realModules).toRun(callback);
+                                            .select(
+                            function (ea) {
+                                // FIXME, better now throw error in
+                                // Class.forName
+                                return (
+                                    !ea.include('lively-libs')
+                                    && Class.forName(ea) !== undefined
+                                );
+                            }
+                        );
+                        Global.lively.require(realModules).toRun(callback);
 
                     };
 
@@ -504,19 +511,18 @@
                     callCallback,
                     undefined,
                     undefined,
-                    hash);
+                    hash
+                );
             },
 
             loadAll: function (urls, cb) {
                 urls.reverse().reduce(function (loadPrevious, url) {
                     return function () { JSLoader.loadJs(url, loadPrevious); };
-                }, function () { if (cb) cb(); })();
+                }, function () { cb && cb(); })();
             },
 
             resolveAndLoadAll: function (baseURL, urls, cb) {
-                var i;
-
-                for (i = 0; i < urls.length; i++) {
+                for (var i = 0; i < urls.length; i++) {
                     urls[i] = baseURL + urls[i];
                 }
                 return this.loadAll(urls, cb);
@@ -531,8 +537,9 @@
             },
 
             getLinkAttribute: function (el) {
-                return el.getAttributeNS(this.XLINKNamespace, 'href') ||
-                    el.getAttribute('src');
+                return (el.getAttributeNS(this.XLINKNamespace, 'href')
+                        || el.getAttribute('src')
+                );
             },
 
             getScripts: function () {
@@ -544,11 +551,9 @@
             },
 
             scriptsThatLinkTo: function (url) {
-                var scriptsFound = [];
-                var allScripts = this.getScripts();
-                var i;
-
-                for (i = 0; i < allScripts.length; i++) {
+                var scriptsFound = [],
+                    allScripts = this.getScripts();
+                for (var i = 0; i < allScripts.length; i++) {
                     if (this.scriptElementLinksTo(allScripts[i], url)) {
                         scriptsFound.push(allScripts[i]);
                     }
@@ -556,12 +561,14 @@
                 return scriptsFound;
             },
 
-            removeQueries: function (url) { return url.split('?')[0]; },
+            removeQueries: function (url) {
+                return url.split('?')[0];
+            },
 
             resolveURLString: function (urlString) {
                 // FIXME duplicated from URL class in lively. Network
-                // actually lively.Core should require lively.Network -- but
-                // lively.Network indirectly
+                // actually lively.Core should require lively.Network
+                //   -- but lively.Network indirectly
                 // lively.Core ====>>> FIX that!!!
                 var result = urlString;
                 // resolve ..
@@ -577,20 +584,12 @@
             },
 
             scriptElementLinksTo: function (el, url) {
-                if (!el.getAttribute) {
-                    return false;
-                }
+                if (!el.getAttribute) return false;
                 // FIXME use namespace consistently
-                if (el.getAttribute('id') === url) {
-                    return true;
-                }
+                if (el.getAttribute('id') === url) return true;
                 var link = this.getLinkAttribute(el);
-                if (!link) {
-                    return false;
-                }
-                if (url === link) {
-                    return true;
-                }
+                if (!link) return false;
+                if (url === link) return true;
                 var linkString = this.makeAbsolute(link),
                     urlString = this.makeAbsolute(url);
                 return linkString === urlString;
@@ -602,7 +601,9 @@
 
             dirOfURL: function (url) {
                 return this.removeQueries(url).substring(
-                    0, url.lastIndexOf('/') + 1);
+                            0,
+                            url.lastIndexOf('/') + 1
+                       );
             },
 
             makeAbsolute: function (urlString) {
@@ -616,15 +617,14 @@
 
             makeUncached: function (urlString, cacheQuery) {
                 cacheQuery = cacheQuery || new Date().getTime();
-                return urlString
-                    + (urlString.indexOf('?') === -1 ? '?' : '&')
-                    + cacheQuery;
+                return (urlString + (urlString.indexOf('?') === -1 ? '?' : '&')
+                        + cacheQuery
+                );
             },
 
             removeAllScriptsThatLinkTo: function (url) {
                 var scripts = this.scriptsThatLinkTo(url);
-                var i;
-                for (i = 0; i < scripts.length; i++) {
+                for (var i = 0; i < scripts.length; i++) {
                     scripts[i].parentNode.removeChild(scripts[i]);
                 }
             },
@@ -632,9 +632,7 @@
             getSyncReq: function (url, forceUncached) {
                 if (typeof WebResource !== "undefined") {
                     var webR = new WebResource(url);
-                    if (forceUncached) {
-                        webR.forceUncached();
-                    }
+                    if (forceUncached) webR.forceUncached();
                     var webRGet = webR.get();
                     return {
                         status: webRGet.status.code(),
@@ -643,9 +641,7 @@
                 }
 
                 var req = new XMLHttpRequest();
-                if (forceUncached) {
-                    url = this.makeUncached(url);
-                }
+                if (forceUncached) url = this.makeUncached(url);
                 req.open('GET', url, false/*sync*/);
                 req.send();
                 return req;
@@ -668,218 +664,241 @@
     }(Global));
 
     (function setupLivelyLoader(Global) {
-        var LivelyLoader = {
+        // TODO: Something is wrong with the lively-libs, use debug only to
+        // activate loading on ios 5
+        var libsFile = /*useMinifiedLibs ? 'lib/lively-libs.js' :*/ 'lib/lively-libs-debug.js',
+            bootstrapFiles = [
+                libsFile,
+                'lively/Migration.js',
+                'lively/JSON.js',
+                'lively/lang/Object.js',
+                'lively/lang/Function.js',
+                'lively/lang/String.js',
+                'lively/lang/Array.js',
+                'lively/lang/Number.js',
+                'lively/lang/Date.js',
+                'lively/lang/Worker.js',
+                'lively/defaultconfig.js',
+                'lively/localconfig.js',
+                'lively/Base.js',
+                'lively/ModuleSystem.js',
+                'lively/lang/Closure.js',   // FIXME: require module instead
+                'lively/lang/UUID.js',      // FIXME: require module instead
+                'lively/LocalStorage.js'    // FIXME: require module instead
+            ],
+            LivelyLoader = {
 
-            //
-            // ------- generic load support ----------
-            //
+                //
+                // ------- generic load support ----------
+                //
 
-            libsFile: (function () {
-                // FIXME: Something is wrong with the lively-libs, use debug only
-                // to activate loading on ios 5:
-                // if (useMinifiedLibs) {
-                //     return 'lib/lively-libs.js';
-                // }
-                return 'lib/lively-libs-debug.js';
-            }()),
+                libsFile: libsFile,
+                bootstrapFiles: bootstrapFiles,
 
-            codeBase: (function findCodeBase() {
-                // search for script that links to "bootstrap.js" and
-                // construct the codeBase path from its path
-                if (window.Config && Config.codeBase !== undefined) {
-                    return Config.codeBase;
-                }
+                codeBase: (function findCodeBase() {
+                    // search for script that links to "bootstrap.js" and
+                    // construct the codeBase path from its path
+                    if (window.Config && Config.codeBase !== undefined)
+                        return Config.codeBase;
 
-                var bootstrapFileName = 'bootstrap.js',
-                    scripts = Global.JSLoader.getScripts(),
-                    i = 0, node, url, urlFound;
+                    var bootstrapFileName = 'bootstrap.js',
+                        scripts = Global.JSLoader.getScripts(),
+                        i = 0, node, urlFound;
 
-                while (!urlFound) {
-                    i += 1;
-                    node = scripts[i];
-                    url = Global.JSLoader.getLinkAttribute(node);
-                    if (url && (url.indexOf(bootstrapFileName) >= 0)) {
-                        urlFound = url;
+                    while (!urlFound && (node = scripts[i++])) {
+                        var url = Global.JSLoader.getLinkAttribute(node);
+                        if (url && (url.indexOf(bootstrapFileName) >= 0)) {
+                            urlFound = url;
+                        }
                     }
-                }
 
-                if (!urlFound) {
-                    console.warn('Cannot find codebase, have to guess...');
-                    return Global.JSLoader.dirOfURL(
-                        window.location.href.toString());
-                }
-
-                var codeBase = Global.JSLoader.makeAbsolute(
-                    Global.JSLoader.dirOfURL(urlFound) + '../');
-                console.log('Codebase is ' + codeBase);
-
-                return codeBase;
-            }()),
-
-            rootPath: (function findRootPath() {
-                var bootstrapFileName = 'bootstrap.js',
-                    scripts = Global.JSLoader.getScripts(),
-                    i = 0, node, url, urlFound;
-
-                if (window.Config && Config.rootPath !== undefined) {
-                    return Config.rootPath;
-                }
-
-                if (window.Config && Config.standAlone) {
-                    // copied from Config.getDocumentDirectory,
-                    // Config not yet available...
-                    url = document.URL;
-                    return url.substring(0, url.lastIndexOf('/') + 1);
-                }
-
-                while (!urlFound) {
-                    i += 1;
-                    node = scripts[i];
-                    url = Global.JSLoader.getLinkAttribute(node);
-                    if (url && (url.indexOf(bootstrapFileName) >= 0)) {
-                        urlFound = url;
+                    if (!urlFound) {
+                        console.warn(
+                            'Cannot find codebase, have to guess...'
+                        );
+                        return Global.JSLoader.dirOfURL(
+                                    window.location.href.toString()
+                               );
                     }
-                }
 
-                if (!urlFound) {
-                    console.warn('Cannot find bootstrap.js, have to guess...');
-                    return Global.JSLoader.dirOfURL(
-                        window.location.href.toString());
-                }
-                var rootPath = Global.JSLoader.makeAbsolute(
-                    urlFound.match(/(.*)core\/lively\/(.*)/)[1]);
-                console.log('Root path is ' + rootPath);
+                    var codeBase = Global.JSLoader.makeAbsolute(
+                                        Global.JSLoader.dirOfURL(urlFound)
+                                        + '../'
+                                   );
+                    console.log('Codebase is ' + codeBase);
 
-                return rootPath;
-            }()),
+                    return codeBase;
+                })(),
 
-            modulePaths: (function setModulePaths() {
-                if (!window.Config) { window.Config = {}; }
-                // FIXME this is webwerkstatt specific
-                var defaultPaths = [
-                    'users/', 'projects/', 'documentation/', 'server/'
-                ];
-                if (Config.modulePaths === undefined) {
-                    Config.modulePaths = defaultPaths;
-                } else {
-                    Config.modulePaths = Config.modulePaths.concat(
-                        defaultPaths);
-                }
-                return Config.modulePaths;
-            }()),
+                rootPath: (function findRootPath() {
 
-            installWatcher: function (target, propName, haltWhenChanged) {
-                // observe slots, for debugging
-                var newPropName = '__' + propName;
-                target[newPropName] = target[propName];
-                target.__defineSetter__(propName, function (v) {
-                    target[newPropName] = v;
+                    var url;
+
+                    if (window.Config && Config.rootPath !== undefined) {
+                        return Config.rootPath;
+                    }
+
+                    if (window.Config && Config.standAlone) {
+                        // copied from Config.getDocumentDirectory,
+                        // Config not yet available...
+                        url = document.URL;
+                        return url.substring(0, url.lastIndexOf('/') + 1);
+                    }
+
+                    var bootstrapFileName = 'bootstrap.js',
+                        scripts = Global.JSLoader.getScripts(),
+                        i = 0, node, urlFound;
+
+                    while (!urlFound && (node = scripts[i++])) {
+                        url = Global.JSLoader.getLinkAttribute(node);
+                        if (url && (url.indexOf(bootstrapFileName) >= 0)) {
+                            urlFound = url;
+                        }
+                    }
+
+                    if (!urlFound) {
+                        console.warn(
+                            'Cannot find bootstrap.js, have to guess...'
+                        );
+                        return Global.JSLoader.dirOfURL(
+                                    window.location.href.toString()
+                               );
+                    }
+                    var rootPath = Global.JSLoader.makeAbsolute(
+                                        urlFound.match(
+                                            /(\.*)core\/lively\/(\.*)/
+                                        )[1]
+                                   );
+                    console.log('Root path is ' + rootPath);
+
+                    return rootPath;
+                })(),
+
+                modulePaths: (function setModulePaths() {
+                    if (!window.Config) { window.Config = {}; }
+                    // FIXME this is webwerkstatt specific
+                    var defaultPaths = [
+                            'users/',
+                            'projects/',
+                            'documentation/',
+                            'server/'
+                        ];
+                    if (Config.modulePaths === undefined) {
+                        Config.modulePaths = defaultPaths;
+                    } else {
+                        Config.modulePaths = Config.modulePaths.concat(
+                                                defaultPaths
+                                             );
+                    }
+                    return Config.modulePaths;
+                })(),
+
+                installWatcher: function (target, propName, haltWhenChanged) {
+                    // observe slots, for debugging
+                    var newPropName = '__' + propName;
+                    target[newPropName] = target[propName];
+                    target.__defineSetter__(propName, function (v) {
+                        target[newPropName] = v;
+                        console.log(
+                            target.toString() + '.' + propName
+                            + ' changed: ' + v
+                        );
+                        // FIXME: debugger smell in terms of code conventions
+                        if (haltWhenChanged) debugger;
+                    });
+                    target.__defineGetter__(
+                        propName,
+                        function () {
+                            return target[newPropName];
+                        }
+                    );
                     console.log(
-                        target.toString() + '.' + propName + ' changed: ' + v);
-                    if (haltWhenChanged) {
-                        debugger;
+                        'Watcher for ' + target + '.' + propName
+                        + ' installed'
+                    );
+                },
+
+                createConfigObject: function () {
+                    // Should have addtional logic for the case when no no
+                    // window object exist...
+                    if (!window.Config) window.Config = {};
+                    window.Config.codeBase = this.codeBase;
+                    window.Config.rootPath = this.rootPath;
+                    window.Config.modulePaths = this.modulePaths;
+                },
+
+                //
+                // ------- load world ---------------
+                //
+                loadMain: function (canvas, startupFunc) {
+                    Global.lively.Config.loadUserConfigModule();
+                    require('lively.bindings', 'lively.Main').toRun(
+                        function () {
+                            var loader = Global.lively.Main.getLoader(canvas);
+                            Global.lively.bindings.connect(
+                                loader, 'finishLoading',
+                                Global.LoadingScreen, 'remove'
+                            );
+                            if (startupFunc) {
+                                loader.startupFunc = startupFunc;
+                                Global.lively.bindings.connect(
+                                    loader, 'finishLoading',
+                                    loader, 'startupFunc'
+                                );
+                            }
+                            loader.systemStart(canvas);
+                        }
+                    );
+                },
+
+                startFromSerializedWorld: function (startupFunc) {
+                    if (!livelyConfigExists() || !Config.isNewMorphic) {
+                        return false;
                     }
-                });
-                target.__defineGetter__(propName, function () {
-                    return target[newPropName];
-                });
-                console.log('Watcher for ' + target + '.'
-                           + propName + ' installed');
-            },
+                    var self = this;
 
-            createConfigObject: function () {
-                // Should have addtional logic for the case when no no window
-                // object exist...
-                if (!window.Config) window.Config = {};
-                window.Config.codeBase = this.codeBase;
-                window.Config.rootPath = this.rootPath;
-                window.Config.modulePaths = this.modulePaths;
-            },
+                    Global.LoadingScreen.add();
+                    this.bootstrap(function () {
+                        self.loadMain(document.body, startupFunc);
+                    });
+                    return true;
+                },
 
-            //
-            // ------- load world ---------------
-            //
-            loadMain: function (canvas, startupFunc) {
-                Global.lively.Config.loadUserConfigModule();
-                require('lively.bindings', 'lively.Main').toRun(function () {
-                    var loader = Global.lively.Main.getLoader(canvas);
-                    Global.lively.bindings.connect(
-                        loader, 'finishLoading',
-                        Global.LoadingScreen, 'remove');
-                    if (startupFunc) {
-                        loader.startupFunc = startupFunc;
-                        Global.lively.bindings.connect(
-                            loader, 'finishLoading',
-                            loader, 'startupFunc');
+                bootstrap: function (thenDoFunc) {
+                    this.createConfigObject();
+                    var url = document.URL,
+                        dontBootstrap = (
+                            Config.standAlone
+                            || url.indexOf('dontBootstrap=true')
+                               >= 0
+                        );
+
+                    if (dontBootstrap) { thenDoFunc(); return; }
+
+                    var codeBase = this.codeBase,
+                        optimizedLoading = !url.match('quickLoad=false')
+                                        && !url.match('!svn')
+                                        && url.match('webwerkstatt')
+                                        && url.match('lively-kernel.org');
+
+                    if (optimizedLoading) {
+                        console.log('optimized loading enabled');
+                        var hashUrl =
+                                codeBase + 'generated/combinedModulesHash.txt',
+                            combinedModulesUrl =
+                                codeBase + 'generated/combinedModules.js',
+                            hash = Global.JSLoader.getSync(hashUrl, true/*uncached*/);
+                        Global.JSLoader.loadCombinedModules(
+                            combinedModulesUrl, thenDoFunc, hash
+                        );
+                        return;
                     }
-                    loader.systemStart(canvas);
-                });
-            },
 
-            startFromSerializedWorld: function (startupFunc) {
-                if (!livelyConfigExists() || !Config.isNewMorphic) {
-                    return false;
+                    Global.JSLoader.resolveAndLoadAll(
+                        codeBase, this.bootstrapFiles, thenDoFunc
+                    );
                 }
-                var self = this;
-
-                Global.LoadingScreen.add();
-                this.bootstrap(function () {
-                    self.loadMain(document.body, startupFunc);
-                });
-                return true;
-            },
-
-            bootstrap: function (thenDoFunc) {
-                this.createConfigObject();
-                var url = document.URL,
-                    dontBootstrap = Config.standAlone
-                                 || url.indexOf('dontBootstrap=true') >= 0;
-                if (dontBootstrap) {
-                    thenDoFunc();
-                    return;
-                }
-
-                var codeBase = this.codeBase,
-                    optimizedLoading = !url.match('quickLoad=false')
-                                    && !url.match('!svn')
-                                    && url.match('webwerkstatt')
-                                    && url.match('lively-kernel.org');
-
-                if (optimizedLoading) {
-                    console.log('optimized loading enabled');
-                    var hashUrl = codeBase
-                                + 'generated/combinedModulesHash.txt',
-                        combinedModulesUrl = codeBase
-                                           + 'generated/combinedModules.js',
-                        hash = Global.JSLoader.getSync(hashUrl, true);
-                    Global.JSLoader.loadCombinedModules(
-                        combinedModulesUrl, thenDoFunc, hash);
-                    return;
-                }
-
-                var modules = [
-                    this.libsFile,
-                    'lively/Migration.js',
-                    'lively/JSON.js',
-                    'lively/lang/Object.js',
-                    'lively/lang/Function.js',
-                    'lively/lang/String.js',
-                    'lively/lang/Array.js',
-                    'lively/lang/Number.js',
-                    'lively/lang/Date.js',
-                    'lively/lang/Worker.js',
-                    'lively/defaultconfig.js',
-                    'lively/localconfig.js',
-                    'lively/Base.js',
-                    'lively/lang/Closure.js',  // FIXME: require module instead
-                    'lively/lang/UUID.js',     // FIXME: require module instead
-                    'lively/LocalStorage.js'   // FIXME: require module instead
-                ];
-                Global.JSLoader.resolveAndLoadAll(
-                    codeBase, modules, thenDoFunc);
-            }
-
-        };
+            };
 
         Global.LivelyLoader = LivelyLoader;
     }(Global));
@@ -1011,9 +1030,11 @@
     }(Global));
 
     (function setupLivelyMigrationSupport(Global) {
-        var LivelyMigrationSupport = {
-            // increase this value by hand if you make a change that effects
-            // object layout LivelyMigrationSupport.migrationLevel
+        var LivelyMigrationSupport;
+        
+        LivelyMigrationSupport = {
+            // increase this value by hand if you make a change that effects object layout
+            // LivelyMigrationSupport.migrationLevel
             migrationLevel: 4,
             documentMigrationLevel: 0,
             migrationLevelNodeId: 'LivelyMigrationLevel',
@@ -1032,16 +1053,11 @@
             // module renaming
             fixModuleName: function (name) {
                 if (/^Global\./.test(name)) {
-                    name = name.substring(7);
+                    name = name.substring(7/*Global.*/);
                 }
-                if (/^\.\.\//.test(name)) {
-                    name = name.substring(3);
-                }
+                if (/^\.\.\//.test(name)) name = name.substring(3/*../*/);
                 for (var oldName in this.moduleRenameDict) {
-                    // FIXME: no check of own property?
-                    if (oldName === name) {
-                        return this.moduleRenameDict[oldName];
-                    }
+                    if (oldName === name) return this.moduleRenameDict[oldName];
                 }
                 return name;
             },
@@ -1049,7 +1065,6 @@
             addModuleRename: function (oldName, newName, migrationLevel) {
                 this.moduleRenameDict[oldName] = newName;
             }
-
         };
 
         Global.LivelyMigrationSupport = LivelyMigrationSupport;
@@ -1058,17 +1073,21 @@
     (function startWorld(startupFunc) {
         window.addEventListener('DOMContentLoaded', function () {
             Global.LivelyMigrationSupport.setDocumentMigrationLevel(document);
-            if (Global.LivelyLoader.startFromSerializedWorld(startupFunc)) return;
+            if (Global.LivelyLoader.startFromSerializedWorld(startupFunc)) {
+                return;
+            }
             console.warn("Lively startup failed'");
         }, true);
 
         window.addEventListener('beforeunload', function (evt) {
-            if (livelyConfigExists() && window.Config.askBeforeQuit === true) {
+            if (livelyConfigExists()
+                    && (window.Config.askBeforeQuit === true)) {
                 var msg = "Lively Kernel data may be lost if not saved.";
                 evt.returnValue = msg;
                 return msg;
+            } else {
+                return undefined;
             }
-            return undefined;
         }, true);
-    }(livelyConfigExists() && Config.onStartWorld));
-}(this));
+    })(livelyConfigExists() && Config.onStartWorld);
+}(Global));

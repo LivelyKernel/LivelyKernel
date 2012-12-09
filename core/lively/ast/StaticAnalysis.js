@@ -5,7 +5,7 @@ lively.ast.Visitor.subclass('lively.ast.DFAVisitor',
     knownGlobals: ["true", "false", "null", "undefined",
                    "Object", "Function", "String", "Array", "Date", "Math", "Error",
                    "parseFloat", "isNaN", "eval", "alert",
-                   "window", "document",
+                   "window", "document", "console",
                    "Node", "HTMLCanvasElement", "Image",
                    "lively", "pt", "rect", "rgb"],
     newScope: function() {
@@ -167,7 +167,7 @@ Object.subclass('lively.ast.DFAScope',
             res.pushAll(s.allGlobalDefs());
         });
         return res;
-    },
+    }
 });
 
 Object.subclass('lively.ast.VariableAnalyzer',

@@ -78,12 +78,11 @@ Object.subclass('lively.morphic.Shapes.Shape',
     },
 
     setNodeId: function(value) {
-       this.renderContextDispatch('setNodeId', value);
-        return value;
+        return this.shapeSetter('NodeId', value);
     },
 
     getNodeId: function() {
-        return this.renderContextDispatch('setNodeId');
+        return this.shapeGetter('NodeId')
     }
 
 });
@@ -112,7 +111,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Image',
 
 lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.External',
 'documentation', {
-    documentation: 'a shape that wraps an arbitrary HTML element',
+    documentation: 'a shape that wraps an arbitrary HTML element'
 },
 'initializing', {
     initialize: function($super, element) {
@@ -120,7 +119,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.External',
     },
     initFromStringifiedShapeNode: function() {
         return this.renderContextDispatch('initFromStringifiedShapeNode');
-    },
+    }
 },
 'serialization', {
     doNotSerialize: ['shapeNode'],
@@ -133,13 +132,13 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.External',
     onrestore: function() {
         // FIXME this directly depends on HTML
         this.initFromStringifiedShapeNodeHTML(null);
-    },
+    }
 },
 'accessing', {
     getExtent: function() {
         // FIXME: this does not work in Firefox
         return this.renderContextDispatch('getExtent') || pt(0,0);
-    },
+    }
 });
 
 Object.subclass('lively.morphic.Gradient',

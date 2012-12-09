@@ -54,8 +54,9 @@ cop.create('DebugScriptsLayer')
         var source = script.livelyClosure.source = funcOrString.toString();
         script.toString = function() { return source };
         return script;
-    },
-}).beGlobal();
+    }
+});
+
 cop.create('DebugMethodsLayer').refineObject(Function.prototype, {
     addCategorizedMethods: function(categoryName, source) {
         for (var property in source) {
@@ -69,8 +70,8 @@ cop.create('DebugMethodsLayer').refineObject(Function.prototype, {
             }
         }
         return cop.proceed(categoryName, source);
-    },
-}).beGlobal();
+    }
+});
 
 lively.morphic.Text.addMethods(
 'debugging', {
@@ -93,11 +94,16 @@ cop.create('DebugGlobalErrorHandlerLayer')
 .beGlobal()
 .refineClass(lively.morphic.World, {
     logError: function(err, optName) {
-        if (err.simStack) {
-            var frame = lively.ast.Interpreter.Frame.fromTraceNode(err.simStack);
-            lively.ast.openDebugger(frame, err.toString());
+        if (err.isUnwindException) {
+            var frame = null
+            if (err.simStack) {
+                frame = lively.ast.Interpreter.Frame.fromTraceNode(err.simStack);
+            } else if (err.top) {
+                frame = lively.ast.Interpreter.Frame.fromScope(err.top, true);
+            }
+            if (frame) lively.ast.openDebugger(frame, err.toString());
             return false;
-        } else if (!err.isUnwindException) {
+        } else {
             return cop.proceed(err, optName);
         }
     }
@@ -125,7 +131,7 @@ Object.extend(lively.Tracing, {
 
 cop.create('DeepInterpretationLayer')
 .refineClass(lively.ast.InterpreterVisitor, {
-    shouldInterpret: function(func) {
+    shouldInterpret: function(frame, func) {
         return !this.isNative(func);
     }
 });

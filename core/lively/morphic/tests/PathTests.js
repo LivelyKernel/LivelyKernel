@@ -6,11 +6,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PathTests.LineTes
         var path = new lively.morphic.Path([pt(50,50), pt(50,100), pt(100,100)]);
         path.setBorderWidth(10);
         this.world.addMorph(path);
-        
+
         var expected = {
             tagName: 'div', // line morph
             childNodes: [{ // extra div, svg specific
-                tagName: 'div', 
+                tagName: 'div',
                 style: {top: '44px', left: '44px'},
                 childNodes: [{ // shape
                     tagName: 'svg',
@@ -19,7 +19,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PathTests.LineTes
             }]
         };
         this.assertNodeMatches(expected, path.renderContext().getMorphNode(), "morph, shape and viewBox reflect the borderWidth, extended by borderWidth/2 in all directions");
-        this.assertEquals(rect(pt(44.0,44.0),pt(105.0,105.0)), path.shape.getBounds());  
+        this.assertEquals(rect(pt(44.0,44.0),pt(105.0,105.0)), path.shape.getBounds());
         this.assertEquals(rect(pt(44.0,44.0),pt(105.0,105.0)), path.bounds());
     },
     test01AddMorph: function() {
@@ -41,11 +41,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PathTests.LineTes
     test02SecondPointWithNegativeY: function() {
         var m = new lively.morphic.Path([pt(0,0), pt(100,-20)])
         this.world.addMorph(m);
-        
+
         var expected = {
             tagName: 'div', // line morph
             childNodes: [{
-                tagName: 'div', 
+                tagName: 'div',
                 style: {top: '-21px', left: '-1px'},
                 childNodes: [{
                     tagName: 'svg',
@@ -220,7 +220,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.PathTests.LineTes
         this.assertEquals(45, arrowHead.getRotation().toDegrees());
         this.assertEquals(expectedPosition, arrowHead.getPosition());
         this.assertEquals(expectedPosition, arrowHead.worldPoint(pt(0,0)), 'ctrl down, arrowhead global pos');
-        
+
         m.getControlPoint(1).moveBy(pt(0,-200));
         this.assertEquals(-45, arrowHead.getRotation().toDegrees(), 'ctrl up, arrowhead rot');
         this.assertEquals(expectedPosition2, arrowHead.getPosition(), 'ctrl up, arrowhead pos');

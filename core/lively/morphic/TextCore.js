@@ -174,9 +174,11 @@ Trait('TextChunkOwner',
         domChanged = this.fixTextBeforeAndAfterChunks(chunks);
         domChanged = domChanged || this.removeNonChunkNodes(chunks);
         chunks.last().ensureEndsWithBr();
-        if (domChanged && selRange) {
-            this.setSelectionRange(selRange[0], selRange[1]);
-        }
+        if (!selRange) return;
+        var newSelectionRange = this.getSelectionRange(),
+            selMustChange = domChanged || (newSelectionRange && newSelectionRange[0] !== selRange[0]);
+        if (!selMustChange) return;
+        this.setSelectionRange(selRange[0], selRange[1]);
     },
     fixChunksDelayed: function() {
         this.fixChunks.bind(this).delay(0);
@@ -2440,7 +2442,11 @@ Object.subclass('lively.morphic.TextChunk',
         var chunks = this.chunkOwner.getTextChunks(), chunkIdx = chunks.indexOf(this);
         return chunks[chunkIdx-1];
     },
-    getStyle: function() { return this.style }
+    getStyle: function() { return this.style },
+    bounds: function() {
+        var b = $(this.getChunkNode()).bounds();
+        return new Rectangle(b.left, b.top, b.width(), b.height());
+    }
 },
 'testing', {
     isRendered: function() { return this.chunkNode && this.chunkNode.parentNode != undefined }
@@ -2706,6 +2712,19 @@ Object.subclass('lively.morphic.TextEmphasis',
 },
 'style attributes', {
     styleAttributes: {
+        data: {
+            // attaches an arbitary JavaScript object to a text chunk
+            // this can be used to tag certain parts of a text with
+            // non-visible data that will be retained when editing
+            // and copying text
+            set: function(value) {
+                if (!value) delete this.data;
+                return this.data = value;
+            },
+            get: function() { return this.data; },
+            equals: function(other) { return this.getData() === other.getData(); },
+            apply: Functions.Null
+        },
 
         hover: {
             // expected to be of the form:
@@ -2759,19 +2778,28 @@ Object.subclass('lively.morphic.TextEmphasis',
             set: function(value) { return this.doit = value },
             get: function() { return this.doit },
             equals: function(other) {
-                if (this.hasOwnProperty("doit")) {
+                if (this.doit) {
                     return other.doit ? this.doit.code == other.doit.code : false;
                 }
                 return !other.doit;
             },
             apply: function(node) {
+                if (!this.hasOwnProperty("doit")) return;
+                if (!this.doit) {
+                    node.style.cursor = 'auto';
+                    node.style.textDecoration = 'none';
+                    node.style.color = 'inherit';
+                    LivelyNS.removeAttribute(node, 'doit');
+                    delete this.doit;
+                    return;
+                }
                 var doit = this.doit;
-                if (!doit) return;
                 this.addCallbackWhenApplyDone('click', function(evt) {
-                    var src = '(function() {\n' + doit.code + '\n})';
+                    lively.morphic.EventHandler.prototype.patchEvent(evt);
+                    var src = '(function(evt) {\n' + doit.code + '\n})';
                     try {
                         var func = eval(src);
-                        func.call(doit.context || Global);
+                        func.call(doit.context || Global, evt);
                     } catch(e) {
                         alert('Error in text doit\n' + e.stack);
                     }
@@ -2912,6 +2940,8 @@ Object.subclass('lively.morphic.TextEmphasis',
 'accessing', {
     get: function(attrName) { return this.styleAttributes[attrName].get.call(this) },
     set: function(attrName, value) { return this.styleAttributes[attrName].set.call(this, value) },
+    getData:             function()      { return this.get('data'); },
+    setData:             function(value) { return this.set('data', value); },
     getDoit:             function()      { return this.get('doit'); },
     setDoit:             function(value) { return this.set('doit', value); },
     getHover:            function()      { return this.get('hover'); },
@@ -2959,7 +2989,8 @@ Object.subclass('lively.morphic.TextEmphasis',
         }
 
         // FIXME refactor
-        return attrs.doit            .equals.call(this, other)
+        return attrs.data            .equals.call(this, other)
+            && attrs.doit            .equals.call(this, other)
             && attrs.hover           .equals.call(this, other)
             && attrs.uri             .equals.call(this, other)
             && attrs.fontWeight      .equals.call(this, other)
@@ -3033,6 +3064,7 @@ Object.subclass('lively.morphic.TextEmphasis',
 
         // FIXME refactor
         var attrs = this.styleAttributes;
+        attrs.data            .apply.call(this, node);
         attrs.doit            .apply.call(this, node);
         attrs.hover           .apply.call(this, node);
         attrs.uri             .apply.call(this, node);
@@ -3059,7 +3091,7 @@ Object.subclass('lively.morphic.TextEmphasis',
 
     installCallbackHandler: function(node) {
         var $node = $(node);
-        [{type: 'click', handler: 'mousedown'},
+        [{type: 'click', handler: 'mouseup'},
          {type: 'mouseenter', handler: 'mouseenter'},
          {type: 'mouseleave', handler: 'mouseleave'}].forEach(function(spec) {
              $node.off(spec.handler);
@@ -3086,10 +3118,11 @@ Object.subclass('lively.morphic.TextEmphasis',
         var propStrings = [];
         Properties.forEachOwn(this, function(key, value) {
             if (key === '__SourceModuleName__') return;
-            propStrings.push(
-                key + ': ' +  (value && value.isColor ? value.toString() : JSON.stringify(value)));
-        })
-        return 'TextEmphasis(' + propStrings.join(',') + ')'
+            var valueString = value && value.isColor ?
+                value.toString() : JSON.stringify(value);
+            propStrings.push(key + ': ' +  valueString);
+        });
+        return 'TextEmphasis(' + propStrings.join(',') + ')';
     }
 });
 
@@ -3135,9 +3168,8 @@ Object.extend(lively.morphic.TextEmphasis, {
 
         actionQueue.enter = function enter(callback, context) {
             schedule('in', context, function(idxInQueue) {
-                if (idxInQueue === 0) { callback.call(context); return; }
                 var nextAction = actionQueue[idxInQueue-1];
-                if (!nextAction.type === "out") {
+                if (nextAction && nextAction.type !== "out") {
                     throw new Error('Expecting next action of type "out"!');
                 }
                 callback.call(context);
@@ -3146,13 +3178,11 @@ Object.extend(lively.morphic.TextEmphasis, {
 
         actionQueue.leave = function leave(callback, context) {
             schedule('out', context, function(idxInQueue) {
-                if (idxInQueue === 0) { callback.call(context); return; }
-
                 var nextAction = actionQueue[idxInQueue-1];
-                if (!nextAction.type === "in") {
+                if (nextAction && nextAction.type !== "in") {
                     throw new Error('Expecting next action of type "in"!');
                 }
-                if (nextAction.context === context) {
+                if (nextAction && nextAction.context === context) {
                     // out immediately followed by in: do nothing
                     nextAction.ignore = true;
                 } else {
@@ -3173,7 +3203,7 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     initialize: function(string) {
         this.getTextChunks(); // lazy initialize
         if (string) this.firstTextChunk().textString = string;
-    },
+    }
 },
 'rich text interface', {
     emphasize: function(styleSpec, from, to) {
@@ -3211,7 +3241,9 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     },
     getTextNode: function() {
         return this.firstTextChunk().getChunkNode().parentNode
-    }
+    },
+
+    getSelectionRange: Functions.Null
 
 },
 'text morph application', {

@@ -100,7 +100,7 @@ Object.subclass('lively.morphic.Magnet',
     },
     remove: function() {
         // enter comment here
-    },
+    }
 });
 
 lively.morphic.Magnet.subclass('lively.morphic.RelativeMagnet',
@@ -347,33 +347,46 @@ lively.morphic.Morph.addMethods(
             return ea.getConnectedControlPoints().length == 0
         }).invoke('remove')
     },
-    createConnectorTo: function(otherMorph, lineStyle) {
-        if (!otherMorph)
-            throw new Error('Cannot to nothing');
+
+    createConnectorTo: function(otherMorph, lineStyle, update) {
+        if (!otherMorph) {
+            throw new Error('Cannot connect to nothing');
+        }
 
         var line = new lively.morphic.Path([pt(0,0), pt(0,0)]);
         if (lineStyle) line.applyStyle(lineStyle);
         if (this.owner) this.owner.addMorphBack(line);
 
-        var cp1 = line.getControlPoints().first();
-        var startMagnet = this.getMagnetForPos(
-            this.world() ? otherMorph.worldPoint(otherMorph.innerBounds().center()) : null);
-        cp1.setConnectedMagnet(startMagnet);
+        var startMagnet = line.connectToNearestStartMagnet(this, otherMorph),
+            endMagnet = line.connectToNearestEndMagnet(this, otherMorph);
 
-        var cp2 = line.getControlPoints().last();
-        var endMagnet = otherMorph.getMagnetForPos(
-            this.world() ? this.worldPoint(this.innerBounds().center()) : null);
-        if (startMagnet === undefined || endMagnet === undefined) {
-            alert("Connection Problem: no magnet found")
-            line.disconnectFromMagnets()
-            line.remove()
+        if (!startMagnet || !endMagnet) {
+            alert("Connection Problem: no magnet found");
+            line.disconnectFromMagnets();
+            line.remove();
         }
-        cp2.setConnectedMagnet(endMagnet);
+
+        if (update) {
+            connect(this, 'globalTransform', line, 'realignConnection');
+            connect(otherMorph, 'globalTransform', line, 'realignConnection');
+        }
 
         return line;
     },
+
     getMagnetForPos: function(globalPos) {
-        return this.getMagnets()[0];
+        var nearestMagnetDist = Infinity,
+            selected = null,
+            magnets = this.getMagnets();
+        magnets.forEach(function(magnet) {
+            var dist = magnet.getGlobalPosition().dist(globalPos);
+            if (dist < nearestMagnetDist) {
+                nearestMagnetDist = dist;
+                selected = magnet;
+            }
+        });
+        return selected || magnets[0];
+
     },
     getVisualBindingsBuilderFor: function(connectionPointName) {
         return new lively.morphic.ConnectionBuilder(this, connectionPointName);
@@ -389,9 +402,38 @@ lively.morphic.Path.addMethods(
             if (ctrlPt.connectedMagnet) ctrlPt.setConnectedMagnet(null);
         })
     },
+
     getMagnets: function() {
         return [ ]
     },
+
+    connectToNearestStartMagnet: function(fromMorph, toMorph) {
+        var cp = this.getControlPoints().first(),
+            nearestPoint = fromMorph.bounds().closestPointToPt(toMorph.bounds().center()),
+            magnet = fromMorph.getMagnetForPos(nearestPoint);
+        cp.setConnectedMagnet(magnet);
+        return magnet;
+    },
+
+    connectToNearestEndMagnet: function(fromMorph, toMorph) {
+        var cp = this.getControlPoints().last(),
+            nearestPoint = toMorph.bounds().closestPointToPt(fromMorph.bounds().center()),
+            magnet = toMorph.getMagnetForPos(nearestPoint);
+        cp.setConnectedMagnet(magnet);
+        return magnet;
+    },
+
+    realignConnection: function() {
+        var ctrls = this.getControlPoints(),
+            firstMagnet = ctrls.first().getConnectedMagnet(),
+            fromMorph = firstMagnet && firstMagnet.morph,
+            lastMagnet = ctrls.last().getConnectedMagnet(),
+            toMorph = lastMagnet && lastMagnet.morph;
+        if (!fromMorph || !toMorph) return false;
+        this.connectToNearestStartMagnet(fromMorph, toMorph);
+        this.connectToNearestEndMagnet(fromMorph, toMorph);
+        return true;
+    }
 });
 
 lively.morphic.ControlPoint.addMethods({
@@ -425,7 +467,7 @@ Object.extend(lively.bindings, {
 
         var con = this.connect(source, sourceProp, target, targetProp, spec);
 
-        if (Config.visualConnectEnabled)
+        if (Config.get("visualConnectEnabled"))
             this.showConnection(con);
 
         return con;
@@ -449,14 +491,9 @@ Object.extend(lively.bindings, {
     showConnection: function(con) {
         var source = con.sourceObj,
             target = con.targetObj,
-            visualConnector = source.createConnectorTo(target);
+            visualConnector = source.createConnectorTo(target, null, true);
 
-        // arrow head
-        var arrowHead = new lively.morphic.Path([pt(0,0), pt(0,12), pt(16,6), pt(0,0)]);
-        arrowHead.applyStyle({borderWidth: 0, borderColor: Color.black, fill: Color.black})
-        arrowHead.adjustOrigin(pt(12,6))
-        visualConnector.addArrowHeadEnd(arrowHead)
-
+        visualConnector.createArrowHeadEnd();
         con.visualConnector = visualConnector;
         con.visualConnector.con = con; // FIXME
         visualConnector.showsMorphMenu = true; // FIX ... MEE !!!!!
@@ -477,7 +514,7 @@ Object.extend(lively.bindings, {
                     alertOK('Disconnected ' + visualConnector.con);
                     visualConnector.con.visualDisconnect();
                 }],
-                ['Cancel', function() {}],
+                ['Cancel', function() {}]
             ];
             return items;
         })
@@ -540,14 +577,13 @@ lively.morphic.Box.subclass('lively.morphic.ConnectionBuilder',
         lively.morphic.Menu.openAtHand('Connect to ' + (target.name || target), items)
     },
     underMorphMenu: function(position, sourceMorph, sourceAttribute) {
-        var world = sourceMorph.world(),
-            that = this;
-        if (!world) { return; }
-        var morphStack = world.morphsContainingPoint(position).reject(
-                function(ea){return ea.isWorld;}),
+        var world = sourceMorph.world(), that = this;
+        if (!world) { return null; }
+        var morphStack = world.morphsContainingPoint(position).reject(function(ea){
+                return ea.isWorld; }),
             menu = [];
-        morphStack.
-            forEach(function(ea) { menu.push([ea.name, that.propertiesMenuForTarget(ea)]);});
+        morphStack.forEach(function(ea) {
+            menu.push([ea.name, that.propertiesMenuForTarget(ea)]); });
         return ['Connect to under morph ...', menu];
     },
     propertiesMenuForTarget: function(aMorph) {

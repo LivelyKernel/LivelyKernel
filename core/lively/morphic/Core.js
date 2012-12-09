@@ -19,7 +19,7 @@ Object.subclass('lively.morphic.Morph',
     setNewId: function(optId) {
         if (this.derivationIds === undefined) this.derivationIds = [];
         if (this.id) this.derivationIds.push(this.id);
-        this.id = optId || new UUID().id;
+        return this.id = optId || new UUID().id;
     },
 
     defaultShape: function(optBounds) {

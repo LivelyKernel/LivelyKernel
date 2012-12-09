@@ -268,7 +268,7 @@ Object.extend(Array.prototype, {
     },
 
     equals: function(otherArray) {
-        if (this.length != otherArray.length) return false;
+        if (!otherArray || this.length !== otherArray.length) return false;
         for (var i = 0; i < otherArray.length; i++) {
             if (this[i].equals && otherArray[i].equals) {
                 if (!this[i].equals(otherArray[i])) {
@@ -473,14 +473,14 @@ Object.extend(Array, {
 // Global Helper - Arrays
 ///////////////////////////////////////////////////////////////////////////////
 
-var Arrays = {
+Global.Arrays = {
     equal: function(firstArray, secondArray) {
         // deprecated, use anArray.equals
         return firstArray.equals(secondArray);
     }
 }
 
-var Grid = {
+Global.Grid = {
     create: function(rows, columns, initialObj) {
         var result = new Array(rows);
         while (rows > 0) result[--rows] = Array.withN(columns, initialObj);
@@ -828,4 +828,4 @@ var Interval = {
 ///////////////////////////////////////////////////////////////////////////////
 
 // DEPRECATED!
-var $A = Array.from;
+Global.$A = Array.from;

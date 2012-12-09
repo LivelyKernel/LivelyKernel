@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.ast.Interpreter').requires('lively.ast.Parser', 'lively.ast.Meta').toRun(function() {
+module('lively.ast.Interpreter').requires('lively.ast.Parser', 'lively.ast.Meta', 'lively.ast.Rewriting').toRun(function() {
 
 Object.subclass('lively.ast.Interpreter.Frame',
 'initialization', {
@@ -44,7 +44,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
     },
     breakAtFirstStatement: function() {
         this.bp = this.func.ast().firstStatement();
-    },
+    }
 },
 'accessing', {
     setContainingScope: function(frame) {
@@ -57,40 +57,37 @@ Object.subclass('lively.ast.Interpreter.Frame',
         return this.caller;
     },
     setCaller: function(caller) {
-        if (caller) {
-            this.caller = caller;
-            caller.callee = this;
-            if (caller.breakAtCalls) this.breakAtFirstStatement();
-        }
+        if (!caller) return;
+        this.caller = caller;
+        caller.callee = this;
+        if (caller.breakAtCalls) this.breakAtFirstStatement();
     },
     setThis: function(thisObj) {
         this.addToMapping('this', thisObj);
         return thisObj;
     },
     getThis: function() {
-        if (this.mapping["this"]) return this.mapping["this"];
-        return Global;
+        return this.mapping["this"] ? this.mapping["this"] : Global;
     },
     setArguments: function(argValues) {
         var argNames = this.func.ast().argNames();
-        for (var i = 0; i < argNames.length; i++)
+        for (var i = 0; i < argNames.length; i++) {
             this.addToMapping(argNames[i], argValues[i]);
+        }
         return this.arguments = argValues;
     },
     getArguments: function(args) {
         return this.arguments;
     },
     getFuncName: function() {
-        if (!this.func) {
-            return 'frame has no function!';
-        }
-        return this.func.getOriginal().qualifiedMethodName();
+        return this.func ?
+            this.func.getOriginal().qualifiedMethodName() :
+            'frame has no function!';
     },
     getFuncSource: function() {
-        if (!this.func) {
-            return 'frame has no function!';
-        }
-        return this.func.getOriginal().toSource();
+        return this.func ?
+            this.func.getOriginal().toSource() :
+            'frame has no function!';
     },
     findFrame: function(name) {
         if (this.mapping.hasOwnProperty(name)) {
@@ -142,20 +139,23 @@ Object.subclass('lively.ast.Interpreter.Frame',
     },
     stopContinue: function() {
         this.continueTriggered = false
-    },
+    }
 },
 'accessing for UI', {
     listItemsForIntrospection: function() {
-        var items = [];
-        Properties.forEachOwn(this.mapping, function(name, value) {
-            items.push({
+        var items = Properties.forEachOwn(this.mapping, function(name, value) {
+            return {
                 isListItem: true,
                 string: name + ': ' + String(value).truncate(50),
                 value: value
-            })
+            };
         });
+        if (this.containingScope) {
+            items.push({isListItem: true, string: '[[containing scope]]'});
+            items.pushAll(this.containingScope.listItemsForIntrospection());
+        }
         return items;
-    },
+    }
 },
 'program counter', {
     halt: function() {
@@ -204,6 +204,35 @@ Object.subclass('lively.ast.Interpreter.Frame',
         if (this.bp === node) return true;
         if (this.bp == node.nextStatement()) return false;
         return node.isAfter(this.bp);
+    },
+    findPC: function() {
+        if (Object.isEmpty(this.values)) return;
+        // find the last computed value
+        var last = Object.keys(this.values).max(function(k) {
+            var fromTo = k.split('-');
+            return (+fromTo[1]) << 23 - (+fromTo[0]);
+        });
+        // find the node corresponding to this value
+        var node = this.func.ast().nodesMatching(function(node) {
+            return last == node.position();
+        })[0];
+        // if the node is a debugger just use it as PC
+        if (node.isDebugger) return this.pc = node;
+        // the pc should be the next MODIFYING node right after the last one
+        var pc = null;
+        var foundNode = false;
+        this.func.ast().withAllChildNodesDoPostOrder(function(n) {
+            if (!foundNode) {
+                if (n === node) foundNode = true;
+            } else {
+                if (n.isCall || n.isSend || n.isSet || n.isModifyingSet || n.isPreOp || n.isPostOp) {
+                    pc = n;
+                    return false
+                }
+            }
+            return true;
+        });
+        this.pc = pc || this.func.ast();
     },
     setPC: function(node) {
         this.pc = node.isFunction ? node : node.firstStatement();
@@ -257,7 +286,7 @@ Object.subclass('lively.ast.Interpreter.Frame',
         }
         var mappingString = '{' + mappings.join(',') + '}';
         return 'Frame(' + mappingString + ')';
-    },
+    }
 });
 
 Object.extend(lively.ast.Interpreter.Frame, {
@@ -272,7 +301,7 @@ Object.extend(lively.ast.Interpreter.Frame, {
         if (trace.frame) {
             frame = trace.frame;
         } else {
-            var frame = lively.ast.Interpreter.Frame.create(trace.method);
+            frame = lively.ast.Interpreter.Frame.create(trace.method);
             frame.setThis(trace.itsThis);
             frame.setArguments(trace.args);
         }
@@ -280,17 +309,34 @@ Object.extend(lively.ast.Interpreter.Frame, {
             frame.setCaller(lively.ast.Interpreter.Frame.fromTraceNode(trace.caller));
         }
         return frame;
+    },
+    fromScope: function(scope, callstack) {
+        if (scope === Global) return lively.ast.Interpreter.Frame.global();
+        var ast = lively.ast.Rewriting.table[scope[2]],
+            frame = new lively.ast.Interpreter.Frame(ast.asFunction(), scope[1]),
+            parent = lively.ast.Interpreter.Frame.fromScope(scope[3], callstack);
+        if (callstack) {
+            frame.values = scope[0];
+            frame.findPC();
+            if (scope[3] !== Global) frame.setCaller(parent);
+            if (scope[4] !== Global) frame.setContainingScope(
+                                       lively.ast.Interpreter.Frame.fromScope(scope[4]));
+        } else {
+            frame.setContainingScope(parent);
+        }
+        return frame;
     }
 });
 
-lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
+lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor',
+'interface', {
     run: function(node, optMapping) {
         return this.runWithFrame(node, lively.ast.Interpreter.Frame.create(null, optMapping));
     },
     runWithFrame: function(node, frame) {
         this.currentFrame = frame;
         return this.visit(node);
-    },
+    }
 },
 'invoking', {
     isNative: function(func) {
@@ -299,9 +345,9 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     },
     shouldInterpret: function(frame, func) {
         if (this.isNative(func)) return false;
-        return func.hasOwnProperty("forInterpretation") ||
-            frame.breakAtCalls ||
-            func.containsDebugger();
+        return func.hasOwnProperty("forInterpretation")
+            || frame.breakAtCalls
+            || func.containsDebugger();
     },
     invoke: function(node, recv, func, argValues) {
         var isNew = node._parent && node._parent.isNew;
@@ -321,7 +367,9 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
             recv = this.newObject(func)
         }
         var result = func.apply(recv, argValues);
-        if (isNew && !Object.isObject(result)) {
+        if (isNew) {// && !Object.isObject(result)) {
+            //FIXME: Cannot distinguish real result from (accidental) last result
+            //       which might also be an object but which should not be returned
             // 13.2.2 ECMA-262 3rd. Ediion Specification:
             return recv;
         }
@@ -329,12 +377,12 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     },
     newObject: function(func) {
         var proto = func.prototype;
-        var constructor = function() {};
+        function constructor() {};
         constructor.prototype = proto;
         var newObj = new constructor();
         newObj.constructor = func;
         return newObj;
-    },
+    }
 },
 'visiting', {
     visit: function(node) {
@@ -388,7 +436,7 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
         return result;
     },
     visitDoWhile: function(node) {
-        var frame = this.currentFrame, result;
+        var frame = this.currentFrame, result, condResult;
         do {
             frame.removeValue(node.condExpr);
             result = this.visit(node.body);
@@ -402,7 +450,7 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
             if (frame.returnTriggered) {
                 return result
             };
-            var condResult = this.visit(node.condExpr);
+            condResult = this.visit(node.condExpr);
             frame.removeValue(node.body);
         } while (condResult);
         return result;
@@ -413,14 +461,14 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
         while (this.visit(node.condExpr)) {
             result = this.visit(node.body);
             if (frame.continueTriggered) {
-                frame.stopContinue()
+                frame.stopContinue();
             };
             if (frame.breakTriggered) {
                 frame.stopBreak();
-                break
+                break;
             };
             if (frame.returnTriggered) {
-                return result
+                return result;
             };
             this.visit(node.upd);
             frame.removeValue(node.condExpr);
@@ -435,20 +483,20 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
             obj = this.visit(node.obj),
             result;
         if (varPart.isVarDeclaration) {
-          varPart.val.name = varPart.name;
+            varPart.val.name = varPart.name;
         }
         for (var name in obj) {
             frame.addToMapping(varPart.name, name);
             result = this.visit(node.body);
             if (frame.continueTriggered) {
-                frame.stopContinue()
+                frame.stopContinue();
             };
             if (frame.breakTriggered) {
                 frame.stopBreak();
-                break
+                break;
             };
             if (frame.returnTriggered) {
-                return result
+                return result;
             };
             frame.removeValue(node.body);
         }
@@ -509,8 +557,8 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
         return node.left.set(newValue, frame, this);
     },
     visitBinaryOp: function(node) {
-        var frame = this.currentFrame;
-        var leftVal = this.visit(node.left);
+        var frame = this.currentFrame,
+            leftVal = this.visit(node.left);
         switch (node.name) {
             case '||':
               return leftVal || this.visit(node.right);
@@ -630,8 +678,8 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     },
     visitGetSlot: function(node) {
         var obj = this.visit(node.obj),
-        name = this.visit(node.slotName),
-        value = obj[name];
+            name = this.visit(node.slotName),
+            value = obj[name];
         return value;
     },
     visitBreak: function(node) {
@@ -646,13 +694,14 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     },
     visitArrayLiteral: function(node) {
         var result = new Array(node.elements.length);
-        for (var i = 0; i < node.elements.length; i++)
+        for (var i = 0; i < node.elements.length; i++) {
             result[i] = this.visit(node.elements[i]);
+        }
         return result;
     },
     visitReturn: function(node) {
         var frame = this.currentFrame,
-        val = this.visit(node.expr);
+            val = this.visit(node.expr);
         frame.triggerReturn();
         return val;
     },
@@ -661,8 +710,8 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     },
     visitSend: function(node) {
         var recv = this.visit(node.recv),
-        property = this.visit(node.property),
-        argValues = node.args.collect(function(ea) { return this.visit(ea) }, this);
+            property = this.visit(node.property),
+            argValues = node.args.collect(function(ea) { return this.visit(ea) }, this);
         return this.invoke(node, recv, recv[property], argValues);
     },
     visitCall: function(node) {
@@ -677,18 +726,17 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     },
     visitVarDeclaration: function(node) {
         var frame = this.currentFrame,
-        val = this.visit(node.val);
+            val = this.visit(node.val);
         frame.addToMapping(node.name, val);
         return val;
     },
     visitThrow: function(node) {
         var frame = this.currentFrame,
-        exceptionObj = this.visit(node.expr);
+            exceptionObj = this.visit(node.expr);
         throw exceptionObj;
     },
     visitTryCatchFinally: function(node) {
-        var frame = this.currentFrame,
-            result;
+        var frame = this.currentFrame, result;
         try {
             result = this.visit(node.trySeq);
         } catch(e) {
@@ -701,21 +749,20 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
                 result = this.visit(node.finallySeq);
             }
         }
-        return result
+        return result;
     },
     visitFunction: function(node) {
         var frame = this.currentFrame;
-        if (node.name) frame.addToMapping(node.name, node);
+        if (Object.isString(node.name)) frame.addToMapping(node.name, node);
         if (!node.prototype) node.prototype = {};
         node.lexicalScope = frame;
         return node.asFunction();
     },
     visitObjectLiteral: function(node) {
-        var frame = this.currentFrame,
-            obj = {};
+        var frame = this.currentFrame, obj = {};
         for (var i = 0; i < node.properties.length; i++) {
             var name = node.properties[i].name,
-            prop = this.visit(node.properties[i].property);
+                prop = this.visit(node.properties[i].property);
             obj[name] = prop;
         }
         return obj;
@@ -726,8 +773,7 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     visitSwitch: function(node) {
         var frame = this.currentFrame,
             val = this.visit(node.expr),
-            caseMatched = false,
-            result;
+            caseMatched = false, result;
         for (var i = 0; i < node.cases.length; i++) {
             node.cases[i].prevCaseMatched = caseMatched;
             node.cases[i].switchValue = val;
@@ -735,7 +781,7 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
             caseMatched = result !== undefined; // FIXME what when case returns undefined?
             if (frame.breakTriggered) {
                 frame.stopBreak();
-                break
+                break;
             };
         }
         return result;
@@ -749,7 +795,7 @@ lively.ast.Visitor.subclass('lively.ast.InterpreterVisitor', 'interface', {
     },
     visitRegex: function(node) {
         return new RegExp(node.exprString, node.flags);
-    },
+    }
 
 });
 
@@ -761,6 +807,12 @@ lively.ast.Node.addMethods('interpretation', {
         var interpreter = new lively.ast.InterpreterVisitor();
         return interpreter.run(this, optMapping);
     },
+    toSource: function() { return this.toString(); },
+    parentSource: function() {
+        if (this.source) return this.source;
+        if (this.hasParent()) return this.getParent().parentSource();
+        return this.toSource();
+    }
 });
 
 lively.ast.Variable.addMethods('interpretation', {
@@ -768,7 +820,7 @@ lively.ast.Variable.addMethods('interpretation', {
         var search = frame.findFrame(this.name),
             scope = search ? search.frame : lively.ast.Interpreter.Frame.global();
         return scope.addToMapping(this.name, value);
-    },
+    }
 });
 
 lively.ast.GetSlot.addMethods('interpretation', {
@@ -776,12 +828,13 @@ lively.ast.GetSlot.addMethods('interpretation', {
         var obj = interpreter.visit(this.obj),
             name = interpreter.visit(this.slotName);
         return obj[name] = value;
-    },
+    }
 });
 
 lively.ast.Function.addMethods('interpretation', {
     position: function() {
-        return[this.pos[1] - 1, this.pos[1]];
+        //return (this.pos[1] - 1) + "-" + this.pos[1];
+        return this.pos[0] + "-" + this.pos[1];
     },
     basicApply: function(frame) {
         var interpreter = new lively.ast.InterpreterVisitor();
@@ -796,15 +849,15 @@ lively.ast.Function.addMethods('interpretation', {
         }
     },
     apply: function(thisObj, argValues, startHalted) {
-        var calledFunction = this.asFunction();
-        var mapping = Object.extend({}, calledFunction.getVarMapping());
-        var argNames = this.argNames();
+        var calledFunction = this.asFunction(),
+            mapping = Object.extend({}, calledFunction.getVarMapping()),
+            argNames = this.argNames();
         // work-around for $super
         if (mapping["$super"] && argNames[0] == "$super") {
             argValues.unshift(mapping["$super"]);
         }
-        var scope = this.lexicalScope ? this.lexicalScope : lively.ast.Interpreter.Frame.global();
-        var newFrame = scope.newScope(calledFunction, mapping);
+        var scope = this.lexicalScope ? this.lexicalScope : lively.ast.Interpreter.Frame.global(),
+            newFrame = scope.newScope(calledFunction, mapping);
         if (thisObj !== undefined) newFrame.setThis(thisObj);
         newFrame.setArguments(argValues);
         newFrame.setCaller(lively.ast.Interpreter.Frame.top);
@@ -814,22 +867,25 @@ lively.ast.Function.addMethods('interpretation', {
     asFunction: function(optFunc) {
         if (this._chachedFunction) return this._chachedFunction;
         var that = this;
-        var fn = function(/*args*/) {
-            return that.apply(this, $A(arguments));
+        function fn(/*args*/) {
+            return that.apply(this, Array.from(arguments));
         };
+        fn.methodName = this.name();
         fn.forInterpretation = function() { return fn; };
         fn.ast = function() { return that; };
-        fn.startHalted = function() { return function(/*args*/) {
-            return that.apply(this, $A(arguments), true);
-        }};
+        fn.startHalted = function() {
+            return function(/*args*/) { return that.apply(this, Array.from(arguments), true); }
+        };
+        fn.evaluatedSource = function() { return that.parentSource(); };
         if (optFunc) {
             fn.source = optFunc.toSource();
             fn.varMapping = optFunc.getVarMapping();
+            fn.prototype = optFunc.prototype;
             if (optFunc.declaredClass) fn.declaredClass = optFunc.declaredClass;
             if (optFunc.methodName) fn.methodName = optFunc.methodName;
             if (optFunc.sourceModule) fn.sourceModule = optFunc.sourceModule;
             if (optFunc.declaredObject) fn.declaredObject = optFunc.declaredObject;
-            if (optFunc.name) fn.name = optFunc.name;
+            if (optFunc.name) fn.methodName = optFunc.name;
         }
         return this._chachedFunction = fn;
     }
@@ -837,7 +893,7 @@ lively.ast.Function.addMethods('interpretation', {
 'continued interpretation', {
     resume: function(frame) {
         return this.basicApply(frame);
-    },
+    }
 });
 
 Object.extend(lively.ast, {
@@ -853,10 +909,11 @@ Object.extend(lively.ast, {
         } finally {
             lively.ast.halt = oldHalt;
         }
-    },
+    }
 });
 
-lively.ast.Visitor.subclass('lively.ast.ContainsDebuggerVisitor', 'visiting', {
+lively.ast.Visitor.subclass('lively.ast.ContainsDebuggerVisitor',
+'visiting', {
     visitSequence: function(node) {
         for (var i = 0; i < node.children.length; i++) {
             if (this.visit(node.children[i])) {
@@ -964,7 +1021,7 @@ lively.ast.Visitor.subclass('lively.ast.ContainsDebuggerVisitor', 'visiting', {
         return this.visit(node.val);
     },
     visitThrow: function(node) {
-                 return this.visit(node.expr);
+        return this.visit(node.expr);
     },
     visitTryCatchFinally: function(node) {
         return this.visit(node.trySeq) || this.visit(node.catchSeq) || this.visit(node.finallySeq);
@@ -1007,6 +1064,9 @@ lively.ast.Visitor.subclass('lively.ast.ContainsDebuggerVisitor', 'visiting', {
 
 Function.addMethods(
 'ast', {
+    evaluatedSource: function() {
+        return this.toSource();
+    },
     ast: function() {
         if (this._cachedAst) return this._cachedAst;
         var parseResult = lively.ast.Parser.parse(this.toSource(), 'topLevel');
@@ -1016,19 +1076,19 @@ Function.addMethods(
             return this._cachedAst = parseResult.val;
         }
         return this._cachedAst = parseResult;
-    },
+    }
 },
 'debugging', {
     forInterpretation: function(optMapping) {
         var funcAst = this.ast();
-        if (optMapping) {
-            func.lexicalScope = lively.ast.Interpreter.Frame.create(optMapping || Global);
+        if (!funcAst.lexicalScope && this._cachedScope) {
+            funcAst.lexicalScope = lively.ast.Interpreter.Frame.fromScope(this._cachedScope);
         }
         return funcAst.asFunction(this);
     },
     containsDebugger: function() {
         return new lively.ast.ContainsDebuggerVisitor().visit(this.ast());
-    },
+    }
 });
 
-}) // end of module
+}); // end of module

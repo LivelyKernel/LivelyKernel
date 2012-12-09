@@ -179,7 +179,10 @@ lively.morphic.Morph.addMethods(
 
     setClipModeHTML: function(ctx, clipMode) {
         // Sets the overflow property of the morph node.
-        // Clipmode can be either 'visible', 'hidden', 'scroll', 'auto' or 'inherit'.
+        // Clipmode can be either 'visible', 'hidden', 'scroll',
+        // 'auto' or 'inherit', or an object with x and y parameters
+        // (i.e. {x: 'hidden', y: 'scroll'}).
+        //
         if (!ctx.shapeNode || this.delayedClipMode) {
             this.delayedClipMode = clipMode;
             return;
@@ -754,30 +757,36 @@ lively.morphic.Shapes.Shape.addMethods(
         setStrokeOpacity: 'setStrokeOpacityHTML',
         setBorderRadius: 'setBorderRadiusHTML',
         setBorderStyle: 'setBorderStyleHTML',
-        setOpacity: 'setOpacityHTML'
-    },
+        setOpacity: 'setOpacityHTML',
+        setNodeId: 'setNodeIdHTML'
+    }
 },
 'initializing', {
     initHTML: function(ctx) {
-        if (!ctx.shapeNode)
-            throw new Error('Cannot call Shape>>initHTML because no shapeNode exists')
+        if (!ctx.shapeNode) {
+            throw new Error('Cannot call Shape>>initHTML because no shapeNode exists');
+        }
+        this.setNodeIdHTML(ctx, this.getNodeId());
         this.setPositionHTML(ctx, this.getPosition());
         this.setExtentHTML(ctx, this.getExtent());
         this.setFillHTML(ctx, this.getFill());
         this.setFillOpacity(this.getFillOpacity())
         this.setOpacityHTML(ctx, this.getOpacity());
-        this.setBorderWidthHTML(ctx, this.getBorderWidth()); // The other border props are initialized there as well
+        // The other border props are initialized there as well:
+        this.setBorderWidthHTML(ctx, this.getBorderWidth());
         this.setBorderStyleHTML(ctx, this.getBorderStyle());
-        this.setPaddingHTML(ctx, this.getPadding()); // also sets extent
-        if (UserAgent.fireFoxVersion)
-            ctx.shapeNode['-moz-user-modify'] = 'read-only'
+        // also sets extent:
+        this.setPaddingHTML(ctx, this.getPadding());
+        if (UserAgent.fireFoxVersion) {
+            ctx.shapeNode['-moz-user-modify'] = 'read-only';
+        }
     },
     renderHTML: function(ctx) {
         if (ctx.shapeNode.parentNode) return;
         var child = ctx.morphNode.childNodes[0];
         if (!child) ctx.morphNode.appendChild(ctx.shapeNode)
         else ctx.morphNode.insertBefore(ctx.shapeNode, child)
-    },
+    }
 },
 'updating', {
     setPositionHTML: function(ctx, value) {
@@ -846,25 +855,24 @@ lively.morphic.Shapes.Shape.addMethods(
     compensateShapeNode: function(ctx) {
         // compensates the shapeNode's position for childmorphs,
         // positions childmorphs against morphNodes (origin!)
-        if(ctx.originNode) {
-            ctx.originNode.style.setProperty(
-                'top', -this.getPosition().y + 'px', 'important');
-            ctx.originNode.style.setProperty(
-                'left', -this.getPosition().x + 'px', 'important');
-            ctx.originNode.style.setProperty(
-                'position', 'absolute', 'important');
+        if (!ctx.originNode) return;
+        ctx.originNode.style.setProperty(
+            'top', -this.getPosition().y + 'px', 'important');
+        ctx.originNode.style.setProperty(
+            'left', -this.getPosition().x + 'px', 'important');
+        ctx.originNode.style.setProperty(
+            'position', 'absolute', 'important');
 
-            // FIXME: hack, necessary until the style editor knows
-            // about stroke widths of svg lines instead of using borderWidth...
-            if (ctx.pathNode) return;
+        // FIXME: hack, necessary until the style editor knows
+        // about stroke widths of svg lines instead of using borderWidth...
+        if (ctx.pathNode) return;
 
-            // compensates the shapeNode's borderWidth for childmorphs,
-            // borders don't affect submorphs
-            ctx.originNode.style.setProperty(
-                'margin-top', -this.getBorderWidth() + 'px', 'important');
-            ctx.originNode.style.setProperty(
-                'margin-left', -this.getBorderWidth() + 'px', 'important');
-        }
+        // compensates the shapeNode's borderWidth for childmorphs,
+        // borders don't affect submorphs
+        ctx.originNode.style.setProperty(
+            'margin-top', -this.getBorderWidth() + 'px', 'important');
+        ctx.originNode.style.setProperty(
+            'margin-left', -this.getBorderWidth() + 'px', 'important');
     },
     setOpacityHTML: function(ctx, value) {
         if (ctx.shapeNode) {
@@ -878,6 +886,11 @@ lively.morphic.Shapes.Shape.addMethods(
         var s = r.top() + "px " + r.right() + "px " + r.bottom() + "px " + r.left() + "px";
         ctx.shapeNode.style.padding = s;
         return r;
+    },
+
+    setNodeIdHTML: function(ctx, id) {
+        ctx.shapeNode && ctx.shapeNode.setAttribute('id', id);
+        return id;
     }
 
 });
@@ -979,7 +992,7 @@ lively.morphic.Shapes.External.addMethods(
             ctx.shapeNode = this.shapeNode;
         }
         $super(ctx);
-    },
+    }
 },
 'initializing', {
     initFromStringifiedShapeNodeHTML: function(ctx) {
@@ -999,14 +1012,16 @@ lively.morphic.Shapes.External.addMethods(
         this.setExtent(extent);
         this.shapeNode = element;
         ctx && (ctx.shapeNode = element);
-    },
+    }
 },
 'accessing', {
     getExtentHTML: function(ctx) {
         var $node = $(ctx.shapeNode);
         return pt($node.outerWidth() || 0, $node.outerHeight() || 0);
     },
-    setOpacityHTML: function(ctx, value) { if (ctx.shapeNode.style) ctx.shapeNode.style.opacity = value; },
+    setOpacityHTML: function(ctx, value) {
+        if (ctx.shapeNode.style) ctx.shapeNode.style.opacity = value;
+    }
 
 });
 

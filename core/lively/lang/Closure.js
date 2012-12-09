@@ -79,7 +79,7 @@ Object.subclass('lively.Closure',
 
     firstParameter: function(src) {
         return this.parameterNames(src)[0] || null
-    },
+    }
 },
 'function creation', {
     recreateFunc: function() {
@@ -133,7 +133,7 @@ Object.subclass('lively.Closure',
         return function() {
             alert(msg)
         };
-    },
+    }
 },
 'conversion', {
     asFunction: function() {

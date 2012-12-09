@@ -1131,7 +1131,8 @@ Object.subclass('WebResource',
                   'progress',
                   'readystate',
                   'versions',
-                  'headRevision']
+                  'headRevision',
+                  'lastModified']
 },
 'initializing', {
     initialize: function(url) {
@@ -1189,7 +1190,12 @@ Object.subclass('WebResource',
             request = new NetRequest({
                 model: {
                     setStatus: function(reqStatus) {
-                        self.status = reqStatus; self.isExisting = reqStatus.isSuccess() },
+                        if (reqStatus.isSuccess()) {
+                            self.setLastModificationDateFromXHR(request.transport);
+                        }
+                        self.status = reqStatus;
+                        self.isExisting = reqStatus.isSuccess();
+                    },
                     setResponseText: function(string) { self.content = string },
                     setResponseXML: function(doc) { self.contentDocument = doc },
                     setResponseHeaders: function(obj) { self.responseHeaders = obj },
@@ -1239,6 +1245,11 @@ Object.subclass('WebResource',
         };
         function onReadyStateChange() {
             var status = createStatus();
+            // do this before setting status so that the properties are
+            // already available when connections to status are updated
+            if (req.readyState == loadStates.DONE) {
+                webR.setLastModificationDateFromXHR(req);
+            }
             webR.status = status;
             if (req.readyState == loadStates.DONE) {
                 webR.isExisting = status.isSuccess();
@@ -1247,12 +1258,8 @@ Object.subclass('WebResource',
                 if (req.responseXML !== undefined)
                     webR.contentDocument = req.responseXML;
                 if (req.getAllResponseHeaders() !== undefined)
-                    webR.responseHeaders = extractHeaders(req)
+                    webR.responseHeaders = extractHeaders(req);
             }
-
-                    // setReadyState: function(readyState) { self.readystate = readyState },
-                    // setProgress: function(progress) { self.progress = progress },
-                    // setStreamContent: function(content) { self.content = content },
         };
 
         function onProgress(evt) {
@@ -1303,6 +1310,12 @@ Object.subclass('WebResource',
         var result = func.call(this)
         this._url = temp;
         return result;
+    },
+
+    setLastModificationDateFromXHR: function(xhr) {
+        var dateString = xhr.getResponseHeader("last-modified")
+                      || xhr.getResponseHeader("Date");
+        if (dateString) this.lastModified = new Date(dateString);
     }
 },
 'accessing', {
@@ -1382,15 +1395,21 @@ Object.subclass('WebResource',
 'request headers', {
 
     setRequestHeaders: function(headers) {
-        this.requestHeaders = headers;
+        this.requestHeaders = Object.merge([this.requestHeaders || {}, headers]);
         return this;
     },
-    addHeaderForRequiredRevision: function(rev) {
-        if (!rev) return;
-        var local = this.getURL().relativePathFrom(this.getRepoURL()),
-            ifHeader = Strings.format('(["%s//%s"])', rev, local);
-        console.log('Creating if header: ' + ifHeader);
-        this.requestHeaders["If"] = ifHeader;
+
+    addHeaderForPutRequirements: function(options) {
+        var rev = options.requiredSVNRevision,
+            date = options.ifUnmodifiedSince;
+        if (rev) {
+            var local = this.getURL().relativePathFrom(this.getRepoURL()),
+                ifHeader = Strings.format('(["%s//%s"])', rev, local);
+            this.requestHeaders["If"] = ifHeader;
+        } else if (date) {
+            var dateString = date.toGMTString ? date.toGMTString() : date.toString();
+            this.requestHeaders["if-unmodified-since"] = dateString;
+        }
     },
     addContentType: function(contentType) {
         this.requestHeaders["Content-Type"] = contentType || '';
@@ -1464,9 +1483,12 @@ Object.subclass('WebResource',
         return this;
     },
 
-    put: function(content, contentType, requiredRevision) {
+    put: function(content, contentType, options) {
+        // options: {requiredSVNRevision: String || Number}
+        options = options || {};
+        contentType = contentType || options.contentType;
         this.content = this.convertContent(content || '');
-        if (requiredRevision) this.addHeaderForRequiredRevision(requiredRevision);
+        this.addHeaderForPutRequirements(options);
         if (contentType) this.addContentType(contentType)
         this.addNoCacheHeader();
         var req = this.createXMLHTTPRequest('PUT');

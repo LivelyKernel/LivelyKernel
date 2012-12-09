@@ -151,15 +151,21 @@ Object.subclass("Point",
         return lively.pt(this.x - (this.x % grid.x), this.y - (this.y % grid.y))
     }
 },
-'round off', {
+'geometry computation', {
     roundTo: function(quantum) {
         return new lively.Point(this.x.roundTo(quantum), this.y.roundTo(quantum));
     },
 
     dist: function(p) {
-        var dx = this.x - p.x;
-        var dy = this.y - p.y;
+        var dx = this.x - p.x,
+            dy = this.y - p.y;
         return Math.sqrt(dx * dx + dy * dy);
+    },
+
+    distSquared: function(p) {
+        var dx = this.x - p.x,
+            dy = this.y - p.y;
+        return dx * dx + dy * dy;
     },
 
     nearestPointOnLineBetween: function(p1, p2) {
@@ -172,6 +178,7 @@ Object.subclass("Point",
         var t = (((this.y - y1) / x21) + ((this.x - x1) / y21)) / ((x21 / y21) + (y21 / x21));
         return lively.pt(x1 + (t * x21), y1 + (t * y21));
     }
+
 },
 'converting', {
     asRectangle: function() {
@@ -184,6 +191,10 @@ Object.subclass("Point",
 
     extentAsRectangle: function() {
         return new Rectangle(0, 0, this.x, this.y)
+    },
+
+    lineTo: function(end) {
+        return new lively.Line(this, end);
     },
 
     toTuple: function() {
@@ -335,6 +346,15 @@ Object.subclass('Rectangle',
 'converting', {
     toTuple: function() {
         return [this.x, this.y, this.width, this.height];
+    },
+
+    lineTo: function(otherRect) {
+        var center1 = this.center(),
+            center2 = otherRect.center(),
+            lineBetween = center1.lineTo(center2),
+            start = this.lineIntersection(lineBetween).first(),
+            end = otherRect.lineIntersection(lineBetween).first();
+        return start && end && start.lineTo(end);
     }
 },
 'printing', {
@@ -394,6 +414,21 @@ Object.subclass('Rectangle',
 
     center: function() {
         return new lively.Point(this.x + (this.width / 2), this.y + (this.height / 2))
+    },
+
+    topEdge: function() { return new lively.Line(this.topLeft(), this.topRight()); },
+
+    bottomEdge: function() { return new lively.Line(this.bottomLeft(), this.bottomRight());  },
+
+    leftEdge: function() { return new lively.Line(this.topLeft(), this.bottomLeft());  },
+
+    rightEdge: function() { return new lively.Line(this.topRight(), this.bottomRight());  },
+
+    edges: function() {
+        return [this.topEdge(),
+                this.rightEdge(),
+                this.bottomEdge(),
+                this.leftEdge()];
     }
 },
 'testing', {
@@ -461,6 +496,10 @@ Object.subclass('Rectangle',
 
     union: function(r) {
         return lively.rect(this.topLeft().minPt(r.topLeft()), this.bottomRight().maxPt(r.bottomRight()));
+    },
+
+    lineIntersection: function(line) {
+        return this.edges().collect(function(edge) { return edge.intersection(line); }).compact();
     },
 
     dist: function(rect) {
@@ -933,6 +972,109 @@ Object.subclass('lively.morphic.Similitude',
     },
 });
 
+Object.subclass("lively.Line",
+'initializing', {
+    initialize: function(start, end) {
+        this.start = start;
+        this.end = end;
+    }
+},
+'accessing', {
+    sampleN: function(n) {
+        // return n points that are collinear with this and are between
+        // this.start and this.end
+        n = n || 10;
+        var vector = this.end.subPt(this.start),
+            stepPt = vector.scaleBy(1/n),
+            result = [];
+        for (var i = 0; i <= n; i++) {
+            result.push(this.start.addPt(stepPt.scaleBy(i)))
+        }
+        return result;
+    },
+
+    sample: function(length) {
+        return this.sampleN(this.length() / length);
+    },
+
+    length: function() {
+        return this.start.dist(this.end);
+    }
+},
+'testing', {
+    equals: function(otherLine) {
+        if (!otherLine) return false;
+        return this.start.eqPt(otherLine.start) && this.end.eqPt(otherLine.end);
+    },
+
+    includesPoint: function(p, unconstrained) {
+        // test whether p is collinear with this.start, this.end
+        // constrained: p also needs to be on segment between start, end
+        var x1 = this.start.x,
+            y1 = this.start.y,
+            x2 = this.end.x,
+            y2 = this.end.y,
+            x3 = p.x,
+            y3 = p.y,
+            collinear = ((x2 - x1) * (y3 - y1)) - ((x3 - x1) * (y2 - y1)) === 0;
+        if (unconstrained || !collinear) return collinear;
+        var xMin = Math.min(x1, x2),
+            yMin = Math.min(y1, y2),
+            xMax = Math.max(x1, x2),
+            yMax = Math.max(y1, y2);
+        return xMin <= x3 && x3 <= xMax && yMin < y3 && y3 <= yMax;
+    }
+},
+'intersection', {
+    intersection: function(otherLine, unconstrained) {
+        // constrained: intersection has to be between start/ends of this and
+        // otherLine
+        // http://en.wikipedia.org/wiki/Line-line_intersection
+        //       .. (x1, y1)
+        //         ..              ..... (x4,y4)
+        //           ..    ........
+        // (x3,y3) .....X..
+        //    .....      ..
+        //                 ..  (x2, y2)
+        var eps = 0.0001,
+            start1 = this.start,
+            end1 = this.end,
+            start2 = otherLine.start,
+            end2 = otherLine.end,
+            x1 = start1.x,
+            y1 = start1.y,
+            x2 = end1.x,
+            y2 = end1.y,
+            x3 = start2.x,
+            y3 = start2.y,
+            x4 = end2.x,
+            y4 = end2.y;
+
+        var x = ((x1*y2-y1*x2)*(x3-x4)-(x1-x2)*(x3*y4-y3*x4)) /
+                ((x1-x2)*(y3-y4)-(y1-y2)*(x3-x4)),
+            y = ((x1*y2-y1*x2)*(y3-y4)-(y1-y2)*(x3*y4-y3*x4)) /
+                ((x1-x2)*(y3-y4)-(y1-y2)*(x3-x4));
+
+        // are lines parallel?
+        if (x === Infinity || y === Infinity) return null;
+
+        if (!unconstrained) {
+            if (!Numbers.between(x, x1, x2, eps)
+             || !Numbers.between(y, y1, y2, eps)
+             || !Numbers.between(x, x3, x4, eps)
+             || !Numbers.between(y, y3, y4, eps)) return null;
+        }
+
+        return lively.pt(x,y);
+    }
+},
+'debugging', {
+    toString: function() {
+        return Strings.format('line((%s,%s), (%s,%s))',
+                              this.start.x, this.start.y,
+                              this.end.x, this.end.y)
+    }
+});
 
 Object.subclass("Color",
 'documentation', {

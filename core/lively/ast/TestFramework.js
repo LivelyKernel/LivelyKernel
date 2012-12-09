@@ -1,4 +1,5 @@
 module('lively.ast.TestFramework').requires('lively.TestFramework', 'lively.ast.Morphic').toRun(function() {
+
 cop.create('DebugTestsLayer')
 .refineClass(TestCase, {
     runTest: function(aSelector) {
@@ -13,7 +14,7 @@ cop.create('DebugTestsLayer')
         } catch (e) {
             if (e.isUnwindException) {
                 runTearDown = false;
-                lively.morphic.Morph.openDebugger(e.topFrame, e.toString())
+                lively.morphic.Morph.openDebugger(e.topFrame, e.toString());
             } else {
                 this.addAndSignalFailure(e);
             }

@@ -658,14 +658,22 @@ lively.morphic.Morph.subclass('lively.morphic.World',
     }
 },
 "world requirements", {
+    hasWorldRequirement: function(requirement) {
+        return this.getWorldRequirements().include(requirement);
+    },
+
     addWorldRequirement: function(requirement) {
         this.setWorldRequirements(this.getWorldRequirements().concat(requirement));
+    },
+
+    removeWorldRequirement: function(requirement) {
+        this.setWorldRequirements(this.getWorldRequirements().without(requirement));
     },
 
     setWorldRequirements: function(requirements) {
         // FIXME metaInfos should be independent from PartsBin
         var metaInfo = this.getPartsBinMetaInfo();
-        requirements.forEach(function(ea) { metaInfo.addRequiredModule(ea); });
+        metaInfo.requiredModules = requirements;
     },
 
     getWorldRequirements: function() {

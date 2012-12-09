@@ -359,7 +359,7 @@ Object.extend(ObjectGraphLinearizer, {
         var regex = new RegExp(this.prototype.escapedCDATAEnd, 'g'),
             converted = json.replace(regex, this.prototype.CDATAEnd);
         return JSON.parse(converted);
-    },
+    }
 
 });
 
@@ -435,7 +435,7 @@ ObjectLinearizerPlugin.subclass('ClassPlugin',
             delete obj[this.classNameProperty];
         if (obj[this.sourceModuleNameProperty])
             delete obj[this.sourceModuleNameProperty];
-    },
+    }
 },
 'searching', {
     sourceModulesIn: function(registryObj) {
@@ -448,11 +448,11 @@ ObjectLinearizerPlugin.subclass('ClassPlugin',
                 moduleNames.push(value[sourceModuleProperty]);
             if (value[partsBinRequiredModulesProperty])
                 moduleNames.pushAll(value[partsBinRequiredModulesProperty]);
-        })
+        });
 
         return moduleNames.reject(function(ea) {
             return ea.startsWith('Global.anonymous_') || ea.include('undefined') }).uniq();
-    },
+    }
 });
 
 ObjectLinearizerPlugin.subclass('LayerPlugin',
@@ -1117,7 +1117,7 @@ ObjectLinearizerPlugin.subclass('CopyOnlySubmorphsPlugin',
 
 ObjectLinearizerPlugin.subclass('IgnoreEpiMorphsPlugin',
 'plugin interface', {
-    ignoreProp: function(obj, key, value) { return value && value.isEpiMorph },
+    ignoreProp: function(obj, key, value) { return value && value.isEpiMorph }
 });
 
 // (de)serialize objects that inherit stuff from a constructor function
@@ -1235,7 +1235,7 @@ Object.extend(lively.persistence.Serializer, {
             head = $head.get(0);
 
         // remove existing data
-        $doc.find("#LivelyMigrationLevel, #WorldChangeSet, #LivelyJSONWorld").remove();
+        $doc.find("#LivelyMigrationLevel, #LivelyJSONWorld").remove();
 
         // store migration level
         $("<meta/>")
@@ -1260,6 +1260,7 @@ Object.extend(lively.persistence.Serializer, {
 
         return doc;
     },
+
     deserialize: function(json, optDeserializer) {
         var deserializer = optDeserializer || this.createObjectGraphLinearizer(),
             obj = deserializer.deserialize(json);
@@ -1267,19 +1268,27 @@ Object.extend(lively.persistence.Serializer, {
     },
 
     deserializeWorldFromDocument: function(doc) {
-        var worldMetaElement = doc.getElementById(this.jsonWorldId);
-        if (!worldMetaElement)
-            throw new Error('Cannot find JSONified world when deserializing');
+        var json = this.findWorldJsonInDocument(doc),
+            jso = this.parseJSON(json);
+        jso = LivelyMigrationSupport.applyWorldJsoTransforms(jso);
         var serializer = this.createObjectGraphLinearizer(),
-            json = worldMetaElement.textContent,
-            world = serializer.deserialize(json);
+            world = serializer.deserializeJso(jso);
         return world;
     },
 
     deserializeWorldFromJso: function(jso) {
+        jso = LivelyMigrationSupport.applyWorldJsoTransforms(jso);
         var serializer = this.createObjectGraphLinearizer(),
             world = serializer.deserializeJso(jso);
         return world;
+    },
+
+    findWorldJsonInDocument: function(document) {
+        var worldMetaElement = document.getElementById(this.jsonWorldId);
+        if (!worldMetaElement) {
+            throw new Error('Cannot find JSONified world when deserializing');
+        }
+        return worldMetaElement.textContent;
     },
 
     sourceModulesIn: function(jso) {
@@ -1293,7 +1302,8 @@ Object.extend(lively.persistence.Serializer, {
     copyWithoutWorld: function(obj) {
         var serializer = this.createObjectGraphLinearizerForCopy(),
             dontCopyWorldPlugin = new GenericFilter();
-        dontCopyWorldPlugin.addFilter(function(obj, propName, value) { return value === lively.morphic.World.current() })
+        dontCopyWorldPlugin.addFilter(function(obj, propName, value) {
+            return value === lively.morphic.World.current(); });
         serializer.addPlugin(dontCopyWorldPlugin);
         var copy = serializer.copy(obj);
         return copy;
@@ -1311,7 +1321,8 @@ Object.extend(lively.persistence.Serializer, {
         copyPlugin.root = obj;
         serializer.addPlugin(copyPlugin);
         return serializer.copy(obj);
-    },
+    }
+
 });
 
 Object.extend(lively.persistence, {

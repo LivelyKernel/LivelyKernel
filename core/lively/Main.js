@@ -65,7 +65,8 @@ lively.Main.WorldDataAccessor.subclass('lively.Main.JSONMorphicData',
 'initializing', {
     initialize: function($super, canvas, json) {
         $super(canvas);
-        this.jso = lively.persistence.Serializer.parseJSON(json);
+        this.jso = LivelyMigrationSupport.applyWorldJsoTransforms(
+            lively.persistence.Serializer.parseJSON(json));
     }
 },
 'accessing and creation', {

@@ -146,7 +146,7 @@ if (LivelyMigrationSupport.documentMigrationLevel < 6) {
 };
 
 if (LivelyMigrationSupport.documentMigrationLevel < 7) {
-    // 6 - no more old changesets
+    // 7 - no more old changesets
     Importer.prototype.getBaseDocument = Importer.prototype.getBaseDocument.wrap(function(proceed) {
         var doc = proceed(),
             csNode = doc.getElementById("WorldChangeSet");

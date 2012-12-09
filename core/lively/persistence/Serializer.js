@@ -472,7 +472,7 @@ ObjectLinearizerPlugin.subclass('LayerPlugin',
     },
     ignoreProp: function(obj, propName, value) {
         return propName == this.withLayersPropName || propName == this.withoutLayersPropName;
-    },
+    }
 },
 'helper',{
     serializeLayerArray: function(original, persistentCopy, propname) {
@@ -488,7 +488,7 @@ ObjectLinearizerPlugin.subclass('LayerPlugin',
         obj[propname] = layers.collect(function(ea) {
             return Object.isString(ea) ? cop.create(ea, true) : ea;
         });
-    },
+    }
 });
 
 ObjectLinearizerPlugin.subclass('StoreAndRestorePlugin',

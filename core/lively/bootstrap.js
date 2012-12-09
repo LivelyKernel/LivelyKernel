@@ -2,7 +2,7 @@ Global = (typeof window !== "undefined" && window) || global;
 
 var isFirefox = window.navigator.userAgent.indexOf('Firefox') > -1;
 var isFireBug = isFirefox && window.console && window.console.firebug !== undefined;
-var isChrome = window.navigator.userAgent.indexOf('Chrome') > -1;
+var isIE = /*@cc_on!@*/false;
 var useMinifiedLibs = document.location.host.indexOf('localhost') === -1;
 
 function livelyConfigExists() { return typeof Config !== "undefined" }
@@ -245,7 +245,7 @@ var LoadingScreen = {
         var message = document.createElement('span'),
             defaultMessageText,
             messageText;
-        if (!isChrome) {
+        if (isIE) {
             defaultMessageText = "HINT : Lively Kernel works best with Chrome!";
             messageText = optMessage || defaultMessageText;
             message.setAttribute('style', 'position: fixed;'

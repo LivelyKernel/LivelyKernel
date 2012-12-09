@@ -2,6 +2,7 @@ Global = (typeof window !== "undefined" && window) || global;
 
 var isFirefox = window.navigator.userAgent.indexOf('Firefox') > -1;
 var isFireBug = isFirefox && window.console && window.console.firebug !== undefined;
+var isChrome = window.navigator.userAgent.indexOf('Chrome') > -1;
 var useMinifiedLibs = document.location.host.indexOf('localhost') === -1;
 
 function livelyConfigExists() { return typeof Config !== "undefined" }
@@ -240,14 +241,37 @@ var LoadingScreen = {
         return a;
     },
 
+    buildBrowserMessage: function (optMessage) {
+        var message = document.createElement('span'),
+            defaultMessageText,
+            messageText;
+        if (!isChrome) {
+            defaultMessageText = "HINT : Lively Kernel works best with Chrome!";
+            messageText = optMessage || defaultMessageText;
+            message.setAttribute('style', 'position: fixed;'
+                                        + 'left: 90px; top: 20px;'
+                                        + 'text-align: left;'
+                                        + 'font-family: monospace;'
+                                        + 'padding: 0px 10px 0px 10px;'
+                                        + 'border: 1px solid;'
+                                        + 'border-color: rgb(100,100,100);'
+                                        + 'color: rgb(100,0,0)'
+            );
+            message.textContent = messageText;
+        }
+        return message;
+    },
+
     build: function() {
         var background = this.buildBackground(),
             loadingLogo = this.buildLoadingLogo(),
+            browserMessage = this.buildBrowserMessage(),
             consoleButton = this.buildConsoleButton(),
             closeButton = this.buildCloseButton(),
             console = this.buildConsole();
 
         background.appendChild(loadingLogo);
+        background.appendChild(browserMessage);
         background.appendChild(consoleButton);
         background.appendChild(closeButton);
 

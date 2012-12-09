@@ -1391,7 +1391,7 @@ lively.morphic.World.addMethods(
                 })}]];
 
         // world requirements
-        var worldRequirements = world.getWorldRequirementsList(),
+        var worldRequirements = world.getWorldRequirements(),
             removeRequirement = function(name) {
                 world.removeWorldRequirement(name);
                 alertOK(name + ' is not loaded at startup anymore');

@@ -356,20 +356,17 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
             })
         }]);
 
-        // menu.unshift(['check for redundant klass definitions', function() {
-            // node.checkForRedundantClassDefinitions()
-        // }]);
-
-        var moduleName = lively.ide.ModuleWrapper.forFile(node.moduleName).moduleName(),
-            hasWorldRequirement = $world.hasWorldRequirement(moduleName),
+        var world = lively.morphic.World.current(),
+            moduleName = lively.ide.ModuleWrapper.forFile(node.moduleName).moduleName(),
+            hasWorldRequirement = world.hasWorldRequirement(moduleName),
             entryName = (hasWorldRequirement ? 'Remove from' : 'Add to') + ' world requirements';
 
         menu.unshift([entryName, function() {
             if (hasWorldRequirement) {
-                cs.removeWorldRequirement(moduleName)
+                world.removeWorldRequirement(moduleName)
                 alertOK(moduleName + ' removed from local requirements');
             } else {
-                cs.addWorldRequirement(moduleName);
+                world.addWorldRequirement(moduleName);
                 module(moduleName).load()
                 alertOK(moduleName + ' added to local requirements');
             }
@@ -379,7 +376,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
     }
 },
 'selection', {
-    onSelect: function() { this.browser.currentModuleName = this.target.name },
+    onSelect: function() { this.browser.currentModuleName = this.target.name }
 });
 
 lively.ide.CompleteFileFragmentNode.subclass('lively.ide.CompleteOmetaFragmentNode', {

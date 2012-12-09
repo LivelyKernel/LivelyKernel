@@ -153,6 +153,19 @@ if (LivelyMigrationSupport.documentMigrationLevel < 7) {
         if (csNode) csNode.parentNode.removeChild(csNode);
         return doc;
     });
+
+    lively.morphic.World.addMethods({
+        onrestore: lively.morphic.World.prototype.onrestore.wrap(function(proceed) {
+            debugger
+            proceed();
+            // remove deperecated changeSet attribute
+            if (this.hasOwnProperty("changeSet")
+              && this.changeSet
+              && this.changeSet.isChangeSetReplacement) {
+                delete this.changeSet;
+            }
+        })
+    });
 };
 
 

@@ -11,12 +11,6 @@ TestCase.subclass('lively.tests.BootstrapTests.WorldDataTest',
             "    <script>Config={isNewMorphic: true}</script>\n" +
             "    <script src=\"core/lively/bootstrap.js\"></script>\n" +
             "    <meta id=\"LivelyMigrationLevel\"><![CDATA[4]]></meta>\n" +
-            "    <meta id=\"WorldChangeSet\">\n" +
-            "      <code xmlns=\"http://www.w3.org/2000/svg\">\n" +
-            "        <doit name=\"local requirements\" automaticEval=\"true\"><![CDATA[[]]]></doit>\n" +
-            "        <doit name=\"initializer\"><![CDATA[]]></doit>\n" +
-            "      </code>\n" +
-            "    </meta>\n" +
             "    <meta id=\"LivelyJSONWorld\"><![CDATA[{\n" +
             "  \"id\": 0,\n" +
             "  \"registry\": {\n" +
@@ -56,10 +50,6 @@ TestCase.subclass('lively.tests.BootstrapTests.WorldDataTest',
             "          \"id\": 1\n" +
             "        }\n" +
             "      ],\n" +
-            "      \"changeSet\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 22\n" +
-            "      },\n" +
             "      \"__SourceModuleName__\": \"Global.lively.morphic.ObjectMigration\",\n" +
             "      \"eventStartPos\": {},\n" +
             "      \"worldMenuOpened\": true,\n" +
@@ -263,11 +253,6 @@ TestCase.subclass('lively.tests.BootstrapTests.WorldDataTest',
             "      \"__SourceModuleName__\": \"Global\",\n" +
             "      \"__LivelyClassName__\": \"Point\"\n" +
             "    },\n" +
-            "    \"22\": {\n" +
-            "      \"name\": \"Local code\",\n" +
-            "      \"__LivelyClassName__\": \"ChangeSet\",\n" +
-            "      \"__SourceModuleName__\": \"Global.lively.ChangeSet\"\n" +
-            "    },\n" +
             "    \"isSimplifiedRegistry\": true\n" +
             "  }\n" +
             "}]]></meta>\n" +
@@ -280,16 +265,13 @@ TestCase.subclass('lively.tests.BootstrapTests.WorldDataTest',
 },
 'testing', {
 
-	  testGetChangesetAndWorldFromJSON: function() {
-		    var doc = this.doc(),
+	testGetChangesetAndWorldFromJSON: function() {
+		var doc = this.doc(),
             canvas = doc.getElementById('LivelyJSONWorld'),
-			      sut = lively.Main.WorldDataAccessor.forCanvas(canvas),
-			      cs = sut.getChangeSet(),
-			      world = sut.getWorld();
-		    this.assertEquals(ChangeSet, cs.constructor, 'ChangeSet not deserialized');
-		    this.assertEquals(2, cs.subElements().length)
-		    this.assertEquals(lively.morphic.World, world.constructor, 'World not deserialized');
-	  }
+			sut = lively.Main.WorldDataAccessor.forCanvas(canvas),
+			world = sut.getWorld();
+		this.assertEquals(lively.morphic.World, world.constructor, 'World not deserialized');
+	}
 
 });
 

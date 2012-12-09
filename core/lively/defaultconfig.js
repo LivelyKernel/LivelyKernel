@@ -148,6 +148,7 @@ var Config = {
         for (var name in queries) {
             if (!this.hasOption(name)) continue;
             var value = queries[name];
+            if (value === "false") value = false;
             if (this.get(name) === value) continue;
             console.log('Overriding lively.Config.' + name + ' with ' + value);
             this.set(name, value);

@@ -1231,78 +1231,59 @@ Object.extend(lively.persistence.Serializer, {
     },
 
     serializeWorldToDocumentWithSerializer: function(world, doc, serializer) {
-        // this helper object was introduced to make the code that is browser
+        // this helper was introduced to make the code that is browser
         // dependent (currently IE9 vs the rest) easier to read. It sould be
         // moved to dome general DOM abstraction layer
-        var domAccess = {
-            getSystemDictNode: function(doc) {
-                return (doc.getElementById ?
-                    doc.getElementById('SystemDictionary') :
-                    doc.selectSingleNode('//*[@id="SystemDictionary"]'));
-            },
-            createMetaNode: function(doc) {
-                return UserAgent.isIE ? doc.createNode(1, 'meta', Namespace.XHTML) : XHTMLNS.create('meta')
-            },
-            getCSNode: function(doc, changeSet) {
-                var changeSetNode;
-                if (!changeSet) {
-                    alert('Found no ChangeSet while serializing ' + world + '! Adding an empty CS.');
-                    changeSetNode = LivelyNS.create('code');
-                } else {
-                    changeSetNode = cs.getXMLElement();
-                }
-                if (!UserAgent.isIE) return doc.importNode(changeSetNode, true);
-                // mr: this is a real IE hack!
-                var helperDoc = new ActiveXObject('MSXML2.DOMDocument.6.0');
-                helperDoc.loadXML(new XMLSerializer().serializeToString(changeSetNode));
-                return doc.importNode(helperDoc.firstChild, true);
-            },
-            getHeadNode: function(doc) {
-                return doc.getElementsByTagName('head')[0] || doc.selectSingleNode('//*["head"=name()]');
-            },
+        function getCSNode(doc, changeSet) {
+            var changeSetNode;
+            if (!changeSet) {
+                alert('Found no ChangeSet while serializing ' + world + '! Adding an empty CS.');
+                changeSetNode = LivelyNS.create('code');
+            } else {
+                changeSetNode = cs.getXMLElement();
+            }
+            if (!UserAgent.isIE) return doc.importNode(changeSetNode, true);
+            // mr: this is a real IE hack!
+            var helperDoc = new ActiveXObject('MSXML2.DOMDocument.6.0');
+            helperDoc.loadXML(new XMLSerializer().serializeToString(changeSetNode));
+            return doc.importNode(helperDoc.firstChild, true);
         }
 
-        var head = domAccess.getHeadNode(doc);
+        var $doc = $(doc),
+            $head = $doc.find("head"),
+            head = $head.get(0);
 
-        // FIXME remove previous meta elements - is this really necessary?
-        // var metaElement;
-        // while (metaElement = doc.getElementsByTagName('meta')[0])
-        //    metaElement.parentNode.removeChild(metaElement)
-        // removed 2012-01-5 fabian
-        // doing this instead: remove old serialized data.. is it necessary or not?
-        // we need additional meta tags for better iPad touch support, can't remove all of them..
-        var metaToBeRemoved = ['LivelyMigrationLevel', 'WorldChangeSet', 'LivelyJSONWorld'];
-        metaToBeRemoved.forEach(function(ea) {
-            var element = doc.getElementById(ea);
-            if (element) { element.parentNode.removeChild(element); }});
-
-
-        // FIXME remove system dictionary
-        var sysDict = domAccess.getSystemDictNode(doc);
-        if (sysDict) sysDict.parentNode.removeChild(sysDict);
+        // remove existing data
+        $doc.find("#LivelyMigrationLevel, #WorldChangeSet, #LivelyJSONWorld").remove();
 
         // store migration level
-        var migrationLevel = LivelyMigrationSupport.migrationLevel,
-            migrationLevelNode = domAccess.createMetaNode(doc);
-        migrationLevelNode.setAttribute('id', LivelyMigrationSupport.migrationLevelNodeId);
-        migrationLevelNode.appendChild(doc.createCDATASection(migrationLevel));
-        head.appendChild(migrationLevelNode);
+        $("<meta/>")
+            .attr("id", LivelyMigrationSupport.migrationLevelNodeId)
+            .append($doc[0].createCDATASection(LivelyMigrationSupport.migrationLevel))
+            .appendTo($head);
 
         // serialize changeset
         var cs = world.getChangeSet(),
-            csElement = domAccess.getCSNode(doc, cs),
-            metaCSNode = domAccess.createMetaNode(doc);
-        metaCSNode.setAttribute('id', this.changeSetElementId);
-        metaCSNode.appendChild(csElement);
-        head.appendChild(metaCSNode);
+            csElement = getCSNode(doc, cs);
+        $("<meta/>")
+            .attr("id", this.changeSetElementId)
+            .append(csElement)
+            .appendTo($head)
 
         // serialize world
-        var json = this.serialize(world, null, serializer),
-            metaWorldNode = domAccess.createMetaNode(doc);
+        var json = this.serialize(world, null, serializer);
         if (!json) throw new Error('Cannot serialize world -- serialize returned no JSON!');
-        metaWorldNode.setAttribute('id', this.jsonWorldId)
-        metaWorldNode.appendChild(doc.createCDATASection(json))
-        head.appendChild(metaWorldNode);
+        $("<meta/>")
+            .attr("id", this.jsonWorldId)
+            .append($doc[0].createCDATASection(json))
+            .appendTo($head)
+
+        // generate a preview
+        if (lively.Config.get('createWorldPreview')) {
+            var previewHTML = world.asHTMLLogo({asFragment: true});
+            $doc.find("body").html(previewHTML);
+            $("head style").clone().appendTo($head);
+        }
 
         return doc;
     },

@@ -39,7 +39,7 @@ lively.ide.BrowserNode.subclass('lively.ide.SourceControlNode', {
     },
 
     childNodes: function() {
-        // js files + OMeta files (.txt) + lkml files + ChangeSet current
+        // js files + OMeta files (.txt)
         //if (this._childNodes) return this._childNodes; // optimization
         var moduleNodes = [],
             nsNodes = [],
@@ -57,9 +57,6 @@ lively.ide.BrowserNode.subclass('lively.ide.SourceControlNode', {
             } else if (fn.endsWith('.ometa')) {
                 moduleNodes.push(new lively.ide.CompleteOmetaFragmentNode(
                     srcDb.rootFragmentForModule(fn), b, this, fn));
-            } else if (fn.endsWith('.lkml')) {
-                moduleNodes.push(new lively.ide.ChangeSetNode(
-                    ChangeSet.fromFile(fn, srcDb.getCachedText(fn)), b, this));
             }
         };
         moduleNodes = moduleNodes.sortBy(function(node) { return node.asString().toLowerCase() });
@@ -77,12 +74,11 @@ lively.ide.BrowserNode.subclass('lively.ide.SourceControlNode', {
         // add local changes
         var nodes = nsNodes;
         nodes = nodes.concat(moduleNodes);
-        nodes.push(ChangeSet.current().asNode(b));
 
         this._childNodes = nodes;
 
         return nodes;
-    },
+    }
 });
 
 lively.ide.BrowserNode.subclass('lively.ide.FileFragmentNode', {
@@ -365,8 +361,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
         // }]);
 
         var moduleName = lively.ide.ModuleWrapper.forFile(node.moduleName).moduleName(),
-            cs = ChangeSet.current(),
-            hasWorldRequirement = cs.hasWorldRequirement(moduleName),
+            hasWorldRequirement = $world.hasWorldRequirement(moduleName),
             entryName = (hasWorldRequirement ? 'Remove from' : 'Add to') + ' world requirements';
 
         menu.unshift([entryName, function() {
@@ -501,12 +496,6 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CategorizedClassFragmentNode', 
         var index = fragment.name ? fragment.name.lastIndexOf('.') : -1;
         // don't search for complete namespace name, just its last part
         var searchName = index === -1 ? fragment.name : fragment.name.substring(index+1);
-        // menu.unshift(['add to current ChangeSet', function() {
-        //     lively.morphic.World.current().confirm('Add methods?', function(addMethods) {
-        //         var cs = ChangeSet.current();
-        //         var classChange = new
-        //     });
-        // }]);
         menu.unshift(['references', function() {
             var list = lively.ide.SourceControl
                 .searchFor(searchName)

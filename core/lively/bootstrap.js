@@ -1,15 +1,22 @@
 /*global Config, require, Class, WebResource*/
-/*jshint evil: true, scripturl: true, loopfunc: true, laxbreak: true, immed: true, lastsemic: true*/
+/*jshint evil: true, scripturl: true, loopfunc: true, laxbreak: true, immed: true, lastsemic: true, debug: true*/
 (function bootstrapLively(Global) {
     // "Global" is the lively accessor to the toplevel JS scope
     Global.Global = Global;
-    var isNodejs = typeof window === "undefined" && Global.process && !!Global.process.versions.node,
-        isFirefox = Global.navigator && Global.navigator.userAgent.indexOf('Firefox') > -1,
-        isFireBug = isFirefox && Global.console && Global.console.firebug !== undefined,
-        useMinifiedLibs = Global.document && document.location.host.indexOf('localhost') === -1;
+    var isNodejs = typeof window === "undefined"
+                && Global.process
+                && !!Global.process.versions.node,
+        isFirefox = Global.navigator
+                 && Global.navigator.userAgent.indexOf('Firefox') > -1,
+        isFireBug = isFirefox
+                 && Global.console
+                 && Global.console.firebug !== undefined,
+        useMinifiedLibs = Global.document
+                       && document.location.host.indexOf('localhost') === -1;
 
     (function ensureConfig() {
-        // Should have addtional logic for the case when no no window object exist...
+        // Should have addtional logic for the case when no no window object
+        // exist...
         if (!Global.Config) Global.Config = {};
     })();
 
@@ -22,7 +29,7 @@
             }
             lively.whenLoaded = function(callback) {
                 Config.finishLoadingCallbacks.push(callback);
-            }
+            };
         }
     })();
 
@@ -41,13 +48,14 @@
     })();
 
     (function setupConsole() {
-
         var platformConsole = Global.console
-                           || (Global.window && window.parent && window.parent.console)
-                           || {};
-
-        var required = ['log', 'group', 'groupEnd', 'warn', 'assert', 'error'],
-            emptyFunc = function() { };
+                           || (Global.window
+                             && window.parent
+                             && window.parent.console)
+                           || {},
+            required = ['log', 'group', 'groupEnd', 'warn', 'assert',
+                        'error'];
+        function emptyFunc() { }
         for (var i = 0; i < required.length; i++) {
             if (!platformConsole[required[i]]) {
                 platformConsole[required[i]] = emptyFunc;
@@ -75,7 +83,9 @@
                         func.apply(platformConsole, arguments);
                         for (var i = 0; i < consumers.length; i++) {
                             var consumerFunc = consumers[i][name];
-                            if (consumerFunc) consumerFunc.apply(consumers[i], arguments);
+                            if (consumerFunc) {
+                                consumerFunc.apply(consumers[i], arguments);
+                            }
                         }
                     };
                 })(props[i]);
@@ -86,7 +96,8 @@
         function removeWrappers() {
             for (var name in platformConsole) {
                 if (name[0] !== '$') continue;
-                platformConsole[name.substring(1, name.length)] = platformConsole[name];
+                var realName = name.substring(1, name.length);
+                platformConsole[realName] = platformConsole[name];
                 delete platformConsole[name];
             }
         }
@@ -110,33 +121,50 @@
         logoId: 'loadingLogo',
         brokenWorldMsgId: 'loadingBrokenWorldMsg',
 
-        width: function() { return document.documentElement.clientWidth || 800 },
-        height: function() { return document.documentElement.clientHeight || 800 },
+        width: function() {
+            return document.documentElement.clientWidth || 800;
+        },
+        height: function() {
+            return document.documentElement.clientHeight || 800;
+        },
 
         buildBackground: function() {
-            var div1 = document.createElement('div')
+            var div1 = document.createElement('div');
             div1.setAttribute('id', this.id);
-            div1.setAttribute('style', "position: fixed; left: 0px; top: 0px; background-color: rgba(100,100,100,0.7); overflow: auto");
-            div1.style.width = this.width() + 'px'
-            div1.style.height = this.height() + 'px'
+            div1.setAttribute('style', "position: fixed;"
+                                     + " left: 0px;"
+                                     + " top: 0px;"
+                                     + " background-color: "
+                                     +   "rgba(100,100,100,0.7);"
+                                     + " overflow: auto");
+            div1.style.width = this.width() + 'px';
+            div1.style.height = this.height() + 'px';
 
-            return div1
+            return div1;
         },
 
         buildLoadingLogo: function() {
-            var logoAndText = document.createElement('div')
+            var logoAndText = document.createElement('div');
             logoAndText.setAttribute('id', this.logoId);
-            logoAndText.setAttribute('style', "position: fixed; margin-left:auto; margin-right:auto; width: 80px; height: 108px; background-color: white;");
+            logoAndText.setAttribute('style', "position: fixed;"
+                                            + " margin-left:auto;"
+                                            + " margin-right:auto;"
+                                            + " width: 80px;"
+                                            + " height: 108px;"
+                                            + " background-color: white;");
 
-            var logo = document.createElement('img')
+            var logo = document.createElement('img');
             logo.setAttribute('style', "width: 80px; height: 80px;");
 
-            var text = document.createElement('div')
-            text.setAttribute('style', "text-align:center; font-family: sans-serif; font-size: large; color: gray")
+            var text = document.createElement('div');
+            text.setAttribute('style', "text-align:center;"
+                                     + " font-family: sans-serif;"
+                                     + " font-size: large;"
+                                     + " color: gray");
             text.textContent = 'Loading';
 
-            logoAndText.style['top'] = (this.height() / 2 - 100) + 'px'
-            logoAndText.style['left'] = (this.width() / 2 - 40) + 'px'
+            logoAndText.style.top = (this.height() / 2 - 100) + 'px';
+            logoAndText.style.left = (this.width() / 2 - 40) + 'px';
             logo.src = LivelyLoader.codeBase + 'media/loading.gif';
 
             logoAndText.appendChild(logo);
@@ -149,16 +177,26 @@
 
         buildBrokenWorldMessage: function() {
             var el = document.createElement('div'),
-                text1 = document.createTextNode('An error occurred. If the world does not load you can visit '),
+                text1 = document.createTextNode('An error occurred. '
+                                               + 'If the world does not load '
+                                               + 'you can visit '),
                 text2 = document.createTextNode(' for help.'),
                 link = document.createElement('a'),
-                repairURL = Config.rootPath + 'BrokenWorldRepairSite.xhtml?brokenWorldURL=' + document.location.href;
+                repairURL = Config.rootPath + 'BrokenWorldRepairSite.xhtml?'
+                          + 'brokenWorldURL=' + document.location.href;
 
             el.setAttribute('id', this.brokenWorldMsgId);
-            el.setAttribute('style', "position: fixed; margin-left:auto; margin-right:auto; padding: 5px; background-color: white; font-family: Arial,times; color: red; font-size: large-x;");
+            el.setAttribute('style', "position: fixed"
+                                   + "; margin-left:auto"
+                                   + "; margin-right:auto"
+                                   + "; padding: 5px"
+                                   + "; background-color: white"
+                                   + "; font-family: Arial,times"
+                                   + "; color: red"
+                                   + "; font-size: large-x;");
 
-            el.style['top'] = (this.height() / 2 - 70) + 'px'
-            el.style['left'] = (this.width() / 2 - 290) + 'px'
+            el.style.top = (this.height() / 2 - 70) + 'px';
+            el.style.left = (this.width() / 2 - 290) + 'px';
 
             link.style.color = 'red';
             link.setAttribute('href', repairURL);
@@ -175,14 +213,20 @@
         ensureBrokenWorldMessage: function() {
             this.removeElement(this.logo);
             if (!document.getElementById(this.brokenWorldMsgId)) {
-                 document.getElementById(this.id).appendChild(this.buildBrokenWorldMessage());
+                var msg = this.buildBrokenWorldMessage();
+                document.getElementById(this.id).appendChild(msg);
             }
         },
 
         buildConsole: function() {
             var console = document.createElement('pre'), self = this;
             console.setAttribute('id', this.consoleId);
-            console.setAttribute('style', "position: absolute; top: 0px; font-family: monospace; color: rgb(0,255,64); font-size: medium; padding-bottom: 20px;");
+            console.setAttribute('style', "position: absolute;"
+                                        + " top: 0px;"
+                                        + " font-family: monospace;"
+                                        + " color: rgb(0,255,64);"
+                                        + " font-size: medium;"
+                                        + " padding-bottom: 20px;");
             this.console = console;
             if (isFireBug) return console;
 
@@ -208,7 +252,7 @@
                 line.setAttribute('style', style);
                 console.appendChild(line);
                 if (console.parentNode && line.scrollIntoViewIfNeeded)
-                    line.scrollIntoViewIfNeeded()
+                    line.scrollIntoViewIfNeeded();
             }
 
             this.consoleProxy = {
@@ -221,7 +265,7 @@
                 }
             };
 
-            Global.console.addConsumer(this.consoleProxy)
+            Global.console.addConsumer(this.consoleProxy);
 
             return console;
         },
@@ -231,8 +275,8 @@
             this.console = null;
             if (!console || isFireBug) return;
             this.removeElement(console);
-            if (!this.consoleProxy) return
-            Global.console.removeConsumer(this.consoleProxy)
+            if (!this.consoleProxy) return;
+            Global.console.removeConsumer(this.consoleProxy);
             this.consoleProxy = null;
         },
 
@@ -247,14 +291,31 @@
 
         buildConsoleButton: function() {
             var a = document.createElement('a');
-            a.setAttribute('style', "position: fixed; right: 170px; top: 20px; width: 70px; text-align:center; font-family: monospace; border: 1px solid; border-color: rgb(100,100,100); color: rgb(100,100,100)");
-            a.setAttribute('href', 'javascript:LoadingScreen.toggleConsole()');
+            a.setAttribute('style', "position: fixed;"
+                                  + " right: 170px;"
+                                  + " top: 20px;"
+                                  + " width: 70px;"
+                                  + " text-align:center;"
+                                  + " font-family: monospace;"
+                                  + " border: 1px solid;"
+                                  + " border-color: rgb(100,100,100);"
+                                  + " color: rgb(100,100,100)");
+            a.setAttribute('href',
+                           'javascript:LoadingScreen.toggleConsole();');
             a.textContent = 'console';
             return a;
         },
         buildCloseButton: function() {
             var a = document.createElement('a');
-            a.setAttribute('style', "position: fixed; right: 90px; top: 20px; width: 70px; text-align:center; font-family: monospace; border: 1px solid; border-color: rgb(100,100,100); color: rgb(100,100,100)");
+            a.setAttribute('style', "position: fixed;"
+                                  + " right: 90px;"
+                                  + " top: 20px;"
+                                  + " width: 70px;"
+                                  + " text-align:center;"
+                                  + " font-family: monospace;"
+                                  + " border: 1px solid;"
+                                  + " border-color: rgb(100,100,100);"
+                                  + " color: rgb(100,100,100)");
             a.setAttribute('href', 'javascript:LoadingScreen.remove();');
             a.textContent = 'close';
             return a;
@@ -299,18 +360,19 @@
 
         loadJs: isNodejs ?
             function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
-                console.log('loading ' + url)
+                console.log('loading ' + url);
                 var path = url.match(/(^http|^file):\/\/(.*)/)[2],
                     fs = require('fs'),
                     code = fs.readFileSync(path),
                     vm = require('vm');
                 // vm.runInThisContext(code, path);
                 eval(code);
-                onLoadCb && onLoadCb();
+                if (onLoadCb) onLoadCb();
             } :
             function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
                 if (this.scriptInDOM(url)) {
-                    console.log('script ' + url + ' already loaded or loading');
+                    var msg = 'script ' + url + ' already loaded or loading';
+                    console.log(msg);
                     return null;
                 }
                 // it's called loadJs, not loadCSS !!!
@@ -336,7 +398,7 @@
                 }
                 parentNode.appendChild(el);
                 el.setAttributeNS(null, 'id', url);
-                console.log(exactUrl)
+                console.log(exactUrl);
                 return loadSync ?
                     this.loadSync(exactUrl, onLoadCb, el) :
                     this.loadAsync(exactUrl, onLoadCb, el);
@@ -373,49 +435,58 @@
 
 
         loadCombinedModules: function(combinedFileUrl, callback, hash) {
-            // If several modules are combined in one file they can be loaded with this method.
-            // The method will ensure that all included modules are loaded. If they
-            // have required modules that are not included in the combined file, those will
-            // be loaded as well.
+            // If several modules are combined in one file they can be loaded
+            // with this method. The method will ensure that all included
+            // modules are loaded. If they have required modules that are not
+            // included in the combined file, those will be loaded as well.
 
             var originalLoader = this,
                 combinedLoader = {
 
-                    expectToLoadModules: function(listOfRelativePaths) {
-                        // urls like http://lively-kernel.org/repository/webwerkstatt/lively/Text.js
-                        this.expectedModuleURLs = new Array(listOfRelativePaths.length);
-                        var i, len = listOfRelativePaths.length;
+                    expectToLoadModules: function(relativePaths) {
+                        // urls like http://foo.org/lively/Text.js
+                        var i, len = relativePaths.length;
+                        this.expectedModuleURLs = new Array(len);
                         for (i = 0; i < len; i++) {
-                            this.expectedModuleURLs[i] = LivelyLoader.codeBase + listOfRelativePaths[i];
+                            this.expectedModuleURLs[i] =
+                                LivelyLoader.codeBase + relativePaths[i];
                         }
 
                         // modules like lively.Text
                         this.expectedModules = new Array(len);
                         for (i = 0; i < len; i++) {
-                            var moduleName = listOfRelativePaths[i].replace(/\//g, '.');
-                            moduleName = moduleName.replace(/\.js$/g, '');
+                            var moduleName = relativePaths[i]
+                                             .replace(/\//g, '.')
+                                             .replace(/\.js$/g, '');
                             this.expectedModules[i] = moduleName;
                         }
 
-                        // create script tags that are found when tested if a file is already loaded
+                        // create script tags that are found when tested if a
+                        // file is already loaded
                         this.expectedModuleURLs.forEach(function(url) {
                             var script = document.createElement('script');
                             script.setAttribute('id', url);
-                            document.getElementsByTagName('head')[0].appendChild(script);
+                            document.getElementsByTagName('head')[0]
+                                .appendChild(script);
                         });
                     },
 
-                    includedInCombinedFile: function(scriptUrl) {
-                        return this.expectedModuleURLs && this.expectedModuleURLs.indexOf(scriptUrl) >= 0;
+                    includedInCombinedFile: function(url) {
+                        return this.expectedModuleURLs
+                            && this.expectedModuleURLs.indexOf(url) >= 0;
                     },
 
                     loadJs: function(url) {
-                        console.log('load file that is not in combined modules: ' + url);
-                        if (!this.includedInCombinedFile(url)) originalLoader.loadJs(url);
+                        console.log('load file that is not in'
+                                   + ' combined modules: ' + url);
+                        if (!this.includedInCombinedFile(url)) {
+                            originalLoader.loadJs(url);
+                        }
                     },
 
                     scriptInDOM: function(url) {
-                        return originalLoader.scriptInDOM(url) || this.includedInCombinedFile(url);
+                        return originalLoader.scriptInDOM(url)
+                            || this.includedInCombinedFile(url);
                     }
 
                 },
@@ -424,30 +495,33 @@
                     Global.JSLoader = originalLoader;
                     // FIXME
                     // Filter out the modules already loaded
-                    var realModules = combinedLoader.expectedModules.select(function(ea) {
-                        // FIXME, better now throw error in Class.forName
-                        return !ea.include('lively-libs') && Class.forName(ea) !== undefined;
-                    });
+                    var allModules = combinedLoader.expectedModules,
+                        realModules = allModules.select(function(ea) {
+                            // FIXME, better now throw error in Class.forName
+                            return !ea.include('lively-libs')
+                                && Class.forName(ea) !== undefined;
+                        });
                     require(realModules).toRun(callback);
-
                 };
 
             if (this.scriptInDOM(combinedFileUrl)) { callCallback(); return; }
 
             // while loading the combined file we replace the loader
             JSLoader = combinedLoader;
-
-            this.loadJs(combinedFileUrl, callCallback, undefined, undefined, hash);
+            this.loadJs(combinedFileUrl, callCallback,
+                        undefined, undefined, hash);
         },
 
         loadAll: function(urls, cb) {
             urls.reverse().reduce(function(loadPrevious, url) {
                 return function() { JSLoader.loadJs(url, loadPrevious); };
-            }, function() { cb && cb(); })();
+            }, function() { if (cb) cb(); })();
         },
 
         resolveAndLoadAll: function(baseURL, urls, cb) {
-            for (var i = 0; i < urls.length; i++) { urls[i] = baseURL + urls[i]; }
+            for (var i = 0; i < urls.length; i++) {
+                urls[i] = baseURL + urls[i];
+            }
             return this.loadAll(urls, cb);
         },
 
@@ -458,10 +532,13 @@
         },
 
         getLinkAttribute: function(el) {
-            return el.getAttributeNS(this.XLINKNamespace, 'href') || el.getAttribute('src');
+            return el.getAttributeNS(this.XLINKNamespace, 'href')
+                || el.getAttribute('src');
         },
 
-        getScripts: function() { return document.getElementsByTagName('script'); },
+        getScripts: function() {
+            return document.getElementsByTagName('script');
+        },
 
         scriptInDOM: isNodejs ?
             function() { return false; } :
@@ -481,9 +558,9 @@
         removeQueries: function(url) { return url.split('?')[0]; },
 
         resolveURLString: function(urlString) {
-            // FIXME duplicated from URL class in lively. Network
-            // actually lively.Core should require lively.Network -- but lively.Network indirectly
-            // lively.Core ====>>> FIX that!!!
+            // FIXME duplicated from URL class in lively. Network actually
+            // lively.Core should require lively.Network -- but lively.Network
+            // indirectly lively.Core ====>>> FIX that!!!
             var protocolMatch = urlString.match(/(^[^:]+:\/\/)(.*)/),
                 protocol = protocolMatch[1],
                 result = protocolMatch[2];
@@ -513,10 +590,13 @@
 
         currentDir: isNodejs ?
             function() { return "file://" + __dirname + '/'; } :
-            function() { return this.dirOfURL(document.location.href.toString()); },
+            function() {
+                return this.dirOfURL(document.location.href.toString());
+            },
 
         dirOfURL: function(url) {
-            return this.removeQueries(url).substring(0, url.lastIndexOf('/') + 1);
+            return this.removeQueries(url)
+                       .substring(0, url.lastIndexOf('/') + 1);
         },
 
         makeAbsolute: function(urlString) {
@@ -530,7 +610,9 @@
 
         makeUncached: function(urlString, cacheQuery) {
             cacheQuery = cacheQuery || new Date().getTime();
-            return urlString + (urlString.indexOf('?') == -1 ? '?' : '&') + cacheQuery;
+            return urlString
+                 + (urlString.indexOf('?') == -1 ? '?' : '&')
+                 + cacheQuery;
         },
 
         removeAllScriptsThatLinkTo: function(url) {
@@ -571,7 +653,8 @@
         }
     };
 
-    // TODO: Something is wrong with the lively-libs, use debug only to activate loading on ios 5
+    // TODO: Something is wrong with the lively-libs, use debug only to
+    // activate loading on ios 5
     var libsFile = /*useMinifiedLibs ? 'lib/lively-libs.js' :*/ 'lib/lively-libs-debug.js',
         bootstrapFiles = [
             libsFile,
@@ -593,10 +676,12 @@
             'lively/LocalStorage.js'    // FIXME: require module instead
         ],
         codeBase = (function findCodeBase() {
-            var codeBase = Global.Config && Config.codeBase;
+            var codeBase = Global.Config && Config.codeBase,
+                parentDir;
             if (codeBase) return codeBase;
             if (isNodejs) {
-                return Config.codeBase = JSLoader.makeAbsolute(JSLoader.currentDir() + '../');
+                parentDir = JSLoader.currentDir() + '../';
+                return Config.codeBase = JSLoader.makeAbsolute(parentDir);
             }
             // search for script that links to "bootstrap.js" and construct
             // the codeBase path from its path
@@ -605,13 +690,16 @@
                 i = 0, node, urlFound;
             while (!urlFound && (node = scripts[i++])) {
                 var url = JSLoader.getLinkAttribute(node);
-                if (url && (url.indexOf(bootstrapFileName) >= 0)) urlFound = url;
+                if (url && (url.indexOf(bootstrapFileName) >= 0)) {
+                    urlFound = url;
+                }
             }
             if (!urlFound) {
                 console.warn('Cannot find codebase, have to guess...');
                 return JSLoader.dirOfURL(Global.location.href.toString());
             }
-            codeBase = JSLoader.makeAbsolute(JSLoader.dirOfURL(urlFound) + '../');
+            parentDir = JSLoader.dirOfURL(urlFound) + '../';
+            codeBase = JSLoader.makeAbsolute(parentDir);
             console.log('Codebase is ' + codeBase);
             return Config.codeBase = codeBase;
         })(),
@@ -626,12 +714,14 @@
                 return Config.rootPath = rootPath;
             }
             if (codeBase) {
-                rootPath = JSLoader.makeAbsolute(JSLoader.dirOfURL(codeBase) + '../');
+                var parentDir = JSLoader.dirOfURL(codeBase) + '../';
+                rootPath = JSLoader.makeAbsolute(parentDir);
                 console.log('Root path is ' + rootPath);
                 return Config.rootPath = rootPath;
             }
             console.warn('Cannot find rootPath, have to guess...');
-            return Config.rootPath = JSLoader.dirOfURL(Global.location.href.toString());
+            var currentUrl = Global.location.href.toString();
+            return Config.rootPath = JSLoader.dirOfURL(currentUrl);
         })();
 
     // ------- generic load support ----------
@@ -643,7 +733,8 @@
         modulePaths: (function setModulePaths() {
             if (!Global.Config) { Global.Config = {}; }
             // FIXME this is webwerkstatt specific
-            var defaultPaths = ['users/', 'projects/', 'documentation/', 'server/'];
+            var defaultPaths = ['users/', 'projects/', 'documentation/',
+                                'server/'];
             if (Config.modulePaths === undefined) {
                 Config.modulePaths = defaultPaths;
             } else {
@@ -658,11 +749,16 @@
             target[newPropName] = target[propName];
             target.__defineSetter__(propName, function(v) {
                 target[newPropName] = v;
-                console.log(target.toString() + '.' + propName + ' changed: ' + v);
+                console.log(target.toString()
+                           + '.' + propName
+                           + ' changed: ' + v);
                 if (haltWhenChanged) debugger;
             });
-            target.__defineGetter__(propName, function() { return target[newPropName]; });
-            console.log('Watcher for ' + target + '.' + propName + ' installed');
+            target.__defineGetter__(propName, function() {
+                return target[newPropName];
+            });
+            console.log('Watcher for ' + target
+                       + '.' + propName + ' installed');
         },
 
         //
@@ -673,10 +769,12 @@
             lively.Config.loadUserConfigModule();
             require('lively.bindings', 'lively.Main').toRun(function() {
                 var loader = lively.Main.getLoader(canvas);
-                lively.bindings.connect(loader, 'finishLoading', LoadingScreen, 'remove');
+                lively.bindings.connect(loader, 'finishLoading',
+                                        LoadingScreen, 'remove');
                 if (startupFunc) {
                     loader.startupFunc = startupFunc;
-                    lively.bindings.connect(loader, 'finishLoading', loader, 'startupFunc');
+                    lively.bindings.connect(loader, 'finishLoading',
+                                            loader, 'startupFunc');
                 }
                 loader.systemStart(canvas);
             });
@@ -693,10 +791,11 @@
 
         bootstrap: function(thenDoFunc) {
             var url = JSLoader.currentDir(),
-                dontBootstrap = Config.standAlone || url.indexOf('dontBootstrap=true') >= 0;
-            if (dontBootstrap) { thenDoFunc(); return };
+                dontBootstrap = Config.standAlone
+                             || url.indexOf('dontBootstrap=true') >= 0;
+            if (dontBootstrap) { thenDoFunc(); return }
 
-            var codeBase = this.codeBase,
+            var cb = this.codeBase,
                 optimizedLoading = !url.match('quickLoad=false')
                                 && !url.match('!svn')
                                 && url.match('webwerkstatt')
@@ -704,14 +803,15 @@
 
             if (optimizedLoading) {
                 console.log('optimized loading enabled');
-                var hashUrl = codeBase + 'generated/combinedModulesHash.txt',
-                    combinedModulesUrl = codeBase + 'generated/combinedModules.js',
+                var hashUrl = cb + 'generated/combinedModulesHash.txt',
+                    combinedModulesUrl = cb + 'generated/combinedModules.js',
                     hash = JSLoader.getSync(hashUrl, true/*uncached*/);
-                JSLoader.loadCombinedModules(combinedModulesUrl, thenDoFunc, hash);
+                JSLoader.loadCombinedModules(
+                    combinedModulesUrl, thenDoFunc, hash);
                 return;
             }
 
-            JSLoader.resolveAndLoadAll(codeBase, this.bootstrapFiles, thenDoFunc);
+            JSLoader.resolveAndLoadAll(cb, this.bootstrapFiles, thenDoFunc);
         }
 
     };
@@ -733,12 +833,12 @@
             console.log('Fetching ' + worldURL);
             var doc = new WebResource(worldURL).get().contentDocument;
             this.convertCDATASections(doc.documentElement);
-            var canvas = document.importNode(doc.getElementById('canvas'), true);
+            var canvas = document.importNode(
+                doc.getElementById('canvas'), true);
             $A(canvas.getElementsByTagName('script')).forEach(function(e) {
                 e.parentElement.removeChild(e);
             });
             var div = document.createElement('div');
-            // div.setAttribute('style', "page-break-before: always; page-break-inside: avoid;");
             div.style['page-break-before'] = 'always';
             div.style['page-break-inside'] = 'avoid';
             div.appendChild(canvas);
@@ -749,23 +849,29 @@
             var worldElement;
             // SVG detection
             if (canvas.getElementsByTagName('g').length > 0) {
-                // FIXME ugly hack: width/height not properly saved in canvas element so reset it to the
-                // width/height of the rect of the worldmorph
+                // FIXME ugly hack: width/height not properly saved in canvas
+                // element so reset it to the width/height of the rect of the
+                // worldmorph
                 Config.resizeScreenToWorldBounds = false;
                 worldElement = canvas.getElementsByTagName('g')[0];
-                canvas.setAttribute("width", worldElement.childNodes[0].width.baseVal.value.toString()
-                                           + 'px');
-                canvas.setAttribute("height", worldElement.childNodes[0].height.baseVal.value.toString()
-                                            + 'px');
+                var world = worldElement.childNodes[0];
+                canvas.setAttribute(
+                    "width", world.width.baseVal.value.toString() + 'px');
+                canvas.setAttribute(
+                    "height", world.height.baseVal.value.toString() + 'px');
             } else {
                 // FIXME!!!
                 Config.resizeScreenToWorldBounds = false;
-                canvas.setAttribute("width", targetElement.clientWidth + 'px');
-                canvas.setAttribute("height", targetElement.clientHeight + 'px');
+                canvas.setAttribute(
+                    "width", targetElement.clientWidth + 'px');
+                canvas.setAttribute(
+                    "height", targetElement.clientHeight + 'px');
                 worldElement = canvas.getElementsByTagName('div')[0];
-                worldElement.setAttribute("width", targetElement.clientWidth + 'px');
-                worldElement.setAttribute("height", targetElement.clientHeight + 'px');
-                var pos = targetElement.getAttribute('lively:position')
+                worldElement.setAttribute(
+                    "width", targetElement.clientWidth + 'px');
+                worldElement.setAttribute(
+                    "height", targetElement.clientHeight + 'px');
+                var pos = targetElement.getAttribute('lively:position');
                 if (pos) {
                     var values = pos.split(' ');
                     canvas.style.position = 'absolute';
@@ -800,7 +906,7 @@
         isLivelyCanvas: function(el) {
             if (!el || !el.getAttribute) return false;
             var attr = this.getWorldAttributeFrom(el);
-            return attr && attr != '';
+            return attr && attr !== '';
         },
 
         findLivelyCanvasIn: function(element) {
@@ -820,8 +926,8 @@
     };
 
     Global.LivelyMigrationSupport = {
-        // increase this value by hand if you make a change that effects object layout
-        // LivelyMigrationSupport.migrationLevel
+        // increase this value by hand if you make a change that effects
+        // object layout LivelyMigrationSupport.migrationLevel
         migrationLevel: 4,
         documentMigrationLevel: 0,
         migrationLevelNodeId: 'LivelyMigrationLevel',
@@ -854,7 +960,9 @@
 
 
     function init() {
-        if (Global.document) LivelyMigrationSupport.setDocumentMigrationLevel(document);
+        if (Global.document) {
+            LivelyMigrationSupport.setDocumentMigrationLevel(document);
+        }
         var startupFunc = Config.onStartWorld;
         if (LivelyLoader.startFromSerializedWorld(startupFunc)) return;
         console.warn("Lively startup failed");
@@ -883,12 +991,6 @@
             ];
             LivelyLoader.bootstrap(function() {
                 console.log('bootstrap done');
-                console.log('' + lively);
-
-                JSLoader.loadJs("file:///Users/robert/Dropbox/Projects/emacs/swank-js/client/swank-js.js")
-                console.log('' + global.SwankJS);
-
-                // require("swank-js/client/node").setupNodeJSClient();
             });
         } else {
             Global.addEventListener('DOMContentLoaded', init, true);

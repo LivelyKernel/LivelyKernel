@@ -75,7 +75,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         $super(extent);
         this.label && this.label.setExtent(extent)
     },
-    setPadding: function(padding) { this.label && this.label.setPadding(padding) },
+    setPadding: function(padding) { this.label && this.label.setPadding(padding); }
 },
 'styling', {
     updateAppearance: function(){
@@ -83,6 +83,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     },
     changeAppearanceFor: function(pressed, toggled) {
         if (this.isActive) {
+            this.removeStyleClassName('disabled');
             var isToggled = toggled || this.value;
             if (isToggled) {
                 this.addStyleClassName('toggled');
@@ -98,8 +99,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
                 var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
                 this.setPadding(labelPadding);
             }
-        }
-        else {
+        } else {
             this.addStyleClassName('disabled');
             this.removeStyleClassName('toggled');
             this.removeStyleClassName('pressed');

@@ -26,7 +26,6 @@
 
 .Button {
 	font-size: 9pt;
-
 	color: #333;
 	text-align: center;
 	text-shadow: 0 1px 0 #EEE;
@@ -36,19 +35,24 @@
 	cursor: pointer;
 	border: 1px solid #888;
 }
-.Button.pressed{
+.Button.pressed {
 	background: -webkit-linear-gradient(bottom, #EEE, #CCC);
 	box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.5);
 }
-.Button.toggled{
+.Button.toggled {
 	background: -webkit-linear-gradient(top, #FFF, #EEE);
 	color: black;
 }
-.Button.toggled.pressed{
+.Button.toggled.pressed {
 	background: -webkit-gradient(bottom, #FFF, #EEE);
 }
-.Button.disabled{
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fff), color-stop(20%,#aaa), color-stop(85%,#aaa), color-stop(100%,#888));
+
+.Button.disabled {
+	background: -webkit-gradient(linear, left top, left bottom,
+                                 color-stop(0%,#fff),
+                                 color-stop(20%,#aaa),
+                                 color-stop(85%,#aaa),
+                                 color-stop(100%,#888));
 	color: gray;
 }
 
@@ -71,10 +75,10 @@
 .reframe-handle.corner {
 	cursor: se-resize;
 }
-.reframe-handle.right{
+.reframe-handle.right {
 	cursor: e-resize;
 }
-.reframe-handle.bottom{
+.reframe-handle.bottom {
 	cursor: s-resize;
 }
 

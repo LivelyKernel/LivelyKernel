@@ -356,7 +356,8 @@ Config.addOptions(
         ["ignoreLoadingErrors", true],
         ["ignoreMissingModules", false],
         // This is for Persistence.js (ask Martin).
-        ["keepSerializerIds", false]
+        ["keepSerializerIds", false],
+        ["createWorldPreview", true, "Whether to store an HTML document showing a static version of the serialized world."]
     ],
 
     'lively.bindings', [

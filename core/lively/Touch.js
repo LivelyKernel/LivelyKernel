@@ -471,12 +471,13 @@ lively.morphic.Box.subclass('lively.morphic.NameDisplay',
         this.createLabel();
     },
     createLabel: function() {
-        var text = this.targetMorph.getName() || this.targetMorph.toString();
+        var text = this.targetMorph.getName() || this.targetMorph.toString(),
+            that = this;
         if (!text || text == '') return null;
         if (!this.labelMorph){
             this.labelMorph = new lively.morphic.Text(new Rectangle(0,0, 0, 0), text);
-            this.labelMorph.onBlur = function(evt){alertOK("Changed Name To: " + this.textString)};
-            connect(this.labelMorph, "textString", this.targetMorph, "setName");
+            this.labelMorph.doSave = function(){that.saveName(this.textString)};
+            this.labelMorph.onBlur = function () {this.setTextString(that.targetMorph.getName())}
             connect(this.labelMorph, "textString", this, "fit");
         } else {
             this.labelMorph.setExtent(pt(0,0));
@@ -513,11 +514,18 @@ lively.morphic.Box.subclass('lively.morphic.NameDisplay',
         this.labelMorph.align(this.labelMorph.bounds().center(), this.innerBounds().center());
         this.align( this.getBounds().topCenter(),
                     this.owner.innerBounds().bottomCenter());
+    },
+    saveName: function(name) {
+        if (this.targetMorph.getName() !== name) {
+            this.targetMorph.setName(name)
+            alertOK("Changed Name To: " + name)
+        }
     }
+
 });
 
 lively.morphic.Morph.addMethods(
-"Tap ThroughHalos", {
+/*"Tap ThroughHalos", {
     onTap: function(evt) {
         var world = lively.morphic.World.current();
         if ($world.firstHand() && $world.firstHand().submorphs && $world.firstHand().submorphs.length) {
@@ -568,8 +576,8 @@ lively.morphic.Morph.addMethods(
         return false;
     },
 
-},
-"TouchToMouse", {
+},*/
+"Mouse simulation", {
     fireMouseEvent: function(evtType, touchObj, target) {
 
         var buttonFlag = touchObj.buttonFlag || 0;
@@ -601,11 +609,13 @@ lively.morphic.Morph.addMethods(
     },
 },
 "TapEvents", {
+    onTap: function () {
+        this.select()
+    },
     onTouchStartAction: function (evt) {
         if (this.areEventsIgnoredOrDisabled()) {
             return false;
         }
-
         if (evt.targetTouches.length === 1){
             this.tapTouch = evt.targetTouches[0];
             if(evt.dontScroll || typeof this.onTouchMove === "function") {
@@ -614,9 +624,6 @@ lively.morphic.Morph.addMethods(
                 this.moveTouch = evt.targetTouches[0];
             }
         }
-
-
-
         if (evt.touches.length === 1 && !evt.holdIsScheduled) {
             this.handleFirstTouch(evt);
         } else if (evt.touches && evt.touches.length === 2) {
@@ -850,7 +857,7 @@ lively.morphic.Morph.addMethods(
         // enter comment here
         if(!this.isSelectable()) return;
         $world.updateSelection(this);
-        this.selectionMorph = this.createSelectionMorph();
+        this.selectionMorph = new lively.morphic.SelectionMorph(this.bounds(), this);
         $world.addMorph(this.selectionMorph);
         $world.firstHand().setPosition(this.selectionMorph.bounds().center());
         this.ignoreEvents();
@@ -950,6 +957,7 @@ lively.morphic.Morph.addMethods(
         renameHalo.labelMorph.disableSelection();
 
         renameHalo.setScale(2 / $world.getZoomLevel() / this.getGlobalTransform().getScale());
+        
         border.addMorph(renameHalo);
 
         renameHalo.fit.bind(renameHalo).delay(0);
@@ -1372,6 +1380,7 @@ lively.morphic.Morph.subclass('lively.morphic.ResizeCorner',
         $super(new lively.morphic.Shapes.Ellipse(initialBounds.extent().extentAsRectangle()));
         this.setPosition(initialBounds.topLeft());
         this.disableSelection();
+        this.isResizeCorner = true;
     },
 
     onDragStart: function(evt) {
@@ -2076,6 +2085,12 @@ lively.morphic.Text.addMethods("TapEvents", {
         this.select();
         evt.stop();
     },
+    onHold: function(touch) {
+        if (typeof(this.isFocused) == 'function' && !this.isFocused()) {
+            this.select();
+        }
+    },
+
     appendTextHTML: function(ctx) {
         if (!ctx.morphNode) throw dbgOn(new Error('appendText: no morphNode!'))
         if (!ctx.shapeNode) throw dbgOn(new Error('appendText: no shapeNode!'))
@@ -2105,13 +2120,11 @@ lively.morphic.Text.addMethods("TapEvents", {
         this.textControl.setTarget(undefined)
         this.textControl.remove();
     },
-    onBlur: function() {
+    onBlurAction: function() {
         this.deactivateTextControl()
     },
-    onFocus: function($super, evt) {
-        var returnValue = $super(evt)
+    onFocusAction: function(evt) {
         this.activateTextControl()
-        return returnValue
     },});
 
 lively.morphic.Button.addMethods("TapEvents", {
@@ -2272,6 +2285,135 @@ lively.morphic.Button.addMethods("TapEvents", {
         this.isPressed = false;
         this.changeAppearanceFor(false);
         this.select();
+    },
+});
+
+lively.morphic.Box.subclass('lively.morphic.SelectionMorph',
+'initialization', {
+    initialize: function ($super, bounds, targetMorph) {
+        var returnValue = $super(bounds),
+            world = lively.morphic.World.current();
+        this.targetMorph = targetMorph;
+        this.setBorderWidth(Math.ceil(2
+                        / lively.morphic.World.current().getZoomLevel()
+                        / this.targetMorph.getGlobalTransform().getScale()))
+        this.setName("SelectionMorph");
+        this.align(this.bounds().topLeft(), targetMorph.shape.bounds().topLeft());
+        this.setOrigin(targetMorph.getOrigin());
+        this.setTransform(targetMorph.getGlobalTransform());
+        this.disableSelection();
+        this.initializeConnections();
+        this.initializeGrabHandles();
+        this.initializeRenameHalo();
+        return returnValue;
+    },
+    initializeConnections: function() {
+        // The selection morph allows manipulating certain properties of the target morph
+        var target = this.targetMorph;
+        connect(target, "extent", this, "setExtent");
+        connect(target, "_Scale", this, "setScale", {converter: function(value) {
+            var globalTransform = this.sourceObj.getGlobalTransform();
+            return globalTransform.getScale();
+        }});
+        connect(target, "_Rotation", this, "setRotation", {converter: function(value) {
+            var globalTransform = this.sourceObj.getGlobalTransform();
+            return globalTransform.getRotation().toRadians();
+        }});
+        connect(target, "_Position", this, "setPosition", {converter: function(value) {
+            var globalTransform = this.sourceObj.getGlobalTransform();
+            return globalTransform.getTranslation();
+        }});
+    },
+    initializeGrabHandles: function() {
+        // Handles can be grabbed to resize the targetMorph
+        var cornerPlaces = ["topLeft", "topRight", "bottomLeft", "bottomRight"];
+        for (var i = 0; i < cornerPlaces.length; i += 1) {
+            var handle = this.createHandle(cornerPlaces[i])
+            this.addMorph(handle);
+            handle.align(handle.bounds().center(), this.shape.bounds()[cornerPlaces[i]]());
+        }
+    },
+    initializeRenameHalo: function() {
+        var renameHalo = new lively.morphic.NameDisplay(this.targetMorph),
+            world = lively.morphic.World.current();
+        this.addMorph(renameHalo)
+        renameHalo.disableSelection();
+        renameHalo.applyStyle({
+            layout: {
+                centeredHorizontal: true,
+                moveVertical: true
+            },
+        });
+        renameHalo.labelMorph.applyStyle({
+            align: "center"
+        });
+        renameHalo.labelMorph.disableSelection();
+        renameHalo.setScale(2 / world.getZoomLevel() / this.getGlobalTransform().getScale());
+        renameHalo.fit.bind(renameHalo).delay(0);
+        renameHalo.setFixedInSize(true)
+        return renameHalo
+    },
+
+    createHandle: function(name) {
+        // The touch sensitive area is larger than the visible Handle.
+        var grabArea = new lively.morphic.ResizeCorner(new Rectangle(0,0,44,44));
+        grabArea.setScale(1
+                / $world.getZoomLevel()
+                / this.targetMorph.getGlobalTransform().getScale());
+        grabArea.name = "corner"+name;
+        grabArea.setOrigin(pt(22,22));
+        grabArea.setFill(null);
+        grabArea.addMorph(this.createVisibleHandleKnob())
+        grabArea.enableEvents();
+        grabArea.disableHalos();
+        grabArea.disableDropping();
+        grabArea.cornerName = name;
+        grabArea.setDraggableWithoutHalo(true);
+        grabArea.setFixedInSize(true);
+        return grabArea;
+    },
+    createVisibleHandleKnob: function() {
+        var knob = lively.morphic.Morph.makeEllipse(new Rectangle(0,0,22,22))
+        knob.setFill(new lively.morphic.LinearGradient(
+            [
+                {offset: 0, color: Color.rgb(80,65,50)},
+                {offset: 0.45, color: Color.rgb(105,90,75)},
+                {offset: 0.70, color: Color.rgb(115,110,96)},
+                {offset: 1, color: Color.rgb(185,175,159)}
+            ],
+            'northWest'
+        ))
+        knob.moveBy(knob.getExtent().scaleBy(-0.5))
+        knob.ignoreEvents();
+        return knob
+    },
+    getStyle: function($super) {
+        var returnValue = $super();
+        return Object.merge([ returnValue, {
+            enableDropping: false,
+            borderColor: Color.green.lighter(),
+            layout: {
+                adjustForNewBounds: true
+            }
+        }])
+    },
+},
+'events', {
+    onTap: function (evt) {
+        this.targetMorph.morphBeneath(evt.getPosition()).select();
+        evt.stop();
+    },
+    onTouchStart: function (evt) {
+        // TODO this takes about 100ms and delays processing of furher events
+        // especially TouchEnd, which checks for taps using the time that passed
+        // that forces us to increase the tap-threshold
+        this.targetMorph.pieStart(evt);
+    },
+    onTouchMove: function (evt) {
+        this.targetMorph.pieMove(evt);
+    },
+    onTouchEnd: function (evt) {
+        this.targetMorph.pieEnd(evt);
     },
 });
 

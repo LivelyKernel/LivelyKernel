@@ -1,15 +1,5 @@
-var reqs = []
-if (Config.isNewMorphic) {
-    reqs.push('lively.morphic.CompatLayer');
-    reqs.push('lively.morphic.Widgets')
-    reqs.push('lively.morphic.MorphAddons')
-} else {
-    reqs.push('lively.Widgets')
-}
+module('lively.ide.BrowserFramework').requires(['lively.morphic.MorphAddons', 'lively.morphic.Widgets']).toRun(function() {
 
-module('lively.ide.BrowserFramework').requires(reqs).toRun(function() {
-
-if (Config.isNewMorphic && lively.morphic.CompatLayer.isLoaded()) NewMorphicCompatLayer.beGlobal();
 lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 'settings', {
     documentation: 'Abstract widget with three list panes and one text pane. Uses nodes to display and manipulate content.',

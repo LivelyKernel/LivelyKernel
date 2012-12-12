@@ -626,7 +626,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.OpenDiffViewerCommand', {
 
     isActive: function(pane) {
         var node = this.browser.selectedNode();
-        return  node && node.isModuleNode && Config.isNewMorphic
+        return  node && node.isModuleNode;
     },
 
     trigger: function() {
@@ -656,7 +656,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.OpenVersionsOfFile', {
 
     isActive: function(pane) {
         var node = this.browser.selectedNode();
-        return  node && node.isModuleNode && Config.isNewMorphic
+        return  node && node.isModuleNode;
     },
     trigger: function() {
         return [['show versions', this.showVersions.bind(this)]]

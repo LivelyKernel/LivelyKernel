@@ -678,9 +678,7 @@ var LivelyLoader = {
     },
 
     startFromSerializedWorld: function(startupFunc) {
-        if (!livelyConfigExists() || !Config.isNewMorphic) return false;
         var self = this;
-
         LoadingScreen.add();
         this.bootstrap(function() {
             self.loadMain(document.body, startupFunc);

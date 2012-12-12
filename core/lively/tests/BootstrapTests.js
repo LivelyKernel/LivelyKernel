@@ -8,7 +8,6 @@ TestCase.subclass('lively.tests.BootstrapTests.WorldDataTest',
             "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
             "  <head>\n" +
             "    <title>blank</title>\n" +
-            "    <script>Config={isNewMorphic: true}</script>\n" +
             "    <script src=\"core/lively/bootstrap.js\"></script>\n" +
             "    <meta id=\"LivelyMigrationLevel\"><![CDATA[4]]></meta>\n" +
             "    <meta id=\"WorldChangeSet\">\n" +

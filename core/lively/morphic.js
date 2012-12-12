@@ -1,5 +1,5 @@
-module('lively.morphic').requires('lively.morphic.Complete', 'lively.morphic.CompatLayer').toRun(function() {
+module('lively.morphic').requires('lively.morphic.Complete').toRun(function() {
 
-    // just load it
+// just load it
 
 }); // end of module

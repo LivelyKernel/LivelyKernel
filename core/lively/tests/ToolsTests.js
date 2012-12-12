@@ -511,10 +511,10 @@ TestCase.subclass('lively.tests.ToolsTests.KeyboardTest', {
     shouldRun: false,
 
     testStartKeyWatcher: function() {
-		var keyWatcher = Morph.makeRectangle(0,0,100,20);
+		var keyWatcher = lively.morphic.Morph.makeRectangle(0,0,100,20);
 		keyWatcher.setFill(Color.red);
 
-		var label = new TextMorph(keyWatcher.bounds().translatedBy(0,50));
+		var label = new lively.morphic.Text(keyWatcher.bounds().translatedBy(0,50));
         label.takesKeyboardFocus = Functions.False;
         label.onKeyDown = Functions.False;
         label.onKeyPress = Functions.False;
@@ -528,14 +528,14 @@ TestCase.subclass('lively.tests.ToolsTests.KeyboardTest', {
         }
 
         keyWatcher.openInWorld();
-        WorldMorph.current().hands.first().setKeyboardFocus(keyWatcher);
+        lively.morphic.World.current().hands.first().setKeyboardFocus(keyWatcher);
     },
 });
 
 TestCase.subclass('lively.tests.ToolsTests.MouseEventTest', {
 	shouldRun: false,
 	testMouseEvents: function() {
-		var mouseWatcher = Morph.makeRectangle(0,0,100,20);
+		var mouseWatcher = lively.morphic.Morph.makeRectangle(0,0,100,20);
 		mouseWatcher.setFill(Color.red);
 
 		mouseWatcher.takesMouseFocus = Functions.True;
@@ -548,7 +548,7 @@ TestCase.subclass('lively.tests.ToolsTests.MouseEventTest', {
 		}
 
 		mouseWatcher.openInWorld();
-		WorldMorph.current().hands.first().setKeyboardFocus(mouseWatcher);
+		lively.morphic.World.current().hands.first().setKeyboardFocus(mouseWatcher);
 	},
 });
 
@@ -575,7 +575,7 @@ TestCase.subclass('lively.tests.ToolsTests.TabCompletionTest', {
 TestCase.subclass('lively.tests.ToolsTests.TabCompletionLayerTest',
 'helper', {
 	createText: function(string) {
-		var sut = new TextMorph(new Rectangle(0,0,100,100), string);
+		var sut = new lively.morphic.Text(new Rectangle(0,0,100,100), string);
 		sut.setWithLayers([TabCompletionLayer]);
 		return sut
 	},
@@ -600,7 +600,7 @@ TestCase.subclass('lively.tests.ToolsTests.TabCompletionLayerTest',
 TestCase.subclass('lively.tests.ToolsTests.ChromeErrorStackParserTest',
 'tests', {
 	testParseErrorStackLine: function() {
-		var line = "    at TextMorph.<anonymous> (http://www.lively-kernel.org/repository/webwerkstatt/lively/ide/SyntaxHighlighting.js?fx1291814980471:347:20)"
+		var line = "    at lively.morphic.Text.<anonymous> (http://www.lively-kernel.org/repository/webwerkstatt/lively/ide/SyntaxHighlighting.js?fx1291814980471:347:20)"
 
 		var errorParser = new lively.ide.ErrorViewer.ChromeErrorParser();
 

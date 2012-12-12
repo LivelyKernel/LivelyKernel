@@ -10,12 +10,11 @@ if (Config.isNewMorphic) {
 module('lively.ide.BrowserFramework').requires(reqs).toRun(function() {
 
 if (Config.isNewMorphic && lively.morphic.CompatLayer.isLoaded()) NewMorphicCompatLayer.beGlobal();
-
-Widget.subclass('lively.ide.BasicBrowser',
+lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 'settings', {
     documentation: 'Abstract widget with three list panes and one text pane. Uses nodes to display and manipulate content.',
     emptyText: '-----',
-    connections: ['targetURL', 'sourceString', 'pane1Selection', 'pane2Selection', 'pane3Selection', 'pane4Selection'],
+    connections: ['targetURL', 'sourceString', 'pane1Selection', 'pane2Selection', 'pane3Selection', 'pane4Selection']
 },
 'initializing', {
 
@@ -23,16 +22,16 @@ Widget.subclass('lively.ide.BasicBrowser',
 
     panelSpec: [
         ['locationPane', newTextPane,                                         [0,    0,    0.8,  0.03]],
-        ['codeBaseDirBtn', function(bnds) { return new ButtonMorph(bnds) },   [0.8,  0,    0.12, 0.03]],
-        ['localDirBtn', function(bnds) { return new ButtonMorph(bnds) },      [0.92, 0,    0.08, 0.03]],
+        ['codeBaseDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },   [0.8,  0,    0.12, 0.03]],
+        ['localDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },      [0.92, 0,    0.08, 0.03]],
         ['Pane1', newDragnDropListPane,                                       [0,    0.03, 0.25, 0.37]],
         ['Pane2', newDragnDropListPane,                                       [0.25, 0.03, 0.25, 0.37]],
         ['Pane3', newDragnDropListPane,                                       [0.5,  0.03, 0.25, 0.37]],
         ['Pane4', newDragnDropListPane,                                       [0.75, 0.03, 0.25, 0.37]],
-        ['midResizer', function(bnds) { return new HorizontalDivider(bnds) }, [0,    0.44, 1,    0.01]],
+        ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.44, 1,    0.01]],
         ['sourcePane', newTextPane,                                           [0,    0.45, 1,    0.55]]
         // ['bottomResizer', function(bnds) {
-        // return new HorizontalDivider(bnds) }, new Rectangle(0, 0.99, 1, 0.01)],
+        // return new lively.morphic.HorizontalDivider(bnds) }, new Rectangle(0, 0.99, 1, 0.01)],
         //['commentPane', newTextPane, new Rectangle(0, 0.95, 1, 0.05)]
     ],
 
@@ -77,7 +76,7 @@ Widget.subclass('lively.ide.BasicBrowser',
                  // Selection:   (      paneName + 'Selection'),
                  // Menu:        ("-" + paneName + "Menu")}), true);
              list.withAllSubmorphsDo(function() {
-                if (this.constructor == SliderMorph || !this.onMouseDown) return;
+                if (this.constructor == lively.morphic.Slider || !this.onMouseDown) return;
                 this.onMouseDown = this.onMouseDown.wrap(function(proceed, evt) {
                     browser.ensureSourceNotAccidentlyDeleted(proceed.curry(evt));
                 });
@@ -130,7 +129,7 @@ Widget.subclass('lively.ide.BasicBrowser',
     buildView: function (extent) {
         extent = extent || this.initialViewExtent;
         var panel = new lively.ide.BrowserPanel(extent);
-        PanelMorph.makePanedPanel(extent, this.panelSpec, panel);
+        lively.morphic.Panel.makePanedPanel(extent, this.panelSpec, panel);
         panel.applyStyle({fill: Color.lightGray})
         this.panel = panel;
 
@@ -690,8 +689,8 @@ Widget.subclass('lively.ide.BasicBrowser',
     setStatusMessage: function(msg, color, delay) {
         var s = this.panel.sourcePane;
         if (!this._statusMorph) {
-            this._statusMorph = new TextMorph(pt(300,30).extentAsRectangle());
-            this._statusMorph.applyStyle({borderWidth: 0, strokeOpacity: 0})
+            this._statusMorph = new lively.morphic.Text(pt(300,30).extentAsRectangle());
+            this._statusMorph.applyStyle({borderWidth: 0, strokeOpacity: 0});
         }
         var statusMorph = this._statusMorph;
         statusMorph.setTextString(msg);
@@ -735,12 +734,12 @@ Widget.subclass('lively.ide.BasicBrowser',
         return this.debugMode;
     },
     turnParserErrorsOff: function() { this.debugMode = false },
-    turnParserErrorsOn: function() { this.debugMode = true },
+    turnParserErrorsOn: function() { this.debugMode = true }
 
 
 });
 
-PanelMorph.subclass('lively.ide.BrowserPanel', {
+lively.morphic.Panel.subclass('lively.ide.BrowserPanel', {
 
     documentation: 'Hack for deserializing my browser widget',
 
@@ -978,7 +977,7 @@ Object.extend(lively.ide.NodeTypeFilter, {
             'isChangeNode',
             'isFunctionNode',
             'isObjectNode']);
-    },
+    }
 });
 
 }) // end of module

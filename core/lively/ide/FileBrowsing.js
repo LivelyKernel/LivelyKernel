@@ -7,15 +7,15 @@ Widget.subclass('lively.ide.FileBrowsing.Browser',
     panelSpec: [
             ['Pane1', newDragnDropListPane, new Rectangle(0, 0, 0.5, 0.44)],
             ['Pane2', newDragnDropListPane, new Rectangle(0.5, 0, 0.5, 0.44)],
-            ['midResizer', function(bnds) { 
-                    return new HorizontalDivider(bnds) }, new Rectangle(0, 0.44, 1, 0.01)],
+            ['midResizer', function(bnds) {
+                    return new lively.morphic.HorizontalDivider(bnds) }, new Rectangle(0, 0.44, 1, 0.01)],
             ['sourcePane', newTextPane, new Rectangle(0, 0.45, 1, 0.49)],
         ],
 },
 'initializing', {
     buildView: function(extent) {
-        var panel = PanelMorph.makePanedPanel(extent, this.panelSpec);
-        
+        var panel = lively.morphic.Panel.makePanedPanel(extent, this.panelSpec);
+
         // setup resizers
         this.allPaneNames.collect(function(name) {
             panel.midResizer.addScalingAbove(panel[name]);

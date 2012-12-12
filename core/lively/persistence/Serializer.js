@@ -644,22 +644,19 @@ ObjectLinearizerPlugin.subclass('LivelyWrapperPlugin', // for serializing lively
     },
 });
 
-ObjectLinearizerPlugin.subclass('IgnoreDOMElementsPlugin', // for serializing lively.data.Wrappers
+ObjectLinearizerPlugin.subclass('IgnoreDOMElementsPlugin',
 'plugin interface', {
     ignoreProp: function(obj, propName, value) {
         if (!value) return false;
-        if (value.nodeType) {
-            // alert('trying to deserialize node ' + value + ' (pointer from ' + obj + '[' + propName + ']'
-            // + '\n path:' + this.serializer.getPath())
-            return true;
-        }
+        if (value.nodeType) return true;
         if (value === Global) {
-            alert('trying to deserialize Global (pointer from ' + obj + '[' + propName + ']'
-            + '\n path:' + this.serializer.getPath())
+            alert('trying to deserialize Global (pointer from '
+                 + obj + '[' + propName + ']' + '\n path:'
+                 + this.serializer.getPath())
             return true;
         }
         return false;
-    },
+    }
 });
 
 ObjectLinearizerPlugin.subclass('RegExpPlugin',

@@ -79,18 +79,18 @@ lively.morphic.Morph.addMethods(
         this.prepareForNewRenderContext(renderCtx);
     },
     disconnectObsoleteControlPoints: function() {
-        // disconnect obsolete control points that where created during copying
-        // e.g. when a line was connected to a rectangle, and only the rectangle 
-        // was copied
-        if (! this.magnets) return
+        // disconnect obsolete control points that were created during copying
+        // e.g. when a line was connected to a rectangle, and only the
+        // rectangle was copied
+        if (!this.magnets) return;
         this.magnets.forEach(function(eaMagnet) {
             if (!eaMagnet.connectedControlPoints) return;
             eaMagnet.connectedControlPoints.forEach(function(eaCP) {
-                if (! (eaCP.morph.controlPoints.include(eaCP))) {
-                    eaMagnet.removeConnectedControlPoint(eaCP)
+                if (!eaCP.morph.controlPoints.include(eaCP)) {
+                    eaMagnet.removeConnectedControlPoint(eaCP);
                 }
-            })
-        })
+            });
+        });
     }
 },
 'serialization', {

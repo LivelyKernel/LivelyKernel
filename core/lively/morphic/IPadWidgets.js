@@ -1403,7 +1403,7 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
         var target = this.fctTarget;
         return Functions.own(target).collect(function (each) {
             return target[each].tags || [];
-        }).flatten().uniq();
+        }).flatten().uniq().sort();
     },
     getFunctionTags: function() {
         var target = this.fctTarget,
@@ -1575,6 +1575,8 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
         var i = 0,
             that = this,
             targetName = target.isWorld? 'World' : target.getName();
+        if (categories.length < 2)
+            categories.push('')
         this.gridContainer.addMorph(this.makeAddButton(target));
         this.gridContainer.addMorph(this.makeMorphLabel(targetName));
         if (functionNames.length === 0)
@@ -1647,7 +1649,7 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
                 }
             }),
             list = new lively.morphic.TouchList(
-                rect(0,0,100,this.getExtent().y - 65),
+                rect(0,0,100,this.getExtent().y - 52),
                 functions,
                 {   extent: pt(100,30),
                     fontSize: 10,

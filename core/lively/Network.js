@@ -433,28 +433,18 @@ Object.subclass('NetRequestStatus',
 });
 
 
-View.subclass('NetRequest', {
+View.subclass('NetRequest',
+'settings', {
     documentation: "a view that writes the contents of an http request into the model",
-
     useProxy: true,
-
     // see XMLHttpRequest documentation for the following:
     Unsent: 0,
     Opened: 1,
     HeadersReceived: 2,
     Loading: 3,
-    Done: 4,
-
-    formals: [
-        "+Status",  // Updated once, when request is {Done} with the value returned from 'getStatus'.
-        "+ReadyState", // Updated on every state transition of the request.
-        "+ResponseXML", // Updated at most once, when request state is {Done}, with the parsed XML document retrieved.
-        "+ResponseText", // Updated at most once, when request state is {Done}, with the text content retrieved.
-        "+ResponseHeaders",  // Updated at most once, when request state is {Done}, with the response headers retrieved.
-        "StreamContent",
-        "Progress"
-    ],
-
+    Done: 4
+},
+'initializing', {
     initialize: function($super, modelPlug) {
         this.transport = new XMLHttpRequest();
         this.requestNetworkAccess();
@@ -463,7 +453,28 @@ View.subclass('NetRequest', {
         this.isBinary = false;
         this.requestHeaders = {};
         $super(modelPlug)
-    },
+    }
+},
+'accessing', {
+
+    // Updated once, when request is {Done} with the value returned from
+    // 'getStatus':
+    setStatus:           function(val) { return this._Status = val; },
+    // Updated on every state transition of the request:
+    setReadyState:       function(val) { return this._ReadyState = val; },
+    // Updated at most once, when request state is {Done}, with the parsed XML
+    // document retrieved:
+    setResponseXML:      function(val) { return this._ResponseXML = val; },
+    // Updated at most once, when request state is {Done}, with the text
+    // content retrieved:
+    setResponseText:     function(val) { return this._ResponseText = val; },
+    // Updated at most once, when request state is {Done}, with the response
+    // headers retrieved:
+    setResponseHeaders:  function(val) { return this._ResponseHeaders = val; },
+    getStreamContent:    function() { return this._StreamContent; },
+    setStreamContent:    function(val) { return this._StreamContent = val; },
+    getProgress:         function() { return this._Progress; },
+    setProgress:         function(val) { return this._Progress = val; },
 
     enableProgress: function() {
         console.log("enableProgress")

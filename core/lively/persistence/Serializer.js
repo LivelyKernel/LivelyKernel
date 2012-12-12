@@ -328,7 +328,6 @@ Object.extend(ObjectGraphLinearizer, {
             new DoNotSerializePlugin(),
             new DoWeakSerializePlugin(),
             new StoreAndRestorePlugin(),
-            new OldModelFilter(),
             new LayerPlugin(),
             new lively.persistence.DatePlugin()
         ]);
@@ -685,83 +684,6 @@ ObjectLinearizerPlugin.subclass('RegExpPlugin',
         }
     },
 });
-
-ObjectLinearizerPlugin.subclass('OldModelFilter',
-'initializing', {
-    initialize: function($super) {
-        $super();
-        this.relays = [];
-    }
-},
-'plugin interface', {
-    ignoreProp: function(source, propName, value) {
-        // if (propName === 'formalModel') return true;
-        // if (value && value.constructor && value.constructor.name.startsWith('anonymous_')) return true;
-        return false;
-    },
-    additionallySerialize: function(original, persistentCopy) {
-        var klass = original.constructor;
-        // FIX for IE9+ which does not implement Function.name
-        if (!klass.name) {
-            var n = klass.toString().match('^function\s*([^(]*)\\(');
-            klass.name = (n ? n[1].strip() : '');
-        }
-        if (!klass || !klass.name.startsWith('anonymous_')) return;
-        ClassPlugin.prototype.removeClassInfoIfPresent(persistentCopy);
-        var def = JSON.stringify(original.definition);
-        def = def.replace(/[\\]/g, '')
-        def = def.replace(/"+\{/g, '{')
-        def = def.replace(/\}"+/g, '}')
-        persistentCopy.definition = def;
-        persistentCopy.isInstanceOfAnonymousClass = true;
-        if (klass.superclass == Relay) {
-            persistentCopy.isRelay = true;
-        } else if (klass.superclass == PlainRecord) {
-            persistentCopy.isPlainRecord = true;
-        } else {
-            alert('Cannot serialize model stuff of type ' + klass.superclass.type)
-        }
-    },
-    afterDeserializeObj: function(obj) {
-        // if (obj.isRelay) this.relays.push(obj);
-    },
-    deserializationDone: function() {
-        // this.relays.forEach(function(relay) {
-            // var def = JSON.parse(relay.definition);
-        // })
-    },
-    deserializeObj: function(persistentCopy) {
-        if (!persistentCopy.isInstanceOfAnonymousClass) return null;
-        var instance;
-        function createInstance(ctor, ctorMethodName, argIfAny) {
-            var string = persistentCopy.definition, def;
-            string = string.replace(/[\\]/g, '')
-            string = string.replace(/"+\{/g, '{')
-            string = string.replace(/\}"+/g, '}')
-            try {
-                def = JSON.parse(string);
-            } catch(e) {
-                console.error('Cannot correctly deserialize ' + ctor + '>>' + ctorMethodName + '\n' + e);
-                def = {};
-            }
-            return ctor[ctorMethodName](def, argIfAny)
-        }
-
-        if (persistentCopy.isRelay) {
-            var delegate = this.getSerializer().patchObj(persistentCopy.delegate);
-            instance = createInstance(Relay, 'newInstance', delegate);
-        }
-
-        if (persistentCopy.isPlainRecord) {
-            instance = createInstance(Record, 'newPlainInstance');
-        }
-
-        if (!instance) alert('Cannot serialize old model object: ' + JSON.stringify(persistentCopy))
-        return instance;
-    },
-
-});
-
 
 ObjectLinearizerPlugin.subclass('DEPRECATEDScriptFilter',
 'accessing', {
@@ -1398,7 +1320,6 @@ Object.extend(lively.persistence, {
     LivelyWrapperPlugin: LivelyWrapperPlugin,
     IgnoreDOMElementsPlugin: IgnoreDOMElementsPlugin,
     RegExpPlugin: RegExpPlugin,
-    OldModelFilter: OldModelFilter,
     DEPRECATEDScriptFilter: DEPRECATEDScriptFilter,
     ClosurePlugin: ClosurePlugin,
     IgnoreFunctionsPlugin: IgnoreFunctionsPlugin,

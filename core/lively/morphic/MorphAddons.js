@@ -500,11 +500,26 @@ lively.morphic.Morph.addMethods(
             this.startStepping(0, "updateZoomScale");
             this.startStepping(0, "updateScrollPosition");
         } else {
-            this.stopStepping()
             this.stopSteppingScriptNamed("updateZoomLevel");
             this.stopSteppingScriptNamed("getScrollPosition");
         }
     },
+    setFixedInSize: function(optFixed) {
+        // Fixes the morph in the current zoom when called with true or no parameter, and unfixes it when called with false.
+        var fixed = optFixed || (optFixed === false? false : true);
+        if(fixed && this.owner !== $world) {
+            return;
+        }
+        this.isFixed = fixed;
+        if(fixed) {
+            this.fixedScale = this.getScale() * $world.getZoomLevel();
+            this.startStepping(0, "updateZoomScale");
+        }
+        else {
+            this.stopSteppingScriptNamed("updateZoomLevel");
+        }
+    },
+
     updateZoomScale: function(newZoom) {
         if(this.fixedScale) {
             var newZoom = newZoom || $world.updateZoomLevel();

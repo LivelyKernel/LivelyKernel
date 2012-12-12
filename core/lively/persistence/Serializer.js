@@ -1240,8 +1240,67 @@ Object.extend(lively.persistence.Serializer, {
         copyPlugin.root = obj;
         serializer.addPlugin(copyPlugin);
         return serializer.copy(obj);
-    }
+    },
 
+    documentForWorldSerialization: function(spec) {
+        var doc = document.implementation.createHTMLDocument(),
+            $doc = lively.$(doc),
+            head = $doc.find('head'),
+            body = $doc.find('body');
+
+        if (head.length === 0) {
+            head = $('<head/>').appendTo($doc);
+        }
+        if (body.length === 0) {
+            body = $('<body/>').appendTo($doc);
+        }
+
+        // title
+        var title = head.find('title');
+        if (title.length === 0) {
+            title = $('<title/>').appendTo(head);
+        }
+        title.text(spec.title || "New Lively World");
+
+        // external css
+        if (spec.externalStyleSheets) {
+            spec.externalStyleSheets.forEach(function(url) {
+                $('<link/>')
+                    .attr('rel', 'stylesheet')
+                    .attr('href', url)
+                    .attr('type', 'text/css')
+                    .attr('media', 'screen')
+                    .appendTo(head);
+            });
+        }
+
+        // jQuery and scripts, *headbang*:
+        // http://stackoverflow.com/questions/610995/jquery-cant-append-script-element
+        function createScriptEl(spec) {
+            var el = doc.createElement('script');
+            el.setAttribute('type', 'text/javascript');
+            if (spec.src) { el.setAttribute('src', spec.src); }
+            if (spec.id) { el.setAttribute('id', spec.id); }
+            if (spec.parent) { spec.parent.appendChild(el); }
+            if (spec.textContent) { el.textContent = spec.textContent; }
+            return el;
+        }
+
+        // external scripts if (spec.externalScripts) {
+        spec.externalScripts.forEach(function(url) {
+            createScriptEl({src: url, parent: body[0]});
+        });
+
+        // the world script tag
+        var el = createScriptEl({
+            id: spec.title,
+            parent: body[0],
+            textContent: spec.serializedWorld
+        });
+        $(el).attr('data-migrationLevel', spec.migrationLevel);
+
+        return doc;
+    }
 });
 
 Object.extend(lively.persistence, {

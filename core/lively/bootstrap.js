@@ -1,9 +1,154 @@
 Global = (typeof window !== "undefined" && window) || global;
 
-var isFirefox = window.navigator.userAgent.indexOf('Firefox') > -1;
-var isFireBug = isFirefox && window.console && window.console.firebug !== undefined;
-var isIE = /*@cc_on!@*/false;
+var BrowserDetector = function (optSpec) {
+/*
+ * Detects browsers with help of the userAgent property of the navigator object.
+ * Lookup for browsers happens by the name of the application.
+ * Versions are searched with the default attempt that it follows the
+ * application name devided by as slash (e.g. Chrome/21.0.2).
+ *
+ * The object can be initialized with a specification array of the form:
+ *    [{browser: "BrowserName", version: "2.0", versionPrefix: "prefix"}, ...]
+ * The property versionPrefix is an optional property and can be omitted. It
+ * should be set when the version can not be found using the default attempt.
+ * With versionPrefix set the version for this browser will be searched by
+ * looking for the prefix and returning the string that comes after a slash
+ * (e.g. PREFIX/2.0 would return 2.0).
+ *
+ * Version numbers can be specified as you like but the object will only use
+ * the first two components of the version - the rest will be ignored.
+ */
+    var that = {},
+        spec = optSpec || [
+            {
+                browser: "Chrome",
+                version: "10"
+            },
+            {
+                browser: "Firefox",
+                version: "4"
+            },
+            {
+                browser: "Safari",
+                version: "5",
+                versionPrefix: "Version"
+            }
+        ],
+        userAgent = navigator.userAgent;
+
+    that.detectBrowser = function (optSpec) {
+        var fullSpec = optSpec || spec,
+            browser = this.browser,
+            browserSpec,
+            filterBrowsers = function (browserSpec) {
+                return browserSpec.browser;
+            },
+            browserCount,
+            i = 0;
+
+        if (this.browser === undefined || browser === null) {
+            browserSpec = spec.map(filterBrowsers);
+            browserCount = browserSpec.length;
+            while (userAgent.indexOf(browserSpec[i]) < 0
+                && i <= browserCount) {
+                i += 1;
+            }
+            if (i < browserCount) {
+                this.browser = browserSpec[i];
+                this.browserSpecPointer = i;
+            } else {
+                this.browser = "NOT DETECTED";
+                this.browserSpecPointer = -1;
+            }
+        }
+        return this.browser;
+    };
+
+    that.browserSpec = function () {
+        if (this.browserSpecPointer !== undefined && this.browserSpecPointer >= 0) {
+            return this.spec[this.browserSpecPointer];
+        }
+        return null;
+    };
+
+    that.extractVersion = function (prefix) {
+        var uaInfo = userAgent.split(' '),
+            uaInfoCount = uaInfo.length,
+            i = 0;
+        
+        while (uaInfo[i].indexOf(prefix) < 0) {
+            i += 1;
+        }
+        return uaInfo[i].split('/')[1];
+    };
+
+    that.detectVersion = function (optBrowserSpec) {
+        var browserSpec = optBrowserSpec || this.browserSpec(),
+            browser = browserSpec ? browserSpec.browser : this.browser,
+            versionPrefix;
+
+        if (browserSpec === null && browser === undefined) {
+            browser = this.detectBrowser();
+            if (browser !== "NOT DETECTED") {
+                browserSpec = this.browserSpec();
+            }
+        }
+        if (browser === "NOT DETECTED") {
+            this.version = "NOT DETECTED";
+        }
+        if (this.version === undefined || this.version === null) {
+            versionPrefix = browserSpec.versionPrefix;
+            if (versionPrefix !== undefined) {
+                this.version = this.extractVersion(versionPrefix);
+            } else {
+                this.version = this.extractVersion(browser);
+            }
+        }
+        return this.version;
+    };
+
+    that.detect = function () {
+        this.browser = null;
+        this.version = null;
+        this.detectBrowser();
+        this.detectVersion();
+    };
+
+    that.isFirefox = function () {
+        return this.browser === 'Firefox';
+    };
+
+    that.isFireBug = function () {
+        return (this.isFirefox()
+                && window.console && window.console.firebug !== undefined);
+    };
+
+    that.isSpecSatisfied = function () {
+        var matchingSpec = this.browserSpec(),
+            specVersion,
+            detectedVersion,
+            shortenVersionString = function (versionString) {
+                var versionComponents = versionString.split(".");
+                return versionComponents.slice(0, 2).join(".");
+            };
+        if (matchingSpec === null || matchingSpec === undefined) {
+            return false;
+        }
+        specVersion = shortenVersionString(matchingSpec.version);
+        detectedVersion = shortenVersionString(this.version);
+        return parseFloat(specVersion) <= parseFloat(detectedVersion);
+    };
+
+    that.spec = spec;
+    that.detect();
+
+    return that;
+};
+
+
+
 var useMinifiedLibs = document.location.host.indexOf('localhost') === -1;
+var browserDetector = new BrowserDetector();
 
 function livelyConfigExists() { return typeof Config !== "undefined" }
 

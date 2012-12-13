@@ -162,7 +162,7 @@ function livelyConfigExists() { return typeof Config !== "undefined" }
         }
         lively.whenLoaded = function(callback) {
             Config.finishLoadingCallbacks.push(callback);
-        }
+        };
     }
 })(this);
 
@@ -181,7 +181,7 @@ function livelyConfigExists() { return typeof Config !== "undefined" }
     }
     window.console = platformConsole;
 
-    if (isFireBug) return;
+    if (browserDetector.isFireBug()) return;
 
     var consumers = platformConsole.consumers = [];
     platformConsole.wasWrapped = false;
@@ -310,7 +310,7 @@ var LoadingScreen = {
         console.setAttribute('id', this.consoleId);
         console.setAttribute('style', "position: absolute; top: 0px; font-family: monospace; color: rgb(0,255,64); font-size: medium; padding-bottom: 20px;");
         this.console = console;
-        if (isFireBug) return console;
+        if (browserDetector.isFireBug()) return console;
 
         function addLine(str, style) {
             style = style || '';
@@ -355,7 +355,7 @@ var LoadingScreen = {
     removeConsole: function() {
         var console = this.console;
         this.console = null;
-        if (!console || isFireBug) return;
+        if (!console || browserDetector.isFireBug()) return;
         this.removeElement(console);
         if (!this.consoleProxy) return
         window.console.removeConsumer(this.consoleProxy)

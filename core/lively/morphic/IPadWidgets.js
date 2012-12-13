@@ -1255,7 +1255,8 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
         this.categoryContainer.addMorph(morph);
     },
     makePartItemTouchInteractive: function(partItem) {
-        var morph = partItem.asPartsBinItem();
+        var morph = partItem.asPartsBinItem(),
+            that = this;
         morph.setPosition(this.getAvailablePosition());
         morph.onTouchStart = function(evt) {
             var touch = evt.touches[0];
@@ -1269,7 +1270,7 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
             if(touch && touch.partItemOffset) {
                 var delta = (touch.screenX - touch.partItemOffset);
                 if(delta > 100) {
-                    this.grabFocusedItem(this)
+                    that.grabFocusedItem(this)
                 }
             }
         };
@@ -1279,10 +1280,10 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
         return morph
     },
     grabFocusedItem: function(morph) {
-        var loadingMorph = $world.loadingMorph.copy();
+        var loadingMorph = lively.morphic.World.current().loadingMorph.copy();
         loadingMorph.loadPart(morph.partItem, function(part) {
             part.setPosition($world.firstHand().getPosition());
-            $world.firstHand().grabMorph(part);
+            lively.morphic.World.current().firstHand().grabMorph(part);
         });
     },
 

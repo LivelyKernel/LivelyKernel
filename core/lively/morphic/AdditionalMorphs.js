@@ -1329,6 +1329,94 @@ lively.morphic.TabStrategyAbstract.subclass('lively.morphic.TabStrategyHide',
 
 
 });
+lively.morphic.Box.subclass('lively.morphic.LoadingMorph',
+'properties', {
+    style: {
+        borderRadius: 8.5,
+        fill: Color.rgb(214,214,214),
+        borderWidth: 1,
+        borderColor: Color.black,
+        layout: {
+            adjustForNewBounds: true,
+        }
+    },
+},
+'initialization', {
+    initialize: function($super, bounds) {
+        var returnValue = $super(bounds);
+        this.applyStyle({
+            adjustForNewBounds: true
+        })
+        this.initilaizeProgressIndicator();
+        this.initializePreviewText();
+        this.setExtent(this.getExtent())
+    },
+    initilaizeProgressIndicator: function() {
+        this.progressIndicator = new lively.morphic.Image(
+            rect(0,0,40,40),
+            LivelyLoader.codeBase + 'media/morphloading.gif');
+        this.progressIndicator.applyStyle({
+            centeredHorizontal: true,
+            centeredVertical: true,
+        })
+        this.addMorph(this.progressIndicator)
+    },
+    initializePreviewText: function() {
+        // the morph name is added to the preogress indicator
+        this.previewText = new lively.morphic.Text(rect(
+                0,
+                this.progressIndicator.getExtent().y,
+                125,
+                30
+            ), '\n\nloading part')
+        this.previewText.applyStyle({
+            fill: null,
+            borderWidth: 0,
+            resizeWidth: false,
+            centeredVertical: true,
+            centeredHorizontal: true,
+            align: 'center',
+            fontSize: 14
+        })
+        this.addMorph(this.previewText)
+    }
+
+},
+'loading', {
+    loadFinished: function (part) {
+        var world = lively.morphic.World.current(),
+            hand = world.firstHand();
+        if(this.owner === hand) {
+            hand.removeAllMorphs();
+        } else {
+            this.owner.addMorph(part);
+            part.align(part.bounds().center(), this.bounds().center());
+            this.remove();
+        }
+        disconnect(this.partItem, 'part', this, "loadFinished");
+        if(this.callback) {
+            this.callback(part);
+        }
+    },
+    loadPart: function (partItem, isAsync) {
+        this.partItem = partItem;
+        this.openInWorld();
+        if(partItem.part) {
+            this.setExtent(partItem.part.getExtent());
+        }
+        this.align(this.bounds().center(), $world.visibleBounds().center());
+        if(typeof isAsync === "function") {
+            this.callback = isAsync;
+        }
+        connect(partItem, 'part', this, "loadFinished");
+        partItem.loadPart(isAsync);
+        return partItem.part;
+    },
+    loadPartByName: function (partName, optPartsSpaceName, isAsync) {
+        var partItem = lively.PartsBin.getPartItem(partName, optPartsSpaceName);
+        return this.loadPart(partItem, isAsync);
+    }
+});
 lively.morphic.Morph.addMethods({
     isTabContainer: function() { return false; },
 

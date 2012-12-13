@@ -148,6 +148,7 @@ var Config = {
         for (var name in queries) {
             if (!this.hasOption(name)) continue;
             var value = queries[name];
+            if (value === "false") value = false;
             if (this.get(name) === value) continue;
             console.log('Overriding lively.Config.' + name + ' with ' + value);
             this.set(name, value);
@@ -392,9 +393,8 @@ Config.addOptions(
         ["serverInvokedTest", false],
 
         // Modules
-        ["modulesBeforeChanges", ['lively.ChangeSet'], "evaluated first, even before ChangeSet of a world"],
         ["modulesBeforeWorldLoad", [], "evaluated before all changes"],
-        ["modulesOnWorldLoad", [], "evaluated before ChangeSet initializer"],
+        ["modulesOnWorldLoad", [], "evaluated before world is setup"],
         ["codeBase", Config.codeBase && Config.codeBase != '' ? Config.codeBase : Config.getDocumentDirectory()],
         ["showModuleDefStack", true, "so modules know where they were required from"],
         ["loadUserConfig", false, "for sth like jens/config.js, used in lively.bootstrap"],

@@ -718,10 +718,11 @@ var LivelyLoader = {
 var LivelyMigrationSupport = {
     // increase this value by hand if you make a change that effects object layout
     // LivelyMigrationSupport.migrationLevel
-    migrationLevel: 4,
+    migrationLevel: 7,
     documentMigrationLevel: 0,
     migrationLevelNodeId: 'LivelyMigrationLevel',
     moduleRenameDict: {},
+    worldJsoTransforms: [],
 
     extractMigrationLevel: function(doc) {
         // LivelyMigrationSupport.extractMigrationLevel(document);
@@ -745,7 +746,17 @@ var LivelyMigrationSupport = {
 
     addModuleRename: function(oldName, newName, migrationLevel) {
         this.moduleRenameDict[oldName] = newName;
+    },
+
+    addWorldJsoTransform: function(func) {
+        this.worldJsoTransforms.push(func);
+    },
+
+    applyWorldJsoTransforms: function(jso) {
+        this.worldJsoTransforms.forEach(function(func) { jso = func(jso) });
+        return jso;
     }
+
 };
 
 

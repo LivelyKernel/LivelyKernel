@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.Main').requires("lively.persistence.Serializer", "lively.ChangeSet").toRun(function() {
+module('lively.Main').requires("lively.persistence.Serializer").toRun(function() {
 
 // The WorldDataAccessor reads data in some form (e.g. JSON) from some source
 // e.g. meta nodes in a DOM and creates and initializes lively.morphic.Worlds
@@ -36,22 +36,19 @@ Object.subclass('lively.Main.WorldDataAccessor',
 
 },
 'accessing and creation', {
-    modulesBeforeChanges: function() { return Config.modulesBeforeChanges || [] },
     modulesBeforeWorldLoad: function() { return Config.modulesBeforeWorldLoad || [] },
     modulesOnWorldLoad: function() { return Config.modulesOnWorldLoad || [] },
     getCanvas: function() { return this.canvas },
-    getWorld: function() {  throw new Error('Subclass responsibility') },
-    getChangeSet: function() {  throw new Error('Subclass responsibility') }
+    getWorld: function() {  throw new Error('Subclass responsibility') }
 });
 
 Object.extend(lively.Main.WorldDataAccessor, {
     forCanvas: function(canvas) {
         // currently we only support JSON embedded in XHTML meta nodes
         var doc = canvas.ownerDocument,
-            changeSet = lively.persistence.Serializer.deserializeChangeSetFromDocument(doc),
             jsonNode = doc.getElementById(lively.persistence.Serializer.jsonWorldId),
             json = jsonNode.textContent == "" ? jsonNode.content : jsonNode.textContent;
-        return new lively.Main.JSONMorphicData(canvas, jsonNode && json, changeSet);
+        return new lively.Main.JSONMorphicData(canvas, jsonNode && json);
     }
 });
 
@@ -61,20 +58,15 @@ lively.Main.WorldDataAccessor.subclass('lively.Main.NewWorldData',
         if (this.world) return this.world;
         this.world = new lively.morphic.World(this.getCanvas());
         return this.world;
-    },
-    getChangeSet: function() {
-        var doc = this.getCanvas().ownerDocument;
-        this.changeSet = lively.persistence.Serializer.deserializeChangeSetFromDocument(doc);
-        return this.changeSet;
     }
 });
 
 lively.Main.WorldDataAccessor.subclass('lively.Main.JSONMorphicData',
 'initializing', {
-    initialize: function($super, canvas, json, changeSet) {
+    initialize: function($super, canvas, json) {
         $super(canvas);
-        this.jso = lively.persistence.Serializer.parseJSON(json);
-        this.changeSet = changeSet;
+        this.jso = LivelyMigrationSupport.applyWorldJsoTransforms(
+            lively.persistence.Serializer.parseJSON(json));
     }
 },
 'accessing and creation', {
@@ -84,19 +76,13 @@ lively.Main.WorldDataAccessor.subclass('lively.Main.JSONMorphicData',
         return this.world;
     },
 
-    getChangeSet: function() { return this.changeSet },
-
-    modulesBeforeChanges: function($super) {
+    modulesBeforeDeserialization: function($super) {
         var modulesInJson = this.jso ? lively.persistence.Serializer.sourceModulesIn(this.jso) : [];
         console.log('Found modules required for loading because '
                    + 'serialized objects require them: '
                    + modulesInJson);
-        return $super()
-               .concat(modulesInJson)
-               .concat('lively.morphic.Complete')
-               .uniq();
-    },
-    modulesBeforeDeserialization: function($super) { return $super().concat('lively.morphic.Serialization') }
+        return $super().concat(modulesInJson).concat(['lively.morphic.Complete']).uniq();
+    }
 
 });
 
@@ -180,18 +166,11 @@ Object.subclass('lively.Main.Loader',
     loadWorld: function() {
         var self = this, worldData = this.getWorldData();
         require(worldData.modulesBeforeDeserialization()).toRun(function() {
-            require(worldData.modulesBeforeChanges()).toRun(function() {
-                var changes = !Config.skipChanges && worldData.getChangeSet();
-                changes && changes.evaluateWorldRequirements();
-                require(worldData.modulesBeforeWorldLoad()).toRun(function() {
-                    changes && changes.evaluateAllButInitializer();
-                    require(worldData.modulesOnWorldLoad()).toRun(function() {
-                        var world = worldData.getWorld();
-                        world.setChangeSet(changes);
-                        world.displayOnCanvas(self.getCanvas());
-                        changes && changes.evaluateInitializer();
-                        self.onFinishLoading(world);
-                    });
+            require(worldData.modulesBeforeWorldLoad()).toRun(function() {
+                require(worldData.modulesOnWorldLoad()).toRun(function() {
+                    var world = worldData.getWorld();
+                    world.displayOnCanvas(self.getCanvas());
+                    self.onFinishLoading(world);
                 });
             });
         });

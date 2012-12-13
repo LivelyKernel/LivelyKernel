@@ -14,6 +14,22 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.WorldTests',
         } finally {
             world.remove();
         }
+    },
+
+    testAddWorldRequirement: function() {
+        var world = new lively.morphic.World();
+        world.setWorldRequirements(['lively.PartsBin']);
+        world.addWorldRequirement('lively.morphic.ScriptingSupport');
+        this.assertEquals(['lively.PartsBin', 'lively.morphic.ScriptingSupport'],
+                          world.getWorldRequirements());
+        this.assertEquals(['lively.PartsBin', 'lively.morphic.ScriptingSupport'],
+                          world.getPartsBinMetaInfo().getRequiredModules());
+        world.removeWorldRequirement('lively.morphic.ScriptingSupport');
+        this.assertEquals(['lively.PartsBin'],
+                          world.getPartsBinMetaInfo().getRequiredModules());
+        this.assert(world.hasWorldRequirement('lively.PartsBin'), "hasWorldRequirement");
+        this.assert(!world.hasWorldRequirement('lively.morphic.ScriptingSupport'),
+                    "!hasWorldRequirement");
     }
 });
 

@@ -1,4 +1,4 @@
-module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssParser', 'lively.morphic.StyleSheetRepresentation', 'lively.morphic.StyleSheetsHTML').toRun(function () {
+module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'lively.morphic.Widgets', 'apps.cssParser', 'lively.morphic.StyleSheetRepresentation', 'lively.morphic.StyleSheetsHTML').toRun(function () {
 
 // This module defines general support for CSS in Lively. Stylesheet rules are
 // mapped to the Morphic scene graph. A general stylesheet can be applied that

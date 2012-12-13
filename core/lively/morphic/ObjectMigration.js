@@ -66,7 +66,7 @@ Object.extend(LivelyMigrationSupport, {
                 var string = this.url.relativePathFrom(URL.codeBase);
                 if (this.isLively1World) string += ' (Lively1)';
                 return string;
-            }.asScript(),
+            }.asScript()
         }
     }
 })
@@ -80,6 +80,7 @@ Migration Level History:
 4 - ???
 5 - ???
 6 - renderContextTables are no longer props of shapes/morphs, don't deserialize them
+7 - No more changesets
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 if (false && LivelyMigrationSupport.documentMigrationLevel < 1) {
@@ -107,7 +108,7 @@ if (false && LivelyMigrationSupport.documentMigrationLevel < 3) {
         onrestore: function() {
             this._WhiteSpaceHandling = 'pre-line';
             cop.proceed();
-        },
+        }
     }).beGlobal();
 };
 
@@ -119,7 +120,7 @@ if (false && LivelyMigrationSupport.documentMigrationLevel < 4) {
             cop.proceed(ctx);
             if (this.eventsAreIgnored)
             this.ignoreEvents() // will set the right properties
-        },
+        }
     }).beGlobal();
 };
 
@@ -144,6 +145,30 @@ if (LivelyMigrationSupport.documentMigrationLevel < 6) {
     lively.persistence.pluginsForLively.push(IgnoreRenderContextTablePlugin);
 };
 
+if (LivelyMigrationSupport.documentMigrationLevel < 7) {
+    // 7 - no more old changesets
+    Importer.prototype.getBaseDocument = Importer.prototype.getBaseDocument.wrap(function(proceed) {
+        var doc = proceed(),
+            csNode = doc.getElementById("WorldChangeSet");
+        if (csNode) csNode.parentNode.removeChild(csNode);
+        return doc;
+    });
+
+    lively.morphic.World.addMethods({
+        onrestore: lively.morphic.World.prototype.onrestore.wrap(function(proceed) {
+            debugger
+            proceed();
+            // remove deperecated changeSet attribute
+            if (this.hasOwnProperty("changeSet")
+              && this.changeSet
+              && this.changeSet.isChangeSetReplacement) {
+                delete this.changeSet;
+            }
+        })
+    });
+};
+
+
 if (Config.enableShapeGetterAndSetterRefactoringLayer) {
     // this layer will make shapes compatible that stored their properties
     // manually the new scheme for shapes is the same as for morphs, e.g.:
@@ -160,7 +185,7 @@ if (Config.enableShapeGetterAndSetterRefactoringLayer) {
             if (this.strokeOpacity) { this._StrokeOpacity = this.strokeOpacity; delete this.strokeOpacity };
             if (this.borderRadius) { this._BorderRadius = this.borderRadius; delete this.borderRadius };
             cop.proceed();
-        },
+        }
     }).beGlobal();
 };
 

@@ -443,7 +443,7 @@ Object.subclass('lively.PartsBin.PartsBinMetaInfo',
 
     addRequiredModule: function(moduleName) {
         if (!this.requiredModules) this.requiredModules = [];
-        this.requiredModules.push(moduleName);
+        this.requiredModules.pushIfNotIncluded(moduleName);
     },
 
     getRequiredModules: function() { return this.requiredModules || [] }

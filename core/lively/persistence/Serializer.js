@@ -359,7 +359,7 @@ Object.extend(ObjectGraphLinearizer, {
         var regex = new RegExp(this.prototype.escapedCDATAEnd, 'g'),
             converted = json.replace(regex, this.prototype.CDATAEnd);
         return JSON.parse(converted);
-    },
+    }
 
 });
 
@@ -435,7 +435,7 @@ ObjectLinearizerPlugin.subclass('ClassPlugin',
             delete obj[this.classNameProperty];
         if (obj[this.sourceModuleNameProperty])
             delete obj[this.sourceModuleNameProperty];
-    },
+    }
 },
 'searching', {
     sourceModulesIn: function(registryObj) {
@@ -448,11 +448,11 @@ ObjectLinearizerPlugin.subclass('ClassPlugin',
                 moduleNames.push(value[sourceModuleProperty]);
             if (value[partsBinRequiredModulesProperty])
                 moduleNames.pushAll(value[partsBinRequiredModulesProperty]);
-        })
+        });
 
         return moduleNames.reject(function(ea) {
             return ea.startsWith('Global.anonymous_') || ea.include('undefined') }).uniq();
-    },
+    }
 });
 
 ObjectLinearizerPlugin.subclass('LayerPlugin',
@@ -472,7 +472,7 @@ ObjectLinearizerPlugin.subclass('LayerPlugin',
     },
     ignoreProp: function(obj, propName, value) {
         return propName == this.withLayersPropName || propName == this.withoutLayersPropName;
-    },
+    }
 },
 'helper',{
     serializeLayerArray: function(original, persistentCopy, propname) {
@@ -488,7 +488,7 @@ ObjectLinearizerPlugin.subclass('LayerPlugin',
         obj[propname] = layers.collect(function(ea) {
             return Object.isString(ea) ? cop.create(ea, true) : ea;
         });
-    },
+    }
 });
 
 ObjectLinearizerPlugin.subclass('StoreAndRestorePlugin',
@@ -1117,7 +1117,7 @@ ObjectLinearizerPlugin.subclass('CopyOnlySubmorphsPlugin',
 
 ObjectLinearizerPlugin.subclass('IgnoreEpiMorphsPlugin',
 'plugin interface', {
-    ignoreProp: function(obj, key, value) { return value && value.isEpiMorph },
+    ignoreProp: function(obj, key, value) { return value && value.isEpiMorph }
 });
 
 // (de)serialize objects that inherit stuff from a constructor function
@@ -1204,7 +1204,6 @@ ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin', {
 Object.extend(lively.persistence.Serializer, {
 
     jsonWorldId: 'LivelyJSONWorld',
-    changeSetElementId: 'WorldChangeSet',
 
     createObjectGraphLinearizer: function() {
         return ObjectGraphLinearizer.forNewLively();
@@ -1231,44 +1230,18 @@ Object.extend(lively.persistence.Serializer, {
     },
 
     serializeWorldToDocumentWithSerializer: function(world, doc, serializer) {
-        // this helper was introduced to make the code that is browser
-        // dependent (currently IE9 vs the rest) easier to read. It sould be
-        // moved to dome general DOM abstraction layer
-        function getCSNode(doc, changeSet) {
-            var changeSetNode;
-            if (!changeSet) {
-                alert('Found no ChangeSet while serializing ' + world + '! Adding an empty CS.');
-                changeSetNode = LivelyNS.create('code');
-            } else {
-                changeSetNode = cs.getXMLElement();
-            }
-            if (!UserAgent.isIE) return doc.importNode(changeSetNode, true);
-            // mr: this is a real IE hack!
-            var helperDoc = new ActiveXObject('MSXML2.DOMDocument.6.0');
-            helperDoc.loadXML(new XMLSerializer().serializeToString(changeSetNode));
-            return doc.importNode(helperDoc.firstChild, true);
-        }
-
         var $doc = $(doc),
             $head = $doc.find("head"),
             head = $head.get(0);
 
         // remove existing data
-        $doc.find("#LivelyMigrationLevel, #WorldChangeSet, #LivelyJSONWorld").remove();
+        $doc.find("#LivelyMigrationLevel, #LivelyJSONWorld").remove();
 
         // store migration level
         $("<meta/>")
             .attr("id", LivelyMigrationSupport.migrationLevelNodeId)
             .append($doc[0].createCDATASection(LivelyMigrationSupport.migrationLevel))
             .appendTo($head);
-
-        // serialize changeset
-        var cs = world.getChangeSet(),
-            csElement = getCSNode(doc, cs);
-        $("<meta/>")
-            .attr("id", this.changeSetElementId)
-            .append(csElement)
-            .appendTo($head)
 
         // serialize world
         var json = this.serialize(world, null, serializer);
@@ -1287,6 +1260,7 @@ Object.extend(lively.persistence.Serializer, {
 
         return doc;
     },
+
     deserialize: function(json, optDeserializer) {
         var deserializer = optDeserializer || this.createObjectGraphLinearizer(),
             obj = deserializer.deserialize(json);
@@ -1294,26 +1268,27 @@ Object.extend(lively.persistence.Serializer, {
     },
 
     deserializeWorldFromDocument: function(doc) {
-        var worldMetaElement = doc.getElementById(this.jsonWorldId);
-        if (!worldMetaElement)
-            throw new Error('Cannot find JSONified world when deserializing');
-        var serializer = this.createObjectGraphLinearizer(),
-            json = worldMetaElement.textContent,
-            world = serializer.deserialize(json);
-        return world;
-    },
-
-    deserializeWorldFromJso: function(jso) {
+        var json = this.findWorldJsonInDocument(doc),
+            jso = this.parseJSON(json);
+        jso = LivelyMigrationSupport.applyWorldJsoTransforms(jso);
         var serializer = this.createObjectGraphLinearizer(),
             world = serializer.deserializeJso(jso);
         return world;
     },
 
-    deserializeChangeSetFromDocument: function(doc) {
-        var csMetaElement = doc.getElementById(this.changeSetElementId);
-        if (!csMetaElement)
-            throw new Error('Cannot find ChangeSet meta element when deserializing');
-        return ChangeSet.fromNode(csMetaElement);
+    deserializeWorldFromJso: function(jso) {
+        jso = LivelyMigrationSupport.applyWorldJsoTransforms(jso);
+        var serializer = this.createObjectGraphLinearizer(),
+            world = serializer.deserializeJso(jso);
+        return world;
+    },
+
+    findWorldJsonInDocument: function(document) {
+        var worldMetaElement = document.getElementById(this.jsonWorldId);
+        if (!worldMetaElement) {
+            throw new Error('Cannot find JSONified world when deserializing');
+        }
+        return worldMetaElement.textContent;
     },
 
     sourceModulesIn: function(jso) {
@@ -1327,7 +1302,8 @@ Object.extend(lively.persistence.Serializer, {
     copyWithoutWorld: function(obj) {
         var serializer = this.createObjectGraphLinearizerForCopy(),
             dontCopyWorldPlugin = new GenericFilter();
-        dontCopyWorldPlugin.addFilter(function(obj, propName, value) { return value === lively.morphic.World.current() })
+        dontCopyWorldPlugin.addFilter(function(obj, propName, value) {
+            return value === lively.morphic.World.current(); });
         serializer.addPlugin(dontCopyWorldPlugin);
         var copy = serializer.copy(obj);
         return copy;
@@ -1345,7 +1321,8 @@ Object.extend(lively.persistence.Serializer, {
         copyPlugin.root = obj;
         serializer.addPlugin(copyPlugin);
         return serializer.copy(obj);
-    },
+    }
+
 });
 
 Object.extend(lively.persistence, {

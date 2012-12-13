@@ -67,7 +67,6 @@ Global.Converter = {
 
     wrapperAndNodeEncodeFilter: function(baseObj, key) {
         var value = baseObj[key];
-        if (value instanceof lively.data.Wrapper) return value.uri();
         if (value instanceof Document || value instanceof Element || value instanceof DocumentType)
             return JSON.serialize({XML: Exporter.stringify(value)});
         return value;
@@ -360,7 +359,7 @@ Object.extend(Exporter, {
 });
 
 Object.subclass('Copier', {
-    isCopier: true,
+    isCopier: true
 });
 
 Copier.subclass('Importer', {

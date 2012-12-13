@@ -221,7 +221,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.ViewSourceCommand', {
             });
         }];
     });
-    var menu = new MenuMorph(items);
+    var menu = new lively.morphic.Menu(items);
     menu.openIn(world,world.firstHand().getPosition());
 }
 
@@ -488,7 +488,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.OpenDiffViewerCommand', {
 
     isActive: function(pane) {
         var node = this.browser.selectedNode();
-        return  node && node.isModuleNode && Config.isNewMorphic
+        return  node && node.isModuleNode;
     },
 
     trigger: function() {
@@ -518,7 +518,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.OpenVersionsOfFile', {
 
     isActive: function(pane) {
         var node = this.browser.selectedNode();
-        return  node && node.isModuleNode && Config.isNewMorphic
+        return  node && node.isModuleNode;
     },
     trigger: function() {
         return [['show versions', this.showVersions.bind(this)]]

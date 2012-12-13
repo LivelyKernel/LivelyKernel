@@ -146,15 +146,15 @@ module('lively.morphic.Styles').requires('lively.morphic.Shapes' /*for gradients
 Object.extend(Color, {
 
     webColorTableMorph: function() {
-        var colors = Properties.own(Color.web)
-        var h = 20
-        var y = 0;
-        var x = 0;
-        container = Morph.makeRectangle(0,0,600,480);
+        var colors = Properties.own(Color.web),
+            h = 20,
+            y = 0,
+            x = 0,
+            container = lively.morphic.Morph.makeRectangle(0,0,600,480);
         container.name = "WebColors"
         container.setFill(Color.gray)
         colors.each(function(name) {
-            var morph = new TextMorph(new Rectangle(x, y, 100,h), name)
+            var morph = new lively.morphic.Text(new Rectangle(x, y, 100,h), name)
             morph.ignoreEvents()
             y += h;
             morph.setFill(Color.web[name])
@@ -211,7 +211,6 @@ Object.extend(Styles, {
     },
 
     sliderBackgroundGradient: function(color, fillDirection) {
-        var gfx = lively.paint;
         color = color || Color.gray;
         fillDirection = fillDirection || 'EastWest';
         return new lively.morphic.LinearGradient([

@@ -929,7 +929,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         var fn = 'LKFileParser.txt';
         var src = this.srcFromLinesOfFile(fn, 0, 9999);
         var result = this.sut.parseSource(src, {fileName: fn});
-        //new ChangeList(fn, null, result).openIn(WorldMorph.current());
+        //new ChangeList(fn, null, result).openIn(lively.morphic.World.current());
     },
 });
 
@@ -997,8 +997,8 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
     setUp: function() {
         this.jsParser = new JsParser();
         // we don't want to see alert
-        this.oldAlert = WorldMorph.prototype.alert;
-        WorldMorph.prototype.alert = Functions.Null;
+        this.oldAlert = lively.morphic.World.prototype.alert;
+        lively.morphic.World.prototype.alert = Functions.Null;
 
         this.setUpSource();
     },

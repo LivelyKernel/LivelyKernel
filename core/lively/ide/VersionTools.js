@@ -10,7 +10,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.FileVersionViewer',
 'initializing', {
 
     buildView: function(extent) {
-        var panel = PanelMorph.makePanedPanel(extent, [
+        var panel = lively.morphic.Panel.makePanedPanel(extent, [
             ['urlPane', newTextPane, new Rectangle(0, 0, 1, 0.1)],
             ['versionList', newDragnDropListPane, new Rectangle(0, 0.1, 1, 0.8)],
             ['revertButton', lively.morphic.Button, new Rectangle(0, 0.9, 0.33, 0.1)],

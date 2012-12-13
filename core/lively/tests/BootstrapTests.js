@@ -289,8 +289,91 @@ TestCase.subclass('lively.tests.BootstrapTests.WorldDataTest',
 		    this.assertEquals(ChangeSet, cs.constructor, 'ChangeSet not deserialized');
 		    this.assertEquals(2, cs.subElements().length)
 		    this.assertEquals(lively.morphic.World, world.constructor, 'World not deserialized');
-	  }
+	  },
 
 });
+
+TestCase.subclass('lively.tests.BootstrapTests.BrowserDetectorTest',
+    'accessing', {
+        mockUserAgent: function (uaString) {
+            navigator.__defineGetter__('userAgent', function () {
+                return uaString;
+            });
+        },
+        originalUserAgent: (function () {
+            return navigator.userAgent;
+        })(),
+        restoreUserAgent: function () {
+            this.mockUserAgent(this.originalUserAgent);
+        },
+        spec: function () {
+            return [
+                {
+                    browser: "Chrome",
+                    version: "10"
+                },
+                {
+                    browser: "Safari",
+                    version: "5",
+                    versionPrefix: "Version"
+                },
+            ];
+        },
+        detector: function () {
+            return new BrowserDetector();
+        },
+        ie6UserAgent: function () {
+            return ("Mozilla/4.0 (X11; MSIE 6.0; i686; .NET CLR 1.1.4322; "
+                    + ".NET CLR 2.0.50727; FDM)");
+        },
+        chrome9UserAgent: function () {
+            return ("Mozilla/5.0 (X11; U; Linux i686 (x86_64); en-US) "
+                    + "AppleWebKit/534.12 (KHTML, like Gecko) Chrome/9.0.576.0 "
+                    + "Safari/534.12");
+        },
+        chrome24UserAgent: function () {
+            return ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) "
+                    + "AppleWebKit/537.17 (KHTML, like Gecko) "
+                    + "Chrome/24.0.1309.0 Safari/537.17");
+        },
+        safari4UserAgent: function () {
+            return ("Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_7; en-us) "
+                    + "AppleWebKit/531.2+ (KHTML, like Gecko) Version/4.0.1 "
+                    + "Safari/530.18");
+        },
+        safari5UserAgent: function () {
+            return ("Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; da-dk) "
+                    + "AppleWebKit/533.21.1 (KHTML, like Gecko) Version/5.0.5 "
+                    + "Safari/533.21.1");
+        }
+    },
+    'testing', {
+        testBrowserWithHigherVersion: function () {
+            this.mockUserAgent(this.chrome24UserAgent());
+            this.assertEquals(true, this.detector().isSpecSatisfied());
+            this.restoreUserAgent();
+        },
+        testBrowserWithHigherVersionAndVersionPrefix: function () {
+            this.mockUserAgent(this.safari5UserAgent());
+            this.assertEquals(true, this.detector().isSpecSatisfied());
+            this.restoreUserAgent();
+        },
+        testBrowserWithLowerVersion: function () {
+            this.mockUserAgent(this.chrome9UserAgent());
+            this.assertEquals(false, this.detector().isSpecSatisfied());
+            this.restoreUserAgent();
+        },
+        testBrowserWithLowerVersionAndVersionPrefix: function () {
+            this.mockUserAgent(this.safari4UserAgent());
+            this.assertEquals(false, this.detector().isSpecSatisfied());
+            this.restoreUserAgent();
+        },
+        testBrowserIncompatible: function () {
+            this.mockUserAgent(this.ie6UserAgent());
+            this.assertEquals(false, this.detector().isSpecSatisfied());
+            this.restoreUserAgent();
+        }
+    }
+);
 
 }) // end of module

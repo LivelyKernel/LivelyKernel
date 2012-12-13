@@ -417,7 +417,7 @@ AttributeConnection.addMethods({
             if (obj.nodeType && obj.getAttribute) { // is it a real node?
                 var id = obj.getAttribute('id')
                 if (!id) { // create a new id
-                    var id = 'ElementConnection--' + lively.data.Wrapper.prototype.newId();
+                    id = 'ElementConnection--' + Date.now();
                     obj.setAttribute('id', id);
                 }
                 return id;

@@ -938,7 +938,25 @@ Object.extend(lively.morphic.Panel, {
         });
 
         return panel;
+    },
+
+    newTextPane: function(initialBounds, defaultText) {
+        var bounds = initialBounds.extent().extentAsRectangle(),
+            text = new lively.morphic.Text(bounds, defaultText);
+        text.applyStyle({clipMode: 'scroll', fixedWidth: true, fixedHeight: true});
+        return text;
+    },
+
+    newDragnDropListPane: function(initialBounds, suppressSelectionOnUpdate) {
+        return new lively.morphic.List(initialBounds, ['-----']);
     }
+
+});
+
+Object.extend(Global, {
+    // deprecated interface!
+    newTextPane: lively.morphic.Panel.newTextPane,
+    newDragnDropListPane: lively.morphic.Panel.newDragnDropListPane
 });
 
 lively.morphic.Text.addMethods(
@@ -946,13 +964,13 @@ lively.morphic.Text.addMethods(
     innerMorph: function() { return this },
     showChangeClue: function() {},
     getVerticalScrollPosition: function() { return null },
-    setVerticalScrollPosition: function() {},
+    setVerticalScrollPosition: function() {}
 })
 
 lively.morphic.Button.addMethods(
 'old interface', {
     setIsActive: function(bool) {},
-    getIsActive: function() { return true },
+    getIsActive: function() { return true }
 });
 
 lively.morphic.List.addMethods(

@@ -431,7 +431,7 @@ Config.addOptions(
     'lively.morphic.Events', [
         ["useMetaAsCommand", false, "Use the meta modifier (maps to Command on the Mac) instead of alt"],
         ["showGrabHalo", false, "enable grab halo (alternative to shadow) on objects in the hand."],
-        ["hideSystemCursor", !(ExistingConfig && ExistingConfig.isNewMorphic)],
+        ["hideSystemCursor", false],
         ["handleOnCapture", true],
         ["globalGrabbing", true],
         ["touchBeMouse", UserAgent.isTouch]

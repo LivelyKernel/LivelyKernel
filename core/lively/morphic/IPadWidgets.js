@@ -167,28 +167,26 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
 
 
     openSubMenu: function(selection) {
-        (function () {
-            var subcontainer = this.get("SubmenuContainer");
-            this.titleStack.push(this.title);
-            this.containerStack.push(this.getCurrentContainer());
-            this.title = selection[0];
-            var offset = this.getExtent().x * this.getLevel();
-            var container;
-            if(this.nextContainer){
-                container = this.nextContainer;
-                delete this.nextContainer;
-            } else {
-                container = this.createContainer();
-            }
-            container.setPosition(pt(offset, subcontainer.getPosition().y));
-            subcontainer.addMorph(container);
-            this.currentContainer = container;
-            this.addMenuItems(selection[1]);
-            var that = this;
-            subcontainer.setPositionAnimated(pt(-offset, subcontainer.getPosition().y), 500, function(){
-                that.nextContainer = that.createContainer();
-            });
-        }).bind(this).delay(0);
+        var subcontainer = this.get("SubmenuContainer");
+        this.titleStack.push(this.title);
+        this.containerStack.push(this.getCurrentContainer());
+        this.title = selection[0];
+        var offset = this.getExtent().x * this.getLevel();
+        var container;
+        if(this.nextContainer){
+            container = this.nextContainer;
+            delete this.nextContainer;
+        } else {
+            container = this.createContainer();
+        }
+        container.setPosition(pt(offset, subcontainer.getPosition().y));
+        subcontainer.addMorph(container);
+        this.currentContainer = container;
+        this.addMenuItems(selection[1]);
+        var that = this;
+        subcontainer.setPositionAnimated(pt(-offset, subcontainer.getPosition().y), 500, function(){
+            that.nextContainer = that.createContainer();
+        });
     },
     openSuperMenu: function() {
         if(this.getLevel() <= 0) {
@@ -218,8 +216,8 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         this.submenusDisabled = true;
         var that = this;
         items.forEach(function (item) {
-            that.addItem({string: item, value: item, isListItem: true});
-        });
+            this.addItem({string: item, value: item, isListItem: true});
+        }, this);
         this.itemList = items
     },
 },
@@ -362,9 +360,9 @@ lively.morphic.TouchList.subclass('lively.morphic.CustomizableTouchList',
         var plusButton = new lively.morphic.Button(rect(0,this.getExtent().y - height, height, height), '+'),
             that = this;
         this.addMorph(plusButton);
-        plusButton.onFire = function () {
+        plusButton.addScript(function onFire () {
             that.addCustomItem();
-        }
+        })
         connect(plusButton, 'fire', plusButton, 'onFire');
         plusButton.applyStyle({
             layout: {
@@ -568,7 +566,7 @@ lively.morphic.Text.subclass('lively.morphic.ListItem',
     },
     initializeSubMenuArrow: function() {
         var rect = new Rectangle(0,0, 15, 15),
-        icon = new lively.morphic.Image(rect, "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/ipadMenu/submenu.png", false);
+        icon = new lively.morphic.Image(rect, LivelyLoader.codeBase + "media/arrow.png", false);
         var xPos = this.getExtent().subPt(icon.getExtent().scaleBy(1.5)).x,
             yPos = this.getExtent().subPt(icon.getExtent()).scaleBy(0.5).y;
         icon.setPosition(pt(xPos,yPos))
@@ -660,9 +658,9 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
             extent: pt(20, 20),
             fill: Color.red.withA(0.5)
         })
-        closeButton.onFire = function () {
+        closeButton.addScript(function onFire () {
             that.owner.close()
-        }
+        })
         connect(closeButton, 'fire', closeButton, 'onFire')
         closeButton.setBorderRadius(1)
         this.addMorph(closeButton);
@@ -854,8 +852,6 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         this.setFixed(true);
         this.fixedScale = 1;
         this.disableSelection();
-        if (!optOwner)
-            connect(lively.morphic.World.current(), "currentlySelectedMorph", this, "setTarget");
         return this;
     },
     close: function() {
@@ -959,7 +955,6 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
     determineHandlePosition: function () {
         var pos,
             self = this,
-            docEl = document.documentElement,
             bottomRight = this.getBottomRight(),
             spaceUsedByOtherFlaps = this.owner.submorphs.select(function (ea) {
                 return ea.isFlap && ea !== self && ea.alignment == self.alignment
@@ -1039,22 +1034,9 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
     },
     onrestore: function() {
         (function(){
-            var extent = pt(
-                    document.documentElement.clientWidth / 3,
-                    document.documentElement.clientHeight);
-            this.setExtent(extent);
-            this.setPosition(
-                    pt(-extent.x, 0)
-                        .scaleBy(1 / $world.getZoomLevel())
-                        .addPt(pt(document.body.scrollLeft,
-                    document.body.scrollTop)));
-            this.get("FlapHandle").setPosition(
-                    pt(extent.x + this.get("FlapHandle").getExtent().y,
-                    50));
-            this.setFixed(true);
-            this.fixedScale = 1;
+            this.setPosition(this.determinePosition());
+            this.setExtent(this.determineExtent());
             this.createPartsBin();
-            this.disableSelection();
         }).bind(this).delay(0);
     },
     createPartsBin: function() {
@@ -1206,27 +1188,19 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
         partsSpace.load(true);
     },
     updateCategoriesDictFromPartsBin: function() {
-        this.ensureCategories();
-        var webR = new WebResource(this.getPartsBinURL());
-        webR.beAsync();
-        var that = this;
+        this.ensureCategories(),
+            that = this;
         var callback = function(collections) {
+            // write all the categories in a 'categories' property
             collections.forEach(function(dir) {
                 var unescape = Global.urlUnescape || Global.unescape,
                 unescaped = unescape(dir.getURL().filename()),
                 name = unescaped.replace(/\/$/,"");
                 that.categories[name] = that.getPartsBinURL().withFilename(unescaped);
             });
-            that.updateCategoryList(that.categoryName);
+            that.updateCategoryList();
         }
-        connect(webR, 'subCollections', {cb: callback}, 'cb', {
-            updater: function($upd, value) {
-                if (!(this.sourceObj.status && this.sourceObj.status.isDone())) return;
-                if (!value) return;
-                $upd(value);
-            },
-        });
-        webR.getSubElements();
+        lively.PartsBin.loadCategoriesAsync(callback);
     },
     updateCategoryList: function() {
         this.list.setup(
@@ -1271,6 +1245,8 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
                 var delta = (touch.screenX - touch.partItemOffset);
                 if(delta > 100) {
                     that.grabFocusedItem(this)
+                    delete touch.partItemOffset;
+                    touch.draggingCanceled = true;
                 }
             }
         };
@@ -1741,6 +1717,8 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
 'initialization', {
     initialize: function ($super) {
         $super('ObjectEditor', 'top')
+        // target is supposed to be the current selection
+        connect(lively.morphic.World.current(), "currentlySelectedMorph", this, "setTarget");
         this.tabContainer = this.initializeTabContainer();
         // When opening a plain ObjectEditor, it is supposed to point to the world.
         this.target = lively.morphic.World.current();
@@ -1775,11 +1753,11 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
         var self = this,
             nextButton = new lively.morphic.Button(pt(this.tabBar.getExtent().x - this.tabBarHeight,0)
                 .extent(pt(this.tabBarHeight,this.tabBarHeight)), '>>');
-        nextButton.onFire = function() {
+        nextButton.addSctipt(function onFire () {
             var target = $world.currentlySelectedMorph || $world.currentHaloTarget || $world;
             self.tabContainer.buildModalViewFor(target);
             $world.ignoreHalos = false;
-        };
+        });
         connect(nextButton, 'fire', nextButton, 'onFire');
         nextButton.onMouseDown = function() {
             $world.ignoreHalos = true;
@@ -1913,8 +1891,8 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
             that[str+'Button'] = button;
             button.gridCoords = pt(i,0);
             button.label.setPadding(rect(5,7,0,0));
-            button.onFire = that['trigger'+ea.replace(' ', '')].bind(that);
-            connect(button, 'fire', button, 'onFire');
+            var funcName = 'trigger'+ea.replace(' ', '')
+            connect(button, 'fire', that, funcName);
             that.addMorph(button);
             button.applyStyle({
                 layout: {
@@ -1926,10 +1904,6 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
         })
         this.applyLayout();
     },
-
-
-
-
 },
 'actions', {
     triggerDoit: function() {

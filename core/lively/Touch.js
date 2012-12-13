@@ -3,6 +3,7 @@ module('lively.Touch').requires('lively.TestFramework').toRun(function () {
 cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
     patchEvent: function(evt) {
         evt = cop.proceed(evt);
+        evt = cop.proceed(evt);
         if (['touchend', 'touchstart', 'touchmove'].include(evt.type)) {
             this.patchTouchEvent(evt);
             if(evt.type === 'touchstart'){
@@ -1011,7 +1012,6 @@ lively.morphic.Morph.addMethods(
         }
 
         this.showsPie = true;
-        //this.halos = this.getHalos();
         var pieMenu = this.world().showPieFor(this, this.pieItems);
         console.log("pie menu bounds: "+pieMenu.bounds());
         console.log("position: "+position);
@@ -2051,6 +2051,7 @@ lively.morphic.Text.addMethods("TapEvents", {
         evt.stopPropagation();
     },
     onTap: function(evt){
+        this.activateTextControl();
         evt.stopPropagation();
     },
 
@@ -2339,10 +2340,8 @@ lively.morphic.Box.subclass('lively.morphic.SelectionMorph',
         this.addMorph(renameHalo)
         renameHalo.disableSelection();
         renameHalo.applyStyle({
-            layout: {
-                centeredHorizontal: true,
-                moveVertical: true
-            },
+            centeredHorizontal: true,
+            moveVertical: true
         });
         renameHalo.labelMorph.applyStyle({
             align: "center"
@@ -2392,9 +2391,7 @@ lively.morphic.Box.subclass('lively.morphic.SelectionMorph',
         return Object.merge([ returnValue, {
             enableDropping: false,
             borderColor: Color.green.lighter(),
-            layout: {
-                adjustForNewBounds: true
-            }
+            adjustForNewBounds: true,
         }])
     },
 },

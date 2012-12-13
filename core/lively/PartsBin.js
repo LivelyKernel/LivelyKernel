@@ -529,7 +529,21 @@ Object.extend(lively.PartsBin, {
 
         return metainfosToRemove
     },
-
+    loadCategoriesAsync: function(callback, optUrl) {
+        // Collects all categories in the PartsBin and invokes the callback on this collection.
+        // May find an alternative PartsBin at the optURL, if provided.
+        var url = optUrl || new URL(Config.rootPath).withFilename('PartsBin/'),
+            webR = new WebResource(url);
+        webR.beAsync();
+        connect(webR, 'subCollections', {cb: callback}, 'cb', {
+            updater: function($upd, value) {
+                if (!(this.sourceObj.status && this.sourceObj.status.isDone())) return;
+                if (!value) return;
+                $upd(value);
+            },
+        });
+        webR.getSubElements();
+    },
 });
 
 Trait('lively.PartsBin.PartTrait', {

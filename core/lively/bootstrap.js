@@ -387,16 +387,21 @@ var LoadingScreen = {
     },
 
     buildBrowserMessage: function (optMessage) {
-        var message = document.createElement('span'),
+        var message = document.createElement('pre'),
             defaultMessageText,
             messageText;
-        if (isIE) {
-            defaultMessageText = "HINT : Lively Kernel works best with Chrome!";
+        if (!browserDetector.isSpecSatisfied()) {
+            defaultMessageText = "HINT !\nLively Kernel works best with:\n"
+                                 + " - Chrome >= v10\n"
+                                 + " - Firefox >= v4\n"
+                                 + " - Safari >= v5\n"
+                                 + " - Safari iOS >= v5";
             messageText = optMessage || defaultMessageText;
             message.setAttribute('style', 'position: fixed;'
                                         + 'left: 90px; top: 20px;'
                                         + 'text-align: left;'
                                         + 'font-family: monospace;'
+                                        + 'margin: 0 0 0 0;'
                                         + 'padding: 0px 10px 0px 10px;'
                                         + 'border: 1px solid;'
                                         + 'border-color: rgb(100,100,100);'

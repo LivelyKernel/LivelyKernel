@@ -27,7 +27,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.DocumentSerializati
                 externalScripts: ['bar/baz.js'],
                 html: '<div id="div1"><div id="div2"/></div>'
             },
-            result = lively.persistence.Serializer.documentForWorldSerialization(spec),
+            result = lively.persistence.HTMLDocBuilder.documentForWorldSerialization(spec),
             doc = lively.$(result),
             worldScript = doc.find('body script#' + spec.title);
 

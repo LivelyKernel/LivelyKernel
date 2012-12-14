@@ -1240,94 +1240,113 @@ Object.extend(lively.persistence.Serializer, {
         copyPlugin.root = obj;
         serializer.addPlugin(copyPlugin);
         return serializer.copy(obj);
+    }
+
+});
+
+Object.subclass('lively.persistence.HTMLDocBuilder',
+'initializing', {
+    initialize: function() {
+        this.doc = document.implementation.createHTMLDocument();
+        this.$doc = lively.$(this.doc);
+        this.head = this.$doc.find('head');
+        if (this.head.length === 0) {
+            this.head = $('<head/>').appendTo(this.$doc);
+        }
+        this.body = this.$doc.find('body');
+        if (this.body.length === 0) {
+            this.body = $('<body/>').appendTo(this.$doc);
+        }
+    }
+},
+'doc building', {
+
+    addTitle: function(titleString) {
+        var title = this.head.find('title');
+        if (title.length === 0) {
+            title = $('<title/>').appendTo(this.head);
+        }
+        title.text(titleString || "New Lively World");
     },
 
+    addStyleSheets: function(styleSheetSpecs) {
+        styleSheetSpecs.forEach(function(arg) {
+            // arg can be url string, URL, css string or object like
+            // {href: String, css: String, id: String}
+            if (Object.isString(arg)) {
+                if (arg.endsWith('.css')) this.addExternalStyleSheet(arg);
+                else this.addEmbeddedCSS(arg);
+            } else {
+                if (arg.href) this.addExternalStyleSheet(arg.href, arg.id);
+                else if (arg.css) this.addEmbeddedCSS(arg.css, arg.id);
+            }
+        }, this);
+    },
+
+    addHTML: function(html) {
+        $(html).appendTo(this.body);
+    },
+
+    addScripts: function(scriptSpecs) {
+        // jQuery and scripts, *headbang*:
+        // http://stackoverflow.com/questions/610995/jquery-cant-append-script-element
+        scriptSpecs.forEach(function(url) {
+            this.createScriptEl({src: url, parent: this.body[0]});
+        }, this);
+    },
+
+    addSerializedWorld: function(json, id, migrationLevel) {
+        var el = this.createScriptEl({
+            id: id,
+            parent: this.body[0],
+            textContent: json
+        });
+        $(el).attr('data-migrationLevel', migrationLevel);
+    },
+
+    build: function(spec) {
+        if (spec.title) this.addTitle(spec.title);
+        if (spec.styleSheets) this.addStyleSheets(spec.styleSheets);
+        if (spec.html) this.addHTML(spec.html);
+        if (spec.externalScripts) this.addScripts(spec.externalScripts);
+        this.addSerializedWorld(spec.serializedWorld, spec.title, spec.migrationLevel);
+        return this.doc;
+    }
+},
+'helper', {
+    createScriptEl: function (spec) {
+        var el = this.doc.createElement('script');
+        el.setAttribute('type', 'text/javascript');
+        if (spec.src) { el.setAttribute('src', spec.src); }
+        if (spec.id) { el.setAttribute('id', spec.id); }
+        if (spec.parent) { spec.parent.appendChild(el); }
+        if (spec.textContent) { el.textContent = spec.textContent; }
+        return el;
+    },
+    addExternalStyleSheet: function(url, id) {
+        $('<link/>')
+            .attr('rel', 'stylesheet')
+            .attr('href', url)
+            .attr('id', id)
+            .attr('type', 'text/css')
+            .attr('media', 'screen')
+            .appendTo(this.head);
+    },
+    addEmbeddedCSS: function(css, id) {
+        $('<style/>')
+            .attr('type', 'text/css')
+            .attr('id', id)
+            .text(css)
+            .appendTo(this.head);
+    }
+
+});
+
+Object.extend(lively.persistence.HTMLDocBuilder, {
     documentForWorldSerialization: function(spec) {
         // This method creates a new HTML document that can be used to
         // serialize a Lively world.
-        var doc = document.implementation.createHTMLDocument(),
-            $doc = lively.$(doc),
-            head = $doc.find('head'),
-            body = $doc.find('body');
-
-        if (head.length === 0) {
-            head = $('<head/>').appendTo($doc);
-        }
-        if (body.length === 0) {
-            body = $('<body/>').appendTo($doc);
-        }
-
-        // title
-        var title = head.find('title');
-        if (title.length === 0) {
-            title = $('<title/>').appendTo(head);
-        }
-        title.text(spec.title || "New Lively World");
-
-        // external css
-        function addExternalStyleSheet(url, id) {
-            $('<link/>')
-                .attr('rel', 'stylesheet')
-                .attr('href', url)
-                .attr('id', id)
-                .attr('type', 'text/css')
-                .attr('media', 'screen')
-                .appendTo(head);
-        }
-        function addEmbeddedCSS(css, id) {
-            $('<style/>')
-                .attr('type', 'text/css')
-                .attr('id', id)
-                .text(css)
-                .appendTo(head);
-        }
-        if (spec.styleSheets) {
-            spec.styleSheets.forEach(function(arg) {
-                // arg can be url string, URL, css string or object like
-                // {href: String, css: String, id: String}
-                if (Object.isString(arg)) {
-                    if (arg.endsWith('.css')) addExternalStyleSheet(arg);
-                    else addEmbeddedCSS(arg);
-                } else {
-                    if (arg.href) addExternalStyleSheet(arg.href, arg.id);
-                    else if (arg.css) addEmbeddedCSS(arg.css, arg.id);
-                }
-            });
-        }
-
-        // html content
-        if (spec.html) {
-            $(spec.html).appendTo(body);
-        }
-
-        //
-        // external scripts
-        // jQuery and scripts, *headbang*:
-        // http://stackoverflow.com/questions/610995/jquery-cant-append-script-element
-        function createScriptEl(spec) {
-            var el = doc.createElement('script');
-            el.setAttribute('type', 'text/javascript');
-            if (spec.src) { el.setAttribute('src', spec.src); }
-            if (spec.id) { el.setAttribute('id', spec.id); }
-            if (spec.parent) { spec.parent.appendChild(el); }
-            if (spec.textContent) { el.textContent = spec.textContent; }
-            return el;
-        }
-        if (spec.externalScripts) {
-            spec.externalScripts.forEach(function(url) {
-                createScriptEl({src: url, parent: body[0]});
-            });
-        }
-
-        // the world script tag
-        var el = createScriptEl({
-            id: spec.title,
-            parent: body[0],
-            textContent: spec.serializedWorld
-        });
-        $(el).attr('data-migrationLevel', spec.migrationLevel);
-
-        return doc;
+        return new this().build(spec);
     }
 });
 

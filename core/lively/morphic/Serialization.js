@@ -205,7 +205,7 @@ lively.morphic.World.addMethods(
                 styleSheets: css,
                 externalScripts: [bootstrapFile]
             },
-            doc = lively.persistence.Serializer.documentForWorldSerialization(docSpec);
+            doc = lively.persistence.HTMLDocBuilder.documentForWorldSerialization(docSpec);
 
         // this.savedWorldAsURL = undefined;
         // lively.bindings.connect(this, 'savedWorldAsURL', this, 'visitNewPageAfterSaveAs', {

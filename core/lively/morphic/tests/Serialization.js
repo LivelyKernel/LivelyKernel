@@ -23,8 +23,8 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.DocumentSerializati
                 title: 'fooWorld',
                 migrationLevel: 99,
                 serializedWorld: 'barf',
-                externalStyleSheets: ["foo.css"],
-                externalScripts: ['bar/baz.js']
+                styleSheets: ["foo.css", 'div {\n\tborder: 1px solid red\n}'],
+                externalScripts: ['bar/baz.js'],
             },
             result = lively.persistence.Serializer.documentForWorldSerialization(spec),
             doc = lively.$(result),
@@ -36,8 +36,14 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.DocumentSerializati
 
         // title
         this.assertEquals(spec.title, doc.find('head title').text());
-        // other stuff
+
+        // css
         this.assertEquals(1, doc.find('link[href="foo.css"]').length, 'no external css element');
+        this.assertEquals(1, doc.find('style').length, 'no embedded css element');
+        this.assertEquals('div {\n\tborder: 1px solid red\n}',
+                          doc.find('style').text(), 'embedded css not OK');
+
+        // scripts
         this.assertEquals(1, doc.find('script[src="bar/baz.js"]').length, 'no external js element');
         this.assert(worldScript.index() > doc.find('script[src="bar/baz.js"]').index(),
                     'external js not before world script');

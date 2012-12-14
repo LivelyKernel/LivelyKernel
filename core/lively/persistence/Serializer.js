@@ -1263,14 +1263,33 @@ Object.extend(lively.persistence.Serializer, {
         title.text(spec.title || "New Lively World");
 
         // external css
-        if (spec.externalStyleSheets) {
-            spec.externalStyleSheets.forEach(function(url) {
-                $('<link/>')
-                    .attr('rel', 'stylesheet')
-                    .attr('href', url)
-                    .attr('type', 'text/css')
-                    .attr('media', 'screen')
-                    .appendTo(head);
+        function addExternalStyleSheet(url, id) {
+            $('<link/>')
+                .attr('rel', 'stylesheet')
+                .attr('href', url)
+                .attr('id', id)
+                .attr('type', 'text/css')
+                .attr('media', 'screen')
+                .appendTo(head);
+        }
+        function addEmbeddedCSS(css, id) {
+            $('<style/>')
+                .attr('type', 'text/css')
+                .attr('id', id)
+                .text(css)
+                .appendTo(head);
+        }
+        if (spec.styleSheets) {
+            spec.styleSheets.forEach(function(arg) {
+                // arg can be url string, URL, css string or object like
+                // {href: String, css: String, id: String}
+                if (Object.isString(arg)) {
+                    if (arg.endsWith('.css')) addExternalStyleSheet(arg);
+                    else addEmbeddedCSS(arg);
+                } else {
+                    if (arg.href) addExternalStyleSheet(arg.href, arg.id);
+                    else if (arg.css) addEmbeddedCSS(arg.css, arg.id);
+                }
             });
         }
 

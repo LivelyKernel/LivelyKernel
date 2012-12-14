@@ -1243,6 +1243,8 @@ Object.extend(lively.persistence.Serializer, {
     },
 
     documentForWorldSerialization: function(spec) {
+        // This method creates a new HTML document that can be used to
+        // serialize a Lively world.
         var doc = document.implementation.createHTMLDocument(),
             $doc = lively.$(doc),
             head = $doc.find('head'),

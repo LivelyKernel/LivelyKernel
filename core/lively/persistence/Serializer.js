@@ -1295,6 +1295,10 @@ Object.extend(lively.persistence.Serializer, {
             });
         }
 
+        // html content
+        if (spec.html) {
+            $(spec.html).appendTo(body);
+        }
         // jQuery and scripts, *headbang*:
         // http://stackoverflow.com/questions/610995/jquery-cant-append-script-element
         function createScriptEl(spec) {

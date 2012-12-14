@@ -25,10 +25,12 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.DocumentSerializati
                 serializedWorld: 'barf',
                 styleSheets: ["foo.css", 'div {\n\tborder: 1px solid red\n}'],
                 externalScripts: ['bar/baz.js'],
+                html: '<div id="div1"><div id="div2"/></div>'
             },
             result = lively.persistence.Serializer.documentForWorldSerialization(spec),
             doc = lively.$(result),
             worldScript = doc.find('body script#' + spec.title);
+
         // world elem
         this.assert(1, worldScript.length, 'no world script element');
         this.assertEquals(spec.migrationLevel, worldScript.attr('data-migrationLevel'));
@@ -47,6 +49,9 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.DocumentSerializati
         this.assertEquals(1, doc.find('script[src="bar/baz.js"]').length, 'no external js element');
         this.assert(worldScript.index() > doc.find('script[src="bar/baz.js"]').index(),
                     'external js not before world script');
+
+        // html
+        this.assertEquals(1, doc.find('body > #div1').length, 'html not inserted');
     }
 });
 

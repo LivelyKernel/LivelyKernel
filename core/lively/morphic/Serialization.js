@@ -189,36 +189,42 @@ lively.morphic.World.addMethods(
     },
 
     saveWorldAs: function(url, checkForOverwrites) {
+        // Step 1: Get serialized representation of the world
         var serializer = ObjectGraphLinearizer.forNewLively(),
-            doc = new Importer().getBaseDocument(),
-            start = new Date().getTime();
+            json = serializer.serialize(this, null, serializer);
 
-        lively.persistence.Serializer.serializeWorldToDocumentWithSerializer(this, doc, serializer);
+        // Step 2: Create a new document
+        var title = url.filename().replace('.xhtml', ''),
+            bootstrapFile = new URL(module("lively.bootstrap").uri()).relativePathFrom(url),
+            css = $("head style").toArray().map(function(el) { return el.textContent }),
+            docSpec = {
+                title: title,
+                migrationLevel: LivelyMigrationSupport.migrationLevel,
+                serializedWorld: json,
+                html: this.asHTMLLogo({asFragment: true}),
+                styleSheets: css,
+                externalScripts: [bootstrapFile]
+            },
+            doc = lively.persistence.Serializer.documentForWorldSerialization(docSpec);
 
-        // make sure that links to bootstrap.js points to the right directory
-        new DocLinkConverter(URL.codeBase, url.getDirectory()).convert(doc);
-
-        // Change page title
-        var titleTag = doc.getElementsByTagName('title')[0];
-        if (titleTag) titleTag.textContent = url.filename().replace('.xhtml', '');
-
-        this.savedWorldAsURL = undefined;
-        lively.bindings.connect(this, 'savedWorldAsURL', this, 'visitNewPageAfterSaveAs', {
-            updater: function($upd, v) {
-                if (v && v.toString() !== URL.source.toString()) { $upd(v); }
-            }
-        })
+        // this.savedWorldAsURL = undefined;
+        // lively.bindings.connect(this, 'savedWorldAsURL', this, 'visitNewPageAfterSaveAs', {
+        //     updater: function($upd, v) {
+        //         if (v && v.toString() !== URL.source.toString()) { $upd(v); }
+        //     }
+        // })
 
         if (URL.source.eq(url)) {
             this.storeDoc(doc, url, checkForOverwrites);
         } else {
             this.checkIfPathExistsAndStoreDoc(doc, url, checkForOverwrites);
         }
-        Config.lastSaveTime = new Date().getTime() - start;
     },
+
     saveWorld: function() {
         this.saveWorldAs(URL.source, true)
     },
+
     visitNewPageAfterSaveAs: function(url) {
         if (!url) return;
         this.confirm("visit " + url + "?", function(yes) {

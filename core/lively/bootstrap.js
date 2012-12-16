@@ -1,5 +1,5 @@
 /*global Config, require, Class, WebResource, $A*/
-/*jshint evil: true, scripturl: true, loopfunc: true, laxbreak: true, immed: true, lastsemic: true, debug: true*/
+/*jshint evil: true, scripturl: true, loopfunc: true, laxbreak: true, immed: true, lastsemic: true, debug: true, regexp: false*/
 (function bootstrapLively(Global) {
     // "Global" is the lively accessor to the toplevel JS scope
     Global.Global = Global;

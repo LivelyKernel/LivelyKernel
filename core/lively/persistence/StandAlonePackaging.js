@@ -43,7 +43,7 @@ Object.subclass('lively.persistence.StandAlonePackaging.Helper',
     addConfig: function(doc) {
         // TODO: make generic to include all original configs
         var configStr = 'var documentDir = document.URL.substring(0, document.URL.lastIndexOf('/') + 1); '
-                      + 'Config = {standAlone: true, codeBase: documentDir, rootPath: documentDir, isNewMorphic: true}';
+                      + 'Config = {standAlone: true, codeBase: documentDir, rootPath: documentDir}';
         this.addScriptTagTo(doc.getElementsByTagName('head')[0], configStr);
     },
 

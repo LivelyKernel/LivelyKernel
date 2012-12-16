@@ -18,11 +18,11 @@ Object.subclass('lively.ide.ModuleWrapper',
         if (!moduleName || !type) {
             throw new Error('Cannot create ModuleWrapper without moduleName or type!');
         }
-        if (!['js', 'ometa', 'lkml', 'st'].include(type)) {
+        if (!['js', 'ometa', 'st'].include(type)) {
             throw new Error('Unknown type ' + type + ' for ModuleWrapper ' + moduleName);
         }
         this._moduleName = moduleName;
-        this._type = type; // can be js, ometa, lkml, st
+        this._type = type; // can be js, ometa, st
         this._ast = null;
         this._cachedSource = source || null;
         this._isVirtual = isVirtual; // isVirtual means that there is no file for this module
@@ -71,8 +71,7 @@ Object.subclass('lively.ide.ModuleWrapper',
 
     parserMethodMapping: {
         js: 'parseJs',
-        ometa: 'parseOmeta',
-        lkml: 'parseLkml'
+        ometa: 'parseOmeta'
     },
 
     parse: function(source, optSourceDB) {
@@ -107,11 +106,8 @@ Object.subclass('lively.ide.ModuleWrapper',
             root = new lively.ide.FileFragment(
                 this.fileName(), 'ometaGrammar', 0, source.length-1, this.fileName(), fileFragments, this);
         return root;
-    },
-
-    parseLkml: function(source) {
-        return ChangeSet.fromFile(this.fileName(), source);
     }
+
 },
 'saving', {
 
@@ -326,9 +322,6 @@ Object.subclass('AnotherSourceDatabase', {
         var roots = Object.values(lively.ide.SourceControl.modules).collect(function(ea) { return ea.ast() }),
             allFragments = roots.inject([], function(all, ea) { return all.concat(ea.flattened().uniq()) });
 
-        // search local code
-        allFragments = allFragments.concat(ChangeSet.current().flattened());
-
         return allFragments.select(function(ea) {
             return ea.getSourceCodeWithoutSubElements().include(str);
         });
@@ -408,7 +401,7 @@ Object.subclass('AnotherSourceDatabase', {
             var webR = new WebResource(url).beSync(),
                 fileURLs = webR.getSubElements().subDocuments.collect(function(ea) { return ea.getURL() }),
                 fileNames = this.mapURLsToRelativeModulePaths(fileURLs),
-                acceptedFileNames = /.*\.(st|js|lkml|ometa)$/,
+                acceptedFileNames = /.*\.(st|js|ometa)$/,
                 rejects = ['JSON.js'];
 
             fileNames = fileNames

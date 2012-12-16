@@ -447,7 +447,7 @@ TestCase.subclass('lively.tests.TestFrameworkTests.RememberStackTest', {
     // testOpenStackViewer: function() {
     // 	Config.debugExtras = true;
     // 	var result = this.debugTest("testError");
-    // 	new StackViewer(this, result.err.stack).openIn(WorldMorph.current(), pt(1,1));
+    // 	new StackViewer(this, result.err.stack).openIn(lively.morphic.World.current(), pt(1,1));
     // 	Config.debugExtras = false;
     // },
 

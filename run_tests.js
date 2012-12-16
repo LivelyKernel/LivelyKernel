@@ -48,7 +48,7 @@ var testList = [
     "lively.tests.BaseTests",
     'lively.tests.BootstrapTests',
     "lively.tests.ClassTests",
-    // 'lively.tests.CoreTests',
+    'lively.tests.CoreTests',
     "lively.tests.HelperTests",
     // 'lively.tests.LKWikiTests',
     "lively.tests.ModuleSystemTests",

@@ -57,7 +57,7 @@ lively.morphic.Morph.addMethods(
         }
     },
 
-    onstore: function() {},
+    onstore: function() {}
 
 },
 'copying', {
@@ -67,6 +67,7 @@ lively.morphic.Morph.addMethods(
         copy.withAllSubmorphsDo(function(ea) { ea.setNewId() })
         copy.prepareForNewRenderContext(this.renderContext().newInstance());
         copy.findAndSetUniqueName();
+        copy.disconnectObsoleteControlPoints();
         if (typeof copy.onCopy === "function") { copy.onCopy(); }
         return copy;
     },
@@ -77,6 +78,20 @@ lively.morphic.Morph.addMethods(
         // DEPRECATED use the function called instead
         this.prepareForNewRenderContext(renderCtx);
     },
+    disconnectObsoleteControlPoints: function() {
+        // disconnect obsolete control points that were created during copying
+        // e.g. when a line was connected to a rectangle, and only the
+        // rectangle was copied
+        if (!this.magnets) return;
+        this.magnets.forEach(function(eaMagnet) {
+            if (!eaMagnet.connectedControlPoints) return;
+            eaMagnet.connectedControlPoints.forEach(function(eaCP) {
+                if (!eaCP.morph.controlPoints.include(eaCP)) {
+                    eaMagnet.removeConnectedControlPoint(eaCP);
+                }
+            });
+        });
+    }
 },
 'serialization', {
     serializeToJSON: function() {
@@ -104,8 +119,7 @@ lively.morphic.Morph.addMethods(
     },
     findAndSetUniqueName: function() {
         this.setName(this.findUniqueNameSimilarTo(this.name || this.constructor.name));
-    },
-
+    }
 });
 
 lively.morphic.Text.addMethods(
@@ -304,9 +318,7 @@ Object.extend(lively.morphic.World, {
         return world;
     },
     fromDocument: function(doc) {
-        var world = lively.persistence.Serializer.deserializeWorldFromDocument(doc),
-            cs = lively.persistence.Serializer.deserializeChangeSetFromDocument(doc);
-        world.setChangeSet(cs);
+        var world = lively.persistence.Serializer.deserializeWorldFromDocument(doc);
         world.prepareForNewRenderContext(world.renderContext());
         return world;
     },

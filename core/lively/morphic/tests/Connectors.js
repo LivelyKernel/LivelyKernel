@@ -147,23 +147,30 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ConnectorTest',
         this.assertIdentity(morph2, openMenuWasCalledFor, 'openMenu not working');
     },
     test08MagnetSetNearestMagnetToControlPoint: function() {
-
-
         var morph1 = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
             morph2 = lively.morphic.Morph.makeRectangle(100,100, 20, 20);
-
         this.world.addMorph(morph1);
         this.world.addMorph(morph2);
-
         var magnetSet = new lively.morphic.MagnetSet(this.world)
         this.assert(magnetSet.magnets.length >= 2)
-        var line =  new lively.morphic.Path([pt(0,0), pt(100,100)]);
-
-
-        var nearest = magnetSet.nearestMagnetsToControlPoint(line.getControlPoints()[1]);
+        var line =  new lively.morphic.Path([pt(0,0), pt(100,100)]),
+            nearest = magnetSet.nearestMagnetsToControlPoint(line.getControlPoints()[1]);
         this.assertEquals(nearest.length, 1, "what points else")
         this.assertIdentity(nearest[0].morph, morph2, "wrong morph")
     },
+    test09CopyConnectedMorphDisconnectsObsoleteControlPoint: function() {
+        var morph = lively.morphic.Morph.makeRectangle(0,0, 20, 20),
+            line =  new lively.morphic.Path([pt(0,0), pt(100,100)]),
+            magnet = morph.getMagnets()[0],
+            cp = line.getControlPoints()[0];
+        cp.setConnectedMagnet(magnet);
+        this.world.addMorph(morph);
+        this.world.addMorph(line);
+        var copy = morph.copy(),
+            copiedControlPoint = copy.magnets.detect(function(ea) {
+                return ea.getConnectedControlPoints().length > 0; });
+        this.assert(!copiedControlPoint, "there should be no copied control point");
+    }
 });
 
 lively.morphic.tests.ConnectorTest.subclass('lively.morphic.tests.VisualBindingsTest',

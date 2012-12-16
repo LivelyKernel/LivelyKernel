@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.ide.ErrorViewer').requires('lively.Helper', 'lively.ide.SystemCodeBrowser', 'lively.ide.LocalBrowser', 'lively.ide.VersionTools').toRun(function() {
+module('lively.ide.ErrorViewer').requires('lively.Helper', 'lively.ide.SystemCodeBrowser', 'lively.ide.VersionTools').toRun(function() {
 
 Object.subclass('lively.ide.ErrorViewer.ChromeErrorParser',
 'parse', {
@@ -175,16 +175,16 @@ Object.subclass('lively.ide.ErrorViewer.ChromeErrorLine',
 	},
 });
 
-Widget.subclass('lively.ide.ErrorViewer.ErrorStackViewer',
+lively.morphic.WindowedApp.subclass('lively.ide.ErrorViewer.ErrorStackViewer',
 'settings', {
 	viewTitle: "Error Stack Viewer",
-    initialViewExtent: pt(700, 500),
+    initialViewExtent: pt(700, 500)
 },
 'initializing', {
 	buildView: function(extent) {
 		extent = extent || this.initialViewExtent;
 
-		var panel = PanelMorph.makePanedPanel(extent, [
+		var panel = lively.morphic.Panel.makePanedPanel(extent, [
 			['errorMessage', newTextPane, new Rectangle(0, 0, 1, 0.05)],
 			['errorList', newRealListPane, new Rectangle(0, 0.05, 1, 0.45)],
 			['browseButton', newButton, new Rectangle(0, 0.5, 0.2, 0.05)],
@@ -261,7 +261,7 @@ Widget.subclass('lively.ide.ErrorViewer.ErrorStackViewer',
 		if (this.sourceTextMorph.errorTextSelection) {
 			 this.sourceTextMorph.errorTextSelection.undraw()
 		} else {
-			this.sourceTextMorph.errorTextSelection = new TextSelectionMorph();
+			this.sourceTextMorph.errorTextSelection = new lively.morphic.Morph();
 			this.sourceTextMorph.addMorph(this.sourceTextMorph.errorTextSelection)
 			this.sourceTextMorph.style =
 				{fill: Color.gray.lighter(), borderWidth: 0, strokeOpacity: 0, borderRadius: 1};

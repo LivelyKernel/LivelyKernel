@@ -155,9 +155,11 @@ Object.subclass('lively.PartsBin.PartItem',
         });
         var serializer = this.getSerializer();
         serializer.addPlugin(ignoreOwnerPlugin);
+        var bounds = part.getBounds(),
+            scale = 85 / Math.max(bounds.width, bounds.height) * part.getScale();
         try {
             json = serializer.serialize(part);
-            htmlLogo = part.asHTMLLogo();
+            htmlLogo = part.asHTMLLogo({scale: scale});
         } catch(e){
             throw e;
         } finally {
@@ -441,7 +443,7 @@ Object.subclass('lively.PartsBin.PartsBinMetaInfo',
 
     addRequiredModule: function(moduleName) {
         if (!this.requiredModules) this.requiredModules = [];
-        this.requiredModules.push(moduleName);
+        this.requiredModules.pushIfNotIncluded(moduleName);
     },
 
     getRequiredModules: function() { return this.requiredModules || [] }
@@ -695,7 +697,8 @@ Trait('lively.PartsBin.PartTrait', {
             '</svg>';
     },
 
-    asHTMLLogo: function() {
+    asHTMLLogo: function(options) {
+        // options = {scale: NUMBER, asFragment: BOOLEAN}
         return '<html><body>please implement</body></html>'
     }
 

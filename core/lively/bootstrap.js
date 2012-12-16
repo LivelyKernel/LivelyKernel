@@ -568,7 +568,7 @@
         },
 
         loadAsync: function (url, onLoadCb, script) {
-            if (script.namespaceURI == this.SVGNamespace) {
+            if (script.namespaceURI === this.SVGNamespace) {
                 script.setAttributeNS(this.XLINKNamespace, 'href', url);
             } else if (this.isCSS(url)) {
                 script.setAttribute("href", url);
@@ -717,7 +717,7 @@
             do {
                 urlString = result;
                 result = urlString.replace(/\/[^\/]+\/\.\./, '');
-            } while (result != urlString);
+            } while (result !== urlString);
             // foo//bar --> foo/bar
             result = result.replace(/([^:])[\/]+/g, '$1/');
             // foo/./bar --> foo/bar
@@ -728,13 +728,13 @@
         scriptElementLinksTo: function (el, url) {
             if (!el.getAttribute) return false;
             // FIXME use namespace consistently
-            if (el.getAttribute('id') == url) return true;
+            if (el.getAttribute('id') === url) return true;
             var link = this.getLinkAttribute(el);
             if (!link) return false;
-            if (url == link) return true;
+            if (url === link) return true;
             var linkString = this.makeAbsolute(link),
                 urlString = this.makeAbsolute(url);
-            return linkString == urlString;
+            return linkString === urlString;
         },
 
         currentDir: browserDetector.isNodejs() ?
@@ -760,7 +760,7 @@
         makeUncached: function (urlString, cacheQuery) {
             cacheQuery = cacheQuery || new Date().getTime();
             return urlString
-                 + (urlString.indexOf('?') == -1 ? '?' : '&')
+                 + (urlString.indexOf('?') === -1 ? '?' : '&')
                  + cacheQuery;
         },
 
@@ -1035,7 +1035,7 @@
 
         convertCDATASections: function (el) {
             // CDATA sections are not allowed in (X)HTML documents....
-            if (el.nodeType == document.CDATA_SECTION_NODE) {
+            if (el.nodeType === document.CDATA_SECTION_NODE) {
                 var text = el.ownerDocument.createTextNode(el.data),
                     parent = el.parentNode;
                 parent.removeChild(el);

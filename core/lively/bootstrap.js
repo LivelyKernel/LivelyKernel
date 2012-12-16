@@ -1,4 +1,4 @@
-/*global Config, require, Class, WebResource*/
+/*global Config, require, Class, WebResource, $A*/
 /*jshint evil: true, scripturl: true, loopfunc: true, laxbreak: true, immed: true, lastsemic: true, debug: true*/
 (function bootstrapLively(Global) {
     // "Global" is the lively accessor to the toplevel JS scope
@@ -313,7 +313,7 @@
 
             logoAndText.style.top = (this.height() / 2 - 100) + 'px';
             logoAndText.style.left = (this.width() / 2 - 40) + 'px';
-            logo.src = LivelyLoader.codeBase + 'media/loading.gif';
+            logo.src = Global.LivelyLoader.codeBase + 'media/loading.gif';
 
             logoAndText.appendChild(logo);
             logoAndText.appendChild(text);
@@ -387,13 +387,13 @@
                 // create a text node.
                 var textElement;
                 try {
-                  textElement = document.createCDATASection(str);
+                    textElement = document.createCDATASection(str);
                 } catch (e) {
-                  if (e.name === "NOT_SUPPORTED_ERR") {
-                    textElement = document.createTextNode(str);
-                  } else {
-                    throw e;
-                  }
+                    if (e.name === "NOT_SUPPORTED_ERR") {
+                        textElement = document.createTextNode(str);
+                    } else {
+                        throw e;
+                    }
                 }
 
                 line.appendChild(textElement);
@@ -588,7 +588,8 @@
             // modules are loaded. If they have required modules that are not
             // included in the combined file, those will be loaded as well.
 
-            var originalLoader = this,
+            var lively = Global.lively,
+                originalLoader = this,
                 combinedLoader = {
 
                     expectToLoadModules: function (relativePaths) {
@@ -597,7 +598,7 @@
                         this.expectedModuleURLs = new Array(len);
                         for (i = 0; i < len; i++) {
                             this.expectedModuleURLs[i] =
-                                LivelyLoader.codeBase + relativePaths[i];
+                                Global.LivelyLoader.codeBase + relativePaths[i];
                         }
 
                         // modules like lively.Text
@@ -655,14 +656,14 @@
             if (this.scriptInDOM(combinedFileUrl)) { callCallback(); return; }
 
             // while loading the combined file we replace the loader
-            JSLoader = combinedLoader;
+            Global.JSLoader = combinedLoader;
             this.loadJs(combinedFileUrl, callCallback,
                         undefined, undefined, hash);
         },
 
         loadAll: function (urls, cb) {
             urls.reverse().reduce(function (loadPrevious, url) {
-                return function () { JSLoader.loadJs(url, loadPrevious); };
+                return function () { Global.JSLoader.loadJs(url, loadPrevious); };
             }, function () { if (cb) cb(); })();
         },
 
@@ -828,26 +829,26 @@
                 parentDir;
             if (codeBase) return codeBase;
             if (browserDetector.isNodejs()) {
-                parentDir = JSLoader.currentDir() + '../';
-                return Config.codeBase = JSLoader.makeAbsolute(parentDir);
+                parentDir = Global.JSLoader.currentDir() + '../';
+                return Config.codeBase = Global.JSLoader.makeAbsolute(parentDir);
             }
             // search for script that links to "bootstrap.js" and construct
             // the codeBase path from its path
             var bootstrapFileName = 'bootstrap.js',
-                scripts = JSLoader.getScripts(),
+                scripts = Global.JSLoader.getScripts(),
                 i = 0, node, urlFound;
             while (!urlFound && (node = scripts[i++])) {
-                var url = JSLoader.getLinkAttribute(node);
+                var url = Global.JSLoader.getLinkAttribute(node);
                 if (url && (url.indexOf(bootstrapFileName) >= 0)) {
                     urlFound = url;
                 }
             }
             if (!urlFound) {
                 console.warn('Cannot find codebase, have to guess...');
-                return JSLoader.dirOfURL(Global.location.href.toString());
+                return Global.JSLoader.dirOfURL(Global.location.href.toString());
             }
-            parentDir = JSLoader.dirOfURL(urlFound) + '../';
-            codeBase = JSLoader.makeAbsolute(parentDir);
+            parentDir = Global.JSLoader.dirOfURL(urlFound) + '../';
+            codeBase = Global.JSLoader.makeAbsolute(parentDir);
             console.log('Codebase is ' + codeBase);
             return Config.codeBase = codeBase;
         })(),
@@ -862,14 +863,14 @@
                 return Config.rootPath = rootPath;
             }
             if (codeBase) {
-                var parentDir = JSLoader.dirOfURL(codeBase) + '../';
-                rootPath = JSLoader.makeAbsolute(parentDir);
+                var parentDir = Global.JSLoader.dirOfURL(codeBase) + '../';
+                rootPath = Global.JSLoader.makeAbsolute(parentDir);
                 console.log('Root path is ' + rootPath);
                 return Config.rootPath = rootPath;
             }
             console.warn('Cannot find rootPath, have to guess...');
             var currentUrl = Global.location.href.toString();
-            return Config.rootPath = JSLoader.dirOfURL(currentUrl);
+            return Config.rootPath = Global.JSLoader.dirOfURL(currentUrl);
         })();
 
     // ------- generic load support ----------
@@ -913,6 +914,8 @@
         // ------- load world ---------------
         //
         loadMain: function (canvas, startupFunc) {
+            var lively = Global.lively;
+
             LoadingScreen.add();
             lively.Config.loadUserConfigModule();
             require('lively.bindings', 'lively.Main').toRun(function () {
@@ -937,7 +940,7 @@
         },
 
         bootstrap: function (thenDoFunc) {
-            var url = JSLoader.currentDir(),
+            var url = Global.JSLoader.currentDir(),
                 dontBootstrap = Config.standAlone
                              || url.indexOf('dontBootstrap=true') >= 0;
             if (dontBootstrap) { thenDoFunc(); return }
@@ -952,13 +955,13 @@
                 console.log('optimized loading enabled');
                 var hashUrl = cb + 'generated/combinedModulesHash.txt',
                     combinedModulesUrl = cb + 'generated/combinedModules.js',
-                    hash = JSLoader.getSync(hashUrl, true/*uncached*/);
-                JSLoader.loadCombinedModules(
+                    hash = Global.JSLoader.getSync(hashUrl, true/*uncached*/);
+                Global.JSLoader.loadCombinedModules(
                     combinedModulesUrl, thenDoFunc, hash);
                 return;
             }
 
-            JSLoader.resolveAndLoadAll(cb, this.bootstrapFiles, thenDoFunc);
+            Global.JSLoader.resolveAndLoadAll(cb, this.bootstrapFiles, thenDoFunc);
         }
 
     };
@@ -971,8 +974,8 @@
         addWorld: function (worldURL, targetElement) {
             this.worldURL = worldURL;
             this.targetElement = targetElement;
-            LivelyLoader.bootstrap(function () {
-                EmbededLoader.embedAndLoadWorld(worldURL, targetElement);
+            Global.LivelyLoader.bootstrap(function () {
+                Global.EmbededLoader.embedAndLoadWorld(worldURL, targetElement);
             });
         },
 
@@ -1027,7 +1030,7 @@
                 }
             }
             document.body.style.cursor = null;
-            LivelyLoader.loadMain(canvas);
+            Global.LivelyLoader.loadMain(canvas);
         },
 
         convertCDATASections: function (el) {
@@ -1119,17 +1122,17 @@
 
     function init() {
         if (Global.document) {
-            LivelyMigrationSupport.setDocumentMigrationLevel(document);
+            Global.LivelyMigrationSupport.setDocumentMigrationLevel(document);
         }
         var startupFunc = Config.onStartWorld;
-        if (LivelyLoader.startFromSerializedWorld(startupFunc)) return;
+        if (Global.LivelyLoader.startFromSerializedWorld(startupFunc)) return;
         console.warn("Lively startup failed");
     }
 
     (function startWorld(startupFunc) {
         if (browserDetector.isNodejs()) {
             // remove libs, JSON:
-            LivelyLoader.bootstrapFiles = [
+            Global.LivelyLoader.bootstrapFiles = [
                 'lib/lively-libs-nodejs.js',
                 'lively/Migration.js',
                 'lively/lang/Object.js',
@@ -1147,7 +1150,7 @@
                 'lively/lang/UUID.js',      // FIXME: require module instead
                 'lively/LocalStorage.js'    // FIXME: require module instead
             ];
-            LivelyLoader.bootstrap(function () {
+            Global.LivelyLoader.bootstrap(function () {
                 console.log('bootstrap done');
             });
         } else {

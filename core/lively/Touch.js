@@ -253,13 +253,11 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
     initialize: function (bounds, string) {
         var returnValue = cop.proceed(bounds, string);
         this.initializeTextControl();
-        this.activateTextControl();
         return returnValue;
     },
     onrestore: function() {
         var returnValue = cop.proceed(bounds, string);
         this.initializeTextControl();
-        this.activateTextControl();
         return returnValue;
     }
 
@@ -1713,13 +1711,13 @@ lively.morphic.World.addMethods(
         return objectEditor
     },
     loadTouchMenu: function() {
-        this.touchMenuPrototype = this.loadPartItem("TouchMenu", "PartsBin/iPadWidgets");
+        this.touchMenuPrototype = new lively.morphic.TouchWorldMenu();
     },
     showTouchMenuAt: function (pos, fixed) {
         var touchMenu = this.touchMenuPrototype,
             pagePosition = pos,
             screenPos = pagePosition.subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel()),
-            triangle = touchMenu.get("Triangle");
+            triangle = touchMenu.pointer;
         touchMenu.setPosition(pos);
         if(screenPos.y > document.documentElement.clientHeight / 2) {
             touchMenu.moveBy(pt(0, -(touchMenu.getExtent().y + 1 * triangle.getExtent().y)).scaleBy(1 / $world.getZoomLevel()));
@@ -1743,12 +1741,15 @@ lively.morphic.World.addMethods(
         return touchMenu;
     },
     onHold: function(touch) {
-        var items = this.morphMenuItems();
-        var that = this;
-        var menu = this.showTouchMenuAt(touch.pageStart, true);
+        this.openWorldMenu(touch)
+    },
+    openWorldMenu: function(touch) {
+        var items = this.morphMenuItems(),
+            menu = this.showTouchMenuAt(touch.pageStart, true);
         menu.targetMorph = this;
         menu.setup(items);
     },
+
     addTextWindow: function (spec) {
         // FIXME: typecheck the spec
         if (Object.isString(spec.valueOf())) spec = {content: spec}; // convenience
@@ -2051,7 +2052,6 @@ lively.morphic.Text.addMethods("TapEvents", {
         evt.stopPropagation();
     },
     onTap: function(evt){
-        this.activateTextControl();
         evt.stopPropagation();
     },
 
@@ -2125,8 +2125,18 @@ lively.morphic.Text.addMethods("TapEvents", {
         this.deactivateTextControl()
     },
     onFocusAction: function(evt) {
-        this.activateTextControl()
-    },});
+        if (this.textControlEnabled()) {
+            this.activateTextControl()
+        }
+    },
+    disableTextControl: function() {
+        this.textControlDisabled = true;
+    },
+    textControlEnabled: function() {
+        return !this.textControlDisabled
+    }
+
+});
 
 lively.morphic.Button.addMethods("TapEvents", {
     onTouchStart: function() {

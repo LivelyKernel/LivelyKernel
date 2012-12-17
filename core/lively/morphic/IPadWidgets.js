@@ -99,7 +99,7 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
     },
     setup: function(itemList) {
         this.resetToDefaultProperties()
-        this.itemList = [];
+        this.itemList = itemList || [];
         this.setClipMode("hidden");
         this.titleStack = [];
         this.containerStack = [];
@@ -157,6 +157,9 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
                 this.openSubMenu(this.selection);
                 return;
             }
+            else {
+                this.activateCallback();
+            }
         } else {
             this.selection = null;
         }
@@ -172,6 +175,9 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         this.containerStack.push(this.getCurrentContainer());
         this.title = selection[0];
         var offset = this.getExtent().x * this.getLevel();
+        subcontainer.setExtent(pt(
+            (this.getLevel() + 1) * this.getExtent().x,
+            subcontainer.getExtent().y))
         var container;
         if(this.nextContainer){
             container = this.nextContainer;
@@ -179,12 +185,12 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         } else {
             container = this.createContainer();
         }
-        container.setPosition(pt(offset, subcontainer.getPosition().y));
+        container.setPosition(pt(offset, 0));
         subcontainer.addMorph(container);
         this.currentContainer = container;
         this.addMenuItems(selection[1]);
         var that = this;
-        subcontainer.setPositionAnimated(pt(-offset, subcontainer.getPosition().y), 500, function(){
+        subcontainer.setPositionAnimated(pt(-offset, 0), 500, function(){
             that.nextContainer = that.createContainer();
         });
     },
@@ -220,6 +226,14 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         }, this);
         this.itemList = items
     },
+    activateCallback: function() {
+        this.selection[1]();
+    },
+    getLevel: function() {
+        return this.containerStack.length
+    }
+
+
 },
 'events', {
     onTouchStart: function(evt) {
@@ -562,6 +576,7 @@ lively.morphic.Text.subclass('lively.morphic.ListItem',
         this.name = "MenuItem_" + item.string;
         this.item = item;
         this.setTextString(item.string);
+        this.disableTextControl()
         return this
     },
     initializeSubMenuArrow: function() {
@@ -637,8 +652,9 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
 
 },
 'initialization', {
-    initialize: function ($super, handleName, optAlignment) {
+    initialize: function ($super, flap, optAlignment) {
         $super(rect(0,0,0,0));
+        this.flap = flap;
         optAlignment && this.setAlignment(optAlignment);
         this.determineRotation();
         this.applyStyle(Object.merge([this.style, this.determineGradient()]));
@@ -658,8 +674,9 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
             extent: pt(20, 20),
             fill: Color.red.withA(0.5)
         })
+        closeButton.flap = this.flap;
         closeButton.addScript(function onFire () {
-            that.owner.close()
+            this.flap.close()
         })
         connect(closeButton, 'fire', closeButton, 'onFire')
         closeButton.setBorderRadius(1)
@@ -848,7 +865,7 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         this.fitInWorld();
         this.applyStyle(Object.merge([this.style,{fill: this.determineFillGradient()}]))
         this.setName(name+'Flap');
-        this.flapHandle = this.initializeHandle(name, alignment);
+        this.flapHandle = this.initializeHandle(alignment);
         this.setFixed(true);
         this.fixedScale = 1;
         this.disableSelection();
@@ -944,8 +961,8 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
     },
 
 
-    initializeHandle: function (name, alignment) {
-        var flapHandle = new lively.morphic.FlapHandle(name, alignment);
+    initializeHandle: function (alignment) {
+        var flapHandle = new lively.morphic.FlapHandle(this, alignment);
         this.flapHandle = flapHandle;
         flapHandle.flap = this;
         flapHandle.alignment = alignment;
@@ -1984,4 +2001,184 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
 
 }) // end of lively.morphic.TextControl
 
-}) // end of module
+lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
+'initialization', {
+    initialize: function($super) {
+        var returnValue = $super(pt(0,0).extent(pt(361.0,318.0)))
+        this.setOrigin(pt(180.5,-55.0))
+        this.list = this.initializeList();
+        this.header = this.initializeHeader();
+        this.pointer = this.initializePointer();
+        connect(this.list, 'openSubMenu', this, 'showBackButton');
+        // check for level of submenu missing.
+        connect(this.list, 'openSuperMenu', this, 'hideBackButton');
+        connect(this.list, 'activateCallback', this, 'onCallbackActivate');
+        return returnValue
+    },
+    initializeList: function() {
+        var touchList = new lively.morphic.TouchList(rect(-174.5,84,348,281));
+        touchList.setFill(Color.white)
+        return this.addMorph(touchList);
+    },
+
+    initializeHeader: function() {
+        var header = new lively.morphic.Box(rect(-180.5,46,361,36))
+        header.applyStyle({
+            fill: new lively.morphic.LinearGradient([
+                {offset: 0, color: Color.rgb(79,87,104)},
+                {offset: 0.5, color: Color.rgb(33,43,60)},
+                {offset: 0.51, color: Color.rgb(9,16,29)}
+            ], 'northSouth'),
+            borderWidth: 0,
+            borderRadius: 10,
+            resizeWidth: true,
+            adjustForNewBounds: true
+        })
+        header.addScript(function reset () {
+            this.disableDropping();
+            this.submorphs.invoke('disableDropping');
+        })
+        this.header = header;
+        this.menu = this.initializeMenu();
+        this.backButton = this.initializeBackButton(this.list)
+        this.pinButton = this.initializePinButton(this);
+        this.submorphs.invoke('disableDropping');
+        return this.addMorph(header);
+    },
+    initializeMenu: function() {
+        var menu = new lively.morphic.Text(rect(107,9,187,23));
+        menu.applyStyle({
+            fill: null,
+            borderWidth: 0
+        })
+        return this.header.addMorph(menu)
+    },
+
+    initializeBackButton: function(targetList) {
+        var backButton = new lively.morphic.Button(rect(11,4,65,32), 'Back');
+        backButton.list = targetList
+        backButton.beBlackButton();
+        backButton.addScript(function onFire () {
+            this.list.openSuperMenu();
+        })
+        connect(backButton, 'fire', backButton, 'onFire')
+        connect(this, 'openSubMenu', backButton.setVisible, {converter: function (val) {
+            return true
+        }})
+        // TODO: inaccurate for more than twolevel menus
+        connect(this, 'openSuperMenu', backButton.setVisible, {converter: function (val) {
+            return false
+        }})
+        backButton.setVisible(false)
+        return this.header.addMorph(backButton);
+    },
+    initializePinButton: function(menu) {
+        var pinButton = new lively.morphic.Button(rect(298,4,60,32), 'Pin')
+        pinButton.beBlackButton();
+        pinButton.touchMenu = menu;
+        pinButton.addScript(function onFire () {
+            this.touchMenu.pin();
+        })
+        connect(pinButton, 'fire', pinButton, 'onFire')
+        return this.header.addMorph(pinButton)
+    },
+    initializePointer: function() {
+        var pointer = new lively.morphic.Path([
+            pt(2.0,-43.5),
+            pt(86.0,-0.5),
+            pt(2.0,44.5),
+            pt(2.0,-43.5)
+        ])
+        pointer.setScale(0.5);
+        pointer.applyStyle({
+            position: pt(0.0,47.9),
+            fill: Color.rgb(79,87,104)
+        })
+        return this.addMorph(pointer);
+    },
+
+    reset: function() {
+        this.backButton.reset();
+        this.menu.setTextString("");
+        this.disableDropping();
+        this.setName("TouchMenu");
+        this.targetMorph = undefined;
+    },
+    setup: function(items) {
+        this.setScale(1/$world.getZoomLevel());
+        this.list.setup(items)
+        this.backButton.setVisible(false);
+        this.menu.setTextString('')
+    },
+
+
+},
+'properties', {
+    style: {
+        fill: Color.rgb(9,16,29),
+        borderRadius: 12,
+        adjustForNewBounds: true
+    }
+
+},
+'pinning', {
+    isPinned: function () {
+        return this.pinned
+    },
+    pin: function () {
+        if (!this.isPinned()) {
+            this.setPinned();
+        } else {
+            this.setUnpinned();
+        }
+    },
+    setPinned: function() {
+        if (this === $world.touchMenuPrototype) {
+            $world.touchMenuPrototype = new lively.morphic.TouchWorldMenu();
+        }
+        this.pinned = true;
+        this.switchButtonColorPermanently();
+    },
+    setUnpinned: function() {
+        this.pinned = false;
+        $world.touchMenuPrototype.remove();
+        $world.touchMenuPrototype = this;
+        this.switchButtonColorPermanently()
+    },
+
+
+    switchButtonColorPermanently: function() {
+        var pinBtn = this.pinButton,
+            normalColor = pinBtn.normalColor;
+        pinBtn.normalColor = pinBtn.toggleColor;
+        pinBtn.toggleColor = normalColor;
+    }
+
+},
+'triangle', {
+    movePointerToBottom: function () {
+        var pointer = this.pointer;
+        pointer.setRotation(Math.PI / 2);
+        pointer.setPosition(pt(0, 372)); // origin offset of the touchMenu + height of touch menu
+    },
+    movePointerToTop: function () {
+        var pointer = this.pointer;
+        pointer.setRotation(-Math.PI / 2);
+        pointer.setPosition(pt(0, 48)); // origin offset of the touchMenu + height of touch menu
+    }
+},
+'interaction', {
+    onCallbackActivate: function () {
+        if (!this.isPinned())
+            this.remove();
+    },
+    showBackButton: function() {
+        this.backButton.setVisible(true);
+    },
+    hideBackButton: function() {
+        if (this.list.getLevel() === 0)
+            this.backButton.setVisible(false)
+    }
+
+
+});}) // end of module

@@ -79,7 +79,7 @@ lively.Main.WorldDataAccessor.subclass('lively.Main.JSONMorphicData',
 'accessing and creation', {
     getWorld: function() {
         if (this.world) return this.world;
-        this.world = lively.morphic.World.createFromJSOOn(this.jso, document.body);
+        this.world = lively.morphic.World.createFromJSOOn(this.jso, this.getDoc());
         return this.world;
     },
 

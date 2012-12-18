@@ -314,9 +314,11 @@ Object.extend(lively.morphic.World, {
     createFromJSONOn: function(json, domElement) {
         return this.createFromJSOOn(JSON.parse(json), domElement);
     },
-    createFromJSOOn: function(jso, domElement) {
-        var world = this.fromJSO(jso)
-        world.displayOnElement(domElement)
+    createFromJSOOn: function(jso, domElementOrDocument) {
+        var world = this.fromJSO(jso),
+            isDoc = !domElementOrDocument.ownerDocument;
+        if (isDoc) world.displayOnDocument(domElementOrDocument);
+        else world.displayOnElement(domElementOrDocument);
         this.currentWorld = world;
         return world;
     },

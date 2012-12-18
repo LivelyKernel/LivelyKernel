@@ -194,14 +194,15 @@ lively.morphic.World.addMethods(
             json = serializer.serialize(this, null, serializer);
 
         // Step 2: Create a new document
-        var title = url.filename().replace('.xhtml', ''),
+        var preview = this.asHTMLLogo({asXML: false, asFragment: true});
+        var title = url.filename().replace('.x?html', ''),
             bootstrapFile = new URL(module("lively.bootstrap").uri()).relativePathFrom(url),
             css = $("head style").toArray().map(function(el) { return el.textContent }),
             docSpec = {
                 title: title,
                 migrationLevel: LivelyMigrationSupport.migrationLevel,
                 serializedWorld: json,
-                html: this.asHTMLLogo({asFragment: true}),
+                html: preview,
                 styleSheets: css,
                 externalScripts: [bootstrapFile]
             },

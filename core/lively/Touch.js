@@ -1503,9 +1503,10 @@ lively.morphic.Morph.subclass('lively.morphic.ResizeCorner',
 lively.morphic.World.addMethods(
 "TapEvents", {
     loadHoldIndicator: function() {
-        if(UserAgent.isTouch){
-            this.holdIndicator = this.loadPartItem("HoldIndicator", "PartsBin/iPadWidgets");
-        }
+        //if(UserAgent.isTouch){
+            this.holdIndicator = new lively.morphic.HoldIndicator();
+            //this.holdIndicator = this.loadPartItem("HoldIndicator", "PartsBin/iPadWidgets");
+        //}
     },
     initializeBrowserScrollForTouchEvents: function(touch) {
         this.emulatedScrolling = true;
@@ -1576,8 +1577,8 @@ lively.morphic.World.addMethods(
         return bool;
     },
     showHoldIndicatorFor: function(morph) {
-
         if(morph.tapTouch && this.holdIndicator){
+            this.holdIndicator.setScale(1/this.getZoomLevel());
             this.addMorph(this.holdIndicator);
             this.holdIndicator.align(
                 this.holdIndicator.bounds().center(),
@@ -1604,7 +1605,7 @@ lively.morphic.World.addMethods(
             window.clearTimeout(this.holdIndicatorTimeout);
         }
         if(this.holdIndicator) {
-            this.holdIndicator.remove();
+            this.holdIndicator.endHolding();
         }
     },
 },

@@ -2181,4 +2181,75 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
     }
 
 
-});}) // end of module
+});
+lively.morphic.Box.subclass('lively.morphic.HoldIndicator',
+'initialization', {
+    initialize: function($super) {
+        var returnValue = $super(rect(0,0,100,100));
+        this.setFill(Color.rgba(0,0,0,0));
+        this.frames = this.initializeFrames()
+        this.onTouchStart = function () {};
+        this.onTouchMove = function () {};
+        this.onTouchEnd = function () {};
+        return returnValue;
+    },
+    initializeFrames: function() {
+        var frames = []
+        for (var i = 1; i <= 4; i++) {
+            var frame = new lively.morphic.Image(this.getBounds()
+                , Config.codeBase + 'media/hold_indicator_' + i + '.png'
+                , true)
+            frames.push(frame)
+            frame.setVisible(false)
+            this.addMorph(frame)
+        }
+        return frames
+    },
+    nextState: function() {
+        if(typeof this.state !== "number"){
+            this.state = -1;
+        }
+        this.state += 1;
+        if(this.state >= 5){
+            lively.bindings.signal(this, "finished", true);
+            this.timeout = false;
+            this.endHolding();
+        } else if(this.state === 0){
+            this.timeout = window.setTimeout(this.nextState.bind(this), 1);
+        } else if(this.state === 4){
+            this.frames[this.state -1].setVisible(true);
+            this.timeout = window.setTimeout(this.nextState.bind(this), 1);
+        } else {
+            this.frames[this.state - 1].setVisible(true);
+            this.timeout = window.setTimeout(this.nextState.bind(this), 87);
+        }
+    },
+    endHolding: function() {
+        if(this.timeout && this.state < 4){
+            window.clearTimeout(this.timeout);
+        }
+        if(this.target) {
+            disconnect(this, "finished", this.target, "triggerHold");
+        }
+        this.target = undefined;
+        this.remove();
+    },
+    start: function(morph) {
+        //this.setScale(1/$world.getZoomLevel());
+        this.state = -1;
+        for(var i=0; i<4; i++){
+            this.frames[i].setVisible(false);
+        }
+        if(this.target) {
+            disconnect(this, "finished", this.target, "triggerHold");
+        }
+        this.target = morph;
+        connect(this, "finished", this.target, "triggerHold", {removeAfterUpdate: true});
+        this.nextState();
+    },
+    resumeSteppingAll: function($super) {
+        this.setFill(Color.rgba(0,0,0,0));
+        $super();
+    },
+}) // end of HoldIndicator
+}) // end of module

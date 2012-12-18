@@ -639,6 +639,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
     },
 
     displayOnElement: function(el) {
+        this.renderContext().domInterface.removeAllChildrenOf(el);
         this.renderContext().setParentNode(el);
         this.renderContextDispatch('append');
     },

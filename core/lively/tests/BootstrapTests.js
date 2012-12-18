@@ -311,8 +311,10 @@ TestCase.subclass('lively.tests.BootstrapTests.WorldDataTest',
     testGetWorldFromHTMLDoc: function() {
 		var doc = this.htmlDoc(),
 			sut = lively.Main.WorldDataAccessor.forDoc(doc),
-			world = sut.getWorld();
+			world = sut.getWorld(doc);
 		this.assertEquals(lively.morphic.World, world.constructor, 'World not deserialized');
+        world.displayOnDocument(doc);
+		this.assertEquals(1, lively.$(doc).find("body > *").length, 'World preview not removed');
 	}
 
 });

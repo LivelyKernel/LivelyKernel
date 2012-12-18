@@ -138,6 +138,11 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
     remove: function(node) {
         if (!node || !node.parentNode) return;
         node.parentNode.removeChild(node);
+    },
+    removeAllChildrenOf: function(el) {
+        while(el.childNodes.length > 0) {
+            el.removeChild(el.childNodes[0]);
+        }
     }
 },
 'accessing -- DOM', {

@@ -22,7 +22,7 @@ TestCase.subclass('lively.morphic.tests.TestCase',
         if (this.oldAlert)
             Global.alert = this.oldAlert;
         if (this.existingWorld) {
-            this.existingWorld.displayOnCanvas(document.getElementsByTagName('body')[0]);
+            this.existingWorld.displayOnDocument(document);
             lively.morphic.World.currentWorld = this.existingWorld;
             this.existingWorld = null;
         }

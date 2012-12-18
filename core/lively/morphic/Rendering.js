@@ -466,7 +466,7 @@ lively.morphic.Morph.addMethods(
     replaceRenderContextCompletely: function(newRenderContext) {
         this.remove()
         this.replaceRenderContextWith(newRenderContext);
-        if (this.displayOnCanvas) this.displayOnCanvas(document.body);
+        if (this.displayOnDocument) this.displayOnDocument(document);
     },
 
     prepareForNewRenderContext: function(newCtx) {

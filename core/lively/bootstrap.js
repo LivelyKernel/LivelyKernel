@@ -764,11 +764,11 @@
         //
         // ------- load world ---------------
         //
-        loadMain: function(canvas, startupFunc) {
+        loadMain: function(doc, startupFunc) {
             LoadingScreen.add();
             lively.Config.loadUserConfigModule();
             require('lively.bindings', 'lively.Main').toRun(function() {
-                var loader = lively.Main.getLoader(canvas);
+                var loader = lively.Main.getLoader(doc);
                 lively.bindings.connect(loader, 'finishLoading',
                                         LoadingScreen, 'remove');
                 if (startupFunc) {
@@ -776,14 +776,14 @@
                     lively.bindings.connect(loader, 'finishLoading',
                                             loader, 'startupFunc');
                 }
-                loader.systemStart(canvas);
+                loader.systemStart(doc);
             });
         },
 
         startFromSerializedWorld: function(startupFunc) {
             var self = this;
             this.bootstrap(function() {
-                self.loadMain(document.body, startupFunc);
+                self.loadMain(document, startupFunc);
             });
             return true;
         },

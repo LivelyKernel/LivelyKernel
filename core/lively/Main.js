@@ -29,8 +29,8 @@ module('lively.Main').requires("lively.persistence.Serializer").toRun(function()
 // from it
 Object.subclass('lively.Main.WorldDataAccessor',
 'initializing', {
-    initialize: function(canvas) {
-        this.canvas = canvas;
+    initialize: function(doc) {
+        this.doc = doc;
     },
     modulesBeforeDeserialization: function() { return Config.modulesBeforeDeserialization || [] }
 
@@ -38,17 +38,26 @@ Object.subclass('lively.Main.WorldDataAccessor',
 'accessing and creation', {
     modulesBeforeWorldLoad: function() { return Config.modulesBeforeWorldLoad || [] },
     modulesOnWorldLoad: function() { return Config.modulesOnWorldLoad || [] },
-    getCanvas: function() { return this.canvas },
+    getDoc: function() { return this.doc },
     getWorld: function() {  throw new Error('Subclass responsibility') }
 });
 
 Object.extend(lively.Main.WorldDataAccessor, {
-    forCanvas: function(canvas) {
+    forDoc: function(doc) {
+        return doc.xmlVersion ? this.forXMLDoc(doc) : this.forHTMLDoc(doc);
+    },
+
+    forXMLDoc: function(doc) {
         // currently we only support JSON embedded in XHTML meta nodes
-        var doc = canvas.ownerDocument,
-            jsonNode = doc.getElementById(lively.persistence.Serializer.jsonWorldId),
+        var jsonNode = doc.getElementById(lively.persistence.Serializer.jsonWorldId),
             json = jsonNode.textContent == "" ? jsonNode.content : jsonNode.textContent;
-        return new lively.Main.JSONMorphicData(canvas, jsonNode && json);
+        return new lively.Main.JSONMorphicData(doc, jsonNode && json);
+    },
+
+    forHTMLDoc: function(doc) {
+        // get the first script tag with the x-lively-world type
+        var json = lively.$('script[type="text/x-lively-world"]').eq(0).text();
+        return new lively.Main.JSONMorphicData(doc, json);
     }
 });
 
@@ -56,15 +65,15 @@ lively.Main.WorldDataAccessor.subclass('lively.Main.NewWorldData',
 'accessing and creation', {
     getWorld: function() {
         if (this.world) return this.world;
-        this.world = new lively.morphic.World(this.getCanvas());
+        this.world = new lively.morphic.World(this.getDoc());
         return this.world;
     }
 });
 
 lively.Main.WorldDataAccessor.subclass('lively.Main.JSONMorphicData',
 'initializing', {
-    initialize: function($super, canvas, json) {
-        $super(canvas);
+    initialize: function($super, doc, json) {
+        $super(doc);
         this.jso = LivelyMigrationSupport.applyWorldJsoTransforms(
             lively.persistence.Serializer.parseJSON(json));
     }
@@ -93,10 +102,10 @@ Object.subclass('lively.Main.Loader',
     connections: ['finishLoading']
 },
 'accessing', {
-    getCanvas: function() { return this.canvas },
+    getDoc: function() { return this.doc },
     getWorldData: function() {
         if (!this.worldData) {
-            this.worldData = lively.Main.WorldDataAccessor.forCanvas(this.getCanvas());
+            this.worldData = lively.Main.WorldDataAccessor.forDoc(this.getDoc());
         }
         return this.worldData;
     }
@@ -157,10 +166,10 @@ Object.subclass('lively.Main.Loader',
 },
 'loading', {
 
-    systemStart: function(canvas) {
+    systemStart: function(doc) {
         console.group("World loading");
-        this.canvas = canvas;
-        this.loadWorld(canvas);
+        this.doc = doc;
+        this.loadWorld(doc);
     },
 
     loadWorld: function() {
@@ -169,7 +178,7 @@ Object.subclass('lively.Main.Loader',
             require(worldData.modulesBeforeWorldLoad()).toRun(function() {
                 require(worldData.modulesOnWorldLoad()).toRun(function() {
                     var world = worldData.getWorld();
-                    world.displayOnCanvas(self.getCanvas());
+                    world.displayOnDocument(self.getDoc());
                     self.onFinishLoading(world);
                 });
             });
@@ -196,7 +205,7 @@ Object.subclass('lively.Main.Loader',
 
 
 Object.extend(lively.Main, {
-    getLoader: function(canvas) { return new lively.Main.Loader(); }
+    getLoader: function(doc) { return new lively.Main.Loader(); }
 });
 
 }); // end of module

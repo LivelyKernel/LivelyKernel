@@ -314,7 +314,7 @@ Object.extend(lively.morphic.World, {
     },
     createFromJSOOn: function(jso, domElement) {
         var world = this.fromJSO(jso)
-        world.displayOnCanvas(domElement)
+        world.displayOnElement(domElement)
         this.currentWorld = world;
         return world;
     },

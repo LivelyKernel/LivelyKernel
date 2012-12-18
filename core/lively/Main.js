@@ -56,7 +56,7 @@ Object.extend(lively.Main.WorldDataAccessor, {
 
     forHTMLDoc: function(doc) {
         // get the first script tag with the x-lively-world type
-        var json = lively.$('script[type="text/x-lively-world"]').eq(0).text();
+        var json = lively.$(doc).find('script[type="text/x-lively-world"]').text();
         return new lively.Main.JSONMorphicData(doc, json);
     }
 });

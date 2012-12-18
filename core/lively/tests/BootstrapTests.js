@@ -2,272 +2,315 @@ module('lively.tests.BootstrapTests').requires('lively.TestFramework').toRun(fun
 
 TestCase.subclass('lively.tests.BootstrapTests.WorldDataTest',
 'accessing', {
-    doc: function() {
+    xhtmlDoc: function() {
         // blank world
-        var str =  "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n" +
-            "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
-            "  <head>\n" +
-            "    <title>blank</title>\n" +
-            "    <script src=\"core/lively/bootstrap.js\"></script>\n" +
-            "    <meta id=\"LivelyMigrationLevel\"><![CDATA[4]]></meta>\n" +
-            "    <meta id=\"LivelyJSONWorld\"><![CDATA[{\n" +
-            "  \"id\": 0,\n" +
-            "  \"registry\": {\n" +
-            "    \"0\": {\n" +
-            "      \"submorphs\": [\n" +
-            "        {\n" +
-            "          \"__isSmartRef__\": true,\n" +
-            "          \"id\": 1\n" +
-            "        }\n" +
-            "      ],\n" +
-            "      \"scripts\": [],\n" +
-            "      \"shape\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 12\n" +
-            "      },\n" +
-            "      \"id\": 1,\n" +
-            "      \"eventHandler\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 19\n" +
-            "      },\n" +
-            "      \"grabbingEnabled\": false,\n" +
-            "      \"droppingEnabled\": true,\n" +
-            "      \"showsMorphMenu\": true,\n" +
-            "      \"halosEnabled\": true,\n" +
-            "      \"__layered_draggingEnabled__\": true,\n" +
-            "      \"_Position\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 20\n" +
-            "      },\n" +
-            "      \"priorExtent\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 21\n" +
-            "      },\n" +
-            "      \"hands\": [\n" +
-            "        {\n" +
-            "          \"__isSmartRef__\": true,\n" +
-            "          \"id\": 1\n" +
-            "        }\n" +
-            "      ],\n" +
-            "      \"__SourceModuleName__\": \"Global.lively.morphic.ObjectMigration\",\n" +
-            "      \"eventStartPos\": {},\n" +
-            "      \"worldMenuOpened\": true,\n" +
-            "      \"draggingEnabled\": true,\n" +
-            "      \"clickedOnMorphTime\": 1323814652451,\n" +
-            "      \"statusMessages\": [],\n" +
-            "      \"lastAlert\": \"\",\n" +
-            "      \"prevScroll\": [\n" +
-            "        0,\n" +
-            "        0\n" +
-            "      ],\n" +
-            "      \"showsHalos\": false,\n" +
-            "      \"__LivelyClassName__\": \"lively.morphic.World\"\n" +
-            "    },\n" +
-            "    \"1\": {\n" +
-            "      \"submorphs\": [],\n" +
-            "      \"scripts\": [],\n" +
-            "      \"shape\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 2\n" +
-            "      },\n" +
-            "      \"id\": 2,\n" +
-            "      \"eventHandler\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 9\n" +
-            "      },\n" +
-            "      \"droppingEnabled\": false,\n" +
-            "      \"halosEnabled\": false,\n" +
-            "      \"_world\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 0\n" +
-            "      },\n" +
-            "      \"eventsAreIgnored\": true,\n" +
-            "      \"_HandStyle\": \"default\",\n" +
-            "      \"_PointerEvents\": \"none\",\n" +
-            "      \"_Position\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 10\n" +
-            "      },\n" +
-            "      \"priorExtent\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 11\n" +
-            "      },\n" +
-            "      \"owner\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 0\n" +
-            "      },\n" +
-            "      \"_Rotation\": 0,\n" +
-            "      \"_Scale\": 1,\n" +
-            "      \"__SourceModuleName__\": \"Global.lively.morphic.Events\",\n" +
-            "      \"scrollFocusMorph\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 0\n" +
-            "      },\n" +
-            "      \"internalClickedOnMorph\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 0\n" +
-            "      },\n" +
-            "      \"carriesGrabbedMorphs\": false,\n" +
-            "      \"lastScrollTime\": 1322068927121,\n" +
-            "      \"__LivelyClassName__\": \"lively.morphic.HandMorph\",\n" +
-            "      \"withLayers\": [\n" +
-            "        \"Global.NoMagnetsLayer\"\n" +
-            "      ]\n" +
-            "    },\n" +
-            "    \"2\": {\n" +
-            "      \"_Position\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 3\n" +
-            "      },\n" +
-            "      \"_Extent\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 5\n" +
-            "      },\n" +
-            "      \"_Fill\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 6\n" +
-            "      },\n" +
-            "      \"__SourceModuleName__\": \"Global.lively.morphic.Shapes\",\n" +
-            "      \"_ClipMode\": \"visible\",\n" +
-            "      \"_Padding\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 7\n" +
-            "      },\n" +
-            "      \"__LivelyClassName__\": \"lively.morphic.Shapes.Rectangle\"\n" +
-            "    },\n" +
-            "    \"3\": {\n" +
-            "      \"x\": 0,\n" +
-            "      \"y\": 0,\n" +
-            "      \"__SourceModuleName__\": \"Global\",\n" +
-            "      \"__LivelyClassName__\": \"Point\"\n" +
-            "    },\n" +
-            "    \"5\": {\n" +
-            "      \"x\": 2,\n" +
-            "      \"y\": 2,\n" +
-            "      \"__SourceModuleName__\": \"Global\",\n" +
-            "      \"__LivelyClassName__\": \"Point\"\n" +
-            "    },\n" +
-            "    \"6\": {\n" +
-            "      \"r\": 0.8,\n" +
-            "      \"g\": 0,\n" +
-            "      \"b\": 0,\n" +
-            "      \"a\": 1,\n" +
-            "      \"__LivelyClassName__\": \"Color\",\n" +
-            "      \"__SourceModuleName__\": \"Global\"\n" +
-            "    },\n" +
-            "    \"7\": {\n" +
-            "      \"x\": 0,\n" +
-            "      \"y\": 0,\n" +
-            "      \"width\": 0,\n" +
-            "      \"height\": 0,\n" +
-            "      \"__SourceModuleName__\": \"Global\",\n" +
-            "      \"__LivelyClassName__\": \"Rectangle\"\n" +
-            "    },\n" +
-            "    \"9\": {\n" +
-            "      \"morph\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 1\n" +
-            "      },\n" +
-            "      \"__SourceModuleName__\": \"Global.lively.morphic.Events\",\n" +
-            "      \"__LivelyClassName__\": \"lively.morphic.EventHandler\"\n" +
-            "    },\n" +
-            "    \"10\": {\n" +
-            "      \"x\": 425,\n" +
-            "      \"y\": 253,\n" +
-            "      \"__LivelyClassName__\": \"Point\",\n" +
-            "      \"__SourceModuleName__\": \"Global\"\n" +
-            "    },\n" +
-            "    \"11\": {\n" +
-            "      \"x\": 0,\n" +
-            "      \"y\": 0,\n" +
-            "      \"__SourceModuleName__\": \"Global\",\n" +
-            "      \"__LivelyClassName__\": \"Point\"\n" +
-            "    },\n" +
-            "    \"12\": {\n" +
-            "      \"_Position\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 13\n" +
-            "      },\n" +
-            "      \"_Extent\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 15\n" +
-            "      },\n" +
-            "      \"_Fill\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 16\n" +
-            "      },\n" +
-            "      \"__SourceModuleName__\": \"Global.lively.morphic.Shapes\",\n" +
-            "      \"_ClipMode\": \"visible\",\n" +
-            "      \"_Padding\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 17\n" +
-            "      },\n" +
-            "      \"__LivelyClassName__\": \"lively.morphic.Shapes.Rectangle\"\n" +
-            "    },\n" +
-            "    \"13\": {\n" +
-            "      \"x\": 0,\n" +
-            "      \"y\": 0,\n" +
-            "      \"__SourceModuleName__\": \"Global\",\n" +
-            "      \"__LivelyClassName__\": \"Point\"\n" +
-            "    },\n" +
-            "    \"15\": {\n" +
-            "      \"x\": 1024,\n" +
-            "      \"y\": 768,\n" +
-            "      \"__SourceModuleName__\": \"Global\",\n" +
-            "      \"__LivelyClassName__\": \"Point\"\n" +
-            "    },\n" +
-            "    \"16\": {\n" +
-            "      \"r\": 1,\n" +
-            "      \"g\": 1,\n" +
-            "      \"b\": 1,\n" +
-            "      \"a\": 1,\n" +
-            "      \"__LivelyClassName__\": \"Color\",\n" +
-            "      \"__SourceModuleName__\": \"Global\"\n" +
-            "    },\n" +
-            "    \"17\": {\n" +
-            "      \"x\": 0,\n" +
-            "      \"y\": 0,\n" +
-            "      \"width\": 0,\n" +
-            "      \"height\": 0,\n" +
-            "      \"__SourceModuleName__\": \"Global\",\n" +
-            "      \"__LivelyClassName__\": \"Rectangle\"\n" +
-            "    },\n" +
-            "    \"19\": {\n" +
-            "      \"morph\": {\n" +
-            "        \"__isSmartRef__\": true,\n" +
-            "        \"id\": 0\n" +
-            "      },\n" +
-            "      \"__SourceModuleName__\": \"Global.lively.morphic.Events\",\n" +
-            "      \"__LivelyClassName__\": \"lively.morphic.EventHandler\"\n" +
-            "    },\n" +
-            "    \"20\": {\n" +
-            "      \"x\": 0,\n" +
-            "      \"y\": 0,\n" +
-            "      \"__SourceModuleName__\": \"Global\",\n" +
-            "      \"__LivelyClassName__\": \"Point\"\n" +
-            "    },\n" +
-            "    \"21\": {\n" +
-            "      \"x\": 0,\n" +
-            "      \"y\": 0,\n" +
-            "      \"__SourceModuleName__\": \"Global\",\n" +
-            "      \"__LivelyClassName__\": \"Point\"\n" +
-            "    },\n" +
-            "    \"isSimplifiedRegistry\": true\n" +
-            "  }\n" +
-            "}]]></meta>\n" +
-            "  </head>\n" +
-            "  <body style=\"margin:0px\"></body>\n" +
-            "</html>";
+        var str =  "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\""
+                   + " \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n"
+                   + "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
+                   + "  <head>\n"
+                   + "    <title>blank</title>\n"
+                   + "    <script src=\"core/lively/bootstrap.js\"></script>\n"
+                   + "    <meta id=\"LivelyMigrationLevel\"><![CDATA[4]]></meta>\n"
+                   + "    <meta id=\"LivelyJSONWorld\"><![CDATA[{\n"
+                   + "  \"id\": 0,\n"
+                   + "  \"registry\": {\n"
+                   + "    \"0\": {\n"
+                   + "      \"submorphs\": [\n"
+                   + "        {\n"
+                   + "          \"__isSmartRef__\": true,\n"
+                   + "          \"id\": 1\n"
+                   + "        }\n"
+                   + "      ],\n"
+                   + "      \"scripts\": [],\n"
+                   + "      \"shape\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 12\n"
+                   + "      },\n"
+                   + "      \"id\": 1,\n"
+                   + "      \"eventHandler\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 19\n"
+                   + "      },\n"
+                   + "      \"grabbingEnabled\": false,\n"
+                   + "      \"droppingEnabled\": true,\n"
+                   + "      \"showsMorphMenu\": true,\n"
+                   + "      \"halosEnabled\": true,\n"
+                   + "      \"__layered_draggingEnabled__\": true,\n"
+                   + "      \"_Position\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 20\n"
+                   + "      },\n"
+                   + "      \"priorExtent\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 21\n"
+                   + "      },\n"
+                   + "      \"hands\": [\n"
+                   + "        {\n"
+                   + "          \"__isSmartRef__\": true,\n"
+                   + "          \"id\": 1\n"
+                   + "        }\n"
+                   + "      ],\n"
+                   + "      \"__SourceModuleName__\": \"Global.lively.morphic.ObjectMigration\",\n"
+                   + "      \"eventStartPos\": {},\n"
+                   + "      \"worldMenuOpened\": true,\n"
+                   + "      \"draggingEnabled\": true,\n"
+                   + "      \"clickedOnMorphTime\": 1323814652451,\n"
+                   + "      \"statusMessages\": [],\n"
+                   + "      \"lastAlert\": \"\",\n"
+                   + "      \"prevScroll\": [\n"
+                   + "        0,\n"
+                   + "        0\n"
+                   + "      ],\n"
+                   + "      \"showsHalos\": false,\n"
+                   + "      \"__LivelyClassName__\": \"lively.morphic.World\"\n"
+                   + "    },\n"
+                   + "    \"1\": {\n"
+                   + "      \"submorphs\": [],\n"
+                   + "      \"scripts\": [],\n"
+                   + "      \"shape\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 2\n"
+                   + "      },\n"
+                   + "      \"id\": 2,\n"
+                   + "      \"eventHandler\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 9\n"
+                   + "      },\n"
+                   + "      \"droppingEnabled\": false,\n"
+                   + "      \"halosEnabled\": false,\n"
+                   + "      \"_world\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 0\n"
+                   + "      },\n"
+                   + "      \"eventsAreIgnored\": true,\n"
+                   + "      \"_HandStyle\": \"default\",\n"
+                   + "      \"_PointerEvents\": \"none\",\n"
+                   + "      \"_Position\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 10\n"
+                   + "      },\n"
+                   + "      \"priorExtent\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 11\n"
+                   + "      },\n"
+                   + "      \"owner\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 0\n"
+                   + "      },\n"
+                   + "      \"_Rotation\": 0,\n"
+                   + "      \"_Scale\": 1,\n"
+                   + "      \"__SourceModuleName__\": \"Global.lively.morphic.Events\",\n"
+                   + "      \"scrollFocusMorph\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 0\n"
+                   + "      },\n"
+                   + "      \"internalClickedOnMorph\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 0\n"
+                   + "      },\n"
+                   + "      \"carriesGrabbedMorphs\": false,\n"
+                   + "      \"lastScrollTime\": 1322068927121,\n"
+                   + "      \"__LivelyClassName__\": \"lively.morphic.HandMorph\",\n"
+                   + "      \"withLayers\": [\n"
+                   + "        \"Global.NoMagnetsLayer\"\n"
+                   + "      ]\n"
+                   + "    },\n"
+                   + "    \"2\": {\n"
+                   + "      \"_Position\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 3\n"
+                   + "      },\n"
+                   + "      \"_Extent\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 5\n"
+                   + "      },\n"
+                   + "      \"_Fill\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 6\n"
+                   + "      },\n"
+                   + "      \"__SourceModuleName__\": \"Global.lively.morphic.Shapes\",\n"
+                   + "      \"_ClipMode\": \"visible\",\n"
+                   + "      \"_Padding\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 7\n"
+                   + "      },\n"
+                   + "      \"__LivelyClassName__\": \"lively.morphic.Shapes.Rectangle\"\n"
+                   + "    },\n"
+                   + "    \"3\": {\n"
+                   + "      \"x\": 0,\n"
+                   + "      \"y\": 0,\n"
+                   + "      \"__SourceModuleName__\": \"Global\",\n"
+                   + "      \"__LivelyClassName__\": \"Point\"\n"
+                   + "    },\n"
+                   + "    \"5\": {\n"
+                   + "      \"x\": 2,\n"
+                   + "      \"y\": 2,\n"
+                   + "      \"__SourceModuleName__\": \"Global\",\n"
+                   + "      \"__LivelyClassName__\": \"Point\"\n"
+                   + "    },\n"
+                   + "    \"6\": {\n"
+                   + "      \"r\": 0.8,\n"
+                   + "      \"g\": 0,\n"
+                   + "      \"b\": 0,\n"
+                   + "      \"a\": 1,\n"
+                   + "      \"__LivelyClassName__\": \"Color\",\n"
+                   + "      \"__SourceModuleName__\": \"Global\"\n"
+                   + "    },\n"
+                   + "    \"7\": {\n"
+                   + "      \"x\": 0,\n"
+                   + "      \"y\": 0,\n"
+                   + "      \"width\": 0,\n"
+                   + "      \"height\": 0,\n"
+                   + "      \"__SourceModuleName__\": \"Global\",\n"
+                   + "      \"__LivelyClassName__\": \"Rectangle\"\n"
+                   + "    },\n"
+                   + "    \"9\": {\n"
+                   + "      \"morph\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 1\n"
+                   + "      },\n"
+                   + "      \"__SourceModuleName__\": \"Global.lively.morphic.Events\",\n"
+                   + "      \"__LivelyClassName__\": \"lively.morphic.EventHandler\"\n"
+                   + "    },\n"
+                   + "    \"10\": {\n"
+                   + "      \"x\": 425,\n"
+                   + "      \"y\": 253,\n"
+                   + "      \"__LivelyClassName__\": \"Point\",\n"
+                   + "      \"__SourceModuleName__\": \"Global\"\n"
+                   + "    },\n"
+                   + "    \"11\": {\n"
+                   + "      \"x\": 0,\n"
+                   + "      \"y\": 0,\n"
+                   + "      \"__SourceModuleName__\": \"Global\",\n"
+                   + "      \"__LivelyClassName__\": \"Point\"\n"
+                   + "    },\n"
+                   + "    \"12\": {\n"
+                   + "      \"_Position\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 13\n"
+                   + "      },\n"
+                   + "      \"_Extent\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 15\n"
+                   + "      },\n"
+                   + "      \"_Fill\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 16\n"
+                   + "      },\n"
+                   + "      \"__SourceModuleName__\": \"Global.lively.morphic.Shapes\",\n"
+                   + "      \"_ClipMode\": \"visible\",\n"
+                   + "      \"_Padding\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 17\n"
+                   + "      },\n"
+                   + "      \"__LivelyClassName__\": \"lively.morphic.Shapes.Rectangle\"\n"
+                   + "    },\n"
+                   + "    \"13\": {\n"
+                   + "      \"x\": 0,\n"
+                   + "      \"y\": 0,\n"
+                   + "      \"__SourceModuleName__\": \"Global\",\n"
+                   + "      \"__LivelyClassName__\": \"Point\"\n"
+                   + "    },\n"
+                   + "    \"15\": {\n"
+                   + "      \"x\": 1024,\n"
+                   + "      \"y\": 768,\n"
+                   + "      \"__SourceModuleName__\": \"Global\",\n"
+                   + "      \"__LivelyClassName__\": \"Point\"\n"
+                   + "    },\n"
+                   + "    \"16\": {\n"
+                   + "      \"r\": 1,\n"
+                   + "      \"g\": 1,\n"
+                   + "      \"b\": 1,\n"
+                   + "      \"a\": 1,\n"
+                   + "      \"__LivelyClassName__\": \"Color\",\n"
+                   + "      \"__SourceModuleName__\": \"Global\"\n"
+                   + "    },\n"
+                   + "    \"17\": {\n"
+                   + "      \"x\": 0,\n"
+                   + "      \"y\": 0,\n"
+                   + "      \"width\": 0,\n"
+                   + "      \"height\": 0,\n"
+                   + "      \"__SourceModuleName__\": \"Global\",\n"
+                   + "      \"__LivelyClassName__\": \"Rectangle\"\n"
+                   + "    },\n"
+                   + "    \"19\": {\n"
+                   + "      \"morph\": {\n"
+                   + "        \"__isSmartRef__\": true,\n"
+                   + "        \"id\": 0\n"
+                   + "      },\n"
+                   + "      \"__SourceModuleName__\": \"Global.lively.morphic.Events\",\n"
+                   + "      \"__LivelyClassName__\": \"lively.morphic.EventHandler\"\n"
+                   + "    },\n"
+                   + "    \"20\": {\n"
+                   + "      \"x\": 0,\n"
+                   + "      \"y\": 0,\n"
+                   + "      \"__SourceModuleName__\": \"Global\",\n"
+                   + "      \"__LivelyClassName__\": \"Point\"\n"
+                   + "    },\n"
+                   + "    \"21\": {\n"
+                   + "      \"x\": 0,\n"
+                   + "      \"y\": 0,\n"
+                   + "      \"__SourceModuleName__\": \"Global\",\n"
+                   + "      \"__LivelyClassName__\": \"Point\"\n"
+                   + "    },\n"
+                   + "    \"isSimplifiedRegistry\": true\n"
+                   + "  }\n"
+                   + "}]]></meta>\n"
+                   + "  </head>\n"
+                   + "  <body style=\"margin:0px\"></body>\n"
+                   + "</html>";
         return stringToXML(str).ownerDocument;
-	}
+	},
+
+    htmlDoc: function() {
+        var docString = "<!DOCTYPE html>\n"
+                      + "<html>\n"
+                      + "  <head>\n"
+                      + "    <title>blank.html</title>\n"
+                      + "  </head>\n"
+                      + "  <body>\n"
+                      + "    <div tabindex=\"-1\" style=\n"
+                      + "         \"-webkit-transform: rotate(0deg) scale(1, 1); -moz-transform: rotate(0deg) scale(1, 1); -o-transform: rotate(0deg) scale(1, 1); -webkit-transform-origin: 0px 0px; -moz-transform-origin: 0px 0px; -o-transform-origin: 0px 0px; position: absolute; left: 5px; top: 5px;\"\n"
+                      + "         data-lively-node-type=\"morph-node\">\n"
+                      + "      <div style=\n"
+                      + "           \"position: absolute; left: 0px; top: 0px; width: 5000px; height: 5000px; background-color: rgb(255, 255, 255); opacity: 1; border: 0px solid rgb(204, 0, 0); padding: 0px; border-top-left-radius: 0px; border-top-right-radius: 0px; border-bottom-right-radius: 0px; border-bottom-left-radius: 0px; overflow: visible; background-position: initial initial; background-repeat: initial initial;\"\n"
+                      + "           class=\"Morph World\" data-lively-morphid=\"1\">\n"
+                      + "        <div style=\n"
+                      + "             \"top: 0px !important; left: 0px !important; position: absolute !important; margin-top: 0px !important; margin-left: 0px !important;\"\n"
+                      + "             data-lively-node-type=\"origin-node\">\n"
+                      + "          <div tabindex=\"-1\" style=\n"
+                      + "               \"-webkit-transform: rotate(0deg) scale(1, 1); -moz-transform: rotate(0deg) scale(1, 1); -o-transform: rotate(0deg) scale(1, 1); -webkit-transform-origin: 0px 0px; -moz-transform-origin: 0px 0px; -o-transform-origin: 0px 0px; position: absolute; left: 838px; top: 555px; cursor: default; pointer-events: none;\"\n"
+                      + "               data-lively-node-type=\"morph-node\">\n"
+                      + "            <div style=\n"
+                      + "                 \"position: absolute; left: 0px; top: 0px; width: 2px; height: 2px; background-color: rgb(204, 0, 0); opacity: 1; border: 0px solid rgb(204, 0, 0); padding: 0px; border-top-left-radius: 0px; border-top-right-radius: 0px; border-bottom-right-radius: 0px; border-bottom-left-radius: 0px; overflow: visible; background-position: initial initial; background-repeat: initial initial;\"\n"
+                      + "                 class=\"Morph HandMorph\" data-lively-morphid=\"2\"></div>\n"
+                      + "          </div>\n"
+                      + "        </div>\n"
+                      + "      </div>\n"
+                      + "    </div>\n"
+                      + "    <script type=\"text/javascript\" src=\"core/lively/bootstrap.js\"></script>"
+                      + "    <script type=\"text/javascript\" src=\"core/lively/bootstrap.js\"></script>"
+                      + "    <script type=\"text/x-lively-world\" id=\"blank.html\" data-migrationlevel=\"7\">{\"id\":0,\"registry\":{\"0\":{\"submorphs\":[{\"__isSmartRef__\":true,\"id\":1}],\"scripts\":[],\"shape\":{\"__isSmartRef__\":true,\"id\":4},\"id\":1,\"eventHandler\":{\"__isSmartRef__\":true,\"id\":5},\"grabbingEnabled\":false,\"droppingEnabled\":true,\"showsMorphMenu\":true,\"halosEnabled\":true,\"__layered_draggingEnabled__\":true,\"hands\":[{\"__isSmartRef__\":true,\"id\":1}],\"__serializedExpressions__\":[\"eventStartPos\",\"_Position\"],\"worldMenuOpened\":false,\"draggingEnabled\":true,\"clickedOnMorphTime\":1355449083130,\"statusMessages\":[],\"lastAlert\":\"Robert's user config loaded\",\"prevScroll\":[0,0],\"showsHalos\":false,\"_ClipMode\":\"visible\",\"_traitConfig_\":[{\"__isSmartRef__\":true,\"id\":6}],\"lastModified\":{\"__isSmartRef__\":true,\"id\":8},\"partsBinMetaInfo\":{\"__isSmartRef__\":true,\"id\":9},\"__LivelyClassName__\":\"lively.morphic.World\",\"__SourceModuleName__\":\"Global.lively.morphic.Core\",\"eventStartPos\":\"lively.pt(836.0,553.0)\",\"_Position\":\"lively.pt(0.0,0.0)\"},\"1\":{\"submorphs\":[],\"scripts\":[],\"shape\":{\"__isSmartRef__\":true,\"id\":2},\"id\":2,\"eventHandler\":{\"__isSmartRef__\":true,\"id\":3},\"droppingEnabled\":false,\"halosEnabled\":false,\"_world\":{\"__isSmartRef__\":true,\"id\":0},\"eventsAreIgnored\":true,\"_HandStyle\":\"default\",\"_PointerEvents\":\"none\",\"owner\":{\"__isSmartRef__\":true,\"id\":0},\"_Rotation\":0,\"_Scale\":1,\"carriesGrabbedMorphs\":false,\"lastScrollTime\":1322068927121,\"_ClipMode\":\"visible\",\"__serializedExpressions__\":[\"_Position\"],\"__LivelyClassName__\":\"lively.morphic.HandMorph\",\"__SourceModuleName__\":\"Global.lively.morphic.Events\",\"withLayers\":[\"Global.NoMagnetsLayer\"],\"_Position\":\"lively.pt(838.0,555.0)\"},\"2\":{\"_ClipMode\":\"visible\",\"__serializedExpressions__\":[\"_Position\",\"_Extent\",\"_Fill\",\"_Padding\"],\"__LivelyClassName__\":\"lively.morphic.Shapes.Rectangle\",\"__SourceModuleName__\":\"Global.lively.morphic.Shapes\",\"_Position\":\"lively.pt(0.0,0.0)\",\"_Extent\":\"lively.pt(2.0,2.0)\",\"_Fill\":\"Color.rgb(204,0,0)\",\"_Padding\":\"lively.rect(0,0,0,0)\"},\"3\":{\"morph\":{\"__isSmartRef__\":true,\"id\":1},\"__LivelyClassName__\":\"lively.morphic.EventHandler\",\"__SourceModuleName__\":\"Global.lively.morphic.Events\"},\"4\":{\"_ClipMode\":\"visible\",\"__serializedExpressions__\":[\"_Position\",\"_Extent\",\"_Fill\",\"_Padding\"],\"__LivelyClassName__\":\"lively.morphic.Shapes.Rectangle\",\"__SourceModuleName__\":\"Global.lively.morphic.Shapes\",\"_Position\":\"lively.pt(0.0,0.0)\",\"_Extent\":\"lively.pt(5000.0,5000.0)\",\"_Fill\":\"Color.rgb(255,255,255)\",\"_Padding\":\"lively.rect(0,0,0,0)\"},\"5\":{\"morph\":{\"__isSmartRef__\":true,\"id\":0},\"__LivelyClassName__\":\"lively.morphic.EventHandler\",\"__SourceModuleName__\":\"Global.lively.morphic.Events\"},\"6\":{\"traitName\":\"users.robertkrahn.WorldMenuTrait\",\"options\":{\"__isSmartRef__\":true,\"id\":7}},\"7\":{\"override\":[\"morphMenuItems\"]},\"8\":{\"isSerializedDate\":true,\"string\":\"Thu Dec 13 2012 13:26:05 GMT-0800 (PST)\"},\"9\":{\"requiredModules\":[],\"__LivelyClassName__\":\"lively.PartsBin.PartsBinMetaInfo\",\"__SourceModuleName__\":\"Global.lively.PartsBin\"},\"isSimplifiedRegistry\":true}}</script>\n"
+                      + "  </body>\n"
+                      + "</html>\n";
+        var doc = document.implementation.createHTMLDocument();
+        doc.documentElement.innerHTML = docString;
+        return doc;
+    }
 
 },
 'testing', {
 
-	testGetChangesetAndWorldFromJSON: function() {
-		var doc = this.doc(),
-            canvas = doc.getElementById('LivelyJSONWorld'),
-			sut = lively.Main.WorldDataAccessor.forCanvas(canvas),
+	testGetWorldFromJSON: function() {
+		var doc = this.xhtmlDoc(),
+			sut = lively.Main.WorldDataAccessor.forDoc(doc),
+			world = sut.getWorld();
+		this.assertEquals(lively.morphic.World, world.constructor, 'World not deserialized');
+	},
+
+    testGetWorldFromHTMLDoc: function() {
+		var doc = this.htmlDoc(),
+			sut = lively.Main.WorldDataAccessor.forDoc(doc),
 			world = sut.getWorld();
 		this.assertEquals(lively.morphic.World, world.constructor, 'World not deserialized');
 	}

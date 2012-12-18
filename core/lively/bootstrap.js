@@ -239,7 +239,8 @@
                 // create a text node.
                 var textElement;
                 try {
-                  textElement = document.createCDATASection(str);
+                  textElement = document.xmlVersion ?
+                        document.createCDATASection(str) : document.createTextNode(str);
                 } catch (e) {
                   if (e.name === "NOT_SUPPORTED_ERR") {
                     textElement = document.createTextNode(str);

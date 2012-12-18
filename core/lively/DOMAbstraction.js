@@ -145,18 +145,19 @@ Global.XHTMLNS = {
         if (optChildNodes) optChildNodes.forEach(function(ea) { fragment.appendChild(ea) });
         return fragment;
     },
-    newCSSDef: function(string) {
+    newCSSDef: function(string, id) {
         var style = this.create('style'),
             rules = document.createTextNode(string);
         style.type = 'text/css'
         if (style.styleSheet) style.styleSheet.cssText = rules.nodeValue
         else style.appendChild(rules);
+        if (id) style.setAttribute('id', id);
         return style;
     },
-    addCSSDef: function(string) {
-        var def = XHTMLNS.newCSSDef(string)
+    addCSSDef: function(string, id) {
+        var def = XHTMLNS.newCSSDef(string, id)
         Global.document.getElementsByTagName('head')[0].appendChild(def);
-    },
+    }
 
 };
 

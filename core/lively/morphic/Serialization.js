@@ -197,7 +197,8 @@ lively.morphic.World.addMethods(
         var preview = this.asHTMLLogo({asXML: false, asFragment: true});
         var title = url.filename().replace('.x?html', ''),
             bootstrapFile = new URL(module("lively.bootstrap").uri()).relativePathFrom(url),
-            css = $("head style").toArray().map(function(el) { return el.textContent }),
+            css = $("head style").toArray().map(function(el) {
+                return {css: el.textContent, id: el.getAttribute('id')}; }),
             docSpec = {
                 title: title,
                 migrationLevel: LivelyMigrationSupport.migrationLevel,

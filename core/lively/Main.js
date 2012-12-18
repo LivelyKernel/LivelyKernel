@@ -64,9 +64,7 @@ Object.extend(lively.Main.WorldDataAccessor, {
 lively.Main.WorldDataAccessor.subclass('lively.Main.NewWorldData',
 'accessing and creation', {
     getWorld: function() {
-        if (this.world) return this.world;
-        this.world = new lively.morphic.World(this.getDoc());
-        return this.world;
+        return this.world ? this.world : this.world = new lively.morphic.World(this.getDoc());
     }
 });
 
@@ -114,6 +112,9 @@ Object.subclass('lively.Main.Loader',
 
     browserSpecificFixes: function() {
         if (Global.navigator.appName == 'Opera') window.onresize();
+        var id = 'lively-base-style',
+            existing = document.getElementById(id);
+        if (existing) existing.parentNode.removeChild(existing);
         var cssDef = "";
         // 1. Don't DOM-select arbitrary elements on mouse move
         // none is different to -moz-none:
@@ -155,7 +156,7 @@ Object.subclass('lively.Main.Loader',
                     + "}\n"
         }
 
-        XHTMLNS.addCSSDef(cssDef);
+        XHTMLNS.addCSSDef(cssDef, id);
 
         // disable Firefox spellchecking
         if (UserAgent.fireFoxVersion) {

@@ -157,7 +157,6 @@ if (LivelyMigrationSupport.documentMigrationLevel < 7) {
     }
     lively.morphic.World.addMethods({
         onrestore: lively.morphic.World.prototype.onrestore.wrap(function(proceed) {
-            debugger
             proceed();
             // remove deperecated changeSet attribute
             if (this.hasOwnProperty("changeSet")

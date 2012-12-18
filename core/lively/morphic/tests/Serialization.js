@@ -35,6 +35,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.DocumentSerializati
         this.assert(1, worldScript.length, 'no world script element');
         this.assertEquals(spec.migrationLevel, worldScript.attr('data-migrationLevel'));
         this.assertEquals(spec.serializedWorld, worldScript.text());
+        this.assertEquals('text/x-lively-world', worldScript.attr('type'));
 
         // title
         this.assertEquals(spec.title, doc.find('head title').text());

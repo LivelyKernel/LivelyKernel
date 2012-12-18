@@ -1299,7 +1299,8 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
         var el = this.createScriptEl({
             id: id,
             parent: this.body[0],
-            textContent: json
+            textContent: json,
+            type: 'text/x-lively-world'
         });
         $(el).attr('data-migrationLevel', migrationLevel);
     },
@@ -1316,7 +1317,7 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
 'helper', {
     createScriptEl: function (spec) {
         var el = this.doc.createElement('script');
-        el.setAttribute('type', 'text/javascript');
+        el.setAttribute('type', spec.type || 'text/javascript');
         if (spec.src) { el.setAttribute('src', spec.src); }
         if (spec.id) { el.setAttribute('id', spec.id); }
         if (spec.parent) { spec.parent.appendChild(el); }

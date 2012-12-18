@@ -380,7 +380,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         this.world.addMorph(morph2);
         morph2.id = morph1.id; // force same id for test
         morph1.setStyleSheet('.test-class { color: black;}');
-        debugger
         morph2.setStyleSheet('.test-class { color: green;}');
         var styleId = 'style-for-' + morph1.id;
         this.assertEquals(1, $('head #' + styleId).length);

@@ -361,17 +361,31 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         this.morph.setBaseThemeStyleSheet('.test-class { color: black;}');
         var baseThemeNode = this.morph.renderContext().baseThemeNode;
         this.assert(baseThemeNode, 'There is no base theme node in the render context');
-        this.assertEquals('base-theme-for-'+this.morph.id, $(baseThemeNode).attr('id'),
-            'id of base theme node is wrong');
-        var styleNodeContent = $(baseThemeNode).html()
-        this.assert(styleNodeContent.indexOf('[data-lively-morphid="'+this.morph.id.toUpperCase()+'"]') >= 0,
-            'Base theme node content has no ref to morph');
+        this.assertEquals('base-theme-for-' + this.morph.id, $(baseThemeNode).attr('id'),
+                          'id of base theme node is wrong');
+        var styleNodeContent = $(baseThemeNode).html(),
+            morphIdSel = '[data-lively-morphid="' + this.morph.id.toUpperCase()+'"]';
+        this.assert(styleNodeContent.include(morphIdSel),
+                    'Base theme node content has no ref to morph');
         this.morph.setStyleSheet('.test-class { color: black;}');
         var styleNode = this.morph.renderContext().styleNode;
 
         this.assertEquals(2, styleNode.compareDocumentPosition(baseThemeNode),
             'Style node has to follow the base theme node in the DOM');
+    },
+
+    test06SetStyleSheetRemovesDuplicates: function() {
+        var morph1 = this.morph,
+            morph2 = lively.morphic.Morph.makeRectangle(0,0, 10,10);
+        this.world.addMorph(morph2);
+        morph2.id = morph1.id; // force same id for test
+        morph1.setStyleSheet('.test-class { color: black;}');
+        debugger
+        morph2.setStyleSheet('.test-class { color: green;}');
+        var styleId = 'style-for-' + morph1.id;
+        this.assertEquals(1, $('head #' + styleId).length);
     }
+
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.Borders',

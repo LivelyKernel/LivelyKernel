@@ -112,6 +112,7 @@ Object.subclass('lively.Main.Loader',
 
     browserSpecificFixes: function() {
         if (Global.navigator.appName == 'Opera') window.onresize();
+        // FIXME rk 2012-12-17: this should use our new CSS support!
         var id = 'lively-base-style',
             existing = document.getElementById(id);
         if (existing) existing.parentNode.removeChild(existing);

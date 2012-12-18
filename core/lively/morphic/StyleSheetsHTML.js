@@ -372,6 +372,13 @@ lively.morphic.Morph.addMethods(
         ctx.baseThemeNode.textContent = compiledCss;
     },
     appendStyleNodeHTML: function (ctx, styleNode) {
+        // first ensure that similar styles are removed
+        var head = document.getElementsByTagName("head")[0],
+            id = styleNode.getAttribute('id');
+        // strange, document.getElementById not working here
+        Array.from(head.getElementsByTagName('style')).forEach(function(el) {
+            if (el.getAttribute('id') === id) head.removeChild(el); });
+
         // Adds the morph's style node to the DOM
         // and reflects the morph hierarchy in the
         // node order.
@@ -433,7 +440,7 @@ lively.morphic.Morph.addMethods(
 
         // If appearantly none of the other morphs in the hierarchy
         // have a css applied, just add the stylenode to the head
-        document.getElementsByTagName("head")[0].appendChild(styleNode);
+        head.appendChild(styleNode);
     },
     replaceChildOp: function(selector) {
         var replacements = ['>', '> [data-lively-node-type="origin-node"] >',

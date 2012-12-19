@@ -725,16 +725,24 @@ lively.morphic.World.addMethods(
             borderColor: color, borderRadius: 10,   fill: Color.lightGray,
             textColor: color,   allowInput: false,  padding: Rectangle.inset(10,5,80,10)});
 
+        // put everything into a container, so that the buttons can still be clicked
+        var container = lively.morphic.Morph.makeRectangle(0,0,0,0);
+        container.applyStyle({fill: null, borderWidth: 0})
+        container.addMorph(msgMorph)
+
         var closeBtn = new lively.morphic.Button(new Rectangle(0,0,20,20), 'X')
-        msgMorph.addMorph(closeBtn);
         closeBtn.align(closeBtn.bounds().topRight(),
             msgMorph.innerBounds().topRight().addPt(pt(-5,5)));
-        connect(closeBtn, 'fire', msgMorph, 'remove')
+        container.addMorph(closeBtn);
+        container.disableDropping()
+        msgMorph.ignoreEvents();
+        msgMorph.disableEvents();
 
+        connect(closeBtn, 'fire', container, 'remove')
         if (callback) {
             var btn = new lively.morphic.Button(new Rectangle(0,0,50,20), 'more')
             btn.callbackFunc = callback;
-            msgMorph.addMorph(btn);
+            container.addMorph(btn);
             btn.align(btn.bounds().topRight(), closeBtn.bounds().topLeft().addPt(pt(-5,0)));
             connect(btn, 'fire', btn, 'callbackFunc')
         }
@@ -742,9 +750,8 @@ lively.morphic.World.addMethods(
             console.error(msg);
         } else {
             console.log(msg);
-        }
-        msgMorph.ignoreEvents();
-        return this.addStatusMessageMorph(msgMorph, delay || 5);
+        } 
+        return this.addStatusMessageMorph(container, delay || 5);
     },
 
     alert: function(msg, delay) {

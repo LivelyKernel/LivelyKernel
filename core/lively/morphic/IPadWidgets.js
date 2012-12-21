@@ -227,7 +227,8 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         this.itemList = items
     },
     activateCallback: function() {
-        this.selection[1]();
+        if (typeof this.selection[1] === 'function')
+            this.selection[1]();
     },
     getLevel: function() {
         return this.containerStack.length
@@ -373,9 +374,10 @@ lively.morphic.TouchList.subclass('lively.morphic.CustomizableTouchList',
     initializePlusButton: function(height) {
         var plusButton = new lively.morphic.Button(rect(0,this.getExtent().y - height, height, height), '+'),
             that = this;
+        plusButton.list = this;
         this.addMorph(plusButton);
         plusButton.addScript(function onFire () {
-            that.addCustomItem();
+            this.list.addCustomItem();
         })
         connect(plusButton, 'fire', plusButton, 'onFire');
         plusButton.applyStyle({
@@ -863,7 +865,10 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         owner.addMorph(this);
         this.alignment = alignment;
         this.fitInWorld();
-        this.applyStyle(Object.merge([this.style,{fill: this.determineFillGradient()}]))
+        this.applyStyle(this.style/*Object.merge([this.style,{fill: this.determineFillGradient()}])*/)
+        this.setAppearanceStylingMode(true);
+        this.setStyleId('Flap')
+        this.setStyleSheet("#Flap {background-image: url('" + Config.codeBase + "media/NSTexturedBackgroundColor.jpg');}")
         this.setName(name+'Flap');
         this.flapHandle = this.initializeHandle(alignment);
         this.setFixed(true);
@@ -1376,6 +1381,24 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
         };
         return this.pane.addMorph(list)
     },
+    createTextMorph: function(target, scriptName, scriptText) {
+        var textMorph = new lively.morphic.Text(rect(0,0,10,10));
+        textMorph.applyStyle({
+            extent: this.pane.getExtent().subPt(pt(100,0)),
+            fontFamily: "Monaco,courier",
+            fontSize: 9,
+            clipMode: "auto",
+        });
+        this.pane.textMorph = textMorph;
+        textMorph.doitContext = target;
+        connect(textMorph, "textString", textMorph, "highlightJavaScriptSyntax");
+        connect(textMorph, "textString", this, "updateChangedIndicator");
+        if (scriptName !== "newScript")
+            this.setOriginalScript(scriptText);
+        textMorph.setTextString(scriptText);
+        return textMorph
+    }
+
 
 
 
@@ -1392,6 +1415,13 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
             that.tagList.updateSelection(listItem);
         })
     },
+    activateTextMorph: function() {
+        // add doSave handling so the textControl can be used for saving
+        this.pane.textMorph.addScript(function doSave () {
+            this.get('saveButton').doSave();
+        })
+    },
+
 
     getTargetTags: function() {
         var target = this.fctTarget;
@@ -1429,8 +1459,10 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
     },
     updateChangedIndicator: function(newTextString) {
         if(newTextString !== this.originalScript) {
+            this.hasChanged = true;
             this.label.setTextColor(Color.red);
         } else {
+            this.hasChanged = false;
             this.label.setTextColor(this.label.normalTextColor);
         }
     },
@@ -1441,6 +1473,36 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
     onTap: function() {
         this.getTabBar().activateTab(this);
     },
+    saveCurrentScript: function() {
+        var scriptPane = this.pane.textMorph,
+            script = Strings.format('this.addScript(%s);', scriptPane.getTextString()),
+            saved = scriptPane.boundEval(script),
+            addScriptRegex = /function\s+([^\(]*)\(/,
+            addScriptMatches = [],
+            addScriptMatch = addScriptRegex.exec(script);
+        if (this.fctScriptName === "newScript")
+            this.fctScriptName = addScriptMatch[1]
+        this.fctScriptName = addScriptMatch[1];
+        this.fctTarget[this.fctScriptName].setProperty("tags", this.tagList.selection);
+        this.setLabel(this.determineLabelString(this.fctScriptName, this.fctTarget));
+        if (saved) {
+            alertOK("saved script "+this.fctScriptName + " for " + this.fctTarget);
+            this.setOriginalScript(scriptPane.getTextString());
+        } else {
+            alert("not saved");
+        };
+    },
+    deleteCurrentScript: function() {
+        var deleteFunc = function () {
+            delete this.fctTarget[this.fctScriptName]
+        }
+        if (confirm("Do you really want to delete " + this.getLabel() + "?")) {
+            deleteFunc.apply(this);
+            this.closeTab();
+        }
+    }
+
+
 },
 'styling', {
     setLabel: function($super, aString) {
@@ -1472,8 +1534,7 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
 'initialization', {
     initialize: function($super, tabBarStrategy, optExtent, optTabBarHeight) {
         // Attention, overwrites super method completely
-        var returnValue = $super(tabBarStrategy),
-            that = this;
+        var returnValue = $super(tabBarStrategy);
         if (optExtent !== undefined || optTabBarHeight !== undefined) {
             this.tabBar.remove();
             var tabBarStrategy = tabBarStrategy || new lively.morphic.TabStrategyTop();
@@ -1667,7 +1728,7 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
         //TODO: add name of morph
         if (!scriptName)
             return;
-        var target = optTarget || this.owner.target,
+        var target = optTarget || this.owner.getTarget(),
             openTab = this.tabBar.submorphs.find(function (ea) {
                 return ea.fctTarget === target && ea.fctScriptName === scriptName
             }),
@@ -1678,34 +1739,37 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
         this.cleanUp();
     },
     buildTabView: function(scriptName, target) {
-        var newTab = new lively.morphic.ObjectEditorTab(this.tabBar);
+        var scriptText = this.getSourceForScript(scriptName, target),
+            newTab = new lively.morphic.ObjectEditorTab(this.tabBar, target, scriptName),
+            textMorph = newTab.createTextMorph(target, scriptName, scriptText)
         newTab.setLabel(newTab.determineLabelString(scriptName, target));
         this.tabBar.addTab(newTab);
         newTab.setPosition(pt(newTab.getPosition().x,5))
         disconnect($world, "currentlySelectedMorph", this.gridContainer, "rebuildForNewTarget");
         newTab.pane.setPosition(pt(0,40));
-        var textMorph = new lively.morphic.Text(rect(0,0,10,10));
+        /*var textMorph = new lively.morphic.Text(rect(0,0,10,10));
         textMorph.applyStyle({
             extent: newTab.pane.getExtent().subPt(pt(100,0)),
             fontFamily: "Monaco,courier",
             fontSize: 9,
             clipMode: "auto",
         });
-        newTab.pane.textMorph = textMorph;
+        newTab.pane.textMorph = textMorph;*/
         this.openTabs.push(newTab)
-        var textMorph = newTab.pane.textMorph
+        //var textMorph = newTab.pane.textMorph
         newTab.fctTarget = target;
         newTab.fctScriptName = scriptName;
-        textMorph.doitContext = target;
+        /*textMorph.doitContext = target;
         var textMorph = newTab.pane.textMorph;
         connect(textMorph, "textString", textMorph, "highlightJavaScriptSyntax");
         connect(textMorph, "textString", newTab, "updateChangedIndicator");
         var scriptText = this.getSourceForScript(scriptName, target);
         if (scriptName !== "newScript")
             newTab.setOriginalScript(scriptText);
-        textMorph.setTextString(scriptText);
+        textMorph.setTextString(scriptText);*/
         newTab.pane.addMorph(textMorph);
-        //newTab.tagList && textMorph.addMorph(newTab.tagList)
+        newTab.pane.textMorph = textMorph;
+        newTab.activateTextMorph()
         return newTab
     },
     getSourceForScript: function(scriptName, target) {
@@ -1728,6 +1792,10 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
 'properties', {
 
     tabBarHeight: 40,
+    getTarget: function() {
+        return this.target || lively.morphic.World.current();
+    },
+
 
 
 },
@@ -1739,7 +1807,7 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
         this.tabContainer = this.initializeTabContainer();
         // When opening a plain ObjectEditor, it is supposed to point to the world.
         this.target = lively.morphic.World.current();
-        this.nextButton = this.initializeNextButton();
+        this.nextButton = this.initializeNextButton(this.tabContainer);
         this.saveButton = this.initializeSaveButton();
         this.deleteButton = this.initializeDeleteButton();
         this.runButton = this.initializeRunButton();
@@ -1766,19 +1834,18 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
         return tabContainer;
     },
 
-    initializeNextButton: function () {
+    initializeNextButton: function (tabContainer) {
         var self = this,
             nextButton = new lively.morphic.Button(pt(this.tabBar.getExtent().x - this.tabBarHeight,0)
                 .extent(pt(this.tabBarHeight,this.tabBarHeight)), '>>');
-        nextButton.addSctipt(function onFire () {
-            var target = $world.currentlySelectedMorph || $world.currentHaloTarget || $world;
-            self.tabContainer.buildModalViewFor(target);
-            $world.ignoreHalos = false;
+        nextButton.tabContainer = tabContainer;
+        nextButton.addScript(function onFire () {
+            var world = lively.morphic.World.current(),
+                target = world.currentlySelectedMorph || world.currentHaloTarget || world;
+            this.tabContainer.buildModalViewFor(target);
+            world.ignoreHalos = false;
         });
         connect(nextButton, 'fire', nextButton, 'onFire');
-        nextButton.onMouseDown = function() {
-            $world.ignoreHalos = true;
-        };
         nextButton.beFlapButton();
         nextButton.setExtent(pt(40,30))
         nextButton.setName('nextButton')
@@ -1794,30 +1861,15 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
             width = 100,
             saveButton = new lively.morphic.Button(pt(this.nextButton.getPosition().x-width,0)
                     .extent(pt(width, this.tabBarHeight)), 'Save');
+        saveButton.setName('saveButton')
         this.tabBar.addMorph(saveButton);
-        saveButton.doSave = function() {
-            var activeTab = self.tabContainer.activeTab()
-                scriptPane = activeTab.pane.textMorph,
-                script = Strings.format('this.addScript(%s);', scriptPane.getTextString()),
-                saved = scriptPane.boundEval(script),
-                addScriptRegex = /function\s+([^\(]*)\(/,
-                addScriptMatches = [],
-                addScriptMatch = addScriptRegex.exec(script);
-            if (activeTab.fctScriptName === "newScript")
-                activeTab.fctScriptName = addScriptMatch[1]
-            activeTab.fctScriptName = addScriptMatch[1];
-            activeTab.fctTarget[activeTab.fctScriptName].setProperty("tags", activeTab.tagList.selection);
-            activeTab.setLabel(activeTab.determineLabelString(activeTab.fctScriptName, activeTab.fctTarget));
-            if (saved) {
-                alertOK("saved script "+activeTab.fctScriptName + " for " + activeTab.fctTarget);
-                activeTab.setOriginalScript(scriptPane.getTextString());
-            } else {
-                alert("not saved");
-            };
-        };
-        saveButton.onTap = function() {
+        saveButton.addScript(function doSave() {
+            this.owner.tabContainer.activeTab().saveCurrentScript();
+        });
+        saveButton.addScript(function onFire () {
             this.doSave();
-        };
+        })
+        connect(saveButton, 'fire', saveButton, 'onFire')
         saveButton.beFlapButton();
         saveButton.moveBy(pt(0,5));
         return saveButton
@@ -1831,31 +1883,32 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
             position: pt(this.saveButton.getPosition().x-width,5),
             extent: pt(width, this.tabBarHeight - 10),
         })
-        deleteButton.onTap = function () {
-            var activeTab = self.tabContainer.activeTab();
-            var deleteFunc = function () {
-                delete activeTab.fctTarget[activeTab.fctScriptName]
-            }
-            if (confirm("Do you really want to delete " + activeTab.getLabel() + "?")) {
-                deleteFunc();
-                activeTab.closeTab();
-            }
-        }
+        deleteButton.addScript(function onFire() {
+            this.owner.tabContainer.activeTab().deleteCurrentScript();
+        })
+        connect(deleteButton, 'fire', deleteButton, 'onFire')
         return this.tabBar.addMorph(deleteButton);
     },
 
     initializeRunButton: function() {
-        var self = this,
-            width = 100,
+        var width = 100,
             runButton = new lively.morphic.Button(pt(this.deleteButton.getPosition().x - width,0)
                     .extent(pt(width, this.tabBarHeight)), 'Run');
-        runButton.onTap = function() {
-            this.run();
-        };
-        runButton.run = function() {
-            var activeTab = self.tabContainer.activeTab();
-            var tags = activeTab.fctTarget[activeTab.fctScriptName]();
-        };
+        runButton.addScript(function onFire () {
+            var activeTab = this.owner.tabContainer.activeTab();
+            if (!activeTab)
+                return false
+            var func = activeTab.fctTarget[activeTab.fctScriptName];
+            if (!activeTab.hasChanged && typeof(func) === 'function') {
+                func();
+            }
+            else {
+                alert('There are unsaved changes in '
+                    + activeTab.fctScriptName
+                    +'. Please save the script before running it.')
+            }
+        });
+        connect(runButton, 'fire', runButton, 'onFire')
         runButton.beFlapButton();
         runButton.moveBy(pt(0,5));
         runButton.label.applyStyle({
@@ -1881,8 +1934,8 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
 
 lively.morphic.Box.subclass('lively.morphic.TextControl',
 'initilization', {
-    initialize: function ($super, bounds) {
-        var returnValue = $super(bounds);
+    initialize: function ($super, optBounds) {
+        var returnValue = $super(optBounds || rect(0, 0,180, 25));
         this.initializeButtons();
         this.applyStyle({
             fill: Color.rgba(47,47,47,0.5),
@@ -1968,6 +2021,8 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
         if (!this.getTarget()) return
         this.getTextMorph().doSave();
     },
+
+
 },
 'accessing', {
     getTextMorph: function() {
@@ -1985,7 +2040,8 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
     },
     fitInWorld: function() {
         var world = lively.morphic.World.current(),
-            extent = pt(document.documentElement.clientWidth / 5, document.documentElement.clientHeight / 10),
+            subs = this.submorphs.length,
+            extent = pt(subs * 65 + (subs + 1) * 2, 34),
             pos = pt(0, 0)
                 .scaleBy(1 / world.getZoomLevel())
                 .addPt(pt(document.body.scrollLeft, document.body.scrollTop));

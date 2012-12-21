@@ -259,7 +259,13 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
         var returnValue = cop.proceed(bounds, string);
         this.initializeTextControl();
         return returnValue;
+    },
+    beInputLine: function() {
+        var returnValue = cop.proceed()
+        this.disableTextControl();
+        return returnValue
     }
+
 
 
 })
@@ -2103,7 +2109,7 @@ lively.morphic.Text.addMethods("TapEvents", {
 'text control', {
     initializeTextControl: function() {
         // TextControl adds Buttons that allow printing and doing the current context
-        this.textControl = new lively.morphic.TextControl(rect(0, 0,180, 35));
+        this.textControl = new lively.morphic.TextControl();
     },
     activateTextControl: function() {
         if (!this.textControl) {

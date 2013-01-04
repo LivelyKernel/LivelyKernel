@@ -190,12 +190,12 @@ lively.morphic.World.addMethods(
 
     saveWorldAs: function(url, checkForOverwrites) {
         // Step 1: Get serialized representation of the world
-        var serializer = ObjectGraphLinearizer.forNewLively(),
+        var serializer = lively.persistence.ObjectGraphLinearizer.forNewLively(),
             json = serializer.serialize(this, null, serializer);
 
         // Step 2: Create a new document
-        var preview = this.asHTMLLogo({asXML: false, asFragment: true});
-        var title = url.filename().replace('.x?html', ''),
+        var preview = this.asHTMLLogo({asXML: false, asFragment: true}),
+            title = url.filename().replace('.x?html', ''),
             bootstrapFile = new URL(module("lively.bootstrap").uri()).relativePathFrom(url),
             css = $("head style").toArray().map(function(el) {
                 return {css: el.textContent, id: el.getAttribute('id')}; }),
@@ -209,12 +209,12 @@ lively.morphic.World.addMethods(
             },
             doc = lively.persistence.HTMLDocBuilder.documentForWorldSerialization(docSpec);
 
-        // this.savedWorldAsURL = undefined;
-        // lively.bindings.connect(this, 'savedWorldAsURL', this, 'visitNewPageAfterSaveAs', {
-        //     updater: function($upd, v) {
-        //         if (v && v.toString() !== URL.source.toString()) { $upd(v); }
-        //     }
-        // })
+        this.savedWorldAsURL = undefined;
+        lively.bindings.connect(this, 'savedWorldAsURL', this, 'visitNewPageAfterSaveAs', {
+            updater: function($upd, v) {
+                if (v && v.toString() !== URL.source.toString()) { $upd(v); }
+            }
+        })
 
         if (URL.source.eq(url)) {
             this.storeDoc(doc, url, checkForOverwrites);
@@ -257,10 +257,9 @@ lively.morphic.World.addMethods(
         connect(webR, 'status', this, 'handleSaveStatus', {updater: function($upd, status) {
             $upd(status, this.sourceObj); // pass in WebResource as well
         }});
-        // allow disabling async saving.
-        if(!Config.forceSyncSaving) { webR = webR.beAsync(); }
-		if (this.getUserName) this.getUserName(); // cgi, saves user in localStorage
-
+        if (!Config.forceSyncSaving) { // optional asynchronous save
+            webR = webR.beAsync();
+        }
         var putOptions = {};
         if (checkForOverwrites) {
             if (this.lastModified) putOptions.ifUnmodifiedSince = this.lastModified;

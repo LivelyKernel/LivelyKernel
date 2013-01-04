@@ -796,7 +796,7 @@ lively.morphic.World.addMethods(
     getUserName: function() {
         var userName = lively.LocalStorage.get('UserName')
         if (userName && userName !== 'undefined') return userName;
-        var userName = this.requestUserName();
+        userName = this.requestUserName();
         if (userName && userName !== 'undefined') {
             lively.LocalStorage.set('UserName', userName);
             return userName;

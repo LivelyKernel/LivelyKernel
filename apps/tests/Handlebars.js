@@ -18,7 +18,7 @@ lively.morphic.tests.MorphTests.subclass('apps.tests.Handlebars.Simple',
     test01RenderSimpleTemplate: function() {
         var m = new lively.morphic.HandlebarsMorph({}, "handlebarsTest1");
         apps.Handlebars.set("handlebarsTest1", '<h1>test</h1>');
-        this.assertEquals('h1', m.jQuery().children()[0].tagName);
+        this.assertEquals('h1', m.jQuery().children()[0].tagName.toLowerCase());
         this.assertEquals('test', m.jQuery().children()[0].textContent);
     },
 

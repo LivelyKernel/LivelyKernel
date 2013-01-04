@@ -133,7 +133,7 @@ if (false && LivelyMigrationSupport.documentMigrationLevel < 5) {
                 delete this.isClip
             }
             cop.proceed();
-        },
+        }
     }).beGlobal();
 };
 
@@ -147,16 +147,16 @@ if (LivelyMigrationSupport.documentMigrationLevel < 6) {
 
 if (LivelyMigrationSupport.documentMigrationLevel < 7) {
     // 7 - no more old changesets
-    Importer.prototype.getBaseDocument = Importer.prototype.getBaseDocument.wrap(function(proceed) {
-        var doc = proceed(),
-            csNode = doc.getElementById("WorldChangeSet");
-        if (csNode) csNode.parentNode.removeChild(csNode);
-        return doc;
-    });
-
+    if (Global.Importer) {
+        Importer.prototype.getBaseDocument = Importer.prototype.getBaseDocument.wrap(function(proceed) {
+            var doc = proceed(),
+                csNode = doc.getElementById("WorldChangeSet");
+            if (csNode) csNode.parentNode.removeChild(csNode);
+            return doc;
+        });
+    }
     lively.morphic.World.addMethods({
         onrestore: lively.morphic.World.prototype.onrestore.wrap(function(proceed) {
-            debugger
             proceed();
             // remove deperecated changeSet attribute
             if (this.hasOwnProperty("changeSet")

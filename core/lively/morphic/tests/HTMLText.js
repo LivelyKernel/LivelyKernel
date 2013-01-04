@@ -58,10 +58,10 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
         var chunks = this.text.getTextChunks();
         chunks.last().ensureEndsWithBr();
         var lastNode = Array.from(chunks.last().getChunkNode().childNodes).last();
-        this.assertEquals('br', lastNode.tagName);
+        this.assertEquals('br', lastNode.tagName.toLowerCase());
         this.text.sliceTextChunks(0,2); this.text.coalesceChunks(); // slice'n fix
         lastNode = Array.from(chunks.last().getChunkNode().childNodes).last();
-        this.assertEquals('br', lastNode.tagName);
+        this.assertEquals('br', lastNode.tagName.toLowerCase());
     },
 
     test06SetDoit: function() {
@@ -189,18 +189,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.HTMLText.HtmlPars
         this.assertEquals(node.textContent, "bombs", "linux meta tag brakes it");
     },
 
-    testSourceToNodeCallsAlert: function(data) {
-        var orgAlert = Global.alert;
-        try {
-            var here=false;
-            alert = function() { here=true}
-            var s = 'hello<badtag>bla'
-            var node = lively.morphic.HTMLParser.sourceToNode(s);
-            this.assert(here,"alert did not get called")
-        } finally {
-            Global.alert = orgAlert
-        }
+    testSourceToNodeWithInvalidTag: function(data) {
+        var node = lively.morphic.HTMLParser.sourceToNode('hello<invalidtag>bla');
+        this.assert(node.innerHTML, 'hello<invalidtag>bla</invalidtag>');
     },
+
     testSanitizeNodeWithAmp: function() {
         var s = '<a href="http://host/p?a=1&b=2">bla</a>';
         var node = lively.morphic.HTMLParser.sourceToNode(s);

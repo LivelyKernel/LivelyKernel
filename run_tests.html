@@ -1,0 +1,127 @@
+<!DOCTYPE html><html><head><title>run_tests.html</title><style type="text/css" id="lively-base-style">*:not(:focus) {
+  -moz-user-select: -moz-none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}.visibleSelection:focus, .visibleSelection:focus * {
+  -moz-user-select: element;
+  -webkit-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+}
+:focus:not(input) {
+  outline:none;
+}
+.visibleSelection:focus {
+  outline: 2px auto -webkit-focus-ring-color;
+}
+</style><style type="text/css" id="base-theme-for-1">*[data-lively-morphid="1"] .World, *[data-lively-morphid="1"].World {
+	font-family: Helvetica;
+}
+*[data-lively-morphid="1"] .Box, *[data-lively-morphid="1"].Box {
+	border: 1px solid #aaa;
+}
+*[data-lively-morphid="1"] .Selection, *[data-lively-morphid="1"].Selection {
+	background: rgba(222,222,222, 0.6);
+	border: 1px solid #aaa;
+}
+*[data-lively-morphid="1"] .Box.selection-indicator, *[data-lively-morphid="1"].Box.selection-indicator {
+	background: none;
+	outline: 4px solid #E73F22;
+}
+*[data-lively-morphid="1"] .Text.edit-field, *[data-lively-morphid="1"].Text.edit-field {
+	background: white;
+	box-shadow: inset 1px 1px 1px #666;
+	border: 1px solid #aaa;
+	border-radius: 2px;
+}
+*[data-lively-morphid="1"] .Button, *[data-lively-morphid="1"].Button {
+	font-size: 9pt;
+	color: #333;
+	text-align: center;
+	text-shadow: 0 1px 0 #EEE;
+	background: -webkit-linear-gradient(top, #EEE, #CCC);
+	border-radius: 3px;
+	box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.8);
+	cursor: pointer;
+	border: 1px solid #888;
+}
+*[data-lively-morphid="1"] .Button.pressed, *[data-lively-morphid="1"].Button.pressed {
+	background: -webkit-linear-gradient(bottom, #EEE, #CCC);
+	box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.5);
+}
+*[data-lively-morphid="1"] .Button.toggled, *[data-lively-morphid="1"].Button.toggled {
+	background: -webkit-linear-gradient(top, #FFF, #EEE);
+	color: black;
+}
+*[data-lively-morphid="1"] .Button.toggled.pressed, *[data-lively-morphid="1"].Button.toggled.pressed {
+	background: -webkit-gradient(bottom, #FFF, #EEE);
+}
+*[data-lively-morphid="1"] .Button.disabled, *[data-lively-morphid="1"].Button.disabled {
+	background: -webkit-gradient(linear, left top, left bottom,
+                                 color-stop(0%,#fff),
+                                 color-stop(20%,#aaa),
+                                 color-stop(85%,#aaa),
+                                 color-stop(100%,#888));
+	color: gray;
+}
+*[data-lively-morphid="1"] .Window, *[data-lively-morphid="1"].Window {
+	background-color: rgba(244, 244, 244, 0.7);
+	box-shadow: 0px 4px 15px #666;
+	border-radius: 5px;
+}
+*[data-lively-morphid="1"] .Window.highlighted, *[data-lively-morphid="1"].Window.highlighted {
+	border: 1px solid white;
+	box-shadow: 0px 5px 20px #000;
+	background-color: rgba(222, 222, 222, 0.8);
+}
+*[data-lively-morphid="1"] .Window .TitleBar, *[data-lively-morphid="1"].Window .TitleBar, *[data-lively-morphid="1"] .Window .reframe-handle, *[data-lively-morphid="1"].Window .reframe-handle {
+	border: none;
+	background: none;
+}
+*[data-lively-morphid="1"] .reframe-handle.corner, *[data-lively-morphid="1"].reframe-handle.corner {
+	cursor: se-resize;
+}
+*[data-lively-morphid="1"] .reframe-handle.right, *[data-lively-morphid="1"].reframe-handle.right {
+	cursor: e-resize;
+}
+*[data-lively-morphid="1"] .reframe-handle.bottom, *[data-lively-morphid="1"].reframe-handle.bottom {
+	cursor: s-resize;
+}
+*[data-lively-morphid="1"] .Window .Text.window-title, *[data-lively-morphid="1"].Window .Text.window-title {
+	font-size: 10pt;
+	text-align: center;
+	color: #555;
+	text-shadow: 0px 0px 5px white, 0px 0px 5px white, 0px 0px 5px white;
+}
+*[data-lively-morphid="1"] .Window.highlighted .Text.window-title, *[data-lively-morphid="1"].Window.highlighted .Text.window-title {
+	font-weight: bold;
+	color: #333;
+}
+*[data-lively-morphid="1"] .Button.WindowControl, *[data-lively-morphid="1"].Button.WindowControl {
+	border: 1px solid #aaa;
+	border-radius: 3px;
+	background: #EEE;
+	font-weight: normal;
+}
+*[data-lively-morphid="1"] .Button.WindowControl.close, *[data-lively-morphid="1"].Button.WindowControl.close {
+	background: #E73F22;
+	color: white;
+}
+*[data-lively-morphid="1"] .HorizontalDivider, *[data-lively-morphid="1"].HorizontalDivider {
+	cursor: n-resize;
+}
+*[data-lively-morphid="1"] .Slider, *[data-lively-morphid="1"].Slider {
+	border-radius: 6px;
+	border: 1px solid #BBB;
+	background: #EEE;
+	box-shadow: inset 1px 1px 1px #666;
+}
+*[data-lively-morphid="1"] .SliderKnob, *[data-lively-morphid="1"].SliderKnob {
+	box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.8);
+	cursor: pointer;
+	border: 1px solid #888;
+	border-radius: 5px;
+	background-image: -webkit-linear-gradient(top, #EEE, #CCC);
+}
+</style></head><body><div xmlns="http://www.w3.org/1999/xhtml" tabindex="-1" style="-webkit-transform: rotate(0deg) scale(1, 1); -moz-transform: rotate(0deg) scale(1, 1); -o-transform: rotate(0deg) scale(1, 1); -webkit-transform-origin: 0px 0px; -moz-transform-origin: 0px 0px; -o-transform-origin: 0px 0px; position: absolute; left: 5px; top: 5px;" data-lively-node-type="morph-node"><div style="position: absolute; left: 0px; top: 0px; width: 1024px; height: 768px; background-color: rgb(255, 255, 255); opacity: 1; border: 0px solid rgb(204, 0, 0); padding: 0px; border-top-left-radius: 0px; border-top-right-radius: 0px; border-bottom-right-radius: 0px; border-bottom-left-radius: 0px; overflow: visible; background-position: initial initial; background-repeat: initial initial;" class="Morph World" data-lively-morphid="1"><div style="top: 0px !important; left: 0px !important; position: absolute !important; margin-top: 0px !important; margin-left: 0px !important;" data-lively-node-type="origin-node"><div tabindex="-1" style="-webkit-transform: rotate(0deg) scale(1, 1); -moz-transform: rotate(0deg) scale(1, 1); -o-transform: rotate(0deg) scale(1, 1); -webkit-transform-origin: 0px 0px; -moz-transform-origin: 0px 0px; -o-transform-origin: 0px 0px; position: absolute; left: 562px; top: 215px; cursor: default; pointer-events: none;" data-lively-node-type="morph-node"><div style="position: absolute; left: 0px; top: 0px; width: 2px; height: 2px; background-color: rgb(204, 0, 0); opacity: 1; border: 0px solid rgb(204, 0, 0); padding: 0px; border-top-left-radius: 0px; border-top-right-radius: 0px; border-bottom-right-radius: 0px; border-bottom-left-radius: 0px; overflow: visible; background-position: initial initial; background-repeat: initial initial;" class="Morph HandMorph" data-lively-morphid="2"></div></div></div></div></div><script type="text/javascript" src="core/lively/bootstrap.js"></script><script type="text/x-lively-world" id="run_tests.html" data-migrationlevel="7">{"id":0,"registry":{"0":{"submorphs":[{"__isSmartRef__":true,"id":1}],"scripts":[],"shape":{"__isSmartRef__":true,"id":4},"id":1,"eventHandler":{"__isSmartRef__":true,"id":5},"grabbingEnabled":false,"droppingEnabled":true,"showsMorphMenu":true,"halosEnabled":true,"__layered_draggingEnabled__":true,"__serializedExpressions__":["_Position","eventStartPos"],"hands":[{"__isSmartRef__":true,"id":1}],"worldMenuOpened":true,"draggingEnabled":true,"clickedOnMorphTime":1357279946630,"statusMessages":[],"prevScroll":[0,0],"showsHalos":false,"attributeConnections":[{"__isSmartRef__":true,"id":6}],"doNotSerialize":["$$finishLoading","$$savedWorldAsURL","$$baseThemeStyleSheet"],"doNotCopyProperties":["$$finishLoading","$$savedWorldAsURL"],"_ClipMode":"visible","lastModified":{"__isSmartRef__":true,"id":7},"partsBinMetaInfo":{"__isSmartRef__":true,"id":8},"__serializedLivelyClosures__":{"__isSmartRef__":true,"id":9},"__LivelyClassName__":"lively.morphic.World","__SourceModuleName__":"Global.lively.morphic.Core","_Position":"lively.pt(0.0,0.0)","eventStartPos":"lively.pt(560.0,213.0)"},"1":{"submorphs":[],"scripts":[],"shape":{"__isSmartRef__":true,"id":2},"id":2,"eventHandler":{"__isSmartRef__":true,"id":3},"droppingEnabled":false,"halosEnabled":false,"_world":{"__isSmartRef__":true,"id":0},"eventsAreIgnored":true,"_HandStyle":"default","_PointerEvents":"none","__serializedExpressions__":["_Position"],"owner":{"__isSmartRef__":true,"id":0},"_Rotation":0,"_Scale":1,"carriesGrabbedMorphs":false,"lastScrollTime":1322068927121,"_ClipMode":"visible","__LivelyClassName__":"lively.morphic.HandMorph","__SourceModuleName__":"Global.lively.morphic.Events","withLayers":["Global.NoMagnetsLayer"],"_Position":"lively.pt(562.0,215.0)"},"2":{"__serializedExpressions__":["_Position","_Extent","_Fill","_Padding"],"_ClipMode":"visible","__LivelyClassName__":"lively.morphic.Shapes.Rectangle","__SourceModuleName__":"Global.lively.morphic.Shapes","_Position":"lively.pt(0.0,0.0)","_Extent":"lively.pt(2.0,2.0)","_Fill":"Color.rgb(204,0,0)","_Padding":"lively.rect(0,0,0,0)"},"3":{"morph":{"__isSmartRef__":true,"id":1},"__LivelyClassName__":"lively.morphic.EventHandler","__SourceModuleName__":"Global.lively.morphic.Events"},"4":{"__serializedExpressions__":["_Position","_Extent","_Fill","_Padding"],"_ClipMode":"visible","__LivelyClassName__":"lively.morphic.Shapes.Rectangle","__SourceModuleName__":"Global.lively.morphic.Shapes","_Position":"lively.pt(0.0,0.0)","_Extent":"lively.pt(1024.0,768.0)","_Fill":"Color.rgb(255,255,255)","_Padding":"lively.rect(0,0,0,0)"},"5":{"morph":{"__isSmartRef__":true,"id":0},"__LivelyClassName__":"lively.morphic.EventHandler","__SourceModuleName__":"Global.lively.morphic.Events"},"6":{"sourceObj":{"__isSmartRef__":true,"id":0},"sourceAttrName":"finishLoading","targetObj":{"__isSmartRef__":true,"id":0},"targetMethodName":"loadScript","__LivelyClassName__":"AttributeConnection","__SourceModuleName__":"Global.lively.bindings.Core"},"7":{"isSerializedDate":true,"string":"Fri Oct 19 2012 21:17:07 GMT-0700 (PDT)"},"8":{"requiredModules":[],"__LivelyClassName__":"lively.PartsBin.PartsBinMetaInfo","__SourceModuleName__":"Global.lively.PartsBin"},"9":{"loadScript":{"__isSmartRef__":true,"id":10}},"10":{"varMapping":{"__isSmartRef__":true,"id":11},"source":"function loadScript() {\n        // if the world was laoded with a query like '?loadScript=foo.js' then\n    // try to load foo.js. The file should be located relative to the world\n    var scriptQuery = document.URL.split('?').last().match(/loadScript=([^\\&]+)/),\n        scriptPath = scriptQuery && scriptQuery[1];\n    if (scriptPath) jQuery.getScript(scriptPath);\n}","funcProperties":{"__isSmartRef__":true,"id":12},"__LivelyClassName__":"lively.Closure","__SourceModuleName__":"Global.lively.lang.Closure"},"11":{"this":{"__isSmartRef__":true,"id":0}},"12":{},"isSimplifiedRegistry":true}}</script></body></html>

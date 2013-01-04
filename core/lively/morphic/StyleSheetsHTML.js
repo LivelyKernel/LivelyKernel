@@ -332,10 +332,9 @@ lively.morphic.Morph.addMethods(
             return;
         }
         if (!ctx.styleNode) {
-            ctx.styleNode = XHTMLNS.create('style', {
-                type: "text/css",
-                id: styleTagId
-            });
+            ctx.styleNode = document.createElement('style');
+            ctx.styleNode.setAttribute("type", "text/css")
+            ctx.styleNode.setAttribute("id", styleTagId)
         }
         if (!ctx.styleNode.parentNode) {
             this.appendStyleNodeHTML(ctx, ctx.styleNode);
@@ -361,10 +360,9 @@ lively.morphic.Morph.addMethods(
             return;
         }
         if (!ctx.baseThemeNode) {
-            ctx.baseThemeNode= XHTMLNS.create('style', {
-                type: "text/css",
-                id: styleTagId
-            });
+            ctx.baseThemeNode = document.createElement('style');
+            ctx.baseThemeNode.setAttribute("type", "text/css");
+            ctx.baseThemeNode.setAttribute("id", styleTagId);
         }
         if (!ctx.baseThemeNode.parentNode) {
             this.appendStyleNodeHTML(ctx, ctx.baseThemeNode);

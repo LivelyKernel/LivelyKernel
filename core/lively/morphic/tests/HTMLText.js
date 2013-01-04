@@ -58,10 +58,10 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
         var chunks = this.text.getTextChunks();
         chunks.last().ensureEndsWithBr();
         var lastNode = Array.from(chunks.last().getChunkNode().childNodes).last();
-        this.assertEquals('br', lastNode.tagName);
+        this.assertEquals('br', lastNode.tagName.toLowerCase());
         this.text.sliceTextChunks(0,2); this.text.coalesceChunks(); // slice'n fix
         lastNode = Array.from(chunks.last().getChunkNode().childNodes).last();
-        this.assertEquals('br', lastNode.tagName);
+        this.assertEquals('br', lastNode.tagName.toLowerCase());
     },
 
     test06SetDoit: function() {

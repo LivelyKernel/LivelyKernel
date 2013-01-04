@@ -189,18 +189,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.HTMLText.HtmlPars
         this.assertEquals(node.textContent, "bombs", "linux meta tag brakes it");
     },
 
-    testSourceToNodeCallsAlert: function(data) {
-        var orgAlert = Global.alert;
-        try {
-            var here=false;
-            alert = function() { here=true}
-            var s = 'hello<badtag>bla'
-            var node = lively.morphic.HTMLParser.sourceToNode(s);
-            this.assert(here,"alert did not get called")
-        } finally {
-            Global.alert = orgAlert
-        }
+    testSourceToNodeWithInvalidTag: function(data) {
+        var node = lively.morphic.HTMLParser.sourceToNode('hello<invalidtag>bla');
+        this.assert(node.innerHTML, 'hello<invalidtag>bla</invalidtag>');
     },
+
     testSanitizeNodeWithAmp: function() {
         var s = '<a href="http://host/p?a=1&b=2">bla</a>';
         var node = lively.morphic.HTMLParser.sourceToNode(s);

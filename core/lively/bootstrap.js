@@ -1,13 +1,14 @@
 /*global Config, require, Class, WebResource, $A*/
 /*jshint evil: true, scripturl: true, loopfunc: true, laxbreak: true, immed: true, lastsemic: true, debug: true, regexp: false*/
+
 (function bootstrapLively(Global) {
     // "Global" is the lively accessor to the toplevel JS scope
     Global.Global = Global;
-    var useMinifiedLibs = Global.document
-                       && document.location.host.indexOf('localhost') === -1,
+    var hostString = Global.document && document.location.host,
+        useMinifiedLibs = hostString && hostString.indexOf('localhost') === -1,
         browserDetector;
 
-    var BrowserDetector = function (optSpec) {
+    var BrowserDetector = function(optSpec) {
     /*
     * Detects browsers with help of the userAgent property of the navigator object.
     * Lookup for browsers happens by the name of the application.
@@ -26,28 +27,24 @@
     * the first two components of the version - the rest will be ignored.
     */
         var that = {},
-            spec = optSpec || [
-                {
-                    browser: "Chrome",
-                    version: "10"
-                },
-                {
-                    browser: "Firefox",
-                    version: "4"
-                },
-                {
-                    browser: "Safari",
-                    version: "5",
-                    versionPrefix: "Version"
-                }
-            ],
+            spec = optSpec || [{
+                browser: "Chrome",
+                version: "10"
+            }, {
+                browser: "Firefox",
+                version: "4"
+            }, {
+                browser: "Safari",
+                version: "5",
+                versionPrefix: "Version"
+            }],
             userAgent = navigator.userAgent;
 
-        that.detectBrowser = function (optSpec) {
+        that.detectBrowser = function(optSpec) {
             var fullSpec = optSpec || spec,
                 browser = this.browser,
                 browserSpec,
-                filterBrowsers = function (browserSpec) {
+                filterBrowsers = function(browserSpec) {
                     return browserSpec.browser;
                 },
                 browserCount,
@@ -71,25 +68,22 @@
             return this.browser;
         };
 
-        that.browserSpec = function () {
+        that.browserSpec = function() {
             if (this.browserSpecPointer !== undefined && this.browserSpecPointer >= 0) {
                 return this.spec[this.browserSpecPointer];
             }
             return null;
         };
 
-        that.extractVersion = function (prefix) {
+        that.extractVersion = function(prefix) {
             var uaInfo = userAgent.split(' '),
                 uaInfoCount = uaInfo.length,
                 i = 0;
-            
-            while (uaInfo[i].indexOf(prefix) < 0) {
-                i += 1;
-            }
+            while (uaInfo[i].indexOf(prefix) < 0) { i += 1; }
             return uaInfo[i].split('/')[1];
         };
 
-        that.detectVersion = function (optBrowserSpec) {
+        that.detectVersion = function(optBrowserSpec) {
             var browserSpec = optBrowserSpec || this.browserSpec(),
                 browser = browserSpec ? browserSpec.browser : this.browser,
                 versionPrefix;
@@ -114,33 +108,33 @@
             return this.version;
         };
 
-        that.detect = function () {
+        that.detect = function() {
             this.browser = null;
             this.version = null;
             this.detectBrowser();
             this.detectVersion();
         };
 
-        that.isFirefox = function () {
+        that.isFirefox = function() {
             return this.browser === 'Firefox';
         };
 
-        that.isFireBug = function () {
+        that.isFireBug = function() {
             return (this.isFirefox()
                     && Global.console && Global.console.firebug !== undefined);
         };
 
-        that.isNodejs = function () {
+        that.isNodejs = function() {
             return typeof window === "undefined"
                 && Global.process
                 && !!Global.process.versions.node;
         };
 
-        that.isSpecSatisfied = function () {
+        that.isSpecSatisfied = function() {
             var matchingSpec = this.browserSpec(),
                 specVersion,
                 detectedVersion,
-                shortenVersionString = function (versionString) {
+                shortenVersionString = function(versionString) {
                     var versionComponents = versionString.split(".");
                     return versionComponents.slice(0, 2).join(".");
                 };
@@ -175,7 +169,7 @@
             if (!Config.finishLoadingCallbacks) {
                 Config.finishLoadingCallbacks = [];
             }
-            lively.whenLoaded = function (callback) {
+            lively.whenLoaded = function(callback) {
                 Config.finishLoadingCallbacks.push(callback);
             };
         }
@@ -223,11 +217,11 @@
             for (var name in platformConsole) props.push(name);
 
             for (var i = 0; i < props.length; i++) {
-                (function (name) {
+                (function(name) {
                     var func = platformConsole[name];
                     platformConsole['$' + name] = func;
                     if (typeof func !== 'function') return;
-                    platformConsole[name] = function (/*arguments*/) {
+                    platformConsole[name] = function(/*arguments*/) {
                         func.apply(platformConsole, arguments);
                         for (var i = 0; i < consumers.length; i++) {
                             var consumerFunc = consumers[i][name];
@@ -250,11 +244,11 @@
             }
         }
 
-        platformConsole.addConsumer = function (c) {
+        platformConsole.addConsumer = function(c) {
             addWrappers();
             consumers.push(c);
         };
-        platformConsole.removeConsumer = function (c) {
+        platformConsole.removeConsumer = function(c) {
             var idx = consumers.indexOf(c);
             if (idx >= 0) consumers.splice(idx, 1);
             if (consumers.length === 0) removeWrappers();
@@ -269,14 +263,14 @@
         logoId: 'loadingLogo',
         brokenWorldMsgId: 'loadingBrokenWorldMsg',
 
-        width: function () {
+        width: function() {
             return document.documentElement.clientWidth || 800;
         },
-        height: function () {
+        height: function() {
             return document.documentElement.clientHeight || 800;
         },
 
-        buildBackground: function () {
+        buildBackground: function() {
             var div1 = document.createElement('div');
             div1.setAttribute('id', this.id);
             div1.setAttribute('style', "position: fixed;"
@@ -291,7 +285,7 @@
             return div1;
         },
 
-        buildLoadingLogo: function () {
+        buildLoadingLogo: function() {
             var logoAndText = document.createElement('div');
             logoAndText.setAttribute('id', this.logoId);
             logoAndText.setAttribute('style', "position: fixed;"
@@ -323,7 +317,7 @@
             return logoAndText;
         },
 
-        buildBrokenWorldMessage: function () {
+        buildBrokenWorldMessage: function() {
             var el = document.createElement('div'),
                 text1 = document.createTextNode('An error occurred. '
                                                + 'If the world does not load '
@@ -358,7 +352,7 @@
             return el;
         },
 
-        ensureBrokenWorldMessage: function () {
+        ensureBrokenWorldMessage: function() {
             this.removeElement(this.logo);
             if (!document.getElementById(this.brokenWorldMsgId)) {
                 var msg = this.buildBrokenWorldMessage();
@@ -366,7 +360,7 @@
             }
         },
 
-        buildConsole: function () {
+        buildConsole: function() {
             var console = document.createElement('pre'), self = this;
             console.setAttribute('id', this.consoleId);
             console.setAttribute('style', "position: absolute;"
@@ -404,9 +398,9 @@
             }
 
             this.consoleProxy = {
-                log: function (msg) { addLine(msg) },
-                warn: function (msg) { addLine(msg, 'color: yellow;') },
-                error: function (msg) {
+                log: function(msg) { addLine(msg) },
+                warn: function(msg) { addLine(msg, 'color: yellow;') },
+                error: function(msg) {
                     if (!console.parentNode) self.toggleConsole();
                     addLine(msg, 'color: red; font-size: large;');
                     self.ensureBrokenWorldMessage();
@@ -418,7 +412,7 @@
             return console;
         },
 
-        removeConsole: function () {
+        removeConsole: function() {
             var console = this.console;
             this.console = null;
             if (!console || browserDetector.isFireBug()) return;
@@ -428,7 +422,7 @@
             this.consoleProxy = null;
         },
 
-        toggleConsole: function () {
+        toggleConsole: function() {
             if (!this.console) this.buildConsole();
             if (this.console.parentNode) {
                 this.removeElement(this.console);
@@ -437,7 +431,7 @@
             }
         },
 
-        buildConsoleButton: function () {
+        buildConsoleButton: function() {
             var a = document.createElement('a');
             a.setAttribute('style', "position: fixed;"
                                   + " right: 170px;"
@@ -453,7 +447,7 @@
             a.textContent = 'console';
             return a;
         },
-        buildCloseButton: function () {
+        buildCloseButton: function() {
             var a = document.createElement('a');
             a.setAttribute('style', "position: fixed;"
                                   + " right: 90px;"
@@ -469,7 +463,7 @@
             return a;
         },
 
-        build: function () {
+        build: function() {
             var background = this.buildBackground(),
                 loadingLogo = this.buildLoadingLogo(),
                 consoleButton = this.buildConsoleButton(),
@@ -483,19 +477,19 @@
             return background;
         },
 
-        add: function () {
+        add: function() {
             if (!this.domElement) {
                 this.domElement = this.build();
             }
             document.body.appendChild(this.domElement);
         },
 
-        remove: function () {
+        remove: function() {
             this.removeConsole();
             this.removeElement(this.domElement);
         },
 
-        removeElement: function (el) {
+        removeElement: function(el) {
             if (el && el.parentNode) el.parentNode.removeChild(el);
         }
     };
@@ -507,7 +501,7 @@
         LIVELYNamespace: 'http:\/\/www.experimentalstuff.com/Lively',
 
         loadJs: browserDetector.isNodejs() ?
-            function (url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
+            function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
                 console.log('loading ' + url);
                 var path = url.match(/(^http|^file):\/\/(.*)/)[2],
                     fs = require('fs'),
@@ -517,7 +511,7 @@
                 eval(code);
                 if (onLoadCb) onLoadCb();
             } :
-            function (url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
+            function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
                 if (this.scriptInDOM(url)) {
                     var msg = 'script ' + url + ' already loaded or loading';
                     console.log(msg);
@@ -552,7 +546,7 @@
                     this.loadAsync(exactUrl, onLoadCb, el);
             },
 
-        loadSync: function (url, onLoadCb, script) {
+        loadSync: function(url, onLoadCb, script) {
             if (this.isCSS(url)) {
                 console.log('skipping eval for css: ' + url);
                 if (typeof onLoadCb === 'function') onLoadCb();
@@ -567,7 +561,7 @@
             if (typeof onLoadCb === 'function') onLoadCb();
         },
 
-        loadAsync: function (url, onLoadCb, script) {
+        loadAsync: function(url, onLoadCb, script) {
             if (script.namespaceURI === this.SVGNamespace) {
                 script.setAttributeNS(this.XLINKNamespace, 'href', url);
             } else if (this.isCSS(url)) {
@@ -582,7 +576,7 @@
         },
 
 
-        loadCombinedModules: function (combinedFileUrl, callback, hash) {
+        loadCombinedModules: function(combinedFileUrl, callback, hash) {
             // If several modules are combined in one file they can be loaded
             // with this method. The method will ensure that all included
             // modules are loaded. If they have required modules that are not
@@ -592,7 +586,7 @@
                 originalLoader = this,
                 combinedLoader = {
 
-                    expectToLoadModules: function (relativePaths) {
+                    expectToLoadModules: function(relativePaths) {
                         // urls like http://foo.org/lively/Text.js
                         var i, len = relativePaths.length;
                         this.expectedModuleURLs = new Array(len);
@@ -612,7 +606,7 @@
 
                         // create script tags that are found when tested if a
                         // file is already loaded
-                        this.expectedModuleURLs.forEach(function (url) {
+                        this.expectedModuleURLs.forEach(function(url) {
                             var script = document.createElement('script');
                             script.setAttribute('id', url);
                             document.getElementsByTagName('head')[0]
@@ -620,12 +614,12 @@
                         });
                     },
 
-                    includedInCombinedFile: function (url) {
+                    includedInCombinedFile: function(url) {
                         return this.expectedModuleURLs
                             && this.expectedModuleURLs.indexOf(url) >= 0;
                     },
 
-                    loadJs: function (url) {
+                    loadJs: function(url) {
                         console.log('load file that is not in'
                                    + ' combined modules: ' + url);
                         if (!this.includedInCombinedFile(url)) {
@@ -633,19 +627,19 @@
                         }
                     },
 
-                    scriptInDOM: function (url) {
+                    scriptInDOM: function(url) {
                         return originalLoader.scriptInDOM(url)
                             || this.includedInCombinedFile(url);
                     }
 
                 },
 
-                callCallback = function () {
+                callCallback = function() {
                     Global.JSLoader = originalLoader;
                     // FIXME
                     // Filter out the modules already loaded
                     var allModules = combinedLoader.expectedModules,
-                        realModules = allModules.select(function (ea) {
+                        realModules = allModules.select(function(ea) {
                             // FIXME, better now throw error in Class.forName
                             return !ea.include('lively-libs')
                                 && Class.forName(ea) !== undefined;
@@ -661,39 +655,39 @@
                         undefined, undefined, hash);
         },
 
-        loadAll: function (urls, cb) {
-            urls.reverse().reduce(function (loadPrevious, url) {
-                return function () { Global.JSLoader.loadJs(url, loadPrevious); };
-            }, function () { if (cb) cb(); })();
+        loadAll: function(urls, cb) {
+            urls.reverse().reduce(function(loadPrevious, url) {
+                return function() { Global.JSLoader.loadJs(url, loadPrevious); };
+            }, function() { if (cb) cb(); })();
         },
 
-        resolveAndLoadAll: function (baseURL, urls, cb) {
+        resolveAndLoadAll: function(baseURL, urls, cb) {
             for (var i = 0; i < urls.length; i++) {
                 urls[i] = baseURL + urls[i];
             }
             return this.loadAll(urls, cb);
         },
 
-        findParentScriptNode: function () {
+        findParentScriptNode: function() {
             var node = document.getElementsByTagName('head')[0];
             if (!node) throw new Error('Cannot find parent node for scripts');
             return node;
         },
 
-        getLinkAttribute: function (el) {
+        getLinkAttribute: function(el) {
             return el.getAttributeNS(this.XLINKNamespace, 'href')
                 || el.getAttribute('src');
         },
 
-        getScripts: function () {
+        getScripts: function() {
             return document.getElementsByTagName('script');
         },
 
         scriptInDOM: browserDetector.isNodejs() ?
-            function () { return false; } :
-            function (url) { return this.scriptsThatLinkTo(url).length > 0; },
+            function() { return false; } :
+            function(url) { return this.scriptsThatLinkTo(url).length > 0; },
 
-        scriptsThatLinkTo: function (url) {
+        scriptsThatLinkTo: function(url) {
             var scriptsFound = [],
                 allScripts = this.getScripts();
             for (var i = 0; i < allScripts.length; i++) {
@@ -704,9 +698,9 @@
             return scriptsFound;
         },
 
-        removeQueries: function (url) { return url.split('?')[0]; },
+        removeQueries: function(url) { return url.split('?')[0]; },
 
-        resolveURLString: function (urlString) {
+        resolveURLString: function(urlString) {
             // FIXME duplicated from URL class in lively. Network actually
             // lively.Core should require lively.Network -- but lively.Network
             // indirectly lively.Core ====>>> FIX that!!!
@@ -725,7 +719,7 @@
             return protocol + result;
         },
 
-        scriptElementLinksTo: function (el, url) {
+        scriptElementLinksTo: function(el, url) {
             if (!el.getAttribute) return false;
             // FIXME use namespace consistently
             if (el.getAttribute('id') === url) return true;
@@ -738,17 +732,17 @@
         },
 
         currentDir: browserDetector.isNodejs() ?
-            function () { return "file://" + __dirname + '/'; } :
-            function () {
+            function() { return "file://" + __dirname + '/'; } :
+            function() {
                 return this.dirOfURL(document.location.href.toString());
             },
 
-        dirOfURL: function (url) {
+        dirOfURL: function(url) {
             return this.removeQueries(url)
                        .substring(0, url.lastIndexOf('/') + 1);
         },
 
-        makeAbsolute: function (urlString) {
+        makeAbsolute: function(urlString) {
             urlString = this.removeQueries(urlString);
             if (!urlString.match(/^http|^file/)) {
                 // make absolute
@@ -757,21 +751,21 @@
             return this.resolveURLString(urlString);
         },
 
-        makeUncached: function (urlString, cacheQuery) {
+        makeUncached: function(urlString, cacheQuery) {
             cacheQuery = cacheQuery || new Date().getTime();
             return urlString
                  + (urlString.indexOf('?') === -1 ? '?' : '&')
                  + cacheQuery;
         },
 
-        removeAllScriptsThatLinkTo: function (url) {
+        removeAllScriptsThatLinkTo: function(url) {
             var scripts = this.scriptsThatLinkTo(url);
             for (var i = 0; i < scripts.length; i++) {
                 scripts[i].parentNode.removeChild(scripts[i]);
             }
         },
 
-        getSyncReq: function (url, forceUncached) {
+        getSyncReq: function(url, forceUncached) {
             if (typeof WebResource !== "undefined") {
                 var webR = new WebResource(url);
                 if (forceUncached) webR.forceUncached();
@@ -789,15 +783,15 @@
             return req;
         },
 
-        getSync: function (url, forceUncached) {
+        getSync: function(url, forceUncached) {
             return this.getSyncReq(url, forceUncached).responseText;
         },
 
-        getSyncStatus: function (url, forceUncached) {
+        getSyncStatus: function(url, forceUncached) {
             return this.getSyncReq(url, forceUncached).status;
         },
 
-        isCSS: function (url) {
+        isCSS: function(url) {
             return url.match(/\.css$/) || url.match(/\.css\?/);
         }
     };
@@ -892,18 +886,18 @@
             return Config.modulePaths;
         })(),
 
-        installWatcher: function (target, propName, haltWhenChanged) {
+        installWatcher: function(target, propName, haltWhenChanged) {
             // observe slots, for debugging
             var newPropName = '__' + propName;
             target[newPropName] = target[propName];
-            target.__defineSetter__(propName, function (v) {
+            target.__defineSetter__(propName, function(v) {
                 target[newPropName] = v;
                 console.log(target.toString()
                            + '.' + propName
                            + ' changed: ' + v);
                 if (haltWhenChanged) debugger;
             });
-            target.__defineGetter__(propName, function () {
+            target.__defineGetter__(propName, function() {
                 return target[newPropName];
             });
             console.log('Watcher for ' + target
@@ -913,12 +907,12 @@
         //
         // ------- load world ---------------
         //
-        loadMain: function (canvas, startupFunc) {
+        loadMain: function(canvas, startupFunc) {
             var lively = Global.lively;
 
             LoadingScreen.add();
             lively.Config.loadUserConfigModule();
-            require('lively.bindings', 'lively.Main').toRun(function () {
+            require('lively.bindings', 'lively.Main').toRun(function() {
                 var loader = lively.Main.getLoader(canvas);
                 lively.bindings.connect(loader, 'finishLoading',
                                         LoadingScreen, 'remove');
@@ -931,15 +925,15 @@
             });
         },
 
-        startFromSerializedWorld: function (startupFunc) {
+        startFromSerializedWorld: function(startupFunc) {
             var self = this;
-            this.bootstrap(function () {
+            this.bootstrap(function() {
                 self.loadMain(document.body, startupFunc);
             });
             return true;
         },
 
-        bootstrap: function (thenDoFunc) {
+        bootstrap: function(thenDoFunc) {
             var url = Global.JSLoader.currentDir(),
                 dontBootstrap = Config.standAlone
                              || url.indexOf('dontBootstrap=true') >= 0;
@@ -971,21 +965,21 @@
         //
         // ------- embedd world in another page ---------------
         //
-        addWorld: function (worldURL, targetElement) {
+        addWorld: function(worldURL, targetElement) {
             this.worldURL = worldURL;
             this.targetElement = targetElement;
-            Global.LivelyLoader.bootstrap(function () {
+            Global.LivelyLoader.bootstrap(function() {
                 Global.EmbededLoader.embedAndLoadWorld(worldURL, targetElement);
             });
         },
 
-        embedAndLoadWorld: function (worldURL, targetElement) {
+        embedAndLoadWorld: function(worldURL, targetElement) {
             console.log('Fetching ' + worldURL);
             var doc = new WebResource(worldURL).get().contentDocument;
             this.convertCDATASections(doc.documentElement);
             var canvas = document.importNode(
                 doc.getElementById('canvas'), true);
-            $A(canvas.getElementsByTagName('script')).forEach(function (e) {
+            $A(canvas.getElementsByTagName('script')).forEach(function(e) {
                 e.parentElement.removeChild(e);
             });
             var div = document.createElement('div');
@@ -1033,7 +1027,7 @@
             Global.LivelyLoader.loadMain(canvas);
         },
 
-        convertCDATASections: function (el) {
+        convertCDATASections: function(el) {
             // CDATA sections are not allowed in (X)HTML documents....
             if (el.nodeType === document.CDATA_SECTION_NODE) {
                 var text = el.ownerDocument.createTextNode(el.data),
@@ -1047,25 +1041,25 @@
             }
         },
 
-        getWorldAttributeFrom: function (el) {
+        getWorldAttributeFrom: function(el) {
             // return el.getAttributeNS(JSLoader.LIVELYNamespace, 'world');
             // arghh! I HATE XML Namespaces!
             return el.getAttribute('lively:world');
         },
 
-        isLivelyCanvas: function (el) {
+        isLivelyCanvas: function(el) {
             if (!el || !el.getAttribute) return false;
             var attr = this.getWorldAttributeFrom(el);
             return attr && attr !== '';
         },
 
-        findLivelyCanvasIn: function (element) {
+        findLivelyCanvasIn: function(element) {
             if (this.isLivelyCanvas(element)) return element;
             for (var i = 0; i < element.childNodes.length; i++)
                 return this.findLivelyCanvasIn(element.childNodes[i]);
         },
 
-        embedLively: function () {
+        embedLively: function() {
             var canvas = this.findLivelyCanvasIn(document.body);
             if (!canvas) return;
             var ownUrl = document.location.href,
@@ -1084,18 +1078,18 @@
         moduleRenameDict: {},
         worldJsoTransforms: [],
 
-        extractMigrationLevel: function (doc) {
+        extractMigrationLevel: function(doc) {
             // LivelyMigrationSupport.extractMigrationLevel(document);
             var node = doc.getElementById(this.migrationLevelNodeId);
             return node ? Number(node.textContent) : 0;
         },
 
-        setDocumentMigrationLevel: function (doc) {
+        setDocumentMigrationLevel: function(doc) {
             this.documentMigrationLevel = this.extractMigrationLevel(doc);
         },
 
         // module renaming
-        fixModuleName: function (name) {
+        fixModuleName: function(name) {
             if (/^Global\./.test(name)) name = name.substring(7/*Global.*/);
             if (/^\.\.\//.test(name)) name = name.substring(3/*../*/);
             for (var oldName in this.moduleRenameDict) {
@@ -1104,16 +1098,16 @@
             return name;
         },
 
-        addModuleRename: function (oldName, newName, migrationLevel) {
+        addModuleRename: function(oldName, newName, migrationLevel) {
             this.moduleRenameDict[oldName] = newName;
         },
 
-        addWorldJsoTransform: function (func) {
+        addWorldJsoTransform: function(func) {
             this.worldJsoTransforms.push(func);
         },
 
-        applyWorldJsoTransforms: function (jso) {
-            this.worldJsoTransforms.forEach(function (func) { jso = func(jso) });
+        applyWorldJsoTransforms: function(jso) {
+            this.worldJsoTransforms.forEach(function(func) { jso = func(jso) });
             return jso;
         }
 
@@ -1150,12 +1144,12 @@
                 'lively/lang/UUID.js',      // FIXME: require module instead
                 'lively/LocalStorage.js'    // FIXME: require module instead
             ];
-            Global.LivelyLoader.bootstrap(function () {
+            Global.LivelyLoader.bootstrap(function() {
                 console.log('bootstrap done');
             });
         } else {
             Global.addEventListener('DOMContentLoaded', init, true);
-            Global.addEventListener('beforeunload', function (evt) {
+            Global.addEventListener('beforeunload', function(evt) {
                 if (!!Global.Config.askBeforeQuit) {
                     var msg = "Lively Kernel data may be lost if not saved.";
                     evt.returnValue = msg;

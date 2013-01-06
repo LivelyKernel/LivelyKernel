@@ -192,13 +192,13 @@ Trait('StyleSheetsHTMLTrait',
 
         // Mark morphNode if it's not the same as the shapeNode
         if (ctx.morphNode && ctx.morphNode !== ctx.shapeNode) {
-            ctx.morphNode.setAttribute('node-type', 'morph-node');
+            ctx.morphNode.setAttribute('data-lively-node-type', 'morph-node');
         }
 
         // Mark originNode of owner
         var ownerCtx = this.owner && this.owner.renderContext();
         if (ownerCtx && ownerCtx.originNode) {
-            ownerCtx.originNode.setAttribute('node-type', 'origin-node');
+            ownerCtx.originNode.setAttribute('data-lively-node-type', 'origin-node');
         }
 
         // Check if the css border changed
@@ -263,7 +263,7 @@ lively.morphic.Morph.addMethods(
         // Helper function for compileStyleSheet.
 
         var extendedSelector = '',
-            morphPrefix = '[morphid="' + this.id + '"]',
+            morphPrefix = '[data-lively-morphid="' + this.id + '"]',
             tokensRx = /(?:\\.|\[[\x20\t\r\n\f]*((?:\\.|[-\w]|[^\x00-\xa0])+)[\x20\t\r\n\f]*(?:([*^$|!~]?=)[\x20\t\r\n\f]*(?:(['"])((?:\\.|[^\\])*?)\3|((?:\\.|[-\w#]|[^\x00-\xa0])+)|)|)[\x20\t\r\n\f]*\]|:((?:\\.|[-\w]|[^\x00-\xa0])+)(?:\((?:(['"])((?:\\.|[^\\])*?)\7|((?:[^,]|\\,|(?:,(?=[^\[]*\]))|(?:,(?=[^\(]*\))))*))\)|)|[^\\\x20\t\r\n\f>+~])+|[\x20\t\r\n\f]*([\x20\t\r\n\f>+~])[\x20\t\r\n\f]*/g,
             tagRx = /^((?:\\.|[-\*\w]|[^\x00-\xa0])+)/,
             tokens = selector.match(tokensRx);
@@ -298,7 +298,7 @@ lively.morphic.Morph.addMethods(
                .reduce(function(prev, val) {
                    return prev
                         + (prev.length > 0 ? ', ' : '')
-                        + '[morphid="'+ val + '"]';
+                        + '[data-lively-morphid="'+ val + '"]';
                }, '');
     },
 
@@ -332,10 +332,9 @@ lively.morphic.Morph.addMethods(
             return;
         }
         if (!ctx.styleNode) {
-            ctx.styleNode = XHTMLNS.create('style', {
-                type: "text/css",
-                id: styleTagId
-            });
+            ctx.styleNode = document.createElement('style');
+            ctx.styleNode.setAttribute("type", "text/css")
+            ctx.styleNode.setAttribute("id", styleTagId)
         }
         if (!ctx.styleNode.parentNode) {
             this.appendStyleNodeHTML(ctx, ctx.styleNode);
@@ -361,10 +360,9 @@ lively.morphic.Morph.addMethods(
             return;
         }
         if (!ctx.baseThemeNode) {
-            ctx.baseThemeNode= XHTMLNS.create('style', {
-                type: "text/css",
-                id: styleTagId
-            });
+            ctx.baseThemeNode = document.createElement('style');
+            ctx.baseThemeNode.setAttribute("type", "text/css");
+            ctx.baseThemeNode.setAttribute("id", styleTagId);
         }
         if (!ctx.baseThemeNode.parentNode) {
             this.appendStyleNodeHTML(ctx, ctx.baseThemeNode);
@@ -372,6 +370,13 @@ lively.morphic.Morph.addMethods(
         ctx.baseThemeNode.textContent = compiledCss;
     },
     appendStyleNodeHTML: function (ctx, styleNode) {
+        // first ensure that similar styles are removed
+        var head = document.getElementsByTagName("head")[0],
+            id = styleNode.getAttribute('id');
+        // strange, document.getElementById not working here
+        Array.from(head.getElementsByTagName('style')).forEach(function(el) {
+            if (el.getAttribute('id') === id) head.removeChild(el); });
+
         // Adds the morph's style node to the DOM
         // and reflects the morph hierarchy in the
         // node order.
@@ -433,11 +438,11 @@ lively.morphic.Morph.addMethods(
 
         // If appearantly none of the other morphs in the hierarchy
         // have a css applied, just add the stylenode to the head
-        document.getElementsByTagName("head")[0].appendChild(styleNode);
+        head.appendChild(styleNode);
     },
     replaceChildOp: function(selector) {
-        var replacements = ['>', '> [node-type="origin-node"] >',
-                            '> [node-type="origin-node"] > [node-type="morph-node"] >'],
+        var replacements = ['>', '> [data-lively-node-type="origin-node"] >',
+                            '> [data-lively-node-type="origin-node"] > [data-lively-node-type="morph-node"] >'],
             tokens = selector.split('>'),
             childOpCount = tokens.length - 1,
             results = [],
@@ -473,12 +478,12 @@ lively.morphic.Morph.addMethods(
 
     replaceWildcardSelector: function(selector) {
         // Only select shape nodes (shape nodes should have the morphid param set)
-        return selector.replace(/\*/g, '*[morphid]');
+        return selector.replace(/\*/g, '*[data-lively-morphid]');
     },
 
     replaceRootPseudo: function(selector) {
         // ":root" should select this morph
-        return selector.replace(/\:root/g, '[morphid="'+this.id+'"]');
+        return selector.replace(/\:root/g, '[data-lively-morphid="'+this.id+'"]');
     }
 
 },
@@ -502,7 +507,7 @@ lively.morphic.Morph.addMethods(
     },
 
     setNodeMorphIdHTML: function(ctx) {
-        $(ctx.shapeNode).attr('morphid', this.id);
+        $(ctx.shapeNode).attr('data-lively-morphid', this.id);
     },
 
     setStyleIdHTML: function (ctx, id) {

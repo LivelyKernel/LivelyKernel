@@ -22,184 +22,6 @@ Global.Namespace = {
     LP1: "DAV:"
 };
 
-Global.Converter = {
-    documentation: "singleton used to parse DOM attribute values into JS values",
-
-    toBoolean: function toBoolean(string) {
-        return string && string == 'true';
-    },
-
-    fromBoolean: function fromBoolean(object) {
-        if (object == null) return "false";
-        var b = object.valueOf();
-        // this is messy and should be revisited
-        return (b === true || b === "true") ? "true" : "false";
-    },
-
-    parseInset: function(string) {
-        // syntax: <left>(,<top>(,<right>,<bottom>)?)?
-
-        if (!string || string == "none") return null;
-        try {
-            var box = string.split(",");
-        } catch (er) {alert("string is " + string + " string? " + (string instanceof String)) }
-        var t, b, l, r;
-        switch (box.length) {
-        case 1:
-            b = l = r = t = lively.data.Length.parse(box[0].strip());
-            break;
-        case 2:
-            t = b = lively.data.Length.data.parse(box[0].strip());
-            l = r = lively.data.Length.data.parse(box[1].strip());
-            break;
-        case 4:
-            t = lively.data.Length.parse(box[0].strip());
-            l = lively.data.Length.parse(box[1].strip());
-            b = lively.data.Length.parse(box[2].strip());
-            r = lively.data.Length.parse(box[3].strip());
-            break;
-        default:
-            console.log("unable to parse padding " + padding);
-            return null;
-        }
-        return Rectangle.inset(t, l, b, r);
-    },
-
-    wrapperAndNodeEncodeFilter: function(baseObj, key) {
-        var value = baseObj[key];
-        if (value instanceof Document || value instanceof Element || value instanceof DocumentType)
-            return JSON.serialize({XML: Exporter.stringify(value)});
-        return value;
-    },
-
-    wrapperAndNodeDecodeFilter:  function(baseObj, key) {
-        var value = baseObj[key];
-        // console.log("wrapperAndNodeDecodeFilter: " + baseObj + " key: " + key + " value: " + baseObj[key]);
-        if (Object.isString(value)) {
-            var uri = lively.data.FragmentURI.parse(value)
-            if (uri) {
-                // resolve uri to an object
-                // Search the world, because we don't have an general URI resolver
-                var obj = lively.morphic.World.current().resolveUriToObject(uri)
-                if (obj)
-                    return obj;
-                else
-                    return value;
-            }
-        }
-        return Converter.nodeDecodeFilter(baseObj, key)
-    },
-
-    nodeEncodeFilter: function(baseObj, key) {
-        var value = baseObj[key];
-        if (!value) return value;
-        if (!value.nodeType) return value;
-        if (value.nodeType !== document.DOCUMENT_NODE && value.nodeType !== document.DOCUMENT_TYPE_NODE)
-            return JSON.serialize({XML: Exporter.stringify(value)});
-        throw new Error('Cannot store Document/DocumentType'); // to be removed
-    },
-
-    toJSONAttribute: function(obj) {
-        return obj ? escape(JSON.serialize(obj, Converter.wrapperAndNodeEncodeFilter)) : "";
-    },
-
-    nodeDecodeFilter: function(baseObj, key) {
-        var value = baseObj[key];
-        if (!value || !Object.isString(value) || !value.include('XML')) return value;
-        var unserialized = JSON.unserialize(value);
-        if (!unserialized.XML) return value;
-        // var xmlString = value.substring("XML:".length);
-        // FIXME if former XML was an Element, it has now a new parentNode, seperate in Elements/Documents?
-        //dbgOn(true);
-        var node = new DOMParser().parseFromString(unserialized.XML, "text/xml");
-        return document.importNode(node.documentElement, true);
-    },
-
-    fromJSONAttribute: function(str) {
-        return str ?  JSON.unserialize(unescape(str), Converter.nodeDecodeFilter) : null;
-    },
-
-    needsJSONEncoding: function(value) {
-        // some objects can be saved in as DOM attributes using their
-        // .toString() form, others need JSON
-        if (value instanceof Color) return false;
-        var type = typeof value.valueOf();
-        return type != "string" && type != "number";
-    },
-
-    quoteCDATAEndSequence: function(string) {
-        var closeCDATASequence = ']' + ']' + '>';
-        if (string.include(closeCDATASequence)) {
-            console.log("Warning: quoted CDATA Sequence ] ] >")
-            string = string.replace(closeCDATASequence, "\\]\\]\\>");
-        };
-        return string
-    },
-
-    // TODO parallels to preparePropertyForSerialization in scene.js
-    // Why to we encodeProperties for Records at runtime and not at serialization time?
-    encodeProperty: function(prop, propValue, isItem) {
-        if (isItem) {
-            var desc = LivelyNS.create("item");
-        } else {
-            var desc = LivelyNS.create("field", {name: prop});
-        }
-        if (propValue instanceof Function) {
-            // console.log("convert function")
-            desc.setAttributeNS(null, "family", "Function");
-            desc.appendChild(NodeFactory.createCDATA(JSON.serialize(propValue.toLiteral())));
-            return desc;
-        }
-        if (Converter.isJSONConformant(propValue) || propValue instanceof Array) { // hope for the best wrt/arrays
-            // FIXME: deal with arrays of primitives etc?
-            var encoding;
-            if (propValue === null)
-                encoding = NodeFactory.createText("null");
-            else switch (typeof propValue) {
-                case "number":
-                case "boolean":
-                    encoding = NodeFactory.createText(String(propValue));
-                    break;
-                default:
-                    var jsonSource = JSON.serialize(propValue, Converter.wrapperAndNodeEncodeFilter);
-                    encoding = NodeFactory.createCDATA(this.quoteCDATAEndSequence(jsonSource));
-            }
-            desc.appendChild(encoding);
-            return desc;
-        }
-
-        if (propValue && propValue.toLiteral) {
-            desc.setAttributeNS(null, "family", propValue.constructor.type);
-            desc.appendChild(NodeFactory.createCDATA(JSON.serialize(propValue.toLiteral())));
-            return desc;
-        }
-
-        if (propValue.nodeType) {
-            switch (propValue.nodeType) {
-                case document.DOCUMENT_NODE:
-                case document.DOCUMENT_TYPE_NODE:
-                    throw new Error('Cannot store Document/DocumentType'); // to be removed
-                default:
-                    desc.setAttributeNS(null, "isNode", true); // Replace with DocumentFragment
-                    desc.appendChild(document.importNode(propValue, true));
-            }
-            return desc;
-        }
-        return null;
-    },
-
-    isJSONConformant: function(value) { // for now, arrays not handled but could be
-        if (value instanceof Element && value.ownerDocument === document) return false;
-        // why disallow all objects?
-    // KP: because we don't know how to handle them up front, special cases handled bye encodeProperty
-    // this makes simple objects like {a: 1} hard to serialize
-    // fix for now: objects can determine by themselves if isJSONConformant should be true
-        return value == null || value.isJSONConformant || (typeof value.valueOf()  !== 'object');
-    },
-
-};
-
-
 Global.NodeFactory = {
 
     remove: function(element) {
@@ -247,28 +69,14 @@ Global.NodeFactory = {
     TextType: function() {
         return Global.document.TEXT_NODE;
     },
+
     FragmentType: function() {
         return Global.document.DOCUMENT_FRAGMENT_NODE;
     },
+
     isTextNode: function(node) { return node && node.nodeType === this.TextType() },
-        isFragmentNode: function(node) { return node && node.nodeType === this.FragmentType() },
-};
 
-Global.XLinkNS = {
-    create: function(href, doc) {
-        var doc = doc || Global.document;
-        var node = NodeFactory.createNS(null, 'script', {type: "text/ecmascript"});
-        node.setAttribute('xlink:href', href);
-        // XLinkNS.setHref(node, href); // does not seem to work
-        return node;
-    },
-    setHref: function(node, href) {
-    return node.setAttributeNS(Namespace.XLINK, "href", href);
-    },
-
-    getHref: function(node) {
-    return node.getAttributeNS(Namespace.XLINK, "href");
-    }
+    isFragmentNode: function(node) { return node && node.nodeType === this.FragmentType() }
 };
 
 Global.LivelyNS = {
@@ -302,7 +110,7 @@ Global.LivelyNS = {
 
     setType: function(node, string) {
         node.setAttributeNS(Namespace.LIVELY, this.prefix +  "type", string);
-    },
+    }
 };
 
 Global.XHTMLNS = {
@@ -337,78 +145,29 @@ Global.XHTMLNS = {
         if (optChildNodes) optChildNodes.forEach(function(ea) { fragment.appendChild(ea) });
         return fragment;
     },
-    newCSSDef: function(string) {
+    newCSSDef: function(string, id) {
         var style = this.create('style'),
             rules = document.createTextNode(string);
         style.type = 'text/css'
         if (style.styleSheet) style.styleSheet.cssText = rules.nodeValue
         else style.appendChild(rules);
+        if (id) style.setAttribute('id', id);
         return style;
     },
-    addCSSDef: function(string) {
-        var def = XHTMLNS.newCSSDef(string)
+    addCSSDef: function(string, id) {
+        var def = XHTMLNS.newCSSDef(string, id)
         Global.document.getElementsByTagName('head')[0].appendChild(def);
-    },
+    }
 
 };
+
 Object.subclass('Exporter');
 Object.extend(Exporter, {
     stringify: function(node) {
         return node ? new XMLSerializer().serializeToString(node) : null;
-    },
+    }
 });
 
-Object.subclass('Copier', {
-    isCopier: true
-});
-
-Copier.subclass('Importer', {
-    isImporter: true,
-
-    // this gets overwritten in lively.oldCore.Misc
-    canvas: function(doc) { return doc.getElementsByTagName('body')[0] },
-
-    getBaseDocument: function() {
-        if (Config.standAlone) {
-            var doc = new DOMParser().parseFromString(Exporter.stringify(document), "text/xml");
-                svgNode = doc.getElementsByTagName('svg')[0];
-            if (svgNode)
-                $A(svgNode.childNodes).forEach(function(node) { svgNode.removeChild(node) });
-            return doc
-        }
-
-        // FIXME memoize
-        var webRes = new WebResource(URL.source).get(), status = webRes.status;
-        if (!status.isSuccess()) {
-            console.log("failure retrieving  " + URL.source + ", status " + status);
-            return null;
-        }
-        var doc = webRes.contentDocument;
-        if (!doc) return null;
-        // FIX for IE9+
-        if (doc.documentElement == null) {
-             doc = new ActiveXObject('MSXML2.DOMDocument.6.0');
-            doc.validateOnParse = false;
-            doc.setProperty('ProhibitDTD', false);
-            doc.setProperty('SelectionLanguage', 'XPath');
-            doc.setProperty('SelectionNamespaces', XPathEmulator.prototype.createNSResolver());
-            doc.loadXML(webRes.content);
-        }
-        this.clearCanvas(doc);
-        return doc;
-    },
-
-    clearCanvas: function(doc) { // is overwritten later in lively.oldCore.Misc
-        var canvas = this.canvas(doc),
-            node = canvas.firstChild;
-        while (node) {
-            var toRemove = node;
-            node = node.nextSibling;
-            canvas.removeChild(toRemove);
-        }
-    },
-
-});
 
 Object.subclass('DocLinkConverter', {
 
@@ -522,14 +281,14 @@ Object.subclass('DocLinkConverter', {
     setURLTo: function(el, url) {
         var attrName = el.getAttribute('xlink:href') ? 'xlink:href' : 'src';
         el.setAttribute(attrName, url)
-    },
+    }
 
 });
 
 Object.extend(Global, {
     stringToXML: function(string) {
             return new DOMParser().parseFromString(string, "text/xml").documentElement;
-    },
+    }
 })
 
 }); // end of module

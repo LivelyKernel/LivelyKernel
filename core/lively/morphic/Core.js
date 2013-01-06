@@ -633,8 +633,14 @@ lively.morphic.Morph.subclass('lively.morphic.World',
     }
 },
 'rendering', {
-    displayOnCanvas: function(domElement) {
-        this.renderContext().setParentNode(domElement);
+    displayOnDocument: function(doc) {
+        var bodyEl = doc.getElementsByTagName('body')[0];
+        this.displayOnElement(bodyEl);
+    },
+
+    displayOnElement: function(el) {
+        this.renderContext().domInterface.removeAllChildrenOf(el);
+        this.renderContext().setParentNode(el);
         this.renderContextDispatch('append');
     },
 
@@ -689,7 +695,7 @@ Object.extend(lively.morphic.World, {
         var world = new this();
         bounds = bounds || new Rectangle(0,0,400,400);
         world.setBounds(bounds)
-        world.displayOnCanvas(domElement)
+        world.displayOnElement(domElement)
         world.applyStyle({fill: Color.gray.lighter()})
         world.addHandMorph();
         this.currentWorld = world;

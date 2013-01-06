@@ -3,13 +3,13 @@ module('lively.morphic.tests.Morphic').requires('lively.morphic.tests.Helper', '
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.WorldTests',
 'testing', {
     testAddWorldToDoc: function() {
-        var canvasNode = document.body, bounds = new Rectangle(0, 0, 100, 100),
+        var bounds = new Rectangle(0, 0, 100, 100),
             world = new lively.morphic.World();
         try {
             world.setBounds(bounds);
-            world.displayOnCanvas(canvasNode);
+            world.displayOnDocument(document);
 
-            var expected = {tagName: 'div', parentNode: canvasNode, childNodes: [{tagName: 'div'}]};
+            var expected = {tagName: 'div', parentNode: document.body, childNodes: [{tagName: 'div'}]};
             this.assertNodeMatches(expected, world.renderContext().getMorphNode());
         } finally {
             world.remove();

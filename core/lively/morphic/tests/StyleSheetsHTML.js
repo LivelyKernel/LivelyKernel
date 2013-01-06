@@ -28,7 +28,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
 
     test02AddSelectorPrefixes: function() {
         this.assertEquals(
-            '*[morphid="'+this.morph.id+'"] .test test, *[morphid="'+this.morph.id+'"].test test',
+            '*[data-lively-morphid="'+this.morph.id+'"] .test test, *[data-lively-morphid="'+this.morph.id+'"].test test',
             this.morph.addSelectorPrefixes('.test test'),
             'Prefix were not added correctly');
 
@@ -38,7 +38,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
             'Empty selector is returned empty again');
 
         this.assertEquals(
-            '*[morphid="'+this.morph.id+'"] test, test[morphid="'+this.morph.id+'"]',
+            '*[data-lively-morphid="'+this.morph.id+'"] test, test[data-lively-morphid="'+this.morph.id+'"]',
             this.morph.addSelectorPrefixes('test'),
             'Tagname did not go first when the selector prefixes are added');
     },
@@ -131,7 +131,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         var ids = this.yellowRectangle.world().getIdsForSelector('.Box'),
             combinedIdSelector = ids.reduce(function(prev, val) {
                     return prev + (prev.length > 0 ? ', ' : '')
-                        + '[morphid="'+ val + '"]';
+                        + '[data-lively-morphid="'+ val + '"]';
                 }, '');
         this.assert(combinedIdSelector
             === this.yellowRectangle.world().generateCombinedIdSelector('.Box'),
@@ -141,9 +141,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         // One op --> 3 selectors
         var input = '.test-class > div#test-id',
             output = '.test-class > div#test-id, '
-                + '.test-class > [node-type="origin-node"] > div#test-id, '
-                + '.test-class > [node-type="origin-node"] '
-                + '> [node-type="morph-node"] > div#test-id';
+                + '.test-class > [data-lively-node-type="origin-node"] > div#test-id, '
+                + '.test-class > [data-lively-node-type="origin-node"] '
+                + '> [data-lively-node-type="morph-node"] > div#test-id';
 
         this.assertEquals(output, this.morph.replaceChildOp(input),
             'Output and Input for one child op do not match');
@@ -151,7 +151,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
         // Two ops --> 9 selectors
         input = 'a > b > c',
 
-            output = 'a > b > c, a > [node-type="origin-node"] > b > c, a > [node-type="origin-node"] > [node-type="morph-node"] > b > c, a > b > [node-type="origin-node"] > c, a > [node-type="origin-node"] > b > [node-type="origin-node"] > c, a > [node-type="origin-node"] > [node-type="morph-node"] > b > [node-type="origin-node"] > c, a > b > [node-type="origin-node"] > [node-type="morph-node"] > c, a > [node-type="origin-node"] > b > [node-type="origin-node"] > [node-type="morph-node"] > c, a > [node-type="origin-node"] > [node-type="morph-node"] > b > [node-type="origin-node"] > [node-type="morph-node"] > c';
+            output = 'a > b > c, a > [data-lively-node-type="origin-node"] > b > c, a > [data-lively-node-type="origin-node"] > [data-lively-node-type="morph-node"] > b > c, a > b > [data-lively-node-type="origin-node"] > c, a > [data-lively-node-type="origin-node"] > b > [data-lively-node-type="origin-node"] > c, a > [data-lively-node-type="origin-node"] > [data-lively-node-type="morph-node"] > b > [data-lively-node-type="origin-node"] > c, a > b > [data-lively-node-type="origin-node"] > [data-lively-node-type="morph-node"] > c, a > [data-lively-node-type="origin-node"] > b > [data-lively-node-type="origin-node"] > [data-lively-node-type="morph-node"] > c, a > [data-lively-node-type="origin-node"] > [data-lively-node-type="morph-node"] > b > [data-lively-node-type="origin-node"] > [data-lively-node-type="morph-node"] > c';
 
         this.assertEquals(output, this.morph.replaceChildOp(input),
             'Output and Input for two child ops do not match');
@@ -160,32 +160,32 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
     },
     test08SetNewMorphId: function() {
         var shapeNode = this.morph.renderContext().shapeNode,
-            oldId = $(shapeNode).attr('morphid');
+            oldId = $(shapeNode).attr('data-lively-morphid');
         this.morph.setNewId();
-        this.assert(oldId !== $(shapeNode).attr('morphid'),
+        this.assert(oldId !== $(shapeNode).attr('data-lively-morphid'),
             'morphid in node should not be the old id');
-        this.assertEquals(this.morph.id, $(shapeNode).attr('morphid'),
+        this.assertEquals(this.morph.id, $(shapeNode).attr('data-lively-morphid'),
             'morphid in node should be the new morph id');
     },
     test09SetNodeTypeAttributes: function() {
         var ctx = this.redRectangle.renderContext();
 
-        this.assertEquals('morph-node', $(ctx.morphNode).attr('node-type'),
+        this.assertEquals('morph-node', $(ctx.morphNode).attr('data-lively-node-type'),
             'Node-type of morphNode should be "morph-node"');
-        this.assertEquals('origin-node', $(ctx.originNode).attr('node-type'),
+        this.assertEquals('origin-node', $(ctx.originNode).attr('data-lively-node-type'),
             'Node-type of originNode should be "origin-node"');
     },
     test09ReplaceWildcardSelector: function() {
-        this.assertEquals('*[morphid]', this.morph.replaceWildcardSelector('*'),
+        this.assertEquals('*[data-lively-morphid]', this.morph.replaceWildcardSelector('*'),
             'Simple wildcard was not replaced correctly');
-        this.assertEquals('*[morphid].class *[morphid].another-class', this.morph.replaceWildcardSelector('*.class *.another-class'),
+        this.assertEquals('*[data-lively-morphid].class *[data-lively-morphid].another-class', this.morph.replaceWildcardSelector('*.class *.another-class'),
             'Combined wildcards were not replaced correctly');
     },
     test10ReplaceRootPseudo: function() {
         var morphId = this.morph.id;
-        this.assertEquals('[morphid="'+morphId+'"]', this.morph.replaceRootPseudo(':root'),
+        this.assertEquals('[data-lively-morphid="'+morphId+'"]', this.morph.replaceRootPseudo(':root'),
             'Simple root pseudo was not replaced correctly');
-        this.assertEquals('[morphid="'+morphId+'"].class, [morphid="'+morphId+'"].another-class', this.morph.replaceRootPseudo(':root.class, :root.another-class'),
+        this.assertEquals('[data-lively-morphid="'+morphId+'"].class, [data-lively-morphid="'+morphId+'"].another-class', this.morph.replaceRootPseudo(':root.class, :root.another-class'),
             'Grouped root pseudos were not replaced correctly');
     },
     assertArray: function(anticipated, actual, msg) {
@@ -288,9 +288,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
     },
     test02aSetNodeMorphId: function() {
         var shapeNode = this.morph.renderContext().shapeNode;
-        $(shapeNode).attr('morphid', '');
+        $(shapeNode).attr('data-lively-morphid', '');
         this.morph.setNodeMorphIdHTML(this.morph.renderContext());
-        this.assertEquals(this.morph.id, $(shapeNode).attr('morphid'),
+        this.assertEquals(this.morph.id, $(shapeNode).attr('data-lively-morphid'),
             'Morphid node attribute should be the morph id');
     },
 
@@ -340,7 +340,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         this.assertEquals('style-for-'+this.morph.id, $(styleNode).attr('id'),
             'id of style node is wrong');
         var styleNodeContent = $(styleNode).html()
-        this.assert(styleNodeContent.indexOf('[morphid="'+this.morph.id.toUpperCase()+'"]') >= 0,
+        this.assert(styleNodeContent.indexOf('[data-lively-morphid="'+this.morph.id.toUpperCase()+'"]') >= 0,
             'Style node content has no ref to morph');
         this.assert(styleNodeContent.indexOf('.test-class') >= 0,
             'Style node content is missing the selector');
@@ -361,17 +361,30 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         this.morph.setBaseThemeStyleSheet('.test-class { color: black;}');
         var baseThemeNode = this.morph.renderContext().baseThemeNode;
         this.assert(baseThemeNode, 'There is no base theme node in the render context');
-        this.assertEquals('base-theme-for-'+this.morph.id, $(baseThemeNode).attr('id'),
-            'id of base theme node is wrong');
-        var styleNodeContent = $(baseThemeNode).html()
-        this.assert(styleNodeContent.indexOf('[morphid="'+this.morph.id.toUpperCase()+'"]') >= 0,
-            'Base theme node content has no ref to morph');
+        this.assertEquals('base-theme-for-' + this.morph.id, $(baseThemeNode).attr('id'),
+                          'id of base theme node is wrong');
+        var styleNodeContent = $(baseThemeNode).html(),
+            morphIdSel = '[data-lively-morphid="' + this.morph.id.toUpperCase()+'"]';
+        this.assert(styleNodeContent.include(morphIdSel),
+                    'Base theme node content has no ref to morph');
         this.morph.setStyleSheet('.test-class { color: black;}');
         var styleNode = this.morph.renderContext().styleNode;
 
         this.assertEquals(2, styleNode.compareDocumentPosition(baseThemeNode),
             'Style node has to follow the base theme node in the DOM');
+    },
+
+    test06SetStyleSheetRemovesDuplicates: function() {
+        var morph1 = this.morph,
+            morph2 = lively.morphic.Morph.makeRectangle(0,0, 10,10);
+        this.world.addMorph(morph2);
+        morph2.id = morph1.id; // force same id for test
+        morph1.setStyleSheet('.test-class { color: black;}');
+        morph2.setStyleSheet('.test-class { color: green;}');
+        var styleId = 'style-for-' + morph1.id;
+        this.assertEquals(1, $('head #' + styleId).length);
     }
+
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.Borders',

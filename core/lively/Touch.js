@@ -1647,7 +1647,7 @@ lively.morphic.World.addMethods(
     
     onTap: function($super, evt) {
         $super(evt);
-        this.touchMenuPrototype.remove()
+        this.getTouchMenu().remove()
         if (this.currentHaloTarget) {
             this.currentHaloTarget.removeHalos()
         }
@@ -1719,9 +1719,10 @@ lively.morphic.World.addMethods(
     },
     loadTouchMenu: function() {
         this.touchMenuPrototype = new lively.morphic.TouchWorldMenu();
+        return this.touchMenuPrototype;
     },
     showTouchMenuAt: function (pos, fixed) {
-        var touchMenu = this.touchMenuPrototype,
+        var touchMenu = this.getTouchMenu(),
             pagePosition = pos,
             screenPos = pagePosition.subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel()),
             triangle = touchMenu.pointer;
@@ -1747,6 +1748,10 @@ lively.morphic.World.addMethods(
         this.addMorph(touchMenu)
         return touchMenu;
     },
+    getTouchMenu: function() {
+        return this.touchMenuPrototype || this.loadTouchMenu();
+    },
+
     onHold: function(touch) {
         this.openWorldMenu(touch)
     },
@@ -2636,12 +2641,12 @@ lively.morphic.PieItem.subclass('lively.morphic.CopyPieItem',
 },
 'pieItemActions', {
     activate: function(evt) {
-        try {
+        //try {
             this.copiedTarget = this.targetMorph.copy();
-        } catch(e) {
+        /*} catch(e) {
             alert("could not copy morph: " + this.targetMorph)
             return;
-        };
+        };*/
 
         this.copiedTarget.setTransform(this.targetMorph.getGlobalTransform());
         var delta = this.targetMorph.pieTouch.pageStart.subPt(evt.getPosition());

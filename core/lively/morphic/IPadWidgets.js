@@ -222,7 +222,8 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         this.submenusDisabled = true;
         var that = this;
         items.forEach(function (item) {
-            this.addItem({string: item, value: item, isListItem: true});
+            // truncate displayed string to make sure that only single line entries will appear
+            this.addItem({string: item.truncate(13), value: item, isListItem: true});
         }, this);
         this.itemList = items
     },
@@ -865,7 +866,7 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         owner.addMorph(this);
         this.alignment = alignment;
         this.fitInWorld();
-        this.applyStyle(this.style/*Object.merge([this.style,{fill: this.determineFillGradient()}])*/)
+        this.applyStyle(this.style)
         this.setAppearanceStylingMode(true);
         this.setStyleId('Flap')
         this.setStyleSheet("#Flap {background-image: url('" + Config.codeBase + "media/NSTexturedBackgroundColor.jpg');}")
@@ -1637,13 +1638,26 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
         if (functionNames.length === 0)
             return
         categories.forEach(function(category) {
+            if (i>1) {
+                that.gridContainer.addMorph(that.makeGridBeautifyer(i))
+            }
             that.gridContainer.addMorph(that.makeCategoryLabel(category, i));
             that.gridContainer.addMorph(that.makeCategoryList(category, functionNames, target, i))
             i++;
         });
     },
-    makeAddButton: function(target, width) {
-        var button = new lively.morphic.Button(rect(0,20, width,20), "Add script");
+    makeGridBeautifyer: function(gridX) {
+        // Prevent default resizing of GridLayout rows with empty cells
+        // TODO: Integrate this workaround in GridLayout implementation?
+        var morph = Morph.makeRectangle(rect(0,20, 100,30));
+        morph.gridCoords = pt(gridX,0);
+        morph.setFill(null);
+        morph.setBorderWidth(0)
+        return morph;
+    },
+
+    makeAddButton: function(target) {
+        var button = new lively.morphic.Button(rect(0,20, 100,30), "Add script");
         button.beFlapButton();
         button.applyStyle({
             extent: pt(100,30),
@@ -1671,7 +1685,7 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
         return button
     },
     makeMorphLabel: function(targetName) {
-        var label = new lively.morphic.Text(rect(0,0,100,20), targetName);
+        var label = new lively.morphic.Text(rect(0,0,100,20), targetName.truncate(10));
         label.beLabel();
         label.applyStyle({
             textColor: Color.rgb(235,235,235),
@@ -1681,8 +1695,10 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
         label.gridCoords = pt(0,0)
         return label;
     },
+
+
     makeCategoryLabel: function(category, column) {
-        var label = new lively.morphic.Text(rect(0,0,100,20), category);
+        var label = new lively.morphic.Text(rect(0,0,100,20), category.truncate(13));
         label.gridCoords = pt(column, 1);
         label.applyStyle({
             fill: Color.rgba(43,43,43,0.5),
@@ -2189,7 +2205,7 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
         }
     },
     setPinned: function() {
-        if (this === $world.touchMenuPrototype) {
+        if (this === $world.getTouchMenu()) {
             $world.touchMenuPrototype = new lively.morphic.TouchWorldMenu();
         }
         this.pinned = true;
@@ -2197,7 +2213,7 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
     },
     setUnpinned: function() {
         this.pinned = false;
-        $world.touchMenuPrototype.remove();
+        $world.getTouchMenu().remove();
         $world.touchMenuPrototype = this;
         this.switchButtonColorPermanently()
     },

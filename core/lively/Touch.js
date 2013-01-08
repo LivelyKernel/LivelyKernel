@@ -1142,6 +1142,7 @@ lively.morphic.Morph.addMethods(
 
         this.activatedPieItem = item;
         item.activate(evt);
+        item.onActivate();
     },
     openMorphMenuAt: function(pos, itemFilter) {
         if (!(itemFilter instanceof Function)) {
@@ -2493,7 +2494,7 @@ lively.morphic.Morph.subclass('lively.morphic.PieMenu',
         this.submorphs.each(function (ea) {
             ea.disableHalos();
         });
-    }
+    },
 });
 
 lively.morphic.Morph.subclass('lively.morphic.PieItem',
@@ -2588,6 +2589,9 @@ lively.morphic.Morph.subclass('lively.morphic.PieItem',
 },
 'pieItemActions', {
     activate: function(evt) {},
+    onActivate: function() {
+    },
+
     enter: function() {
         this.originalColor = this.getFill();
         var color = this.getFill().lighter();

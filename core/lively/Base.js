@@ -287,16 +287,10 @@ Global.Class = {
 
     initializer: function initializer() {
         var firstArg = arguments[0];
-        // maybe special initialization required
-        if (firstArg && firstArg.isImporter) {
-            this.deserialize.apply(this, arguments);
-        } else if (firstArg && firstArg.isCopier) {
-            this.copyFrom.apply(this, arguments);
-        } else if (firstArg && firstArg.isInstanceRestorer) {
-            // just do nothing
-            // for WebCards and other JSON-based dersialization logic
+        if (firstArg && firstArg.isInstanceRestorer) {
+            // for deserializing instances just do nothing
         } else {
-            // if this.initialize is undefined then prolly the constructor was called without 'new'
+            // automatically call the initialize method
             this.initialize.apply(this, arguments);
         }
     },

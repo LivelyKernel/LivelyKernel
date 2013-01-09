@@ -2751,7 +2751,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                 var actionQueue = lively.morphic.TextEmphasis.hoverActions;
                 this.addCallbackWhenApplyDone('mouseenter', function(evt) {
                     actionQueue.enter(function() {
-                        var morph = $(evt.target).parents('[node-type="morph-node"]').eq(0).data('morph');
+                        var morph = $(evt.target).parents('[data-lively-node-type="morph-node"]').eq(0).data('morph');
                         lively.morphic.EventHandler.prototype.patchEvent(evt);
                         hover.inAction.call(morph, evt);
                     });
@@ -2759,7 +2759,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                 });
                 this.addCallbackWhenApplyDone('mouseleave', function(evt) {
                     actionQueue.leave(function() {
-                        var morph = $(evt.target).parents('[node-type="morph-node"]').eq(0).data('morph');
+                        var morph = $(evt.target).parents('[data-lively-node-type="morph-node"]').eq(0).data('morph');
                         lively.morphic.EventHandler.prototype.patchEvent(evt);
                         hover.outAction.call(morph, evt);
                     });

@@ -18,9 +18,17 @@ before_script:
 script: "lk test --display :1"
 
 branches:
-  except:
-    - ww-mirror-2.1.3
+  except: ww-mirror-2.1.3
 
 notifications:
   email:
-    - lkcore@googlegroups.com
+    - astrid.thomschke@gmail.com
+    - bgnauk@gmail.com
+    - conrad@calmez.net
+    - cschuster@ucdavis.edu
+    - danhhingalls@gmail.com
+    - fbornhofen@gmail.com
+    - jens.lincke@hpi.uni-potsdam.de
+    - lauritz.thamsen@gmail.com
+    - Marko.Roeder@student.hpi.uni-potsdam.de
+    - robert.krahn@gmail.com

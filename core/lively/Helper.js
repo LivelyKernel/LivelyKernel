@@ -142,20 +142,24 @@ Object.subclass('lively.Helper.XMLConverter', {
     },
 
     convertToXML: function(jsObj, nsMapping, baseDoc, nsWereDeclared) {
-        if (!jsObj.tagName)
+        if (!jsObj.tagName) {
             throw new Error('Cannot convert JS object without attribute "tagName" to XML!');
+        }
+        var isXMLDoc = !!baseDoc.xmlVersion;
 
         // deal with special nodes
-        if (jsObj.tagName === 'cdataSection')
-            return baseDoc.createCDATASection(jsObj.data);
-        if (jsObj.tagName === 'textNode')
+        if (jsObj.tagName === 'cdataSection') {
+            return isXMLDoc ?
+                baseDoc.createCDATASection(jsObj.data) : baseDoc.createTextNode(jsObj.data);
+        }
+        if (jsObj.tagName === 'textNode') {
             return baseDoc.createTextNode(jsObj.data);
+        }
 
         // create node
         var nsDecl = nsWereDeclared ? '' : Properties.own(nsMapping).collect(function(prefix) {
-            return Strings.format('xmlns:%s="%s"', prefix, nsMapping[prefix])
-        }).join(' ');
-        var node = this.createNodeFromString(Strings.format('<%s %s/>', jsObj.tagName, nsDecl), baseDoc);
+                return Strings.format('xmlns:%s="%s"', prefix, nsMapping[prefix]); }).join(' '),
+            node = this.createNodeFromString(Strings.format('<%s %s/>', jsObj.tagName, nsDecl), baseDoc);
 
         // set attributes
         Properties.own(jsObj)

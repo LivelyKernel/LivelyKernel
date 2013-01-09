@@ -53,7 +53,9 @@ Trait('lively.morphic.WorldStyleSheetTrait',
     override: 'morphMenuItems'
 });
 
-lively.morphic.Morph.addMethods('Style sheet getters and setters', {
+lively.morphic.Morph.addMethods(
+'Style sheet getters and setters', {
+
     cssIsEnabled: true,
 
     getAppearanceStylingMode: function () {

@@ -78,15 +78,15 @@ TestCase.subclass('lively.tests.HelperTests.LocalStorageTests', {
     setup: function() {
         this['__test__'] = lively.LocalStorage.get('__test__');
     },
-    
+
     tearDown: function() {
         lively.LocalStorage.set('__test__', this['__test__']);
     },
-    
+
     test01LocalStorageAvailability: function() {
-        this.assertEquals(window.localStorage != undefined, lively.LocalStorage.isAvailable()); 
+        this.assertEquals(window.localStorage != undefined, lively.LocalStorage.isAvailable());
     },
-    
+
     test02LocalStorageValues: function() {
         if (!lively.LocalStorage.isAvailable()) {
             this.assert(true);

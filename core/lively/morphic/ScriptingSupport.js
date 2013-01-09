@@ -80,7 +80,12 @@ lively.morphic.Morph.addMethods(
         options = options || {};
         var oldPos = this.getPosition(),
             oldScale = this.getScale(),
-            bounds = this.bounds();
+            bounds = this.bounds(),
+            template = options.asXML ?
+                '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '
+              + '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
+              + '<html xmlns="http://www.w3.org/1999/xhtml"><body>INSERT_MARKUP_HERE</body></html>' :
+                '<!DOCTYPE html><html><body>INSERT_MARKUP_HERE</body></html>';
         try {
             if (options.scale) this.setScale(options.scale);
             this.align(this.bounds().topLeft(), pt(5,5));
@@ -88,13 +93,7 @@ lively.morphic.Morph.addMethods(
             // patch properties so they work on all browsers...
             html = html.replace(/(-webkit|-moz|-o)(-transform[^;]+;)/g, '-webkit$2 -moz$2 -o$2');
             if (!options.asFragment) {
-                html ='<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '
-                     + '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
-                     + '<html xmlns="http://www.w3.org/1999/xhtml">'
-                     +   '<body>'
-                     + html
-                     +   '</body>'
-                     + '</html>';
+                html = template.replace('INSERT_MARKUP_HERE', html);
             }
             return html;
         } finally {

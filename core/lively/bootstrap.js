@@ -393,7 +393,9 @@
                 // create a text node.
                 var textElement;
                 try {
-                    textElement = document.createCDATASection(str);
+                    textElement = document.xmlVersion ?
+                                    document.createCDATASection(str) :
+                                    document.createTextNode(str);
                 } catch (e) {
                     if (e.name === "NOT_SUPPORTED_ERR") {
                         textElement = document.createTextNode(str);
@@ -944,13 +946,12 @@
         //
         // ------- load world ---------------
         //
-        loadMain: function(canvas, startupFunc) {
+        loadMain: function(doc, startupFunc) {
             var lively = Global.lively;
-
             LoadingScreen.add();
             lively.Config.loadUserConfigModule();
             require('lively.bindings', 'lively.Main').toRun(function() {
-                var loader = lively.Main.getLoader(canvas);
+                var loader = lively.Main.getLoader(doc);
                 lively.bindings.connect(loader, 'finishLoading',
                                         LoadingScreen, 'remove');
                 if (startupFunc) {
@@ -958,14 +959,14 @@
                     lively.bindings.connect(loader, 'finishLoading',
                                             loader, 'startupFunc');
                 }
-                loader.systemStart(canvas);
+                loader.systemStart(doc);
             });
         },
 
         startFromSerializedWorld: function(startupFunc) {
             var self = this;
             this.bootstrap(function() {
-                self.loadMain(document.body, startupFunc);
+                self.loadMain(document, startupFunc);
             });
             return true;
         },

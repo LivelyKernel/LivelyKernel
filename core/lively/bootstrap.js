@@ -146,6 +146,18 @@
             return parseFloat(specVersion) <= parseFloat(detectedVersion);
         };
 
+        that.printSpec = function() {
+            var items = this.spec.length,
+                item,
+                i,
+                specString = "";
+            for (i = 0; i < items; i += 1) {
+                item = this.spec[i];
+                specString += item.browser + " >= v" + item.version + "\n";
+            }
+            return specString.slice(0, specString.length - 1);
+        };
+
         that.spec = spec;
         that.detect();
 
@@ -469,10 +481,7 @@
                 messageText;
             if (!browserDetector.isSpecSatisfied()) {
                 defaultMessageText = "HINT !\nLively Kernel works best with:\n"
-                                    + " - Chrome >= v10\n"
-                                    + " - Firefox >= v4\n"
-                                    + " - Safari >= v5\n"
-                                    + " - Safari iOS >= v5";
+                                    + browserDetector.printSpec();
                 messageText = optMessage || defaultMessageText;
                 message.setAttribute('style', 'position: fixed;'
                                             + 'left: 90px; top: 20px;'

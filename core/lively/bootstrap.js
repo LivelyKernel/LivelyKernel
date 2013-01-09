@@ -393,9 +393,8 @@
                 // create a text node.
                 var textElement;
                 try {
-                    textElement = document.xmlVersion ?
-                                    document.createCDATASection(str) :
-                                    document.createTextNode(str);
+                  textElement = document.xmlVersion ?
+                        document.createCDATASection(str) : document.createTextNode(str);
                 } catch (e) {
                     if (e.name === "NOT_SUPPORTED_ERR") {
                         textElement = document.createTextNode(str);
@@ -947,7 +946,6 @@
         // ------- load world ---------------
         //
         loadMain: function(doc, startupFunc) {
-            var lively = Global.lively;
             LoadingScreen.add();
             lively.Config.loadUserConfigModule();
             require('lively.bindings', 'lively.Main').toRun(function() {

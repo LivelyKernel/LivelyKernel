@@ -1,18 +1,172 @@
-/*global Config, require, Class, WebResource*/
-/*jshint evil: true, scripturl: true, loopfunc: true, laxbreak: true, immed: true, lastsemic: true, debug: true*/
+/*global Config, require, Class, WebResource, $A*/
+/*jshint evil: true, scripturl: true, loopfunc: true, laxbreak: true, immed: true, lastsemic: true, debug: true, regexp: false*/
+
 (function bootstrapLively(Global) {
     // "Global" is the lively accessor to the toplevel JS scope
     Global.Global = Global;
-    var isNodejs = typeof window === "undefined"
+    var hostString = Global.document && document.location.host,
+        useMinifiedLibs = hostString && hostString.indexOf('localhost') === -1,
+        browserDetector;
+
+    var BrowserDetector = function(optSpec) {
+    /*
+    * Detects browsers with help of the userAgent property of the navigator object.
+    * Lookup for browsers happens by the name of the application.
+    * Versions are searched with the default attempt that it follows the
+    * application name devided by as slash (e.g. Chrome/21.0.2).
+    *
+    * The object can be initialized with a specification array of the form:
+    *    [{browser: "BrowserName", version: "2.0", versionPrefix: "prefix"}, ...]
+    * The property versionPrefix is an optional property and can be omitted. It
+    * should be set when the version can not be found using the default attempt.
+    * With versionPrefix set the version for this browser will be searched by
+    * looking for the prefix and returning the string that comes after a slash
+    * (e.g. PREFIX/2.0 would return 2.0).
+    *
+    * Version numbers can be specified as you like but the object will only use
+    * the first two components of the version - the rest will be ignored.
+    */
+        var that = {},
+            spec = optSpec || [{
+                browser: "Chrome",
+                version: "10"
+            }, {
+                browser: "Firefox",
+                version: "4"
+            }, {
+                browser: "Safari",
+                version: "5",
+                versionPrefix: "Version"
+            }],
+            userAgent = navigator.userAgent;
+
+        that.detectBrowser = function(optSpec) {
+            var fullSpec = optSpec || spec,
+                browser = this.browser,
+                browserSpec,
+                filterBrowsers = function(browserSpec) {
+                    return browserSpec.browser;
+                },
+                browserCount,
+                i = 0;
+
+            if (this.browser === undefined || browser === null) {
+                browserSpec = spec.map(filterBrowsers);
+                browserCount = browserSpec.length;
+                while (userAgent.indexOf(browserSpec[i]) < 0
+                    && i <= browserCount) {
+                    i += 1;
+                }
+                if (i < browserCount) {
+                    this.browser = browserSpec[i];
+                    this.browserSpecPointer = i;
+                } else {
+                    this.browser = "NOT DETECTED";
+                    this.browserSpecPointer = -1;
+                }
+            }
+            return this.browser;
+        };
+
+        that.browserSpec = function() {
+            if (this.browserSpecPointer !== undefined && this.browserSpecPointer >= 0) {
+                return this.spec[this.browserSpecPointer];
+            }
+            return null;
+        };
+
+        that.extractVersion = function(prefix) {
+            var uaInfo = userAgent.split(' '),
+                uaInfoCount = uaInfo.length,
+                i = 0;
+            while (uaInfo[i].indexOf(prefix) < 0) { i += 1; }
+            return uaInfo[i].split('/')[1];
+        };
+
+        that.detectVersion = function(optBrowserSpec) {
+            var browserSpec = optBrowserSpec || this.browserSpec(),
+                browser = browserSpec ? browserSpec.browser : this.browser,
+                versionPrefix;
+
+            if (browserSpec === null && browser === undefined) {
+                browser = this.detectBrowser();
+                if (browser !== "NOT DETECTED") {
+                    browserSpec = this.browserSpec();
+                }
+            }
+            if (browser === "NOT DETECTED") {
+                this.version = "NOT DETECTED";
+            }
+            if (this.version === undefined || this.version === null) {
+                versionPrefix = browserSpec.versionPrefix;
+                if (versionPrefix !== undefined) {
+                    this.version = this.extractVersion(versionPrefix);
+                } else {
+                    this.version = this.extractVersion(browser);
+                }
+            }
+            return this.version;
+        };
+
+        that.detect = function() {
+            this.browser = null;
+            this.version = null;
+            this.detectBrowser();
+            this.detectVersion();
+        };
+
+        that.isFirefox = function() {
+            return this.browser === 'Firefox';
+        };
+
+        that.isFireBug = function() {
+            return (this.isFirefox()
+                    && Global.console && Global.console.firebug !== undefined);
+        };
+
+        that.isNodejs = function() {
+            return typeof window === "undefined"
                 && Global.process
-                && !!Global.process.versions.node,
-        isFirefox = Global.navigator
-                 && Global.navigator.userAgent.indexOf('Firefox') > -1,
-        isFireBug = isFirefox
-                 && Global.console
-                 && Global.console.firebug !== undefined,
-        useMinifiedLibs = Global.document
-                       && document.location.host.indexOf('localhost') === -1;
+                && !!Global.process.versions.node;
+        };
+
+        that.isSpecSatisfied = function() {
+            var matchingSpec = this.browserSpec(),
+                specVersion,
+                detectedVersion,
+                shortenVersionString = function(versionString) {
+                    var versionComponents = versionString.split(".");
+                    return versionComponents.slice(0, 2).join(".");
+                };
+            if (matchingSpec === null || matchingSpec === undefined) {
+                return false;
+            }
+            specVersion = shortenVersionString(matchingSpec.version);
+            detectedVersion = shortenVersionString(this.version);
+            return parseFloat(specVersion) <= parseFloat(detectedVersion);
+        };
+
+        that.printSpec = function() {
+            var items = this.spec.length,
+                item,
+                i,
+                specString = "";
+            for (i = 0; i < items; i += 1) {
+                item = this.spec[i];
+                specString += item.browser + " >= v" + item.version + "\n";
+            }
+            return specString.slice(0, specString.length - 1);
+        };
+
+        that.spec = spec;
+        that.detect();
+
+        return that;
+    };
+
+    // run detection a first time
+    browserDetector = new BrowserDetector();
+
 
     (function ensureConfig() {
         // Should have addtional logic for the case when no no window object
@@ -34,7 +188,7 @@
     })();
 
     (function setupNodejs() {
-        if (!isNodejs) return;
+        if (!browserDetector.isNodejs()) return;
         // First define Global
         // Now setup a DOM and window object
         var jsdom = require("jsdom").jsdom,
@@ -63,7 +217,7 @@
         }
         Global.console = platformConsole;
 
-        if (isFireBug) return;
+        if (browserDetector.isFireBug()) return;
 
         var consumers = platformConsole.consumers = [];
         platformConsole.wasWrapped = false;
@@ -165,7 +319,7 @@
 
             logoAndText.style.top = (this.height() / 2 - 100) + 'px';
             logoAndText.style.left = (this.width() / 2 - 40) + 'px';
-            logo.src = LivelyLoader.codeBase + 'media/loading.gif';
+            logo.src = Global.LivelyLoader.codeBase + 'media/loading.gif';
 
             logoAndText.appendChild(logo);
             logoAndText.appendChild(text);
@@ -228,7 +382,7 @@
                                         + " font-size: medium;"
                                         + " padding-bottom: 20px;");
             this.console = console;
-            if (isFireBug) return console;
+            if (browserDetector.isFireBug()) return console;
 
             function addLine(str, style) {
                 style = style || '';
@@ -242,11 +396,11 @@
                   textElement = document.xmlVersion ?
                         document.createCDATASection(str) : document.createTextNode(str);
                 } catch (e) {
-                  if (e.name === "NOT_SUPPORTED_ERR") {
-                    textElement = document.createTextNode(str);
-                  } else {
-                    throw e;
-                  }
+                    if (e.name === "NOT_SUPPORTED_ERR") {
+                        textElement = document.createTextNode(str);
+                    } else {
+                        throw e;
+                    }
                 }
 
                 line.appendChild(textElement);
@@ -274,7 +428,7 @@
         removeConsole: function() {
             var console = this.console;
             this.console = null;
-            if (!console || isFireBug) return;
+            if (!console || browserDetector.isFireBug()) return;
             this.removeElement(console);
             if (!this.consoleProxy) return;
             Global.console.removeConsumer(this.consoleProxy);
@@ -322,16 +476,41 @@
             return a;
         },
 
+        buildBrowserMessage: function (optMessage) {
+            var message = document.createElement('pre'),
+                defaultMessageText,
+                messageText;
+            if (!browserDetector.isSpecSatisfied()) {
+                defaultMessageText = "HINT !\nLively Kernel works best with:\n"
+                                    + browserDetector.printSpec();
+                messageText = optMessage || defaultMessageText;
+                message.setAttribute('style', 'position: fixed;'
+                                            + 'left: 90px; top: 20px;'
+                                            + 'text-align: left;'
+                                            + 'font-family: monospace;'
+                                            + 'margin: 0 0 0 0;'
+                                            + 'padding: 0px 10px 0px 10px;'
+                                            + 'border: 1px solid;'
+                                            + 'border-color: rgb(100,100,100);'
+                                            + 'color: rgb(100,0,0)'
+                );
+                message.textContent = messageText;
+            }
+            return message;
+        },
+
         build: function() {
             var background = this.buildBackground(),
                 loadingLogo = this.buildLoadingLogo(),
                 consoleButton = this.buildConsoleButton(),
                 closeButton = this.buildCloseButton(),
+                browserMessage = this.buildBrowserMessage(),
                 console = this.buildConsole();
 
             background.appendChild(loadingLogo);
             background.appendChild(consoleButton);
             background.appendChild(closeButton);
+            background.appendChild(browserMessage);
 
             return background;
         },
@@ -359,7 +538,7 @@
         XLINKNamespace: 'http:\/\/www.w3.org/1999/xlink',
         LIVELYNamespace: 'http:\/\/www.experimentalstuff.com/Lively',
 
-        loadJs: isNodejs ?
+        loadJs: browserDetector.isNodejs() ?
             function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
                 console.log('loading ' + url);
                 var path = url.match(/(^http|^file):\/\/(.*)/)[2],
@@ -407,24 +586,24 @@
 
         loadSync: function(url, onLoadCb, script) {
             if (this.isCSS(url)) {
-                console.log('skipping eval for css: ' + url );
+                console.log('skipping eval for css: ' + url);
                 if (typeof onLoadCb === 'function') onLoadCb();
                 return;
             }
             var source = this.getSync(url);
             try {
                 eval(source);
-            } catch(e) {
+            } catch (e) {
                 console.error('Error when loading ' + url + ': ' + e + '\n' + e.stack);
             }
             if (typeof onLoadCb === 'function') onLoadCb();
         },
 
         loadAsync: function(url, onLoadCb, script) {
-            if (script.namespaceURI == this.SVGNamespace) {
+            if (script.namespaceURI === this.SVGNamespace) {
                 script.setAttributeNS(this.XLINKNamespace, 'href', url);
             } else if (this.isCSS(url)) {
-                script.setAttribute("href",url);
+                script.setAttribute("href", url);
                 if (typeof onLoadCb === 'function') onLoadCb(); // huh?
             } else {
                 script.setAttributeNS(null, 'src', url);
@@ -441,7 +620,8 @@
             // modules are loaded. If they have required modules that are not
             // included in the combined file, those will be loaded as well.
 
-            var originalLoader = this,
+            var lively = Global.lively,
+                originalLoader = this,
                 combinedLoader = {
 
                     expectToLoadModules: function(relativePaths) {
@@ -450,7 +630,7 @@
                         this.expectedModuleURLs = new Array(len);
                         for (i = 0; i < len; i++) {
                             this.expectedModuleURLs[i] =
-                                LivelyLoader.codeBase + relativePaths[i];
+                                Global.LivelyLoader.codeBase + relativePaths[i];
                         }
 
                         // modules like lively.Text
@@ -508,14 +688,14 @@
             if (this.scriptInDOM(combinedFileUrl)) { callCallback(); return; }
 
             // while loading the combined file we replace the loader
-            JSLoader = combinedLoader;
+            Global.JSLoader = combinedLoader;
             this.loadJs(combinedFileUrl, callCallback,
                         undefined, undefined, hash);
         },
 
         loadAll: function(urls, cb) {
             urls.reverse().reduce(function(loadPrevious, url) {
-                return function() { JSLoader.loadJs(url, loadPrevious); };
+                return function() { Global.JSLoader.loadJs(url, loadPrevious); };
             }, function() { if (cb) cb(); })();
         },
 
@@ -541,7 +721,7 @@
             return document.getElementsByTagName('script');
         },
 
-        scriptInDOM: isNodejs ?
+        scriptInDOM: browserDetector.isNodejs() ?
             function() { return false; } :
             function(url) { return this.scriptsThatLinkTo(url).length > 0; },
 
@@ -569,7 +749,7 @@
             do {
                 urlString = result;
                 result = urlString.replace(/\/[^\/]+\/\.\./, '');
-            } while (result != urlString);
+            } while (result !== urlString);
             // foo//bar --> foo/bar
             result = result.replace(/([^:])[\/]+/g, '$1/');
             // foo/./bar --> foo/bar
@@ -580,16 +760,16 @@
         scriptElementLinksTo: function(el, url) {
             if (!el.getAttribute) return false;
             // FIXME use namespace consistently
-            if (el.getAttribute('id') == url) return true;
+            if (el.getAttribute('id') === url) return true;
             var link = this.getLinkAttribute(el);
             if (!link) return false;
-            if (url == link) return true;
+            if (url === link) return true;
             var linkString = this.makeAbsolute(link),
                 urlString = this.makeAbsolute(url);
-            return linkString == urlString;
+            return linkString === urlString;
         },
 
-        currentDir: isNodejs ?
+        currentDir: browserDetector.isNodejs() ?
             function() { return "file://" + __dirname + '/'; } :
             function() {
                 return this.dirOfURL(document.location.href.toString());
@@ -612,7 +792,7 @@
         makeUncached: function(urlString, cacheQuery) {
             cacheQuery = cacheQuery || new Date().getTime();
             return urlString
-                 + (urlString.indexOf('?') == -1 ? '?' : '&')
+                 + (urlString.indexOf('?') === -1 ? '?' : '&')
                  + cacheQuery;
         },
 
@@ -649,7 +829,7 @@
             return this.getSyncReq(url, forceUncached).status;
         },
 
-        isCSS: function(url){
+        isCSS: function(url) {
             return url.match(/\.css$/) || url.match(/\.css\?/);
         }
     };
@@ -680,27 +860,27 @@
             var codeBase = Global.Config && Config.codeBase,
                 parentDir;
             if (codeBase) return codeBase;
-            if (isNodejs) {
-                parentDir = JSLoader.currentDir() + '../';
-                return Config.codeBase = JSLoader.makeAbsolute(parentDir);
+            if (browserDetector.isNodejs()) {
+                parentDir = Global.JSLoader.currentDir() + '../';
+                return Config.codeBase = Global.JSLoader.makeAbsolute(parentDir);
             }
             // search for script that links to "bootstrap.js" and construct
             // the codeBase path from its path
             var bootstrapFileName = 'bootstrap.js',
-                scripts = JSLoader.getScripts(),
+                scripts = Global.JSLoader.getScripts(),
                 i = 0, node, urlFound;
             while (!urlFound && (node = scripts[i++])) {
-                var url = JSLoader.getLinkAttribute(node);
+                var url = Global.JSLoader.getLinkAttribute(node);
                 if (url && (url.indexOf(bootstrapFileName) >= 0)) {
                     urlFound = url;
                 }
             }
             if (!urlFound) {
                 console.warn('Cannot find codebase, have to guess...');
-                return JSLoader.dirOfURL(Global.location.href.toString());
+                return Global.JSLoader.dirOfURL(Global.location.href.toString());
             }
-            parentDir = JSLoader.dirOfURL(urlFound) + '../';
-            codeBase = JSLoader.makeAbsolute(parentDir);
+            parentDir = Global.JSLoader.dirOfURL(urlFound) + '../';
+            codeBase = Global.JSLoader.makeAbsolute(parentDir);
             console.log('Codebase is ' + codeBase);
             return Config.codeBase = codeBase;
         })(),
@@ -715,14 +895,14 @@
                 return Config.rootPath = rootPath;
             }
             if (codeBase) {
-                var parentDir = JSLoader.dirOfURL(codeBase) + '../';
-                rootPath = JSLoader.makeAbsolute(parentDir);
+                var parentDir = Global.JSLoader.dirOfURL(codeBase) + '../';
+                rootPath = Global.JSLoader.makeAbsolute(parentDir);
                 console.log('Root path is ' + rootPath);
                 return Config.rootPath = rootPath;
             }
             console.warn('Cannot find rootPath, have to guess...');
             var currentUrl = Global.location.href.toString();
-            return Config.rootPath = JSLoader.dirOfURL(currentUrl);
+            return Config.rootPath = Global.JSLoader.dirOfURL(currentUrl);
         })();
 
     // ------- generic load support ----------
@@ -790,7 +970,7 @@
         },
 
         bootstrap: function(thenDoFunc) {
-            var url = JSLoader.currentDir(),
+            var url = Global.JSLoader.currentDir(),
                 dontBootstrap = Config.standAlone
                              || url.indexOf('dontBootstrap=true') >= 0;
             if (dontBootstrap) { thenDoFunc(); return }
@@ -805,13 +985,13 @@
                 console.log('optimized loading enabled');
                 var hashUrl = cb + 'generated/combinedModulesHash.txt',
                     combinedModulesUrl = cb + 'generated/combinedModules.js',
-                    hash = JSLoader.getSync(hashUrl, true/*uncached*/);
-                JSLoader.loadCombinedModules(
+                    hash = Global.JSLoader.getSync(hashUrl, true/*uncached*/);
+                Global.JSLoader.loadCombinedModules(
                     combinedModulesUrl, thenDoFunc, hash);
                 return;
             }
 
-            JSLoader.resolveAndLoadAll(cb, this.bootstrapFiles, thenDoFunc);
+            Global.JSLoader.resolveAndLoadAll(cb, this.bootstrapFiles, thenDoFunc);
         }
 
     };
@@ -824,8 +1004,8 @@
         addWorld: function(worldURL, targetElement) {
             this.worldURL = worldURL;
             this.targetElement = targetElement;
-            LivelyLoader.bootstrap(function() {
-                EmbededLoader.embedAndLoadWorld(worldURL, targetElement);
+            Global.LivelyLoader.bootstrap(function() {
+                Global.EmbededLoader.embedAndLoadWorld(worldURL, targetElement);
             });
         },
 
@@ -880,12 +1060,12 @@
                 }
             }
             document.body.style.cursor = null;
-            LivelyLoader.loadMain(canvas);
+            Global.LivelyLoader.loadMain(canvas);
         },
 
         convertCDATASections: function(el) {
             // CDATA sections are not allowed in (X)HTML documents....
-            if (el.nodeType == document.CDATA_SECTION_NODE) {
+            if (el.nodeType === document.CDATA_SECTION_NODE) {
                 var text = el.ownerDocument.createTextNode(el.data),
                     parent = el.parentNode;
                 parent.removeChild(el);
@@ -972,17 +1152,17 @@
 
     function init() {
         if (Global.document) {
-            LivelyMigrationSupport.setDocumentMigrationLevel(document);
+            Global.LivelyMigrationSupport.setDocumentMigrationLevel(document);
         }
         var startupFunc = Config.onStartWorld;
-        if (LivelyLoader.startFromSerializedWorld(startupFunc)) return;
+        if (Global.LivelyLoader.startFromSerializedWorld(startupFunc)) return;
         console.warn("Lively startup failed");
     }
 
     (function startWorld(startupFunc) {
-        if (isNodejs) {
+        if (browserDetector.isNodejs()) {
             // remove libs, JSON:
-            LivelyLoader.bootstrapFiles = [
+            Global.LivelyLoader.bootstrapFiles = [
                 'lib/lively-libs-nodejs.js',
                 'lively/Migration.js',
                 'lively/lang/Object.js',
@@ -1000,7 +1180,7 @@
                 'lively/lang/UUID.js',      // FIXME: require module instead
                 'lively/LocalStorage.js'    // FIXME: require module instead
             ];
-            LivelyLoader.bootstrap(function() {
+            Global.LivelyLoader.bootstrap(function() {
                 console.log('bootstrap done');
             });
         } else {

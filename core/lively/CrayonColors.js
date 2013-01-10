@@ -61,7 +61,7 @@ Object.extend(CrayonColors, {
 	teal:  new Color(0.0, 0.584, 0.58),
 	tin:  new Color(0.568, 0.568, 0.568),
 	tungsten:  new Color(0.258, 0.258, 0.258),
-	turquoise:  new Color(0, 1.0, 1.0),
+	turquoise:  new Color(0, 1.0, 1.0)
 });
 
 

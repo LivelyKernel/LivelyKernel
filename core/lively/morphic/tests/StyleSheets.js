@@ -1,5 +1,47 @@
 module('lively.morphic.tests.StyleSheets').requires('lively.morphic.tests.Helper', 'lively.morphic.StyleSheets').toRun(function() {
 
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.BaseTheme',
+'running', {
+    setUp: function($super) {
+        $super();
+        this.createTestStyleSheet();
+        this.baseThemeParam = '$$baseThemeStyleSheet';
+    },
+    createTestStyleSheet: function() {
+        this.testSrc = '.test-class {\n'
+            + '\tborder: 1px solid green;\n'
+            + '}';
+        this.testStyleSheet = apps.cssParser.parse(this.testSrc, this.world);
+    }
+},
+'testing', {
+    test01SetParsedBaseThemeStyleSheet: function() {
+        this.world.setParsedBaseThemeStyleSheet(this.testStyleSheet);
+        this.assertEquals(this.testStyleSheet, this.world[this.baseThemeParam],
+            'Base theme style sheet should be temp-saved inside world');
+        this.assert(this.world.doNotSerialize.include(this.baseThemeParam),
+            'Base theme style sheet should not be serialized');
+        this.assert(this.testStyleSheet.isBaseTheme,
+            'isBaseTheme flag should be set in base theme style sheet');
+        this.assertEquals(this.testStyleSheet, this.world.getParsedBaseThemeStyleSheet(),
+            'Base theme style sheet should be accessible through getParsedBaseThemeStyleSheet()');
+    },
+    test02SetBaseThemeStyleSheet: function() {
+        this.world.setBaseThemeStyleSheet(this.testSrc);
+        this.assertEquals(this.testSrc, this.world.getBaseThemeStyleSheet(),
+            'Base theme style sheet should be set in the world');
+    },
+    test03LoadBaseTheme: function() {
+        this.world.setParsedBaseThemeStyleSheet();
+        this.assert(!this.world.getParsedBaseThemeStyleSheet(),
+            'After resetting, there should be no base theme applied');
+
+        this.world.loadBaseTheme();
+        this.assert(this.world.getParsedBaseThemeStyleSheet().isBaseTheme,
+            'After loading the base default theme, it should be applied to the world');
+    }
+});
+
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.MorphSelection',
 'running', {
     setUp: function($super) {
@@ -40,7 +82,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         this.redRectangle = redRectangle;
         this.blueRectangle1 = blueRectangle1;
         this.blueRectangle2 = blueRectangle2;
-    },
+    }
 },
 'testing', {
     testMorphSelectsItself: function() {
@@ -90,14 +132,14 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Morph
         this.assertEqualState([this.yellowRectangle],
             this.world.getSubmorphsByAttribute('testAttribute', 'tHeYellOwRectAnglE', true),
             'selection by attribute should include the yellow morph (case insensitive)');
-    },
+    }
 });
 
 lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.MorphClassNames',
 'running', {
     setUp: function($super) {
         $super();
-    },
+    }
 },
 'testing', {
 
@@ -250,7 +292,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
         this.redRectangle = redRectangle;
         this.blueRectangle1 = blueRectangle1;
         this.blueRectangle2 = blueRectangle2;
-    },
+    }
 },
 'testing', {
     testMorphSelectsItself: function() {
@@ -420,10 +462,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.Sizzl
             ':input',
             this.yellow,
             'selection for ":input" should return nothing (since it is unsupported)');
-
-
     }
-
 
 });
 
@@ -464,7 +503,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.blueRectangle1 = blueRectangle1;
         this.blueRectangle2 = blueRectangle2;
 
-    },
+    }
 },
 'testing', {
     test01SetStyleSheet: function() {
@@ -526,15 +565,15 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 
     },
     test03MorphsHaveOnlyMatchingCSSRules: function() {
-        var css = ".red {"+
-            "    border: 1px solid red;"+
-            "}"+
-            ".blue:nth-child(1) {"+
-            "    border: 1px solid black;    "+
-            "}"+
-            ".blue:nth-child(2) {"+
-            "    border: 1px solid yellow;    "+
-            "}";
+        var css = ".red {"
+                + "    border: 1px solid red;"
+                + "}"
+                + ".blue:nth-child(1) {"
+                + "    border: 1px solid black;    "
+                + "}"
+                + ".blue:nth-child(2) {"
+                + "    border: 1px solid yellow;    "
+                + "}";
 
         this.yellowRectangle.setStyleSheet(css);
 
@@ -590,17 +629,20 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             'Selector of 2nd rule in RedRectangle is not #the-red-rectangle');
     },
     test06GetSortedRules: function() {
-        var worldCss = '.red { color: red;}'+ //1
-                '.red.Box { color: purple;}'+ //3
-                '.red.Box { color: yellow;}'+ //4
-                '.yellow #the-red-rectangle {color: blue;}' + //7
-                '#the-red-rectangle, #the-red-rectangle, #the-blue-rectangle, #the-blue-rectangle { color: green; }', //6
+        var worldCss = '.red { color: red;}'  //1
+                     + '.red.Box { color: purple;}'  //3
+                     + '.red.Box { color: yellow;}'  //4
+                     + '.yellow #the-red-rectangle {color: blue;}'  //7
+                     + '#the-red-rectangle,'
+                     + ' #the-red-rectangle,'
+                     + ' #the-blue-rectangle,'
+                     + ' #the-blue-rectangle { color: green; }', //6
             yellowCss = '.red { color: black;}'//2
-                +'.yellow, .yellow .red.Box { color: white;}', //5
-            getVal = function(rule) {
-                    return rule.declarations.first().values.first();
-                },
+                      + '.yellow, .yellow .red.Box { color: white;}', //5
             sortedRules;
+        function getVal(rule) {
+            return rule.declarations.first().values.first();
+        }
         this.world.setStyleSheet(worldCss);
         this.yellowRectangle.setStyleSheet(yellowCss);
 
@@ -625,12 +667,12 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 
     },
 
-
     test07GetAggregatedMatchingStyleSheetDeclarations: function() {
         var css = '.blue{ border-top-color: blue; }'+
                 '#blue2.blue { border-top-color: black; }'+
                 '.blue:nth-child(2) { border-top-color: yellow!important; }'+
                 '.red { color: red; border-top-color: green;}'+
+                '#the-red-rectangle.red { border-top-color: purple; }'+
                 '#the-red-rectangle { border: 1px solid red; }',
             getDecl = function(decls, property){
                     return decls.filter(function(d){
@@ -654,7 +696,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             redBackgroundColorValue = getDecl(redStyles, 'border-top-color'),
             redTextColorValue = getDecl(redStyles, 'color');
 
-        this.assertEquals('red', redBackgroundColorValue ,
+        this.assertEquals(13, redStyles.length, 'There need to be 13 styles applied for red rect');
+
+        this.assertEquals('purple', redBackgroundColorValue ,
             'border-top-color of red should be red');
         this.assertEquals('red', redTextColorValue ,
             'color of red should be red');
@@ -690,9 +734,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                     shorthand: 'border-color',
                     values: [ // only one value for this property
                     [3]]
-                },
+                }
             },
-        enhancedPropList = apps.cssParser.enhancePropList(propList);
+            enhancedPropList = apps.cssParser.enhancePropList(propList);
         this.assertEquals(0, enhancedPropList['background-color'].shorthands.length,
             'background-color should have no defined shorthands');
         this.assertEquals(0, enhancedPropList['background-color'].shorthandFor.length,
@@ -714,8 +758,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
                 return x === 'border-color';
             }),
             'border should be shorthand for border-color');
-
-
         this.assertEquals(2, enhancedPropList['border-bottom-color'].shorthands.length,
             'border-bottom-color should have 2 defined shorthands');
         this.assertEquals(0, enhancedPropList['border-bottom-color'].shorthandFor.length,
@@ -759,17 +801,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 
     },
     test09GenerateStyleSheetDeclarationOverrideList: function() {
-        var css = '.blue{ border-color: orange; }'+
-                '.blue.Box{ border-color: blue; }'+
-                '#blue2.blue { border: 1px solid black; }'+
-                '.blue.Box:nth-child(2) { border-color: yellow!important; }'+
-                '.red { color: red; border-color: green;}'+
-                '#the-red-rectangle { border-color: red; }',
-            getDecl = function(decls, property){
-                    return decls.filter(function(d){
-                            return (d.getProperty() === property)
-                        }).first().getValues().first();
-                };
+        var css = '.blue{ border-color: orange; }'
+                + '.blue.Box{ border-color: blue; }'
+                + '#blue2.blue { border: 1px solid black; }'
+                + '.blue.Box:nth-child(2) { border-color: yellow!important; }'
+                + '.red { color: red; border-color: green;}'
+                + '#the-red-rectangle { border-color: red; }';
+        function getDecl(decls, property){
+            return decls.filter(function(d) {
+                return (d.getProperty() === property)
+            }).first().getValues().first();
+        };
         this.world.setStyleSheet(css);
 
         var blue1Styles = this.blueRectangle1.getMatchingStyleSheetDeclarations(),
@@ -786,11 +828,11 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
 
     },
     test10GetStyleSheetDeclarationValue: function() {
-        var css = '.blue{ border-color-left: blue; }'+
-                '#blue2.blue { border-left-color: black; }'+
-                '.blue:nth-child(2) { border-left-color: yellow!important; }'+
-                '.red { color: red; border-left-color: green;}'+
-                '#the-red-rectangle { border: 1px solid red; }';
+        var css = '.blue{ border-color-left: blue; }'
+                + '#blue2.blue { border-left-color: black; }'
+                + '.blue:nth-child(2) { border-left-color: yellow!important; }'
+                + '.red { color: red; border-left-color: green;}'
+                + '#the-red-rectangle { border: 1px solid red; }';
         this.yellowRectangle.setStyleSheet(css);
         this.assertEquals('yellow',
             this.blueRectangle2.getStyleSheetDeclarationValue('border-left-color'),
@@ -813,6 +855,19 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
             '"19cm" should convert to 0');
         this.assertEquals(0, morph.convertLengthToPx('19'),
             '"19" should convert to 0');
+    },
+    test12GetStyleSheetBorderWidth: function() {
+        this.assertEquals(0, this.blueRectangle2.getStyleSheetBorderWidth(),
+            'Border width with out any set style sheet rules should be 0');
+
+        this.yellowRectangle.setStyleSheet('.blue{ border-width: 16px; }'+
+                '#blue2.blue { border-left-width: 4px; }');
+
+        this.assertEquals(16, this.blueRectangle1.getStyleSheetBorderWidth(),
+            'Border width of blue1 should be 18');
+
+        this.assertEquals(13, this.blueRectangle2.getStyleSheetBorderWidth(),
+            'Border width of blue2 should be 13 (average of 16, 16, 16, 4)');
     },
     test12SetParsedStyleSheet: function() {
         var sheet = new lively.morphic.StyleSheet([], this.redRectangle);
@@ -858,12 +913,11 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
             'test.test#test asdf.asdf#asdf should be specificity 222');
     },
     test03ParseStyleSheet: function() {
-        var styleSheet =
-                '.Morph {\n'+
-                '\tbackground: white !important;\n'+
-                '\tborder: 10px solid purple;\n'+
-                '}\n\n'+
-                '/* test */',
+        var styleSheet = '.Morph {\n'
+                       + '\tbackground: white !important;\n'
+                       + '\tborder: 10px solid purple;\n'
+                       + '}\n\n'
+                       + '/* test */',
             parsedStyleSheet = apps.cssParser.parse(styleSheet);
         this.assert(parsedStyleSheet.isStyleSheet,
             'Parsed style sheet is no lively style sheet object');
@@ -941,7 +995,10 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
             }, this);
     },
     test07ParseInlineComment: function () {
-        var styleSheet = '.Morph {\n' + '/* test */\n' + '}\n\n' + '/* test */',
+        var styleSheet = '.Morph {\n'
+                       + '/* test */\n'
+                       + '}\n\n'
+                       + '/* test */',
             parsedStyleSheet = apps.cssParser.parse(styleSheet);
         this.assert(parsedStyleSheet.isStyleSheet, 'Parsed style sheet is no lively style sheet object');
         this.assertEquals(2, parsedStyleSheet.getRules().length,
@@ -959,12 +1016,10 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
         this.assertEquals(styleSheet, parsedStyleSheet.getText(), 'CSS text output not as expected');
     },
     test08KeepCommaSeparatedValues: function() {
-        var styleSheet =
-                '.Morph{'+
-                'font-family: Arial, Helvetica;'+
-                'text-shadow: 1px 1px black, 1px 1px black;'+
-                '}',
-
+        var styleSheet = '.Morph{'
+                       + 'font-family: Arial, Helvetica;'
+                       + 'text-shadow: 1px 1px black, 1px 1px black;'
+                       + '}',
             parsedStyleSheet = apps.cssParser.parse(styleSheet),
             fontFamilyDecl = parsedStyleSheet.getRules().first().getDeclarations().first(),
             textShadowDecl = parsedStyleSheet.getRules().first().getDeclarations().last();
@@ -976,7 +1031,6 @@ TestCase.subclass('lively.morphic.tests.StyleSheets.CSSRuleInterface',
             textShadowDecl.getText(),
             'Text shadow declaration values should not be split');
     }
-
 
 });
 

@@ -44,7 +44,7 @@ Object.extend(Number.prototype, {
 // Global Helper - Numbers
 ///////////////////////////////////////////////////////////////////////////////
 
-Numbers = {
+Global.Numbers = {
 
     random: function(min, max) {
         // both min and max are included

@@ -167,7 +167,7 @@ Object.subclass('lively.ast.DFAScope',
             res.pushAll(s.allGlobalDefs());
         });
         return res;
-    },
+    }
 });
 
 Object.subclass('lively.ast.VariableAnalyzer',

@@ -303,12 +303,12 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
 TestCase.subclass('TouchEventsTest',
 'default category', {
     testRegisterForGestureEvents: function() {
-        var m = Morph.makeRectangle(0,0,100,100);
+        var m = lively.morphic.Morph.makeRectangle(0,0,100,100);
         var eventHandlerKeys = Properties.own(m.eventHandler.dispatchTable);
         this.assert(eventHandlerKeys.include("gesturestart"), "No gesturestart")
     },
     testUnregisterFromGestureEvents: function() {
-        var m = Morph.makeRectangle(0,0,100,100);
+        var m = lively.morphic.Morph.makeRectangle(0,0,100,100);
         var eventHandlerKeys = Properties.own(m.eventHandler.dispatchTable);
         m.unregisterFromGestureEvents();
         var gestureNodeFound = 0;
@@ -2469,7 +2469,7 @@ lively.morphic.Morph.subclass('lively.morphic.PieMenu',
                 pt(x1,y1)
             ]
             var color = halos[i].getFill() === null ? null : halos[i].getFill();
-            var p = Morph.makePolygon(v, 1, Color.rgb(66,66,66), color);
+            var p = lively.morphic.Morph.makePolygon(v, 1, Color.rgb(66,66,66), color);
             p.setOrigin(pt(0,0));
             p.addMorph(halos[i]);
             halos[i].setBorderWidth(0);
@@ -2836,7 +2836,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
     },
 
     showRectOnTopOfPage: function() {
-        var morph = Morph.makeRectangle(0,0,980,50);
+        var morph = lively.morphic.Morph.makeRectangle(0,0,980,50);
         morph.disableSelection();
         var that = this;
         morph.name = "ConnectionDialog";

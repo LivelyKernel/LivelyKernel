@@ -31,11 +31,11 @@
  *  to be overridden.
  */
 
-;(function setupUserAgent(Global) {
+;(function setupUserAgent() {
 
     var webKitVersion = (function() {
         if (!window.navigator) return 0;
-        var match = navigator.userAgent.match(/.*AppleWebKit\/(\d+).*/);
+        var match = window.navigator.userAgent.match(/.*AppleWebKit\/(\d+).*/);
         return match ? parseInt(match[1]) : 0;
     })();
 
@@ -84,24 +84,30 @@
 
         isMacOS: window.navigator && window.navigator.platform.startsWith("Mac"),
 
-        isTouch: window.navigator && (window.navigator.platform == "iPhone" || window.navigator.platform == "iPad" || window.navigator.platform == "iPod"),
+        isTouch: window.navigator
+              && (window.navigator.platform == "iPhone"
+                || window.navigator.platform == "iPad"
+                || window.navigator.platform == "iPod"),
 
-        touchIsMouse: false
+        touchIsMouse: false,
+
+        isNodejs: // typeof window === "undefined" &&
+            Global.process && !!Global.process.versions.node
 
     }
 
-})(window);
+})();
 
 
 //--------------------------
 // Determine runtime behavior based on UA capabilities and user choices
 // (can be overriden in localconfig.js)
 // --------------------------
-(function savePreBootstrapConfig(Global) {
+(function savePreBootstrapConfig() {
     Global.ExistingConfig = Global.Config;
-})(window);
+})();
 
-var Config = {
+Global.Config = {
 
     _options: {},
 
@@ -144,10 +150,12 @@ var Config = {
     },
 
     urlQueryOverride: function() {
+        if (Global.UserAgent.isNodejs) return;
         var queries = document.URL.toString().toQueryParams();
         for (var name in queries) {
             if (!this.hasOption(name)) continue;
             var value = queries[name];
+            if (value === "false") value = false;
             if (this.get(name) === value) continue;
             console.log('Overriding lively.Config.' + name + ' with ' + value);
             this.set(name, value);
@@ -193,9 +201,22 @@ var Config = {
     // helper methods
     getDocumentDirectory: function() {
         // used in various places
-        var url = document.URL;
-        return url.substring(0, url.lastIndexOf('/') + 1);
+        return JSLoader.currentDir();
     },
+
+    location: (function setupLocation() {
+        if (typeof document !== "undefined") return document.location;
+        var url = JSLoader.currentDir(),
+            match = url.match(/(^[^:]+:)[\/]+([^/]+).*/),
+            protocol = match[1],
+            host = match[2];
+        return {
+            toString: function() { return url },
+            valueOf: function() { return url },
+            protocol: protocol,
+            host: host
+        }
+    })(),
 
     // debugging
     allOptionNames: function() {
@@ -330,164 +351,161 @@ var Config = {
 
 (function addConfigOptions(Config, UserAgent, ExistingConfig) {
 
-Config.addOptions(
-    "cop", [
-        ["copDynamicInlining", false, "Dynamically compile layered methods for improving their execution performance ."],
-        ['ignoredepricatedProceed', true]
-    ],
+    Config.addOptions(
+        "cop", [
+            ["copDynamicInlining", false, "Dynamically compile layered methods for improving their execution performance ."],
+            ['ignoredepricatedProceed', true]
+        ],
 
-    'lively.Config', [
-        ['trackUsage', false, 'to inspect how and where the Config was accessed and modified']
-    ],
+        'lively.Config', [
+            ['trackUsage', false, 'to inspect how and where the Config was accessed and modified']
+        ],
 
-    'lively.Network', [
-        ["proxyURL", null, "URL that acts as a proxy for network operations"],
-        ["rootPath", null, "URL that points at the base directory of the current Lively installation"]
-    ],
+        'lively.Network', [
+            ["proxyURL", null, "URL that acts as a proxy for network operations"],
+            ["rootPath", null, "URL that points at the base directory of the current Lively installation"]
+        ],
 
-    'server.nodejs', [
-        ["nodeJSURL", document.location.protocol + '//' + document.location.host + '/nodejs'],
-        ["nodeJSPath", '/home/nodejs/']
-    ],
+        'server.nodejs', [
+            ["nodeJSURL", Config.location.protocol + '//' + Config.location.host + '/nodejs'],
+            ["nodeJSPath", '/home/nodejs/']
+        ],
 
-    'lively.persistence', [
-        ["ignoreClassNotFound", true, "if a class is not found during deserializing a place holder object can be created instead of raising an error"],
-        ["silentFailOnWrapperClassNotFound", true, "DEPRECATED old serialization logic"],
-        ["ignoreLoadingErrors", true],
-        ["ignoreMissingModules", false],
-        // This is for Persistence.js (ask Martin).
-        ["keepSerializerIds", false]
-    ],
+        'lively.persistence', [
+            ["ignoreClassNotFound", true, "if a class is not found during deserializing a place holder object can be created instead of raising an error"],
+            ["silentFailOnWrapperClassNotFound", true, "DEPRECATED old serialization logic"],
+            ["ignoreLoadingErrors", true],
+            ["ignoreMissingModules", false],
+            // This is for Persistence.js (ask Martin).
+            ["keepSerializerIds", false],
+            ["createWorldPreview", true, "Whether to store an HTML document showing a static version of the serialized world."]
+        ],
 
-    'lively.bindings', [
-        ["selfConnect", false, "DEPRECATED! some widgets self connect to a private model on startup, but it doesn't seem necessary, turn on to override"],
-        ["debugConnect", false, "For triggering a breakpoint when an connect update throws an error"],
-        ["visualConnectEnabled", false, "Show data-flow arrows when doing a connect using the UI."]
-    ],
+        'lively.bindings', [
+            ["selfConnect", false, "DEPRECATED! some widgets self connect to a private model on startup, but it doesn't seem necessary, turn on to override"],
+            ["debugConnect", false, "For triggering a breakpoint when an connect update throws an error"],
+            ["visualConnectEnabled", false, "Show data-flow arrows when doing a connect using the UI."]
+        ],
 
-    'lively.morphic', [
-        ['isNewMorphic', true, 'Deprecated option, defaults to true. Used in 2011 when Lively2 was being developed.'],
-        ['shiftDragForDup', true, 'Allows easy object duplication using the Shift key.'],
-        ["usePieMenus", UserAgent.isTouch],
-        ["useTransformAPI", (!UserAgent.isOpera) && UserAgent.usableTransformAPI, "Use the browser's affine transforms"],
+        'lively.morphic', [
+            ['isNewMorphic', true, 'Deprecated option, defaults to true. Used in 2011 when Lively2 was being developed.'],
+            ['shiftDragForDup', true, 'Allows easy object duplication using the Shift key.'],
+            ["usePieMenus", UserAgent.isTouch],
+            ["useTransformAPI", (!UserAgent.isOpera) && UserAgent.usableTransformAPI, "Use the browser's affine transforms"],
 
-        ["nullMoveAfterTicks", false, "For the engine/piano demo (and any other simulation interacting with unmoving mouse) it is necessary to generate a mouseMove event after each tick set this true in localconfig if you need this behavior"],
+            ["nullMoveAfterTicks", false, "For the engine/piano demo (and any other simulation interacting with unmoving mouse) it is necessary to generate a mouseMove event after each tick set this true in localconfig if you need this behavior"],
 
-        ["askBeforeQuit", true, "Confirm system shutdown from the user"],
+            ["askBeforeQuit", true, "Confirm system shutdown from the user"],
 
-        ["useShadowMorphs", true],
+            ["useShadowMorphs", true],
 
-        ["loadSerializedSubworlds", false, "load serialized worlds instead of building them from Javascript"],
+            ["loadSerializedSubworlds", false, "load serialized worlds instead of building them from Javascript"],
 
-        ["personalServerPort", 8081, "where the local web server runs"],
+            ["personalServerPort", 8081, "where the local web server runs"],
 
-        ["resizeScreenToWorldBounds", false],
+            ["resizeScreenToWorldBounds", false],
 
-        ["changeLocationOnSaveWorldAs", false],
+            ["changeLocationOnSaveWorldAs", false],
 
-        ["alignToGridSpace", 10, "determins the pixels to snap to during shift dragging with mouse"],
+            ["alignToGridSpace", 10, "determins the pixels to snap to during shift dragging with mouse"],
 
-        // Tests
-        ["serverInvokedTest", false],
+            // Tests
+            ["serverInvokedTest", false],
 
-        // Modules
-        ["modulesBeforeChanges", ['lively.ChangeSet'], "evaluated first, even before ChangeSet of a world"],
-        ["modulesBeforeWorldLoad", [], "evaluated before all changes"],
-        ["modulesOnWorldLoad", [], "evaluated before ChangeSet initializer"],
-        ["codeBase", Config.codeBase && Config.codeBase != '' ? Config.codeBase : Config.getDocumentDirectory()],
-        ["showModuleDefStack", true, "so modules know where they were required from"],
-        ["loadUserConfig", false, "for sth like jens/config.js, used in lively.bootstrap"],
-        ["modulePaths", [], "root URLs of module lookup"],
+            // Modules
+            ["modulesBeforeWorldLoad", [], "evaluated before all changes"],
+            ["modulesOnWorldLoad", [], "evaluated before world is setup"],
+            ["codeBase", Config.codeBase && Config.codeBase != '' ? Config.codeBase : Config.getDocumentDirectory()],
+            ["showModuleDefStack", true, "so modules know where they were required from"],
+            ["loadUserConfig", false, "for sth like jens/config.js, used in lively.bootstrap"],
+            ["modulePaths", [], "root URLs of module lookup"],
 
-        ["disableScriptCaching", false],
-        ["defaultDisplayTheme", 'lively'],
+            ["disableScriptCaching", false],
+            ["defaultDisplayTheme", 'lively'],
 
-        ["onWindowResizeUpdateWorldBounds", true],
-        ["disableNoConsoleWarning", false],
+            ["onWindowResizeUpdateWorldBounds", true],
+            ["disableNoConsoleWarning", false],
 
-        ["confirmNavigation", false, "don't show confirmation dialog when navigating a link"],
-        ["useAltAsCommand", false, "User Platform Keys (Ctrl und Windows and Meta under Mac as command key)"],
+            ["confirmNavigation", false, "don't show confirmation dialog when navigating a link"],
+            ["useAltAsCommand", false, "User Platform Keys (Ctrl und Windows and Meta under Mac as command key)"],
 
-        ["pageNavigationName", "nothing"],
-        ["pageNavigationWithKeys", true, "boy, that's ugly!!!"],
-        ["showPageNumber", true],
+            ["pageNavigationName", "nothing"],
+            ["pageNavigationWithKeys", true, "boy, that's ugly!!!"],
+            ["showPageNumber", true],
 
-        ["useFlattenedHTMLRenderingLayer", true],
-        ["useDelayedHTMLRendering", false],
+            ["useFlattenedHTMLRenderingLayer", true],
+            ["useDelayedHTMLRendering", false],
 
-        // this part is for the CodeDB extension using CouchDB
-        ["couchDBURL", document.location.protocol + '//' + document.location.host + '/couchdb'],
-        ["defaultCodeDB", 'code_db'],
-        ["wikiRepoUrl", null],
+            // this part is for the CodeDB extension using CouchDB
+            ["couchDBURL", Config.location.protocol + '//' + Config.location.host + '/couchdb'],
+            ["defaultCodeDB", 'code_db'],
+            ["wikiRepoUrl", null],
 
-        ["forceHTML", false],
+            ["forceHTML", false],
 
-        ["userNameURL", document.location.protocol + '//' + document.location.host + '/cgi/user.sh'],
+            ["userNameURL", Config.location.protocol + '//' + Config.location.host + '/cgi/user.sh'],
 
-        ["lessAnnoyingWorldStatusMessages", true]
-    ],
+            ["lessAnnoyingWorldStatusMessages", true]
+        ],
 
-    'lively.morphic.Events', [
-        ["useMetaAsCommand", false, "Use the meta modifier (maps to Command on the Mac) instead of alt"],
-        ["showGrabHalo", false, "enable grab halo (alternative to shadow) on objects in the hand."],
-        ["hideSystemCursor", !(ExistingConfig && ExistingConfig.isNewMorphic)],
-        ["handleOnCapture", true],
-        ["globalGrabbing", true],
-        ["touchBeMouse", UserAgent.isTouch]
-    ],
+        'lively.morphic.Events', [
+            ["useMetaAsCommand", false, "Use the meta modifier (maps to Command on the Mac) instead of alt"],
+            ["showGrabHalo", false, "enable grab halo (alternative to shadow) on objects in the hand."],
+            ["hideSystemCursor", false],
+            ["handleOnCapture", true],
+            ["globalGrabbing", true],
+            ["touchBeMouse", UserAgent.isTouch]
+        ],
 
-    'lively.morphic.Debugging', [
-        ["ignoreAdvice", UserAgent.isRhino, "Ignore function logging through the prototype.js wrap mechanism rhino will give more useful exception info"],
-        ["showLivelyConsole", false, "Open up our console"],
-        ["debugExtras", false, "Enable advanced debugging options"],
-        ["advancedSyntaxHighlighting", false, "Enable ast-based source code highlighting and error checking"],
-        ["verboseLogging", false, "Whether to make logging/alerting highly visible in the UI"]
-    ],
+        'lively.morphic.Debugging', [
+            ["ignoreAdvice", UserAgent.isRhino, "Ignore function logging through the prototype.js wrap mechanism rhino will give more useful exception info"],
+            ["showLivelyConsole", false, "Open up our console"],
+            ["debugExtras", false, "Enable advanced debugging options"],
+            ["advancedSyntaxHighlighting", true, "Enable ast-based source code highlighting and error checking"],
+            ["verboseLogging", false, "Whether to make logging/alerting highly visible in the UI"]
+        ],
 
-    'lively.morphic.Text', [
-        ["fontMetricsFromHTML", UserAgent.usableHTMLEnvironment, "Derive font metrics from (X)HTML"],
-        ["fontMetricsFromSVG", false, "Derive font metrics from SVG"],
-        ["fakeFontMetrics", !UserAgent.usableHTMLEnvironment, "Try to make up font metrics entirely (can be overriden to use the native SVG API, which rarely works)"],
-        ["showMostTyping", true, "Defeat bundled type-in for better response in short strings"],
-        // Until we're confident
-        ["showAllTyping", true, "Defeat all bundled type-in for testing"],
-        ["useSoftTabs", true],
-        ["disableSyntaxHighlighting", false],
-        ["textUndoEnabled", false, "wether Lively takes care of undoing text changes or leaves it to the browser"],
-        ['defaultCodeFontSize', 10, "In which pt size code appears."],
-        ['autoIndent', true, "Automatically indent new lines."]
-    ],
-    "lively.PartsBin", [
-        ["PartCachingEnabled", true, "Whether parts are cached after they are loaded the first time"]
-    ]
-);
+        'lively.morphic.Text', [
+            ["fontMetricsFromHTML", UserAgent.usableHTMLEnvironment, "Derive font metrics from (X)HTML"],
+            ["fontMetricsFromSVG", false, "Derive font metrics from SVG"],
+            ["fakeFontMetrics", !UserAgent.usableHTMLEnvironment, "Try to make up font metrics entirely (can be overriden to use the native SVG API, which rarely works)"],
+            ["showMostTyping", true, "Defeat bundled type-in for better response in short strings"],
+            // Until we're confident
+            ["showAllTyping", true, "Defeat all bundled type-in for testing"],
+            ["useSoftTabs", true],
+            ["disableSyntaxHighlighting", false],
+            ["textUndoEnabled", false, "wether Lively takes care of undoing text changes or leaves it to the browser"],
+            ['defaultCodeFontSize', 10, "In which pt size code appears."],
+            ['autoIndent', true, "Automatically indent new lines."]
+        ],
 
-})(Config, UserAgent, ExistingConfig);
+        'lively.morphic.StyleSheets', [
+            ["baseThemeStyleSheetURL", ((ExistingConfig && ExistingConfig.codeBase) || Config.getDocumentDirectory()) + (UserAgent.isTouch? 'styles/ipad_theme.css' : 'styles/base_theme.css'), "The base theme CSS file location"]
+        ],
 
+        "lively.PartsBin", [
+            ["PartCachingEnabled", true, "Whether parts are cached after they are loaded the first time"]
+        ]);
 
-(function addOptionsFromPreBootstrapConfig(Global) {
+})(Global.Config, Global.UserAgent, Global.ExistingConfig);
 
-    var ExistingConfig = Global.ExistingConfig;
-
+(function addOptionsFromPreBootstrapConfig(ExistingConfig, NewConfig) {
     if (!ExistingConfig) return;
-
     for (var name in ExistingConfig) {
         var value = ExistingConfig[name];
-        if (Config.hasOption(name)) {
-            Config.set(name, value)
+        if (NewConfig.hasOption(name)) {
+            NewConfig.set(name, value)
         } else {
-            Config.addOption(name, value, null, 'pre-bootstrap config option');
+            NewConfig.addOption(name, value, null, 'pre-bootstrap config option');
         }
     }
-
     delete Global.ExistingConfig;
+})(Global.ExistingConfig, Global.Config);
 
-})(window);
-
-(function addConfigToLivelyNS(Global) {
+(function addConfigToLivelyNS() {
     var lively = Global.lively = Global.lively || {};
     lively.Config = Global.Config;
-})(window);
+})();
 
 (function setupTracking() {
     if (lively.Config.get('trackUsage')) {

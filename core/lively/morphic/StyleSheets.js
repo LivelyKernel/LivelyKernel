@@ -1,160 +1,280 @@
-module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssParser', 'lively.morphic.StyleSheetRepresentation').toRun(function () {
+module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'lively.morphic.Widgets', 'apps.cssParser', 'lively.morphic.StyleSheetRepresentation', 'lively.morphic.StyleSheetsHTML').toRun(function () {
 
-    lively.morphic.Shapes.Shape.addMethods('Styling', {
-        setAppearanceStylingMode: function (value) {
-            return this.shapeSetter('AppearanceStylingMode', value);
-        },
-        getAppearanceStylingMode: function () {
-            return this.shapeGetter('AppearanceStylingMode');
-        },
+// This module defines general support for CSS in Lively. Stylesheet rules are
+// mapped to the Morphic scene graph. A general stylesheet can be applied that
+// will target all morphs in the scene graph. Morphs can also define own
+// stylesheets whose rules scoped to them and their submorphs.
+//
+// The first part of this module defines accessors for morphic stylesheet
+// rules and convenience methods for working with stylsheets. The second part
+// defines lively.morphic.Sizzle, a CSS selector engine implementation based
+// on http://sizzlejs.com/ that maps sizzle rules to the Morphic scene graph.
 
-        setBorderStylingMode: function (value) {
-            return this.shapeSetter('BorderStylingMode', value);
-        },
-        getBorderStylingMode: function () {
-            return this.shapeGetter('BorderStylingMode');
-        }
+(function loadBaseThemeOnWorldLoad() {
+    // Load the base theme when the world is loaded
+    Config.finishLoadingCallbacks.push(function(world) {
+        world.loadBaseTheme(Config.baseThemeStyleSheetURL, '');
     });
+})();
 
-    lively.morphic.World.addMethods('CSS editor', {
-        openWorldCSSEditor: function () {
-            return this.openPartItem('WorldCSS', 'PartsBin/Tools');
+lively.morphic.Shapes.Shape.addMethods('Styling', {
+    setAppearanceStylingMode: function (value) {
+        return this.shapeSetter('AppearanceStylingMode', value);
+    },
+    getAppearanceStylingMode: function () {
+        return this.shapeGetter('AppearanceStylingMode');
+    },
+
+    setBorderStylingMode: function (value) {
+        return this.shapeSetter('BorderStylingMode', value);
+    },
+    getBorderStylingMode: function () {
+        return this.shapeGetter('BorderStylingMode');
+    }
+});
+
+Trait('lively.morphic.WorldStyleSheetTrait',
+'convenience functions', {
+    openWorldCSSEditor: function () {
+        return this.openPartItem('WorldCSS', 'PartsBin/Tools');
+    }
+},
+'menu items', {
+    morphMenuItems: lively.morphic.World.prototype.morphMenuItems.wrap(function (proceed) {
+        var items = proceed();
+        for (var i = 0; i < items.length; i++) {
+            if (items[i][0] === "Preferences") {
+                items[i][1].push(['Edit world CSS', this.openWorldCSSEditor.bind(this)]);
+            }
         }
-    });
+        return items;
+    })
+}).applyTo(lively.morphic.World, {
+    override: 'morphMenuItems'
+});
 
-    lively.morphic.Morph.addMethods('Style sheet getters and setters', {
-        cssIsEnabled: true,
+lively.morphic.Morph.addMethods(
+'Style sheet getters and setters', {
 
-        getAppearanceStylingMode: function () {
-            return this.shape.getAppearanceStylingMode();
-        },
-        setAppearanceStylingMode: function (value) {
-            // TRUE when appearance is styled through style sheets,
-            // FALSE when appearance is styled through style dialog
-            this.shape.setAppearanceStylingMode(value);
-        },
-        setBorderStylingMode: function (value) {
-            // TRUE when border is styled through style sheets,
-            // FALSE when border is styled through style dialog
-            this.shape.setBorderStylingMode(value);
-        },
-        getBorderStylingMode: function () {
-            return this.shape.getBorderStylingMode();
-        },
-        setStyleSheet: function (styleSheet) {
-            if(styleSheet.isStyleSheet) {
-                return this.setParsedStyleSheet(styleSheet);
-            } else if(typeof (styleSheet) === 'string' && styleSheet.length > 0) {
-                var parsedStyleSheet = apps.cssParser.parse(styleSheet, this);
-                return this.setParsedStyleSheet(parsedStyleSheet);
-            } else {
-                return this.setParsedStyleSheet();
-            }
-        },
-        setParsedStyleSheet: function (styleSheet) {
-            if(styleSheet && styleSheet.isStyleSheet) {
-                styleSheet.setOriginMorph(this);
-                return this.morphicSetter('StyleSheet', styleSheet);
-            } else {
-                this.morphicSetter('StyleSheet', null);
-                delete this._StyleSheet;
-            }
-        },
+    cssIsEnabled: true,
+
+    getAppearanceStylingMode: function () {
+        return this.shape.getAppearanceStylingMode();
+    },
+    setAppearanceStylingMode: function (value) {
+        // TRUE when appearance is styled through style sheets,
+        // FALSE when appearance is styled through style dialog
+        this.shape.setAppearanceStylingMode(value);
+    },
+    setBorderStylingMode: function (value) {
+        // TRUE when border is styled through style sheets,
+        // FALSE when border is styled through style dialog
+
+        // Preserve previous border width
+        if (value) {
+            this['_PreviousBorderWidth'] = this.getBorderWidth();
+        }
+        this.shape.setBorderStylingMode(value);
+        this.adaptBorders();
+        if (!value && this['_PreviousBorderWidth'] >= 0) {
+            this.setBorderWidth(this['_PreviousBorderWidth']);
+            delete this['_PreviousBorderWidth'];
+        }
+    },
+    getBorderStylingMode: function () {
+        return this.shape.getBorderStylingMode();
+    },
+    setStyleSheet: function (styleSheet) {
+        if (styleSheet.isStyleSheet) {
+            return this.setParsedStyleSheet(styleSheet);
+        }
+        if (typeof (styleSheet) === 'string' && styleSheet.length > 0) {
+            var parsedStyleSheet = apps.cssParser.parse(styleSheet, this);
+            return this.setParsedStyleSheet(parsedStyleSheet);
+        }
+        return this.setParsedStyleSheet();
+    },
+    setBaseThemeStyleSheet: function(styleSheet) {
+        if (styleSheet.isStyleSheet) {
+            return this.setParsedBaseThemeStyleSheet(styleSheet);
+        }
+        if (typeof (styleSheet) === 'string' && styleSheet.length > 0) {
+            var parsedStyleSheet = apps.cssParser.parse(styleSheet, this);
+            return this.setParsedBaseThemeStyleSheet(parsedStyleSheet);
+        }
+        return this.setParsedBaseThemeStyleSheet();
+    },
+
+    setParsedStyleSheet: function (styleSheet) {
+        if (styleSheet && styleSheet.isStyleSheet) {
+            styleSheet.setOriginMorph(this);
+            this.morphicSetter('StyleSheet', styleSheet);
+            this.adaptBorders();
+        } else {
+            this.morphicSetter('StyleSheet', null);
+            this.adaptBorders();
+            delete this._StyleSheet;
+        }
+    },
+
+    setParsedBaseThemeStyleSheet: function(styleSheet) {
+        if (styleSheet && styleSheet.isStyleSheet) {
+            styleSheet.setOriginMorph(this);
+            styleSheet.isBaseTheme = true;
+            // Do not use the morphic setter here, since we
+            // don't want the base theme to be serialized.
+            this.$$baseThemeStyleSheet = styleSheet;
+            this.doNotSerialize.pushIfNotIncluded('$$baseThemeStyleSheet');
+            this.renderContextDispatch('setBaseThemeStyleSheet', styleSheet);
+            this.adaptBorders();
+        } else {
+            this.renderContextDispatch('setBaseThemeStyleSheet', null);
+            this.adaptBorders();
+            delete this.$$baseThemeStyleSheet;
+        }
+    },
+
     updateStyleSheet: function() {
         // Call this method if your style sheet has changed, but the DOM isn't up to date yet
         this.setParsedStyleSheet(this.getParsedStyleSheet());
     },
 
-        loadStyleSheetFromFile: function(file, resourcePath) {
-            // cs: refactored to make it usable with https
-            // use the resourcePath parameter if the resources addressed
-            // in the CSS file are in a different directory than the CSS'.
-            // (use "" to leave the urls untouched)
-            var url = URL.ensureAbsoluteURL(file);
-            var webR = url.asWebResource();
-            webR.forceUncached();
-            if (webR.get().status.isSuccess()) {
-                // add resource path to all relative urls in the css
-                var css = webR.content;
-                var resPath = resourcePath || url.getDirectory();
-                css = css.replace(/url\([\s]*\'(?![\s]*http)/g, "url('" + resPath)
-                         .replace(/url\([\s]*\"(?![\s]*http)/g, 'url("' + resPath)
-                         .replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, "url(" + resPath);
-                // insert line breaks so the css is more legible
-                css = css.replace(/\;(?![\s]*(\r\n|\n|\r))/g, ";\n")
-                         .replace(/\}(?![\s]*(\r\n|\n|\r))/g, "}\n")
-                         .replace(/\{(?![\s]*(\r\n|\n|\r))/g, "{\n");
-                this.setStyleSheet(css);
-            } else {
-                throw new Error("Couldn't load stylesheet at " + file + " --> " + webR.status.code());
-            }
-            return {status: webR.status.code(), responseText: webR.content};
-        },
-        getStyleSheet: function () {
-            var styleSheet = this.getParsedStyleSheet();
-            return styleSheet ? styleSheet.getText() : null;
-        },
-        getParsedStyleSheet: function () {
-            return this.morphicGetter('StyleSheet');
-        },
-        getStyleSheetRules: function () {
-            // Extracts the CSS rules out of a style sheet.
-            // Returns the rules as an array.
-            var styleSheet = this.getParsedStyleSheet();
-            return(styleSheet && styleSheet.getRules) ? styleSheet.getRules() : [];
-        }
+    loadStyleSheetFromFile: function(file, resourcePath) {
+        // cs: refactored to make it usable with https
+        // use the resourcePath parameter if the resources addressed
+        // in the CSS file are in a different directory than the CSS'.
+        // (use "" to leave the urls untouched)
+        var css = this.loadCSSFile(file, resourcePath);
+        if (!css) return false;
+        this.setStyleSheet(css);
+        return true;
     },
-    'Style sheet interpretation', {
+    loadCSSFile: function(file, resourcePath) {
+        // Use the resourcePath parameter if the resources addressed
+        // in the CSS file are in a different directory than the CSS'.
+        // (use "" to leave the urls untouched)
+        var url = URL.ensureAbsoluteURL(file),
+            webR = url.asWebResource();
+        webR.forceUncached();
+        if (!webR.get().status.isSuccess()) {
+            throw new Error("Couldn't load stylesheet at " + file + " --> " + webR.status.code());
+        }
+        var css = webR.content,
+            resPath = resourcePath || url.getDirectory();
+        // add resource path to all relative urls in the css
+        return this.makeResourceURLsAbsolute(css, resPath);
+    },
 
-        getAggregatedMatchingStyleSheetDeclarations: function () {
-            // Returns the morph's aggregated style declarations
-            // from all applicable css rules.
-            //
-            // Comes as an array of lively.morphic.StyleSheetDeclarations
+    loadBaseTheme: function(file, resourcePath) {
+        var css = this.loadCSSFile(file || Config.baseThemeStyleSheetURL, resourcePath);
+        if (!css) return false;
+        this.setBaseThemeStyleSheet(css);
+        return true;
+    },
 
-            var aggregatedStyle = {},
+    makeResourceURLsAbsolute: function(css, resPath) {
+        if (!css) return '';
+        if (!resPath || resPath.length < 1) return css;
+        return css.replace(/url\([\s]*\'(?![\s]*http)/g, "url('" + resPath)
+               .replace(/url\([\s]*\"(?![\s]*http)/g, 'url("' + resPath)
+               .replace(/url\((?![\s]*[\'|\"])(?![\s]*http)/g, "url(" + resPath);
+    },
+
+    getStyleSheet: function () {
+        var styleSheet = this.getParsedStyleSheet();
+        return styleSheet ? styleSheet.getText() : null;
+    },
+
+    getBaseThemeStyleSheet: function () {
+        var styleSheet = this.getParsedBaseThemeStyleSheet();
+        return styleSheet ? styleSheet.getText() : null;
+    },
+
+    getParsedStyleSheet: function () {
+        return this.morphicGetter('StyleSheet');
+    },
+    getParsedBaseThemeStyleSheet: function() {
+        return this.$$baseThemeStyleSheet || null;
+    },
+
+    getStyleSheetRules: function () {
+        // Extracts the CSS rules out of a style sheet.
+        // Returns the rules as an array.
+        var styleSheet = this.getParsedStyleSheet(),
+            // Include the base theme rules (in case the morph is a world)
+            baseTheme = this.getParsedBaseThemeStyleSheet(),
+            result = [];
+        // List the base theme rules first so they can be
+        // overridden by the rules defined in the world
+        if (baseTheme && baseTheme.isStyleSheet) {
+            result = result.concat(baseTheme.getRules());
+        }
+        if (styleSheet && styleSheet.isStyleSheet) {
+            result = result.concat(styleSheet.getRules());
+        }
+        return result;
+    }
+},
+'Style sheet interpretation', {
+
+    getAggregatedMatchingStyleSheetDeclarations: function () {
+        // Returns the morph's aggregated style declarations
+        // from all applicable css rules.
+        //
+        // Comes as an array of lively.morphic.StyleSheetDeclarations
+
+        var aggregatedStyle = {},
             rules = this.getMatchingStyleSheetRules(),
-                result = [];
+            result = [];
 
-            // iterate over the ordered rules
-            for(var i = 0; i < rules.length; i++) {
-                var rule = rules[i];
-                rule.getDeclarations()
-                    // Expand declarations to include shorthands
-                    .reduce(function(prev, decl) {
-                            return prev.concat(decl.isStyleSheetShorthandDeclaration ?
-                                decl.getDeclarations() : decl);
-                        }, [])
-                    // Aggregate and override declarations
-                    .each(function (decl) {
-                        if(aggregatedStyle[decl.getProperty()]
-                            && aggregatedStyle[decl.getProperty()].getPriority()
-                            && !decl.getPriority()) {
-                            // if the declaration is more '!important' than
-                            // the more specific one, do not override
-                        } else {
-                            // otherwise override declarations from less specific rules
-                            aggregatedStyle[decl.getProperty()] = decl;
-                        }
-                    });
-            }
-            for(var x in aggregatedStyle) {
-                result.push(aggregatedStyle[x]);
-            }
-            return result;
-        },
-        getMatchingStyleSheetDeclarations: function () {
-            // Returns the all of the morph's style declarations
-            // from all applicable css rules.
-            //
-            // Comes as an array of lively.morphic.StyleSheetDeclarations
+        // iterate over the ordered rules
+        for(var i = 0; i < rules.length; i++) {
+            var rule = rules[i];
+            rule.getDeclarations()
+                // Expand declarations to include shorthands
+                .reduce(function(prev, decl) {
+                        return prev.concat(decl.isStyleSheetShorthandDeclaration ?
+                            decl.getDeclarations() : decl);
+                    }, [])
+                // Aggregate and override declarations
+                .each(function (decl) {
+                    if (aggregatedStyle[decl.getProperty()]
+                        && aggregatedStyle[decl.getProperty()].getPriority()
+                        && !decl.getPriority()) {
+                        // if the declaration is more '!important' than
+                        // the more specific one, do not override
+                    } else {
+                        // otherwise override declarations from less specific rules
+                        aggregatedStyle[decl.getProperty()] = decl;
+                    }
+                });
+        }
+        for (var x in aggregatedStyle) { result.push(aggregatedStyle[x]); }
+        return result;
+    },
+    getMatchingStyleSheetDeclarations: function () {
+        // Returns the all of the morph's style declarations
+        // from all applicable css rules.
+        //
+        // Comes as an array of lively.morphic.StyleSheetDeclarations
+        var rules = this.getMatchingStyleSheetRules();
+        return rules.reduce(function (prev, rule) {
+            return prev.concat(rule.getDeclarations()); }, []);
+    },
+    getStyleSheetBorderWidth: function() {
+        var borderWidthDecls = this.getAggregatedMatchingStyleSheetDeclarations().select(
+                function(d) {
+                    var p = d.getProperty();
+                    return p.indexOf('border') >= 0 && p.indexOf('width') >= 0;
+                }),
+            convert = this.convertLengthToPx;
+        if (borderWidthDecls.length === 0) return 0;
+        // No support for left-top-right-bottom separation yet, so we just take the average
+        var borderWidth = borderWidthDecls.reduce(function(prev, decl, i, a) {
+            return prev + convert(decl.getValues().first()) / a.length; }, 0);
+        return borderWidth;
+    },
 
-            var rules = this.getMatchingStyleSheetRules();
-
-            return rules.reduce(function (prev, rule) {
-                return prev.concat(rule.getDeclarations());
-            }, []);
-        },
     getStyleSheetDeclarationValue: function(property) {
         // Returns the value of a CSS property as applied to the morph.
         // I.e. getStyleSheetDeclarationValue('border-width-left') returns '10px'
@@ -163,186 +283,177 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         var decls = this.getAggregatedMatchingStyleSheetDeclarations(),
             normalizedProperty = property.toLowerCase().trim(),
             matchingDecl = decls.find(function(x) {
-                    // For shorthands check all of their atomar declarations
-                    if (x.isStyleSheetShorthandDeclaration) {
-                        return x.getDeclarations().find(
-                            function(y) {
-                                // We assume shorthand properties are already normalized
-                                return (y.getProperty() === normalizedProperty);
-                            }
-                        );
-                    } else {
-                        return (x.getProperty().toLowerCase().trim() === normalizedProperty);
-                    }
-                });
-        if (matchingDecl) {
-            return matchingDecl.getValues().join(' ');
-        } else {
-            return null;
-        }
+                // For shorthands check all of their atomar declarations
+                if (!x.isStyleSheetShorthandDeclaration) {
+                    return (x.getProperty().toLowerCase().trim() === normalizedProperty);
+                }
+                return x.getDeclarations().find(function(y) {
+                    // We assume shorthand properties are already normalized
+                        return y.getProperty() === normalizedProperty; });
+            });
+        return matchingDecl ? matchingDecl.getValues().join(' ') : null;
     },
+
     convertLengthToPx: function(value) {
         var tokens = value.match(/^(-?[\d+\.\-]+)([a-z]+|%)$/i);
         if (tokens && tokens.length === 3) {
             var unit = tokens[2];
             if (unit === 'px') {
                 return parseFloat(tokens[1]);
-            } else {
-                console.warn('CSS length unit "'+unit+'" is not supported (yet).'+
-                    'Value will be set to 0.');
-                return 0;
             }
-        } else {
-             console.warn('"'+unit+'" is a valid CSS length.'+
-                    'Value will be set to 0.');
+            console.warn('CSS length unit "' + unit + '" is not supported (yet).'
+                        + 'Value will be set to 0.');
             return 0;
         }
+        if (value.toLowerCase() ==='medium') {
+            // This special case comes into play when
+            // JSCSSP parses a 'border: none' declaration.
+            // We don't need any warning for that.
+            return 0
+        }
+        console.warn('"' + value + '" is not a valid CSS length.'
+                    + 'Value will be set to 0.');
+        return 0;
     },
 
-
-        generateStyleSheetDeclarationOverrideList: function (declarations) {
-            // Function expects a declaration array ordered by precedence
-            // (i.e. declarations[0] -> highest precedence,
-            // declarations[x] -> lower precedence).
-            var propList = apps.cssParser.getPropList(),
-                result = declarations.collect(function () {
-                        return -1
-                    }),
-                overrides =  function(property, overrider) {
-                        if (property === overrider) {
-                            return true;
-                        } else if (propList[property] && propList[overrider]) {
-                            var overridden = false;
-                            propList[property].shorthandFor.each(function(x) {
-                                if (x === overrider) overridden = true;
-                            });
-                            propList[property].shorthands.each(function(x) {
-                                if (x === overrider) overridden = true;
-                            });
-                            return overridden;
-                        }
-                    };
-
-            for (var i = 0; i < declarations.length; i++) {
-                var prop = declarations[i].getProperty();
-                // looking for higher precedence overriding declarations
-                for (var j = i + 1; j < declarations.length && result[i] < 0; j++) {
-                    var overrideProp = declarations[j].getProperty(),
-                        priorityOverride =
-                            declarations[i].getPriority() &&
-                            !declarations[j].getPriority();
-                    if (overrides(prop, overrideProp) && !priorityOverride) {
-                        // put in result and continue
-                        result[i] = j;
-                    }
+    generateStyleSheetDeclarationOverrideList: function (declarations) {
+        // Function expects a declaration array ordered by precedence
+        // (i.e. declarations[0] -> highest precedence,
+        // declarations[x] -> lower precedence).
+        var propList = apps.cssParser.getPropList(),
+            result = declarations.collect(function () { return -1 }),
+            overrides =  function(property, overrider) {
+                if (property === overrider) return true;
+                if (propList[property] && propList[overrider]) {
+                    var overridden = false;
+                    propList[property].shorthandFor.each(function(x) {
+                        if (x === overrider) overridden = true;
+                    });
+                    propList[property].shorthands.each(function(x) {
+                        if (x === overrider) overridden = true;
+                    });
+                    return overridden;
                 }
-                // looking for lower precedence !important declarations
-                for(var j = i - 1, overridden = false;
-                    j >= 0 && !overridden; j--) {
-                    var overrideProp = declarations[j].getProperty(),
-                        priorityOverride =
-                            declarations[j].getPriority() &&
-                            !declarations[i].getPriority();
+                return false;
+            };
 
-                    if (overrides(prop, overrideProp) && priorityOverride) {
-                        // put in result and continue
-                        result[i] = j;
-                        overridden = true;
-                    }
+        for (var i = 0; i < declarations.length; i++) {
+            var prop = declarations[i].getProperty(), j, overridden;
+            // looking for higher precedence overriding declarations
+            for (j = i + 1; j < declarations.length && result[i] < 0; j++) {
+                var overrideProp = declarations[j].getProperty(),
+                    priorityOverride =
+                        declarations[i].getPriority() &&
+                        !declarations[j].getPriority();
+                if (overrides(prop, overrideProp) && !priorityOverride) {
+                    // put in result and continue
+                    result[i] = j;
                 }
             }
-            return result;
-        },
-
-
-        getMatchingStyleSheetRules: function () {
-            var sizzle = new lively.morphic.Sizzle(),
-                matchingRules = [],
-                morphInLoop = this;
-            // Collect matching rules from ancestors (and self)
-            while(morphInLoop) {
-                var styleSheetRules = morphInLoop.getStyleSheetRules();
-                if(styleSheetRules) {
-                    styleSheetRules.each(
-
-                    function (rule) {
-                        try {
-                            if(sizzle.select(rule.getSelector(),
-                                morphInLoop, null, [this]).length === 1) {
-                                matchingRules.push(rule);
-                            }
-                        } catch(e) {
-                            console.warning('Selector engine failed to deal with '+rule.getSelector());
-                        }
-                    }, this);
+            // looking for lower precedence !important declarations
+            for (j = i - 1, overridden = false; j >= 0 && !overridden; j--) {
+                var overrideProp = declarations[j].getProperty(),
+                    priorityOverride = declarations[j].getPriority()
+                                    && !declarations[i].getPriority();
+                if (overrides(prop, overrideProp) && priorityOverride) {
+                    // put in result and continue
+                    result[i] = j;
+                    overridden = true;
                 }
-                morphInLoop = morphInLoop.owner;
-            }
-            return this.sortStyleSheetRules(matchingRules);
-        },
-
-        sortStyleSheetRules: function (rules) {
-            // Returns an array of all rules matching to
-            // the morph, sorted by their specificity (low to high).
-
-            var thisMorph = this;
-            /*,
-            styleSheetRules = (rules) ?
-                rules.splice() :
-                this.getMatchingStyleSheetRules();
-            */
-            return rules.sort(function (a, b) {
-                var specA = thisMorph.getStyleSheetRuleSpecificity(a),
-                    specB = thisMorph.getStyleSheetRuleSpecificity(b);
-                if(specA === specB) {
-                    if(a.getOriginMorph() !== b.getOriginMorph()) {
-                        return b.getOriginMorph().isAncestorOf(a.getOriginMorph());
-                    } else {
-                        return false;
-                        // order ok like this?
-                    }
-                } else {
-                    return(specA > specB);
-                }
-            });
-        },
-        getStyleSheetRuleSpecificity: function (rule) {
-            // check if it is a grouped selector
-            if(rule.getSelector().indexOf(",") != -1) {
-                var selectors = rule.getSelector().split(","),
-                    maxSpecificity = -1,
-                    sizzle = new lively.morphic.Sizzle(),
-                    sel, spec, mostSpecificSelector,
-                    context = rule.getOriginMorph();
-
-                // loop over all selectors in the group
-                for(var j = 0, len = selectors.length; j < len; j++) {
-                    sel = selectors[j].trim();
-
-                    // find if the selector matches the element
-                    if(sizzle.select(sel, context, null, [this]).length == 1) {
-                        spec = apps.cssParser.calculateCSSRuleSpecificity(sel);
-
-                        // find the most specific selector that macthes the element
-                        if(spec > maxSpecificity) {
-                            maxSpecificity = spec;
-                            mostSpecificSelector = sel;
-                        }
-                    }
-                }
-                return maxSpecificity;
-            } else {
-                return apps.cssParser.calculateCSSRuleSpecificity(rule.getSelector());
             }
         }
+        return result;
     },
+    getMatchingStyleSheetRules: function () {
+        var sizzle = new lively.morphic.Sizzle(),
+            matchingRules = [],
+            morphInLoop = this;
+        // Collect matching rules from ancestors (and self)
+        while (morphInLoop) {
+            var styleSheetRules = morphInLoop.getStyleSheetRules();
+            if (styleSheetRules) {
+                styleSheetRules.each(function (rule) {
+                    try {
+                        if (sizzle.select(rule.getSelector(), morphInLoop, null, [this]).length === 1) {
+                            matchingRules.push(rule);
+                        }
+                    } catch(e) {
+                        console.warn('Selector engine failed to deal with '+rule.getSelector());
+                    }
+                }, this);
+            }
+            morphInLoop = morphInLoop.owner;
+        }
+        return this.sortStyleSheetRules(matchingRules);
+    },
+
+    sortStyleSheetRules: function (rules) {
+        // Returns an array of all rules matching to
+        // the morph, sorted by their specificity (low to high).
+        var thisMorph = this;
+        /*,
+        styleSheetRules = (rules) ?
+            rules.splice() :
+            this.getMatchingStyleSheetRules();
+        */
+        return rules.sort(function (a, b) {
+            var specA = thisMorph.getStyleSheetRuleSpecificity(a),
+                specB = thisMorph.getStyleSheetRuleSpecificity(b);
+            if (specA === specB) {
+                if (a.getOriginMorph() !== b.getOriginMorph()) {
+                    return b.getOriginMorph().isAncestorOf(a.getOriginMorph());
+                }
+                return false;
+                // order ok like this?
+            }
+            return (specA > specB);
+        });
+    },
+
+    adaptBorders: function() {
+        // Only adapt borders to style sheet when CSS mode is on
+        if (this.getBorderStylingMode()) {
+            this.setBorderWidth(this.getStyleSheetBorderWidth());
+        }
+        // Call adaptBorders for each submorph
+        this.submorphs.each(function(s) {s.adaptBorders()});
+    },
+
+    getStyleSheetRuleSpecificity: function (rule) {
+        // check if it is a grouped selector
+        if (rule.getSelector().indexOf(",") === -1) {
+            return apps.cssParser.calculateCSSRuleSpecificity(rule.getSelector());
+        }
+
+        var selectors = rule.getSelector().split(","),
+            maxSpecificity = -1,
+            sizzle = new lively.morphic.Sizzle(),
+            sel, spec, mostSpecificSelector,
+            context = rule.getOriginMorph();
+
+        // loop over all selectors in the group
+        for (var j = 0, len = selectors.length; j < len; j++) {
+            sel = selectors[j].trim();
+            // find if the selector matches the element
+            if (sizzle.select(sel, context, null, [this]).length == 1) {
+                spec = apps.cssParser.calculateCSSRuleSpecificity(sel);
+                // find the most specific selector that macthes the element
+                if(spec > maxSpecificity) {
+                    maxSpecificity = spec;
+                    mostSpecificSelector = sel;
+                }
+            }
+        }
+        return maxSpecificity;
+    }
+},
 'Morph selection', {
     getSubmorphByStyleId: function (id, optIdAttributeName) {
         // Returns the first sub(subsub...)morph with the given id
         return this.withAllSubmorphsDetect(function(m) {
             var styleId = (optIdAttributeName)
-                                         ? m[optIdAttributeName]
-                                         : m.getStyleId();
+                        ? m[optIdAttributeName]
+                        : m.getStyleId();
             return styleId === id;
         });
     },
@@ -356,21 +467,17 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
 
     getSubmorphsByAttribute: function (attr, value, optCaseInsensitive) {
         var val = optCaseInsensitive ? (value + '').toLowerCase() : (value + '');
-
         return this.withAllSubmorphsSelect(function (morph) {
             var a = morph[attr];
             if (value === null || value === undefined) {
                 return a !== null && a !== undefined;
-            } else {
-                return a &&
-                    (optCaseInsensitive ? (a + '').toLowerCase() : (a + '')) === val;
             }
+            return a && (optCaseInsensitive ? (a + '').toLowerCase() : (a + '')) === val;
         });
     },
     getSubmorphsByTagName: function (tag, optTagNameAttribute) {
         var tagNameAttr = optTagNameAttribute || 'tagName',
-        selectAll = (tag.trim() === '*');
-
+            selectAll = (tag.trim() === '*');
         return this.withAllSubmorphsSelect(function (morph) {
             var thisTagName = morph[tagNameAttr]
             return selectAll || (thisTagName && (thisTagName + '' === tag));
@@ -483,12 +590,12 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
         // already has the same id.
         id = id.trim();
         if (id && id.length && id.length > 0) {
-            return this.morphicSetter('StyleId', id);
+            this.morphicSetter('StyleId', id);
         } else {
             this.morphicSetter('StyleId', null);
             delete this._StyleId;
-            return null;
         }
+        this.adaptBorders();
     },
 
     getStyleId: function () {
@@ -508,30 +615,26 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
             classNames = this.morphicGetter('StyleClassNames');
         if (!classNames) return;
         classNames.forEach(function (c) {
-            if (pattern.test(c)) {
-                result = true;
-            } else {
+            if (!pattern.test(c)) {
                 newClassList.push(c);
             }
         }, this);
         this.setStyleClassNames(newClassList);
     },
-
     setStyleClassNames: function (classNames) {
         if(classNames && classNames.length > 0) {
             if(Array.isArray(classNames)) {
-                return this.morphicSetter('StyleClassNames',
-                                          this.makeUniqueStyleClassNamesList(classNames));
+                this.morphicSetter('StyleClassNames',
+                    this.makeUniqueStyleClassNamesList(classNames));
             } else { // if it's not an array we assume it's a string
-                return this.morphicSetter('StyleClassNames',
-                                          this.makeUniqueStyleClassNamesList(
-                                              classNames.split(' ')));
+                this.morphicSetter('StyleClassNames',
+                    this.makeUniqueStyleClassNamesList(classNames.split(' ')));
             }
         } else {
             this.morphicSetter('StyleClassNames', null);
             delete this._StyleClassNames;
-            return null;
         }
+        this.adaptBorders();
     },
 
     makeUniqueStyleClassNamesList: function (classNames) {
@@ -547,6 +650,7 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'apps.cssPa
             if(notInListYet) {
                 uniqueClassNames.push(c);
             }
+
         }, this);
         return uniqueClassNames;
     },
@@ -1578,16 +1682,13 @@ if ( !xml ) {
     },
 
     contains: function (a, b) {
-        while((b = b.owner)) {
-            if(b === a) {
-                return true;
-            }
+        while ((b = b.owner)) {
+            if (b === a) return true;
         }
         return false;
-
-    },
-
-}, 'multiple contexts and POS', {
+    }
+},
+'multiple contexts and POS', {
     multipleContexts: function (selector, contexts, results, seed) {
         var i = 0,
             len = contexts.length;
@@ -1712,6 +1813,7 @@ if ( !xml ) {
 
 'sort order', {
     sortOrder: function (a, b) {
+        // rk 2012-11-26: FIXME undeclared variables below!
         // The nodes are identical, we can exit early
         if(a === b) {
             hasDuplicate = true;
@@ -1789,6 +1891,7 @@ if ( !xml ) {
 
 
     uniqueSort: function (results) {
+        // rk 2012-11-26: FIXME where are the vars used below from?
         // Document sorting and removing duplicates
         var elem,
             i = 1;
@@ -1809,21 +1912,5 @@ if ( !xml ) {
     }
 
 });
-
-Trait('WorldStyleSheetMenuTrait',
-'menu items', {
-    morphMenuItems: lively.morphic.World.prototype.morphMenuItems.wrap(function (proceed) {
-        var items = proceed();
-        for(var i = 0; i < items.length; i++) {
-            if(items[i][0] === "Preferences") {
-                items[i][1].push(['Edit world CSS', this.openWorldCSSEditor.bind(this)]);
-            }
-        }
-        return items;
-    })
-}).applyTo(lively.morphic.World, {
-    override: 'morphMenuItems'
-});
-
 
 }); // end of module

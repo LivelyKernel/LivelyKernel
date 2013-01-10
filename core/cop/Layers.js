@@ -24,7 +24,7 @@
 
 // Non-Lively Compatibility
 if (!window.module) {
-    module = function() {
+    window.module = function() {
         return {
             requires: function() {return this},
             toRun: function(func) {
@@ -32,9 +32,9 @@ if (!window.module) {
             }
         }
     }
-    Config = {};
-    cop = {};
-    Global = window;
+    window.Config = {};
+    window.cop = {};
+    window.Global = window;
 
 
 
@@ -81,8 +81,8 @@ Object.extend(Function.prototype, {
 			if (className) targetScope[shortName] = klass; // otherwise it's anonymous
 
 			// remember the module that contains the class def
-			if (Global.lively && lively.lang && lively.lang.Namespace)
-				klass.sourceModule = lively.lang.Namespace.current();
+			if (Global.lively && lively.Module && lively.Module.current)
+				klass.sourceModule = lively.Module.current();
 		};
 
 		// the remaining args should be category strings or source objects
@@ -92,7 +92,7 @@ Object.extend(Function.prototype, {
 			klass.prototype.initialize = function () {};
 
 		return klass;
-	},
+	}
 });
 
 }
@@ -163,7 +163,8 @@ Object.extend(cop, {
     layerMethod: function(layer, object,  property, func) {
         cop.ensurePartialLayer(layer, object)[property] = func;
         func.displayName = "layered " + layer.name + " " + (object.constructor ? (object.constructor.type + "$"): "") + property;
-        cop.makeFunctionLayerAware(object, property);
+        cop.makeFunctionLayerAware(object, property, layer.isHidden);
+        Object.isFunction(object.getName) && (layer.layeredFunctionsList[object][property] = true)
     },
 
     layerGetterMethod: function(layer, object, property, getter) {
@@ -278,7 +279,7 @@ Object.extend(cop, {
         return layered_function;
     },
 
-    pvtMakeFunctionOrPropertyLayerAware: function(obj, slotName, baseValue, type) {
+    pvtMakeFunctionOrPropertyLayerAware: function(obj, slotName, baseValue, type, isHidden) {
         // install in obj[slotName] a cop wrapper that weaves partial methods
         // into real method (baseValue)
 
@@ -290,9 +291,9 @@ Object.extend(cop, {
         if (cop.dynamicInlining)
             return cop.makeSlotLayerAwareWithDynamicInlining(obj, slotName, baseValue, type)
 
-        cop.makeSlotLayerAwareWithNormalLookup(obj, slotName, baseValue, type);
+        cop.makeSlotLayerAwareWithNormalLookup(obj, slotName, baseValue, type, isHidden);
     },
-    makeSlotLayerAwareWithNormalLookup: function(obj, slotName, baseValue, type) {
+    makeSlotLayerAwareWithNormalLookup: function(obj, slotName, baseValue, type, isHidden) {
         var wrapped_function = function() {
             var composition = new cop.PartialLayerComposition(
                 this, obj, slotName, baseValue, type);
@@ -307,6 +308,9 @@ Object.extend(cop, {
         // this is more declarative outside of COP context
         wrapped_function.isContextJSWrapper = true;
 
+        if (isHidden)
+            wrapped_function.toString = function () {return this.getOriginal().toString()}
+
         // For wrapped_function.getOriginal()
         wrapped_function.originalFunction = baseValue;
 
@@ -319,7 +323,7 @@ Object.extend(cop, {
         }
     },
 
-    makeFunctionLayerAware: function(base_obj, function_name) {
+    makeFunctionLayerAware: function(base_obj, function_name, isHidden) {
             if (!base_obj) throw new Error("can't layer an non existent object");
 
             /* ensure base function */
@@ -329,7 +333,7 @@ Object.extend(cop, {
                 // return;
                 base_function = Functions.Null;
             };
-            cop.pvtMakeFunctionOrPropertyLayerAware(base_obj, function_name, base_function)
+            cop.pvtMakeFunctionOrPropertyLayerAware(base_obj, function_name, base_function, undefined, isHidden)
     },
 
     makePropertyLayerAware: function(baseObj, property) {
@@ -436,6 +440,7 @@ Object.extend(cop, {
     // Layering objects may be a garbage collection problem, because the layers keep strong reference to the objects
     layerObject: function(layer, object, defs) {
         // log("cop.layerObject");
+        Object.isFunction(object.getName) && (layer.layeredFunctionsList[object] =  {})
         Object.keys(defs).forEach(function(function_name) {
             // log(" layer property: " + function_name);
             cop.layerProperty(layer, object, function_name, defs);
@@ -579,9 +584,10 @@ Object.subclass("Layer",
     initialize: function(name, namespaceName) {
         this.name = name;
         this.namespaceName = namespaceName || 'Global';
+        this.layeredFunctionsList = {};
 
-        if (Global.lively && lively.lang && lively.lang.Namespace)
-            this.sourceModule = lively.lang.Namespace.current();
+        if (Global.lively && lively.lang && lively.Module)
+            this.sourceModule = lively.Module.current();
     },
 },
 'accessing', {
@@ -606,10 +612,31 @@ Object.subclass("Layer",
 },
 'removing', {
     remove: function() {
+        // Deletes the LayerClass, but keeps the layered Functions.
         if (this.isGlobal()) this.beNotGlobal();
         var ns = module(this.namespaceName);
         delete ns[this.name];
     },
+    uninstall: function() {
+        // Uninstalls just this layer, functions that are layered by other Layers will not be reset.
+        var layer = this;
+        this.layeredObjects().each(function (eachLayeredObj) {
+            var layerIdx = Object.isFunction(eachLayeredObj.activeLayers)?
+                eachLayeredObj.activeLayers().indexOf(layer) : -1;
+            Properties.own(layer.layeredFunctionsList[eachLayeredObj]).each(function (eachLayeredFunc) {
+                var newerLayer = eachLayeredObj.activeLayers().find(function (eachOtherLayer) {
+                    var eachOtherLayerIdx = eachLayeredObj.activeLayers().indexOf(eachOtherLayer),
+                        isNewer = (eachOtherLayerIdx  !== -1) && (eachOtherLayerIdx < layerIdx)
+                    return isNewer && eachOtherLayer.layeredFunctionsList[eachLayeredObj][eachLayeredFunc]
+                })
+                if (!newerLayer)
+                    cop.makeFunctionLayerUnaware(eachLayeredObj, eachLayeredFunc)
+            })
+        })
+        this.remove()
+        alertOK('Successfully uninstalled Layer '+this+' in Global Classes');
+    },
+
 },
 'layer installation',     {
     layerClass: function(classObj, methods) {
@@ -651,6 +678,13 @@ Object.subclass("Layer",
         cop.disableLayer(this);
         return this;
     },
+    hide: function() {
+        // Hidden layers do not appear when evaluating the sourcecode of a function
+        // TODO: this function has to be called BEFORE the layer refines any class, due to problems in unrefining classes.
+        this.isHidden = true
+        return this;
+    },
+
 },
 'debugging', {
     toString: function() { return this.getName() },

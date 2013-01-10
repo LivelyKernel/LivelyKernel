@@ -333,16 +333,18 @@ Object.subclass('lively.ide.FileFragment',
 },
 'debugging', {
     toString: function() {
-        if (this.fileName)
-            return Strings.format('%s: %s (%s-%s in %s, starting at line %s, %s subElements)',
-                this.type, this.name, this.startIndex, this.stopIndex, this.fileName, this.startLine(), this.subElements().length);
-        return Strings.format('%s: %s (%s-%s in NO FILENAME FOUND, %s subElements)',
-                this.type, this.name, this.startIndex, this.stopIndex, this.subElements().length);
+        var fileName = this.fileName ? this.fileName : "NO FILENAME FOUND",
+            subElements = this.subElements();
+        return Strings.format('%s: %s (%s-%s in %s, starting at line %s, %s subElements)',
+                              this.type, this.name,
+                              this.startIndex, this.stopIndex, fileName,
+                              this.fileName ? this.startLine() : 0,
+                              subElements ? subElements.length : 'no');
     },
 
     inspect: function() {
         try { return this.toString() } catch (err) { return "#<inspect error: " + err + ">" }
-    },
+    }
 
 },
 'browser support', {

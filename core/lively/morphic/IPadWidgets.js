@@ -1149,7 +1149,7 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
     },
 
     createCategoryLabel: function() {
-        var text = new TextMorph(new Rectangle(0,0,100,10));
+        var text = new lively.morphic.Text(rect(0,0,100,10));
         text.beLabel();
         text.applyStyle({
             fill: null,
@@ -1630,7 +1630,7 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
     buildCategoryViews: function(target, categories, functionNames) {
         var i = 0,
             that = this,
-            targetName = target.isWorld? 'World' : target.getName();
+            targetName = target.getName && target.getName() || target.toString();
         if (categories.length < 2)
             categories.push('')
         this.gridContainer.addMorph(this.makeAddButton(target));

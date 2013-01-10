@@ -3,17 +3,33 @@ module('lively.morphic.tests.Morphic').requires('lively.morphic.tests.Helper', '
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.WorldTests',
 'testing', {
     testAddWorldToDoc: function() {
-        var canvasNode = document.body, bounds = new Rectangle(0, 0, 100, 100),
+        var bounds = new Rectangle(0, 0, 100, 100),
             world = new lively.morphic.World();
         try {
             world.setBounds(bounds);
-            world.displayOnCanvas(canvasNode);
+            world.displayOnDocument(document);
 
-            var expected = {tagName: 'div', parentNode: canvasNode, childNodes: [{tagName: 'div'}]};
+            var expected = {tagName: 'div', parentNode: document.body, childNodes: [{tagName: 'div'}]};
             this.assertNodeMatches(expected, world.renderContext().getMorphNode());
         } finally {
             world.remove();
         }
+    },
+
+    testAddWorldRequirement: function() {
+        var world = new lively.morphic.World();
+        world.setWorldRequirements(['lively.PartsBin']);
+        world.addWorldRequirement('lively.morphic.ScriptingSupport');
+        this.assertEquals(['lively.PartsBin', 'lively.morphic.ScriptingSupport'],
+                          world.getWorldRequirements());
+        this.assertEquals(['lively.PartsBin', 'lively.morphic.ScriptingSupport'],
+                          world.getPartsBinMetaInfo().getRequiredModules());
+        world.removeWorldRequirement('lively.morphic.ScriptingSupport');
+        this.assertEquals(['lively.PartsBin'],
+                          world.getPartsBinMetaInfo().getRequiredModules());
+        this.assert(world.hasWorldRequirement('lively.PartsBin'), "hasWorldRequirement");
+        this.assert(!world.hasWorldRequirement('lively.morphic.ScriptingSupport'),
+                    "!hasWorldRequirement");
     }
 });
 

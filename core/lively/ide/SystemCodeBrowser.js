@@ -1,4 +1,4 @@
-module('lively.ide.SystemCodeBrowser').requires('lively.ide.BrowserFramework', 'lively.ide.SystemBrowserNodes', 'lively.ide.BrowserCommands', 'lively.ide.SourceDatabase', 'lively.ide.LocalBrowser'/*for local code*/, 'lively.ide.SyntaxHighlighting').toRun(function() {
+module('lively.ide.SystemCodeBrowser').requires('lively.ide.BrowserFramework', 'lively.ide.SystemBrowserNodes', 'lively.ide.BrowserCommands', 'lively.ide.SourceDatabase', 'lively.ide.SyntaxHighlighting').toRun(function() {
 
 // ===========================================================================
 // Browsing js files and OMeta

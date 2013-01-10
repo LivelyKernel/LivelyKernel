@@ -22,81 +22,74 @@
  * THE SOFTWARE.
  */
 
-module('lively.Main').requires("lively.persistence.Serializer", "lively.ChangeSet").toRun(function() {
+module('lively.Main').requires("lively.persistence.Serializer").toRun(function() {
 
 // The WorldDataAccessor reads data in some form (e.g. JSON) from some source
 // e.g. meta nodes in a DOM and creates and initializes lively.morphic.Worlds
 // from it
 Object.subclass('lively.Main.WorldDataAccessor',
 'initializing', {
-    initialize: function(canvas) {
-        this.canvas = canvas;
+    initialize: function(doc) {
+        this.doc = doc;
     },
     modulesBeforeDeserialization: function() { return Config.modulesBeforeDeserialization || [] }
 
 },
 'accessing and creation', {
-    modulesBeforeChanges: function() { return Config.modulesBeforeChanges || [] },
     modulesBeforeWorldLoad: function() { return Config.modulesBeforeWorldLoad || [] },
     modulesOnWorldLoad: function() { return Config.modulesOnWorldLoad || [] },
-    getCanvas: function() { return this.canvas },
-    getWorld: function() {  throw new Error('Subclass responsibility') },
-    getChangeSet: function() {  throw new Error('Subclass responsibility') }
+    getDoc: function() { return this.doc },
+    getWorld: function() {  throw new Error('Subclass responsibility') }
 });
 
 Object.extend(lively.Main.WorldDataAccessor, {
-    forCanvas: function(canvas) {
+    forDoc: function(doc) {
+        return doc.xmlVersion ? this.forXMLDoc(doc) : this.forHTMLDoc(doc);
+    },
+
+    forXMLDoc: function(doc) {
         // currently we only support JSON embedded in XHTML meta nodes
-        var doc = canvas.ownerDocument,
-            changeSet = lively.persistence.Serializer.deserializeChangeSetFromDocument(doc),
-            jsonNode = doc.getElementById(lively.persistence.Serializer.jsonWorldId),
+        var jsonNode = doc.getElementById(lively.persistence.Serializer.jsonWorldId),
             json = jsonNode.textContent == "" ? jsonNode.content : jsonNode.textContent;
-        return new lively.Main.JSONMorphicData(canvas, jsonNode && json, changeSet);
+        return new lively.Main.JSONMorphicData(doc, jsonNode && json);
+    },
+
+    forHTMLDoc: function(doc) {
+        // get the first script tag with the x-lively-world type
+        var json = lively.$(doc).find('script[type="text/x-lively-world"]').text();
+        return new lively.Main.JSONMorphicData(doc, json);
     }
 });
 
 lively.Main.WorldDataAccessor.subclass('lively.Main.NewWorldData',
 'accessing and creation', {
     getWorld: function() {
-        if (this.world) return this.world;
-        this.world = new lively.morphic.World(this.getCanvas());
-        return this.world;
-    },
-    getChangeSet: function() {
-        var doc = this.getCanvas().ownerDocument;
-        this.changeSet = lively.persistence.Serializer.deserializeChangeSetFromDocument(doc);
-        return this.changeSet;
+        return this.world ? this.world : this.world = new lively.morphic.World(this.getDoc());
     }
 });
 
 lively.Main.WorldDataAccessor.subclass('lively.Main.JSONMorphicData',
 'initializing', {
-    initialize: function($super, canvas, json, changeSet) {
-        $super(canvas);
-        this.jso = lively.persistence.Serializer.parseJSON(json);
-        this.changeSet = changeSet;
+    initialize: function($super, doc, json) {
+        $super(doc);
+        this.jso = LivelyMigrationSupport.applyWorldJsoTransforms(
+            lively.persistence.Serializer.parseJSON(json));
     }
 },
 'accessing and creation', {
     getWorld: function() {
         if (this.world) return this.world;
-        this.world = lively.morphic.World.createFromJSOOn(this.jso, document.body);
+        this.world = lively.morphic.World.createFromJSOOn(this.jso, this.getDoc());
         return this.world;
     },
 
-    getChangeSet: function() { return this.changeSet },
-
-    modulesBeforeChanges: function($super) {
+    modulesBeforeDeserialization: function($super) {
         var modulesInJson = this.jso ? lively.persistence.Serializer.sourceModulesIn(this.jso) : [];
         console.log('Found modules required for loading because '
                    + 'serialized objects require them: '
                    + modulesInJson);
-        return $super()
-               .concat(modulesInJson)
-               .concat('lively.morphic.Complete')
-               .uniq();
-    },
-    modulesBeforeDeserialization: function($super) { return $super().concat('lively.morphic.Serialization') }
+        return $super().concat(modulesInJson).concat(['lively.morphic.Complete']).uniq();
+    }
 
 });
 
@@ -107,10 +100,10 @@ Object.subclass('lively.Main.Loader',
     connections: ['finishLoading']
 },
 'accessing', {
-    getCanvas: function() { return this.canvas },
+    getDoc: function() { return this.doc },
     getWorldData: function() {
         if (!this.worldData) {
-            this.worldData = lively.Main.WorldDataAccessor.forCanvas(this.getCanvas());
+            this.worldData = lively.Main.WorldDataAccessor.forDoc(this.getDoc());
         }
         return this.worldData;
     }
@@ -119,6 +112,10 @@ Object.subclass('lively.Main.Loader',
 
     browserSpecificFixes: function() {
         if (Global.navigator.appName == 'Opera') window.onresize();
+        // FIXME rk 2012-12-17: this should use our new CSS support!
+        var id = 'lively-base-style',
+            existing = document.getElementById(id);
+        if (existing) existing.parentNode.removeChild(existing);
         var cssDef = "";
         // 1. Don't DOM-select arbitrary elements on mouse move
         // none is different to -moz-none:
@@ -160,7 +157,7 @@ Object.subclass('lively.Main.Loader',
                     + "}\n"
         }
 
-        XHTMLNS.addCSSDef(cssDef);
+        XHTMLNS.addCSSDef(cssDef, id);
 
         // disable Firefox spellchecking
         if (UserAgent.fireFoxVersion) {
@@ -171,27 +168,20 @@ Object.subclass('lively.Main.Loader',
 },
 'loading', {
 
-    systemStart: function(canvas) {
+    systemStart: function(doc) {
         console.group("World loading");
-        this.canvas = canvas;
-        this.loadWorld(canvas);
+        this.doc = doc;
+        this.loadWorld(doc);
     },
 
     loadWorld: function() {
         var self = this, worldData = this.getWorldData();
         require(worldData.modulesBeforeDeserialization()).toRun(function() {
-            require(worldData.modulesBeforeChanges()).toRun(function() {
-                var changes = !Config.skipChanges && worldData.getChangeSet();
-                changes && changes.evaluateWorldRequirements();
-                require(worldData.modulesBeforeWorldLoad()).toRun(function() {
-                    changes && changes.evaluateAllButInitializer();
-                    require(worldData.modulesOnWorldLoad()).toRun(function() {
-                        var world = worldData.getWorld();
-                        world.setChangeSet(changes);
-                        world.displayOnCanvas(self.getCanvas());
-                        changes && changes.evaluateInitializer();
-                        self.onFinishLoading(world);
-                    });
+            require(worldData.modulesBeforeWorldLoad()).toRun(function() {
+                require(worldData.modulesOnWorldLoad()).toRun(function() {
+                    var world = worldData.getWorld();
+                    world.displayOnDocument(self.getDoc());
+                    self.onFinishLoading(world);
                 });
             });
         });
@@ -218,7 +208,7 @@ Object.subclass('lively.Main.Loader',
 
 
 Object.extend(lively.Main, {
-    getLoader: function(canvas) { return new lively.Main.Loader(); }
+    getLoader: function(doc) { return new lively.Main.Loader(); }
 });
 
 }); // end of module

@@ -46,6 +46,10 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.label = new lively.morphic.Text(this.getExtent().extentAsRectangle(), labelString);
         this.addMorph(this.label);
         this.label.beLabel(this.style.label);
+        this.label.setTextStylingMode(true);
+
+        this.setAppearanceStylingMode(true);
+        this.setBorderStylingMode(true);
     }
 
 },
@@ -71,7 +75,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         $super(extent);
         this.label && this.label.setExtent(extent)
     },
-    setPadding: function(padding) { this.label && this.label.setPadding(padding) },
+    setPadding: function(padding) { this.label && this.label.setPadding(padding); }
 },
 'styling', {
     updateAppearance: function(){
@@ -79,23 +83,26 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
     },
     changeAppearanceFor: function(pressed, toggled) {
         if (this.isActive) {
-            var isToggled = toggled || this.value,
-                baseColor = isToggled ? this.toggleColor : this.normalColor,
-                shade = pressed ? baseColor.mixedWith(Color.black, 0.9)  : baseColor.lighter(3),
-                bottomShade = pressed ?  baseColor.lighter(3):baseColor.mixedWith(Color.black, 0.9),
-                upperGradientCenter = pressed ? 0.2  : 0.3,
-                lowerGradientCenter = pressed ? 0.8  : 0.7;
-
-            this.label && this.label.setTextColor(this.normalTextColor);
+            this.removeStyleClassName('disabled');
+            var isToggled = toggled || this.value;
+            if (isToggled) {
+                this.addStyleClassName('toggled');
+            } else {
+                this.removeStyleClassName('toggled');
+            }
+            if (pressed) {
+                this.addStyleClassName('pressed');
+            } else {
+                this.removeStyleClassName('pressed');
+            }
             if (this.style && this.style.label && this.style.label.padding) {
                 var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
                 this.setPadding(labelPadding);
             }
-            this.setFill(this.generateFillWith(baseColor, shade, upperGradientCenter, lowerGradientCenter, bottomShade));
-        }
-        else {
-            this.label && this.label.setTextColor(this.disabledTextColor);
-            this.setFill(this.disabledColor);
+        } else {
+            this.addStyleClassName('disabled');
+            this.removeStyleClassName('toggled');
+            this.removeStyleClassName('pressed');
         }
     },
 
@@ -520,10 +527,9 @@ lively.morphic.Box.subclass('lively.morphic.ProgressBar',
 },
 'updating', {
     updateBar: function(value) {
-    var maxExt = this.getExtent();
-        // this.progressMorph.setPosition(pt(1,1));
+        var maxExt = this.getExtent();
         this.progressMorph.setExtent(pt(Math.floor(maxExt.x * value), maxExt.y));
-    },
+    }
 });
 
 lively.morphic.Text.subclass('lively.morphic.FrameRateMorph', {
@@ -840,8 +846,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             newBounds = this.moveSubMenuBoundsForVisibility(
                 this.innerBounds(),
                 owner.overItemMorph ? owner.overItemMorph.bounds() : new Rectangle(0,0,0,0),
-                localVisibleBounds
-            );
+                localVisibleBounds);
         this.setBounds(newBounds);
     },
 
@@ -1188,10 +1193,9 @@ lively.morphic.Text.addMethods(
 lively.morphic.World.addMethods(
 'tools', {
     loadPartItem: function(partName, optPartspaceName) {
-        var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld';
-        var part = lively.PartsBin.getPart(partName, optPartspaceName);
-        if (!part)
-            return;
+        var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld',
+            part = lively.PartsBin.getPart(partName, optPartspaceName);
+        if (!part) return;
         if (part.onCreateFromPartsBin) part.onCreateFromPartsBin();
         return part;
     },
@@ -1358,7 +1362,7 @@ lively.morphic.World.addMethods(
         items.pushAll(partNames.collect(function(ea) { return [ea, function() {
             var partSpaceName = 'PartsBin/Basic',
                 part = lively.PartsBin.getPart(ea, partSpaceName);
-                  if (!part) return;
+            if (!part) return;
             lively.morphic.World.current().firstHand().grabMorph(part);
         }]}))
 
@@ -1367,7 +1371,7 @@ lively.morphic.World.addMethods(
         items.pushAll(partNames.collect(function(ea) { return [ea, function() {
             var partSpaceName = 'PartsBin/Inputs',
                 part = lively.PartsBin.getPart(ea, partSpaceName);
-                  if (!part) return;
+            if (!part) return;
             lively.morphic.World.current().firstHand().grabMorph(part);
         }]}))
 
@@ -1387,11 +1391,9 @@ lively.morphic.World.addMethods(
                 })}]];
 
         // world requirements
-        var changeSet = this.getChangeSet()
-            worldRequirementsChange = changeSet.getWorldRequirementsList(),
-            worldRequirements = worldRequirementsChange.evaluate(),
+        var worldRequirements = world.getWorldRequirements(),
             removeRequirement = function(name) {
-                changeSet.removeWorldRequirement(name);
+                world.removeWorldRequirement(name);
                 alertOK(name + ' is not loaded at startup anymore');
             },
             menuItems = worldRequirements.collect(function(name) {
@@ -1469,6 +1471,38 @@ lively.morphic.World.addMethods(
                 })
             }]);
         }
+        if (Global.AutoIndentLayer && AutoIndentLayer.isGlobal()) {
+            items.push(['[X] Auto Indent', function() {
+                AutoIndentLayer.beNotGlobal();
+            }]);
+        } else {
+            items.push(['[  ] Auto Indent', function() {
+                require('users.cschuster.AutoIndent').toRun(function() {
+                    AutoIndentLayer.beGlobal();
+                });
+            }]);
+        }
+        if (localStorage['Config_quickLoad'] == "false") {
+            items.push(['[  ] Quick Load', function() {
+                localStorage['Config_quickLoad'] = "true"
+            }]);
+        } else {
+            items.push(['[X] Quick Load', function() {
+                localStorage['Config_quickLoad'] = "false";
+            }]);
+        }
+        if (localStorage['Config_CopyAndPaste'] == "false") {
+            items.push(['[  ] Copy And Paste', function() {
+                localStorage['Config_CopyAndPaste'] = "true"
+                module('lively.experimental.CopyAndPaste').load(true)
+                ClipboardLayer.beGlobal()
+            }]);
+        } else {
+            items.push(['[X] Copy And Paste', function() {
+                localStorage['Config_CopyAndPaste'] = "false";
+                ClipboardLayer.beNotGlobal()
+            }]);
+        }
         return items;
     },
 
@@ -1518,7 +1552,7 @@ lively.morphic.World.addMethods(
             ['Documentation', [
                 ["On short cuts", this.openShortcutDocumentation.bind(this)],
                 ["On connect data bindings", this.openConnectDocumentation.bind(this)],
-                        ["On Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
+                ["On Lively's PartsBin", this.openPartsBinDocumentation.bind(this)],
                 ["More ...", function() { window.open(Config.rootPath + 'documentation/'); }]
             ]],
             ['Save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],
@@ -1941,6 +1975,11 @@ lively.morphic.Button.subclass("lively.morphic.WindowControl",
     initialize: function($super, bnds, inset, labelString, labelOffset) {
         $super(bnds, labelString)
         this.label.applyStyle({fontSize: 8})
+        if (labelOffset) {
+            this.label.setPosition(this.label.getPosition().addPt(labelOffset));
+        }
+        this.setAppearanceStylingMode(true);
+        this.setBorderStylingMode(true);
     },
 });
 
@@ -1954,28 +1993,14 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
     shortBarHeight: 15,
     accessibleInInactiveWindow: true,
     style: {
-        fill: new lively.morphic.LinearGradient(
-            [{offset: 0, color: Color.white},
-            {offset: 1, color: Color.gray.mixedWith(Color.black, 0.8)}]),
-        strokeOpacity: 1,
-        borderRadius: "8px 8px 0px 0px",
-        borderWidth: 1,
-        borderColor: Color.darkGray,
         adjustForNewBounds: true,
         resizeWidth: true
     },
     labelStyle: {
-        borderRadius: 0,
         padding: Rectangle.inset(0,0),
-        fill: null,
-        fontSize: 10,
-        align: 'center',
-        clipMode: 'hidden',
         fixedWidth: true,
         fixedHeight: true,
         resizeWidth: true,
-        textColor: Color.darkGray,
-        emphasize: {textShadow: {color: Color.white, offset: pt(0,1)}}
     }
 },
 'intitializing', {
@@ -1999,21 +2024,24 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
             label = lively.morphic.Text.makeLabel(headline, this.labelStyle);
         }
         this.label = this.addMorph(label);
+        this.label.addStyleClassName('window-title');
+        this.label.setTextStylingMode(true);
 
         if (!this.suppressControls) {
             var cell = new Rectangle(0, 0, this.barHeight-5, this.barHeight-5);
 
             this.closeButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "X", pt(-5,-4)));
+                new lively.morphic.WindowControl(cell, this.controlSpacing, "X", pt(0,-1)));
             this.closeButton.applyStyle({moveHorizontal: true});
-            //this.closeButton.linkToStyles('titleBar_closeButton');
+            this.closeButton.addStyleClassName('close');
+
             this.menuButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "M", pt(-5,-6)));
-            //this.menuButton.linkToStyles('titleBar_menuButton');
+                new lively.morphic.WindowControl(cell, this.controlSpacing, "M", pt(0,0)));
+
             this.collapseButton = this.addMorph(
-                new lively.morphic.WindowControl(cell, this.controlSpacing, "–", pt(-3,-6)));
+                new lively.morphic.WindowControl(cell, this.controlSpacing, "–", pt(0,1)));
             this.collapseButton.applyStyle({moveHorizontal: true});
-            //this.collapseButton.linkToStyles('titleBar_collapseButton');
+
 
             this.connectButtons(windowMorph);
         }
@@ -2022,6 +2050,8 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
         this.adjustForNewBounds();
 
         this.disableDropping();
+        this.setAppearanceStylingMode(true);
+        this.setBorderStylingMode(true);
     },
 
 },
@@ -2079,6 +2109,13 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar", Trait('TitleBarMorph'),
 });
 
 lively.morphic.Morph.subclass('lively.morphic.Window',
+'appearance', {
+    spacing: 4, // window border
+    minWidth: 200,
+    minHeight: 100,
+    debugMode: false,
+    style: {borderWidth: 0, fill: null, borderRadius: 0, strokeOpacity: 0, adjustForNewBounds: true, enableDragging: true},
+},
 'documentation', {
     documentation: "Full-fledged windows with title bar, menus, etc",
 },
@@ -2094,15 +2131,26 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         $super(new lively.morphic.Shapes.Rectangle());
         this.LK2 = true; // to enable workaround in WindowMorph trait.expand
 
-        var bounds      = targetMorph.bounds(),
-            titleBar    = this.makeTitleBar(titleString, bounds.width, optSuppressControls),
+        var bounds      = targetMorph.bounds();
+        bounds.width += 2 * this.spacing;
+        bounds.height += 1 * this.spacing;
+        var titleBar    = this.makeTitleBar(titleString, bounds.width, optSuppressControls),
             titleHeight = titleBar.bounds().height - titleBar.getBorderWidth();
         this.setBounds(bounds.withHeight(bounds.height + titleHeight));
         this.targetMorph = this.addMorph(targetMorph);
+
+        // create three reframe handles (bottom, right, and bottom-right) and align them to the window
         this.reframeHandle = this.addMorph(this.makeReframeHandle());
         this.alignReframeHandle();
+
+        this.bottomReframeHandle = this.addMorph(this.makeBottomReframeHandle());
+        this.alignBottomReframeHandle();
+
+        this.rightReframeHandle = this.addMorph(this.makeRightReframeHandle());
+        this.alignRightReframeHandle();
+
         this.titleBar = this.addMorph(titleBar);
-        this.contentOffset = pt(0, titleHeight);
+        this.contentOffset = pt(this.spacing, titleHeight);
         targetMorph.setPosition(this.contentOffset);
         // this.closeAllToDnD();
 
@@ -2112,6 +2160,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.expandedExtent       = null;
         this.ignoreEventsOnExpand = false;
         this.disableDropping();
+
+        this.setAppearanceStylingMode(true);
+        this.setBorderStylingMode(true);
+
         return this;
     },
 
@@ -2139,34 +2191,105 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
     },
 
     makeReframeHandle: function() {
-        var handle = lively.morphic.Morph.makePolygon(
-            [pt(14, 0), pt(14, 14), pt(0, 14)], 0, null, Color.gray);
+        var handle = new lively.morphic.Box(new Rectangle(0, 0, 14, 14));
         handle.addScript(function onDragStart(evt) {
             this.dragStartPoint = evt.mousePoint;
             this.originalTargetExtent = this.owner.getExtent();
         });
         handle.addScript(function onDrag(evt) {
             var moveDelta = evt.mousePoint.subPt(this.dragStartPoint)
-            if (evt.isShiftDown()) {
-                var maxDelta = Math.max(moveDelta.x, moveDelta.y);
-                  moveDelta = pt(maxDelta, maxDelta);
-            };
-            this.owner.setExtent(this.originalTargetExtent.addPt(moveDelta));
+            var newExtent = this.originalTargetExtent.addPt(moveDelta);
+            if (newExtent.x < this.owner.minWidth) newExtent.x = this.owner.minWidth;
+            if (newExtent.y < this.owner.minHeight) newExtent.y = this.owner.minHeight;
+            this.owner.setExtent(newExtent);
+            //console.log("WindowExtent: "+this.owner.getExtent().x+" ,  "+this.owner.getExtent().y);
             this.align(this.bounds().bottomRight(), this.owner.getExtent());
         });
         handle.addScript(function onDragEnd (evt) {
             this.dragStartPoint = null;
             this.originalTargetExtent = null;
+            this.owner.alignBottomReframeHandle();
+            this.owner.alignRightReframeHandle();
         });
+        handle.addStyleClassName('reframe-handle corner');
         return handle;
     },
 
     alignReframeHandle: function() {
         if (this.reframeHandle) {
             this.reframeHandle.align(this.reframeHandle.bounds().bottomRight(), this.getExtent());
+            this.reframeHandle.bringToFront();
         }
     },
 
+    makeBottomReframeHandle: function() {
+        var theExtent = this.getExtent(),
+            handle = new lively.morphic.Box(new Rectangle(0, 0, theExtent.x, this.spacing));
+        handle.addScript(function onDragStart(evt) {
+            this.dragStartPoint = evt.mousePoint;
+            this.originalTargetExtent = this.owner.getExtent();
+        });
+        handle.addScript(function onDrag(evt) {
+            var moveDelta = pt(0,evt.mousePoint.subPt(this.dragStartPoint).y);
+            var newExtent = this.originalTargetExtent.addPt(moveDelta);
+            if (newExtent.y < this.owner.minHeight) newExtent.y = this.owner.minHeight;
+            this.owner.setExtent(newExtent);
+
+            this.align(this.bounds().bottomLeft(), pt(0,this.owner.getExtent().y));
+        });
+        handle.addScript(function onDragEnd (evt) {
+            this.dragStartPoint = null;
+            this.originalTargetExtent = null;
+            this.owner.alignReframeHandle();
+            this.owner.alignRightReframeHandle();
+        });
+        handle.addStyleClassName('reframe-handle bottom');
+        return handle;
+    },
+
+    alignBottomReframeHandle: function() {
+        if (this.bottomReframeHandle) {
+            this.bottomReframeHandle.bringToFront();
+            this.bottomReframeHandle.setExtent(this.bottomReframeHandle.getExtent().withX(this.getExtent().x  - this.reframeHandle.getExtent().x));
+            this.bottomReframeHandle.align(this.bottomReframeHandle.bounds().bottomLeft(), pt(0,this.getExtent().y));
+
+
+        }
+    },
+
+    makeRightReframeHandle: function() {
+        var theExtent = this.getExtent(),
+            handle = new lively.morphic.Box(new Rectangle(0, 0, this.spacing, theExtent.y));
+
+        handle.addScript(function onDragStart(evt) {
+            this.dragStartPoint = evt.mousePoint;
+            this.originalTargetExtent = this.owner.getExtent();
+        });
+        handle.addScript(function onDrag(evt) {
+            var moveDelta = pt(evt.mousePoint.subPt(this.dragStartPoint).x,0);
+            var newExtent = this.originalTargetExtent.addPt(moveDelta);
+            if (newExtent.x < this.owner.minWidth) newExtent.x = this.owner.minWidth;
+
+            this.owner.setExtent(newExtent);
+            this.align(this.bounds().topRight(), pt(this.owner.getExtent().x,0));
+        });
+        handle.addScript(function onDragEnd (evt) {
+            this.dragStartPoint = null;
+            this.originalTargetExtent = null;
+            this.owner.alignReframeHandle();
+            this.owner.alignBottomReframeHandle();
+        });
+        handle.addStyleClassName('reframe-handle right');
+
+        return handle;
+    },
+
+    alignRightReframeHandle: function() {
+        if (this.rightReframeHandle) {
+            this.rightReframeHandle.setExtent(this.rightReframeHandle.getExtent().withY(this.getExtent().y - this.reframeHandle.getExtent().y));
+            this.rightReframeHandle.align(this.rightReframeHandle.bounds().topRight(), this.getExtent().withY(0));
+        }
+    },
     getBounds: function($super) {
         if (this.titleBar && this.isCollapsed()) {
             var titleBarTranslation = this.titleBar.getGlobalTransform().getTranslation();
@@ -2193,21 +2316,20 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 },
 'menu', {
     showTargetMorphMenu: function() {
-        var target = this.targetMorph || this;
+        var target = this.targetMorph || this,
+            itemFilter;
         if (this.targetMorph) {
             var self = this;
             itemFilter = function (items) {
-                items[0] = [
-                    'Publish window', function(evt) {
+                items[0] = ['Publish window', function(evt) {
                     self.copyToPartsBinWithUserRequest();
-                    }]
+                }];
                 // set fixed support
                 var fixItem = items.find(function (ea) {
-                    return ea[0] == "set fixed" || ea[0] == "set unfixed"
-                })
+                    return ea[0] == "set fixed" || ea[0] == "set unfixed" });
                 if (fixItem) {
-                    if(self.isFixed) {
-                        fixItem[0] = "set unfixed"
+                    if (self.isFixed) {
+                        fixItem[0] = "set unfixed";
                         fixItem[1] = function() {
                             self.setFixed(false);
                         }
@@ -2218,6 +2340,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
                         }
                     }
                 }
+                items[1] = ['Set window title', function(evt) {
+                    self.world().prompt('Set window title', function(input) {
+                        if (input !== null) self.titleBar.setTitle(input || '');
+                    }, self.titleBar.getTitle());
+                }];
                 return items;
             }
         }
@@ -2240,12 +2367,11 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 'mouse event handling', {
     highlight: function(trueForLight) {
         this.highlighted = trueForLight;
-        var fill = this.titleBar.getStyle().fill || this.titleBar.getFill(),
-            newFill = trueForLight ? fill.lighter(1) : fill;
-        this.titleBar.applyStyle({
-            fill: newFill,
-        });
-        this.titleBar.label.applyStyle({emphasize: {fontWeight: trueForLight ? 'bold' : 'normal'}});
+        if (trueForLight) {
+            this.addStyleClassName('highlighted');
+        } else {
+            this.removeStyleClassName('highlighted');
+        }
     },
 
     isInFront: function() { return this.owner && this.owner.topMorph() === this },
@@ -2316,6 +2442,9 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
         this.moveBy(movedBy);
         return true;
     },
+    wantsToBeDroppedInto: function(dropTarget) {
+        return dropTarget.isWorld;
+    }
 },
 'debugging', {
     toString: function($super) {
@@ -2652,7 +2781,8 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         $super(initialBounds);
         this.applyStyle(this.style);
         this.selectedMorphs = [];
-
+        this.setBorderStylingMode(true);
+        this.setAppearanceStylingMode(true);
     },
 },
 'propagation', {
@@ -2940,9 +3070,9 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
             selectionIndicator.name = 'Selection of ' + ea
             selectionIndicator.isEpiMorph = true;
             selectionIndicator.isSelectionIndicator = true;
-            selectionIndicator.applyStyle({
-                fill: null, borderWidth: 4,
-                strokeOpacity: 0.5, borderColor: Color.green})
+            selectionIndicator.setBorderStylingMode(true);
+            selectionIndicator.setAppearanceStylingMode(true);
+            selectionIndicator.addStyleClassName('selection-indicator');
             ea.addMorph(selectionIndicator);
             self.selectionIndicators.push(selectionIndicator);
         })
@@ -2965,9 +3095,9 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
         group.isGroup = true;
         this.owner.addMorph(group);
         this.selectedMorphs.forEach(function(ea) {
-            group.addMorph(ea)
-        })
-        this.selectMorphs([group])
+            group.addMorph(ea); });
+        this.selectMorphs([group]);
+        return group;
     },
     unGroup: function() {
         if (!this.selectedMorphs || this.selectedMorphs.length !== 1) return;
@@ -3246,9 +3376,13 @@ lively.morphic.Box.subclass('lively.morphic.Slider',
         this.setValue(0);
         this.setSliderExtent(0.1);
         this.valueScale = (scaleIfAny === undefined) ? 1.0 : scaleIfAny;
-        this.sliderKnob = this.addMorph(new lively.morphic.SliderKnob(new Rectangle(0, 0, this.mss, this.mss), this));
-        this.setupFill();
-        this.adjustSliderParts()
+        this.sliderKnob = this.addMorph(
+            new lively.morphic.SliderKnob(new Rectangle(0, 0, this.mss, this.mss), this));
+        this.adjustSliderParts();
+        this.sliderKnob.setAppearanceStylingMode(true);
+        this.sliderKnob.setBorderStylingMode(true);
+        this.setAppearanceStylingMode(true);
+        this.setBorderStylingMode(true);
     },
 },
 'accessing', {
@@ -3330,16 +3464,15 @@ lively.morphic.Box.subclass('lively.morphic.Slider',
                 sliderExt = pt(elevPix, bnds.height);
         }
         this.sliderKnob.setBounds(bnds.topLeft().addPt(topLeft).extent(sliderExt));
+        this.adjustFill();
     },
-    adjustFill: function() {},
+    adjustFill: function() {this.setupFill();},
 
     setupFill: function() {
         if (this.vertical()) {
-            this.sliderKnob.linkToStyles(['slider']);
-            this.linkToStyles(['slider_background']);
+            this.addStyleClassName('vertical');
         } else {
-            this.sliderKnob.linkToStyles(['slider_horizontal']);
-            this.linkToStyles(['slider_background_horizontal']);
+            this.removeStyleClassName('vertical');
         }
     }
 })
@@ -3513,12 +3646,10 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         var changed = false;
         if (this.item.description) str += "  " + this.item.description;
         if (this.label.getTextNode().textContent !== str) {
-            this.label.textString = this.item.name + (this.item.description ? "  " : "");
+            this.label.textString = this.item.name;
             if (this.item.description) {
-                var chunk = this.label.createChunk();
-                chunk.textString = this.item.description;
-                chunk.styleText({color: Color.web.darkgray});
-                this.label.getTextChunks().push(chunk);
+                var gray = {color: Color.web.darkgray};
+                this.label.appendRichText(" " + this.item.description, gray);
             }
             changed = true;
         }
@@ -3582,7 +3713,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     },
     createLabel: function() {
         var bounds = pt(0, 0).extent(pt(100, 20));
-        var name = this.item.name + (this.item.description ? "  " : "");
+        var name = this.item.name;
         var label = new lively.morphic.Text(bounds, name);
         if (this.item.style) {
             label.firstTextChunk().styleText(this.item.style);
@@ -3590,7 +3721,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         }
         if (this.item.description) {
             var gray = {color: Color.web.darkgray};
-            label.insertRichTextAt(this.item.description, gray, name.length);
+            label.appendRichText(" " + this.item.description, gray);
         }
         label.setBorderWidth(0);
         label.setFill(null);
@@ -3651,13 +3782,20 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         });
     },
     expand: function() {
+        if (!this.item.children || this.childNodes) return;
         this.layoutAfter(function () {
             if (this.item.onExpand) this.item.onExpand(this);
             if (this.icon) this.icon.setTextString("▼");
             this.showChildren();
         })
     },
+    expandAll: function() {
+        this.withAllTreesDo(function(tree) {
+            tree.expand();
+        });
+    },
     collapse: function() {
+        if (!this.item.children || !this.childNodes) return;
         this.layoutAfter(function() {
             if (this.item.onCollapse) this.item.onCollapse(this.item);
             if (this.icon) this.icon.setTextString("►");

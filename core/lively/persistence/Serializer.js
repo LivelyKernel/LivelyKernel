@@ -328,7 +328,6 @@ Object.extend(ObjectGraphLinearizer, {
             new DoNotSerializePlugin(),
             new DoWeakSerializePlugin(),
             new StoreAndRestorePlugin(),
-            new OldModelFilter(),
             new LayerPlugin(),
             new lively.persistence.DatePlugin()
         ]);
@@ -359,7 +358,7 @@ Object.extend(ObjectGraphLinearizer, {
         var regex = new RegExp(this.prototype.escapedCDATAEnd, 'g'),
             converted = json.replace(regex, this.prototype.CDATAEnd);
         return JSON.parse(converted);
-    },
+    }
 
 });
 
@@ -435,7 +434,7 @@ ObjectLinearizerPlugin.subclass('ClassPlugin',
             delete obj[this.classNameProperty];
         if (obj[this.sourceModuleNameProperty])
             delete obj[this.sourceModuleNameProperty];
-    },
+    }
 },
 'searching', {
     sourceModulesIn: function(registryObj) {
@@ -448,11 +447,11 @@ ObjectLinearizerPlugin.subclass('ClassPlugin',
                 moduleNames.push(value[sourceModuleProperty]);
             if (value[partsBinRequiredModulesProperty])
                 moduleNames.pushAll(value[partsBinRequiredModulesProperty]);
-        })
+        });
 
         return moduleNames.reject(function(ea) {
             return ea.startsWith('Global.anonymous_') || ea.include('undefined') }).uniq();
-    },
+    }
 });
 
 ObjectLinearizerPlugin.subclass('LayerPlugin',
@@ -472,7 +471,7 @@ ObjectLinearizerPlugin.subclass('LayerPlugin',
     },
     ignoreProp: function(obj, propName, value) {
         return propName == this.withLayersPropName || propName == this.withoutLayersPropName;
-    },
+    }
 },
 'helper',{
     serializeLayerArray: function(original, persistentCopy, propname) {
@@ -488,7 +487,7 @@ ObjectLinearizerPlugin.subclass('LayerPlugin',
         obj[propname] = layers.collect(function(ea) {
             return Object.isString(ea) ? cop.create(ea, true) : ea;
         });
-    },
+    }
 });
 
 ObjectLinearizerPlugin.subclass('StoreAndRestorePlugin',
@@ -644,22 +643,19 @@ ObjectLinearizerPlugin.subclass('LivelyWrapperPlugin', // for serializing lively
     },
 });
 
-ObjectLinearizerPlugin.subclass('IgnoreDOMElementsPlugin', // for serializing lively.data.Wrappers
+ObjectLinearizerPlugin.subclass('IgnoreDOMElementsPlugin',
 'plugin interface', {
     ignoreProp: function(obj, propName, value) {
         if (!value) return false;
-        if (value.nodeType) {
-            // alert('trying to deserialize node ' + value + ' (pointer from ' + obj + '[' + propName + ']'
-            // + '\n path:' + this.serializer.getPath())
-            return true;
-        }
+        if (value.nodeType) return true;
         if (value === Global) {
-            alert('trying to deserialize Global (pointer from ' + obj + '[' + propName + ']'
-            + '\n path:' + this.serializer.getPath())
+            alert('trying to deserialize Global (pointer from '
+                 + obj + '[' + propName + ']' + '\n path:'
+                 + this.serializer.getPath())
             return true;
         }
         return false;
-    },
+    }
 });
 
 ObjectLinearizerPlugin.subclass('RegExpPlugin',
@@ -688,83 +684,6 @@ ObjectLinearizerPlugin.subclass('RegExpPlugin',
         }
     },
 });
-
-ObjectLinearizerPlugin.subclass('OldModelFilter',
-'initializing', {
-    initialize: function($super) {
-        $super();
-        this.relays = [];
-    }
-},
-'plugin interface', {
-    ignoreProp: function(source, propName, value) {
-        // if (propName === 'formalModel') return true;
-        // if (value && value.constructor && value.constructor.name.startsWith('anonymous_')) return true;
-        return false;
-    },
-    additionallySerialize: function(original, persistentCopy) {
-        var klass = original.constructor;
-        // FIX for IE9+ which does not implement Function.name
-        if (!klass.name) {
-            var n = klass.toString().match('^function\s*([^(]*)\\(');
-            klass.name = (n ? n[1].strip() : '');
-        }
-        if (!klass || !klass.name.startsWith('anonymous_')) return;
-        ClassPlugin.prototype.removeClassInfoIfPresent(persistentCopy);
-        var def = JSON.stringify(original.definition);
-        def = def.replace(/[\\]/g, '')
-        def = def.replace(/"+\{/g, '{')
-        def = def.replace(/\}"+/g, '}')
-        persistentCopy.definition = def;
-        persistentCopy.isInstanceOfAnonymousClass = true;
-        if (klass.superclass == Relay) {
-            persistentCopy.isRelay = true;
-        } else if (klass.superclass == PlainRecord) {
-            persistentCopy.isPlainRecord = true;
-        } else {
-            alert('Cannot serialize model stuff of type ' + klass.superclass.type)
-        }
-    },
-    afterDeserializeObj: function(obj) {
-        // if (obj.isRelay) this.relays.push(obj);
-    },
-    deserializationDone: function() {
-        // this.relays.forEach(function(relay) {
-            // var def = JSON.parse(relay.definition);
-        // })
-    },
-    deserializeObj: function(persistentCopy) {
-        if (!persistentCopy.isInstanceOfAnonymousClass) return null;
-        var instance;
-        function createInstance(ctor, ctorMethodName, argIfAny) {
-            var string = persistentCopy.definition, def;
-            string = string.replace(/[\\]/g, '')
-            string = string.replace(/"+\{/g, '{')
-            string = string.replace(/\}"+/g, '}')
-            try {
-                def = JSON.parse(string);
-            } catch(e) {
-                console.error('Cannot correctly deserialize ' + ctor + '>>' + ctorMethodName + '\n' + e);
-                def = {};
-            }
-            return ctor[ctorMethodName](def, argIfAny)
-        }
-
-        if (persistentCopy.isRelay) {
-            var delegate = this.getSerializer().patchObj(persistentCopy.delegate);
-            instance = createInstance(Relay, 'newInstance', delegate);
-        }
-
-        if (persistentCopy.isPlainRecord) {
-            instance = createInstance(Record, 'newPlainInstance');
-        }
-
-        if (!instance) alert('Cannot serialize old model object: ' + JSON.stringify(persistentCopy))
-        return instance;
-    },
-
-});
-
 
 ObjectLinearizerPlugin.subclass('DEPRECATEDScriptFilter',
 'accessing', {
@@ -880,7 +799,10 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
                         && !obj[name].isConnectionWrapper; });
             for (var name in closures) {
                 var closure = closures[name];
-                closure.recreateFunc().addToObject(obj, name);
+                // in case of directly added functions do nothing
+                if (closure.isLivelyClosure) {
+                    closure.recreateFunc().addToObject(obj, name);
+                }
                 currentClosures.remove(name);
             }
             currentClosures.forEach(function(name) { delete obj[name]; });
@@ -1114,7 +1036,7 @@ ObjectLinearizerPlugin.subclass('CopyOnlySubmorphsPlugin',
 
 ObjectLinearizerPlugin.subclass('IgnoreEpiMorphsPlugin',
 'plugin interface', {
-    ignoreProp: function(obj, key, value) { return value && value.isEpiMorph },
+    ignoreProp: function(obj, key, value) { return value && value.isEpiMorph }
 });
 
 // (de)serialize objects that inherit stuff from a constructor function
@@ -1201,7 +1123,6 @@ ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin', {
 Object.extend(lively.persistence.Serializer, {
 
     jsonWorldId: 'LivelyJSONWorld',
-    changeSetElementId: 'WorldChangeSet',
 
     createObjectGraphLinearizer: function() {
         return ObjectGraphLinearizer.forNewLively();
@@ -1228,81 +1149,37 @@ Object.extend(lively.persistence.Serializer, {
     },
 
     serializeWorldToDocumentWithSerializer: function(world, doc, serializer) {
-        // this helper object was introduced to make the code that is browser
-        // dependent (currently IE9 vs the rest) easier to read. It sould be
-        // moved to dome general DOM abstraction layer
-        var domAccess = {
-            getSystemDictNode: function(doc) {
-                return (doc.getElementById ?
-                    doc.getElementById('SystemDictionary') :
-                    doc.selectSingleNode('//*[@id="SystemDictionary"]'));
-            },
-            createMetaNode: function(doc) {
-                return UserAgent.isIE ? doc.createNode(1, 'meta', Namespace.XHTML) : XHTMLNS.create('meta')
-            },
-            getCSNode: function(doc, changeSet) {
-                var changeSetNode;
-                if (!changeSet) {
-                    alert('Found no ChangeSet while serializing ' + world + '! Adding an empty CS.');
-                    changeSetNode = LivelyNS.create('code');
-                } else {
-                    changeSetNode = cs.getXMLElement();
-                }
-                if (!UserAgent.isIE) return doc.importNode(changeSetNode, true);
-                // mr: this is a real IE hack!
-                var helperDoc = new ActiveXObject('MSXML2.DOMDocument.6.0');
-                helperDoc.loadXML(new XMLSerializer().serializeToString(changeSetNode));
-                return doc.importNode(helperDoc.firstChild, true);
-            },
-            getHeadNode: function(doc) {
-                return doc.getElementsByTagName('head')[0] || doc.selectSingleNode('//*["head"=name()]');
-            },
-        }
+        var $doc = $(doc),
+            $head = $doc.find("head"),
+            head = $head.get(0);
 
-        var head = domAccess.getHeadNode(doc);
-
-        // FIXME remove previous meta elements - is this really necessary?
-        // var metaElement;
-        // while (metaElement = doc.getElementsByTagName('meta')[0])
-        //    metaElement.parentNode.removeChild(metaElement)
-        // removed 2012-01-5 fabian
-        // doing this instead: remove old serialized data.. is it necessary or not?
-        // we need additional meta tags for better iPad touch support, can't remove all of them..
-        var metaToBeRemoved = ['LivelyMigrationLevel', 'WorldChangeSet', 'LivelyJSONWorld'];
-        metaToBeRemoved.forEach(function(ea) {
-            var element = doc.getElementById(ea);
-            if (element) { element.parentNode.removeChild(element); }});
-
-
-        // FIXME remove system dictionary
-        var sysDict = domAccess.getSystemDictNode(doc);
-        if (sysDict) sysDict.parentNode.removeChild(sysDict);
+        // remove existing data
+        $doc.find("#LivelyMigrationLevel, #LivelyJSONWorld").remove();
 
         // store migration level
-        var migrationLevel = LivelyMigrationSupport.migrationLevel,
-            migrationLevelNode = domAccess.createMetaNode(doc);
-        migrationLevelNode.setAttribute('id', LivelyMigrationSupport.migrationLevelNodeId);
-        migrationLevelNode.appendChild(doc.createCDATASection(migrationLevel));
-        head.appendChild(migrationLevelNode);
-
-        // serialize changeset
-        var cs = world.getChangeSet(),
-            csElement = domAccess.getCSNode(doc, cs),
-            metaCSNode = domAccess.createMetaNode(doc);
-        metaCSNode.setAttribute('id', this.changeSetElementId);
-        metaCSNode.appendChild(csElement);
-        head.appendChild(metaCSNode);
+        $("<meta/>")
+            .attr("id", LivelyMigrationSupport.migrationLevelNodeId)
+            .append($doc[0].createCDATASection(LivelyMigrationSupport.migrationLevel))
+            .appendTo($head);
 
         // serialize world
-        var json = this.serialize(world, null, serializer),
-            metaWorldNode = domAccess.createMetaNode(doc);
+        var json = this.serialize(world, null, serializer);
         if (!json) throw new Error('Cannot serialize world -- serialize returned no JSON!');
-        metaWorldNode.setAttribute('id', this.jsonWorldId)
-        metaWorldNode.appendChild(doc.createCDATASection(json))
-        head.appendChild(metaWorldNode);
+        $("<meta/>")
+            .attr("id", this.jsonWorldId)
+            .append($doc[0].createCDATASection(json))
+            .appendTo($head)
+
+        // generate a preview
+        if (lively.Config.get('createWorldPreview')) {
+            var previewHTML = world.asHTMLLogo({asFragment: true});
+            $doc.find("body").html(previewHTML);
+            $("head style").clone().appendTo($head);
+        }
 
         return doc;
     },
+
     deserialize: function(json, optDeserializer) {
         var deserializer = optDeserializer || this.createObjectGraphLinearizer(),
             obj = deserializer.deserialize(json);
@@ -1310,26 +1187,27 @@ Object.extend(lively.persistence.Serializer, {
     },
 
     deserializeWorldFromDocument: function(doc) {
-        var worldMetaElement = doc.getElementById(this.jsonWorldId);
-        if (!worldMetaElement)
-            throw new Error('Cannot find JSONified world when deserializing');
-        var serializer = this.createObjectGraphLinearizer(),
-            json = worldMetaElement.textContent,
-            world = serializer.deserialize(json);
-        return world;
-    },
-
-    deserializeWorldFromJso: function(jso) {
+        var json = this.findWorldJsonInDocument(doc),
+            jso = this.parseJSON(json);
+        jso = LivelyMigrationSupport.applyWorldJsoTransforms(jso);
         var serializer = this.createObjectGraphLinearizer(),
             world = serializer.deserializeJso(jso);
         return world;
     },
 
-    deserializeChangeSetFromDocument: function(doc) {
-        var csMetaElement = doc.getElementById(this.changeSetElementId);
-        if (!csMetaElement)
-            throw new Error('Cannot find ChangeSet meta element when deserializing');
-        return ChangeSet.fromNode(csMetaElement);
+    deserializeWorldFromJso: function(jso) {
+        jso = LivelyMigrationSupport.applyWorldJsoTransforms(jso);
+        var serializer = this.createObjectGraphLinearizer(),
+            world = serializer.deserializeJso(jso);
+        return world;
+    },
+
+    findWorldJsonInDocument: function(document) {
+        var worldMetaElement = document.getElementById(this.jsonWorldId);
+        if (!worldMetaElement) {
+            throw new Error('Cannot find JSONified world when deserializing');
+        }
+        return worldMetaElement.textContent;
     },
 
     sourceModulesIn: function(jso) {
@@ -1343,7 +1221,8 @@ Object.extend(lively.persistence.Serializer, {
     copyWithoutWorld: function(obj) {
         var serializer = this.createObjectGraphLinearizerForCopy(),
             dontCopyWorldPlugin = new GenericFilter();
-        dontCopyWorldPlugin.addFilter(function(obj, propName, value) { return value === lively.morphic.World.current() })
+        dontCopyWorldPlugin.addFilter(function(obj, propName, value) {
+            return value === lively.morphic.World.current(); });
         serializer.addPlugin(dontCopyWorldPlugin);
         var copy = serializer.copy(obj);
         return copy;
@@ -1361,7 +1240,115 @@ Object.extend(lively.persistence.Serializer, {
         copyPlugin.root = obj;
         serializer.addPlugin(copyPlugin);
         return serializer.copy(obj);
+    }
+
+});
+
+Object.subclass('lively.persistence.HTMLDocBuilder',
+'initializing', {
+    initialize: function() {
+        this.doc = document.implementation.createHTMLDocument();
+        this.$doc = lively.$(this.doc);
+        this.head = this.$doc.find('head');
+        if (this.head.length === 0) {
+            this.head = $('<head/>').appendTo(this.$doc);
+        }
+        this.body = this.$doc.find('body');
+        if (this.body.length === 0) {
+            this.body = $('<body/>').appendTo(this.$doc);
+        }
+    }
+},
+'doc building', {
+
+    addTitle: function(titleString) {
+        var title = this.head.find('title');
+        if (title.length === 0) {
+            title = $('<title/>').appendTo(this.head);
+        }
+        title.text(titleString || "New Lively World");
     },
+
+    addStyleSheets: function(styleSheetSpecs) {
+        styleSheetSpecs.forEach(function(arg) {
+            // arg can be url string, URL, css string or object like
+            // {href: String, css: String, id: String}
+            if (Object.isString(arg)) {
+                if (arg.endsWith('.css')) this.addExternalStyleSheet(arg);
+                else this.addEmbeddedCSS(arg);
+            } else {
+                if (arg.href) this.addExternalStyleSheet(arg.href, arg.id);
+                else if (arg.css) this.addEmbeddedCSS(arg.css, arg.id);
+            }
+        }, this);
+    },
+
+    addHTML: function(html) {
+        $(html).appendTo(this.body);
+    },
+
+    addScripts: function(scriptSpecs) {
+        // jQuery and scripts, *headbang*:
+        // http://stackoverflow.com/questions/610995/jquery-cant-append-script-element
+        scriptSpecs.forEach(function(url) {
+            this.createScriptEl({src: url, parent: this.body[0]});
+        }, this);
+    },
+
+    addSerializedWorld: function(json, id, migrationLevel) {
+        var el = this.createScriptEl({
+            id: id,
+            parent: this.body[0],
+            textContent: json,
+            type: 'text/x-lively-world'
+        });
+        $(el).attr('data-migrationLevel', migrationLevel);
+    },
+
+    build: function(spec) {
+        if (spec.title) this.addTitle(spec.title);
+        if (spec.styleSheets) this.addStyleSheets(spec.styleSheets);
+        if (spec.html) this.addHTML(spec.html);
+        if (spec.externalScripts) this.addScripts(spec.externalScripts);
+        this.addSerializedWorld(spec.serializedWorld, spec.title, spec.migrationLevel);
+        return this.doc;
+    }
+},
+'helper', {
+    createScriptEl: function (spec) {
+        var el = this.doc.createElement('script');
+        el.setAttribute('type', spec.type || 'text/javascript');
+        if (spec.src) { el.setAttribute('src', spec.src); }
+        if (spec.id) { el.setAttribute('id', spec.id); }
+        if (spec.parent) { spec.parent.appendChild(el); }
+        if (spec.textContent) { el.textContent = spec.textContent; }
+        return el;
+    },
+    addExternalStyleSheet: function(url, id) {
+        $('<link/>')
+            .attr('rel', 'stylesheet')
+            .attr('href', url)
+            .attr('id', id)
+            .attr('type', 'text/css')
+            .attr('media', 'screen')
+            .appendTo(this.head);
+    },
+    addEmbeddedCSS: function(css, id) {
+        $('<style/>')
+            .attr('type', 'text/css')
+            .attr('id', id)
+            .text(css)
+            .appendTo(this.head);
+    }
+
+});
+
+Object.extend(lively.persistence.HTMLDocBuilder, {
+    documentForWorldSerialization: function(spec) {
+        // This method creates a new HTML document that can be used to
+        // serialize a Lively world.
+        return new this().build(spec);
+    }
 });
 
 Object.extend(lively.persistence, {
@@ -1417,7 +1404,6 @@ Object.extend(lively.persistence, {
     LivelyWrapperPlugin: LivelyWrapperPlugin,
     IgnoreDOMElementsPlugin: IgnoreDOMElementsPlugin,
     RegExpPlugin: RegExpPlugin,
-    OldModelFilter: OldModelFilter,
     DEPRECATEDScriptFilter: DEPRECATEDScriptFilter,
     ClosurePlugin: ClosurePlugin,
     IgnoreFunctionsPlugin: IgnoreFunctionsPlugin,

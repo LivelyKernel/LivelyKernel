@@ -68,7 +68,7 @@ Object.subclass('cop.Tracing.ObjectTracer', {
             alert('no methods recorded!')
             return
         }
-        var self = this, world = WorldMorph.current();
+        var self = this, world = lively.morphic.World.current();
         require('projects.ObjectExplorer.ObjectExplorerTreeNode').toRun(function() {
             var explorer = new ObjectExplorer({objectToExplore: self.rootActivations[0].forExploring()});
             explorer.openIn(world);
@@ -91,9 +91,9 @@ Object.extend(cop.Tracing.ObjectTracer, {
 
     installTraceCodeInClass: function(classObject, category) {
         var ignoreList = [
-            'constructor',  
-            'activeLayers', 'collectWithLayersIn', 'collectWithoutLayersIn', 
-            'dynamicLayers', 'structuralLayers', 'globalLayers', 'setWithLayers', 
+            'constructor',
+            'activeLayers', 'collectWithLayersIn', 'collectWithoutLayersIn',
+            'dynamicLayers', 'structuralLayers', 'globalLayers', 'setWithLayers',
             'addWithLayer', 'removeWithLayer', 'setWithoutLayers', 'getWithLayers',
             'getWithoutLayers'],
             funcNames = category ?
@@ -111,7 +111,7 @@ if (classObject == lively.morphic.Morph) debugger
 
                         var result;
                         if (tracer.isExtentingIntoControlFlow)
-                            withLayers([cop.Tracing.ObjectTraceLayer], 
+                            withLayers([cop.Tracing.ObjectTraceLayer],
                                 function() { result =  cop.proceed.apply(this, args)})
                         else
                             result =  cop.proceed.apply(this, args)
@@ -131,7 +131,7 @@ if (classObject == lively.morphic.Morph) debugger
         classList.forEach(function(klass) {
             // this.installTraceCodeInAllCategoriesOfClass(klass);
                         this.installTraceCodeInClass(klass)
-        }, this); 
+        }, this);
     },
 
 });
@@ -179,7 +179,7 @@ Object.subclass('cop.Tracing.MethodActivation', {
         return Strings.format('%s>>%s(%s)%s %s',
             this.obj.name ? this.obj.name + '(' + this.className + ')' : this.classType,
             this.methodName, this.args.join(','),
-            this.executionTime === undefined ? '' : ' ' + ( this.executionTime ? this.executionTime + 'ms' : ""), 
+            this.executionTime === undefined ? '' : ' ' + ( this.executionTime ? this.executionTime + 'ms' : ""),
             this.comments ? this.comments.join(', ') : '')
     },
     addComment: function(c) {

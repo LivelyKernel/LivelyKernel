@@ -174,9 +174,11 @@ Trait('TextChunkOwner',
         domChanged = this.fixTextBeforeAndAfterChunks(chunks);
         domChanged = domChanged || this.removeNonChunkNodes(chunks);
         chunks.last().ensureEndsWithBr();
-        if (domChanged && selRange) {
-            this.setSelectionRange(selRange[0], selRange[1]);
-        }
+        if (!selRange) return;
+        var newSelectionRange = this.getSelectionRange(),
+            selMustChange = domChanged || (newSelectionRange && newSelectionRange[0] !== selRange[0]);
+        if (!selMustChange) return;
+        this.setSelectionRange(selRange[0], selRange[1]);
     },
     fixChunksDelayed: function() {
         this.fixChunks.bind(this).delay(0);
@@ -2749,7 +2751,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                 var actionQueue = lively.morphic.TextEmphasis.hoverActions;
                 this.addCallbackWhenApplyDone('mouseenter', function(evt) {
                     actionQueue.enter(function() {
-                        var morph = $(evt.target).parents('[node-type="morph-node"]').eq(0).data('morph');
+                        var morph = $(evt.target).parents('[data-lively-node-type="morph-node"]').eq(0).data('morph');
                         lively.morphic.EventHandler.prototype.patchEvent(evt);
                         hover.inAction.call(morph, evt);
                     });
@@ -2757,7 +2759,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                 });
                 this.addCallbackWhenApplyDone('mouseleave', function(evt) {
                     actionQueue.leave(function() {
-                        var morph = $(evt.target).parents('[node-type="morph-node"]').eq(0).data('morph');
+                        var morph = $(evt.target).parents('[data-lively-node-type="morph-node"]').eq(0).data('morph');
                         lively.morphic.EventHandler.prototype.patchEvent(evt);
                         hover.outAction.call(morph, evt);
                     });
@@ -3116,10 +3118,11 @@ Object.subclass('lively.morphic.TextEmphasis',
         var propStrings = [];
         Properties.forEachOwn(this, function(key, value) {
             if (key === '__SourceModuleName__') return;
-            propStrings.push(
-                key + ': ' +  (value && value.isColor ? value.toString() : JSON.stringify(value)));
-        })
-        return 'TextEmphasis(' + propStrings.join(',') + ')'
+            var valueString = value && value.isColor ?
+                value.toString() : JSON.stringify(value);
+            propStrings.push(key + ': ' +  valueString);
+        });
+        return 'TextEmphasis(' + propStrings.join(',') + ')';
     }
 });
 
@@ -3165,9 +3168,8 @@ Object.extend(lively.morphic.TextEmphasis, {
 
         actionQueue.enter = function enter(callback, context) {
             schedule('in', context, function(idxInQueue) {
-                if (idxInQueue === 0) { callback.call(context); return; }
                 var nextAction = actionQueue[idxInQueue-1];
-                if (!nextAction.type === "out") {
+                if (nextAction && nextAction.type !== "out") {
                     throw new Error('Expecting next action of type "out"!');
                 }
                 callback.call(context);
@@ -3176,13 +3178,11 @@ Object.extend(lively.morphic.TextEmphasis, {
 
         actionQueue.leave = function leave(callback, context) {
             schedule('out', context, function(idxInQueue) {
-                if (idxInQueue === 0) { callback.call(context); return; }
-
                 var nextAction = actionQueue[idxInQueue-1];
-                if (!nextAction.type === "in") {
+                if (nextAction && nextAction.type !== "in") {
                     throw new Error('Expecting next action of type "in"!');
                 }
-                if (nextAction.context === context) {
+                if (nextAction && nextAction.context === context) {
                     // out immediately followed by in: do nothing
                     nextAction.ignore = true;
                 } else {
@@ -3203,7 +3203,7 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     initialize: function(string) {
         this.getTextChunks(); // lazy initialize
         if (string) this.firstTextChunk().textString = string;
-    },
+    }
 },
 'rich text interface', {
     emphasize: function(styleSpec, from, to) {
@@ -3241,7 +3241,9 @@ Object.subclass('lively.morphic.RichText', Trait('TextChunkOwner'),
     },
     getTextNode: function() {
         return this.firstTextChunk().getChunkNode().parentNode
-    }
+    },
+
+    getSelectionRange: Functions.Null
 
 },
 'text morph application', {

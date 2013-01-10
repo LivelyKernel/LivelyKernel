@@ -354,7 +354,7 @@ Object.subclass('Rectangle',
             lineBetween = center1.lineTo(center2),
             start = this.lineIntersection(lineBetween).first(),
             end = otherRect.lineIntersection(lineBetween).first();
-        return start.lineTo(end);
+        return start && end && start.lineTo(end);
     }
 },
 'printing', {

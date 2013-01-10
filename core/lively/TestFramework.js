@@ -22,13 +22,13 @@
  * THE SOFTWARE.
  */
 
-module('lively.TestFramework').requires(['lively.bindings']).toRun(function() {
+module('lively.TestFramework').requires('lively.bindings', 'lively.Helper').toRun(function() {
 
 Object.subclass('TestCase',
 'settings', {
     isTestCase: true,
     shouldRun: true,
-    verbose: Functions.True,
+    verbose: Functions.True
 },
 'initializing', {
     initialize: function(testResult, optTestSelector) {
@@ -40,7 +40,7 @@ Object.subclass('TestCase',
         return this.allTestSelectors().collect(function(sel) {
             return new this.constructor(this.result, sel);
         }, this);
-    },
+    }
 },
 'accessing', {
     name: function() { return this.constructor.type },
@@ -102,7 +102,7 @@ Object.subclass('TestCase',
     setUp: function() {},
     tearDown: function() {},
     runTest: function(aSelector) {
-        if (!this.shouldRun) return;
+        if (!this.shouldRun) return null;
         this.currentSelector = aSelector || this.currentSelector;
 
         this.running();
@@ -128,7 +128,7 @@ Object.subclass('TestCase',
         this.runTest(selector);
             lively.lang.Execution.installStackTracers("uninstall");
         return this.result.failed.last();
-    },
+    }
 },
 'running (private)', {
     show: function(string) { this.log(string) },
@@ -188,6 +188,8 @@ Object.subclass('TestCase',
 
         if (Global.URL && a instanceof URL && b instanceof URL && a.eq(b)) return;
 
+        if (a instanceof Date & b instanceof Date && a.valueOf() === b.valueOf()) return;
+
         if (a == b) return;
 
         this.assert(false, (msg ? msg : '') + ' (' + a +' != ' + b +')');
@@ -229,6 +231,10 @@ Object.subclass('TestCase',
             case String:
             case Boolean:
             case Boolean:
+            case Date: {
+                this.assertEquals(leftObj, rightObj, msg);
+                return;
+            }
             case Number: {
                 this.assertEquals(leftObj, rightObj, msg);
                 return;
@@ -309,12 +315,10 @@ Object.subclass('TestCase',
         this.assert(false, "No assertion raised. " + msg);
     }
 },
-
 'logging', {
     log: function(aString) {
-        if (this.verbose())
-            console.log(aString);
-    },
+        if (this.verbose()) console.log(aString);
+    }
 },
 'world test support', {
     answerPromptsDuring: function(func, questionsAndAnswers) {
@@ -343,7 +347,7 @@ Object.subclass('TestCase',
         } finally {
             lively.morphic.World.prototype.prompt = oldPrompt;
         }
-    },
+    }
 },
 'event test support', {
     // event simulation methods
@@ -386,7 +390,7 @@ Object.subclass('TestCase',
         // cs: this should be moved to lively.morphic.tests.TestCase
         spec.targetMorph = morph || spec.targetMorph;
         return lively.morphic.EventSimulator.doKeyboardEvent(spec);
-    },
+    }
 },
 'scripting', {
     addScript: function (funcOrString, optName) {
@@ -452,18 +456,22 @@ Function.addMethods(
     }
 });
 
-TestCase.subclass('AsyncTestCase', {
+TestCase.subclass('AsyncTestCase',
+'intializing', {
     initialize: function($super, testResult, testSelector) {
         $super(testResult, testSelector);
         this._maxWaitDelay = 1000; // ms
         this._done = false;
-    },
+    }
+},
+'accessing', {
+    name: function($super) { return $super() + ' (async)'; },
     setMaxWaitDelay: function(ms) { this._maxWaitDelay = ms },
     show: function(string) { console.log(string) },
-    done: function() {
-        this._done = true;
-    },
-    isDone: function() { return this._done },
+    done: function() { this._done = true; },
+    isDone: function() { return this._done }
+},
+'runnning', {
     delay: function(func, ms) {
         var self = this;
         console.log('Scheduled action for ' + self.currentSelector);
@@ -481,8 +489,12 @@ TestCase.subclass('AsyncTestCase', {
             this[this.currentSelector]();
         } catch (e) { this.addAndSignalFailure(e) }
     },
+
     runAll: function(statusUpdateFunc, whenDoneFunc) {
-        var self = this, tests = this.createTests();
+        var self = this, tests = this.createTests(),
+            duration = 0, startTime;
+
+        function recordTime(thenDo) { duration += Date.now() - startTime; thenDo() }
 
         tests.forEach(function(test) {
             test.statusUpdateFunc = statusUpdateFunc;
@@ -490,9 +502,11 @@ TestCase.subclass('AsyncTestCase', {
         });
 
         tests.doAndContinue(
-            function(next, test) { test.runAndDoWhenDone(next) },
-            function() { whenDoneFunc && whenDoneFunc();
-                         console.log('All tests of ' + self.name() + ' done') },
+            function(next, test) { startTime = Date.now();
+                                   test.runAndDoWhenDone(recordTime.curry(next)) },
+            function() { self.result.setTimeToRun(self.name(), duration);
+                         whenDoneFunc && whenDoneFunc();
+                         console.log('All tests of %s done', self.name()) },
             this);
 
         return tests;
@@ -555,7 +569,7 @@ TestCase.subclass('MorphTestCase', {
         this.morphs.push(m);
         this.world.addMorphAt(m, loc)
         return m;
-    },
+    }
 
 });
 
@@ -679,7 +693,7 @@ Object.subclass('TestResult', {
     },
 
     setTimeToRun: function(testCaseName, time) {
-        return this.timeToRun[testCaseName]= time
+        return this.timeToRun[testCaseName] = time
     },
 
     getTimeToRun: function(testCaseName) {
@@ -701,7 +715,7 @@ Object.subclass('TestResult', {
             err: error,
             toString: function(){ return Strings.format('%s.%s failed: \n\t%s (%s)',
                 className, selector, error.toString(), error.constructor? error.constructor.type : '' )
-            },
+            }
         });
     },
 
@@ -726,9 +740,9 @@ Object.subclass('TestResult', {
         }
         string += ' -- TestCases timeToRuns: \n';
         var self = this;
-        var sortedList = $A(Properties.all(this.timeToRun)).sort(function(a,b) {
+        var sortedList = Array.from(Properties.all(this.timeToRun)).sort(function(a,b) {
             return self.getTimeToRun(a) - self.getTimeToRun(b)});
-        sortedList.forEach(function(ea){
+        sortedList.forEach(function(ea) {
            string +=  this.getTimeToRun(ea)  + " " + ea+ "\n"
         }, this);
         string += 'Overall time: ' + (this.getTimeToRun() / 1000) + 's';

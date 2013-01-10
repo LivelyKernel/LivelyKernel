@@ -1,6 +1,6 @@
-var host = document.location.host,
-    protocol = document.location.protocol,
-    url = document.location.toString(),
+var host = Config.location.host,
+    protocol = Config.location.protocol,
+    url = Config.location.toString(),
     wwPath = "/repository/webwerkstatt";
 
 
@@ -33,7 +33,6 @@ lively.Config.add("modulePaths", 'apps');
 // FIXME: load those modules depending on the main render engine that should
 // be used
 lively.Config.add("modulesBeforeWorldLoad", 'lively.morphic.HTML');
-lively.Config.add("modulesBeforeWorldLoad", 'lively.morphic.StyleSheetsHTML');
 
 // Config.set("textUndoEnabled", document.URL.indexOf('textUndoEnabled=false') === -1);
 if (lively.Config.get("textUndoEnabled")) {

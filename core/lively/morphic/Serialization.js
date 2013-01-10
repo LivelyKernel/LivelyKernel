@@ -57,7 +57,7 @@ lively.morphic.Morph.addMethods(
         }
     },
 
-    onstore: function() {},
+    onstore: function() {}
 
 },
 'copying', {
@@ -67,6 +67,7 @@ lively.morphic.Morph.addMethods(
         copy.withAllSubmorphsDo(function(ea) { ea.setNewId() })
         copy.prepareForNewRenderContext(this.renderContext().newInstance());
         copy.findAndSetUniqueName();
+        copy.disconnectObsoleteControlPoints();
         if (typeof copy.onCopy === "function") { copy.onCopy(); }
         return copy;
     },
@@ -77,6 +78,20 @@ lively.morphic.Morph.addMethods(
         // DEPRECATED use the function called instead
         this.prepareForNewRenderContext(renderCtx);
     },
+    disconnectObsoleteControlPoints: function() {
+        // disconnect obsolete control points that were created during copying
+        // e.g. when a line was connected to a rectangle, and only the
+        // rectangle was copied
+        if (!this.magnets) return;
+        this.magnets.forEach(function(eaMagnet) {
+            if (!eaMagnet.connectedControlPoints) return;
+            eaMagnet.connectedControlPoints.forEach(function(eaCP) {
+                if (!eaCP.morph.controlPoints.include(eaCP)) {
+                    eaMagnet.removeConnectedControlPoint(eaCP);
+                }
+            });
+        });
+    }
 },
 'serialization', {
     serializeToJSON: function() {
@@ -104,8 +119,7 @@ lively.morphic.Morph.addMethods(
     },
     findAndSetUniqueName: function() {
         this.setName(this.findUniqueNameSimilarTo(this.name || this.constructor.name));
-    },
-
+    }
 });
 
 lively.morphic.Text.addMethods(
@@ -151,11 +165,14 @@ lively.morphic.Text.addMethods(
 lively.morphic.World.addMethods(
 'serialization', {
     doNotSerialize: ['revisionOnLoad', 'clickedOnMorph', 'draggedMorph', 'cachedWindowBounds'],
+
     onrestore: function($super) {
         $super();
         // this should go into prepareForNewRenderContext / event registration...!
         this.registerForGlobalEvents();
+        this.getLastModificationDate();
     },
+
     interactiveSaveWorldAs: function() {
         var world = this;
         world.prompt('Please enter a relative or absolute path', function(input) {
@@ -163,46 +180,53 @@ lively.morphic.World.addMethods(
             var url = input.startsWith('http') ?
                 new URL(input) : URL.source.withFilename(input);
             if (!new WebResource(url).exists()) {
-                world.saveWorldAs(url)
+                world.saveWorldAs(url, true);
             } else {
                 world.confirm(url.toString() + ' already exists. Overwrite?',
-                              function(answer) { answer && world.saveWorldAs(url) });
+                              function(answer) { answer && world.saveWorldAs(url, true); });
             }
         }, URL.source.filename())
     },
+
     saveWorldAs: function(url, checkForOverwrites) {
-        var serializer = ObjectGraphLinearizer.forNewLively();
-        var doc = new Importer().getBaseDocument();
-        var start = new Date().getTime();
+        // Step 1: Get serialized representation of the world
+        var serializer = lively.persistence.ObjectGraphLinearizer.forNewLively(),
+            json = serializer.serialize(this, null, serializer);
 
-        lively.persistence.Serializer.serializeWorldToDocumentWithSerializer(this, doc, serializer);
-
-        // make sure that links to bootstrap.js points to the right directory
-        new DocLinkConverter(URL.codeBase, url.getDirectory()).convert(doc);
-
-        // Change page title
-        var titleTag = doc.getElementsByTagName('title')[0];
-        if (titleTag) titleTag.textContent = url.filename().replace('.xhtml', '');
+        // Step 2: Create a new document
+        var preview = this.asHTMLLogo({asXML: false, asFragment: true}),
+            title = url.filename().replace('.x?html', ''),
+            bootstrapFile = new URL(module("lively.bootstrap").uri()).relativePathFrom(url),
+            css = $("head style").toArray().map(function(el) {
+                return {css: el.textContent, id: el.getAttribute('id')}; }),
+            docSpec = {
+                title: title,
+                migrationLevel: LivelyMigrationSupport.migrationLevel,
+                serializedWorld: json,
+                html: preview,
+                styleSheets: css,
+                externalScripts: [bootstrapFile]
+            },
+            doc = lively.persistence.HTMLDocBuilder.documentForWorldSerialization(docSpec);
 
         this.savedWorldAsURL = undefined;
-        connect(this, 'savedWorldAsURL', this, 'visitNewPageAfterSaveAs', {
+        lively.bindings.connect(this, 'savedWorldAsURL', this, 'visitNewPageAfterSaveAs', {
             updater: function($upd, v) {
-                if (v && v.toString() !== URL.source.toString()) {
-                    $upd(v)
-                }
+                if (v && v.toString() !== URL.source.toString()) { $upd(v); }
             }
         })
 
-        if (URL.source.eq(url))
-            timeOnNetwork = this.storeDoc(doc, url, checkForOverwrites);
-        else
-            this.checkIfPathExistsAndStoreDoc(doc, url, checkForOverwrites)
-
-        Config.lastSaveTime = new Date().getTime() - start;
+        if (URL.source.eq(url)) {
+            this.storeDoc(doc, url, checkForOverwrites);
+        } else {
+            this.checkIfPathExistsAndStoreDoc(doc, url, checkForOverwrites);
+        }
     },
+
     saveWorld: function() {
         this.saveWorldAs(URL.source, true)
     },
+
     visitNewPageAfterSaveAs: function(url) {
         if (!url) return;
         this.confirm("visit " + url + "?", function(yes) {
@@ -230,30 +254,46 @@ lively.morphic.World.addMethods(
     storeDoc: function (doc, url, checkForOverwrites) {
         var webR = new WebResource(url);
         webR.createProgressBar('Saving...');
-        connect(webR, 'status', this, 'handleSaveStatus');
-        // allow disabling async saving.
-        if(!Config.forceSyncSaving) { webR = webR.beAsync(); }
-        var start = new Date().getTime();
-		if (this.getUserName) this.getUserName(); // cgi saves user in localStorage
-        webR.put(doc, null, checkForOverwrites ? this.revisionOnLoad : null);
-        Config.lastSaveTransferTime = new Date().getTime() - start;
+        connect(webR, 'status', this, 'handleSaveStatus', {updater: function($upd, status) {
+            $upd(status, this.sourceObj); // pass in WebResource as well
+        }});
+        if (!Config.forceSyncSaving) { // optional asynchronous save
+            webR = webR.beAsync();
+        }
+        var putOptions = {};
+        if (checkForOverwrites) {
+            if (this.lastModified) putOptions.ifUnmodifiedSince = this.lastModified;
+            else if (this.revisionOnLoad) putOptions.requiredSVNRevision = this.revisionOnLoad;
+        }
+        webR.put(doc, null, putOptions);
     },
     askToOverwrite: function(url) {
         this.confirm(String(url) + ' was changed since loading it. Overwrite?',
-            function(input) { if (input) this.saveWorldAs(url) }.bind(this))
+            function(input) { if (input) this.saveWorldAs(url, false) }.bind(this))
     },
-    handleSaveStatus: function(status) {
+    handleSaveStatus: function(status, webR) {
         if (!status.isDone()) return;
         if (status.code() === 412) {
             this.askToOverwrite(status.url);
             return;
         }
         if (status.isSuccess()) {
-            this.tryToGetWorldRevision(); // update the rev used for overwrite check
+             // update the rev used for overwrite check
+            this.tryToGetWorldRevision();
+            this.getLastModificationDate(webR);
             this.savedWorldAsURL =  status.url;
             lively.bindings.signal(this, 'savingDone', status.url);
         } else {
             this.alert('Problem saving ' + status.url + ': ' + status)
+        }
+    },
+    getLastModificationDate: function(webR) {
+        if (webR && webR.lastModified) {
+            this.lastModified = webR.lastModified;
+        } else {
+            webR = new WebResource(URL.source);
+            lively.bindings.connect(webR, 'lastModified', this, 'lastModified');
+            webR.beAsync().get();
         }
     },
     tryToGetWorldRevision: function() {
@@ -273,9 +313,11 @@ Object.extend(lively.morphic.World, {
     createFromJSONOn: function(json, domElement) {
         return this.createFromJSOOn(JSON.parse(json), domElement);
     },
-    createFromJSOOn: function(jso, domElement) {
-        var world = this.fromJSO(jso)
-        world.displayOnCanvas(domElement)
+    createFromJSOOn: function(jso, domElementOrDocument) {
+        var world = this.fromJSO(jso),
+            isDoc = !domElementOrDocument.ownerDocument;
+        if (isDoc) world.displayOnDocument(domElementOrDocument);
+        else world.displayOnElement(domElementOrDocument);
         this.currentWorld = world;
         return world;
     },
@@ -285,9 +327,7 @@ Object.extend(lively.morphic.World, {
         return world;
     },
     fromDocument: function(doc) {
-        var world = lively.persistence.Serializer.deserializeWorldFromDocument(doc),
-            cs = lively.persistence.Serializer.deserializeChangeSetFromDocument(doc);
-        world.setChangeSet(cs);
+        var world = lively.persistence.Serializer.deserializeWorldFromDocument(doc);
         world.prepareForNewRenderContext(world.renderContext());
         return world;
     },

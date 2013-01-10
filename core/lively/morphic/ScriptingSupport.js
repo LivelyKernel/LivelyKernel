@@ -76,23 +76,28 @@ lively.morphic.Morph.addMethods(
     logoHTMLString: function () {
         return Exporter.stringify(this.renderContext().morphNode);
     },
-    asHTMLLogo: function () {
+    asHTMLLogo: function (options) {
+        options = options || {};
         var oldPos = this.getPosition(),
             oldScale = this.getScale(),
-            bounds = this.bounds();
-
+            bounds = this.bounds(),
+            template = options.asXML ?
+                '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '
+              + '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
+              + '<html xmlns="http://www.w3.org/1999/xhtml"><body>INSERT_MARKUP_HERE</body></html>' :
+                '<!DOCTYPE html><html><body>INSERT_MARKUP_HERE</body></html>';
         try {
-            this.setScale(85 / Math.max(bounds.width, bounds.height)*oldScale);
-
+            if (options.scale) this.setScale(options.scale);
             this.align(this.bounds().topLeft(), pt(5,5));
             var html = this.logoHTMLString();
             // patch properties so they work on all browsers...
             html = html.replace(/(-webkit|-moz|-o)(-transform[^;]+;)/g, '-webkit$2 -moz$2 -o$2');
-            html ='<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"> <body>'
-                + html + '</body></html>';
+            if (!options.asFragment) {
+                html = template.replace('INSERT_MARKUP_HERE', html);
+            }
             return html;
         } finally {
-            this.setScale(oldScale);
+            if (options.scale) this.setScale(oldScale);
             this.setPosition(oldPos);
         }
     },
@@ -103,7 +108,7 @@ lively.morphic.Morph.addMethods(
             shape = new lively.morphic.Shapes.External(svgNode),
             morph = new lively.morphic.Morph(shape);
         return morph;
-    },
+    }
 
 },
 'connection points', {
@@ -112,14 +117,13 @@ lively.morphic.Morph.addMethods(
     },
     getTargetConnectionPoints: function() {
         return this.getConnectionPoints();
-    },
-
+    }
 });
 
 lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
 'settings', {
     defaultExtent: pt(100,100),
-    style: {enableDragging: true, accessibleInInactiveWindow: true},
+    style: {enableDragging: true, accessibleInInactiveWindow: true}
 },
 'initializing', {
     initialize: function($super, partsBinURL, targetName, partItem) {
@@ -196,9 +200,7 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
                 nameLabel.bounds().bottomCenter(),
                 this.innerBounds().bottomCenter().addXY(0, -4));
         }.bind(this)).delay(0.1)
-    },
-
-
+    }
 
 },
 'selection', {
@@ -210,10 +212,7 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
     showAsNotSelected: function() {
         this.isSelected = false;
         this.applyStyle({borderWidth: 0});
-    },
-},
-'naming', {
-
+    }
 },
 'mouse events', {
     onMouseDown: function(evt) {
@@ -229,20 +228,16 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
     onDragStart: function($super, evt) {
         if (!this.partItem) {
             alert('Cannot load Part because found no PartItem');
-            return;
+            return false;
         }
 // FIXME duplication with PartsBinBrowser open
         // FIXME put somewhere else
         this.startLoadingPart('openLoadedPartsBinItem')
-        return true
+        return true;
     },
     onDragEnd: function($super, evt) {
-        var target = evt.world.morphsContainingPoint(evt.getPosition()).detect(function(ea) { return ea.droppingEnabled });
-        if (target)
-            evt.hand.dropContentsOn(target, evt)
-        return $super(evt);
-    },
-
+        return evt.world.dispatchDrop(evt) || $super(evt);
+    }
 
 },
 'server interaction', {
@@ -258,14 +253,14 @@ lively.morphic.Box.subclass('lively.morphic.PartsBinItem',
                 alertOK("deleted " + this.targetName + " in " + this.partsBinURL);
             }
         }.bind(this))
-    },
+    }
 },
 'loading', {
     openLoadedPartsBinItem: function(partMorph) {
         // FIXME duplication with PartsBinBrowser open
         lively.morphic.World.current().firstHand().grabMorph(partMorph, null);
         partMorph.setPosition(pt(0,0));
-        if(partMorph.onCreateFromPartsBin) partMorph.onCreateFromPartsBin();
+        if (partMorph.onCreateFromPartsBin) partMorph.onCreateFromPartsBin();
     },
     openLoadedPartCentered: function(partMorph) {
         partMorph.openInWorld();
@@ -297,8 +292,9 @@ Object.extend(Global, {
     },
     $part: function getPartItem(partName, partSpaceName) {
         return $world.loadPartItem(partName, partSpaceName);
-    },
+    }
 });
+
 Trait('lively.morphic.DraggableBehavior',
 'dragging and dropping', {
     onDragEnd: function(evt) {

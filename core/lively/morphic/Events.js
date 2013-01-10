@@ -963,16 +963,34 @@ handleOnCapture);
     enableDragging: function() { this.draggingEnabled = true },
     disableDragging: function() { this.draggingEnabled = false },
 
-    dropOnMe: function(evt) {
-        if (!this.droppingEnabled || this.eventsAreIgnored) return false;
-        if (evt.hand.submorphs.length == 0) return false;
-        for (var i = 0; i < this.submorphs.length; i++) {
-            if (this.submorphs[i].manualDropOnMe(evt)) return true;
-        }
-        if (this.owner != evt.hand) {
-            return evt.hand.dropContentsOn(this, evt);
-        }
-        return false;
+    howDroppingWorks: function() {
+        // How does dropping morphs work? When morphs are carried by a HandMorph (i.e.
+        // being its submorphs), and a mouseup event occurs then
+        // lviely.morphic.World>>dispatchDrop is called.
+        //
+        // The high-level call stack of what happens then looks like this:
+        //
+        // world.dispatchDrop(evt)
+        //     targetMorph.wantsDroppedMorph(grabbedMorph)
+        //     grabbedMorph.wantsToBeDroppedInto(targetMorph)
+        //     handMorph.dropContentsOn(targetMorph,evt)
+        //         grabbedMorph>>dropOn(targetMorph)
+        //             grabbedMorph>>onDropOn(targetMorph)
+        //
+        // #wantsDroppedMorph and #wantsToBeDroppedInto are used for dynamically
+        // controlling drop behavior (called while drop process and are able to cancel
+        // the drop). Also, there is a property "droppingEnabled" that (statically)
+        // controls whether a morph should be considered for a drop at all.
+    },
+
+    wantsToBeDroppedInto: function(dropTarget) {
+        // returns true if this morph can be dropped into the target
+        return true;
+    },
+
+    wantsDroppedMorph: function(morphToDrop) {
+        // returns true if the provided morph can be dropped into this morph
+        return true;
     },
 
     dropOn: function(aMorph) {
@@ -1000,15 +1018,10 @@ handleOnCapture);
         return false;
     },
 
-    manualDropOnMe: function(evt) {
-        // this is a workaround. HTML events are not delivered to the required morph
-        // under the hand when the hand already carries submorphs that overlap
-        // var localPt = this.localize(evt.getPosition());
-        return this.fullContainsWorldPoint(evt.getPosition()) ? this.dropOnMe(evt) : false;
-    },
     grabMe: function(evt) {
         return this.grabbingEnabled && evt.hand.grabMorph(this, evt);
     },
+
     getGrabShadow: function (local) {
         var shadow = new lively.morphic.Morph(
             lively.persistence.Serializer.newMorphicCopy(this.shape));
@@ -1039,8 +1052,7 @@ handleOnCapture);
         //shadow.originalMorph = this;
         //this.grabShadow = shadow;
         return shadow;
-    },
-
+    }
 },
 'scrolling', {
     onScroll: function(evt) {},
@@ -1093,8 +1105,6 @@ handleOnCapture);
                         (!ea.owner || !ea.owner.isHalo); });
     },
 
-
-
     isScrollableHTML: function() {
         // HTML specific
         if (this.isList) {
@@ -1126,7 +1136,7 @@ handleOnCapture);
         }
         return false;
 
-    },
+    }
 
 });
 
@@ -1585,9 +1595,14 @@ lively.morphic.World.addMethods(
         return false;
     },
     dispatchDrop: function(evt) {
-        if (evt.hand.submorphs.length == 0) return false;
+        if (evt.hand.submorphs.length === 0) return false;
         var morphStack = this.morphsContainingPoint(evt.getPosition()),
-            dropTarget = morphStack.detect(function(ea) { return ea.droppingEnabled && !ea.eventsAreIgnored });
+            carriedMorphs = evt.hand.submorphs.select(function(ea) { return !ea.isGrabShadow }),
+            dropTarget = morphStack.detect(function(ea) {
+                return ea.droppingEnabled && !ea.eventsAreIgnored &&
+                    carriedMorphs.all(function(toBeDropped) {
+                        return ea.wantsDroppedMorph(toBeDropped)
+                            && toBeDropped.wantsToBeDroppedInto(ea); }); });
         if (!dropTarget) {
             alert('found nothing to drop onto');
             return false;
@@ -2043,7 +2058,12 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         if (this.carriesGrabbedMorphs) {
             var carriedMorph = this.submorphs.detect(function(ea) {return !ea.isGrabShadow;}),
                 topmostMorph = this.world().getTopmostMorph(evt.getPosition());
-            if (!topmostMorph || !topmostMorph.isLayoutable) return;
+            if (!topmostMorph ||
+                !topmostMorph.isLayoutable ||
+                !topmostMorph.wantsDroppedMorph(carriedMorph) ||
+                !carriedMorph.wantsToBeDroppedInto(topmostMorph)) {
+                return;
+            }
             var layouter = topmostMorph.getLayouter();
             if (!carriedMorph) { return; }
             if (layouter && layouter.displaysPlaceholders()) {

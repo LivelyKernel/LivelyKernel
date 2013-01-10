@@ -633,8 +633,14 @@ lively.morphic.Morph.subclass('lively.morphic.World',
     }
 },
 'rendering', {
-    displayOnCanvas: function(domElement) {
-        this.renderContext().setParentNode(domElement);
+    displayOnDocument: function(doc) {
+        var bodyEl = doc.getElementsByTagName('body')[0];
+        this.displayOnElement(bodyEl);
+    },
+
+    displayOnElement: function(el) {
+        this.renderContext().domInterface.removeAllChildrenOf(el);
+        this.renderContext().setParentNode(el);
         this.renderContextDispatch('append');
     },
 
@@ -647,7 +653,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
                 path = URL.codeBase.withFilename(cursorFile).pathname;
             document.body.style.cursor = 'url("' + path + '"), none';
         });
-    },
+    }
 },
 'hand morph', {
     addHandMorph: function() {
@@ -657,9 +663,28 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         this.addMorph(hand);
     }
 },
-'changes', {
-    setChangeSet: function(changeSet) { this.changeSet = changeSet },
-    getChangeSet: function() { return this.changeSet }
+"world requirements", {
+    hasWorldRequirement: function(requirement) {
+        return this.getWorldRequirements().include(requirement);
+    },
+
+    addWorldRequirement: function(requirement) {
+        this.setWorldRequirements(this.getWorldRequirements().concat(requirement));
+    },
+
+    removeWorldRequirement: function(requirement) {
+        this.setWorldRequirements(this.getWorldRequirements().without(requirement));
+    },
+
+    setWorldRequirements: function(requirements) {
+        // FIXME metaInfos should be independent from PartsBin
+        var metaInfo = this.getPartsBinMetaInfo();
+        metaInfo.requiredModules = requirements;
+    },
+
+    getWorldRequirements: function() {
+        return this.getPartsBinMetaInfo().getRequiredModules();
+    }
 });
 
 Object.extend(lively.morphic.World, {
@@ -670,7 +695,7 @@ Object.extend(lively.morphic.World, {
         var world = new this();
         bounds = bounds || new Rectangle(0,0,400,400);
         world.setBounds(bounds)
-        world.displayOnCanvas(domElement)
+        world.displayOnElement(domElement)
         world.applyStyle({fill: Color.gray.lighter()})
         world.addHandMorph();
         this.currentWorld = world;

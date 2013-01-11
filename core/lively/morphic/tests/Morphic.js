@@ -207,7 +207,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic.BasicFunc
             tagName: 'div',
             childNodes: [{
                 tagName: 'div', // morph's shape
-                style: {    'border-top-left-radius': '3.5px3.5px'}
+                style: {    'border-top-left-radius': '3.5px'}
             }]
         }
         if (jQuery.browser.mozilla) {

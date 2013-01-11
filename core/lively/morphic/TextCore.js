@@ -2633,7 +2633,7 @@ Object.subclass('lively.morphic.TextChunk',
             lastBrFound = false;
         for (var i = 0; i < chunkNode.childNodes.length; i++) {
             var node = chunkNode.childNodes[i];
-            if (node.tagName.toLowerCase() === 'br') {
+            if (node.tagName && node.tagName.toLowerCase() === 'br') {
                 lastBrFound = true;
                 continue;
             }
@@ -2645,7 +2645,7 @@ Object.subclass('lively.morphic.TextChunk',
         var chunkNode = this.getChunkNode();
         if (chunkNode.childNodes.length == 0) return;
         var node = chunkNode.childNodes[chunkNode.childNodes.length - 1];
-        if (node.tagName.toLowerCase() === 'br') {
+        if (node.tagName && node.tagName.toLowerCase() === 'br') {
             chunkNode.removeChild(node);
         };
     },
@@ -2657,8 +2657,7 @@ Object.subclass('lively.morphic.TextChunk',
             var next = childNode.nextSibling;
             // exception for br because at text end has to be a br to correctly line break the text
             // in chrome. see also ensureEndsWithBr
-            if (!NodeFactory.isTextNode(childNode) &&
-                childNode.tagName.toLowerCase() != 'br') {
+            if (childNode.tagName && childNode.tagName.toLowerCase() != 'br') {
                 domChanged = true;
                 node.insertBefore(NodeFactory.createText(childNode.textContent), next);
                 node.removeChild(childNode);

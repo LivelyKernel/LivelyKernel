@@ -8,7 +8,6 @@ before_install:
   - "sudo apt-get install chromium-browser"
   - "sudo apt-get install xvfb"
   - "npm install -g livelykernel-scripts@latest"
-  - "sudo chown $USER:$USER -R /usr/lib/chromium-browser"
   - "sudo chmod 4755 /usr/lib/chromium-browser/chromium-browser-sandbox"
 
 before_script:

@@ -1824,7 +1824,7 @@ lively.morphic.World.addMethods(
         }]}));
 
         partNames = ["List", "Slider", "ScriptableButton", "Button"].sort()
-        items.pushAll(partNames.collect(function(ea) { return [ea, function(evt, menuMorph) {
+        items.pushAll(partNames.collect(function(ea) { return [ea, function() {
             var partSpaceName = 'PartsBin/Inputs',
                 part = lively.PartsBin.getPart(ea, partSpaceName);
             if (!part) {
@@ -1832,7 +1832,7 @@ lively.morphic.World.addMethods(
             }
             if(UserAgent.isTouch) {
                 part.openInWorld();
-                part.align(part.bounds().topLeft(), menuMorph.bounds().topRight());
+                part.align(part.bounds().topLeft(), $world.visibleBounds().center());
                 $world.setEditMode(true);
                 part.showHalos();
             } else {
@@ -2281,14 +2281,7 @@ lively.morphic.Button.addMethods("TapEvents", {
         })
     },
 
-    changeAppearanceFor: function (pressed, toggled) {
-            if (this.isActive && pressed) {
-                this.setFill(this.toggleColor);
-            }
-            else {
-                this.setFill(this.normalColor)
-            }
-        },
+
     centerLabel: function() {
         // TODO: make it work again
         this.label.layout = this.label.layout || {};

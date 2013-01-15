@@ -15,6 +15,10 @@ Object.extend(lively.store, {
         }
         var storage = new storageClass(spec);
         return this.cachedStorageAccessors[spec.id] = storage;
+    },
+
+    flushCache: function() {
+        this.cachedStorageAccessors = {};
     }
 });
 
@@ -51,6 +55,27 @@ Object.subclass('lively.store.FileStorage',
             result = webR.get().content;
         if (optCb) optCb(null, result);
         return result;
+    }
+});
+
+Object.subclass('lively.store.CouchDBStorage',
+'initializing', {
+    initialize: function(spec) {
+        this.couchdbURL = URL.nodejsBase.withFilename('couchdb/');
+        this.dbName = spec.id;
+    }
+},
+'accessing', {
+    set: function(key, value) {
+        var webR = new WebResource(this.couchdbURL.withFilename('set'));
+        webR.post(JSON.stringify({db: this.dbName, key: key, value: value}), 'application/json');
+    },
+
+    get: function(key, optCb) {
+        var webR = new WebResource(this.couchdbURL.withFilename('get'));
+        webR.post(JSON.stringify({db: this.dbName, key: key}), 'application/json');
+        return webR.content;
+
     }
 });
 

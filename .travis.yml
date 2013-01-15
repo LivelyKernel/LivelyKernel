@@ -3,17 +3,19 @@ language: node_js
 node_js: 0.8
 
 before_install:
+  - "sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 16126D3A3E5C1192"
+  - "yes | sudo add-apt-repository ppa:a-v-shkop/chromium-dev"
   - "sudo apt-get update"
-  - "sudo apt-get install chromium-browser"
   - "sudo apt-get install xvfb"
+  - "sudo apt-get install chromium-browser"
   - "npm install -g livelykernel-scripts@latest"
 
 before_script:
   - "mkdir `lk scripts-dir`/workspace"
   - echo "Linking $PWD to `lk scripts-dir`/workspace/lk"
   - "ln -s $PWD `lk scripts-dir`/workspace/lk"
-  - "Xvfb :1 -screen 0 800x600x24&"
-  - "lk server --life-star --forever"
+  - "Xvfb :1 -screen 0 800x600x24 &"
+  - "lk server --forever --lk-dir $HOME/builds/LivelyKernel/LivelyKernel/"
 
 script: "lk test --display :1"
 

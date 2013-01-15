@@ -75,7 +75,11 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         $super(extent);
         this.label && this.label.setExtent(extent)
     },
-    setPadding: function(padding) { this.label && this.label.setPadding(padding); }
+    setPadding: function(padding) { this.label && this.label.setPadding(padding); },
+    setToggle: function(optBool) {
+        this.toggle = (optBool === undefined)? true : optBool;
+        return this.toggle
+    }
 },
 'styling', {
     updateAppearance: function(){

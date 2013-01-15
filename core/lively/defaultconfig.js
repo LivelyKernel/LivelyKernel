@@ -480,7 +480,7 @@ Global.Config = {
         ],
 
         'lively.morphic.StyleSheets', [
-            ["baseThemeStyleSheetURL", ((ExistingConfig && ExistingConfig.codeBase) || Config.getDocumentDirectory()) + (UserAgent.isTouch? 'styles/ipad_theme.css' : 'styles/base_theme.css'), "The base theme CSS file location"]
+            ["baseThemeStyleSheetURL", ((ExistingConfig && ExistingConfig.codeBase) || Config.getDocumentDirectory()) + 'styles/base_theme.css', "The base theme CSS file location"]
         ],
 
         "lively.PartsBin", [

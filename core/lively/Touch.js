@@ -2161,7 +2161,8 @@ lively.morphic.Button.addMethods("TapEvents", {
     },
     onTouchEnd: function() {
         if (this.isPressed) {
-            this.setValue(false);
+            var newValue = this.toggle ? !this.value : false;
+            this.setValue(newValue);
             this.changeAppearanceFor(false);
             this.isPressed = false;
         }

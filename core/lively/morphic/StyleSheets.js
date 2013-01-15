@@ -15,6 +15,11 @@ module('lively.morphic.StyleSheets').requires('lively.morphic.Core', 'lively.mor
     Config.finishLoadingCallbacks.push(function(world) {
         world.loadBaseTheme(Config.baseThemeStyleSheetURL, '');
     });
+    if (UserAgent.isTouch) {
+        Config.finishLoadingCallbacks.push(function(world) {
+            world.loadStyleSheetFromFile(Config.ipadThemeStyleSheetURL, '');
+        });
+    }
 })();
 
 lively.morphic.Shapes.Shape.addMethods('Styling', {

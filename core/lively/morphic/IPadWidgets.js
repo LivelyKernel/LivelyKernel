@@ -2076,8 +2076,9 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
 lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
 'initialization', {
     initialize: function($super) {
-        var returnValue = $super(pt(0,0).extent(pt(361.0,318.0)))
+        var returnValue = $super(pt(0,0).extent(pt(360,320)))
         this.setOrigin(pt(180.5,-55.0))
+        this.listBackground = this.initializeListBackground();
         this.list = this.initializeList();
         this.header = this.initializeHeader();
         this.pointer = this.initializePointer();
@@ -2087,22 +2088,28 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
         connect(this.list, 'activateCallback', this, 'onCallbackActivate');
         return returnValue
     },
+    initializeListBackground: function() {
+        var background = new lively.morphic.Box(rect(-174.5,84,348,281));
+        background.applyStyle({
+            fill: Color.rgb(243,243,243),
+            borderRadius: 3
+        });
+        return this.addMorph(background);
+    },
+
     initializeList: function() {
-        var touchList = new lively.morphic.TouchList(rect(-174.5,84,348,281));
-        touchList.setFill(Color.white)
-        return this.addMorph(touchList);
+        var extent = this.listBackground.getExtent().subPt(pt(10,10)),
+            touchList = new lively.morphic.TouchList(pt(5,5).extent(extent));
+        touchList.setFill(null)
+        return this.listBackground.addMorph(touchList);
     },
 
     initializeHeader: function() {
-        var header = new lively.morphic.Box(rect(-180.5,46,361,36))
+        var header = new lively.morphic.Box(rect(-180.5,46,this.getExtent().x,36))
+        header.setAppearanceStylingMode(true);
+        header.setBorderStylingMode(true);
+        header.addStyleClassName('TouchWorldMenuHeader');
         header.applyStyle({
-            fill: new lively.morphic.LinearGradient([
-                {offset: 0, color: Color.rgb(79,87,104)},
-                {offset: 0.5, color: Color.rgb(33,43,60)},
-                {offset: 0.51, color: Color.rgb(9,16,29)}
-            ], 'northSouth'),
-            borderWidth: 0,
-            borderRadius: 10,
             resizeWidth: true,
             adjustForNewBounds: true
         })
@@ -2128,8 +2135,9 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
 
     initializeBackButton: function(targetList) {
         var backButton = new lively.morphic.Button(rect(11,4,65,32), 'Back');
-        backButton.list = targetList
-        backButton.beBlackButton();
+        backButton.addStyleClassName('ToolbarNavigator');
+        backButton.label.addStyleClassName('ToolbarNavigator');
+        backButton.list = targetList;
         backButton.addScript(function onFire () {
             this.list.openSuperMenu();
         })
@@ -2145,8 +2153,9 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
         return this.header.addMorph(backButton);
     },
     initializePinButton: function(menu) {
-        var pinButton = new lively.morphic.Button(rect(298,4,60,32), 'Pin')
-        pinButton.beBlackButton();
+        var pinButton = new lively.morphic.Button(rect(296,4,60,32), 'Pin')
+        pinButton.addStyleClassName('ToolbarNavigator');
+        pinButton.setToggle();
         pinButton.touchMenu = menu;
         pinButton.addScript(function onFire () {
             this.touchMenu.pin();
@@ -2187,7 +2196,7 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
 },
 'properties', {
     style: {
-        fill: Color.rgb(9,16,29),
+        //fill: Color.rgb(9,16,29),
         borderRadius: 12,
         adjustForNewBounds: true
     }
@@ -2230,11 +2239,19 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
 'triangle', {
     movePointerToBottom: function () {
         var pointer = this.pointer;
+        pointer.applyStyle({
+            fill: Color.rgb(1,3,41),
+            borderWidth: 0,
+        })
         pointer.setRotation(Math.PI / 2);
         pointer.setPosition(pt(0, 372)); // origin offset of the touchMenu + height of touch menu
     },
     movePointerToTop: function () {
         var pointer = this.pointer;
+        pointer.applyStyle({
+            fill: Color.rgb(200,200,200),
+            borderWidth: 0
+        })
         pointer.setRotation(-Math.PI / 2);
         pointer.setPosition(pt(0, 48)); // origin offset of the touchMenu + height of touch menu
     }

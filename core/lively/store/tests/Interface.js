@@ -1,6 +1,14 @@
 module('lively.store.tests.Interface').requires('lively.TestFramework', 'lively.store.Interface').toRun(function() {
 
-TestCase.subclass('lively.store.tests.Interface.ObjectStorage',
+TestCase.subclass('lively.store.tests.Interface.TestCase',
+'running', {
+    tearDown: function($super) {
+        $super();
+        lively.store.flushCache();
+    }
+});
+
+lively.store.tests.Interface.TestCase.subclass('lively.store.tests.Interface.ObjectStorage',
 'tests', {
     test01SimpleGetAndSet: function() {
         var testObject = {storeTestObj: true},
@@ -20,7 +28,7 @@ TestCase.subclass('lively.store.tests.Interface.ObjectStorage',
     }
 });
 
-TestCase.subclass('lively.store.tests.Interface.FileStorage',
+lively.store.tests.Interface.TestCase.subclass('lively.store.tests.Interface.FileStorage',
 'running', {
     setUp: function($super) {
         $super();
@@ -43,7 +51,6 @@ TestCase.subclass('lively.store.tests.Interface.FileStorage',
     }
 },
 'tests', {
-
     test01SaveAndLoadFromFile: function() {
         var url = URL.source.withFilename("foo.db"),
             db = lively.store.get({
@@ -65,6 +72,19 @@ TestCase.subclass('lively.store.tests.Interface.FileStorage',
         this.assertEquals(2, this.webSpy.getCount, "get count 2");
         this.assertEquals('xyz', retrieved2);
     }
+});
+
+lively.store.tests.Interface.TestCase.subclass('lively.store.tests.Interface.CouchDBStorage',
+'tests', {
+    test01SimpleGetAndSet: function() {
+        var testObject = {val: 12345},
+            db = lively.store.get({id: this.currentSelector, type: 'CouchDBStorage'});
+        db.set("foo", testObject);
+        // var retrieved = db.get("foo", testObject);
+        // this.assertEqualState(testObject, retrieved, 'retrieved not identical to stored ' + retrieved);
+        // this.assert(false);
+    }
+
 });
 
 }); // end of module

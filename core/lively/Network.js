@@ -43,10 +43,11 @@ Object.subclass('URL', {
     splitter: new RegExp('^(http|https|file)://([^/:]*)(:([0-9]+))?(/.*)?$'),
     pathSplitter: new RegExp("([^\\?#]*)(\\?[^#]*)?(#.*)?"),
 
-    initialize: function(url) { // same field names as window.location
-        dbgOn(!arguments[0]);
-        if (Object.isString(url.valueOf())) {
-            var urlString = url;
+    initialize: function(/*...*/) { // same field names as window.location
+        var firstArg = arguments[0];
+        if (!firstArg) throw new Error("URL constructor expecting string or URL parameter");
+        if (Object.isString(firstArg.valueOf())) {
+            var urlString = firstArg;
             var result = urlString.match(this.splitter);
             if (!result) throw new Error("malformed URL string '" + urlString + "'");
             this.protocol = result[1];
@@ -67,7 +68,7 @@ Object.subclass('URL', {
                 this.hash = "";
             }
         } else { // spec is either an URL or window.location
-            var spec = url;
+            var spec = firstArg;
             this.protocol = spec.protocol || "http";
             this.port = spec.port;
             this.hostname = spec.hostname;
@@ -335,6 +336,12 @@ Object.extend(URL, {
         }
         return url.withRelativePartsResolved();
     })(),
+    nodejsBase: (function setNodejsBaseURL() {
+        try {
+            return new URL(Config.rootPath).withRelativePartsResolved().withFilename('nodejs/');
+        } catch(e) {};
+        return null;
+    })()
 })
 
 Object.extend(URL, {

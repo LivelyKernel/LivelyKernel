@@ -99,6 +99,11 @@ var browserTests = [
     "lively.bindings.tests.FRPSerialization",
     "lively.bindings.tests.GeometryBindingTests",
 
+    // serialization / storage
+    'lively.persistence.tests.MassMorphCreation',
+    'lively.persistence.tests.TraitPersistenceTests',
+    'lively.store.tests.Interface',
+
     // ide / SCB
     "lively.ide.tests.ASTEditingSupport",
     "lively.ide.tests.CodeEditor",

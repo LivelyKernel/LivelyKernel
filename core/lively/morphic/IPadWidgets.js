@@ -667,22 +667,17 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
         return this
     },
     initializeCloseButton: function() {
-        var closeButton = new lively.morphic.Button(rect(this.getExtent().x-20, 0, 20, 20), 'X'),
+        var closeButton = new lively.morphic.Button(rect(this.getExtent().x-20, this.getBorderWidth(), 20, 20), 'X'),
             that = this;
-        closeButton.beFlapButton();
-        closeButton.normalColor = Color.red.withA(0.5);
-        closeButton.toggleColor = Color.red;
-        closeButton.applyStyle({
-            position: pt(this.getExtent().x-20, 5),
-            extent: pt(20, 20),
-            fill: Color.red.withA(0.5)
-        })
+        //closeButton.beFlapButton();
+        closeButton.addStyleClassName("WindowControl");
+        closeButton.addStyleClassName("close");
         closeButton.flap = this.flap;
         closeButton.addScript(function onFire () {
             this.flap.close()
         })
         connect(closeButton, 'fire', closeButton, 'onFire')
-        closeButton.setBorderRadius(1)
+        //closeButton.setBorderRadius(1)
         this.addMorph(closeButton);
     },
 
@@ -1095,12 +1090,11 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
             var touch = evt.touches[0];
             if(touch) {
                 touch.originalDragOffset = touch.screenY;
-                touch.originalMenuOffset = this.getPosition();
+                touch.originalMenuOffset = this.getPosition().y;
             }
             return true;
         });
         box.addScript(function onTouchMove(evt) {
-            debugger
             evt.stop();
             var touch = evt.touches[0];
             if(touch && touch.originalDragOffset && !touch.draggingCanceled) {
@@ -1140,9 +1134,13 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
     },
     createBackButton: function() {
         var button = new lively.morphic.Button(new Rectangle(0, 0, 100, 35), 'Back');
-        button.addStyleClassName('ToolbarNavigator');
-        button.label.addStyleClassName('ToolbarNavigator');
-        button.addScript(this.goBackToCategories, 'onTap');
+        button.addStyleClassName('FlapNavigator');
+        button.label.addStyleClassName('FlapNavigator');
+        button.flap = this;
+        button.addScript(function onFire() {
+            this.flap.goBackToCategories()
+        });
+        connect(button, 'fire', button, 'onFire')
         return this.header.addMorph(button);
     },
 },

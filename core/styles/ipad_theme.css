@@ -20,7 +20,7 @@
 	background-image: -webkit-linear-gradient(bottom, #010329 25%, #010329 26%, #C8C8C8 96%, #C8C8C8 100%);
 	background-image: -moz-linear-gradient(bottom, #010329 25%, #010329 26%, #C8C8C8 96%, #C8C8C8 100%);
 	box-shadow: inset 0 0 1px 1px #333;
-        border-width: 0;
+    border-width: 0;
 	color: white
 }
 
@@ -35,4 +35,19 @@
 
 .Text.ToolbarNavigator {
 	padding-top: 5px;
+}
+
+.Button.FlapNavigator {
+	background: rgba(0,0,0,0);
+	border-width: 0;
+	box-shadow: none;
+	border-radius: 0px 0px 10px 0px;
+}
+
+.Button.FlapNavigator.pressed {
+	background: rgb(34,34,34);
+}
+
+.Text.FlapNavigator {
+	color: white;
 }

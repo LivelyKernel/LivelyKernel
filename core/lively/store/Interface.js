@@ -61,21 +61,28 @@ Object.subclass('lively.store.FileStorage',
 Object.subclass('lively.store.CouchDBStorage',
 'initializing', {
     initialize: function(spec) {
-        this.couchdbURL = URL.nodejsBase.withFilename('couchdb/');
-        this.dbName = spec.id;
+        var reqPath = 'couchdb/' + spec.id + '/'; // id = db name
+        this.couchdbURL = URL.nodejsBase.withFilename(reqPath);
     }
 },
 'accessing', {
     set: function(key, value) {
-        var webR = new WebResource(this.couchdbURL.withFilename('set'));
-        webR.post(JSON.stringify({db: this.dbName, key: key, value: value}), 'application/json');
+        var webR = this.couchdbURL.withFilename(key).asWebResource();
+        webR.put(JSON.stringify(value), 'application/json');
     },
 
     get: function(key, optCb) {
-        var webR = new WebResource(this.couchdbURL.withFilename('get'));
-        webR.post(JSON.stringify({db: this.dbName, key: key}), 'application/json');
-        return webR.content;
+        var webR = this.couchdbURL.withFilename(key).asWebResource(),
+            data = webR.get().content;
+        try { return JSON.parse(data); } catch(e) { return {error: e}}
+    },
 
+    ensureExistance: function() {
+        this.couchdbURL.asWebResource().put();
+    },
+
+    remove: function() {
+        this.couchdbURL.asWebResource().del();
     }
 });
 

@@ -68,7 +68,6 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
     },
     onTouchMoveAction: function (evt) {
         if($world.pieMode){
-            //console.log("doing piemove");
             return this.pieMove(evt);
         } else {
             cop.proceed(evt);
@@ -402,6 +401,16 @@ lively.morphic.EventHandler.addMethods({
                 }
                 return evt.scaledPos;
             };
+            // patch the correct touch position regarding zoom, screen resolution etc. to each touch
+            var viewportPosition = pt(document.body.scrollLeft, document.body.scrollTop),
+                world = lively.morphic.World.current();
+            Properties.own(evt.changedTouches).each(function (idx) {
+                var touch = evt.changedTouches[idx];
+                touch.getPosition = function () {
+                    var touchOffsetInViewport = touch.pageStart.subPt(viewportPosition);
+                    return world.visibleBounds().topLeft().addPt(touchOffsetInViewport);
+                }
+            })
         }
     },
     patchTouchStartEvent: function(evt) {
@@ -779,7 +788,6 @@ lively.morphic.Morph.addMethods(
             // especially TouchEnd, which checks for taps using the time that passed
             // that forces us to increase the tap-threshold
             if(delta <= 200 && this.tapTouch.getScreenDeltaToStart().r() <= 25){
-                //console.log("event - type: tap on: "+this.eventHandler.dispatchTable[evt.type].target + (evt.fromTouch ? " (was generated from touch)" : "") + "(at "+ new Date().valueOf() +")" + " -- phase " + evt.eventPhase);
                 this.tapped(evt);
             }
         }
@@ -1017,8 +1025,6 @@ lively.morphic.Morph.addMethods(
 
         this.showsPie = true;
         var pieMenu = this.world().showPieFor(this, this.pieItems);
-        console.log("pie menu bounds: "+pieMenu.bounds());
-        console.log("position: "+position);
         pieMenu.align(pieMenu.bounds().center(), position);
     },
 
@@ -1071,8 +1077,7 @@ lively.morphic.Morph.addMethods(
 
             this.activatedPieItem = null;
 
-            var clientPos = pt(this.pieTouch.pageX, this.pieTouch.pageY);
-            this.showTimeout = window.setTimeout(this.showPieMenu.bind(this, clientPos), 750);
+            this.showTimeout = window.setTimeout(this.showPieMenu.bind(this, this.pieTouch.getPosition()), 750);
 
             evt.preventDefault();
             return true;
@@ -1510,10 +1515,7 @@ lively.morphic.Morph.subclass('lively.morphic.ResizeCorner',
 lively.morphic.World.addMethods(
 "TapEvents", {
     loadHoldIndicator: function() {
-        //if(UserAgent.isTouch){
-            this.holdIndicator = new lively.morphic.HoldIndicator();
-            //this.holdIndicator = this.loadPartItem("HoldIndicator", "PartsBin/iPadWidgets");
-        //}
+        this.holdIndicator = new lively.morphic.HoldIndicator();
     },
     initializeBrowserScrollForTouchEvents: function(touch) {
         this.emulatedScrolling = true;
@@ -1585,12 +1587,9 @@ lively.morphic.World.addMethods(
     },
     showHoldIndicatorFor: function(morph) {
         if(morph.tapTouch && this.holdIndicator){
-            this.holdIndicator.setScale(1/this.getZoomLevel());
             this.addMorph(this.holdIndicator);
-            this.holdIndicator.align(
-                this.holdIndicator.bounds().center(),
-                morph.tapTouch.pageStart
-            );
+            this.holdIndicator.setPosition(morph.tapTouch.getPosition());
+            this.holdIndicator.setScale(1/this.getZoomLevel());
             this.holdIndicator.start(morph);
         }
     },
@@ -1692,9 +1691,7 @@ lively.morphic.World.addMethods(
             x = handPosition.x,
             y = handPosition.y,
             scrollThreshold = 50;
-
-        console.log(handPosition.toString());
-
+            
         if(x < scrollThreshold ){
             window.scrollBy(x-scrollThreshold , 0);
         }
@@ -1758,7 +1755,7 @@ lively.morphic.World.addMethods(
     },
     openWorldMenu: function(touch) {
         var items = this.morphMenuItems(),
-            menu = this.showTouchMenuAt(touch.pageStart, true);
+            menu = this.showTouchMenuAt(touch.getPosition(), true);
         menu.targetMorph = this;
         menu.setup(items);
     },
@@ -1875,6 +1872,7 @@ lively.morphic.World.addMethods(
 
     },
     onGestureEnd: function(evt) {
+        this.cachedWindowBounds = null;
         if(!this.pieMode){
             window.setTimeout( function() {
                 $world.zoomLevel = $world.calculateCurrentZoom();
@@ -1884,7 +1882,8 @@ lively.morphic.World.addMethods(
         }
     },
     onWindowScroll: function(evt) {
-        $world.scrollOffset = pt(window.pageXOffset,window.pageYOffset);
+        this.cachedWindowBounds = null;
+        this.scrollOffset = pt(window.pageXOffset,window.pageYOffset);
     },
     addStatusMessageMorph: function(morph, delay) {
         morph.setScale(1/this.getZoomLevel());
@@ -2970,7 +2969,6 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
         var list = new lively.morphic.DropDownList(rect(0,0,10,10));
         list.setExtent(lively.pt(107.0,25.0));
         list.selectedLineNo = 0;
-        console.log($world.markerMorph);
         var that = this;
         var realObjects = [];
         list.updateList(
@@ -3013,11 +3011,6 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
         this.doConnect();
     },
     doConnect: function() {
-        console.log(this.connectSource);
-        console.log(this.connectSourceProperty);
-        console.log(this.connectTarget);
-        console.log(this.connectTargetProperty);
-
         if(this.connectSource &&
            this.connectSourceProperty &&
            this.connectTarget &&
@@ -3481,7 +3474,6 @@ lively.morphic.List.addMethods({
         if (ctx.subNodes.length > 0) this.removeListContentHTML(ctx);
         var extent = this.getExtent();
 
-        //console.log(itemStrings);
         this.makeList(ctx, ctx.listNode, itemStrings);
         globCtx = ctx;
         this.resizeListHTML(ctx);

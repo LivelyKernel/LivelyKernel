@@ -2280,6 +2280,7 @@ lively.morphic.Box.subclass('lively.morphic.HoldIndicator',
         this.onTouchStart = function () {};
         this.onTouchMove = function () {};
         this.onTouchEnd = function () {};
+        this.setOrigin(this.getExtent().scaleBy(0.5))
         return returnValue;
     },
     initializeFrames: function() {
@@ -2287,7 +2288,7 @@ lively.morphic.Box.subclass('lively.morphic.HoldIndicator',
         for (var i = 1; i <= 4; i++) {
             var frame = new lively.morphic.Image(this.getBounds()
                 , Config.codeBase + 'media/hold_indicator_' + i + '.png'
-                , true)
+                , false)
             frames.push(frame)
             frame.setVisible(false)
             this.addMorph(frame)

@@ -6,6 +6,32 @@ TestCase.subclass('lively.store.tests.Interface.TestCase',
         $super();
         lively.store.flushCache();
     }
+},
+'helper', {
+    createWebSpy: function() {
+        var spy  = this.webSpy = {
+            putUrl: null, putContent: null, putCount: 0,
+            getCount: 0, getUrl: null,
+            deleteCount: 0, deleteUrl: null
+        }
+        this.spyInClass(WebResource, 'put', function(source, mimeType, options) {
+            spy.putContent = source;
+            spy.putUrl = this.getURL();
+            spy.putCount++;
+            return this;
+        });
+        this.spyInClass(WebResource, 'get', function() {
+            this.content = spy.putContent;
+            spy.getUrl = this.getURL();
+            spy.getCount++;
+            return this;
+        });
+        this.spyInClass(WebResource, 'del', function() {
+            spy.deleteUrl = this.getURL();
+            spy.deleteCount++;
+            return this;
+        });
+    }
 });
 
 lively.store.tests.Interface.TestCase.subclass('lively.store.tests.Interface.ObjectStorage',
@@ -32,22 +58,7 @@ lively.store.tests.Interface.TestCase.subclass('lively.store.tests.Interface.Fil
 'running', {
     setUp: function($super) {
         $super();
-        var spy  = this.webSpy = {
-            putUrl: null, putContent: null, putCount: 0,
-            getCount: 0, getUrl: null
-        }
-        this.spyInClass(WebResource, 'put', function(source, mimeType, options) {
-            spy.putContent = source;
-            spy.putUrl = this.getURL();
-            spy.putCount++;
-            return this;
-        });
-        this.spyInClass(WebResource, 'get', function() {
-            this.content = spy.putContent;
-            spy.getUrl = this.getURL();
-            spy.getCount++;
-            return this;
-        });
+        this.createWebSpy();
     }
 },
 'tests', {
@@ -75,14 +86,39 @@ lively.store.tests.Interface.TestCase.subclass('lively.store.tests.Interface.Fil
 });
 
 lively.store.tests.Interface.TestCase.subclass('lively.store.tests.Interface.CouchDBStorage',
+'running', {
+    setUp: function($super) {
+        $super();
+        this.createWebSpy();
+    }
+},
 'tests', {
-    test01SimpleGetAndSet: function() {
+    xtest01SimpleGetAndSet: function() {
         var testObject = {val: 12345},
-            db = lively.store.get({id: this.currentSelector, type: 'CouchDBStorage'});
+            dbName = this.currentSelector.toLowerCase(),
+            db = lively.store.get({id: dbName, type: 'CouchDBStorage'});
         db.set("foo", testObject);
-        // var retrieved = db.get("foo", testObject);
-        // this.assertEqualState(testObject, retrieved, 'retrieved not identical to stored ' + retrieved);
-        // this.assert(false);
+        var url = URL.nodejsBase.withFilename("couchdb/" + dbName + '/foo');
+        this.assertEquals(1, this.webSpy.putCount);
+        this.assertEquals(url, this.webSpy.putUrl);
+        this.assertEquals(JSON.stringify(testObject), this.webSpy.putContent);
+        var retrieved = db.get("foo", testObject);
+        this.assertEquals(testObject.val, retrieved.val,
+                          'retrieved not identical to stored ' + retrieved);
+        this.assertEquals(1, this.webSpy.getCount);
+        this.assertEquals(url, this.webSpy.getUrl);
+    },
+
+    test02CreateAndRemoveStore: function() {
+        var dbName = this.currentSelector.toLowerCase(),
+            dbURL = URL.nodejsBase.withFilename('couchdb/' + dbName + '/'),
+            db = lively.store.get({id: dbName, type: 'CouchDBStorage'});
+        db.ensureExistance();
+        this.assertEquals(1, this.webSpy.putCount);
+        this.assertEquals(dbURL, this.webSpy.putUrl);
+        db.remove();
+        this.assertEquals(1, this.webSpy.deleteCount);
+        this.assertEquals(dbURL, this.webSpy.deleteUrl);
     }
 
 });

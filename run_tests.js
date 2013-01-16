@@ -74,6 +74,7 @@ var testList = [
     "lively.persistence.tests.PersistenceTests",
     'lively.persistence.tests.MassMorphCreation',
     'lively.persistence.tests.TraitPersistenceTests',
+    'lively.store.tests.Interface',
 
     // ide / SCB
     "lively.ide.tests.FileParserTests",

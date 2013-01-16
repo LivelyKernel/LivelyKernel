@@ -394,8 +394,7 @@ lively.morphic.EventHandler.addMethods({
                 if (!evt.scaledPos) {
                     if (evt.changedTouches.length > 0) {
                         evt.scaledPos = evt.changedTouches[0].getPagePosition();
-                    }
-                    else if (evt.touches.length > 0) {
+                    } else if (evt.touches.length > 0) {
                         evt.scaledPos = evt.touches[0].getPagePosition();
                     }
                 }
@@ -1111,7 +1110,7 @@ lively.morphic.Morph.addMethods(
             if(this.showTimeout){
                 window.clearTimeout(this.showTimeout);
                 delete this.showTimeout;
-            }else{
+            } else {
                 this.removePieMenu();
             }
             if(this.activatedPieItem){
@@ -3277,10 +3276,11 @@ lively.morphic.Slider.addMethods({
         this.knobRatio = num;
     },
     getSliderExtent: function() {
-    if (this.vertical())
-        return (this.sliderKnob.getExtent().y)/(this.getExtent().y)
-    else
-        return (this.sliderKnob.getExtent().x)/(this.getExtent().x)
+        if (this.vertical()) {
+            return (this.sliderKnob.getExtent().y)/(this.getExtent().y)
+        } else {
+            return (this.sliderKnob.getExtent().x)/(this.getExtent().x)
+        }
     },
     onDoubleTap: function(){
         this.select();
@@ -3371,10 +3371,11 @@ lively.morphic.Slider.addMethods({
         this.knobRatio = num;
     },
     getSliderExtent: function() {
-    if (this.vertical())
-        return (this.sliderKnob.getExtent().y)/(this.getExtent().y)
-    else
-        return (this.sliderKnob.getExtent().x)/(this.getExtent().x)
+        if (this.vertical()) {
+            return (this.sliderKnob.getExtent().y)/(this.getExtent().y)
+        } else {
+            return (this.sliderKnob.getExtent().x)/(this.getExtent().x)
+        }
     },
     onDoubleTap: function(){
         this.select();

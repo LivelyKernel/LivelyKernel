@@ -489,7 +489,7 @@ lively.morphic.Box.subclass('lively.morphic.ListItemContainer',
         return true;
     },
     stayInBounds: function() {
-        var yPos = Math.min(0,Math.max(-this.maxScroll, this.getPosition().y));
+        var yPos = Math.min(0,Math.max(-this.maxScroll, this.bounds().topLeft().y));
         var delta = this.getPosition().y-yPos;
 
         if(this.velocity*delta > 0) {
@@ -869,7 +869,8 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         this.applyStyle(this.style)
         this.setAppearanceStylingMode(true);
         this.setStyleId('Flap')
-        this.setStyleSheet("#Flap {background-image: url('" + Config.codeBase + "media/NSTexturedBackgroundColor.jpg');}")
+        var backgroundURL = URL.codeBase.withFilename('media/NSTexturedBackgroundColor.jpg')
+        this.setStyleSheet("#Flap {background-image: url('" + backgroundURL +"');}")
         this.setName(name+'Flap');
         this.flapHandle = this.initializeHandle(alignment);
         this.setFixed(true);
@@ -936,35 +937,7 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
             case 'bottom': return "8px 8px 0px 0px";
         }
     },
-    determineFillGradient: function() {
-        var direction = 'westEast';
-        switch (this.alignment) {
-            case 'left': {
-                direction = 'eastWest';
-                break
-            };
-            case 'top': {
-                direction = 'northSouth';
-                break
-            };
-            case 'right': {
-                direction = 'westEast';
-                break
-            };
-            case 'bottom': {
-                direction = 'southNorth';
-                break
-            };
-        }
-        return new lively.morphic.LinearGradient(
-                [
-                    {offset: 0, color: Color.rgb(235,235,235)},
-                    {offset: 0.8, color: Color.rgb(33,43,60)},
-                    {offset: 1, color: Color.rgb(9,16,29)}
-                ],
-                direction
-            )
-    },
+
 
 
     initializeHandle: function (alignment) {
@@ -1116,7 +1089,8 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
         var extent = this.getExtent().subPt(pt(0,this.categoryLabel.getExtent().y)),
             box = new lively.morphic.Box(new Rectangle(pt(0,0).extent(extent))),
             that = this;
-        box.onTouchStart = function(evt) {
+        box.flap = this;
+        box.addScript(function onTouchStart(evt) {
             evt.stop();
             var touch = evt.touches[0];
             if(touch) {
@@ -1124,19 +1098,19 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
                 touch.originalMenuOffset = this.getPosition();
             }
             return true;
-        };
-        box.onTouchMove = function(evt) {
+        });
+        box.addScript(function onTouchMove(evt) {
             evt.stop();
             var touch = evt.touches[0];
             if(touch && touch.originalDragOffset && !touch.draggingCanceled) {
                 var delta = (touch.screenY - touch.originalDragOffset);
                 var pos = touch.originalMenuOffset+delta;
-                pos = Math.max(-this.getExtent().y + that.getExtent().y, pos);
+                pos = Math.max(-this.getExtent().y + this.flap.getExtent().y, pos);
                 pos = Math.min(0,pos);
                 this.setPosition(pt(0,pos));
             }
             return true;
-        };
+        });
         // construction: Flap containes scrollContainer contains box
         box.scrollContainer = this.createScrollContainer();
         box.scrollContainer.addMorph(box)
@@ -1165,7 +1139,7 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
     },
     createBackButton: function() {
         var button = new lively.morphic.Button(new Rectangle(0, 0, 75, 25));
-        button.onTap = this.goBackToCategories.bind(this)
+        button.addScript(this.goBackToCategories, 'onTap');
         button.setLabel("Back");
         button.normalColor = Color.rgba(47,47,47,0.2);
         button.toggleColor = Color.rgba(47,47,47,0.8);
@@ -1377,9 +1351,9 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
                     {extent: pt(100,30), fontSize: 10, padding: rect(5,5,0,5)});
         list.setLabel('Tags');
         list.allowMultiSelection();
-        list.onAddCustomItem = function (item) {
+        list.addScript(function onAddCustomItem(item) {
             this.updateSelection(item);
-        };
+        });
         return this.pane.addMorph(list)
     },
     createTextMorph: function(target, scriptName, scriptText) {

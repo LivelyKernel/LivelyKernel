@@ -1100,6 +1100,7 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
             return true;
         });
         box.addScript(function onTouchMove(evt) {
+            debugger
             evt.stop();
             var touch = evt.touches[0];
             if(touch && touch.originalDragOffset && !touch.draggingCanceled) {
@@ -1138,21 +1139,10 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
         return this.header.addMorph(text);
     },
     createBackButton: function() {
-        var button = new lively.morphic.Button(new Rectangle(0, 0, 75, 25));
+        var button = new lively.morphic.Button(new Rectangle(0, 0, 100, 35), 'Back');
+        button.addStyleClassName('ToolbarNavigator');
+        button.label.addStyleClassName('ToolbarNavigator');
         button.addScript(this.goBackToCategories, 'onTap');
-        button.setLabel("Back");
-        button.normalColor = Color.rgba(47,47,47,0.2);
-        button.toggleColor = Color.rgba(47,47,47,0.8);
-        button.applyStyle({
-            fill: button.normalColor,
-            padding: rect(0,5,10,10),
-            extent: pt(100,35),
-            label: {
-                textColor: Color.rgb(235,235,235),
-                fontSize: 14
-            },
-            borderRadius: '20px 5px 5px 20px'
-        })
         return this.header.addMorph(button);
     },
 },
@@ -1185,8 +1175,8 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
         partsSpace.load(true);
     },
     updateCategoriesDictFromPartsBin: function() {
-        this.ensureCategories(),
-            that = this;
+        this.ensureCategories();
+        var that = this;
         var callback = function(collections) {
             // write all the categories in a 'categories' property
             collections.forEach(function(dir) {
@@ -1196,17 +1186,37 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
                 that.categories[name] = that.getPartsBinURL().withFilename(unescaped);
             });
             that.updateCategoryList();
+            // Caching the categories
+            lively.morphic.World.current().cachedPartsBinCategories = that.categories;
         }
-        lively.PartsBin.loadCategoriesAsync(callback);
+        // Show cached categories to give a first visual feedback. Still needs enhancement.
+        this.updateCategoryList(lively.morphic.World.current().cachedPartsBinCategories);
+        this.loadCategoriesAsync.bind(this,callback).delay(0);
     },
-    updateCategoryList: function() {
-        this.list.setup(
-                Properties.own(this.categories).sortBy(function(name) {
+    loadCategoriesAsync: function(callback, optUrl) {
+        // Collects all categories in the PartsBin and invokes the callback on this collection.
+        // May find an alternative PartsBin at the optURL, if provided.
+        var url = optUrl || new URL(Config.rootPath).withFilename('PartsBin/'),
+            webR = new WebResource(url);
+        webR.beAsync();
+        connect(webR, 'subCollections', {cb: callback}, 'cb', {
+            updater: function($upd, value) {
+                if (!(this.sourceObj.status && this.sourceObj.status.isDone())) return;
+                if (!value) return;
+                $upd(value);
+            },
+        });
+        webR.getSubElements();
+    },
+
+    updateCategoryList: function(optListObj) {
+        var listObj = optListObj || this.categories,
+            categoryNames = Properties.own(listObj).sortBy(function(name) {
                     return name.toLowerCase();
                 }).map(function(ea){
                     return [ea, []];
                 })
-            );
+        this.list.setup(categoryNames);
     },
 },
 'part items', {

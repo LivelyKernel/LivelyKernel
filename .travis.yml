@@ -8,6 +8,7 @@ before_install:
   - "sudo apt-get update"
   - "sudo apt-get install xvfb"
   - "sudo apt-get install chromium-browser"
+  - "chromium-browser --version"
   - "npm install -g livelykernel-scripts@latest"
 
 before_script:

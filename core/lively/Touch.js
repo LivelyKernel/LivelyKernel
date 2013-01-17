@@ -1809,9 +1809,8 @@ lively.morphic.World.addMethods(
             }
             if(UserAgent.isTouch) {
                 part.openInWorld();
-                //part.align(part.bounds().topLeft(), menuMorph.bounds().topRight());
-                part.align(part.bounds().center(), $world.visibleBounds().center());
-                $world.setEditMode(true);
+                part.align(part.bounds().center(), lively.morphic.World.current().visibleBounds().center());
+                lively.morphic.World.current().setEditMode(true);
                 part.select();
             } else {
                 lively.morphic.World.current().firstHand().grabMorph(part);
@@ -1828,8 +1827,8 @@ lively.morphic.World.addMethods(
             }
             if(UserAgent.isTouch) {
                 part.openInWorld();
-                part.align(part.bounds().topLeft(), $world.visibleBounds().center());
-                $world.setEditMode(true);
+                part.align(part.bounds().topLeft(), lively.morphic.World.current().visibleBounds().center());
+                lively.morphic.World.current().setEditMode(true);
                 part.showHalos();
             } else {
                 lively.morphic.World.current().firstHand().grabMorph(part);
@@ -2532,7 +2531,7 @@ lively.morphic.Morph.subclass('lively.morphic.PieItem',
         return this.labelText;
     },
     getIcon: function() {
-        return this.iconUrl;
+        return URL.codeBase.withFilename('media/PieIcons/' + this.iconName);
     }
 },
 'settings', {
@@ -2614,7 +2613,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ClosePieItem',
         this.targetMorph.deselect();
         this.targetMorph.remove();
     },
-    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/remove.png",
+    iconName: "remove.png",
     iconOffset: pt(-3,10)
 });
 
@@ -2626,7 +2625,7 @@ lively.morphic.PieItem.subclass('lively.morphic.MenuPieItem',
     activate: function(evt) {
         this.targetMorph.showMorphMenu(evt);
     },
-    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/menu.png"
+    iconName: "menu.png"
 });
 
 lively.morphic.PieItem.subclass('lively.morphic.CopyPieItem',
@@ -2670,7 +2669,7 @@ lively.morphic.PieItem.subclass('lively.morphic.CopyPieItem',
         }
         $world.stopFollowingHand();
     },
-    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/copy.png"
+    iconName: "copy.png"
 });
 
 lively.morphic.PieItem.subclass('lively.morphic.GrabPieItem',
@@ -2696,12 +2695,12 @@ lively.morphic.PieItem.subclass('lively.morphic.GrabPieItem',
         this.targetMorph.select();
         $world.stopFollowingHand();
     },
-    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/grab.png"
+    iconName: "grab.png"
 });
 
 lively.morphic.PieItem.subclass('lively.morphic.DragPieItem',
 'settings', {
-    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/drag.png",
+    iconName: "drag.png",
     iconOffset: pt(4,0),
     labelText: 'D'
 },
@@ -3022,7 +3021,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ConnectPieItem',
             this.receiverList.remove();
         }
     },
-    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/connect.png"
+    iconName: "connect.png"
 });
 
 lively.morphic.PieItem.subclass('lively.morphic.RotatePieItem',
@@ -3067,7 +3066,7 @@ lively.morphic.PieItem.subclass('lively.morphic.RotatePieItem',
         $super();
         this.arrow.remove();
     },
-    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/rotate.png"
+    iconName: "rotate.png"
 
 });
 
@@ -3119,7 +3118,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ScalePieItem',
         $super();
         this.arrow.remove();
     },
-    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/scale.png",
+    iconName: "scale.png",
     iconOffset: pt(-8,-8)
 
 });
@@ -3140,7 +3139,7 @@ lively.morphic.PieItem.subclass('lively.morphic.ResizePieItem',
         this.setInfo("extent: " + newExtent);
         this.alignInfo();
     },
-    iconUrl: "http://lively-kernel.org/repository/webwerkstatt/projects/BP2012/UI/pieMenuIcons/rotate.png"
+    iconName: "rotate.png"
 });
 
 lively.morphic.Path.addMethods(

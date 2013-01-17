@@ -597,11 +597,9 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
 },
 'initializing', {
 
-    initialize: function($super, tabBarStrategy) {
+    initialize: function($super, optTabBarStrategy) {
         $super();
-        if (!tabBarStrategy) {
-            tabBarStrategy = new lively.morphic.TabStrategyTop();
-        }
+        var tabBarStrategy = optTabBarStrategy || new lively.morphic.TabStrategyTop();
         this.setTabBarStrategy(tabBarStrategy);
         this.tabPaneExtent = pt(600,400);
         this.initializeTabBar();
@@ -614,7 +612,6 @@ lively.morphic.Morph.subclass('lively.morphic.TabContainer',
     initializeTabBar: function() {
         this.tabBar = new lively.morphic.TabBar(this);
         this.addMorph(this.tabBar);
-        //this.getTabBarStrategy().adjustTabBar(this.tabBar);
     },
     getTabBarStrategy: function() {
         if (!this.tabBarStrategy) {
@@ -748,8 +745,12 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
 },
 'accessing', {
     getDefaultHeight: function() {
-        return 30;
+        return this.defaultHeight || 30;
     },
+    setDefaultHeight: function(height) {
+        this.defaultHeight = height;
+    },
+
 
     getTabs: function() {
         return this.tabs;
@@ -868,7 +869,7 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         $super();
         this.tabBar = tabBar;
         this.tabBarOffset = 0;
-        this.setFill(Color.gray);
+        this.setFill(this.getInactiveFill());
         this.setBorderWidth(1);
         this.setBorderColor(Color.gray);
         this.layout = {adjustForNewBounds: true};
@@ -973,7 +974,7 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         this.isInActivationCycle = true;
         this.getPane().remove();
         this.getTabContainer().addTabPane(this.getPane());
-        this.setFill(Color.white);
+        this.setFill(this.getActiveFill());
         this.label.applyStyle({fontWeight:'bold'});
         this.label.fit();
         delete this.isInActivationCycle;
@@ -981,18 +982,28 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
         this.getPane().onActivate();
     },
     deactivate: function() {
-        this.setFill(Color.gray);
+        this.setFill(this.getInactiveFill());
         this.label.applyStyle({fontWeight:null});
         this.label.fit();
         this.isActive = false;
     },
+    getActiveFill: function() {
+        return Color.white
+    },
+    getInactiveFill: function() {
+        Color.gray
+    },
+
+
     addCloseButton: function() {
-        var closer = new lively.morphic.Button;
+        var closer = new lively.morphic.Button,
+            padding = 5,
+            extent = this.getExtent().y - (padding *2)
         closer.setLabel("X")
         closer.label.fit();
-        closer.setExtent(pt(20,20))
+        closer.setExtent(pt(extent,extent))
         this.addMorph(closer)
-        closer.setPosition(pt(this.getExtent().x - 23,6))
+        closer.setPosition(pt(this.getExtent().x - extent - padding,padding))
         closer.layout = {moveHorizontal: true};
         connect(closer, "fire", this, "closeTab", {});
         this.closeButton = closer;
@@ -1086,8 +1097,9 @@ lively.morphic.Morph.subclass('lively.morphic.TabPane',
         }
     },
     addMorph: function($super, aMorph) {
-        $super(aMorph);
+        var returnValue = $super(aMorph);
         this.adjustClipping(this.getExtent());
+        return returnValue
     },
     removeMorph: function($super, aMorph) {
         $super(aMorph);
@@ -1316,6 +1328,94 @@ lively.morphic.TabStrategyAbstract.subclass('lively.morphic.TabStrategyHide',
     },
 
 
+});
+lively.morphic.Box.subclass('lively.morphic.LoadingMorph',
+'properties', {
+    style: {
+        borderRadius: 8.5,
+        fill: Color.rgb(214,214,214),
+        borderWidth: 1,
+        borderColor: Color.black,
+        layout: {
+            adjustForNewBounds: true,
+        }
+    },
+},
+'initialization', {
+    initialize: function($super, bounds) {
+        var returnValue = $super(bounds);
+        this.applyStyle({
+            adjustForNewBounds: true
+        })
+        this.initilaizeProgressIndicator();
+        this.initializePreviewText();
+        this.setExtent(this.getExtent())
+    },
+    initilaizeProgressIndicator: function() {
+        this.progressIndicator = new lively.morphic.Image(
+            rect(0,0,40,40),
+            LivelyLoader.codeBase + 'media/morphloading.gif');
+        this.progressIndicator.applyStyle({
+            centeredHorizontal: true,
+            centeredVertical: true,
+        })
+        this.addMorph(this.progressIndicator)
+    },
+    initializePreviewText: function() {
+        // the morph name is added to the preogress indicator
+        this.previewText = new lively.morphic.Text(rect(
+                0,
+                this.progressIndicator.getExtent().y,
+                125,
+                30
+            ), '\n\nloading part')
+        this.previewText.applyStyle({
+            fill: null,
+            borderWidth: 0,
+            resizeWidth: false,
+            centeredVertical: true,
+            centeredHorizontal: true,
+            align: 'center',
+            fontSize: 14
+        })
+        this.addMorph(this.previewText)
+    }
+
+},
+'loading', {
+    loadFinished: function (part) {
+        var world = lively.morphic.World.current(),
+            hand = world.firstHand();
+        if(this.owner === hand) {
+            hand.removeAllMorphs();
+        } else {
+            this.owner.addMorph(part);
+            part.align(part.bounds().center(), this.bounds().center());
+            this.remove();
+        }
+        disconnect(this.partItem, 'part', this, "loadFinished");
+        if(this.callback) {
+            this.callback(part);
+        }
+    },
+    loadPart: function (partItem, isAsync) {
+        this.partItem = partItem;
+        this.openInWorld();
+        if(partItem.part) {
+            this.setExtent(partItem.part.getExtent());
+        }
+        this.align(this.bounds().center(), $world.visibleBounds().center());
+        if(typeof isAsync === "function") {
+            this.callback = isAsync;
+        }
+        connect(partItem, 'part', this, "loadFinished");
+        partItem.loadPart(isAsync);
+        return partItem.part;
+    },
+    loadPartByName: function (partName, optPartsSpaceName, isAsync) {
+        var partItem = lively.PartsBin.getPartItem(partName, optPartsSpaceName);
+        return this.loadPart(partItem, isAsync);
+    }
 });
 lively.morphic.Morph.addMethods({
     isTabContainer: function() { return false; },

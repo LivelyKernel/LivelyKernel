@@ -80,7 +80,6 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.toggle = (optBool === undefined)? true : optBool;
         return this.toggle
     }
-
 },
 'styling', {
     updateAppearance: function(){

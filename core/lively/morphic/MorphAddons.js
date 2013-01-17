@@ -906,7 +906,7 @@ lively.morphic.World.addMethods(
         return this.zoomLevel
     },
     getScrollOffset: function () {
-        this.scrollOffset = pt(window.pageXOffset, window.pageYOffset)
+        this.scrollOffset = this.visibleBounds().topLeft()
         return this.scrollOffset;
     },
 });

@@ -1946,7 +1946,9 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
 });
 
 lively.morphic.Box.subclass('lively.morphic.TextControl',
-'initilization', {
+'properties', {
+    buttonExtent: pt(65,32),
+}, 'initilization', {
     initialize: function ($super, optBounds) {
         var returnValue = $super(optBounds || rect(0, 0,180, 25));
         this.initializeButtons();
@@ -2054,15 +2056,14 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
     fitInWorld: function() {
         var world = lively.morphic.World.current(),
             subs = this.submorphs.length,
-            extent = pt(subs * 65 + (subs + 1) * 2, 34),
+            extent = pt(subs * this.buttonExtent.x + (subs + 1) * 2, this.buttonExtent.y + 2),
             pos = pt(0, 0)
-                .scaleBy(1 / world.getZoomLevel())
                 .addPt(pt(document.body.scrollLeft, document.body.scrollTop));
             this.setExtent(extent);
             this.setPosition(pos);
             this.setScale(1 / world.getZoomLevel())
             this.submorphs.each(function (ea) {
-                ea.label.setExtent(ea.getExtent())
+                ea.label && ea.label.setExtent(ea.getExtent())
             })
             this.setFixed(true);
     }

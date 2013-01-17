@@ -1111,6 +1111,8 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
         box.scrollContainer.addMorph(box)
         return box;
     },
+
+
     createScrollContainer: function() {
         var scrollContainer = new lively.morphic.Box(new Rectangle(0,0,100,10));
         scrollContainer.setClipMode('hidden');
@@ -1162,6 +1164,7 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
         this.list.disableEvents();
         this.list.ignoreEvents();
         this.header.setVisible(true);
+        this.createCategoryGrid(this.categoryContainer);
         this.categoryContainer.scrollContainer.setPosition(pt(0,35));
         this.categoryContainer.scrollContainer.setExtent(this.getExtent().subPt(pt(0,35)))
         var partsSpace = lively.PartsBin.partsSpaceWithURL(
@@ -1216,7 +1219,14 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
                 })
         this.list.setup(categoryNames);
     },
-},
+    createCategoryGrid: function(container) {
+        var defaultItemWidth = 100;
+        var columns = Math.floor(this.getExtent().x / defaultItemWidth);
+        // initially use one row, add rows individually
+        var rows = 1;
+        container.setLayouter(new lively.morphic.Layout.GridLayout(container,columns,rows))
+        container.applyLayout();
+    },},
 'part items', {
     addMorphsForPartItems: function(partItems) {
         this.partItemsToBeAdded = partItems.clone();
@@ -1231,12 +1241,14 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
         }
         var partItem = this.partItemsToBeAdded.shift();
         var morph = this.makePartItemTouchInteractive(partItem);
+        morph.gridCoords = this.getNextGridCoords();
+        morph.setFill(Color.rgba(243,243,243,0))
         this.categoryContainer.addMorph(morph);
+        this.categoryContainer.applyLayout;
     },
     makePartItemTouchInteractive: function(partItem) {
         var morph = partItem.asPartsBinItem(),
             that = this;
-        morph.setPosition(this.getAvailablePosition());
         morph.onTouchStart = function(evt) {
             var touch = evt.touches[0];
             if(touch) {
@@ -1263,25 +1275,28 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
     grabFocusedItem: function(morph) {
         var loadingMorph = lively.morphic.World.current().loadingMorph.copy();
         loadingMorph.loadPart(morph.partItem, function(part) {
-            part.setPosition($world.firstHand().getPosition());
+            part.setPosition(lively.morphic.World.current().firstHand().getPosition());
             lively.morphic.World.current().firstHand().grabMorph(part);
         });
     },
 
 
-    getAvailablePosition: function() {
-        // Currently parts are arranged in two columns
-        if(!this.lastPosition) {
-            this.lastPosition = pt(155,-100);
-        };
-        if(this.lastPosition.x === 30) {
-            this.lastPosition = this.lastPosition.addPt(pt(125, 0));
-        } else {
-            this.lastPosition = this.lastPosition.addPt(pt(-125, 125));
+
+    getNextGridCoords: function() {
+        // default PartsBinItem extent is 100x100
+        var container = this.categoryContainer;
+        var layout = container.getLayouter();
+        var x = ((container.submorphs.length) % layout.numCols);
+        var y = Math.ceil((container.submorphs.length + 1) / layout.numCols) - 1
+        if (y > layout.numRows - 1) {
+            layout.initialize(container, layout.numCols, layout.numRows + 1);
+            container.applyLayout();
         }
-        this.categoryContainer.setExtent(pt(this.getExtent().x, this.lastPosition.y+125));
-        return this.lastPosition;
+        // need to set the extent manually ad GridLayout seems not to do that 
+        container.setExtent(pt(container.getExtent().x, layout.numRows * 100))
+        return pt(x,y)
     },
+
     stopAddingPartItemsAsync: function() {
         this.stopSteppingScriptNamed('addPartItemAsync');
         delete this.partItemsToBeAdded;

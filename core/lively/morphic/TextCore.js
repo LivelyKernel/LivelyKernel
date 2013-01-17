@@ -2246,8 +2246,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
         this.highlightSyntaxDebounced();
     },
 
-    highlightSyntaxDebounced: function(waitTime) {
-        waitTime = waitTime || (this.syntaxHighlighter ? this.syntaxHighlighter.minDelay : 0);
+    highlightSyntaxDebounced: function() {
+        var waitTime = this.syntaxHighlighter ? this.syntaxHighlighter.minDelay : 100;
         // replaces this function in the instance object
         this.highlightSyntaxDebounced = Functions.debounce(waitTime, this.highlightSyntax);
         this.highlightSyntaxDebounced();

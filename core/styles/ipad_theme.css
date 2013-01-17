@@ -51,3 +51,9 @@
 .Text.FlapNavigator {
 	color: white;
 }
+
+.Button.FlapNavigator.highlighted {
+	background-image: -webkit-linear-gradient(bottom, #314fff 0%, #3553ff 59%, #4f69ff 63%, #7086ff 100%);
+	background-image: -moz-linear-gradient(bottom, #314fff 0%, #3553ff 59%, #4f69ff 63%, #7086ff 100%);
+	border-radius: 5px;
+}

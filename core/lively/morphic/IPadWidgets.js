@@ -1003,7 +1003,7 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
     },
     getBottomRight: function() {
         if (this.owner.isWorld)
-            return pt(document.documentElement.clientWidth, document.documentElement.clientHeight)
+            return lively.morphic.World.current().visibleBounds().bottomRight()
         else
             return this.owner.getExtent()
     }
@@ -1330,7 +1330,8 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
     },
     addCloseButton: function($super) {
         var returnValue = $super();
-        this.closeButton.beFlapButton();
+        this.closeButton.addStyleClassName("WindowControl");
+        this.closeButton.addStyleClassName("close");
         this.closeButton.applyStyle({
             extent: pt(25,25),
             position: pt(this.getExtent().x - 25, 5),
@@ -1655,7 +1656,9 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
 
     makeAddButton: function(target) {
         var button = new lively.morphic.Button(rect(0,20, 100,30), "Add script");
-        button.beFlapButton();
+        button.addStyleClassName('FlapNavigator');
+        button.label.addStyleClassName('FlapNavigator');
+        button.addStyleClassName('highlighted')
         button.applyStyle({
             extent: pt(100,30),
             fixedWidth: true,
@@ -1859,7 +1862,8 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
             world.ignoreHalos = false;
         });
         connect(nextButton, 'fire', nextButton, 'onFire');
-        nextButton.beFlapButton();
+        nextButton.addStyleClassName('FlapNavigator');
+        nextButton.label.addStyleClassName('FlapNavigator');
         nextButton.setExtent(pt(40,30))
         nextButton.setName('nextButton')
         nextButton.moveBy(pt(0,5));
@@ -1883,7 +1887,8 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
             this.doSave();
         })
         connect(saveButton, 'fire', saveButton, 'onFire')
-        saveButton.beFlapButton();
+        saveButton.addStyleClassName('FlapNavigator');
+        saveButton.label.addStyleClassName('FlapNavigator');
         saveButton.moveBy(pt(0,5));
         return saveButton
     },
@@ -1891,7 +1896,8 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
         var self = this,
             width = 40,
             deleteButton = new lively.morphic.Button(rect(0,0,0,0), 'X');
-        deleteButton.beFlapButton();
+        deleteButton.addStyleClassName('FlapNavigator');
+        deleteButton.label.addStyleClassName('FlapNavigator');        
         deleteButton.applyStyle({
             position: pt(this.saveButton.getPosition().x-width,5),
             extent: pt(width, this.tabBarHeight - 10),
@@ -1922,7 +1928,8 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
             }
         });
         connect(runButton, 'fire', runButton, 'onFire')
-        runButton.beFlapButton();
+        runButton.addStyleClassName('FlapNavigator');
+        runButton.label.addStyleClassName('FlapNavigator');
         runButton.moveBy(pt(0,5));
         runButton.label.applyStyle({
             padding: rect(0,6,0,0)

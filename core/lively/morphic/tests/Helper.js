@@ -104,12 +104,13 @@ TestCase.subclass('lively.morphic.tests.TestCase',
                     // string.
                     // See: http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSStyleDeclaration-getPropertyValue
                     var actualValue = node.style[key].replace(/ /g, '');
-                    if (Object.isFunction(expected)) {
-                        self.assert(expected.call(self, actualValue)
-                                   , 'value ' + actualValue + ' did no match');
-                        return;
-                    }
-                    if (expected != actualValue) {
+                    if (Object.isRegExp(expected)) {
+                        self.assert(expected.test(actualValue),
+                                    expected + ' does not match ' + actualValue);
+                    } else if (Object.isFunction(expected)) {
+                        self.assert(expected.call(self, actualValue),
+                                    'value ' + actualValue + ' did no match');
+                    } else if (expected != actualValue) {
                         fail('style ' + key + ' not ' + expected + ' but ' + actualValue);
                     }
                 });

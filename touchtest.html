@@ -1,0 +1,144 @@
+<!DOCTYPE html><html><head><title>touchtest.html</title><style type="text/css">*:not(:focus) {
+  -moz-user-select: -moz-none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}.visibleSelection:focus, .visibleSelection:focus * {
+  -moz-user-select: element;
+  -webkit-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+}
+:focus:not(input) {
+  outline:none;
+}
+.visibleSelection:focus {
+  outline: 2px auto -webkit-focus-ring-color;
+}
+</style><style type="text/css" id="lively-base-style">*:not(:focus) {
+  -moz-user-select: -moz-none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}.visibleSelection:focus, .visibleSelection:focus * {
+  -moz-user-select: element;
+  -webkit-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+}
+:focus:not(input) {
+  outline:none;
+}
+.visibleSelection:focus {
+  outline: 2px auto -webkit-focus-ring-color;
+}
+</style><style type="text/css" id="base-theme-for-1">*[data-lively-morphid="1"] .World, *[data-lively-morphid="1"].World {
+	font-family: Helvetica;
+}
+*[data-lively-morphid="1"] .Box, *[data-lively-morphid="1"].Box {
+	border: 1px solid #aaa;
+}
+*[data-lively-morphid="1"] .Selection, *[data-lively-morphid="1"].Selection {
+	background: rgba(222,222,222, 0.6);
+	border: 1px solid #aaa;
+}
+*[data-lively-morphid="1"] .Box.selection-indicator, *[data-lively-morphid="1"].Box.selection-indicator {
+	background: none;
+	outline: 4px solid #E73F22;
+}
+*[data-lively-morphid="1"] .Text.edit-field, *[data-lively-morphid="1"].Text.edit-field {
+	background: white;
+	box-shadow: inset 1px 1px 1px #666;
+	border: 1px solid #aaa;
+	border-radius: 2px;
+}
+*[data-lively-morphid="1"] .Button, *[data-lively-morphid="1"].Button {
+	font-size: 9pt;
+	color: #333;
+	text-align: center;
+	text-shadow: 0 1px 0 #EEE;
+	background: -webkit-linear-gradient(top, #EEE, #CCC);
+	border-radius: 3px;
+	box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.8);
+	cursor: pointer;
+	border: 1px solid #888;
+}
+*[data-lively-morphid="1"] .Button.pressed, *[data-lively-morphid="1"].Button.pressed {
+	background: -webkit-linear-gradient(bottom, #EEE, #CCC);
+	box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.5);
+}
+*[data-lively-morphid="1"] .Button.toggled, *[data-lively-morphid="1"].Button.toggled {
+	background: -webkit-linear-gradient(top, #FFF, #EEE);
+	color: black;
+}
+*[data-lively-morphid="1"] .Button.toggled.pressed, *[data-lively-morphid="1"].Button.toggled.pressed {
+	background: -webkit-gradient(bottom, #FFF, #EEE);
+}
+*[data-lively-morphid="1"] .Button.disabled, *[data-lively-morphid="1"].Button.disabled {
+	background: -webkit-gradient(linear, left top, left bottom,
+                                 color-stop(0%,#fff),
+                                 color-stop(20%,#aaa),
+                                 color-stop(85%,#aaa),
+                                 color-stop(100%,#888));
+	color: gray;
+}
+*[data-lively-morphid="1"] .Window, *[data-lively-morphid="1"].Window {
+	background-color: rgba(244, 244, 244, 0.7);
+	box-shadow: 0px 4px 15px #666;
+	border-radius: 5px;
+}
+*[data-lively-morphid="1"] .Window.highlighted, *[data-lively-morphid="1"].Window.highlighted {
+	border: 1px solid white;
+	box-shadow: 0px 5px 20px #000;
+	background-color: rgba(222, 222, 222, 0.8);
+}
+*[data-lively-morphid="1"] .Window .TitleBar, *[data-lively-morphid="1"].Window .TitleBar, *[data-lively-morphid="1"] .Window .reframe-handle, *[data-lively-morphid="1"].Window .reframe-handle {
+	border: none;
+	background: none;
+}
+*[data-lively-morphid="1"] .reframe-handle.corner, *[data-lively-morphid="1"].reframe-handle.corner {
+	cursor: se-resize;
+}
+*[data-lively-morphid="1"] .reframe-handle.right, *[data-lively-morphid="1"].reframe-handle.right {
+	cursor: e-resize;
+}
+*[data-lively-morphid="1"] .reframe-handle.bottom, *[data-lively-morphid="1"].reframe-handle.bottom {
+	cursor: s-resize;
+}
+*[data-lively-morphid="1"] .Window .Text.window-title, *[data-lively-morphid="1"].Window .Text.window-title {
+	font-size: 10pt;
+	text-align: center;
+	color: #555;
+	text-shadow: 0px 0px 5px white, 0px 0px 5px white, 0px 0px 5px white;
+}
+*[data-lively-morphid="1"] .Window.highlighted .Text.window-title, *[data-lively-morphid="1"].Window.highlighted .Text.window-title {
+	font-weight: bold;
+	color: #333;
+}
+*[data-lively-morphid="1"] .Button.WindowControl, *[data-lively-morphid="1"].Button.WindowControl {
+	border: 1px solid #aaa;
+	border-radius: 3px;
+	background: #EEE;
+	font-weight: normal;
+}
+*[data-lively-morphid="1"] .Button.WindowControl.close, *[data-lively-morphid="1"].Button.WindowControl.close {
+	background: #E73F22;
+	color: white;
+}
+*[data-lively-morphid="1"] .HorizontalDivider, *[data-lively-morphid="1"].HorizontalDivider {
+	cursor: n-resize;
+}
+*[data-lively-morphid="1"] .Slider, *[data-lively-morphid="1"].Slider {
+	border-radius: 6px;
+	border: 1px solid #BBB;
+	background: #EEE;
+	box-shadow: inset 1px 1px 1px #666;
+}
+*[data-lively-morphid="1"] .SliderKnob, *[data-lively-morphid="1"].SliderKnob {
+	box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.8);
+	cursor: pointer;
+	border: 1px solid #888;
+	border-radius: 5px;
+	background-image: -webkit-linear-gradient(top, #EEE, #CCC);
+}
+</style></head><body><div tabindex="-1" style="-webkit-transform: rotate(0deg) scale(1.0392048186937088, 1.0392048186937088); -moz-transform: rotate(0deg) scale(1.0392048186937088, 1.0392048186937088); -o-transform: rotate(0deg) scale(1.0392048186937088, 1.0392048186937088); -webkit-transform-origin: 0px 0px; -moz-transform-origin: 0px 0px; -o-transform-origin: 0px 0px; position: absolute; left: 5px; top: 5px;" data-lively-node-type="morph-node"><div style="position: absolute; left: 0px; top: 0px; width: 1414.5430944477384px; height: 830.4426466043526px; background-color: rgb(255, 255, 255); opacity: 1; border: 0px solid rgb(204, 0, 0); padding: 0px; border-top-left-radius: 0px; border-top-right-radius: 0px; border-bottom-right-radius: 0px; border-bottom-left-radius: 0px; overflow: visible; background-position: initial initial; background-repeat: initial initial;" class="Morph World" data-lively-morphid="1"><div style="top: 0px !important; left: 0px !important; position: absolute !important; margin-top: 0px !important; margin-left: 0px !important;" data-lively-node-type="origin-node"><div tabindex="-1" style="-webkit-transform: rotate(0deg) scale(1, 1); -moz-transform: rotate(0deg) scale(1, 1); -o-transform: rotate(0deg) scale(1, 1); -webkit-transform-origin: 0px 0px; -moz-transform-origin: 0px 0px; -o-transform-origin: 0px 0px; position: absolute; left: 602.3836579076764px; top: 204.00213334892555px; cursor: default; pointer-events: none;" data-lively-node-type="morph-node"><div style="position: absolute; left: 0px; top: 0px; width: 2px; height: 2px; background-color: rgb(204, 0, 0); opacity: 1; border: 0px solid rgb(204, 0, 0); padding: 0px; border-top-left-radius: 0px; border-top-right-radius: 0px; border-bottom-right-radius: 0px; border-bottom-left-radius: 0px; overflow: visible; background-position: initial initial; background-repeat: initial initial;" class="Morph HandMorph" data-lively-morphid="2"></div></div></div></div></div><script type="text/javascript" src="core/lively/bootstrap.js"></script><script type="text/x-lively-world" id="touchtest.html" data-migrationlevel="7">{"id":0,"registry":{"0":{"_ClipMode":"visible","_Scale":1.0392048186937088,"_Scroll":[0,0],"__layered_draggingEnabled__":true,"attributeConnections":[{"__isSmartRef__":true,"id":1}],"clickedOnMorphTime":1357780545834,"doNotCopyProperties":["$$savedWorldAsURL"],"doNotSerialize":["$$savedWorldAsURL","$$baseThemeStyleSheet"],"draggingEnabled":true,"droppingEnabled":true,"eventHandler":{"__isSmartRef__":true,"id":3},"grabbingEnabled":false,"halosEnabled":true,"hands":[{"__isSmartRef__":true,"id":4}],"id":1,"lastAlert":"Robert's user config loaded","prevScroll":[0,0],"savedWorldAsURL":{"__isSmartRef__":true,"id":7},"scripts":[],"shape":{"__isSmartRef__":true,"id":8},"showsHalos":false,"showsMorphMenu":true,"statusMessages":[],"submorphs":[{"__isSmartRef__":true,"id":4}],"worldMenuOpened":false,"_traitConfig_":[{"__isSmartRef__":true,"id":9}],"#startLetters":"vis","_StyleSheet":"span {\n    font-family: 13px Helvetica, arial, freesans, clean, sans-serif;\n    line-height: 1.3;\n}","lastModified":{"__isSmartRef__":true,"id":11},"partsBinMetaInfo":{"__isSmartRef__":true,"id":12},"loadingMorph":{"__isSmartRef__":true,"id":13},"eventStartPos":null,"__serializedExpressions__":["_Position","scrollOffset"],"zoomLevel":1,"editMode":false,"__serializedLivelyClosures__":{"__isSmartRef__":true,"id":27},"__LivelyClassName__":"lively.morphic.World","__SourceModuleName__":"Global.lively.morphic.Core","_Position":"lively.pt(0.0,0.0)","scrollOffset":"lively.pt(0.0,0.0)"},"1":{"converterString":null,"sourceAttrName":"savedWorldAsURL","sourceObj":{"__isSmartRef__":true,"id":0},"targetMethodName":"visitNewPageAfterSaveAs","targetObj":{"__isSmartRef__":true,"id":0},"updaterString":"function ($upd, v) {\n                if (v && v.toString() !== URL.source.toString()) {\n                    $upd(v)\n                }\n            }","varMapping":{"__isSmartRef__":true,"id":2},"__LivelyClassName__":"AttributeConnection","__SourceModuleName__":"Global.lively.bindings.Core"},"2":{"source":{"__isSmartRef__":true,"id":0},"target":{"__isSmartRef__":true,"id":0}},"3":{"morph":{"__isSmartRef__":true,"id":0},"__LivelyClassName__":"lively.morphic.EventHandler","__SourceModuleName__":"Global.lively.morphic.Events"},"4":{"_ClipMode":"visible","_HandStyle":"default","_PointerEvents":"none","_Rotation":0,"_Scale":1,"_world":{"__isSmartRef__":true,"id":0},"carriesGrabbedMorphs":false,"droppingEnabled":false,"eventHandler":{"__isSmartRef__":true,"id":5},"eventsAreIgnored":true,"halosEnabled":false,"id":2,"lastScrollTime":1357780538372,"owner":{"__isSmartRef__":true,"id":0},"scripts":[],"shape":{"__isSmartRef__":true,"id":6},"submorphs":[],"__serializedExpressions__":["_Position"],"__LivelyClassName__":"lively.morphic.HandMorph","__SourceModuleName__":"Global.lively.morphic.Events","withLayers":["Global.NoMagnetsLayer"],"_Position":"lively.pt(602.4,204.0)"},"5":{"morph":{"__isSmartRef__":true,"id":4},"__LivelyClassName__":"lively.morphic.EventHandler","__SourceModuleName__":"Global.lively.morphic.Events"},"6":{"_ClipMode":"visible","__serializedExpressions__":["_Extent","_Fill","_Padding","_Position"],"__LivelyClassName__":"lively.morphic.Shapes.Rectangle","__SourceModuleName__":"Global.lively.morphic.Shapes","_Extent":"lively.pt(2.0,2.0)","_Fill":"Color.rgb(204,0,0)","_Padding":"lively.rect(0,0,0,0)","_Position":"lively.pt(0.0,0.0)"},"7":{"protocol":"http:","port":9001,"hostname":"localhost","pathname":"/welcome.xhtml","__LivelyClassName__":"URL","__SourceModuleName__":"Global.lively.Network"},"8":{"_ClipMode":"visible","__serializedExpressions__":["_Extent","_Fill","_Padding","_Position"],"__LivelyClassName__":"lively.morphic.Shapes.Rectangle","__SourceModuleName__":"Global.lively.morphic.Shapes","_Extent":"lively.pt(1414.5,830.4)","_Fill":"Color.rgb(255,255,255)","_Padding":"lively.rect(0,0,0,0)","_Position":"lively.pt(0.0,0.0)"},"9":{"traitName":"users.robertkrahn.WorldMenuTrait","options":{"__isSmartRef__":true,"id":10}},"10":{"override":["morphMenuItems"]},"11":{"isSerializedDate":true,"string":"Wed Jan 09 2013 17:15:15 GMT-0800 (PST)"},"12":{"requiredModules":["lively.Touch","lively.morphic.IPadWidgets"],"__LivelyClassName__":"lively.PartsBin.PartsBinMetaInfo","__SourceModuleName__":"Global.lively.PartsBin"},"13":{"submorphs":[{"__isSmartRef__":true,"id":14},{"__isSmartRef__":true,"id":18}],"scripts":[],"shape":{"__isSmartRef__":true,"id":24},"eventHandler":{"__isSmartRef__":true,"id":25},"_ClipMode":"visible","derivationIds":[],"id":"4821B802-36C2-44DF-B97D-801C135FFCEA","droppingEnabled":true,"halosEnabled":true,"__serializedExpressions__":["_Position"],"layout":{"__isSmartRef__":true,"id":26},"progressIndicator":{"__isSmartRef__":true,"id":14},"previewText":{"__isSmartRef__":true,"id":18},"__LivelyClassName__":"lively.morphic.LoadingMorph","__SourceModuleName__":"Global.lively.morphic.AdditionalMorphs","_Position":"lively.pt(0.0,0.0)"},"14":{"submorphs":[],"scripts":[],"shape":{"__isSmartRef__":true,"id":15},"eventHandler":{"__isSmartRef__":true,"id":16},"_ClipMode":"visible","derivationIds":[],"id":"757662F6-DE68-4460-84A2-E9300C73CC82","droppingEnabled":true,"halosEnabled":true,"__serializedExpressions__":["_Position"],"layout":{"__isSmartRef__":true,"id":17},"owner":{"__isSmartRef__":true,"id":13},"__LivelyClassName__":"lively.morphic.Image","__SourceModuleName__":"Global.lively.morphic.Widgets","_Position":"lively.pt(130.0,80.0)"},"15":{"__serializedExpressions__":["_Position","_Extent","_Padding"],"_ImageURL":"http://localhost:9001/core/media/morphloading.gif","isLoaded":true,"__LivelyClassName__":"lively.morphic.Shapes.Image","__SourceModuleName__":"Global.lively.morphic.Shapes","_Position":"lively.pt(0.0,0.0)","_Extent":"lively.pt(40.0,40.0)","_Padding":"lively.rect(0,0,0,0)"},"16":{"morph":{"__isSmartRef__":true,"id":14},"__LivelyClassName__":"lively.morphic.EventHandler","__SourceModuleName__":"Global.lively.morphic.Events"},"17":{"centeredHorizontal":true,"centeredVertical":true},"18":{"submorphs":[],"scripts":[],"shape":{"__isSmartRef__":true,"id":19},"_WhiteSpaceHandling":"pre-wrap","textChunks":[{"__isSmartRef__":true,"id":20}],"eventHandler":{"__isSmartRef__":true,"id":22},"_ClipMode":"visible","derivationIds":[],"id":"7879A9E6-5068-4BAD-8A76-9C243C226479","grabbingEnabled":false,"droppingEnabled":false,"halosEnabled":true,"fixedWidth":true,"_WordBreak":"break-all","fixedHeight":true,"_InputAllowed":true,"_HandStyle":null,"allowInput":true,"_FontFamily":"Helvetica","_FontSize":14,"__serializedExpressions__":["_TextColor","_Position"],"evalEnabled":false,"layout":{"__isSmartRef__":true,"id":23},"_Align":"center","owner":{"__isSmartRef__":true,"id":13},"__LivelyClassName__":"lively.morphic.Text","__SourceModuleName__":"Global.lively.morphic.TextCore","_TextColor":"Color.rgb(64,64,64)","_Position":"lively.pt(87.5,45.0)"},"19":{"__serializedExpressions__":["_Position","_Extent","_Padding","_BorderColor"],"_BorderWidth":0,"_Fill":null,"__LivelyClassName__":"lively.morphic.Shapes.Rectangle","__SourceModuleName__":"Global.lively.morphic.Shapes","_Position":"lively.pt(0.0,40.0)","_Extent":"lively.pt(125.0,30.0)","_Padding":"lively.rect(4,2,0,0)","_BorderColor":"Color.rgb(0,0,0)"},"20":{"style":{"__isSmartRef__":true,"id":21},"chunkOwner":{"__isSmartRef__":true,"id":18},"_id":"_2","storedString":"\n\nloading part","__LivelyClassName__":"lively.morphic.TextChunk","__SourceModuleName__":"Global.lively.morphic.TextCore"},"21":{"__LivelyClassName__":"lively.morphic.TextEmphasis","__SourceModuleName__":"Global.lively.morphic.TextCore"},"22":{"morph":{"__isSmartRef__":true,"id":18},"__LivelyClassName__":"lively.morphic.EventHandler","__SourceModuleName__":"Global.lively.morphic.Events"},"23":{"resizeWidth":false,"centeredHorizontal":true,"centeredVertical":true},"24":{"__serializedExpressions__":["_Position","_Extent","_Padding","_BorderColor","_Fill"],"_BorderWidth":1,"_BorderRadius":8.5,"__LivelyClassName__":"lively.morphic.Shapes.Rectangle","__SourceModuleName__":"Global.lively.morphic.Shapes","_Position":"lively.pt(0.0,0.0)","_Extent":"lively.pt(300.0,200.0)","_Padding":"lively.rect(0,0,0,0)","_BorderColor":"Color.rgb(0,0,0)","_Fill":"Color.rgb(214,214,214)"},"25":{"morph":{"__isSmartRef__":true,"id":13},"__LivelyClassName__":"lively.morphic.EventHandler","__SourceModuleName__":"Global.lively.morphic.Events"},"26":{"adjustForNewBounds":true},"27":{"onWindowResize":{"__isSmartRef__":true,"id":28},"centerWelcomeContainer":{"__isSmartRef__":true,"id":36},"onLoad":{"__isSmartRef__":true,"id":40}},"28":{"varMapping":{"__isSmartRef__":true,"id":29},"source":"function onWindowResize(evt) {\n    this.centerWelcomeContainer();\n}","funcProperties":{"__isSmartRef__":true,"id":34},"__LivelyClassName__":"lively.Closure","__SourceModuleName__":"Global.lively.lang.Closure"},"29":{"this":{"__isSmartRef__":true,"id":0},"__serializedLivelyClosures__":{"__isSmartRef__":true,"id":30}},"30":{"$super":{"__isSmartRef__":true,"id":31}},"31":{"varMapping":{"__isSmartRef__":true,"id":32},"source":"function () {\n                    try {\n                        return obj.constructor.prototype[name].apply(obj, arguments)\n                    } catch (e) {\n                        if ($world)\n                            $world.logError(e, 'Error in $super call')\n                        else\n                            alert('Error in $super call: ' + e + '\\n' + e.stack);\n                        return null;\n                    }\n                }","funcProperties":{"__isSmartRef__":true,"id":33},"__LivelyClassName__":"lively.Closure","__SourceModuleName__":"Global.lively.lang.Closure"},"32":{"obj":{"__isSmartRef__":true,"id":0},"name":"onWindowResize"},"33":{},"34":{"timestamp":{"__isSmartRef__":true,"id":35},"user":"robertkrahn","tags":[]},"35":{"isSerializedDate":true,"string":"Wed Sep 05 2012 00:03:25 GMT-0700 (PDT)"},"36":{"varMapping":{"__isSmartRef__":true,"id":37},"source":"function centerWelcomeContainer() {\n    // this.centerWelcomeContainer()\n    var container = this.get('welcomeContainer');\n    if (!container) return;\n    container.align(container.getCenter().addXY(0, 15), this.visibleBounds().center());\n}","funcProperties":{"__isSmartRef__":true,"id":38},"__LivelyClassName__":"lively.Closure","__SourceModuleName__":"Global.lively.lang.Closure"},"37":{"this":{"__isSmartRef__":true,"id":0}},"38":{"timestamp":{"__isSmartRef__":true,"id":39},"user":"robertkrahn","tags":[]},"39":{"isSerializedDate":true,"string":"Wed Sep 05 2012 02:23:04 GMT-0700 (PDT)"},"40":{"varMapping":{"__isSmartRef__":true,"id":41},"source":"function onLoad() {\n    this.setExtent(this.windowBounds().extent());\n    this.centerWelcomeContainer();\n}","funcProperties":{"__isSmartRef__":true,"id":42},"__LivelyClassName__":"lively.Closure","__SourceModuleName__":"Global.lively.lang.Closure"},"41":{"this":{"__isSmartRef__":true,"id":0}},"42":{"timestamp":{"__isSmartRef__":true,"id":43},"user":"robertkrahn","tags":[]},"43":{"isSerializedDate":true,"string":"Wed Sep 05 2012 00:04:14 GMT-0700 (PDT)"},"isSimplifiedRegistry":true}}</script></body></html>

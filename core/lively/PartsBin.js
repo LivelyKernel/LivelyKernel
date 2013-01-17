@@ -579,7 +579,6 @@ Object.extend(lively.PartsBin, {
 
         return metainfosToRemove
     }
-
 });
 
 Trait('lively.PartsBin.PartTrait', {

@@ -1171,10 +1171,12 @@ lively.morphic.Text.addMethods(
         this.renderContext().textNode.onblur = function(evt) {
             lively.morphic.EventHandler.prototype.patchEvent(evt);
             self.onBlur(evt)
+            self.onBlurAction && self.onBlurAction()
         };
         this.renderContext().textNode.onfocus = function(evt) {
             lively.morphic.EventHandler.prototype.patchEvent(evt);
             self.onFocus(evt)
+            self.onFocusAction && self.onFocusAction()
         };
     }
 },

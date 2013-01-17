@@ -480,7 +480,8 @@ Global.Config = {
         ],
 
         'lively.morphic.StyleSheets', [
-            ["baseThemeStyleSheetURL", ((ExistingConfig && ExistingConfig.codeBase) || Config.getDocumentDirectory()) + 'styles/base_theme.css', "The base theme CSS file location"]
+            ["baseThemeStyleSheetURL", ((ExistingConfig && ExistingConfig.codeBase) || Config.getDocumentDirectory()) + 'styles/base_theme.css', "The base theme CSS file location"],
+            ["ipadThemeStyleSheetURL", ((ExistingConfig && ExistingConfig.codeBase) || Config.getDocumentDirectory()) + 'styles/ipad_theme.css', "The ipad theme CSS file location"]
         ],
 
         "lively.PartsBin", [

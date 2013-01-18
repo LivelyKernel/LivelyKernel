@@ -1955,9 +1955,14 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
 lively.morphic.Box.subclass('lively.morphic.TextControl',
 'properties', {
     buttonExtent: pt(65,32),
+    fullButtonSet: ['Do it', 'Do all', 'Print', 'Save', 'Execute'],
+    defaultButtonSet: ['Do it', 'Do all', 'Print', 'Save'],
+
+
 }, 'initilization', {
     initialize: function ($super, optBounds) {
         var returnValue = $super(optBounds || rect(0, 0,180, 25));
+        this.initializeLayout();
         this.initializeButtons();
         this.applyStyle({
             fill: Color.rgba(47,47,47,0.5),
@@ -1969,33 +1974,68 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
         this.disableSelection();
         return returnValue
     },
+    initializeLayout: function() {
+        // to later insert buttons in an horizontal layout
+        var layouter = new lively.morphic.Layout.HorizontalLayout(this)
+        layouter.spacing = 5;
+        this.setLayouter(layouter);
+        return layouter;
+    },
+
     initializeButtons: function() {
         // Creates the interaction buttons according to a pattern
         // add buttons by naming them the way you name their action function in buttonTypes
         var that = this,
-            i=0,
-            buttonTypes = ['Do it', 'Do all', 'Print', 'Save'];
-        this.setLayouter(new lively.morphic.Layout.HorizontalLayout(this));
+            buttonTypes = this.fullButtonSet;
         buttonTypes.each(function (ea) {
             var button = new lively.morphic.Button(rect(0,0,65.0,32.0), ea);
-            button.beBlackButton();
+            button.addStyleClassName('TextControl');
+            button.label.addStyleClassName('TextControl');
             var str = ea.replace(' ', '');
             that[str+'Button'] = button;
-            button.gridCoords = pt(i,0);
-            button.label.setPadding(rect(5,7,0,0));
             var funcName = 'trigger'+ea.replace(' ', '')
             connect(button, 'fire', that, funcName);
-            that.addMorph(button);
+            if (that.defaultButtonSet.member(ea))
+                that.addMorph(button);
             button.applyStyle({
                 layout: {
                     resizeWidth: true,
                     resizeHeight: true
                 },
             })
-            i++
         })
         this.applyLayout();
     },
+    observeLinks: function() {
+        if (!this.getTarget())
+            return false
+        var selectionRange = this.getTarget().getSelectionRange();
+        if (!selectionRange)
+            return false
+        var emphasis = this.getTarget().getEmphasisAt(selectionRange[0], selectionRange[1])
+        if (emphasis && emphasis.uri) {
+            this.showExecuteButton(true);
+            this.ExecuteButton.uri = emphasis.uri
+        } else {
+            this.showExecuteButton(false);
+        }
+        return selectionRange
+    },
+    showExecuteButton: function(optBool) {
+        // ToDo: make me reusable with string parsing (?)
+        var bool = (optBool === undefined)? true : optBool;
+        if (bool) {
+            if (!this.ExecuteButton.owner) {
+                this.ExecuteButton.setPosition(this.getExtent())
+                this.addMorph(this.ExecuteButton)
+            }
+        } else if (this.ExecuteButton.owner) {
+            this.ExecuteButton.remove();
+            this.setExtent(pt(0,0))
+        }
+    },
+
+
 },
 'actions', {
     triggerDoit: function() {
@@ -2043,6 +2083,10 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
         if (!this.getTarget()) return
         this.getTextMorph().doSave();
     },
+    triggerExecute: function() {
+        window.open(this.ExecuteButton.uri)
+    },
+
 
 
 },
@@ -2073,7 +2117,22 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
                 ea.label && ea.label.setExtent(ea.getExtent())
             })
             this.setFixed(true);
+    },
+    activate: function(target) {
+        var world = lively.morphic.World.current();
+        world.addMorph(this);
+        this.fitInWorld();
+        this.setTarget(target);
+        this.startStepping(0, 'observeLinks')
+    },
+    deactivate: function() {
+        this.setFixed(false);
+        this.setTarget(undefined)
+        this.stopSteppingScriptNamed('observeLinks')
+        this.remove();
     }
+
+
 
 
 }) // end of lively.morphic.TextControl

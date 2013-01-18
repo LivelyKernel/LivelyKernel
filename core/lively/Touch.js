@@ -2118,18 +2118,13 @@ lively.morphic.Text.addMethods("TapEvents", {
         if (!this.textControl) {
             this.initializeTextControl()
         }
-        var world = lively.morphic.World.current();
-        world.addMorph(this.textControl);
-        this.textControl.fitInWorld();
-        this.textControl.setTarget(this);
+        this.textControl.activate(this)
     },
 
 
     deactivateTextControl: function() {
         if (!this.textControl) return
-        this.textControl.setFixed(false);
-        this.textControl.setTarget(undefined)
-        this.textControl.remove();
+        this.textControl.deactivate();
     },
     onBlurAction: function() {
         this.deactivateTextControl()

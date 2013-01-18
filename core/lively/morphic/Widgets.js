@@ -103,6 +103,8 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
                 var labelPadding = pressed ? this.style.label.padding.withY(this.style.label.padding.y+1):this.style.label.padding;
                 this.setPadding(labelPadding);
             }
+            if (this.label)
+                this.label.setExtent(this.getExtent())
         } else {
             this.addStyleClassName('disabled');
             this.removeStyleClassName('toggled');

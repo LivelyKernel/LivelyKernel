@@ -57,3 +57,21 @@
 	background-image: -moz-linear-gradient(bottom, #314fff 0%, #3553ff 59%, #4f69ff 63%, #7086ff 100%);
 	border-radius: 5px;
 }
+
+.Button.TextControl {
+	background-image: -webkit-linear-gradient(bottom, #000000 0%, #3b3b3b 59%, #565656 63%, #8b8b8b 100%);
+	background-image: -moz-linear-gradient(bottom, #000000 0%, #3b3b3b 59%, #565656 63%, #8b8b8b 100%);
+	border-color: black;
+	border-radius: 6px;
+	border-width: 1px;
+}
+
+.Text.TextControl {
+	color: white;
+	padding-top: 7px;
+}
+
+.Button.TextControl.pressed {
+	background-image: -webkit-linear-gradient(bottom, #314fff 0%, #3553ff 59%, #4f69ff 63%, #7086ff 100%);
+	background-image: -moz-linear-gradient(bottom, #314fff 0%, #3553ff 59%, #4f69ff 63%, #7086ff 100%);
+}

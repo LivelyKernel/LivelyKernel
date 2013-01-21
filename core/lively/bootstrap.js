@@ -1229,7 +1229,6 @@
         // Checking for an update. Always the first event fired in the sequence.
         appCache.addEventListener('checking', function(evt) {
             console.log('Checking if there are new sources to load...');
-            LoadingScreen.setLogoText('Checking Cache');
         }, false);
 
         // An update was found. The browser is fetching resources.
@@ -1240,8 +1239,10 @@
 
         // Fired for each resource listed in the manifest as it is being fetched.
         appCache.addEventListener('progress', function(evt) {
-            console.log('progress');
-            LoadingScreen.setLogoText('Fetching Cache Content 205/205');
+            if (!evt.lengthComputable) return;
+            LoadingScreen.setLogoText('Fetching Cache Content '
+                                     + (evt.loaded + 1)
+                                     + '/' + evt.total);
         }, false);
 
         // Fired when the manifest resources have been newly redownloaded.

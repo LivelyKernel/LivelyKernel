@@ -304,7 +304,6 @@
                                             + " margin-left:auto;"
                                             + " margin-right:auto;"
                                             + " width: 80px;"
-                                            + " height: 108px;"
                                             + " background-color: white;");
 
             var logo = document.createElement('img');
@@ -327,6 +326,12 @@
             this.logo = logoAndText;
 
             return logoAndText;
+        },
+
+        setLogoText: function(string) {
+            if (!this.logo) return;
+            var text = this.logo.getElementsByTagName('div')[0];
+            text.textContent = string;
         },
 
         buildBrokenWorldMessage: function() {
@@ -515,11 +520,12 @@
             return background;
         },
 
-        add: function() {
+        add: function(optLogoText) {
             if (!this.domElement) {
                 this.domElement = this.build();
             }
             document.body.appendChild(this.domElement);
+            if (optLogoText) this.setLogoText(optLogoText);
         },
 
         remove: function() {
@@ -946,7 +952,7 @@
         // ------- load world ---------------
         //
         loadMain: function(doc, startupFunc) {
-            LoadingScreen.add();
+            LoadingScreen.add('Loading');
             lively.Config.loadUserConfigModule();
             require('lively.bindings', 'lively.Main').toRun(function() {
                 var loader = lively.Main.getLoader(doc);
@@ -1212,23 +1218,35 @@
     }
 
     function initOnAppCacheLoad(whenCacheLoaded) {
+        LoadingScreen.add('Checking Cache');
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
         console.log('Installing appcache event handlers...');
         var appCache = Global.applicationCache;
 
         // Checking for an update. Always the first event fired in the sequence.
         appCache.addEventListener('checking', function(evt) {
             console.log('Checking if there are new sources to load...');
+            LoadingScreen.setLogoText('Checking Cache');
         }, false);
 
         // An update was found. The browser is fetching resources.
-        appCache.addEventListener('downloading', function(evt) { console.log('downloading'); }, false);
+        appCache.addEventListener('downloading', function(evt) {
+            console.log('downloading');
+            LoadingScreen.setLogoText('Fetching Cache Content');
+        }, false);
 
         // Fired for each resource listed in the manifest as it is being fetched.
-        appCache.addEventListener('progress', function(evt) { console.log('progress'); }, false);
+        appCache.addEventListener('progress', function(evt) {
+            console.log('progress');
+            LoadingScreen.setLogoText('Fetching Cache Content 205/205');
+        }, false);
 
         // Fired when the manifest resources have been newly redownloaded.
         appCache.addEventListener('updateready', function(evt) {
             console.log('updateready');
+            LoadingScreen.setLogoText('New Sources Loaded');
             appCache.swapCache();
             // we have to reload the whole page to get the new sources
             document.location.reload();
@@ -1238,12 +1256,14 @@
         // or the manifest changed while the download was in progress.
         appCache.addEventListener('error', function(evt) {
             console.log('Error occured while loading the application cache.');
+            LoadingScreen.setLogoText('Cache Error');
             whenCacheLoaded();
         }, false);
 
         // Fired after the first download of the manifest.
         appCache.addEventListener('noupdate', function(evt) {
             console.log('noupdate');
+            LoadingScreen.setLogoText('No updates');
             whenCacheLoaded();
         }, false);
 

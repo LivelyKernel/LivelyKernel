@@ -342,8 +342,9 @@ Object.subclass('lively.Module',
 },
 'loading', {
     load: function(loadSync) {
+        var prevWasSync = false;
         if (loadSync) {
-            var prevWasSync = this.constructor.loadSync;
+            prevWasSync = this.constructor.loadSync;
             this.constructor.loadSync = true;
         }
         if (this.isLoaded()) {

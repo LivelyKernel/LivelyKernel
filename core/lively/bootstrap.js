@@ -556,6 +556,7 @@
                 if (onLoadCb) onLoadCb();
             } :
             function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
+                if (okToUseCache === undefined) okToUseCache = true;
                 if (this.scriptInDOM(url)) {
                     var msg = 'script ' + url + ' already loaded or loading';
                     console.log(msg);
@@ -696,7 +697,7 @@
             // while loading the combined file we replace the loader
             Global.JSLoader = combinedLoader;
             this.loadJs(combinedFileUrl, callCallback,
-                        undefined, undefined, hash);
+                        false, false, hash);
         },
 
         loadAll: function(urls, cb) {

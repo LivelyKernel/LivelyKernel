@@ -1214,8 +1214,11 @@
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // application cache related
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    function isLoadedFromManifest() {
-        return !!document.getElementsByTagName('html')[0].getAttribute('manifest');
+    function usesAppCache() {
+        var appCache = Global.applicationCache;
+        return appCache
+            && appCache.status !== appCache.UNCACHED
+            && !!document.getElementsByTagName('html')[0].getAttribute('manifest');
     }
 
     function initOnAppCacheLoad(whenCacheLoaded) {
@@ -1286,7 +1289,7 @@
     (function startWorld(startupFunc) {
         if (browserDetector.isNodejs()) {
             initNodejsBootstrap();
-        } else if (isLoadedFromManifest) {
+        } else if (usesAppCache()) {
             initOnAppCacheLoad(initBrowserBootstrap);
         } else {
             initBrowserBootstrap();

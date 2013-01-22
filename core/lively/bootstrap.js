@@ -304,7 +304,6 @@
                                             + " margin-left:auto;"
                                             + " margin-right:auto;"
                                             + " width: 80px;"
-                                            + " height: 108px;"
                                             + " background-color: white;");
 
             var logo = document.createElement('img');
@@ -327,6 +326,12 @@
             this.logo = logoAndText;
 
             return logoAndText;
+        },
+
+        setLogoText: function(string) {
+            if (!this.logo) return;
+            var text = this.logo.getElementsByTagName('div')[0];
+            text.textContent = string;
         },
 
         buildBrokenWorldMessage: function() {
@@ -515,11 +520,12 @@
             return background;
         },
 
-        add: function() {
+        add: function(optLogoText) {
             if (!this.domElement) {
                 this.domElement = this.build();
             }
             document.body.appendChild(this.domElement);
+            if (optLogoText) this.setLogoText(optLogoText);
         },
 
         remove: function() {
@@ -550,6 +556,7 @@
                 if (onLoadCb) onLoadCb();
             } :
             function(url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
+                if (okToUseCache === undefined) okToUseCache = true;
                 if (this.scriptInDOM(url)) {
                     var msg = 'script ' + url + ' already loaded or loading';
                     console.log(msg);
@@ -690,7 +697,7 @@
             // while loading the combined file we replace the loader
             Global.JSLoader = combinedLoader;
             this.loadJs(combinedFileUrl, callCallback,
-                        undefined, undefined, hash);
+                        false, false, hash);
         },
 
         loadAll: function(urls, cb) {
@@ -946,7 +953,7 @@
         // ------- load world ---------------
         //
         loadMain: function(doc, startupFunc) {
-            LoadingScreen.add();
+            LoadingScreen.add('Loading');
             lively.Config.loadUserConfigModule();
             require('lively.bindings', 'lively.Main').toRun(function() {
                 var loader = lively.Main.getLoader(doc);
@@ -1149,8 +1156,30 @@
 
     };
 
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // initializing bootstrap
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-
+    var domLoaded = false;
+    Global.addEventListener('DOMContentLoaded', function() { domLoaded = true; }, true);
 
-    function init() {
+    function setupExitWarning() {
+        Global.addEventListener('beforeunload', function(evt) {
+            if (!!Global.Config.askBeforeQuit) {
+                var msg = "Lively Kernel data may be lost if not saved.";
+                evt.returnValue = msg;
+                return msg;
+            } else {
+                return undefined;
+            }
+        }, true);
+    }
+
+    function initBrowserBootstrap() {
+        if (!domLoaded) {
+            Global.addEventListener('DOMContentLoaded', initBrowserBootstrap, true);
+            return;
+        }
+        setupExitWarning();
         if (Global.document) {
             Global.LivelyMigrationSupport.setDocumentMigrationLevel(document);
         }
@@ -1159,41 +1188,111 @@
         console.warn("Lively startup failed");
     }
 
+    function initNodejsBootstrap() {
+        // remove libs, JSON:
+        Global.LivelyLoader.bootstrapFiles = [
+            'lib/lively-libs-nodejs.js',
+            'lively/Migration.js',
+            'lively/lang/Object.js',
+            'lively/lang/Function.js',
+            'lively/lang/String.js',
+            'lively/lang/Array.js',
+            'lively/lang/Number.js',
+            'lively/lang/Date.js',
+            'lively/lang/Worker.js',
+            'lively/defaultconfig.js',
+            'lively/localconfig.js',
+            'lively/Base.js',
+            'lively/ModuleSystem.js',
+            'lively/lang/Closure.js',   // FIXME: require module instead
+            'lively/lang/UUID.js',      // FIXME: require module instead
+            'lively/LocalStorage.js'    // FIXME: require module instead
+        ];
+        Global.LivelyLoader.bootstrap(function() { console.log('bootstrap done'); });
+    }
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // application cache related
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    function usesAppCache() {
+        var appCache = Global.applicationCache;
+        return appCache
+            && appCache.status !== appCache.UNCACHED
+            && !!document.getElementsByTagName('html')[0].getAttribute('manifest');
+    }
+
+    function initOnAppCacheLoad(whenCacheLoaded) {
+        LoadingScreen.add('Checking Cache');
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        console.log('Installing appcache event handlers...');
+        var appCache = Global.applicationCache;
+
+        // Checking for an update. Always the first event fired in the sequence.
+        appCache.addEventListener('checking', function(evt) {
+            console.log('Checking if there are new sources to load...');
+        }, false);
+
+        // An update was found. The browser is fetching resources.
+        appCache.addEventListener('downloading', function(evt) {
+            console.log('downloading');
+            LoadingScreen.setLogoText('Fetching Cache Content');
+        }, false);
+
+        // Fired for each resource listed in the manifest as it is being fetched.
+        appCache.addEventListener('progress', function(evt) {
+            if (!evt.lengthComputable) return;
+            LoadingScreen.setLogoText('Fetching Cache Content '
+                                     + (evt.loaded + 1)
+                                     + '/' + evt.total);
+        }, false);
+
+        // Fired when the manifest resources have been newly redownloaded.
+        appCache.addEventListener('updateready', function(evt) {
+            console.log('updateready');
+            LoadingScreen.setLogoText('New Sources Loaded');
+            appCache.swapCache();
+            // we have to reload the whole page to get the new sources
+            document.location.reload();
+        }, false);
+
+        // The manifest returns 404 or 410, the download failed,
+        // or the manifest changed while the download was in progress.
+        appCache.addEventListener('error', function(evt) {
+            console.log('Error occured while loading the application cache.');
+            LoadingScreen.setLogoText('Cache Error');
+            whenCacheLoaded();
+        }, false);
+
+        // Fired after the first download of the manifest.
+        appCache.addEventListener('noupdate', function(evt) {
+            console.log('noupdate');
+            LoadingScreen.setLogoText('No updates');
+            whenCacheLoaded();
+        }, false);
+
+        // Fired after the first cache of the manifest.
+        appCache.addEventListener('cached', function(evt) {
+            console.log('Sources are now cached.');
+            whenCacheLoaded();
+        }, false);
+
+        // Fired if the manifest file returns a 404 or 410.
+        // This results in the application cache being deleted.
+        appCache.addEventListener('obsolete', function(evt) { console.log('obsolete'); }, false);
+    }
+
+    // -=-=-=-=-=-=-=-
+    // let it run
+    // -=-=-=-=-=-=-=-
     (function startWorld(startupFunc) {
         if (browserDetector.isNodejs()) {
-            // remove libs, JSON:
-            Global.LivelyLoader.bootstrapFiles = [
-                'lib/lively-libs-nodejs.js',
-                'lively/Migration.js',
-                'lively/lang/Object.js',
-                'lively/lang/Function.js',
-                'lively/lang/String.js',
-                'lively/lang/Array.js',
-                'lively/lang/Number.js',
-                'lively/lang/Date.js',
-                'lively/lang/Worker.js',
-                'lively/defaultconfig.js',
-                'lively/localconfig.js',
-                'lively/Base.js',
-                'lively/ModuleSystem.js',
-                'lively/lang/Closure.js',   // FIXME: require module instead
-                'lively/lang/UUID.js',      // FIXME: require module instead
-                'lively/LocalStorage.js'    // FIXME: require module instead
-            ];
-            Global.LivelyLoader.bootstrap(function() {
-                console.log('bootstrap done');
-            });
+            initNodejsBootstrap();
+        } else if (usesAppCache()) {
+            initOnAppCacheLoad(initBrowserBootstrap);
         } else {
-            Global.addEventListener('DOMContentLoaded', init, true);
-            Global.addEventListener('beforeunload', function(evt) {
-                if (!!Global.Config.askBeforeQuit) {
-                    var msg = "Lively Kernel data may be lost if not saved.";
-                    evt.returnValue = msg;
-                    return msg;
-                } else {
-                    return undefined;
-                }
-            }, true);
+            initBrowserBootstrap();
         }
     })();
 

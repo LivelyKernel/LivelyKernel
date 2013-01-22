@@ -47,7 +47,11 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
         }
         return cop.proceed();
     },
-}).refineClass(lively.morphic.Morph, {
+    saveWorldAs: function(arguments) {
+        if (!this.getTouchMenu().isPinned())
+            this.getTouchMenu().remove();
+        return cop.proceed(arguments)
+    }}).refineClass(lively.morphic.Morph, {
     onMouseDown: function (evt) {
         cop.proceed(evt);
 

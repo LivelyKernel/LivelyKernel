@@ -1354,7 +1354,7 @@ lively.morphic.Box.subclass('lively.morphic.LoadingMorph',
     initilaizeProgressIndicator: function() {
         this.progressIndicator = new lively.morphic.Image(
             rect(0,0,40,40),
-            LivelyLoader.codeBase + 'media/morphloading.gif');
+            LivelyLoader.codeBase + 'media/morphLoading.gif');
         this.progressIndicator.applyStyle({
             centeredHorizontal: true,
             centeredVertical: true,

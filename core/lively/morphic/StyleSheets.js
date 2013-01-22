@@ -160,9 +160,8 @@ lively.morphic.Morph.addMethods(
         // (use "" to leave the urls untouched)
         var url = URL.ensureAbsoluteURL(file),
             webR = url.asWebResource();
-        webR.forceUncached();
         if (!webR.get().status.isSuccess()) {
-            throw new Error("Couldn't load stylesheet at " + file + " --> " + webR.status.code());
+            console.error("Couldn't load stylesheet at %s --> %s", file, webR.status.toString());
         }
         var css = webR.content,
             resPath = resourcePath || url.getDirectory();

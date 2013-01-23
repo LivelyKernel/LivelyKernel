@@ -1,3 +1,7 @@
+.Morph.grabbed {
+	opacity: 0.7 !important;
+}
+
 .FlapHandle {
 	border: 1px solid black;
 	font-size: 14pt;

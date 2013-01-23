@@ -1384,6 +1384,18 @@ lively.morphic.Morph.addMethods(
             this.lastTap.event = evt;
         }
     }
+}, 
+'grabbing behavior', {
+    getGrabShadow: function () {
+        this.withAllSubmorphsDo(function(ea) {
+            ea.addStyleClassName('grabbed')
+        })
+    },
+    onDropOn: function() {
+        this.withAllSubmorphsDo(function(ea) {
+            ea.removeStyleClassName('grabbed')
+        })
+    }
 
 });
 

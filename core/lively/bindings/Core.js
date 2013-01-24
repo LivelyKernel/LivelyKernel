@@ -211,7 +211,7 @@ Object.subclass('AttributeConnection',
 
             return null;
         }
-        var targetMethod = target[propName], callOrSetTarget = function(newValue) {
+        var targetMethod = target[propName], callOrSetTarget = function(newValue, oldValue) {
             // use a function and not a method to capture this in self and so
             // that no bind is necessary and oldValue is accessible. Note that
             // when updater calls this method arguments can be more than just
@@ -228,7 +228,7 @@ Object.subclass('AttributeConnection',
             this.isActive = true;
             return updater ?
                 updater.call(this, callOrSetTarget, newValue, oldValue) :
-                callOrSetTarget(newValue);
+                callOrSetTarget(newValue, oldValue);
         } catch(e) {
             dbgOn(Config.debugConnect);
             var world = Global.lively &&

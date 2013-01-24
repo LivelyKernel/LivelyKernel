@@ -496,6 +496,18 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         this.assertEquals(2, obj.x);
         obj.m = function() { return 4 }
         this.assertIdentity(obj.m, obj.x);
+    },
+
+    test43ConnectionReceivesOldValue: function() {
+        var obj1 = {x: 4};
+        var obj2 = {xchanged: function(newVal, oldVal) {
+            obj2.value = newVal;
+            obj2.old = oldVal;
+        }};
+        connect(obj1, 'x', obj2, 'xchanged');
+        obj1.x = 2;
+        this.assertEquals(obj2.value, 2, 'connection not working');
+        this.assertEquals(obj2.old, 4, 'old value not provided');
     }
 
 });

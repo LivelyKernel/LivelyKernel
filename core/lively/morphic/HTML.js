@@ -996,22 +996,29 @@ lively.morphic.Shapes.External.addMethods(
 },
 'initializing', {
     initFromStringifiedShapeNodeHTML: function(ctx) {
+        // 1) recreate shapeNode
         var element;
         if (this.stringifiedShapeNode) {
             element = stringToXML(this.stringifiedShapeNode);
             element.parentNode && element.parentNode.removeChild(element);
         }
         if (!element) {
-            element = XHTMLNS.create('div');
+            element = document.createElement('div');
             element.style.backgroundColor = Color.red.toCSSString();
         }
-        var $element = new jQuery.fn.init(element),
-            width = $element.width() || 0,
-            height = $element.height() || 0,
-            extent = pt(width, height);
-        this.setExtent(extent);
         this.shapeNode = element;
         ctx && (ctx.shapeNode = element);
+        // 2) figure out the extent
+        var extent = pt(0,0);
+        if (element.style) {
+            var $element = new jQuery.fn.init(element),
+                width = $element.width(),
+                height = $element.height();
+            extent = pt(width, height);
+        } else if (this.extent) {
+            extent = this.extent;
+        }
+        this.setExtent(extent);
     }
 },
 'accessing', {

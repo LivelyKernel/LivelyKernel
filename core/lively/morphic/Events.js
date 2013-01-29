@@ -2055,22 +2055,19 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 
         pos = pos.scaleBy(1/this.world().getScale());
         this.setPosition(pos);
-        if (this.carriesGrabbedMorphs) {
-            var carriedMorph = this.submorphs.detect(function(ea) {return !ea.isGrabShadow;}),
-                topmostMorph = this.world().getTopmostMorph(evt.getPosition());
-            if (!topmostMorph ||
-                !topmostMorph.isLayoutable ||
-                !topmostMorph.wantsDroppedMorph(carriedMorph) ||
-                !carriedMorph.wantsToBeDroppedInto(topmostMorph)) {
-                return;
-            }
-            var layouter = topmostMorph.getLayouter();
-            if (!carriedMorph) { return; }
-            if (layouter && layouter.displaysPlaceholders()) {
-                layouter.showPlaceholderFor(carriedMorph, evt);
-            } else if (carriedMorph.placeholder) {
-                carriedMorph.destroyPlaceholder();
-            }
+        if (!this.carriesGrabbedMorphs) return;
+        var carriedMorph = this.submorphs.detect(function(ea) {return !ea.isGrabShadow;}),
+            topmostMorph = this.world().getTopmostMorph(evt.getPosition()),
+            layouter = topmostMorph.getLayouter();
+        if (!carriedMorph
+          || !topmostMorph
+          || !topmostMorph.isLayoutable
+          || !topmostMorph.wantsDroppedMorph(carriedMorph)
+          || !carriedMorph.wantsToBeDroppedInto(topmostMorph)) { return; }
+        if (layouter && layouter.displaysPlaceholders()) {
+            layouter.showPlaceholderFor(carriedMorph, evt);
+        } else if (carriedMorph.placeholder) {
+            carriedMorph.destroyPlaceholder();
         }
     }
 });

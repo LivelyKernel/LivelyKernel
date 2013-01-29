@@ -998,5 +998,143 @@ lively.morphic.List.addMethods(
     clearFilter: function() {},
 });
 
+lively.morphic.Morph.addMethods(
+"CSSTransitions", {
+    moveByAnimated: function(delta, time, callback) {
+        var prefix = this.renderContext().domInterface.html5CssPrefix,
+            eventName = "transitionend";
+
+        switch(prefix) {
+            case '-webkit-': eventName = "webkitTransitionEnd"; break;
+            case '-o-'     : eventName = "oTransitionEnd"; break;
+        }
+
+        if(prefix === "-moz-") {
+            this.renderContext().morphNode.style["MozTransitionProperty"] = "top, left";
+            this.renderContext().morphNode.style["MozTransitionDuration"] = time + "ms";
+        } else {
+            this.renderContext().morphNode.style[prefix + "transition-property"] = "top, left";
+            this.renderContext().morphNode.style[prefix + "transition-duration"] = time + "ms";
+        }
+
+        this.moveBy(delta);
+
+        var that = this;
+
+        var remover = function(evt){
+            if(prefix === "-moz-") {
+            that.renderContext().morphNode.style["MozTransitionProperty"] = "";
+                that.renderContext().morphNode.style["MozTransitionDuration"] = "";
+            } else {
+                that.renderContext().morphNode.style[prefix + "transition-property"] = "";
+                that.renderContext().morphNode.style[prefix + "transition-duration"] = "";
+            }
+            that.renderContext().morphNode.removeEventListener(eventName, remover, false);
+            callback && callback(that);
+        };
+        this.renderContext().morphNode.addEventListener(eventName, remover, false);
+    },
+
+    setPositionAnimated: function(position, time, callback){
+        var prefix = this.renderContext().domInterface.html5CssPrefix,
+            eventName = "transitionend";
+
+        switch(prefix) {
+            case '-webkit-': eventName = "webkitTransitionEnd"; break;
+            case '-o-'     : eventName = "oTransitionEnd"; break;
+        }
+
+        if(prefix === "-moz-") {
+            this.renderContext().morphNode.style["MozTransitionProperty"] = "top, left";
+            this.renderContext().morphNode.style["MozTransitionDuration"] = time + "ms";
+        } else {
+            this.renderContext().morphNode.style[prefix + "transition-property"] = "top, left";
+            this.renderContext().morphNode.style[prefix + "transition-duration"] = time + "ms";
+        }
+        this.setPosition(position);
+
+        var that = this;
+
+        var remover = function(evt){
+            if(prefix === "-moz-") {
+            that.renderContext().morphNode.style["MozTransitionProperty"] = "";
+                that.renderContext().morphNode.style["MozTransitionDuration"] = "";
+            } else {
+                that.renderContext().morphNode.style[prefix + "transition-property"] = "";
+                that.renderContext().morphNode.style[prefix + "transition-duration"] = "";
+            }
+            that.renderContext().morphNode.removeEventListener(eventName, remover, false);
+            callback && callback();
+        };
+        this.renderContext().morphNode.addEventListener(eventName, remover, false);
+    },
+
+    setOpacityAnimated: function(opacity, time, callback){
+        var prefix = this.renderContext().domInterface.html5CssPrefix,
+            eventName = "transitionend";
+
+        switch(prefix) {
+            case '-webkit-': eventName = "webkitTransitionEnd"; break;
+            case '-o-'     : eventName = "oTransitionEnd"; break;
+        }
+
+        if(prefix === "-moz-") {
+            this.renderContext().shapeNode.style["MozTransitionProperty"] = "opacity";
+            this.renderContext().shapeNode.style["MozTransitionDuration"] = time + "ms";
+        } else {
+            this.renderContext().shapeNode.style[prefix + "transition-property"] = "opacity";
+            this.renderContext().shapeNode.style[prefix + "transition-duration"] = time + "ms";
+        }
+        this.setOpacity(opacity);
+
+        var that = this;
+
+        var remover = function(evt){
+            if(prefix === "-moz-") {
+            that.renderContext().shapeNode.style["MozTransitionProperty"] = "";
+                that.renderContext().shapeNode.style["MozTransitionDuration"] = "";
+            } else {
+                that.renderContext().shapeNode.style[prefix + "transition-property"] = "";
+                that.renderContext().shapeNode.style[prefix + "transition-duration"] = "";
+            }
+            that.renderContext().morphNode.removeEventListener(eventName, remover, false);
+            callback && callback();
+        };
+        this.renderContext().shapeNode.addEventListener(eventName, remover, false);
+    },
+    setExtentAnimated: function(extent, time, callback){
+        var prefix = this.renderContext().domInterface.html5CssPrefix,
+            eventName = "transitionend";
+
+        switch(prefix) {
+            case '-webkit-': eventName = "webkitTransitionEnd"; break;
+            case '-o-'     : eventName = "oTransitionEnd"; break;
+        }
+
+        if(prefix === "-moz-") {
+            this.renderContext().shapeNode.style["MozTransitionProperty"] = "width, height";
+            this.renderContext().shapeNode.style["MozTransitionDuration"] = time + "ms";
+        } else {
+            this.renderContext().shapeNode.style[prefix + "transition-property"] = "width, heigt";
+            this.renderContext().shapeNode.style[prefix + "transition-duration"] = time + "ms";
+        }
+        this.setExtent(extent);
+
+        var that = this;
+
+        var remover = function(evt){
+            if(prefix === "-moz-") {
+            that.renderContext().shapeNode.style["MozTransitionProperty"] = "";
+                that.renderContext().shapeNode.style["MozTransitionDuration"] = "";
+            } else {
+                that.renderContext().shapeNode.style[prefix + "transition-property"] = "";
+                that.renderContext().shapeNode.style[prefix + "transition-duration"] = "";
+            }
+            that.renderContext().morphNode.removeEventListener(eventName, remover, false);
+            callback && callback();
+        };
+        this.renderContext().shapeNode.addEventListener(eventName, remover, false);
+    },
+})
 
 }) // end of module

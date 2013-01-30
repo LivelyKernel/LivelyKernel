@@ -24,7 +24,41 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MorphAddons.Morph
             'Position of eins not correctly set after owner removal and drop');
         this.assertEquals(pt(140, 140), zwei.getPosition(),
             'Position of zwei not correctly set after owner removal and drop');
+    }
+});
+
+AsyncTestCase.subclass('lively.morphic.tests.MorphAddons.TransitionTests',
+'running', {
+    setUp: function($super) {
+        this.morph = new lively.morphic.Box(new Rectangle(0, 0, 100, 100));
+        this.morph.applyStyle({fill: Color.green});
+        this.morph.openInWorld();
+        $super();
     },
+    tearDown: function($super) {
+        this.morph.remove();
+        $super();
+    }
+},
+'testing', {
+    testMoveByAnimated: function() {
+        // FIXME the animation done callback is never invoked without alert...
+        alert(this.selector);
+        var m = this.morph,
+            test = this,
+            startTime = Date.now(),
+            realDuration,
+            duration = 100/*ms*/;
+        m.moveByAnimated(pt(30,20), duration, function() {
+            realDuration = Date.now() - startTime;
+        });
+        this.delay(function() {
+            this.epsilon = 40;
+            this.assertEqualsEpsilon(duration, realDuration, 'CSS transistion timing');
+            this.assertEquals(pt(30, 20), m.getPosition(), 'pos');
+            this.done();
+        }, 150);
+    }
 });
 
 }) // end of module

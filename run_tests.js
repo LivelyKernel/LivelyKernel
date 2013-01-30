@@ -94,6 +94,7 @@ var testList = [
     "lively.morphic.tests.Layout",
     "lively.morphic.tests.Morphic",
     "lively.morphic.tests.Morphic2",
+    "lively.morphic.tests.MorphAddons",
     "lively.morphic.tests.PathTests",
     'lively.morphic.tests.Serialization',
     "lively.morphic.tests.ShapeTests",

@@ -1,4 +1,4 @@
-module('lively.morphic.ColorChooserDraft').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.CrayonColors').toRun(function() {
+module('lively.morphic.ColorChooserDraft').requires('lively.morphic.Core', 'lively.morphic.Widgets', 'lively.morphic.TextCore', 'lively.CrayonColors').toRun(function() {
 
 lively.morphic.Box.subclass('lively.morphic.ColorChooser',
 'settings', {

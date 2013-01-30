@@ -1001,7 +1001,7 @@ lively.morphic.List.addMethods(
 lively.morphic.Morph.addMethods(
 "CSSTransitions", {
 
-    withCSSTransistionDo: function(morphModifyFunc, duration, whenDone) {
+    withCSSTransitionDo: function(morphModifyFunc, duration, whenDone) {
         // FIXME move HTML specific stuff to HTML.js!
         var prefix = this.renderContext().domInterface.html5CssPrefix,
             durationProp = prefix === "-moz-" ?
@@ -1029,19 +1029,19 @@ lively.morphic.Morph.addMethods(
     },
 
     moveByAnimated: function(delta, time, callback) {
-        this.withCSSTransistionDo(this.moveBy.curry(delta), time, callback);
+        this.withCSSTransitionDo(this.moveBy.curry(delta), time, callback);
     },
 
     setPositionAnimated: function(position, time, callback) {
-        this.withCSSTransistionDo(this.setPosition.curry(position), time, callback);
+        this.withCSSTransitionDo(this.setPosition.curry(position), time, callback);
     },
 
     setOpacityAnimated: function(opacity, time, callback) {
-        this.withCSSTransistionDo(this.setOpacity.curry(opacity), time, callback);
+        this.withCSSTransitionDo(this.setOpacity.curry(opacity), time, callback);
     },
 
     setExtentAnimated: function(extent, time, callback) {
-        this.withCSSTransistionDo(this.setExtent.curry(extent), time, callback);
+        this.withCSSTransitionDo(this.setExtent.curry(extent), time, callback);
     }
 });
 

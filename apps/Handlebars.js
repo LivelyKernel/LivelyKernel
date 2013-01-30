@@ -15,7 +15,7 @@ Object.extend(apps.Handlebars, {
 (function loadHandlebars() {
     var url = Config.codeBase + 'lib/handlebars-1.0.rc.1.js';
     JSLoader.loadJs(url);
-    apps.Handlebars.loadTestPolling = Global.setInterval(function() { apps.Handlebars.load(); }, 50);
+    apps.Handlebars.loadTestPolling = Global.setInterval(function() { if (lively.morphic.isLoaded()) apps.Handlebars.load(); }, 50);
 })();
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

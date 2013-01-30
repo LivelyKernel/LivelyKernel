@@ -1000,141 +1000,49 @@ lively.morphic.List.addMethods(
 
 lively.morphic.Morph.addMethods(
 "CSSTransitions", {
+
+    withCSSTransistionDo: function(morphModifyFunc, duration, whenDone) {
+        // FIXME move HTML specific stuff to HTML.js!
+        var prefix = this.renderContext().domInterface.html5CssPrefix,
+            durationProp = prefix === "-moz-" ?
+                "MozTransitionDuration" : prefix + "transition-duration",
+            transitionProp = prefix === "-moz-" ?
+                "MozTransitionProperty" : prefix + "transition-property",
+            endEvent = (function determineEventEndName() {
+                switch (prefix) {
+                    case '-webkit-': return "webkitTransitionEnd";
+                    case '-o-'     : return "oTransitionEnd";
+                    default        : return "transitionend";
+                }
+            })(),
+            node = this.renderContext().morphNode,
+            remover = (function(evt) {
+                node.style[transitionProp] = "";
+                node.style[durationProp] = "";
+                node.removeEventListener(endEvent, remover, false);
+                whenDone && whenDone.call(this);
+            }).bind(this);
+        node.addEventListener(endEvent, remover, false);
+        node.style[transitionProp] = "top, left";
+        node.style[durationProp] = duration + "ms";
+        morphModifyFunc.call(this);
+    },
+
     moveByAnimated: function(delta, time, callback) {
-        var prefix = this.renderContext().domInterface.html5CssPrefix,
-            eventName = "transitionend";
-
-        switch(prefix) {
-            case '-webkit-': eventName = "webkitTransitionEnd"; break;
-            case '-o-'     : eventName = "oTransitionEnd"; break;
-        }
-
-        if(prefix === "-moz-") {
-            this.renderContext().morphNode.style["MozTransitionProperty"] = "top, left";
-            this.renderContext().morphNode.style["MozTransitionDuration"] = time + "ms";
-        } else {
-            this.renderContext().morphNode.style[prefix + "transition-property"] = "top, left";
-            this.renderContext().morphNode.style[prefix + "transition-duration"] = time + "ms";
-        }
-
-        this.moveBy(delta);
-
-        var that = this;
-
-        var remover = function(evt){
-            if(prefix === "-moz-") {
-            that.renderContext().morphNode.style["MozTransitionProperty"] = "";
-                that.renderContext().morphNode.style["MozTransitionDuration"] = "";
-            } else {
-                that.renderContext().morphNode.style[prefix + "transition-property"] = "";
-                that.renderContext().morphNode.style[prefix + "transition-duration"] = "";
-            }
-            that.renderContext().morphNode.removeEventListener(eventName, remover, false);
-            callback && callback(that);
-        };
-        this.renderContext().morphNode.addEventListener(eventName, remover, false);
+        this.withCSSTransistionDo(this.moveBy.curry(delta), time, callback);
     },
 
-    setPositionAnimated: function(position, time, callback){
-        var prefix = this.renderContext().domInterface.html5CssPrefix,
-            eventName = "transitionend";
-
-        switch(prefix) {
-            case '-webkit-': eventName = "webkitTransitionEnd"; break;
-            case '-o-'     : eventName = "oTransitionEnd"; break;
-        }
-
-        if(prefix === "-moz-") {
-            this.renderContext().morphNode.style["MozTransitionProperty"] = "top, left";
-            this.renderContext().morphNode.style["MozTransitionDuration"] = time + "ms";
-        } else {
-            this.renderContext().morphNode.style[prefix + "transition-property"] = "top, left";
-            this.renderContext().morphNode.style[prefix + "transition-duration"] = time + "ms";
-        }
-        this.setPosition(position);
-
-        var that = this;
-
-        var remover = function(evt){
-            if(prefix === "-moz-") {
-            that.renderContext().morphNode.style["MozTransitionProperty"] = "";
-                that.renderContext().morphNode.style["MozTransitionDuration"] = "";
-            } else {
-                that.renderContext().morphNode.style[prefix + "transition-property"] = "";
-                that.renderContext().morphNode.style[prefix + "transition-duration"] = "";
-            }
-            that.renderContext().morphNode.removeEventListener(eventName, remover, false);
-            callback && callback();
-        };
-        this.renderContext().morphNode.addEventListener(eventName, remover, false);
+    setPositionAnimated: function(position, time, callback) {
+        this.withCSSTransistionDo(this.setPosition.curry(position), time, callback);
     },
 
-    setOpacityAnimated: function(opacity, time, callback){
-        var prefix = this.renderContext().domInterface.html5CssPrefix,
-            eventName = "transitionend";
-
-        switch(prefix) {
-            case '-webkit-': eventName = "webkitTransitionEnd"; break;
-            case '-o-'     : eventName = "oTransitionEnd"; break;
-        }
-
-        if(prefix === "-moz-") {
-            this.renderContext().shapeNode.style["MozTransitionProperty"] = "opacity";
-            this.renderContext().shapeNode.style["MozTransitionDuration"] = time + "ms";
-        } else {
-            this.renderContext().shapeNode.style[prefix + "transition-property"] = "opacity";
-            this.renderContext().shapeNode.style[prefix + "transition-duration"] = time + "ms";
-        }
-        this.setOpacity(opacity);
-
-        var that = this;
-
-        var remover = function(evt){
-            if(prefix === "-moz-") {
-            that.renderContext().shapeNode.style["MozTransitionProperty"] = "";
-                that.renderContext().shapeNode.style["MozTransitionDuration"] = "";
-            } else {
-                that.renderContext().shapeNode.style[prefix + "transition-property"] = "";
-                that.renderContext().shapeNode.style[prefix + "transition-duration"] = "";
-            }
-            that.renderContext().morphNode.removeEventListener(eventName, remover, false);
-            callback && callback();
-        };
-        this.renderContext().shapeNode.addEventListener(eventName, remover, false);
+    setOpacityAnimated: function(opacity, time, callback) {
+        this.withCSSTransistionDo(this.setOpacity.curry(opacity), time, callback);
     },
-    setExtentAnimated: function(extent, time, callback){
-        var prefix = this.renderContext().domInterface.html5CssPrefix,
-            eventName = "transitionend";
 
-        switch(prefix) {
-            case '-webkit-': eventName = "webkitTransitionEnd"; break;
-            case '-o-'     : eventName = "oTransitionEnd"; break;
-        }
-
-        if(prefix === "-moz-") {
-            this.renderContext().shapeNode.style["MozTransitionProperty"] = "width, height";
-            this.renderContext().shapeNode.style["MozTransitionDuration"] = time + "ms";
-        } else {
-            this.renderContext().shapeNode.style[prefix + "transition-property"] = "width, heigt";
-            this.renderContext().shapeNode.style[prefix + "transition-duration"] = time + "ms";
-        }
-        this.setExtent(extent);
-
-        var that = this;
-
-        var remover = function(evt){
-            if(prefix === "-moz-") {
-            that.renderContext().shapeNode.style["MozTransitionProperty"] = "";
-                that.renderContext().shapeNode.style["MozTransitionDuration"] = "";
-            } else {
-                that.renderContext().shapeNode.style[prefix + "transition-property"] = "";
-                that.renderContext().shapeNode.style[prefix + "transition-duration"] = "";
-            }
-            that.renderContext().morphNode.removeEventListener(eventName, remover, false);
-            callback && callback();
-        };
-        this.renderContext().shapeNode.addEventListener(eventName, remover, false);
-    },
-})
+    setExtentAnimated: function(extent, time, callback) {
+        this.withCSSTransistionDo(this.setExtent.curry(extent), time, callback);
+    }
+});
 
 }) // end of module

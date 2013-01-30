@@ -55,6 +55,7 @@ cop.create('lively.morphic.GrabbingLayer')
 .refineClass(lively.morphic.Text, {
     onDragStart: function(evt) {
         if (cop.proceed(evt)) return;
+        if (!this.isGrabbable()) return;
         var grabMe = !this.allowInput;
         if (!grabMe) {
             // only grab when in outer area of bounds

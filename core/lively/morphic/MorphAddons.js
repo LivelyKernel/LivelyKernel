@@ -998,5 +998,51 @@ lively.morphic.List.addMethods(
     clearFilter: function() {},
 });
 
+lively.morphic.Morph.addMethods(
+"CSSTransitions", {
+
+    withCSSTransistionDo: function(morphModifyFunc, duration, whenDone) {
+        // FIXME move HTML specific stuff to HTML.js!
+        var prefix = this.renderContext().domInterface.html5CssPrefix,
+            durationProp = prefix === "-moz-" ?
+                "MozTransitionDuration" : prefix + "transition-duration",
+            transitionProp = prefix === "-moz-" ?
+                "MozTransitionProperty" : prefix + "transition-property",
+            endEvent = (function determineEventEndName() {
+                switch (prefix) {
+                    case '-webkit-': return "webkitTransitionEnd";
+                    case '-o-'     : return "oTransitionEnd";
+                    default        : return "transitionend";
+                }
+            })(),
+            node = this.renderContext().morphNode,
+            remover = (function(evt) {
+                node.style[transitionProp] = "";
+                node.style[durationProp] = "";
+                node.removeEventListener(endEvent, remover, false);
+                whenDone && whenDone.call(this);
+            }).bind(this);
+        node.addEventListener(endEvent, remover, false);
+        node.style[transitionProp] = "top, left";
+        node.style[durationProp] = duration + "ms";
+        morphModifyFunc.call(this);
+    },
+
+    moveByAnimated: function(delta, time, callback) {
+        this.withCSSTransistionDo(this.moveBy.curry(delta), time, callback);
+    },
+
+    setPositionAnimated: function(position, time, callback) {
+        this.withCSSTransistionDo(this.setPosition.curry(position), time, callback);
+    },
+
+    setOpacityAnimated: function(opacity, time, callback) {
+        this.withCSSTransistionDo(this.setOpacity.curry(opacity), time, callback);
+    },
+
+    setExtentAnimated: function(extent, time, callback) {
+        this.withCSSTransistionDo(this.setExtent.curry(extent), time, callback);
+    }
+});
 
 }) // end of module

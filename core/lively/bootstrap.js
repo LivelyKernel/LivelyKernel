@@ -1251,6 +1251,11 @@
         // Fired when the manifest resources have been newly redownloaded.
         appCache.addEventListener('updateready', function(evt) {
             console.log('updateready');
+            var isLoaded = Global.lively
+                        && lively.morphic
+                        && lively.morphic.World
+                        && lively.morphic.World.current();
+            if (isLoaded) return;
             LoadingScreen.setLogoText('New Sources Loaded');
             appCache.swapCache();
             // we have to reload the whole page to get the new sources

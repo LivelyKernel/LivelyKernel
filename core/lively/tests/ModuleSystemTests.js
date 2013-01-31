@@ -33,34 +33,60 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
                           module('users/robertkrahn/foo.js').uri());
         this.assertEquals(module('users/robertkrahn/foo.js').uri(),
                           module('users.robertkrahn.foo').uri());
+    },
+    testRequireLib: function() {
+        var moduleCodeExecuted = false;
+        module('foo.bar').requires().requiresLib().toRun(function() {
+            moduleCodeExecuted = true;
+        });
+        this.assert(!moduleCodeExecuted, 'module prematurely executed');
     }
+
 
 });
 
-TestCase.subclass('lively.tests.ModuleSystemTests.LoaderTest', {
+AsyncTestCase.subclass('lively.tests.ModuleSystemTests.ModuleLoad',
+'running', {
+    setUp: function($super) {
+        this.originalJSLoader = Global.JSLoader;
+        Global.JSLoader = {
+            loadJs: Functions.Null,
+            scriptInDOM: Functions.True
+        }
+        $super();
+    },
+    tearDown: function($super) {
+        Global.JSLoader = this.originalJSLoader;
+        $super();
+    }
+},
+'testing', {
 
-	shouldRun: false,
-
-	files: ['test1.js', 'test2.js', 'test3.js'],
-
-	tearDown: function() {
-	    this.files.each(function(ea) { LoaderTest[ea] = false });
-	},
-
-	testLoadScriptsWithAction: function() {
-	    var test = this;
-	    var whenDone = function() {
-            console.log('----------------------------- WhenDone run ------------------------------------');
-
-            // argghh testing is hard because of tearDown!
-            // if (!Loader['test1.js']) throw new Error('whenDoneAction run before loading test1.js');
-            // test.assert(Loader['test1.js'], 'whenDoneAction run before loading test1.js');
-            // test.assert(Loader['test2.js'], 'whenDoneAction run before loading test2.js');
-            // test.assert(Loader['test3.js'], 'whenDoneAction run before loading test3.js');
-	    };
-
-	    Loader.loadScripts(this.files, whenDone)
-	}
+    testRequireLib: function() {
+        var moduleCodeExecuted = false,
+            libBazIsLoaded = false,
+            loadTestCalled = 0;
+        module('foo.bar')
+            .requires()
+            .requiresLib({
+                url: Config.codeBase + 'lib/baz.js',
+                loadTest: function() { loadTestCalled++; return libBazIsLoaded; }
+            }).toRun(function() {
+                moduleCodeExecuted = true;
+            });
+        this.assert(module('foo.bar').hasPendingRequirements(), 'hasPendingRequirements 1');
+        this.delay(function() {
+            this.assert(loadTestCalled > 1, 'load test call count');
+            this.assert(!moduleCodeExecuted, 'module prematurely executed');
+            this.assert(module('foo.bar').hasPendingRequirements(), 'hasPendingRequirements 2');
+            libBazIsLoaded = true;
+        }, 60);
+        this.delay(function() {
+            this.assert(moduleCodeExecuted, 'module not executed');
+            this.assert(!module('foo.bar').hasPendingRequirements(), 'hasPendingRequirements 3');
+            this.done();
+        }, 120);
+    }
 
 });
 

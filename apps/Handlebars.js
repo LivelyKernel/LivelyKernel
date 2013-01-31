@@ -1,25 +1,3 @@
-
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// FIXME adding an external JS file as a module dependency should be integrated
-// into the module system
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-Object.extend(apps.Handlebars, {
-
-    hasPendingRequirements: apps.Handlebars.hasPendingRequirements.wrap(function(proceed) {
-        return proceed() || !this.libLoaded();
-    }),
-
-    libLoaded: function() { return !!Global.Handlebars; }
-});
-
-(function loadHandlebars() {
-    var url = Config.codeBase + 'lib/handlebars-1.0.rc.1.js';
-    JSLoader.loadJs(url);
-    apps.Handlebars.loadTestPolling = Global.setInterval(function() { if (lively.morphic.isLoaded()) apps.Handlebars.load(); }, 50);
-})();
-
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 /*
  * ## Usage
  *
@@ -56,11 +34,14 @@ Object.extend(apps.Handlebars, {
  *
  */
 
-module('apps.Handlebars').requires('lively.morphic').toRun(function() {
+module('apps.Handlebars')
+.requires('lively.morphic')
+.requiresLib({
+    url: Config.codeBase + 'lib/handlebars-1.0.rc.1.js',
+    loadTest: function() { return !!Global.Handlebars; }
+}).toRun(function() {
 
 (function setupHandlebars() {
-    Global.clearInterval(apps.Handlebars.loadTestPolling);
-
     Handlebars.templates = {}
 
     Handlebars.registerHelper('bindEvent', function(bindSpec) {

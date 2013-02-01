@@ -903,8 +903,11 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
     },
     setLabel: function(aString) {
         this.label.textString = aString;
+        this.label.fit();
         this.setName(aString);
         this.getPane().setName(aString + ' - Pane');
+        var extraSpace = this.closeButton ? 30 : 10;
+        this.setExtent(pt(this.label.getExtent().x + extraSpace, this.label.getExtent().y + 10));
         this.getTabBar().rearrangeTabs();
     },
     getLabel: function() {

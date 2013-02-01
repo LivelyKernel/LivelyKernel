@@ -64,27 +64,37 @@ Global.module = lively.module = function module(moduleName) {
             requiredModules.push(reqModule);
         }
 
-        return {
-            toRun: function(code) {
-                var debugCode = code;
-                 // pass in own module name for nested requirements
-                code = code.curry(module);
-                 // run code with namespace modules as additional parameters
-                var codeWrapper = function() {
-                    try {
-                        module.activate();
-                        code.apply(this, requiredModules);
-                        module._isLoaded = true;
-                    } catch(e) {
-                        module.logError(module + '>>basicRequire: ' + e, debugCode);
-                    } finally {
-                        module.deactivate();
-                    }
+        function requiresLib(libSpec) {
+            if (libSpec) module.addRequiredLib(libSpec);
+            return toRunOrRequiresLibObj;
+        }
+
+        function moduleExecute(code) {
+            var debugCode = code;
+             // pass in own module name for nested requirements
+            code = code.curry(module);
+             // run code with namespace modules as additional parameters
+            function codeWrapper() {
+                try {
+                    module.activate();
+                    code.apply(this, requiredModules);
+                    module._isLoaded = true;
+                } catch(e) {
+                    module.logError(module + '>>basicRequire: ' + e, debugCode);
+                } finally {
+                    module.deactivate();
                 }
-                module.addOnloadCallback(codeWrapper);
-                module.load();
             }
+            module.addOnloadCallback(codeWrapper);
+            module.load();
+        }
+
+        var toRunOrRequiresLibObj = {
+            toRun: moduleExecute,
+            requiresLib: requiresLib
         };
+
+        return toRunOrRequiresLibObj;
     };
 
     var module = createNamespaceModule(moduleName);
@@ -273,6 +283,29 @@ Object.subclass('lively.Module',
         requiredModule.addDependendModule(this);
     },
 
+    addRequiredLib: function(libSpec) {
+        // libSpec should match {url: [URL|STRING], loadTest: FUNCTION}
+        // loadTest is a function that might be called multiple times
+        // to determine the load status if the lib. If it returns ar truthy
+        // value it means the lib is loaded
+        if (typeof libSpec.loadTest !== 'function') {
+            throw new Error('libSpec.loadTest is not a function!');
+        }
+        if (!this.libLoadTests) this.libLoadTests = [];
+        this.libLoadTests.push(libSpec.loadTest);
+        JSLoader.loadJs(String(libSpec.url || libSpec.uri));
+        this.initLibLoadTester();
+    },
+
+    initLibLoadTester: function() {
+        this.loadTestPolling = Global.setInterval(function() {
+            if (this.hasPendingRequirements()) return;
+            Global.clearInterval(this.loadTestPolling);
+            delete this.libLoadTests;
+            this.load();
+        }.bind(this), 50);
+    },
+
     removeRequiredModule: function(requiredModule) {
         if (this.pendingRequirements && !this.pendingRequirements.include(requiredModule)) {
             throw dbgOn(new Error('requiredModule not there'));
@@ -287,7 +320,9 @@ Object.subclass('lively.Module',
     },
 
     hasPendingRequirements: function() {
-        return this.pendingRequirements && this.pendingRequirements.length > 0;
+        return (this.pendingRequirements && this.pendingRequirements.length > 0)
+             || (this.libLoadTests && this.libLoadTests.any(function(libLoadTest) {
+                 return !libLoadTest() }));
     },
 
     loadRequirementsFirst: function() {

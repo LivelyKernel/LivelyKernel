@@ -969,10 +969,7 @@
         },
 
         startFromSerializedWorld: function(startupFunc) {
-            var self = this;
-            this.bootstrap(function() {
-                self.loadMain(document, startupFunc);
-            });
+            this.bootstrap(this.loadMain.bind(this, document, startupFunc));
             return true;
         },
 

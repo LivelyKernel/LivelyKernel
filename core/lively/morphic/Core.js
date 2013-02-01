@@ -201,34 +201,35 @@ Object.subclass('lively.morphic.Morph',
     },
 
     addMorph: function (morph, optMorphBefore) {
-        if (morph.isAncestorOf(this)) {
-            alert('addMorph: Circular relationships between morphs not allowed');
-            alert('tried to drop ' + morph + ' on ' + this);
+        var newOwner = this;
+        if (morph.isAncestorOf(newOwner)) {
+            alert('addMorph: Circular relationships between morphs not allowed\n'
+                + 'tried to drop ' + morph + ' on ' + newOwner);
             return null;
         }
 
         var tfm = morph.owner
-               && morph.owner !== this
-               && morph.transformForNewOwner(this);
+               && morph.owner !== newOwner
+               && morph.transformForNewOwner(newOwner);
 
         if (morph.owner) { morph.remove(); }
 
-        morph.owner = this;
+        morph.owner = newOwner;
 
-        var indexToInsert = optMorphBefore && this.submorphs.indexOf(optMorphBefore);
+        var indexToInsert = optMorphBefore && newOwner.submorphs.indexOf(optMorphBefore);
         if (indexToInsert === undefined || indexToInsert < 0) {
-            indexToInsert = this.submorphs.length;
+            indexToInsert = newOwner.submorphs.length;
         }
-        this.submorphs.pushAt(morph, indexToInsert);
+        newOwner.submorphs.pushAt(morph, indexToInsert);
 
         // actually this should be done below so that geometry connects works
         // correctly but for the current Chrome stable (12.0.7) this leads to
         // a render bug (morph is offseted)
         if (tfm) { morph.setTransform(tfm); }
 
-        this.cachedBounds = null; // submorph might affect bounds
+        newOwner.cachedBounds = null; // submorph might affect bounds
 
-        var parentRenderCtxt = this.renderContext(),
+        var parentRenderCtxt = newOwner.renderContext(),
             subRenderCtxt = morph.renderContext(),
             ctx = parentRenderCtxt.constructor !== subRenderCtxt.constructor ?
                 parentRenderCtxt.newForChild() : subRenderCtxt;
@@ -236,16 +237,22 @@ Object.subclass('lively.morphic.Morph',
 
         morph.resumeSteppingAll();
 
-        if (this.getLayouter()) {
-            this.getLayouter().onSubmorphAdded(this, morph, this.submorphs);
+        if (newOwner.getLayouter()) {
+            newOwner.getLayouter().onSubmorphAdded(newOwner, morph, newOwner.submorphs);
         }
+
+        // FIXME remove, this was added for Ted's HyperCard implementation,
+        // it should not be part of the core system
         if (morph.owner.owner) { // Is owner owner a stack?
             if (morph.owner.owner.pageArray) {
                 morph.pageSpecific = true; // dropped morph is only on this page
                     // call Stack.beInBackground to place in background
             }
         }
-        return morph
+
+        morph.withAllSubmorphsDo(function(ea) { ea.onOwnerChanged && ea.onOwnerChanged(newOwner) });
+
+        return morph;
     },
     withAllSubmorphsDo: function(func, context, depth) {
         if (!depth) depth = 0;
@@ -338,6 +345,7 @@ Object.subclass('lively.morphic.Morph',
             this.owner.removeMorph(this);
         }
         this.renderContextDispatch('remove');
+        this.withAllSubmorphsDo(function(ea) { ea.onOwnerChanged && ea.onOwnerChanged(null) });
     },
 
     removeMorph: function(morph) {

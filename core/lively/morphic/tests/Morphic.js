@@ -262,7 +262,38 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic.BasicFunc
         o.addMorph(m); // different owner
         this.assert(m.hasOwnProperty("_Rotation"), 'morph has a rotation after adding');
         this.assertEquals(-1, m.getRotation(), 'morph has inverse rotation after adding');
+    },
+    testMorphHierarchyChangeA: function() {
+        var m = this.morph, testEnv = {onOwnerChangedCallCount: 0, newOwner: null};
+        (function(newOwner) {
+            testEnv.newOwner = newOwner;
+            testEnv.onOwnerChangedCallCount++;
+        }).asScriptOf(m, 'onOwnerChanged', {testEnv: testEnv});
+        this.world.addMorph(m);
+        this.assertEquals(1, testEnv.onOwnerChangedCallCount, 'onOwnerChanged not called 1');
+        this.assertIdentity(this.world, testEnv.newOwner);
+        m.remove();
+        this.assertEquals(2, testEnv.onOwnerChangedCallCount, 'onOwnerChanged not called 2');
+        this.assertIdentity(null, testEnv.newOwner);
+    },
+    testMorphHierarchyChangeB: function() {
+        var m1 = new lively.morphic.Morph(), m2 = new lively.morphic.Morph(),
+            testEnv = {onOwnerChangedCallCount: 0, newOwner: null};
+        (function(newOwner) {
+            testEnv.newOwner = newOwner;
+            testEnv.onOwnerChangedCallCount++;
+        }).asScriptOf(m2, 'onOwnerChanged', {testEnv: testEnv});
+        m1.addMorph(m2);
+        this.assertEquals(1, testEnv.onOwnerChangedCallCount, 'onOwnerChanged not called 1');
+        this.assertIdentity(m1, testEnv.newOwner);
+        this.world.addMorph(m1);
+        this.assertEquals(2, testEnv.onOwnerChangedCallCount, 'onOwnerChanged not called 1');
+        this.assertIdentity(this.world, testEnv.newOwner);
+        m1.remove();
+        this.assertEquals(3, testEnv.onOwnerChangedCallCount, 'onOwnerChanged not called 2');
+        this.assertIdentity(null, testEnv.newOwner);
     }
+
 
 });
 

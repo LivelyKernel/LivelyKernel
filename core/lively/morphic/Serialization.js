@@ -32,15 +32,8 @@ lively.morphic.Morph.addMethods(
     doNotSerialize: ['_renderContext', 'halos', '_isRendered', 'priorExtent', 'cachedBounds'],
 
     onrestore: function() {
-        // FIXME this does not belong here
-        // event handlers used to be serialized with each morph
-        // we disabled that feature. The line below will make sure that old code works
-        // if (this.eventHandler) this.eventHandler = null;
-//
-        // this.registerForEvents();
-
         // when classes of morphs during object deserialization cannot be found
-        // and classPlaceHolder object is created
+        // a classPlaceHolder object is created
         // we will create a morph for a classPlaceHolder so that the system will run
         if (!this.submorphs) return;
         for (var i = 0; i < this.submorphs.length; i++) {

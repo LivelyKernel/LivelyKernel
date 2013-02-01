@@ -736,9 +736,8 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel', {
     openForDragAndDrop: false,
 
     onDeserialize: function($super) {
-        var widget = new this.ownerWidget.constructor();
-        if (widget instanceof lively.ide.WikiCodeBrowser) return; // FIXME deserialize wiki browser
-        var selection = this.getSelectionSpec();
+        var widget = new this.ownerWidget.constructor(),
+            selection = this.getSelectionSpec();
         if (this.targetURL) widget.targetURL = this.targetURL;
         this.owner.targetMorph = this.owner.addMorph(widget.buildView(this.getExtent()));
         this.owner.targetMorph.setPosition(this.getPosition());
@@ -749,7 +748,7 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel', {
     getPane: function(pane) { return this[pane] && this[pane].innerMorph() },
 
     getSelectionTextOfPane: function(pane) {
-        var pane = this.getPane(pane);
+        pane = this.getPane(pane);
         if (!pane) return null;
         var index = pane.selectedLineNo;
         if (index === undefined) return null;

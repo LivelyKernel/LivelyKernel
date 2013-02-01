@@ -89,6 +89,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser', {
             lively.ide.SortCommand,
             lively.ide.ViewSourceCommand,
             lively.ide.ClassHierarchyViewCommand,
+            lively.ide.UnloadClassCommand,
             lively.ide.AddClassToFileFragmentCommand,
             lively.ide.AddObjectExtendToFileFragmentCommand,
             lively.ide.AddLayerToFileFragmentCommand,

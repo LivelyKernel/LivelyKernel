@@ -261,6 +261,30 @@ lively.ide.BrowserCommand.subclass('lively.ide.ClassHierarchyViewCommand', {
     },
 
 });
+lively.ide.BrowserCommand.subclass('lively.ide.UnloadClassCommand', {
+
+    wantsMenu: Functions.True,
+
+    isActive: function(pane) {
+        return this.browser.selectedNode() && this.browser.selectedNode().isClassNode
+    },
+
+
+    trigger: function() {
+        return [['unload', this.unloadClass.bind(this, this.browser.selectedNode().target.name)]];
+    },
+
+    unloadClass: function(klassName) {
+        var klass = Class.forName(klassName);
+        if (!klass) {
+            console.log('Class %s not loaded', klassName);
+            return;
+        }
+        klass.remove();
+        alertOK(klassName + ' successfully unloaded');
+    },
+
+});
 
 lively.ide.BrowserCommand.subclass('lively.ide.AddToFileFragmentCommand',
 'doc', {

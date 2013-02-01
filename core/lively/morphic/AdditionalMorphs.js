@@ -772,6 +772,13 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
     },
 
     removeTab: function(aTab) {
+        if (aTab.isActive) {
+            var idx = this.getTabs().indexOf(aTab);
+            var newActive = (idx == this.getTabs().length - 1)
+                ? this.getTabs()[idx - 1]
+                : this.getTabs()[idx + 1];
+            this.activateTab(newActive);
+        }
         aTab.getPane().remove();
         aTab.remove();
         this.unregisterTab(aTab);

@@ -354,10 +354,7 @@ Object.extend(ObjectGraphLinearizer, {
         }
     },
     parseJSON: function(json) {
-        if (typeof json !== 'string') return json; // already is JSO?
-        var regex = new RegExp(this.prototype.escapedCDATAEnd, 'g'),
-            converted = json.replace(regex, this.prototype.CDATAEnd);
-        return JSON.parse(converted);
+        return (typeof json !== 'string') ? json : JSON.parse(json);
     }
 
 });

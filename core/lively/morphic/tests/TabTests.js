@@ -42,9 +42,32 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.TabTests.TabTests
         this.assertEquals(t2, this.tabContainer.activeTab());
         this.assertEquals(t2.getPane(), this.tabContainer.activePane());
     },
-
-
-
+    test05ResizeTabToFitLabel: function() {
+        var bar = this.tabContainer.getTabBar(),
+            t1 = this.tabContainer.addTabLabeled('Tab1');
+        bar.activateTab(t1);
+        var oldWidth = t1.getExtent().x;
+        t1.setLabel('A very long tab name');
+        var newWidth = t1.getExtent().x;
+        this.assert(oldWidth < newWidth, 'width increases with label length');
+        t1.closeButton.remove();
+        delete t1.closeButton;
+        t1.setLabel('A very long tab name');
+        var noButtonWidth = t1.getExtent().x;
+        this.assert(newWidth > noButtonWidth, 'width decreases without button');
+    },
+    test06ShowOtherTabWhenClosingTab: function() {
+        var bar = this.tabContainer.getTabBar(),
+            t1 = this.tabContainer.addTabLabeled('Tab1'),
+            t2 = this.tabContainer.addTabLabeled('Tab2');
+        bar.activateTab(t1);
+        t1.closeTab();
+        this.assert(t2.isActive, 't2 not active');
+        this.assertEqualState([t2], bar.getTabs(), 't1 is active?');
+        this.assertEquals(t2.getPane(), this.tabContainer.topSubmorph());
+        this.assertEquals(t2, this.tabContainer.activeTab());
+        this.assertEquals(t2.getPane(), this.tabContainer.activePane());
+    }
 });
 
 }) // end of module

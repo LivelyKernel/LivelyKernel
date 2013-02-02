@@ -772,6 +772,13 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
     },
 
     removeTab: function(aTab) {
+        if (aTab.isActive) {
+            var idx = this.getTabs().indexOf(aTab);
+            var newActive = (idx == this.getTabs().length - 1)
+                ? this.getTabs()[idx - 1]
+                : this.getTabs()[idx + 1];
+            this.activateTab(newActive);
+        }
         aTab.getPane().remove();
         aTab.remove();
         this.unregisterTab(aTab);
@@ -903,8 +910,11 @@ lively.morphic.Morph.subclass('lively.morphic.Tab',
     },
     setLabel: function(aString) {
         this.label.textString = aString;
+        this.label.fit();
         this.setName(aString);
         this.getPane().setName(aString + ' - Pane');
+        var extraSpace = this.closeButton ? 30 : 10;
+        this.setExtent(pt(this.label.getExtent().x + extraSpace, this.label.getExtent().y + 10));
         this.getTabBar().rearrangeTabs();
     },
     getLabel: function() {

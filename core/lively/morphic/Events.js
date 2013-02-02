@@ -718,14 +718,12 @@ handleOnCapture);
             completeClick = world.clickedOnMorph === this,
             internalCompleteClick = evt.hand.internalClickedOnMorph === this;
 
-        if (true || completeClick) {
-            // delayed so that the event onMouseUp event handlers that
-            // are invoked after this point still have access
-            (function() {
-                world.clickedOnMorph = null;
-                evt.world.eventStartPos = null;
-            }).delay(0);
-        }
+        // delayed so that the event onMouseUp event handlers that
+        // are invoked after this point still have access
+        (function removeClickedOnMorph() {
+            world.clickedOnMorph = null;
+            evt.world.eventStartPos = null;
+        }).delay(0);
 
         if (completeClick && this.showsMorphMenu && evt.isRightMouseButtonDown()) {
             // special behavior for world menu:

@@ -643,8 +643,22 @@ AsyncTestCase.subclass('lively.tests.TestFrameworkTests.AsyncTestCaseTest', {
         this.assert(Global.test2AsyncCalled, 'test2AsyncCalled was not called');
         this.assertEquals(2, Global.tearDownCalled, 'tearDown not twice called');
         this.done();
+    },
+    test4WaitFor: function() {
+        // This test is an example of an aync test using wait
+        // which checks the correct order of execution
+        var steps = ['a'];
+        var checkpoint = false;
+        this.waitFor(
+            function() { steps.push('c'); return checkpoint; }, 20,
+            function() { steps.push('e'); });
+        this.delay(function() { steps.push('b'); }, 10);
+        this.delay(function() { steps.push('d'); checkpoint = true; }, 30);
+        this.delay(function() {
+            this.assertEqualState(['a', 'b', 'c', 'd', 'c', 'e'], steps);
+            this.done();
+        }, 50);
     }
-
 });
 
 }) // end of module

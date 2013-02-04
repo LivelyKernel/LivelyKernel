@@ -480,6 +480,22 @@ TestCase.subclass('AsyncTestCase',
             try { func.call(self) } catch(e) { self.done(); self.addAndSignalFailure(e) }
         }).delay(ms / 1000)
     },
+    waitFor: function(guardFunc, interval, callback) {
+        var self = this;
+        console.log('Scheduled wait for ' + self.currentSelector);
+        (function() {
+            try {
+                if (guardFunc.call(self)) {
+                    callback();
+                } else {
+                    self.waitFor(guardFunc, interval, callback);
+                }
+            } catch(e) {
+                self.done();
+                self.addAndSignalFailure(e);
+            }
+        }).delay(interval / 1000)
+    },
     runTest: function(aSelector) {
         if (!this.shouldRun) return;
         this.currentSelector = aSelector || this.currentSelector;

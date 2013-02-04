@@ -16,17 +16,12 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
     getItemStyle: function() {
         return this.itemStyle || {};
     },
-
     style: {
         layout: {
             adjustForNewBounds: true,
         },
         fill: Color.rgba(255,255,255,0)
-    }
-
-
-
-
+    },
 },
 'initializing', {
     initialize: function($super, bounds, optItems, optItemStyle) {
@@ -69,7 +64,6 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
             this.addMorph(this.label)
         }
     },
-
     createList: function() {
         return this.addMorph(this.createSubmenuContainer());
     },
@@ -124,8 +118,7 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
             this.selectedLineNo = -1;
             this.selectedMorph = null
         }
-    }
-
+    },
 },
 'list interface', {
     include: function(touch){
@@ -167,8 +160,6 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
         newSelectedMorph.setSelected();
         this.selectedMorph = newSelectedMorph;
     },
-
-
     openSubMenu: function(selection) {
         var subcontainer = this.get("SubmenuContainer");
         this.titleStack.push(this.title);
@@ -233,9 +224,7 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
     },
     getLevel: function() {
         return this.containerStack.length
-    }
-
-
+    },
 },
 'events', {
     onTouchStart: function(evt) {
@@ -254,9 +243,7 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
             this.currentContainer = this.get("SubmenuContainer").submorphs[0];
         }
         return this.currentContainer;
-        },
-
-
+    },
     getItemFontSize: function() {
         return this.itemFontSize || 14
     },
@@ -341,8 +328,9 @@ lively.morphic.Box.subclass('lively.morphic.TouchList',
     forbidMultiSelection: function() {
         this.allowsMultiSelection = false;
         this.resetToDefaultProperties()
-    }
-});
+    },
+}); // end of subclass lively.morphic.TouchList
+
 lively.morphic.TouchList.subclass('lively.morphic.CustomizableTouchList',
 'initilization', {
     initialize: function($super, bounds, optItems, optStyle) {
@@ -389,9 +377,6 @@ lively.morphic.TouchList.subclass('lively.morphic.CustomizableTouchList',
         })
         return plusButton
     },
-
-
-
 },
 'adding items', {
     addCustomItem: function(optString) {
@@ -408,10 +393,9 @@ lively.morphic.TouchList.subclass('lively.morphic.CustomizableTouchList',
     },
     onAddCustomItem: function(item) {
         // Hook to e.g. select a new Item
-    }
+    },
+}); // end of subclass lively.morphic.CustomizableTouchList
 
-
-});
 lively.morphic.Box.subclass('lively.morphic.ListItemContainer',
 'properties', {
     style: {
@@ -426,8 +410,6 @@ lively.morphic.Box.subclass('lively.morphic.ListItemContainer',
     setItemHeight: function(height) {
         this.itemHeight = height;
     },
-
-
 },
 'scrolling', {
     isInBounds: function() {
@@ -520,7 +502,7 @@ lively.morphic.Box.subclass('lively.morphic.ListItemContainer',
         this.itemList.push(morph);
         this.addMorph(morph);
     },
-});
+}); // end of subclass lively.morphic.ListItemContainer
 
 lively.morphic.Text.subclass('lively.morphic.ListItem',
 'properties', {
@@ -630,7 +612,7 @@ lively.morphic.Text.subclass('lively.morphic.ListItem',
         }
         return false;
     },
-});
+}); // end of subclass lively.morphic.ListItem
 
 lively.morphic.Text.subclass('lively.morphic.FlapHandle',
 'properties', {
@@ -680,7 +662,6 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
         //closeButton.setBorderRadius(1)
         this.addMorph(closeButton);
     },
-
     determineRotation: function() {
         switch (this.getAlignment()) {
             case 'left': {
@@ -730,30 +711,18 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
             borderColor: dark
         }
     },
-
 },
 'events', {
     onTouchEnd: function (evt) {
-        if (!this.flap.getFixedPosition()) return;
-        var threshold = 10,
-            pos = this.flap.getFixedPosition() || this.flap.getPositionInWorld();
-        if(pos && pos.x < threshold - this.ownerExtent.x) {
-            if (this.flap.getFixedPosition())
-                this.flap.setFixedPosition(pt(-this.ownerExtent.x,0));
-        }
+        evt.stop();
+        return true
     },
     onTouchMove: function (evt) {
-        var touchPosition = evt.getPosition();
-        this.setNextPos(touchPosition)
+        this.setNextPos(evt.getPosition())
         evt.stop();
         return true;
     },
     onTouchStart: function(evt) {
-        this.ownerExtent = this.owner.getExtent();
-        this.beginTouchPosition = evt.getPosition();
-        this.beginMorphPosition = this.owner.getFixedPosition() || this.owner.getPosition();
-        this.beginMorphPosition = this.beginMorphPosition
-            //.scaleBy(lively.morphic.World.current().getZoomLevel())
         evt.stop();
         return true;
     },
@@ -764,52 +733,46 @@ lively.morphic.Text.subclass('lively.morphic.FlapHandle',
 },
 'positioning while moving', {
     setNextPos: function (touchPosition) {
-        var pos = this.transformDelta(touchPosition),
-            bottomRight = this.owner.getBottomRight();
+        var flap = this.flap,
+            world = lively.morphic.World.current(),
+            pos = this.flap.getPosition(),
+            topLeft = world.visibleBounds().topLeft();
         switch (this.getAlignment()) {
             case 'left': {
-                pos.x = Math.max(pos.x, -this.ownerExtent.x);
-                pos.x = Math.min(pos.x, bottomRight.x / 3 - this.ownerExtent.x);
+                var offset = flap.getExtent().x + this.getExtent().y,
+                    scaledOffset = offset / world.getZoomLevel();
+                pos.x = Math.max(touchPosition.x - scaledOffset, this.flap.getCollapsedPosition().x);
+                pos.x = Math.min(pos.x, flap.getExpandedPosition().x);
                 break;
             };
             case 'top': {
-                pos.y = Math.max(pos.y, -this.ownerExtent.y);
-                pos.y = Math.min(pos.y, bottomRight.y/ 3 - this.ownerExtent.y)
+                var offset = flap.getExtent().y + this.getExtent().y,
+                    scaledOffset = offset / world.getZoomLevel();
+                pos.y = Math.max(touchPosition.y - scaledOffset, this.flap.getCollapsedPosition().y);
+                pos.y = Math.min(pos.y, this.flap.getExpandedPosition().y)
                 break
             };
             case 'right': {
-                pos.x = Math.max(pos.x, bottomRight.x * 2 / 3);
-                pos.x = Math.min(pos.x, bottomRight.x);
+                pos.x = Math.max(touchPosition.x, this.flap.getExpandedPosition().x);
+                pos.x = Math.min(pos.x, this.flap.getCollapsedPosition().x);
                 break
             };
             case 'bottom': {
-                pos.y = Math.max(pos.y, bottomRight.y * 2 / 3);
-                pos.y = Math.min(pos.y, bottomRight.y);
+                pos.y = Math.max(touchPosition.y, this.flap.getExpandedPosition().y);
+                pos.y = Math.min(pos.y, this.flap.getCollapsedPosition().y);
                 break
             }
         }
-        if (this.flap.getFixedPosition())
-            this.flap.setFixedPosition(pos);
-        else
-            this.flap.setPosition(pos)
-    },
-    transformDelta: function(touchPosition) {
-        var world = lively.morphic.World.current();
-        var deltaToStart = ((this.getAlignment() == 'left' || this.getAlignment() == 'right')
-                    ? pt(this.beginTouchPosition.subPt(touchPosition).x,0)
-                    : pt(0, this.beginTouchPosition.subPt(touchPosition).y))
-        if (this.flap.owner.isWorld)
-            deltaToStart = deltaToStart.scaleBy(world.getZoomLevel())
-        return this.beginMorphPosition.subPt(deltaToStart);
+        var fixed = this.flap.isFixed;
+        fixed && this.flap.setFixed(false)
+        this.flap.setPosition(pos)
+        fixed && this.flap.setFixed(true);
     },
 
-
-})
+}); // end of subclass lively.morphic.FlapHandle
 
 lively.morphic.Morph.subclass('lively.morphic.Flap', 
 'properties', {
-
-
     style: {
         fill: new lively.morphic.LinearGradient(
                 [
@@ -879,9 +842,6 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         disconnect(this.owner, "currentlySelectedMorph", this, "setTarget");
         this.remove()
     },
-
-
-
     fitInWorld: function () {
         this.determineExtent();
         this.style.position = this.determinePosition();
@@ -941,9 +901,6 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
             case 'bottom': return "8px 8px 0px 0px";
         }
     },
-
-
-
     initializeHandle: function (alignment) {
         var flapHandle = new lively.morphic.FlapHandle(this, alignment);
         this.flapHandle = flapHandle;
@@ -955,7 +912,6 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
     determineHandlePosition: function () {
         var pos,
             self = this,
-            //bottomRight = this.getBottomRight(),
             bottomRight = this.getExtent(),
             spaceUsedByOtherFlaps = this.owner.submorphs.select(function (ea) {
                 return ea.isFlap && ea !== self && ea.alignment == self.alignment
@@ -1011,15 +967,6 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
 'targeting', {
     setTarget: function(target) {
         this.target = target
-    },
-    getBottomRight: function() {
-        var owner = this.owner,
-            world = lively.morphic.World.current();
-        return owner === world? world.visibleBounds().bottomRight() : owner.getExtent()
-        if (this.owner.isWorld)
-            return lively.morphic.World.current().visibleBounds().bottomRight()
-        else
-            return this.owner.getExtent()
     },
 }) // end of subclass lively.morphic.Flap
 
@@ -1082,7 +1029,6 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
             normalTextColor: Color.white,
         }
     },
-
     initializeHeader: function() {
         var header = new lively.morphic.Box(rect(0,0,10,10));
         header.setExtent(pt(this.getExtent().x, 35));
@@ -1124,14 +1070,11 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
         box.scrollContainer.addMorph(box)
         return box;
     },
-
-
     createScrollContainer: function() {
         var scrollContainer = new lively.morphic.Box(new Rectangle(0,0,100,10));
         scrollContainer.setClipMode('hidden');
         return this.addMorphBack(scrollContainer);
     },
-
     createCategoryLabel: function() {
         var text = new lively.morphic.Text(rect(0,0,100,10));
         text.beLabel();
@@ -1160,7 +1103,6 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
     },
 },
 'categories', {
-
     ensureCategories: function() {
         if (!this.categories)
             this.categories = {uncategorized: 'PartsBin/'};
@@ -1222,7 +1164,6 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
         });
         webR.getSubElements();
     },
-
     updateCategoryList: function(optListObj) {
         var listObj = optListObj || this.categories,
             categoryNames = Properties.own(listObj).sortBy(function(name) {
@@ -1239,7 +1180,8 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
         var rows = 1;
         container.setLayouter(new lively.morphic.Layout.GridLayout(container,columns,rows))
         container.applyLayout();
-    },},
+    },
+},
 'part items', {
     addMorphsForPartItems: function(partItems) {
         this.partItemsToBeAdded = partItems.clone();
@@ -1292,9 +1234,6 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
             lively.morphic.World.current().firstHand().grabMorph(part);
         });
     },
-
-
-
     getNextGridCoords: function() {
         // default PartsBinItem extent is 100x100
         var container = this.categoryContainer;
@@ -1309,7 +1248,6 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
         container.setExtent(pt(container.getExtent().x, layout.numRows * 100))
         return pt(x,y)
     },
-
     stopAddingPartItemsAsync: function() {
         this.stopSteppingScriptNamed('addPartItemAsync');
         delete this.partItemsToBeAdded;
@@ -1324,9 +1262,8 @@ lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap',
         this.header.setVisible(false);
         this.categoryContainer.removeAllMorphs();
         this.list.openSuperMenu();
-    }
-
-})
+    },
+}) // end of subclass lively.morphic.PartsBinFlap
 
 lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
 'initialization', {
@@ -1352,7 +1289,6 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
         });
         return returnValue;
     },
-
     initializeLabel: function($super, aString) {
         var returnValue = $super(aString),
             labelHeight = this.getExtent().y;
@@ -1409,14 +1345,9 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
             this.setOriginalScript(scriptText);
         textMorph.setTextString(scriptText);
         return textMorph
-    }
-
-
-
-
+    },
 },
 'tagging', {
-
     initializeTags: function() {
         var that = this;
         this.tagList.updateList(this.getTargetTags());
@@ -1433,8 +1364,6 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
             this.get('saveButton').doSave();
         })
     },
-
-
     getTargetTags: function() {
         var target = this.fctTarget;
         return Functions.own(target).collect(function (each) {
@@ -1448,9 +1377,6 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
             return []
         return target[scriptName].tags || [];
     },
-
-
-
 },
 'tab interaction', {
     closeTab: function($super) {
@@ -1512,9 +1438,7 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
             deleteFunc.apply(this);
             this.closeTab();
         }
-    }
-
-
+    },
 },
 'styling', {
     setLabel: function($super, aString) {
@@ -1536,11 +1460,8 @@ lively.morphic.Tab.subclass('lively.morphic.ObjectEditorTab',
     determineLabelString: function(scriptName, target) {
         var targetDisplayName = target.isWorld ? 'World' : target.getName();
         return scriptName+":"+'\n'+targetDisplayName;
-    }
-
-
-
-});
+    },
+}); // end of subclass lively.morphic.ObjectEditorTab
 
 lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer', 
 'initialization', {
@@ -1607,7 +1528,6 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
         sortedTags.unshift('uncategorized');
         return sortedTags;
     },
-
     makeGridContainer: function (width) {
         var blocker = new lively.morphic.Box(pt(0,0).extent(this.getExtent().subPt(pt(40,0)))),
             containerX = (this.getExtent().x / 2) - (width / 2),
@@ -1636,8 +1556,6 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
         blocker.addMorph(container);
         return container
     },
-
-
     buildCategoryViews: function(target, categories, functionNames) {
         var i = 0,
             that = this,
@@ -1666,7 +1584,6 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
         morph.setBorderWidth(0)
         return morph;
     },
-
     makeAddButton: function(target) {
         var button = new lively.morphic.Button(rect(0,20, 100,30), "Add script");
         button.addStyleClassName('FlapNavigator');
@@ -1708,8 +1625,6 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
         label.gridCoords = pt(0,0)
         return label;
     },
-
-
     makeCategoryLabel: function(category, column) {
         var label = new lively.morphic.Text(rect(0,0,100,20), category.truncate(13));
         label.gridCoords = pt(column, 1);
@@ -1745,7 +1660,6 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
     cleanUp: function() {
         this.gridContainer && this.gridContainer.remove();
     },
-
 }, 
 'event handling', {
     onTouchEnd: function() {
@@ -1815,18 +1729,14 @@ lively.morphic.TabContainer.subclass('lively.morphic.ObjectEditorTabContainer',
         scriptSource = Strings.format('%s', script.getOriginal());
         return annotation + scriptSource;
     },
-});
+}); // end of subclass lively.morphic.ObjectEditorTabContainer
 
 lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
 'properties', {
-
     tabBarHeight: 40,
     getTarget: function() {
         return this.target || lively.morphic.World.current();
     },
-
-
-
 },
 'initialization', {
     initialize: function ($super) {
@@ -1862,7 +1772,6 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
         connect(this, 'target', tabContainer, 'buildModalViewFor');
         return tabContainer;
     },
-
     initializeNextButton: function (tabContainer) {
         var self = this,
             nextButton = new lively.morphic.Button(pt(this.tabBar.getExtent().x - this.tabBarHeight,0)
@@ -1921,7 +1830,6 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
         connect(deleteButton, 'fire', deleteButton, 'onFire')
         return this.tabBar.addMorph(deleteButton);
     },
-
     initializeRunButton: function() {
         var width = 100,
             runButton = new lively.morphic.Button(pt(this.deleteButton.getPosition().x - width,0)
@@ -1963,16 +1871,15 @@ lively.morphic.Flap.subclass('lively.morphic.ObjectEditorFlap',
         evt.stop();
         return true;
     },
-});
+}); // end of subclass lively.morphic.ObjectEditorFlap
 
 lively.morphic.Box.subclass('lively.morphic.TextControl',
 'properties', {
     buttonExtent: pt(65,32),
     fullButtonSet: ['Do it', 'Do all', 'Print', 'Save', 'Execute'],
     defaultButtonSet: ['Do it', 'Do all', 'Print', 'Save'],
-
-
-}, 'initilization', {
+}, 
+'initilization', {
     initialize: function ($super, optBounds) {
         var returnValue = $super(optBounds || rect(0, 0,180, 25));
         this.initializeLayout();
@@ -1994,7 +1901,6 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
         this.setLayouter(layouter);
         return layouter;
     },
-
     initializeButtons: function() {
         // Creates the interaction buttons according to a pattern
         // add buttons by naming them the way you name their action function in buttonTypes
@@ -2047,8 +1953,6 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
             this.setExtent(pt(0,0))
         }
     },
-
-
 },
 'actions', {
     triggerDoit: function() {
@@ -2099,9 +2003,6 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
     triggerExecute: function() {
         window.open(this.ExecuteButton.uri)
     },
-
-
-
 },
 'accessing', {
     getTextMorph: function() {
@@ -2143,11 +2044,7 @@ lively.morphic.Box.subclass('lively.morphic.TextControl',
         this.setTarget(undefined)
         this.stopSteppingScriptNamed('observeLinks')
         this.remove();
-    }
-
-
-
-
+    },
 }) // end of lively.morphic.TextControl
 
 lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
@@ -2173,14 +2070,12 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
         });
         return this.addMorph(background);
     },
-
     initializeList: function() {
         var extent = this.listBackground.getExtent().subPt(pt(10,10)),
             touchList = new lively.morphic.TouchList(pt(5,5).extent(extent));
         touchList.setFill(null)
         return this.listBackground.addMorph(touchList);
     },
-
     initializeHeader: function() {
         var header = new lively.morphic.Box(rect(-180.5,46,this.getExtent().x,36))
         header.setAppearanceStylingMode(true);
@@ -2209,7 +2104,6 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
         })
         return this.header.addMorph(menu)
     },
-
     initializeBackButton: function(targetList) {
         var backButton = new lively.morphic.Button(rect(11,4,65,32), 'Back');
         backButton.addStyleClassName('ToolbarNavigator');
@@ -2254,7 +2148,6 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
         })
         return this.addMorph(pointer);
     },
-
     reset: function() {
         this.backButton.reset();
         this.menu.setTextString("");
@@ -2268,16 +2161,13 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
         this.backButton.setVisible(false);
         this.menu.setTextString('')
     },
-
-
 },
 'properties', {
     style: {
         //fill: Color.rgb(9,16,29),
         borderRadius: 12,
         adjustForNewBounds: true
-    }
-
+    },
 },
 'pinning', {
     isPinned: function () {
@@ -2303,15 +2193,12 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
         $world.touchMenuPrototype = this;
         this.switchButtonColorPermanently()
     },
-
-
     switchButtonColorPermanently: function() {
         var pinBtn = this.pinButton,
             normalColor = pinBtn.normalColor;
         pinBtn.normalColor = pinBtn.toggleColor;
         pinBtn.toggleColor = normalColor;
-    }
-
+    },
 },
 'triangle', {
     movePointerToBottom: function () {
@@ -2331,7 +2218,7 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
         })
         pointer.setRotation(-Math.PI / 2);
         pointer.setPosition(pt(0, 48)); // origin offset of the touchMenu + height of touch menu
-    }
+    },
 },
 'interaction', {
     onCallbackActivate: function () {
@@ -2344,10 +2231,9 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
     hideBackButton: function() {
         if (this.list.getLevel() === 0)
             this.backButton.setVisible(false)
-    }
+    },
+}); // end of subclass lively.morphic.TouchWorldMenu
 
-
-});
 lively.morphic.Box.subclass('lively.morphic.HoldIndicator',
 'initialization', {
     initialize: function($super) {
@@ -2418,5 +2304,6 @@ lively.morphic.Box.subclass('lively.morphic.HoldIndicator',
         this.setFill(Color.rgba(0,0,0,0));
         $super();
     },
-}) // end of HoldIndicator
+}) // end of subclass lively.morphic.HoldIndicator
+
 }) // end of module

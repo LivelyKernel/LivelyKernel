@@ -51,7 +51,8 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
         if (!this.getTouchMenu().isPinned())
             this.getTouchMenu().remove();
         return cop.proceed(arguments)
-    }}).refineClass(lively.morphic.Morph, {
+    }
+}).refineClass(lively.morphic.Morph, {
     onMouseDown: function (evt) {
         cop.proceed(evt);
 
@@ -1234,14 +1235,9 @@ lively.morphic.Morph.addMethods(
 },
 "fixed", {
 
-    setFixedPosition: function(position) {
-        this.fixedPosition = position;//.subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy($world.getZoomLevel())
-        this.updateScrollPosition($world.scrollOffset);
-    },
 
-    getFixedPosition: function() {
-        return this.fixedPosition//.scaleBy(1/$world.getZoomLevel());
-    },
+
+
 
 
     toggleScrolling: function(isScrolling) {
@@ -1249,7 +1245,7 @@ lively.morphic.Morph.addMethods(
         if(isScrolling) {
             this.remove();
         } else {
-            $world.addMorph(this);
+            lively.morphic.World.current().addMorph(this);
         }
     },
 

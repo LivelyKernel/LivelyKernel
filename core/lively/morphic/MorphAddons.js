@@ -496,13 +496,13 @@ lively.morphic.Morph.addMethods(
         this.isFixed = fixed;
         if(fixed) {
             this.fixedScale = this.getScale() * world.getZoomLevel();
-            this.fixedPosition = this.getPosition().subPt(pt(document.body.scrollLeft, document.body.scrollTop)).scaleBy(world.getZoomLevel());
+            this.fixedPosition = this.getPosition().subPt(world.visibleBounds().topLeft()).scaleBy(world.getZoomLevel());
 
             this.startStepping(0, "updateZoomScale");
             this.startStepping(0, "updateScrollPosition");
         } else {
-            this.stopSteppingScriptNamed("updateZoomLevel");
-            this.stopSteppingScriptNamed("getScrollPosition");
+            this.stopSteppingScriptNamed("updateZoomScale");
+            this.stopSteppingScriptNamed("updateScrollPosition");
         }
     },
     setFixedInSize: function(optFixed) {

@@ -825,34 +825,36 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         this.collapsedPosition= pos;
     },
     getCollapsedPosition: function() {
-        var pos = this.collapsedPosition,
+        var pos,
             world = lively.morphic.World.current(),
-            bottomRight = this.getBottomRight();
-        if (pos)
-            return pos;
+            owner = this.owner,
+            bottomRight = owner === world ? world.visibleBounds().extent() : owner.getExtent(),
+            zoomLevel = owner === world? world.getZoomLevel() : 1,
+            topLeft = this.owner === world? world.visibleBounds().topLeft() : pt(0,0);
         switch (this.alignment) {
             case 'left': {
-                pos = pt(0,0).subPt(pt(this.getExtent().x, 0))
+                pos = pt( -this.style.extent.x, 0);
                 break;
-            };
+            }
             case 'top': {
-                pos = pt(0,0).subPt(pt(0, this.getExtent().y))
-                break
-            };
-            case 'right': {
-                pos = pt(bottomRight.x, 0);
-                break;
-            };
-            case 'bottom' : {
-                pos = pt(0, bottomRight.y);
+                pos = pt(0, -this.style.extent.y);
                 break
             }
+            case 'right': {
+                pos = pt((bottomRight.x * zoomLevel), 0);
+                break
+            }
+            case 'bottom' : {
+                pos = pt(0, (bottomRight.y * zoomLevel));
+                break;
+            }
         }
-        if (this.owner.isWorld)
-            return pos.scaleBy(1 / world.getZoomLevel()).addPt(pt(document.body.scrollLeft, document.body.scrollTop))
-        else
-            return pos
-    },},
+        return pos.scaleBy(1 / zoomLevel).addPt(topLeft)
+    },
+    getExpandedPosition: function() {
+        return this.determinePosition()
+    },
+},
 'initialization', {
     initialize: function($super, name, alignment, optOwner) {
         // alignment: 'left', 'right', 'top', 'bottom'
@@ -888,40 +890,47 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
     determinePosition: function () {
         var pos,
             world = lively.morphic.World.current(),
-            bottomRight = this.getBottomRight();
+            owner = this.owner,
+            bottomRight = owner === world ? world.visibleBounds().extent() : owner.getExtent(),
+            zoomLevel = owner === world? world.getZoomLevel() : 1,
+            topLeft = this.owner === world? world.visibleBounds().topLeft() : pt(0,0);
         switch (this.alignment) {
             case 'left': case 'top': {
                 pos = pt(0, 0);
                 break;
             }
             case 'right': {
-                pos = pt(bottomRight.x - this.style.extent.x, 0);
+                pos = pt((bottomRight.x * zoomLevel) - this.style.extent.x, 0);
                 break
             }
             case 'bottom' : {
-                pos = pt(0, bottomRight.y - this.style.extent.y);
+                pos = pt(0, (bottomRight.y * zoomLevel) - this.style.extent.y);
                 break;
             }
         }
-        if (this.owner.isWorld)
-            return pos.scaleBy(1 / world.getZoomLevel()).addPt(pt(document.body.scrollLeft, document.body.scrollTop))
-        else
-            return pos
+        return pos.scaleBy(1 / zoomLevel).addPt(topLeft)
     },
-    determineExtent: function () {
+    determineExtent: function (optExtent) {
+        if (optExtent) {
+            this.style.extent = optExtent;
+            return
+        };
         var extent,
-            bottomRight = this.getBottomRight();
+            world = lively.morphic.World.current(),
+            owner = this.owner,
+            ownerExtent = owner === world? world.visibleBounds().extent() : owner.getExtent(),
+            zoomLevel = owner === world? world.getZoomLevel() : 1;
         switch (this.alignment)  {
             case 'left': case 'right': {
-                extent = pt(bottomRight.x / 3, bottomRight.y);
+                extent = pt(ownerExtent.x / 3, ownerExtent.y);
                 break;
             };
             case 'top': case 'bottom': {
-                extent = pt(bottomRight.x, bottomRight.y / 3);
+                extent = pt(ownerExtent.x, ownerExtent.y / 3);
                 break;
             };
         }
-        this.style.extent = extent
+        this.style.extent = extent.scaleBy(zoomLevel);
         return this.style.extent;
     },
     determineBorderRadius: function() {
@@ -946,7 +955,8 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
     determineHandlePosition: function () {
         var pos,
             self = this,
-            bottomRight = this.getBottomRight(),
+            //bottomRight = this.getBottomRight(),
+            bottomRight = this.getExtent(),
             spaceUsedByOtherFlaps = this.owner.submorphs.select(function (ea) {
                 return ea.isFlap && ea !== self && ea.alignment == self.alignment
             }).reduce(function(a, b){
@@ -996,18 +1006,21 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
                 that.setFixed(true)
         }
         this.setPositionAnimated(this.getCollapsedPosition(), 500, callback);
-    },},
+    },
+},
 'targeting', {
     setTarget: function(target) {
         this.target = target
     },
     getBottomRight: function() {
+        var owner = this.owner,
+            world = lively.morphic.World.current();
+        return owner === world? world.visibleBounds().bottomRight() : owner.getExtent()
         if (this.owner.isWorld)
             return lively.morphic.World.current().visibleBounds().bottomRight()
         else
             return this.owner.getExtent()
-    }
-
+    },
 }) // end of subclass lively.morphic.Flap
 
 lively.morphic.Flap.subclass('lively.morphic.PartsBinFlap', 

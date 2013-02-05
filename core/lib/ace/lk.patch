@@ -1,0 +1,48 @@
+diff --git a/src/ace.js b/src/ace.js
+index fb90d3b..96e725a 100644
+--- a/src-noconflict/ace.js
++++ b/src-noconflict/ace.js
+@@ -3973,14 +3973,16 @@ function GutterHandler(mouseHandler) {
+     }
+ 
+     function moveTooltip(e) {
+-        var rect = editor.renderer.$gutter.getBoundingClientRect();
+-        tooltip.style.left = e.x + 15 + "px";
+-        if (e.y + 3 * editor.renderer.lineHeight + 15 < rect.bottom) {
++        var rect = editor.renderer.$gutter.getBoundingClientRect(),
++            morph = $(e.domEvent.srcElement).parents('.Morph').eq(0).parent().data('morph'),
++            p = morph ? e.domEvent.getPositionIn(morph) : e.domEvent.getPosition();
++        tooltip.style.left = p.x + 15 + "px";
++        if (p.y + 3 * editor.renderer.lineHeight + 15 < rect.bottom) {
+             tooltip.style.bottom =  "";
+-            tooltip.style.top =  e.y + 15 + "px";
++            tooltip.style.top =  p.y + 15 + "px";
+         } else {
+             tooltip.style.top =  "";
+-            tooltip.style.bottom = rect.bottom - e.y + 5 + "px";
++            tooltip.style.bottom = rect.bottom - p.y + 5 + "px";
+         }
+     }
+ 
+@@ -14292,4 +14294,3 @@ var FoldMode = exports.FoldMode = function() {};
+                         ace[key] = a[key];
+                 });
+             })();
+-        
+\ No newline at end of file
+diff --git a/src-noconflict/keybinding-emacs.js b/src-noconflict/keybinding-emacs.js
+index c52e1fb..eab3a8b 100644
+--- a/src-noconflict/keybinding-emacs.js
++++ b/src-noconflict/keybinding-emacs.js
+@@ -92,9 +92,9 @@ exports.handler.detach = function(editor) {
+ 
+ var keys = require("../lib/keys").KEY_MODS;
+ var eMods = {
+-    C: "ctrl", S: "shift", M: "alt"
++    C: "ctrl", S: "shift", M: "alt", s: "command"
+ };
+-["S-C-M", "S-C", "S-M", "C-M", "S", "C", "M"].forEach(function(c) {
++["S-C-M", "S-C", "S-M", "C-M", "S", "C", "M", "s"].forEach(function(c) {
+     var hashId = 0;
+     c.split("-").forEach(function(c){
+         hashId = hashId | keys[eMods[c]];

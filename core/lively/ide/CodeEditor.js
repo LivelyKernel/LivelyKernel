@@ -5,7 +5,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     style: {
         enableGrabbing: false
     },
-    doNotSerialize: ['aceEditor']
+    doNotSerialize: ['aceEditor', 'aceEditorAfterSetupCallbacks']
 },
 'initializing', {
     initialize: function($super, bounds, string) {
@@ -27,28 +27,40 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         }).asScriptOf(shape);
 
         $super(shape);
-        debugger
         this.setBounds(bounds);
         this.textString = string || '';
     },
 
-    initializeAce: function() {
-        var node = this.getShape().shapeNode,
-            e = this.aceEditor = this.aceEditor || ace.edit(node);
-        node.setAttribute('id', 'ace-editor');
-        e.getSession().setMode("ace/mode/javascript");
-        this.setStyleSheet('#ace-editor {'
-                          + ' position:absolute;'
-                          + ' top:0;'
-                          + ' bottom:0;left:0;right:0;'
-                          + ' font-family: monospace;'
-                          + '}');
-        e.setTheme("ace/theme/chrome");
-        this.setupKeyBindings();
-    },
-
     onOwnerChanged: function(newOwner) {
         if (newOwner) this.initializeAce();
+    }
+},
+'ace', {
+    initializeAce: function() {
+        var e = this.aceEditor;
+        if (!e) {
+            var node = this.getShape().shapeNode;
+            // 1) create ace editor object
+            e = this.aceEditor = ace.edit(node);
+            node.setAttribute('id', 'ace-editor');
+            // 2) set modes / themes
+            e.getSession().setMode("ace/mode/javascript");
+            this.setStyleSheet('#ace-editor {'
+                              + ' position:absolute;'
+                              + ' top:0;'
+                              + ' bottom:0;left:0;right:0;'
+                              + ' font-family: monospace;'
+                              + '}');
+            this.setupKeyBindings();
+        }
+        e.setTheme("ace/theme/chrome");
+
+        // 2) run after setup callbacks
+        var cbs = this.aceEditorAfterSetupCallbacks;
+        if (!cbs) return;
+        delete this.aceEditorAfterSetupCallbacks;
+        var cb;
+        while ((cb = cbs.shift())) { cb(e); }
     },
 
     setupKeyBindings: function() {
@@ -64,7 +76,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             kbd.addCommand({name: 'doListProtocol', exec: lkKeys.doListProtocol.bind(lkKeys)});
             kbd.bindKeys({"s-d": 'doit', "s-p": 'printit', "S-s-p": 'doListProtocol'});
         });
+    },
+
+    withAceDo: function(doFunc) {
+        if (this.aceEditor) return doFunc(this.aceEditor);
+        if (!this.aceEditorAfterSetupCallbacks) this.aceEditorAfterSetupCallbacks = [];
+        this.aceEditorAfterSetupCallbacks.push(doFunc);
+        return undefined;
     }
+
 },
 'serialization', {
     onLoad: function() {
@@ -73,16 +93,28 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     onstore: function($super) {
         $super();
-        if (this.aceEditor) this.aceEditor.resize();
+        this.withAceDo(function(ed) { ed.resize(); });
     }
-
 },
 'accessing', {
     getGrabShadow: function() { return null; },
     setExtent: function($super, extent) {
         $super(extent);
-        if (this.aceEditor) this.aceEditor.resize();
+        this.withAceDo(function(ed) { ed.resize(); });
         return extent;
+    },
+    set textString(string) {
+        this.withAceDo(function(ed) {
+            var doc = ed.getSession().getDocument();
+            doc.setValue(string);
+        });
+        return string;
+    },
+    get textString() {
+        return this.withAceDo(function(ed) {
+            var doc = ed.getSession().getDocument();
+            return doc.getValue();
+        }) || "";
     }
 },
 'event handling', {

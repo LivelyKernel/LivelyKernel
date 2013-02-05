@@ -13,14 +13,16 @@ TestCase.subclass('lively.ide.tests.CodeEditor.Interface',
 
 },
 'assertion', {
-    assertEditorHasText: function(editor, text) {
-        this.assert(false, 'implement me');
+    assertHasText: function(editor, text) {
+        var doc = editor.aceEditor.getSession().getDocument();
+        this.assertEquals(text, doc.getValue());
     }
 },
 'testing', {
     testCreation: function() {
         var e = this.editor = new lively.morphic.CodeEditor(lively.rect(0,0, 100, 100), 'some content');
         e.openInWorld();
+        debugger
         this.assertHasText(e, 'some content');
     }
 });

@@ -37,22 +37,19 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'ace', {
     initializeAce: function() {
-        var e = this.aceEditor;
-        if (!e) {
-            var node = this.getShape().shapeNode;
-            // 1) create ace editor object
-            e = this.aceEditor = ace.edit(node);
-            node.setAttribute('id', 'ace-editor');
-            // 2) set modes / themes
-            e.getSession().setMode("ace/mode/javascript");
-            this.setStyleSheet('#ace-editor {'
-                              + ' position:absolute;'
-                              + ' top:0;'
-                              + ' bottom:0;left:0;right:0;'
-                              + ' font-family: monospace;'
-                              + '}');
-            this.setupKeyBindings();
-        }
+        // 1) create ace editor object
+        var node = this.getShape().shapeNode,
+            e = this.aceEditor = this.aceEditor || ace.edit(node);
+        node.setAttribute('id', 'ace-editor');
+        // 2) set modes / themes
+        e.getSession().setMode("ace/mode/javascript");
+        this.setStyleSheet('#ace-editor {'
+                          + ' position:absolute;'
+                          + ' top:0;'
+                          + ' bottom:0;left:0;right:0;'
+                          + ' font-family: monospace;'
+                          + '}');
+        this.setupKeyBindings();
         e.setTheme("ace/theme/chrome");
 
         // 2) run after setup callbacks
@@ -93,7 +90,18 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     onstore: function($super) {
         $super();
-        this.withAceDo(function(ed) { ed.resize(); });
+        var self = this;
+        this.withAceDo(function(ed) {
+            self.storedTextString = ed.getSession().getDocument().getValue();
+        });
+    },
+
+    onrestore: function($super) {
+        $super();
+        if (this.storedTextString) {
+            this.textString = this.storedTextString;
+            delete this.storedTextString;
+        }
     }
 },
 'accessing', {

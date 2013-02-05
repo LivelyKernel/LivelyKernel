@@ -5,10 +5,11 @@ TestCase.subclass('lively.ide.tests.CodeEditor.Interface',
     setUp: function($super) {
         $super();
         this.world = lively.morphic.World.current();
+        this.morphsToDelete = [];
     },
     tearDown: function($super) {
         $super();
-        if (this.editor) this.editor.remove();
+        this.morphsToDelete.invoke('remove');
     }
 
 },
@@ -20,10 +21,19 @@ TestCase.subclass('lively.ide.tests.CodeEditor.Interface',
 },
 'testing', {
     testCreation: function() {
-        var e = this.editor = new lively.morphic.CodeEditor(lively.rect(0,0, 100, 100), 'some content');
+        var e = new lively.morphic.CodeEditor(lively.rect(0,0, 100, 100), 'some content');
+        this.morphsToDelete.push(e);
         e.openInWorld();
-        debugger
         this.assertHasText(e, 'some content');
+    },
+    testCopyKeepsString: function() {
+        var e = new lively.morphic.CodeEditor(lively.rect(0,0, 100, 100), 'some content');
+        this.morphsToDelete.push(e);
+        e.openInWorld();
+        var e2 = e.copy();
+        this.morphsToDelete.push(e2);
+        e2.openInWorld();
+        this.assertHasText(e2, 'some content');
     }
 });
 

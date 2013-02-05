@@ -777,7 +777,7 @@ lively.morphic.Morph.subclass('lively.morphic.TabBar',
             var newActive = (idx == this.getTabs().length - 1)
                 ? this.getTabs()[idx - 1]
                 : this.getTabs()[idx + 1];
-            this.activateTab(newActive);
+            if (newActive) this.activateTab(newActive);
         }
         aTab.getPane().remove();
         aTab.remove();

@@ -314,6 +314,10 @@ Global.Strings = {
         mimeType = mimeType || "text/plain";
         return "data:" + mimeType
              + ";base64," + btoa(content);
+    },
+
+    quote: function(str) {
+        return '"' + str.replace(/"/g, '\\"') + '"';
     }
 
 };

@@ -1292,6 +1292,7 @@ lively.morphic.Morph.addMethods(
         this.adjustHandlePosition(flap)
         this.setScale(world.getZoomLevel());
         this.setPosition(morphPosition);
+        return flap
     },
     mapToFlapBounds: function(alignment) {
         var world = lively.morphic.World.current(),
@@ -1322,7 +1323,7 @@ lively.morphic.Morph.addMethods(
                 break
             }
             case 'bottom': {
-                extent = pt(morphExtent.x, ownerBounds.bottomRight().y - this.getBounds().bottomRight().y);
+                extent = pt(morphExtent.x, ownerBounds.bottomRight().y - this.getBounds().topLeft().y);
                 extent = extent.addPt(pt(2*offset, 2*offset));
                 flapPosition = pt(this.getPosition().x, ownerBounds.bottomRight().y - extent.y);
                 morphPosition = pt(5,5)
@@ -1339,7 +1340,6 @@ lively.morphic.Morph.addMethods(
         return {flapBounds: flapPosition.extent(extent), morphPosition: morphPosition};
     },
     adjustHandlePosition: function(flap) {
-        debugger
         switch(flap.alignment) {
             case 'top': {
                 flap.flapHandle.setPosition(pt(5,flap.getExtent().y))
@@ -2200,7 +2200,7 @@ lively.morphic.Text.addMethods("TapEvents", {
         this.setBorderRadius(0);
         if (customStyle) labelStyle = Object.merge([labelStyle, customStyle]);
         this.applyStyle(labelStyle);
-        this.disableEvents();
+        //this.disableEvents();
         return this;
     }
 },
@@ -3639,5 +3639,11 @@ lively.morphic.Box.subclass('ToolContainer',
         this.adjustForNewBounds();
     }
 });
+
+lively.morphic.Tab.addMethods({
+    onTap: function(evt) {
+        this.getTabBar().activateTab(this);
+    },    
+})
 
 }); // end of module

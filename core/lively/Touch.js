@@ -1252,7 +1252,22 @@ lively.morphic.Morph.addMethods(
     removeFixed: function() {
         this.setFixed(false)
         this.remove()
+    },
+    beTouchStopper: function(bool) {
+        this.addScript(function onTouchStart (evt) {
+            evt.stop();
+            return true
+        })
+        this.addScript(function onTouchMove (evt) {
+            evt.stop();
+            return true
+        })
+        this.addScript(function onTouchEnd (evt) {
+            evt.stop();
+            return true
+        })
     }
+
 },
 "tooling", {
     beNotTool: function () {
@@ -1260,7 +1275,93 @@ lively.morphic.Morph.addMethods(
     },
     beTool: function () {
         this.setWithLayers([ToolMorphLayer]);
+    },
+    openInFlap: function(alignment) {
+        var world = lively.morphic.World.current(),
+            name = (this.getName? this.getName() : this.toString()) + '_Flap',
+            owner = this.owner,
+            mappedData = this.mapToFlapBounds(alignment),
+            bounds = mappedData.flapBounds,
+            morphPosition = mappedData.morphPosition;
+        if (!owner) {
+            console.log('opening morph flap in World')
+            owner = lively.morphic.World.current();
+        }
+        var flap = new lively.morphic.Flap(name, alignment, owner, bounds);
+        flap.addMorph(this);
+        this.adjustHandlePosition(flap)
+        this.setScale(world.getZoomLevel());
+        this.setPosition(morphPosition);
+    },
+    mapToFlapBounds: function(alignment) {
+        var world = lively.morphic.World.current(),
+            name = (this.getName? this.getName() : this.toString()) + '_Flap',
+            owner = this.owner,
+            ownerBounds = owner === world? world.visibleBounds() : owner.getBounds(),
+            offset = 5,// / world.getZoomLevel(),
+            morphExtent = this.getExtent(),//.scaleBy(1 / world.getZoomLevel()),
+            extent, morphPosition, flapPosition;
+        if (!owner) {
+            console.log('opening morph flap in World')
+            owner = lively.morphic.World.current();
+        }
+        // map to flap bounds
+        switch (alignment) {
+            case 'top': {
+                extent = pt(morphExtent.x, this.getBounds().bottomRight().y - ownerBounds.topLeft().y);
+                extent = extent.addPt(pt(2*offset, 2*offset));
+                flapPosition = pt(this.getPosition().x, 0);
+                morphPosition = pt(offset, extent.y - (morphExtent.y * (1/world.getZoomLevel()))- offset)
+                break;
+            }
+            case 'left': {
+                extent = pt(this.getBounds().bottomRight().x - ownerBounds.topLeft().x, morphExtent.y);
+                extent = extent.addPt(pt(2*offset, 2*offset));
+                flapPosition = pt(0,this.getPosition().y);
+                morphPosition = pt(extent.x - (morphExtent.x * (1/world.getZoomLevel())) - offset, offset);
+                break
+            }
+            case 'bottom': {
+                extent = pt(morphExtent.x, ownerBounds.bottomRight().y - this.getBounds().bottomRight().y);
+                extent = extent.addPt(pt(2*offset, 2*offset));
+                flapPosition = pt(this.getPosition().x, ownerBounds.bottomRight().y - extent.y);
+                morphPosition = pt(5,5)
+                break;
+            }
+            case 'right': {
+                extent = pt(ownerBounds.bottomRight().x - this.getBounds().topLeft().x, morphExtent.y);
+                extent = extent.addPt(pt(2*offset, 2*offset));
+                flapPosition = pt(ownerBounds.bottomRight().x - extent.x,this.getPosition().y);
+                morphPosition = pt(5,5)
+                break;
+            }
+        }
+        return {flapBounds: flapPosition.extent(extent), morphPosition: morphPosition};
+    },
+    adjustHandlePosition: function(flap) {
+        debugger
+        switch(flap.alignment) {
+            case 'top': {
+                flap.flapHandle.setPosition(pt(5,flap.getExtent().y))
+                break
+            }
+            case 'right': {
+                flap.flapHandle.setPosition(pt(flap.flapHandle.getPosition().x, 5))
+                break
+            }
+            case 'left': {
+                flap.flapHandle.setPosition(pt(flap.flapHandle.getPosition().x, 5))
+                break
+            }
+            case 'bottom': {
+                flap.flapHandle.setPosition(pt(5,flap.flapHandle.getPosition().y))
+                break
+            }
+        }
     }
+
+
+
 }, 
 'Gestures', {
     onGestureChange: function (evt) {

@@ -832,7 +832,6 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
 'initialization', {
     initialize: function($super, name, alignment, optOwner, optBounds) {
         // alignment: 'left', 'right', 'top', 'bottom'
-        debugger
         $super(this.defaultShape());
         var owner = optOwner || lively.morphic.World.current();
         owner.addMorph(this);
@@ -988,6 +987,10 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         }
         this.setPositionAnimated(this.getCollapsedPosition(), 500, callback);
     },
+    expand: function() {
+        this.setPositionAnimated(this.getExpandedPosition(), 700)
+    },
+
 },
 'targeting', {
     setTarget: function(target) {

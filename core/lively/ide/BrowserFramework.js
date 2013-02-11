@@ -19,7 +19,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         ['Pane3', newDragnDropListPane,                                       [0.5,  0.03, 0.25, 0.37]],
         ['Pane4', newDragnDropListPane,                                       [0.75, 0.03, 0.25, 0.37]],
         ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.44, 1,    0.01]],
-        ['sourcePane', newTextPane,                                           [0,    0.45, 1,    0.55]]
+        ['sourcePane', newTextPane,                                           [0,    0.45, 1,    0.54]]
         // ['bottomResizer', function(bnds) {
         // return new lively.morphic.HorizontalDivider(bnds) }, new Rectangle(0, 0.99, 1, 0.01)],
         //['commentPane', newTextPane, new Rectangle(0, 0.95, 1, 0.05)]

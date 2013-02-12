@@ -130,10 +130,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     setupKeyBindings: function() {
         // that.setupKeyBindings()
-        var e = this.aceEditor,
-            config = ace.require('./config'),
-            lkKeys = this;
-        config.loadModule(["keybinding", 'ace/keyboard/emacs'], function(emacsKeys) {
+        var e = this.aceEditor, lkKeys = this;
+        this.loadAceModule(["keybinding", 'ace/keyboard/emacs'], function(emacsKeys) {
             e.setKeyboardHandler(emacsKeys.handler);
             var kbd = e.getKeyboardHandler();
             kbd.addCommand({name: 'doit', exec: lkKeys.doit.bind(lkKeys, false) });
@@ -148,6 +146,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (!this.aceEditorAfterSetupCallbacks) this.aceEditorAfterSetupCallbacks = [];
         this.aceEditorAfterSetupCallbacks.push(doFunc);
         return undefined;
+    },
+
+    loadAceModule: function(moduleName, callback) {
+        return ace.require('./config').loadModule(moduleName, callback);
     }
 
 },

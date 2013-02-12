@@ -1572,8 +1572,8 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
             }, 10);
     },
     fitToOwner: function (owner) {
-        this.determineExtent(owner);
-        this.style.position = this.getExpandedPosition(owner);
+        this.setExtent(this.determineExtent(owner));
+        this.setPosition(this.getExpandedPosition(owner));
         this.setBorderRadius(this.determineBorderRadius());
         this.expanded = true;
     },
@@ -1623,11 +1623,11 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
                     break;
                 }
                 case 'right': {
-                    pos = pt((bottomRight.x * zoomLevel) - this.style.extent.x, 0);
+                    pos = pt((bottomRight.x * zoomLevel) - this.getExtent().x, 0);
                     break
                 }
                 case 'bottom' : {
-                    pos = pt(0, (bottomRight.y * zoomLevel) - this.style.extent.y);
+                    pos = pt(0, (bottomRight.y * zoomLevel) - this.getExtent().y);
                     break;
                 }
             }
@@ -1654,8 +1654,7 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
                 };
             }
         }
-        this.style.extent = extent.scaleBy(zoomLevel);
-        return this.style.extent;
+        return extent.scaleBy(zoomLevel);
     },
     setAlignment: function(alignment) {
         var alignemnts = ['left', 'top', 'right', 'bottom'];

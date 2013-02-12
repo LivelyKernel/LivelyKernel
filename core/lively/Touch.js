@@ -1282,12 +1282,17 @@ lively.morphic.Morph.addMethods(
             owner = this.owner,
             mappedData = this.mapToFlapBounds(alignment),
             bounds = mappedData.flapBounds,
-            morphPosition = mappedData.morphPosition;
+            morphPosition = mappedData.morphPosition,
+            ownerZoom = this.owner === world? world.getZoomLevel() : 1;
         if (!owner) {
             console.log('opening morph flap in World')
             owner = lively.morphic.World.current();
         }
         var flap = new lively.morphic.Flap(name, alignment, owner, bounds);
+        flap.setFixed(false);
+        flap.setScale(1/ownerZoom);
+        //flap.setPosition(flap.getPosition().scaleBy(1/ownerZoom))
+        flap.setFixed(true);
         flap.addMorph(this);
         this.adjustHandlePosition(flap)
         this.setScale(world.getZoomLevel());

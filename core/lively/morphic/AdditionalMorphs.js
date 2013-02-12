@@ -1504,5 +1504,303 @@ lively.morphic.Morph.subclass('lively.morphic.TilePane',
 
 
 });
+lively.morphic.Morph.subclass('lively.morphic.Flap',
+'initialization', {
+    initialize: function($super, alignment, optOwner, optBounds) {
+        $super(this.defaultShape());
+        this.isFlap = true;
+        var owner = optOwner || lively.morphic.World.current();
+        owner.addMorph(this)
+        this.setAlignment(alignment);
+        optBounds && this.setCustomBounds(optBounds);
+        this.fitToOwner(owner);
+        this.initializeStyle();
+        this.initializeHandle(owner);
+        if (owner.isWorld) {
+            this.setFixed(true);
+            this.fixedScale = 1;
+        }
+    },
+    initializeHandle: function (optOwner) {
+        var flapHandle = new lively.morphic.FlapHandle(this);
+        this.flapHandle = flapHandle;
+        flapHandle.flap = this;
+        flapHandle.setPosition(this.determineHandlePosition(optOwner));
+        return this.addMorph(flapHandle);
+    },
+    initializeStyle: function() {
+        this.applyStyle(this.style)
+        this.setAppearanceStylingMode(true);
+        this.setStyleId('Flap')
+        var backgroundURL = URL.codeBase.withFilename('media/NSTexturedBackgroundColor.jpg')
+        this.setStyleSheet("#Flap {background-image: url('" + backgroundURL +"');}")
+    },
+    determineBorderRadius: function() {
+        switch (this.alignment) {
+            case 'left': return "0px 8px 8px 0px";
+            case 'top': return "0px 0px 8px 8px";
+            case 'right': return "8px 0px 0px 8px";
+            case 'bottom': return "8px 8px 0px 0px";
+            case 'custom': return "0px 0px 0px 0px";
+        }
+    },
+
+
+    determineHandlePosition: function (optOwner) {
+        var owner = optOwner || this.owner,
+            bottomRight = this.getExtent(),
+            handleExtent = this.flapHandle.getExtent();
+        var spaceUsedByOtherFlaps = this.calculateSpaceForOtherHandles(owner);
+        switch (this.alignment) {
+            case 'left':
+                return pt(this.getExtent().x + handleExtent.y, spaceUsedByOtherFlaps)
+            case 'top':
+                return pt(bottomRight.x - handleExtent.x - spaceUsedByOtherFlaps, this.getExtent().y)
+            case 'right':
+                return pt(0, bottomRight.y - (handleExtent.x + spaceUsedByOtherFlaps))
+            case 'bottom':
+                return pt(spaceUsedByOtherFlaps, - handleExtent.y);
+        }
+    },
+    calculateSpaceForOtherHandles: function(optOwner) {
+        var self = this,
+            owner = optOwner || this.owner;
+        return owner.submorphs.select(function (ea) {
+                return ea.isFlap && ea !== self && ea.getAlignment() == self.getAlignment()
+            }).reduce(function(a, b){
+                return a + b.flapHandle.getExtent().x;
+            }, 10);
+    },
+    fitToOwner: function (owner) {
+        this.determineExtent(owner);
+        this.style.position = this.getExpandedPosition(owner);
+        this.setBorderRadius(this.determineBorderRadius());
+        this.expanded = true;
+    },
+},
+'getter and setter', {
+    getCollapsedPosition: function() {
+        var pos,
+            world = lively.morphic.World.current(),
+            owner = this.owner,
+            bottomRight = owner === world ? world.visibleBounds().extent() : owner.getExtent(),
+            zoomLevel = owner === world? world.getZoomLevel() : 1,
+            topLeft = this.owner === world? world.visibleBounds().topLeft() : pt(0,0),
+            staticAlign = this.getCustomBounds() ? this.getCustomBounds().topLeft() : pt(0,0);
+        switch (this.alignment) {
+            case 'left': {
+                pos = pt( -this.determineExtent().x, staticAlign.y);
+                break;
+            }
+            case 'top': {
+                pos = pt(staticAlign.x, -this.determineExtent().y);
+                break
+            }
+            case 'right': {
+                pos = pt((bottomRight.x * zoomLevel), staticAlign.y);
+                break
+            }
+            case 'bottom' : {
+                pos = pt(staticAlign.x, (bottomRight.y * zoomLevel));
+                break;
+            }
+        }
+        return pos.scaleBy(1 / zoomLevel).addPt(topLeft)
+    },
+    getExpandedPosition: function(optOwner) {
+        var pos,
+            world = lively.morphic.World.current(),
+            owner = optOwner || this.owner,
+            bottomRight = owner === world ? world.visibleBounds().extent() : owner.getExtent(),
+            zoomLevel = owner === world? world.getZoomLevel() : 1,
+            topLeft = this.owner === world? world.visibleBounds().topLeft() : pt(0,0);
+        if (this.getCustomBounds()) {
+            pos = this.getCustomBounds().topLeft();
+        } else {
+            switch (this.alignment) {
+                case 'left': case 'top': {
+                    pos = pt(0, 0);
+                    break;
+                }
+                case 'right': {
+                    pos = pt((bottomRight.x * zoomLevel) - this.style.extent.x, 0);
+                    break
+                }
+                case 'bottom' : {
+                    pos = pt(0, (bottomRight.y * zoomLevel) - this.style.extent.y);
+                    break;
+                }
+            }
+        }
+        return pos.scaleBy(1 / zoomLevel).addPt(topLeft)
+    },
+    determineExtent: function (optOwner) {
+        var extent,
+            world = lively.morphic.World.current(),
+            owner = optOwner || this.owner,
+            ownerExtent = owner === world? world.visibleBounds().extent() : owner.getExtent(),
+            zoomLevel = owner === world? world.getZoomLevel() : 1;
+        if (this.getCustomBounds()) {
+            extent = this.getCustomBounds().extent().scaleBy(1/zoomLevel);
+        } else {
+            switch (this.alignment)  {
+                case 'left': case 'right': {
+                    extent = pt(ownerExtent.x / 3, ownerExtent.y);
+                    break;
+                };
+                case 'top': case 'bottom': {
+                    extent = pt(ownerExtent.x, ownerExtent.y / 3);
+                    break;
+                };
+            }
+        }
+        this.style.extent = extent.scaleBy(zoomLevel);
+        return this.style.extent;
+    },
+    setAlignment: function(alignment) {
+        var alignemnts = ['left', 'top', 'right', 'bottom'];
+        if (typeof alignment === 'string' && alignemnts.include(alignment)) {
+            this.alignment = alignment
+        } else {
+            alert('Alignment must be one of the following String values: \n'+alignemnts.join(' '))
+        }
+    },
+    getAlignment: function() {
+        return this.alignment
+    },
+    getCustomBounds: function() {
+        return this.customBounds
+    },
+    setCustomBounds: function(bounds) {
+        var world = lively.morphic.World.current(),
+            pos = bounds.topLeft().scaleBy(world.getZoomLevel()),
+            extent = bounds.extent().scaleBy(world.getZoomLevel());
+        this.customBounds = pos.extent(extent)
+    },
+    setTarget: function(target) {
+        this.target = target
+    },},
+'styling', {
+
+},
+'interaction', {
+    expand: function() {
+        var that = this;
+        this.setFixed(false);
+        var callback = (function () {
+            if (that.owner.isWorld)
+                that.setFixed(true)
+            this.expanded = true;
+        }).bind(this)
+        this.setPositionAnimated(this.getExpandedPosition(), 700, callback)
+    },
+    collapse: function() {
+        var that = this;
+        this.setFixed(false);
+        var callback = (function () {
+            if (that.owner.isWorld)
+                that.setFixed(true)
+            this.expanded = false;
+        }).bind(this)
+        this.setPositionAnimated(this.getCollapsedPosition(), 500, callback);
+    },
+    toggle: function() {
+        if (this.expanded) {
+            this.collapse();
+        } else {
+            this.expand();
+        }
+    },
+    close: function() {
+        this.remove()
+    },});
+lively.morphic.Box.subclass('lively.morphic.FlapHandle',
+'properties', {
+    style: {
+        extent: pt(100,30),
+        borderWidth: 1
+    },
+},
+'getter and setter', {
+    getAlignment: function() {
+        return this.flap.getAlignment();
+    },
+
+},
+'initialization', {
+    initialize: function ($super, flap) {
+        $super(pt(0,0).extent(this.style.extent));
+        this.flap = flap;
+        this.determineRotation();
+        this.applyStyle(Object.merge([this.style, this.determineGradient()]));
+        this.initializeCloseButton()
+    },
+    initializeCloseButton: function() {
+        var closeButton = new lively.morphic.Button(rect(this.getBorderWidth(), this.getBorderWidth(), 20, 20), 'X'),
+            that = this;
+        closeButton.addStyleClassName("WindowControl");
+        closeButton.addStyleClassName("close");
+        closeButton.flap = this.flap;
+        closeButton.addScript(function onFire () {
+            this.flap.close()
+        })
+        connect(closeButton, 'fire', closeButton, 'onFire')
+        this.addMorph(closeButton);
+    },
+    determineRotation: function() {
+        switch (this.getAlignment()) {
+            case 'left': {
+                this.style.rotation = (90).toRadians();
+                break;
+            };
+            case 'top': {
+                this.style.rotation = 0;
+                break;
+            };
+            case 'right': {
+                this.style.rotation = (90).toRadians();
+                break;
+            };
+            case 'bottom': {
+                this.style.rotation = 0;
+                break;
+            }
+        }
+        return this.style.rotation;
+    },
+    determineGradient: function() {
+        var dark = Color.rgb(9,16,29)
+        var bright = Color.rgb(200,200,200)
+        var gradient = new lively.morphic.LinearGradient([
+            {offset: 0, color: dark},
+            {offset: 0.06, color: dark},
+            {offset: 0.09, color: bright},
+            {offset: 0.27, color: bright},
+            {offset: 0.33, color: dark},
+            {offset: 0.36, color: dark},
+            {offset: 0.39, color: bright},
+            {offset: 0.57, color: bright},
+            {offset: 0.63, color: dark},
+            {offset: 0.66, color: dark},
+            {offset: 0.69, color: bright},
+            {offset: 0.9, color: bright},
+            {offset: 0.93, color: dark},
+            {offset: 1, color: dark},
+        ], 'northSouth')
+        var borderRadius = (this.getAlignment() == 'left' || this.getAlignment() == 'bottom') ?
+                "8px 8px 0px 0px" : "0px 0px 8px 8px";
+        return {
+            fill: gradient,
+            borderRadius: borderRadius,
+            borderWidth: 5,
+            borderColor: dark
+        }
+    },
+},
+'interaction', {
+    onMouseUp: function (evt) {
+        this.owner.toggle();
+    },
+});
 
 }) // end of module

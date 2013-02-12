@@ -2193,6 +2193,15 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
     }
 
 },
+'accessing', {
+    getBounds: function($super) {
+        if (this.titleBar && this.isCollapsed()) {
+            var titleBarTranslation = this.titleBar.getGlobalTransform().getTranslation();
+            return this.titleBar.bounds().translatedBy(titleBarTranslation);
+        }
+        return $super();
+    }
+},
 'reframe handles', {
 
     removeHalos: function($super, optWorld) {
@@ -2203,45 +2212,8 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
     },
 
     alignAllHandles: function() {
-        this.alignReframeHandle();
-        this.alignBottomReframeHandle();
-        this.alignRightReframeHandle();
-    },
-
-    alignReframeHandle: function() {
-        if (!this.reframeHandle) return;
-        this.reframeHandle.align(this.reframeHandle.bounds().bottomRight(), this.getExtent());
-        this.reframeHandle.bringToFront();
-    },
-
-    alignBottomReframeHandle: function() {
-        var bottomHandle = this.bottomReframeHandle;
-        if (!bottomHandle) return;
-        var extent = this.getExtent(),
-            bottomHandleExtent = bottomHandle.getExtent(),
-            newExtent = bottomHandleExtent.withX(extent.x - this.reframeHandle.getExtent().x);
-        bottomHandle.bringToFront();
-        bottomHandle.setExtent(newExtent);
-        bottomHandle.align(bottomHandle.bounds().bottomLeft(), extent.withX(0));
-    },
-
-    alignRightReframeHandle: function() {
-        var rightHandle = this.rightReframeHandle;
-        if (!rightHandle) return;
-        var extent = this.getExtent(),
-            rightHandleExtent = rightHandle.getExtent(),
-            newExtent = rightHandleExtent.withY(extent.y - this.reframeHandle.getExtent().y);
-        rightHandle.bringToFront();
-        rightHandle.setExtent(newExtent);
-        rightHandle.align(rightHandle.bounds().topRight(), extent.withY(0));
-    },
-
-    getBounds: function($super) {
-        if (this.titleBar && this.isCollapsed()) {
-            var titleBarTranslation = this.titleBar.getGlobalTransform().getTranslation();
-            return this.titleBar.bounds().translatedBy(titleBarTranslation);
-        }
-        return $super();
+        var handles = [this.reframeHandle, this.bottomReframeHandle, this.rightReframeHandle];
+        handles.invoke('alignWithWindow');
     }
 
 },
@@ -2373,14 +2345,14 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
 'debugging', {
     toString: function($super) {
         return $super() + ' ' + (this.titleBar ? this.titleBar.getTitle() : '');
-    },
+    }
 },
 'removing', {
     remove: function($super) {
         // should trigger remove of submorphs but remove is also usedelsewhere (grab)
         // this.targetMorph && this.targetMorph.remove();
         return $super();
-    },
+    }
 },
 'collapsing', {
     collapse: function() {
@@ -2404,6 +2376,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.animatedInterpolateTo(this.collapsedPosition, 5, 50, finCollapse);
         else finCollapse();
     },
+
     expand: function() {
         if (!this.isCollapsed()) return;
         this.collapsedTransform = this.getTransform();
@@ -2434,7 +2407,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window',
             this.animatedInterpolateTo(this.expandedPosition, 5, 50, finExpand);
         else finExpand();
         if(this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(false);
-    },
+    }
 
 });
 
@@ -2442,6 +2415,7 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
 'initializing', {
     initialize: function($super, type, extent) {
         // type is either "bottom" or "right" or "corner"
+        // FIXME refactor this into subclasses?
         $super(extent.extentAsRectangle());
         this.type = type;
         this.addStyleClassName('reframe-handle ' + type);
@@ -2452,33 +2426,43 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
         this.dragStartPoint = evt.mousePoint;
         this.originalTargetExtent = this.owner.getExtent();
     },
+
     onDrag: function(evt) {
-        alert('dragging handle...');
-        var moveDelta = pt(0,0);
-        if (this.type === 'bottom' || this.type === 'corner') {
-            moveDelta = moveDelta.addXY(0, evt.mousePoint.subPt(this.dragStartPoint).y);
-        }
-        if (this.type === 'right' || this.type === 'corner') {
-            moveDelta = moveDelta.addXY(evt.mousePoint.subPt(this.dragStartPoint).x, 0);
-        }
+        var moveDelta = evt.mousePoint.subPt(this.dragStartPoint);
+        if (this.type === 'bottom') { moveDelta.x = 0; }
+        if (this.type === 'right') { moveDelta.y = 0; }
         var newExtent = this.originalTargetExtent.addPt(moveDelta);
         if (newExtent.x < this.owner.minWidth) newExtent.x = this.owner.minWidth;
         if (newExtent.y < this.owner.minHeight) newExtent.y = this.owner.minHeight;
         this.owner.setExtent(newExtent);
-        if (this.type === 'bottom' || this.type === 'corner') {
-            this.align(this.bounds().bottomLeft(), pt(0,this.owner.getExtent().y));
-        }
-        if (this.type === 'right' || this.type === 'corner') {
-            this.align(this.bounds().topRight(), pt(this.owner.getExtent().x,0));
-        }
-        // this.align(this.bounds().bottomRight(), this.owner.getExtent());
     },
+
     onDragEnd: function(evt) {
         this.dragStartPoint = null;
         this.originalTargetExtent = null;
-        this.owner.alignReframeHandle();
-        this.owner.alignRightReframeHandle();
-        this.owner.alignBottomReframeHandle();
+        this.owner.alignAllHandles();
+    }
+},
+'alignment', {
+    alignWithWindow: function() {
+        this.bringToFront();
+        var window = this.owner,
+            windowExtent = window.getExtent(),
+            handleExtent = this.getExtent(),
+            handleBounds = this.bounds();
+        if (this.type === 'corner') {
+            this.align(handleBounds.bottomRight(), windowExtent);
+        }
+        if (this.type === 'bottom') {
+            var newExtent = handleExtent.withX(windowExtent.x - window.reframeHandle.getExtent().x);
+            this.setExtent(newExtent);
+            this.align(handleBounds.bottomLeft(), windowExtent.withX(0));
+        }
+        if (this.type === 'right') {
+            var newExtent = handleExtent.withY(windowExtent.y - window.reframeHandle.getExtent().y);
+            this.setExtent(newExtent);
+            this.align(handleBounds.topRight(), windowExtent.withY(0));
+        }
     }
 });
 

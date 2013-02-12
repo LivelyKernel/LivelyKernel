@@ -7,6 +7,7 @@ before_install:
   - "sudo apt-get update"
   - "sudo apt-get install xvfb"
   - "chromium-browser --version"
+  - "sudo chmod 1777 /dev/shm"
   - "nvm use default"
   - "npm install -g livelykernel-scripts@latest"
 

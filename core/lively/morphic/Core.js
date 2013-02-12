@@ -401,6 +401,10 @@ Object.subclass('lively.morphic.Morph',
         if (Object.isNumber(scale)) {
             scale = pt(scale,scale);
         }
+        if (this.isClip()) {
+            var scroll = this.getScroll();
+            pos = pos.subXY(scroll[0], scroll[1]);
+        }
         return new lively.morphic.Similitude(pos, this.getRotation(), scale);
     },
     setTransform: function(tfm) {

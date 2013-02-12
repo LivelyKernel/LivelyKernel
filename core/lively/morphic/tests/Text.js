@@ -1030,7 +1030,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.LayoutTests'
     },
 
     test04FixedWidthIncreasesTextExtent: function() {
-        this.epsilon = 2;
+        this.epsilon = 4;
         this.text.applyStyle({fontFamily: 'Courier', fontSize: 12,
                               fixedWidth: false, fixedHeight: false});
         this.text.setTextString('aaa');

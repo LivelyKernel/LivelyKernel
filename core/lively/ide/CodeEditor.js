@@ -332,6 +332,29 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
 });
 
+lively.morphic.World.addMethods(
+'tools', {
+    addCodeEditor: function(options) {
+        options = Object.isString(options) ? {content: options} : {}; // convenience
+        var bounds = (options.extent || lively.pt(500, 200)).extentAsRectangle(),
+            title = options.title || 'Code editor',
+            editor = new lively.morphic.CodeEditor(bounds, options.content || ''),
+            pane = this.internalAddWindow(editor, options.title, options.position);;
+        editor.setFontFamily('Monaco,monospace');
+        editor.setFontSize(Config.get('defaultCodeFontSize'));
+        editor.applyStyle({resizeWidth: true, resizeHeight: true});
+        editor.accessibleInInactiveWindow = true;
+        return pane;
+    },
+
+    openWorkspace: function(evt) {
+        var window = this.addCodeEditor({
+            title: "Workspace",
+            content: "nothing",
+            syntaxHighlighting: !0
+        });
+        return window;
+    }
 });
 
 }); // end of module

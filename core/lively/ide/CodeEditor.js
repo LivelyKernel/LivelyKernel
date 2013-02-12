@@ -1,4 +1,69 @@
 module('lively.ide.CodeEditor').requires('lively.morphic.TextCore').requiresLib({url: Config.codeBase + 'lib/ace/src-noconflict/ace.js', loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
+lively.ide.ace = {
+    textModeModules: {
+        "abap": "ace/mode/abap",
+        "asciidoc": "ace/mode/asciidoc",
+        "c9search": "ace/mode/c9search",
+        "c_cpp": "ace/mode/c_cpp",
+        "clojure": "ace/mode/clojure",
+        "coffee": "ace/mode/coffee",
+        "coldfusion": "ace/mode/coldfusion",
+        "csharp": "ace/mode/csharp",
+        "css": "ace/mode/css",
+        "curly": "ace/mode/curly",
+        "dart": "ace/mode/dart",
+        "diff": "ace/mode/diff",
+        "dot": "ace/mode/dot",
+        "glsl": "ace/mode/glsl",
+        "golang": "ace/mode/golang",
+        "groovy": "ace/mode/groovy",
+        "haml": "ace/mode/haml",
+        "haxe": "ace/mode/haxe",
+        "html": "ace/mode/html",
+        "jade": "ace/mode/jade",
+        "java": "ace/mode/java",
+        "javascript": "ace/mode/javascript",
+        "json": "ace/mode/json",
+        "jsp": "ace/mode/jsp",
+        "jsx": "ace/mode/jsx",
+        "latex": "ace/mode/latex",
+        "less": "ace/mode/less",
+        "liquid": "ace/mode/liquid",
+        "lisp": "ace/mode/lisp",
+        "lua": "ace/mode/lua",
+        "luapage": "ace/mode/luapage",
+        "lucene": "ace/mode/lucene",
+        "makefile": "ace/mode/makefile",
+        "markdown": "ace/mode/markdown",
+        "objectivec": "ace/mode/objectivec",
+        "ocaml": "ace/mode/ocaml",
+        "perl": "ace/mode/perl",
+        "pgsql": "ace/mode/pgsql",
+        "php": "ace/mode/php",
+        "powershell": "ace/mode/powershell",
+        "python": "ace/mode/python",
+        "r": "ace/mode/r",
+        "rdoc": "ace/mode/rdoc",
+        "rhtml": "ace/mode/rhtml",
+        "ruby": "ace/mode/ruby",
+        "scad": "ace/mode/scad",
+        "scala": "ace/mode/scala",
+        "scss": "ace/mode/scss",
+        "sh": "ace/mode/sh",
+        "sql": "ace/mode/sql",
+        "stylus": "ace/mode/stylus",
+        "svg": "ace/mode/svg",
+        "tcl": "ace/mode/tcl",
+        "tex": "ace/mode/tex",
+        "text": "ace/mode/text",
+        "textile": "ace/mode/textile",
+        "typescript": "ace/mode/typescript",
+        "vbscript": "ace/mode/vbscript",
+        "xml": "ace/mode/xml",
+        "xquery": "ace/mode/xquery",
+        "yaml": "ace/mode/yaml"
+    }
+}
 
 lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'settings', {
@@ -211,6 +276,22 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (!sel) return "";
         var range = sel.isEmpty() ? sel.getLineRange() : editor.getSelectionRange();
         return editor.session.getTextRange(range);
+    }
+
+},
+'text morph syntax highlighter interface', {
+    enableSyntaxHighlighting: function() { this.setTextMode('javascript'); },
+    disableSyntaxHighlighting: function() { this.setTextMode('text'); },
+    setTextMode: function(modeName) {
+        var moduleName = lively.ide.ace.textModeModules[modeName],
+            editor = this.aceEditor;
+        this.loadAceModule(["mode", moduleName], function(mode) {
+            var doc = editor.getSession().getDocument(),
+                newMode = new mode.Mode(),
+                newSession = new ace.EditSession(doc, newMode)
+            editor.setSession(newSession);
+        });
+    }
     },
 
     insertAtCursor: function(string, selectIt, overwriteSelection) {

@@ -39,7 +39,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     initializeAce: function() {
         // 1) create ace editor object
         var node = this.getShape().shapeNode,
-            e = this.aceEditor = this.aceEditor || ace.edit(node);
+            e = this.aceEditor = this.aceEditor || ace.edit(node),
+            morph = this;
+        this.aceEditor.on('focus', function() { morph._isFocused = true; })
+        this.aceEditor.on('blur', function() { morph._isFocused = false; })
         node.setAttribute('id', 'ace-editor');
         // 2) set modes / themes
         e.getSession().setMode("ace/mode/javascript");

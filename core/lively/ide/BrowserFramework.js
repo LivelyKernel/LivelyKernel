@@ -1,4 +1,4 @@
-module('lively.ide.BrowserFramework').requires(['lively.morphic.MorphAddons', 'lively.morphic.Widgets']).toRun(function() {
+module('lively.ide.BrowserFramework').requires('lively.morphic.MorphAddons', 'lively.morphic.Widgets').toRun(function() {
 
 lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 'settings', {
@@ -692,7 +692,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     },
 
     world: function() {
-        return this.panel.world();
+        return this.panel.world() || lively.morphic.World.current();
     },
 
     confirm: function(question, callback) {

@@ -2,12 +2,13 @@ module('lively.ide.tests.SCBTests').requires('lively.TestFramework', 'lively.ide
 // Browser related tests
 TestCase.subclass('lively.ide.tests.SCBTests.SystemBrowserTests', {
 
-	  setUp: function() {
-		    var browser = this.createBrowser();
-		    var root = this.createMockNode(browser);
-		    browser.rootNode = function() { return root };
-		    this.browser = browser;
-	  },
+	setUp: function() {
+        var browser = this.createBrowser(),
+            root = this.createMockNode(browser);
+        browser.rootNode = function() { return root };
+        browser.confirm = function(question, callback) { callback.call(this, true) }
+        this.browser = browser;
+    },
 
 	  createBrowser: function() {
 		    return new lively.ide.BasicBrowser();
@@ -239,32 +240,33 @@ lively.ide.tests.SCBTests.SystemBrowserTests.subclass('lively.ide.tests.SCBTests
 		    this.assertEquals('m4', methodNodes[0].getName());
 	  },
 
-	  testAddClassCommand: function() {
-		    this.buildTestSource();
-		    var browser = this.browser;
-		    browser.buildView()
+	testAddClassCommand: function() {
+		this.buildTestSource();
+		var browser = this.browser;
 
-		    browser.inPaneSelectNodeNamed('Pane1', 'dummySource.js');
-		    var commands = browser.commandMenuSpec('Pane2'),
-			  commandSpec = commands.detect(function(spec) { return spec[0] == 'add class' });
-		    this.assert(commandSpec && Object.isFunction(commandSpec[1]), 'Cannot find add class command');
+		browser.buildView()
 
-		    var className = 'MyClass';
-		    this.answerPromptsDuring(commandSpec[1]);
+		browser.inPaneSelectNodeNamed('Pane1', 'dummySource.js');
+		var commands = browser.commandMenuSpec('Pane2'),
+			commandSpec = commands.detect(function(spec) { return spec[0] == 'add class' });
+		this.assert(commandSpec && Object.isFunction(commandSpec[1]), 'Cannot find add class command');
 
-		    var newClassFragment = this.fileFragment.subElements().detect(function(ff) {
-			      return ff.getName() == className;
-		    });
+		var className = 'MyClass';
+		this.answerPromptsDuring(commandSpec[1]);
 
-		    this.assert(newClassFragment, 'new class not created');
+		var newClassFragment = this.fileFragment.subElements().detect(function(ff) {
+			return ff.getName() == className;
+		});
+
+		this.assert(newClassFragment, 'new class not created');
         var code = newClassFragment.getSourceCode();
-		    this.assert(code.startsWith('Object.subclass(\'' + className + '\','),
-			              'source code of new class is strange: ' + code);
+		this.assert(code.startsWith('Object.subclass(\'' + className + '\','),
+			        'source code of new class is strange: ' + code);
 
-		    // var newNode = browser.selectedNode();
-		    // this.assertEquals(newClassFragment, newNode.target,
+		// var newNode = browser.selectedNode();
+		// this.assertEquals(newClassFragment, newNode.target,
         //                   'browser hasn\'t selected the new class');
-	  },
+	},
 
 	  testAddMethodCommand: function() {
 		    this.buildTestSource();

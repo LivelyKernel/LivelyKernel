@@ -407,6 +407,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ClipMorphTest',
         morph.adjustOrigin(pt(10,10));
         this.assertEquals(new Rectangle(0, 0, 100, 20), morph.bounds(), 'bounds after')
         this.assertEquals(new Rectangle(-10, -10, 100, 20), morph.innerBounds(), 'innerbounds after');
+    },
+
+    test07TransformIncludesScrolling: function() {
+        var m1 = new lively.morphic.Morph.makeRectangle(10,10,40,40),
+            m2 = new lively.morphic.Morph.makeRectangle(10,10,60,60);
+        this.world.addMorph(m1);
+        m1.setClipMode('scroll');
+        m1.addMorph(m2);
+        this.assertEquals(pt(10,10), m2.localize(pt(30, 30)));
+        m1.setScroll(10, 0);
+        this.assertEquals(pt(20,10), m2.localize(pt(30, 30)));
     }
 
 });

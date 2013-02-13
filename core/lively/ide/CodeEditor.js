@@ -1,68 +1,18 @@
 module('lively.ide.CodeEditor').requires('lively.morphic.TextCore', 'lively.morphic.Widgets').requiresLib({url: Config.codeBase + 'lib/ace/src-noconflict/ace.js', loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
 
 lively.ide.ace = {
-    textModeModules: {
-        "abap": "ace/mode/abap",
-        "asciidoc": "ace/mode/asciidoc",
-        "c9search": "ace/mode/c9search",
-        "c_cpp": "ace/mode/c_cpp",
-        "clojure": "ace/mode/clojure",
-        "coffee": "ace/mode/coffee",
-        "coldfusion": "ace/mode/coldfusion",
-        "csharp": "ace/mode/csharp",
-        "css": "ace/mode/css",
-        "curly": "ace/mode/curly",
-        "dart": "ace/mode/dart",
-        "diff": "ace/mode/diff",
-        "dot": "ace/mode/dot",
-        "glsl": "ace/mode/glsl",
-        "golang": "ace/mode/golang",
-        "groovy": "ace/mode/groovy",
-        "haml": "ace/mode/haml",
-        "haxe": "ace/mode/haxe",
-        "html": "ace/mode/html",
-        "jade": "ace/mode/jade",
-        "java": "ace/mode/java",
-        "javascript": "ace/mode/javascript",
-        "json": "ace/mode/json",
-        "jsp": "ace/mode/jsp",
-        "jsx": "ace/mode/jsx",
-        "latex": "ace/mode/latex",
-        "less": "ace/mode/less",
-        "liquid": "ace/mode/liquid",
-        "lisp": "ace/mode/lisp",
-        "lua": "ace/mode/lua",
-        "luapage": "ace/mode/luapage",
-        "lucene": "ace/mode/lucene",
-        "makefile": "ace/mode/makefile",
-        "markdown": "ace/mode/markdown",
-        "objectivec": "ace/mode/objectivec",
-        "ocaml": "ace/mode/ocaml",
-        "perl": "ace/mode/perl",
-        "pgsql": "ace/mode/pgsql",
-        "php": "ace/mode/php",
-        "powershell": "ace/mode/powershell",
-        "python": "ace/mode/python",
-        "r": "ace/mode/r",
-        "rdoc": "ace/mode/rdoc",
-        "rhtml": "ace/mode/rhtml",
-        "ruby": "ace/mode/ruby",
-        "scad": "ace/mode/scad",
-        "scala": "ace/mode/scala",
-        "scss": "ace/mode/scss",
-        "sh": "ace/mode/sh",
-        "sql": "ace/mode/sql",
-        "stylus": "ace/mode/stylus",
-        "svg": "ace/mode/svg",
-        "tcl": "ace/mode/tcl",
-        "tex": "ace/mode/tex",
-        "text": "ace/mode/text",
-        "textile": "ace/mode/textile",
-        "typescript": "ace/mode/typescript",
-        "vbscript": "ace/mode/vbscript",
-        "xml": "ace/mode/xml",
-        "xquery": "ace/mode/xquery",
-        "yaml": "ace/mode/yaml"
+    moduleNameForTextMode: function(textModeName) {
+        // currently supported are:
+        // "abap", "asciidoc", "c9search", "c_cpp", "clojure", "coffee",
+        // "coldfusion", "csharp", "css", "curly", "dart", "diff", "dot",
+        // "glsl", "golang", "groovy", "haml", "haxe", "html", "jade", "java",
+        // "javascript", "json", "jsp", "jsx", "latex", "less", "liquid",
+        // "lisp", "lua", "luapage", "lucene", "makefile", "markdown",
+        // "objectivec", "ocaml", "perl", "pgsql", "php", "powershell",
+        // "python", "r", "rdoc", "rhtml", "ruby", "scad", "scala", "scss",
+        // "sh", "sql", "stylus", "svg", "tcl", "tex", "text", "textile",
+        // "typescript", "vbscript", "xml", "xquery", "yaml"
+        return "ace/mode/" + textModeName;
     }
 }
 
@@ -129,7 +79,80 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         while ((cb = cbs.shift())) { cb(e); }
     },
 
+    addCommands: function(commands) {
+        var e = this.aceEditor,
+            handler = e.commands,
+            platform = handler.platform; // mac or win
+
+        function lookupCommand(keySpec) {
+            var binding = e.commands.parseKeys(keySpec),
+                command = e.commands.findKeyCommand(binding.hashId, binding.key);
+            return command && command.name;
+        }
+
+        function addCommands(commandList) {
+            // first remove a keybinding if one already exists
+            commandList.forEach(function(cmd) {
+                var keys = cmd.bindKey && (cmd.bindKey[platform] || cmd.bindKey),
+                    existing = keys && lookupCommand(keys);
+                if (existing) handler.removeCommand(existing);
+            });
+            handler.addCommands(commandList);
+        }
+
+        addCommands(commands);
+    },
+
     setupKeyBindings: function() {
+        this.addCommands([
+            // evaluation
+            {
+                name: 'doit',
+                bindKey: {win: 'Ctrl-D',  mac: 'Command-D'},
+                exec: this.doit.bind(this, false),
+                readOnly: false // false if this command should not apply in readOnly mode
+            }, {
+                name: 'printit',
+                bindKey: {win: 'Ctrl-P',  mac: 'Command-P'},
+                exec: this.doit.bind(this, true),
+                readOnly: false
+            }, {
+                name: 'list protocol',
+                bindKey: {win: 'Ctrl-Shift-P',  mac: 'Command-Shift-P'},
+                exec: this.doListProtocol.bind(this),
+                readOnly: false
+            },
+            // selection / movement
+            {
+                name: 'clearSelection',
+                bindKey: 'Escape',
+                exec: this.clearSelection.bind(this),
+                readOnly: true
+            },
+            {
+                name: 'moveForwardToMatching',
+                bindKey: {win: 'Ctrl-Right',  mac: 'Command-Right'},
+                exec: this.moveForwardToMatching.bind(this, false),
+                readOnly: true
+            }, {
+                name: 'moveBackwardToMatching',
+                bindKey: {win: 'Ctrl-Left',  mac: 'Command-Left'},
+                exec: this.moveBackwardToMatching.bind(this, false),
+                readOnly: true
+            }, {
+                name: 'selectToMatchingForward',
+                bindKey: {win: 'Ctrl-Shift-Right',  mac: 'Command-Shift-Right'},
+                exec: this.moveForwardToMatching.bind(this, true),
+                readOnly: true
+            }, {
+                name: 'selectToMatchingBackward',
+                bindKey: {win: 'Ctrl-Shift-Left',  mac: 'Command-Shift-Left'},
+                exec: this.moveBackwardToMatching.bind(this, true),
+                readOnly: true
+            }]);
+    },
+
+    setupRobertsKeyBindings: function() {
         // that.setupKeyBindings()
         var e = this.aceEditor, lkKeys = this;
         this.loadAceModule(["keybinding", 'ace/keyboard/emacs'], function(emacsKeys) {
@@ -151,7 +174,62 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     loadAceModule: function(moduleName, callback) {
         return ace.require('./config').loadModule(moduleName, callback);
+    },
+
+    indexToPosition: function(absPos) {
+        return this.withAceDo(function(ed) { return ed.session.doc.indexToPosition(absPos); });
     }
+
+},
+'ace interface', {
+    setCursorPosition: function(pos) {
+        return this.withAceDo(function(ed) {
+            ed.selection.moveCursorToPosition({column: pos.x, row: pos.y}); });
+    },
+
+    getCursorPosition: function() {
+        return this.withAceDo(function(ed) {
+            var pos = ed.getCursorPosition();
+            return lively.pt(pos.column, pos.row); });
+    },
+
+    moveToMatching: function(forward, shouldSelect, moveAnyway) {
+        // This method tries to find a matching char to the one the cursor
+        // currently points at. If a match is found it is set as the new
+        // position. In case there is no match but moveAnyway is truthy try to
+        // move forward over words. A selection range is created when
+        // shouldSelect is truthy.
+        return this.withAceDo(function(ed) {
+            var pos = ed.getCursorPosition(),
+                range = ed.session.getBracketRange(pos),
+                sel = ed.selection;
+            if (!range
+              || (forward && !range.isStart(pos.row, pos.column))
+              || (!forward && !range.isEnd(pos.row, pos.column))) {
+                if (!moveAnyway) return;
+                var method = (shouldSelect ? "selectWord" : "moveCursorWord")
+                           + (forward ? "Right" : "Left");
+                sel[method]();
+            } else {
+                var to = forward ? range.end : range.start;
+                if (!shouldSelect) {
+                    sel.moveCursorToPosition(to);
+                } else {
+                    sel.selectToPosition(to);
+                }
+            }
+        });
+    },
+
+    moveForwardToMatching: function(shouldSelect, moveAnyway) {
+        this.moveToMatching(true, shouldSelect, moveAnyway);
+    },
+
+    moveBackwardToMatching: function(shouldSelect, moveAnyway) {
+        this.moveToMatching(false, shouldSelect, moveAnyway);
+    },
+
+    clearSelection: function() { this.withAceDo(function(ed) { ed.clearSelection(); }) }
 
 },
 'serialization', {
@@ -268,9 +346,26 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     isFocused: function() { return this._isFocused }
 },
 'text morph selection interface', {
-    setSelectionRange: function(start, end) { throw new Error('implement me'); },
-    getSelectionRange: function() { throw new Error('implement me'); },
-    selectAll: function() { throw new Error('implement me'); },
+    setSelectionRange: function(startIdx, endIdx) {
+        this.withAceDo(function(ed) {
+            var doc = ed.session.doc,
+                start = doc.indexToPosition(startIdx),
+                end = doc.indexToPosition(endIdx)
+            ed.selection.setRange({start: start, end: end});
+        });
+    },
+
+    getSelectionRange: function() {
+        return this.withAceDo(function(ed) {
+            var range = ed.selection.getRange(),
+                doc = ed.session.doc;
+            return [doc.positionToIndex(range.start), doc.positionToIndex(range.end)];
+        });
+    },
+
+    selectAll: function() {
+        this.withAceDo(function(ed) { ed.selectAll(); });
+    },
 
     getSelectionOrLineString: function() {
         var editor = this.aceEditor, sel = editor.selection;
@@ -284,7 +379,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     enableSyntaxHighlighting: function() { this.setTextMode('javascript'); },
     disableSyntaxHighlighting: function() { this.setTextMode('text'); },
     setTextMode: function(modeName) {
-        var moduleName = lively.ide.ace.textModeModules[modeName],
+        var moduleName = lively.ide.ace.moduleNameForTextMode(modeName),
             editor = this.aceEditor;
         this.loadAceModule(["mode", moduleName], function(mode) {
             var doc = editor.getSession().getDocument(),

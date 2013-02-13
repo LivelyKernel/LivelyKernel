@@ -211,7 +211,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
 
         morph.setRotation((90).toRadians()); // apply some transformation
         morph.adjustOrigin(pt(50, 10)); // coordinates local to morph
-        this.assertEquals(rect(pt(-20, 0), pt(0, 100)), morph.bounds(), 'adjustOrigin wrong')
+        this.assertEqualsEpsilon(rect(pt(-20, 0), pt(0, 100)), morph.bounds(), 'adjustOrigin wrong');
 
         morph.setRotation(0);
 

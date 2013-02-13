@@ -46,6 +46,16 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
         this.editor.textString = "some\ncontent";
         var pos = this.editor.setSelectionRange(2, 7);
         this.assertEquals('me\nco', this.editor.getSelectionOrLineString());
+    },
+
+    testHasUnsavedChanges: function() {
+        var e = this.editor;
+        e.textString = "some\ncontent";
+        this.assert(e.hasUnsavedChanges(), '0');
+        e.doSave();
+        this.assert(!e.hasUnsavedChanges(), '1');
+        e.insertAtCursor('foo');
+        this.assert(e.hasUnsavedChanges(), '2');
     }
 
 });

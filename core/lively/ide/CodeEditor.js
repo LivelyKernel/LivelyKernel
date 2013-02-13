@@ -21,7 +21,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     style: {
         enableGrabbing: false
     },
-    doNotSerialize: ['aceEditor', 'aceEditorAfterSetupCallbacks']
+    doNotSerialize: ['aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString'],
 },
 'initializing', {
     initialize: function($super, bounds, string) {
@@ -154,6 +154,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 name: 'list protocol',
                 bindKey: {win: 'Ctrl-Shift-P',  mac: 'Command-Shift-P'},
                 exec: this.doListProtocol.bind(this),
+                multiSelectAction: "single",
+                readOnly: false
+            }, {
+                name: 'doSave',
+                bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
+                exec: this.doSave.bind(this),
                 multiSelectAction: "single",
                 readOnly: false
             },
@@ -401,7 +407,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
 },
 'text morph save content interface', {
-    hasUnsavedChanges: function() { return false },
+    hasUnsavedChanges: function() { return this.savedTextString !== this.textString; }
 },
 'text morph event interface', {
     focus: function() {
@@ -479,15 +485,25 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.aceEditor.onPaste(string);
     },
 
+    doSave: function() {
+        this.savedTextString = this.textString;
+        if (this.evalEnabled) {
+            this.tryBoundEval(this.savedTextString);
+        }
+    },
+
     setFontSize: function(size) {
         this.getShape().shapeNode.style.fontSize = size + 'pt';
         return this._FontSize = size;
     },
+
     getFontSize: function() { return this._FontSize; },
+
     setFontFamily: function(fontName) {
         this.getShape().shapeNode.style.fontFamily = fontName;
         return this._FontFamily = fontName;
     },
+
     getFontFamily: function() { return this._FontFamily; },
 
     inputAllowed: function() { return this.allowInput },
@@ -535,8 +551,8 @@ lively.morphic.CodeEditor.addMethods(
 'deprecated interface', {
     innerMorph: function() { return this },
     showChangeClue: function() {},
-    getVerticalScrollPosition: function() { return this.withAceDo(function(ed) { return ed.session.getScrollTop() }); },
-    setVerticalScrollPosition: function(value) { return this.withAceDo(function(ed) { return ed.session.setScrollTop(value) }); }
+    getVerticalScrollPosition: function() { },
+    setVerticalScrollPosition: function(value) {}
 },
 'text compatibility', {
     highlightJavaScriptSyntax: Functions.Null

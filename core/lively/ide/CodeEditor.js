@@ -410,10 +410,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     hasUnsavedChanges: function() { return this.savedTextString !== this.textString; }
 },
 'text morph event interface', {
-    focus: function() {
-        this.aceEditor.focus();
-    },
-    isFocused: function() { return this._isFocused }
+    focus: function() { this.aceEditor.focus(); },
+    isFocused: function() { return this._isFocused },
+    requestKeyboardFocus: function(hand) { this.focus(); }
 },
 'text morph selection interface', {
     setSelectionRange: function(startIdx, endIdx) {

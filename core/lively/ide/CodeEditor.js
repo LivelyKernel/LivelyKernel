@@ -22,7 +22,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         enableGrabbing: false
     },
     doNotSerialize: ['aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString'],
-    evalEnabled: true
+    evalEnabled: true,
+    isAceEditor: true
 },
 'initializing', {
     initialize: function($super, bounds, string) {
@@ -404,7 +405,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         pl.evalSelectionAndOpenListForProtocol();
     },
 
-    getDoitContext: function() { return this; }
+    getDoitContext: function() { return this.doitContext || this; }
 
 },
 'text morph save content interface', {
@@ -543,6 +544,54 @@ lively.morphic.World.addMethods(
             syntaxHighlighting: !0
         });
         return window;
+    },
+
+    openObjectEditor: function() {
+        var objectEditor = this.openPartItem('ObjectEditor', 'PartsBin/Tools'),
+            textMorph = objectEditor.get('ObjectEditorScriptPane');
+        if (!Config.get('useAceEditor') || textMorph.isAceEditor) return objectEditor;
+        // replace the normal text morph of the object editor with a
+        // CodeEditor
+        var owner = textMorph.owner,
+            textString = textMorph.textString,
+            bounds = textMorph.bounds(),
+            name = textMorph.getName(),
+            objectEditorPane = textMorph.objectEditorPane,
+            scripts = textMorph.scripts,
+            codeMorph = new lively.morphic.CodeEditor(bounds, textString || '');
+
+        lively.bindings.connect(codeMorph, 'textString',
+                                owner.get('ChangeIndicator'), 'indicateUnsavedChanges');
+        codeMorph.setName(name);
+        codeMorph.objectEditorPane = objectEditorPane;
+        codeMorph.applyStyle({resizeWidth: true, resizeHeight: true});
+        codeMorph.accessibleInInactiveWindow = true;
+
+        Functions.own(textMorph).forEach(function(scriptName) {
+            textMorph[scriptName].asScriptOf(codeMorph);
+        });
+
+        codeMorph.addScript(function displayStatus(msg, color, delay) {
+            if (!this.statusMorph) {
+                this.statusMorph = new lively.morphic.Text(pt(100,25).extentAsRectangle());
+                this.statusMorph.applyStyle({borderWidth: 1, strokeOpacity: 0, borderColor: Color.gray});
+                this.statusMorph.setFill(this.owner.getFill());
+                this.statusMorph.setFontSize(11);
+                this.statusMorph.setAlign('center');
+                this.statusMorph.setVerticalAlign('center');
+            }
+            this.statusMorph.setTextString(msg);
+            this.statusMorph.centerAt(this.innerBounds().center());
+            this.statusMorph.setTextColor(color || Color.black);
+            this.addMorph(this.statusMorph);
+            (function() { this.statusMorph.remove() }).bind(this).delay(delay || 2);
+        });
+
+        owner.addMorphBack(codeMorph);
+        lively.bindings.disconnectAll(textMorph);
+        textMorph.remove();
+        owner.reset();
+        return objectEditor;
     }
 });
 

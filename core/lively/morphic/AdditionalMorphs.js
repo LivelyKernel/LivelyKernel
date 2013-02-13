@@ -1501,8 +1501,6 @@ lively.morphic.Morph.subclass('lively.morphic.TilePane',
             this.getPane().setExtent(pt(aPoint.x - 30, aPoint.y));
         }
     },
-
-
 });
 lively.morphic.Morph.subclass('lively.morphic.Flap',
 'initialization', {
@@ -1520,12 +1518,14 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
             this.setFixed(true);
             this.fixedScale = 1;
         }
+        this.expanded = true;
     },
     initializeHandle: function (optOwner) {
         var flapHandle = new lively.morphic.FlapHandle(this);
         this.flapHandle = flapHandle;
         flapHandle.flap = this;
-        flapHandle.setPosition(this.determineHandlePosition(optOwner));
+        flapHandle.staticPosition = this.determineHandlePosition(optOwner);
+        flapHandle.setPosition(flapHandle.staticPosition);
         return this.addMorph(flapHandle);
     },
     initializeStyle: function() {
@@ -1577,8 +1577,14 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         this.setBorderRadius(this.determineBorderRadius());
         this.expanded = true;
     },
-},
+    },
 'getter and setter', {
+    setTarget: function(morph) {
+        this.target = morph;
+    },
+    getTarget: function() {
+        return this.target || lively.morphic.World.current()
+    },
     getCollapsedPosition: function() {
         var pos,
             world = lively.morphic.World.current(),
@@ -1676,35 +1682,38 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
             extent = bounds.extent().scaleBy(world.getZoomLevel());
         this.customBounds = pos.extent(extent)
     },
-    setTarget: function(target) {
-        this.target = target
-    },},
+    setLastPosition: function(position) {
+        var world = lively.morphic.World.current(),
+            zoomLevel = this.owner === world? world.getZoomLevel() : this.owner.getScale(),
+            ownerBounds = this.owner === world? world.visibleBounds() : this.owner.getBounds();
+        this.lastPosition = position.subPt(ownerBounds.topLeft()).scaleBy(zoomLevel);
+        this.expanded = undefined
+    },
+    getLastPosition: function() {
+        var world = lively.morphic.World.current(),
+            zoomLevel = this.owner === world? world.getZoomLevel() : this.owner.getScale(),
+            ownerBounds = this.owner === world? world.visibleBounds() : this.owner.getBounds();
+        if (this.lastPosition)
+            return (this.lastPosition.scaleBy(1 / zoomLevel)).addPt(ownerBounds.topLeft());
+    },
+
+
+},
 'styling', {
 
 },
 'interaction', {
     expand: function() {
-        var that = this;
-        this.setFixed(false);
-        var callback = (function () {
-            if (that.owner.isWorld)
-                that.setFixed(true)
-            this.expanded = true;
-        }).bind(this)
-        this.setPositionAnimated(this.getExpandedPosition(), 700, callback)
+        var lastPosition = this.getLastPosition() || this.getExpandedPosition();
+        this.setPositionWhileFixed(lastPosition, 500)
+        this.expanded = true;
     },
     collapse: function() {
-        var that = this;
-        this.setFixed(false);
-        var callback = (function () {
-            if (that.owner.isWorld)
-                that.setFixed(true)
-            this.expanded = false;
-        }).bind(this)
-        this.setPositionAnimated(this.getCollapsedPosition(), 500, callback);
+        this.setPositionWhileFixed(this.getCollapsedPosition(), 500);
+        this.expanded = false
     },
     toggle: function() {
-        if (this.expanded) {
+        if (this.expanded === true || this.expanded === undefined) {
             this.collapse();
         } else {
             this.expand();
@@ -1712,7 +1721,58 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
     },
     close: function() {
         this.remove()
-    },});
+    },
+    setNextPos: function (evtPos) {
+        var world = lively.morphic.World.current(),
+            pos = this.getPosition(),
+            topLeft = world.visibleBounds().topLeft();
+        switch (this.getAlignment()) {
+            case 'left': {
+                var offset = this.getExtent().x + this.flapHandle.getExtent().y,
+                    scaledOffset = offset / world.getZoomLevel();
+                pos.x = Math.max(evtPos.x - scaledOffset, this.getCollapsedPosition().x);
+                pos.x = Math.min(pos.x, this.getExpandedPosition().x);
+                break;
+            };
+            case 'top': {
+                var offset = this.getExtent().y + this.flapHandle.getExtent().y,
+                    scaledOffset = offset / world.getZoomLevel();
+                pos.y = Math.max(evtPos.y - scaledOffset, this.getCollapsedPosition().y);
+                pos.y = Math.min(pos.y, this.getExpandedPosition().y)
+                break
+            };
+            case 'right': {
+                pos.x = Math.max(evtPos.x, this.getExpandedPosition().x);
+                pos.x = Math.min(pos.x, this.getCollapsedPosition().x);
+                break
+            };
+            case 'bottom': {
+                pos.y = Math.max(evtPos.y, this.getExpandedPosition().y);
+                pos.y = Math.min(pos.y, this.getCollapsedPosition().y);
+                break
+            }
+        }
+        var fixed = this.isFixed;
+        fixed && this.setFixed(false)
+        this.setPosition(pos)
+        fixed && this.setFixed(true);
+    },
+    setPositionWhileFixed: function(position, optTime) {
+        if (optTime) {
+            var that = this;
+            this.setFixed(false);
+            var callback = (function () {
+                if (that.owner.isWorld)
+                    that.setFixed(true)
+            }).bind(this)
+            this.setPositionAnimated(position, optTime, callback);
+        } else {
+            this.setFixed(false)
+            this.setPosition(position);
+            this.setFixed(true)
+        }
+    }
+});
 lively.morphic.Box.subclass('lively.morphic.FlapHandle',
 'properties', {
     style: {
@@ -1733,6 +1793,8 @@ lively.morphic.Box.subclass('lively.morphic.FlapHandle',
         this.determineRotation();
         this.applyStyle(Object.merge([this.style, this.determineGradient()]));
         this.initializeCloseButton()
+        this.disableGrabbing();
+        this.enableDragging();
     },
     initializeCloseButton: function() {
         var closeButton = new lively.morphic.Button(rect(this.getBorderWidth(), this.getBorderWidth(), 20, 20), 'X'),
@@ -1795,11 +1857,38 @@ lively.morphic.Box.subclass('lively.morphic.FlapHandle',
             borderColor: dark
         }
     },
+    onMouseUp: function() {
+        this.flap.toggle()
+    },
+
+    onDragStart: function(evt) {
+        this.startPosition = this.getPosition();
+        this.startFlapPosition = this.flap.getPosition();
+        this.dragStart = evt.getPosition();
+    },
+
+    onDrag: function(evt) {
+        this.flap.setNextPos(evt.getPosition());
+        var dragOffset = evt.getPosition().subPt(this.dragStart);
+        this.setPosition(this.startPosition);
+    },
+    onDragEnd: function(evt) {
+        delete this.dragStart
+        if (this.flap.getPosition() !== this.flap.getCollapsedPosition()) {
+            this.flap.setLastPosition(this.flap.getPosition())
+            this.expanded = true;
+        }
+        delete this.startFlapPosition
+        evt.stop()
+    }
+
+
+
+
+
 },
 'interaction', {
-    onMouseUp: function (evt) {
-        this.owner.toggle();
-    },
+
 });
 
 }) // end of module

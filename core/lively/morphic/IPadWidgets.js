@@ -2093,6 +2093,7 @@ lively.morphic.Box.subclass('lively.morphic.TouchWorldMenu',
         this.list = this.initializeList();
         this.header = this.initializeHeader();
         this.pointer = this.initializePointer();
+        this.disableSelection();
         connect(this.list, 'openSubMenu', this, 'showBackButton');
         // check for level of submenu missing.
         connect(this.list, 'openSuperMenu', this, 'hideBackButton');

@@ -164,6 +164,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 exec: this.doSave.bind(this),
                 multiSelectAction: "single",
                 readOnly: false
+            }, {
+                name: 'doInspect',
+                bindKey: {win: 'Ctrl-I',  mac: 'Command-I'},
+                exec: this.doInspect.bind(this),
+                multiSelectAction: "forEach",
+                readOnly: true
             },
             // selection / movement
             {
@@ -363,6 +369,18 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return interactiveEval.call(ctx, str);
     },
 
+    evalSelection: function(printIt) {
+        var str = this.getSelectionOrLineString(),
+            result = this.tryBoundEval(str);
+        if (printIt) this.insertAtCursor(String(result), true);
+        return result;
+    },
+
+    evalAll: function() {
+        var str = this.textString, result = this.tryBoundEval(str);
+        return result;
+    },
+
     doit: function(printResult, editor) {
         var text = this.getSelectionOrLineString(),
             sel = editor.selection,
@@ -495,6 +513,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (this.evalEnabled) {
             this.tryBoundEval(this.savedTextString);
         }
+    },
+
+    doInspect: function() {
+        var obj = this.evalSelection();
+        if (obj) lively.morphic.inspect(obj);
     },
 
     setFontSize: function(size) {

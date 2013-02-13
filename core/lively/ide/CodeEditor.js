@@ -51,6 +51,35 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (newOwner) this.initializeAce();
     }
 },
+'serialization', {
+    onLoad: function() {
+        this.initializeAce();
+    },
+
+    onstore: function($super) {
+        $super();
+        var self = this;
+        this.withAceDo(function(ed) {
+            self.storedTextString = ed.getSession().getDocument().getValue();
+        });
+    },
+
+    onrestore: function($super) {
+        $super();
+        if (this.storedTextString) {
+            this.textString = this.storedTextString;
+            delete this.storedTextString;
+        }
+    }
+},
+'accessing', {
+    getGrabShadow: function() { return null; },
+    setExtent: function($super, extent) {
+        $super(extent);
+        this.withAceDo(function(ed) { ed.resize(); });
+        return extent;
+    }
+},
 'ace', {
     initializeAce: function() {
         // 1) create ace editor object
@@ -182,6 +211,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 exec: function(editor) { editor.navigateLineEnd(); },
                 multiSelectAction: "forEach",
                 readOnly: true
+            }, {
+                name: "searchWithPrompt",
+                bindKey: {win: "Ctrl-F", mac: "Command-F"},
+                exec: this.searchWithPrompt.bind(this),
+                readOnly: true
             }]);
     },
 
@@ -265,33 +299,26 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     clearSelection: function() { this.withAceDo(function(ed) { ed.clearSelection(); }) }
 
 },
-'serialization', {
-    onLoad: function() {
-        this.initializeAce();
-    },
+'search and find', {
 
-    onstore: function($super) {
-        $super();
-        var self = this;
+    searchWithPrompt: function() {
+        var world = this.world();
+        if (!world) return;
         this.withAceDo(function(ed) {
-            self.storedTextString = ed.getSession().getDocument().getValue();
+            world.prompt('Enter text or regexp to search for.', function(input) {
+                if (!input) { ed.focus(); return };
+                var regexpMatch = input.match(/^\/(.*)\/$/),
+                    needle = regexpMatch && regexpMatch[1] ? new RegExp(regexpMatch[1], "g") : input;
+                ed.focus();
+                ed.find({
+                    needle: needle,
+                    preventScroll: false,
+                    skipCurrent: true,
+                    start: ed.getCursorPosition(),
+                    wrap: false
+                });
+            });
         });
-    },
-
-    onrestore: function($super) {
-        $super();
-        if (this.storedTextString) {
-            this.textString = this.storedTextString;
-            delete this.storedTextString;
-        }
-    }
-},
-'accessing', {
-    getGrabShadow: function() { return null; },
-    setExtent: function($super, extent) {
-        $super(extent);
-        this.withAceDo(function(ed) { ed.resize(); });
-        return extent;
     }
 },
 'event handling', {

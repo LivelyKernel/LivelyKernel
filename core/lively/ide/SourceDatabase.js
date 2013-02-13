@@ -435,7 +435,7 @@ AnotherSourceDatabase.addMethods(
         var searchFunc = function() {
             var fullList = this.searchFor(str);
             if (fullList.length > 300) {
-                lively.morphic.World.current().notify(fullList.length.toString() + " references abbreviated to 300.");
+                lively.morphic.World.current().alert(fullList.length.toString() + " references abbreviated to 300.");
                 fullList = fullList.slice(0,299);
             }
             return fullList;

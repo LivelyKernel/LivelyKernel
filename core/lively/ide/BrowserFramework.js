@@ -49,22 +49,18 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
             var pane = browser.panel[paneName],
                 list = pane.innerMorph();
             pane.applyStyle({scaleProportional: true});
-            connect(list, 'selection', browser, 'set' + paneName + 'Selection', {
+            lively.bindings.connect(list, 'selection', browser, 'set' + paneName + 'Selection', {
                 updater: function($upd, v) { $upd(v, this.sourceObj) }});
             list.plugTo(browser, {
                 getSelection: '->get' + paneName + 'Selection',
                 getList: '->get' + paneName + 'Content',
                 getMenu: '->get' + paneName + 'Menu',
-                updateList: '<-set' + paneName + 'Content',
+                updateList: '<-set' + paneName + 'Content'
             })
             pane.plugTo(browser, {
-                getMenu: '->get' + paneName + 'Menu',
+                getMenu: '->get' + paneName + 'Menu'
             })
             pane.addMenuButton();
-            // list.owner.connectModel(model.newRelay(
-                // {List:        ("-" + paneName + "Content"),
-                 // Selection:   (      paneName + 'Selection'),
-                 // Menu:        ("-" + paneName + "Menu")}), true);
              list.withAllSubmorphsDo(function() {
                 if (this.constructor == lively.morphic.Slider || !this.onMouseDown) return;
                 this.onMouseDown = this.onMouseDown.wrap(function(proceed, evt) {
@@ -88,7 +84,8 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.allPaneNames.forEach(function(ea) { setupListPane(ea) });
     },
     setupSourceInput: function() {
-        this.panel.sourcePane.applyStyle({
+        var codeEditor = this.panel.sourcePane;
+        codeEditor.applyStyle({
             clipMode: 'auto',
             fixedHeight: true,
             fixedWidth: true,
@@ -97,23 +94,26 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
             padding: Rectangle.inset(5,5,5,5),
             // layouting poliy
             scaleProportional: true,
-            accessibleInInactiveWindow: true,
+            accessibleInInactiveWindow: true
         });
 
-        this.panel.sourcePane.innerMorph().noEval = true;
+        codeEditor.evalEnabled = false;
+        codeEditor.noEval = true;
 
-        if (this.panel.sourcePane.innerMorph().enableSyntaxHighlighting)
-            this.panel.sourcePane.innerMorph().enableSyntaxHighlighting();
+        if (codeEditor.enableSyntaxHighlighting) {
+            codeEditor.enableSyntaxHighlighting();
+        }
 
-        this.panel.sourcePane.innerMorph().plugTo(this, {
-            setTextString: '<-setSourceString',
-            savedTextString: '->setSourceString',
+        codeEditor.plugTo(this, {
+            setTextString: {dir: '<-', name: 'setSourceString'},
+            // pass codeEditor (sourceObj of connection) in setSourceString as
+            // the "source" of that update:
+            savedTextString: {dir: '->', name: 'setSourceString', options: {updater: function($upd, val) { $upd(val, this.sourceObj); }}}
         });
         this.setSourceString('-----');
 
-        this.panel.sourcePane.linkToStyles(["Browser_codePane"])
-        this.panel.sourcePane.innerMorph().linkToStyles(["Browser_codePaneText"])
-        if (this.panel.sourcePane.clipMorph) this.panel.sourcePane.clipMorph.setFill(null);
+        codeEditor.linkToStyles(["Browser_codePane"]);
+        codeEditor.linkToStyles(["Browser_codePaneText"]);
     },
 
     buildView: function (extent) {
@@ -146,6 +146,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         var locInput = this.locationInput();
         if (!locInput) return;
         locInput.beInputLine({fixedWidth: true, fixedHeight: true, fontSize: 10, scaleProportional: true, padding: Rectangle.inset(1)});
+        locInput.evalEnabled = false;
         locInput.noEval = true;
         locInput.linkToStyles(["Browser_locationInput"])
     },
@@ -211,7 +212,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
     stop: function() {
         this.mySourceControl().unregisterBrowser(this);
-    },
+    }
 
 },
 'generated formal getters and setters', {
@@ -226,115 +227,115 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
     setPane1Content: function(value, source) {
         this.Pane1Content = value;
         if (this.onPane1ContentUpdate) this.onPane1ContentUpdate(value, source);
-        return value
+        return value;
     },
     getPane1Selection: function() { return this.Pane1Selection },
     setPane1Selection: function(value, source) {
         this.Pane1Selection = value;
         if (this.onPane1SelectionUpdate) this.onPane1SelectionUpdate(value, source);
-        return value
+        return value;
     },
     getPane1Menu: function() { return this.Pane1Menu },
     setPane1Menu: function(value, source) {
         this.Pane1Menu = value;
         if (this.onPane1MenuUpdate) this.onPane1MenuUpdate(value, source);
-        return value
+        return value;
     },
     getPane1Filters: function() { return this.Pane1Filters },
     setPane1Filters: function(value, source) {
         this.Pane1Filters = value;
         if (this.onPane1FiltersUpdate) this.onPane1FiltersUpdate(value, source);
-        return value
+        return value;
     },
     getPane2Content: function() { return this.Pane2Content },
     setPane2Content: function(value, source) {
         this.Pane2Content = value;
         if (this.onPane2ContentUpdate) this.onPane2ContentUpdate(value, source);
-        return value
+        return value;
     },
     getPane2Selection: function() { return this.Pane2Selection },
     setPane2Selection: function(value, source) {
         this.Pane2Selection = value;
         if (this.onPane2SelectionUpdate) this.onPane2SelectionUpdate(value, source);
-        return value
+        return value;
     },
     getPane2Menu: function() { return this.Pane2Menu },
     setPane2Menu: function(value, source) {
         this.Pane2Menu = value;
         if (this.onPane2MenuUpdate) this.onPane2MenuUpdate(value, source);
-        return value
+        return value;
     },
     getPane2Filters: function() { return this.Pane2Filters },
     setPane2Filters: function(value, source) {
         this.Pane2Filters = value;
         if (this.onPane2FiltersUpdate) this.onPane2FiltersUpdate(value, source);
-        return value
+        return value;
     },
     getPane3Content: function() { return this.Pane3Content },
     setPane3Content: function(value, source) {
         this.Pane3Content = value;
         if (this.onPane3ContentUpdate) this.onPane3ContentUpdate(value, source);
-        return value
+        return value;
     },
     getPane3Selection: function() { return this.Pane3Selection },
     setPane3Selection: function(value, source) {
         this.Pane3Selection = value;
         if (this.onPane3SelectionUpdate) this.onPane3SelectionUpdate(value, source);
-        return value
+        return value;
     },
     getPane3Menu: function() { return this.Pane3Menu },
     setPane3Menu: function(value, source) {
         this.Pane3Menu = value;
         if (this.onPane3MenuUpdate) this.onPane3MenuUpdate(value, source);
-        return value
+        return value;
     },
     getPane3Filters: function() { return this.Pane3Filters },
     setPane3Filters: function(value, source) {
         this.Pane3Filters = value;
         if (this.onPane3FiltersUpdate) this.onPane3FiltersUpdate(value, source);
-        return value
+        return value;
     },
     getPane4Content: function() { return this.Pane4Content },
     setPane4Content: function(value, source) {
         this.Pane4Content = value;
         if (this.onPane4ContentUpdate) this.onPane4ContentUpdate(value, source);
-        return value
+        return value;
     },
     getPane4Selection: function() { return this.Pane4Selection },
     setPane4Selection: function(value, source) {
         this.Pane4Selection = value;
         if (this.onPane4SelectionUpdate) this.onPane4SelectionUpdate(value, source);
-        return value
+        return value;
     },
     getPane4Menu: function() { return this.Pane4Menu },
     setPane4Menu: function(value, source) {
         this.Pane4Menu = value;
         if (this.onPane4MenuUpdate) this.onPane4MenuUpdate(value, source);
-        return value
+        return value;
     },
     getPane4Filters: function() { return this.Pane4Filters },
     setPane4Filters: function(value, source) {
         this.Pane4Filters = value;
         if (this.onPane4FiltersUpdate) this.onPane4FiltersUpdate(value, source);
-        return value
+        return value;
     },
     getSourceString: function() { return this.SourceString },
     setSourceString: function(value, source) {
         this.SourceString = value;
         if (this.onSourceStringUpdate) this.onSourceStringUpdate(value, source);
-        return value
+        return value;
     },
     getStatusMessage: function() { return this.StatusMessage },
     setStatusMessage: function(value, source) {
         this.StatusMessage = value;
         if (this.onStatusMessageUpdate) this.onStatusMessageUpdate(value, source);
-        return value
+        return value;
     },
     getRootFilters: function() { return this.RootFilters },
     setRootFilters: function(value, source) {
         this.RootFilters = value;
         if (this.onRootFiltersUpdate) this.onRootFiltersUpdate(value, source);
-        return value
+        return value;
     },
 },
 'testing', {
@@ -708,16 +709,16 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         }
         this.confirm('There are unsaved changes. Discard them?',
             function(answer) { answer && callback.apply(this) });
-    },
+    }
 
 },
 'source pane', {
     selectStringInSourcePane: function(string) {
-        var textMorph =    this.panel.sourcePane.innerMorph(),
-            index  =  textMorph.textString.indexOf(string);
-        textMorph.requestKeyboardFocus(lively.morphic.World.current().firstHand())
-        textMorph.setSelectionRange(index, index + string.length)
-    },
+        var textMorph = this.panel.sourcePane.innerMorph(),
+            index = textMorph.textString.indexOf(string);
+        textMorph.requestKeyboardFocus(lively.morphic.World.current().firstHand());
+        textMorph.setSelectionRange(index, index + string.length);
+    }
 },
 'debugging', {
     showsParserErrors: function() {

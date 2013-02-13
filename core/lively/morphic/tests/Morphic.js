@@ -322,17 +322,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MorphicBounds',
         this.epsilon = 0.01;
         var morph = new lively.morphic.Morph();
         morph.setBounds(rect(100, 100, 40, 40));
-        this.assertEquals(rect(100, 100, 40, 40), morph.getBounds(), "setBounds");
+        this.assertEqualsEpsilon(rect(100, 100, 40, 40), morph.getBounds(), "setBounds");
         morph.setExtent(pt(50,50));
-        this.assertEquals(rect(100, 100, 50, 50), morph.getBounds(), "setExtent");
+        this.assertEqualsEpsilon(rect(100, 100, 50, 50), morph.getBounds(), "setExtent");
         morph.setPosition(pt(150,50));
-        this.assertEquals(rect(150, 50, 50, 50), morph.getBounds(), "setPosition");
+        this.assertEqualsEpsilon(rect(150, 50, 50, 50), morph.getBounds(), "setPosition");
         morph.setScale(2);
-        this.assertEquals(rect(150, 50, 100, 100), morph.getBounds(), "setScale");
+        this.assertEqualsEpsilon(rect(150, 50, 100, 100), morph.getBounds(), "setScale");
         morph.setTransform(new lively.morphic.Similitude(pt(0,0)));
-        this.assertEquals(rect(0,0 , 50, 50), morph.getBounds(), "setTransform");
+        this.assertEqualsEpsilon(rect(0,0 , 50, 50), morph.getBounds(), "setTransform");
         morph.rotateBy((45).toRadians());
-        this.assertEquals(rect(-35.36, 0, 70.71, 70.71), morph.getBounds(), "setRotation");
+        this.assertEqualsEpsilon(rect(-35.36, 0, 70.71, 70.71), morph.getBounds(), "setRotation");
     },
 
     testBorderWidthDoesNotAffectsBounds: function() {

@@ -1,4 +1,4 @@
-module('lively.ide.CodeEditor').requires('lively.morphic.TextCore', 'lively.morphic.Widgets').requiresLib({url: Config.codeBase + 'lib/ace/src-noconflict/ace.js', loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
+module('lively.ide.CodeEditor').requires('lively.morphic.TextCore', 'lively.morphic.Widgets', 'lively.ide.BrowserFramework').requiresLib({url: Config.codeBase + 'lib/ace/src-noconflict/ace.js', loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
 
 lively.ide.ace = {
     moduleNameForTextMode: function(textModeName) {
@@ -95,7 +95,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                           + ' position:absolute;'
                           + ' top:0;'
                           + ' bottom:0;left:0;right:0;'
-                          + ' font-family: monospace;'
+                          + ' font-family: Monaco,monospace;'
+                          + ' font-size: ' + Config.get('defaultCodeFontSize') + 'pt;'
                           + '}');
         this.setupKeyBindings();
         e.setTheme("ace/theme/chrome");
@@ -399,6 +400,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     getDoitContext: function() { return this; }
 
 },
+'text morph save content interface', {
+    hasUnsavedChanges: function() { return false },
+},
 'text morph event interface', {
     focus: function() {
         this.aceEditor.focus();
@@ -466,6 +470,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         }) || "";
     },
 
+    setTextString: function(string) { return this.textString = string; },
+
+    getTextString: function(string) { return this.textString; },
+
     insertTextStringAt: function(index, string) { throw new Error('implement me'); },
     insertAtCursor: function(string, selectIt, overwriteSelection) {
         this.aceEditor.onPaste(string);
@@ -485,7 +493,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     inputAllowed: function() { return this.allowInput },
     setInputAllowed: function(bool) { throw new Error('implement me'); }
 
+},
+'rendering', {
+    setClipMode: Functions.Null
 });
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// use ace editor as workspace
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 lively.morphic.World.addMethods(
 'tools', {
@@ -495,10 +510,9 @@ lively.morphic.World.addMethods(
             title = options.title || 'Code editor',
             editor = new lively.morphic.CodeEditor(bounds, options.content || ''),
             pane = this.internalAddWindow(editor, options.title, options.position);;
-        editor.setFontFamily('Monaco,monospace');
-        editor.setFontSize(Config.get('defaultCodeFontSize'));
         editor.applyStyle({resizeWidth: true, resizeHeight: true});
         editor.accessibleInInactiveWindow = true;
+        editor.focus();
         return pane;
     },
 
@@ -511,5 +525,47 @@ lively.morphic.World.addMethods(
         return window;
     }
 });
+
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// ace support for lively.ide
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+lively.morphic.CodeEditor.addMethods(
+'deprecated interface', {
+    innerMorph: function() { return this },
+    showChangeClue: function() {},
+    getVerticalScrollPosition: function() { return this.withAceDo(function(ed) { return ed.session.getScrollTop() }); },
+    setVerticalScrollPosition: function(value) { return this.withAceDo(function(ed) { return ed.session.setScrollTop(value) }); }
+},
+'text compatibility', {
+    highlightJavaScriptSyntax: Functions.Null
+});
+
+Object.extend(lively.ide, {
+    newCodeEditor: function (initialBounds, defaultText) {
+        var bounds = initialBounds.extent().extentAsRectangle(),
+            text = new lively.morphic.CodeEditor(bounds, defaultText || '');
+        text.accessibleInInactiveWindow = true;
+        return text;
+    }
+});
+
+lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
+'settings', {
+    panelSpec: [
+        ['locationPane', newTextPane,                                                        [0,    0,    0.8,  0.03]],
+        ['codeBaseDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },        [0.8,  0,    0.12, 0.03]],
+        ['localDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },           [0.92, 0,    0.08, 0.03]],
+        ['Pane1', newDragnDropListPane,                                                      [0,    0.03, 0.25, 0.37]],
+        ['Pane2', newDragnDropListPane,                                                      [0.25, 0.03, 0.25, 0.37]],
+        ['Pane3', newDragnDropListPane,                                                      [0.5,  0.03, 0.25, 0.37]],
+        ['Pane4', newDragnDropListPane,                                                      [0.75, 0.03, 0.25, 0.37]],
+        ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.44, 1,    0.01]],
+        ['sourcePane', lively.ide.newCodeEditor,                                             [0,    0.45, 1,    0.54]]
+    ]
+});
+
+
 
 }); // end of module

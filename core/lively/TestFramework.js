@@ -169,18 +169,13 @@ Object.subclass('TestCase',
         throw {isAssertion: true, message: msg, toString: function() { return msg }}
     },
     assertEquals: function(a, b, msg) {
-        var eps = this.epsilon || 0;
-
-        if (Object.isNumber(a) && Object.isNumber(b) && Math.abs(a-b) <= eps) return;
+        if (Object.isNumber(a) && Object.isNumber(b) && a == b) return;
 
         if (Object.isArray(a) && Object.isArray(b) && a.equals(b)) return;
 
-        if (a instanceof lively.Point && b instanceof lively.Point &&
-            Math.abs(a.x-b.x) <= eps && Math.abs(a.y-b.y) <= eps) return;
+        if (a instanceof lively.Point && b instanceof lively.Point && a.equals(b)) return;
 
-        if (a instanceof Rectangle && b instanceof Rectangle &&
-            Math.abs(a.x-b.x) <= eps && Math.abs(a.y-b.y) <= eps &&
-            Math.abs(a.width-b.width) <= eps && Math.abs(a.height-b.height) <= eps) return;
+        if (a instanceof Rectangle && b instanceof Rectangle && a.equals(b)) return;
 
         if (a instanceof Color && b instanceof Color && a.equals(b)) return;
 

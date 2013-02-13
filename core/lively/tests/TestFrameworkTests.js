@@ -8,6 +8,8 @@ module('lively.tests.TestFrameworkTests').requires('lively.TestFramework').toRun
  * Tests the TestCase class
  */
 TestCase.subclass('lively.tests.TestFrameworkTests.TestCaseTest', {
+    epsilon: 0.5,
+
     setUp: function() {
         this.setUpWasRun = true;
     },
@@ -35,7 +37,7 @@ TestCase.subclass('lively.tests.TestFrameworkTests.TestCaseTest', {
         this.assert(true, 'This should not fail');
     },
 
-    testAssertEqualFails: function() {
+    testAssertEqualsFails: function() {
         try {
             this.assertEquals(3,4, 'This should fail');
         } catch(e) {
@@ -44,8 +46,30 @@ TestCase.subclass('lively.tests.TestFrameworkTests.TestCaseTest', {
         this.assert(false);
     },
 
-    testAssertEqualFailsNot: function() {
+    testAssertAlmostEqualsFails: function() {
+        try {
+            this.assertEquals(3,3.1, 'This should fail');
+        } catch(e) {
+            return;
+        };
+        this.assert(false);
+    },
+
+    testAssertEqualsFailsNot: function() {
         this.assertEquals(3,3, 'This should not fail');
+    },
+
+    testAssertEqualsEpsilonFails: function() {
+        try {
+            this.assertEquals(3,3.6, 'This should fail');
+        } catch(e) {
+            return;
+        };
+        this.assert(false);
+    },
+
+    testAssertEqualsEpsilonFailsNot: function() {
+        this.assertEqualsEpsilon(3,3.1, 'This should not fail');
     },
 
     testAssertIndentityFails: function() {

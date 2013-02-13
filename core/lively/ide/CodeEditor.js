@@ -22,6 +22,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         enableGrabbing: false
     },
     doNotSerialize: ['aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString'],
+    evalEnabled: true
 },
 'initializing', {
     initialize: function($super, bounds, string) {

@@ -325,27 +325,19 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('ScrollableTrait'), T
     get textString() {
         // when the prototype property is accessed
         if (this === this.constructor.prototype) return undefined;
-        if (!this.cachedTextString)
+        if (!this.cachedTextString) {
             this.cachedTextString = this.renderContextDispatch('getTextString');
+        }
         return this.cachedTextString;
     },
 
     set textString(string) {
         string = String(string);
-
         // setting the textString removes all the content in the text morph
         this.removeTextChunks();
-
         this.renderContextDispatch('updateText', string);
-
         this.cachedTextString = string;
-
-        // bindings wrapper trigger already a change in textString
-        // if (this.attributeConnections)
-            // lively.bindings.signal(this, 'textString', string);
-
         delete this.priorSelectionRange;
-
         return string;
     },
 

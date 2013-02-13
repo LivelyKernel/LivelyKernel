@@ -85,9 +85,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             platform = handler.platform; // mac or win
 
         function lookupCommand(keySpec) {
-            var binding = e.commands.parseKeys(keySpec),
-                command = e.commands.findKeyCommand(binding.hashId, binding.key);
-            return command && command.name;
+            keySpec.split('|').detect(function(keys) {
+                var binding = e.commands.parseKeys(keys),
+                    command = e.commands.findKeyCommand(binding.hashId, binding.key);
+                return command && command.name;
+            });
         }
 
         function addCommands(commandList) {
@@ -110,16 +112,19 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 name: 'doit',
                 bindKey: {win: 'Ctrl-D',  mac: 'Command-D'},
                 exec: this.doit.bind(this, false),
+                multiSelectAction: "forEach",
                 readOnly: false // false if this command should not apply in readOnly mode
             }, {
                 name: 'printit',
                 bindKey: {win: 'Ctrl-P',  mac: 'Command-P'},
                 exec: this.doit.bind(this, true),
+                multiSelectAction: "forEach",
                 readOnly: false
             }, {
                 name: 'list protocol',
                 bindKey: {win: 'Ctrl-Shift-P',  mac: 'Command-Shift-P'},
                 exec: this.doListProtocol.bind(this),
+                multiSelectAction: "single",
                 readOnly: false
             },
             // selection / movement
@@ -133,21 +138,49 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 name: 'moveForwardToMatching',
                 bindKey: {win: 'Ctrl-Right',  mac: 'Command-Right'},
                 exec: this.moveForwardToMatching.bind(this, false),
+                multiSelectAction: "forEach",
                 readOnly: true
             }, {
                 name: 'moveBackwardToMatching',
                 bindKey: {win: 'Ctrl-Left',  mac: 'Command-Left'},
                 exec: this.moveBackwardToMatching.bind(this, false),
+                multiSelectAction: "forEach",
                 readOnly: true
             }, {
                 name: 'selectToMatchingForward',
                 bindKey: {win: 'Ctrl-Shift-Right',  mac: 'Command-Shift-Right'},
                 exec: this.moveForwardToMatching.bind(this, true),
+                multiSelectAction: "forEach",
                 readOnly: true
             }, {
                 name: 'selectToMatchingBackward',
                 bindKey: {win: 'Ctrl-Shift-Left',  mac: 'Command-Shift-Left'},
                 exec: this.moveBackwardToMatching.bind(this, true),
+                multiSelectAction: "forEach",
+                readOnly: true
+            }, {
+                name: "selecttolinestart",
+                bindKey: 'Shift-Home|Ctrl-Shift-A',
+                exec: function(editor) { editor.getSelection().selectLineStart(); },
+                multiSelectAction: "forEach",
+                readOnly: true
+            }, {
+                name: "gotolinestart",
+                bindKey: "Home|Ctrl-A",
+                exec: function(editor) { editor.navigateLineStart(); },
+                multiSelectAction: "forEach",
+                readOnly: true
+            }, {
+                name: "selecttolineend",
+                bindKey: "Shift-End|Ctrl-Shift-E",
+                exec: function(editor) { editor.getSelection().selectLineEnd(); },
+                multiSelectAction: "forEach",
+                readOnly: true
+            }, {
+                name: "gotolineend",
+                bindKey: "End|Ctrl-E",
+                exec: function(editor) { editor.navigateLineEnd(); },
+                multiSelectAction: "forEach",
                 readOnly: true
             }]);
     },

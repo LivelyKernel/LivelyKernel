@@ -462,8 +462,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     set textString(string) {
         this.withAceDo(function(ed) {
-            var doc = ed.getSession().getDocument();
-            doc.setValue(string);
+            ed.selection.clearSelection();
+            var pos = ed.getCursorPosition(),
+                scroll = ed.session.getScrollTop();
+            ed.session.doc.setValue(string);
+            ed.selection.moveCursorToPosition(pos);
+            ed.session.setScrollTop(scroll);
         });
         return string;
     },

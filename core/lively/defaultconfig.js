@@ -476,7 +476,8 @@ Global.Config = {
             ["disableSyntaxHighlighting", false],
             ["textUndoEnabled", false, "wether Lively takes care of undoing text changes or leaves it to the browser"],
             ['defaultCodeFontSize', 10, "In which pt size code appears."],
-            ['autoIndent', true, "Automatically indent new lines."]
+            ['autoIndent', true, "Automatically indent new lines."],
+            ['useAceEditor', true, "Whether to use the ace.ajax editor for code editing."]
         ],
 
         'lively.morphic.StyleSheets', [

@@ -21,7 +21,7 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
     morphMenuItems: function() {
         var items = cop.proceed();
         items[2][1][7] = ['Flap', function() {
-                var flap = new lively.morphic.Flap('Custom', 'bottom');
+                var flap = new lively.morphic.Flap('bottom');
                 flap.enableSelection();
             }];
         return items
@@ -3648,6 +3648,76 @@ lively.morphic.Box.subclass('ToolContainer',
 lively.morphic.Tab.addMethods({
     onTap: function(evt) {
         this.getTabBar().activateTab(this);
+    },    
+})
+
+lively.morphic.Flap.addMethods({
+    onTouchEnd: function(evt) {
+        evt.stop();
+        return true;
+    },
+    onTouchMove: function(evt) {
+        evt.stop();
+        return true;
+    },
+    onTouchStart: function(evt) {
+        evt.stop();
+        return true;
+    },    
+})
+
+lively.morphic.FlapHandle.addMethods({
+    onTouchEnd: function (evt) {
+        evt.stop();
+        return true
+    },
+    onTouchMove: function (evt) {
+        this.setNextPos(evt.getPosition())
+        evt.stop();
+        return true;
+    },
+    onTouchStart: function(evt) {
+        evt.stop();
+        return true;
+    },
+    setNextPos: function (touchPosition) {
+        var flap = this.flap,
+            world = lively.morphic.World.current(),
+            pos = this.flap.getPosition(),
+            topLeft = world.visibleBounds().topLeft();
+        switch (this.getAlignment()) {
+            case 'left': {
+                var offset = flap.getExtent().x + this.getExtent().y,
+                    scaledOffset = offset / world.getZoomLevel();
+                pos.x = Math.max(touchPosition.x - scaledOffset, this.flap.getCollapsedPosition().x);
+                pos.x = Math.min(pos.x, flap.getExpandedPosition().x);
+                break;
+            };
+            case 'top': {
+                var offset = flap.getExtent().y + this.getExtent().y,
+                    scaledOffset = offset / world.getZoomLevel();
+                pos.y = Math.max(touchPosition.y - scaledOffset, this.flap.getCollapsedPosition().y);
+                pos.y = Math.min(pos.y, this.flap.getExpandedPosition().y)
+                break
+            };
+            case 'right': {
+                pos.x = Math.max(touchPosition.x, this.flap.getExpandedPosition().x);
+                pos.x = Math.min(pos.x, this.flap.getCollapsedPosition().x);
+                break
+            };
+            case 'bottom': {
+                pos.y = Math.max(touchPosition.y, this.flap.getExpandedPosition().y);
+                pos.y = Math.min(pos.y, this.flap.getCollapsedPosition().y);
+                break
+            }
+        }
+        var fixed = this.flap.isFixed;
+        fixed && this.flap.setFixed(false)
+        this.flap.setPosition(pos)
+        fixed && this.flap.setFixed(true);
+    },
+    onTap: function() {
+        this.flap.collapse();
     },    
 })
 

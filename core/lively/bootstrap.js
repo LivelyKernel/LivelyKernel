@@ -185,6 +185,7 @@
                 Config.finishLoadingCallbacks.push(callback);
             };
         }
+        lively.useMinifiedLibs = useMinifiedLibs;
     })();
 
     (function setupNodejs() {

@@ -22,7 +22,6 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
         var items = cop.proceed();
         items[2][1][7] = ['Flap', function() {
                 var flap = new lively.morphic.Flap('bottom');
-                flap.enableSelection();
             }];
         return items
     },
@@ -269,8 +268,6 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
         this.disableTextControl();
         return returnValue
     }
-
-
 
 })
 // the following code can be used in combination with ensureselectionmorph (not used right now)
@@ -3652,6 +3649,13 @@ lively.morphic.Tab.addMethods({
 })
 
 lively.morphic.Flap.addMethods({
+    initialize: function($super) {
+        $super(this.defaultShape());
+        var args = $A(arguments)
+        args.shift()
+        this.init.apply(this, args);
+        this.disableSelection();
+    },
     onTouchEnd: function(evt) {
         evt.stop();
         return true;
@@ -3663,16 +3667,21 @@ lively.morphic.Flap.addMethods({
     onTouchStart: function(evt) {
         evt.stop();
         return true;
-    },    
+    },
 })
 
 lively.morphic.FlapHandle.addMethods({
     onTouchEnd: function (evt) {
         evt.stop();
+        if (this.isMovingFlap) {
+            this.flap.setLastPosition(this.flap.getPosition())
+        }
+        delete this.isMovingFlap
         return true
     },
     onTouchMove: function (evt) {
         this.setNextPos(evt.getPosition())
+        this.isMovingFlap = true;
         evt.stop();
         return true;
     },
@@ -3717,7 +3726,7 @@ lively.morphic.FlapHandle.addMethods({
         fixed && this.flap.setFixed(true);
     },
     onTap: function() {
-        this.flap.collapse();
+        this.flap.toggle();
     },    
 })
 

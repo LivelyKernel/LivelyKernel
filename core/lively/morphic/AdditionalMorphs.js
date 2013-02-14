@@ -1504,8 +1504,13 @@ lively.morphic.Morph.subclass('lively.morphic.TilePane',
 });
 lively.morphic.Morph.subclass('lively.morphic.Flap',
 'initialization', {
-    initialize: function($super, alignment, optOwner, optBounds) {
+    initialize: function($super) {
         $super(this.defaultShape());
+        var args = $A(arguments)
+        args.shift()
+        this.init.apply(this, args);
+    },
+    init: function(alignment, optOwner, optBounds) {
         this.isFlap = true;
         var owner = optOwner || lively.morphic.World.current();
         owner.addMorph(this)

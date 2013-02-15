@@ -372,6 +372,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         });
     },
 
+    getCurrentSearchTerm: function() {
+        return this.withAceDo(function(ed) {
+            return ed.$search
+                && ed.$search.$options
+                && ed.$search.$options.needle;
+        }) || '';
+    },
+
     moveForwardToMatching: function(shouldSelect, moveAnyway) {
         this.moveToMatching(true, shouldSelect, moveAnyway);
     },
@@ -428,7 +436,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                     wrap: false,
                     animate: true
                 });
-            });
+            }, this.getCurrentSearchTerm());
         });
     },
 
@@ -599,16 +607,23 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     multiSelect: function(options) {
-        options = options || {}
+        options = options || {};
         this.withAceDo(function(ed) {
-            var needle = '';
-            if (!ed.selection.isEmpty()) {
+            // if the text in the current selection matches the last search
+            // use the last search string or regexp to add new selections.
+            // Otherwise use the currently selected text as the new search
+            // term
+            var needle, lastSearch = this.getCurrentSearchTerm();
+            if (!ed.selection.inMultiSelectMode && !ed.selection.isEmpty()) {
                 var range = ed.selection.getRange();
                 needle = ed.session.getTextRange(range);
-            } else if (ed.$search.$options.needle) {
-                needle = ed.$search.$options.needle;
             }
-            alert(needle)
+            if (!needle
+              || needle === lastSearch
+              || (Object.isRegExp(lastSearch) && lastSearch.test(needle))) {
+                needle = lastSearch;
+            }
+            if (!needle) needle = '';
             var foundRange = ed.find({
                 skipCurrent: true,
                 backwards: options.backwards,

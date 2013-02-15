@@ -180,7 +180,7 @@ if (this.window && window.navigator && window.navigator.userAgent.match(/Firefox
             for (var property in object)
             if (object.hasOwnProperty(property)) values.push(object[property]);
             return values;
-        },
+        }
     })
 };
 
@@ -190,6 +190,37 @@ if (this.window && window.navigator && window.navigator.userAgent.match(/Firefox
 ///////////////////////////////////////////////////////////////////////////////
 
 Global.Objects = {
+
+    inspect: function(obj, depth) {
+        depth = depth || 0;
+        if (!obj) { return Strings.print(obj); }
+        // print function
+        if (Object.isFunction(obj)) {
+            return 'function'
+                 + (obj.name ? ' ' + obj.name : '')
+                 + '('
+                 + obj.argumentNames().join(',')
+                 + ') {...}', '  ', depth;
+        }
+        // print "primitive"
+	    switch (obj.constructor) {
+		    case String:
+		    case Boolean:
+		    case Boolean:
+            case RegExp:
+		    case Number: return Strings.print(obj);
+	    };
+        var printedProps = Object.keys(obj).map(function(key) {
+            return key + ': ' + this.inspect(obj[key], depth + 1);
+        }, this);
+        if (printedProps.length === 0) { return '{}'; }
+        var indent = Strings.indent('', '  ', depth),
+            propIndent = Strings.indent('', '  ', depth + 1);
+        return '{\n'
+             + propIndent
+             + printedProps.join('\n' + propIndent)
+             + '\n' + indent + '}';
+    },
 
     typeStringOf: function(obj) {
         if (obj === null) { return "null" }

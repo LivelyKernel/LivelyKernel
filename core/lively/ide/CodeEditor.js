@@ -292,6 +292,19 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         });
     },
 
+    lookupCommand: function(keySpec) {
+        return this.withAceDo(function(ed) {
+            var handler = ed.getKeyboardHandler(),
+                binding = handler.parseKeys(keySpec),
+                command = handler.findKeyCommand(binding.hashId, binding.key);
+            if (!command) return null;
+            if (!command.hasOwnProperty('toString')) {
+                command.toString = function() { return '[cmd:' + command.name + ']' }
+            }
+            return command;
+        });
+    },
+
     withAceDo: function(doFunc) {
         if (this.aceEditor) return doFunc(this.aceEditor);
         if (!this.aceEditorAfterSetupCallbacks) this.aceEditorAfterSetupCallbacks = [];

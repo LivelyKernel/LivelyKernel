@@ -67,8 +67,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setBounds(bounds);
         this.textString = string || '';
 
-        this.setTheme("chrome");
-        this.setTextMode("javascript");
+        this.setTheme(Config.get('aceDefaultTheme'));
+        this.setTextMode(Config.get('aceDefaultTextMode'));
     },
 
     onOwnerChanged: function(newOwner) {
@@ -622,17 +622,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'text morph syntax highlighter interface', {
     enableSyntaxHighlighting: function() { this.setTextMode('javascript'); },
-    disableSyntaxHighlighting: function() { this.setTextMode('text'); },
-    setTextMode: function(modeName) {
-        var moduleName = lively.ide.ace.moduleNameForTextMode(modeName),
-            editor = this.aceEditor;
-        this.loadAceModule(["mode", moduleName], function(mode) {
-            var doc = editor.getSession().getDocument(),
-                newMode = new mode.Mode(),
-                newSession = new ace.EditSession(doc, newMode)
-            editor.setSession(newSession);
-        });
-    }
+    disableSyntaxHighlighting: function() { this.setTextMode('text'); }
 },
 'text morph interface', {
 

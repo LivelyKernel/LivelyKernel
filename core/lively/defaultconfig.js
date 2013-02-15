@@ -477,7 +477,9 @@ Global.Config = {
             ["textUndoEnabled", false, "wether Lively takes care of undoing text changes or leaves it to the browser"],
             ['defaultCodeFontSize', 10, "In which pt size code appears."],
             ['autoIndent', true, "Automatically indent new lines."],
-            ['useAceEditor', true, "Whether to use the ace.ajax editor for code editing."]
+            ['useAceEditor', true, "Whether to use the ace.ajax editor for code editing."],
+            ['aceDefaultTheme', 'chrome', "Ace theme to use"],
+            ['aceDefaultTextMode', 'javascript', "Ace text mode to use"]
         ],
 
         'lively.morphic.StyleSheets', [

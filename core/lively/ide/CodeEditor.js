@@ -66,6 +66,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         $super(shape);
         this.setBounds(bounds);
         this.textString = string || '';
+
+        this.setTheme("chrome");
+        this.setTextMode("javascript");
     },
 
     onOwnerChanged: function(newOwner) {
@@ -74,14 +77,23 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'serialization', {
     onLoad: function() {
+        if (this.aceThemeName) {
+            this.setTheme(this.aceThemeName);
+            delete this.aceThemeName;
+        }
+        if (this.aceTextModeName) {
+            this.setTextMode(this.aceTextModeName);
+            delete this.aceTextModeName;
+        }
         this.initializeAce();
     },
 
-    onstore: function($super) {
-        $super();
-        var self = this;
+    onstore: function($super, persistentCopy) {
+        $super(persistentCopy);
         this.withAceDo(function(ed) {
-            self.storedTextString = ed.getSession().getDocument().getValue();
+            persistentCopy.aceThemeName = this.getTheme();
+            persistentCopy.aceTextModeName = this.getTextMode();
+            persistentCopy.storedTextString = this.textString;
         });
     },
 
@@ -111,7 +123,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.aceEditor.on('blur', function() { morph._isFocused = false; })
         node.setAttribute('id', 'ace-editor');
         // 2) set modes / themes
-        e.getSession().setMode("ace/mode/javascript");
         this.setStyleSheet('#ace-editor {'
                           + ' position:absolute;'
                           + ' top:0;'
@@ -120,14 +131,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                           + ' font-size: ' + Config.get('defaultCodeFontSize') + 'pt;'
                           + '}');
         this.setupKeyBindings();
-        e.setTheme("ace/theme/chrome");
+        this.setTextMode(this.getTextMode() || "");
+        this.setTheme(this.getTheme() || '');
 
         // 2) run after setup callbacks
         var cbs = this.aceEditorAfterSetupCallbacks;
         if (!cbs) return;
         delete this.aceEditorAfterSetupCallbacks;
-        var cb;
-        while ((cb = cbs.shift())) { cb(e); }
+        for (var cb; cb = cbs.shift(); !!cb) { cb.call(this, e); }
     },
 
     addCommands: function(commands) {
@@ -306,7 +317,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     withAceDo: function(doFunc) {
-        if (this.aceEditor) return doFunc(this.aceEditor);
+        if (this.aceEditor) return doFunc.call(this, this.aceEditor);
         if (!this.aceEditorAfterSetupCallbacks) this.aceEditorAfterSetupCallbacks = [];
         this.aceEditorAfterSetupCallbacks.push(doFunc);
         return undefined;
@@ -369,8 +380,34 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.moveToMatching(false, shouldSelect, moveAnyway);
     },
 
-    clearSelection: function() { this.withAceDo(function(ed) { ed.clearSelection(); }) }
+    clearSelection: function() { this.withAceDo(function(ed) { ed.clearSelection(); }) },
 
+    setTheme: function(themeName) {
+        this.withAceDo(function(ed) {
+            ed.setTheme(lively.ide.ace.moduleNameForTheme(themeName));
+        });
+    },
+
+    getTheme: function() {
+        return this.withAceDo(function(ed) {
+            var theme = ed.getTheme() || '';
+            return theme.replace('ace/theme/', '');
+        }) || '';
+    },
+
+    setTextMode: function(modeName) {
+        this.withAceDo(function(ed) {
+            ed.session.setMode(lively.ide.ace.moduleNameForTextMode(modeName));
+        });
+    },
+
+    getTextMode: function() {
+        return this.withAceDo(function(ed) {
+            var mode = ed.session.getMode(),
+                name = mode && mode.$id ? mode.$id : 'text';
+            return name.replace('ace/mode/', '');
+        }) || 'text';
+    }
 },
 'search and find', {
 

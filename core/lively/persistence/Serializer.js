@@ -495,7 +495,7 @@ ObjectLinearizerPlugin.subclass('StoreAndRestorePlugin',
     initialize: function($super) {
         $super();
         this.restoreObjects = [];
-    },
+    }
 },
 'plugin interface', {
     serializeObj: function(original, persistentCopy) {
@@ -518,20 +518,21 @@ ObjectLinearizerPlugin.subclass('StoreAndRestorePlugin',
                 console.error(Strings.format('Error during onrestore in %s: %s', ea, e));
             }
         })
-    },
+    }
 });
+
 ObjectLinearizerPlugin.subclass('DoNotSerializePlugin',
 'testing', {
     doNotSerialize: function(obj, propName) {
         if (!obj.doNotSerialize) return false;
         var merged = Object.mergePropertyInHierarchy(obj, 'doNotSerialize');
         return merged.include(propName);
-    },
+    }
 },
 'plugin interface', {
     ignoreProp: function(obj, propName, value) {
         return this.doNotSerialize(obj, propName);
-    },
+    }
 });
 
 ObjectLinearizerPlugin.subclass('DoWeakSerializePlugin',
@@ -540,7 +541,7 @@ ObjectLinearizerPlugin.subclass('DoWeakSerializePlugin',
         $super();
         this.weakRefs = [];
         this.nonWeakObjs = []
-    },
+    }
 },
 'testing', {
     doWeakSerialize: function(obj, propName) {

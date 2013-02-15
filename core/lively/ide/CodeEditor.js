@@ -1,18 +1,40 @@
 module('lively.ide.CodeEditor').requires('lively.morphic.TextCore', 'lively.morphic.Widgets', 'lively.ide.BrowserFramework').requiresLib({url: Config.codeBase + (lively.useMinifiedLibs ? 'lib/lively-ace.min.js' : 'lib/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
 
 lively.ide.ace = {
+    // currently supported: see availableTextModes
+    // available but not loaded by default are:
+    // "asciidoc", "c9search", "c_cpp", "coldfusion", "csharp", "curly",
+    // "dot", "glsl", "golang", "groovy", "haxe", "jsp", "jsx", "liquid",
+    // "lua", "luapage", "lucene", "ocaml", "perl", "pgsql", "php",
+    // "powershell", "rhtml", "ruby", "scad", "scala", "scss", "stylus",
+    // "tcl", "tex", "textile", "typescript", "vbscript", "xquery", "yaml"
+    availableTextModes: ["abap", "clojure", "coffee", "css", "dart", "diff", "haml", "html",
+                         "jade", "java", "javascript", "json", "latex", "less", "lisp",
+                         "makefile", "markdown", "objectivec", "python", "r", "rdoc", "sh",
+                         "sql", "svg", "text", "xml"],
+
     moduleNameForTextMode: function(textModeName) {
-        // currently supported are:
-        // "abap", "asciidoc", "c9search", "c_cpp", "clojure", "coffee",
-        // "coldfusion", "csharp", "css", "curly", "dart", "diff", "dot",
-        // "glsl", "golang", "groovy", "haml", "haxe", "html", "jade", "java",
-        // "javascript", "json", "jsp", "jsx", "latex", "less", "liquid",
-        // "lisp", "lua", "luapage", "lucene", "makefile", "markdown",
-        // "objectivec", "ocaml", "perl", "pgsql", "php", "powershell",
-        // "python", "r", "rdoc", "rhtml", "ruby", "scad", "scala", "scss",
-        // "sh", "sql", "stylus", "svg", "tcl", "tex", "text", "textile",
-        // "typescript", "vbscript", "xml", "xquery", "yaml"
-        return "ace/mode/" + textModeName;
+        return this.availableTextModes.include(textModeName) ?
+            "ace/mode/" + textModeName : null;
+    },
+
+    // supported: see availableThemes
+    // not loaded by default are:
+    // "ambiance", "chaos", "chrome", "clouds", "clouds_midnight",
+    // "cobalt", "crimson_editor", "dawn", "dreamweaver", "eclipse",
+    // "github", "idle_fingers", "kr", "merbivore", "merbivore_soft",
+    // "mono_industrial", "monokai", "pastel_on_dark", "solarized_dark",
+    // "solarized_light", "textmate", "tomorrow", "tomorrow_night",
+    // "tomorrow_night_blue", "tomorrow_night_bright",
+    // "tomorrow_night_eighties", "twilight", "vibrant_ink", "xcode"
+
+    availableThemes: ["ambiance", "monokai", "chrome", "pastel_on_dark", "textmate",
+                      "solarized_dark", "twilight", "tomorrow", "tomorrow_night",
+                      "tomorrow_night_blue", "tomorrow_night_bright", "eclipse"],
+
+    moduleNameForTheme: function(themeName) {
+        return this.availableThemes.include(themeName) ?
+            "ace/theme/" + themeName : null
     }
 }
 

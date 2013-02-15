@@ -20,14 +20,11 @@ lively.ide.ace = {
 
     // supported: see availableThemes
     // not loaded by default are:
-    // "ambiance", "chaos", "chrome", "clouds", "clouds_midnight",
-    // "cobalt", "crimson_editor", "dawn", "dreamweaver", "eclipse",
-    // "github", "idle_fingers", "kr", "merbivore", "merbivore_soft",
-    // "mono_industrial", "monokai", "pastel_on_dark", "solarized_dark",
-    // "solarized_light", "textmate", "tomorrow", "tomorrow_night",
-    // "tomorrow_night_blue", "tomorrow_night_bright",
-    // "tomorrow_night_eighties", "twilight", "vibrant_ink", "xcode"
-
+    // "xcode", "vibrant_ink", "tomorrow_night_eighties",
+    // "tomorrow_night_bright", "tomorrow_night_blue", "solarized_light",
+    // "mono_industrial", "merbivore_soft", "merbivore", "kr", "idle_fingers",
+    // "github", "dreamweaver", "dawn", "crimson_editor", "cobalt",
+    // "clouds_midnight", "clouds", "chaos"
     availableThemes: ["ambiance", "monokai", "chrome", "pastel_on_dark", "textmate",
                       "solarized_dark", "twilight", "tomorrow", "tomorrow_night",
                       "tomorrow_night_blue", "tomorrow_night_bright", "eclipse"],
@@ -602,19 +599,22 @@ lively.morphic.World.addMethods(
         return pane;
     },
 
-    openWorkspace: function(evt) {
+    openWorkspace: lively.morphic.World.prototype.openWorkspace.wrap(function($proceed, evt) {
+        if (!Config.get('useAceEditor')) { return $proceed(evt); }
         var window = this.addCodeEditor({
             title: "Workspace",
             content: "nothing",
             syntaxHighlighting: !0
         });
         return window;
-    },
+    }),
 
-    openObjectEditor: function() {
-        var objectEditor = this.openPartItem('ObjectEditor', 'PartsBin/Tools'),
+    openObjectEditor: lively.morphic.World.prototype.openObjectEditor.wrap(function($proceed) {
+        var objectEditor = $proceed(),
             textMorph = objectEditor.get('ObjectEditorScriptPane');
         if (!Config.get('useAceEditor') || textMorph.isAceEditor) return objectEditor;
+        // FIXME!!!
+        objectEditor.withAllSubmorphsDo(function(ea) { ea.setScale(1) });
         // replace the normal text morph of the object editor with a
         // CodeEditor
         var owner = textMorph.owner,
@@ -657,7 +657,7 @@ lively.morphic.World.addMethods(
         textMorph.remove();
         owner.reset();
         return objectEditor;
-    }
+    })
 });
 
 
@@ -685,19 +685,24 @@ Object.extend(lively.ide, {
     }
 });
 
+var origBrowserPanelSpec = lively.ide.BasicBrowser.prototype.panelSpec;
+
 lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 'settings', {
-    panelSpec: [
-        ['locationPane', newTextPane,                                                        [0,    0,    0.8,  0.03]],
-        ['codeBaseDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },        [0.8,  0,    0.12, 0.03]],
-        ['localDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },           [0.92, 0,    0.08, 0.03]],
-        ['Pane1', newDragnDropListPane,                                                      [0,    0.03, 0.25, 0.37]],
-        ['Pane2', newDragnDropListPane,                                                      [0.25, 0.03, 0.25, 0.37]],
-        ['Pane3', newDragnDropListPane,                                                      [0.5,  0.03, 0.25, 0.37]],
-        ['Pane4', newDragnDropListPane,                                                      [0.75, 0.03, 0.25, 0.37]],
-        ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.44, 1,    0.01]],
-        ['sourcePane', lively.ide.newCodeEditor,                                             [0,    0.45, 1,    0.54]]
-    ]
+    get panelSpec() {
+        if (!Config.get('useAceEditor')) return origBrowserPanelSpec;
+        return [
+            ['locationPane', newTextPane,                                                        [0,    0,    0.8,  0.03]],
+            ['codeBaseDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },        [0.8,  0,    0.12, 0.03]],
+            ['localDirBtn', function(bnds) { return new lively.morphic.Button(bnds) },           [0.92, 0,    0.08, 0.03]],
+            ['Pane1', newDragnDropListPane,                                                      [0,    0.03, 0.25, 0.37]],
+            ['Pane2', newDragnDropListPane,                                                      [0.25, 0.03, 0.25, 0.37]],
+            ['Pane3', newDragnDropListPane,                                                      [0.5,  0.03, 0.25, 0.37]],
+            ['Pane4', newDragnDropListPane,                                                      [0.75, 0.03, 0.25, 0.37]],
+            ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) }, [0,    0.44, 1,    0.01]],
+            ['sourcePane', lively.ide.newCodeEditor,                                             [0,    0.45, 1,    0.54]]
+        ]
+    }
 });
 
 

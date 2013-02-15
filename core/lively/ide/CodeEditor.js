@@ -256,6 +256,16 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 bindKey: {win: "Ctrl-F", mac: "Command-F"},
                 exec: this.searchWithPrompt.bind(this),
                 readOnly: true
+            }, {
+                name: "findnext",
+                bindKey: {win: "Ctrl-K", mac: "Command-G"},
+                exec: this.findNext.bind(this),
+                readOnly: true
+            }, {
+                name: "findprevious",
+                bindKey: {win: "Ctrl-Shift-K", mac: "Command-Shift-G"},
+                exec: this.findPrev.bind(this),
+                readOnly: true
             }]);
     },
 
@@ -348,16 +358,29 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             world.prompt('Enter text or regexp to search for.', function(input) {
                 if (!input) { ed.focus(); return };
                 var regexpMatch = input.match(/^\/(.*)\/$/),
-                    needle = regexpMatch && regexpMatch[1] ? new RegExp(regexpMatch[1], "g") : input;
+                    needle = regexpMatch && regexpMatch[1] ? new RegExp(regexpMatch[1], "") : input;
                 ed.focus();
                 ed.find({
                     needle: needle,
                     preventScroll: false,
                     skipCurrent: true,
                     start: ed.getCursorPosition(),
-                    wrap: false
+                    wrap: false,
+                    animate: true
                 });
             });
+        });
+    },
+
+    findNext: function() {
+        this.withAceDo(function(ed) {
+            ed.find({skipCurrent: true, backwards: false, needle: ed.$search.$options.needle});
+        });
+    },
+
+    findPrev: function() {
+        this.withAceDo(function(ed) {
+            ed.find({skipCurrent: true, backwards: true, needle: ed.$search.$options.needle});
         });
     }
 },

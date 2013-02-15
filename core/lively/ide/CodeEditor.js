@@ -266,6 +266,16 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 bindKey: {win: "Ctrl-Shift-K", mac: "Command-Shift-G"},
                 exec: this.findPrev.bind(this),
                 readOnly: true
+            }, {
+                name: "multiSelectNext",
+                bindKey: "Ctrl-Shift-.",
+                exec: this.multiSelectNext.bind(this),
+                readOnly: true
+            }, {
+                name: "multiSelectPrev",
+                bindKey: "Ctrl-Shift-,",
+                exec: this.multiSelectPrev.bind(this),
+                readOnly: true
             }]);
     },
 
@@ -528,6 +538,35 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (!sel) return "";
         var range = sel.isEmpty() ? sel.getLineRange() : editor.getSelectionRange();
         return editor.session.getTextRange(range);
+    },
+
+    multiSelectNext: function() {
+        this.multiSelect({backwards: false});
+    },
+
+    multiSelectPrev: function() {
+        this.multiSelect({backwards: true});
+    },
+
+    multiSelect: function(options) {
+        options = options || {}
+        this.withAceDo(function(ed) {
+            var needle = '';
+            if (!ed.selection.isEmpty()) {
+                var range = ed.selection.getRange();
+                needle = ed.session.getTextRange(range);
+            } else if (ed.$search.$options.needle) {
+                needle = ed.$search.$options.needle;
+            }
+            alert(needle)
+            var foundRange = ed.find({
+                skipCurrent: true,
+                backwards: options.backwards,
+                needle: needle,
+                preventScroll: true
+            });
+            ed.selection.addRange(foundRange);
+        });
     }
 
 },

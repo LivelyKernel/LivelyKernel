@@ -187,8 +187,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 multiSelectAction: "single",
                 readOnly: false
             }, {
-                name: 'doInspect',
+                name: 'printInspect',
                 bindKey: {win: 'Ctrl-I',  mac: 'Command-I'},
+                exec: this.printInspect.bind(this),
+                multiSelectAction: "forEach",
+                readOnly: true
+            }, {
+                name: 'doInspect',
+                bindKey: {win: 'Ctrl-Shift-I',  mac: 'Command-Shift-I'},
                 exec: this.doInspect.bind(this),
                 multiSelectAction: "forEach",
                 readOnly: true
@@ -403,21 +409,27 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return result;
     },
 
+    printObject: function(editor, obj) {
+        var sel = editor.selection;
+        sel && sel.clearSelection();
+        var start = sel && sel.getCursor();
+        editor.onPaste(String(obj));
+        var end = start && sel.getCursor();
+        if (start && end) {
+            sel.moveCursorToPosition(start);
+            sel.selectToPosition(end);
+        }
+    },
+
     doit: function(printResult, editor) {
         var text = this.getSelectionOrLineString(),
-            sel = editor.selection,
             result = this.tryBoundEval(text);
         if (printResult) {
-            sel && sel.clearSelection();
-            var start = sel && sel.getCursor();
-            editor.onPaste(String(result));
-            var end = start && sel.getCursor();
-            if (start && end) {
-                sel.moveCursorToPosition(start);
-                sel.selectToPosition(end);
-            }
-            // editor.navigateLeft(result.length);
-        } else if (sel && sel.isEmpty()) {
+            this.printObject(editor, result);
+            return;
+        }
+        var sel = editor.selection;
+        if (sel && sel.isEmpty()) {
             sel.selectLine();
         }
     },
@@ -443,6 +455,19 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             }]
         }
         pl.evalSelectionAndOpenListForProtocol();
+    },
+
+    doInspect: function() {
+        var obj = this.evalSelection();
+        if (obj) lively.morphic.inspect(obj);
+    },
+
+    printInspect: function() {
+        var self = this;
+        this.withAceDo(function(ed) {
+            var obj = self.evalSelection();
+            self.printObject(ed, Objects.inspect(obj));
+        });
     },
 
     getDoitContext: function() { return this.doitContext || this; }
@@ -535,11 +560,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (this.evalEnabled) {
             this.tryBoundEval(this.savedTextString);
         }
-    },
-
-    doInspect: function() {
-        var obj = this.evalSelection();
-        if (obj) lively.morphic.inspect(obj);
     },
 
     setFontSize: function(size) {

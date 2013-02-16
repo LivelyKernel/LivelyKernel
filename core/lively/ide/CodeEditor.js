@@ -467,6 +467,34 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         }
         document.addEventListener("mouseup", upHandler, true);
         return $super(evt);
+    },
+
+    isScrollable: function() { return true; },
+
+    stopScrollWhenBordersAreReached: function(evt) {
+        // because of how ace scrolls internally these works a bit different to
+        // the morphic #stopScrollWhenBordersAreReached
+        var ed = this.aceEditor,
+            renderer = ed.renderer;
+        if (evt.wheelDeltaX) {/*...*/}
+        if (evt.wheelDeltaY) {
+            if (evt.wheelDeltaY > 0 && renderer.getFirstFullyVisibleRow() === 0) {
+                evt.stop();
+                return true;
+            }
+            var lineCount = ed.session.getScreenLength();
+            if (evt.wheelDeltaY < 0 && renderer.getLastFullyVisibleRow() >= (lineCount-1)) {
+                evt.stop();
+                return true;
+            }
+        }
+        return true;
+    },
+
+    scrollWithMouseWheelEvent: function (evt) {
+        // the actual scrolling happens internally in ace
+        // we just make sure that we don't "overscroll":
+        this.stopScrollWhenBordersAreReached(evt);
     }
 },
 'text morph eval interface', {

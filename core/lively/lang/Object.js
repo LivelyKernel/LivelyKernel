@@ -191,34 +191,52 @@ if (this.window && window.navigator && window.navigator.userAgent.match(/Firefox
 
 Global.Objects = {
 
-    inspect: function(obj, depth) {
+    inspect: function(obj, maxDepth, depth) {
         depth = depth || 0;
         if (!obj) { return Strings.print(obj); }
+
         // print function
         if (Object.isFunction(obj)) {
             return 'function'
                  + (obj.name ? ' ' + obj.name : '')
                  + '('
                  + obj.argumentNames().join(',')
-                 + ') {...}', '  ', depth;
+                 + ') {/*...*/}';
         }
+
         // print "primitive"
-	    switch (obj.constructor) {
-		    case String:
-		    case Boolean:
-		    case Boolean:
+        switch (obj.constructor) {
+            case String:
+            case Boolean:
+            case Boolean:
             case RegExp:
-		    case Number: return Strings.print(obj);
-	    };
-        var printedProps = Object.keys(obj).map(function(key) {
-            return key + ': ' + this.inspect(obj[key], depth + 1);
-        }, this);
+            case Number: return Strings.print(obj);
+        };
+
+        if (maxDepth && depth >= maxDepth) { return '{/*...*/}'; }
+
+        var printedProps = Object.keys(obj)
+           // .select(function(key) { return obj.hasOwnProperty(key); })
+            .sort(function(a, b) {
+                var aIsFunc = Object.isFunction(obj[a]), bIsFunc = Object.isFunction(obj[b]);
+                if (aIsFunc === bIsFunc) {
+                    if (a < b)  return -1;
+                    if (a > b) return 1;
+                    return 0;
+                };
+                return aIsFunc ? 1 : -1;
+            })
+            .map(function(key) {
+                return key + ': ' + Objects.inspect(obj[key], maxDepth, depth + 1);
+            });
+
         if (printedProps.length === 0) { return '{}'; }
+
         var indent = Strings.indent('', '  ', depth),
             propIndent = Strings.indent('', '  ', depth + 1);
         return '{\n'
              + propIndent
-             + printedProps.join('\n' + propIndent)
+             + printedProps.join(',\n' + propIndent)
              + '\n' + indent + '}';
     },
 

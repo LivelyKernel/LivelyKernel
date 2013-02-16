@@ -119,9 +119,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         var node = this.getShape().shapeNode,
             e = this.aceEditor = this.aceEditor || ace.edit(node),
             morph = this;
-        this.aceEditor.on('focus', function() { morph._isFocused = true; })
-        this.aceEditor.on('blur', function() { morph._isFocused = false; })
+        e.on('focus', function() { morph._isFocused = true; });
+        e.on('blur', function() { morph._isFocused = false; });
         node.setAttribute('id', 'ace-editor');
+        e.session.setUseSoftTabs(true);
         // 2) set modes / themes
         this.setStyleSheet('#ace-editor {'
                           + ' position:absolute;'

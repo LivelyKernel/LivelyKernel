@@ -1,4 +1,4 @@
-module('lively.Touch').requires('lively.TestFramework').toRun(function () {
+module('lively.Touch').requires('lively.morphic.IPadWidgets', 'lively.TestFramework').toRun(function () {
 
 cop.create('IPadExtensions')
 .refineClass(lively.morphic.EventHandler, {

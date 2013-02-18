@@ -592,7 +592,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
 },
 'text morph save content interface', {
-    hasUnsavedChanges: function() { return this.savedTextString !== this.textString; }
+    hasUnsavedChanges: function() {
+        // return this.savedTextString !== this.textString;
+        return false;
+    }
 },
 'text morph event interface', {
     focus: function() { this.aceEditor.focus(); },

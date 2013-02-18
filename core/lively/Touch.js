@@ -1,8 +1,8 @@
 module('lively.Touch').requires('lively.TestFramework').toRun(function () {
 
-cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
+cop.create('IPadExtensions')
+.refineClass(lively.morphic.EventHandler, {
     patchEvent: function(evt) {
-        evt = cop.proceed(evt);
         evt = cop.proceed(evt);
         if (['touchend', 'touchstart', 'touchmove'].include(evt.type)) {
             this.patchTouchEvent(evt);
@@ -11,8 +11,9 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
             }
         }
         return evt;
-    },
-}).refineClass(lively.morphic.World, {
+    }
+})
+.refineClass(lively.morphic.World, {
     onrestore: function(){
         connect(lively.morphic.World, "currentWorld", this, "loadHoldIndicator");
         cop.proceed();
@@ -51,7 +52,8 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
             this.getTouchMenu().remove();
         return cop.proceed(arguments)
     }
-}).refineClass(lively.morphic.Morph, {
+})
+.refineClass(lively.morphic.Morph, {
     onMouseDown: function (evt) {
         cop.proceed(evt);
 
@@ -302,6 +304,7 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
   // return this;
 // };
 
+// what is this test doing here???
 TestCase.subclass('TouchEventsTest',
 'default category', {
     testRegisterForGestureEvents: function() {

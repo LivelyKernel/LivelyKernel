@@ -1,8 +1,8 @@
-module('lively.Touch').requires('lively.TestFramework').toRun(function () {
+module('lively.Touch').requires('lively.morphic.IPadWidgets', 'lively.TestFramework').toRun(function () {
 
-cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
+cop.create('IPadExtensions')
+.refineClass(lively.morphic.EventHandler, {
     patchEvent: function(evt) {
-        evt = cop.proceed(evt);
         evt = cop.proceed(evt);
         if (['touchend', 'touchstart', 'touchmove'].include(evt.type)) {
             this.patchTouchEvent(evt);
@@ -11,8 +11,9 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
             }
         }
         return evt;
-    },
-}).refineClass(lively.morphic.World, {
+    }
+})
+.refineClass(lively.morphic.World, {
     onrestore: function(){
         connect(lively.morphic.World, "currentWorld", this, "loadHoldIndicator");
         cop.proceed();
@@ -21,8 +22,7 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
     morphMenuItems: function() {
         var items = cop.proceed();
         items[2][1][7] = ['Flap', function() {
-                var flap = new lively.morphic.Flap('Custom', 'bottom');
-                flap.enableSelection();
+                var flap = new lively.morphic.Flap('bottom');
             }];
         return items
     },
@@ -52,7 +52,8 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
             this.getTouchMenu().remove();
         return cop.proceed(arguments)
     }
-}).refineClass(lively.morphic.Morph, {
+})
+.refineClass(lively.morphic.Morph, {
     onMouseDown: function (evt) {
         cop.proceed(evt);
 
@@ -270,8 +271,6 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
         return returnValue
     }
 
-
-
 })
 // the following code can be used in combination with ensureselectionmorph (not used right now)
 // .refineClass(lively.morphic.Button, {
@@ -297,13 +296,15 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
 // })
 .beGlobal();
 
-// the selection morph can be used to enable or disable an edit mode. Not used right now, so there is no need to overwrite this function 
+// the selection morph can be used to enable or disable an edit mode. Not used
+// right now, so there is no need to overwrite this function
 // IPadExtensions.beGlobal = function(){
   // cop.enableLayer(this);
   // $world.ensureSelectionMorph();
   // return this;
 // };
 
+// what is this test doing here???
 TestCase.subclass('TouchEventsTest',
 'default category', {
     testRegisterForGestureEvents: function() {
@@ -974,7 +975,7 @@ lively.morphic.Morph.addMethods(
         renameHalo.labelMorph.disableSelection();
 
         renameHalo.setScale(2 / $world.getZoomLevel() / this.getGlobalTransform().getScale());
-        
+
         border.addMorph(renameHalo);
 
         renameHalo.fit.bind(renameHalo).delay(0);
@@ -1235,11 +1236,6 @@ lively.morphic.Morph.addMethods(
 },
 "fixed", {
 
-
-
-
-
-
     toggleScrolling: function(isScrolling) {
         if(!this.isFixed) return
         if(isScrolling) {
@@ -1276,93 +1272,7 @@ lively.morphic.Morph.addMethods(
     beTool: function () {
         this.setWithLayers([ToolMorphLayer]);
     },
-    openInFlap: function(alignment) {
-        var world = lively.morphic.World.current(),
-            name = (this.getName? this.getName() : this.toString()) + '_Flap',
-            owner = this.owner,
-            mappedData = this.mapToFlapBounds(alignment),
-            bounds = mappedData.flapBounds,
-            morphPosition = mappedData.morphPosition;
-        if (!owner) {
-            console.log('opening morph flap in World')
-            owner = lively.morphic.World.current();
-        }
-        var flap = new lively.morphic.Flap(name, alignment, owner, bounds);
-        flap.addMorph(this);
-        this.adjustHandlePosition(flap)
-        this.setScale(world.getZoomLevel());
-        this.setPosition(morphPosition);
-        return flap
-    },
-    mapToFlapBounds: function(alignment) {
-        var world = lively.morphic.World.current(),
-            name = (this.getName? this.getName() : this.toString()) + '_Flap',
-            owner = this.owner,
-            ownerBounds = owner === world? world.visibleBounds() : owner.getBounds(),
-            offset = 5,// / world.getZoomLevel(),
-            morphExtent = this.getExtent(),//.scaleBy(1 / world.getZoomLevel()),
-            extent, morphPosition, flapPosition;
-        if (!owner) {
-            console.log('opening morph flap in World')
-            owner = lively.morphic.World.current();
-        }
-        // map to flap bounds
-        switch (alignment) {
-            case 'top': {
-                extent = pt(morphExtent.x, this.getBounds().bottomRight().y - ownerBounds.topLeft().y);
-                extent = extent.addPt(pt(2*offset, 2*offset));
-                flapPosition = pt(this.getPosition().x, 0);
-                morphPosition = pt(offset, extent.y - (morphExtent.y * (1/world.getZoomLevel()))- offset)
-                break;
-            }
-            case 'left': {
-                extent = pt(this.getBounds().bottomRight().x - ownerBounds.topLeft().x, morphExtent.y);
-                extent = extent.addPt(pt(2*offset, 2*offset));
-                flapPosition = pt(0,this.getPosition().y);
-                morphPosition = pt(extent.x - (morphExtent.x * (1/world.getZoomLevel())) - offset, offset);
-                break
-            }
-            case 'bottom': {
-                extent = pt(morphExtent.x, ownerBounds.bottomRight().y - this.getBounds().topLeft().y);
-                extent = extent.addPt(pt(2*offset, 2*offset));
-                flapPosition = pt(this.getPosition().x, ownerBounds.bottomRight().y - extent.y);
-                morphPosition = pt(5,5)
-                break;
-            }
-            case 'right': {
-                extent = pt(ownerBounds.bottomRight().x - this.getBounds().topLeft().x, morphExtent.y);
-                extent = extent.addPt(pt(2*offset, 2*offset));
-                flapPosition = pt(ownerBounds.bottomRight().x - extent.x,this.getPosition().y);
-                morphPosition = pt(5,5)
-                break;
-            }
-        }
-        return {flapBounds: flapPosition.extent(extent), morphPosition: morphPosition};
-    },
-    adjustHandlePosition: function(flap) {
-        switch(flap.alignment) {
-            case 'top': {
-                flap.flapHandle.setPosition(pt(5,flap.getExtent().y))
-                break
-            }
-            case 'right': {
-                flap.flapHandle.setPosition(pt(flap.flapHandle.getPosition().x, 5))
-                break
-            }
-            case 'left': {
-                flap.flapHandle.setPosition(pt(flap.flapHandle.getPosition().x, 5))
-                break
-            }
-            case 'bottom': {
-                flap.flapHandle.setPosition(pt(5,flap.flapHandle.getPosition().y))
-                break
-            }
-        }
-    }
-
-
-
-}, 
+},
 'Gestures', {
     onGestureChange: function (evt) {
         if(this.areEventsIgnoredOrDisabled()){
@@ -1481,7 +1391,7 @@ lively.morphic.Morph.addMethods(
             this.lastTap.event = evt;
         }
     }
-}, 
+},
 'grabbing behavior', {
     getGrabShadow: function () {
         this.withAllSubmorphsDo(function(ea) {
@@ -1756,7 +1666,7 @@ lively.morphic.World.addMethods(
             delete this.currentPieTarget;
         }
     },
-    
+
     onTap: function($super, evt) {
         $super(evt);
         this.getTouchMenu().remove()
@@ -1803,7 +1713,7 @@ lively.morphic.World.addMethods(
             x = handPosition.x,
             y = handPosition.y,
             scrollThreshold = 50;
-            
+
         if(x < scrollThreshold ){
             window.scrollBy(x-scrollThreshold , 0);
         }
@@ -1977,7 +1887,7 @@ lively.morphic.World.addMethods(
 
         return items;
     },*/
-}, 
+},
 'Gestures', {
     onGestureChange: function(evt) {
 
@@ -2027,7 +1937,7 @@ lively.morphic.World.addMethods(
         this.zoomLevel = this.calculateCurrentZoom();
         this.onWindowScroll();
     },
-}, 
+},
 'Selection Status', {
     ensureSelectionMorph: function() {
     // Not in use
@@ -3643,7 +3553,89 @@ lively.morphic.Box.subclass('ToolContainer',
 lively.morphic.Tab.addMethods({
     onTap: function(evt) {
         this.getTabBar().activateTab(this);
-    },    
+    },
+})
+
+lively.morphic.Flap.addMethods({
+    initialize: function($super) {
+        $super(this.defaultShape());
+        var args = $A(arguments)
+        args.shift()
+        this.init.apply(this, args);
+        this.disableSelection();
+    },
+    onTouchEnd: function(evt) {
+        evt.stop();
+        return true;
+    },
+    onTouchMove: function(evt) {
+        evt.stop();
+        return true;
+    },
+    onTouchStart: function(evt) {
+        evt.stop();
+        return true;
+    },
+})
+
+lively.morphic.FlapHandle.addMethods({
+    onTouchEnd: function (evt) {
+        evt.stop();
+        if (this.isMovingFlap) {
+            this.flap.setLastPosition(this.flap.getPosition())
+        }
+        delete this.isMovingFlap
+        return true
+    },
+    onTouchMove: function (evt) {
+        this.setNextPos(evt.getPosition())
+        this.isMovingFlap = true;
+        evt.stop();
+        return true;
+    },
+    onTouchStart: function(evt) {
+        evt.stop();
+        return true;
+    },
+    setNextPos: function (touchPosition) {
+        var flap = this.flap,
+            world = lively.morphic.World.current(),
+            pos = this.flap.getPosition(),
+            topLeft = world.visibleBounds().topLeft();
+        switch (this.getAlignment()) {
+            case 'left': {
+                var offset = flap.getExtent().x + this.getExtent().y,
+                    scaledOffset = offset / world.getZoomLevel();
+                pos.x = Math.max(touchPosition.x - scaledOffset, this.flap.getCollapsedPosition().x);
+                pos.x = Math.min(pos.x, flap.getExpandedPosition().x);
+                break;
+            };
+            case 'top': {
+                var offset = flap.getExtent().y + this.getExtent().y,
+                    scaledOffset = offset / world.getZoomLevel();
+                pos.y = Math.max(touchPosition.y - scaledOffset, this.flap.getCollapsedPosition().y);
+                pos.y = Math.min(pos.y, this.flap.getExpandedPosition().y)
+                break
+            };
+            case 'right': {
+                pos.x = Math.max(touchPosition.x, this.flap.getExpandedPosition().x);
+                pos.x = Math.min(pos.x, this.flap.getCollapsedPosition().x);
+                break
+            };
+            case 'bottom': {
+                pos.y = Math.max(touchPosition.y, this.flap.getExpandedPosition().y);
+                pos.y = Math.min(pos.y, this.flap.getCollapsedPosition().y);
+                break
+            }
+        }
+        var fixed = this.flap.isFixed;
+        fixed && this.flap.setFixed(false)
+        this.flap.setPosition(pos)
+        fixed && this.flap.setFixed(true);
+    },
+    onTap: function() {
+        this.flap.toggle();
+    },
 })
 
 }); // end of module

@@ -996,10 +996,17 @@ lively.morphic.Morph.addMethods(
         return true;
     },
     morphMenuItems: function() {
-        var self = this, world = this.world(), items = [
-            ['Publish', function(evt) { self.copyToPartsBinWithUserRequest(); }],
-            ['Open in window', function(evt) {self.openInWindow(evt.mousePoint); }]
-        ];
+        var self = this,
+            world = this.world(),
+            items = [
+                ['Publish', function(evt) { self.copyToPartsBinWithUserRequest(); }],
+                ['Open in...', [
+                    ['Window', function(evt) { self.openInWindow(evt.mousePoint); }],
+                    ['Flap...', ['top', 'right', 'bottom', 'left'].map(function(align) {
+                        return [align, function(evt) {
+                            require('lively.morphic.MorphAddons').toRun(function() {
+                                self.openInFlap(align); }); }]; })]
+                ]]];
 
         // Drilling into scene to addMorph or get a halo
         // whew... this is expensive...

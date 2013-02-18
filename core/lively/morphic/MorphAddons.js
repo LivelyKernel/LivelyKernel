@@ -1044,15 +1044,15 @@ lively.morphic.Morph.addMethods(
         this.withCSSTransitionDo(this.setExtent.curry(extent), time, callback);
     }
 });
+
 lively.morphic.Morph.addMethods({
     openInFlap: function(alignment) {
         var world = lively.morphic.World.current(),
             owner = this.owner || lively.morphic.World.current(),
             offset = 5,
-            //mappedData = this.mapToFlapBounds(alignment),
             flapBounds = this.determineFlapBounds(alignment, owner, offset),
-            scaleFactor = this.owner === world? world.getZoomLevel() : 1;
-        var flap = new lively.morphic.Flap(alignment, owner, flapBounds);
+            scaleFactor = this.owner === world? world.getZoomLevel() : 1,
+            flap = new lively.morphic.Flap(alignment, owner, flapBounds);
         flap.addMorph(this);
         flap.setFixed(false);
         flap.setScale(1/scaleFactor);
@@ -1060,7 +1060,7 @@ lively.morphic.Morph.addMethods({
         this.adjustHandlePosition(flap)
         this.setScale(scaleFactor);
         this.setPosition(this.determineMorphPosition(alignment, flapBounds.extent(), scaleFactor, offset));
-        return flap
+        return flap;
     },
     mapToFlapBounds: function(alignment) {
         var world = lively.morphic.World.current(),
@@ -1144,38 +1144,23 @@ lively.morphic.Morph.addMethods({
             ownerPosition = ownerBounds.topLeft(),
             ownerExtent = ownerBounds.extent();
         switch (alignment) {
-            case 'top': {
-                return pt(myPosition.x - ownerPosition.x - offset, 0);
-            }
-            case 'left': {
-                return pt(0,myPosition.y - ownerPosition.y - offset);
-                break
-            }
-            case 'bottom': {
-                return pt(myPosition.x - offset, ownerBounds.bottomRight().y - flapExtent.y).subPt(ownerPosition)
-            }
-            case 'right': {
-                return pt(ownerBounds.bottomRight().x - flapExtent.x + offset, myPosition.y).subPt(ownerPosition)
-            }
+            case 'top': return pt(myPosition.x - ownerPosition.x - offset, 0);
+            case 'left': return pt(0,myPosition.y - ownerPosition.y - offset);
+            case 'bottom': return pt(myPosition.x - offset, ownerBounds.bottomRight().y - flapExtent.y).subPt(ownerPosition);
+            case 'right': return pt(ownerBounds.bottomRight().x - flapExtent.x + offset, myPosition.y).subPt(ownerPosition);
+            default: return pt(0,0);
         }
     },
-
 
     determineMorphPosition: function(alignment, flapExtent, scaleFactor, offset) {
         var myExtent = this.getExtent();
         switch (alignment) {
-            case 'top': {
-                return pt(offset, (flapExtent.y - myExtent.y) * scaleFactor - offset)
-            }
-            case 'left': {
-                return pt((flapExtent.x - myExtent.x) * scaleFactor - offset, offset);
-            }
-            case 'bottom': case 'right': {
-                return pt(offset,offset)
-            }
+            case 'top': return pt(offset, (flapExtent.y - myExtent.y) * scaleFactor - offset);
+            case 'left': return pt((flapExtent.x - myExtent.x) * scaleFactor - offset, offset);
+            case 'bottom': case 'right': return pt(offset,offset);
+            default: return pt(0,0);
         }
     },
-
 
     adjustHandlePosition: function(flap) {
         switch(flap.alignment) {
@@ -1197,8 +1182,6 @@ lively.morphic.Morph.addMethods({
             }
         }
     }
-
-
 
 });
 

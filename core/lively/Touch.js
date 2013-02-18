@@ -294,7 +294,8 @@ cop.create('IPadExtensions').refineClass(lively.morphic.EventHandler, {
 // })
 .beGlobal();
 
-// the selection morph can be used to enable or disable an edit mode. Not used right now, so there is no need to overwrite this function 
+// the selection morph can be used to enable or disable an edit mode. Not used
+// right now, so there is no need to overwrite this function
 // IPadExtensions.beGlobal = function(){
   // cop.enableLayer(this);
   // $world.ensureSelectionMorph();
@@ -971,7 +972,7 @@ lively.morphic.Morph.addMethods(
         renameHalo.labelMorph.disableSelection();
 
         renameHalo.setScale(2 / $world.getZoomLevel() / this.getGlobalTransform().getScale());
-        
+
         border.addMorph(renameHalo);
 
         renameHalo.fit.bind(renameHalo).delay(0);
@@ -1232,11 +1233,6 @@ lively.morphic.Morph.addMethods(
 },
 "fixed", {
 
-
-
-
-
-
     toggleScrolling: function(isScrolling) {
         if(!this.isFixed) return
         if(isScrolling) {
@@ -1282,20 +1278,20 @@ lively.morphic.Morph.addMethods(
             morphPosition = mappedData.morphPosition,
             ownerZoom = this.owner === world? world.getZoomLevel() : 1;
         if (!owner) {
-            console.log('opening morph flap in World')
+            console.log('opening morph flap in World');
             owner = lively.morphic.World.current();
         }
         var flap = new lively.morphic.Flap(name, alignment, owner, bounds);
         flap.setFixed(false);
         flap.setScale(1/ownerZoom);
-        //flap.setPosition(flap.getPosition().scaleBy(1/ownerZoom))
         flap.setFixed(true);
         flap.addMorph(this);
         this.adjustHandlePosition(flap)
         this.setScale(world.getZoomLevel());
         this.setPosition(morphPosition);
-        return flap
+        return flap;
     },
+
     mapToFlapBounds: function(alignment) {
         var world = lively.morphic.World.current(),
             name = (this.getName? this.getName() : this.toString()) + '_Flap',
@@ -1364,7 +1360,7 @@ lively.morphic.Morph.addMethods(
 
 
 
-}, 
+},
 'Gestures', {
     onGestureChange: function (evt) {
         if(this.areEventsIgnoredOrDisabled()){
@@ -1483,7 +1479,7 @@ lively.morphic.Morph.addMethods(
             this.lastTap.event = evt;
         }
     }
-}, 
+},
 'grabbing behavior', {
     getGrabShadow: function () {
         this.withAllSubmorphsDo(function(ea) {
@@ -1758,7 +1754,7 @@ lively.morphic.World.addMethods(
             delete this.currentPieTarget;
         }
     },
-    
+
     onTap: function($super, evt) {
         $super(evt);
         this.getTouchMenu().remove()
@@ -1805,7 +1801,7 @@ lively.morphic.World.addMethods(
             x = handPosition.x,
             y = handPosition.y,
             scrollThreshold = 50;
-            
+
         if(x < scrollThreshold ){
             window.scrollBy(x-scrollThreshold , 0);
         }
@@ -1979,7 +1975,7 @@ lively.morphic.World.addMethods(
 
         return items;
     },*/
-}, 
+},
 'Gestures', {
     onGestureChange: function(evt) {
 
@@ -2029,7 +2025,7 @@ lively.morphic.World.addMethods(
         this.zoomLevel = this.calculateCurrentZoom();
         this.onWindowScroll();
     },
-}, 
+},
 'Selection Status', {
     ensureSelectionMorph: function() {
     // Not in use
@@ -3645,7 +3641,7 @@ lively.morphic.Box.subclass('ToolContainer',
 lively.morphic.Tab.addMethods({
     onTap: function(evt) {
         this.getTabBar().activateTab(this);
-    },    
+    },
 })
 
 lively.morphic.Flap.addMethods({
@@ -3727,7 +3723,7 @@ lively.morphic.FlapHandle.addMethods({
     },
     onTap: function() {
         this.flap.toggle();
-    },    
+    },
 })
 
 }); // end of module

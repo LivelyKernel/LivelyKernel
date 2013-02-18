@@ -118,3 +118,7 @@
 	background-image: -moz-linear-gradient(top, #EEE, #CCC);
 	background: linear-gradient(bottom, #EEE, #CCC);
 }
+
+.FlapHandle {
+	border: 1px solid black;
+}

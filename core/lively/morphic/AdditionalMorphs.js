@@ -1521,7 +1521,7 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
         this.initializeHandle(owner);
         if (owner.isWorld) {
             this.setFixed(true);
-            this.fixedScale = 1;
+            this.fixedScale = 1//$world.getZoomLevel();
         }
         this.expanded = true;
     },

@@ -300,6 +300,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 exec: this.multiSelectPrev.bind(this),
                 readOnly: true
             }]);
+
+        if (Object.isFunction(Config.codeEditorUserKeySetup)) {
+            Config.codeEditorUserKeySetup(this);
+        }
     },
 
     setupRobertsKeyBindings: function() {

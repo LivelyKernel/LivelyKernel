@@ -208,14 +208,25 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 multiSelectAction: "forEach",
                 readOnly: true
             },
+            // code manipulation
+            {
+                name: "blockoutdent",
+                bindKey: {win: "Ctrl-[", mac: "Command-["},
+                exec: function(editor) { editor.blockOutdent(); },
+                multiSelectAction: "forEach"
+            }, {
+                name: "blockindent",
+                bindKey: {win: "Ctrl-]", mac: "Command-]"},
+                exec: function(editor) { editor.blockIndent(); },
+                multiSelectAction: "forEach"
+            },
             // selection / movement
             {
                 name: 'clearSelection',
                 bindKey: 'Escape',
                 exec: this.clearSelection.bind(this),
                 readOnly: true
-            },
-            {
+            }, {
                 name: 'moveForwardToMatching',
                 bindKey: {win: 'Ctrl-Right',  mac: 'Command-Right'},
                 exec: this.moveForwardToMatching.bind(this, false),

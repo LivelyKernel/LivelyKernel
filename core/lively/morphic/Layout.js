@@ -353,8 +353,14 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
         var minWidth = this.getMinWidth(container, submorphs),
             minHeight = this.getMinHeight(container, submorphs);
         if (width < minWidth || height < minHeight) {
+            if (typeof(container.getClipMode()) === 'string') {
+                var clipPolicy = {x: container.getClipMode(), y: container.getClipMode()};
+            }
+            else clipPolicy = container.getClipMode();
             if (width < minWidth) width = minWidth;
+            if (['hidden', 'scroll', 'auto'].include(clipPolicy.x)) width = container.getExtent().x
             if (extent.y < minHeight) height = minHeight;
+            if (['hidden', 'scroll', 'auto'].include(clipPolicy.y)) height = container.getExtent().y
             container.setExtent(pt(width, height));
         }
         var borderSizeTop = this.getBorderSize("top");
